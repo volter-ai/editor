@@ -1,4 +1,4 @@
-# Remaining release work
+# Public release status
 
 The first release is Volter Editor with Blender modeling. The eight-package
 publication list is `release/modeling.json`. Game packages are excluded;
@@ -87,14 +87,30 @@ Three-aware core is permitted.
    An anonymous range download succeeded, and the product manifest pins that
    public release.
 
-## Required for public cutover
+## Verified public release
 
-1. Publish the eight modeling packages in dependency order and verify a clean
-   install with no local packages, registry credentials or cached workbench.
-2. Repeat installed startup, one-tab reuse, Blender inspection/mutation/save,
-   viewport capture and silent-console acceptance through the public artifacts.
-3. Cut over consumers after acceptance. Do not maintain two editable copies or
-   a recurring source-export process.
+1. The eight modeling packages are public on npm in dependency order. A fresh
+   installation resolved all eight from the public registry with `NODE_AUTH_TOKEN`
+   and `NPM_TOKEN` removed, `/dev/null` as the npm user config, a new empty npm
+   cache, no workspace links and no pre-existing workbench cache entry.
+2. Installed `@volter/editor@0.5.57` anonymously downloaded the 142 MB public
+   workbench, matched SHA-256
+   `57692dc03bd5e37f1b02c817bf0601ee3f3d410b6147c24ccd978d22ff4f81ca`,
+   extracted it and opened the generated modeling project at its stable URL.
+3. The public installed session presented the cube, grid, Outliner, Properties
+   and Chat in a non-degenerate 1728x941 editor capture. Repeating `edit` reused
+   the same tab id with one editor client. The sole initial zero-size sample was
+   acknowledged only after the current invariant, visible capture and live frame
+   rate proved the canvas healthy; the final console was silent.
+4. Installed Blender MCP exposed 28 tools and one prompt, read the live scene,
+   moved Cube to X=3.125, saved the `.blend`, inspected the result and captured a
+   valid PNG viewport without rewriting the adapter. A full Blender worker
+   stop/start reopened the saved file at X=3.125. Final status reported one
+   visible blessed tab, aligned controls, a saved document and zero page,
+   console, session errors or warnings.
+5. The fresh public repositories are authoritative. The former repositories are
+   retained only as private history under explicit `*-private-history` names;
+   there is no recurring source-export process or second public history.
 
 ## npm access
 

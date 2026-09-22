@@ -1,0 +1,91 @@
+{
+  "publishedAt": "2026-09-22",
+  "registry": "https://registry.npmjs.org",
+  "packages": [
+    {
+      "name": "@volter/editor-project",
+      "version": "0.5.57",
+      "shasum": "e60f46a15304561e3a7f39f55340badb0ccd032f",
+      "integrity": "sha512-McpCvZYdoCjB6QYjxbnJw1TRgyXxn+jtMQK+PRw8TsSjZJ931A4Un5uNWhY/HnN68KmTbr6FvOZHubvExKTXug=="
+    },
+    {
+      "name": "@volter/editor-sdk",
+      "version": "0.5.57",
+      "shasum": "00acd17415a88e3e8282adf7bcc7ad9fff581ca4",
+      "integrity": "sha512-chouWg+7xX6T+AAOHaCPhYBxf7ml1RHp3bi78UriJwSBhXbjrUKdEfk+6o4GDnOSQcfpiO9IXhCuJE4B5GxGBw=="
+    },
+    {
+      "name": "@volter/editor-threejs",
+      "version": "0.5.57",
+      "shasum": "1c91bf5fc32be61522f9644dafbb9ca39ce7c381",
+      "integrity": "sha512-JyO8CTvIjW73eexUQBKt5KfnprC9hFvMw/Duzrui6lcWTCeg7TGfroZa4pLEg7gGpXfjKbCluqUQ9YL4JsE+Tw=="
+    },
+    {
+      "name": "@volter/blender-engine",
+      "version": "0.1.0",
+      "shasum": "1e266b080a9cad9eaed9c97e5362ec09d1ad4edb",
+      "integrity": "sha512-yGhPJrj6zqWcCXn20b3Vu/ThHM2p9vQSI5ewirADkmLgEh6W7llJkqgSp13gJBnoIags7/bNvEh+BLZZHu1e2w=="
+    },
+    {
+      "name": "@volter/editor-blender",
+      "version": "0.1.0",
+      "shasum": "9e77a75323b52bcbc6e22c8079950e3abeebc20a",
+      "integrity": "sha512-RRGLSXbhc5m7sFsa/Kx5z1Xfmy84nq7Zk5f0SIMC6s4t4ACc5oKsR3a+eOQUxgBoJIr5CQZYaQNMv1retsQxgw=="
+    },
+    {
+      "name": "@volter/editor-core",
+      "version": "0.5.57",
+      "shasum": "28e05b70d410b7e1cc78e466a5dc1938655817dd",
+      "integrity": "sha512-BuZRr9d8bcFw3QBFGsbql121GU+EEDFORKDEN0kmpTd5puds+umqcTsVRTKmeqUVsVwec7V3vEVLuiWH6l8Rag=="
+    },
+    {
+      "name": "@volter/editor-live",
+      "version": "0.5.57",
+      "shasum": "7f55cf20ae4cc57cbb5fe53634e97b1573c42dc1",
+      "integrity": "sha512-aD4voClDWAmlGFj0bm9au462LfAShMCPlr2ntMi7pWv1qHKVRuyUfPwH/R6xbx7zmZSu6LAicCtQx60JsLBtYQ=="
+    },
+    {
+      "name": "@volter/editor",
+      "version": "0.5.57",
+      "shasum": "a7cd0b5dae7a75e7891d09d06c60cca4293f9830",
+      "integrity": "sha512-9I+ZAXhgYUABZysPoye49TIcRbrGT3hPee8qshqyK4wo+eFR8X+6qIGYKNRv2bB/4CX8e1DAb/el+alx1RIhGQ=="
+    }
+  ],
+  "installation": {
+    "credentials": "NODE_AUTH_TOKEN and NPM_TOKEN unset; npm user config /dev/null",
+    "cache": "new empty npm cache and absent workbench release directory",
+    "localPackages": false,
+    "workspaceLinks": false,
+    "resolvedPackages": 379
+  },
+  "acceptance": {
+    "platform": "darwin-arm64",
+    "product": "@volter/editor@0.5.57",
+    "workbenchRelease": "editor-f8664703ab59-d7489dea9dcd-darwin-arm64",
+    "workbenchCommit": "f8664703ab59f6d206a2c152de35fc2fae61793d",
+    "workbenchSha256": "57692dc03bd5e37f1b02c817bf0601ee3f3d410b6147c24ccd978d22ff4f81ca",
+    "capture": {
+      "width": 1728,
+      "height": 941,
+      "degenerate": false,
+      "visible": ["Cube", "grid", "Outliner", "Properties", "Chat"]
+    },
+    "tabReuse": "same tab id, one editor client, one visible blessed tab",
+    "blenderMcp": {
+      "tools": 28,
+      "prompts": 1,
+      "sceneRead": true,
+      "savedCubeX": 3.125,
+      "objectInspected": true,
+      "viewportCapture": "image/png",
+      "adapterUnchanged": true,
+      "workerRestartPersisted": true
+    },
+    "finalConsole": {
+      "errors": 0,
+      "warnings": 0,
+      "pageErrors": 0,
+      "sessionErrors": 0
+    }
+  }
+}
