@@ -79,17 +79,21 @@ Three-aware core is permitted.
    remain private under `code-oss-private-history` and
    `blender-private-history`. Blender corresponding source and dependency-source
    archives are publicly available before its binary distribution.
+5. The matching public darwin-arm64 workbench was built from Code-OSS
+   `f8664703ab59` with editor overlay `d7489dea9dcd`, published as
+   `editor-f8664703ab59-d7489dea9dcd-darwin-arm64`, and independently verified
+   against SHA-256
+   `57692dc03bd5e37f1b02c817bf0601ee3f3d410b6147c24ccd978d22ff4f81ca`.
+   An anonymous range download succeeded, and the product manifest pins that
+   public release.
 
 ## Required for public cutover
 
-1. Publish the matching darwin-arm64 workbench from the fresh public source
-   repositories, record its source revisions and checksum, and update the product
-   pin to that public release.
-2. Publish the eight modeling packages in dependency order and verify a clean
+1. Publish the eight modeling packages in dependency order and verify a clean
    install with no local packages, registry credentials or cached workbench.
-3. Repeat installed startup, one-tab reuse, Blender inspection/mutation/save,
+2. Repeat installed startup, one-tab reuse, Blender inspection/mutation/save,
    viewport capture and silent-console acceptance through the public artifacts.
-4. Cut over consumers after acceptance. Do not maintain two editable copies or
+3. Cut over consumers after acceptance. Do not maintain two editable copies or
    a recurring source-export process.
 
 ## npm access

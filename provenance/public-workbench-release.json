@@ -1,0 +1,43 @@
+{
+  "target": "vscode-reh-web-darwin-arm64",
+  "platform": "darwin-arm64",
+  "product": "editor",
+  "codeOss": {
+    "repository": "https://github.com/volter-ai/code-oss",
+    "revision": "f8664703ab59f6d206a2c152de35fc2fae61793d",
+    "version": "1.138.0"
+  },
+  "editorSource": {
+    "repository": "https://github.com/volter-ai/editor",
+    "revision": "d7489dea9dcd81299c96e67c07fcdea7c80b2225",
+    "dirty": false
+  },
+  "build": {
+    "node": "v24.21.0",
+    "builtAt": "2026-09-22T18:59:50.902Z",
+    "mangled": false,
+    "minified": true,
+    "serverBin": "bin/code-server-oss",
+    "chatExtension": {
+      "id": "volter-ai-dev.supercode-frontend-vscode",
+      "version": "0.1.3"
+    }
+  },
+  "artifact": {
+    "name": "vscode-reh-web-darwin-arm64-f8664703ab59-editor.tar.gz",
+    "bytes": 148794803,
+    "unpackedBytes": 477748217,
+    "sha256": "57692dc03bd5e37f1b02c817bf0601ee3f3d410b6147c24ccd978d22ff4f81ca"
+  },
+  "release": {
+    "repository": "volter-ai/code-oss",
+    "tag": "editor-f8664703ab59-d7489dea9dcd-darwin-arm64",
+    "url": "https://github.com/volter-ai/code-oss/releases/tag/editor-f8664703ab59-d7489dea9dcd-darwin-arm64",
+    "visibility": "public"
+  },
+  "verification": {
+    "compile": "Code-OSS source, extension media, native extensions and non-native extensions completed with zero errors.",
+    "checksum": "The locally recomputed SHA-256 and GitHub release asset digest match.",
+    "anonymousDownload": "An unauthenticated HTTP range request returned the public release asset."
+  }
+}
