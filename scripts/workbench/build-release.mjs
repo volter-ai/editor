@@ -84,8 +84,7 @@ const MIN_RAM_GIB = 32;
 const PLATFORMS = ['darwin-arm64', 'linux-x64'];
 /** WHERE A RELEASE LIVES ONCE IT IS CUT. The fork's own repository holds it, because a release
  *  IS the fork at a commit with our overlay on it — one place for the bytes and the tree they
- *  were built from. Private today; the owner flips it public at launch, and the fetch works
- *  either way (with a token, it is the same asset url). */
+ *  were built from. The public release is downloadable without credentials. */
 const RELEASE_REPO = 'volter-ai/code-oss';
 
 function fail(message) {
