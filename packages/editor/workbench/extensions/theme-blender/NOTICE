@@ -1,0 +1,5 @@
+The extension code retains its MIT license (LICENSE). The bundled product icon
+font includes glyphs traced from Blender SVGs under GPL-3.0-or-later.
+LICENSE-BLENDER preserves the integration licensing and attribution.
+See scripts/workbench/generate-icons.mjs and the editor-blender contribution
+icon source for the generated font provenance.

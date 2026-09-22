@@ -1,0 +1,56 @@
+{
+  "name": "@volter/editor",
+  "author": "Volter AI, Inc.",
+  "version": "0.5.57",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "license": "AGPL-3.0-only AND GPL-3.0-or-later AND MIT",
+  "description": "Volter Editor, initially shipping Blender-based modeling.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/volter-ai/editor.git",
+    "directory": "packages/editor"
+  },
+  "files": [
+    "dist",
+    "src",
+    "LICENSE",
+    "LICENSE-BLENDER",
+    "NOTICE",
+    "dist-node",
+    "presets.mjs",
+    "starter",
+    "LICENSE-MCP",
+    "BUNDLED_NOTICES"
+  ],
+  "scripts": {
+    "build": "vite build --config vite.config.ts",
+    "build:node": "node scripts/build-node.mjs",
+    "typecheck": "tsc -p tsconfig.node.json"
+  },
+  "vgai": {
+    "product": {
+      "entry": "./src/index.ts",
+      "colorTheme": "dark",
+      "workbench": {
+        "release": "editor-9b4e5584bdf9-856753836e29-darwin-arm64",
+        "tarballSha256": "c4f5c884853cda029e457a6e4dffa06a12fdc60d38f16b299b2f13b9a22f558a"
+      }
+    }
+  },
+  "dependencies": {
+    "@volter/editor-core": "0.5.57",
+    "@volter/editor-blender": "0.1.0",
+    "@volter/blender-engine": "0.1.0",
+    "@volter/editor-project": "0.5.57",
+    "@volter/editor-sdk": "0.5.57",
+    "@volter/editor-live": "0.5.57",
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "undici": "7.29.1"
+  },
+  "bin": {
+    "volter-editor": "./dist-node/cli.js"
+  }
+}

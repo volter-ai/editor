@@ -1,0 +1,7 @@
+{
+ "get_polyhaven_status": "PolyHaven integration is currently disabled. To enable it:\n                            1. In the 3D Viewport, find the BlenderMCP panel in the sidebar (press N if hidden)\n                            2. Check the 'Use assets from Poly Haven' checkbox\n                            3. Restart the connection to Claude",
+ "get_hyper3d_status": "Hyper3D Rodin integration is currently disabled. To enable it:\n                            1. In the 3D Viewport, find the BlenderMCP panel in the sidebar (press N if hidden)\n                            2. Check the 'Use Hyper3D Rodin 3D model generation' checkbox\n                            3. Restart the connection to Claude",
+ "get_sketchfab_status": "Sketchfab integration is currently disabled. To enable it:\n                            1. In the 3D Viewport, find the BlenderMCP panel in the sidebar (press N if hidden)\n                            2. Check the 'Use assets from Sketchfab' checkbox\n                            3. Enter your Sketchfab API Key\n                            4. Restart the connection to Claude",
+ "get_polypizza_status": "",
+ "get_hunyuan3d_status": "Hunyuan3D integration is currently disabled. To enable it:\n                        1. In the 3D Viewport, find the BlenderMCP panel in the sidebar (press N if hidden)\n                        2. Check the 'Use Tencent Hunyuan 3D model generation' checkbox\n                        3. Restart the connection to Claude"
+}

@@ -1,0 +1,40 @@
+/* The notification stack: bottom right, clear of the status bar, newest at
+   the bottom. A card is the banner's paint with VS Code's two-row layout —
+   the message across the full width, the actions on their own row beneath,
+   right-aligned — and an OPAQUE surface, because it sits over whatever is
+   there (measured: the conversation composer). */
+.vgai-notifications {
+  position: fixed;
+  right: var(--vgai-space-4);
+  bottom: calc(var(--vgai-status-bar-height, 28px) + var(--vgai-space-4));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--vgai-space-2);
+  width: min(420px, calc(100vw - 2 * var(--vgai-space-4)));
+  z-index: var(--vgai-z-toast, 1100);
+  pointer-events: none;
+}
+.vgai-notifications .vgai-notification {
+  width: 100%;
+  flex-wrap: wrap;
+  pointer-events: auto;
+  background-color: var(--vgai-surface-raised);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: var(--vgai-shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.35));
+}
+.vgai-notifications .vgai-notification .vgai-banner-content {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.vgai-notifications .vgai-notification .vgai-banner-actions {
+  flex: 1 1 100%;
+  justify-content: flex-end;
+  margin-top: var(--vgai-space-2);
+}
+.vgai-notification-detail {
+  display: block;
+  margin-top: var(--vgai-space-1);
+  color: var(--vgai-content-muted);
+}

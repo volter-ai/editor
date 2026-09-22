@@ -1,0 +1,90 @@
+{
+  "name": "@volter/editor-sdk",
+  "author": "Volter AI, Inc.",
+  "license": "Apache-2.0",
+  "version": "0.5.57",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "Extension, contribution and session APIs for Volter Editor.",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/volter-ai/editor.git",
+    "directory": "packages/editor-sdk"
+  },
+  "files": [
+    "src",
+    "NOTICE"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./contributions": "./src/contributions.ts",
+    "./document-probe": "./src/document-probe.ts",
+    "./extension": "./src/extension.ts",
+    "./share": "./src/share.ts",
+    "./session": "./src/session.ts",
+    "./session/*": "./src/session/*.ts",
+    "./layouts": "./src/layouts.tsx",
+    "./layout-arrangements": "./src/layout-arrangements.ts",
+    "./host": "./src/host.ts",
+    "./looks": "./src/looks.ts",
+    "./widgets": "./src/widgets/index.ts",
+    "./commands": "./src/commands.ts",
+    "./chrome": "./src/chrome.ts",
+    "./views": "./src/views.ts",
+    "./services": "./src/services.ts",
+    "./account": "./src/account.ts",
+    "./generations": "./src/generations.ts",
+    "./project-tool-catalog": "./src/project-tool-catalog.ts",
+    "./tab-census": "./src/project/tab-census.ts",
+    "./selection": "./src/selection.tsx",
+    "./client": "./src/client.ts",
+    "./session/product-locator": "./src/session/product-locator.ts",
+    "./session/editor-compatibility": "./src/session/editor-compatibility.ts",
+    "./session/relative-path-guard": "./src/session/relative-path-guard.ts",
+    "./session/workbench-locator": "./src/session/workbench-locator.ts",
+    "./session/tool-contribution-convention": "./src/session/tool-contribution-convention.ts",
+    "./session/command-table": "./src/session/command-table.ts",
+    "./session/collaboration-types": "./src/session/collaboration-types.ts",
+    "./tools/provider-execution": "./src/tools/provider-execution.ts",
+    "./index": "./src/index.ts",
+    "./session/build-report": "./src/session/build-report.ts",
+    "./session/editor-control-lifecycle": "./src/session/editor-control-lifecycle.ts",
+    "./session/editor-control-protocol": "./src/session/editor-control-protocol.ts",
+    "./session/source-glob": "./src/session/source-glob.ts",
+    "./project/tab-census": "./src/project/tab-census.ts",
+    "./tools/registry": "./src/tools/registry.ts",
+    "./session/game-css-scope": "./src/session/game-css-scope.ts",
+    "./session/entrypoint-selection-source": "./src/session/entrypoint-selection-source.ts",
+    "./tools/types": "./src/tools/types.ts",
+    "./session/editor-brand": "./src/session/editor-brand.ts",
+    "./tools/errors": "./src/tools/errors.ts",
+    "./project/output-roots": "./src/project/output-roots.ts"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^7.2.0",
+    "@fortawesome/free-solid-svg-icons": "^7.2.0",
+    "@fortawesome/react-fontawesome": "^3.2.0",
+    "@types/three": "^0.180.0",
+    "typescript": "^5.6.0",
+    "undici": "^7.28.0",
+    "zod": "^4.3.6",
+    "@volter/editor-project": "0.5.57",
+    "@types/node": "^22.0.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "three": "^0.180.0"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "imports": {
+    "#http-transport": {
+      "browser": "./src/http-transport.browser.ts",
+      "default": "./src/http-transport.node.ts"
+    }
+  }
+}

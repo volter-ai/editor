@@ -1,0 +1,129 @@
+{
+	"_generated": "scripts/workbench/generate-icons.mjs — do not edit. Source: packages/blender/contributions/blender.icons.json sha256 d515ee16432ecbc75a05f9854d7055e4e33d4f05aead3db89709b9d8239df670; 37 ids over 35 traced glyphs.",
+	"fonts": [
+		{
+			"id": "blender",
+			"src": [
+				{
+					"path": "./blender-icons.otf",
+					"format": "opentype"
+				}
+			],
+			"weight": "normal",
+			"style": "normal"
+		}
+	],
+	"iconDefinitions": {
+		"chevron-down": {
+			"fontCharacter": "\\e000"
+		},
+		"chevron-left": {
+			"fontCharacter": "\\e001"
+		},
+		"chevron-right": {
+			"fontCharacter": "\\e002"
+		},
+		"chevron-up": {
+			"fontCharacter": "\\e000"
+		},
+		"arrow-down": {
+			"fontCharacter": "\\e003"
+		},
+		"arrow-left": {
+			"fontCharacter": "\\e004"
+		},
+		"arrow-right": {
+			"fontCharacter": "\\e005"
+		},
+		"arrow-up": {
+			"fontCharacter": "\\e006"
+		},
+		"triangle-down": {
+			"fontCharacter": "\\e007"
+		},
+		"triangle-right": {
+			"fontCharacter": "\\e008"
+		},
+		"close": {
+			"fontCharacter": "\\e009"
+		},
+		"chrome-close": {
+			"fontCharacter": "\\e009"
+		},
+		"add": {
+			"fontCharacter": "\\e00a"
+		},
+		"remove": {
+			"fontCharacter": "\\e00b"
+		},
+		"trash": {
+			"fontCharacter": "\\e00c"
+		},
+		"search": {
+			"fontCharacter": "\\e00d"
+		},
+		"zoom-in": {
+			"fontCharacter": "\\e00e"
+		},
+		"zoom-out": {
+			"fontCharacter": "\\e00f"
+		},
+		"eye": {
+			"fontCharacter": "\\e010"
+		},
+		"eye-closed": {
+			"fontCharacter": "\\e011"
+		},
+		"check": {
+			"fontCharacter": "\\e012"
+		},
+		"info": {
+			"fontCharacter": "\\e013"
+		},
+		"warning": {
+			"fontCharacter": "\\e014"
+		},
+		"error": {
+			"fontCharacter": "\\e015"
+		},
+		"folder": {
+			"fontCharacter": "\\e016"
+		},
+		"folder-opened": {
+			"fontCharacter": "\\e017"
+		},
+		"file": {
+			"fontCharacter": "\\e018"
+		},
+		"file-code": {
+			"fontCharacter": "\\e019"
+		},
+		"copy": {
+			"fontCharacter": "\\e01a"
+		},
+		"link": {
+			"fontCharacter": "\\e01b"
+		},
+		"lock": {
+			"fontCharacter": "\\e01c"
+		},
+		"unlock": {
+			"fontCharacter": "\\e01d"
+		},
+		"play": {
+			"fontCharacter": "\\e01e"
+		},
+		"debug-pause": {
+			"fontCharacter": "\\e01f"
+		},
+		"debug-stop": {
+			"fontCharacter": "\\e020"
+		},
+		"list-flat": {
+			"fontCharacter": "\\e021"
+		},
+		"ellipsis": {
+			"fontCharacter": "\\e022"
+		}
+	}
+}

@@ -1,0 +1,3437 @@
+.vgai-editor-theme {
+  /* Legacy aliases. New code consumes the semantic variables above. */
+  --vgai-bg-0: var(--vgai-surface-shell);
+  --vgai-bg-1: var(--vgai-surface-panel);
+  --vgai-bg-2: var(--vgai-surface-chrome);
+  --vgai-bg-3: var(--vgai-surface-raised);
+  --vgai-bg-inset: var(--vgai-surface-inset);
+
+  /* Borders */
+  --vgai-border-1: var(--vgai-boundary-default);
+  --vgai-border-2: var(--vgai-boundary-strong);
+
+  /* Text */
+  --vgai-text-1: var(--vgai-content-primary);
+  --vgai-text-2: var(--vgai-content-muted);
+  --vgai-text-3: var(--vgai-content-dim);
+
+  /* Interior STICKY surfaces (--vgai-surface-sticky/-panel and their
+   * -backdrop-filter): emitted per-theme by editorThemeVariables() in
+   * theme.ts since §2.31 P2 — treatment themes use the translucent token +
+   * a sticky blur (soft occlusion), treatment-less themes the opaque
+   * token-over-shell stack. See stickySurfaceValue() there. */
+
+  /* Concrete spacing, dimension, type, and stacking variables are installed
+   * by editorThemeVariables() from theme.ts. Keeping their numbers out of CSS
+   * preserves one typed source of truth for class and inline-style consumers. */
+
+  /* Asset-kind category palette (asset-thumbnails.tsx, folder previews).
+   * These are stable per-kind data colors — category identity, not chrome
+   * paint (same doctrine as the color guard's visualization allowlist), so
+   * they stay literal instead of remapping through accent/semantic slots;
+   * both shipped editor themes are dark, and these mid-tone values read on
+   * each. Named --vgai-* so the migration guard's dangling-variable check
+   * owns them: the previous --asset-* spelling was silently deleted in a
+   * refactor and every glyph went invisible. */
+  --vgai-asset-icon-folder: #e8a740;
+  --vgai-asset-icon-model: #6bc5f7;
+  --vgai-asset-icon-prefab: #3b82f6;
+  --vgai-asset-icon-component: #9ca3af;
+  --vgai-asset-icon-audio: #34d399;
+  --vgai-asset-icon-image: #f472b6;
+  --vgai-asset-icon-video: #c084fc;
+  --vgai-asset-icon-json: #fbbf24;
+  --vgai-asset-icon-unknown: #6b7280;
+  --vgai-asset-icon-source: #fb923c;
+
+  /* Content-legibility text shadow (liquid glass, report §2.32): themes with
+   * a `textShadowOpacity` treatment axis emit a real shadow via this var;
+   * every other theme emits 'none', so this inherited declaration is inert
+   * for them. Near-white text + a concentrated local shadow keeps chrome legible
+   * when the surface itself is only a ≤15% white whisper over live scene
+   * content. */
+  text-shadow: var(--vgai-content-text-shadow, none);
+
+  /* THE BASELINE. Every descendant inherits the product's type from here and
+   * declares only what differs. Before this, the root minted the tokens but
+   * applied none of them, so each surface had to opt in per property, and the
+   * ones that forgot fell to the browser's serif at 16px (the agent notice,
+   * the command palette). Declared here rather than inherited from <body>: a
+   * game's own `body { font }` rule shares this document, and a declared
+   * value on the root is what keeps it out of editor chrome. */
+  font-family: var(--vgai-font-sans);
+  font-size: var(--vgai-font-base);
+  line-height: var(--vgai-leading-normal);
+  color: var(--vgai-content-primary);
+}
+
+/* Content-zone frost (§2.31 P2 owner amendment): text-dense interior zones
+ * get a LOCAL frosted-blur layer so text stays legible over open glass,
+ * while gutters/bezels stay clear and refractive. Both vars are emitted by
+ * editorThemeVariables() from the `contentFrostBlurPx` treatment axis —
+ * `transparent`/`none` for every theme without it (byte-identical paint,
+ * including the reduced-transparency degrade, which strips `treatment`).
+ * The parent card's refraction url() filter makes the card a backdrop root,
+ * so this blur samples the already-refracted backdrop — frost over the
+ * lensed scene, the intended composite. */
+.vgai-content-frost {
+  background: var(--vgai-content-frost-bg, transparent);
+  backdrop-filter: var(--vgai-content-frost-filter, none);
+  -webkit-backdrop-filter: var(--vgai-content-frost-filter, none);
+  border-radius: var(--vgai-radius-md);
+}
+
+/* Adaptive foreground ink follows measured backdrop luminance. Compact
+ * navigation islands expose this as a local appearance flip. Larger Regular
+ * surfaces use the same foreground threshold, while retaining a shallow
+ * material correction independent of that ink decision. */
+.vgai-editor-theme [data-vgai-adaptive-ink="bright"] {
+  --vgai-backdrop-dim: none;
+  --vgai-content-primary: var(--vgai-content-primary-on-bright);
+  --vgai-content-muted: var(--vgai-content-muted-on-bright);
+  --vgai-content-dim: var(--vgai-content-dim-on-bright);
+  --vgai-content-text-shadow: var(--vgai-content-text-shadow-on-bright);
+  --vgai-content-frost-bg: var(--vgai-content-frost-bg-on-bright);
+  --vgai-island-border-color: color-mix(
+    in srgb,
+    var(--vgai-content-primary-on-bright) 30%,
+    transparent
+  );
+  --vgai-text-1: var(--vgai-content-primary);
+  --vgai-text-2: var(--vgai-content-muted);
+  --vgai-text-3: var(--vgai-content-dim);
+  --dv-activegroup-visiblepanel-tab-color: var(--vgai-content-primary);
+  --dv-activegroup-hiddenpanel-tab-color: var(--vgai-content-muted);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--vgai-content-muted);
+  --dv-inactivegroup-hiddenpanel-tab-color: var(--vgai-content-dim);
+  text-shadow: var(--vgai-content-text-shadow, none);
+}
+
+/* Complex authored UI is a deliberately non-adaptive backdrop. Regular
+ * panels over it use stable light ink and a strong dark frost rather than
+ * chasing local component colors as the interface changes beneath them. */
+.vgai-editor-theme [data-vgai-panel-backdrop-policy="dark-frost"] {
+  --vgai-content-primary: #f4f8ff;
+  --vgai-content-muted: #c3cedd;
+  --vgai-content-dim: #94a2b5;
+  --vgai-content-text-shadow: 0 1px 3px rgb(0 0 0 / 72%);
+  --vgai-text-1: var(--vgai-content-primary);
+  --vgai-text-2: var(--vgai-content-muted);
+  --vgai-text-3: var(--vgai-content-dim);
+  --dv-activegroup-visiblepanel-tab-color: var(--vgai-content-primary);
+  --dv-activegroup-hiddenpanel-tab-color: var(--vgai-content-muted);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--vgai-content-muted);
+  --dv-inactivegroup-hiddenpanel-tab-color: var(--vgai-content-dim);
+}
+
+/* Native controls otherwise fall back to the browser's unrelated UI font.
+ * Keep the reset scoped to the editor shell; component classes and inline
+ * styles can still opt into a different size or the monospace stack. */
+.vgai-editor-shell button,
+.vgai-editor-shell input,
+.vgai-editor-shell select,
+.vgai-editor-shell textarea {
+  font-family: inherit;
+}
+
+.vgai-editor-shell button {
+  font-size: inherit;
+}
+
+/* Visually hidden content remains available to assistive technology. */
+.vgai-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.vgai-tooltip-anchor {
+  position: relative;
+  display: inline-flex;
+}
+.vgai-tooltip {
+  position: fixed;
+  z-index: var(--vgai-z-dropdown);
+  display: flex;
+  align-items: center;
+  gap: var(--vgai-space-4);
+  padding: var(--vgai-space-2) var(--vgai-space-4);
+  color: var(--vgai-content-primary);
+  background: var(--vgai-surface-inset);
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-strong);
+  border-radius: var(--vgai-radius-md);
+  box-shadow: var(--vgai-shadow-sm);
+  font-size: var(--vgai-font-base);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.vgai-tooltip kbd {
+  padding: 1px var(--vgai-space-3);
+  color: var(--vgai-content-primary);
+  background: var(--vgai-surface-raised);
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+  border-radius: var(--vgai-radius-sm);
+  font-family: var(--vgai-font-mono);
+  font-size: var(--vgai-font-sm);
+}
+/* U6a (P6 glass-native chrome, inventory row "tooltip"): under islands
+ * chrome the tooltip is transient overlay chrome like `.vgai-menu` — the
+ * self-sufficient Regular material (`--vgai-glass-regular-bg` + its
+ * strong frost) statically paired with the `-on-bright` ink ramp, legible
+ * over ANY backdrop. Same re-declaration rationale as the `.vgai-menu`
+ * block below: descendants inherit the theme root's COMPUTED shadow, so the
+ * flipped var needs a fresh `text-shadow` declaration here. Bars chrome
+ * (graphite/classic, reduced-transparency/lite) never matches — the dark
+ * inset slab above stays byte-identical. The kbd chip re-tints from
+ * `currentColor` so it reads on either ink side. */
+[data-vgai-chrome="islands"] .vgai-tooltip {
+  --vgai-content-primary: var(--vgai-content-primary-on-bright);
+  --vgai-content-muted: var(--vgai-content-muted-on-bright);
+  --vgai-content-dim: var(--vgai-content-dim-on-bright);
+  --vgai-content-text-shadow: var(--vgai-content-text-shadow-on-bright);
+  --vgai-text-1: var(--vgai-content-primary);
+  --vgai-text-2: var(--vgai-content-muted);
+  --vgai-text-3: var(--vgai-content-dim);
+  text-shadow: var(--vgai-content-text-shadow, none);
+  background: var(--vgai-glass-regular-bg, var(--vgai-surface-chrome));
+  border-color: var(--vgai-border-1);
+  backdrop-filter: var(--vgai-glass-regular-backdrop-filter, none);
+  -webkit-backdrop-filter: var(--vgai-glass-regular-backdrop-filter, none);
+}
+[data-vgai-chrome="islands"] .vgai-tooltip kbd {
+  color: inherit;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  border-color: color-mix(in srgb, currentColor 28%, transparent);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Canonical editor button family. All product button paint and states live */
+/* here.                                                                    */
+/* ---------------------------------------------------------------------- */
+
+.vgai-btn {
+  display: inline-flex;
+  /* Inline controls should keep their intrinsic size even when authored as
+   * direct children of a CSS grid. Grid's default align-items: stretch
+   * otherwise turns a compact action into a full-width slab. A caller that
+   * deliberately wants a wide button can still set width: 100%. */
+  width: max-content;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: var(--vgai-space-2);
+  font-family: var(--vgai-font-sans);
+  font-size: var(--vgai-font-md);
+  line-height: var(--vgai-leading-tight);
+  border-radius: var(--vgai-radius-sm);
+  cursor: pointer;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  transition:
+    background-color 0.12s var(--vgai-ease-standard),
+    border-color 0.12s var(--vgai-ease-standard),
+    color 0.12s var(--vgai-ease-standard),
+    filter 0.12s var(--vgai-ease-standard);
+}
+
+.vgai-btn[data-size="compact"] {
+  height: var(--vgai-control-compact-height);
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: var(--vgai-font-base);
+}
+.vgai-btn:not([data-size]),
+.vgai-btn[data-size="default"] {
+  height: var(--vgai-control-default-height);
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: var(--vgai-font-base);
+}
+.vgai-btn[data-size="comfortable"] {
+  height: var(--vgai-control-comfortable-height);
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: var(--vgai-font-md);
+}
+
+.vgai-btn[data-variant="primary"] {
+  background: var(--vgai-accent);
+  color: var(--vgai-content-on-accent);
+  border-color: var(--vgai-accent);
+  padding: var(--vgai-space-3) var(--vgai-space-6);
+  font-weight: 600;
+}
+.vgai-btn[data-variant="primary"]:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+.vgai-btn[data-variant="primary"]:active:not(:disabled) {
+  filter: brightness(0.92);
+}
+
+/* A PUSHBUTTON — Blender's `wcol_regular` widget class. `--vgai-widget-regular`
+   resolves to `surface.raised` for any palette that does not name the class,
+   which is every palette but Blender's. */
+.vgai-btn:not([data-variant]),
+.vgai-btn[data-variant="secondary"] {
+  background: var(--vgai-widget-regular);
+  color: var(--vgai-content-primary);
+  border-color: var(--vgai-boundary-strong);
+  padding-inline: var(--vgai-space-4);
+  /* THE EMBOSS — Blender lays a 1 px translucent-black line under EVERY
+     widget, below its own outline. One rule, verified on five widget kinds
+     (pushbutton, text field, dropdown well, checkbox, list box) in
+     `properties-modifier.png` / `properties-object.png` /
+     `properties-data-edit.png`; the measurements and the alpha solve live on
+     `EditorTheme.color.widget.emboss`. It is a shadow, so it costs no layout
+     and a palette that names no emboss resolves the token to `none`. */
+  box-shadow: var(--vgai-widget-emboss-shadow);
+}
+.vgai-btn:not([data-variant]):hover:not(:disabled),
+.vgai-btn[data-variant="secondary"]:hover:not(:disabled) {
+  /* Hover LIFTS the widget (Blender lifts a widget by a step); the bar colour it
+     used to take sank it below its own resting fill under an opaque skin. */
+  background: var(--vgai-widget-regular-hover);
+  border-color: var(--vgai-boundary-strong);
+}
+
+/* A MENU BUTTON — Blender's `wcol_menu`, a dark well, not a pushbutton: a
+   dropdown TRIGGER is a different widget class from a button that does a
+   thing, and painting both from one surface is what made `Object Mode v`
+   read pushbutton-grey under the Blender skin (measured #272727 against our
+   #545454). The discriminator is the trigger's own ARIA — a button that opens
+   a menu or a listbox IS a menu button — so no call site grows a marker
+   attribute. Scoped to the two button-shaped variants only: `ghost` menu
+   words (the viewport header's View/Select/Add, the app menus' own
+   `.vgai-menu-trigger`) carry no chrome in Blender either, and must not
+   acquire a well here.
+
+   `.vgai-field-trigger` is deliberately NOT in this list: it is a LAYOUT
+   class (full width, mono, left-aligned) and two of its three users are
+   genuine select-like triggers while the third
+   (`@vgai/dom/react-inspector-section.tsx`'s "No gradient — click to add")
+   is a plain action that opens nothing. Paint follows what the control DOES,
+   which the ARIA already states.
+
+   `dialog` is in the list because a value-labelled trigger that opens an
+   anchored SETTINGS popover (`Studio v`, the Asset Lab preview environment)
+   is the same widget as one that opens a menu — Blender draws both as one
+   well — and its popup is a form, so `aria-haspopup="dialog"` is the honest
+   ARIA and must not be bent to win paint. The one other `dialog` trigger in
+   the estate (the conversation tray) is `ghost`, which this rule does not
+   reach. */
+.vgai-btn:is(:not([data-variant]), [data-variant="secondary"]):is(
+    [aria-haspopup="menu"],
+    [aria-haspopup="listbox"],
+    [aria-haspopup="dialog"]
+  ) {
+  background: var(--vgai-widget-menu);
+}
+.vgai-btn:is(:not([data-variant]), [data-variant="secondary"]):is(
+    [aria-haspopup="menu"],
+    [aria-haspopup="listbox"],
+    [aria-haspopup="dialog"]
+  ):hover:not(:disabled) {
+  background: var(--vgai-widget-menu-hover);
+}
+.vgai-btn:not([data-variant]):active:not(:disabled),
+.vgai-btn[data-variant="secondary"]:active:not(:disabled) {
+  background: var(--vgai-surface-inset);
+}
+
+.vgai-btn[data-variant="outline"] {
+  background: transparent;
+  color: var(--vgai-content-primary);
+  border-color: var(--vgai-boundary-default);
+  padding-inline: var(--vgai-space-4);
+}
+.vgai-btn[data-variant="outline"]:hover:not(:disabled) {
+  background: var(--vgai-neutral-hover);
+  border-color: var(--vgai-boundary-strong);
+}
+.vgai-btn[data-variant="outline"]:active:not(:disabled) {
+  background: var(--vgai-neutral-active);
+}
+
+.vgai-btn[data-variant="ghost"] {
+  background: transparent;
+  color: var(--vgai-content-muted);
+  border-color: transparent;
+  padding-inline: var(--vgai-space-3);
+}
+.vgai-btn[data-variant="ghost"]:hover:not(:disabled) {
+  color: var(--vgai-content-primary);
+  background: var(--vgai-neutral-hover);
+}
+.vgai-btn[data-variant="ghost"]:active:not(:disabled) {
+  background: var(--vgai-neutral-active);
+}
+
+.vgai-btn[data-variant="danger"] {
+  color: var(--vgai-content-primary);
+  background: var(--vgai-danger-muted);
+  border-color: var(--vgai-danger);
+  padding-inline: var(--vgai-space-4);
+  font-weight: 600;
+}
+.vgai-btn[data-variant="danger"]:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+.vgai-btn[data-variant="danger"]:active:not(:disabled) {
+  filter: brightness(0.9);
+}
+
+.vgai-btn[data-variant="success"] {
+  color: var(--vgai-content-on-accent);
+  background: var(--vgai-success);
+  border-color: var(--vgai-success);
+  padding-inline: var(--vgai-space-4);
+  font-weight: 600;
+}
+.vgai-btn[data-variant="success"]:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+.vgai-btn[data-variant="success"]:active:not(:disabled) {
+  filter: brightness(0.92);
+}
+
+.vgai-btn[aria-pressed="true"] {
+  /* The ink PAIRS WITH THE FILL, and the fill differs per skin: white on
+     Blender's solid widget blue, the ordinary ink on the translucent accent
+     wash every other skin uses. `theme.ts`'s `selectionInkValue` derives it —
+     hardcoding on-accent here painted near-black on a dark wash and made a
+     pressed toggle unreadable in every skin but Blender. */
+  color: var(--vgai-content-on-selection, var(--vgai-content-primary));
+  background: var(--vgai-selection-bg);
+  border-color: var(--vgai-selection-border);
+}
+.vgai-btn[aria-busy="true"] {
+  cursor: progress;
+}
+
+.vgai-btn.vgai-sprite-frame-option {
+  width: 100%;
+  min-width: 0;
+  height: 72px;
+  flex-direction: column;
+  gap: var(--vgai-space-1);
+  padding: var(--vgai-space-1);
+  background: var(--vgai-surface-inset);
+  border-color: var(--vgai-boundary-default);
+}
+
+.vgai-btn.vgai-sprite-frame-option[aria-pressed="true"] {
+  background: var(--vgai-selection-bg);
+  border-color: var(--vgai-selection-border);
+}
+
+.vgai-btn[data-icon="true"] {
+  width: var(--vgai-control-default-height);
+  padding: 0;
+}
+.vgai-btn[data-icon="true"][data-size="compact"] {
+  width: var(--vgai-control-compact-height);
+}
+.vgai-btn[data-icon="true"][data-size="comfortable"] {
+  width: var(--vgai-control-comfortable-height);
+}
+
+/* A labelled icon button is the same canonical toolbar control with a
+   vertical content arrangement. Toolbars choose whether its pressed state is
+   independent or part of one exclusive selection; product surfaces don't
+   author their own icon/label metrics. */
+.vgai-btn[data-icon="true"][data-label-placement="below"] {
+  width: 68px;
+  min-width: 68px;
+  height: 42px;
+  flex-direction: column;
+  gap: 3px;
+  padding: 4px 8px 3px;
+}
+.vgai-icon-button-label {
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--vgai-font-xs);
+  line-height: var(--vgai-leading-tight);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vgai-btn:disabled,
+.vgai-btn[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: none;
+}
+
+.vgai-btn:focus-visible {
+  outline: var(--vgai-focus-ring);
+  outline-offset: 1px;
+}
+
+.vgai-machine-list-entry {
+  display: block;
+  width: 100%;
+  height: auto;
+  justify-content: flex-start;
+  border-left: var(--vgai-stroke-active) solid transparent;
+  padding: var(--vgai-space-3) var(--vgai-space-4);
+  text-align: left;
+}
+/* Selected rows are a thin state overlay on the panel's one content floor,
+   never another blur-bearing layer. */
+.vgai-machine-list-entry[data-selected="true"] {
+  border-left-color: var(--vgai-selection-indicator);
+  background: var(--vgai-selection-bg);
+}
+.vgai-performance-overlay {
+  pointer-events: auto;
+  display: grid;
+  grid-template-columns: repeat(5, auto);
+  width: auto;
+  height: auto;
+  gap: var(--vgai-space-5);
+  border-color: var(--vgai-boundary-strong);
+  background: var(--vgai-surface-overlay);
+  color: var(--vgai-content-primary);
+  padding: var(--vgai-space-3) var(--vgai-space-4);
+  font-family: var(--vgai-font-mono);
+  font-size: var(--vgai-font-sm);
+}
+.vgai-performance-overlay[data-enabled="true"] {
+  border-color: var(--vgai-accent);
+}
+/* Viewport HUD overlays (P6-U6, owner taste decision 3 — "HUD overlays →
+   real islands"): the shared base paint for the stats / network /
+   tile-palette HUD whispers, byte-identical to their former inline recipes
+   (overlay surface, radius-md, per-site border/shadow variants). Under
+   islands chrome each of these elements also carries `vgai-chrome-island`
+   (+ `vgai-glass-island` for the refraction upgrade), whose higher-
+   specificity material rules override this base — that is the promotion. */
+.vgai-hud-overlay {
+  background: var(--vgai-surface-overlay);
+  border-radius: var(--vgai-radius-md);
+}
+.vgai-hud-overlay[data-hud-border="strong"] {
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-strong);
+}
+.vgai-hud-overlay[data-hud-border="default"] {
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+}
+.vgai-hud-overlay[data-hud-shadow="true"] {
+  box-shadow: var(--vgai-shadow-sm);
+}
+.vgai-field-trigger {
+  width: 100%;
+  justify-content: space-between;
+  overflow: hidden;
+  font-family: var(--vgai-font-mono);
+  text-align: left;
+}
+.vgai-inspector-group-trigger {
+  width: 100%;
+  height: auto;
+  justify-content: flex-start;
+  padding: var(--vgai-space-4);
+  font-weight: 600;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.vgai-hierarchy-more {
+  width: 100%;
+  height: var(--vgai-tree-row-height);
+  justify-content: flex-start;
+  font-style: italic;
+  text-align: left;
+}
+/* The tree's disclosure cell. Sized on the ICON axis, not the type axis: the
+   caret is a pictogram, and the icon rungs default to the type scale's values
+   so no skin that declares none moves. Blender's chevron measures 4.5x9 CSS
+   collapsed and 8.5x5 expanded on the native 2x `outliner.png`. */
+.vgai-btn.vgai-tree-caret {
+  /* ONE INDENT CELL, and no inline padding — a button's `padding-inline` is
+     what made the expander's cell 19 px against the leaf spacer's 14, so a
+     child row's type glyph sat 15 px right of its parent's where the tree's
+     own step is 20. Blender's chevron and type glyph each own exactly one
+     indent cell (`outliner.png`: chevron centres 30.25/50.25, glyph centres
+     one cell right of each), which is what this width says. */
+  width: var(--vgai-tree-indent);
+  height: 18px;
+  flex: 0 0 var(--vgai-tree-indent);
+  padding-inline: 0;
+  font-size: var(--vgai-icon-xs);
+}
+.vgai-chat-icon {
+  width: var(--vgai-control-default-height);
+  padding-inline: 0;
+}
+.vgai-chat-session-row {
+  width: 100%;
+  height: auto;
+  justify-content: flex-start;
+  padding: var(--vgai-space-4);
+  text-align: left;
+}
+.vgai-chat-session-row[data-selected="true"] {
+  background: var(--vgai-surface-raised);
+}
+.vgai-chat-harness-trigger {
+  max-width: 190px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.vgai-chat-header-trigger {
+  min-width: 0;
+  flex: 1;
+  justify-content: flex-start;
+  overflow: hidden;
+  text-align: left;
+}
+/* ---------------------------------------------------------------------- */
+/* .vgai-input / .vgai-select / .vgai-checkbox — shared form-control       */
+/* classes.                                                                */
+/* ---------------------------------------------------------------------- */
+
+.vgai-input {
+  background: var(--vgai-input-surface, var(--vgai-bg-inset));
+  color: var(--vgai-text-1);
+  border: 1px solid var(--vgai-input-border, var(--vgai-border-1));
+  border-radius: var(--vgai-radius-sm);
+  box-shadow: var(--vgai-input-shadow, none);
+  padding: var(--vgai-space-1) var(--vgai-space-3);
+  font-size: var(--vgai-font-base);
+  font-family: var(--vgai-font-sans);
+  outline: none;
+  min-width: 0;
+  min-height: var(--vgai-control-default-height);
+  box-sizing: border-box;
+}
+/* A PLACEHOLDER IS A PALETTE INK, and until this rule existed it was a
+   BROWSER's. No `::placeholder` declaration existed anywhere in the editor's
+   CSS, so Chrome's UA default decided one of our inks — measured live at a
+   fixed rgb(117,117,117), identical for fields inked 229, 100, red and black,
+   which is what says it is a constant of the browser's and not a composite of
+   ours. Blender's own is #5e5e5e (94), measured on the Outliner's `Search` in
+   `modeling-object-none.png` (x 3100..3260, y 60..96, ceiling 94) — below its
+   dim, which is where a placeholder belongs. `content.placeholder` falls back
+   to `content.dim` in the emitter; see theme.ts for why the fallback is the
+   palette's ink rather than a transcription of the browser's. */
+.vgai-input::placeholder {
+  color: var(--vgai-content-placeholder);
+  /* Chrome's UA rule carries no opacity, but Firefox's does (0.54) and would
+     halve the declared ink. Stated so the token means the same on both. */
+  opacity: 1;
+}
+/* A single-line field is exactly control height, like `.vgai-btn`; padding
+   used to add to it, so a 20 px density still drew a 22 px field. */
+input.vgai-input,
+select.vgai-input {
+  height: var(--vgai-control-default-height);
+  padding-block: 0;
+}
+.vgai-input:hover:not(:disabled) {
+  border-color: var(--vgai-border-2);
+}
+.vgai-input:focus-visible {
+  border-color: var(--vgai-accent);
+  outline: var(--vgai-focus-ring);
+  outline-offset: -1px;
+}
+.vgai-input[aria-invalid="true"] {
+  border-color: var(--vgai-danger);
+}
+.vgai-input[data-tone="danger"] {
+  color: var(--vgai-danger);
+}
+.vgai-input[data-state="editing"] {
+  border-color: var(--vgai-accent);
+}
+.vgai-input[data-emphasis="strong"] {
+  font-size: var(--vgai-font-md);
+  font-weight: 600;
+}
+.vgai-input[data-emphasis="semibold"] {
+  font-weight: 600;
+}
+.vgai-input[data-monospace="true"] {
+  font-family: var(--vgai-font-mono);
+}
+.vgai-input[data-density="compact"],
+.vgai-select[data-density="compact"] {
+  min-height: var(--vgai-control-compact-height);
+  font-size: var(--vgai-font-sm);
+}
+.vgai-input[data-density="comfortable"],
+.vgai-select[data-density="comfortable"] {
+  min-height: var(--vgai-control-comfortable-height);
+  font-size: var(--vgai-font-md);
+}
+.vgai-input[data-density="compact-tall"],
+.vgai-select[data-density="compact-tall"] {
+  min-height: var(--vgai-control-comfortable-height);
+  font-size: var(--vgai-font-sm);
+}
+.vgai-input[data-leading-icon="true"] {
+  padding-left: calc(var(--vgai-space-12) + 1px);
+}
+.vgai-input[data-variant="entity-name"] {
+  min-height: var(--vgai-control-comfortable-height);
+  padding: var(--vgai-space-2) var(--vgai-space-3);
+  font-size: var(--vgai-font-lg);
+  font-weight: 600;
+}
+.vgai-input[data-variant="tree-edit"] {
+  min-height: var(--vgai-control-compact-height);
+  padding: 0 var(--vgai-space-2);
+  border-color: var(--vgai-accent);
+  font-size: var(--vgai-font-lg);
+  outline: none;
+}
+.vgai-input[data-variant="prominent"] {
+  min-height: var(--vgai-command-bar-height);
+  padding: var(--vgai-space-5) calc(var(--vgai-space-6) + var(--vgai-space-1));
+  border: 0;
+  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-boundary-strong);
+  border-radius: 0;
+  font-size: var(--vgai-font-xl);
+}
+.vgai-input[data-variant="prominent"]:focus-visible {
+  outline-offset: -2px;
+}
+.vgai-input[data-variant="seamless"] {
+  padding: var(--vgai-space-4);
+  color: var(--vgai-content-primary);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+.vgai-input[data-dynamic="true"],
+.vgai-select[data-dynamic="true"] {
+  color: var(--vgai-dynamic);
+  background-color: var(--vgai-dynamic-muted);
+  border-color: var(--vgai-dynamic);
+}
+.vgai-input[data-mixed="true"],
+.vgai-select[data-mixed="true"] {
+  color: var(--vgai-content-dim);
+  font-style: italic;
+}
+.vgai-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.vgai-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--vgai-input-surface, var(--vgai-bg-inset));
+  background-image: var(--vgai-select-chevron);
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 8px 5px;
+  color: var(--vgai-text-1);
+  border: 1px solid var(--vgai-input-border, var(--vgai-border-1));
+  border-radius: var(--vgai-radius-sm);
+  box-shadow: var(--vgai-input-shadow, none);
+  padding: var(--vgai-space-1) var(--vgai-space-6) var(--vgai-space-1) var(--vgai-space-3);
+  font-size: var(--vgai-font-base);
+  font-family: var(--vgai-font-sans);
+  outline: none;
+  min-height: var(--vgai-control-default-height);
+  box-sizing: border-box;
+  cursor: pointer;
+}
+.vgai-select:hover:not(:disabled) {
+  border-color: var(--vgai-border-2);
+}
+.vgai-select:focus-visible {
+  border-color: var(--vgai-accent);
+  outline: var(--vgai-focus-ring);
+  outline-offset: -1px;
+}
+.vgai-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.vgai-select option {
+  background: var(--vgai-bg-2);
+  color: var(--vgai-text-1);
+}
+
+.vgai-textarea {
+  display: block;
+  width: 100%;
+  min-height: calc(var(--vgai-control-default-height) * 2);
+  resize: vertical;
+  line-height: var(--vgai-leading-normal);
+}
+.vgai-textarea[data-variant="code"] {
+  padding: var(--vgai-space-5);
+  font-family: var(--vgai-font-mono);
+  font-size: var(--vgai-font-base);
+  line-height: var(--vgai-leading-relaxed);
+}
+.vgai-textarea[data-variant="inline-editor"] {
+  padding: var(--vgai-space-1);
+  color: var(--vgai-content-primary);
+  background: var(--vgai-input-surface, var(--vgai-surface-inset));
+  border: var(--vgai-stroke-active) solid var(--vgai-accent);
+  font: inherit;
+  font-size: var(--vgai-font-lg);
+  line-height: 1.3;
+  outline: none;
+}
+/* ---------------------------------------------------------------------- */
+/* Public contribution recipes. These are deliberately ordinary semantic   */
+/* HTML classes, not an extension UI framework: package contributions keep */
+/* familiar React/HTML while the host owns spacing, paint, and responsive   */
+/* behavior.                                                               */
+/* ---------------------------------------------------------------------- */
+
+.vgai-tool-page {
+  width: 100%;
+  max-width: 960px;
+  min-height: 100%;
+  margin: 0 auto;
+  padding: var(--vgai-space-6);
+  color: var(--vgai-content-primary);
+  box-sizing: border-box;
+}
+.vgai-tool-header {
+  max-width: 720px;
+  margin-bottom: var(--vgai-space-5);
+}
+.vgai-tool-eyebrow {
+  margin-bottom: var(--vgai-space-2);
+  color: var(--vgai-content-dim);
+  font-size: var(--vgai-font-sm);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.vgai-tool-title {
+  margin: 0 0 var(--vgai-space-2);
+  font-size: var(--vgai-font-xl);
+}
+.vgai-tool-description {
+  margin: 0;
+  color: var(--vgai-content-muted);
+  line-height: var(--vgai-leading-relaxed);
+}
+.vgai-tool-card {
+  padding: var(--vgai-space-5);
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+  border-radius: var(--vgai-radius-md);
+  background: var(--vgai-surface-panel);
+}
+.vgai-tool-form {
+  display: grid;
+  max-width: 720px;
+  gap: var(--vgai-space-4);
+}
+.vgai-tool-field {
+  display: grid;
+  min-width: 0;
+  gap: var(--vgai-space-2);
+}
+.vgai-tool-field > .vgai-input,
+.vgai-tool-field > .vgai-select {
+  width: 100%;
+}
+.vgai-tool-field-label {
+  color: var(--vgai-content-primary);
+  font-weight: 500;
+}
+.vgai-tool-help {
+  color: var(--vgai-content-dim);
+  font-size: var(--vgai-font-sm);
+  line-height: var(--vgai-leading-normal);
+}
+.vgai-tool-advanced {
+  padding: var(--vgai-space-3);
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+  border-radius: var(--vgai-radius-sm);
+  background: var(--vgai-surface-inset);
+}
+.vgai-tool-advanced > summary {
+  color: var(--vgai-content-muted);
+  cursor: pointer;
+  font-weight: 500;
+}
+.vgai-tool-advanced[open] > summary {
+  margin-bottom: var(--vgai-space-3);
+  color: var(--vgai-content-primary);
+}
+.vgai-tool-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--vgai-space-3);
+  padding-top: var(--vgai-space-1);
+}
+.vgai-cost-disclosure {
+  display: grid;
+  gap: var(--vgai-space-1);
+  padding: var(--vgai-space-3) var(--vgai-space-4);
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+  border-left: var(--vgai-stroke-active) solid var(--vgai-accent);
+  border-radius: var(--vgai-radius-sm);
+  background: var(--vgai-surface-inset);
+}
+.vgai-cost-disclosure[data-route="mock"] {
+  border-left-color: var(--vgai-success);
+}
+.vgai-cost-disclosure[data-route="managed"] {
+  border-left-color: var(--vgai-accent);
+}
+.vgai-cost-disclosure[data-route="direct"] {
+  border-left-color: var(--vgai-warn);
+}
+.vgai-cost-disclosure-title {
+  font-weight: 600;
+}
+.vgai-cost-disclosure-detail {
+  color: var(--vgai-content-muted);
+  font-size: var(--vgai-font-sm);
+}
+.vgai-tool-confirmation {
+  display: grid;
+  gap: var(--vgai-space-3);
+  padding: var(--vgai-space-4);
+  border: var(--vgai-stroke-resting) solid var(--vgai-warn);
+  border-radius: var(--vgai-radius-sm);
+  background: var(--vgai-warn-muted);
+}
+.vgai-tool-status {
+  max-width: 720px;
+  margin-top: var(--vgai-space-4);
+  padding: var(--vgai-space-3) var(--vgai-space-4);
+  border-radius: var(--vgai-radius-sm);
+  color: var(--vgai-content-primary);
+  background: var(--vgai-surface-raised);
+}
+.vgai-tool-status[data-tone="error"] {
+  color: var(--vgai-danger);
+  background: var(--vgai-danger-faint);
+}
+.vgai-tool-status[data-tone="success"] {
+  color: var(--vgai-success);
+  background: var(--vgai-success-muted);
+}
+
+.vgai-generation-job-meta {
+  color: var(--vgai-content-muted);
+  font-size: var(--vgai-font-sm);
+}
+.vgai-generation-document {
+  display: grid;
+  width: 100%;
+  max-width: 1120px;
+  min-height: 100%;
+  margin: 0 auto;
+  padding: var(--vgai-space-6);
+  gap: var(--vgai-space-4);
+  color: var(--vgai-content-primary);
+  box-sizing: border-box;
+}
+.vgai-generation-document-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--vgai-space-4);
+}
+.vgai-generation-result {
+  min-height: 280px;
+  padding: var(--vgai-space-4);
+  overflow: auto;
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+  border-radius: var(--vgai-radius-md);
+  background: var(--vgai-surface-inset);
+}
+.vgai-generation-document-empty,
+.vgai-generation-result-empty {
+  padding: var(--vgai-space-5);
+  color: var(--vgai-content-muted);
+}
+.vgai-generation-native-result {
+  margin: 0;
+  overflow: auto;
+  color: var(--vgai-content-muted);
+  font-size: var(--vgai-font-sm);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.vgai-generation-image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--vgai-space-3);
+}
+.vgai-generation-image-grid img,
+.vgai-generation-panorama,
+.vgai-generation-world-result img {
+  display: block;
+  width: 100%;
+  max-height: 620px;
+  border-radius: var(--vgai-radius-sm);
+  object-fit: contain;
+}
+.vgai-generation-media {
+  display: block;
+  width: min(100%, 860px);
+  margin: auto;
+}
+.vgai-generation-result-links,
+.vgai-generation-world-result,
+.vgai-generation-output-paths {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: var(--vgai-space-3);
+}
+.vgai-generation-output-paths code {
+  color: var(--vgai-content-muted);
+  overflow-wrap: anywhere;
+}
+.vgai-generation-document-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+.vgai-generation-create-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--vgai-space-2);
+}
+.vgai-generation-create-card {
+  display: grid;
+  gap: var(--vgai-space-1);
+  padding: var(--vgai-space-3);
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+  border-radius: var(--vgai-radius-sm);
+  color: var(--vgai-content-primary);
+  text-align: left;
+  background: var(--vgai-surface-raised);
+  cursor: pointer;
+}
+.vgai-generation-create-card:hover {
+  border-color: var(--vgai-boundary-strong);
+  background: var(--vgai-neutral-hover);
+}
+.vgai-generation-create-card:focus-visible {
+  outline: var(--vgai-focus-ring);
+  outline-offset: 1px;
+}
+.vgai-generation-create-card span {
+  color: var(--vgai-content-muted);
+  font-size: var(--vgai-font-sm);
+}
+
+/* Live account markup class (account-documents.tsx); its visual treatment
+ * lives in product-shell.css — this only provides the card's internal flow.
+ * The rest of the legacy account vocabulary (.vgai-account-summary-grid,
+ * .vgai-provider-connection singular, …) was dead and has been pruned. */
+.vgai-provider-connections {
+  display: grid;
+  gap: var(--vgai-space-4);
+}
+
+@media (max-width: 720px) {
+  .vgai-tool-page {
+    padding: var(--vgai-space-4);
+  }
+  .vgai-generation-document {
+    padding: var(--vgai-space-4);
+  }
+  .vgai-generation-document-header {
+    display: grid;
+  }
+}
+
+.vgai-checkbox {
+  accent-color: var(--vgai-accent);
+  width: 13px;
+  height: 13px;
+  cursor: pointer;
+  margin: 0;
+}
+.vgai-checkbox:focus-visible {
+  outline: var(--vgai-focus-ring);
+  outline-offset: 2px;
+}
+.vgai-checkbox:indeterminate {
+  accent-color: var(--vgai-warn);
+}
+.vgai-checkbox:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.vgai-color-swatch {
+  width: var(--vgai-control-compact-height);
+  height: var(--vgai-control-compact-height);
+  flex: 0 0 auto;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+  border-radius: var(--vgai-radius-sm);
+  cursor: pointer;
+}
+.vgai-color-swatch:hover:not(:disabled) {
+  border-color: var(--vgai-boundary-strong);
+}
+.vgai-color-swatch:focus-visible,
+.vgai-file-input:focus-visible,
+.vgai-range:focus-visible {
+  outline: var(--vgai-focus-ring);
+  outline-offset: 2px;
+}
+.vgai-color-swatch:disabled,
+.vgai-file-input:disabled,
+.vgai-range:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.vgai-file-input {
+  color: var(--vgai-content-muted);
+  font: inherit;
+}
+.vgai-range {
+  min-width: 0;
+  accent-color: var(--vgai-accent);
+}
+
+.vgai-number-input,
+.vgai-color-input {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--vgai-space-2);
+}
+.vgai-number-input-label {
+  width: 12px;
+  flex: 0 0 auto;
+  color: var(--vgai-content-muted);
+  font-size: var(--vgai-font-sm);
+  font-weight: 600;
+  text-align: center;
+  user-select: none;
+}
+.vgai-number-input-editor,
+.vgai-number-input-scrub,
+.vgai-color-input > .vgai-input {
+  width: 100%;
+  min-width: 0;
+}
+.vgai-number-input-scrub {
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: var(--vgai-space-1) var(--vgai-space-3);
+  color: var(--vgai-content-primary);
+  background: var(--vgai-input-surface, var(--vgai-surface-inset));
+  border: var(--vgai-stroke-resting) solid var(--vgai-input-border, var(--vgai-boundary-default));
+  border-radius: var(--vgai-radius-sm);
+  box-shadow: var(--vgai-input-shadow, none);
+  font-size: var(--vgai-font-base);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: ew-resize;
+  user-select: none;
+}
+.vgai-number-input-scrub:hover {
+  border-color: var(--vgai-boundary-strong);
+}
+.vgai-scrub-label {
+  transition:
+    color 0.12s var(--vgai-ease-standard),
+    filter 0.12s var(--vgai-ease-standard);
+}
+.vgai-scrub-label {
+  color: var(--vgai-content-muted);
+}
+.vgai-scrub-label:hover:not([data-disabled="true"]) {
+  color: var(--vgai-content-primary);
+}
+.vgai-number-input-scrub[data-disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.vgai-number-input-scrub[data-mixed="true"],
+.vgai-color-input > .vgai-input[data-mixed="true"] {
+  color: var(--vgai-content-dim);
+  font-style: italic;
+}
+.vgai-color-input-mixed {
+  width: var(--vgai-control-compact-height);
+  height: var(--vgai-control-compact-height);
+  flex: 0 0 auto;
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+  border-radius: var(--vgai-radius-sm);
+  background-color: var(--vgai-surface-inset);
+  background-image:
+    linear-gradient(
+      45deg,
+      var(--vgai-content-dim) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--vgai-content-dim) 75%
+    ),
+    linear-gradient(
+      45deg,
+      var(--vgai-content-dim) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--vgai-content-dim) 75%
+    );
+  background-position:
+    0 0,
+    4px 4px;
+  background-size: 8px 8px;
+}
+
+.vgai-section {
+  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
+}
+.vgai-section-header {
+  display: flex;
+  width: 100%;
+  min-height: var(--vgai-control-default-height);
+  align-items: center;
+  gap: var(--vgai-space-1);
+  color: var(--vgai-content-primary);
+  /* A header is a slab lifted off its panel (Blender's header sits a step above its panel),
+     derived from the palette's own two surfaces so every skin keeps the
+     relationship. */
+  background: var(--vgai-surface-section);
+}
+.vgai-section-trigger {
+  display: flex;
+  min-width: 0;
+  min-height: var(--vgai-control-default-height);
+  flex: 1;
+  align-items: center;
+  gap: var(--vgai-space-2);
+  padding: var(--vgai-space-2) var(--vgai-space-4);
+  color: inherit;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: var(--vgai-font-base);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.vgai-section-trigger:hover {
+  background: var(--vgai-neutral-hover);
+}
+/* A section heading that cannot collapse is a label, not a control: no
+   disclosure arrow, no pointer, no hover feedback promising a toggle. */
+.vgai-section-trigger[data-vgai-static],
+.vgai-section-trigger[data-vgai-static]:hover {
+  cursor: default;
+  background: transparent;
+}
+.vgai-section-trigger:focus-visible {
+  outline: var(--vgai-focus-ring);
+  outline-offset: -2px;
+}
+.vgai-section-title {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+}
+.vgai-section-title > span,
+.vgai-section-title > small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vgai-section-title > small {
+  color: var(--vgai-content-dim);
+  font-size: var(--vgai-font-sm);
+  font-weight: 400;
+}
+.vgai-section-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--vgai-space-1);
+  padding-right: var(--vgai-space-2);
+}
+.vgai-section-body {
+  padding: 0 var(--vgai-space-4) var(--vgai-space-4);
+}
+/* One contributed inspector section's frame (`components/InspectorToolSection.tsx`).
+   These three values were inline literals on that element; they are the same
+   three, tokenized, so the narrow column is unchanged — the point of moving
+   them is that the Properties presentation can now REPLACE them (Blender's
+   Properties editor has no rule between its datablock row and its first panel,
+   and insets its panel column once, not twice; `compact-inspector.css`). */
+.vgai-inspector-tool-section {
+  padding: var(--vgai-space-4);
+  margin-top: var(--vgai-space-2);
+  border-top: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
+}
+
+.vgai-xstate-node {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--vgai-space-1);
+  padding: var(--vgai-space-3) var(--vgai-space-5);
+  color: var(--vgai-content-primary);
+  background: var(--vgai-surface-panel);
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-strong);
+  font-size: var(--vgai-font-base);
+  text-align: left;
+  transition:
+    background 0.1s var(--vgai-ease-standard),
+    border-color 0.1s var(--vgai-ease-standard),
+    box-shadow 0.1s var(--vgai-ease-standard);
+}
+.vgai-xstate-node:hover {
+  background: var(--vgai-surface-chrome);
+}
+.vgai-xstate-node[data-active="true"] {
+  border-color: var(--vgai-success);
+}
+.vgai-xstate-node[data-selected="true"] {
+  border-color: var(--vgai-selection-border);
+  box-shadow: 0 0 0 var(--vgai-stroke-resting) var(--vgai-selection-border);
+}
+.vgai-xstate-node-type {
+  color: var(--vgai-content-dim);
+  transition: color 0.1s var(--vgai-ease-standard);
+}
+.vgai-xstate-node:hover .vgai-xstate-node-type,
+.vgai-xstate-node[data-selected="true"] .vgai-xstate-node-type {
+  color: var(--vgai-content-primary);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Layout, typography, and surface primitives. Product code composes these */
+/* roles instead of restating their visual recipes in inline objects.      */
+/* ---------------------------------------------------------------------- */
+
+.vgai-stack {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+.vgai-inline {
+  display: flex;
+  min-width: 0;
+}
+.vgai-spacer {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.vgai-actions {
+  flex: 0 0 auto;
+}
+.vgai-divider {
+  flex: 0 0 auto;
+  background: var(--vgai-boundary-default);
+}
+.vgai-divider[data-orientation="horizontal"] {
+  width: 100%;
+  height: var(--vgai-stroke-resting);
+}
+.vgai-divider[data-orientation="vertical"] {
+  width: var(--vgai-stroke-resting);
+  /* A rule between controls is exactly as tall as the controls it separates —
+     measured in Blender's top bar, the rule closing the menu words is 20px,
+     the same as every widget in that bar. It was a hard 16px, a literal that
+     outranked whatever height the material asked for. */
+  height: var(--vgai-control-compact-height);
+}
+
+.vgai-text {
+  min-width: 0;
+  margin: 0;
+  color: var(--vgai-content-primary);
+  font-size: var(--vgai-font-base);
+  font-weight: 400;
+  line-height: 1.35;
+}
+.vgai-text[data-variant="caption"] {
+  font-size: var(--vgai-font-sm);
+}
+.vgai-text[data-variant="body"] {
+  font-size: var(--vgai-font-base);
+}
+.vgai-text[data-variant="label"] {
+  font-size: var(--vgai-font-base);
+  font-weight: 600;
+}
+.vgai-text[data-variant="title"] {
+  font-size: var(--vgai-font-md);
+  font-weight: 600;
+}
+.vgai-text[data-variant="heading"] {
+  font-size: var(--vgai-font-xl);
+  font-weight: 600;
+}
+.vgai-text[data-variant="display"] {
+  font-size: var(--vgai-font-heading);
+  font-weight: 600;
+}
+.vgai-text[data-variant="code"] {
+  font-family: var(--vgai-font-mono);
+  font-size: var(--vgai-font-base);
+}
+.vgai-text[data-tone="muted"] {
+  color: var(--vgai-content-muted);
+}
+.vgai-text[data-tone="dim"] {
+  color: var(--vgai-content-dim);
+}
+.vgai-text[data-tone="accent"] {
+  color: var(--vgai-accent);
+}
+.vgai-text[data-tone="danger"] {
+  color: var(--vgai-danger);
+}
+.vgai-text[data-tone="warning"] {
+  color: var(--vgai-warn);
+}
+.vgai-text[data-tone="success"] {
+  color: var(--vgai-success);
+}
+.vgai-text[data-truncate="true"] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vgai-text[data-selectable="true"] {
+  user-select: text;
+}
+
+.vgai-surface {
+  min-width: 0;
+  color: var(--vgai-content-primary);
+  background: var(--vgai-surface-panel);
+  box-sizing: border-box;
+}
+.vgai-surface[data-variant="shell"] {
+  background: var(--vgai-surface-shell);
+}
+.vgai-surface[data-variant="panel"] {
+  background: var(--vgai-surface-panel);
+}
+.vgai-surface[data-variant="chrome"] {
+  background: var(--vgai-surface-chrome);
+}
+.vgai-surface[data-variant="raised"] {
+  background: var(--vgai-surface-raised);
+}
+.vgai-surface[data-variant="inset"] {
+  background: var(--vgai-surface-inset);
+}
+.vgai-surface[data-variant="overlay"] {
+  background: var(--vgai-surface-overlay);
+}
+.vgai-surface[data-border="true"] {
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+}
+.vgai-surface[data-scroll="true"] {
+  min-height: 0;
+  overflow: auto;
+}
+
+/* Modal composition. Product dialogs supply content; this family owns chrome.
+   Glass themes pair a LIGHTER dim with a scrim blur (the macOS modal read,
+   P6-U6 owner taste decision 3) — the blur var is `none` for every
+   treatment-less theme, whose heavier `--vgai-scrim` dim then paints
+   byte-identically to before. */
+.vgai-dialog-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--vgai-z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--vgai-space-10);
+  background: var(--vgai-scrim);
+  backdrop-filter: var(--vgai-scrim-backdrop-filter, none);
+  -webkit-backdrop-filter: var(--vgai-scrim-backdrop-filter, none);
+  pointer-events: auto;
+  box-sizing: border-box;
+}
+.vgai-dialog-scrim[data-variant="command"] {
+  align-items: flex-start;
+  padding-top: calc(var(--vgai-space-12) + var(--vgai-space-10) + var(--vgai-space-8));
+}
+.vgai-dialog {
+  display: flex;
+  width: min(520px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  min-width: 360px;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--vgai-content-primary);
+  background: var(--vgai-glass-regular-bg, var(--vgai-surface-chrome));
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-strong);
+  border-radius: var(--vgai-radius-lg);
+  box-shadow: var(--vgai-shadow-lg);
+  box-sizing: border-box;
+}
+.vgai-dialog[data-size="compact"] {
+  width: min(420px, calc(100vw - 48px));
+}
+.vgai-dialog[data-size="wide"] {
+  width: min(920px, calc(100vw - 48px));
+  height: min(720px, calc(100vh - 48px));
+}
+.vgai-dialog[data-variant="command"] {
+  width: min(500px, calc(100vw - 48px));
+  max-height: min(480px, calc(100vh - 48px));
+}
+.vgai-command-results {
+  min-height: 0;
+  max-height: 400px;
+  flex: 1;
+  overflow-y: auto;
+}
+.vgai-command-category {
+  padding: var(--vgai-space-3) calc(var(--vgai-space-6) + var(--vgai-space-1)) var(--vgai-space-1);
+  color: var(--vgai-content-muted);
+  font-size: var(--vgai-font-base);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.vgai-command-row {
+  display: flex;
+  align-items: center;
+  gap: var(--vgai-space-4);
+  padding: 5px calc(var(--vgai-space-6) + var(--vgai-space-1));
+  cursor: pointer;
+}
+.vgai-command-row[data-highlighted="true"] {
+  background: var(--vgai-selection-bg);
+}
+.vgai-command-icon {
+  width: 14px;
+  flex-shrink: 0;
+  color: var(--vgai-content-dim);
+  font-size: var(--vgai-font-sm);
+  text-align: center;
+}
+.vgai-command-label {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vgai-command-shortcut {
+  flex-shrink: 0;
+  color: var(--vgai-content-dim);
+  font-size: var(--vgai-font-base);
+}
+.vgai-command-empty {
+  padding: var(--vgai-space-8) calc(var(--vgai-space-6) + var(--vgai-space-1));
+  color: var(--vgai-content-dim);
+  text-align: center;
+}
+.vgai-dialog-header {
+  padding: var(--vgai-space-8) var(--vgai-space-10);
+  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
+}
+.vgai-dialog-body {
+  min-height: 0;
+  padding: var(--vgai-space-8) var(--vgai-space-10);
+  overflow: auto;
+}
+.vgai-dialog-footer {
+  justify-content: flex-end;
+  padding: var(--vgai-space-6) var(--vgai-space-10);
+  border-top: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+}
+.vgai-dialog-field {
+  display: grid;
+  min-width: 0;
+  gap: var(--vgai-space-2);
+}
+.vgai-dialog-field > .vgai-input {
+  width: 100%;
+}
+.vgai-joined-field {
+  align-items: stretch;
+  gap: 0;
+}
+.vgai-joined-field > .vgai-input {
+  width: 100%;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.vgai-joined-field-suffix {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 0 var(--vgai-space-4);
+  color: var(--vgai-content-dim);
+  background: var(--vgai-surface-raised);
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+  border-left: 0;
+  border-radius: 0 var(--vgai-radius-sm) var(--vgai-radius-sm) 0;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------- */
+/* .vgai-menu / .vgai-menu-item — shared floating-menu classes (optional,  */
+/* for later units).                                                      */
+/* ---------------------------------------------------------------------- */
+
+/* REGULAR Liquid Glass (P3 overlay chrome, formalized as
+ * `--vgai-glass-regular-*` in P6-U6 — the owner's Apple-HIG call: menus/
+ * popovers/dialogs/palette are the REGULAR variant, "more solid", never the
+ * refractive Clear family): transient surfaces are never
+ * backdrop-classified — the material is self-sufficient on both luminance
+ * sides instead. `--vgai-glass-regular-bg` is a raised light tint (adaptive
+ * themes) or the theme's own chrome tone at high opacity (dark-side glass
+ * themes) over a strong frost (`…-backdrop-filter`), statically paired with
+ * the `-on-bright` ink ramp so they read over ANY backdrop (the ramp
+ * mirrors the normal inks for non-adaptive themes, making the remap
+ * inert). For every theme without a treatment these vars mirror the plain
+ * chrome surface / `none` — byte-identical paint. Same text-shadow
+ * re-declaration rationale as the bright-scope rule above. */
+.vgai-menu,
+.vgai-popover,
+.vgai-dialog {
+  --vgai-content-primary: var(--vgai-content-primary-on-bright);
+  --vgai-content-muted: var(--vgai-content-muted-on-bright);
+  --vgai-content-dim: var(--vgai-content-dim-on-bright);
+  --vgai-content-text-shadow: var(--vgai-content-text-shadow-on-bright);
+  --vgai-content-frost-bg: var(--vgai-content-frost-bg-on-bright);
+  --vgai-text-1: var(--vgai-content-primary);
+  --vgai-text-2: var(--vgai-content-muted);
+  --vgai-text-3: var(--vgai-content-dim);
+  text-shadow: var(--vgai-content-text-shadow, none);
+  backdrop-filter: var(--vgai-glass-regular-backdrop-filter, none);
+  -webkit-backdrop-filter: var(--vgai-glass-regular-backdrop-filter, none);
+}
+
+.vgai-menu {
+  /* Opaque skins: the shell, a step darker than the bar a menu opens from
+     (Blender's popups are a step darker than its top bar). Glass keeps its own. */
+  background: var(--vgai-glass-regular-bg, var(--vgai-surface-shell));
+  border: 1px solid var(--vgai-border-1);
+  border-radius: var(--vgai-radius-md);
+  box-shadow: var(--vgai-shadow-md);
+  padding: var(--vgai-space-2);
+  z-index: var(--vgai-z-dropdown);
+  /* Menus can portal directly under the theme root to escape a glass
+     stacking context. Own typography at the primitive boundary instead of
+     inheriting through `.vgai-shell`, or portaled dropdowns fall back to the
+     browser's serif default. */
+}
+.vgai-menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--vgai-control-default-height);
+  box-sizing: border-box;
+  border: 0;
+  background: transparent;
+  padding: var(--vgai-space-2) var(--vgai-space-4);
+  border-radius: var(--vgai-radius-sm);
+  font-size: var(--vgai-font-base);
+  color: var(--vgai-text-1);
+  cursor: pointer;
+  user-select: none;
+  font-family: inherit;
+  text-align: left;
+  white-space: nowrap;
+}
+.vgai-menu-item:hover {
+  background: var(--vgai-selection-bg);
+}
+.vgai-menu-item:focus-visible {
+  outline: var(--vgai-focus-ring);
+  outline-offset: -1px;
+}
+.vgai-menu-item:disabled {
+  color: var(--vgai-text-3);
+  cursor: default;
+}
+.vgai-menu-item:disabled:hover {
+  background: transparent;
+}
+.vgai-menu-separator {
+  height: var(--vgai-stroke-resting);
+  margin: var(--vgai-space-1) var(--vgai-space-2);
+  border: 0;
+  background: var(--vgai-boundary-default);
+}
+
+/* A top-bar menu word (File/Edit/Render in Blender; Edit/View/Window here) is
+   a WIDGET, not a line of text. Measured in Blender 5.2's own top bar at 2x
+   (`topbar.png`, halved): the labels sit 16px ink-to-ink — 8px of padding
+   each side with the buttons touching — and every widget in the bar is 20px
+   tall. This rule used to give 6px of padding and no height at all, so the
+   trigger collapsed to its 15px line box (font 11 x leading 1.4) and the row
+   read as text floating in a bar. `min-height` rather than `height`: where a
+   parent DOES have a definite height (a panel header), 100% still wins. */
+.vgai-menu-trigger {
+  height: 100%;
+  min-height: var(--vgai-control-compact-height);
+  border: 0;
+  border-radius: var(--vgai-radius-sm);
+  background: transparent;
+  /* A MENU WORD IS ITS OWN INK (`content.menu`; see theme.ts for the two
+     backdrops that prove it opaque). This rule used to read `text-2` — the
+     OUTLINER ROW's ink — so every unenclosed clickable word in an area header
+     drew at row-text level while the top bar alone carried an override to
+     primary: one role split across two members. The token falls back to
+     `content.primary` in the emitter, which is what the top bar already
+     painted, so a palette naming no menu ink leaves that bar untouched. */
+  color: var(--vgai-content-menu);
+  padding: 0 var(--vgai-space-4);
+  cursor: pointer;
+  font: inherit;
+}
+.vgai-menu-trigger:hover,
+.vgai-menu-trigger[aria-expanded="true"] {
+  color: var(--vgai-text-1);
+  background: var(--vgai-bg-3);
+}
+.vgai-menu-trigger:focus-visible {
+  outline: var(--vgai-focus-ring);
+  outline-offset: -1px;
+}
+
+/* Persistent REGULAR Liquid Glass: large, text-heavy panels blur and adapt the
+ * sampled backdrop instead of replacing it with a high-opacity card. The
+ * normal light-ink state adds shade only when contrast begins to fail; bright
+ * scenes switch to dark ink and nearly transparent fills. The panel host
+ * owns the ONE body frost; dense `.vgai-content-frost` floors receive a
+ * stronger correction, but never a second filter. */
+[data-vgai-chrome="islands"] .vgai-glass-regular-panel {
+  color: var(--vgai-content-primary);
+  text-shadow: var(--vgai-content-text-shadow, none);
+  background: var(
+    --vgai-glass-regular-panel-adaptive-bg,
+    var(--vgai-glass-regular-panel-bg, var(--vgai-surface-panel))
+  );
+  backdrop-filter: var(--vgai-glass-regular-panel-backdrop-filter, none);
+  -webkit-backdrop-filter: var(--vgai-glass-regular-panel-backdrop-filter, none);
+  border: var(--vgai-stroke-resting) solid
+    color-mix(in srgb, var(--vgai-content-primary) 22%, transparent);
+  border-radius: var(--vgai-radius-lg);
+  box-shadow: var(--vgai-card-specular-shadow, var(--vgai-shadow-lg));
+}
+
+[data-vgai-chrome="islands"] .vgai-glass-regular-panel .vgai-content-frost {
+  background: var(
+    --vgai-glass-regular-content-adaptive-bg,
+    var(--vgai-content-frost-bg, transparent)
+  );
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Editor composition patterns: toolbars, tabs, trees, fields, and states. */
+/* ---------------------------------------------------------------------- */
+
+.vgai-toolbar {
+  display: flex;
+  min-width: 0;
+  min-height: var(--vgai-local-toolbar-height);
+  align-items: center;
+  gap: var(--vgai-space-2);
+  padding: 0 var(--vgai-space-3);
+  color: var(--vgai-content-primary);
+  /* Structural chrome is clear. Significant text floors own the single
+     content-frost tier; a toolbar inside that floor must not blur again.
+     Floating toolbars below remain independent glass islands. */
+  background: transparent;
+  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
+  box-sizing: border-box;
+}
+.vgai-toolbar[data-compact="true"] {
+  min-height: var(--vgai-control-default-height);
+  padding-inline: var(--vgai-space-2);
+}
+.vgai-toolbar-group {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--vgai-space-2);
+}
+.vgai-toolbar-divider {
+  width: 1px;
+  height: 16px;
+  flex: 0 0 auto;
+  margin: 0 var(--vgai-space-1);
+  background: var(--vgai-boundary-default);
+}
+/* Floating toolbars are glass ISLANDS (P6 glass-native chrome, U2): the
+   owner's "just transparent blurs" call-out. Fill, filter, radius, border,
+   and shadow all arrive through the treatment-driven --vgai-island-* vars
+   (theme.ts) — a glass theme paints the card material (panel-whisper fill,
+   the theme's plain backdrop list, radius 17, deep shadow) and the
+   refraction engine upgrades each `.vgai-glass-island` (the class
+   patterns/Toolbar.tsx adds alongside this one) to its own url()
+   displacement chain where capable; this declaration is the var-driven
+   plain-list fallback it suspends to. Treatment-less themes emit the exact
+   pre-P6 recipe through the same vars, so graphite/lite paint
+   byte-identically. Text opts into the theme's content shadow (inert
+   'none' without the axis). */
+.vgai-floating-toolbar {
+  position: relative;
+  min-height: auto;
+  padding: var(--vgai-space-2) var(--vgai-space-3);
+  border: var(--vgai-stroke-resting) solid
+    var(--vgai-island-border-color, var(--vgai-boundary-strong));
+  border-radius: var(--vgai-island-radius, var(--vgai-radius-md));
+  /* Ambient-lift layer (P6-U6 taste decision 2): 'none' for every
+     treatment-less theme, so the composed background stays byte-equivalent
+     to the single-layer paint. */
+  background:
+    var(--vgai-ambient-lift, none), var(--vgai-backdrop-dim, none),
+    var(--vgai-island-surface, color-mix(in srgb, var(--vgai-surface-panel) 90%, transparent));
+  box-shadow: var(--vgai-island-shadow, var(--vgai-shadow-sm));
+  backdrop-filter: var(--vgai-island-backdrop-filter, blur(8px));
+  -webkit-backdrop-filter: var(--vgai-island-backdrop-filter, blur(8px));
+  text-shadow: var(--vgai-content-text-shadow, none);
+  pointer-events: auto;
+}
+/* Apple-style segmented chrome uses a neutral material lift for selection.
+   Accent remains reserved for actions, focus, warnings, and authored color;
+   choosing Move/Rotate/Scale or a viewport display toggle is not an accent
+   action. This toolbar-scoped rule intentionally leaves pressed buttons in
+   ordinary panels on their existing semantic treatment. */
+.vgai-floating-toolbar .vgai-btn[aria-pressed="true"] {
+  color: var(--vgai-content-primary);
+  background: var(--vgai-selection-bg);
+  border-color: transparent;
+}
+/* Exclusive selection uses the same toolbar material and button geometry,
+   but the one selected destination receives the stronger tab-style accent.
+   Independent viewport toggles above intentionally keep the neutral state so
+   several simultaneous selections don't compete for primary emphasis. */
+.vgai-floating-toolbar[data-selection-mode="single"] .vgai-btn[aria-pressed="true"] {
+  color: var(--vgai-accent);
+  background: var(--vgai-neutral-active);
+}
+/* Transform modes are segments, not isolated circular icon buttons. Keep
+   every segment wider than it is tall so the neutral selection reads as a
+   generous oval and changing modes never shifts the toolbar geometry. */
+.vgai-floating-toolbar .vgai-btn[data-shape="segment"] {
+  width: calc(var(--vgai-control-comfortable-height) + 12px);
+}
+/* Specular rim, consistent with cards (workspace-dock.css's card ::before):
+   the 1.5px gradient ring via the padding + mask-composite trick — only the
+   rim band survives the XOR of content-box vs full-box masks. Paints
+   nothing when the theme emits no specular ring ('none' for every
+   treatment-less theme — that IS the degrade). The toolbar's
+   backdrop-filter always makes it a stacking context. The ring sits at z0
+   with interactive children explicitly above it; a huge decorative z-index
+   made Chromium target the toolbar surface instead of its buttons despite
+   `pointer-events:none`. */
+.vgai-floating-toolbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: var(--vgai-z-base);
+  padding: 1px;
+  border-radius: inherit;
+  background: var(--vgai-island-specular-ring, none);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+.vgai-floating-toolbar > * {
+  position: relative;
+  z-index: 1;
+}
+/* Header/footer chrome ISLANDS (P6 glass-native chrome, U3/U4): under
+   islands chrome — `data-vgai-chrome="islands"` on the theme root, derived
+   in theme.ts from the glass TREATMENT, never from theme identity — the
+   command-bar clusters (ProjectHeader.css) and status-bar groups / tray
+   button (EditorBottomBar.css) paint the same island material as
+   .vgai-floating-toolbar above, through the same --vgai-island-* vars; the
+   refraction engine upgrades each one (they all carry .vgai-glass-island)
+   to the url() displacement chain where capable, and this declaration is
+   the plain-list fallback it suspends to. `:not(:empty)` doubles as the
+   auto-hide affordance: an empty status group paints NOTHING (no 2px
+   border sliver), matching the pre-existing right-group :not(:empty)
+   spacing rule. Under bars chrome the class is completely inert, so
+   graphite/classic and the reduced-transparency/lite fallbacks (which
+   strip `treatment`, and therefore resolve to bars) paint byte-identically
+   to today. Geometry (heights/insets/padding) stays with each component's
+   own stylesheet; only the shared material lives here. */
+/* THE NAVIGATION CLUSTER's own metrics — Blender's, measured in
+   `modeling-object-none.png` at matched scale: a 28 CSS px button column
+   with 16 px glyphs, in a capsule exactly as wide as the buttons. The
+   Blender style flattens every control height to 20 for its menus and
+   headers, which is right there and wrong here, so the cluster restates
+   the one number it owns rather than bending the style's scale. */
+.vgai-viewport-navigation {
+  --vgai-control-compact-height: 28px;
+  --vgai-control-default-height: 28px;
+  --vgai-control-comfortable-height: 28px;
+}
+
+/* THE GLYPH INK IS 203, MEASURED (2026-09-19, `modeling-edit-none.png`,
+   device x 2774..2805 across all four buttons): mode 203, max 204. Ours
+   inked 194 because the cluster's buttons are `ghost`, and
+   `.vgai-btn[data-variant="ghost"]` paints `content.muted` — which is the
+   TREE ROW TEXT colour. The palette's own record already says that is the
+   wrong family here: `category.tool`'s docblock (`theme.ts`, the derivation
+   from the Properties rail's inactive `#a8a8a8`) states that Blender's
+   hue-less ICON ink is LIGHTER than its row text, and lands on `#cbcbcb`
+   — 203, this exact value, reached from a different frame by a different
+   method. That agreement is what makes 203 a measured Blender ink rather
+   than a number tuned here, and it is also a CORRECTION to the palette
+   settlement's note that 203 is "nine levels from an existing member": the
+   value is not nine levels from one, it IS one.
+   NOT read from `category.tool` and NOT minted. Reading a category tint
+   here would couple a datablock's colour to chrome glyphs — re-tinting the
+   tool category would move these five. Minting costs three homes for one
+   site, which is the refusal the ruler tick's 127 already took. So it is an
+   ALPHA AT THE SITE, which is what the settlement ruled: `content.primary`
+   (229) over this cluster's own plate.
+   THE ARITHMETIC, and its one dependency: the plate composites to 48.6
+   (`island-surface` = `surface-panel` #2f2f2f at 0.9 over the viewport's
+   #3f3f3f), and 0.8556·229 + 0.1444·48.6 = 202.95 -> 203. It is robust to
+   what the viewport paints underneath — over a grid line at 90 the plate
+   reads 51.3 and the glyph still lands 203.3 -> 203 — but NOT to the plate
+   itself moving.
+   THE PLATE ITSELF, RE-MEASURED 2026-09-19, AND THE REFUSAL THAT STOOD HERE
+   WAS WRONG ON BOTH COUNTS. It said Blender's plate is an opaque `#363636`
+   and that "no alpha closes it, 54 has no derivation from a declared
+   member". BLENDER'S PLATE IS TRANSLUCENT: a viewport grid line runs
+   straight through it on `modeling-edit-none.png`, entering the capsule at
+   its left border and leaving at its right, dimmed but unbroken — 54 is a
+   COMPOSITE, not a colour. Two backdrops separate the two, which is the
+   method the Outliner plate and the widget emboss were settled by:
+     * `sculpting.png` has NO grid — 6,032 px of a pure 63 outside the
+       capsule and 3,302 px of a pure 54 inside it.
+     * `modeling-edit-none.png`: a line whose core reads 84-85 outside
+       reads a flat 71 inside, on three independent columns and two
+       crossings. Integrated line MASS (coverage-free) gives 0.794, the
+       peak excess 17/21 = 0.810 — so (1-alpha) is 0.75..0.81.
+     * `modeling-front-ortho.png` is the independent check: one faint line,
+       core 79 outside, 66 inside — ratio 0.75.
+   So the plate is a NEAR-BLACK at alpha ~0.21 (+/-0.03), and 54 = a·P +
+   (1-a)·63 puts P in 16..27. THREE declared members sit in that band, and
+   the measurement cannot separate them — the ROLE does: a plate is a
+   SURFACE, so it is `surface.shell` `#171717` (23), the value Blender's own
+   top bar and status band already take, at alpha 9/40 = 0.225. That
+   reproduces 54 over the viewport EXACTLY and predicts both line cores
+   within one 8-bit level (84 -> 70.3 against 71; 79 -> 66.4 against 66).
+   WHAT THE PRIOR SLOPE OF 0.090 WAS: pairing an outside pixel with an
+   inside pixel at the SAME ROW, across a border crossed by DIAGONAL lines.
+   The two samples are then uncorrelated and a regression's slope collapses
+   toward zero, which is the shape of 0.090 against the 0.79 two
+   independent coverage-free estimators give here.
+   IT IS STILL NOT TAKEN, and the reason is the SITE rather than the value.
+   This rule cannot be gated to one palette (see below), and what it would
+   have to say ungated — "a navigation island is the SHELL at 22.5%" — is a
+   Blender measurement that is false elsewhere: driven to Classic and
+   measured, its cluster plate reads 39 against the same 63 viewport, and
+   shell-at-0.225 would put it at 54.7, dropping its separation from the
+   stage from 24 levels to 8. The knob that could carry it is a per-look
+   ISLAND SURFACE — `--vgai-island-surface` is emitted by `theme.ts`'s
+   `islandSurfaceValue`, which branches on the MATERIAL and hardcodes
+   `surface-panel at 90%` for every non-glass look — and giving a material
+   or palette its own island recipe is a new noun, which is a decision, not
+   a rule here. When it is taken, this alpha becomes 0.8514
+   (229a + 54(1-a) = 203).
+   TWO SELECTOR STEPS PAST THE GHOST RULE, and that is the bought lesson:
+   the ghost rule is (0,2,0) and lives in this same file, so a single-class
+   rule here would be a coin toss on source order.
+   UNGATED, AND I TRIED TO GATE IT FIRST. A `[data-vgai-palette="blender"]`
+   scope was written, and `validate-style-tokens`' `css-style-identity-
+   selector` refused it by name — CSS may not branch on which palette is
+   installed, because that makes every new palette a source edit. The gate
+   is right and the refusal is load-bearing here: it means a
+   palette-measured ALPHA cannot be kept to its own palette at all, which
+   is a CORRECTION to the settlement's note that this value is "closable as
+   an alpha at the site". At the site, yes; at the site FOR ONE PALETTE, no.
+   So this rule joins the block above it on the same standing footing: the
+   cluster's 28 and 16 are Blender's numbers for every skin already, stated
+   there with no palette selector. What it says for a non-Blender skin is
+   true of every skin — this glyph is an ICON, so it takes the primary ink
+   softened onto its own plate, not `content.muted`, which is the TREE ROW
+   TEXT role. `content.primary` is the readable ink in every palette and the
+   mix only moves it toward the plate it sits on, so no skin can lose
+   contrast by it. Classic cold-booted and read after. */
+.vgai-viewport-navigation .vgai-btn[data-variant="ghost"] {
+  color: color-mix(in srgb, var(--vgai-content-primary) 85.56%, transparent);
+}
+
+[data-vgai-chrome="islands"] .vgai-chrome-island:not(:empty) {
+  position: relative;
+  border: var(--vgai-stroke-resting) solid
+    var(--vgai-island-border-color, var(--vgai-boundary-strong));
+  border-radius: var(--vgai-island-radius, var(--vgai-radius-md));
+  background:
+    var(--vgai-ambient-lift, none), var(--vgai-backdrop-dim, none),
+    var(--vgai-island-surface, color-mix(in srgb, var(--vgai-surface-panel) 90%, transparent));
+  box-shadow: var(--vgai-island-shadow, var(--vgai-shadow-sm));
+  backdrop-filter: var(--vgai-island-backdrop-filter, blur(8px));
+  -webkit-backdrop-filter: var(--vgai-island-backdrop-filter, blur(8px));
+  text-shadow: var(--vgai-content-text-shadow, none);
+  box-sizing: border-box;
+  pointer-events: auto;
+}
+/* Same specular rim as .vgai-floating-toolbar::before. Keep decorative
+   paint beneath interactive island children so it can never own a hit. */
+[data-vgai-chrome="islands"] .vgai-chrome-island:not(:empty)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: var(--vgai-island-specular-ring, none);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+[data-vgai-chrome="islands"] .vgai-chrome-island:not(:empty) > * {
+  position: relative;
+  z-index: 1;
+}
+/* Size hierarchy (design-review item 2): small chrome must not wear
+   big-chrome weight. Compact islands — the tray button and any other
+   small single-control island — get a quieter rim, a smaller shadow, and
+   a tighter radius than the full clusters/toolbars. */
+[data-vgai-chrome="islands"] .vgai-chrome-island[data-island-scale="compact"]:not(:empty) {
+  border-radius: 12px;
+  box-shadow: var(--vgai-shadow-sm);
+}
+[data-vgai-chrome="islands"] .vgai-chrome-island[data-island-scale="compact"]:not(:empty)::before {
+  opacity: 0.55;
+}
+/* HUD islands (P6-U6): component-specific corrections the shared island
+   material must not clobber. The camera pill is a READOUT — it must never
+   start intercepting viewport pointers just because it became an island;
+   the profiler chip's enabled state keeps its accent border signal. */
+[data-vgai-chrome="islands"] .vgai-camera-info.vgai-chrome-island:not(:empty),
+[data-vgai-chrome="islands"] .vgai-viewport-controls-hint.vgai-chrome-island:not(:empty) {
+  pointer-events: none;
+}
+[data-vgai-chrome="islands"]
+  .vgai-performance-overlay.vgai-chrome-island[data-enabled="true"]:not(:empty) {
+  border-color: var(--vgai-accent);
+}
+/* Concentricity (owner design review, canonical HIG rule): highlights
+   nested inside pill chrome follow the pill — capsule hover/active chips,
+   not the flat design's small-radius rectangles. Var resolves to
+   radius-full only for treatment themes; opaque themes keep radius-sm. */
+[data-vgai-chrome="islands"] .vgai-chrome-island .vgai-btn,
+.vgai-floating-toolbar .vgai-btn {
+  border-radius: var(--vgai-island-control-radius, var(--vgai-radius-sm));
+}
+/* Singleton toolbar buttons ARE their own capsules (unrelated actions
+   never share a glass tray — grouping is by relatedness, per the HIG). The
+   one prominent action wears the tinted-glass capsule: accent as a
+   translucent tint over the blur, never an opaque painted slab. */
+[data-vgai-chrome="islands"] .vgai-btn.vgai-chrome-island:not(:empty) {
+  border-radius: var(--vgai-island-control-radius, var(--vgai-radius-sm));
+}
+[data-vgai-chrome="islands"] .vgai-btn.vgai-chrome-island[data-variant="primary"]:not(:empty) {
+  background: var(--vgai-island-primary-bg, var(--vgai-accent));
+}
+.vgai-split-button {
+  display: inline-flex;
+  min-width: 0;
+  align-items: stretch;
+}
+/* A SPLIT IS ONE WELL WITH ONE DIVIDER, and reaching the halves takes both
+   shapes: `Tooltip` renders a `span.vgai-tooltip-anchor` AROUND its child, so
+   `> .vgai-btn` silently matched nothing for every split whose halves carry
+   tooltips — which is all of them but one. Measured 2026-09-18 through
+   `editor.document.query` on the viewport header's snap group: the two halves
+   each kept a full 1px border (2px of seam) and both kept their outer radii,
+   where Blender's split shares ONE 1px #3c3c3c divider (native 2x
+   `modeling.png` row y=62, x 1446..1447 between the magnet at #535353 and the
+   snap dropdown at #272727). The tooltip anchor is `position: relative;
+   display: inline-flex` and carries no paint of its own, so only the button
+   inside it needs the rule. */
+.vgai-split-button > .vgai-btn:first-child,
+.vgai-split-button > :first-child > .vgai-btn {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.vgai-split-button > .vgai-btn + .vgai-btn,
+.vgai-split-button > * + .vgai-btn,
+.vgai-split-button > * + * > .vgai-btn {
+  min-width: 20px;
+  padding-inline: var(--vgai-space-1);
+  border-left: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.vgai-keycap {
+  padding: 1px var(--vgai-space-2);
+  color: var(--vgai-content-primary);
+  background: var(--vgai-surface-raised);
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+  border-radius: var(--vgai-radius-sm);
+  font-family: var(--vgai-font-mono);
+  font-size: var(--vgai-font-sm);
+}
+.vgai-viewport-toolbar {
+  position: absolute;
+  top: var(--vgai-viewport-overlay-top, var(--vgai-space-4));
+  /* The full-canvas selection hit layer is z50. Keep viewport controls in
+     the upper overlay band below menus (1000) but decisively above every
+     canvas-local interaction surface, including nested stacking contexts. */
+  z-index: calc(var(--vgai-z-dropdown, 1000) - 1);
+  isolation: isolate;
+}
+.vgai-viewport-toolbar-left {
+  left: var(--vgai-space-4);
+}
+.vgai-viewport-toolbar-right {
+  right: var(--vgai-space-4);
+}
+/* U6.5 F1 — header-island clearance for viewport-overlay chrome. Under
+   islands chrome over a BACKDROP document the header row is a
+   position:absolute overlay (ProjectHeader.css full-bleed rule) and the
+   dock runs edge-to-edge beneath it, so the viewport's own top-anchored
+   chrome at viewport-local 8px sits exactly under the header islands band
+   (y 8–46): the left toolstrip under the cluster island, the right
+   view-controls under Export/Account — the stats toggle was 100%
+   pointer-intercepted by the Account pill (the U6.5-FEED "Account ghost").
+   Two inherited offsets move ALL of it below the 48px band instead:
+   - `--vgai-viewport-overlay-top`: the toolbar rows' top — 48 + 8 = 56px.
+   - `--vgai-viewport-overlay-hud-top`: the second HUD tier (stats /
+     network readouts, StatsOverlay.tsx / NetworkInspectorPanel.tsx) — toolbar
+     bottom (56 + 38) + the 8px breathing band (P2-18) = 102px.
+   Under islands (glass) chrome the HUD tier gets the 8px breathing band:
+   54px = toolbar bottom 46 + 8px (P2-18 — it had decayed to 2px). A BACKDROP
+   document pushes it further to 102px for the header-island clearance.
+   Treatment-less "bars" chrome (graphite/classic/lite/reduced) leaves the var
+   UNSET so the components' bare 48px fallback applies — pixel-identical to
+   pre-glass main (the degrade-ladder invariant). */
+[data-vgai-chrome="islands"] {
+  --vgai-viewport-overlay-hud-top: 54px;
+}
+[data-vgai-chrome="islands"] .vgai-editor-shell:has(.vgai-workspace-dock[data-vgai-backdrop]) {
+  --vgai-viewport-overlay-top: 56px;
+  --vgai-viewport-overlay-hud-top: 102px;
+}
+.vgai-viewport-popover-anchor {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.vgai-snap-popover {
+  position: absolute;
+  top: calc(100% + var(--vgai-space-2));
+  left: 0;
+  z-index: var(--vgai-z-dropdown);
+  width: 170px;
+  padding: var(--vgai-space-4);
+}
+.vgai-helpers-menu {
+  position: absolute;
+  top: calc(100% + var(--vgai-space-2));
+  right: 0;
+  z-index: var(--vgai-z-dropdown);
+  min-width: 140px;
+}
+.vgai-menu-check {
+  display: inline-flex;
+  width: 14px;
+  flex: 0 0 auto;
+  justify-content: center;
+  margin-right: var(--vgai-space-2);
+}
+.vgai-selectable {
+  transition:
+    background-color 0.12s var(--vgai-ease-standard),
+    border-color 0.12s var(--vgai-ease-standard),
+    color 0.12s var(--vgai-ease-standard);
+}
+.vgai-selectable:hover {
+  background: var(--vgai-neutral-hover);
+}
+.vgai-selectable[data-selected="true"] {
+  background: var(--vgai-selection-bg);
+}
+.vgai-list-button {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  border-left: var(--vgai-stroke-active) solid transparent;
+  background: transparent;
+  color: var(--vgai-content-muted);
+  padding: var(--vgai-space-3) var(--vgai-space-4);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+.vgai-list-button:hover {
+  color: var(--vgai-content-primary);
+  background: var(--vgai-neutral-hover);
+}
+.vgai-list-button[data-selected="true"] {
+  color: var(--vgai-content-primary);
+  background: var(--vgai-selection-bg);
+}
+.vgai-list-button[data-selected="true"][data-accent="bar"] {
+  border-left-color: var(--vgai-selection-indicator);
+}
+.vgai-list-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.vgai-list-button:focus-visible {
+  outline: var(--vgai-focus-ring);
+  outline-offset: -2px;
+}
+.vgai-playbar {
+  pointer-events: auto;
+}
+.vgai-play-edit-regime {
+  display: inline-flex;
+  width: var(--vgai-control-compact-height);
+  height: var(--vgai-control-compact-height);
+  align-items: center;
+  justify-content: center;
+  color: var(--vgai-warn);
+}
+.vgai-play-edit-regime[data-regime="overlay"] {
+  color: var(--vgai-success);
+}
+.vgai-playbar-popover-anchor {
+  position: relative;
+}
+.vgai-resolution-menu {
+  z-index: var(--vgai-z-dropdown);
+  min-width: 220px;
+}
+.vgai-resolution-menu [aria-checked="true"] {
+  color: var(--vgai-content-primary);
+  background: var(--vgai-selection-bg);
+}
+.vgai-camera-info,
+.vgai-viewport-controls-hint {
+  position: absolute;
+  /* Bottom-LEFT: the bottom-right corner belongs to the compact inspector
+     card (owner, 2026-08-07 — the readout was sitting underneath it). */
+  left: var(--vgai-space-4);
+  bottom: var(--vgai-space-4);
+  padding: var(--vgai-space-2) var(--vgai-space-3);
+  border-radius: var(--vgai-radius-md);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+.vgai-camera-preview {
+  position: absolute;
+  z-index: calc(var(--vgai-z-dropdown, 1000) - 2);
+  left: var(--vgai-space-4);
+  bottom: 52px;
+  width: clamp(220px, 26vw, 360px);
+  max-width: calc(100% - var(--vgai-space-8));
+  overflow: visible;
+  border-radius: var(--vgai-radius-md);
+  background: transparent;
+  box-shadow: var(--vgai-shadow-md);
+}
+.vgai-camera-preview-header {
+  min-height: 28px;
+  flex-wrap: nowrap;
+  padding: 0 var(--vgai-space-2);
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+  border-bottom: 0;
+  border-radius: var(--vgai-radius-md) var(--vgai-radius-md) 0 0;
+  background: var(--vgai-surface-overlay);
+  backdrop-filter: blur(12px);
+}
+.vgai-camera-preview-title {
+  min-width: 0;
+  flex: 1;
+}
+.vgai-camera-preview-image {
+  width: 100%;
+  min-height: 120px;
+  overflow: hidden;
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+  border-top: 0;
+  border-radius: 0 0 var(--vgai-radius-md) var(--vgai-radius-md);
+  cursor: zoom-in;
+}
+.vgai-camera-preview-menu-anchor {
+  position: relative;
+  display: flex;
+}
+.vgai-camera-preview-menu {
+  position: absolute;
+  z-index: var(--vgai-z-dropdown);
+  top: calc(100% + var(--vgai-space-1));
+  right: 0;
+  display: grid;
+  width: max-content;
+  min-width: 210px;
+  padding: var(--vgai-space-1);
+}
+.vgai-camera-preview-menu .vgai-btn {
+  justify-content: flex-start;
+}
+.vgai-camera-view-banner {
+  position: absolute;
+  z-index: calc(var(--vgai-z-dropdown, 1000) - 1);
+  top: var(--vgai-viewport-overlay-top, var(--vgai-space-4));
+  left: 50%;
+  max-width: calc(100% - 520px);
+  padding: var(--vgai-space-1) var(--vgai-space-2);
+  border-radius: var(--vgai-radius-full);
+  transform: translateX(-50%);
+  backdrop-filter: blur(12px);
+}
+.vgai-camera-guides {
+  position: absolute;
+  z-index: calc(var(--vgai-z-sticky, 100) - 1);
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.vgai-camera-guide {
+  position: absolute;
+  background: color-mix(in srgb, var(--vgai-content-primary) 40%, transparent);
+  box-shadow: 0 0 1px color-mix(in srgb, var(--vgai-surface-shell) 70%, transparent);
+}
+.vgai-camera-guide-v1,
+.vgai-camera-guide-v2 {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+.vgai-camera-guide-v1 {
+  left: 33.333%;
+}
+.vgai-camera-guide-v2 {
+  left: 66.666%;
+}
+.vgai-camera-guide-h1,
+.vgai-camera-guide-h2 {
+  right: 0;
+  left: 0;
+  height: 1px;
+}
+.vgai-camera-guide-h1 {
+  top: 33.333%;
+}
+.vgai-camera-guide-h2 {
+  top: 66.666%;
+}
+.vgai-camera-safe-frame {
+  position: absolute;
+  inset: 6%;
+  border: 1px solid color-mix(in srgb, var(--vgai-content-primary) 48%, transparent);
+}
+.vgai-camera-center-mark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+}
+.vgai-camera-center-mark::before,
+.vgai-camera-center-mark::after {
+  position: absolute;
+  background: color-mix(in srgb, var(--vgai-content-primary) 60%, transparent);
+  content: "";
+}
+.vgai-camera-center-mark::before {
+  top: 8px;
+  left: 0;
+  width: 18px;
+  height: 1px;
+}
+.vgai-camera-center-mark::after {
+  top: 0;
+  left: 8px;
+  width: 1px;
+  height: 18px;
+}
+@media (max-width: 900px) {
+  .vgai-camera-view-banner {
+    top: calc(var(--vgai-viewport-overlay-top, var(--vgai-space-4)) + 44px);
+    max-width: calc(100% - var(--vgai-space-8));
+  }
+}
+.vgai-react-canvas-controls {
+  position: absolute;
+  right: var(--vgai-space-6);
+  bottom: var(--vgai-space-6);
+  z-index: var(--vgai-z-sticky);
+  overflow: visible;
+}
+.vgai-canvas-scene-navigation {
+  position: absolute;
+  top: calc(var(--vgai-viewport-overlay-top, var(--vgai-space-4)) + 44px);
+  left: var(--vgai-space-4);
+  z-index: calc(var(--vgai-z-dropdown, 1000) - 1);
+  overflow: visible;
+}
+.vgai-react-viewport-select {
+  border-color: transparent;
+  background-color: transparent;
+}
+
+.vgai-tabs {
+  display: flex;
+  height: var(--vgai-panel-header-height);
+  min-width: 0;
+  align-items: stretch;
+  gap: var(--vgai-space-1);
+  padding-inline: var(--vgai-space-2);
+  overflow: hidden;
+  background: var(--vgai-surface-sticky);
+  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
+}
+.vgai-tab {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+  max-width: 220px;
+  align-items: center;
+  gap: var(--vgai-space-2);
+  padding: 0 var(--vgai-space-4);
+  color: var(--vgai-content-muted);
+  background: transparent;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+.vgai-tab:hover {
+  color: var(--vgai-content-primary);
+  background: var(--vgai-surface-raised);
+}
+.vgai-tab[data-selected="true"] {
+  color: var(--vgai-content-primary);
+  /* The active tab wears the panel it opens (Blender's tabs are filled
+     slabs); the indicator below stays for the skins that read it. */
+  background: var(--vgai-surface-panel);
+}
+.vgai-tab[data-selected="true"]::after {
+  position: absolute;
+  right: var(--vgai-space-4);
+  bottom: 0;
+  left: var(--vgai-space-4);
+  height: var(--vgai-stroke-active);
+  border-radius: 2px 2px 0 0;
+  background: var(--vgai-selection-indicator);
+  content: "";
+}
+.vgai-tab:focus-visible {
+  outline: var(--vgai-focus-ring);
+  outline-offset: -2px;
+}
+.vgai-tab-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vgai-tab-dirty {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: var(--vgai-radius-full);
+  background: var(--vgai-warn);
+}
+.vgai-tab-badge {
+  display: inline-flex;
+  width: max-content;
+  max-width: 100%;
+  min-width: 15px;
+  height: 15px;
+  align-items: center;
+  justify-content: center;
+  /* space-2, not space-1: with true half-circle end caps (radius-full is
+   * 9999px, no longer 50%) multi-char content needs breathing room past the
+   * cap curve; border-box + min-width keeps a single digit a perfect circle. */
+  padding: 0 var(--vgai-space-2);
+  border-radius: var(--vgai-radius-full);
+  color: var(--vgai-surface-shell);
+  background: var(--vgai-content-muted);
+  font-size: var(--vgai-font-xs);
+  line-height: var(--vgai-leading-tight);
+  box-sizing: border-box;
+}
+
+/* A badge is a compact LABEL by default. The fixed radius and intrinsic,
+ * non-flexing box make multiword content safe: it cannot turn into the long
+ * elliptical capsule produced by border-radius: 50% on a wide rectangle, nor
+ * stretch to fill a grid/flex track. True counters opt into data-shape=count. */
+.vgai-badge {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-self: center;
+  width: fit-content;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 18px;
+  align-items: center;
+  justify-content: center;
+  padding: 1px var(--vgai-space-2);
+  overflow: hidden;
+  border-radius: var(--vgai-radius-sm);
+  color: var(--vgai-surface-shell);
+  background: var(--vgai-content-muted);
+  font-size: var(--vgai-font-xs);
+  line-height: var(--vgai-leading-tight);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.vgai-badge[data-shape="count"] {
+  min-width: 15px;
+  min-height: 15px;
+  height: 15px;
+  /* space-2, not space-1: at 2–3 digits the 9999px end-caps eat into a
+   * 2px pad and the glyphs graze the curve (reviewer finding, U0). */
+  padding: 0 var(--vgai-space-2);
+  border-radius: var(--vgai-radius-full);
+}
+
+.vgai-tree {
+  min-width: 0;
+  color: var(--vgai-content-primary);
+}
+.vgai-tree-row {
+  display: flex;
+  height: var(--vgai-tree-row-height);
+  min-width: 0;
+  align-items: center;
+  gap: var(--vgai-space-2);
+  padding-right: var(--vgai-space-2);
+  color: var(--vgai-content-muted);
+  border-left: var(--vgai-stroke-active) solid transparent;
+  box-sizing: border-box;
+  cursor: default;
+  user-select: none;
+}
+/* Blender's outliner alternates rows by a few levels (a three-level step),
+   phased on the row's ABSOLUTE index — `nth-child` counted this virtualized
+   list's leading spacer div as sibling one, so row 0 always drew the alternate
+   and the whole stripe flipped with the scroll window. */
+.vgai-tree-row[data-row-alt] {
+  background: var(--vgai-surface-row-alt);
+}
+/* THE STRIPE BELONGS TO THE BODY, NOT TO THE ROWS — and that one rule is the
+   largest area of the whole frame that differed from Blender.
+
+   MEASURED, `modeling-object-none.png` at native 2x (device y, column
+   x=3300): the Outliner body starts at 100 and Blender stripes it to the
+   bottom edge at a 40 px (20 CSS) pitch — 106..145 #272727, 146..185
+   #2a2a2a, 186..225, 226..265, 266..305 for the five occupied rows, and then
+   306..345 #2a2a2a, 346..385 #272727, 386..409 #2a2a2a with NOTHING IN THEM.
+   Ours painted the occupied rows and stopped: flat 39 for 320 device px,
+   which is why Blender's near-empty Outliner reads as a LIST and ours read
+   as an empty dark box.
+
+   PHASE, measured rather than assumed: the ROOT row (Scene Collection,
+   106..145) takes the panel value and the second row takes the alternate, so
+   the body's parity is exactly the `rowIndex % 2 === 1` the occupied rows
+   already use. The two painters therefore agree by construction; an occupied
+   alternate row paints its own identical fill over this gradient, which is
+   what keeps a region-substituted `--vgai-surface-row-alt` (the workspace host
+   re-emits it per region) correct on both.
+
+   `background-attachment: local` is the whole trick, and it is what makes
+   this the CONTENT's stripe rather than the viewport's: the gradient's origin
+   scrolls with the rows, so the phase holds at any scroll offset and the
+   virtualization spacers need no arithmetic of their own.
+
+   It paints UNDER every row, so the selection band, the active plate and
+   hover all keep winning — each of those is a fill on the row itself.
+
+   SCOPED TO A PAINTED OUTLINER, and that scope is the whole of the gate. The
+   stripe is a shape a reference frame justifies — Blender's Outliner reads as
+   a LIST because it is striped to the bottom edge — so it belongs to the look
+   that measured it and not to a host with none declared (ARCHITECTURE-CORE
+   §The core is the workbench, "Host default versus skew"; Classic's frame is
+   "no zebra"). The condition is the AREA, not a look: `data-vgai-region` is
+   published on the tree body by the panel that IS the Outliner, and only
+   while the installed palette names `color.region.outliner`
+   (`components/GameHierarchy.tsx`, `theme-preference.ts`'s
+   `editorPaintedRegions`). So any palette that paints editor areas gets the
+   stripe and no rule here ever learns a palette's name. The ink stays
+   `--vgai-surface-row-alt`, which every palette derives, so there is still no
+   new theme member and no flag. */
+.vgai-tree-body[data-vgai-region="outliner"] {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent var(--vgai-tree-row-height),
+    var(--vgai-surface-row-alt) var(--vgai-tree-row-height),
+    var(--vgai-surface-row-alt) calc(var(--vgai-tree-row-height) * 2)
+  );
+  background-attachment: local;
+}
+.vgai-tree-row:hover {
+  color: var(--vgai-content-primary);
+  background: var(--vgai-neutral-hover);
+}
+/* THE SELECTION BAND, and why it is a background LAYER rather than a fill.
+   The canonical selected treatment is the FILL alone (the viewport menus'
+   aria-checked rows, .vgai-selectable, the chat rows). The left accent bar this
+   once added read as a stray one-sided border (owner, 2026-08-07). The fill is
+   the TREE's own band, not `--vgai-selection-bg`: a selected Outliner row is a
+   darker navy than the accent that variable resolves to, which Blender keeps
+   for pressed widgets.
+
+   Measured in `modeling-object-selected.png` (Blender 5.2, object mode, every
+   object selected; the values and the derivations are on
+   `--vgai-tree-row-selected-bg` in theme.ts): Blender's band is 18 of the row's
+   20 px, so ONE row of the ordinary #272727/#2a2a2a stripe shows above and
+   below every selected row. Ours filled the whole 20, and the difference is not
+   subtle at a multi-selection: eleven adjacent selected rows painted ONE
+   continuous slab across the panel with no row boundary anywhere in it, where
+   Blender paints eleven separated bars.
+
+   So the band is a background IMAGE, positioned and sized to the inset, and
+   never a box: the row's height IS the Outliner's 20 px pitch (`chrome.treeIndent`'s
+   sibling, and what `treeRowHeight` measures for hit-testing), so a border or a
+   padding that produced the same picture would move every row. The positioning
+   area is the PADDING box, which already starts after the row's transparent
+   `border-left`, so `0` on the x axis lands 2 px in — Blender's own left inset
+   (band at device x 7 against content from x 2). The right inset is 0 in the
+   frame and 0 here. Blender rounds the box by 1 px; at that radius it is one
+   corner pixel and it is deliberately not drawn. */
+.vgai-tree-row[data-selected="true"] {
+  color: var(--vgai-content-primary);
+  background-image: linear-gradient(
+    var(--vgai-tree-row-selected-bg),
+    var(--vgai-tree-row-selected-bg)
+  );
+  background-repeat: no-repeat;
+  background-position: 0 1px;
+  background-size: 100% calc(100% - 2px);
+}
+/* THE ACTIVE ROW — Blender's second selected state, and the one fact this
+   editor already acts on without ever showing it. `selectedEntityId` (the
+   store's `[...selection].at(-1)`, the insertion-ordered last) is what the
+   gizmo binds to and what the inspector inspects; within a multi-selection
+   nothing on screen said WHICH row that was. Blender's answer is its active
+   object: the lighter band inside a hairline, against the dim band on every
+   other selected row.
+
+   Two background layers make the hairline: the border colour sized to the whole
+   inset box, the fill sized 1 px smaller on each side and offset to match. A
+   `box-shadow: inset` would paint the ring on the BORDER box — the full 20 px —
+   and miss the inset entirely. */
+.vgai-tree-row[data-selection-active="true"] {
+  background-image:
+    linear-gradient(var(--vgai-tree-row-active-bg), var(--vgai-tree-row-active-bg)),
+    linear-gradient(var(--vgai-tree-row-active-border), var(--vgai-tree-row-active-border));
+  background-position:
+    1px 2px,
+    0 1px;
+  background-size:
+    calc(100% - 2px) calc(100% - 4px),
+    100% calc(100% - 2px);
+}
+.vgai-tree-row[data-muted="true"] {
+  color: var(--vgai-content-dim);
+}
+.vgai-tree-row[data-dragging="true"] {
+  color: var(--vgai-content-muted);
+  background: var(--vgai-neutral-hover);
+  outline: 1px dashed var(--vgai-boundary-strong);
+  outline-offset: -1px;
+}
+/* THE INDENT GUIDE — the vertical rule an OPEN parent draws down its own
+   disclosure column, through every row of its subtree. One span per ancestor
+   column, absolutely positioned against the row's PADDING box (which starts at
+   the same x on every row, before that row's own `padding-left`), so column k
+   lands on the depth-k caret's centre for every descendant alike.
+
+   MEASURED on `modeling-object-none.png` / `modeling-object-selected.png`
+   (Blender 5.2, native 2x, OBJECT mode; the Outliner crop is
+   `modeling.png[y 53..419, x 2843..3452]` = `outliner.png`'s own box):
+
+     - ONE device pixel at x 59 — CSS 29.5..30.0 — against the Collection
+       row's chevron centre of 30.25. Hence `width: 0.5px` placed half a pixel
+       left of the column centre, which lands on Blender's own two device
+       pixels at 2x; at 1x the browser antialiases it, which is the honest
+       rendering of a one-device-pixel rule.
+     - y 143..242 CONTINUOUS — 5 CSS px into the first child's row, 5 CSS px
+       above the last child's row bottom (rows are 40 device px: Camera
+       133..172, Cube 173..212, Light 213..252). Those two 5s are the `top`
+       and `bottom` the row applies at the ENDS of a block only.
+     - every one of those 100 pixels is exactly (101,101,101) over three
+       different backdrops — the #272727/#2a2a2a stripe, the #1c304c selected
+       bar and the #324c7f active bar — so the ink is OPAQUE and painted OVER
+       the row's fill. That is why this is an element above the background and
+       not another `background-image` layer: the selected and active rules
+       already own `background-image` outright and would drop it.
+
+   WHERE THE EVIDENCE STOPS. The frame nests exactly ONE level, and its root
+   row (Scene Collection) carries no chevron and no guide under it — x 0..48 is
+   clear for the whole Collection row, measured. So "one rule per open
+   ancestor" is EXTRAPOLATION beyond the first level; it is the reading taken
+   because the alternative the frame equally supports — a rule under the
+   IMMEDIATE parent only — breaks the very continuity the frame does show: a
+   grandparent's rule would stop at its grandchildren and resume after them.
+   The geometry is not a density member for the same reason `content.active`
+   is not: a palette that names no `color.boundary.indent` draws no guide at
+   all, so there is nothing for another skin to retune. */
+.vgai-tree-indent-guide {
+  position: absolute;
+  width: 0.5px;
+  background: var(--vgai-tree-indent-guide);
+  pointer-events: none;
+}
+.vgai-tree-remote-selection {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+.vgai-tree-remote-selection > span {
+  width: 7px;
+  height: 7px;
+  margin-left: -2px;
+  border: 1px solid var(--vgai-surface-panel);
+  border-radius: var(--vgai-radius-full);
+}
+.vgai-tree-row:focus-visible {
+  outline: var(--vgai-focus-ring);
+  outline-offset: -2px;
+}
+/* THE GLYPH PLATE — ONE WIDGET, TWO SITES. Blender draws the same rounded
+   plate behind the ACTIVE row's type glyph and behind the datablock glyph of
+   the data it is editing, so the box lives here once and each site paints its
+   own fill into it.
+
+   MEASURED at native 2x on the Cube row, and the three frames AGREE to the
+   pixel: `modeling-object-none.png` (x 2964..3003, y 228..263 of the frame;
+   x 121..160, y 175..210 of the `[x2843..3452, y53..419]` Outliner crop),
+   `modeling-object-selected.png` and `outliner.png` all put it at 40x36
+   device px — 20x18 CSS, one indent cell wide and one CSS px of stripe above
+   and below, exactly the selection bar's own gutters — with a 10 device-px
+   (5 CSS) corner: the outer edge is first full at y=184 on a box whose top is
+   y=175, and the top edge is first full at x=131 on a box whose left is
+   x=121. FIVE is not `radius.sm`'s four, and the one CSS px shows at 6x on a
+   20-px box; it is this plate's own number and it has no token. */
+.vgai-tree-row {
+  --vgai-tree-glyph-plate-width: var(--vgai-tree-indent);
+  --vgai-tree-glyph-plate-height: calc(var(--vgai-tree-row-height) - var(--vgai-space-1));
+  --vgai-tree-glyph-plate-radius: 5px;
+}
+/* THE ACTIVE OBJECT'S PLATE, and WHICH FACT IT MARKS. Blender puts this plate
+   behind the type glyph of the ACTIVE object, and it is INDEPENDENT of
+   selection: `modeling-object-none.png` has nothing selected at all and the
+   Cube's glyph still wears it; `modeling-object-selected.png` has all three
+   rows selected and only the Cube's — the active one — wears it. (The record
+   this unit inherited said the plate marks the active object's DATA over
+   selection state. It does not: in BOTH object-mode frames the Cube's mesh
+   glyph carries NO plate while its OBJECT glyph does. What is absent from the
+   object-mode frames is the DATA plate below, which is edit-mode's.)
+
+   Where Blender has an active object with nothing selected this editor has no
+   active id at all, so the plate simply does not paint — the store's anchor is
+   the only honest answer to "which row is active" and inventing a second one
+   is a noun this editor does not have.
+
+   THE INK IS THE ROW'S OWN, AT TWO ALPHAS, and that is a fit rather than a
+   taste call: over the stripe's #2a2a2a the plate measures #525252 fill /
+   #686868 border, and over the active row's #324c7f it measures (87,107,144)
+   fill / (108,124,154) border. Solving both backgrounds at once returns one
+   ink of 190-194 at 26% and 41% — and `content.muted` (#c2c2c2, the ink the
+   unselected row's own NAME already takes) reproduces every channel of both
+   frames within one level. No new palette member: the plate is the row's text
+   colour, thinned.
+
+   THE BORDER'S DECLARED ALPHA IS 20.3%, NOT THE MEASURED 41%, and the
+   difference is the fill already lying under it: `background-clip` is
+   `border-box`, so the border composites over the plate rather than over the
+   row — the same model its datablock sibling below records. Solving
+   (1-b)(1-0.26) = 1-0.41 gives b = 0.203, which puts the painted column back
+   at 41% of the ink over the row. Measured before the correction: the border
+   landed at an effective 56.5% and read as a bright hairline. */
+.vgai-tree-type-glyph {
+  position: relative;
+  z-index: 0;
+}
+/* The site's half of the category ink, on the GLYPH and not on the cell —
+   the same split `.vgai-tree-datablock > *` makes, and for the same reason:
+   the plate's fill and border are measured as PAINTED, and a group opacity
+   on the cell would put 0.80 through them a second time. */
+.vgai-tree-type-glyph > * {
+  opacity: 0.8;
+}
+.vgai-tree-row[data-selection-active="true"] .vgai-tree-type-glyph::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  left: 50%;
+  box-sizing: border-box;
+  width: var(--vgai-tree-glyph-plate-width);
+  height: var(--vgai-tree-glyph-plate-height);
+  transform: translate(-50%, -50%);
+  border: var(--vgai-stroke-resting) solid
+    color-mix(in srgb, var(--vgai-content-muted) 20.3%, transparent);
+  border-radius: var(--vgai-tree-glyph-plate-radius);
+  background: color-mix(in srgb, var(--vgai-content-muted) 26%, transparent);
+  pointer-events: none;
+}
+/* THE COLLAPSED ROW'S DATABLOCK GLYPH — Blender's rest state (the summary a
+   `>` row draws for the datablock it is hiding; `GameHierarchy.tsx`'s `Row`
+   carries the geometry's coordinates). One indent cell wide, two points
+   shorter than the row, and the gap before it is one cell.
+
+   THE PLATE, and exactly which state earns it. In `outliner.png` the CUBE —
+   the active object, the one Blender draws with an orange name — is the row
+   whose datablock glyph sits on a rounded plate; the Light's, on an ordinary
+   row, has none. This one is EDIT MODE's: it is absent from both object-mode
+   frames, where the same Cube row's mesh glyph is bare, and the Model
+   document — whose viewport header reads Edit Mode — is that frame's sibling.
+   (The CAMERA's datablock carries a NEUTRAL grey plate in all three frames,
+   `#4f4f4f` fill / `#666666` border over the row's `#272727` — the same box
+   the active object's type glyph wears above, in the neutral ink rather than
+   the data green. That one marks "the scene's active camera", a fact this
+   editor has no analogue for and no way to answer honestly, so it is measured
+   here and deliberately not drawn.)
+   Ours takes the ACTIVE row, which is what "active object" means in this
+   editor — see the gate's own comment in `GameHierarchy.tsx`.
+
+   THE TINT IS TRANSCRIBED, NOT MODELLED. Blender's plate under the Cube's
+   mesh measures `#1f4038` fill with a `#506761` border over the alternate
+   row's `#2a2a2a` (src x 263-302, y 175-210), and no single alpha of the data
+   ink reproduces it — the fill's red falls 11 below the row where the ink's
+   own red is already clamped at zero. What DOES reproduce it, every channel
+   exactly, is the ink darkened to 60% and laid on at 26%: 42*0.74 = 31,
+   42+0.26*(126.6-42) = 64, 42+0.26*(97.2-42) = 56.
+
+   THE BORDER CARRIES NO INK, and that is a solve rather than a simplification.
+   Fitting a green-tinted light term to the frame's `#506761` returns a
+   NEGATIVE ink weight, so the hue in that hairline is entirely the fill
+   showing through: `content.primary` at 24% over the fill lands (79,104,98)
+   against the frame's (80,103,97), one level anywhere. It composites over the
+   PLATE, not the row — measured, not assumed: a temporary opaque border on the
+   live surface showed the painted column is the border colour over the
+   element's own background at exactly its declared alpha (the earlier
+   41%-over-fill cut predicted (88,146,156) over our selection blue and the
+   frame delivered (88,146,156)).
+
+   Both terms composite through `transparent`, so they still read over the
+   selected row's own fill — which Blender does not paint at all: its outliner
+   marks selection on the NAME (the Cube's label is orange) and leaves the row
+   its ordinary stripe, so over our blue selection the plate reads as a teal
+   chip rather than the frame's dark green. That difference is the row FILL's,
+   not this plate's, and closing it is the selected row's own unit. */
+.vgai-tree-datablock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  vertical-align: middle;
+  width: var(--vgai-tree-glyph-plate-width);
+  height: var(--vgai-tree-glyph-plate-height);
+  margin-left: var(--vgai-tree-indent);
+  font-size: var(--vgai-icon-sm);
+  border: var(--vgai-stroke-resting) solid transparent;
+  /* The SAME corner as the active object's plate above — one widget, one
+     number. It read `radius.sm` (4) against the frame's measured 5. */
+  border-radius: var(--vgai-tree-glyph-plate-radius);
+}
+/* The site's half of the category ink — the Outliner composites its GLYPHS at
+   0.80, the same measurement the row's own type glyph applies. On the glyph
+   and not on the cell: the plate's own fill and border are measured as
+   painted, and dimming the whole cell would put 0.80 through them twice. */
+.vgai-tree-datablock > * {
+  opacity: 0.8;
+}
+.vgai-tree-datablock[data-active="true"] {
+  background: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--vgai-category-data, currentColor) 60%, black) 26%,
+    transparent
+  );
+  border-color: color-mix(in srgb, var(--vgai-content-primary) 24%, transparent);
+}
+.vgai-tree-row-leading {
+  display: inline-flex;
+  width: 14px;
+  flex: 0 0 auto;
+  justify-content: center;
+}
+.vgai-tree-row-label {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vgai-tree-row-actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--vgai-space-1);
+}
+/* A ROW'S TOGGLES ARE BRIGHTER THAN ITS LABEL. Measured in `outliner.png`:
+   the eye and camera toggles ink at #e5e5e5 (src x 510–586, y 98–172) while
+   the row's own text is #c2c2c2 (src x 166–276) — which under the Blender
+   palette are exactly `content.primary` and `content.muted`. A ghost
+   IconButton reads `--vgai-content-muted`, i.e. the label's ink, so inside a
+   tree row the toggles were as quiet as the name they act on. They are
+   controls: the brighter token is `--vgai-content-primary`. Scoped to the
+   row (both shapes — `patterns/Tree.tsx`'s actions slot and the flat rows
+   `GameHierarchy.tsx` builds), never to ghost buttons at large. */
+.vgai-tree-row .vgai-btn[data-variant="ghost"]:not(.vgai-tree-caret) {
+  color: var(--vgai-content-primary);
+}
+/* ...but the EXPANDER is not one of them. Same frame, same scale: the
+   Collection row's open chevron inks #c2c2c2 (src x 52-69, y 110-119) — the
+   row's own label ink, not the toggles' #e5e5e5. It is a disclosure mark on
+   the name, not a control acting on the object, and the rule above had swept
+   it up with the eye. */
+.vgai-tree-row .vgai-btn.vgai-tree-caret {
+  color: var(--vgai-content-muted);
+}
+
+.vgai-field-group {
+  display: grid;
+  gap: var(--vgai-space-3);
+  padding: var(--vgai-space-4);
+}
+.vgai-field-row {
+  display: grid;
+  grid-template-columns: minmax(64px, 84px) minmax(0, 1fr);
+  min-width: 0;
+  align-items: center;
+  gap: var(--vgai-space-3);
+}
+.vgai-field-row[data-compact="true"] {
+  grid-template-columns: minmax(52px, 72px) minmax(0, 1fr);
+}
+.vgai-field-label {
+  min-width: 0;
+  color: var(--vgai-content-muted);
+  font-size: var(--vgai-font-base);
+}
+.vgai-field-control {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--vgai-space-2);
+}
+.vgai-field-hint {
+  grid-column: 2;
+  color: var(--vgai-content-dim);
+  font-size: var(--vgai-font-sm);
+  line-height: 1.35;
+}
+
+.vgai-state-surface {
+  display: flex;
+  min-width: 0;
+  min-height: 120px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--vgai-space-3);
+  padding: var(--vgai-space-8);
+  color: var(--vgai-content-muted);
+  text-align: center;
+  box-sizing: border-box;
+}
+.vgai-state-surface[data-compact="true"] {
+  min-height: 64px;
+  padding: var(--vgai-space-4);
+}
+.vgai-state-surface[data-tone="error"] {
+  color: var(--vgai-danger);
+}
+.vgai-state-surface[data-tone="success"] {
+  color: var(--vgai-success);
+}
+.vgai-state-surface[data-tone="loading"] .vgai-state-surface-icon {
+  animation: vgai-editor-spin 0.8s linear infinite;
+}
+.vgai-state-surface-icon {
+  color: currentColor;
+  font-size: var(--vgai-font-2xl);
+}
+.vgai-state-surface-title {
+  color: var(--vgai-content-primary);
+  font-size: var(--vgai-font-md);
+}
+.vgai-state-surface-description {
+  max-width: 42ch;
+  color: var(--vgai-content-dim);
+  line-height: var(--vgai-leading-normal);
+}
+.vgai-state-surface-action {
+  margin-top: var(--vgai-space-2);
+}
+
+.vgai-banner {
+  /* U6a: the tone tint is a custom property so the islands-gated glass rule
+   * below can LAYER it over the island material instead of repeating the
+   * four tone selectors. Inert for the base (bars) paint — the background
+   * consumes it directly, byte-identical to the former literal. */
+  --vgai-banner-tone-tint: var(--vgai-accent-muted);
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--vgai-space-3);
+  padding: var(--vgai-space-3) var(--vgai-space-5);
+  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-accent);
+  color: var(--vgai-accent);
+  background: var(--vgai-banner-tone-tint);
+  box-sizing: border-box;
+}
+.vgai-banner[data-tone="warning"] {
+  --vgai-banner-tone-tint: var(--vgai-warn-muted);
+  color: var(--vgai-warn);
+  border-color: var(--vgai-warn);
+}
+.vgai-banner[data-tone="error"] {
+  --vgai-banner-tone-tint: var(--vgai-danger-faint);
+  color: var(--vgai-danger);
+  border-color: var(--vgai-danger);
+}
+.vgai-banner[data-tone="success"] {
+  --vgai-banner-tone-tint: var(--vgai-success-muted);
+  color: var(--vgai-success);
+  border-color: var(--vgai-success);
+}
+/* U6a (P6 glass-native chrome, inventory row "scene banners"): under islands
+ * chrome — treatment presence, never theme identity — a banner is glass: the
+ * island material (surface + plain backdrop-filter list) with the SEMANTIC
+ * TINT layered on top of it, so the tone still reads while the scene shows
+ * through frosted. A flat blur, never a second refraction lens — banners
+ * paint inside documents/cards, and the one-lens-per-card rule holds. Bars
+ * chrome (graphite/classic and every reduced-transparency/lite fallback)
+ * never matches this rule and keeps the flat tint byte-identically. */
+[data-vgai-chrome="islands"] .vgai-banner {
+  background:
+    linear-gradient(var(--vgai-banner-tone-tint), var(--vgai-banner-tone-tint)),
+    var(--vgai-island-surface, transparent);
+  backdrop-filter: var(--vgai-island-backdrop-filter, none);
+  -webkit-backdrop-filter: var(--vgai-island-backdrop-filter, none);
+  text-shadow: var(--vgai-content-text-shadow, none);
+}
+.vgai-banner-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+.vgai-banner-content {
+  min-width: 0;
+  flex: 1;
+  color: var(--vgai-content-primary);
+}
+.vgai-banner-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--vgai-space-2);
+}
+
+.vgai-popover {
+  color: var(--vgai-content-primary);
+  background: var(--vgai-glass-regular-bg, var(--vgai-surface-chrome));
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-strong);
+  border-radius: var(--vgai-radius-md);
+  box-shadow: var(--vgai-shadow-md);
+}
+.vgai-drop-indicator {
+  position: absolute;
+  z-index: var(--vgai-z-overlay-low);
+  pointer-events: none;
+  border: var(--vgai-stroke-active) solid var(--vgai-selection-border);
+  background: var(--vgai-selection-bg);
+  box-sizing: border-box;
+}
+.vgai-drop-indicator[data-position="before"] {
+  inset: 0 0 auto;
+  height: var(--vgai-stroke-active);
+}
+.vgai-drop-indicator[data-position="after"] {
+  inset: auto 0 0;
+  height: var(--vgai-stroke-active);
+}
+.vgai-drop-indicator[data-position="inside"] {
+  inset: 1px;
+  border-radius: var(--vgai-radius-sm);
+}
+
+.vgai-model-tree-item {
+  text-align: left;
+}
+.vgai-btn.vgai-project-tool-card {
+  display: grid;
+  width: 100%;
+  height: auto;
+  align-items: start;
+  justify-content: normal;
+  gap: var(--vgai-space-2);
+  padding-block: var(--vgai-space-3);
+  text-align: left;
+}
+
+.vgai-resize-handle {
+  position: relative;
+  z-index: var(--vgai-z-overlay-low);
+  flex: 0 0 5px;
+  background: transparent;
+  touch-action: none;
+}
+.vgai-resize-handle[data-orientation="vertical"] {
+  cursor: col-resize;
+}
+.vgai-resize-handle[data-orientation="horizontal"] {
+  cursor: row-resize;
+}
+.vgai-resize-handle::before {
+  position: absolute;
+  background: var(--vgai-boundary-default);
+  content: "";
+  transition:
+    background-color 80ms var(--vgai-ease-standard),
+    transform 80ms var(--vgai-ease-standard);
+}
+.vgai-resize-handle[data-orientation="vertical"]::before {
+  inset: 0 auto 0 2px;
+  width: 1px;
+}
+.vgai-resize-handle[data-orientation="horizontal"]::before {
+  inset: 2px 0 auto;
+  height: 1px;
+}
+.vgai-resize-handle:hover::before,
+.vgai-resize-handle:focus-visible::before {
+  background: var(--vgai-selection-indicator);
+}
+.vgai-resize-handle[data-orientation="vertical"]:hover::before,
+.vgai-resize-handle[data-orientation="vertical"]:focus-visible::before {
+  transform: scaleX(2);
+}
+.vgai-resize-handle[data-orientation="horizontal"]:hover::before,
+.vgai-resize-handle[data-orientation="horizontal"]:focus-visible::before {
+  transform: scaleY(2);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Scrollbar policy (closes C-12, root cause of L-8/L-19) — REPLACES the   */
+/* old global *::-webkit-scrollbar{display:none} suppression. Thin, dark,   */
+/* themed; visible only where content actually overflows.                 */
+/* ---------------------------------------------------------------------- */
+
+.vgai-editor-theme,
+.vgai-editor-theme :where(*):not([data-vgai-world-surface], [data-vgai-world-surface] *) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--vgai-bg-3) transparent;
+}
+.vgai-editor-theme::-webkit-scrollbar,
+.vgai-editor-theme
+  :where(*):not([data-vgai-world-surface], [data-vgai-world-surface] *)::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+.vgai-editor-theme::-webkit-scrollbar-track,
+.vgai-editor-theme
+  :where(*):not([data-vgai-world-surface], [data-vgai-world-surface] *)::-webkit-scrollbar-track {
+  background: transparent;
+}
+.vgai-editor-theme::-webkit-scrollbar-thumb,
+.vgai-editor-theme
+  :where(*):not([data-vgai-world-surface], [data-vgai-world-surface] *)::-webkit-scrollbar-thumb {
+  background-color: var(--vgai-bg-3);
+  border-radius: var(--vgai-radius-full);
+  border: 2px solid var(--vgai-bg-1);
+  background-clip: padding-box;
+}
+.vgai-editor-theme::-webkit-scrollbar-thumb:hover,
+.vgai-editor-theme
+  :where(*):not(
+    [data-vgai-world-surface],
+    [data-vgai-world-surface] *
+  )::-webkit-scrollbar-thumb:hover {
+  background-color: var(--vgai-border-2);
+}
+.vgai-editor-theme::-webkit-scrollbar-corner,
+.vgai-editor-theme
+  :where(*):not([data-vgai-world-surface], [data-vgai-world-surface] *)::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Keyframes — keep editor-spin as-is; add the missing blink keyframe      */
+/* (closes C-9, referenced by BuildPanel.tsx:325's build-log cursor).      */
+/* ---------------------------------------------------------------------- */
+
+@keyframes vgai-editor-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes vgai-editor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Shared animation roles — components apply these classes instead of inline
+   `animation:` styles so the reduced-motion overrides below can reach them
+   (a media-query rule cannot beat an inline style without !important). */
+.vgai-anim-spin {
+  animation: vgai-editor-spin 0.8s linear infinite;
+}
+.vgai-anim-blink {
+  animation: vgai-editor-blink 1s step-end infinite;
+}
+
+/* Chrome is not prose — the VSCode model (glass-UI W7, report §2.23,
+   inverted after the blanket panel-wide rule made inspector paths, console
+   messages, and error text unselectable). Text is selectable by DEFAULT
+   everywhere; only interaction chrome opts out below. The convicted
+   defect's real vector stays closed: a drag that starts on chrome rather
+   than on prose cannot anchor a selection, because chrome opts out below. A
+   drag over plain prose selecting that prose
+   is normal browser behavior, not a defect. `data-vgai-noselect`
+   (the workspace host, static/utility panel wrappers; never documents, never
+   the agent conversation) now only scopes the bare-element button rule so
+   it cannot reach hosted-game DOM. */
+
+/* Buttons and button-shaped triggers (labels are affordances, not text). */
+.vgai-btn,
+.vgai-list-button,
+.vgai-split-button,
+.vgai-menu,
+.vgai-menu-trigger,
+.vgai-field-trigger,
+.vgai-inspector-group-trigger,
+.vgai-status-action,
+/* Panel toolbars / headers / internal tab strips. */
+  .vgai-toolbar,
+.vgai-dock-document-toolbar,
+.vgai-viewport-toolbar,
+.vgai-floating-toolbar,
+.vgai-playbar,
+.vgai-project-assets-toolbar,
+.vgai-section-header,
+.vgai-tabs,
+/* Drag-source rows/tiles: a reparent or place gesture must not paint
+   selection (hierarchy rows are HTML5 drag sources; asset tiles are
+   draggable when placeable; folder-tree rows are drop/drag chrome). */
+  .vgai-tree-row,
+.vgai-asset-tree-row,
+.vgai-project-asset-entry,
+.vgai-model-tree-item,
+/* Scrub chrome: numeric scrubbing is a pointer drag on the readout and
+   its axis label (base rules/inline styles already set these; kept here
+   so the chrome inventory is complete in one place). */
+  .vgai-number-input-label,
+.vgai-number-input-scrub,
+.vgai-scrub-label,
+/* Resize handles. */
+  .vgai-resize-handle {
+  user-select: none;
+}
+/* Bare <button>/[role=button] chrome inside editor panels only — scoped
+   to the noselect markers so hosted-game DOM keeps its own defaults. */
+[data-vgai-noselect] button,
+[data-vgai-noselect] [role="button"] {
+  user-select: none;
+}
+/* Form fields nested under chrome-none ancestors (e.g. the hierarchy
+   rename input inside a tree row, toolbar search/filter inputs) stay
+   selectable; `vgai-selectable-text` remains an explicit opt-in. */
+[data-vgai-noselect] input,
+[data-vgai-noselect] textarea,
+[data-vgai-noselect] [contenteditable="true"],
+.vgai-toolbar input,
+.vgai-dock-document-toolbar input,
+.vgai-project-assets-toolbar input,
+.vgai-tree-row input,
+.vgai-selectable-text {
+  user-select: text;
+}
+
+/* Light Explorer — a wide, scene-level audit table in the on-demand bottom
+   utility group. Interaction paint stays on the shared controls; this block
+   owns only the table's geometry and semantic selection/readability states. */
+.vgai-light-explorer {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+  color: var(--vgai-content-primary);
+  background: var(--vgai-surface-panel);
+}
+
+.vgai-light-explorer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--vgai-space-2);
+  min-height: 38px;
+  padding: var(--vgai-space-2) var(--vgai-space-3);
+  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
+}
+
+.vgai-light-explorer-toolbar > .vgai-input {
+  width: min(280px, 38vw);
+}
+
+.vgai-light-explorer-summary {
+  margin-left: auto;
+  color: var(--vgai-content-muted);
+  font-size: var(--vgai-font-small);
+  white-space: nowrap;
+}
+
+.vgai-light-explorer-scroll {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+}
+
+.vgai-light-explorer-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--vgai-font-base);
+}
+
+.vgai-light-explorer-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: 30px;
+  padding: 0 var(--vgai-space-2);
+  text-align: left;
+  font-weight: var(--vgai-font-weight-medium);
+  color: var(--vgai-content-muted);
+  background: var(--vgai-surface-raised);
+  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
+}
+
+.vgai-light-explorer-table td {
+  height: 34px;
+  padding: var(--vgai-space-1) var(--vgai-space-2);
+  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
+  vertical-align: middle;
+}
+
+.vgai-light-explorer-table tbody tr[data-selected="true"] td {
+  background: var(--vgai-selection-bg);
+}
+
+.vgai-light-explorer-table tbody tr:hover td {
+  background: var(--vgai-neutral-hover);
+}
+
+.vgai-light-explorer-table tbody tr[data-selected="true"]:hover td {
+  background: var(--vgai-selection-bg);
+}
+
+.vgai-light-explorer-check-column,
+.vgai-light-explorer-table td:first-child,
+.vgai-light-explorer-table td:last-child {
+  width: 54px;
+  text-align: center;
+}
+
+.vgai-light-explorer-sort.vgai-btn,
+.vgai-light-explorer-name.vgai-btn {
+  justify-content: flex-start;
+  min-width: 0;
+  padding-inline: 0;
+}
+
+.vgai-light-explorer-name.vgai-btn {
+  width: 100%;
+  color: var(--vgai-content-primary);
+}
+
+.vgai-light-explorer-type,
+.vgai-light-explorer-color span {
+  color: var(--vgai-content-muted);
+  font-family: var(--vgai-font-mono);
+  font-size: var(--vgai-font-small);
+}
+
+.vgai-light-explorer-color {
+  display: flex;
+  align-items: center;
+  gap: var(--vgai-space-2);
+  white-space: nowrap;
+}
+
+.vgai-light-explorer-table .vgai-number-input {
+  width: 86px;
+}
+
+.vgai-light-explorer-unavailable {
+  color: var(--vgai-content-dim);
+}
+
+.vgai-light-explorer-empty {
+  padding: var(--vgai-space-4);
+  color: var(--vgai-content-muted);
+  font-style: italic;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Reduced motion. Color/opacity fades elsewhere are not vestibular        */
+/* triggers and stay; this gates the genuine motion: continuous rotation,  */
+/* the flashing build-log cursor, and the resize-handle scale transition   */
+/* (the widened hover state itself stays — instant, not animated).         */
+/* ---------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .vgai-anim-spin,
+  .vgai-state-surface[data-tone="loading"] .vgai-state-surface-icon {
+    /* Stepped rotation still reads as activity without continuous motion. */
+    animation-duration: 1.6s;
+    animation-timing-function: steps(8, end);
+  }
+  .vgai-anim-blink {
+    animation: none;
+    opacity: 1;
+  }
+  .vgai-resize-handle::before {
+    transition-property: background-color;
+  }
+}
+
+/* Project-work conflict/stale notice — a ghost text-button in warning ink
+   (stylesheet re-scope; inline Button color is guard-banned). */
+.vgai-project-work-conflict {
+  color: var(--vgai-warn);
+  font-size: var(--vgai-font-sm);
+  text-align: left;
+}

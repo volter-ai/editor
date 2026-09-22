@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 3,
+  "name": "Blender",
+  "theme": {
+    "id": "blender",
+    "color": {
+      "surface": {
+        "shell": "#161616",
+        "panel": "#303030",
+        "chrome": "#1c1c1c",
+        "raised": "#545454",
+        "inset": "#1d1d1d",
+        "overlay": "rgba(48,48,48,0.94)"
+      },
+      "boundary": {
+        "default": "#3d3d3d",
+        "strong": "#3d3d3d",
+        "area": "#161616",
+        "indent": "#656565",
+        "divider": "#2e2e2e"
+      },
+      "content": {
+        "primary": "#e6e6e6",
+        "muted": "#c3c3c3",
+        "dim": "#969696",
+        "onAccent": "#ffffff",
+        "menu": "#dddddd",
+        "status": "#888888",
+        "placeholder": "#5e5e5e",
+        "active": "#ffa028",
+        "selected": "#e96a00",
+        "onBright": {
+          "primary": "#1d1d1d",
+          "muted": "rgba(29,29,29,0.82)",
+          "dim": "rgba(29,29,29,0.7)"
+        }
+      },
+      "accent": {
+        "default": "#4772b3",
+        "muted": "#4772b3"
+      },
+      "widget": {
+        "regular": "#545454",
+        "menu": "#282828",
+        "field": "#1d1d1d",
+        "emboss": "rgba(0,0,0,0.149)"
+      },
+      "viewport": {
+        "background": "#3d3d3d",
+        "grid": "#545454",
+        "axisX": "#cb293f",
+        "axisY": "#69aa15",
+        "selection": "#ed5700",
+        "active": "#ffa028"
+      },
+      "region": {
+        "outliner": "#282828",
+        "properties": "#303030"
+      },
+      "category": {
+        "object": "#e19658",
+        "modifier": "#74a2ff",
+        "material": "#cc6670",
+        "data": "#00d4a3",
+        "scene": "#cccccc",
+        "collection": "#ffffff",
+        "tool": "#cbcbcb",
+        "operator": "#95dab2"
+      },
+      "semantic": {
+        "danger": "#e0524a",
+        "dangerMuted": "rgba(224,82,74,0.28)",
+        "dangerFaint": "rgba(224,82,74,0.12)",
+        "warning": "#e5b83c",
+        "warningMuted": "rgba(229,184,60,0.28)",
+        "success": "#6fbf5f",
+        "successMuted": "rgba(111,191,95,0.28)",
+        "dynamic": "#e5b83c",
+        "dynamicMuted": "rgba(229,184,60,0.18)",
+        "instance": "#ffa028"
+      },
+      "neutralOverlay": {
+        "hover": "rgba(255,255,255,0.08)",
+        "active": "rgba(255,255,255,0.14)"
+      },
+      "scrim": "rgba(0,0,0,0.6)"
+    },
+    "typography": {
+      "sans": "'Inter', 'DejaVu Sans', system-ui, sans-serif",
+      "mono": "'DejaVu Sans Mono', Menlo, monospace"
+    }
+  }
+}

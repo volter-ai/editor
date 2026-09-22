@@ -1,0 +1,12 @@
+{
+  "packages": [
+    "@volter/editor-project",
+    "@volter/editor-sdk",
+    "@volter/editor-threejs",
+    "@volter/blender-engine",
+    "@volter/editor-blender",
+    "@volter/editor-core",
+    "@volter/editor-live",
+    "@volter/editor"
+  ]
+}

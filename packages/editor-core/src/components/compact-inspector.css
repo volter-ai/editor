@@ -1,0 +1,539 @@
+/* The inspector's DEFAULT presentation is a NARROW COLUMN (owner, 2026-08-19):
+ * identity row, a SECTION-ICON STRIP that signposts what the subject has and
+ * jumps to a section, then the sections stacked. The `card` presentation is the
+ * space-tight fallback — a MINI card (preview, name, the same strip,
+ * open-for-edit) that collapses at the floor to a single-line PILL.
+ *
+ * This geometry is CSS rather than inline style because the strip RE-SCOPES a
+ * canonical control it does not own: the icon buttons are ghost icon buttons
+ * held one notch quieter than their resting paint. A product surface re-scopes
+ * those through the stylesheet, never by painting a `<Button>` inline.
+ */
+
+/* The SECTION-ICON STRIP — one glyph per section, shared by the column and the
+   mini card. A horizontal, wrapping row of compact ghost icon buttons under a
+   hairline rule, so it reads as a table of contents rather than a toolbar of
+   commands. */
+.vgai-inspector-icon-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--vgai-space-1);
+  padding: var(--vgai-space-1) var(--vgai-space-2);
+  border-bottom: 1px solid var(--vgai-structural-divider);
+}
+.vgai-inspector-icon-strip .vgai-btn[data-variant="ghost"] {
+  color: var(--vgai-content-dim);
+}
+.vgai-inspector-icon-strip .vgai-btn[data-variant="ghost"]:hover:not(:disabled) {
+  color: var(--vgai-content-primary);
+}
+
+/* The PROPERTIES presentation — Blender's Properties editor: a vertical TAB
+   RAIL down the area's whole left edge, and everything else (the breadcrumb,
+   the datablock row, the one open section) in the column beside it. */
+.vgai-inspector-properties {
+  display: flex;
+  align-items: stretch;
+  /* The rail runs the AREA's whole left edge in the reference, so the split
+     owns the full height and the identity rows live in the body beside it. */
+  min-height: 100%;
+}
+/* …AND `100%` OF WHAT. The line above is the intent and it was shipping as
+   prose only: driven cold 2026-09-19 in a models scaffold, the rail measured
+   68 px tall in a 698.5 px dock panel, because a percentage min-height needs
+   a definite containing block and every ancestor between here and the dock
+   panel sized to its content. The rail stopped under the second tab and the
+   column below it painted `surface-panel` — the BODY's own fill — so the
+   rail did not read as a rail at all.
+   BLENDER'S RUNS THE WHOLE COLUMN, measured on `modeling-edit-none.png` down
+   x 2849: the last tab's cell ends at device y 1322 and `#171717` continues
+   for 377 more device rows (188.5 CSS) to the bottom of the editor. Below
+   its 14 tabs there is still rail.
+   SCOPED TO THE PRESENTATION THAT ASKED FOR IT. The panel already stamps
+   `data-vgai-inspector-presentation`, so the narrow column, the mini card
+   and the pill are untouched — the other three presentations have no rail
+   to stretch and a filling scroll container would change where their
+   content sits. */
+[data-vgai-inspector-presentation="properties"] {
+  flex: 1 1 auto;
+  /* A scroll container in a column flex parent will not shrink past its
+     content without this, which is how the panel would gain the height and
+     lose the scroll in the same edit. */
+  min-height: 0;
+}
+[data-vgai-inspector-presentation="properties"] > .vgai-inspector-properties-fill {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+/* THE PROPERTIES TAB RAIL, re-measured on the native 2x `modeling.png` (the
+   earlier pass read a halved frame and got the boxes wrong). Source
+   coordinates are in the 2x frame; every number below is its half:
+
+     rail column   x 2845..2900 = 28 CSS px wide, filled #171717 (y=1500, below
+                   the last tab — the fill the tabs sit ON, which the earlier
+                   reading mistook for the tab colour)
+     a tab         x 2847..2900 = 27 CSS px, so the rail's only gutter is 1 px
+                   on the LEFT and a tab runs flush to the body edge;
+                   y 938..985 = 24 CSS px tall, filled #1c1c1c
+     the SELECTED  takes the panel's own fill and merges with the body — at
+       tab         y=1017 the Modifier tab is #1c1c1c for 1 px and #2f2f2f from
+                   x 2849 on, with no seam against the panel beside it
+     glyph         28x28 device = 14 CSS px, centred (x 2861..2888 inside a tab
+                   at 2847..2900, y 948..975 inside 938..985)
+     gap           4 CSS px between tabs of one GROUP (y 619..624 + its two
+                   1 px transitions), 11 between groups (y 548..568). We ship
+                   one group, so only the 4 is spent.
+
+   RE-MEASURED 2026-09-18 down ONE COLUMN of the rail's own fill, x=2852 on
+   `modeling-edit-none.png` (the Modeling workspace in Edit Mode — the frame
+   this document is the sibling of), which reads the boxes rather than the
+   glyphs and corrects two of the numbers above:
+
+     a tab         27 CSS TALL, not 24 — `#1c1c1c` runs 54 device px per cell
+                   (y 495..548, 567..620, 623..676, … , 1271..1324) on a 56 px
+                   pitch, every cell the same.
+     gap           1 CSS, not 4 — the 2 device px between cells read `#1a1a1a`,
+                   the exact blend of `#1c1c1c` and the rail's `#171717`, i.e.
+                   a hairline, not a gutter. (The 4 came from reading a GROUP
+                   boundary, which is 15 device px of rail fill plus its two
+                   blend rows: 8.5 CSS. We ship one group, so it is unspent.)
+     the plate     the SELECTED cell is 25 CSS, inset one pixel inside its 27:
+                   `#2f2f2f` runs y 993..1042 with `#242424` single rows at 992
+                   and 1043, inside a cell at 991..1044. Its LEFT corners round
+                   over four device rows (x 2853 at y 992, 2851, 2850, 2849
+                   from 996 on) — 2 CSS — and its right edge is flat, because
+                   it merges into the body.
+     rail top      the ground starts 17 device px above the first cell (y 478
+                   under the editor's own header band, first cell at 495) —
+                   8.5 CSS.
+
+   The rail sticks to the top of the scrolling column so a long section body
+   never scrolls the tabs away. */
+.vgai-inspector-properties-rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vgai-stroke-resting);
+  padding-top: var(--vgai-space-4);
+  /* The rail's only gutter is one device-independent pixel on the LEFT: a tab
+     runs flush to the body edge (x 2847..2900 inside a 2845..2900 column). */
+  padding-left: var(--vgai-stroke-resting);
+  /* The open tab's plate rounds 2 CSS px on its leading corners and nothing on
+     its trailing ones. It is named here rather than written into the rule
+     below because it is a MEASURED constant of this frame with no rung in the
+     material's shape scale (Blender rounds every widget at 4). */
+  --vgai-properties-tab-plate-radius: 2px;
+  width: 28px;
+  box-sizing: border-box;
+  background: var(--vgai-surface-shell);
+  position: sticky;
+  top: 0;
+  align-self: stretch;
+  flex: 0 0 auto;
+}
+/* THE GROUP SEPARATOR. `ED_buttons_tabs_list` (`space_buttons.cc:201-255`)
+   appends a `BCONTEXT_SEPARATOR` between the tool tab, the scene group
+   (Render, Output, View Layer, Scene, World), Collection, the object group
+   (Object … Material) and Texture; the rail draws it as GROUND, not as a
+   rule. Measured on `modeling-edit-none.png` down x=2852: a group boundary is
+   15 device px of the rail's own `#171717` plus its two blend rows — 8.5 CSS.
+   The rail's flex `gap` already contributes one device-independent pixel on
+   each side of this element, so it owns 6.5 of the 8.5 itself. No ink: the
+   gap IS the separator in the reference. */
+.vgai-inspector-properties-rail-separator {
+  flex: 0 0 auto;
+  height: 6.5px;
+}
+/* The tab BOX, not the button's own size ramp: a Properties tab is 27x24 in
+   the frame regardless of which control height the density declares. The two
+   qualifiers are what it takes to outrank the canonical control's own box:
+   `[data-size="compact"]` sets the height and `[data-icon="true"][data-size]`
+   sets the width to the compact control height (20), which is why an earlier
+   cut of this rule left 20x20 tabs with 7 px of rail showing beside them. */
+.vgai-inspector-properties-rail .vgai-btn[data-icon][data-size] {
+  width: 27px;
+  height: 27px;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border-radius: 0;
+}
+.vgai-inspector-properties-rail .vgai-btn[data-variant="ghost"] {
+  color: var(--vgai-content-dim);
+  background: var(--vgai-surface-chrome);
+}
+.vgai-inspector-properties-rail .vgai-btn[data-variant="ghost"]:hover:not(:disabled) {
+  color: var(--vgai-content-primary);
+}
+/* The open tab IS the panel — Blender gives it the body's own fill so the two
+   read as one surface rather than as a lit tab. */
+.vgai-inspector-properties-rail .vgai-btn[aria-selected="true"],
+.vgai-inspector-properties-rail .vgai-btn[data-variant="ghost"][aria-selected="true"] {
+  color: var(--vgai-content-primary);
+  background: var(--vgai-surface-panel);
+}
+/* …AND IT IS A PLATE, not the whole cell: 25 CSS px inside the 27, rounded on
+   the LEFT and flat on the right where it runs into the body.
+
+   The inset is the canonical control's OWN transparent 1 px border, which
+   `.vgai-btn` already carries on every button — `background-clip: padding-box`
+   simply stops painting over it, and 27 - 2 is Blender's 25. (Clipping to the
+   CONTENT box instead paints 23: measured live, y 214..236 inside a cell at
+   211.5..238.5, because block padding would take a second pixel off each end.)
+   `border-radius` is declared on the border box and the painting area's
+   corners come out one pixel tighter, which is why the measured 2 is written
+   as 2 plus the border it loses. Specificity has to outrank the tab-box rule
+   above, which zeroes the radius. */
+.vgai-inspector-properties-rail .vgai-btn[data-icon][data-size][aria-selected="true"] {
+  --vgai-plate-corner: calc(var(--vgai-properties-tab-plate-radius) + var(--vgai-stroke-resting));
+  background-clip: padding-box;
+  border-radius: var(--vgai-plate-corner) 0 0 var(--vgai-plate-corner);
+}
+/* THE RAIL'S ALPHA, and why the open tab is the exception. A category token is
+   the glyph's INK at full opacity (`theme.ts`'s category docblock); Blender's
+   own rail dims every tab but the open one. Measured on the native 2x frames,
+   the same ink at both states: the Object tab is #e09557 open
+   (`properties-object.png`, src y 522-549, over its #2f2f2f plate) and
+   #b97d4b closed (`properties-modifier.png`, same rows, over #1c1c1c) — the
+   ink at 0.80. The Modifier tab does it the other way round (#73a1ff open in
+   `properties-modifier.png`, #6286d1 closed in `properties-object.png`), and
+   the Data tab a third time (#00d3a2 / #05ae87).
+
+   Keyed on `[data-vgai-tone]` rather than on the button, so it reaches ONLY a
+   glyph whose set gives it a category: Font Awesome carries no tone, so every
+   Classic rail is byte-identical to before this rule — its tabs already
+   separate open from closed through `--vgai-content-dim`/`-primary` above,
+   which a toned glyph's own `color` overrides. */
+.vgai-inspector-properties-rail .vgai-btn [data-vgai-tone] {
+  opacity: 0.8;
+}
+.vgai-inspector-properties-rail .vgai-btn[aria-selected="true"] [data-vgai-tone] {
+  opacity: 1;
+}
+/* THE PROPERTIES IDENTITY — Blender's two opening rows (the component's own
+   docblock carries every coordinate). There is NO rule under it: in the frames
+   the datablock row is followed by panel fill and then the first card's own top
+   edge (`properties-object.png`, y 180..199 between the row at 140..179 and
+   the card at 200).
+
+   THE INSET IS THE BODY'S, ONCE. This row sits INSIDE
+   `.vgai-inspector-properties-body`, which already spends the measured 8 CSS
+   on every side, so its own 8 doubled it: measured live before this rule, the
+   body starts at x 1450.5 and the breadcrumb's glyph landed at 1466.5 — 16 —
+   while the cards below it landed at 1458.5. The same doubling the bands unit
+   found in `InspectorToolSection.tsx`, one level up.
+
+   THE VERTICAL RHYTHM, measured on `properties-object.png` at 2x (device px,
+   halve for CSS): area header bottom 47 → breadcrumb row 68..108 (20 CSS,
+   centred on its 14 px glyph at 74..101) → datablock row 140..179 → first card
+   200. So 10.5 CSS above the breadcrumb, 16 between the two rows, 10.5 below
+   the pair. `modeling-edit-none.png`'s Modifier tab confirms the middle gap
+   from the other side: no datablock row there, and `Add Modifier` starts at
+   the same y=140. Ours ran 8 / 2 / 0. */
+.vgai-inspector-identity[data-vgai-identity-layout="properties"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vgai-space-8);
+  padding: var(--vgai-space-1) 0 var(--vgai-space-5);
+}
+/* Glyph to name, INK TO INK: `properties-modifier.png` runs the glyph out at
+   x=107 and starts `Cube` at x=127 — 20 device px, 10 CSS. Our glyph box
+   carries ~1.5 CSS of its own bearing each side, so the gap token that lands
+   on 10 is 8 (measured after: 9.5). It was 4. */
+.vgai-inspector-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--vgai-space-4);
+  min-height: var(--vgai-control-default-height);
+}
+/* THE CHAIN IS A NAME IN PLAIN INK. Blender's breadcrumb inks its glyph, its
+   datablock names and its `>` at 229 on every one of the three tab frames —
+   the muted grey we used belongs to the pin (155) and to nothing else on the
+   row. Tail ellipsis, like every other name in the chrome; the head-ellipsis
+   this rule carried was for the file path, which is now the row's tooltip. */
+.vgai-inspector-breadcrumb-chain {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--vgai-font-base);
+  color: var(--vgai-content-primary);
+}
+/* The datablock row is ONE composite: the wells share a border, so the pair
+   reads as a single 20 px control the way Blender's does rather than as two
+   floating boxes. */
+.vgai-inspector-datablock {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+}
+.vgai-inspector-datablock-kind {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  /* Blender's well is 30 CSS px on a 20 px row — wider than square, because it
+     holds a glyph AND the datablock caret. We draw no caret (nothing here
+     picks a datablock), so the width is stated as what the segment IS: the
+     row's own height plus the column the caret would occupy. */
+  min-width: calc(var(--vgai-control-default-height) + var(--vgai-space-5));
+  height: var(--vgai-control-default-height);
+  background: var(--vgai-widget-menu);
+  color: var(--vgai-content-primary);
+  border: var(--vgai-stroke-resting) solid var(--vgai-border-1);
+  border-radius: var(--vgai-radius-sm) 0 0 var(--vgai-radius-sm);
+  border-right: 0;
+  /* The well is a widget, so it takes the widget emboss like the name field
+     beside it — and it has to say so itself, because it is neither a
+     `.vgai-btn` nor an `.vgai-input`. Blender draws the pair's emboss as one
+     unbroken line (`properties-data-edit.png` y 180..181 runs the full width
+     of the row, well and field together). */
+  box-shadow: var(--vgai-widget-emboss-shadow);
+}
+.vgai-inspector-datablock .vgai-input,
+.vgai-inspector-datablock [data-testid="ingest-name"] {
+  border-radius: 0 var(--vgai-radius-sm) var(--vgai-radius-sm) 0;
+}
+/* A READ-ONLY name still gets the well. `SubjectNameField` renders plain text
+   rather than an `<input>` there, on the standing rule that a readonly input
+   invites typing that vanishes — but Blender's datablock row always shows the
+   field, and a glyph well glued to bare text reads as a broken control rather
+   than as a name you cannot rename. Same box, no caret. */
+.vgai-inspector-datablock [data-testid="ingest-name"][data-readonly="true"] {
+  display: flex;
+  align-items: center;
+  height: var(--vgai-control-default-height);
+  padding: 0 var(--vgai-space-3);
+  background: var(--vgai-input-surface, var(--vgai-bg-inset));
+  border: var(--vgai-stroke-resting) solid var(--vgai-input-border, var(--vgai-border-1));
+  box-sizing: border-box;
+  /* It is a `div` standing in for the field, so it restates the field's
+     paint — and the emboss is part of that paint. `--vgai-input-shadow`
+     already carries it for the real `<input>` (`theme.ts`'s
+     `inputShadowValue`); this rule reads the same token for the same reason
+     it restates `--vgai-input-surface` and `--vgai-input-border`. */
+  box-shadow: var(--vgai-input-shadow, none);
+}
+
+.vgai-inspector-properties-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  /* THE PANEL REGION'S INSET. Blender's Properties editor lays its panels in
+     an inset column, not flush to the area edges: measured on
+     `properties-object.png` at 2x, the Transform card's left border sits at
+     x=74 with the body starting at x=58 (16 device px = 8 CSS), its right
+     border ends at x=592 with the body ending at x=605 (13 device px = 6.5
+     CSS), and the first card's top edge is 21 device px (10.5 CSS) below the
+     datablock row. We spend the space token on all four sides rather than
+     transcribe the 6.5: that half-pixel is Blender's own scroll gutter, and
+     our column scrolls through a different mechanism. The inset lives HERE
+     rather than on the card so a section that draws bare content (no
+     sub-panels) lands on the same column as one that draws cards. */
+  padding: var(--vgai-space-4);
+}
+
+/* EVERY SECTION IN THIS REGION IS A CARD. Blender draws a Properties panel as
+   an inset rounded box — one continuous fill for its header AND its body, a
+   1 px lighter outline, 4 px corners, 2 px between boxes (measured on
+   `properties-object.png`: fill #3c3c3c over the #2f2f2f panel, outline
+   #494949 at x 74..75 / 591..592, the corner arc spanning y 200..207, and the
+   gap between the Location and Rotation cards y 1032..1035). Ours drew a
+   lifted header bar over a body that fell back to the panel — the "full-bleed
+   bar on a flush body" a fresh viewer reads as a settings list rather than as
+   Blender's panel stack.
+
+   Scoped to this presentation on purpose: the card is the PROPERTIES editor's
+   own shape in the reference (its Outliner and its viewport draw no such
+   box), and scoping it here leaves the narrow column — every other skin's
+   default, and every bounded design-system host — pixel-identical. */
+.vgai-inspector-properties-body .vgai-section {
+  background: var(--vgai-surface-section);
+  border: var(--vgai-stroke-resting) solid var(--vgai-surface-section-edge);
+  border-radius: var(--vgai-radius-sm);
+  margin-bottom: var(--vgai-space-1);
+  overflow: hidden;
+}
+/* The header is part of the card, not a slab above it: one fill, and the
+   divider between stacked sections is the gap plus the outline. */
+.vgai-inspector-properties-body .vgai-section-header {
+  background: transparent;
+}
+.vgai-inspector-properties-body .vgai-section:last-child {
+  margin-bottom: 0;
+}
+
+/* THE PANEL COLUMN IS INSET ONCE. A contributed section's own frame
+   (`theme.css`'s `.vgai-inspector-tool-section`) adds the narrow column's
+   8 px pad, a 1 px rule and a 4 px lift — and in this presentation that
+   doubled the inset (measured live: the body starts at x 1450.5 with its own
+   8 px pad, and the first card's border still landed at 1466.5) and drew a
+   rule Blender has nowhere. Measured on `properties-object.png` at 2x: the
+   Transform card's outline sits at x 74..75 with the editor's body starting
+   at x 58 — 16 device px, 8 CSS, symmetric about the column's centre 333 —
+   and y 180..199 between the datablock row and that card is plain panel
+   fill, no rule. */
+.vgai-inspector-properties-body .vgai-inspector-tool-section {
+  padding: 0;
+  margin-top: 0;
+  border-top: 0;
+}
+
+/* THE BAND. Blender heads a panel with a chevron, its name in the UI's ONE
+   regular-weight face, and nothing else — no glyph. Measured on
+   `properties-object.png` (2x) and confirmed panel-for-panel on
+   `properties-data-edit.png`, whose Vertex Groups / Shape Keys / UV Maps are
+   this document's own panels:
+
+     title      cap height 18 device px (the 'T' of Transform, x 130..145,
+                y 218..235) — 9 CSS, the SAME cap the chrome's other labels
+                measure ('A' of Add Modifier in `modeling-edit-none.png`,
+                y 578..595). So the size was never wrong; the WEIGHT was:
+                ours drew 600 where Blender's face has one weight.
+     no glyph   the band holds chevron + name. Ours put a 14 px section icon
+                between them, which pushed the title from Blender's 25.5 CSS
+                off the card's fill to 48.5.
+     chevron    ink x 91..110 open / 95..105 closed, i.e. 7.5..17 CSS from the
+                fill's left edge — so 4 px of lead-in before the 15 px
+                disclosure box, and 6 to the title, lands the pair at 7 and 25
+                against Blender's 7.5 and 25.5.
+     gap        4 device px of panel fill between cards (y 816..819 between
+                the Delta Transform and Relations bands) — 2 CSS. Ours drew 4,
+                because the card's own margin and the mesh panel's grid gap
+                each spent one; the card's margin is the single owner.
+
+   Not transcribed, and why: Blender's 4x2 dot GRIP at the band's right edge
+   (x 553..572, y 223..230, #909090 on a 3 CSS px pitch) is its panel-REORDER
+   handle. This stack does not reorder, and an inert handle promises a gesture
+   that does not exist. */
+.vgai-inspector-properties-body .vgai-section-glyph {
+  display: none;
+}
+.vgai-inspector-properties-body .vgai-section-trigger {
+  gap: var(--vgai-space-3);
+  padding-inline: var(--vgai-space-2) var(--vgai-space-4);
+  font-weight: 400;
+  /* The band mark's INK measures 5.5x9.5 CSS in the reference (the closed
+     `>` on `properties-object.png`, x 95..105 / y 783..801 at 2x; the open
+     `v` is the same mark turned, x 91..110 / y 218..235). `DisclosureIcon`'s
+     own `xs` rung inked 4x6 here — the squat mark a 3x crop shows beside
+     Blender's. `lg` is the rung whose ink lands at 5.4x8.9; no skin that
+     declares nothing moves, because the fallback IS `xs`. */
+  --vgai-section-disclosure-size: var(--vgai-icon-lg);
+}
+
+/* The MINI card — the space-tight fallback. Preview (or kind glyph) on top,
+   then name + eye, then the icon strip, then the open-for-edit. It fills its
+   viewport-island host; the host owns WHERE it sits. */
+.vgai-mini-inspector {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  border-radius: inherit;
+  overflow-y: auto;
+  pointer-events: auto;
+}
+
+.vgai-mini-inspector-minimize {
+  position: absolute;
+  top: var(--vgai-space-1);
+  right: var(--vgai-space-1);
+  z-index: 1;
+  color: var(--vgai-content-dim);
+}
+
+/* The preview square — the primary EXPAND gesture (clicking the box restores
+   the column). A subject with no preview shows a quiet kind glyph in the same
+   footprint, so no-preview subjects do not reflow the card. */
+.vgai-mini-inspector-preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--vgai-bg-inset);
+  color: var(--vgai-content-dim);
+  cursor: pointer;
+}
+.vgai-mini-inspector-preview[aria-label] {
+  cursor: pointer;
+}
+.vgai-mini-inspector-preview:focus-visible {
+  outline: var(--vgai-focus-ring);
+  outline-offset: -2px;
+}
+.vgai-mini-inspector-preview .vgai-editor-icon {
+  font-size: var(--vgai-font-xl, 24px);
+}
+
+.vgai-mini-inspector-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--vgai-space-2);
+  padding: var(--vgai-space-2);
+}
+
+.vgai-mini-inspector-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 var(--vgai-space-2) var(--vgai-space-2);
+}
+
+/* The PILL — the floor. One line: thumb-glyph + name + expand, plus a clear
+   affordance (the only deselect a minimized box can reach). */
+.vgai-inspector-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--vgai-space-1);
+  width: 100%;
+  height: 100%;
+  padding: var(--vgai-space-1);
+}
+.vgai-inspector-pill-open {
+  display: flex;
+  align-items: center;
+  gap: var(--vgai-space-2);
+  min-width: 0;
+  flex: 1;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--vgai-content-primary);
+  cursor: pointer;
+  text-align: left;
+}
+.vgai-inspector-pill-open:focus-visible {
+  outline: var(--vgai-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--vgai-radius-full);
+}
+.vgai-inspector-pill-thumb {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--vgai-radius-full);
+  background: var(--vgai-bg-inset);
+  border: 1px solid var(--vgai-border-2);
+  color: var(--vgai-content-dim);
+  pointer-events: none;
+}
+.vgai-inspector-pill-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--vgai-font-md);
+  font-weight: 600;
+}

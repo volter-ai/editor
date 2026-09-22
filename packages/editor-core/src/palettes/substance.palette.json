@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 3,
+  "name": "Substance",
+  "theme": {
+    "id": "substance",
+    "color": {
+      "surface": {
+        "shell": "#1e1e1e",
+        "panel": "#252525",
+        "chrome": "#2a2a2a",
+        "raised": "#2d2d2d",
+        "inset": "#1a1a1a",
+        "overlay": "rgba(37,37,37,0.94)"
+      },
+      "boundary": {
+        "default": "#3a3a3a",
+        "strong": "#4a4a4a"
+      },
+      "content": {
+        "primary": "#d9d9d9",
+        "muted": "#a6a6a6",
+        "dim": "#7f7f7f",
+        "onAccent": "#ffffff",
+        "onBright": {
+          "primary": "#1e1e1e",
+          "muted": "rgba(30,30,30,0.82)",
+          "dim": "rgba(30,30,30,0.7)"
+        }
+      },
+      "accent": {
+        "default": "#4aa3df",
+        "muted": "rgba(74,163,223,0.3)"
+      },
+      "semantic": {
+        "danger": "#e5534b",
+        "dangerMuted": "rgba(229,83,75,0.28)",
+        "dangerFaint": "rgba(229,83,75,0.12)",
+        "warning": "#e3a52f",
+        "warningMuted": "rgba(227,165,47,0.28)",
+        "success": "#5cc27a",
+        "successMuted": "rgba(92,194,122,0.28)",
+        "dynamic": "#4aa3df",
+        "dynamicMuted": "rgba(74,163,223,0.18)",
+        "instance": "#e98b3a"
+      },
+      "neutralOverlay": {
+        "hover": "rgba(255,255,255,0.06)",
+        "active": "rgba(255,255,255,0.11)"
+      },
+      "scrim": "rgba(0,0,0,0.62)"
+    },
+    "typography": {
+      "sans": "'Source Sans 3', 'Segoe UI', system-ui, sans-serif",
+      "mono": "'Source Code Pro', Menlo, monospace"
+    }
+  }
+}

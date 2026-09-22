@@ -1,0 +1,1954 @@
+import type {
+  ToolObject3DAuthoringProps,
+  ToolObject3DDocumentAuthoring,
+  ToolObject3DPreviewSource,
+  ToolViewportDressing,
+} from '@volter/editor-sdk/contributions';
+import type { StageTransportSnapshot } from '@volter/editor-sdk/host';
+import { EditorIcon, editorIcons, IconButton, themeVars } from '@volter/editor-sdk/widgets';
+import type { AuthoringAdapter } from '@volter/editor-project/adapter';
+import { contentWorldBounds } from '@volter/editor-threejs/viewport/content-bounds';
+import { isInEditorOwnedSubtree } from '@volter/editor-threejs/viewport/editor-layers';
+import { createStandardEnvironment } from '@volter/editor-threejs/viewport/environment';
+import {
+  acquireInspectorPreviewRenderer,
+  type InspectorPreviewLease,
+} from '@volter/editor-threejs/viewport/preview-renderer';
+import { setUserData } from '@volter/editor-threejs/ecs/user-data';
+import {
+  lazy,
+  type RefObject,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
+import * as THREE from 'three';
+import { registerStageTransport, StageTransport } from '../animation/stage-transport';
+import { scanClipSubjects } from '../animation/three-clips-subject';
+import { liveGestureActive, whenLiveGestureIdle } from '../authoring/live-gesture-lock';
+import {
+  type Object3DDocumentPresentationState,
+  Object3DDocumentSession,
+} from '../authoring/object3d-document-session';
+import {
+  announceObject3DDocumentStage,
+  registerObject3DDocumentSession,
+} from '../authoring/object3d-document-session-registry';
+import { Object3DGestureController } from '../authoring/object3d-gesture-controller';
+import { SourceObject3DAuthoringAdapter } from '../authoring/source-object3d-authoring-adapter';
+import { registerDesignTimeSurface } from '../coverage/design-time-surfaces';
+import { DocumentRendererSession } from '../document-renderer-session';
+import { useOptionalEditorStats, useOptionalEditorStore } from '../editor-runtime';
+import { EditorShellStore } from '../editor-shell-store';
+import { EditorViewport } from '../editor-viewport';
+import {
+  lookDeclaresViewportColors,
+  nativeViewportLook,
+  subscribeNativeSelectionTheme,
+} from '../native-selection-style';
+import {
+  type Object3DDocumentPersistenceSession,
+  object3DDocumentWritePolicy,
+} from '../object3d-document-write-policy';
+import { registerPerformanceSource } from '../performance-sources';
+import { shellStoreForHost } from '../shell-store-door';
+import {
+  assetSubjectApplies,
+  documentStageContext,
+  focusedStageStore,
+  identityRowApplies,
+  studioStageApplies,
+} from '../stage-context';
+import { registerStageStore } from '../stage-store-registry';
+import { perspectiveDistanceToFitBox } from '../three-viewport/camera-fit';
+import {
+  acquireInteractiveViewportRenderer,
+  type InteractiveViewportRendererLease,
+} from '../three-viewport/interactive-renderer';
+import type { ThreeViewportProjection } from '../three-viewport-presentation';
+import {
+  activeViewportBreakdownDocumentId,
+  markViewportConstructReady,
+  markViewportConstructStarted,
+  markViewportFirstRenderStart,
+  markViewportRafResume,
+  markViewportReactActive,
+  markViewportSegment,
+  recordViewportFirstFrame,
+} from '../viewport-activation-timings';
+import { bindViewportRig, runViewportFrame } from '../viewport-door';
+import {
+  notifyWorkspaceDocumentSelectionChanged,
+  openWorkspaceDocuments,
+  registerWorkspaceDocumentSelection,
+} from '../workspace-document-registry';
+import { AssetEditorShell } from './AssetEditorShell';
+import { StageOverlays } from './StageOverlays';
+import { TransportStrip } from './TransportStrip';
+
+// The stage's own keyboard actions, behind the same lazy boundary as the
+// overlays and for the same reason — a bounded host pays for neither
+// (`stage-keyboard.tsx`).
+const LazyStageKeyboard = lazy(async () => {
+  const module = await import('./stage-keyboard');
+  return { default: module.StageKeyboardBinding };
+});
+
+import {
+  applyStandardViewportDressing,
+  createGradientBackgroundTexture,
+  STANDARD_ENVIRONMENT_INTENSITY,
+  type StandardViewportDressing,
+  watchPaletteBackdrop,
+} from './standard-viewport-dressing';
+import { ViewportFurniture } from './ViewportFurniture';
+import { OBJECT3D_SURFACE_BUILDING, ViewportSurfaceStatus } from './viewport-surface-status';
+import { workspaceHistoryService } from './workspace-history';
+
+/** WHERE THIS DOCUMENT'S BYTES GO — the one collaborator the shell installs
+ *  (`object3d-document-write-policy.ts`). The tier's source recorder, the
+ *  project file history and the thumbnail manifest all live behind it, so the
+ *  Asset Lab 3D document carries no editor transport in its own closure
+ *  (ARCHITECTURE-CORE §Editor chrome, "the viewport stack is separable").
+ *  With no shell above it every member refuses by name, which is the same
+ *  refusal a read-only tier already produced. */
+const projectWrites = () => object3DDocumentWritePolicy();
+
+/**
+ * How far a BARE dock-panel stage bleeds past the box a person sees, so the
+ * rendered image fills the panel edge to edge under its padding. THE ONE
+ * PLACE this number lives: the stage box takes it negative, the DOM furniture
+ * takes it back positive, and the canvas-drawn orientation gizmo takes it
+ * through `EditorViewportOptions.chromeInsetPx` — three readers, one value.
+ * A chromeless mount and the Asset Editor shell fill their own box exactly
+ * and bleed nothing.
+ */
+const STAGE_BLEED_PX = 12;
+
+function boxFromFrameBounds(
+  bounds:
+    | {
+        readonly min: readonly [number, number, number];
+        readonly max: readonly [number, number, number];
+      }
+    | undefined,
+): THREE.Box3 | null {
+  if (!bounds) return null;
+  const box = new THREE.Box3(
+    new THREE.Vector3(bounds.min[0], bounds.min[1], bounds.min[2]),
+    new THREE.Vector3(bounds.max[0], bounds.max[1], bounds.max[2]),
+  );
+  return box.isEmpty() ? null : box;
+}
+
+/**
+ * Per-document overrides of the standard viewport dressing
+ * (`standard-viewport-dressing.ts`) — explicit opt-outs/opt-ins, never
+ * re-implementations. Omitted means the standard look.
+ *
+ * THE SHAPE IS THE SDK'S (`ToolViewportDressing`), because a contributed
+ * document is what asks for it: `@volter/editor-blender`'s Model document hands over
+ * its view-locked studio through this door. One declaration, so the public
+ * surface and the host cannot drift.
+ */
+export type StandardDressingProps = ToolViewportDressing;
+
+/** What an editor-side source lane gets to build its authoring adapter over
+ *  the document's own store and scene. */
+export interface SourceDocumentAuthoringContext {
+  readonly store: EditorShellStore;
+  readonly scene: THREE.Scene;
+  readonly hierarchyRoots?: readonly THREE.Object3D[];
+}
+
+export type SourceDocumentAuthoringFactory = (
+  context: SourceDocumentAuthoringContext,
+) => ToolObject3DDocumentAuthoring;
+
+/** A document owns the Object3D returned by its build callback. Its kind
+ * supplies authoring behavior and chrome; this host owns renderer lifetime,
+ * capture and disposal. Runtime world mounting belongs to its contributing
+ * product and is not installed by the modeling host. */
+
+/** Module-level so its identity is stable across renders, which
+ *  `useSyncExternalStore` requires; the theme root is global, so no stage's
+ *  own element narrows it. */
+function subscribeThemeViewportGroup(onChange: () => void): () => void {
+  return subscribeNativeSelectionTheme(null, onChange);
+}
+
+export interface Object3DDocumentViewportProps extends ToolObject3DAuthoringProps {
+  /** See `@volter/editor-sdk`'s `ToolObject3DAuthoringProps.audit`. */
+  readonly audit?: boolean;
+  /** Reuse the canonical Asset Lab viewport with NONE of the document chrome —
+   *  no toolbar, no animation widget, no workspace-document registration —
+   *  so it can fill a small box (the inspector's preview section). */
+  readonly chromeless?: boolean;
+  readonly modelSource?:
+    | { readonly kind: 'project-file'; readonly path: string }
+    | { readonly kind: 'entity'; readonly entityId: string };
+  /** Asset Lab's native subject kind for this Object3D document. */
+  readonly assetType?: string;
+  /**
+   * Editor-side authoring for a document whose write authority is project
+   * SOURCE (a mounted R3F composition's stamped JSX, today). The caller that
+   * knows the source lane supplies the adapter; this document constructs
+   * none of them, so it stays mountable without any source lane in its
+   * closure (ARCHITECTURE-CORE §Editor chrome, "the viewport stack is
+   * separable"). Raw model/artifact documents omit this and remain honestly
+   * read-only through the native source adapter. Consulted only when the
+   * project `authoring` factory declined. MUST be referentially stable for
+   * the document's lifetime, like `build`: it is an activation dependency.
+   */
+  readonly sourceAuthoring?: SourceDocumentAuthoringFactory;
+  /**
+   * Where this viewport's `WebGLRenderer` comes from.
+   *
+   * `own` (the default) constructs one for this mount — the right answer for a
+   * document that lives as long as its panel does. `inspector-preview` draws
+   * through the shared inspector-preview renderer
+   * (`inspector-preview-renderer.ts`): that lane REMOUNTS PER SELECTION, and a
+   * renderer construction there is ~1.9 s of frozen main thread plus a cold
+   * shader cache and a fresh PMREM bake, every time you click something.
+   */
+  readonly rendererLane?: 'own' | 'inspector-preview';
+  /**
+   * Double-click on a picked node — the document's "open THIS" gesture,
+   * reported with the node's own `Object3D` so the owner can resolve whatever
+   * it means by it. Single click stays plain selection; a document that
+   * declares no handler has no open gesture at all.
+   *
+   * Sole caller: the `3D` board, where an exhibit opens that
+   * story's own turntable document (`three-board/ThreeBoardDocument.tsx`).
+   */
+  readonly onOpenNode?: (object: THREE.Object3D) => void;
+  /**
+   * When set, Frame with no selection and the view presets fit THIS box
+   * instead of `contentWorldBounds(root)`. The 3D board passes the union of
+   * each exhibit's presence as its true-scale overview.
+   */
+  readonly frameBounds?: {
+    readonly min: readonly [number, number, number];
+    readonly max: readonly [number, number, number];
+  };
+  /** Optional first-paint frame distinct from the document's Frame fallback.
+   * The 3D component board opens on one readable exhibit, while clearing the
+   * selection and pressing Frame still restores its true-scale overview. */
+  readonly openingFrameBounds?: {
+    readonly min: readonly [number, number, number];
+    readonly max: readonly [number, number, number];
+  };
+  /** Multiplies the opening fit distance; `1` fills the view. */
+  readonly openingFit?: number;
+}
+
+/**
+ * Distinguishes the chromeless mounts of ONE document from each other and from
+ * that document's viewport, so each publishes its own design-time surface
+ * instead of overwriting a sibling's (see the registration below).
+ */
+let chromelessSurfaceSequence = 0;
+
+interface RetainedObject3DStageState {
+  readonly documentId: string;
+  readonly store: EditorShellStore;
+  inUse: boolean;
+  source: ToolObject3DPreviewSource | null;
+  camera: { position: THREE.Vector3; target: THREE.Vector3; fov: number } | null;
+  presentation: Object3DDocumentPresentationState | null;
+  transport: StageTransportSnapshot | null;
+  contentSeconds: number;
+  transportAdvances: number;
+}
+
+/**
+ * Per-pane state outlives the React surface Code-OSS mounts for the active tab.
+ * A second visible pane showing the same document claims a second state slot;
+ * an inactive slot is reused only after its former pane has unmounted.
+ */
+const retainedObject3DStages = new Map<string, RetainedObject3DStageState[]>();
+
+function claimRetainedObject3DStage(documentId: string): RetainedObject3DStageState {
+  const states = retainedObject3DStages.get(documentId) ?? [];
+  let state = states.find((candidate) => !candidate.inUse);
+  if (!state) {
+    state = {
+      documentId,
+      store: new EditorShellStore(),
+      inUse: false,
+      source: null,
+      camera: null,
+      presentation: null,
+      transport: null,
+      contentSeconds: 0,
+      transportAdvances: 0,
+    };
+    states.push(state);
+    retainedObject3DStages.set(documentId, states);
+  }
+  state.inUse = true;
+  return state;
+}
+
+function releaseRetainedObject3DStage(state: RetainedObject3DStageState): void {
+  state.inUse = false;
+  // Switching tabs unmounts the Code-OSS pane while its document remains in
+  // the open set. An actual close removes it first; discard retained CPU state
+  // after that registry mutation so closed documents do not form a new cache.
+  queueMicrotask(() => {
+    if (state.inUse) return;
+    if (openWorkspaceDocuments().some((document) => document.descriptor.id === state.documentId))
+      return;
+    state.source?.dispose();
+    state.source = null;
+    const states = retainedObject3DStages.get(state.documentId);
+    if (!states) return;
+    const remaining = states.filter((candidate) => candidate !== state || candidate.inUse);
+    if (remaining.length > 0) retainedObject3DStages.set(state.documentId, remaining);
+    else retainedObject3DStages.delete(state.documentId);
+  });
+}
+
+/**
+ * The element the viewport draws INTO — an EMPTY host div in both lanes.
+ * React never owns the canvas. Both lanes mount a leased renderer canvas into
+ * this host imperatively, then return it when the pane hides. A lost canvas is
+ * destroyed rather than reused; a healthy one can safely serve the next pane.
+ */
+function ViewportSurface({
+  canvasHostRef,
+}: {
+  readonly canvasHostRef: RefObject<HTMLDivElement | null>;
+}) {
+  return <div ref={canvasHostRef} style={{ position: 'absolute', inset: 0 }} />;
+}
+
+/**
+ * The viewport's drawing surface for one mount: either the shared
+ * inspector-preview renderer or the interactive-document renderer pool. The
+ * lane decides which exclusive lease to mount into `canvasHost`.
+ */
+function mountViewportSurface(
+  canvasHost: HTMLDivElement,
+  lane: 'own' | 'inspector-preview',
+  displayName: string,
+  initialSize: { readonly width: number; readonly height: number },
+  onContextLost?: () => void,
+): {
+  canvas: HTMLCanvasElement;
+  renderer: THREE.WebGLRenderer;
+  lease: InspectorPreviewLease | InteractiveViewportRendererLease | null;
+} {
+  if (lane === 'inspector-preview') {
+    const lease = acquireInspectorPreviewRenderer();
+    lease.canvas.setAttribute('aria-label', `${displayName} authoring viewport`);
+    canvasHost.appendChild(lease.canvas);
+    return { canvas: lease.canvas, renderer: lease.renderer, lease };
+  }
+  const lease = acquireInteractiveViewportRenderer(
+    initialSize.width,
+    initialSize.height,
+    onContextLost,
+  );
+  const { canvas, renderer } = lease;
+  canvas.setAttribute('aria-label', `${displayName} authoring viewport`);
+  canvasHost.appendChild(canvas);
+  return { canvas, renderer, lease };
+}
+
+/** The drawing surface belongs to the document, not to a source revision.
+ * Source lifetimes borrow it; closing waits for any asynchronous gesture
+ * cleanup to return its borrow before releasing the context. */
+
+
+interface DocumentContentBinding {
+  readonly scene: THREE.Scene;
+  settle(): Promise<void>;
+  dispose(): Promise<void>;
+}
+
+/** Persistent editor state. Source revisions own only their content binding. */
+class Object3DDocumentHost {
+  readonly scene = new THREE.Scene();
+  /** This document's store, optionally supplied by its owner. */
+  readonly store: EditorShellStore;
+  readonly cleanups: Array<() => void> = [];
+  readonly rendererSession = new DocumentRendererSession(
+    (time, resumed) => this.frame?.(time, resumed),
+    () => {},
+  );
+  viewport: EditorViewport | null = null;
+  session: Object3DDocumentSession | null = null;
+  dressing: StandardViewportDressing | null = null;
+  defaultEnvironment: THREE.Texture | null = null;
+  defaultBackground: THREE.Color | THREE.Texture | null = null;
+  adapter: AuthoringAdapter | null = null;
+  content: DocumentContentBinding | null = null;
+  frame: ((time: number, resumed: boolean) => void) | null = null;
+  /** Mirrors the document scene's world dressing onto the rendered scene. The
+   *  HOST owns it; the active session holds a reference and runs it before
+   *  every draw (see {@link Object3DDocumentSession.setBeforeRender}). */
+  syncHostScene: (() => void) | null = null;
+  /** The other participants on THIS stage, once its module has loaded
+   *  (`stage-presence-markers.ts`). Null on a chromeless mount and until then. */
+  presence: { syncMarkers(dtSeconds: number): void } | null = null;
+  initialized = false;
+  contentSeconds = 0;
+  transportAdvances = 0;
+  private users = 0;
+  private closed = false;
+  private released = false;
+
+  /** Whether {@link close} has run — a late async install must not push a
+   *  cleanup onto a host whose cleanups have already been drained. */
+  get isClosed(): boolean {
+    return this.closed;
+  }
+
+  /** THIS STAGE's transport — the one holder of the content-time door below.
+   *  Built from this stage's own store, because `driver` is that store's
+   *  `playState` and nothing else (`animation/stage-transport.ts`). */
+  readonly transport: StageTransport;
+
+  constructor(
+    readonly lane: 'own' | 'inspector-preview',
+    readonly surface: ReturnType<typeof mountViewportSurface>,
+    store?: EditorShellStore,
+  ) {
+    this.store = store ?? new EditorShellStore();
+    this.transport = new StageTransport(this.store);
+  }
+
+  borrow(): () => void {
+    this.users++;
+    let returned = false;
+    return () => {
+      if (returned) return;
+      returned = true;
+      this.users--;
+      this.releaseIfClosed();
+    };
+  }
+
+  close(): void {
+    this.closed = true;
+    this.frame = null;
+    this.syncHostScene = null;
+    this.session?.setBeforeRender(null);
+    this.session?.setPresentsFrames(false);
+    this.rendererSession.setActive(false);
+    void this.content?.dispose();
+    // The one teardown path allowed to end the transport (its header states
+    // the ownership): the document that owns this stage is unmounting.
+    this.transport.dispose();
+    this.releaseIfClosed();
+  }
+
+  private releaseIfClosed(): void {
+    if (!this.closed || this.users !== 0 || this.released) return;
+    this.released = true;
+    const { lease, renderer, canvas } = this.surface;
+    for (const cleanup of [
+      ...this.cleanups.splice(0),
+      () => this.session?.dispose(),
+      () => this.viewport?.dispose(),
+      () => this.rendererSession.dispose(),
+      () => this.dressing?.dispose(),
+      ...(lease
+        ? [() => lease.release()]
+        : [() => renderer.dispose(), () => renderer.forceContextLoss(), () => canvas.remove()]),
+    ]) {
+      try {
+        cleanup();
+      } catch (error) {
+        // biome-ignore lint/suspicious/noConsole: all remaining resources must still be released
+        console.error('Object3D document cleanup failed.', error);
+      }
+    }
+  }
+}
+
+/**
+ * Editor-owned authoring host for a project-supplied native Object3D factory.
+ * Project code supplies only source construction; this component owns the
+ * real EditorViewport, document-scoped AuthoringAdapter, selection, framing,
+ * animation preview, resize, and teardown.
+ *
+ * ## TIME ON THIS SURFACE — the one policy, inherited by everything mounted here
+ *
+ * This host is the shared stack: Asset Lab documents, story turntables, 3D board
+ * exhibits and the inspector's preview card all render through it. So the
+ * Edit-static rule is enforced HERE, once, rather than at each of them:
+ *
+ *  - PRESENTATION time always advances — orbit damping, the view cube, the
+ *    standard dressing, the editor's own helpers and overlays. It is
+ *    editor-owned and it moves while the editor is in Edit.
+ *  - CONTENT time does NOT. The source's own `update(dt)` and any clip a
+ *    subject shows move only through the stage TRANSPORT, and only while a
+ *    human is holding it (`animation/stage-transport.ts`, WORK.md §The stage
+ *    transport and the animation door). A mounted
+ *    document plays nothing on its own: that is the defect this closes (a GLB
+ *    train animating in the Asset Lab while every instrument called the editor
+ *    still, owner find 2026-08-15).
+ *
+ * Whatever content time this surface has reached is published as its content
+ * clock (`coverage/design-time-surfaces.ts`), so the Edit-static vitals row
+ * measures THIS surface by name instead of speaking only for the Scene view.
+ */
+export function Object3DDocumentViewport({
+  documentId,
+  sourcePath,
+  build,
+  displayName = 'Source Object3D',
+  // No default: an omitted background means the STANDARD dressing's gradient;
+  // a value is an explicit flat-color override (SDK contributions may pass it).
+  background,
+  cameraDirection,
+  persistence,
+  documentSource,
+  authoring,
+  interaction,
+  selectionOutline = true,
+  active = true,
+  audit = true,
+  chromeless = false,
+  modelSource,
+  assetType,
+  sourceAuthoring,
+  dressing,
+  rendererLane = 'own',
+  onOpenNode,
+  frameBounds,
+  openingFrameBounds,
+  openingFit,
+  statistics,
+}: Object3DDocumentViewportProps) {
+  // ANNOUNCE THE STAGE (`authoring/object3d-document-session-registry.ts`).
+  // The lazy boundary announces for the documents that go through it; the
+  // asset viewers import THIS component directly (`asset-viewers/
+  // ModelAssetDocument.tsx:19` and its two siblings), so the announcement is
+  // made here too. Announcing is counted, so the two overlap harmlessly.
+  useEffect(() => {
+    if (chromeless) return;
+    return announceObject3DDocumentStage(documentId);
+  }, [documentId, chromeless]);
+  // The SHELL store, not this host's own: what a stage is showing is a fact
+  // about the workspace's document, and `stage-context.ts` is where every
+  // stage capability asks it (ARCHITECTURE-CORE §One stage). OPTIONAL because
+  // this host is a bounded-host surface — `@volter/editor-blender`'s Model document
+  // mounts it with no `EditorProvider` above it, and the throwing hook took
+  // that document off the screen with "useEditorStore must be used within
+  // <EditorProvider>" (measured live, 2026-09-18). No shell, no shell frame.
+  const shellStore = useOptionalEditorStore();
+  /**
+   * THE STORE THE STAGE CONTEXT IS ASKED AGAINST — the session's own, reached
+   * without a React provider.
+   *
+   * `useOptionalEditorStore()` above answers a NARROWER question than the
+   * context needs: it is whether the shell's own React tree is above this
+   * host, and for every package-contributed document it is not.
+   * `@volter/editor-blender`'s Model document mounts this host through `ToolHost`, so the
+   * context store is null there — and reading only it left `stageCtx` null,
+   * which made EVERY condition in `stage-context.ts` unanswerable for that
+   * document. That is a capability decided by where a document's React tree
+   * happens to mount, which is the origin-deciding reading §One stage
+   * retired. MEASURED 2026-09-18 on the models scaffold: the Model document's
+   * controls hint (the one overlay every three stage carries) is absent, and
+   * with it the whole context — so the studio arm of `studioStageApplies`
+   * could never fire for a model no matter what the look declared.
+   *
+   * `shellStoreForHost()` supplies the session store that
+   * `focusedStageStore()` falls back to. It is deliberately NOT used for the
+   * overlay set or the shell readout below: those are the SHELL's estate and
+   * their condition is the shell's React presence, exactly as §One stage
+   * unit 3 measured it — a stage that is not inside the shell has no shell
+   * overlays. That gap is real and named, not closed here: unit 1's bar is
+   * that the Model document's Blender frame does not move.
+   */
+  const contextStore = shellStore ?? shellStoreForHost();
+  /**
+   * WHAT THIS STAGE IS SHOWING, asked once (ARCHITECTURE-CORE §One stage).
+   * `chrome` is the host's own answer and nothing infers it: an EMBEDDED
+   * preview has no workspace document at all, which is exactly why the
+   * subject would come back `unknown` for one.
+   */
+  const stageCtx = contextStore
+    ? documentStageContext(contextStore, documentId, chromeless ? 'embedded' : 'document')
+    : null;
+  /**
+   * THE STUDIO PRESENTATION — the alpha clear, the suppressed palette
+   * backdrop, the identity-row frame and the asset flavour of this stage's
+   * provenance. It replaced a `documentKind` prop the CALLER chose, which is
+   * exactly the origin-of-the-document reading §One stage retired: every
+   * mount that passed `documentKind="asset"` is a story, an artifact or an
+   * embedded preview, and each still answers true.
+   */
+  // The LOOK is one of `studioStageApplies`'s live inputs (a data subject takes
+  // the studio only where the look leaves the backdrop to the editor), and the
+  // one that changes with no store write behind it: switching the style
+  // re-emits the tokens onto the theme root's inline `style`, which is exactly
+  // what this observes. Without the subscription the presentation would flip
+  // only on the next unrelated render, and a style switch is the gesture the
+  // condition exists for.
+  const lookPaintsViewport = useSyncExternalStore(
+    subscribeThemeViewportGroup,
+    lookDeclaresViewportColors,
+  );
+  const studioStage = stageCtx !== null && studioStageApplies(stageCtx, lookPaintsViewport);
+  const studioStageRef = useRef(studioStage);
+  studioStageRef.current = studioStage;
+  // An ARTIFACT document gets the identity-row shell — the frame, the context
+  // activation and the SELECTION REGISTRATION (`AssetEditorShell`'s
+  // `selection` prop). Asked here, beside the studio presentation, because the
+  // mount effect needs it too: whoever does NOT get the shell registers its own
+  // workspace selection instead, and exactly one of the two must.
+  const hasShell = stageCtx !== null && identityRowApplies(stageCtx);
+  const hasShellRef = useRef(hasShell);
+  hasShellRef.current = hasShell;
+  // The ASSET FLAVOUR of this stage's provenance: the source adapter's
+  // `documentKind` ("derived asset", `model-asset`) and the performance
+  // source's kind. It is the studio presentation MINUS the data arm — a mesh
+  // module opens in an isolation scene but is not a derived asset — and was
+  // read off `studioStage` while the two were the same answer.
+  const assetSubject = stageCtx !== null && assetSubjectApplies(stageCtx);
+  const assetSubjectRef = useRef(assetSubject);
+  assetSubjectRef.current = assetSubject;
+  // The focused document fills the shell's readout. Null without a shell.
+  const shellStats = useOptionalEditorStats();
+  const shellStatsRef = useRef(shellStats);
+  shellStatsRef.current = shellStats;
+  const containerRef = useRef<HTMLDivElement>(null);
+  // The shared lane mounts the pool's own canvas here instead of rendering one.
+  const canvasHostRef = useRef<HTMLDivElement>(null);
+  const documentHostRef = useRef<Object3DDocumentHost | null>(null);
+  const retainedRef = useRef<RetainedObject3DStageState | null>(null);
+  if (!retainedRef.current || retainedRef.current.documentId !== documentId) {
+    if (retainedRef.current) releaseRetainedObject3DStage(retainedRef.current);
+    retainedRef.current = claimRetainedObject3DStage(documentId);
+  }
+  useEffect(() => {
+    const retained = retainedRef.current!;
+    return () => releaseRetainedObject3DStage(retained);
+  }, [documentId]);
+  const retainedState = retainedRef.current;
+  // Only a visible pane owns an interactive attachment. Hidden documents
+  // retain their state and return their renderer to the bounded pool.
+  const wantsSurface = active;
+  const [surfaceAttached, setSurfaceAttached] = useState(wantsSurface);
+  useEffect(() => setSurfaceAttached(wantsSurface), [wantsSurface]);
+  // The selection silhouette is a LIVE prop: a modeling document turns it off
+  // the moment it enters its own sub-object mode and back on when it leaves,
+  // and the session applies that to the composer it has already built. The ref
+  // is what the mount path reads, since the session is built inside an effect
+  // that does not depend on this prop.
+  const selectionOutlineRef = useRef(selectionOutline);
+  useEffect(() => {
+    selectionOutlineRef.current = selectionOutline;
+    const session = documentHostRef.current?.session;
+    if (session)
+      session.selectionOutlineEnabled = rendererLane !== 'inspector-preview' && selectionOutline;
+  }, [selectionOutline, rendererLane]);
+  const contentUpdateTail = useRef<Promise<void>>(Promise.resolve());
+  const retainSourceOnDisposeRef = useRef(false);
+  useEffect(() => {
+    if (!surfaceAttached) return;
+    firstFrameGateRef.current = false;
+    setSurfaceStatus('building');
+    return () => {
+      const host = documentHostRef.current;
+      if (host) {
+        // Inactive tabs stay open in the workspace. Their source remains
+        // mounted in retained CPU state while the expensive attachment goes
+        // back to the pool. A source revision or final close still disposes it.
+        retainSourceOnDisposeRef.current = !activeRef.current;
+        retainedState.camera = host.store.cameraPose;
+        retainedState.presentation = host.session?.presentation() ?? null;
+        retainedState.transport = host.transport.snapshot();
+        retainedState.contentSeconds = host.contentSeconds;
+        retainedState.transportAdvances = host.transportAdvances;
+      }
+      documentStateRef.current = null;
+      persistenceSessionRef.current = null;
+      interactionExtensionRef.current = null;
+      rendererSessionRef.current = null;
+      host?.close();
+      documentHostRef.current = null;
+    };
+  }, [documentId, rendererLane, retainedState, surfaceAttached]);
+  // Read through a ref: the one big lifetime effect below owns the canvas
+  // listener, and re-running it on a new handler identity would tear the whole
+  // renderer down and rebuild it.
+  const onOpenNodeRef = useRef(onOpenNode);
+  onOpenNodeRef.current = onOpenNode;
+  const frameBoundsRef = useRef(frameBounds);
+  frameBoundsRef.current = frameBounds;
+  const openingFrameBoundsRef = useRef(openingFrameBounds);
+  openingFrameBoundsRef.current = openingFrameBounds;
+  // The current prop is still read by asynchronous installation. Attachment
+  // lifetime is controlled separately by `surfaceAttached` above.
+  const activeRef = useRef(active);
+  activeRef.current = active;
+  const previousActiveRef = useRef(active);
+  const sourceIdentityRef = useRef({ build, sourcePath });
+  useEffect(() => {
+    const previous = sourceIdentityRef.current;
+    sourceIdentityRef.current = { build, sourcePath };
+    if (previous.build === build && previous.sourcePath === sourcePath) return;
+    // An HMR revision received while hidden invalidates the prepared source.
+    // The next reveal constructs the current revision while retaining the
+    // pane's camera, tool, helpers, selection, and transport state.
+    if (!surfaceAttached && retainedState.source) {
+      retainedState.source.dispose();
+      retainedState.source = null;
+    }
+  }, [build, retainedState, sourcePath, surfaceAttached]);
+  const rendererSessionRef = useRef<DocumentRendererSession | null>(null);
+  const firstFrameGateRef = useRef(false);
+  const interactionExtensionRef = useRef<ReturnType<
+    NonNullable<typeof interaction>['setup']
+  > | null>(null);
+  const documentStateRef = useRef<{
+    root: THREE.Object3D;
+    animations: readonly THREE.AnimationClip[];
+  } | null>(null);
+  const persistenceSessionRef = useRef<Promise<Object3DDocumentPersistenceSession> | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [surfaceStatus, setSurfaceStatus] = useState<'building' | 'ready'>('building');
+  const [projection, setProjection] = useState<ThreeViewportProjection>('perspective');
+  // The live authoring adapter this document's inspection composes from. It
+  // only exists once the graph is built, so it is state rather than a ref:
+  // its arrival is what re-renders the aside below.
+  const [documentAdapter, setDocumentAdapter] = useState<AuthoringAdapter | null>(null);
+  const documentAdapterRef = useRef<AuthoringAdapter | null>(null);
+  documentAdapterRef.current = documentAdapter;
+  const cameraX = cameraDirection?.[0];
+  const cameraY = cameraDirection?.[1];
+  const cameraZ = cameraDirection?.[2];
+  const modelSourceKind = modelSource?.kind;
+  const modelSourcePath = modelSource?.kind === 'project-file' ? modelSource.path : undefined;
+  const modelSourceEntityId = modelSource?.kind === 'entity' ? modelSource.entityId : undefined;
+  const dressingEnvironment = dressing?.environment;
+  const dressingBackground = dressing?.background;
+  const dressingKeyLight = dressing?.keyLight;
+  const dressingGrid = dressing?.grid;
+  const dressingViewLocked = dressing?.viewLocked;
+  const dressingToneMapping = dressing?.toneMapping;
+  if (active) markViewportReactActive(documentId);
+
+  // Document identity owns the host. Source changes prepare a separate native
+  // graph, then publish it into that host without recreating editor state.
+  useEffect(() => {
+    let cancelled = false;
+    if (!surfaceAttached) return;
+    const install = async () => {
+      await documentHostRef.current?.content?.settle();
+      while (liveGestureActive()) await whenLiveGestureIdle();
+      if (cancelled) return;
+      const container = containerRef.current;
+      const canvasHost = canvasHostRef.current;
+      if (!container || !canvasHost) return;
+      if (!build || sourcePath === undefined) {
+        // `build` content is one Object3D the caller constructs from one file.
+        // Both are required by the SDK; validate callers at the runtime boundary.
+        setError('This stage shows `build` content and was given no `build()`/`sourcePath`.');
+        return;
+      }
+      let source: ReturnType<NonNullable<typeof build>>;
+      try {
+        source = retainedState.source ?? build();
+        retainedState.source = null;
+      } catch (caught) {
+        setError(caught instanceof Error ? caught.message : String(caught));
+        return;
+      }
+      try {
+        if (!documentHostRef.current) {
+          markViewportConstructStarted();
+          documentHostRef.current = new Object3DDocumentHost(
+            rendererLane,
+            mountViewportSurface(
+              canvasHost,
+              rendererLane,
+              displayName,
+              {
+                width: Math.max(1, container.clientWidth),
+                height: Math.max(1, container.clientHeight),
+              },
+              () => {
+                // A lost context is never returned to the pool. Rebuild this
+                // visible attachment from the retained document state.
+                setSurfaceAttached(false);
+                window.setTimeout(() => {
+                  if (activeRef.current) setSurfaceAttached(true);
+                }, 0);
+              },
+            ),
+            retainedState.store,
+          );
+          documentHostRef.current.contentSeconds = retainedState.contentSeconds;
+          documentHostRef.current.transportAdvances = retainedState.transportAdvances;
+        }
+      } catch (caught) {
+        source.dispose();
+        throw caught;
+      }
+      const host = documentHostRef.current!;
+      const returnSurface = host.borrow();
+      const { renderer, canvas, lease } = host.surface;
+      const store = host.store;
+      // This stage's store, reachable by the shared panels through
+      // `focusedStageStore()` (ARCHITECTURE-CORE §One stage unit 4). A
+      // CHROMELESS preview is not a stage anything can focus — it has no
+      // workspace document — so it registers nothing.
+      if (!chromeless) {
+        host.cleanups.push(registerStageStore(documentId, store));
+        host.cleanups.push(registerStageTransport(documentId, host.transport));
+      }
+      const history = workspaceHistoryService();
+      if (history) store.attachHistory(history);
+      const shared = rendererLane === 'inspector-preview';
+      const studioStage = studioStageRef.current;
+      const hasShell = hasShellRef.current;
+      const assetSubject = assetSubjectRef.current;
+      const scene = new THREE.Scene();
+      // The document's content scene is the HOST's own object here, and the
+      // host's `syncHostScene` mirrors its environment fields onto the
+      // rendered scene before every draw. So the studio IBL's strength is
+      // set on THIS scene, at creation: a value set on the rendered scene, or
+      // by the dressing (which dresses the rendered scene), is overwritten
+      // each frame by this scene's untouched default of 1 — measured twice,
+      // once by the long-tail pass and once by the orchestrator, with zero
+      // movement. The value is the dressing's own, fitted with its key light.
+      // A document whose adapter authors an intensity sets it after this and
+      // wins, as authored lighting always does.
+      //
+      // `environment: false` sets NEITHER: no map and no strength for it. The
+      // strength alone is inert with no map — but the mirror above copies
+      // this field onto the rendered scene every draw, so leaving a studio
+      // number here would scale ANY environment the document's own adapter
+      // later applies (a Blender render's world, which is applied to the
+      // presented root's scene) by a value that document opted out of.
+      if (dressingEnvironment !== false)
+        scene.environmentIntensity = STANDARD_ENVIRONMENT_INTENSITY;
+      const sourceParent = source.root.parent;
+      scene.add(source.root);
+      if (source.animations) source.root.animations = [...source.animations];
+      const documentState = { root: source.root, animations: source.root.animations };
+      let defaultAdapter: SourceObject3DAuthoringAdapter | null = null;
+      let projectAuthoring: ToolObject3DDocumentAuthoring | null = null;
+      let activePersistenceSession: Promise<Object3DDocumentPersistenceSession> | null = null;
+      let interactionExtension: ReturnType<NonNullable<typeof interaction>['setup']> | null = null;
+      let gestureController: Object3DGestureController | null = null;
+      let pointerDownListener: ((event: PointerEvent) => void) | null = null;
+      let pointerMoveListener: ((event: PointerEvent) => void) | null = null;
+      let pointerUpListener: ((event: PointerEvent) => void) | null = null;
+      let pointerCancelListener: ((event: PointerEvent) => void) | null = null;
+      let escapeListener: ((event: KeyboardEvent) => void) | null = null;
+      let activateInteraction: (() => void) | null = null;
+      let rollback: (() => void) | null = null;
+      let published = false;
+      let disposed = false;
+      let cleanup: Promise<void> | null = null;
+      const binding: DocumentContentBinding = {
+        scene,
+        settle: () => gestureController?.settle() ?? Promise.resolve(),
+        dispose: () => {
+          if (cleanup) return cleanup;
+          disposed = true;
+          if (pointerDownListener)
+            container.removeEventListener('pointerdown', pointerDownListener, true);
+          if (pointerMoveListener)
+            container.removeEventListener('pointermove', pointerMoveListener, true);
+          if (pointerUpListener)
+            container.removeEventListener('pointerup', pointerUpListener, true);
+          if (pointerCancelListener)
+            container.removeEventListener('pointercancel', pointerCancelListener, true);
+          if (escapeListener) window.removeEventListener('keydown', escapeListener);
+          cleanup = (async () => {
+            await gestureController?.settle();
+            const failures: unknown[] = [];
+            for (const release of [
+              () => interactionExtension?.dispose(),
+              () => projectAuthoring?.dispose?.(),
+              () => defaultAdapter?.dispose(),
+              () => scene.removeFromParent(),
+              () => {
+                if (retainSourceOnDisposeRef.current) retainedState.source = source;
+                else source.dispose();
+                retainSourceOnDisposeRef.current = false;
+              },
+              returnSurface,
+            ]) {
+              try {
+                release();
+              } catch (error) {
+                failures.push(error);
+              }
+            }
+            if (failures.length) {
+              // biome-ignore lint/suspicious/noConsole: teardown must remain diagnosable
+              console.error('Object3D source cleanup failed.', ...failures);
+            }
+          })();
+          return cleanup;
+        },
+      };
+      try {
+        const commitProjectDocument = async (label?: string): Promise<boolean> => {
+          try {
+            const document = documentState;
+            if (documentSource && !persistence) {
+              // The whole document is ONE source module: the same seam the
+              // animation binding writes through — checksum-guarded whole-file
+              // replace, recorded in canonical history — never the resource
+              // route, which refuses executable source by rule.
+              if (!document)
+                throw new Error('Project history is unavailable; the edit was not saved.');
+              const history = workspaceHistoryService();
+              if (!history) {
+                throw new Error('Project history is unavailable; the edit was not saved.');
+              }
+              const source = documentSource.serialize(document);
+              if (source === null) {
+                // The document says nothing changed: a real no-change outcome,
+                // never a write of the emitted form over a hand-written file.
+                setError(null);
+                return false;
+              }
+              const changed = await projectWrites().replaceSource(history, {
+                file: documentSource.path,
+                source,
+                label: label ?? documentSource.label ?? `Edit ${displayName}`,
+              });
+              setError(null);
+              return changed;
+            }
+            if (!persistence) {
+              throw new Error('This Asset Lab document has no persistence binding.');
+            }
+            if (!activePersistenceSession || !document) {
+              throw new Error('Project history is unavailable; the edit was not saved.');
+            }
+            // The pipe's ack for THIS commit: `persisted` is whether a byte moved
+            // (a serializer that reproduced the bytes already on disk is a real
+            // no-change outcome; a genuine failure throws below).
+            const { persisted } = await (await activePersistenceSession).commit(document, label);
+            setError(null);
+            return persisted;
+          } catch (caught) {
+            setError(caught instanceof Error ? caught.message : JSON.stringify(caught));
+            throw caught;
+          }
+        };
+        defaultAdapter = new SourceObject3DAuthoringAdapter(store, scene, {
+          documentId,
+          title: displayName,
+          sourcePath,
+          documentKind: assetSubject ? 'asset' : 'source',
+          audit,
+          ...(source.hierarchyRoots ? { hierarchyRoots: source.hierarchyRoots } : {}),
+          ...(modelSourceKind === 'project-file' && modelSourcePath
+            ? { modelSource: { kind: modelSourceKind, path: modelSourcePath } as const }
+            : modelSourceKind === 'entity' && modelSourceEntityId
+              ? { modelSource: { kind: modelSourceKind, entityId: modelSourceEntityId } as const }
+              : {}),
+        });
+        const authoringContext = {
+          documentId,
+          sourcePath,
+          root: source.root,
+          animations: source.root.animations,
+          scene,
+          defaultAdapter,
+          commit: commitProjectDocument,
+        };
+        projectAuthoring = authoring?.(authoringContext) ?? null;
+        if (!projectAuthoring && sourceAuthoring) {
+          projectAuthoring = sourceAuthoring({
+            store,
+            scene,
+            ...(source.hierarchyRoots ? { hierarchyRoots: source.hierarchyRoots } : {}),
+          });
+          defaultAdapter.dispose();
+        }
+        // Project authoring may establish the module-local artifact that its
+        // serializers read (a rig document is the concrete example). Open the
+        // persistence baseline only after that factory has adopted the root;
+        // opening it before authoring made every clean rig mount reject with
+        // "Object3D is not a project rig artifact."
+        activePersistenceSession =
+          persistence && history
+            ? projectWrites().openPersistence({
+                binding: persistence,
+                document: documentState,
+                history,
+              })
+            : null;
+        if (activePersistenceSession) {
+          void activePersistenceSession.catch((caught) => {
+            if (!disposed && documentHostRef.current?.content === binding) {
+              setError(caught instanceof Error ? caught.message : JSON.stringify(caught));
+            }
+          });
+        }
+        const adapter: AuthoringAdapter = projectAuthoring?.adapter ?? defaultAdapter;
+
+        // All editor furniture belongs to the persistent scene. Adapters and
+        // project extensions see only this revision's isolated content scene.
+        if (!host.dressing) {
+          renderer.outputColorSpace = THREE.SRGBColorSpace;
+          // The stage's VIEW TRANSFORM. ACES unless the document states its
+          // own — see `ToolViewportDressing.toneMapping`. It is set here, with
+          // the rest of the renderer's fixed state, because it belongs to the
+          // surface rather than to any one material: three compiles the
+          // operator into every `toneMapped` program.
+          renderer.toneMapping = dressingToneMapping ?? THREE.ACESFilmicToneMapping;
+          renderer.shadowMap.enabled = true;
+          renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+          renderer.info.autoReset = false;
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+          if (studioStage) renderer.setClearColor(0x000000, 0);
+          const environment =
+            dressingEnvironment === false
+              ? null
+              : lease && 'environment' in lease
+                ? lease.environment()
+                : createStandardEnvironment(renderer);
+          // A palette that carries a viewport background (Blender's flat grey)
+          // paints it in place of the dressing's; the viewport follows theme
+          // changes from there (`EditorViewport`'s look subscription).
+          const look = nativeViewportLook(canvas);
+          host.dressing = applyStandardViewportDressing(host.scene, {
+            environment,
+            background:
+              !studioStage &&
+              background === undefined &&
+              dressingBackground !== false &&
+              look.background === null,
+            keyLight: dressingKeyLight !== false,
+            grid: dressingGrid === true,
+            content: source.root,
+          });
+          if (!studioStage && background !== undefined)
+            host.scene.background = new THREE.Color(background);
+          else if (!studioStage && look.background !== null)
+            host.scene.background = new THREE.Color(look.background);
+          host.defaultEnvironment = host.scene.environment;
+          host.defaultBackground = host.scene.background;
+          host.cleanups.push(() => {
+            if (
+              host.defaultBackground instanceof THREE.Texture &&
+              host.defaultBackground !== host.dressing?.backgroundTexture
+            )
+              host.defaultBackground.dispose();
+          });
+        }
+        const pick = (clientX: number, clientY: number): string | null => {
+          const current = host.adapter;
+          const viewport = host.viewport;
+          if (!current || !viewport) return null;
+          const rect = canvas.getBoundingClientRect();
+          const pointer = new THREE.Vector2(
+            ((clientX - rect.left) / Math.max(rect.width, 1)) * 2 - 1,
+            -((clientY - rect.top) / Math.max(rect.height, 1)) * 2 + 1,
+          );
+          const raycaster = new THREE.Raycaster();
+          raycaster.layers.enableAll();
+          raycaster.setFromCamera(pointer, host.session?.camera() ?? viewport.camera);
+          for (const hit of raycaster.intersectObjects([...store.objectMap.values()], true)) {
+            if (isInEditorOwnedSubtree(hit.object)) continue;
+            let object: THREE.Object3D | null = hit.object;
+            while (object) {
+              const id = current.hierarchy.idForObject3D?.(object);
+              if (id) return id;
+              object = object.parent;
+            }
+          }
+          return null;
+        };
+        if (!host.viewport) {
+          host.viewport = new EditorViewport(canvas, host.scene, store, container, {
+            renderer,
+            authoring: () => host.adapter ?? adapter,
+            pick,
+            publishPickContext: false,
+            onProjectionChange: setProjection,
+            // The same expression that places the DOM furniture, for the one
+            // piece of furniture that is drawn on the canvas instead.
+            chromeInsetPx: chromeless || hasShell ? 0 : STAGE_BLEED_PX,
+            // A document that turns the dressing's key light off has said it
+            // lights itself, and the editor's design-time rig answers exactly
+            // the same question. MEASURED on the Model stage before this
+            // existed: the rig's ambient 0.5 + directional 1.0 sit on
+            // `EDITOR_LAYER`, but three filters lights by the CAMERA's layers
+            // (`WebGLRenderer.projectObject`) and the one camera that draws
+            // this stage enables that layer to see the grid and the gizmo —
+            // so the layer scopes them away from nothing at all and they lit
+            // the content.
+            lightRig: dressingKeyLight !== false,
+          });
+          if (dressingGrid === true) host.viewport.grid.removeFromParent();
+          const open = (event: MouseEvent) => {
+            const id = pick(event.clientX, event.clientY);
+            const object = id ? host.adapter?.hierarchy.object3D?.(id) : null;
+            if (object) onOpenNodeRef.current?.(object);
+          };
+          container.addEventListener('dblclick', open);
+          host.cleanups.push(() => container.removeEventListener('dblclick', open));
+        }
+        const viewport = host.viewport;
+        if (dressingViewLocked) {
+          // VIEW-LOCKED DRESSING. The object turns with the view because it
+          // hangs off the camera, and the camera joins the RENDERED scene for
+          // the same reason: three collects lights while it walks the scene
+          // (`WebGLRenderer.projectObject`), so a light parented to a camera
+          // that is not in the scene is never collected at all. A camera in
+          // the graph draws nothing and picks nothing — it carries no
+          // geometry — and the scene's own `updateMatrixWorld` is then what
+          // carries the view pose down to its children each frame.
+          //
+          // ONE camera is the view pose for this stage: the session's
+          // orthographic camera copies `viewport.camera`'s position and
+          // quaternion before every draw it makes (`object3d-document-
+          // session.ts::syncOrthographicCamera`), so locking to the
+          // perspective camera locks to both projections. A capture with its
+          // OWN camera (a Blender render photographs from the scene's camera)
+          // is deliberately not followed: a render is lit by the scene.
+          const camera = viewport.camera;
+          host.scene.add(camera);
+          camera.add(dressingViewLocked);
+          host.cleanups.push(() => {
+            dressingViewLocked.removeFromParent();
+            camera.removeFromParent();
+          });
+        }
+        if (interaction) {
+          const overlay = new THREE.Group();
+          overlay.name = '__object3d_document_overlay';
+          setUserData(overlay, 'editorHelper', true);
+          scene.add(overlay);
+          interactionExtension = interaction.setup({
+            root: source.root,
+            scene,
+            renderer,
+            overlay,
+            camera: () => host.session?.camera() ?? viewport.camera,
+            writable: persistence !== undefined || documentSource !== undefined,
+          });
+          const pointerEvent = (event: PointerEvent) => {
+            const rect = canvas.getBoundingClientRect();
+            const pointer = new THREE.Vector2(
+              ((event.clientX - rect.left) / Math.max(rect.width, 1)) * 2 - 1,
+              -((event.clientY - rect.top) / Math.max(rect.height, 1)) * 2 + 1,
+            );
+            const raycaster = new THREE.Raycaster();
+            raycaster.layers.enableAll();
+            raycaster.setFromCamera(pointer, host.session?.camera() ?? viewport.camera);
+            return {
+              pointerId: event.pointerId,
+              button: event.button,
+              buttons: event.buttons,
+              clientX: event.clientX,
+              clientY: event.clientY,
+              altKey: event.altKey,
+              ctrlKey: event.ctrlKey,
+              metaKey: event.metaKey,
+              shiftKey: event.shiftKey,
+              ray: raycaster.ray.clone(),
+              hits: raycaster.intersectObjects([source!.root, overlay], true),
+            };
+          };
+          gestureController = new Object3DGestureController({
+            begin: (event) => {
+              if (!persistence && !documentSource) {
+                throw new Error(
+                  'This Asset Lab document has no persistence binding; project gestures are read-only.',
+                );
+              }
+              return interactionExtension!.begin(event);
+            },
+            persist: async (label) => {
+              await commitProjectDocument(label);
+            },
+            reportError: (caught) =>
+              setError(caught instanceof Error ? caught.message : JSON.stringify(caught)),
+          });
+          const claim = (event: PointerEvent) => {
+            event.preventDefault();
+            event.stopPropagation();
+          };
+          pointerDownListener = (event) => {
+            // A control painted OVER the stage owns its own press. These
+            // listeners sit on the CONTAINER in the capture phase, so they run
+            // before that control's own handler and a `stopPropagation` there
+            // would be too late: pressing the rolled-back-operation notice's
+            // Dismiss also started a box-select on the mesh (measured — the
+            // notice's text changed from the failed op to "Box select").
+            // The viewport's navigation cluster (`ViewportFurniture`) is the
+            // same case and was missing here: its Pan button drives the camera
+            // from `onPointerDown`, which React dispatches at the root, so
+            // claiming the press here meant `startPan` never ran and the
+            // control was inert (measured — the camera floats were identical
+            // before and after a full pointer gesture, while the cluster's
+            // `onClick` buttons beside it moved the camera every time).
+            if (
+              event.target instanceof Element &&
+              event.target.closest('[role="alert"], [role="toolbar"]') !== null
+            ) {
+              return;
+            }
+            if (!gestureController?.begin(pointerEvent(event))) return;
+            claim(event);
+            // DOM-only editor automation dispatches honest untrusted pointer
+            // events, which have no browser-owned active pointer and therefore
+            // cannot be captured. Hardware pointers still take capture so a
+            // gesture can leave the viewport without getting stranded.
+            if (event.isTrusted) canvas.setPointerCapture?.(event.pointerId);
+          };
+          pointerMoveListener = (event) => {
+            if (!gestureController?.hasActiveGesture()) return;
+            claim(event);
+            gestureController.update(pointerEvent(event));
+          };
+          pointerUpListener = (event) => {
+            if (!gestureController?.hasActiveGesture()) return;
+            claim(event);
+            if (canvas.hasPointerCapture?.(event.pointerId)) {
+              canvas.releasePointerCapture?.(event.pointerId);
+            }
+            void gestureController.commit(pointerEvent(event));
+          };
+          pointerCancelListener = (event) => {
+            if (!gestureController?.hasActiveGesture()) return;
+            claim(event);
+            void gestureController.cancel(event.pointerId);
+          };
+          escapeListener = (event) => {
+            if (event.key !== 'Escape' || !gestureController?.hasActiveGesture()) return;
+            event.preventDefault();
+            void gestureController.cancel();
+          };
+          activateInteraction = () => {
+            container.addEventListener('pointerdown', pointerDownListener!, true);
+            container.addEventListener('pointermove', pointerMoveListener!, true);
+            container.addEventListener('pointerup', pointerUpListener!, true);
+            container.addEventListener('pointercancel', pointerCancelListener!, true);
+            window.addEventListener('keydown', escapeListener!);
+          };
+        }
+        // Candidate construction has succeeded. Publish all source references in
+        // one synchronous turn; no frame or input event can see a half-swap.
+        const previous = host.content;
+        const selected = [...store.selectedEntityIds];
+        const previousAdapter = host.adapter;
+        const previousObjects = new Map(store.objectMap);
+        const previousRoot = host.session?.root;
+        const previousFrame = host.frame;
+        const previousSyncHostScene = host.syncHostScene;
+        const previousDocument = documentStateRef.current;
+        const previousPersistence = persistenceSessionRef.current;
+        const previousInteraction = interactionExtensionRef.current;
+        const previousBackground = host.session?.neutralBackgroundTexture();
+        const previousLights = host.dressing.lights.map((light) => light.visible);
+        const cleanupCount = host.cleanups.length;
+        const wasInitialized = host.initialized;
+        rollback = () => {
+          scene.removeFromParent();
+          if (sourceParent) sourceParent.add(source.root);
+          if (previous) host.scene.add(previous.scene);
+          host.adapter = previousAdapter;
+          host.content = previous;
+          host.frame = previousFrame;
+          host.syncHostScene = previousSyncHostScene;
+          host.initialized = wasInitialized;
+          for (const cleanup of host.cleanups.splice(cleanupCount)) cleanup();
+          if (!previousRoot && host.session) {
+            host.session.dispose();
+            host.session = null;
+          }
+          store.objectMap.clear();
+          for (const [id, object] of previousObjects) store.objectMap.set(id, object);
+          if (previous)
+            store.bindScene(previous.scene, renderer, viewport.batchedRenderer, viewport.camera);
+          if (previousRoot && previousAdapter)
+            host.session?.replaceContent(previousRoot, previousAdapter);
+          documentStateRef.current = previousDocument;
+          persistenceSessionRef.current = previousPersistence;
+          interactionExtensionRef.current = previousInteraction;
+          documentAdapterRef.current = previousAdapter;
+          setDocumentAdapter(previousAdapter);
+          if (previousBackground !== undefined)
+            host.session?.setNeutralBackground(previousBackground);
+          host.dressing?.lights.forEach((light, index) => {
+            light.visible = previousLights[index] ?? true;
+          });
+          if (previousRoot) host.dressing?.frameContent(previousRoot);
+          store.selectMultiple(selected);
+          store.notifyIngestObjectMapEdit();
+        };
+        previous?.scene.removeFromParent();
+        host.scene.add(scene);
+        host.adapter = adapter;
+        host.content = binding;
+        store.bindScene(scene, renderer, viewport.batchedRenderer, viewport.camera);
+        store.setOrbitTarget(viewport.orbitControls.target);
+        store.objectMap.clear();
+        scene.traverse((object) => {
+          const id = adapter.hierarchy.idForObject3D?.(object);
+          if (id) store.objectMap.set(id, object);
+        });
+        if (!host.session) {
+          const overviewFrame = boxFromFrameBounds(frameBoundsRef.current);
+          const openingFrame = boxFromFrameBounds(openingFrameBoundsRef.current) ?? overviewFrame;
+          if (!openingFrame) viewport.focusOn(source.root);
+          if (cameraX !== undefined && cameraY !== undefined && cameraZ !== undefined) {
+            const box = openingFrame ?? contentWorldBounds(source.root);
+            const center = box.getCenter(new THREE.Vector3());
+            const direction = new THREE.Vector3(cameraX, cameraY, cameraZ).normalize();
+            const distance =
+              perspectiveDistanceToFitBox(box, viewport.camera, direction) *
+              Math.min(10, Math.max(0.1, openingFit ?? 1));
+            viewport.camera.position.copy(center).add(direction.multiplyScalar(distance));
+            viewport.orbitControls.target.copy(center);
+          }
+          host.session = new Object3DDocumentSession(
+            documentId,
+            source.root,
+            host.scene,
+            renderer,
+            viewport,
+            host.dressing.lights,
+            adapter,
+            studioStage
+              ? null
+              : background === undefined
+                ? host.dressing.backgroundTexture
+                : new THREE.Color(background),
+            overviewFrame,
+          );
+          host.session.selectionOutlineEnabled = !shared && selectionOutlineRef.current;
+          if (!studioStage && background === undefined && host.dressing.backgroundTexture) {
+            const session = host.session;
+            host.cleanups.push(
+              watchPaletteBackdrop(() => {
+                // A palette that names a flat viewport background owns the
+                // backdrop; the gradient is for palettes that name none.
+                const flat = nativeViewportLook(canvas).background;
+                if (flat !== null) {
+                  host.scene.background = new THREE.Color(flat);
+                  return;
+                }
+                const previous = host.defaultBackground;
+                host.defaultBackground = createGradientBackgroundTexture();
+                if (session.neutralBackgroundTexture() === previous)
+                  session.setNeutralBackground(host.defaultBackground);
+                if (
+                  previous instanceof THREE.Texture &&
+                  previous !== host.dressing?.backgroundTexture
+                )
+                  previous.dispose();
+              }),
+            );
+          }
+        } else host.session.replaceContent(source.root, adapter);
+        const retainedCamera = retainedState.camera;
+        if (retainedCamera) {
+          viewport.setProjection(projection);
+          viewport.setPose(
+            retainedCamera.position,
+            retainedCamera.target,
+            retainedCamera.fov || undefined,
+          );
+          retainedState.camera = null;
+        }
+        const documentSession = host.session;
+        documentStateRef.current = documentState;
+        persistenceSessionRef.current = activePersistenceSession;
+        interactionExtensionRef.current = interactionExtension;
+        documentAdapterRef.current = adapter;
+        setDocumentAdapter(adapter);
+        let sourceHasLight = false;
+        source.root.traverse((object) => {
+          if ((object as THREE.Light).isLight) sourceHasLight = true;
+        });
+        for (const light of host.dressing.lights) light.visible = !sourceHasLight;
+        host.dressing.frameContent(source.root);
+        store.selectMultiple(selected.filter((id) => store.objectMap.has(id)));
+        store.notifyIngestObjectMapEdit();
+        documentSession.syncSelectionPresentation();
+        activateInteraction?.();
+        setError(null);
+        if (!chromeless) notifyWorkspaceDocumentSelectionChanged(documentId);
+        let nativeBackground = scene.background;
+        documentSession.setNeutralBackground(nativeBackground ?? host.defaultBackground);
+        const retainedPresentation = retainedState.presentation;
+        if (retainedPresentation) {
+          documentSession.setMode(retainedPresentation.mode);
+          documentSession.setGrid(retainedPresentation.grid);
+          documentSession.setBackground(retainedPresentation.background);
+          documentSession.setExposure(retainedPresentation.exposure);
+          documentSession.setProjection(retainedPresentation.projection);
+          documentSession.setLighting(retainedPresentation.lighting);
+          documentSession.setSkeleton(retainedPresentation.skeleton);
+          documentSession.setBounds(retainedPresentation.bounds);
+          retainedState.presentation = null;
+        }
+        // The document's world dressing lives on its OWN scene, nested inside the
+        // rendered `host.scene`. Every draw of the rendered scene mirrors it out
+        // first — the viewport frame and every offscreen photograph alike — so a
+        // capture can never show the dressing the last viewport tick happened to
+        // leave behind. The session runs this before it renders; nothing else may
+        // hold a second copy of this field list.
+        const syncHostScene = () => {
+          host.scene.environment = scene.environment ?? host.defaultEnvironment;
+          host.scene.fog = scene.fog;
+          host.scene.environmentIntensity = scene.environmentIntensity;
+          host.scene.environmentRotation.copy(scene.environmentRotation);
+          host.scene.backgroundIntensity = scene.backgroundIntensity;
+          host.scene.backgroundBlurriness = scene.backgroundBlurriness;
+          host.scene.backgroundRotation.copy(scene.backgroundRotation);
+          if (nativeBackground !== scene.background) {
+            nativeBackground = scene.background;
+            documentSession.setNeutralBackground(nativeBackground ?? host.defaultBackground);
+          }
+        };
+        host.syncHostScene = syncHostScene;
+        documentSession.setBeforeRender(() => host.syncHostScene?.());
+        // This loop draws the compass and every other overlay pass over the
+        // document's own render, so it — and only it — can serve the chrome
+        // door a frame that matches the screen.
+        documentSession.setPresentsFrames(true);
+        // THE CONTENT-TIME DOOR, re-created in Step 3 with exactly one caller
+        // (the transport's `tick` below). The mixer line the deleted estate
+        // had here is gone for good: subjects seek THEMSELVES, so content time
+        // is only ever the bookkeeping plus the source's own update.
+        const advanceContent = (deltaSeconds: number): void => {
+          if (disposed || !(deltaSeconds > 0) || !Number.isFinite(deltaSeconds)) return;
+          host.contentSeconds += deltaSeconds;
+          host.transportAdvances++;
+          source.update?.(deltaSeconds);
+        };
+        // What this stage can show at a time. Scanned once here; the world
+        // root's stage rescans (below) because its tree arrives later.
+        const clipScan = scanClipSubjects(source.root, host.transport);
+        host.cleanups.push(() => clipScan.dispose());
+        const retainedTransport = retainedState.transport;
+        if (retainedTransport) {
+          if (retainedTransport.activeSubject)
+            host.transport.setActiveSubject(retainedTransport.activeSubject);
+          host.transport.setLoop(retainedTransport.range.loop);
+          host.transport.setTimeScale(retainedTransport.timeScale);
+          host.transport.seek(retainedTransport.time);
+          if (retainedTransport.playbackState === 'playing') host.transport.play();
+          else if (retainedTransport.playbackState === 'paused') host.transport.pause();
+          retainedState.transport = null;
+        }
+        let previousTime = performance.now();
+        const animate = (time: number, resumed: boolean) => {
+          if (disposed || !renderer || !viewport) return;
+          const activeRenderer = renderer;
+          const activeViewport = viewport;
+          const profiler = documentSession?.profiler;
+          profiler?.beginFrame();
+          if (resumed) previousTime = time;
+          const delta = Math.min((time - previousTime) / 1000, 0.1);
+          previousTime = time;
+          profiler?.beginPhase();
+          // CONTENT TIME moves ONLY through the stage transport, and only
+          // while a human is holding it: `tick` is inert unless playing and
+          // the editor drives, and it returns exactly the seconds it advanced.
+          const advanced = host.transport.tick(delta);
+          if (advanced > 0) advanceContent(advanced);
+          interactionExtension?.prepareFrame?.(delta);
+          interactionExtension?.update?.(delta);
+          profiler?.endPhase('animation');
+          profiler?.beginPhase();
+          host.presence?.syncMarkers(delta);
+          viewport.update(delta);
+          // This stage's frame hook. After viewport.update, the same order the
+          // scene panel uses, so anything riding the loop (a camera flight)
+          // has final say over the pose and orbit damping never fights it.
+          if (!chromeless) runViewportFrame(documentId, delta);
+          viewport.batchedRenderer.update(delta);
+          profiler?.endPhase('editor');
+          profiler?.beginPhase();
+          activeRenderer.info.reset();
+          const timeFirstRender =
+            !firstFrameGateRef.current && activeViewportBreakdownDocumentId() === documentId;
+          if (timeFirstRender) markViewportFirstRenderStart(documentId);
+          const tFirstRender = timeFirstRender ? Date.now() : 0;
+          const presentationOverride = host.scene.overrideMaterial;
+          const mode = documentSession.presentation().mode;
+          if (mode !== 'uv' && mode !== 'vertex-colors')
+            host.scene.overrideMaterial = scene.overrideMaterial;
+          try {
+            activeViewport.renderWithInfrastructure(() => {
+              documentSession.renderViewport(delta);
+              activeViewport.renderViewCube(activeRenderer);
+            });
+          } finally {
+            host.scene.overrideMaterial = presentationOverride;
+          }
+          // Inside the frame that drew them — the canvas has no
+          // preserveDrawingBuffer, so this is the only moment its pixels exist.
+          documentSession.servePresentedFrame();
+          if (!firstFrameGateRef.current) {
+            firstFrameGateRef.current = true;
+            if (timeFirstRender) markViewportSegment('first-render', Date.now() - tFirstRender);
+            recordViewportFirstFrame(documentId);
+            setSurfaceStatus('ready');
+          }
+          profiler?.reportRender({
+            gpuMs: null,
+            drawCalls: activeRenderer.info.render.calls,
+            triangles: activeRenderer.info.render.triangles,
+            geometries: activeRenderer.info.memory.geometries,
+            textures: activeRenderer.info.memory.textures,
+          });
+          profiler?.endPhase('render');
+          profiler?.endFrame();
+          // THE SHELL'S READOUT IS THE FOCUSED STAGE'S (ARCHITECTURE-CORE
+          // §One stage unit 4). `CameraInfo` and `StatsOverlay` read one
+          // struct the shell owns; the stage the panels are following fills
+          // it, so a model or prefab document reports ITS frame and ITS
+          // camera. Inactive documents leave the shared readout alone.
+          const shellReadout = shellStatsRef.current;
+          if (shellReadout && shellStore && focusedStageStore(shellStore) === store) {
+            const pose = documentSession.cameraPose();
+            shellReadout.frameTime = delta * 1000;
+            shellReadout.fps = delta > 0 ? 1 / delta : 0;
+            shellReadout.drawCalls = activeRenderer.info.render.calls;
+            shellReadout.triangles = activeRenderer.info.render.triangles;
+            shellReadout.cameraPosition.x = pose.position[0];
+            shellReadout.cameraPosition.y = pose.position[1];
+            shellReadout.cameraPosition.z = pose.position[2];
+            shellReadout.cameraTarget.x = pose.target[0];
+            shellReadout.cameraTarget.y = pose.target[1];
+            shellReadout.cameraTarget.z = pose.target[2];
+          }
+        };
+
+        host.frame = animate;
+        rendererSessionRef.current = host.rendererSession;
+        if (!host.initialized) {
+          if (!chromeless) {
+            // --- The viewport door (viewport-door.ts) ---
+            // This host is ONE STAGE among the mounted 3D documents
+            // (ARCHITECTURE-CORE §One stage), and it binds under the id of the
+            // document it draws, so an SDK reader reaches THIS stage's rig,
+            // helper sink and frame loop through `host.viewport.stages()`.
+            // It presents no live roots yet — Play's adoption is the world
+            // root's, and moves onto this host in unit 3 — so the presenter
+            // declines every root rather than pretending to a subject.
+            // A CHROMELESS mount (the inspector's object preview) binds
+            // nothing: it is a thumbnail of a document, not a stage of its own,
+            // and several can be alive for one document id at once.
+            host.cleanups.push(
+              bindViewportRig(
+                {
+                  camera: viewport.camera,
+                  orbit: viewport.orbitControls,
+                  scene: host.scene,
+                },
+                () => null,
+                (kind, object) => viewport.setHelper(kind, object),
+                { documentId },
+              ),
+            );
+            // --- The other participants, on THIS stage ---
+            // Presence was the scene panel's, so only the world root had it.
+            // It is a capability with a condition — a stage painting a three
+            // surface — and a `build` stage always paints one, so every
+            // document with chrome mounts it and a prefab story shows the
+            // same camera frusta, selection boxes and pointer rays the Scene
+            // does (ARCHITECTURE-CORE §One stage; WORK.md §Presence and the
+            // substrate, presence unit 4). Dynamically imported: it reaches
+            // the collaboration client, which a bounded host must not pay for.
+            void import('./stage-presence-markers').then((markers) => {
+              if (host.isClosed || documentHostRef.current !== host || host.presence) return;
+              const binding = markers.bindStagePresenceMarkers({
+                // The HOST's scene, not this revision's content scene: a
+                // source update swaps the content and the markers must not go
+                // with it.
+                scene: host.scene,
+                store,
+                documentId,
+                container,
+                canvas,
+                viewport,
+                readVisibleCameraPose: () => {
+                  const camera = host.session?.camera() ?? viewport.renderCamera;
+                  const position = camera.getWorldPosition(new THREE.Vector3());
+                  const fov = (camera as THREE.PerspectiveCamera).fov;
+                  return {
+                    position,
+                    target: viewport.orbitControls.target,
+                    fov: typeof fov === 'number' ? fov : 0,
+                  };
+                },
+              });
+              host.presence = binding;
+              host.cleanups.push(() => binding.dispose());
+            });
+            host.cleanups.push(registerObject3DDocumentSession(documentSession));
+            host.cleanups.push(
+              registerPerformanceSource({
+                id: documentId,
+                label: displayName,
+                kind: assetSubject ? 'asset' : 'source',
+                profiler: documentSession.profiler,
+              }),
+            );
+          }
+          // EXACTLY ONE registrar of this document's workspace selection: the
+          // identity-row shell does it through its own `selection` prop, so
+          // the host does it wherever that shell is absent. The condition was
+          // `!studioStage` while the shell and the studio were the same
+          // answer; they parted when a DATA subject gained the studio
+          // (§A model is data), and reading the old one left the Model
+          // document with NEITHER registrar — the Hierarchy said "No
+          // authoring adapter" and the mesh inspector emptied (measured live
+          // on the models scaffold, 2026-09-18).
+          if (!chromeless && !hasShell) {
+            host.cleanups.push(
+              registerWorkspaceDocumentSelection(documentId, () => ({
+                adapter: host.adapter!,
+                nodeId: host.adapter?.selection?.get()[0] ?? null,
+              })),
+            );
+          }
+          const designTimeSurfaceId = chromeless
+            ? `${documentId}#chromeless-${++chromelessSurfaceSequence}`
+            : documentId;
+          host.cleanups.push(
+            registerDesignTimeSurface({
+              id: designTimeSurfaceId,
+              label: displayName,
+              contentClock: () => host.contentSeconds,
+              transportAdvances: () => host.transportAdvances,
+            }),
+          );
+          // THE VIEWPORT ACTION BUS, on a document stage. The world root has
+          // answered these since the scene panel existed; a document stage
+          // never did, which is why Frame (`F`) was inert on a prefab or a
+          // model — the hotkey pushes `focus-selection` onto the stage's own
+          // store and nothing was listening (ARCHITECTURE-CORE §One stage:
+          // the capability is present wherever its condition holds).
+          host.cleanups.push(
+            store.onViewportAction((action) => {
+              switch (action.type) {
+                case 'focus-selection':
+                case 'focus-scene':
+                  // The session frames the selection, else the whole subject,
+                  // and says so on the console when there is nothing to frame.
+                  if (!host.session?.frame() && host.session?.root)
+                    viewport.focusOn(host.session.root);
+                  break;
+                case 'focus-entity': {
+                  const object = host.adapter?.hierarchy.object3D?.(action.id) ?? null;
+                  if (object) viewport.focusOn(object);
+                  break;
+                }
+                case 'snap-selection-to-floor':
+                  viewport.snapSelectionToFloor();
+                  break;
+                case 'set-view-preset':
+                  viewport.setViewPreset(action.preset);
+                  break;
+                case 'set-camera-pose':
+                  viewport.setPose(action.position, action.target, action.fov);
+                  break;
+              }
+            }),
+          );
+          let selectionSignature = '';
+          host.cleanups.push(
+            store.subscribe(() => {
+              viewport.objectMap = store.objectMap;
+              viewport.syncFromStore();
+              host.session?.syncSelectionPresentation();
+              const next = (host.adapter?.selection?.get() ?? []).join('\u0000');
+              if (next !== selectionSignature) {
+                selectionSignature = next;
+                if (!chromeless) notifyWorkspaceDocumentSelectionChanged(documentId);
+              }
+            }),
+          );
+          const resize = () => {
+            const width = Math.max(1, container.clientWidth);
+            const height = Math.max(1, container.clientHeight);
+            const ratio = renderer.getPixelRatio();
+            if (
+              canvas.width !== Math.floor(width * ratio) ||
+              canvas.height !== Math.floor(height * ratio)
+            )
+              renderer.setSize(width, height, false);
+            viewport.resize(width, height);
+            host.session?.resize(width, height);
+            host.rendererSession.redraw();
+          };
+          const observer = new ResizeObserver(resize);
+          observer.observe(container);
+          host.cleanups.push(() => observer.disconnect());
+          resize();
+          host.initialized = true;
+          markViewportConstructReady();
+        }
+        viewport.objectMap = store.objectMap;
+        viewport.syncFromStore();
+        host.rendererSession.setActive(activeRef.current);
+        host.rendererSession.redraw();
+        published = true;
+        // Old graph stays owned until the new binding is fully published.
+        void previous?.dispose();
+      } catch (caught) {
+        if (!published) {
+          try {
+            rollback?.();
+          } finally {
+            if (sourceParent && source.root.parent === scene) sourceParent.add(source.root);
+            void binding.dispose();
+          }
+        }
+        // Candidate construction leaves the last good binding and pixels live.
+        // biome-ignore lint/suspicious/noConsole: source failure must remain diagnosable
+        console.error(`[object3d document] ${displayName}: source update failed`, caught);
+        setError(caught instanceof Error ? caught.message : String(caught));
+      }
+    };
+    const update = contentUpdateTail.current.then(install);
+    contentUpdateTail.current = update.catch((caught) => {
+      if (!cancelled) setError(caught instanceof Error ? caught.message : String(caught));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    authoring,
+    background,
+    build,
+    cameraX,
+    cameraY,
+    cameraZ,
+    displayName,
+    documentId,
+    studioStage,
+    dressingBackground,
+    dressingEnvironment,
+    dressingGrid,
+    dressingKeyLight,
+    dressingViewLocked,
+    dressingToneMapping,
+    chromeless,
+    modelSourceEntityId,
+    modelSourceKind,
+    modelSourcePath,
+    interaction,
+    persistence,
+    documentSource,
+    rendererLane,
+    retainedState,
+    surfaceAttached,
+    sourceAuthoring,
+    sourcePath,
+  ]);
+
+  useEffect(() => {
+    const session = rendererSessionRef.current;
+    const becameActive = active && !previousActiveRef.current;
+    previousActiveRef.current = active;
+    if (!session) return;
+    if (becameActive) {
+      firstFrameGateRef.current = false;
+      markViewportRafResume(documentId);
+    }
+    session.setActive(active);
+  }, [active, documentId]);
+
+  // The stage's own handle for the capabilities that drive it directly (the
+  // viewport hotkeys). `surfaceStatus` is what re-renders once the stage has
+  // finished building, so reading the ref here is safe and never stale.
+  const host = documentHostRef.current;
+  const stageHandle =
+    surfaceStatus === 'ready' && host?.viewport
+      ? { store: host.store, viewport: host.viewport, canvas: host.surface.canvas }
+      : null;
+  // The document's own selection changes as you pick inside it; the registry
+  // reads this on demand, so the picked part follows without re-registering.
+  // With nothing picked the DOCUMENT NODE is the subject — the same reading
+  // as clicking a model's root in the scene.
+  const readSelection = useCallback(() => {
+    const owner = documentAdapterRef.current;
+    return owner
+      ? {
+          adapter: owner,
+          nodeId: owner.selection?.get()[0] ?? owner.hierarchy.roots()[0]?.id ?? null,
+        }
+      : null;
+  }, []);
+  const viewport = (
+    <div
+      data-testid="tool-object3d-authoring"
+      data-vgai-chromeless={chromeless || undefined}
+      className={studioStage ? 'vgai-object3d-studio-stage' : undefined}
+      style={{
+        position: chromeless || hasShell ? 'relative' : 'absolute',
+        // Inside the Asset Editor shell the stage fills its own box exactly;
+        // in a bare dock panel it bleeds under the panel's padding.
+        ...(chromeless
+          ? { width: '100%', height: '100%' }
+          : hasShell
+            ? { flex: 1, minHeight: 0 }
+            : { inset: -STAGE_BLEED_PX }),
+        overflow: 'hidden',
+        // Asset documents paint the shared studio stage through their class.
+        // An inline background here would win the cascade and hide it.
+        background: studioStage ? undefined : themeVars.surface.raised,
+        pointerEvents: 'auto',
+      }}
+    >
+      <div
+        ref={containerRef}
+        style={{ position: 'absolute', inset: 0, minHeight: 0, overflow: 'hidden' }}
+      >
+        <ViewportSurface canvasHostRef={canvasHostRef} />
+        {/* WHICH KEYS THIS STAGE ANSWERS — the transform modes, the view
+            presets, Frame, pivot, snap. Beside the stage rather than inside
+            the overlay set, because a package-contributed document mounts
+            with no shell above it and reached none of them
+            (`stage-keyboard.tsx`). The registry holds ONE stage's set, so the
+            condition is the ACTIVE document's stage. */}
+        {active && stageHandle && !chromeless ? (
+          <Suspense fallback={null}>
+            <LazyStageKeyboard stage={stageHandle} />
+          </Suspense>
+        ) : null}
+        {/* The stage's own overlays, co-located with the canvas the way
+            `RootSelectionOverlay`'s DOM contract requires (its marquee is
+            measured against this container's box). A stage with no shell
+            above it — a bounded host — renders none of them and never loads
+            them. */}
+        {shellStore && !chromeless ? (
+          <StageOverlays
+            store={shellStore}
+            documentId={documentId}
+            stage={stageHandle}
+            active={active}
+            chrome="document"
+          />
+        ) : null}
+        {/* A ROLLED-BACK operation (an animation write, a capture, a source
+            write the history guarded) — every writer of `error` restores the
+            prior state, so the surface below is live and must stay visible.
+            It used to mount a full-bleed opaque curtain with no dismiss: the
+            stage read as dead until the session restarted (measured). A
+            notice over the stage, dismissible, and cleared by the next
+            gesture that succeeds. */}
+        {error && (
+          <div
+            role="alert"
+            style={{
+              position: 'absolute',
+              insetInline: 0,
+              top: 0,
+              display: 'flex',
+              justifyContent: 'center',
+              padding: 'var(--vgai-space-3)',
+              pointerEvents: 'none',
+            }}
+          >
+            <div
+              className="vgai-chrome-island"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--vgai-space-3)',
+                maxWidth: '80%',
+                padding: 'var(--vgai-space-2) var(--vgai-space-3)',
+                borderRadius: 'var(--vgai-radius-md)',
+                border: `var(--vgai-stroke-resting) solid ${themeVars.semantic.danger}`,
+                background: themeVars.surface.raised,
+                color: themeVars.semantic.danger,
+                pointerEvents: 'auto',
+              }}
+            >
+              <span>{error}</span>
+              <IconButton
+                size="compact"
+                aria-label="Dismiss"
+                onClick={() => setError(null)}
+                data-testid="object3d-document-error-dismiss"
+              >
+                <EditorIcon icon={editorIcons.action.close} />
+              </IconButton>
+            </div>
+          </div>
+        )}
+        {!error && surfaceStatus === 'building' && (
+          <ViewportSurfaceStatus testId="object3d-document-status">
+            {OBJECT3D_SURFACE_BUILDING}
+          </ViewportSurfaceStatus>
+        )}
+        {/* The stage BLEEDS 12px under the dock panel's padding (`inset: -12`
+            above) so the rendered image fills it edge to edge. The furniture is
+            CHROME, not image: it has to sit inside the panel the person can
+            actually see, so it gets that bleed back. Without this the view text
+            started at page x=-6 — the "U" of "User Perspective" was clipped off
+            the window — and the navigation cluster's right edge landed 4px past
+            the panel, under the Inspector's section rail (both measured). */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: chromeless || hasShell ? 0 : STAGE_BLEED_PX,
+            pointerEvents: 'none',
+          }}
+        >
+          {!chromeless && surfaceStatus === 'ready' && documentHostRef.current && (
+            <ViewportFurniture
+              viewport={documentHostRef.current.viewport}
+              session={documentHostRef.current.session}
+              store={documentHostRef.current.store}
+              projection={projection}
+              displayName={displayName}
+              {...(statistics ? { statistics } : {})}
+              objectName={(id) =>
+                documentHostRef.current?.adapter?.hierarchy.object3D?.(id)?.name ??
+                // Document builders may supply names through their store index.
+                documentHostRef.current?.store.objectMap.get(id)?.name ??
+                null
+              }
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+  if (!hasShell) return viewport;
+  return (
+    <AssetEditorShell
+      documentId={documentId}
+      active={active}
+      type={assetType ?? (modelSourceEntityId ? 'entity' : 'model')}
+      title={displayName}
+      status={sourcePath}
+      selection={readSelection}
+      fill
+    >
+      <div className="vgai-object3d-asset-workspace">
+        {viewport}
+        {/* Where the deleted preview strip was. It draws nothing until this
+            stage's transport has a subject, so a document with nothing to show
+            at a time is unchanged. */}
+        <TransportStrip transport={documentHostRef.current?.transport ?? null} />
+      </div>
+    </AssetEditorShell>
+  );
+}
+
+/** Public project contribution surface over the editor's native Object3D document host. */
+export function ToolObject3DAuthoring(props: ToolObject3DAuthoringProps) {
+  return <Object3DDocumentViewport {...props} />;
+}

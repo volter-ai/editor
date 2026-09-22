@@ -1,0 +1,8 @@
+Copyright 2026 Volter AI, Inc.
+
+Project tool registry, provider execution and related types were transferred
+from the Apache-2.0 @vgai/sdk package. Original source hashes and revision are
+recorded in provenance/editor-server.json.
+
+The project output-root policy is Apache-2.0, transferred from the original
+SDK; its exact source is recorded in provenance/editor-server.json.

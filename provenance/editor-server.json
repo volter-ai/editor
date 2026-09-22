@@ -1,0 +1,797 @@
+{
+  "repository": "https://github.com/volter-ai/vgai-engine",
+  "revision": "cf9cb8e22dd7ae5709ed0dd8a46dd6f16d1e4945",
+  "files": [
+    {
+      "source": "packages/editor/server/packaged.ts",
+      "path": "packages/editor-core/server/packaged.ts",
+      "sha256": "298712a5e1477da12379258a7dc362053a705c2a41cea636602c8b8892a3a04f"
+    },
+    {
+      "source": "packages/editor/vite-plugin-creation-site-write.ts",
+      "path": "packages/editor-core/vite-plugin-creation-site-write.ts",
+      "sha256": "dd8164618d6429d23fab8fe41e1165636c4c26e75276cc391682e4fa0f5daffe"
+    },
+    {
+      "source": "packages/editor/vite-plugin-module-doorways.ts",
+      "path": "packages/editor-core/vite-plugin-module-doorways.ts",
+      "sha256": "5e78bb525181830b24c169b44db95294c1ad8550e8f3d376b9d467a12797baf5"
+    },
+    {
+      "source": "packages/editor/vite-plugin-ui-oid.ts",
+      "path": "packages/editor-core/vite-plugin-ui-oid.ts",
+      "sha256": "e2db4b0d1d2cec27533de3c9bd431b695c8a000bc952c31d65e27e9abaabff1f"
+    },
+    {
+      "source": "packages/editor/server/canonical-path.ts",
+      "path": "packages/editor-core/server/canonical-path.ts",
+      "sha256": "85c6c0c380712a1ae7801ef94266c314574deaa748dc23843e8371501b216aed"
+    },
+    {
+      "source": "packages/editor/server/editor-server.ts",
+      "path": "packages/editor-core/server/editor-server.ts",
+      "sha256": "13543250ac78be8572ddc4c5bc48096af330ec78790c64a8912703b26df30d96"
+    },
+    {
+      "source": "packages/editor/server/editor-sse.ts",
+      "path": "packages/editor-core/server/editor-sse.ts",
+      "sha256": "faf0b00616f16b1ee033b0b5eb0772d8d3649948b019b460c52638a02b9a8dc0"
+    },
+    {
+      "source": "packages/editor/server/frame-bridge.ts",
+      "path": "packages/editor-core/server/frame-bridge.ts",
+      "sha256": "287b1f3140ffed1d3092188824b9b128c8d8c1c92a104edf0caa711533a00a4c"
+    },
+    {
+      "source": "packages/editor/server/frame-workbench.ts",
+      "path": "packages/editor-core/server/frame-workbench.ts",
+      "sha256": "173ee387cb623c71b486c41243fce2e57ed87ea74e5365f44965bbc7525f2699"
+    },
+    {
+      "source": "packages/editor/server/idle-shutdown.ts",
+      "path": "packages/editor-core/server/idle-shutdown.ts",
+      "sha256": "6a3b0f46b425acc0bbcc8151d387dd639b164ed80911d6814995559aec13bfbf"
+    },
+    {
+      "source": "packages/editor/server/js-profiling-policy.ts",
+      "path": "packages/editor-core/server/js-profiling-policy.ts",
+      "sha256": "fa38fbdac9278334ec38adb728675005e07ccc76645720db050195dc5d2d8d82"
+    },
+    {
+      "source": "packages/editor/server/managed-account-defaults.ts",
+      "path": "packages/editor-core/server/managed-account-defaults.ts",
+      "sha256": "24ec60ea4d1fc3a2479f5a6ccd10138a43cf415632d7265684fd804cc6226fdb"
+    },
+    {
+      "source": "packages/editor/server/project-install-roots.ts",
+      "path": "packages/editor-core/server/project-install-roots.ts",
+      "sha256": "197d007d2b7c1a209d3ffac61abb1eab2cb70c80d05b11a77afe450d5050cdcc"
+    },
+    {
+      "source": "packages/editor/server/project-module-freshness.ts",
+      "path": "packages/editor-core/server/project-module-freshness.ts",
+      "sha256": "d637cd85ed21e2216cd8137e1d85c7390ac250345f948f538020822017361328"
+    },
+    {
+      "source": "packages/editor/server/project-optimize-deps-entries.ts",
+      "path": "packages/editor-core/server/project-optimize-deps-entries.ts",
+      "sha256": "f05861bbb357d4952d939affb8333c98130ee113a1fc34716ad127c5bf5fee97"
+    },
+    {
+      "source": "packages/editor/server/project-scratch-path.ts",
+      "path": "packages/editor-core/server/project-scratch-path.ts",
+      "sha256": "3ed8483222839b9045fbe14858a8f08b53263d76486d62b78bb3cb3a9e969387"
+    },
+    {
+      "source": "packages/editor/server/project-serving-plugins.ts",
+      "path": "packages/editor-core/server/project-serving-plugins.ts",
+      "sha256": "f9e5a4c5d9950264b6474c942f5910e520cdc110e5edaf3d150a9eff9e4ea54e"
+    },
+    {
+      "source": "packages/editor/server/server-utils.ts",
+      "path": "packages/editor-core/server/server-utils.ts",
+      "sha256": "b81742fcf9716bab4d268688fd4508666c6e62fbced988182678988751f4d9ba"
+    },
+    {
+      "source": "packages/editor/server/session-product.ts",
+      "path": "packages/editor-core/server/session-product.ts",
+      "sha256": "665cae7ba8b49bf78b7c2f43b87f3d3bc171dbc0c486ee2078311fe9b1ee8d33"
+    },
+    {
+      "source": "packages/editor/server/creation-site-write.ts",
+      "path": "packages/editor-core/server/creation-site-write.ts",
+      "sha256": "430743161fe63e9f448db9ebe8ff5aa858ee32589ad1c3d470e41469428b43e2"
+    },
+    {
+      "source": "packages/editor/server/project-script-hmr.ts",
+      "path": "packages/editor-core/server/project-script-hmr.ts",
+      "sha256": "d2f07484ae24d805f20a81828b870297ac096a052477eed28c2c401bae6459eb"
+    },
+    {
+      "source": "packages/editor/server/collaboration-session.ts",
+      "path": "packages/editor-core/server/collaboration-session.ts",
+      "sha256": "d109afa6498e3083a182b9f52812a8f94c630e00b4bab593183ac529e0fb6bb3"
+    },
+    {
+      "source": "packages/editor/server/project-root-surface.ts",
+      "path": "packages/editor-core/server/project-root-surface.ts",
+      "sha256": "d7b79ed981d2d4792d68922a218c91ff34a5d71f809e74905fa558451831bc1b"
+    },
+    {
+      "source": "packages/editor/server/vendored-lock-recorder.ts",
+      "path": "packages/editor-core/server/vendored-lock-recorder.ts",
+      "sha256": "f0ead95c7d2f817c408108b38a806e128b22bd7963466d27e07b8e21466e8a4c"
+    },
+    {
+      "source": "packages/editor/src/ui-source/plan-csf-story.ts",
+      "path": "packages/editor-core/src/ui-source/plan-csf-story.ts",
+      "sha256": "c935ef37a8ff6319402c2a8226e9720dc73bc63e18a110c07d47e616749c4b3d"
+    },
+    {
+      "source": "packages/editor/src/ui-source/plan-extract-component.ts",
+      "path": "packages/editor-core/src/ui-source/plan-extract-component.ts",
+      "sha256": "ddb5999c2cd04b530202b8c049658d64082d33f59a20c8ef81ca948e94c7bbed"
+    },
+    {
+      "source": "packages/editor/src/ui-source/plan-fork-component.ts",
+      "path": "packages/editor-core/src/ui-source/plan-fork-component.ts",
+      "sha256": "9a424ceaf235c32088b602afb60d8eab6499ef045ef87cb0f1f492ed2339b022"
+    },
+    {
+      "source": "packages/editor/src/ui-source/plan-named-style.ts",
+      "path": "packages/editor-core/src/ui-source/plan-named-style.ts",
+      "sha256": "26730402143879a71a5576009f5f1aad4701b507b71c884388b3d21c181e57c7"
+    },
+    {
+      "source": "packages/editor/src/ui-source/plan-source-edit.ts",
+      "path": "packages/editor-core/src/ui-source/plan-source-edit.ts",
+      "sha256": "4986984a8ece3f8f036a42874582bbd30948e9eec6a8a3e41cdb36e82913fa79"
+    },
+    {
+      "source": "packages/editor/src/ui-source/r3f-diagnostic-index.ts",
+      "path": "packages/editor-core/src/ui-source/r3f-diagnostic-index.ts",
+      "sha256": "c12441b6c7dd5663774be3583b59528cebcf033dec8be8d9cd4b7b9076f83748"
+    },
+    {
+      "source": "packages/editor/src/ui-source/r3f-project-contracts.ts",
+      "path": "packages/editor-core/src/ui-source/r3f-project-contracts.ts",
+      "sha256": "641fb6c57e23cdd7ca07552f0693432bd40d619fdc219fb116de99f6c61d2b9b"
+    },
+    {
+      "source": "packages/editor/src/harness-chat-types.ts",
+      "path": "packages/editor-core/src/harness-chat-types.ts",
+      "sha256": "5966012fb501428ed633ea8a21e96795326bf09e8afab37de13ae2a11f927dc3"
+    },
+    {
+      "source": "packages/editor/server/account-service.ts",
+      "path": "packages/editor-core/server/account-service.ts",
+      "sha256": "7c38f488898a3f2204648e4daaefef7cb1be9bb2b3b85ac791ffbc94e17b76c6"
+    },
+    {
+      "source": "packages/editor/server/asset-library-routes.ts",
+      "path": "packages/editor-core/server/asset-library-routes.ts",
+      "sha256": "41706fcb10c1d065aa5ddce82f1b8da7e2ecc25047496021b7227ccd3402031f"
+    },
+    {
+      "source": "packages/editor/server/checkout-workspace-preflight.ts",
+      "path": "packages/editor-core/server/checkout-workspace-preflight.ts",
+      "sha256": "040b36f620ac4ed510567dc9da19fdd9b6f188dd43a0c08e1c74198d429c8f49"
+    },
+    {
+      "source": "packages/editor/server/collaboration-attribution.ts",
+      "path": "packages/editor-core/server/collaboration-attribution.ts",
+      "sha256": "c2343d810c1a88eea6be4afc79372cd67ac4157ab9d07b1da994fdd4e32c0f63"
+    },
+    {
+      "source": "packages/editor/server/console-ledger.ts",
+      "path": "packages/editor-core/server/console-ledger.ts",
+      "sha256": "65f4ba1e131471fa67e5c116c7b3e2f1659f431090233ed3332bcf368fea582b"
+    },
+    {
+      "source": "packages/editor/server/editor-server-options.ts",
+      "path": "packages/editor-core/server/editor-server-options.ts",
+      "sha256": "10fdf6ded59b2903ea82cb20df8f2eddeb2286cc65625295026fed86f7c13e84"
+    },
+    {
+      "source": "packages/editor/server/engine-provenance.ts",
+      "path": "packages/editor-core/server/engine-provenance.ts",
+      "sha256": "89dc6aed2edc59de4db6106c8c9b209e9b29484e9052e2a1ba64527cc308a2f5"
+    },
+    {
+      "source": "packages/editor/server/engine-source-restart.ts",
+      "path": "packages/editor-core/server/engine-source-restart.ts",
+      "sha256": "45ae0bb6e9582c7a75e7bcc73c0d01c494c2116c4967c95ac65c13aa8ca497a5"
+    },
+    {
+      "source": "packages/editor/server/generation-reconciler.ts",
+      "path": "packages/editor-core/server/generation-reconciler.ts",
+      "sha256": "43cb87cb7887f8902959266e2974d66c73ec8e473e78ff633b599107a79d478e"
+    },
+    {
+      "source": "packages/editor/server/harness-chat-caller.ts",
+      "path": "packages/editor-core/server/harness-chat-caller.ts",
+      "sha256": "9387096943cd975265a660e7e57d917fb5921d08d0b10aa90f9b6e1da62f4f9c"
+    },
+    {
+      "source": "packages/editor/server/harness-chat-service.ts",
+      "path": "packages/editor-core/server/harness-chat-service.ts",
+      "sha256": "f4015ba8a9b18596300174a729ee5a994f8854af6b271c10364357c4dca98886"
+    },
+    {
+      "source": "packages/editor/server/launcher-settings.ts",
+      "path": "packages/editor-core/server/launcher-settings.ts",
+      "sha256": "116b83b12b35a1eeeb7adeab338b754aa4abf240cfab5d62671f8956ec63253d"
+    },
+    {
+      "source": "packages/editor/server/play-stall.ts",
+      "path": "packages/editor-core/server/play-stall.ts",
+      "sha256": "59f6ed2348b288d220a76e0346cdb49a037dab5894f2be87bd012b2549d54fac"
+    },
+    {
+      "source": "packages/editor/server/project-dependency-invalidation.ts",
+      "path": "packages/editor-core/server/project-dependency-invalidation.ts",
+      "sha256": "b13f067285364721fc7ad9ea150f8f24767f09b14d4f7b3d8a3a1fd4dc06cb9b"
+    },
+    {
+      "source": "packages/editor/server/project-file-scan.ts",
+      "path": "packages/editor-core/server/project-file-scan.ts",
+      "sha256": "25960796d3737b8baf71ce193e1363af598dd7b4b1fb9324569f7f0151cee4ec"
+    },
+    {
+      "source": "packages/editor/server/project-kinds.ts",
+      "path": "packages/editor-core/server/project-kinds.ts",
+      "sha256": "3bb5bb131b0bd3692891ab4ba9f448923a855f0fbf2cb9636e254b00f7f070b2"
+    },
+    {
+      "source": "packages/editor/server/project-watch.ts",
+      "path": "packages/editor-core/server/project-watch.ts",
+      "sha256": "2b12c88fce9e25f3f0aed2641de4211689ff751513a113cdc45794ac5e8f9198"
+    },
+    {
+      "source": "packages/editor/server/project-work-coordinator.ts",
+      "path": "packages/editor-core/server/project-work-coordinator.ts",
+      "sha256": "2c579c601c94633b21006eb032482893c4906a7e965266edfff4e470cbb73cda"
+    },
+    {
+      "source": "packages/editor/server/recent-projects-store.ts",
+      "path": "packages/editor-core/server/recent-projects-store.ts",
+      "sha256": "864163642140747055985fbd42a9abe81bb595d127e8fbd8a680301ee97136c0"
+    },
+    {
+      "source": "packages/editor/server/routes/account.ts",
+      "path": "packages/editor-core/server/routes/account.ts",
+      "sha256": "b036b8d335beb0e212f7d35eea73c30e35b2812d9a3c8a881e2058d200d10fb1"
+    },
+    {
+      "source": "packages/editor/server/routes/agents.ts",
+      "path": "packages/editor-core/server/routes/agents.ts",
+      "sha256": "e0ad66996feb777d76106634b656bfac891b9bf4091ddcc4c2850c4dcbcbc5e1"
+    },
+    {
+      "source": "packages/editor/server/routes/assets.ts",
+      "path": "packages/editor-core/server/routes/assets.ts",
+      "sha256": "21d44f1f9df130715c250313c24e870a71992b86f18c3e6259986a134fd29c37"
+    },
+    {
+      "source": "packages/editor/server/routes/build.ts",
+      "path": "packages/editor-core/server/routes/build.ts",
+      "sha256": "9d9cf5b4a81901a5f228fc1f87286a103e50ced44906468b37634b9096ee3f3e"
+    },
+    {
+      "source": "packages/editor/server/routes/collaboration.ts",
+      "path": "packages/editor-core/server/routes/collaboration.ts",
+      "sha256": "95e4b9b6587ae3551f7b778ccae6047699a5a0e99022714d19822148bc37dbdd"
+    },
+    {
+      "source": "packages/editor/server/routes/configurations.ts",
+      "path": "packages/editor-core/server/routes/configurations.ts",
+      "sha256": "7f63fb9adbee5337f013e102bb4ac1bc5b939b72813ef0df4be3d8345f8abb5d"
+    },
+    {
+      "source": "packages/editor/server/routes/context.ts",
+      "path": "packages/editor-core/server/routes/context.ts",
+      "sha256": "aaf89dced98ff4e4d0b4a672c6ebca54a25f0fa606bb3b30d7c6c881f2e4d552"
+    },
+    {
+      "source": "packages/editor/server/routes/control-plane.ts",
+      "path": "packages/editor-core/server/routes/control-plane.ts",
+      "sha256": "b63a5ebd588dce98990b6ac00506d9a553ec2d92a2e3ae58211e825b65e8fa7b"
+    },
+    {
+      "source": "packages/editor/server/routes/logs.ts",
+      "path": "packages/editor-core/server/routes/logs.ts",
+      "sha256": "e39a661f8203a2ba52b6c0c73d52f3dcf6fc59254abda4273b95128191986c9b"
+    },
+    {
+      "source": "packages/editor/server/routes/project-identity.ts",
+      "path": "packages/editor-core/server/routes/project-identity.ts",
+      "sha256": "ac037ead9282433c922f10c3c3ac918d1496ce6351a4474ec4237d4847f25d8b"
+    },
+    {
+      "source": "packages/editor/server/routes/project-open.ts",
+      "path": "packages/editor-core/server/routes/project-open.ts",
+      "sha256": "dacfbfd3113254714134af37539dcc6b806e3d2540baac5e2aafd638b725515b"
+    },
+    {
+      "source": "packages/editor/server/routes/project-source.ts",
+      "path": "packages/editor-core/server/routes/project-source.ts",
+      "sha256": "6fdf6ea9eb150f0874204ffa1b0ef73e8d5318ff164c7959764b5ba2a3d22324"
+    },
+    {
+      "source": "packages/editor/server/routes/project-state.ts",
+      "path": "packages/editor-core/server/routes/project-state.ts",
+      "sha256": "7dba31f23ed86d3351a711b3d157c4ead9305a56dc92839637b842b12d94b328"
+    },
+    {
+      "source": "packages/editor/server/routes/relay.ts",
+      "path": "packages/editor-core/server/routes/relay.ts",
+      "sha256": "93d97a9c0b02d8c1c2d6cde69ee2fe30a944848cb49cd91af329cad7d1798194"
+    },
+    {
+      "source": "packages/editor/server/routes/served-modules.ts",
+      "path": "packages/editor-core/server/routes/served-modules.ts",
+      "sha256": "9aef44a1f0e52aab8daa2bb9745c66e6042b922c721fd14d8ae8a1850a77a886"
+    },
+    {
+      "source": "packages/editor/server/routes/session-tabs.ts",
+      "path": "packages/editor-core/server/routes/session-tabs.ts",
+      "sha256": "388bd0143ae0254840c7e34474f8fe1120d309c9ef972bf6dbba30e35f781d4d"
+    },
+    {
+      "source": "packages/editor/server/routes/settings.ts",
+      "path": "packages/editor-core/server/routes/settings.ts",
+      "sha256": "953f856a82372fe63d2acf082690762f6103b9ac8ad33c3178e2a3d79f22d4ba"
+    },
+    {
+      "source": "packages/editor/server/routes/share-control.ts",
+      "path": "packages/editor-core/server/routes/share-control.ts",
+      "sha256": "032c5bc529de0aeddf2cae5492fcfc2b5df17997ad900e8070c448044db6f008"
+    },
+    {
+      "source": "packages/editor/server/routes/themes.ts",
+      "path": "packages/editor-core/server/routes/themes.ts",
+      "sha256": "5a9dd537360cfbda639786ff0b4989c8dbdab0e4df2c28895513b629dca0cc3e"
+    },
+    {
+      "source": "packages/editor/server/routes/tools.ts",
+      "path": "packages/editor-core/server/routes/tools.ts",
+      "sha256": "8d10183c384a57d7278071e4152cdf20a13a2ae1ffe42e09113d844c43f67fa4"
+    },
+    {
+      "source": "packages/editor/server/routes/worktrees.ts",
+      "path": "packages/editor-core/server/routes/worktrees.ts",
+      "sha256": "91c796df005a80748ffbda6da48b3c1500836b0a68f65d7cdf3ece74a7ce7f7b"
+    },
+    {
+      "source": "packages/editor/server/share-claims.ts",
+      "path": "packages/editor-core/server/share-claims.ts",
+      "sha256": "84d87690e964276bac1dd9f46ce8c85a12606c80833e72e845ed91112ffd2ee0"
+    },
+    {
+      "source": "packages/editor/server/share-host.ts",
+      "path": "packages/editor-core/server/share-host.ts",
+      "sha256": "6f26e7652b0ddae2ed010a2a6608a9035970ad6221c81f12871a870d4af7dcbe"
+    },
+    {
+      "source": "packages/editor/server/tab-heartbeat.ts",
+      "path": "packages/editor-core/server/tab-heartbeat.ts",
+      "sha256": "ac4ca445c7e94372bc2ee3243f32f9f5b813b48a5bcb92c084e91aa699f94fe7"
+    },
+    {
+      "source": "packages/editor/server/tab-lifecycle.ts",
+      "path": "packages/editor-core/server/tab-lifecycle.ts",
+      "sha256": "ea8048eed6e506ca4471c7ecf6f8242c2b74016cf1c9c4e06f6efb48bc4d6f87"
+    },
+    {
+      "source": "packages/editor/server/team-agent-mirror.ts",
+      "path": "packages/editor-core/server/team-agent-mirror.ts",
+      "sha256": "16694a3029c6beabaf35e67d027bf58c551aa4b0e4160cedb99b62c23f6b18b2"
+    },
+    {
+      "source": "packages/editor/server/project-tools.ts",
+      "path": "packages/editor-core/server/project-tools.ts",
+      "sha256": "596253cfbf661a2266e1aa9277923f0925fcfe75a24544837ce1db00499f023c"
+    },
+    {
+      "source": "packages/editor/vite-plugin-creation-site.ts",
+      "path": "packages/editor-core/vite-plugin-creation-site.ts",
+      "sha256": "87af5bfdef1719b2fdbca0403a571a708aaa5bcf5e5ab4aefbb19f90a3ce5e61"
+    },
+    {
+      "source": "packages/editor/vite-plugin-project-game-static.ts",
+      "path": "packages/editor-core/vite-plugin-project-game-static.ts",
+      "sha256": "ea0ccea97a64835346d9bf871cf7c835fe045f0905ec2dcec7c5e326d9d0255a"
+    },
+    {
+      "source": "packages/editor/vite-plugin-project-jsx-js.ts",
+      "path": "packages/editor-core/vite-plugin-project-jsx-js.ts",
+      "sha256": "0df13f37cb49dd2132db902425de2a1d74a2de6a61b0f753ac66c25677823721"
+    },
+    {
+      "source": "packages/editor/vite-plugin-project-root-absolute-assets.ts",
+      "path": "packages/editor-core/vite-plugin-project-root-absolute-assets.ts",
+      "sha256": "84502989c7e9ec6cb95af37099374ae01cbd565ab7f0b6f9514129bc0d3d423d"
+    },
+    {
+      "source": "packages/editor/src/creation-site-edit.ts",
+      "path": "packages/editor-core/src/creation-site-edit.ts",
+      "sha256": "f1edef62ee88ad3660c4afb5f9f74c150d4974bd681ad2e3d0c00dc57a5e4a9d"
+    },
+    {
+      "source": "packages/editor/server/project-hmr-files.ts",
+      "path": "packages/editor-core/server/project-hmr-files.ts",
+      "sha256": "b2575a516edf0ed8088701986edfe2df01ec4056aeb3ef50c4e483b5adc514a4"
+    },
+    {
+      "source": "packages/editor/server/adapter-region-includes.ts",
+      "path": "packages/editor-core/server/adapter-region-includes.ts",
+      "sha256": "7685d40d9f67e49a845153ff69683f25a3585969dccb9ca9ea70758aeeb044c2"
+    },
+    {
+      "source": "packages/editor/src/ui-source/relative-import-specifier.ts",
+      "path": "packages/editor-core/src/ui-source/relative-import-specifier.ts",
+      "sha256": "6911a7725c8be7fbd50409e450e27a84943d71551a6c6b9354a9061719e3dcbd"
+    },
+    {
+      "source": "packages/editor/src/ui-source/ensure-import.ts",
+      "path": "packages/editor-core/src/ui-source/ensure-import.ts",
+      "sha256": "b3d6d7d0df1cccffb0f331e1650c08e0b234af65df7061793c8b54c58750d6e4"
+    },
+    {
+      "source": "packages/editor/src/ui-source/write-component-default.ts",
+      "path": "packages/editor-core/src/ui-source/write-component-default.ts",
+      "sha256": "2baeb1466d8fc2a63b8c8c167e3a6667e639a1bb1e9b54d732de71f863c9374d"
+    },
+    {
+      "source": "packages/editor/src/ui-source/r3f-contract-resolver.ts",
+      "path": "packages/editor-core/src/ui-source/r3f-contract-resolver.ts",
+      "sha256": "25935be749ab0bce9604f050a41d7f55ed3e41baf44430c69f49251f37d0d130"
+    },
+    {
+      "source": "packages/editor/server/account-credentials.ts",
+      "path": "packages/editor-core/server/account-credentials.ts",
+      "sha256": "75a3782a782ba91b017bd70a3af606c49b764c5bd3ee474919a74ec9b2a755ce"
+    },
+    {
+      "source": "packages/editor/server/mock-control-plane.ts",
+      "path": "packages/editor-core/server/mock-control-plane.ts",
+      "sha256": "f18d78618ca100082caf867bae85ad6445f9ef99baa2c618ed25e03905157f7c"
+    },
+    {
+      "source": "packages/editor/server/provider-credentials.ts",
+      "path": "packages/editor-core/server/provider-credentials.ts",
+      "sha256": "3b6bb0159b6ededb406d65be79a340e56524d33a346c03d437629b8c9c71e7ff"
+    },
+    {
+      "source": "packages/editor/server/twin-auth.ts",
+      "path": "packages/editor-core/server/twin-auth.ts",
+      "sha256": "b49d6c238e10b29fd1d0c48ba4a29530dda94ca82fb40c41cc120286f9ddb099"
+    },
+    {
+      "source": "packages/editor/server/asset-history-snapshots.ts",
+      "path": "packages/editor-core/server/asset-history-snapshots.ts",
+      "sha256": "4ca70fb198672313b07b87a27c8a383112c207d7e49f74a69394a2f83a1c608d"
+    },
+    {
+      "source": "packages/editor/server/asset-ledger-store.ts",
+      "path": "packages/editor-core/server/asset-ledger-store.ts",
+      "sha256": "eec8bcf940958b7ece3f508b6ff00ac343a8a88c939f84afbd47555e4dbc02c9"
+    },
+    {
+      "source": "packages/editor/server/cloud-asset-catalog.ts",
+      "path": "packages/editor-core/server/cloud-asset-catalog.ts",
+      "sha256": "f1686eb3d453e042c170005cbcd3568bd23ca84c1d3c9855bf7e5548bfff6ef2"
+    },
+    {
+      "source": "packages/editor/server/local-asset-catalog.ts",
+      "path": "packages/editor-core/server/local-asset-catalog.ts",
+      "sha256": "b084fa27f82dd6141d2658aa8297a4f1f15b1b3e479be1f0d51adb5703f5c5a9"
+    },
+    {
+      "source": "packages/editor/server/model-import-conversion.ts",
+      "path": "packages/editor-core/server/model-import-conversion.ts",
+      "sha256": "21efaeb78385514f3b1c457a547b7937d21277f9a17658522fece0183e6ca784"
+    },
+    {
+      "source": "packages/editor/server/project-output-writer.ts",
+      "path": "packages/editor-core/server/project-output-writer.ts",
+      "sha256": "12051da266f3cc34489b3c607d9f852c189e6dbfcf09cc3b54093d5906fc941d"
+    },
+    {
+      "source": "packages/editor/server/share-session-gateway.ts",
+      "path": "packages/editor-core/server/share-session-gateway.ts",
+      "sha256": "6772283acd402b10802eb60165440df6ef294175c116134488460464135c31f4"
+    },
+    {
+      "source": "packages/editor/server/boot-timings.ts",
+      "path": "packages/editor-core/server/boot-timings.ts",
+      "sha256": "2774b0eb76db77357e4a677171294baf6d1531b0aa78dab7a3986938cef973db"
+    },
+    {
+      "source": "packages/editor/server/generation-jobs.ts",
+      "path": "packages/editor-core/server/generation-jobs.ts",
+      "sha256": "b70f932b7667152e1ad6e8faf847c220c5b14ea845cd26c4eb56ef8577bb25d2"
+    },
+    {
+      "source": "packages/editor/server/coding-inference-launch.ts",
+      "path": "packages/editor-core/server/coding-inference-launch.ts",
+      "sha256": "b76338bbca41492f812af2809b5cc266a9030b880129e3af56ab9b545b5808d0"
+    },
+    {
+      "source": "packages/editor/server/frontend-handoff.ts",
+      "path": "packages/editor-core/server/frontend-handoff.ts",
+      "sha256": "b20e9fccc3befb5a025d941356ef81de5e19a1a7a06c8cf887cf2398cc94ff40"
+    },
+    {
+      "source": "packages/editor/server/project-mcp-servers.ts",
+      "path": "packages/editor-core/server/project-mcp-servers.ts",
+      "sha256": "5ce3a061046ad7a10158602e19aa5312292ebc60f8bd01373030b663888ebd84"
+    },
+    {
+      "source": "packages/editor/server/project-components.ts",
+      "path": "packages/editor-core/server/project-components.ts",
+      "sha256": "e2b2e1181edce91cbad6a5a3595e0c957c2b59a186e16098b10711c872021e08"
+    },
+    {
+      "source": "packages/editor/server/project-validation.ts",
+      "path": "packages/editor-core/server/project-validation.ts",
+      "sha256": "7a1b4c129d2f79f96862c0eab5315a00484848fed86e09875ef63234659d0c39"
+    },
+    {
+      "source": "packages/editor/src/project-work-types.ts",
+      "path": "packages/editor-core/src/project-work-types.ts",
+      "sha256": "d415f2742feb85033de307fca7a4294fb620f205cf0322a5663ebcdf31ec6263"
+    },
+    {
+      "source": "packages/editor/server/project-view.ts",
+      "path": "packages/editor-core/server/project-view.ts",
+      "sha256": "54b1730fe04105e01c4c05a60c34b89b881ba044a9eb31697a5b971976e44f59"
+    },
+    {
+      "source": "packages/editor/server/editor-brand-html.ts",
+      "path": "packages/editor-core/server/editor-brand-html.ts",
+      "sha256": "a6efaf976053c6b7be21a794d4c589d4771169baf96692134742a40e974beda1"
+    },
+    {
+      "source": "packages/editor/server/project-build-artifact.ts",
+      "path": "packages/editor-core/server/project-build-artifact.ts",
+      "sha256": "e1d500f1e513c45a058f08b15fd6471991fac4b6074abe3c4fa39c287cde6cc8"
+    },
+    {
+      "source": "packages/editor/server/product-presets.ts",
+      "path": "packages/editor-core/server/product-presets.ts",
+      "sha256": "f01e7998ea132827ecf2ecf1ae0acedf4b9136056605a581e8175be259da8d9e"
+    },
+    {
+      "source": "packages/editor/server/editor-control-socket.ts",
+      "path": "packages/editor-core/server/editor-control-socket.ts",
+      "sha256": "d5638faac15ed16c328eb4ce3d27dcde03de3b79a6fe3ab1a3fa3e5b2fc4512c"
+    },
+    {
+      "source": "packages/editor/server/tab-presence.ts",
+      "path": "packages/editor-core/server/tab-presence.ts",
+      "sha256": "0554f8bc5dfc338347b9f664a4296060ac3ef2c0f043c9475e7770520dddc985"
+    },
+    {
+      "source": "packages/editor/server/gameplay-session-retention.ts",
+      "path": "packages/editor-core/server/gameplay-session-retention.ts",
+      "sha256": "aa7cc5ae21726ee35cb47685c724a6c1c150f7695017290e7156d58b1777b798"
+    },
+    {
+      "source": "packages/editor/server/gameplay-sessions.ts",
+      "path": "packages/editor-core/server/gameplay-sessions.ts",
+      "sha256": "1765462741d0158311b154a9fc6636ce71a5f3732b2e91ef967380be3a7e0676"
+    },
+    {
+      "source": "packages/editor/server/project-package-origin.ts",
+      "path": "packages/editor-core/server/project-package-origin.ts",
+      "sha256": "5ea4ec7a2b6f0c4914e9fc6fb06cef638888e38c5f44b9ad58c0c28ace48bbae"
+    },
+    {
+      "source": "packages/editor/server/project-verbs.ts",
+      "path": "packages/editor-core/server/project-verbs.ts",
+      "sha256": "852297f96bf47e0785a832527df8b93ad174413b89037a0d0f53fc2e0d65dc85"
+    },
+    {
+      "source": "packages/editor/server/data-file-serialize.ts",
+      "path": "packages/editor-core/server/data-file-serialize.ts",
+      "sha256": "7429123cfde54b322e1eec20e2bfdb5d90486d893c0a51c9bc088449f1e70bc8"
+    },
+    {
+      "source": "packages/editor/server/scoped-game-css.ts",
+      "path": "packages/editor-core/server/scoped-game-css.ts",
+      "sha256": "94b2375f84928441cadfe0cf7c710358588892ae3b732b8c9a07c2e1d3a14979"
+    },
+    {
+      "source": "packages/editor/server/routes/route-helpers.ts",
+      "path": "packages/editor-core/server/routes/route-helpers.ts",
+      "sha256": "9939329b5ca5c8bfb16a868917dd6d8c748c806d32eeb2cf75659918d1f67efb"
+    },
+    {
+      "source": "packages/editor/server/blender-wasm-artifact.ts",
+      "path": "packages/editor-core/server/blender-wasm-artifact.ts",
+      "sha256": "e7ce9224e08d50cc8f8624631f1990763362fab72ee031d9206c0714667796e0"
+    },
+    {
+      "source": "packages/editor/server/tab-bootstrap.ts",
+      "path": "packages/editor-core/server/tab-bootstrap.ts",
+      "sha256": "3e9103fd073b72b6bd4df600d8c8f98977d840aad9972801c28d7fba7b75cd90"
+    },
+    {
+      "source": "packages/editor/server/git-workflow.ts",
+      "path": "packages/editor-core/server/git-workflow.ts",
+      "sha256": "b67872febbc0fdbfb3c9f96a30c9fd11a6e7323840cb2c1a161cffe5f18df3b1"
+    },
+    {
+      "source": "packages/editor/server/comfyui-bridge.ts",
+      "path": "packages/editor-core/server/comfyui-bridge.ts",
+      "sha256": "b2cb210d8787d11d687db8ba7588d19935d9c6db6171071737c6ea58ba105399"
+    },
+    {
+      "source": "packages/editor/server/repository-presence.ts",
+      "path": "packages/editor-core/server/repository-presence.ts",
+      "sha256": "77a096e719be506e4b21c9484f2aabbf0ffb6cf415d416aed24cd73a5f14f8a7"
+    },
+    {
+      "source": "packages/editor/server/worktree-management.ts",
+      "path": "packages/editor-core/server/worktree-management.ts",
+      "sha256": "6893c4d784a367342405c7c725b35f1ec1e7afdb3ba9c6be72af145446ab4747"
+    },
+    {
+      "source": "packages/editor/server/collaboration-account-client.ts",
+      "path": "packages/editor-core/server/collaboration-account-client.ts",
+      "sha256": "3e52f85d9a5400d4a69f80b75e53f75d9372c26425683fb0c29afb5ffd910d5c"
+    },
+    {
+      "source": "packages/editor/server/share-tunnel.ts",
+      "path": "packages/editor-core/server/share-tunnel.ts",
+      "sha256": "f48274b8d1d7a26d58884a6b8407c5e1c05403fc655fdf331ea2f9bd2401f2c7"
+    },
+    {
+      "source": "packages/editor/server/generative-execution-context.ts",
+      "path": "packages/editor-core/server/generative-execution-context.ts",
+      "sha256": "1137fccb6db29e200d64491cba80325ee0d396d9c7fc8dbb408422e08eb58a11"
+    },
+    {
+      "source": "packages/editor/server/creation-site-transform.ts",
+      "path": "packages/editor-core/server/creation-site-transform.ts",
+      "sha256": "8ce571c55bfa56e4bca0c75449a67e2a0d8ceb2265d04ecd34ae503d9ed12175"
+    },
+    {
+      "source": "packages/editor/server/game-globals-shadow.ts",
+      "path": "packages/editor-core/server/game-globals-shadow.ts",
+      "sha256": "b38e071426049205f221be050eb5348087ba4160f5365fa289adee832c939d26"
+    },
+    {
+      "source": "packages/editor/server/project-module-instance.ts",
+      "path": "packages/editor-core/server/project-module-instance.ts",
+      "sha256": "8344af0be6df13abb99d8535c61993c169dcfaed0243f8bb198d941fe5a6fec9"
+    },
+    {
+      "source": "packages/editor/vite-plugin-game-static.ts",
+      "path": "packages/editor-core/vite-plugin-game-static.ts",
+      "sha256": "05b0f6aca32617899088a088900426aa30da9d274a47e45735a9d422e7318fbf"
+    },
+    {
+      "source": "packages/editor/src/ui-source/syntactic-prop-specs.ts",
+      "path": "packages/editor-core/src/ui-source/syntactic-prop-specs.ts",
+      "sha256": "2e278c7da0e9fa1b7da2bd20040fb14342a40fe89eccee618f2fe3ed10bd6288"
+    },
+    {
+      "source": "packages/editor/server/native-credential-store.ts",
+      "path": "packages/editor-core/server/native-credential-store.ts",
+      "sha256": "d8b9230fb7d5e6bdd121b591c1c6ce3c3fb4692b659e7a80ba5a120c32f81e99"
+    },
+    {
+      "source": "packages/editor/server/asset-catalog-v2.ts",
+      "path": "packages/editor-core/server/asset-catalog-v2.ts",
+      "sha256": "0a08ad0e5c7fdb7b89bc6b7d51f01a1de4744c4dab55dd7c602620122645680a"
+    },
+    {
+      "source": "packages/editor/server/redact-secrets.ts",
+      "path": "packages/editor-core/server/redact-secrets.ts",
+      "sha256": "e2cda27b9698de05209bd9cafda6ad6440825cbb37e4ab6f3d67e5bc0a7cd307"
+    },
+    {
+      "source": "packages/editor/server/worktree-retention.d.mts",
+      "path": "packages/editor-core/server/worktree-retention.d.mts",
+      "sha256": "e1319810436b269832a68c467ce01f93cec2f601d148aa1e4526df80e177b4c5"
+    },
+    {
+      "source": "packages/vgai-sdk/src/project/build-discipline.ts",
+      "path": "packages/editor-core/server/support/project/build-discipline.ts",
+      "sha256": "e774e7f262f92939c142e615019d845b511ba5627e95e6e216ac8a9f34bd0d54"
+    },
+    {
+      "source": "packages/vgai-sdk/src/project/session-journal.ts",
+      "path": "packages/editor-core/server/support/project/session-journal.ts",
+      "sha256": "0e551e203b3d70234b369b83d775c10e7225ddefefd7970bfd6fbdc6ce7947f0"
+    },
+    {
+      "source": "packages/vgai-sdk/src/provider-execution.ts",
+      "path": "packages/editor-sdk/src/tools/provider-execution.ts",
+      "sha256": "d28ad82f4e7ca50cd6f2fbf9a103a718839373cd3a721555c2a01167aa14a4c3"
+    },
+    {
+      "source": "packages/vgai-sdk/src/project/provenance.ts",
+      "path": "packages/editor-core/server/support/project/provenance.ts",
+      "sha256": "e6196ed805fbe725964c56e8d081b95ffebb0123e64c76dd9196bb076a923433"
+    },
+    {
+      "source": "packages/vgai-sdk/src/project/log-naming.ts",
+      "path": "packages/editor-core/server/support/project/log-naming.ts",
+      "sha256": "c1b9d2f72bee289833cff9fb21a51483f49cae3c00613b806831a5bf538ed4a5"
+    },
+    {
+      "source": "packages/vgai-sdk/src/play/log-format.ts",
+      "path": "packages/editor-core/server/support/play/log-format.ts",
+      "sha256": "656f295e44e4a7416f4ca34ae9eba41887d90bcba8eedab698b62db6748663c1"
+    },
+    {
+      "source": "packages/vgai-sdk/src/project/inspection-node.ts",
+      "path": "packages/editor-core/server/support/project/inspection-node.ts",
+      "sha256": "571817a6d617ce45d7374b5309ff5d479b5021d9a726bd9b3f15d171970f74ce"
+    },
+    {
+      "source": "packages/vgai-sdk/src/project/output-roots.ts",
+      "path": "packages/editor-sdk/src/project/output-roots.ts",
+      "sha256": "bfbd0b4861ba296fdd8cb95e304badf81336d44c5610d09edb8051fe1d1e26cd"
+    },
+    {
+      "source": "packages/vgai-sdk/src/registry.ts",
+      "path": "packages/editor-sdk/src/tools/registry.ts",
+      "sha256": "ab1064aa1b9d48cf528478b2b0eeb75b2353965c7189f11f9dc0fdd7c15e78e8"
+    },
+    {
+      "source": "packages/vgai-sdk/src/types.ts",
+      "path": "packages/editor-sdk/src/tools/types.ts",
+      "sha256": "1d9e8d8c862d1227c6c954aeb35b698b9261f0a16b94fa9b739cb08906d7aee4"
+    },
+    {
+      "source": "packages/vgai-sdk/src/project/run-name.ts",
+      "path": "packages/editor-core/server/support/project/run-name.ts",
+      "sha256": "c75fb7e57e59622306e618751571e303572f8ce5da2b139423a9b04382313a90"
+    },
+    {
+      "source": "packages/vgai-sdk/src/play/session-record.ts",
+      "path": "packages/editor-core/server/support/play/session-record.ts",
+      "sha256": "4fb6c79112604d9b5537a5756d731099d58b4d379ab51bd73c293662a2b03bdc"
+    },
+    {
+      "source": "packages/vgai-sdk/src/project/shared.ts",
+      "path": "packages/editor-core/server/support/project/shared.ts",
+      "sha256": "f4a95389003d2b7a4aa8239c3744c06ec47078cb61bf605ee923786e535da5c7"
+    },
+    {
+      "source": "packages/vgai-sdk/src/errors.ts",
+      "path": "packages/editor-sdk/src/tools/errors.ts",
+      "sha256": "4e73ec542cb5e5470a2f950d283278fb2d395761a9741e0d09aa4b1ed928254c"
+    },
+    {
+      "source": "packages/editor/src/tab-bootstrap.js",
+      "path": "packages/editor-core/src/tab-bootstrap.js",
+      "sha256": "1c45d9bada695d52b0af0f6a356e40d78eff8b4548c9e8eb2d974f0595e0a585"
+    }
+  ],
+  "note": "Server transfer in progress. Route and dependency separation must pass before this entry point can be distributed.",
+  "excluded": [
+    {
+      "source": "packages/editor/vite-plugin-game-globals.ts",
+      "path": "packages/editor-core/vite-plugin-game-globals.ts",
+      "sha256": "c6f5bc3aa3d80ab4a59a3b5f1486f0d2de60eab98825ab3ac31a93900aeffbce",
+      "reason": "Unreferenced game execution transform; excluded from modeling host."
+    },
+    {
+      "source": "packages/editor/vite-plugin-mount-isolation.ts",
+      "path": "packages/editor-core/vite-plugin-mount-isolation.ts",
+      "sha256": "6f2b5d40316a95a7d5db761081c4218d537c9e9868ea9357f72f76e1c0147686",
+      "reason": "Unreferenced game execution transform; excluded from modeling host."
+    },
+    {
+      "source": "packages/editor/src/game-globals-prelude.ts",
+      "path": "packages/editor-core/src/game-globals-prelude.ts",
+      "sha256": "8e2ed59667701c98cfe1e418307b9320b38168ca4dd65519a3249c0ef6813c7e",
+      "reason": "Unreferenced game execution transform; excluded from modeling host."
+    }
+  ]
+}

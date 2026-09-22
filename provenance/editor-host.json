@@ -1,0 +1,2817 @@
+{
+  "repository": "https://github.com/volter-ai/vgai-engine",
+  "revision": "cf9cb8e22dd7ae5709ed0dd8a46dd6f16d1e4945",
+  "files": [
+    {
+      "source": "packages/editor/src/EditorContext.tsx",
+      "path": "packages/editor-core/src/EditorContext.tsx",
+      "sha256": "6d4661b73dd5dd20dcca7c4903b16d40156ab514ccdcf53956b276534ed69e2d"
+    },
+    {
+      "source": "packages/editor/src/account.ts",
+      "path": "packages/editor-core/src/account.ts",
+      "sha256": "256b11a0656991137f3e02b2b82c86447e644a9399cb3ddea9a4368c6bdac5dd"
+    },
+    {
+      "source": "packages/editor/src/action-registry.ts",
+      "path": "packages/editor-core/src/action-registry.ts",
+      "sha256": "fd4c2dfa7c95caac79e3c38b0c4247f51e6f6dfa129245f9cf6f97812463daf4"
+    },
+    {
+      "source": "packages/editor/src/active-product.ts",
+      "path": "packages/editor-core/src/active-product.ts",
+      "sha256": "a7396e893928ab384b99727f66a5762450af523abdc8cad9b5a6fa84521d41eb"
+    },
+    {
+      "source": "packages/editor/src/active-project.ts",
+      "path": "packages/editor-core/src/active-project.ts",
+      "sha256": "1eb63075ac6b1aad07d4840d297ebcdc7532d0c074c831eebc658dc2f73a1d83"
+    },
+    {
+      "source": "packages/editor/src/adapter-editor-config.ts",
+      "path": "packages/editor-core/src/adapter-editor-config.ts",
+      "sha256": "dfaab5fdca182b6ca75cf37e70e5a63fe2384f7043f06ca402befa8a1db6e516"
+    },
+    {
+      "source": "packages/editor/src/adapter-observation.ts",
+      "path": "packages/editor-core/src/adapter-observation.ts",
+      "sha256": "9d49dad539b3fc389a281c245cf593aeb10d9482e1e74b8c70f21c7c113599d5"
+    },
+    {
+      "source": "packages/editor/src/animation/stage-transport.ts",
+      "path": "packages/editor-core/src/animation/stage-transport.ts",
+      "sha256": "5c902e63702490749cf3840724c2c2ceccf1911c08fb7c43de8f71f31376cb67"
+    },
+    {
+      "source": "packages/editor/src/animation/three-clips-subject.ts",
+      "path": "packages/editor-core/src/animation/three-clips-subject.ts",
+      "sha256": "bca2641cb52a0bdefdca5af0bfd6feedb2e8c55cd5302ac4e2688aee5766cd72"
+    },
+    {
+      "source": "packages/editor/src/api/asset-library-wire.ts",
+      "path": "packages/editor-core/src/api/asset-library-wire.ts",
+      "sha256": "ca0c48391395dfcf46ecf3931825d8b2271e0f0ac671d27745ecab4eb4c4f101"
+    },
+    {
+      "source": "packages/editor/src/api/assets.ts",
+      "path": "packages/editor-core/src/api/assets.ts",
+      "sha256": "1eeeb44986ea36c520fffa56b01a854636093208cb1dad898dc1735ba725b137"
+    },
+    {
+      "source": "packages/editor/src/api/base.ts",
+      "path": "packages/editor-core/src/api/base.ts",
+      "sha256": "0e9209959b60e09620d952ce50564430da75c420c77ddf43dc9a0602092c291d"
+    },
+    {
+      "source": "packages/editor/src/api/build.ts",
+      "path": "packages/editor-core/src/api/build.ts",
+      "sha256": "8261a45f0803d1c2da5b5dd3b03de7b8bacca9e2902fef5dc03ec1c48bdf05ff"
+    },
+    {
+      "source": "packages/editor/src/api/git-wire.ts",
+      "path": "packages/editor-core/src/api/git-wire.ts",
+      "sha256": "20b6564e079a20ad044a5330e85ad88d60f5f1227baa5df7c94126c39b3f672c"
+    },
+    {
+      "source": "packages/editor/src/api/logs.ts",
+      "path": "packages/editor-core/src/api/logs.ts",
+      "sha256": "1006f57f95dd4fed1f785a0604a0b4a3e02595dd85082803fca7f85e21157351"
+    },
+    {
+      "source": "packages/editor/src/api/project-identity.ts",
+      "path": "packages/editor-core/src/api/project-identity.ts",
+      "sha256": "32b6ac63fff2340248773474bae4bc6a5828143438c881edcd172b047f4477d3"
+    },
+    {
+      "source": "packages/editor/src/api/project-open.ts",
+      "path": "packages/editor-core/src/api/project-open.ts",
+      "sha256": "ffbea599b32be6efb8cbcac636897734e6f8bd93455548bee6c45f773872d07f"
+    },
+    {
+      "source": "packages/editor/src/api/project-source.ts",
+      "path": "packages/editor-core/src/api/project-source.ts",
+      "sha256": "a0b1bf8ded7351f8dd195f00a25fba99f1337e0456d996fc0d2720ab6ee53cc3"
+    },
+    {
+      "source": "packages/editor/src/api/project-state.ts",
+      "path": "packages/editor-core/src/api/project-state.ts",
+      "sha256": "b12b3abbc607da211e8c013a9faab162dba4fde96840aa8956f3ff390331600c"
+    },
+    {
+      "source": "packages/editor/src/api/relay.ts",
+      "path": "packages/editor-core/src/api/relay.ts",
+      "sha256": "39486cda31e4c74ee5bb7dcd5a2d69fdb05099819899835f56f858d03b1cdd22"
+    },
+    {
+      "source": "packages/editor/src/api/settings.ts",
+      "path": "packages/editor-core/src/api/settings.ts",
+      "sha256": "ce5acae04bb239925cb5eb227bd07ca9799c8db9ff64c172d11c516719b0ec60"
+    },
+    {
+      "source": "packages/editor/src/api/themes.ts",
+      "path": "packages/editor-core/src/api/themes.ts",
+      "sha256": "99145ca32e7a86033b4c2a776cfa53da2786c8c75cbc3519b29d25b7bf6e3304"
+    },
+    {
+      "source": "packages/editor/src/api/worktrees.ts",
+      "path": "packages/editor-core/src/api/worktrees.ts",
+      "sha256": "bed80eb06524add9f531da8be88f10fc096f26081401c9187f3d05a736ef76af"
+    },
+    {
+      "source": "packages/editor/src/asset-compare-core.ts",
+      "path": "packages/editor-core/src/asset-compare-core.ts",
+      "sha256": "acc247e9d1f6871d23867bc17e3d645619b3eb8c84f386b4699747ba84a104b7"
+    },
+    {
+      "source": "packages/editor/src/asset-compare.ts",
+      "path": "packages/editor-core/src/asset-compare.ts",
+      "sha256": "cc0e8266ffc4242221a4bb1ee6c8e24ce756e68cb1eead1618615e4aa9f41476"
+    },
+    {
+      "source": "packages/editor/src/asset-editor-context.tsx",
+      "path": "packages/editor-core/src/asset-editor-context.tsx",
+      "sha256": "0e28ea477b51239876017e730cccc690f0abce362651dc06d2115d546f83d790"
+    },
+    {
+      "source": "packages/editor/src/asset-events.ts",
+      "path": "packages/editor-core/src/asset-events.ts",
+      "sha256": "441f9cd398de012b80fa29e64ac27255b05c78f741d289b6c488c69299dbe1ca"
+    },
+    {
+      "source": "packages/editor/src/asset-inspector-actions.ts",
+      "path": "packages/editor-core/src/asset-inspector-actions.ts",
+      "sha256": "36375ee4dd7600096761963d2b482a989e167d0afdf9ad5bc025ee63bdf2c83a"
+    },
+    {
+      "source": "packages/editor/src/asset-preview-framing.ts",
+      "path": "packages/editor-core/src/asset-preview-framing.ts",
+      "sha256": "f440c1e2c2f73a453254a8e4042f5948830cc1bb4a66817061cbaece8680c0af"
+    },
+    {
+      "source": "packages/editor/src/asset-preview.ts",
+      "path": "packages/editor-core/src/asset-preview.ts",
+      "sha256": "fec13e8a42db5b9b4248958ea7d9e6ceff0877d9cedadc2c8332966de21837e0"
+    },
+    {
+      "source": "packages/editor/src/asset-selection-viewer-registry.ts",
+      "path": "packages/editor-core/src/asset-selection-viewer-registry.ts",
+      "sha256": "837fb4c6cb91e3afadb519962abf8906dc1d744731ba017883d9e775175173fe"
+    },
+    {
+      "source": "packages/editor/src/asset-selection.ts",
+      "path": "packages/editor-core/src/asset-selection.ts",
+      "sha256": "79dec88423204a853deec258abe048ec33b0e80044a47e2b4fac3162739bb997"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/asset-capabilities.ts",
+      "path": "packages/editor-core/src/asset-workflow/asset-capabilities.ts",
+      "sha256": "025df6ddda85b69b47e070d45cae2233de9f125d2c1b78e3886de0ebc29232a5"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/asset-import-jobs.ts",
+      "path": "packages/editor-core/src/asset-workflow/asset-import-jobs.ts",
+      "sha256": "523bd035d34c6e461a65b3557ba79fc8d3a8aee268493601e65c302364123a4b"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/asset-ledger-backend.ts",
+      "path": "packages/editor-core/src/asset-workflow/asset-ledger-backend.ts",
+      "sha256": "49ef699054d660f8b4d508aa523f815735c6c15b57a596b4fe2eec2d2808d1fa"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/asset-ledger.ts",
+      "path": "packages/editor-core/src/asset-workflow/asset-ledger.ts",
+      "sha256": "5a842d34ca738dc7941511bc73ef03a62fc9481b1a6c7e1f682a4d8ed2453813"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/asset-materialization-report.ts",
+      "path": "packages/editor-core/src/asset-workflow/asset-materialization-report.ts",
+      "sha256": "642129339fd31088d84bc0cb71abdf8b984e30cf260d8131228c1b47bc16164f"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/asset-pack-manifest.ts",
+      "path": "packages/editor-core/src/asset-workflow/asset-pack-manifest.ts",
+      "sha256": "959541ee4395eabac7c48978edfe6af9447e1ed4d6321a7c6f157f9d92f2caa6"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/asset-types.ts",
+      "path": "packages/editor-core/src/asset-workflow/asset-types.ts",
+      "sha256": "90ede4568d1cf771d60459c2e3634f5dfcf1ca8e8a61a66860954d006f63ce8d"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/asset-workflow-quality.ts",
+      "path": "packages/editor-core/src/asset-workflow/asset-workflow-quality.ts",
+      "sha256": "30fde4b0ec9290b92193be480319fa350ace21a5b1e80971db14f00e1aebf8b8"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/audio-preview-player.ts",
+      "path": "packages/editor-core/src/asset-workflow/audio-preview-player.ts",
+      "sha256": "6ad29e12ba481985d819d7ead14f9d2a18a1ba085710dc139af1c733948ef3b6"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/audio-waveform.ts",
+      "path": "packages/editor-core/src/asset-workflow/audio-waveform.ts",
+      "sha256": "0993700513e190c52be6de50328ec904710ec8fdadb3ea31f6c33eff9d566452"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/cloud-asset-client.ts",
+      "path": "packages/editor-core/src/asset-workflow/cloud-asset-client.ts",
+      "sha256": "a417c79f9340a36a66f0f71e1098ddcf3fe40dd05b6d48e5f09f0c21d2cea326"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/folder-preview.ts",
+      "path": "packages/editor-core/src/asset-workflow/folder-preview.ts",
+      "sha256": "752856ab1313a0445037e24fe7ff4d874bb8862ac666ffee92b045c4a3b0e959"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/hosted-asset-materialization.ts",
+      "path": "packages/editor-core/src/asset-workflow/hosted-asset-materialization.ts",
+      "sha256": "63086cd0de02ad797d30c90a294fa98f1f9fbca1df0cd3aa726429fe5de205f2"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/image-view-scale.ts",
+      "path": "packages/editor-core/src/asset-workflow/image-view-scale.ts",
+      "sha256": "525e913eeb09083696d4f74c7992e955494d542287f303056b1747617eb871af"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/import-contract.ts",
+      "path": "packages/editor-core/src/asset-workflow/import-contract.ts",
+      "sha256": "642fcc0b7b23c33d0934a02e2e0f80c07984bf34e38fb978cd78699d95ab1b20"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/ledger-write-lock.ts",
+      "path": "packages/editor-core/src/asset-workflow/ledger-write-lock.ts",
+      "sha256": "1e7cb7ea937040b6e241c5d6098ad1da294aed32dc459fc2d3c4cd800f9feeae"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/model-inspection.ts",
+      "path": "packages/editor-core/src/asset-workflow/model-inspection.ts",
+      "sha256": "4475d9a31483285400a38fe9b2be0bc8fc7e0ab0069c600574f17579200650d3"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/pixi-spritesheet.ts",
+      "path": "packages/editor-core/src/asset-workflow/pixi-spritesheet.ts",
+      "sha256": "f430002aa836279fe62db5502abc8bfc0bc0874b4cf921532a9728937018653d"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/preview-resource-lifetime.ts",
+      "path": "packages/editor-core/src/asset-workflow/preview-resource-lifetime.ts",
+      "sha256": "c7fb547d156de58c8f22fbb6e2446d34bf4a1ce184b5ee2e8f961930c4d28d83"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/project-asset-commands.ts",
+      "path": "packages/editor-core/src/asset-workflow/project-asset-commands.ts",
+      "sha256": "f007f7efd455ac64e4643adb00bfe1fd65db8af51d440598f5d1aabd567e4ad5"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/project-asset-health.ts",
+      "path": "packages/editor-core/src/asset-workflow/project-asset-health.ts",
+      "sha256": "7279a13a6fcded89228e501286cda935758ab7a43a4c3bffab096386bfd1325c"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/project-asset-operations.ts",
+      "path": "packages/editor-core/src/asset-workflow/project-asset-operations.ts",
+      "sha256": "d98d52548bce6dab6548a02cb9a3b19134853f903abd2a7311b6e3d3a7de0085"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/project-asset-roots.ts",
+      "path": "packages/editor-core/src/asset-workflow/project-asset-roots.ts",
+      "sha256": "ff07229293492a9d7d5d66aeb685bc169613992bf9ede9bed92eac4794a7a146"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/project-content.ts",
+      "path": "packages/editor-core/src/asset-workflow/project-content.ts",
+      "sha256": "67bff5e31228207be05ef0daec647a160ecc11b61e50aaae834840c63682c4c7"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/project-source-index.ts",
+      "path": "packages/editor-core/src/asset-workflow/project-source-index.ts",
+      "sha256": "f30e00fd0b7179472ccf81dd3aab30e34e0170a7ff729a1f98adcf67113c940b"
+    },
+    {
+      "source": "packages/editor/src/asset-workflow/thumbnail-system.ts",
+      "path": "packages/editor-core/src/asset-workflow/thumbnail-system.ts",
+      "sha256": "21e7e487e41f2c57cd10e687480fe7aa60cf473a4fa9bbd36c32ce7bc09c3277"
+    },
+    {
+      "source": "packages/editor/src/authoring/active-adapter.ts",
+      "path": "packages/editor-core/src/authoring/active-adapter.ts",
+      "sha256": "e355d71df006ffac48cccdfc72cf1e7a8cc2a720c1b61ada6001eb669d996dd4"
+    },
+    {
+      "source": "packages/editor/src/authoring/active-systems.ts",
+      "path": "packages/editor-core/src/authoring/active-systems.ts",
+      "sha256": "9413086b408c43e19f19f6e2b53fded51436dd93901e57ecf8e3f896f8277dbd"
+    },
+    {
+      "source": "packages/editor/src/authoring/adapter-key.ts",
+      "path": "packages/editor-core/src/authoring/adapter-key.ts",
+      "sha256": "c371017544bc2a063034766bff0f548205bb4f6747c4316a79bcbf9953a6f44c"
+    },
+    {
+      "source": "packages/editor/src/authoring/authoring-asset-url.ts",
+      "path": "packages/editor-core/src/authoring/authoring-asset-url.ts",
+      "sha256": "377522562282ff5673dc677da4066cb14d19ed57fb08db1852bd7a511bd4ebe2"
+    },
+    {
+      "source": "packages/editor/src/authoring/bootstrap-state.ts",
+      "path": "packages/editor-core/src/authoring/bootstrap-state.ts",
+      "sha256": "dd2f498345a4fa32a1a9e770d4f4963543761542f3cb8f8988639b3158c43400"
+    },
+    {
+      "source": "packages/editor/src/authoring/boundary-authoring-adapter.ts",
+      "path": "packages/editor-core/src/authoring/boundary-authoring-adapter.ts",
+      "sha256": "dfe9b33b9e929669e0a2d719ddd484189c07f40892dce76c4e7d5ef22f3bee52"
+    },
+    {
+      "source": "packages/editor/src/authoring/breakpoint-state.ts",
+      "path": "packages/editor-core/src/authoring/breakpoint-state.ts",
+      "sha256": "f17e9bc0f0163018f95073146fab504f446e6bcd2f3de1a8150f70946075cb17"
+    },
+    {
+      "source": "packages/editor/src/authoring/canvas-scene-guides.ts",
+      "path": "packages/editor-core/src/authoring/canvas-scene-guides.ts",
+      "sha256": "4ab7f16aebcd4394c5917202c8dfac1d31412e95241058e06e795ddc55fed09b"
+    },
+    {
+      "source": "packages/editor/src/authoring/component-instance-root.ts",
+      "path": "packages/editor-core/src/authoring/component-instance-root.ts",
+      "sha256": "9dc0e05e32370d4e62cef9c958b53f818f16de1dc42b0e3c9c4a8874a848b565"
+    },
+    {
+      "source": "packages/editor/src/authoring/composite-authoring-adapter.ts",
+      "path": "packages/editor-core/src/authoring/composite-authoring-adapter.ts",
+      "sha256": "690e19e7b6ad3ec2a55c41af5de009cbb4a299ca3fa7966e386a08af9f5a1c54"
+    },
+    {
+      "source": "packages/editor/src/authoring/consumer-actions.ts",
+      "path": "packages/editor-core/src/authoring/consumer-actions.ts",
+      "sha256": "39c6660a2bbc78b30bc926a124fcab8e942eedd78311050565c7ffba721c595b"
+    },
+    {
+      "source": "packages/editor/src/authoring/css-numeric-style.ts",
+      "path": "packages/editor-core/src/authoring/css-numeric-style.ts",
+      "sha256": "0fc2f07097be883334bda604d1b28a701d092f53435f432e0f94628a1d16331b"
+    },
+    {
+      "source": "packages/editor/src/authoring/design-time-layers.ts",
+      "path": "packages/editor-core/src/authoring/design-time-layers.ts",
+      "sha256": "72897ccf1523ce23cbfb7c88ef844329432ecd53e1b472c48978c1c1aaa1cd3c"
+    },
+    {
+      "source": "packages/editor/src/authoring/design-time-mount-registry.ts",
+      "path": "packages/editor-core/src/authoring/design-time-mount-registry.ts",
+      "sha256": "5aec49aedfe57657c6f64bc309d80d87e9e842f8e9e34473a29c20b4d0582caa"
+    },
+    {
+      "source": "packages/editor/src/authoring/design-time-settle.ts",
+      "path": "packages/editor-core/src/authoring/design-time-settle.ts",
+      "sha256": "c5e105fee8a7441ab67719334293f56a03482ef6aadbbbab89127651a63187e2"
+    },
+    {
+      "source": "packages/editor/src/authoring/edit-mode-authoring.ts",
+      "path": "packages/editor-core/src/authoring/edit-mode-authoring.ts",
+      "sha256": "f2382d19d20cb3d4e13df719a3ea998d4566e772188436384da8b242e8e6af24"
+    },
+    {
+      "source": "packages/editor/src/authoring/eyedropper-session.ts",
+      "path": "packages/editor-core/src/authoring/eyedropper-session.ts",
+      "sha256": "3badce626c64d18e21581cc4a0ce698b99364c006857f7fc1f7770a293a11290"
+    },
+    {
+      "source": "packages/editor/src/authoring/instance-source-menu-register.ts",
+      "path": "packages/editor-core/src/authoring/instance-source-menu-register.ts",
+      "sha256": "f86b2d087cf8cb7f7affdab4d6976de7e1222d635443c127cdfbdbb10fe41efd"
+    },
+    {
+      "source": "packages/editor/src/authoring/instance-source-menu.ts",
+      "path": "packages/editor-core/src/authoring/instance-source-menu.ts",
+      "sha256": "0a241c43ff1e28900bfcbc14c7e39a298623f07ddfd2cabbe369fd8b412757e4"
+    },
+    {
+      "source": "packages/editor/src/authoring/layered-pick.ts",
+      "path": "packages/editor-core/src/authoring/layered-pick.ts",
+      "sha256": "2daa912ea4ee94396089170fa085b11f09e2c3f75bbe00cd1622a16ab6e41c2e"
+    },
+    {
+      "source": "packages/editor/src/authoring/live-gesture-lock.ts",
+      "path": "packages/editor-core/src/authoring/live-gesture-lock.ts",
+      "sha256": "45adaf6be1c0744a0084077dc49e1ba4dca75308c1634319f20424e2293fa923"
+    },
+    {
+      "source": "packages/editor/src/authoring/live-object-transform.ts",
+      "path": "packages/editor-core/src/authoring/live-object-transform.ts",
+      "sha256": "7a83641229affd72039ad62138bb1ae245a03988807e422bb7d4f43807846fc7"
+    },
+    {
+      "source": "packages/editor/src/authoring/mount-failure-report.ts",
+      "path": "packages/editor-core/src/authoring/mount-failure-report.ts",
+      "sha256": "0a2a5b2e0cd5ea984c8ae4efbec1bd06965599d9a479ab6a1011bda872cbcc9a"
+    },
+    {
+      "source": "packages/editor/src/authoring/mounted-root-subjects.ts",
+      "path": "packages/editor-core/src/authoring/mounted-root-subjects.ts",
+      "sha256": "b8e1b933a6f0e467b62318df2b83d92afd0cdfcc250a2cd8ad147db624424849"
+    },
+    {
+      "source": "packages/editor/src/authoring/no-authoring-adapter.ts",
+      "path": "packages/editor-core/src/authoring/no-authoring-adapter.ts",
+      "sha256": "1e52537a57e44d598785d9884d28ee8cb093ce10bdd7b70d44e5d6391a85dff1"
+    },
+    {
+      "source": "packages/editor/src/authoring/null-inspection-subjects.tsx",
+      "path": "packages/editor-core/src/authoring/null-inspection-subjects.tsx",
+      "sha256": "cd0d11bb03830a96c9e7df7ab9e0c9591bd54408434c66bd990843e761368358"
+    },
+    {
+      "source": "packages/editor/src/authoring/object3d-document-persistence.ts",
+      "path": "packages/editor-core/src/authoring/object3d-document-persistence.ts",
+      "sha256": "ade3080c10d2fc611bf2ba2408ddd83f582fbd0fab2f61b281665cae976ad76b"
+    },
+    {
+      "source": "packages/editor/src/authoring/object3d-document-session-registry.ts",
+      "path": "packages/editor-core/src/authoring/object3d-document-session-registry.ts",
+      "sha256": "cd00a2d64cbd054655f7309285550dfbb58338552aed30cc4056e88885638d96"
+    },
+    {
+      "source": "packages/editor/src/authoring/object3d-document-session.ts",
+      "path": "packages/editor-core/src/authoring/object3d-document-session.ts",
+      "sha256": "73bf7a72e4451a4aed220ba5fefd3773a7d94574f1527b39e781fab794f5566f"
+    },
+    {
+      "source": "packages/editor/src/authoring/object3d-gesture-controller.ts",
+      "path": "packages/editor-core/src/authoring/object3d-gesture-controller.ts",
+      "sha256": "9da478347fe358657ccdeb2b7a8d4a974b873080714396b6a3c79ebe02e6892f"
+    },
+    {
+      "source": "packages/editor/src/authoring/panel-authoring.ts",
+      "path": "packages/editor-core/src/authoring/panel-authoring.ts",
+      "sha256": "a622a8f7d67d14cd49b7231b392d2aa0949902f0baca7f98b645b96bc65be147"
+    },
+    {
+      "source": "packages/editor/src/authoring/prefab-instance-inspector-section.tsx",
+      "path": "packages/editor-core/src/authoring/prefab-instance-inspector-section.tsx",
+      "sha256": "0b9766b1e5f566e88762a6fa401681ba8ae3012b50518c02b958d85fd957b002"
+    },
+    {
+      "source": "packages/editor/src/authoring/prefab-instance-section-model.ts",
+      "path": "packages/editor-core/src/authoring/prefab-instance-section-model.ts",
+      "sha256": "159fe6b9bc46967c22729d12679ed9125da46bd40e4b1877c9061482da9a9d8b"
+    },
+    {
+      "source": "packages/editor/src/authoring/project-authoring-session.ts",
+      "path": "packages/editor-core/src/authoring/project-authoring-session.ts",
+      "sha256": "9d8c8ce0ec0451701bb988798961b8290625c64fec363280d7ace9c71a86eec2"
+    },
+    {
+      "source": "packages/editor/src/authoring/provenance.ts",
+      "path": "packages/editor-core/src/authoring/provenance.ts",
+      "sha256": "74ac7da7a7b73eda0ded1e8d215262e08fc78a77cc7e79ea5c840e0008c0b29a"
+    },
+    {
+      "source": "packages/editor/src/authoring/quarks-particle-systems.ts",
+      "path": "packages/editor-core/src/authoring/quarks-particle-systems.ts",
+      "sha256": "0f9dfd890cd441c36950d496d6a5844a30aae683618438c4b82cee651b5fbe7f"
+    },
+    {
+      "source": "packages/editor/src/authoring/react-canvas-navigation.ts",
+      "path": "packages/editor-core/src/authoring/react-canvas-navigation.ts",
+      "sha256": "7220c4ab27b68ecca20de5611081fe5132fc478bb59130817895406937d1acf5"
+    },
+    {
+      "source": "packages/editor/src/authoring/react-design-canvas-style.ts",
+      "path": "packages/editor-core/src/authoring/react-design-canvas-style.ts",
+      "sha256": "82c99ae9ae5cd35538fea063856cc4145570c25c696ae9dc68c795d20511a935"
+    },
+    {
+      "source": "packages/editor/src/authoring/react-story-board.ts",
+      "path": "packages/editor-core/src/authoring/react-story-board.ts",
+      "sha256": "55455c4cb4e8312caddf6feb6d4d8e7637939d9fea5970db968c46c03e65e97e"
+    },
+    {
+      "source": "packages/editor/src/authoring/selection-scope.ts",
+      "path": "packages/editor-core/src/authoring/selection-scope.ts",
+      "sha256": "940413909fbee7febcf58936bf12a2e2b07d458e5e5c86fc29696c31021c1bf9"
+    },
+    {
+      "source": "packages/editor/src/authoring/shell-document-ops.ts",
+      "path": "packages/editor-core/src/authoring/shell-document-ops.ts",
+      "sha256": "417bfff32c0157b4a4ed6717bf6cc34152213f38970459bbf0e688d1ca7babf8"
+    },
+    {
+      "source": "packages/editor/src/authoring/shell-object3d-document-write-policy.ts",
+      "path": "packages/editor-core/src/authoring/shell-object3d-document-write-policy.ts",
+      "sha256": "6d3d60ba09236c7cc36d67d8ffe25acd8a11cd3f432476a2ec3a8c17f78abcfe"
+    },
+    {
+      "source": "packages/editor/src/authoring/shell-viewport-policy.ts",
+      "path": "packages/editor-core/src/authoring/shell-viewport-policy.ts",
+      "sha256": "e5a9f03f5062cea6da8ba3965d39450e82ab80f7c99700dae0fc11032d5c6bda"
+    },
+    {
+      "source": "packages/editor/src/authoring/source-object3d-authoring-adapter.ts",
+      "path": "packages/editor-core/src/authoring/source-object3d-authoring-adapter.ts",
+      "sha256": "927a5162bf081a80646b2d82eef6e487cf910a0237acf5ca80e8874ba83e2199"
+    },
+    {
+      "source": "packages/editor/src/authoring/stories-scope.ts",
+      "path": "packages/editor-core/src/authoring/stories-scope.ts",
+      "sha256": "24ecb034df5e2fed7ad004193100bd390cf7bec3dc0bd7df35e3923f25d754c6"
+    },
+    {
+      "source": "packages/editor/src/authoring/story-board-chrome-fit.ts",
+      "path": "packages/editor-core/src/authoring/story-board-chrome-fit.ts",
+      "sha256": "8c68ab31911ca541e9af693a5c012040f5544865ec2f2419b5b77c068eb75a59"
+    },
+    {
+      "source": "packages/editor/src/authoring/story-board-presentation.ts",
+      "path": "packages/editor-core/src/authoring/story-board-presentation.ts",
+      "sha256": "e2ff4ad5b2edad495ead1c3f5a75c7936c7bdde49f241946a7d6392f5249d397"
+    },
+    {
+      "source": "packages/editor/src/authoring/three-projection-core.ts",
+      "path": "packages/editor-core/src/authoring/three-projection-core.ts",
+      "sha256": "66fe3e471c148b6591652c5e0bbec4cd3f16e31a056c80cbeb6f2997a8a6fa78"
+    },
+    {
+      "source": "packages/editor/src/authoring/viewport-pick-context.ts",
+      "path": "packages/editor-core/src/authoring/viewport-pick-context.ts",
+      "sha256": "a5268f2dbba94b5df3ea611306b55d78c230550b214e33d5a5d65a361d3df4c0"
+    },
+    {
+      "source": "packages/editor/src/authoring/viewport-raycast.ts",
+      "path": "packages/editor-core/src/authoring/viewport-raycast.ts",
+      "sha256": "0979304bda135e4152ae08f66805eb22f7c345af93b09e6616b8ad20bfb8e2ef"
+    },
+    {
+      "source": "packages/editor/src/authoring/viewport-tool-context.ts",
+      "path": "packages/editor-core/src/authoring/viewport-tool-context.ts",
+      "sha256": "6c8cc9a0b6fa939ebb36a6585e433a2b03bf71726c937ec17f39db7e87502857"
+    },
+    {
+      "source": "packages/editor/src/authoring/world-canvas-viewport-state.ts",
+      "path": "packages/editor-core/src/authoring/world-canvas-viewport-state.ts",
+      "sha256": "07496f956ea08ac6dba1aba523064b19ce628e1462d7d68a8934d3bd89574e1a"
+    },
+    {
+      "source": "packages/editor/src/authoring/world-hidden-viewport.ts",
+      "path": "packages/editor-core/src/authoring/world-hidden-viewport.ts",
+      "sha256": "d3990da372105d55054f6efb20e46de1c6388e60a3553523000b20084e36ad10"
+    },
+    {
+      "source": "packages/editor/src/authoring/world-pan-state.ts",
+      "path": "packages/editor-core/src/authoring/world-pan-state.ts",
+      "sha256": "2cf88d4b32bf0e0957706a5b9a3905e2b84fa099aad49d9c3861c32023c9a565"
+    },
+    {
+      "source": "packages/editor/src/authoring/world-session-state.ts",
+      "path": "packages/editor-core/src/authoring/world-session-state.ts",
+      "sha256": "39c0696ae90802e8f35e2de9daa8767d6bba7c4979c90adc53c1f71ef234027d"
+    },
+    {
+      "source": "packages/editor/src/authoring/write-pipe.ts",
+      "path": "packages/editor-core/src/authoring/write-pipe.ts",
+      "sha256": "ac69123f2235ccd3edadc5d93ff03668bd643e0a2ecc5c2097062832c1fa2557"
+    },
+    {
+      "source": "packages/editor/src/availability-tick.ts",
+      "path": "packages/editor-core/src/availability-tick.ts",
+      "sha256": "dc08ef11fa3f169197e35187dd299c1036a50e10f5a2d6ed48de480fb0682167"
+    },
+    {
+      "source": "packages/editor/src/bitmap-label.ts",
+      "path": "packages/editor-core/src/bitmap-label.ts",
+      "sha256": "edea6f34f559091aa3edd0d9c88d732f0132282fbffd546701f8235de1d6ff1c"
+    },
+    {
+      "source": "packages/editor/src/blender-tab-metrics.ts",
+      "path": "packages/editor-core/src/blender-tab-metrics.ts",
+      "sha256": "e5a53df76848cf4ce6546e652e913fbbaebf752e47a91794ef7088f72bc89bf9"
+    },
+    {
+      "source": "packages/editor/src/board-open-actions.ts",
+      "path": "packages/editor-core/src/board-open-actions.ts",
+      "sha256": "3d72af31ea3a0ad023184a6fcc991e4344c53ec7e652a0584ed05c2cf8947a74"
+    },
+    {
+      "source": "packages/editor/src/boot-routing.ts",
+      "path": "packages/editor-core/src/boot-routing.ts",
+      "sha256": "f8effd7c8637a65268fa5f052740259d34ca534f9839afc8c6bde3217c2180b3"
+    },
+    {
+      "source": "packages/editor/src/build-identity.ts",
+      "path": "packages/editor-core/src/build-identity.ts",
+      "sha256": "465aa3bf8e692237e2f3732003c58ca30ff6fb25ec1ad12916a184ab876f463c"
+    },
+    {
+      "source": "packages/editor/src/bytes-codec.ts",
+      "path": "packages/editor-core/src/bytes-codec.ts",
+      "sha256": "314a1c11f4220d73ea661c1509dae1040e66202ee00c691ed5594768b1aca9e4"
+    },
+    {
+      "source": "packages/editor/src/camera-authoring.ts",
+      "path": "packages/editor-core/src/camera-authoring.ts",
+      "sha256": "b4f425f084d9c1903f776d8ec1965fd9a0b3b62adb54eb117fad5d78df980011"
+    },
+    {
+      "source": "packages/editor/src/cancellation-reason.ts",
+      "path": "packages/editor-core/src/cancellation-reason.ts",
+      "sha256": "d3708587380181682e0632e836ffbac9c7f15bbf692e8f3fc57a062c02aea662"
+    },
+    {
+      "source": "packages/editor/src/canvas-preview-frames.ts",
+      "path": "packages/editor-core/src/canvas-preview-frames.ts",
+      "sha256": "b26f116cc966b54b1a5df163e4872c3bd99a3df387dfb1c55d917219eb994aff"
+    },
+    {
+      "source": "packages/editor/src/capture-camera-pose.ts",
+      "path": "packages/editor-core/src/capture-camera-pose.ts",
+      "sha256": "8dde6e0c6304adfbc063d592c4dbd72c6a36c776be81110ade5c9af3973ac249"
+    },
+    {
+      "source": "packages/editor/src/chrome-registry.ts",
+      "path": "packages/editor-core/src/chrome-registry.ts",
+      "sha256": "aac609aa88443981c3b7cd2281e37907382a0e3f4f201dee2184d5634ae6d9a2"
+    },
+    {
+      "source": "packages/editor/src/chrome-slot-registry.ts",
+      "path": "packages/editor-core/src/chrome-slot-registry.ts",
+      "sha256": "a79cceb7fbbbbca4806b989f38c88d430517828df4c91684a6cad971de81bcac"
+    },
+    {
+      "source": "packages/editor/src/collaboration-client.ts",
+      "path": "packages/editor-core/src/collaboration-client.ts",
+      "sha256": "e68711bfe364019dfbcbef1a7cef1f59d5fa2fc072089d23570c801e52b873b2"
+    },
+    {
+      "source": "packages/editor/src/collaboration-presence.ts",
+      "path": "packages/editor-core/src/collaboration-presence.ts",
+      "sha256": "b640a9b30a12e5d9f09c702e3385ba32905be1cb65a3ead38080331b14894082"
+    },
+    {
+      "source": "packages/editor/src/command-dispatch.ts",
+      "path": "packages/editor-core/src/command-dispatch.ts",
+      "sha256": "5a4a3349fb5424952ddb77faf081a72c657237887ac91380506a52bfd5f3bdd6"
+    },
+    {
+      "source": "packages/editor/src/command-listener.ts",
+      "path": "packages/editor-core/src/command-listener.ts",
+      "sha256": "17a48699d3c5202bef315024e57050b3a58c609a567aa1373a12672f97a0e20a"
+    },
+    {
+      "source": "packages/editor/src/command-registry.ts",
+      "path": "packages/editor-core/src/command-registry.ts",
+      "sha256": "b46f37f41ee26bbcecf71500e87fb9be20afaa434c28744ba491b926e126990a"
+    },
+    {
+      "source": "packages/editor/src/component-board-registry.ts",
+      "path": "packages/editor-core/src/component-board-registry.ts",
+      "sha256": "ccc7d2082cfe0e28fd0f4a48c38f7cd9ba6753d8838ba497b2dc50b5ce017365"
+    },
+    {
+      "source": "packages/editor/src/component-states-registry.ts",
+      "path": "packages/editor-core/src/component-states-registry.ts",
+      "sha256": "1055c2ad4666fdb0bae00bc4bc75911d61eb1dca656a916c1fcf4b7188f9b1c6"
+    },
+    {
+      "source": "packages/editor/src/components/AgentPresentationNotice.tsx",
+      "path": "packages/editor-core/src/components/AgentPresentationNotice.tsx",
+      "sha256": "cd542532831ba408d1c65ada67623e9169c296b7c320dcb123faa1ea9a4ac3e6"
+    },
+    {
+      "source": "packages/editor/src/components/AlignToolbar.tsx",
+      "path": "packages/editor-core/src/components/AlignToolbar.tsx",
+      "sha256": "a9e7086ace57d3466d0a6abd672783ea15b39d6b490fb1ebcf6286bec9358b1e"
+    },
+    {
+      "source": "packages/editor/src/components/AppRoot.tsx",
+      "path": "packages/editor-core/src/components/AppRoot.tsx",
+      "sha256": "7e2b32c1ad7986820ac0a4b4e2f3a9cc5e1f0e0138cf215229e672a2299162a7"
+    },
+    {
+      "source": "packages/editor/src/components/ApplicationMenus.tsx",
+      "path": "packages/editor-core/src/components/ApplicationMenus.tsx",
+      "sha256": "cb28d83187a5e94b1486ed96f75672401ee416dc8be353d740aee0755f3e4c6a"
+    },
+    {
+      "source": "packages/editor/src/components/AssetBrowser.tsx",
+      "path": "packages/editor-core/src/components/AssetBrowser.tsx",
+      "sha256": "74cab5166611c5976f2d0f1a423afcaebb3d35d01ed72ac9fb5fa34f931ad037"
+    },
+    {
+      "source": "packages/editor/src/components/AssetEditorShell.tsx",
+      "path": "packages/editor-core/src/components/AssetEditorShell.tsx",
+      "sha256": "71a887db66dd638267a800357c6cc4decdb2df9bbd51a355bbca3a23baa1e198"
+    },
+    {
+      "source": "packages/editor/src/components/AssetInspectorToolSection.tsx",
+      "path": "packages/editor-core/src/components/AssetInspectorToolSection.tsx",
+      "sha256": "3e53336af1c43fd6b30eaf82a7bce788ac6e837fadcc319cd6ce3ac391720a9e"
+    },
+    {
+      "source": "packages/editor/src/components/BoardRulers.tsx",
+      "path": "packages/editor-core/src/components/BoardRulers.tsx",
+      "sha256": "f0fe581f859488462cc872a8e861e637d972ca6ab4e07d23511e757cf643c158"
+    },
+    {
+      "source": "packages/editor/src/components/CameraInfo.tsx",
+      "path": "packages/editor-core/src/components/CameraInfo.tsx",
+      "sha256": "ab0dc56a191b8527a8acf0d3cadfc3bd95f210d46b2b21f2f7b89583ec2f4211"
+    },
+    {
+      "source": "packages/editor/src/components/CanvasSceneViewport.tsx",
+      "path": "packages/editor-core/src/components/CanvasSceneViewport.tsx",
+      "sha256": "3b798c296100263a361c9e7d8fc27e6da0b94d9eeeb6b1c20b5b21a05737afcc"
+    },
+    {
+      "source": "packages/editor/src/components/CapabilityCoverageSection.tsx",
+      "path": "packages/editor-core/src/components/CapabilityCoverageSection.tsx",
+      "sha256": "300c4d3a76f8bb97b78649abe322bec4c4f38e32377a305869ff83b65bffa83d"
+    },
+    {
+      "source": "packages/editor/src/components/CenterDocuments.tsx",
+      "path": "packages/editor-core/src/components/CenterDocuments.tsx",
+      "sha256": "0badbf35536ebe1c622cfeaa71bada632dfdef7613cda47ce84d3b0776ef8740"
+    },
+    {
+      "source": "packages/editor/src/components/ChromeSlot.tsx",
+      "path": "packages/editor-core/src/components/ChromeSlot.tsx",
+      "sha256": "542b32775cf5ee72bc151fc3b2999c5824b16a32f2b9cd5b1b34e2251e6e4d9f"
+    },
+    {
+      "source": "packages/editor/src/components/CodeView.tsx",
+      "path": "packages/editor-core/src/components/CodeView.tsx",
+      "sha256": "65a8216a7a27788e757a02cce04502f5db1db59ba68c692d3f521b50ba78230e"
+    },
+    {
+      "source": "packages/editor/src/components/CollaborationHeaderControl.css",
+      "path": "packages/editor-core/src/components/CollaborationHeaderControl.css",
+      "sha256": "f1174cd739d5f53c68388bb8e5d60e1efa1dc24599e1ade0d0099d50e276fde0"
+    },
+    {
+      "source": "packages/editor/src/components/CompactInspectorCard.tsx",
+      "path": "packages/editor-core/src/components/CompactInspectorCard.tsx",
+      "sha256": "b909f1c65df8a0eefb020b2541f78319828b545527f0f6a7a77c7d99b998d975"
+    },
+    {
+      "source": "packages/editor/src/components/CompactInspectorShell.tsx",
+      "path": "packages/editor-core/src/components/CompactInspectorShell.tsx",
+      "sha256": "8fd6782314d68c96e18e9f47d4b9db2f131c6d6c15aaa3babdeee10b49bb2f5f"
+    },
+    {
+      "source": "packages/editor/src/components/ConsolePanel.css",
+      "path": "packages/editor-core/src/components/ConsolePanel.css",
+      "sha256": "fd0bcd4b72347e143151155b001c7e4c71084b2bf84a3c4ab89780fc9e43976e"
+    },
+    {
+      "source": "packages/editor/src/components/ConsolePanel.tsx",
+      "path": "packages/editor-core/src/components/ConsolePanel.tsx",
+      "sha256": "1c3d1baa829ffc3a7873ef5bf2e4d1298610d3f69e30845b77f0d9b048991848"
+    },
+    {
+      "source": "packages/editor/src/components/DefaultEditorLayout.tsx",
+      "path": "packages/editor-core/src/components/DefaultEditorLayout.tsx",
+      "sha256": "d97a54908ce397732d931bb41bd8ebee7afcc7364566bd4f4b5d1d4104102ea4"
+    },
+    {
+      "source": "packages/editor/src/components/DocumentHeaderStrip.tsx",
+      "path": "packages/editor-core/src/components/DocumentHeaderStrip.tsx",
+      "sha256": "4b6ed64560a92412644aba92b3e5b2135540d1bca423813f15c141c937548f20"
+    },
+    {
+      "source": "packages/editor/src/components/DocumentShelfRail.tsx",
+      "path": "packages/editor-core/src/components/DocumentShelfRail.tsx",
+      "sha256": "abd8975e935bef11080a92f910e71c7f4e60886bded57b6c598d4e9997d50d8d"
+    },
+    {
+      "source": "packages/editor/src/components/DocumentThumbnail.tsx",
+      "path": "packages/editor-core/src/components/DocumentThumbnail.tsx",
+      "sha256": "c91fc2541cedde9a57fbbf5ee1caea81438c5b4710377c7a62d80463c6cfde19"
+    },
+    {
+      "source": "packages/editor/src/components/EditorLeaseGuard.tsx",
+      "path": "packages/editor-core/src/components/EditorLeaseGuard.tsx",
+      "sha256": "49dbce8eefaaa19eb0ff3836a5289f28e0e71329c28002ff7e2f9dd7d7ffa124"
+    },
+    {
+      "source": "packages/editor/src/components/ErrorBanner.tsx",
+      "path": "packages/editor-core/src/components/ErrorBanner.tsx",
+      "sha256": "1a861e13e1771a989c4828a9e427c5c1678c68b662da8c696a44cfc625133ee1"
+    },
+    {
+      "source": "packages/editor/src/components/FolderPreviewTile.tsx",
+      "path": "packages/editor-core/src/components/FolderPreviewTile.tsx",
+      "sha256": "f39be2a8325b6a9254946a422202cc9c2a1f7fbb336095ba0cc84a63b98565b8"
+    },
+    {
+      "source": "packages/editor/src/components/GameHierarchy.tsx",
+      "path": "packages/editor-core/src/components/GameHierarchy.tsx",
+      "sha256": "d131e64956272b95b19867e85b9707070756cda8d14096ee7acc230b1d02811c"
+    },
+    {
+      "source": "packages/editor/src/components/GameplaySessionTimeline.tsx",
+      "path": "packages/editor-core/src/components/GameplaySessionTimeline.tsx",
+      "sha256": "d3dca0e7c6a391c3451a826436380890f6d5dddbf74db03afefe5a6b3457177d"
+    },
+    {
+      "source": "packages/editor/src/components/InspectionProjection.tsx",
+      "path": "packages/editor-core/src/components/InspectionProjection.tsx",
+      "sha256": "130c7de1f76d10eb86ad388858c23c8674a9bff2abe5d7927ac5e6a9245cd65b"
+    },
+    {
+      "source": "packages/editor/src/components/Inspector.tsx",
+      "path": "packages/editor-core/src/components/Inspector.tsx",
+      "sha256": "1c682649d141e0cc1f9c46d4db0253aedc0ddf0054b33926c6953c1c00edea33"
+    },
+    {
+      "source": "packages/editor/src/components/InspectorCanvasPreview.tsx",
+      "path": "packages/editor-core/src/components/InspectorCanvasPreview.tsx",
+      "sha256": "e85e56bba39408d7dfb1005ae427134a33ae87e8e1d6a7c7624b2bd7719cc432"
+    },
+    {
+      "source": "packages/editor/src/components/InspectorFieldsSection.tsx",
+      "path": "packages/editor-core/src/components/InspectorFieldsSection.tsx",
+      "sha256": "0fdc01a886528febb2c2a4a4aceb7f492edba95b42124e1cef70c1bb2ef8c7f1"
+    },
+    {
+      "source": "packages/editor/src/components/InspectorObjectPreview.tsx",
+      "path": "packages/editor-core/src/components/InspectorObjectPreview.tsx",
+      "sha256": "e9dd1d212c8f6acced57bb8176bcc3898d16320d69bfd3fc41c65178bb9711e4"
+    },
+    {
+      "source": "packages/editor/src/components/InspectorStoriesSection.tsx",
+      "path": "packages/editor-core/src/components/InspectorStoriesSection.tsx",
+      "sha256": "ab4c8b2bfa6508a9c50a0bc99eee9f74aecb77120fd7cf2cbb427e64f29b8fba"
+    },
+    {
+      "source": "packages/editor/src/components/InspectorToolSection.tsx",
+      "path": "packages/editor-core/src/components/InspectorToolSection.tsx",
+      "sha256": "dc92f9469f092c1aa258569a462b4d6b09571936fae924f75a4c972c1860819a"
+    },
+    {
+      "source": "packages/editor/src/components/InspectorTransformSection.tsx",
+      "path": "packages/editor-core/src/components/InspectorTransformSection.tsx",
+      "sha256": "ce98229ad607371469035af1525deee9d524ab3ee4ee89bbee0df14cb04e3542"
+    },
+    {
+      "source": "packages/editor/src/components/LightExplorerPanel.tsx",
+      "path": "packages/editor-core/src/components/LightExplorerPanel.tsx",
+      "sha256": "ae77cb1dda0e79bc5025d2324ee164386863c2acee0ba78ec6d4d735e39f7fc4"
+    },
+    {
+      "source": "packages/editor/src/components/MediaProperties.tsx",
+      "path": "packages/editor-core/src/components/MediaProperties.tsx",
+      "sha256": "8f976af748af78139a1de5d789bb11110255851eb6537f5763ce0248df53daac"
+    },
+    {
+      "source": "packages/editor/src/components/NonThreeAuthoringBootstrap.tsx",
+      "path": "packages/editor-core/src/components/NonThreeAuthoringBootstrap.tsx",
+      "sha256": "b2204fa74ef867074fee877348f24394997b17fd38e9bbefe63fcdaf28d53427"
+    },
+    {
+      "source": "packages/editor/src/components/Object3DDocumentToolbar.css",
+      "path": "packages/editor-core/src/components/Object3DDocumentToolbar.css",
+      "sha256": "0ded6e570191b88bda58fd933525d1e0d09e3e6e96839d525daeea278eb60eb1"
+    },
+    {
+      "source": "packages/editor/src/components/Object3DDocumentToolbar.tsx",
+      "path": "packages/editor-core/src/components/Object3DDocumentToolbar.tsx",
+      "sha256": "c0f2a2a266f8a8d15814a7cb1f077d9c365b5539275a7b4c930cbd974c73a55d"
+    },
+    {
+      "source": "packages/editor/src/components/Object3DDocumentViewport.tsx",
+      "path": "packages/editor-core/src/components/Object3DDocumentViewport.tsx",
+      "sha256": "c33637885acaf556bfc50dddf554d30ab3c0e16b06c0b9257f832cf425f2e3fd"
+    },
+    {
+      "source": "packages/editor/src/components/ProjectHeader.css",
+      "path": "packages/editor-core/src/components/ProjectHeader.css",
+      "sha256": "775f2dec2ae9618260e19974ae2f8ef3cddc027a147de696a20511ca08fc02e0"
+    },
+    {
+      "source": "packages/editor/src/components/ProjectHeader.tsx",
+      "path": "packages/editor-core/src/components/ProjectHeader.tsx",
+      "sha256": "67af3f9a51169ae48cec8a00c889e746442895e75383650882e593a69836c28a"
+    },
+    {
+      "source": "packages/editor/src/components/ProjectLayout.tsx",
+      "path": "packages/editor-core/src/components/ProjectLayout.tsx",
+      "sha256": "dd4df6dc808a91985734cd2ee652f14e879a12b311801874e1f9cadec80f369a"
+    },
+    {
+      "source": "packages/editor/src/components/ReactCanvasControls.tsx",
+      "path": "packages/editor-core/src/components/ReactCanvasControls.tsx",
+      "sha256": "bd7d9dcd84132d9e39d4c01055c5c8ef90a64180dff287d937c09d79c5d15ae3"
+    },
+    {
+      "source": "packages/editor/src/components/RootSelectionOverlay.tsx",
+      "path": "packages/editor-core/src/components/RootSelectionOverlay.tsx",
+      "sha256": "35496ec62b46451304932187e88c92b22b7a452efe2e8774d11475bfc0f4e463"
+    },
+    {
+      "source": "packages/editor/src/components/RootTextEditor.tsx",
+      "path": "packages/editor-core/src/components/RootTextEditor.tsx",
+      "sha256": "e7acc316f43db049b228110d24aa6b695092e0b54a992eee4e740328752ff291"
+    },
+    {
+      "source": "packages/editor/src/components/SaveStatus.tsx",
+      "path": "packages/editor-core/src/components/SaveStatus.tsx",
+      "sha256": "8df89b97f07c2281b3aa769f71f1d223e23586c71edd8b81ba967ab33f45f117"
+    },
+    {
+      "source": "packages/editor/src/components/StageHost.tsx",
+      "path": "packages/editor-core/src/components/StageHost.tsx",
+      "sha256": "7de1dae375ba2b89163ac9f4a64c05cb14d3cd4aca092bde9467bab5ec241d5f"
+    },
+    {
+      "source": "packages/editor/src/components/StageOverlays.tsx",
+      "path": "packages/editor-core/src/components/StageOverlays.tsx",
+      "sha256": "74144304fde20a970b2de30131ba4d563f2b8f293ac34b028a5a3f04bdacb032"
+    },
+    {
+      "source": "packages/editor/src/components/StartupErrorScreen.tsx",
+      "path": "packages/editor-core/src/components/StartupErrorScreen.tsx",
+      "sha256": "f0abecd3f7f0b2d6e24488c8446cbc37b3197d018f492fde73765cc4266111d6"
+    },
+    {
+      "source": "packages/editor/src/components/StartupLoadingScreen.tsx",
+      "path": "packages/editor-core/src/components/StartupLoadingScreen.tsx",
+      "sha256": "3bf78266fde2f05e59a9c630b45f564c54c98a68ace58d35043a6cdedafe8320"
+    },
+    {
+      "source": "packages/editor/src/components/StatsOverlay.tsx",
+      "path": "packages/editor-core/src/components/StatsOverlay.tsx",
+      "sha256": "9bb42a22660fa50100366a2617b50fa57670acaf23cee168a83b8421899854e6"
+    },
+    {
+      "source": "packages/editor/src/components/SurfaceStateOverlay.tsx",
+      "path": "packages/editor-core/src/components/SurfaceStateOverlay.tsx",
+      "sha256": "0da5bf3345f9ace7c34a095ae5ef248034e339d11b805d2a4b90cdf4f53c3991"
+    },
+    {
+      "source": "packages/editor/src/components/ToolContributionSurfaces.tsx",
+      "path": "packages/editor-core/src/components/ToolContributionSurfaces.tsx",
+      "sha256": "59bfa304b8e592130c2a6138338487cfad4baa3c9b7b369eb8ce991be0e25290"
+    },
+    {
+      "source": "packages/editor/src/components/ToolHost.tsx",
+      "path": "packages/editor-core/src/components/ToolHost.tsx",
+      "sha256": "be6aeb22f5b1f3f525d10b7d2b84ca5e706d0e85b51a4ad6335773d3c0662358"
+    },
+    {
+      "source": "packages/editor/src/components/ToolObject3DPreview.tsx",
+      "path": "packages/editor-core/src/components/ToolObject3DPreview.tsx",
+      "sha256": "6eea1660806c31493ac8a35fe204e6660964fe140c59c584c0821ef86b1c6dbf"
+    },
+    {
+      "source": "packages/editor/src/components/Toolbar.tsx",
+      "path": "packages/editor-core/src/components/Toolbar.tsx",
+      "sha256": "8e0a5166cfb06e30630c70e8f6a89cf8da286084e25ac38f229a158d0eb843c9"
+    },
+    {
+      "source": "packages/editor/src/components/TransientHint.tsx",
+      "path": "packages/editor-core/src/components/TransientHint.tsx",
+      "sha256": "2668417dd953554c6ecabfe816a98c24669df5058b7aac67000c50d1f81a7b2b"
+    },
+    {
+      "source": "packages/editor/src/components/TransportStrip.tsx",
+      "path": "packages/editor-core/src/components/TransportStrip.tsx",
+      "sha256": "ddd2fb64b8f2987545b2dda8cafe6b24920887bfd9620727cf35f25a1d303555"
+    },
+    {
+      "source": "packages/editor/src/components/VersionControlSection.tsx",
+      "path": "packages/editor-core/src/components/VersionControlSection.tsx",
+      "sha256": "3f9a6b7c4b8556f9b6f5d442043dd74e1736d182fe148a9b5907b7489a16b211"
+    },
+    {
+      "source": "packages/editor/src/components/VgaiLogo.css",
+      "path": "packages/editor-core/src/components/VgaiLogo.css",
+      "sha256": "138e4b8f277facecc45407a77a06f9103e99b222bf50548dec0acdd2a6be800a"
+    },
+    {
+      "source": "packages/editor/src/components/VgaiLogo.tsx",
+      "path": "packages/editor-core/src/components/VgaiLogo.tsx",
+      "sha256": "e770216dc27028b32c25ef4bce559721eeaed7085c8a900a4028a28ba006c8c1"
+    },
+    {
+      "source": "packages/editor/src/components/ViewportControlsHint.tsx",
+      "path": "packages/editor-core/src/components/ViewportControlsHint.tsx",
+      "sha256": "24dbe356aec24838fb1dbaa61f161525a24f9c68f4f425863145cda1a752213b"
+    },
+    {
+      "source": "packages/editor/src/components/ViewportFurniture.tsx",
+      "path": "packages/editor-core/src/components/ViewportFurniture.tsx",
+      "sha256": "b78405e0ebfa785f5052cbd91bfdf26c67d2f634619c2d8ed8b4403cb709983b"
+    },
+    {
+      "source": "packages/editor/src/components/ViewportOverlay.tsx",
+      "path": "packages/editor-core/src/components/ViewportOverlay.tsx",
+      "sha256": "19ddb966c7e73964003403c879347e91b5f4e81b781de6372267bd7b56c4ffe3"
+    },
+    {
+      "source": "packages/editor/src/components/ViewportOverlaysMenu.tsx",
+      "path": "packages/editor-core/src/components/ViewportOverlaysMenu.tsx",
+      "sha256": "710da1602f531af2f142e54dfbe4b3a5bf75922e5b8b9de7bad7d55df3c934ae"
+    },
+    {
+      "source": "packages/editor/src/components/ViewportShadingMenu.tsx",
+      "path": "packages/editor-core/src/components/ViewportShadingMenu.tsx",
+      "sha256": "7b139d88937fe73c42996113d8841b4dc7f51b9c3cf9479ea8be6c872aed06a6"
+    },
+    {
+      "source": "packages/editor/src/components/ViewportViewMenu.tsx",
+      "path": "packages/editor-core/src/components/ViewportViewMenu.tsx",
+      "sha256": "623a7ff5f75f3e7d6f73f8d996f6081d8b625e60d6ad64464b8694159d0e4132"
+    },
+    {
+      "source": "packages/editor/src/components/WorkspaceDocumentSurface.tsx",
+      "path": "packages/editor-core/src/components/WorkspaceDocumentSurface.tsx",
+      "sha256": "b46b4fe3efbd48bff83340d0d43182182d1183067de86c97d8af0654f2875b1b"
+    },
+    {
+      "source": "packages/editor/src/components/WorkspaceUtilitySurface.tsx",
+      "path": "packages/editor-core/src/components/WorkspaceUtilitySurface.tsx",
+      "sha256": "e8b7d1d564a3c2b3a3ee3cea88916155145f74aa5184caad7dc4e18a5709c728"
+    },
+    {
+      "source": "packages/editor/src/components/WorktreeSwitcher.css",
+      "path": "packages/editor-core/src/components/WorktreeSwitcher.css",
+      "sha256": "b98d250a6585d0c1ba91fbd7afc85cbc0b69d25cb461c4647152107d65b7b49f"
+    },
+    {
+      "source": "packages/editor/src/components/WorktreeSwitcher.tsx",
+      "path": "packages/editor-core/src/components/WorktreeSwitcher.tsx",
+      "sha256": "b7672d364f98ffe0dfee8c2aa553d04b5165a235a42fbac45fedb106146fafc6"
+    },
+    {
+      "source": "packages/editor/src/components/account-documents.tsx",
+      "path": "packages/editor-core/src/components/account-documents.tsx",
+      "sha256": "273844d42e6e65b3716f153da7df3da69df9d1166712eac174a9b9f3868ef798"
+    },
+    {
+      "source": "packages/editor/src/components/asset-documents.tsx",
+      "path": "packages/editor-core/src/components/asset-documents.tsx",
+      "sha256": "baa35c2d63e5edec4b60d7d50aac02719170071b8478da2c392d2cf1c7523d5c"
+    },
+    {
+      "source": "packages/editor/src/components/asset-editor-persistence.ts",
+      "path": "packages/editor-core/src/components/asset-editor-persistence.ts",
+      "sha256": "f8f43bfa393d3c5286495a101b35dbe26de886167227368208a3e32ba83e0d1b"
+    },
+    {
+      "source": "packages/editor/src/components/asset-selection-section.tsx",
+      "path": "packages/editor-core/src/components/asset-selection-section.tsx",
+      "sha256": "d131c8101924926b751938f43e4a06120919e21e92d28ef9a8bc268a48421c09"
+    },
+    {
+      "source": "packages/editor/src/components/asset-thumbnails.tsx",
+      "path": "packages/editor-core/src/components/asset-thumbnails.tsx",
+      "sha256": "56f017511df34ec97fc4b0c103dfaeb57675609190e1e122f8e2217d0a1edb71"
+    },
+    {
+      "source": "packages/editor/src/components/asset-viewers/AudioViewer.tsx",
+      "path": "packages/editor-core/src/components/asset-viewers/AudioViewer.tsx",
+      "sha256": "1d762c79b977b0441043107454fd3912c2949f8271966f38419ae37c9040d94f"
+    },
+    {
+      "source": "packages/editor/src/components/asset-viewers/EntityModelDocument.tsx",
+      "path": "packages/editor-core/src/components/asset-viewers/EntityModelDocument.tsx",
+      "sha256": "0c01b01df43fefdce32720c856a4cf564d30a36fbbdae34e371548a27bae7388"
+    },
+    {
+      "source": "packages/editor/src/components/asset-viewers/EnvironmentAssetDocument.tsx",
+      "path": "packages/editor-core/src/components/asset-viewers/EnvironmentAssetDocument.tsx",
+      "sha256": "fb891260fde6df3636c85e274e39f2cc4a312ea8d75bdae4f5dd0dbadc4a7299"
+    },
+    {
+      "source": "packages/editor/src/components/asset-viewers/GenericJsonViewer.tsx",
+      "path": "packages/editor-core/src/components/asset-viewers/GenericJsonViewer.tsx",
+      "sha256": "872094ef97f2262d9fcc14070f643d0459ca3bfbc98102a1ba9219f963d11e73"
+    },
+    {
+      "source": "packages/editor/src/components/asset-viewers/ImageViewer.tsx",
+      "path": "packages/editor-core/src/components/asset-viewers/ImageViewer.tsx",
+      "sha256": "3263bf4202052f87f200641fa521e8171580487329e309a730114c16bdf6aafa"
+    },
+    {
+      "source": "packages/editor/src/components/asset-viewers/JsonAssetDocument.tsx",
+      "path": "packages/editor-core/src/components/asset-viewers/JsonAssetDocument.tsx",
+      "sha256": "be83eda5a99afa46e4cbe4bc1302eb4cb7a34596c6ec999fffb3be8f5104e129"
+    },
+    {
+      "source": "packages/editor/src/components/asset-viewers/LiveModuleDocument.tsx",
+      "path": "packages/editor-core/src/components/asset-viewers/LiveModuleDocument.tsx",
+      "sha256": "7e0289267ee188cffcbb8ee704d80d5ecb78d4b38a96ecb947b524e2e4b22501"
+    },
+    {
+      "source": "packages/editor/src/components/asset-viewers/LutAssetDocument.tsx",
+      "path": "packages/editor-core/src/components/asset-viewers/LutAssetDocument.tsx",
+      "sha256": "c9325161e750024f79f99da20163e35fba3cbf6ae4aa0a2c6df2f8467ab797f9"
+    },
+    {
+      "source": "packages/editor/src/components/asset-viewers/ModelAssetDocument.tsx",
+      "path": "packages/editor-core/src/components/asset-viewers/ModelAssetDocument.tsx",
+      "sha256": "f584fc8fbe5a011d8057ebe9f97e4b4caa88d3208273a0afb27285dbf444cc26"
+    },
+    {
+      "source": "packages/editor/src/components/asset-viewers/Object3DPreview.tsx",
+      "path": "packages/editor-core/src/components/asset-viewers/Object3DPreview.tsx",
+      "sha256": "6abec635e4eab50aa50b5e00fcdb4b3cfce4e81fbaa2ce3917676e11e60bc71e"
+    },
+    {
+      "source": "packages/editor/src/components/asset-viewers/OnlineAssetDetail.tsx",
+      "path": "packages/editor-core/src/components/asset-viewers/OnlineAssetDetail.tsx",
+      "sha256": "a546c845b86a85b078febe9c3193c62b49a6ef89b6a15a577853e268f70ad4b5"
+    },
+    {
+      "source": "packages/editor/src/components/asset-viewers/PasteboardModuleDocument.tsx",
+      "path": "packages/editor-core/src/components/asset-viewers/PasteboardModuleDocument.tsx",
+      "sha256": "7015fd504e43fc0a6664d168b8ec4950570d45d3f86e2ad339fa2f48b1a458c0"
+    },
+    {
+      "source": "packages/editor/src/components/asset-viewers/QuarksAssetDocument.tsx",
+      "path": "packages/editor-core/src/components/asset-viewers/QuarksAssetDocument.tsx",
+      "sha256": "77e070525702a837b2022137a3f8b8757366bf84c4ae872571c683315b07a8ca"
+    },
+    {
+      "source": "packages/editor/src/components/asset-viewers/ShaderAssetDocument.tsx",
+      "path": "packages/editor-core/src/components/asset-viewers/ShaderAssetDocument.tsx",
+      "sha256": "483f0bb66a1050e0e0a0e23818d52948b269d9e674743f19016d359886fb7783"
+    },
+    {
+      "source": "packages/editor/src/components/asset-viewers/SourceAssetViewer.tsx",
+      "path": "packages/editor-core/src/components/asset-viewers/SourceAssetViewer.tsx",
+      "sha256": "ee1c6b6d89aa4de9c0a1d72dc425e3225009d72b938ccf63ab29a9be1eafdb9d"
+    },
+    {
+      "source": "packages/editor/src/components/asset-viewers/SpritesheetSpriteView.tsx",
+      "path": "packages/editor-core/src/components/asset-viewers/SpritesheetSpriteView.tsx",
+      "sha256": "d958fba6c0284f6eb2aa73d464493c8c7ab51ee56de6809fd561f58a7d91a5da"
+    },
+    {
+      "source": "packages/editor/src/components/asset-viewers/VideoViewer.tsx",
+      "path": "packages/editor-core/src/components/asset-viewers/VideoViewer.tsx",
+      "sha256": "0e0f0588e4303562d1179a8f01f0e6e499d2b760370328700438ec00d2d092c2"
+    },
+    {
+      "source": "packages/editor/src/components/asset-viewers/shader-source.ts",
+      "path": "packages/editor-core/src/components/asset-viewers/shader-source.ts",
+      "sha256": "beaa0149d1497c0cf8c04f288753dad6126007d9e67dea851a3603a95c4559cb"
+    },
+    {
+      "source": "packages/editor/src/components/asset-workflow.css",
+      "path": "packages/editor-core/src/components/asset-workflow.css",
+      "sha256": "9b3879bd8c832e3c262ac06349da112cd1455a37fced4861cd94846630d3f1fb"
+    },
+    {
+      "source": "packages/editor/src/components/board-guides.ts",
+      "path": "packages/editor-core/src/components/board-guides.ts",
+      "sha256": "b0d8868bb549380ce4a2ba21e29671974b6050e311d9209d98d61edf06d3305f"
+    },
+    {
+      "source": "packages/editor/src/components/compact-inspector.css",
+      "path": "packages/editor-core/src/components/compact-inspector.css",
+      "sha256": "3a4869e48b0e447b34a0f15aa529792178f58542febe1dac37d8bef7aec9bbc5"
+    },
+    {
+      "source": "packages/editor/src/components/core-utilities.tsx",
+      "path": "packages/editor-core/src/components/core-utilities.tsx",
+      "sha256": "fd6209197f5727d205882cda2a49a4c06dd53daea939e49288606c5eaef533c7"
+    },
+    {
+      "source": "packages/editor/src/components/editor-notifications.css",
+      "path": "packages/editor-core/src/components/editor-notifications.css",
+      "sha256": "4b6d3abb15386693e13229212d299e6a53de8d6cd86e9d515b97a53dd7d63fd4"
+    },
+    {
+      "source": "packages/editor/src/components/engine-workspace.css",
+      "path": "packages/editor-core/src/components/engine-workspace.css",
+      "sha256": "b52e043bf7b6d10b39f2f39320c060c25dea3e357736a796489537da075b4366"
+    },
+    {
+      "source": "packages/editor/src/components/inspector-preview-section.tsx",
+      "path": "packages/editor-core/src/components/inspector-preview-section.tsx",
+      "sha256": "50d24e92eb2591796ecf7e6623e954b892723e69ee0583f31a56f76e3c70cf2a"
+    },
+    {
+      "source": "packages/editor/src/components/inspector-property-grouping.ts",
+      "path": "packages/editor-core/src/components/inspector-property-grouping.ts",
+      "sha256": "0be9359dbaefa7225e0862b8ec6812cbf53028fb2efd9200b7808b51807447ff"
+    },
+    {
+      "source": "packages/editor/src/components/inspector-revert-label.ts",
+      "path": "packages/editor-core/src/components/inspector-revert-label.ts",
+      "sha256": "7993b1def9eab7c348b52f617cf8760323d50f9fc54e0774f9a9b1935507eccf"
+    },
+    {
+      "source": "packages/editor/src/components/inspector-selection.ts",
+      "path": "packages/editor-core/src/components/inspector-selection.ts",
+      "sha256": "2850ee050df00168e96e120da58141f6bd2cb20ca9c30bb7f3310e441050a974"
+    },
+    {
+      "source": "packages/editor/src/components/inspector-stories-gating.ts",
+      "path": "packages/editor-core/src/components/inspector-stories-gating.ts",
+      "sha256": "054221345aab2c9a78d6bffa17c74d90e821d71c6f8eb99d745b03f443da611b"
+    },
+    {
+      "source": "packages/editor/src/components/inspector-transform-subject.ts",
+      "path": "packages/editor-core/src/components/inspector-transform-subject.ts",
+      "sha256": "a0173f68928814eb7087efbf9ede76f4f209a3dfd810f29e7d2ea53ee3b49a6a"
+    },
+    {
+      "source": "packages/editor/src/components/inspector-transform.ts",
+      "path": "packages/editor-core/src/components/inspector-transform.ts",
+      "sha256": "2159b3c76302d7eed7b950ebb6572365165f01633b5fbbc8b349e66b28a0a9d4"
+    },
+    {
+      "source": "packages/editor/src/components/kind-documents.tsx",
+      "path": "packages/editor-core/src/components/kind-documents.tsx",
+      "sha256": "8ef7f2a45c9d0003b62b6a3389976f1c33198d2e81731a1cdd3e1b4baaaceabb"
+    },
+    {
+      "source": "packages/editor/src/components/palette-action-publisher.tsx",
+      "path": "packages/editor-core/src/components/palette-action-publisher.tsx",
+      "sha256": "e142d401bff3265bf37e7add2de02211514b9964500a334ce384f7cb9b9665e9"
+    },
+    {
+      "source": "packages/editor/src/components/primitives/DraftColorInput.tsx",
+      "path": "packages/editor-core/src/components/primitives/DraftColorInput.tsx",
+      "sha256": "70f38e52f73091b2028727c1065bd2f78ef43718ffc302074fa87ae4444cdb71"
+    },
+    {
+      "source": "packages/editor/src/components/product-shell.css",
+      "path": "packages/editor-core/src/components/product-shell.css",
+      "sha256": "101c67c89eac337e05cc8f47d815147ce1c24cb03f42685fda7df2f48c6a952d"
+    },
+    {
+      "source": "packages/editor/src/components/project-tool-documents.tsx",
+      "path": "packages/editor-core/src/components/project-tool-documents.tsx",
+      "sha256": "89781a24b15063e2f969e57767f6d135536c60d3767aa82775ad413f64b44d35"
+    },
+    {
+      "source": "packages/editor/src/components/scene-documents.tsx",
+      "path": "packages/editor-core/src/components/scene-documents.tsx",
+      "sha256": "8ee8721797dbc65b72c88b0777010eb77f9013bd6f6c973622dc7b15d7c366df"
+    },
+    {
+      "source": "packages/editor/src/components/stage-keyboard.tsx",
+      "path": "packages/editor-core/src/components/stage-keyboard.tsx",
+      "sha256": "04e70e9f0977baae2a37996fad4f35226981f8000306423510f8c13e201c49bb"
+    },
+    {
+      "source": "packages/editor/src/components/stage-overlay-set.tsx",
+      "path": "packages/editor-core/src/components/stage-overlay-set.tsx",
+      "sha256": "01dddc455fc655fd1ee30ef6932df53ddcd47a48ec89d9743f8556b7944e9b1d"
+    },
+    {
+      "source": "packages/editor/src/components/stage-presence-markers.ts",
+      "path": "packages/editor-core/src/components/stage-presence-markers.ts",
+      "sha256": "372bcb8414649e16003d0d235df059e4696be8ec59f25db6b3fadab31f4c4dae"
+    },
+    {
+      "source": "packages/editor/src/components/standard-viewport-dressing.ts",
+      "path": "packages/editor-core/src/components/standard-viewport-dressing.ts",
+      "sha256": "df1b23586863a5423d714a75d95bd1a707d213b131154bc77e04e6ef4152507b"
+    },
+    {
+      "source": "packages/editor/src/components/status-contributions.tsx",
+      "path": "packages/editor-core/src/components/status-contributions.tsx",
+      "sha256": "3d3d87ab43ce56825ce3564d7dc760744adb020267ba79df40231bda71caf655"
+    },
+    {
+      "source": "packages/editor/src/components/tool-documents.tsx",
+      "path": "packages/editor-core/src/components/tool-documents.tsx",
+      "sha256": "adee9ede986a412d716328eb0deb047685a91ecc0bf1a0b86ad42aedb19e9f12"
+    },
+    {
+      "source": "packages/editor/src/components/tool-schema-form.tsx",
+      "path": "packages/editor-core/src/components/tool-schema-form.tsx",
+      "sha256": "f67e6de0577c03a9f44174a248b5535c5aaee6db966832ab4e9e18583e6d671b"
+    },
+    {
+      "source": "packages/editor/src/components/use-after-paint.ts",
+      "path": "packages/editor-core/src/components/use-after-paint.ts",
+      "sha256": "cb9e8ba604f42ebc9a795b4a76eaf037c8713cfd187ef4e6d0dbeaa633bdc0c2"
+    },
+    {
+      "source": "packages/editor/src/components/use-project-image-assets.ts",
+      "path": "packages/editor-core/src/components/use-project-image-assets.ts",
+      "sha256": "1232e066ff2a2ea06c53f33ffd0d73009cba7ee40b5b95c8455835ea1361cc1e"
+    },
+    {
+      "source": "packages/editor/src/components/viewport-header-controls.css",
+      "path": "packages/editor-core/src/components/viewport-header-controls.css",
+      "sha256": "0e420e37472412572378679cd0ff4b01aacfc5f8baa40ddd80088fd64e61d79c"
+    },
+    {
+      "source": "packages/editor/src/components/viewport-surface-status.tsx",
+      "path": "packages/editor-core/src/components/viewport-surface-status.tsx",
+      "sha256": "d8b929b6ea49cc612d94c2136fc2411c9f05ffebc3aaaffe9e90f03fc0d64bac"
+    },
+    {
+      "source": "packages/editor/src/components/workspace-history.ts",
+      "path": "packages/editor-core/src/components/workspace-history.ts",
+      "sha256": "3c118ea80e45b1930daedc73be0270bee412bd0f8fc8a7bd8821ef0116ed4e19"
+    },
+    {
+      "source": "packages/editor/src/components/workspace-static-panel-registry.tsx",
+      "path": "packages/editor-core/src/components/workspace-static-panel-registry.tsx",
+      "sha256": "f63f0f067aea6f207a5130c292e0e521237a6c70c217bae37413d12985b79050"
+    },
+    {
+      "source": "packages/editor/src/components/workspace-surfaces.css",
+      "path": "packages/editor-core/src/components/workspace-surfaces.css",
+      "sha256": "2a10e4c0bd92056968f6edfb5817668c36a573516ef3912981eaa02aa1196f1b"
+    },
+    {
+      "source": "packages/editor/src/components/world-documents.tsx",
+      "path": "packages/editor-core/src/components/world-documents.tsx",
+      "sha256": "2308a482fd2b83ee5e4d50b9ab51ae04a48036aefe6c09687ba15bd4af68d533"
+    },
+    {
+      "source": "packages/editor/src/components/world-overlay-gestures.ts",
+      "path": "packages/editor-core/src/components/world-overlay-gestures.ts",
+      "sha256": "5c4ce627b8ce2ae0523977474753e95bfdbd74931be0d9c9c48b3ace8d543a8d"
+    },
+    {
+      "source": "packages/editor/src/composite-screenshot.ts",
+      "path": "packages/editor-core/src/composite-screenshot.ts",
+      "sha256": "83ac0ad9186b025712cf9cebb70bfbf8d37dc483bdc2532cc2b6fa09fee82ed0"
+    },
+    {
+      "source": "packages/editor/src/console-sync.ts",
+      "path": "packages/editor-core/src/console-sync.ts",
+      "sha256": "937ebd78daa7ef2bda97238ca5fb522566e8dcb7b9a00d53e39d1550f4ff1a11"
+    },
+    {
+      "source": "packages/editor/src/constraint-helper.ts",
+      "path": "packages/editor-core/src/constraint-helper.ts",
+      "sha256": "1e9396e94b6d95a73d6a839e4accc600508f9a7b90ad7df880da9b3b8266ab12"
+    },
+    {
+      "source": "packages/editor/src/content-entry-source-registry.ts",
+      "path": "packages/editor-core/src/content-entry-source-registry.ts",
+      "sha256": "451bc2332db1a4476be117dd82f0a47ad98ee60876b06afd32a012b2ae9a42da"
+    },
+    {
+      "source": "packages/editor/src/coverage/authoring-seam-evidence.ts",
+      "path": "packages/editor-core/src/coverage/authoring-seam-evidence.ts",
+      "sha256": "f029249193dc3d8a63d0c447efd707e2bd4e5ac054d34de266bb7a39e4257f58"
+    },
+    {
+      "source": "packages/editor/src/coverage/canvas-reveal.ts",
+      "path": "packages/editor-core/src/coverage/canvas-reveal.ts",
+      "sha256": "4f84f4f94b6eea7b106ccedaa2d37e51bfb2341ac6e4bfebcdbf91674c37ba67"
+    },
+    {
+      "source": "packages/editor/src/coverage/design-time-surfaces.ts",
+      "path": "packages/editor-core/src/coverage/design-time-surfaces.ts",
+      "sha256": "aa58d0acbaa26ebe02bb7303c9c9980fb3085269b03f9191c08f7002537a0566"
+    },
+    {
+      "source": "packages/editor/src/coverage/live-seam-evidence.ts",
+      "path": "packages/editor-core/src/coverage/live-seam-evidence.ts",
+      "sha256": "7d10beb91d526b89d8017b8b009b6446bed3546ebfab90d45d064321226c9121"
+    },
+    {
+      "source": "packages/editor/src/coverage/ontology-invariants.ts",
+      "path": "packages/editor-core/src/coverage/ontology-invariants.ts",
+      "sha256": "f6f5af81ce28358894525b22a441526460b5a2fd32f9375af75383daf869e36c"
+    },
+    {
+      "source": "packages/editor/src/coverage/session-vitals.ts",
+      "path": "packages/editor-core/src/coverage/session-vitals.ts",
+      "sha256": "e41a1d7645d4908a0ad74bc16148864edbe36d33375a813fe44d89e00982ceee"
+    },
+    {
+      "source": "packages/editor/src/coverage/system-seam-evidence.ts",
+      "path": "packages/editor-core/src/coverage/system-seam-evidence.ts",
+      "sha256": "c9b457b1ac4e9621d3f6e4a488b87bc1deeed1de723a4cf947792153ac311c28"
+    },
+    {
+      "source": "packages/editor/src/crash-null-boundary.ts",
+      "path": "packages/editor-core/src/crash-null-boundary.ts",
+      "sha256": "ab9e5e3628ec15f0549a319f67cbf8da074c3c05440310133838e824670fcb65"
+    },
+    {
+      "source": "packages/editor/src/creation-site-registry.ts",
+      "path": "packages/editor-core/src/creation-site-registry.ts",
+      "sha256": "d2efbc584246e7bd89844d6a3056bad7a07ce34d7a241efe9da897a1f5d1fc15"
+    },
+    {
+      "source": "packages/editor/src/delegate-harness-registry.ts",
+      "path": "packages/editor-core/src/delegate-harness-registry.ts",
+      "sha256": "cf3bde4303fe1f18a6cd1acb2bd2b1b63d06c59dfce5543113a9ee24a82805a9"
+    },
+    {
+      "source": "packages/editor/src/document-context-registry.ts",
+      "path": "packages/editor-core/src/document-context-registry.ts",
+      "sha256": "3e887e8a8ce37d56d9a5bab14162e87cbeefe18f05e6d6b1a2988e522acea3bc"
+    },
+    {
+      "source": "packages/editor/src/document-open-registry.ts",
+      "path": "packages/editor-core/src/document-open-registry.ts",
+      "sha256": "c8368cac302b40b50f68d2d78dd6399c1cd29e61559f29b5bf610014ed73378b"
+    },
+    {
+      "source": "packages/editor/src/document-preview-source.ts",
+      "path": "packages/editor-core/src/document-preview-source.ts",
+      "sha256": "450e3270d7a076fd25a5c357236c864013637db96dae100e61908489661cea8d"
+    },
+    {
+      "source": "packages/editor/src/document-renderer-session.ts",
+      "path": "packages/editor-core/src/document-renderer-session.ts",
+      "sha256": "8e6a58e2545a4e4ec4bf117a68697a787c4e026e4a60f45d12898fb112d113cf"
+    },
+    {
+      "source": "packages/editor/src/editor-api.ts",
+      "path": "packages/editor-core/src/editor-api.ts",
+      "sha256": "06647900ed13f2bf127518e88faf8c1830db688be53b58a72adf895c04d3dcc1"
+    },
+    {
+      "source": "packages/editor/src/editor-chrome-capture.ts",
+      "path": "packages/editor-core/src/editor-chrome-capture.ts",
+      "sha256": "146adc1cd8d28edbde57505555b0a86541a6bdf02da840ddc250af1d8f12e957"
+    },
+    {
+      "source": "packages/editor/src/editor-commands.ts",
+      "path": "packages/editor-core/src/editor-commands.ts",
+      "sha256": "0df2954343c192f65bb80561bd7d119ae86736416b8dfe210be37f37233a37dd"
+    },
+    {
+      "source": "packages/editor/src/editor-console.ts",
+      "path": "packages/editor-core/src/editor-console.ts",
+      "sha256": "69a24b4a7b179c3daa2bce5df0bcc57e916c0e4f3ebbe90107ec46395e804146"
+    },
+    {
+      "source": "packages/editor/src/editor-current-view.ts",
+      "path": "packages/editor-core/src/editor-current-view.ts",
+      "sha256": "8f985763119c4aa76afbe75d833d42731eb7fea206a1ab797addc49ac48aed2c"
+    },
+    {
+      "source": "packages/editor/src/editor-document-probe.ts",
+      "path": "packages/editor-core/src/editor-document-probe.ts",
+      "sha256": "8327f2645ccbd48f8064f253aba7e65ec0ba79d4968a06efa02ccd0312bde04e"
+    },
+    {
+      "source": "packages/editor/src/editor-git-client.ts",
+      "path": "packages/editor-core/src/editor-git-client.ts",
+      "sha256": "a66943b3470408806e70c50e064ffbe1fdbc54e6697938c6923440f233628cef"
+    },
+    {
+      "source": "packages/editor/src/editor-host-door.ts",
+      "path": "packages/editor-core/src/editor-host-door.ts",
+      "sha256": "c8a70d3bd0ba4c473e34e0250ede817bac03dc82c63c5f9ca56f6ee278927fd2"
+    },
+    {
+      "source": "packages/editor/src/editor-hotkeys.ts",
+      "path": "packages/editor-core/src/editor-hotkeys.ts",
+      "sha256": "47cfa97b94fb8c2119ca4d448f4123605bb6c682b377b025361f7ac3e2c7a05e"
+    },
+    {
+      "source": "packages/editor/src/editor-lease-view.ts",
+      "path": "packages/editor-core/src/editor-lease-view.ts",
+      "sha256": "9e6e5ab6c1cb3b571d28719baebdfb4057e7b96f0f122468a2b724f81c32a6dd"
+    },
+    {
+      "source": "packages/editor/src/editor-lease.ts",
+      "path": "packages/editor-core/src/editor-lease.ts",
+      "sha256": "b9728813f259280b405b24e71cebeaaa0376528ff57d7e4bafc79b3d28ee3433"
+    },
+    {
+      "source": "packages/editor/src/editor-mode.ts",
+      "path": "packages/editor-core/src/editor-mode.ts",
+      "sha256": "6e02baf0d5b2f9bc1bb713aef0472e4d310168a82ea1d41b06f7e2445720ddd8"
+    },
+    {
+      "source": "packages/editor/src/editor-notifications.ts",
+      "path": "packages/editor-core/src/editor-notifications.ts",
+      "sha256": "d4f6b6ce7eaa777f4d292cd08524b984533dcb1ba944670aef6160714f41c8bb"
+    },
+    {
+      "source": "packages/editor/src/editor-presence.ts",
+      "path": "packages/editor-core/src/editor-presence.ts",
+      "sha256": "b18bee49dc9d257afa3561b2ab866e4f280d4087e9c8f78e2694218b7096ef0a"
+    },
+    {
+      "source": "packages/editor/src/editor-presentation-activity.ts",
+      "path": "packages/editor-core/src/editor-presentation-activity.ts",
+      "sha256": "5f9e4fc7710493d31ed5423a95eef1f60b04070dfce49d25a19ccdeacec7bea5"
+    },
+    {
+      "source": "packages/editor/src/editor-presentation-notice.ts",
+      "path": "packages/editor-core/src/editor-presentation-notice.ts",
+      "sha256": "ffd6254f8ce7b35bd7419e0f70aa8f345d9c47bc8fbc84b0a704b9e3ce07bf7b"
+    },
+    {
+      "source": "packages/editor/src/editor-runtime.tsx",
+      "path": "packages/editor-core/src/editor-runtime.tsx",
+      "sha256": "df9c7fb1b03c08d26efd5a77be162e18420dd1954587ba06fe98cf0802bfbd28"
+    },
+    {
+      "source": "packages/editor/src/editor-server-response.ts",
+      "path": "packages/editor-core/src/editor-server-response.ts",
+      "sha256": "30495468d987468613996672a2fe26722b6e9d16443eae14f136eca2a7e84a30"
+    },
+    {
+      "source": "packages/editor/src/editor-session-attribution.ts",
+      "path": "packages/editor-core/src/editor-session-attribution.ts",
+      "sha256": "4e8f5a2325a002b1c391117c8faffd58014a5417adad8bfee3e4504320aa48bb"
+    },
+    {
+      "source": "packages/editor/src/editor-session-mode.ts",
+      "path": "packages/editor-core/src/editor-session-mode.ts",
+      "sha256": "da63472313588c73426c0c1e2c5345558e9ca7ccf7468bcf2f6d60813e32ddcb"
+    },
+    {
+      "source": "packages/editor/src/editor-shell-store.ts",
+      "path": "packages/editor-core/src/editor-shell-store.ts",
+      "sha256": "e9e440990612fd085f0695e9eeeb6385fe32b36007b1243302106f2ef11100a6"
+    },
+    {
+      "source": "packages/editor/src/editor-state-facets.ts",
+      "path": "packages/editor-core/src/editor-state-facets.ts",
+      "sha256": "ae2d279d8c4be215908cbbe312a21a52bfc27f10c65c9a7ad91480d4544fc115"
+    },
+    {
+      "source": "packages/editor/src/editor-styles.css",
+      "path": "packages/editor-core/src/editor-styles.css",
+      "sha256": "e2b02c7857b57d13fe087dc4c55f8e3a527b6ae81195afc41a02dc56a3b06463"
+    },
+    {
+      "source": "packages/editor/src/editor-view-presentation.ts",
+      "path": "packages/editor-core/src/editor-view-presentation.ts",
+      "sha256": "01c0bf3a2131fb61d367e41de7d4ff6aaecb3b0a63f04fed180d3844169fa5df"
+    },
+    {
+      "source": "packages/editor/src/editor-viewport.ts",
+      "path": "packages/editor-core/src/editor-viewport.ts",
+      "sha256": "ad8c55a5a323696b8763303ad33108f6e948d5850c1aedd150329ba590ab487d"
+    },
+    {
+      "source": "packages/editor/src/entity-lod.ts",
+      "path": "packages/editor-core/src/entity-lod.ts",
+      "sha256": "9641ab64a98df29a22598940962e227a45db3db85ba8c4d551f34bf428ec1c9e"
+    },
+    {
+      "source": "packages/editor/src/entity-object.ts",
+      "path": "packages/editor-core/src/entity-object.ts",
+      "sha256": "7972630b4b5b34034f89cb13b1009d043984de2005ac0f97cde8ef53fde9b63b"
+    },
+    {
+      "source": "packages/editor/src/files/file-provider.ts",
+      "path": "packages/editor-core/src/files/file-provider.ts",
+      "sha256": "6a619ed263198fdbed078cd351cab5d77cf7fbc10c6bc41d7f4e695a6be13472"
+    },
+    {
+      "source": "packages/editor/src/files/project-files.ts",
+      "path": "packages/editor-core/src/files/project-files.ts",
+      "sha256": "9648642dd29966d41a5752b701cd6fd49928851c5b19cb8c3542291974e10a06"
+    },
+    {
+      "source": "packages/editor/src/finders/index.ts",
+      "path": "packages/editor-core/src/finders/index.ts",
+      "sha256": "2469c2642b7488a49b71d1bbd3097d108be2b881c1278ae4ffdc2cc112413cb2"
+    },
+    {
+      "source": "packages/editor/src/finders/scenes-from-entrypoint-selection.ts",
+      "path": "packages/editor-core/src/finders/scenes-from-entrypoint-selection.ts",
+      "sha256": "edf05a7a1156fa38ff40165edc040c264934827de3d4158aa29e725902565f13"
+    },
+    {
+      "source": "packages/editor/src/frame/bridge.tsx",
+      "path": "packages/editor-core/src/frame/bridge.tsx",
+      "sha256": "91ea62eca02ea3758dfe37cebc93be137f366338f510f82716bdb7fa5831a938"
+    },
+    {
+      "source": "packages/editor/src/frame/product.ts",
+      "path": "packages/editor-core/src/frame/product.ts",
+      "sha256": "fcc9581eb2ca3c8dbee5625d82e21d58a9b14ab67519af8ebce85854678e448d"
+    },
+    {
+      "source": "packages/editor/src/gameplay-dom-recording.ts",
+      "path": "packages/editor-core/src/gameplay-dom-recording.ts",
+      "sha256": "b5751ba18524f8295723f124ca04fd239ad43f7e5ea0db23627c9e33cc1372a9"
+    },
+    {
+      "source": "packages/editor/src/gameplay-export-state.ts",
+      "path": "packages/editor-core/src/gameplay-export-state.ts",
+      "sha256": "cf68dcba0993b253e8e29acb2610369d24ea0d5bad729d3a5cba70dc0e64da9b"
+    },
+    {
+      "source": "packages/editor/src/gameplay-replay.ts",
+      "path": "packages/editor-core/src/gameplay-replay.ts",
+      "sha256": "85f12eb61f5b7988420a2b07f17610d14395ed3ca4586ef0adda87b2734cce62"
+    },
+    {
+      "source": "packages/editor/src/gameplay-session-time.ts",
+      "path": "packages/editor-core/src/gameplay-session-time.ts",
+      "sha256": "fe1a26275fc60153e80ad2b608ff5bcafaa7ca7150ef749701ab8038d61be03f"
+    },
+    {
+      "source": "packages/editor/src/gameplay-sessions.ts",
+      "path": "packages/editor-core/src/gameplay-sessions.ts",
+      "sha256": "b64738403e08632d38ba8a3398a961054389f6dbe61092867877ddaaaee17545"
+    },
+    {
+      "source": "packages/editor/src/hierarchy-component-marks.ts",
+      "path": "packages/editor-core/src/hierarchy-component-marks.ts",
+      "sha256": "8e19564010181644cc0d49c2e3f0ddb7328b3dc2f4e3aff488a94aea3a8b4238"
+    },
+    {
+      "source": "packages/editor/src/hierarchy-drop.ts",
+      "path": "packages/editor-core/src/hierarchy-drop.ts",
+      "sha256": "0f21d744430ea0be4541914dd146e66c89273c134d4e08a8db6a540d4a6d4ad1"
+    },
+    {
+      "source": "packages/editor/src/hierarchy-expansion-state.ts",
+      "path": "packages/editor-core/src/hierarchy-expansion-state.ts",
+      "sha256": "bd7d920d169c0e35035dbb6aaf7993cd007ca111484f155682a8755dd9706e41"
+    },
+    {
+      "source": "packages/editor/src/hierarchy-header-slot.ts",
+      "path": "packages/editor-core/src/hierarchy-header-slot.ts",
+      "sha256": "e73fba13e8aa597feaa8ebd5affb077c001b60a842f486c34ba2042e90d8ffb5"
+    },
+    {
+      "source": "packages/editor/src/hierarchy-internals.ts",
+      "path": "packages/editor-core/src/hierarchy-internals.ts",
+      "sha256": "8c47b8fa5f363b0df59e1fe45d2d54bc4292ed29f19088134846a28a1a1242ee"
+    },
+    {
+      "source": "packages/editor/src/hierarchy-kind-icon.ts",
+      "path": "packages/editor-core/src/hierarchy-kind-icon.ts",
+      "sha256": "1929822c92fab59634d93e4d16ab6b242e5168f5c9a983c0e8ac4d9a02e912bb"
+    },
+    {
+      "source": "packages/editor/src/hierarchy-mark-reader.ts",
+      "path": "packages/editor-core/src/hierarchy-mark-reader.ts",
+      "sha256": "a13523e04d63da28ec538d12b36b9bbfaf583c5c78cad87fdec4966e7209db22"
+    },
+    {
+      "source": "packages/editor/src/hierarchy-menu-registry.ts",
+      "path": "packages/editor-core/src/hierarchy-menu-registry.ts",
+      "sha256": "dee751cea6c47cc598f04ec62cc51c916451772fc7143d819d51a5e70fbb81c8"
+    },
+    {
+      "source": "packages/editor/src/hierarchy-node-rows.ts",
+      "path": "packages/editor-core/src/hierarchy-node-rows.ts",
+      "sha256": "aa2ebf9035ead92b2ff9cc9836aa8f7e222f84f0662b0be13e7115cdbe9108ce"
+    },
+    {
+      "source": "packages/editor/src/hierarchy-panel-view.ts",
+      "path": "packages/editor-core/src/hierarchy-panel-view.ts",
+      "sha256": "f8eaae940221cda560ac6bd4d8932f41987ca2698919617f06f83f0529f5530f"
+    },
+    {
+      "source": "packages/editor/src/hierarchy-projection.ts",
+      "path": "packages/editor-core/src/hierarchy-projection.ts",
+      "sha256": "12fa78a13b1e0952099fe7d3a9b995ac3029f2be37fde4a962763869c020dd7b"
+    },
+    {
+      "source": "packages/editor/src/hierarchy-row-cache.ts",
+      "path": "packages/editor-core/src/hierarchy-row-cache.ts",
+      "sha256": "51aea4b56d6e4a9efc6027b636d4de60d63f2d97e112342f4859b40b37c64ceb"
+    },
+    {
+      "source": "packages/editor/src/hierarchy-row-model.ts",
+      "path": "packages/editor-core/src/hierarchy-row-model.ts",
+      "sha256": "4516740bf6c49276e1fa5e5a49d7887618949db919089ed3f907dcd9a5298538"
+    },
+    {
+      "source": "packages/editor/src/hierarchy-rows.ts",
+      "path": "packages/editor-core/src/hierarchy-rows.ts",
+      "sha256": "902dcc7fe443c0e192b88e1a07ab875f7f6bd679387a819726be192c7348c567"
+    },
+    {
+      "source": "packages/editor/src/hierarchy-walk.ts",
+      "path": "packages/editor-core/src/hierarchy-walk.ts",
+      "sha256": "c665e322ee6a241d8135855cdd95452da5f0e9ca8f9ab400eba25e88a8200822"
+    },
+    {
+      "source": "packages/editor/src/history/editor-session.ts",
+      "path": "packages/editor-core/src/history/editor-session.ts",
+      "sha256": "94d42831cd8cc11a4d9b6cb0b17e11af969d056aa55c4b5780a61797ba055e14"
+    },
+    {
+      "source": "packages/editor/src/history/history-commands.ts",
+      "path": "packages/editor-core/src/history/history-commands.ts",
+      "sha256": "3b1e23b38ae2a1e3d1ece10139b99d479e09af8891505305ea228025b4dd661b"
+    },
+    {
+      "source": "packages/editor/src/history/history-delegate.ts",
+      "path": "packages/editor-core/src/history/history-delegate.ts",
+      "sha256": "e2597c33e3fa2fcb95330bcf8e8330e64bfdd6bd2418d0fed4586222a99991a8"
+    },
+    {
+      "source": "packages/editor/src/history/history-limit-notices.ts",
+      "path": "packages/editor-core/src/history/history-limit-notices.ts",
+      "sha256": "f5dff1aec060fb496be1bb1d78b795a125007973e5da24b5b9cec920f0b18367"
+    },
+    {
+      "source": "packages/editor/src/history/history-service.ts",
+      "path": "packages/editor-core/src/history/history-service.ts",
+      "sha256": "df2f7520a33ff874916740cf17700aad4ba99f15c131ddcc9eb094ef42f97d4c"
+    },
+    {
+      "source": "packages/editor/src/history/persistence-coordinator.ts",
+      "path": "packages/editor-core/src/history/persistence-coordinator.ts",
+      "sha256": "8a3921e1b1a0231a810b47466cd762f1f69039a731265c39e990b82e8159b95d"
+    },
+    {
+      "source": "packages/editor/src/history/project-file-history.ts",
+      "path": "packages/editor-core/src/history/project-file-history.ts",
+      "sha256": "aafafe115728b35c2e658216fa475e93bc1afda1a4cde708ceef7ee3b26742b3"
+    },
+    {
+      "source": "packages/editor/src/history/project-root-history-backends.ts",
+      "path": "packages/editor-core/src/history/project-root-history-backends.ts",
+      "sha256": "dbd27230cf110bb3498ffff2ccf6e2dee85b16c6695f201c46b42159f4eda4ac"
+    },
+    {
+      "source": "packages/editor/src/history/resource-registry.ts",
+      "path": "packages/editor-core/src/history/resource-registry.ts",
+      "sha256": "ce8296d921e78bb0910370afc4df3b88ad6da0bbdbf3d1cd8d7cc16296b39f21"
+    },
+    {
+      "source": "packages/editor/src/history/snapshot-store.ts",
+      "path": "packages/editor-core/src/history/snapshot-store.ts",
+      "sha256": "497765f9e4f2a465f584fe7ed1908b5b98ded8ca373fb1a87c19c7d0e84ca2f5"
+    },
+    {
+      "source": "packages/editor/src/history/source-history-backend.ts",
+      "path": "packages/editor-core/src/history/source-history-backend.ts",
+      "sha256": "d1dbadfd7a776727450652337651eaedeb5df173b392a50c62f2ca1f93eeaf33"
+    },
+    {
+      "source": "packages/editor/src/history/types.ts",
+      "path": "packages/editor-core/src/history/types.ts",
+      "sha256": "ca3e85948bc70cab0d891106183eea5ceaf4ff388416d8bdf55f8754d08072f1"
+    },
+    {
+      "source": "packages/editor/src/hmr-registration-group.ts",
+      "path": "packages/editor-core/src/hmr-registration-group.ts",
+      "sha256": "6b9a85716cdcce04231ab4884f35e1666ac107f3b108e05ecda9a5b186b093b8"
+    },
+    {
+      "source": "packages/editor/src/hmr-stable-react-context.ts",
+      "path": "packages/editor-core/src/hmr-stable-react-context.ts",
+      "sha256": "5722ca838912cf69b82737c10a18d5d3e1476190322a86a201002a7e567728e7"
+    },
+    {
+      "source": "packages/editor/src/hotkeys.ts",
+      "path": "packages/editor-core/src/hotkeys.ts",
+      "sha256": "610f9d01270d7dbc0e0949bd042a34c5d12ba61591202895ef9c4031cb476286"
+    },
+    {
+      "source": "packages/editor/src/inference-diagnostics.ts",
+      "path": "packages/editor-core/src/inference-diagnostics.ts",
+      "sha256": "81317161272abfa0775646f6a06987bc17e40f6ace14b186b1367ab4e0c36449"
+    },
+    {
+      "source": "packages/editor/src/initial-project.ts",
+      "path": "packages/editor-core/src/initial-project.ts",
+      "sha256": "adc40b3b9b7093f32ab63e602805ac3a0df50f24031abb6af7f7c3e0f5890501"
+    },
+    {
+      "source": "packages/editor/src/inspection/active-subject.ts",
+      "path": "packages/editor-core/src/inspection/active-subject.ts",
+      "sha256": "b4a6e47d71312b79d311e758482947908a7b2f9e677ced7ae61a515391451601"
+    },
+    {
+      "source": "packages/editor/src/inspection/active-surface.ts",
+      "path": "packages/editor-core/src/inspection/active-surface.ts",
+      "sha256": "4fee63a5a5ffab65537129d56822ce6e80b4641e3b0818ae8cae542f1025a03e"
+    },
+    {
+      "source": "packages/editor/src/inspection/compose.ts",
+      "path": "packages/editor-core/src/inspection/compose.ts",
+      "sha256": "7e2828e0faab786d0e3ec1399018e92213889119c8e113dd344b2e4db1bcd626"
+    },
+    {
+      "source": "packages/editor/src/inspection/display.ts",
+      "path": "packages/editor-core/src/inspection/display.ts",
+      "sha256": "27db0c6aa510bc3b8f7cf0befe02e08514a3ebf7dca1f225702b84c588a26d7d"
+    },
+    {
+      "source": "packages/editor/src/inspection/document-subject.ts",
+      "path": "packages/editor-core/src/inspection/document-subject.ts",
+      "sha256": "2fa9ec74d337d5db9721bd5757ce7a1b77615419453af0a98ae7c56ee3f63211"
+    },
+    {
+      "source": "packages/editor/src/inspection/game-subject.ts",
+      "path": "packages/editor-core/src/inspection/game-subject.ts",
+      "sha256": "a3d3ed982b5fd212de9ca285d95e983a11e2f55151f955781101625d8c89d907"
+    },
+    {
+      "source": "packages/editor/src/inspection/model.ts",
+      "path": "packages/editor-core/src/inspection/model.ts",
+      "sha256": "34e99ee4267e05fe2e52d6cfba1fe8eb8011ddd8656a4ca96f5a6cb98b39c114"
+    },
+    {
+      "source": "packages/editor/src/inspection/null-subject.ts",
+      "path": "packages/editor-core/src/inspection/null-subject.ts",
+      "sha256": "8d8da22f9f52510680b59bab5dc64276778ce5da1922356a4333043199f3e77a"
+    },
+    {
+      "source": "packages/editor/src/inspection/serialize.ts",
+      "path": "packages/editor-core/src/inspection/serialize.ts",
+      "sha256": "1261e24f340334db47424a5b8ef0baf3787d9cee4de7c7ef3c107e490c52b36d"
+    },
+    {
+      "source": "packages/editor/src/inspection/use-active-inspection.ts",
+      "path": "packages/editor-core/src/inspection/use-active-inspection.ts",
+      "sha256": "162ae12ed5703f98dab47e6d0cc9169e3faf7916617b75e009e23229953b5cca"
+    },
+    {
+      "source": "packages/editor/src/inspector-presentation.ts",
+      "path": "packages/editor-core/src/inspector-presentation.ts",
+      "sha256": "0710c08fa99e632314d1088469e652deb5095b5efb1d262cfe310d4a0d39571e"
+    },
+    {
+      "source": "packages/editor/src/inspector-section-registry.ts",
+      "path": "packages/editor-core/src/inspector-section-registry.ts",
+      "sha256": "a151f88b853e145e917408e4fbdee44885c0bd315e252dd4dc4b51e814ac9d77"
+    },
+    {
+      "source": "packages/editor/src/instance-source-actions.ts",
+      "path": "packages/editor-core/src/instance-source-actions.ts",
+      "sha256": "77d1feb18959a2b18b15bd2a29c25626cbbce014a93909c75c381b95713b4cb1"
+    },
+    {
+      "source": "packages/editor/src/instanced-presentation.ts",
+      "path": "packages/editor-core/src/instanced-presentation.ts",
+      "sha256": "6b8b447683b64ff950a4af8c457c3080c9ac35ace8da9dc2fef78be396224db9"
+    },
+    {
+      "source": "packages/editor/src/js-heap.ts",
+      "path": "packages/editor-core/src/js-heap.ts",
+      "sha256": "66545dff7214cf74060fa09b6e3ccdbb223b933c6573229221b4802f21ba59b2"
+    },
+    {
+      "source": "packages/editor/src/key-actions.ts",
+      "path": "packages/editor-core/src/key-actions.ts",
+      "sha256": "ff78ea6eef1c9a2073c61c5c4a05dc70f04ef6843f53250479140f84e5eb782f"
+    },
+    {
+      "source": "packages/editor/src/keymap-presets.ts",
+      "path": "packages/editor-core/src/keymap-presets.ts",
+      "sha256": "b69e6c7ea5d8ad75e9d6e752f25f2b620e4448c68ecd08c1911fbfccc13f9ee5"
+    },
+    {
+      "source": "packages/editor/src/layout-policy.ts",
+      "path": "packages/editor-core/src/layout-policy.ts",
+      "sha256": "f939f1b5b2c4aae2b469ab3da4e696191b5abc5ca37a16ab20b98a1463cd3ba7"
+    },
+    {
+      "source": "packages/editor/src/learn-links.ts",
+      "path": "packages/editor-core/src/learn-links.ts",
+      "sha256": "b70e78afd2c0bd2b308d1d0950ada4aafdbebdd80350b7824ea1654f423cad62"
+    },
+    {
+      "source": "packages/editor/src/light-explorer-model.ts",
+      "path": "packages/editor-core/src/light-explorer-model.ts",
+      "sha256": "0344eaa03cf214436160cd9b91d3d4246a164435c2901b72e658386201258fdd"
+    },
+    {
+      "source": "packages/editor/src/live-canvas-frame.ts",
+      "path": "packages/editor-core/src/live-canvas-frame.ts",
+      "sha256": "4c1cd69e3e97fdd86ea0770df1f3ad3839788ecc949bd6814e76c14219bce79b"
+    },
+    {
+      "source": "packages/editor/src/live-document.ts",
+      "path": "packages/editor-core/src/live-document.ts",
+      "sha256": "589954e3dbbb53cf55908f9ce91cddec3bc56a1c9d3d3056e2efa70176b57da6"
+    },
+    {
+      "source": "packages/editor/src/live-module-source.ts",
+      "path": "packages/editor-core/src/live-module-source.ts",
+      "sha256": "b4f4f850b88c191777590f91ec302f122b71957a93bbf0aed337dc8a8803371e"
+    },
+    {
+      "source": "packages/editor/src/live-session-registry.ts",
+      "path": "packages/editor-core/src/live-session-registry.ts",
+      "sha256": "c5dfe7ad708efa18f7695d8942bdf37e64cad8bf23e2ae5867bed3a661632dfb"
+    },
+    {
+      "source": "packages/editor/src/live-transition.ts",
+      "path": "packages/editor-core/src/live-transition.ts",
+      "sha256": "44ee50b9816e0632aaf67f7c5ea40d2ea8354d94a914bc6e781b6a5fd666299e"
+    },
+    {
+      "source": "packages/editor/src/manifest-project.ts",
+      "path": "packages/editor-core/src/manifest-project.ts",
+      "sha256": "8ac399723e8cd8121a6720179d83207ef3e5c79209f83a1d94eedbe808147148"
+    },
+    {
+      "source": "packages/editor/src/model-thumbnail.ts",
+      "path": "packages/editor-core/src/model-thumbnail.ts",
+      "sha256": "4b1874965938880d477874dcd8c5da60a585e8ea39567c9fff2b37bf141d6497"
+    },
+    {
+      "source": "packages/editor/src/native-selection-style.ts",
+      "path": "packages/editor-core/src/native-selection-style.ts",
+      "sha256": "a2e4911edaa34fef4e9d0c5188b452f5003a1242b52701c4a9eb611cbd2d7c6f"
+    },
+    {
+      "source": "packages/editor/src/object3d-document-write-policy.ts",
+      "path": "packages/editor-core/src/object3d-document-write-policy.ts",
+      "sha256": "7a5a72d626cb00b53e2b9c5c062cd96e048e1f1c51add40bbd61a454d9ab32b4"
+    },
+    {
+      "source": "packages/editor/src/packaged-runtime.ts",
+      "path": "packages/editor-core/src/packaged-runtime.ts",
+      "sha256": "9ad6489c9a305a588609f4daa926ec89555561b91e04d00692e108c06e4a6041"
+    },
+    {
+      "source": "packages/editor/src/palettes/maya.palette.json",
+      "path": "packages/editor-core/src/palettes/maya.palette.json",
+      "sha256": "2e4b9d55b1cd96e53d42cc7aa23d52392aa4e3fe5bbce4cfc66a9f59ce684748"
+    },
+    {
+      "source": "packages/editor/src/palettes/substance.palette.json",
+      "path": "packages/editor-core/src/palettes/substance.palette.json",
+      "sha256": "23bfbc53eb535b478c7ad51faab57d07d5db0ac217640ecf736d139b69443bf4"
+    },
+    {
+      "source": "packages/editor/src/pasteboard-module.ts",
+      "path": "packages/editor-core/src/pasteboard-module.ts",
+      "sha256": "25ff9608e9a92b434c99cc3b6766b02629d9cb68ffc095c7fab2d0856997b5c2"
+    },
+    {
+      "source": "packages/editor/src/performance-sources.ts",
+      "path": "packages/editor-core/src/performance-sources.ts",
+      "sha256": "3cb720c42e60009392568e480a9bb5aa8fea41bd41b17ea1054ec1d818b6de67"
+    },
+    {
+      "source": "packages/editor/src/play-boot-phase.ts",
+      "path": "packages/editor-core/src/play-boot-phase.ts",
+      "sha256": "60fba6cb4610c6145781ad47b66117be8a2c1b2117d2829e50dca6263b43591a"
+    },
+    {
+      "source": "packages/editor/src/presentation-surface.ts",
+      "path": "packages/editor-core/src/presentation-surface.ts",
+      "sha256": "3799657c64dfc6b02e966bd28e117116195364cf17caf87e8baf397485567178"
+    },
+    {
+      "source": "packages/editor/src/project-adapter.ts",
+      "path": "packages/editor-core/src/project-adapter.ts",
+      "sha256": "1312e3577116d001f7f40f9fc19990a8b51a85ef201a88acae5f6339f18d687e"
+    },
+    {
+      "source": "packages/editor/src/project-asset-refresh.ts",
+      "path": "packages/editor-core/src/project-asset-refresh.ts",
+      "sha256": "b22a61f1813e75cc7bc628c564708517194d9a6166d41b308880e176401bb02c"
+    },
+    {
+      "source": "packages/editor/src/project-declaration-refresh.ts",
+      "path": "packages/editor-core/src/project-declaration-refresh.ts",
+      "sha256": "6a236c35eccb0387102b90fc78f508808a3ac9fb159d976596830b9a84d5a6a4"
+    },
+    {
+      "source": "packages/editor/src/project-local-state.ts",
+      "path": "packages/editor-core/src/project-local-state.ts",
+      "sha256": "540de8e73dcfc6caad0668bf030cb61c42d1dde2ce82384cc21e302a4df81180"
+    },
+    {
+      "source": "packages/editor/src/project-manager.ts",
+      "path": "packages/editor-core/src/project-manager.ts",
+      "sha256": "c71403ed3f196c4ba7602329efbdb159f815ca7b40b62fd1bb32eeeba3f1250e"
+    },
+    {
+      "source": "packages/editor/src/project-module-changes.ts",
+      "path": "packages/editor-core/src/project-module-changes.ts",
+      "sha256": "b342eabeb89e68c3c613a1d124dd7f57655515fbc27541de2658f03f6aa0a374"
+    },
+    {
+      "source": "packages/editor/src/project-module-split.ts",
+      "path": "packages/editor-core/src/project-module-split.ts",
+      "sha256": "a0f44474da8efd8258d44561ce6d545049da5cf2e1eaa0ba6fddad0b4c23c2d5"
+    },
+    {
+      "source": "packages/editor/src/project-provenance.ts",
+      "path": "packages/editor-core/src/project-provenance.ts",
+      "sha256": "8d2fc421e774540dab832a273d411a08dbe6e94a493c669779403e7afec6a64e"
+    },
+    {
+      "source": "packages/editor/src/project-ready.ts",
+      "path": "packages/editor-core/src/project-ready.ts",
+      "sha256": "13b4bc114794b3b921c5a7ed052e6743ed77ce68b15fbb1a69452042076eee11"
+    },
+    {
+      "source": "packages/editor/src/project-session-reset.ts",
+      "path": "packages/editor-core/src/project-session-reset.ts",
+      "sha256": "6cc8a20a516e9978ecc61c143759bb07563b5c93ac50510bcb0807b4a0f86375"
+    },
+    {
+      "source": "packages/editor/src/project-shape.ts",
+      "path": "packages/editor-core/src/project-shape.ts",
+      "sha256": "30c91a351025078681c453c51c671bd44a52deec1680be754ed4479bb0451d23"
+    },
+    {
+      "source": "packages/editor/src/project-tool-discovery.ts",
+      "path": "packages/editor-core/src/project-tool-discovery.ts",
+      "sha256": "372688612e02e65c8b5c24dc3db401a37053faad1179de874c4a8b6c70b0115d"
+    },
+    {
+      "source": "packages/editor/src/project-tools.ts",
+      "path": "packages/editor-core/src/project-tools.ts",
+      "sha256": "7a9c53d4f4c104224028bb6c36c96078e78fcd7eee79822735ee6110adca6999"
+    },
+    {
+      "source": "packages/editor/src/projection/three.ts",
+      "path": "packages/editor-core/src/projection/three.ts",
+      "sha256": "994ccb2a5db4e4bfebbf59a7365ebf4021638b4d26d426d4d332da10f179468a"
+    },
+    {
+      "source": "packages/editor/src/projection/types.ts",
+      "path": "packages/editor-core/src/projection/types.ts",
+      "sha256": "353b68ba1bef8905e5074520c239f5183ee5e5894fef0d4cca2726908440d646"
+    },
+    {
+      "source": "packages/editor/src/readiness.ts",
+      "path": "packages/editor-core/src/readiness.ts",
+      "sha256": "ba8b81b2257e11b91348b580a0c35bd053a0d3a9be34bb4a3a9bb0fa9aeac7a9"
+    },
+    {
+      "source": "packages/editor/src/reflection-probe-helper.ts",
+      "path": "packages/editor-core/src/reflection-probe-helper.ts",
+      "sha256": "fa7350b46d242f7e471ca8079cbaf4e0a858bc597f9485b20c58540ff1339500"
+    },
+    {
+      "source": "packages/editor/src/reported-play-state.ts",
+      "path": "packages/editor-core/src/reported-play-state.ts",
+      "sha256": "b42e5524dddfb281d9f020a9c9ff43ba706878be666d8b9bedf9f5eea9762cad"
+    },
+    {
+      "source": "packages/editor/src/resolve-relative-specifier.ts",
+      "path": "packages/editor-core/src/resolve-relative-specifier.ts",
+      "sha256": "a0d0114b5ac210d9ce1595e3477be28e9f7b4671c3b9f659cee080fb5914f281"
+    },
+    {
+      "source": "packages/editor/src/scene-document-plan.ts",
+      "path": "packages/editor-core/src/scene-document-plan.ts",
+      "sha256": "7fb1b2e403851fd10e25a2fc6dcf07dbf0d7e7d4cf3afd1eb18a4e22c8d14387"
+    },
+    {
+      "source": "packages/editor/src/scene-framing.ts",
+      "path": "packages/editor-core/src/scene-framing.ts",
+      "sha256": "b1e440a33fb7779ef3b66197a59a0dff9b3c741e159e3188637a17cd0770b7a9"
+    },
+    {
+      "source": "packages/editor/src/scene-live-open.ts",
+      "path": "packages/editor-core/src/scene-live-open.ts",
+      "sha256": "48aff85b1e4de12c5e62bd19117b3e452c11ea08997ea02476ecc3a2e3c4cc60"
+    },
+    {
+      "source": "packages/editor/src/scene-view-fog.ts",
+      "path": "packages/editor-core/src/scene-view-fog.ts",
+      "sha256": "9b23f2159e838347ffb5c6d658d9f6022aa1ff922283bf2853604a4345f702ae"
+    },
+    {
+      "source": "packages/editor/src/scoped-game-css.ts",
+      "path": "packages/editor-core/src/scoped-game-css.ts",
+      "sha256": "b6076a287b6e9d38c01de972d428ee3ad8d7b2ace932c4700ec714edcf199eea"
+    },
+    {
+      "source": "packages/editor/src/session-orphan-record.ts",
+      "path": "packages/editor-core/src/session-orphan-record.ts",
+      "sha256": "93efbac3532b588b8f3ec86be6250022f48f87180d31fb231b010a0e657672cc"
+    },
+    {
+      "source": "packages/editor/src/session-tombstone.ts",
+      "path": "packages/editor-core/src/session-tombstone.ts",
+      "sha256": "7696af5efe315ee428ea965ae8f3be8e524a7030b4da764bbfb675c960be3ee4"
+    },
+    {
+      "source": "packages/editor/src/settings-store.ts",
+      "path": "packages/editor-core/src/settings-store.ts",
+      "sha256": "e0844b9a8695e5ee9d0fb03cc3e2bc14e83ba592c46fb315c1889720c5d97e7d"
+    },
+    {
+      "source": "packages/editor/src/settings/settings-provider.ts",
+      "path": "packages/editor-core/src/settings/settings-provider.ts",
+      "sha256": "94c21916c5ce2c004af1b849da768668b805e135fa63d8cb2f1740d6d8c2b392"
+    },
+    {
+      "source": "packages/editor/src/shared-view-restore.ts",
+      "path": "packages/editor-core/src/shared-view-restore.ts",
+      "sha256": "e66f50b89e50795921e5dc7c9e15cd513b67bc02692d8f485bfcaa0b964245ee"
+    },
+    {
+      "source": "packages/editor/src/shell-store-door.ts",
+      "path": "packages/editor-core/src/shell-store-door.ts",
+      "sha256": "592b4b97fbed7d3fb1b656bdcb2afba96433e384a3769f33012e92071abe14c9"
+    },
+    {
+      "source": "packages/editor/src/source-conflict.ts",
+      "path": "packages/editor-core/src/source-conflict.ts",
+      "sha256": "97cffb2256a814cc2bbc93a8452260e07ffb4cdf2d2f3955ca058a5fba2f8076"
+    },
+    {
+      "source": "packages/editor/src/spatial-handle-visuals.ts",
+      "path": "packages/editor-core/src/spatial-handle-visuals.ts",
+      "sha256": "8e33634f0f2c473fc62a45c70afa3573ded35e6095221140b0bbc219cd1caa57"
+    },
+    {
+      "source": "packages/editor/src/stage-context.ts",
+      "path": "packages/editor-core/src/stage-context.ts",
+      "sha256": "a90dac40e8213634dd8b485cdd82f9f1304ea4051e420737bdeb9e5880662b92"
+    },
+    {
+      "source": "packages/editor/src/stage-store-registry.ts",
+      "path": "packages/editor-core/src/stage-store-registry.ts",
+      "sha256": "ed20f7103c7b2b3318881518100d53f3d5ee0176676b730834e5c435268cc786"
+    },
+    {
+      "source": "packages/editor/src/stale-chunk-recovery.ts",
+      "path": "packages/editor-core/src/stale-chunk-recovery.ts",
+      "sha256": "9a739a5bf07ad82695adb9052ed904573f6acf6e7a3b903d9cd21341f9f00b18"
+    },
+    {
+      "source": "packages/editor/src/state-report-deferral.ts",
+      "path": "packages/editor-core/src/state-report-deferral.ts",
+      "sha256": "ca1c78b28097fffe1c4d54cff98254b75d92bab62b761709f71e7c263d2cd818"
+    },
+    {
+      "source": "packages/editor/src/storage/host-files-storage.ts",
+      "path": "packages/editor-core/src/storage/host-files-storage.ts",
+      "sha256": "2d9c48b8f7963cec16e00a8bf79d860bbd5e9c06bbb28947b9adb3c1162d8f88"
+    },
+    {
+      "source": "packages/editor/src/storage/http-storage.ts",
+      "path": "packages/editor-core/src/storage/http-storage.ts",
+      "sha256": "ee08600ec923db605396d15b8a2facfb2c614152e9ac597e0864b8176f069850"
+    },
+    {
+      "source": "packages/editor/src/storage/index.ts",
+      "path": "packages/editor-core/src/storage/index.ts",
+      "sha256": "5b329adfa6613800ca42dde555a643afba7091b2458fa13053fcd885f2d31ead"
+    },
+    {
+      "source": "packages/editor/src/storage/mem-storage.ts",
+      "path": "packages/editor-core/src/storage/mem-storage.ts",
+      "sha256": "cbc457de94273cfc3b2332dde72cce1aa339bdfb863ec94f33576b659dca7244"
+    },
+    {
+      "source": "packages/editor/src/storage/path-lock.ts",
+      "path": "packages/editor-core/src/storage/path-lock.ts",
+      "sha256": "2bf683ccb9445b2ee310f7d01fc9e6f72be5106f36ae080ba5af012b3f7fd04c"
+    },
+    {
+      "source": "packages/editor/src/storage/paths.ts",
+      "path": "packages/editor-core/src/storage/paths.ts",
+      "sha256": "684d8f7099e24edc771daacce32add861f08e4e88b2d451c2e96e66958f9e86d"
+    },
+    {
+      "source": "packages/editor/src/storage/types.ts",
+      "path": "packages/editor-core/src/storage/types.ts",
+      "sha256": "27e40800e6c55dc93cf27a43e58a0a7cdccb6fc9ae7bcf5ab217b2929d17adfb"
+    },
+    {
+      "source": "packages/editor/src/stories/StoryComponentThumbnail.tsx",
+      "path": "packages/editor-core/src/stories/StoryComponentThumbnail.tsx",
+      "sha256": "92ea264cbf5afbd62ccea347d6c61ac8b580590ec156ace4c85eef2d99fd6492"
+    },
+    {
+      "source": "packages/editor/src/stories/StoryPreviewMount.tsx",
+      "path": "packages/editor-core/src/stories/StoryPreviewMount.tsx",
+      "sha256": "86f711a2e0516e9a4a5b6bf2a0ed57feab9e38e19c0f3a1bd10e9f14287eecd3"
+    },
+    {
+      "source": "packages/editor/src/stories/component-content-source.tsx",
+      "path": "packages/editor-core/src/stories/component-content-source.tsx",
+      "sha256": "f8e1f2bfa7fac9d22495ef5d571506eb5b0d7bbafc50b8b35aa3cd7fa7324666"
+    },
+    {
+      "source": "packages/editor/src/stories/component-states-source.ts",
+      "path": "packages/editor-core/src/stories/component-states-source.ts",
+      "sha256": "302ffd94bd3f3733cdffd7f060b020eddcd016e7f44606cc4bc948dfdc8b1e15"
+    },
+    {
+      "source": "packages/editor/src/stories/compose-project-stories.ts",
+      "path": "packages/editor-core/src/stories/compose-project-stories.ts",
+      "sha256": "e947402e5aecdaf4261faa3ac7dbd04b89ec63f9cdcc2a7c07b779b2a4ef531c"
+    },
+    {
+      "source": "packages/editor/src/stories/pixi-story-model.ts",
+      "path": "packages/editor-core/src/stories/pixi-story-model.ts",
+      "sha256": "23812cb2072886ea8eb218361315856830a1a15f29b106a28b3f2901bb877038"
+    },
+    {
+      "source": "packages/editor/src/stories/prefabs-finder.ts",
+      "path": "packages/editor-core/src/stories/prefabs-finder.ts",
+      "sha256": "cd0eb1f15d64aba74444a8464152d3278ed1dc1ffe417d09c645b43247b362ce"
+    },
+    {
+      "source": "packages/editor/src/stories/prefabs-from-stories.ts",
+      "path": "packages/editor-core/src/stories/prefabs-from-stories.ts",
+      "sha256": "892c0a4946cd3b1980791c9a0b0b4248fce4a354b7b9a858b9043a0df8058b5c"
+    },
+    {
+      "source": "packages/editor/src/stories/project-story-discovery.ts",
+      "path": "packages/editor-core/src/stories/project-story-discovery.ts",
+      "sha256": "4f1c8a71522a21a2edc8981a98d3587b97a52ff28b6ca4509cf1137a9c010770"
+    },
+    {
+      "source": "packages/editor/src/stories/project-story-regions.ts",
+      "path": "packages/editor-core/src/stories/project-story-regions.ts",
+      "sha256": "6ba442c09d6212b9f0b6cf43fcab28b790221188c183e2a4757bbe5ce03d8eca"
+    },
+    {
+      "source": "packages/editor/src/stories/story-actions.ts",
+      "path": "packages/editor-core/src/stories/story-actions.ts",
+      "sha256": "2dabd2983998e5714cbe8b913a0937b6ce371d61976e3c723ea16aea7116b653"
+    },
+    {
+      "source": "packages/editor/src/stories/story-capture-command.ts",
+      "path": "packages/editor-core/src/stories/story-capture-command.ts",
+      "sha256": "b6d799d315f5530705c4bc16e87938d54bee800ae2923f1bfa1e6a80ca167e8f"
+    },
+    {
+      "source": "packages/editor/src/stories/story-capture.ts",
+      "path": "packages/editor-core/src/stories/story-capture.ts",
+      "sha256": "d05bf0f48a882ba3b7081f501eb856083dd0b22bdf47f0f551081adbf24ce6de"
+    },
+    {
+      "source": "packages/editor/src/stories/story-declared-medium.ts",
+      "path": "packages/editor-core/src/stories/story-declared-medium.ts",
+      "sha256": "f012209449bb0457a9f1454565d03a13b309c2e3eaaaed210ff8774205013a53"
+    },
+    {
+      "source": "packages/editor/src/stories/story-discovery.ts",
+      "path": "packages/editor-core/src/stories/story-discovery.ts",
+      "sha256": "08f8f32f524ee3f6199f8cf24b6311e5ebaf9475f17bef0cabf52c188ae89849"
+    },
+    {
+      "source": "packages/editor/src/stories/story-document-openers.ts",
+      "path": "packages/editor-core/src/stories/story-document-openers.ts",
+      "sha256": "10fbcce7288d16d2af759379a534560e0733c58b771eca1c609cfe5afb3bdaef"
+    },
+    {
+      "source": "packages/editor/src/stories/story-dom-runtime.ts",
+      "path": "packages/editor-core/src/stories/story-dom-runtime.ts",
+      "sha256": "09202317c7b0a2a806d8581e9ca48d6f6bb3b054e3bb448566efd8834740857e"
+    },
+    {
+      "source": "packages/editor/src/stories/story-grouping.ts",
+      "path": "packages/editor-core/src/stories/story-grouping.ts",
+      "sha256": "e4fa8d50f16d78cb3654cc466c03d7a1a91090d14e52df325e020bca9ef13dc3"
+    },
+    {
+      "source": "packages/editor/src/stories/story-lane.ts",
+      "path": "packages/editor-core/src/stories/story-lane.ts",
+      "sha256": "aaf2c3e1cd60272ad8685182111f22a19e317ff85038b715f1afed616d76bb35"
+    },
+    {
+      "source": "packages/editor/src/stories/story-mount-turn.ts",
+      "path": "packages/editor-core/src/stories/story-mount-turn.ts",
+      "sha256": "29c1c22817c389576f45ded2e5a1cc7e4cad23725d7b98cf87aaee2c70590a9d"
+    },
+    {
+      "source": "packages/editor/src/stories/story-opener.ts",
+      "path": "packages/editor-core/src/stories/story-opener.ts",
+      "sha256": "cc8a54144a068921981f49fb915f08c90b1bea4212e690edd3d7fab6c0062822"
+    },
+    {
+      "source": "packages/editor/src/stories/story-pixi-preview.ts",
+      "path": "packages/editor-core/src/stories/story-pixi-preview.ts",
+      "sha256": "e1fb6ae381ad2d7773899a5c9d5c76d07660bcd19d8e1ae62d1ada0dd14e6610"
+    },
+    {
+      "source": "packages/editor/src/stories/story-presentation.ts",
+      "path": "packages/editor-core/src/stories/story-presentation.ts",
+      "sha256": "31bafd2931e8ccff033d5a561843c0a3ac7e4ebe591af62aad79d522246b019a"
+    },
+    {
+      "source": "packages/editor/src/stories/story-registry.ts",
+      "path": "packages/editor-core/src/stories/story-registry.ts",
+      "sha256": "9338bb0b46ed11409f19b4281b9bb2f63a619e4149a06c595f87c11efecf5742"
+    },
+    {
+      "source": "packages/editor/src/stories/story-three-preview.ts",
+      "path": "packages/editor-core/src/stories/story-three-preview.ts",
+      "sha256": "3cd88cdbe7e94ad7afb8fcb285f6b46593f5c529fb114b0a5446699ff7838d74"
+    },
+    {
+      "source": "packages/editor/src/stories/three-story-model.ts",
+      "path": "packages/editor-core/src/stories/three-story-model.ts",
+      "sha256": "2acc3dbbb108094719f2049764fb4f50b5813a392d6da711d023263a2322dede"
+    },
+    {
+      "source": "packages/editor/src/story-three-preview-runtime.ts",
+      "path": "packages/editor-core/src/story-three-preview-runtime.ts",
+      "sha256": "b04d0e2d412e2162b23769befa19fb15b443310e1a7f2ea2cd87cfb76d28b932"
+    },
+    {
+      "source": "packages/editor/src/surface-keyboard.ts",
+      "path": "packages/editor-core/src/surface-keyboard.ts",
+      "sha256": "841368e667e07654f67c7a97fa36793a6f5512003f26f34fdee4dd74664617a8"
+    },
+    {
+      "source": "packages/editor/src/surface-state.ts",
+      "path": "packages/editor-core/src/surface-state.ts",
+      "sha256": "d0b9c68a142298e29a6bf6eabba5f4f4f89a101ed12c5604a52eda8144e543b9"
+    },
+    {
+      "source": "packages/editor/src/tab-census.ts",
+      "path": "packages/editor-core/src/tab-census.ts",
+      "sha256": "688e998d10ec1f314a767e4da6f9c51f158bc6d4310ae26e97bc917d533bcdf3"
+    },
+    {
+      "source": "packages/editor/src/tab-lifecycle-client.ts",
+      "path": "packages/editor-core/src/tab-lifecycle-client.ts",
+      "sha256": "148b94a09a9f68a3df42061818fd78f99c25da67363c31755449c437a1a65c7b"
+    },
+    {
+      "source": "packages/editor/src/theme-library.ts",
+      "path": "packages/editor-core/src/theme-library.ts",
+      "sha256": "0ff68c845eccae81d80512a087aae4a8b3db0482a5a10a6de96470837218bfa3"
+    },
+    {
+      "source": "packages/editor/src/theme-preference.ts",
+      "path": "packages/editor-core/src/theme-preference.ts",
+      "sha256": "24da4af40153d61caffbdf94527a3916ca776480c37d4cee08a449d7a7933de1"
+    },
+    {
+      "source": "packages/editor/src/theme.css",
+      "path": "packages/editor-core/src/theme.css",
+      "sha256": "0acf63faf4113d1ee7cedaa0f74f8fe58ae704958e6738c5fde0e399016a2a8e"
+    },
+    {
+      "source": "packages/editor/src/three-viewport-presentation.ts",
+      "path": "packages/editor-core/src/three-viewport-presentation.ts",
+      "sha256": "24d2e573e5ddbabab9213e7a3ba95678ca5cd9c9056ad93ec6fce8c8acc94560"
+    },
+    {
+      "source": "packages/editor/src/three-viewport/bone-selection-highlight.ts",
+      "path": "packages/editor-core/src/three-viewport/bone-selection-highlight.ts",
+      "sha256": "440221e18338d659d9fc919a1a8dbea8e56e1e7f1bc9b9cd3ef5cf945709f8ad"
+    },
+    {
+      "source": "packages/editor/src/three-viewport/camera-fit.ts",
+      "path": "packages/editor-core/src/three-viewport/camera-fit.ts",
+      "sha256": "76ced1de36fc087ebc0b8bb3d17978a25556dd31debd3e5de29d183daa7cca85"
+    },
+    {
+      "source": "packages/editor/src/three-viewport/interactive-renderer.ts",
+      "path": "packages/editor-core/src/three-viewport/interactive-renderer.ts",
+      "sha256": "e656c51c8d9cbd8ef0710189502d8e6d790457463f38a721c62ddb9e8255a4ae"
+    },
+    {
+      "source": "packages/editor/src/three-viewport/selection-brackets.ts",
+      "path": "packages/editor-core/src/three-viewport/selection-brackets.ts",
+      "sha256": "f27c532b62d99aa2b871a36305dc29c53063aaabd464625657ba9352e11dd81f"
+    },
+    {
+      "source": "packages/editor/src/three-viewport/selection-outline.ts",
+      "path": "packages/editor-core/src/three-viewport/selection-outline.ts",
+      "sha256": "137937d673343c3972e7a85bfe064a50a77d2e52585e9b38940208c057758203"
+    },
+    {
+      "source": "packages/editor/src/three-viewport/skeleton-helper.ts",
+      "path": "packages/editor-core/src/three-viewport/skeleton-helper.ts",
+      "sha256": "4390e2e33c3f3d018f6c6c460aa359accbe36ca5fd7abe9a465ae9db77142be9"
+    },
+    {
+      "source": "packages/editor/src/three-viewport/source-color.ts",
+      "path": "packages/editor-core/src/three-viewport/source-color.ts",
+      "sha256": "9e7a55ba6c9f145b5ff5f43f78566124d99145a62662d5c49d5478775f0b3201"
+    },
+    {
+      "source": "packages/editor/src/three-viewport/studio-environment.ts",
+      "path": "packages/editor-core/src/three-viewport/studio-environment.ts",
+      "sha256": "06e075ffb1a978864ed169690cb53667fba56c6a8ca1bcf81d13b1089af16b0e"
+    },
+    {
+      "source": "packages/editor/src/tool-contribution-play.ts",
+      "path": "packages/editor-core/src/tool-contribution-play.ts",
+      "sha256": "58da4f4afafc2666c36b362f2f5efd5462ea7276c3f801a50624f2e7f10eb090"
+    },
+    {
+      "source": "packages/editor/src/tool-loader.ts",
+      "path": "packages/editor-core/src/tool-loader.ts",
+      "sha256": "557dbce8431898199829fd41de594e5926b9d4f78f046f1bec5b152796ec1755"
+    },
+    {
+      "source": "packages/editor/src/transform-mode-request.ts",
+      "path": "packages/editor-core/src/transform-mode-request.ts",
+      "sha256": "dc425f18782f7fc304b7d769fb84005dd39b5896073bb99a778ea4c126beac42"
+    },
+    {
+      "source": "packages/editor/src/transient-hint.ts",
+      "path": "packages/editor-core/src/transient-hint.ts",
+      "sha256": "9fb62b1c5ea6ffcaf50eefb97560cce9e339f0a3fae6a4b6ea020715fe593f92"
+    },
+    {
+      "source": "packages/editor/src/trigger-volume-helper.ts",
+      "path": "packages/editor-core/src/trigger-volume-helper.ts",
+      "sha256": "8880428d2e51bbf0fac8db3eedc48b5676322c8146b87dd1d46efc35cdbf7046"
+    },
+    {
+      "source": "packages/editor/src/ui-source/adapter-region-includes.ts",
+      "path": "packages/editor-core/src/ui-source/adapter-region-includes.ts",
+      "sha256": "0a3521455e2b7c9fc64a6824b27586702d498a02ebb1eb1f8a054a500efe8489"
+    },
+    {
+      "source": "packages/editor/src/ui-source/file-region-resolver.ts",
+      "path": "packages/editor-core/src/ui-source/file-region-resolver.ts",
+      "sha256": "925cd799f6ec4f7da843e211c52a1d30e1f124503e2bbd2118f1392769fd41ef"
+    },
+    {
+      "source": "packages/editor/src/ui-source/inspect.ts",
+      "path": "packages/editor-core/src/ui-source/inspect.ts",
+      "sha256": "0c1544fadd582652660268cef3c3f9b33333abe007423077b485ccb5708d3342"
+    },
+    {
+      "source": "packages/editor/src/ui-source/oid-transform.ts",
+      "path": "packages/editor-core/src/ui-source/oid-transform.ts",
+      "sha256": "0b28bf453ea30c5933039c8d8775de5c77fe52282c4747ccbe6cd5ceebc2da08"
+    },
+    {
+      "source": "packages/editor/src/ui-source/r3f-environment-binding.ts",
+      "path": "packages/editor-core/src/ui-source/r3f-environment-binding.ts",
+      "sha256": "e9dc3bba475cf61e1290d420771956c6cb43391aa02e3a237f0b702c70b67f13"
+    },
+    {
+      "source": "packages/editor/src/ui-source/r3f-joint-binding.ts",
+      "path": "packages/editor-core/src/ui-source/r3f-joint-binding.ts",
+      "sha256": "63b4436c9ef21268ef58a9584d78ef65d0bc2473e784ab8414a95c9e4c986fd1"
+    },
+    {
+      "source": "packages/editor/src/ui-source/r3f-lod-binding.ts",
+      "path": "packages/editor-core/src/ui-source/r3f-lod-binding.ts",
+      "sha256": "dd0f01851599d382d991dc7dcdcde1fc56e58fc5c3f5d0079d84323f4a63db68"
+    },
+    {
+      "source": "packages/editor/src/ui-source/r3f-particle-binding.ts",
+      "path": "packages/editor-core/src/ui-source/r3f-particle-binding.ts",
+      "sha256": "637e6443568550dd365f35ed37d3532929beda56b30b595767fc47387662dd2c"
+    },
+    {
+      "source": "packages/editor/src/ui-source/r3f-physics-binding.ts",
+      "path": "packages/editor-core/src/ui-source/r3f-physics-binding.ts",
+      "sha256": "0e7e27e4421996a38706a7b8f19e4f5d5783890eddbc7c8482afabc40e0cee32"
+    },
+    {
+      "source": "packages/editor/src/ui-source/reparent-guard.ts",
+      "path": "packages/editor-core/src/ui-source/reparent-guard.ts",
+      "sha256": "b171d094e598237cd5348c92898097cc3cf5ec802e05f013195b9edaaf4ba33f"
+    },
+    {
+      "source": "packages/editor/src/ui-source/source-edit-request.ts",
+      "path": "packages/editor-core/src/ui-source/source-edit-request.ts",
+      "sha256": "40b064b22cd1058645eecfc2b8bf81884cb7a0486e9bb1395b650f7debc1b031"
+    },
+    {
+      "source": "packages/editor/src/ui-source/source-write-backend.ts",
+      "path": "packages/editor-core/src/ui-source/source-write-backend.ts",
+      "sha256": "cf4c5f4e3d3ac9ffbc507f8607ec5150476af29820d595dc546fabb11c11bb5f"
+    },
+    {
+      "source": "packages/editor/src/ui-source/tier-source-write-backend.ts",
+      "path": "packages/editor-core/src/ui-source/tier-source-write-backend.ts",
+      "sha256": "44a79d1f1e28dc04dd54d6e212bc0b318f269bcc115a22894cb56fcb38eba89f"
+    },
+    {
+      "source": "packages/editor/src/ui-source/ts-ast.ts",
+      "path": "packages/editor-core/src/ui-source/ts-ast.ts",
+      "sha256": "883758c84115bea21b5684e93cceac3f56c2c8ddd54ced4999336b58c45ef103"
+    },
+    {
+      "source": "packages/editor/src/ui-source/utility-class-support.ts",
+      "path": "packages/editor-core/src/ui-source/utility-class-support.ts",
+      "sha256": "ee140aa6d0c996cfa99c905833acd7a5753922580b0ade95262221e96bbb0196"
+    },
+    {
+      "source": "packages/editor/src/ui-source/writer.ts",
+      "path": "packages/editor-core/src/ui-source/writer.ts",
+      "sha256": "2ce9a33bf20837b5209cf98b00e7baffa13f0f263ed2bb34338e36ed10bc7a61"
+    },
+    {
+      "source": "packages/editor/src/viewport-activation-timings.ts",
+      "path": "packages/editor-core/src/viewport-activation-timings.ts",
+      "sha256": "dd4876672ea978803e0e93b14574a3e7883375c9e68ecf1eaf7d8bc937e3eb68"
+    },
+    {
+      "source": "packages/editor/src/viewport-authoring-policy.ts",
+      "path": "packages/editor-core/src/viewport-authoring-policy.ts",
+      "sha256": "f1cd726581d2484d56b25a458c5cb94d24df898842c3bb8ebfa5a03f0d9c0cb9"
+    },
+    {
+      "source": "packages/editor/src/viewport-controls-hint.ts",
+      "path": "packages/editor-core/src/viewport-controls-hint.ts",
+      "sha256": "c131bab64825091dd609a396236500b5b8b5679c6266ca181e840d1a2c6df729"
+    },
+    {
+      "source": "packages/editor/src/viewport-door.ts",
+      "path": "packages/editor-core/src/viewport-door.ts",
+      "sha256": "ae105d21677af82617a905950ef3bbbb982eac16006fdb0c6ab595d0c07fc028"
+    },
+    {
+      "source": "packages/editor/src/viewport-shading-boundary.ts",
+      "path": "packages/editor-core/src/viewport-shading-boundary.ts",
+      "sha256": "db09b272b588458ef03772ed7b565474e374d5967864938625947a77fe37492f"
+    },
+    {
+      "source": "packages/editor/src/vite-error-surface.ts",
+      "path": "packages/editor-core/src/vite-error-surface.ts",
+      "sha256": "e8a811db7042cba310d64228c9b0392fd0d05533f7e5182fddaabd95cb8b628e"
+    },
+    {
+      "source": "packages/editor/src/wait-until.ts",
+      "path": "packages/editor-core/src/wait-until.ts",
+      "sha256": "7ed4deb69bdd1a4f25d9a692199eb77cd52131ab8b15b9fc743185fbd5292b42"
+    },
+    {
+      "source": "packages/editor/src/workspace-areas.ts",
+      "path": "packages/editor-core/src/workspace-areas.ts",
+      "sha256": "f56643496207704f9b4743dcb64e1d736f3bdb699678311c95d6608f749318c5"
+    },
+    {
+      "source": "packages/editor/src/workspace-aux-commands.ts",
+      "path": "packages/editor-core/src/workspace-aux-commands.ts",
+      "sha256": "894d361f16d988f8710b32b25ed15fe0e73182a0efb3417e36f0d7e61927cd52"
+    },
+    {
+      "source": "packages/editor/src/workspace-available-documents.ts",
+      "path": "packages/editor-core/src/workspace-available-documents.ts",
+      "sha256": "0f23595889564264457396ab75c2f54fc0450325b0b36672f00cddcccd0d1056"
+    },
+    {
+      "source": "packages/editor/src/workspace-core-utilities.ts",
+      "path": "packages/editor-core/src/workspace-core-utilities.ts",
+      "sha256": "10f260be28015c1be380e478995ce66b496ffb497f88a547b18879caf6ee1a46"
+    },
+    {
+      "source": "packages/editor/src/workspace-document-ids.ts",
+      "path": "packages/editor-core/src/workspace-document-ids.ts",
+      "sha256": "256d1c7755a72f872432c985b7932199ead1abb90c2cbb10ac9c9b75774c9b52"
+    },
+    {
+      "source": "packages/editor/src/workspace-document-registry.ts",
+      "path": "packages/editor-core/src/workspace-document-registry.ts",
+      "sha256": "8aa280e014001e7b82837eceae0aa9cfe620206c05ba0cbffcf49a5763766f10"
+    },
+    {
+      "source": "packages/editor/src/workspace-document-restore.ts",
+      "path": "packages/editor-core/src/workspace-document-restore.ts",
+      "sha256": "70682c097a5a31ffbe57a6773e7615fdda3e3257b8daa5f2fd89b45dc87671ba"
+    },
+    {
+      "source": "packages/editor/src/workspace-host-commands.ts",
+      "path": "packages/editor-core/src/workspace-host-commands.ts",
+      "sha256": "6e5704c24f0af9d24847454cb1ee817590173868334489a40277ce669df3c182"
+    },
+    {
+      "source": "packages/editor/src/workspace-persistence-gate.ts",
+      "path": "packages/editor-core/src/workspace-persistence-gate.ts",
+      "sha256": "0c59340bf11da6b814eeb7e0fb480295798aee820abbfc8269ca027f1d95b4bf"
+    },
+    {
+      "source": "packages/editor/src/workspace-play-utilities.ts",
+      "path": "packages/editor-core/src/workspace-play-utilities.ts",
+      "sha256": "184885ebeadafcb5896d884383d49a0e578a8e23171a1e8ddde10210f7abfbeb"
+    },
+    {
+      "source": "packages/editor/src/workspace-presets.ts",
+      "path": "packages/editor-core/src/workspace-presets.ts",
+      "sha256": "b7f134afb5b03888639682097c4113802f96f5590a0db8dd3aade956eefc37ff"
+    },
+    {
+      "source": "packages/editor/src/workspace-regions.ts",
+      "path": "packages/editor-core/src/workspace-regions.ts",
+      "sha256": "9b5e03f69f8988d4bcaf1934b96299f992e5b75530f7dd1d3a139725a7356532"
+    },
+    {
+      "source": "packages/editor/src/workspace-state-persistence.ts",
+      "path": "packages/editor-core/src/workspace-state-persistence.ts",
+      "sha256": "c94fdab27f74ff8281eaf3c98bff7c1e84dea0d368a1ef8f50a0068e81aa0d60"
+    },
+    {
+      "source": "packages/editor/src/workspace-static-panels.ts",
+      "path": "packages/editor-core/src/workspace-static-panels.ts",
+      "sha256": "3a5840b99616491f4e97130683bbee6d261c8e702924837999cbc7c35d85e853"
+    },
+    {
+      "source": "packages/editor/src/workspace-status-registry.ts",
+      "path": "packages/editor-core/src/workspace-status-registry.ts",
+      "sha256": "84c6f4ba70e11f33f034a051c55c839d1c47fc3eb403ffb10eafe300856577ff"
+    },
+    {
+      "source": "packages/editor/src/workspace-style.ts",
+      "path": "packages/editor-core/src/workspace-style.ts",
+      "sha256": "e3b62f4f91d15eada640e7140374b99e722f4c9f0c49e3154930e8b30cde8d88"
+    },
+    {
+      "source": "packages/editor/src/workspace-utility-commands.ts",
+      "path": "packages/editor-core/src/workspace-utility-commands.ts",
+      "sha256": "bfa5a5e47583247e77d426217ef950f40019579a103480226f7b211f1e71233d"
+    },
+    {
+      "source": "packages/editor/src/workspace-utility-registry.ts",
+      "path": "packages/editor-core/src/workspace-utility-registry.ts",
+      "sha256": "f149220634d341848603713765f596d3c11b42ed283d7e3c8c79286c431895cb"
+    },
+    {
+      "source": "packages/editor/src/workspace-viewport-rect.ts",
+      "path": "packages/editor-core/src/workspace-viewport-rect.ts",
+      "sha256": "b11249784bfcf8935997bc6c0ffddd3e34f6fd6beb61850f4b988c65840b4385"
+    },
+    {
+      "source": "packages/editor/src/world-adoption.ts",
+      "path": "packages/editor-core/src/world-adoption.ts",
+      "sha256": "c95aa6ee3eff4f4593968239b7188caa320ded89b9dbb9464a45219858c70a6f"
+    },
+    {
+      "source": "packages/editor/src/world-document-routing.ts",
+      "path": "packages/editor-core/src/world-document-routing.ts",
+      "sha256": "afeb0a6a1d641c3483d018540abd845aae79b7a7e0915237c09ba5601683db51"
+    },
+    {
+      "source": "packages/editor/LICENSE",
+      "path": "packages/editor-core/LICENSE",
+      "sha256": "8c9721ef06696672e4bfb95032a3bf277c39d4c85127372cb127024208eb7701"
+    },
+    {
+      "source": "packages/threejs-runtime/src/adapter/constraint.ts",
+      "path": "packages/editor-threejs/src/adapter/constraint.ts",
+      "sha256": "b963c609f7cefa0c16d3cb7fe8249e7bcef98fff719a9dfb2c3d5273e856045c"
+    },
+    {
+      "source": "packages/threejs-runtime/src/adapter/ingest/scene-capture.ts",
+      "path": "packages/editor-threejs/src/adapter/ingest/scene-capture.ts",
+      "sha256": "8a976f392fc3de7c1a3e374cd99ec068cbc092d8a73a8161a63c80d591375285"
+    },
+    {
+      "source": "packages/threejs-runtime/src/adapter/ingest/structural-ids.ts",
+      "path": "packages/editor-threejs/src/adapter/ingest/structural-ids.ts",
+      "sha256": "759b4d87a37d79995171a0da813889c8ce6b7cb8c47b44a9cd7f99af4e55dcf0"
+    },
+    {
+      "source": "packages/threejs-runtime/src/adapter/ingest/visible-capture-window.ts",
+      "path": "packages/editor-threejs/src/adapter/ingest/visible-capture-window.ts",
+      "sha256": "5ece365ae569c17940e72b286cf8fa1e41cfab1291d9dd0f8abd617807fb1afe"
+    },
+    {
+      "source": "packages/threejs-runtime/src/adapter/object3d-authoring-subject.ts",
+      "path": "packages/editor-threejs/src/adapter/object3d-authoring-subject.ts",
+      "sha256": "a2b39358db7646ce5204ca44f0f666ab64b20b46118dc7a7011927e4d0ee2c90"
+    },
+    {
+      "source": "packages/threejs-runtime/src/adapter/reflection-probe.ts",
+      "path": "packages/editor-threejs/src/adapter/reflection-probe.ts",
+      "sha256": "5d2b8ab15e990d56ef2145fddab5acdb70bc060cd179dc717e980b9a4180b4b2"
+    },
+    {
+      "source": "packages/threejs-runtime/src/adapter/renderer-config.ts",
+      "path": "packages/editor-threejs/src/adapter/renderer-config.ts",
+      "sha256": "d84f72b2e9436520d39a8334491eb87e59d7d0b173d9f2e7fa9ce6d00f8ab5c1"
+    },
+    {
+      "source": "packages/threejs-runtime/src/adapter/trigger-volume.ts",
+      "path": "packages/editor-threejs/src/adapter/trigger-volume.ts",
+      "sha256": "a125690aa0458dfa9bc063d90e8b570310fc7678ebca598512ac747dd30d9bc4"
+    },
+    {
+      "source": "packages/threejs-runtime/src/animation/animation-clock.ts",
+      "path": "packages/editor-threejs/src/animation/animation-clock.ts",
+      "sha256": "ba65a30c04ab4909531616b3dfc41051724cd09787af0cf05ac1553d437063bb"
+    },
+    {
+      "source": "packages/threejs-runtime/src/animation/runtime-inspection.ts",
+      "path": "packages/editor-threejs/src/animation/runtime-inspection.ts",
+      "sha256": "3291e1ad28345f907db7076d8ae7ec008849a78eab423ef741972a819692cbb4"
+    },
+    {
+      "source": "packages/threejs-runtime/src/asset-loaders.ts",
+      "path": "packages/editor-threejs/src/asset-loaders.ts",
+      "sha256": "564069856aee64b5bdfbea6d08e2ad811c42c26e2c73362437daad4fc42efe4d"
+    },
+    {
+      "source": "packages/threejs-runtime/src/asset-parse-error.ts",
+      "path": "packages/editor-threejs/src/asset-parse-error.ts",
+      "sha256": "aa3f2224a2d98db821739dd956d2d48a0273b11cc1e35951612394d1cfa7ea75"
+    },
+    {
+      "source": "packages/threejs-runtime/src/ecs/user-data.ts",
+      "path": "packages/editor-threejs/src/ecs/user-data.ts",
+      "sha256": "20f9c427eaa969344baf1cb2aadb98bdc1608265f290035e7a7242a3c66546a0"
+    },
+    {
+      "source": "packages/threejs-runtime/src/loader.ts",
+      "path": "packages/editor-threejs/src/loader.ts",
+      "sha256": "268baac14d8b848a9b152f250c545275b3ffaf9c5f27b6317e6c2e2f5f78f07b"
+    },
+    {
+      "source": "packages/threejs-runtime/src/render/matcap-texture.ts",
+      "path": "packages/editor-threejs/src/render/matcap-texture.ts",
+      "sha256": "3f8860fa5b144e6323b57ac4374324215907f85c9b212cfb293c2daa0ee5c23b"
+    },
+    {
+      "source": "packages/threejs-runtime/src/render/spark-renderer-lifecycle.ts",
+      "path": "packages/editor-threejs/src/render/spark-renderer-lifecycle.ts",
+      "sha256": "3003e1b2381622c47ec3a797d7e83fd0c00edce2485c6cd4826f2e3a69c5ed81"
+    },
+    {
+      "source": "packages/threejs-runtime/src/render/viewport-shading.ts",
+      "path": "packages/editor-threejs/src/render/viewport-shading.ts",
+      "sha256": "6c8f8cd5bf121d07d77f56d7045fee24c39a709ca54a69c1945044ea2f73a301"
+    },
+    {
+      "source": "packages/game-runtime/src/dev/performance-profiler.ts",
+      "path": "packages/editor-core/src/performance-profiler.ts",
+      "sha256": "3b99b9b8678f3e907fda4ffbe3f38e80d19811f9cf124f2b70df66b5c9313ec0"
+    },
+    {
+      "source": "packages/game-runtime/LICENSE",
+      "path": "packages/editor-core/LICENSE-APACHE",
+      "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
+    },
+    {
+      "source": "packages/game-runtime/src/react/use-selection.tsx",
+      "path": "packages/editor-sdk/src/selection.tsx",
+      "sha256": "887f5bb94db88f0a84e895840ec2b16d6565c69da3fae0e99b4e9a92bf460744"
+    },
+    {
+      "source": "packages/vgai-sdk/src/project/inspection.ts",
+      "path": "packages/editor-project/src/inspection.ts",
+      "sha256": "8dbae1524e4d368d1331cea7911074e5e1e67880360379f869b9ea9106e7b044"
+    },
+    {
+      "source": "packages/editor/vite-plugin-product-contributions.ts",
+      "path": "packages/editor-core/vite-plugin-product-contributions.ts",
+      "sha256": "35f296d3f15a724221928dfa36a9eab0c1bcff45e56ec311cf2c792794684bab"
+    },
+    {
+      "source": "packages/editor/vite-plugin-shared-react.ts",
+      "path": "packages/editor-core/vite-plugin-shared-react.ts",
+      "sha256": "fc8f294691034655e3fe701ef175311bbbd2768d716964a842ed4f252892e0a1"
+    },
+    {
+      "source": "packages/editor/vite-plugin-shared-three.ts",
+      "path": "packages/editor-core/vite-plugin-shared-three.ts",
+      "sha256": "595d8b576923e4bd0272fb8cc9925a4bbf5ee2ad571a70fae5ccfc446e17f5c8"
+    }
+  ],
+  "note": "Modeling frontend source closure. Frontend build and workspace typechecks are verified separately; session server, installed-product startup and consumer cutover remain outstanding.",
+  "excludedAfterBoundaryCuts": [
+    "packages/editor-core/src/scene-view-drawability.ts",
+    "packages/editor-core/src/surface-content.ts",
+    "packages/editor-core/src/canvas-entry-runtime.ts",
+    "packages/editor-core/src/server-log-bridge.ts",
+    "packages/editor-core/src/viewport-root-presentation.ts",
+    "packages/editor-core/src/auto-frame-window.ts",
+    "packages/editor-core/src/creation-site-edit.ts",
+    "packages/editor-core/src/viewport-pose-memory.ts",
+    "packages/editor-core/src/components/CameraAuthoringOverlay.tsx",
+    "packages/editor-core/src/components/world-root-stage.ts",
+    "packages/editor-core/src/components/PixiIsolationSceneContent.tsx",
+    "packages/editor-core/src/components/asset-viewers/InputMapViewer.tsx",
+    "packages/editor-core/src/authoring/owned-pixi-ticker-listeners.ts",
+    "packages/editor-core/src/authoring/mount-isolated-pixi-screen.ts",
+    "packages/editor-core/src/authoring/ingest-source-persistence.ts",
+    "packages/editor-core/src/authoring/pixi-still-presentation.ts",
+    "packages/editor-core/src/authoring/pixi-live-write-target.ts",
+    "packages/editor-core/src/authoring/ephemeral-persistence.ts",
+    "packages/editor-core/src/authoring/mounted-authoring.ts",
+    "packages/editor-core/src/authoring/source-persistence-backend.ts",
+    "packages/editor-core/src/authoring/pixi-isolation-assets.ts",
+    "packages/editor-core/src/authoring/creation-site-related.ts",
+    "packages/editor-core/src/authoring/ingest-data-writer.ts",
+    "packages/editor-core/src/authoring/pixi-transform-channels.ts",
+    "packages/editor-core/src/authoring/pixi-structure-history.ts",
+    "packages/editor-core/src/authoring/gesture-persist.ts",
+    "packages/editor-core/src/authoring/pixi-creation-site-write-target.ts",
+    "packages/editor-core/src/authoring/pixi-source-identity.ts",
+    "packages/editor-core/src/authoring/pixi-authoring-adapter.ts",
+    "packages/editor-core/src/history/json-history-resource.ts",
+    "packages/editor-core/src/projection/pixi.ts",
+    "packages/editor-core/src/ingest/games/bloom-composer/vgai.project.json",
+    "packages/editor-core/src/ingest/games/bloom-composer/package.json",
+    "packages/editor-core/src/ingest/games/games-fps/vgai.project.json",
+    "packages/editor-core/src/ingest/games/games-fps/package.json",
+    "packages/editor-core/src/ingest/games/tilemap-camera/vgai.project.json",
+    "packages/editor-core/src/ingest/games/tilemap-camera/package.json",
+    "packages/editor-core/src/ingest/games/interactive-cubes/vgai.project.json",
+    "packages/editor-core/src/ingest/games/interactive-cubes/package.json",
+    "packages/editor-core/src/ingest/games/react-rpg/vgai.project.json",
+    "packages/editor-core/src/ingest/games/react-rpg/package.json",
+    "packages/editor-core/src/ingest/games/bunnymark/vgai.project.json",
+    "packages/editor-core/src/ingest/games/bunnymark/package.json",
+    "packages/editor-core/src/ingest/games/pointerlock-maze/vgai.project.json",
+    "packages/editor-core/src/ingest/games/pointerlock-maze/package.json",
+    "packages/editor-core/src/ingest/games/flappy/vgai.project.json",
+    "packages/editor-core/src/ingest/games/flappy/package.json",
+    "packages/editor-core/src/ingest/games/own-three-bundled/vgai.project.json",
+    "packages/editor-core/src/ingest/games/own-three-bundled/package.json",
+    "packages/editor-core/src/ingest/games/bubbo-bubbo/vgai.project.json",
+    "packages/editor-core/src/ingest/games/bubbo-bubbo/package.json",
+    "packages/editor-core/src/ingest/games/racing-game/vgai.project.json",
+    "packages/editor-core/src/ingest/games/racing-game/package.json",
+    "packages/editor-core/src/after-paint.ts",
+    "packages/editor-core/src/document-preview-three.ts",
+    "packages/editor-core/src/take-named-export.ts",
+    "packages/editor-core/src/components/ThreeIsolationSceneContent.tsx",
+    "packages/editor-core/src/stories/mounted-story-viewport-source.ts"
+  ]
+}

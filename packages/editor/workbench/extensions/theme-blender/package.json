@@ -1,0 +1,63 @@
+{
+  "name": "theme-blender",
+  "displayName": "Blender look for Volter Editor",
+  "description": "Blender's dark theme colours, from @vgai/blender's blender.palette.json; the product icon theme built from blender.icons.json's traced outlines; and the workbench layout defaults that bring the frame nearest Blender's: no activity bar, properties on the right, compact tabs, no minimap or breadcrumbs.",
+  "categories": [
+    "Themes"
+  ],
+  "version": "0.0.1",
+  "publisher": "vscode",
+  "license": "MIT AND GPL-3.0-or-later",
+  "engines": {
+    "vscode": "*"
+  },
+  "_capabilitiesNote": "U12, ruled 2026-09-19 (vgai-engine WORK.md \u00a7The core is Code-OSS): a vgai project executes its OWN code the moment it opens \u2014 its editor contributions load from its node_modules, its dev server runs its config, its game runs in the pane. That is what workspace trust exists to gate, so the frame keeps trust ON and declares here that it does not support a restricted workspace. The gate that BITES is the kit contribution's trust check on `VGAI: Open Workspace` (packages/editor/workbench/src/vgai.contribution.ts): the bridge does not mount, and the workbench's own prompt is what the person sees. Amended 2026-09-21: on a folder a `vgai edit` SESSION is live on, they never see it \u2014 that session already runs the folder's own code by the person's own command, so `connectSessionTab` records the decision they made through the trust service's own per-folder door and the gate reads an answer. It bites where there is no session. Nothing of ours re-implements the prompt, the per-folder memory or the trust editor.",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    }
+  },
+  "contributes": {
+    "themes": [
+      {
+        "id": "Blender",
+        "label": "Blender",
+        "uiTheme": "vs-dark",
+        "path": "./themes/blender-dark.json"
+      }
+    ],
+    "productIconThemes": [
+      {
+        "id": "blender-icons",
+        "label": "Blender",
+        "path": "./producticons/blender-product-icon-theme.json"
+      }
+    ],
+    "_configurationDefaultsNote": "workbench.colorTheme and workbench.productIconTheme are DELIBERATELY absent: the LOOK selects them (vgaiSettings.ts LOOK_THEMES), on the same MEMORY layer as the top bar height. A blanket default here applied Blender colours in every window the extension was installed in, which is what made Classic still carry --vscode-vgai-view-background #303030 (the frame walk beat 6, 2026-09-19) and defeated the null defaults U8 ruling (2) gave those colour ids.",
+    "configurationDefaults": {
+      "workbench.activityBar.location": "hidden",
+      "workbench.sideBar.location": "right",
+      "workbench.statusBar.visible": true,
+      "workbench.layoutControl.enabled": false,
+      "workbench.navigationControl.enabled": false,
+      "window.commandCenter": true,
+      "workbench.editor.showTabs": "none",
+      "window.density.editorTab": "compact",
+      "workbench.editor.tabSizing": "shrink",
+      "breadcrumbs.enabled": false,
+      "editor.minimap.enabled": false,
+      "workbench.startupEditor": "none",
+      "workbench.tips.enabled": false,
+      "workbench.iconTheme": null,
+      "workbench.tree.indent": 12,
+      "workbench.tree.renderIndentGuides": "none",
+      "workbench.panel.defaultLocation": "bottom",
+      "workbench.editor.editorActionsLocation": "hidden",
+      "editor.fontSize": 12,
+      "editor.lineHeight": 18,
+      "window.customTitleBarVisibility": "auto",
+      "window.titleBarStyle": "custom",
+      "workbench.tree.expandMode": "singleClick"
+    }
+  }
+}

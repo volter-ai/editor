@@ -1,0 +1,199 @@
+{
+  "repository": "https://github.com/volter-ai/vgai-engine",
+  "revision": "cf9cb8e22dd7ae5709ed0dd8a46dd6f16d1e4945",
+  "files": [
+    {
+      "path": "packages/blender-engine/LICENSE",
+      "sha256": "c3b7e23c4236c99e8b69b7849a0767998fbafdfded627754f459ae845a17fe98"
+    },
+    {
+      "path": "packages/blender-engine/browser/blender-emscripten-engine.mts",
+      "sha256": "a021336abb8ed1cc0fa23e902f6659df28c410e1005ee27787fddaa8c253fd6a"
+    },
+    {
+      "path": "packages/blender-engine/browser/blender-engine.mts",
+      "sha256": "ac2e900c5a2cc6a373794b604958d35defbf0b8a9f7a7e1a97b0f247f7075f2c"
+    },
+    {
+      "path": "packages/blender-engine/browser/blender-wali-engine.mts",
+      "sha256": "5259da9838e85ac0e0428e942c1332c7862c9534ac355975012e57e20ab8596d"
+    },
+    {
+      "path": "packages/blender-engine/browser/index.ts",
+      "sha256": "91ff7aea41759e4a1051e87888fc7d44f0938241cd8433186ff2da1335aa17ac"
+    },
+    {
+      "path": "packages/blender-engine/browser/protocol.ts",
+      "sha256": "ff1f2cb22738c659c8d78931f2313fa4370cf8eaa270fce1b54bcbf447091f5b"
+    },
+    {
+      "path": "packages/blender-engine/browser/rna.ts",
+      "sha256": "91a5d883f95cde2817a51fd0fae873abf1f0b8e10abb1d3d7f16e7715443eed5"
+    },
+    {
+      "path": "packages/blender-engine/browser/runtime.ts",
+      "sha256": "920268fd480a662506a22c22e06dc73d010d0ab8b0442d2fbac65dd9d9d36c09"
+    },
+    {
+      "path": "packages/blender-engine/browser/session-frame.mts",
+      "sha256": "a99ab90aa8dba609737771796dd38cbd933b83fdfe9a45428f70cda9b11ca346"
+    },
+    {
+      "path": "packages/blender-engine/browser/session.py",
+      "sha256": "af57750705dad0d2238e9ebad882fe3fbb15585a03e6a0dcfe13830a7168cce3"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/agx-base-srgb.lut",
+      "sha256": "c0c30e32f13dc80417092674a6f180daf58fa345a8ccaea01172bdcf26a2c12f"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/agx-look-medium-high-contrast.lut",
+      "sha256": "5176019aa6f4c1e1be6beaffc2c5c335a5e3955a910ec1c652e8c8a18a3eb72d"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/agx-look-punchy.lut",
+      "sha256": "cd07c10fd2b0fdf3d6674e2cf3430230168654539ab1fa69942960e88d812534"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/attach-presenter.ts",
+      "sha256": "cf37a77837fc667cb4dfcc9a22f99c2ae4247724740ab1ceb272d50d894e1cc7"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/blender-agx.ts",
+      "sha256": "fef9ec3ef2110e658d1a9701a3d0c4f03b10afabe62eba764a9182f084b7b746"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/blender-base64.ts",
+      "sha256": "f0b73737df39074b6efc4c8d961eaac14012e19b6806d8dbfa8907322afdfe6a"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/blender-corner-normals.ts",
+      "sha256": "938dcb7289831257058bf0bbc8af54d3f193ef54f46b1ef4aa90be98f7f5f1ca"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/blender-display-lut.ts",
+      "sha256": "7c4f21fbf0aba9f5ba436c2b026f094f710c4c000644d8d2f7bfff40b48c33e7"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/blender-filmic.ts",
+      "sha256": "56ccd6fa16c0ed5e3adde378b172de1d2385ace8320776cff072e49627be02b5"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/blender-frame-columns.ts",
+      "sha256": "20b681d74a0c7447e9200dc37439755bf5ab511a41ecd5012adfe6160bf2f4af"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/blender-gradient-texture.ts",
+      "sha256": "ef9b49b03b155e3aa383578804c9a333716b460d9c5a8dc54ce9f5b6a4c49ea8"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/blender-runtime-armature.ts",
+      "sha256": "193efd5863c52ca62552e196806157d8b5c1ad891953b23f8e67d1096893987a"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/blender-runtime-frame.ts",
+      "sha256": "767d5072c9fa8f3fd63e0859e3d1c8ddeb7f778c5e1259a2b5f8c3b2381d5823"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/blender-runtime-geometry.ts",
+      "sha256": "1888b86f7a8edba46cf62f2a5fc2b7d8313fe5ec97c49b9d7f27d0de55de3bf0"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/blender-runtime-lighting.ts",
+      "sha256": "e6501dce1656bd2e5bd7655d00dc650638270633e3a7ebac2f708827a1f08fc8"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/blender-runtime-shadows.ts",
+      "sha256": "2ea1c69ab4b83ef1667d3f7963b4d48076e4894bfee0a8b73619ce018b1a6c5f"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/blender-runtime-view.ts",
+      "sha256": "43ac260dc1dc93ce66dc6f53a7440ca52c1d9529f87ee6e92b2bedc2200405c7"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/blender-runtime-volume.ts",
+      "sha256": "6756951b8334b3bda88fee0829e6acee8b07f4852dd74ed08287c5f59f820da7"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/blender-runtime-weights.ts",
+      "sha256": "4746f67fe5d999f9617ef1c2c7babbf704fbe8a6ae929bbbac3d674638b54799"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/blender-sky.ts",
+      "sha256": "9444471e789d4148e2da1276c9296b96ecf2a5a9a3cafd968ca2fda1234aef67"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/blender-standard.ts",
+      "sha256": "9b27d1a1ebc63dcbd22a884b77b2e2cb1ab13dfc8911bf06c5b85404e2630003"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/blender-triangulate.ts",
+      "sha256": "90c19d511589755e236a57ce6ffc41f229f0ccd22dd8f0a6c71e8a9f32455458"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/filmic-srgb.lut",
+      "sha256": "6eefb077b21314b0757ab06e236de45e37bbb50ea1dac909cd72ac49ea3588cc"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/presenter.ts",
+      "sha256": "895231e7190efc98be031603ccc93398447bb47f008a13cf09c87608d0f32413"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/release.ts",
+      "sha256": "6d580713effad193e01fdfdbf5b1ce92680c56ea45c88a6f837a6aac7f6e6959"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/sky-precompute-worker.ts",
+      "sha256": "de814c22474225a8f800060d1b140a07d444a9c676a8c3ecbd79416441046d5b"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/sky-worker.ts",
+      "sha256": "0ec1c98450202abb7b75301cff1f14ae4221c7b9d51d8a14fc80f29fecaab0ed"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/world-field-sampler.ts",
+      "sha256": "d1fbdb96aa48fbd2ff9d99e59d07b9cee997433d6ac41b0bd1cc4940f8f5f328"
+    },
+    {
+      "path": "packages/blender-engine/browser/three/world-math.ts",
+      "sha256": "a4ad5fbd6bc4541bc643786922307adb66672387353ad4a3e49a91e961450012"
+    },
+    {
+      "path": "packages/blender-engine/browser/vgai_three.py",
+      "sha256": "e4bf455150d6af0b425b984c0c0452689665eb2b83a261aab61a2f3c9040e709"
+    },
+    {
+      "path": "packages/blender-engine/browser/worker.ts",
+      "sha256": "b187a5746c3db6ad33b8fc3b77a2e269429d9165293d055cd9ccf98a58f44532"
+    },
+    {
+      "path": "packages/blender-engine/package.json",
+      "sha256": "d23b92233ec5a19fd17767e3ab23044fc7d3dd5886b33e546a6ad47b0614353b"
+    },
+    {
+      "path": "packages/blender-engine/vite.release.config.ts",
+      "sha256": "42e8e72d11dcb5d88bd816b18cc747cc45fed132acca6c7b0888ffc20cb6b0d1"
+    },
+    {
+      "path": "packages/blender-engine/wasm/BUNDLE.json",
+      "sha256": "d81795243e1dc7ce2d37f70985f2b273848869bc2dc05700cf46cf1f39ab7ed6"
+    },
+    {
+      "path": "packages/blender-engine/wasm/DEPENDENCY-LICENSES.txt",
+      "sha256": "4085e9336266cf66f061d4d5c962a5929cc96d5732c746b5c13ea05cd104a75b"
+    },
+    {
+      "path": "packages/blender-engine/wasm/blender_browser.data.br",
+      "sha256": "9bb922432659580c938b0124d84c3b95d1f54797e3df0ebe26463bbf0be7284c"
+    },
+    {
+      "path": "packages/blender-engine/wasm/blender_browser.js",
+      "sha256": "2a5d4dbcc90cab571eb16eef9672ef8583e1c0a3638d0b85165d1944d191d9a7"
+    },
+    {
+      "path": "packages/blender-engine/wasm/blender_browser.wasm.br",
+      "sha256": "58c481c0500009276041dfee684ad5e5d392917fb1b569d7192225b395aa7501"
+    }
+  ],
+  "note": "Hashes identify original source bytes before the package identity/build configuration changes in this repository. Runtime and WASM bytes are preserved. Benchmark/oracle tooling remains in the source repository pending separate migration."
+}

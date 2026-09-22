@@ -1,0 +1,617 @@
+.vgai-project-header {
+  position: relative;
+  display: flex;
+  height: var(--vgai-command-bar-height);
+  flex: 0 0 auto;
+  align-items: center;
+  /* THE SHELL BANDS INSET THEIR CONTENT 6, at both ends, and two independent
+     measurements on Blender 5.2 agree to the pixel: the app mark's ink starts
+     at CSS 6.0 in `topbar.png`, and the first mouse hint's glyph starts at CSS
+     6.0 in `modeling.png`'s status bar — the band at the other end of the same
+     window. The trailing edge is the same number from the other side: the
+     ViewLayer selector's outer border sits at CSS 1722.75 of 1728, so 5.25.
+     `space-4` (8) put our right cluster 2.75 too far in from an edge a person
+     throws the pointer at; `space-3` is 6. */
+  padding: 0 var(--vgai-space-3);
+  color: var(--vgai-content-primary);
+  /* THE SHELL, not chrome. The top bar is the window's own outermost band —
+     measured in Blender 5.2 it is #171717, the same value as the status bar
+     at the other end of the window, while an AREA header (which our document
+     toolbar already matches) is #343434. `surface-chrome` painted it #1c1c1c
+     under the Blender skin, one step too light, which cost the bar its job of
+     framing everything between the two shell bands. */
+  background: var(--vgai-surface-shell);
+  /* The seam under the shell band is an AREA seam, not a widget outline, so
+     it takes `boundary.area` — measured in Blender 5.2 as a DARK groove
+     (#151515) where ours drew a light #3c3c3c hairline, i.e. the inversion
+     that made the window read as bright grout between tiles. It keeps the
+     hairline WIDTH: `modeling.png` y 48..52 is 5 device px (2.5 CSS) of
+     groove against a #171717 top bar two levels off it, so there is nothing
+     there to cut — only an interior area-to-area seam is widened (see
+     `workspace-dock.css`'s sash). */
+  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-boundary-area);
+  font-size: var(--vgai-font-base);
+  pointer-events: auto;
+  user-select: none;
+  box-sizing: border-box;
+}
+.vgai-project-header-left {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  /* The column spans the band so the tab strip can take the plate geometry
+     measured above (top at 2, height 22) while every other child keeps the
+     20px control height it had when the column was content-sized. */
+  align-self: stretch;
+  align-items: center;
+}
+/* THE BAND'S LEADING GLYPH — Blender's app-mark slot, transcribed.
+   Measured on `topbar.png` at native 2x: the mark's INK runs device x 12..43
+   (CSS 6.0..21.5 — 16.0 wide, 13.0 tall), i.e. it starts at the band's own
+   6px inset with NO button padding in front of it, and the first menu word's
+   ink follows at CSS 32.0. The whole-frame read's "32 CSS px app mark at
+   inset 6.0 … menu words at 60" was that 32-DEVICE-px width read as CSS; the
+   frame says 16 and 32.
+
+   So: no padding, no pill, no chevron, and the glyph left-aligned in its box
+   so its ink begins at the inset instead of one padding-width inside it.
+   `.vgai-menu-trigger`'s 8px inline padding is what put our leading ink at
+   14.5.
+
+   TWO CLASSES, not one, and the second is load-bearing: `.vgai-menu-trigger`
+   in theme.css declares `padding: 0 var(--vgai-space-4)` at the SAME
+   specificity and lands LATER in the cascade than this sheet, so the
+   single-class version of this rule lost silently — measured, not reasoned:
+   the glyph stayed at x 14.0 with `padding: 0` resolving correctly on that
+   very element. Same failure the tab-strip divider hit (PR #7341). */
+.vgai-menu-trigger.vgai-project-trigger {
+  position: relative;
+  display: flex;
+  /* 14, not 16: the glyph's own svg is 1.25em wide (17.5 at this skin's 14px
+     icon rung) and letterboxes its square viewBox to a 14x14 drawing, so a
+     16px box would centre a 14px ink and start it at 7.0. At 14 the ink's
+     left edge IS the box's, i.e. the band's 6.0 inset — measured, not
+     reasoned. */
+  width: 14px;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0;
+  overflow: visible;
+  white-space: nowrap;
+}
+/* IDENTITY'S READABLE HOME (see ProjectHeader.tsx): the glyph's menu opens on
+   the project's own name, the row Blender keeps in the OS title bar. */
+.vgai-project-menu-name {
+  display: block;
+  max-width: 320px;
+  padding: var(--vgai-space-3) var(--vgai-space-4) var(--vgai-space-1);
+}
+
+/* THE ROW OF WORDS IS ONE INK, and it is the bar's loudest. Measured on
+   Blender 5.2's `topbar.png` at native 2x: the app mark and every menu word —
+   File, Edit, Render, Window, Help — plateau at #d8d8d8 (216), while the
+   Scene and ViewLayer field labels at the other end of the same bar plateau
+   at #e5e5e5 (229) and the INACTIVE workspace tab at #979797 (151). Three
+   levels, and the ordering is what matters: menu words sit ABOVE the palette's
+   `content.muted` (#c2c2c2 / 194, which is measured as the OUTLINER ROW's ink
+   — theme.css), not level with it.
+
+   THE 216 HAS A HOME NOW. It was recorded here as a homeless measured ink and
+   an override to `content.primary` stood in for it; the palette inventory
+   settled the member (`content.menu`), and the word rule moved to
+   `.vgai-menu-trigger` itself in theme.css — which is where the split lived,
+   because the area header's words inherited the base ink and only this end
+   was overridden. Nothing here paints a menu word any more.
+
+   WHAT STAYS: the trailing GHOST BUTTONS, which are not menu words. Blender's
+   far end of the top bar carries the Scene and ViewLayer field labels at
+   #e5e5e5 (229), and `content.primary` is that ink. */
+.vgai-project-header-right .vgai-btn[data-variant="ghost"] {
+  color: var(--vgai-content-primary);
+}
+
+/* NOTHING IN BLENDER'S TOP BAR IS BOLD. The project name rendered at
+   `variant="label"`'s weight 600 — the single heaviest text in the window —
+   where Blender's heaviest top-bar text is its ACTIVE workspace tab at
+   regular weight and 255 ink. Same correction, and the same reason, as the
+   Properties panel bands (weight 600 -> 400, PR #7241: cap height was already
+   right and the WEIGHT was the whole difference). The variant keeps its size
+   rung; only the weight is overridden, and only here. Scoped to the whole
+   leading cluster rather than the project trigger alone: the name itself is
+   a glyph now, and the next label that lands in this band must not reopen
+   the defect. */
+.vgai-project-header-left .vgai-text[data-variant="label"] {
+  font-weight: 400;
+}
+.vgai-project-app-menus,
+.vgai-project-transport {
+  flex: 0 0 auto;
+}
+.vgai-project-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 190px;
+  margin-top: var(--vgai-space-1);
+}
+.vgai-project-path {
+  display: block;
+  max-width: 320px;
+  padding: var(--vgai-space-2) var(--vgai-space-4);
+}
+.vgai-project-versions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--vgai-space-2) var(--vgai-space-6);
+  padding: var(--vgai-space-3) var(--vgai-space-4) var(--vgai-space-4);
+  color: var(--vgai-content-dim);
+  font-size: var(--vgai-font-sm);
+}
+.vgai-project-header-right {
+  min-width: 0;
+  flex: 1;
+  gap: var(--vgai-space-2);
+}
+
+/* A narrow editor is still a full editor. Keep menu and transport controls
+   at their normal size, giving them rows instead of overlapping columns. */
+@media (max-width: 680px) {
+  .vgai-project-header {
+    height: auto;
+    min-height: var(--vgai-command-bar-height);
+    flex-wrap: wrap;
+    gap: var(--vgai-space-2) var(--vgai-space-4);
+    padding-block: 4px;
+  }
+  .vgai-project-header-left {
+    flex: 1 1 100%;
+  }
+  /* The cluster used to take `flex: 1; justify-content: space-between` here,
+     spreading the glyph, the switcher and the menu words across the full row.
+     It was written before the WORKSPACE TAB STRIP shared that row, and a
+     growable-and-shrinkable cluster beside the strip is exactly the squeeze
+     the rule below this media block exists to stop — so the cluster is
+     content-sized at every width now and the strip takes what is left. */
+  .vgai-project-header-right {
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+  }
+}
+
+/* Runtime telemetry is one compact header instrument: instantaneous audio
+   magnitude uses discrete VU segments, while performance uses a historical
+   line. Shape carries the distinction even without semantic color. */
+.vgai-header-telemetry {
+  min-width: 0;
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+.vgai-header-telemetry-button.vgai-btn {
+  min-width: 0;
+  /* THE LITERAL THAT OUTRANKED THE MATERIAL. A hard 28px made the telemetry
+     capsule the only member of the top bar that is not control height, so it
+     overhung a 26px bar by 2px and the right cluster read as loose islands
+     instead of one row. Every other control in this bar takes the skin's
+     compact height (Blender's skin sets all three to 20). */
+  height: var(--vgai-control-compact-height);
+  gap: var(--vgai-space-2);
+  padding-inline: var(--vgai-space-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.vgai-header-audio {
+  position: relative;
+}
+
+.vgai-audio-vu {
+  display: flex;
+  width: 34px;
+  height: 12px;
+  align-items: stretch;
+  gap: var(--vgai-space-1);
+}
+
+.vgai-audio-vu > i {
+  width: 2px;
+  flex: 1 1 0;
+  border-radius: 1px;
+  background: var(--vgai-boundary-strong);
+}
+
+.vgai-header-audio[data-available="true"] .vgai-audio-vu > i[data-filled="true"] {
+  background: var(--vgai-accent);
+}
+
+.vgai-header-audio[data-muted="true"] .vgai-audio-vu > i[data-filled="true"] {
+  background: var(--vgai-content-muted);
+}
+
+.vgai-header-performance {
+  border-left: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+}
+
+.vgai-header-performance svg {
+  display: block;
+  overflow: visible;
+}
+
+.vgai-performance-graph {
+  border-radius: var(--vgai-radius-sm);
+  background: color-mix(in srgb, var(--vgai-surface-panel) 72%, transparent);
+}
+
+.vgai-performance-budget {
+  stroke: var(--vgai-boundary-strong);
+  stroke-dasharray: 2 2;
+  stroke-width: 1;
+}
+
+.vgai-performance-sparkline {
+  fill: none;
+  stroke: var(--vgai-accent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.vgai-header-performance[data-performance-tone="warning"] .vgai-performance-sparkline,
+.vgai-header-performance[data-performance-tone="warning"] .vgai-header-fps {
+  color: var(--vgai-warn);
+  stroke: var(--vgai-warn);
+}
+
+.vgai-header-performance[data-performance-tone="danger"] .vgai-performance-sparkline,
+.vgai-header-performance[data-performance-tone="danger"] .vgai-header-fps {
+  color: var(--vgai-danger);
+  stroke: var(--vgai-danger);
+}
+
+.vgai-performance-readout {
+  display: grid;
+  min-width: 48px;
+  line-height: 1.05;
+  text-align: right;
+}
+
+.vgai-header-fps {
+  color: var(--vgai-content-primary);
+  font-family: var(--vgai-font-mono);
+  font-size: var(--vgai-font-sm);
+  font-weight: 600;
+}
+
+.vgai-header-frame-ms {
+  color: var(--vgai-content-dim);
+  font-family: var(--vgai-font-mono);
+  font-size: var(--vgai-font-xs);
+}
+
+@media (max-width: 1120px) {
+  .vgai-header-performance svg,
+  .vgai-audio-vu {
+    display: none;
+  }
+}
+/* Cluster wrappers (P6-U3): pure layout in bars chrome — the left wrapper
+   reproduces .vgai-project-header-left's stretch flex row exactly (no
+   align-items, so children keep stretching to the tallest sibling), the
+   right one reproduces the parent Inline's centered row + space-2 gap the
+   buttons used to get from .vgai-project-header-right directly. They exist
+   so islands chrome has a content-sized element to turn into a glass
+   island (the flex:1 side COLUMNS must keep their width — W5's transport
+   centering depends on the equal-flex geometry). */
+.vgai-project-header-cluster {
+  display: flex;
+  min-width: 0;
+}
+/* THE MENU WORDS KEEP THEIR OWN WIDTH, AND THE TAB STRIP SCROLLS — Blender's
+   own top bar, transcribed.
+
+   MEASURED on the model editor release at 1280 CSS px: `Help` ran x 258..298
+   and the `Model` workspace tab x 268..320, a 30px overlap; at 1728 the same
+   pair had a 17px gap. The cause is here and not in the strip: this cluster
+   took flex's default `0 1 auto`, so the leading column's squeeze SHRANK ITS
+   BOX while `.vgai-project-app-menus` inside it kept `flex: 0 0 auto` and
+   simply overflowed — the tabs were then laid out against a box narrower than
+   the words it contained.
+
+   Blender never squeezes its menus: its top bar keeps File…Help at full width
+   and SCROLLS the workspace tab row when the window is too narrow for both.
+   So the cluster never shrinks (here) and the strip takes the remainder and
+   scrolls (`.vgai-workspace-tabs` below). No JS, no measurement, no state —
+   two flex declarations and the browser's own overflow. */
+.vgai-project-header-left .vgai-project-header-cluster {
+  flex: 0 0 auto;
+}
+.vgai-project-header-right .vgai-project-header-cluster {
+  align-items: center;
+  gap: var(--vgai-space-2);
+}
+/* P6-U3 — islands chrome: no header BAR. The row keeps its
+   --vgai-command-bar-height slot (the dock geometry below depends on it)
+   but loses fill/border and all pointer
+   handling; the three clusters become 38px glass islands hung 8px from the
+   top edge (the P6 reference toolbar geometry — they overhang the 36px row
+   into the workspace, which is why the row is lifted to the sticky tier
+   like the bottom bar). Island material arrives via the shared
+   .vgai-chrome-island rule in theme.css. */
+[data-vgai-chrome="islands"] .vgai-project-header {
+  z-index: var(--vgai-z-sticky);
+  align-items: flex-start;
+  padding-top: var(--vgai-space-4);
+  background: transparent;
+  border-bottom-color: transparent;
+  pointer-events: none;
+}
+/* FULL-BLEED (owner: "black bar at the top in glass FLOAT mode"): the
+   transparent row must not consume layout height with nothing behind it —
+   it OVERLAYS the workspace, so the scene runs edge-to-edge underneath the
+   islands (the macOS model: content under floating chrome). The shell
+   column reflows the dock to the top. Scoped to a BACKDROP document
+   (U5 regression fix, spec 69 case D): in a tiled arrangement under glass the
+   grid columns own the full workspace height, and an absolute header overlay
+   buried their top tab strips — a drag on the Inspector tab pressed the
+   header's Export island instead. Tiles + islands keeps the in-flow
+   transparent row. */
+[data-vgai-chrome="islands"]
+  .vgai-editor-shell:has(.vgai-workspace-dock[data-vgai-backdrop])
+  .vgai-project-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+[data-vgai-chrome="islands"] .vgai-project-header .vgai-chrome-island {
+  height: 38px;
+  align-items: center;
+  padding: 0 var(--vgai-space-3);
+}
+/* The project dropdown anchors to the left flex COLUMN (a sibling of the
+   island, so the island's backdrop-filter never becomes its backdrop
+   root); the column sits under the row's pointer-events:none and must
+   restore its own. */
+[data-vgai-chrome="islands"] .vgai-project-menu {
+  pointer-events: auto;
+}
+
+/* Play-mode chrome dissolve (play-transition.ts): runtime telemetry is the
+   one persistent part of the command header. The row still collapses so the
+   game is full-bleed; its authoring/transport/account clusters dissolve, while
+   the telemetry escapes as a fixed compact instrument. Edge reveal restores
+   the real header and returns telemetry to its ordinary trailing position. */
+.vgai-project-header {
+  transition: margin-top var(--vgai-duration-slow) var(--vgai-ease-standard);
+}
+[data-vgai-play-chrome="hidden"] .vgai-project-header {
+  margin-top: calc(-1 * var(--vgai-command-bar-height));
+  background: transparent;
+  border-bottom-color: transparent;
+  pointer-events: none;
+  transition: margin-top var(--vgai-duration-base) var(--vgai-ease-standard);
+}
+[data-vgai-play-chrome="hidden"] .vgai-project-header-left,
+[data-vgai-play-chrome="hidden"] .vgai-project-transport,
+[data-vgai-play-chrome="hidden"] .vgai-project-header-right > :not(.vgai-header-telemetry) {
+  transform: translateY(calc(-100% - 12px));
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    transform var(--vgai-duration-base) var(--vgai-ease-standard),
+    opacity var(--vgai-duration-base) var(--vgai-ease-standard) 100ms,
+    visibility 0s linear 280ms;
+}
+[data-vgai-play-chrome="hidden"] .vgai-header-telemetry {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: var(--vgai-z-sticky);
+  height: 32px;
+  padding: 0 var(--vgai-space-2);
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+  border-radius: var(--vgai-radius-lg);
+  background: var(--vgai-surface-chrome);
+  box-shadow: var(--vgai-shadow-sm);
+  pointer-events: auto;
+}
+[data-vgai-play-chrome="hidden"][data-vgai-play-revealed] .vgai-project-header {
+  margin-top: 0;
+  /* Restores the resting paint above — keep the two in step. */
+  background: var(--vgai-surface-shell);
+  border-bottom-color: var(--vgai-boundary-default);
+  pointer-events: auto;
+  transition: margin-top var(--vgai-duration-base) var(--vgai-ease-standard);
+}
+[data-vgai-play-chrome="hidden"][data-vgai-play-revealed] .vgai-project-header-left,
+[data-vgai-play-chrome="hidden"][data-vgai-play-revealed] .vgai-project-transport,
+[data-vgai-play-chrome="hidden"][data-vgai-play-revealed]
+  .vgai-project-header-right
+  > :not(.vgai-header-telemetry) {
+  transform: none;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    transform var(--vgai-duration-base) var(--vgai-ease-standard),
+    opacity var(--vgai-duration-fast) var(--vgai-ease-standard),
+    visibility 0s;
+}
+[data-vgai-play-chrome="hidden"][data-vgai-play-revealed] .vgai-header-telemetry {
+  position: static;
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .vgai-project-header,
+  [data-vgai-play-chrome="hidden"] .vgai-project-header,
+  [data-vgai-play-chrome="hidden"] .vgai-project-header-left,
+  [data-vgai-play-chrome="hidden"] .vgai-project-transport,
+  [data-vgai-play-chrome="hidden"] .vgai-project-header-right > * {
+    transition: none;
+  }
+}
+
+/* The workspace tab strip (Blender's top bar) — a region a style turns on
+   (`workspaceTabs`); the active tab wears the panel surface and joins the
+   area below it, the rest sit quiet in the bar. */
+/* The rule between the menu words and the workspace tabs. Blender sets it 16px
+   past `Help`'s ink — 8px of the button's own padding plus 8 — and the tabs
+   begin 8px after it. */
+/* TWO CLASSES, not one, and the second is load-bearing: `.vgai-divider`'s own
+   `background` in theme.css is the same specificity and lands LATER in the
+   cascade than this sheet, so a single-class rule here lost silently (driven
+   and measured: the token resolved to #2e2e2e on this very element while the
+   computed background stayed 60). */
+.vgai-divider.vgai-project-menu-rule {
+  align-self: center;
+  margin-inline: var(--vgai-space-4);
+  /* A DIVIDER'S RULE IS NOT A WIDGET'S OUTLINE. `.vgai-divider` paints
+     `boundary.default`, and in this bar that is LIGHTER than the tab strip it
+     borders. Measured on `topbar.png` at native 2x: the rule sits at x
+     488..489, y 6..45 — 2 device px wide, 40 tall, a flat #2e2e2e (46) with no
+     AA ramp on either side, between the bar's 23 and the strip's 28, where
+     ours drew 60. `boundary.divider` is optional and falls back to
+     `boundary.default` in the emitter, so every other skin is bit-identical;
+     this is the one site that reads it, because it is the one divider the
+     reference frames photograph (see theme.ts). */
+  background: var(--vgai-boundary-divider);
+}
+.vgai-workspace-tabs {
+  display: flex;
+  /* Blender's tab strip sits on a band one step lighter than the shell bar it
+     is embedded in (#1c1c1c over #171717), which is what separates the
+     workspace region from the window frame. */
+  background: var(--vgai-surface-chrome);
+  /* THE PLATE IS 22 AND THE ACTIVE TAB IS INSET 1, the residue the hairline
+     measurement below recorded and did not take. Measured on `topbar.png` at
+     native 2x, reading down columns through the strip: the plate fills device
+     rows 4..47 — 44 rows, 22 CSS, top at CSS 2.0 — and the ACTIVE tab's 47
+     slab fills rows 6..45, 40 rows / 20 CSS, inset 2 device px (1 CSS) at top
+     AND bottom. Ours was a 20 CSS plate with the slab flush inside it, which
+     is why the emboss hairline under the strip sat 1 CSS px high in the bar
+     and the active tab touched the plate's edges where Blender leaves a line
+     of plate showing above and below it.
+
+     The height is explicit (not `stretch`) because the left COLUMN is content
+     -height: it holds 20px controls, so stretching gave the strip 20. The
+     column keeps its own children centered (`align-items: center` below) and
+     this one item is pulled to the band's top with the measured 2px of bar
+     above it. */
+  height: 22px;
+  align-items: center;
+  align-self: flex-start;
+  /* `space-1` is the grid's 2, and the measured 2 device rows of bar above
+     Blender's plate; the skin's own grid owns it in any other skin. */
+  margin-top: var(--vgai-space-1);
+  /* THE STRIP TAKES WHAT IS LEFT AND SCROLLS — the other half of the rule at
+     `.vgai-project-header-left .vgai-project-header-cluster` above, and
+     Blender's own answer to a top bar too narrow for its menus AND its
+     workspaces: the menu row keeps full width, the tab row scrolls.
+     `flex: 1 1 0` (not `auto`) so the strip's own content width never pushes
+     the row wider than the column, and `min-width: 0` so it may actually
+     shrink to the remainder — a flex item's `auto` minimum is its content.
+     Vertical wheel over an element that can only scroll horizontally scrolls
+     it horizontally, which is the whole interaction; there is no handler. */
+  flex: 1 1 0;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* The scrollbar is suppressed BELOW, at two classes — see that rule. */
+  /* THE HAIRLINE UNDER THE PLATE, and it is the EMBOSS — no new member.
+     Measured on `topbar.png` at native 2x, reading down a column through the
+     strip (x 560, 1000, 2100 all agree): the strip's plate fills device rows
+     4..47 at 28, then rows 48..49 are a flat 19 with no AA ramp, then the
+     bar's own 23 at 50 and the area seam's 21 at 51. Two device rows of one
+     value is 1 CSS px.
+
+     WHICH MEMBER IS 19? Not `boundary.area` (#151515, 21) and not
+     `boundary.divider` (#2e2e2e, 46) — the two this strip already borders.
+     It is the same line Blender lays under a WIDGET: at x 3000 in the same
+     frame, under a top-bar control on the same 23 backdrop, rows 46..47 read
+     19 as well. So this is `widget.emboss`'s own role — the 1 CSS px
+     translucent black under a raised thing — on a fifth backdrop, and the
+     rule that draws it already exists.
+
+     THE RESIDUE, stated rather than fitted away: our declared 0.142 (36/255)
+     composites over 23 to 20, one level lighter than Blender's 19. Adding
+     this backdrop to the four solved on `EditorTheme.color.widget.emboss`
+     makes the alpha system EMPTY — 23→19 needs α > 0.152 while 52→45 needs
+     α ≤ 0.1442 — so no single byte serves all five and the declared value
+     stays. This is the same +1 that docblock already names for a widget
+     sitting on a panel band.
+
+     A SECOND RESIDUE this measurement found and did NOT take: Blender's
+     strip plate is 44 device rows (22 CSS) with the active tab's 47 slab
+     INSET 2 device px at top and bottom; ours is 40 rows (20 CSS) with the
+     slab flush. The hairline is correct relative to its own plate in both,
+     so ours sits 1 CSS px higher in the bar than Blender's. That is the
+     plate's geometry, not this rule's. */
+  box-shadow: var(--vgai-widget-emboss-shadow);
+}
+/* NO SCROLLBAR, the way Blender's tab row has none: the strip is 22px of plate
+   and a bar across it eats the tabs.
+
+   THREE CLASSES, and the count is ARITHMETIC, not superstition. theme.css's
+   scrollbar policy is
+   `.vgai-editor-theme :where(*):not([data-vgai-world-surface], [data-vgai-world-surface] *)`:
+   `:where()` contributes nothing, but `:not()` takes the specificity of its most
+   specific ARGUMENT — `[data-vgai-world-surface] *` is (0,1,0) — so the whole
+   selector is (0,2,0), and it lands LATER in the cascade than this sheet. One
+   class lost; two classes TIED and lost; three wins.
+
+   MEASURED at each step, never reasoned: with one class and with two, the strip
+   computed `scrollbar-width: thin` and its `clientHeight` was 11 against a 22px
+   box — an 11px bar inside the plate, which re-centred the 20px tabs 5.5px too
+   high (tab y -3 at 1280 against 2.5 at 1728, where the row does not overflow
+   and no bar appears at all).
+
+   BOTH SPELLINGS: the standard property is what Chrome and Firefox honour, and
+   the WebKit pseudo-element is for engines that have only it — Chrome ignores
+   the pseudo-element once `scrollbar-width` is a keyword, which is why the
+   pseudo-element alone was never going to be enough. */
+.vgai-project-header .vgai-project-header-left .vgai-workspace-tabs {
+  scrollbar-width: none;
+}
+.vgai-project-header .vgai-project-header-left .vgai-workspace-tabs::-webkit-scrollbar {
+  display: none;
+}
+.vgai-workspace-tab {
+  appearance: none;
+  border: 0;
+  margin: 0;
+  /* A TAB IS ITS OWN WIDTH. The strip scrolls now (above), and a shrinkable
+     tab would compress the row instead of letting it overflow — which is the
+     squeeze one level in, with the same reading: a workspace's slab is as wide
+     as its word. */
+  flex: 0 0 auto;
+  /* Blender's tab labels sit 9.5px in from each slab edge (measured: the
+     `Modeling` slab is 65px wide around a 46px word). */
+  height: var(--vgai-control-compact-height);
+  padding: 0 var(--vgai-space-5);
+  background: transparent;
+  /* An UNSELECTED workspace is quiet. Measured: Blender's inactive tab ink is
+     #979797 — the palette's `content/dim` (#969696) to within a channel step —
+     against #d8d8d8 for the menu words beside them. `content/muted` (#c2c2c2)
+     made every workspace read as loud as the menus. */
+  color: var(--vgai-content-dim);
+  font: inherit;
+  font-size: var(--vgai-font-base);
+  white-space: nowrap;
+  border-radius: var(--vgai-radius-sm) var(--vgai-radius-sm) 0 0;
+  cursor: default;
+}
+.vgai-workspace-tab:hover {
+  color: var(--vgai-content-primary);
+}
+.vgai-workspace-tab[aria-selected="true"] {
+  background: var(--vgai-surface-panel);
+  color: var(--vgai-content-primary);
+}

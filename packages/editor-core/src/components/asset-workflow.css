@@ -1,0 +1,731 @@
+.vgai-asset-library-panel {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* §2.31 transparent interiors: full-body/section fills in this file are gone —
+   the hosting dock surface carries the themed fill; hairline borders and
+   spacing carry the structure. Hover/selection/badge fills stay. */
+.vgai-asset-library-navigator {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  color: var(--vgai-text-1);
+}
+
+.vgai-asset-library-navigator__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: var(--vgai-space-3);
+  border-bottom: 1px solid var(--vgai-structural-divider);
+}
+
+.vgai-asset-library-navigator__search-row {
+  display: flex;
+  gap: var(--vgai-space-2);
+}
+
+.vgai-asset-library-navigator__search-row > .vgai-input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.vgai-asset-library-navigator__filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--vgai-space-2);
+}
+
+.vgai-asset-library-navigator__filters .vgai-select {
+  width: 100%;
+  min-width: 0;
+}
+
+.vgai-asset-library-navigator__status {
+  color: var(--vgai-text-3);
+  font-size: var(--vgai-font-sm);
+}
+
+.vgai-asset-import-jobs {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--vgai-space-2);
+  color: var(--vgai-text-2);
+  font-size: var(--vgai-font-sm);
+}
+
+.vgai-asset-import-jobs > span {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--vgai-space-2);
+  padding: var(--vgai-space-1) var(--vgai-space-2);
+  border: 1px solid var(--vgai-border-1);
+  border-radius: var(--vgai-radius-sm, 3px);
+  background: var(--vgai-bg-1);
+}
+
+.vgai-asset-import-jobs [data-status="failed"],
+.vgai-asset-import-error {
+  color: var(--vgai-danger, var(--vgai-text-1));
+}
+
+.vgai-asset-library-navigator__results {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--vgai-space-4);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(66px, 1fr));
+  grid-auto-rows: min-content;
+  align-content: start;
+  gap: var(--vgai-space-3);
+  /* §2.31 P2 amendment: result rows are text — local frost layer
+     (transparent/none for non-frost themes). */
+  background: var(--vgai-content-frost-bg, transparent);
+  backdrop-filter: var(--vgai-content-frost-filter, none);
+  -webkit-backdrop-filter: var(--vgai-content-frost-filter, none);
+}
+
+.vgai-asset-library-navigator__filter-drawer {
+  min-height: 0;
+  max-height: 58%;
+  overflow: auto;
+  border-bottom: 1px solid var(--vgai-structural-divider);
+}
+
+.vgai-asset-library-navigator__filter-heading {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 7px;
+  border-bottom: 1px solid var(--vgai-structural-divider);
+  /* Sticky over scrolled drawer content (§2.31 P2): translucent token +
+     sticky blur under treatment themes (content scrolls under frosted
+     glass), opaque stack under treatment-less themes — both emitted by
+     theme.ts (stickySurfaceValue). */
+  background: var(--vgai-surface-sticky);
+  backdrop-filter: var(--vgai-surface-sticky-backdrop-filter, none);
+  -webkit-backdrop-filter: var(--vgai-surface-sticky-backdrop-filter, none);
+  color: var(--vgai-text-2);
+  font-size: var(--vgai-font-sm);
+  font-weight: 650;
+}
+
+.vgai-asset-library-navigator__source-filters {
+  display: block;
+  overflow: visible;
+  padding: var(--vgai-space-5);
+  border: 0;
+}
+
+.vgai-asset-library-navigator__save-search {
+  width: calc(100% - 12px);
+  margin: var(--vgai-space-3) var(--vgai-space-3) 0;
+}
+
+.vgai-asset-library-card {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border: 0;
+  border-radius: var(--vgai-radius-sm, 3px);
+  background: transparent;
+  color: var(--vgai-text-1);
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.vgai-asset-library-card .vgai-project-asset-entry__preview {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--vgai-radius-sm, 3px);
+  pointer-events: none;
+  position: relative;
+}
+
+.vgai-asset-library-card .vgai-project-asset-entry__preview > img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.vgai-asset-library-card__name,
+.vgai-asset-library-card__meta {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vgai-asset-library-card__name {
+  min-height: 26px;
+  /* Same reason as `.vgai-asset-card__name`: a catalog name can be one long
+     unbroken token. */
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: var(--vgai-font-sm);
+  line-height: 13px;
+  font-weight: 550;
+}
+
+.vgai-asset-library-card__meta {
+  color: var(--vgai-text-3);
+  font-size: var(--vgai-font-xs);
+  white-space: nowrap;
+}
+
+.vgai-asset-library-navigator__load-more {
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+
+.vgai-project-assets-toolbar {
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--vgai-structural-divider);
+}
+
+.vgai-project-assets-toolbar__row {
+  width: 100%;
+  min-width: 0;
+  min-height: 28px;
+  box-sizing: border-box;
+  gap: var(--vgai-space-2);
+  padding: var(--vgai-space-1) var(--vgai-space-2);
+  border: 0;
+  background: transparent;
+}
+
+.vgai-project-assets-toolbar__row + .vgai-project-assets-toolbar__row {
+  border-top: 1px solid var(--vgai-structural-divider);
+}
+
+.vgai-project-assets-toolbar__select {
+  min-width: 0;
+  flex: 1 1 64px;
+  width: 64px;
+}
+
+.vgai-content-filter-chip {
+  flex: 0 0 auto;
+  border: 1px solid var(--vgai-boundary-default);
+  border-radius: var(--vgai-radius-full);
+  padding-inline: 8px;
+  color: var(--vgai-text-2);
+}
+
+.vgai-content-filter-inline {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.vgai-component-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vgai-component-thumbnail-fallback {
+  display: contents;
+}
+
+.vgai-project-assets-toolbar__more {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.vgai-project-assets-toolbar__menu {
+  position: absolute;
+  z-index: var(--vgai-z-dropdown);
+  top: calc(100% + 3px);
+  right: 0;
+  min-width: 170px;
+}
+
+.vgai-project-assets-results {
+  box-shadow: inset 0 1px 0 var(--vgai-border-1);
+  /* §2.31 P2 amendment: the results grid carries names/meta text — local
+     frost layer (transparent/none for non-frost themes). */
+  background: var(--vgai-content-frost-bg, transparent);
+  backdrop-filter: var(--vgai-content-frost-filter, none);
+  -webkit-backdrop-filter: var(--vgai-content-frost-filter, none);
+}
+
+.vgai-content-result-section {
+  display: contents;
+}
+
+.vgai-content-section-heading {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 18px;
+  gap: 7px;
+  margin-top: var(--vgai-space-1);
+  color: var(--vgai-text-3);
+  font-size: var(--vgai-font-xs);
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  line-height: var(--vgai-leading-tight);
+  text-transform: uppercase;
+}
+
+.vgai-content-section-heading::after {
+  content: "";
+  min-width: 8px;
+  flex: 1 1 auto;
+  border-top: 1px solid var(--vgai-structural-divider);
+}
+
+.vgai-content-section-heading[data-level="section"] {
+  min-height: 22px;
+  margin-top: var(--vgai-space-3);
+  color: var(--vgai-text-2);
+  font-size: var(--vgai-font-sm);
+}
+
+.vgai-content-section-heading[data-level="category"] {
+  padding-inline-start: 2px;
+}
+
+.vgai-project-asset-entry {
+  box-sizing: border-box;
+  border: 0;
+  background: transparent;
+}
+
+.vgai-project-asset-entry:hover {
+  background: transparent;
+}
+
+.vgai-project-asset-entry[data-selected="true"] {
+  /* The canonical selected treatment: the same fill every menu and list row
+     uses (.vgai-selectable already supplies it — this rule once overrode it
+     back to transparent in favor of a preview border ring, which read as an
+     off-style border; owner, 2026-08-07). */
+  background: var(--vgai-selection-bg);
+  box-shadow: none;
+}
+
+.vgai-project-asset-entry__preview {
+  box-sizing: border-box;
+  border: 1px solid var(--vgai-border-1);
+  background:
+    linear-gradient(45deg, rgb(255 255 255 / 2%) 25%, transparent 25%) 0 0 / 12px 12px,
+    linear-gradient(-45deg, rgb(255 255 255 / 2%) 25%, transparent 25%) 0 6px / 12px 12px,
+    var(--vgai-bg-inset);
+  transition:
+    border-color 90ms var(--vgai-ease-standard),
+    box-shadow 90ms var(--vgai-ease-standard);
+}
+
+.vgai-project-asset-entry:hover .vgai-project-asset-entry__preview {
+  border-color: var(--vgai-boundary-strong);
+}
+
+.vgai-project-asset-entry[data-selected="true"] .vgai-project-asset-entry__preview {
+  border-color: var(--vgai-border-1);
+}
+
+.vgai-project-asset-entry__kind {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--vgai-boundary-default);
+  border-radius: var(--vgai-radius-sm);
+  background: var(--vgai-surface-overlay);
+  box-shadow: var(--vgai-shadow-sm);
+}
+
+.vgai-project-asset-entry[data-view="list"] {
+  border-color: transparent;
+  background: transparent;
+}
+
+.vgai-project-asset-entry[data-view="list"] .vgai-project-asset-entry__preview {
+  border: 0;
+  background: transparent;
+}
+
+/* Folder composite previews (grid tiles). The composite fills the standard
+   preview box; the box's inset checkerboard shows through the 2px seams. */
+.vgai-folder-preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.vgai-folder-preview__grid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  gap: var(--vgai-space-1);
+  animation: vgai-folder-preview-fade 120ms var(--vgai-ease-out);
+}
+
+.vgai-folder-preview__grid[data-count="1"] {
+  grid-template: 1fr / 1fr;
+}
+
+.vgai-folder-preview__grid[data-count="2"] {
+  grid-template: 1fr / 1fr 1fr;
+}
+
+.vgai-folder-preview__grid[data-count="3"],
+.vgai-folder-preview__grid[data-count="4"] {
+  grid-template: 1fr 1fr / 1fr 1fr;
+}
+
+/* Three items: hero cell spans the left half, two stack on the right. */
+.vgai-folder-preview__grid[data-count="3"] > :first-child {
+  grid-row: span 2;
+}
+
+.vgai-folder-preview__cell {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--vgai-bg-inset);
+}
+
+.vgai-folder-preview__cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Model thumbnails are square renders with a baked backdrop: contain, not crop. */
+.vgai-folder-preview__cell img[data-fit="contain"] {
+  object-fit: contain;
+}
+
+.vgai-folder-preview__chip,
+.vgai-folder-preview__count {
+  position: absolute;
+  bottom: 3px;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 5px;
+  border-radius: var(--vgai-radius-full);
+  background: color-mix(in srgb, var(--vgai-bg-0) 82%, transparent);
+  color: var(--vgai-text-2);
+  font-size: var(--vgai-font-xs);
+  line-height: var(--vgai-leading-tight);
+  pointer-events: none;
+  animation: vgai-folder-preview-fade 120ms var(--vgai-ease-out);
+}
+
+.vgai-folder-preview__chip {
+  left: 3px;
+  padding: var(--vgai-space-1) var(--vgai-space-2);
+  font-size: var(--vgai-font-sm);
+}
+
+.vgai-folder-preview__count {
+  right: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.vgai-folder-preview__fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: vgai-folder-preview-fade 120ms var(--vgai-ease-out);
+}
+
+/* Intentional empty-folder state: dimmed open folder, distinct from loading. */
+.vgai-folder-preview__empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--vgai-text-3);
+  animation: vgai-folder-preview-fade 120ms var(--vgai-ease-out);
+}
+
+.vgai-folder-preview__empty-glyph {
+  font-size: 17px;
+  opacity: 0.7;
+}
+
+.vgai-folder-preview__empty-caption {
+  font-size: var(--vgai-font-xs);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+@keyframes vgai-folder-preview-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.vgai-asset-editor button:focus-visible,
+.vgai-asset-browser button:focus-visible,
+.vgai-asset-editor input:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 2px var(--vgai-accent);
+}
+
+.vgai-asset-card__preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--vgai-radius-sm, 3px);
+  /* Hairline in place of the removed thumbnail backing (§2.31). */
+  box-shadow: inset 0 0 0 1px var(--vgai-border-1);
+}
+
+.vgai-asset-card__fallback {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  padding: var(--vgai-space-1) var(--vgai-space-2);
+  border-radius: var(--vgai-radius-sm);
+  background: color-mix(in srgb, var(--vgai-bg-0) 88%, transparent);
+  color: var(--vgai-text-2);
+  font-size: var(--vgai-font-xs);
+}
+
+.vgai-asset-card__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.vgai-asset-card__name {
+  margin-top: 7px;
+  min-height: 34px;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: var(--vgai-font-md);
+  line-height: 17px;
+  font-weight: 550;
+  /* A downloaded asset's filename has no spaces to break at
+     (`moon_rock_01_LOD0.gltf`), and a clamp cannot clip what never wrapped —
+     the name ran outside its card (runhuman pass 80: "some texts are outside
+     the card"). Break anywhere, and keep the box's own width authoritative. */
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.vgai-asset-card__meta,
+.vgai-asset-card__badges {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin-top: var(--vgai-space-2);
+  color: var(--vgai-text-3);
+  font-size: var(--vgai-font-sm);
+}
+
+.vgai-asset-badge {
+  padding: 1px 5px;
+  border-radius: var(--vgai-radius-full);
+  background: var(--vgai-bg-3);
+  color: var(--vgai-text-2);
+  font-size: var(--vgai-font-sm);
+  white-space: nowrap;
+}
+
+.vgai-asset-facet-title {
+  margin: 12px 0 5px;
+  color: var(--vgai-text-3);
+  font-size: var(--vgai-font-sm);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.vgai-asset-facet-check {
+  display: flex;
+  align-items: center;
+  gap: var(--vgai-space-3);
+  min-height: 28px;
+  color: var(--vgai-text-2);
+  font-size: var(--vgai-font-base);
+}
+
+.vgai-asset-facet-check .vgai-select {
+  min-width: 0;
+  flex: 1;
+}
+
+.vgai-asset-context-menu {
+  position: fixed;
+  min-width: 190px;
+}
+
+.vgai-asset-context-menu .vgai-menu-item {
+  min-height: var(--vgai-control-comfortable-height);
+  justify-content: space-between;
+  gap: var(--vgai-space-6);
+}
+
+.vgai-asset-context-menu kbd {
+  color: var(--vgai-text-3);
+  font: inherit;
+}
+
+.vgai-asset-editor {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  /* The positioning context for the document's own inspector box, which pins
+     to this corner (`AssetEditorShell.tsx`). */
+  position: relative;
+}
+
+.vgai-asset-editor__toolbar {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: var(--vgai-space-3) var(--vgai-space-5);
+  border-bottom: 1px solid var(--vgai-structural-divider);
+}
+.vgai-asset-editor__commands {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+.vgai-asset-editor__toolbar button,
+.vgai-asset-editor__toolbar select {
+  min-height: 26px;
+  border: 1px solid var(--vgai-border-2);
+  border-radius: var(--vgai-radius-sm);
+  background: var(--vgai-bg-3);
+  color: var(--vgai-text-1);
+}
+.vgai-asset-editor__viewport {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  position: relative;
+}
+/* A document whose child owns the whole box and clips itself — a 3D canvas
+   stage, which bleeds past its own edges by design and must not raise
+   scrollbars on the document. */
+.vgai-asset-editor__viewport--fill {
+  overflow: hidden;
+}
+/* Alpha checkerboards belong to visual asset inspection, not React's design
+   canvas. Keep the semantic treatment here so every image preview uses the
+   same quiet dark transparency well. */
+.vgai-asset-transparency-well {
+  background-color: var(--vgai-bg-inset);
+  background-image:
+    linear-gradient(45deg, #2a2a2a 25%, transparent 25%, transparent 75%, #2a2a2a 75%),
+    linear-gradient(45deg, #2a2a2a 25%, transparent 25%, transparent 75%, #2a2a2a 75%);
+  background-position:
+    0 0,
+    8px 8px;
+  background-size: 16px 16px;
+}
+.vgai-object3d-studio-stage {
+  /* Canonical Asset Lab presentation floor: a cool key-light bloom behind
+     the subject, a faint counter-light low in frame, and a restrained edge
+     vignette. The Three canvas is alpha-backed, so the same stage appears in
+     the full Asset Editor document and the inspector's preview section. */
+  background-color: var(--vgai-object3d-stage-base, #1d232b);
+  background-image:
+    radial-gradient(
+      90% 72% at 50% 36%,
+      color-mix(in srgb, var(--vgai-accent) 16%, rgb(122 148 177 / 22%)),
+      transparent 62%
+    ),
+    radial-gradient(70% 42% at 50% 92%, rgb(124 151 181 / 10%), transparent 72%),
+    radial-gradient(140% 112% at 50% 44%, transparent 42%, rgb(0 0 0 / 58%) 100%),
+    linear-gradient(
+      180deg,
+      var(--vgai-object3d-stage-top, color-mix(in srgb, var(--vgai-surface-raised) 82%, #394451)) 0%,
+      var(--vgai-object3d-stage-bottom, color-mix(in srgb, var(--vgai-surface-shell) 76%, #11151b))
+        100%
+    );
+}
+
+/* Inspector previews sit over the authored world, so retain some of that
+   context beneath the studio lighting. The full Asset Lab remains opaque. */
+.vgai-object3d-studio-stage[data-vgai-chromeless="true"] {
+  --vgai-object3d-stage-base: rgb(29 35 43 / 34%);
+  --vgai-object3d-stage-top: rgb(57 68 81 / 40%);
+  --vgai-object3d-stage-bottom: rgb(17 21 27 / 52%);
+}
+
+.vgai-object3d-asset-workspace {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.vgai-behavior-document {
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+.vgai-behavior-document__empty {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  color: var(--vgai-text-2);
+}

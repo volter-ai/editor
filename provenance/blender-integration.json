@@ -1,0 +1,352 @@
+{
+  "repository": "https://github.com/volter-ai/vgai-engine",
+  "revision": "cf9cb8e22dd7ae5709ed0dd8a46dd6f16d1e4945",
+  "files": [
+    {
+      "source": "packages/blender/LICENSE",
+      "path": "packages/editor-blender/LICENSE",
+      "sha256": "c1974213745b1558c6b802f4ffb1e717e1e3c4f8f70154a917f04022aa6dfdb6"
+    },
+    {
+      "source": "packages/blender/contributions/blender-header-menus.tsx",
+      "path": "packages/editor-blender/contributions/blender-header-menus.tsx",
+      "sha256": "28d29c4ad6ba350fee88460579f065a37d4f6ff6c9a82212ac6acc550adea04d"
+    },
+    {
+      "source": "packages/blender/contributions/blender-icon-trace.mjs",
+      "path": "packages/editor-blender/contributions/blender-icon-trace.mjs",
+      "sha256": "1b8c56ff3c4b289836171338831a91c35ddb6b557b60132a0123f721073951d7"
+    },
+    {
+      "source": "packages/blender/contributions/blender-icons.source.mjs",
+      "path": "packages/editor-blender/contributions/blender-icons.source.mjs",
+      "sha256": "485638dced0f4a7335e8353c0444b215666d55c668a1e77b0e9231ac95acd28d"
+    },
+    {
+      "source": "packages/blender/contributions/blender-node-editor.document.tsx",
+      "path": "packages/editor-blender/contributions/blender-node-editor.document.tsx",
+      "sha256": "8f119a26288bee5af561655ee2e870c96b233afd5ffe02f17b603f0f28dc3326"
+    },
+    {
+      "source": "packages/blender/contributions/blender-node-geometry.ts",
+      "path": "packages/editor-blender/contributions/blender-node-geometry.ts",
+      "sha256": "f5ebc7c7a8aeacd4cac2c1569cf9a24e42f68dff348b96a46e5785b63d72ea83"
+    },
+    {
+      "source": "packages/blender/contributions/blender-node-panels.source.mjs",
+      "path": "packages/editor-blender/contributions/blender-node-panels.source.mjs",
+      "sha256": "01ca63a9aaec1e23c7920c743b98b836b3ada00ea1fd11c241a9d17ab67df734"
+    },
+    {
+      "source": "packages/blender/contributions/blender-outliner-authoring.ts",
+      "path": "packages/editor-blender/contributions/blender-outliner-authoring.ts",
+      "sha256": "383bd598f3b5187e6c90bd430e6595d2b5a6717b18e1145b1e96eb6510011022"
+    },
+    {
+      "source": "packages/blender/contributions/blender-outliner-model.ts",
+      "path": "packages/editor-blender/contributions/blender-outliner-model.ts",
+      "sha256": "70062de0670b538b8d6504a929594b718e51b9b59b4fabb8346eff2922e4b2ae"
+    },
+    {
+      "source": "packages/blender/contributions/blender-palette.source.mjs",
+      "path": "packages/editor-blender/contributions/blender-palette.source.mjs",
+      "sha256": "815f4fb7bb94743890d5d59fcee01de4252b0c322a17c2c14fe1938a4c7febc8"
+    },
+    {
+      "source": "packages/blender/contributions/blender-properties-model.ts",
+      "path": "packages/editor-blender/contributions/blender-properties-model.ts",
+      "sha256": "212234b935ce04a906752c2aeb7499405f5196e5df99eb5f005d81e0d96f8c89"
+    },
+    {
+      "source": "packages/blender/contributions/blender-properties-tab.tsx",
+      "path": "packages/editor-blender/contributions/blender-properties-tab.tsx",
+      "sha256": "004745ef4aed9c68f4129791d07f22d961a14d9db71dd6538de05e1e2dab3076"
+    },
+    {
+      "source": "packages/blender/contributions/blender-properties-view.tsx",
+      "path": "packages/editor-blender/contributions/blender-properties-view.tsx",
+      "sha256": "5fdf0a78d2ce1a0ea91eca332e8905ea6f8b6fb24c0bfa6fc210f47a04cef91f"
+    },
+    {
+      "source": "packages/blender/contributions/blender-runtime-skin.ts",
+      "path": "packages/editor-blender/contributions/blender-runtime-skin.ts",
+      "sha256": "4df5b300051df5e1391783c5f48d9ce60dfc800c6a53bb8b905bcdd3a5c1077a"
+    },
+    {
+      "source": "packages/blender/contributions/blender-runtime.document.tsx",
+      "path": "packages/editor-blender/contributions/blender-runtime.document.tsx",
+      "sha256": "f8c1335c132fe1ca20bc87832c6ac494ca0dbadd953d6429628609082e8a0eb1"
+    },
+    {
+      "source": "packages/blender/contributions/blender-timeline-geometry.ts",
+      "path": "packages/editor-blender/contributions/blender-timeline-geometry.ts",
+      "sha256": "09d129a54f7d13dbf8db7a02782ffa006c80a73699786bb5f8a5afbfd9a5af5d"
+    },
+    {
+      "source": "packages/blender/contributions/blender-timeline.document.tsx",
+      "path": "packages/editor-blender/contributions/blender-timeline.document.tsx",
+      "sha256": "0b8ef337af34ddac0c713408dfaf96035b3b286785fab13ddba8a8af8fe20727"
+    },
+    {
+      "source": "packages/blender/contributions/blender-uv-editor.document.tsx",
+      "path": "packages/editor-blender/contributions/blender-uv-editor.document.tsx",
+      "sha256": "af52d894e1d16f2b19b1282d3daae06a9c59942156afd05e177ae3a1c55cbb74"
+    },
+    {
+      "source": "packages/blender/contributions/blender-uv-geometry.ts",
+      "path": "packages/editor-blender/contributions/blender-uv-geometry.ts",
+      "sha256": "1450dd3789265e14e2e0c97cb37cb5be4d2bd3b2542f47644390db542439fdba"
+    },
+    {
+      "source": "packages/blender/contributions/blender-version.status.tsx",
+      "path": "packages/editor-blender/contributions/blender-version.status.tsx",
+      "sha256": "e2d09b5019182c268faf94e791d2e632255776e4c17f8046872f0d19d06e7944"
+    },
+    {
+      "source": "packages/blender/contributions/blender.command.ts",
+      "path": "packages/editor-blender/contributions/blender.command.ts",
+      "sha256": "aeba2c2bc44b5aa049a6e292135415d25401b5cb58da2d19b902aac40f49e4f4"
+    },
+    {
+      "source": "packages/blender/contributions/blender.icons.json",
+      "path": "packages/editor-blender/contributions/blender.icons.json",
+      "sha256": "d515ee16432ecbc75a05f9854d7055e4e33d4f05aead3db89709b9d8239df670"
+    },
+    {
+      "source": "packages/blender/contributions/blender.icons.traced.json",
+      "path": "packages/editor-blender/contributions/blender.icons.traced.json",
+      "sha256": "df21dceac1e1478973fde5bb6abe81c545f0bb39a809338c8612cf57e967611a"
+    },
+    {
+      "source": "packages/blender/contributions/blender.keymap.ts",
+      "path": "packages/editor-blender/contributions/blender.keymap.ts",
+      "sha256": "f93e8cf4c5fd680bcb7c64efcbaf5ce515dd170c061240eb8be072e20a729f54"
+    },
+    {
+      "source": "packages/blender/contributions/blender.node-panels.json",
+      "path": "packages/editor-blender/contributions/blender.node-panels.json",
+      "sha256": "a020d4b15bd5cbc76999a725b092128c238cc99550d36e0f59c0b4a5f7639494"
+    },
+    {
+      "source": "packages/blender/contributions/blender.palette.json",
+      "path": "packages/editor-blender/contributions/blender.palette.json",
+      "sha256": "c0900056219ec3f8c2d563be093ac0f3d6e4ad67bc8dce4e8124f4388fb76856"
+    },
+    {
+      "source": "packages/blender/contributions/blender.status.tsx",
+      "path": "packages/editor-blender/contributions/blender.status.tsx",
+      "sha256": "5e60a96b6834979f5a7ac20ad8d3671f56cdfb909264f3d08cc2e9d7316d4ceb"
+    },
+    {
+      "source": "packages/blender/contributions/blender.style.ts",
+      "path": "packages/editor-blender/contributions/blender.style.ts",
+      "sha256": "3820d3b60ef2db3adb987ea6dee7c2f99290a83b7ad4ee536dd642688b43b76f"
+    },
+    {
+      "source": "packages/blender/contributions/model.layout.ts",
+      "path": "packages/editor-blender/contributions/model.layout.ts",
+      "sha256": "b3ce0ccf41698da435681153b9ab53e198f4b75640adfad719387499f498dae2"
+    },
+    {
+      "source": "packages/blender/contributions/models.finder.ts",
+      "path": "packages/editor-blender/contributions/models.finder.ts",
+      "sha256": "4359924bdc792d65be293008e7c030c90d49fc18e5200f06162620de29f525f1"
+    },
+    {
+      "source": "packages/blender/contributions/properties-bone-constraints.inspector.tsx",
+      "path": "packages/editor-blender/contributions/properties-bone-constraints.inspector.tsx",
+      "sha256": "61dc158af33c5674aa0d4d94c143fa3daea6ab9ead18f94567641fafb5fab05c"
+    },
+    {
+      "source": "packages/blender/contributions/properties-bone.inspector.tsx",
+      "path": "packages/editor-blender/contributions/properties-bone.inspector.tsx",
+      "sha256": "2a6899e8bd02a27f32a9be63fa34fdd2089f21bedaccec9a59c29d3bd6c66f00"
+    },
+    {
+      "source": "packages/blender/contributions/properties-collection.inspector.tsx",
+      "path": "packages/editor-blender/contributions/properties-collection.inspector.tsx",
+      "sha256": "9bfa07970175df639a9cfca56930e9d31886cac8816cdb266bc0aaa11d113afd"
+    },
+    {
+      "source": "packages/blender/contributions/properties-constraints.inspector.tsx",
+      "path": "packages/editor-blender/contributions/properties-constraints.inspector.tsx",
+      "sha256": "ff0de22d17b4833a0e7b8712632cce0e7135b4da7494020ca2261a655225c174"
+    },
+    {
+      "source": "packages/blender/contributions/properties-data.inspector.tsx",
+      "path": "packages/editor-blender/contributions/properties-data.inspector.tsx",
+      "sha256": "06940c4a24e65025bbbdf8820f578ae6b836627fae0a096216c77d6ddd980efe"
+    },
+    {
+      "source": "packages/blender/contributions/properties-material.inspector.tsx",
+      "path": "packages/editor-blender/contributions/properties-material.inspector.tsx",
+      "sha256": "80524a0a1739dedf8d5f76cd9c707564bb2cbb753d8dd36054d316ce7ef610cb"
+    },
+    {
+      "source": "packages/blender/contributions/properties-modifiers.inspector.tsx",
+      "path": "packages/editor-blender/contributions/properties-modifiers.inspector.tsx",
+      "sha256": "7432e10ef18b8063cd5583aad7be8ea416a53c423cfbb2a97b04d71446c5af7b"
+    },
+    {
+      "source": "packages/blender/contributions/properties-object.inspector.tsx",
+      "path": "packages/editor-blender/contributions/properties-object.inspector.tsx",
+      "sha256": "d66cb7d01c45883c4b8073faece43e0caddbed55c939f797780d5a36eb4bc4a7"
+    },
+    {
+      "source": "packages/blender/contributions/properties-output.inspector.tsx",
+      "path": "packages/editor-blender/contributions/properties-output.inspector.tsx",
+      "sha256": "d353545c8ffd76774b75bcef1dd641ccb749b1e7dee920b5e3f7d469fad3f8d4"
+    },
+    {
+      "source": "packages/blender/contributions/properties-particles.inspector.tsx",
+      "path": "packages/editor-blender/contributions/properties-particles.inspector.tsx",
+      "sha256": "36dbbd8d1166b90da62f08ace1688d9e524dcdbd4b500bef741cf9e1ec0069b5"
+    },
+    {
+      "source": "packages/blender/contributions/properties-physics.inspector.tsx",
+      "path": "packages/editor-blender/contributions/properties-physics.inspector.tsx",
+      "sha256": "bd2e8f5c841c4e6492de94f0f75f34cdb52cfb756941aa5dcf863416a1795448"
+    },
+    {
+      "source": "packages/blender/contributions/properties-render.inspector.tsx",
+      "path": "packages/editor-blender/contributions/properties-render.inspector.tsx",
+      "sha256": "15c956cb89fced6b2bf99c3c065b4fbdba27c13d83c026766258cb2b6a2c4ab5"
+    },
+    {
+      "source": "packages/blender/contributions/properties-scene.inspector.tsx",
+      "path": "packages/editor-blender/contributions/properties-scene.inspector.tsx",
+      "sha256": "fc670cf39379f9a279f37f7fe8ad75574b5b65821a84337c5995a342f40054e9"
+    },
+    {
+      "source": "packages/blender/contributions/properties-texture.inspector.tsx",
+      "path": "packages/editor-blender/contributions/properties-texture.inspector.tsx",
+      "sha256": "9c0b320a6bca3245705ee4524a36ba2c93e028249c641def0e635c8be4ff7470"
+    },
+    {
+      "source": "packages/blender/contributions/properties-view-layer.inspector.tsx",
+      "path": "packages/editor-blender/contributions/properties-view-layer.inspector.tsx",
+      "sha256": "b1174bab68f65a9acd40ef4136cc20eb1daa9843b4eabf7c75313c51e95dc7b5"
+    },
+    {
+      "source": "packages/blender/contributions/properties-world.inspector.tsx",
+      "path": "packages/editor-blender/contributions/properties-world.inspector.tsx",
+      "sha256": "6963b82d588eeb52342b2f671590c389e8cfc73681d9538a74c33161ca2c8e75"
+    },
+    {
+      "source": "packages/blender/contributions/sculpt.layout.ts",
+      "path": "packages/editor-blender/contributions/sculpt.layout.ts",
+      "sha256": "617b65c833f51656a4b5f454010ac194c1f4d18ed798876678c357d6788b5431"
+    },
+    {
+      "source": "packages/blender/contributions/shading.layout.ts",
+      "path": "packages/editor-blender/contributions/shading.layout.ts",
+      "sha256": "bd277333b84776bf0501a05a36edf7aaca477e710d661a11e0c9003251b64d4a"
+    },
+    {
+      "source": "packages/blender/contributions/texture.layout.ts",
+      "path": "packages/editor-blender/contributions/texture.layout.ts",
+      "sha256": "ff960d071ec788def353eb9316c526f4737a16a0aac2fab9fa28d2ee208721bf"
+    },
+    {
+      "source": "packages/blender/contributions/uv-editing.layout.ts",
+      "path": "packages/editor-blender/contributions/uv-editing.layout.ts",
+      "sha256": "28f0eee5072ec23c62436470c438fab418b56de98dfa5ea1f6c1febd678c9254"
+    },
+    {
+      "source": "packages/blender/host/blender-runtime-host.ts",
+      "path": "packages/editor-blender/host/blender-runtime-host.ts",
+      "sha256": "bca431e2fee1cb4e9f3cbc5f656a69c7cb844f2882cdf44c11370c13377023fd"
+    },
+    {
+      "source": "packages/blender/package.json",
+      "path": "packages/editor-blender/package.json",
+      "sha256": "06d9822d96275ec8dd3f27bd3703cdd7c0a40a8566748639343b6b771bb71bc4"
+    },
+    {
+      "source": "packages/blender/src/layouts.tsx",
+      "path": "packages/editor-blender/src/layouts.tsx",
+      "sha256": "355c07736188ef8f47980fb732828f846be458d18061650b6192d74cedce5c05"
+    },
+    {
+      "source": "packages/blender/src/looks.ts",
+      "path": "packages/editor-blender/src/looks.ts",
+      "sha256": "986a8c77dcaffc1c3c9516aec42afa189fb8675aed0b74318562b2d513d79654"
+    },
+    {
+      "source": "packages/blender/src/node-view-state.ts",
+      "path": "packages/editor-blender/src/node-view-state.ts",
+      "sha256": "91bd72b588f0859817e3c1716177e98e34dedae5626ca5c9a7da717c8f29832a"
+    },
+    {
+      "source": "packages/blender/src/timeline-view-state.ts",
+      "path": "packages/editor-blender/src/timeline-view-state.ts",
+      "sha256": "861eedee2a1f07859f7e296a455e9fce12cdcc9bf61525cafa7e7e862642e9be"
+    },
+    {
+      "source": "packages/blender/src/uv-view-state.ts",
+      "path": "packages/editor-blender/src/uv-view-state.ts",
+      "sha256": "080bc6d8c38d6f398ac59e3e0835fd0630593bba1389f22e1c46bb3e4c5ccf6b"
+    },
+    {
+      "source": "packages/threejs/src/capture/output-pass.ts",
+      "path": "packages/editor-threejs/src/capture/output-pass.ts",
+      "sha256": "33a7a838ebf1330c63ef9d00d5d4fd0b0a5f4252b6ceea33797676e752b1275e"
+    },
+    {
+      "source": "packages/threejs/src/capture/scene.ts",
+      "path": "packages/editor-threejs/src/capture/scene.ts",
+      "sha256": "5f95c72b6e1ecbfef3be22f33b38cd506e3138eee295678a46f0afe1edca56c8"
+    },
+    {
+      "source": "packages/threejs/src/viewport/clip-planes.ts",
+      "path": "packages/editor-threejs/src/viewport/clip-planes.ts",
+      "sha256": "ca2c0c0acb1816e10a2770a368267da6a98eecd381fd0e8c376b010a9b43cbfa"
+    },
+    {
+      "source": "packages/threejs/src/viewport/content-bounds.ts",
+      "path": "packages/editor-threejs/src/viewport/content-bounds.ts",
+      "sha256": "ba8d3e173dbab9bae5ef120a96b1f4ba0e66ecccd0ad623388827044dacf21af"
+    },
+    {
+      "source": "packages/threejs/src/viewport/editor-layers.ts",
+      "path": "packages/editor-threejs/src/viewport/editor-layers.ts",
+      "sha256": "361986774cffd70d4eaf5f983f47b158d7a46a75437a41e35c9cba3b924e4d3c"
+    },
+    {
+      "source": "packages/threejs/src/viewport/environment.ts",
+      "path": "packages/editor-threejs/src/viewport/environment.ts",
+      "sha256": "0e71e1048be0ad7a4e9b0318de6a98ebcf3e49316c09ebec93521d0fa20117f3"
+    },
+    {
+      "source": "packages/threejs/src/viewport/preview-renderer.ts",
+      "path": "packages/editor-threejs/src/viewport/preview-renderer.ts",
+      "sha256": "f60f6873a83786cf792cac71803e6bd12c2cbffee8eab75e87ad6988bf0f2e36"
+    },
+    {
+      "source": "packages/threejs/src/viewport/renderer-ownership.ts",
+      "path": "packages/editor-threejs/src/viewport/renderer-ownership.ts",
+      "sha256": "7532bf7fe47c8b77d30b4942b74a24e18529e4f5956052983c1f9c380a5b4483"
+    },
+    {
+      "source": "packages/threejs-runtime/src/ecs/object-marks.ts",
+      "path": "packages/editor-threejs/src/ecs/object-marks.ts",
+      "sha256": "345f282f4573fbf74317e44371b19e186c2cc1a14a546327e105b918454fd4a2"
+    },
+    {
+      "source": "packages/threejs-runtime/src/adapter/hierarchy-marks.ts",
+      "path": "packages/editor-threejs/src/adapter/hierarchy-marks.ts",
+      "sha256": "23a0179f0f7f920d9a039fb1a22daed225b991d97861f6f5964df9ac26236b40"
+    },
+    {
+      "source": "packages/threejs/LICENSE",
+      "path": "packages/editor-threejs/LICENSE",
+      "sha256": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0"
+    },
+    {
+      "source": "packages/threejs-runtime/LICENSE",
+      "path": "packages/editor-threejs/LICENSE-APACHE",
+      "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
+    }
+  ],
+  "note": "Original source hashes before package import renames. Shared structural marks move from the old Three runtime into this modeling dependency closure; the gameplay runtime is not imported."
+}

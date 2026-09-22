@@ -1,0 +1,39 @@
+/* THE MODEL EDITOR'S LOOK — what a COLOR THEME cannot reach in Blender's, measured 2026-09-19:
+   chrome typography, widget corner radii, and the uppercase section headers. A skin layer the
+   workbench does not expose to extensions; the product's overlaid contribution imports it as
+   one stylesheet. Values from `@vgai/blender`'s `blender.style.ts` (4px corners, 11-12px type)
+   and `blender.palette.json`'s typography.
+
+   The KIT's part-hosting rules are NOT here — they are `packages/editor/workbench/src/media/
+   vgai-parts.css`, because every product needs them whatever it looks like. */
+.monaco-workbench, .monaco-workbench.mac, .monaco-workbench.windows, .monaco-workbench.linux, .monaco-workbench.web {
+	font-family: 'Inter', 'DejaVu Sans', system-ui, sans-serif;
+	font-size: 12px;
+}
+.monaco-workbench .monaco-button,
+.monaco-workbench .monaco-inputbox,
+.monaco-workbench .monaco-select-box,
+.monaco-workbench .monaco-text-button,
+.monaco-workbench .quick-input-widget,
+.monaco-workbench .notification-toast,
+.monaco-workbench .monaco-menu .monaco-action-bar.vertical,
+.monaco-workbench .keybinding-key {
+	border-radius: 4px !important;
+}
+.monaco-workbench .part.sidebar .title-label h2,
+.monaco-workbench .pane-header .title,
+.monaco-workbench .panel .composite-bar .action-label,
+.monaco-workbench .part.auxiliarybar .title-label h2 {
+	text-transform: none !important;
+	font-weight: 600;
+	letter-spacing: 0;
+}
+/* Blender areas are separated by a dark gap, not a 1px line. */
+.monaco-workbench .monaco-grid-view .monaco-sash { background: #171717; }
+.monaco-workbench .part.editor .editor-group-container .title .tabs-container .tab { height: 28px; }
+.monaco-workbench .part.editor .editor-group-container > .title { height: 28px; }
+
+/* The sidebar's own title and the two view headers give way to the vgai panels' own. */
+.monaco-workbench .part.sidebar > .title { display: none !important; }
+.monaco-workbench .pane.vgai-pane > .pane-header { display: none !important; }
+.monaco-workbench .pane.vgai-pane > .pane-body { height: 100% !important; }

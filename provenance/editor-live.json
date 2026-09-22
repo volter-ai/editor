@@ -1,0 +1,52 @@
+{
+  "repository": "https://github.com/volter-ai/vgai-engine",
+  "revision": "cf9cb8e22dd7ae5709ed0dd8a46dd6f16d1e4945",
+  "files": [
+    {
+      "source": "packages/vgai-live/src/editor.ts",
+      "path": "packages/editor-live/src/editor.ts",
+      "sha256": "bd778f451b3e84f4eef79523786b8152105a9540c48d3f81c42946c7f815969f"
+    },
+    {
+      "source": "packages/vgai-live/src/editor-document.ts",
+      "path": "packages/editor-live/src/editor-document.ts",
+      "sha256": "f799452b28ace617392ceffacfaf028708f77517a75cb9da5334cf1d62d22588"
+    },
+    {
+      "source": "packages/vgai-live/src/tools.ts",
+      "path": "packages/editor-live/src/tools.ts",
+      "sha256": "6febf8c8e9fff7fecb10009ed8401502e1d6bfb879f4e2ac6358d52606710172"
+    },
+    {
+      "source": "packages/vgai-live/src/session.ts",
+      "path": "packages/editor-live/src/session.ts",
+      "sha256": "b46e46a39a9d490ce8f09bade2db5c88bc687bc01480da38a595c7508bb7f635"
+    },
+    {
+      "source": "packages/vgai-live/src/singleton.ts",
+      "path": "packages/editor-live/src/singleton.ts",
+      "sha256": "50f3a9e6aa474bfe95759cc60972fd58694186b8e6ef3a4a2d899c17c6613315"
+    },
+    {
+      "source": "packages/vgai-live/src/lazy-proxy.ts",
+      "path": "packages/editor-live/src/lazy-proxy.ts",
+      "sha256": "5535ea09b7ba84222e5300d1216c6222ed0e0a1cc5aba6488066d806c4a46290"
+    },
+    {
+      "source": "packages/vgai-live/LICENSE",
+      "path": "packages/editor-live/LICENSE",
+      "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
+    },
+    {
+      "source": "packages/vgai-sdk/src/editor/session-registry-format.ts",
+      "path": "packages/editor-sdk/src/session/registry-format.ts",
+      "sha256": "879148238a9055acb56b15545c4e0593a1110fcd560da524215d1f2bc52908cf"
+    },
+    {
+      "source": "packages/vgai-sdk/src/editor/transport.ts",
+      "path": "packages/editor-sdk/src/session/discovery.ts",
+      "sha256": "f1cc47006c68ba7c444bf14a52e824dd2e61a7a2f084a5284cba9e0233895e75"
+    }
+  ],
+  "note": "Session discovery and modeling automation transferred from existing implementations. Gameplay execution, recording, browser game transport and the old lowest-port session-selection fallback are excluded. Existing session wire and storage identifiers remain until coordinated producer migration."
+}

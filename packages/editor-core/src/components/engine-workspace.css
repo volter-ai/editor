@@ -1,0 +1,274 @@
+.vgai-engine-workspace {
+  display: grid;
+  grid-template-columns: 210px minmax(380px, 1fr) 240px;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  background: var(--vgai-surface-inset);
+  color: var(--vgai-content-primary);
+}
+
+.vgai-engine-workspace > * {
+  min-width: 0;
+  min-height: 0;
+}
+
+.vgai-engine-workspace[data-testid="behavior-utility"] > .vgai-engine-graph {
+  grid-column: 2 / 4;
+}
+
+.vgai-engine-browser,
+.vgai-engine-details {
+  overflow: auto;
+  background: var(--vgai-surface-panel);
+}
+
+.vgai-engine-browser {
+  border-right: 1px solid var(--vgai-boundary-default);
+}
+
+.vgai-engine-details {
+  border-left: 1px solid var(--vgai-boundary-default);
+}
+
+.vgai-engine-pane-heading {
+  height: 25px;
+  padding: 0 var(--vgai-space-4);
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--vgai-boundary-default);
+  background: var(--vgai-surface-chrome);
+  color: var(--vgai-content-dim);
+  font-size: var(--vgai-font-sm);
+  font-weight: 700;
+  letter-spacing: 0.45px;
+  text-transform: uppercase;
+}
+
+.vgai-engine-browser-row {
+  width: 100%;
+  min-height: 31px;
+  padding: var(--vgai-space-2) var(--vgai-space-4);
+  border-radius: 0;
+  display: grid;
+  justify-items: start;
+  border-bottom: 1px solid var(--vgai-boundary-default);
+}
+
+.vgai-engine-browser-row > span:first-child {
+  color: var(--vgai-content-primary);
+  font-size: var(--vgai-font-base);
+}
+
+.vgai-engine-browser-row > span:last-child {
+  color: var(--vgai-content-dim);
+  font-size: var(--vgai-font-xs);
+  font-family: var(--vgai-font-mono);
+}
+
+.vgai-engine-browser-row[data-selected="true"] {
+  background: var(--vgai-selection-bg);
+  box-shadow: inset 2px 0 var(--vgai-accent);
+}
+
+.vgai-engine-property-row,
+.vgai-engine-empty-row {
+  min-height: 25px;
+  padding: 5px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--vgai-space-4);
+  border-bottom: 1px solid var(--vgai-boundary-default);
+  font-size: var(--vgai-font-xs);
+}
+
+.vgai-engine-property-row > span:last-child {
+  color: var(--vgai-content-muted);
+  font-family: var(--vgai-font-mono);
+}
+
+.vgai-engine-empty-row {
+  color: var(--vgai-content-dim);
+  font-style: italic;
+}
+
+.vgai-engine-graph {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--vgai-surface-inset);
+  background-image: radial-gradient(var(--vgai-boundary-default) 0.7px, transparent 0.7px);
+  background-size: 16px 16px;
+}
+
+.vgai-engine-graph-toolbar {
+  height: 29px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--vgai-space-6);
+  padding: 0 9px;
+  border-bottom: 1px solid var(--vgai-boundary-default);
+  background: var(--vgai-surface-panel);
+  font-size: var(--vgai-font-sm);
+}
+
+.vgai-engine-graph-toolbar > span:nth-child(2) {
+  color: var(--vgai-content-dim);
+}
+
+.vgai-runtime-indicator {
+  margin-left: auto;
+  color: var(--vgai-accent);
+  font-size: var(--vgai-font-xs);
+  font-weight: 700;
+}
+
+.vgai-runtime-indicator[data-live="true"] {
+  color: var(--vgai-success);
+}
+
+.vgai-engine-details dl {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  margin: 0;
+  font-size: var(--vgai-font-sm);
+}
+
+.vgai-engine-details dt,
+.vgai-engine-details dd {
+  margin: 0;
+  min-height: 25px;
+  padding: var(--vgai-space-3) var(--vgai-space-4);
+  border-bottom: 1px solid var(--vgai-boundary-default);
+}
+
+.vgai-engine-details dt {
+  color: var(--vgai-content-dim);
+}
+
+.vgai-engine-details dd {
+  overflow: hidden;
+  color: var(--vgai-content-primary);
+  font-family: var(--vgai-font-mono);
+  text-overflow: ellipsis;
+}
+
+.vgai-mixer-canvas {
+  overflow: auto;
+  padding: 14px;
+}
+
+.vgai-mixer-action-table,
+.vgai-mixer-transition {
+  border: 1px solid var(--vgai-boundary-default);
+  background: var(--vgai-surface-panel);
+}
+
+.vgai-mixer-transition {
+  margin-bottom: var(--vgai-space-6);
+  padding: 9px;
+}
+
+.vgai-mixer-transition > div,
+.vgai-mixer-transition > small {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--vgai-space-5);
+}
+
+.vgai-mixer-transition > i {
+  display: block;
+  height: 6px;
+  margin: 7px 0;
+  background: var(--vgai-boundary-default);
+}
+
+.vgai-mixer-transition > i > span {
+  display: block;
+  height: 100%;
+  background: var(--vgai-accent);
+}
+
+.vgai-mixer-transition > small {
+  color: var(--vgai-content-muted);
+  font-family: var(--vgai-font-mono);
+}
+
+.vgai-mixer-transition-history {
+  display: grid;
+  gap: var(--vgai-space-1);
+  padding: var(--vgai-space-3) var(--vgai-space-4);
+  border-bottom: 1px solid var(--vgai-boundary-default);
+  font-size: var(--vgai-font-xs);
+}
+
+.vgai-mixer-transition-history > span,
+.vgai-mixer-transition-history > small {
+  color: var(--vgai-content-muted);
+}
+
+.vgai-mixer-transition-history > b {
+  overflow: hidden;
+  font-family: var(--vgai-font-mono);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vgai-mixer-table-head,
+.vgai-mixer-action-row {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(120px, 1fr) 64px 64px;
+}
+
+.vgai-mixer-table-head {
+  color: var(--vgai-content-dim);
+  background: var(--vgai-surface-chrome);
+  font-size: var(--vgai-font-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.vgai-mixer-table-head span,
+.vgai-mixer-action-row > span {
+  min-width: 0;
+  padding: var(--vgai-space-3) var(--vgai-space-4);
+  border-right: 1px solid var(--vgai-boundary-default);
+  border-bottom: 1px solid var(--vgai-boundary-default);
+}
+
+.vgai-mixer-action-row {
+  font-size: var(--vgai-font-sm);
+  font-family: var(--vgai-font-mono);
+}
+
+.vgai-mixer-weight {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--vgai-surface-inset);
+}
+
+.vgai-mixer-weight i {
+  position: absolute;
+  inset: 4px auto 4px 4px;
+  background: color-mix(in srgb, var(--vgai-success) 40%, transparent);
+}
+
+.vgai-mixer-weight b {
+  position: relative;
+  margin-left: auto;
+  font-weight: 500;
+}
+
+@media (max-width: 950px) {
+  .vgai-engine-workspace {
+    grid-template-columns: 170px minmax(320px, 1fr);
+  }
+
+  .vgai-engine-details {
+    display: none;
+  }
+}

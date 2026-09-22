@@ -1,0 +1,77 @@
+{
+  "name": "@volter/editor-blender",
+  "author": "Volter AI, Inc.",
+  "license": "AGPL-3.0-only AND GPL-3.0-or-later",
+  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "Blender modeling documents, inspectors, commands and presentation for Volter Editor.",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/volter-ai/editor.git",
+    "directory": "packages/editor-blender"
+  },
+  "files": [
+    "src",
+    "contributions",
+    "host",
+    "LICENSE"
+  ],
+  "exports": {
+    "./contributions/*": "./contributions/*",
+    "./looks": "./src/looks.ts",
+    "./layouts": "./src/layouts.tsx",
+    "./package.json": "./package.json"
+  },
+  "vgai": {
+    "contributions": [
+      "./contributions/blender-node-editor.document.tsx",
+      "./contributions/blender-timeline.document.tsx",
+      "./contributions/blender-uv-editor.document.tsx",
+      "./contributions/blender-runtime.document.tsx",
+      "./contributions/blender-version.status.tsx",
+      "./contributions/blender.command.ts",
+      "./contributions/blender.keymap.ts",
+      "./contributions/blender.status.tsx",
+      "./contributions/blender.style.ts",
+      "./contributions/model.layout.ts",
+      "./contributions/models.finder.ts",
+      "./contributions/properties-bone-constraints.inspector.tsx",
+      "./contributions/properties-bone.inspector.tsx",
+      "./contributions/properties-collection.inspector.tsx",
+      "./contributions/properties-constraints.inspector.tsx",
+      "./contributions/properties-data.inspector.tsx",
+      "./contributions/properties-material.inspector.tsx",
+      "./contributions/properties-modifiers.inspector.tsx",
+      "./contributions/properties-object.inspector.tsx",
+      "./contributions/properties-output.inspector.tsx",
+      "./contributions/properties-particles.inspector.tsx",
+      "./contributions/properties-physics.inspector.tsx",
+      "./contributions/properties-render.inspector.tsx",
+      "./contributions/properties-scene.inspector.tsx",
+      "./contributions/properties-texture.inspector.tsx",
+      "./contributions/properties-view-layer.inspector.tsx",
+      "./contributions/properties-world.inspector.tsx",
+      "./contributions/sculpt.layout.ts",
+      "./contributions/shading.layout.ts",
+      "./contributions/uv-editing.layout.ts",
+      "./contributions/texture.layout.ts"
+    ]
+  },
+  "dependencies": {
+    "@volter/blender-engine": "0.1.0",
+    "@volter/editor-threejs": "0.5.57",
+    "zod": "^4.3.6"
+  },
+  "peerDependencies": {
+    "@volter/editor-sdk": "*",
+    "@volter/editor-project": "*",
+    "react": "^19.0.0",
+    "three": "^0.180.0"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  }
+}

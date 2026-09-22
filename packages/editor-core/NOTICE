@@ -1,0 +1,18 @@
+Copyright 2026 Volter AI, Inc.
+
+Editor source, server modules and build plugins were imported from the AGPL-3.0-only
+@vgai/editor package. LICENSE contains that license.
+
+src/performance-profiler.ts was imported from the Apache-2.0
+@vgai/game-runtime package and retains that license. LICENSE-APACHE
+contains its text. This timing collector does not execute gameplay.
+The built plugins also include the Apache-2.0 editor-sdk contribution naming
+constants; their source remains owned by editor-sdk.
+
+Original source revisions and file hashes are recorded in the repository's
+provenance/editor-host.json and provenance/editor-session.json, provenance/editor-server.json and
+provenance/editor-workbench.json. Bundled dependency license texts are preserved in BUNDLED_NOTICES.
+Native assets and the workbench distribution require separate review.
+
+server/support/ modules transferred from @vgai/sdk are Apache-2.0.
+Their source paths and hashes are recorded in provenance/editor-server.json.

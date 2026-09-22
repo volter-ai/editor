@@ -1,0 +1,8 @@
+{
+  "snapshot": "volter-editor-2026-09-22",
+  "reviewedRevision": "c8bf0a9b1d8ee4c568c4c8c31310d0acb4f6266d",
+  "reviewedTree": "8cdd96a80e32fa137b9ba0533f4150e03b988c38",
+  "historyImported": false,
+  "packageBoundary": "release/modeling.json",
+  "purpose": "Initial public Volter Editor modeling source snapshot"
+}

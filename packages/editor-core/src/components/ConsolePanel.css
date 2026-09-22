@@ -1,0 +1,55 @@
+.vgai-console {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+.vgai-console .vgai-toolbar {
+  flex: 0 0 auto;
+}
+.vgai-console-filter {
+  width: 140px;
+  margin-left: auto;
+}
+.vgai-console-list {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  font-family: var(--vgai-font-mono);
+  font-size: var(--vgai-font-base);
+  line-height: 18px;
+}
+.vgai-console-empty {
+  padding: var(--vgai-space-6) var(--vgai-space-4);
+  color: var(--vgai-content-dim);
+  font-style: italic;
+}
+.vgai-console-row {
+  display: flex;
+  align-items: flex-start;
+  padding: 1px var(--vgai-space-4);
+  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+}
+.vgai-console-row[data-level="error"] {
+  background: var(--vgai-danger-faint);
+}
+.vgai-console-row:hover {
+  background: var(--vgai-neutral-hover);
+}
+.vgai-console-count {
+  flex: 0 0 auto;
+  margin-left: var(--vgai-space-3);
+  padding: 0 var(--vgai-space-2);
+  color: var(--vgai-content-muted);
+  background: var(--vgai-surface-raised);
+  border-radius: var(--vgai-radius-lg);
+  font-size: var(--vgai-font-sm);
+}
+.vgai-console [data-console-level="info"][aria-pressed="true"] {
+  color: var(--vgai-content-primary);
+}
+.vgai-console [data-console-level="warn"][aria-pressed="true"] {
+  color: var(--vgai-warn);
+}
+.vgai-console [data-console-level="error"][aria-pressed="true"] {
+  color: var(--vgai-danger);
+}

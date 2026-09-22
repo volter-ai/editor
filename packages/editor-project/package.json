@@ -1,0 +1,66 @@
+{
+  "name": "@volter/editor-project",
+  "author": "Volter AI, Inc.",
+  "license": "Apache-2.0",
+  "version": "0.5.57",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "Project manifests and adapter contracts for Volter Editor.",
+  "keywords": [
+    "vgai",
+    "game-engine",
+    "manifest",
+    "adapter"
+  ],
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/volter-ai/editor.git",
+    "directory": "packages/editor-project"
+  },
+  "exports": {
+    "./adapter": "./src/adapter/index.ts",
+    "./package.json": "./package.json",
+    "./*": {
+      "types": [
+        "./src/*.ts",
+        "./src/*.tsx",
+        "./src/*/index.ts",
+        "./src/*/index.tsx"
+      ],
+      "default": "./src/*"
+    },
+    "./manifest/locate": "./src/manifest/locate.ts",
+    "./manifest/editor-port": "./src/manifest/editor-port.ts",
+    "./manifest/filename": "./src/manifest/filename.ts",
+    "./manifest/schema": "./src/manifest/schema.ts",
+    "./manifest/load-file": "./src/manifest/load-file.ts",
+    "./manifest/kind-modules": "./src/manifest/kind-modules.ts",
+    "./manifest/configuration-kinds": "./src/manifest/configuration-kinds.ts",
+    "./manifest/runtime-environment": "./src/manifest/runtime-environment.ts",
+    "./inspection": "./src/inspection.ts",
+    "./settings/schema": "./src/settings/schema.ts",
+    "./manifest/load": "./src/manifest/load.ts",
+    "./adapter/manifest-interpreter": "./src/adapter/manifest-interpreter.ts"
+  },
+  "files": [
+    "src",
+    "schemas"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "semver": "^7.8.5",
+    "zod": "^4.3.6"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "three": "^0.180.0",
+    "pixi.js": "^8.6.0"
+  }
+}

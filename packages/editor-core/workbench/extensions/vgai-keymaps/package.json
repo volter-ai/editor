@@ -1,0 +1,508 @@
+{
+	"name": "vgai-keymaps",
+	"displayName": "vgai keymaps",
+	"description": "GENERATED — do not edit. The vgai editor's keyboard actions as keybinding sets, one per keymap, gated on the `vgai.keymap` context key the frame publishes from the open project's own choice. Regenerate with `node scripts/workbench/generate-keymaps.mjs --checkout <fork dir> --write`.",
+	"categories": [
+		"Keymaps"
+	],
+	"version": "0.0.1",
+	"publisher": "vscode",
+	"license": "MIT",
+	"engines": {
+		"vscode": "*"
+	},
+	"vgai": {
+		"generatedBy": "scripts/workbench/generate-keymaps.mjs",
+		"doc": "docs/CODE-OSS.md §The keyboard, under the frame; WORK.md §The core is Code-OSS U6b",
+		"keymaps": [
+			"vgai",
+			"blender"
+		],
+		"commands": [
+			"edit.copy",
+			"edit.cut",
+			"edit.delete",
+			"edit.deselectAll",
+			"edit.duplicate",
+			"edit.enterScope",
+			"edit.exitScopeOrDeselect",
+			"edit.group",
+			"edit.nudgeDown",
+			"edit.nudgeDownCoarse",
+			"edit.nudgeLeft",
+			"edit.nudgeLeftCoarse",
+			"edit.nudgeRight",
+			"edit.nudgeRightCoarse",
+			"edit.nudgeUp",
+			"edit.nudgeUpCoarse",
+			"edit.paste",
+			"edit.redo",
+			"edit.save",
+			"edit.selectAll",
+			"edit.undo",
+			"edit.unwrap",
+			"edit.wrap",
+			"transform.combined",
+			"transform.rotate",
+			"transform.scale",
+			"transform.translate",
+			"view.commandPalette",
+			"view.focusMode",
+			"view.front",
+			"view.perspective",
+			"view.resetPan",
+			"view.right",
+			"view.toggleConsole",
+			"view.top",
+			"viewport.cyclePivot",
+			"viewport.frameSelection",
+			"viewport.snapToFloor",
+			"viewport.toggleSnap",
+			"workspace.cycleNext",
+			"workspace.cyclePrevious"
+		],
+		"rules": 81,
+		"sources": {
+			"packages/editor/src/keymap-presets.ts": "b8deca33b20dfa38785d1f265b3e4d3bca537dad6c798fde816a7997322bea1b",
+			"packages/editor/src/editor-hotkeys.ts": "54d449e030f250bd3e68ed5fad90f5525ca4451f183a7c98ba507d12b6754768",
+			"packages/blender/contributions/blender.keymap.ts": "6ccac92e785bc7b7f5cdc5c633758c1739d4d5a89ebd9b64ad1550c4c19dd671"
+		}
+	},
+	"contributes": {
+		"keybindings": [
+			{
+				"command": "vgai.edit.copy",
+				"key": "ctrl+C",
+				"mac": "cmd+C",
+				"when": "vgai.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.cut",
+				"key": "ctrl+X",
+				"mac": "cmd+X",
+				"when": "vgai.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.paste",
+				"key": "ctrl+V",
+				"mac": "cmd+V",
+				"when": "vgai.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.duplicate",
+				"key": "ctrl+D",
+				"mac": "cmd+D",
+				"when": "vgai.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.group",
+				"key": "ctrl+G",
+				"mac": "cmd+G",
+				"when": "vgai.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.wrap",
+				"key": "ctrl+alt+G",
+				"mac": "alt+cmd+G",
+				"when": "vgai.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.unwrap",
+				"key": "ctrl+shift+G",
+				"mac": "shift+cmd+G",
+				"when": "vgai.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.selectAll",
+				"key": "ctrl+A",
+				"mac": "cmd+A",
+				"when": "vgai.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.save",
+				"key": "ctrl+S",
+				"mac": "cmd+S",
+				"when": "vgai.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.delete",
+				"key": "Delete",
+				"when": "vgai.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.delete",
+				"key": "Backspace",
+				"when": "vgai.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.enterScope",
+				"key": "Enter",
+				"when": "vgai.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.exitScopeOrDeselect",
+				"key": "Escape",
+				"when": "vgai.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.nudgeUp",
+				"key": "Up",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.nudgeUpCoarse",
+				"key": "shift+Up",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.nudgeDown",
+				"key": "Down",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.nudgeDownCoarse",
+				"key": "shift+Down",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.nudgeLeft",
+				"key": "Left",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.nudgeLeftCoarse",
+				"key": "shift+Left",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.nudgeRight",
+				"key": "Right",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.nudgeRightCoarse",
+				"key": "shift+Right",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.view.resetPan",
+				"key": "ctrl+0",
+				"mac": "cmd+0",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.view.commandPalette",
+				"key": "ctrl+K",
+				"mac": "cmd+K",
+				"when": "vgai.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.view.toggleConsole",
+				"key": "`",
+				"when": "vgai.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.view.focusMode",
+				"key": "ctrl+shift+F",
+				"mac": "shift+cmd+F",
+				"when": "vgai.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.workspace.cycleNext",
+				"key": "ctrl+PageDown",
+				"mac": "cmd+PageDown",
+				"when": "vgai.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.workspace.cyclePrevious",
+				"key": "ctrl+PageUp",
+				"mac": "cmd+PageUp",
+				"when": "vgai.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.transform.combined",
+				"key": "T",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.transform.translate",
+				"key": "W",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.transform.rotate",
+				"key": "E",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.transform.scale",
+				"key": "R",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.viewport.toggleSnap",
+				"key": "shift+S",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.viewport.frameSelection",
+				"key": "F",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.viewport.cyclePivot",
+				"key": ".",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.viewport.snapToFloor",
+				"key": "PageDown",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.view.top",
+				"key": "NumPad7",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.view.front",
+				"key": "NumPad1",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.view.right",
+				"key": "NumPad3",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.view.perspective",
+				"key": "NumPad5",
+				"when": "vgai.stage.focused && vgai.keymap == 'vgai'"
+			},
+			{
+				"command": "vgai.edit.copy",
+				"key": "ctrl+C",
+				"mac": "cmd+C",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.cut",
+				"key": "ctrl+X",
+				"mac": "cmd+X",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.paste",
+				"key": "ctrl+V",
+				"mac": "cmd+V",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.duplicate",
+				"key": "ctrl+D",
+				"mac": "cmd+D",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.group",
+				"key": "ctrl+G",
+				"mac": "cmd+G",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.wrap",
+				"key": "ctrl+alt+G",
+				"mac": "alt+cmd+G",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.unwrap",
+				"key": "ctrl+shift+G",
+				"mac": "shift+cmd+G",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.selectAll",
+				"key": "A",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.selectAll",
+				"key": "ctrl+A",
+				"mac": "cmd+A",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.deselectAll",
+				"key": "alt+A",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.save",
+				"key": "ctrl+S",
+				"mac": "cmd+S",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.delete",
+				"key": "Delete",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.delete",
+				"key": "Backspace",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.enterScope",
+				"key": "Enter",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.exitScopeOrDeselect",
+				"key": "Escape",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.nudgeUp",
+				"key": "Up",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.nudgeUpCoarse",
+				"key": "shift+Up",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.nudgeDown",
+				"key": "Down",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.nudgeDownCoarse",
+				"key": "shift+Down",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.nudgeLeft",
+				"key": "Left",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.nudgeLeftCoarse",
+				"key": "shift+Left",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.nudgeRight",
+				"key": "Right",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.edit.nudgeRightCoarse",
+				"key": "shift+Right",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.view.resetPan",
+				"key": "ctrl+0",
+				"mac": "cmd+0",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.view.commandPalette",
+				"key": "ctrl+K",
+				"mac": "cmd+K",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.view.toggleConsole",
+				"key": "`",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.view.focusMode",
+				"key": "ctrl+shift+F",
+				"mac": "shift+cmd+F",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.workspace.cycleNext",
+				"key": "ctrl+PageDown",
+				"mac": "cmd+PageDown",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.workspace.cyclePrevious",
+				"key": "ctrl+PageUp",
+				"mac": "cmd+PageUp",
+				"when": "vgai.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.transform.combined",
+				"key": "T",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.transform.translate",
+				"key": "G",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.transform.rotate",
+				"key": "R",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.transform.scale",
+				"key": "S",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.viewport.toggleSnap",
+				"key": "shift+S",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.viewport.frameSelection",
+				"key": ".",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.viewport.frameSelection",
+				"key": "NumPad_Decimal",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.viewport.cyclePivot",
+				"key": ",",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.viewport.snapToFloor",
+				"key": "PageDown",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.view.top",
+				"key": "NumPad7",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.view.front",
+				"key": "NumPad1",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.view.right",
+				"key": "NumPad3",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			},
+			{
+				"command": "vgai.view.perspective",
+				"key": "NumPad5",
+				"when": "vgai.stage.focused && vgai.keymap == 'blender'"
+			}
+		]
+	}
+}

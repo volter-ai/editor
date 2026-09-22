@@ -1,0 +1,378 @@
+import {
+  applyEditorTheme,
+  composeEditorAppearance,
+  DEFAULT_ICON_SET_ID,
+  EDITOR_REGION_NAMES,
+  type EditorMaterialId,
+  type EditorPalette,
+  type EditorRegionName,
+  type EditorTheme,
+  isEditorIconSetId,
+  isEditorMaterialId,
+  setActiveIconSet,
+  subscribeEditorMaterials,
+  subscribeIconSets,
+} from '@volter/editor-sdk/widgets';
+import {
+  adapterSettings,
+  effectiveSettings,
+  subscribeSettings,
+  updatePreferenceSettings,
+} from './settings-store';
+import { resolveEditorTheme, subscribeEditorThemeLibrary } from './theme-library';
+
+// The palette and material are `appearance.palette` / `appearance.material`
+// in the settings layers (`settings-store.ts`: `~/.vgai/settings.json`, a
+// project's `.vgai/settings.json` overriding it). A stored preference carries
+// no authored content, so an unreadable/absent one simply falls back to the
+// default appearance — no migration, no alias. The ONE thing still in browser
+// storage here is the PREPAINT record: the shell colour `index.html` paints
+// before any module loads, a cache of the last paint and never a setting.
+export const PREPAINT_EDITOR_THEME_STORAGE_KEY = 'vgai.editor.prepaint.v1';
+
+/**
+ * THE HOST'S OWN DEFAULT APPEARANCE — what the editor wears when no product
+ * composed it, and the floor every other answer falls back to. Classic's
+ * reference frame is the host with no look declared (ARCHITECTURE-CORE §The
+ * core is the workbench, "Host default versus skew").
+ */
+export const DEFAULT_EDITOR_PALETTE_ID = 'graphite-dark';
+export const DEFAULT_EDITOR_MATERIAL_ID: EditorMaterialId = 'classic';
+
+/**
+ * THE PRODUCT'S DEFAULT APPEARANCE, pushed in rather than read out.
+ *
+ * The look is the PRODUCT's (ARCHITECTURE-CORE §The target shape, rule 3;
+ * WORK.md PART B beat 7 — under the frame there is no look switcher). A
+ * product's entry names a style bundle id (`frame/product.ts`'s `look`), and
+ * `workspace-style.ts` — which is the module that knows what a bundle IS —
+ * resolves it and calls this. It is a DEFAULT and nothing more: the person's
+ * `~/.vgai/settings.json`, the project's own, and the adapter's declaration all
+ * outrank it, because each of those is something somebody said about THIS
+ * machine or THIS project.
+ *
+ * Pushed instead of pulled because the dependency runs the other way:
+ * `workspace-style.ts` imports this module, so this module cannot import it.
+ */
+let productAppearance: {
+  readonly palette: string;
+  readonly material: EditorMaterialId;
+  readonly icons: string;
+} | null = null;
+
+export function setDefaultEditorAppearance(
+  next: { palette: string; material: EditorMaterialId; icons: string } | null,
+): void {
+  productAppearance = next;
+  // A default that arrives after the first read (the product's style bundle is
+  // a package's contribution, so it registers a moment into the session) has to
+  // dislodge the cached fallback, or the page wears the host's Graphite for the
+  // rest of its life with nothing saying why.
+  if (effectiveSettings().appearance?.palette === undefined) cachedPaletteId = null;
+  if (effectiveSettings().appearance?.material === undefined) cachedMaterialId = null;
+  fallBackFromMissingTheme();
+  applyCurrentTheme();
+  emit();
+}
+
+/** The product's declared palette when it resolves, the host's otherwise. */
+function defaultPaletteId(): string {
+  const declared = productAppearance?.palette;
+  return declared !== undefined && resolveEditorTheme(declared)
+    ? declared
+    : DEFAULT_EDITOR_PALETTE_ID;
+}
+
+function defaultMaterialId(): EditorMaterialId {
+  return productAppearance?.material ?? DEFAULT_EDITOR_MATERIAL_ID;
+}
+
+function defaultIconSetId(): string {
+  const declared = productAppearance?.icons;
+  return declared !== undefined && isEditorIconSetId(declared) ? declared : DEFAULT_ICON_SET_ID;
+}
+
+/**
+ * `prefers-reduced-transparency` changes only the painted Glass tier. The
+ * stored palette and requested material remain untouched.
+ */
+const REDUCED_TRANSPARENCY_QUERY = '(prefers-reduced-transparency: reduce)';
+
+let cachedPaletteId: string | null = null;
+let cachedMaterialId: EditorMaterialId | null = null;
+let installedRoot: HTMLElement | null = null;
+let previewTheme: EditorPalette | null = null;
+let removeSettingsListener: (() => void) | null = null;
+let removeMaterialsListener: (() => void) | null = null;
+let removeIconSetsListener: (() => void) | null = null;
+let removeReducedTransparencyListener: (() => void) | null = null;
+const listeners = new Set<() => void>();
+
+function storage(): Storage | null {
+  try {
+    return typeof window === 'undefined' ? null : window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+function resolvePaletteId(value: string | null | undefined): string {
+  return value && resolveEditorTheme(value) ? value : defaultPaletteId();
+}
+
+function readStoredPaletteId(): string {
+  return resolvePaletteId(effectiveSettings().appearance?.palette);
+}
+
+function readStoredMaterialId(): EditorMaterialId {
+  const stored = effectiveSettings().appearance?.material;
+  return isEditorMaterialId(stored) ? stored : defaultMaterialId();
+}
+
+/** The stored icon set when a registered set answers it; the editor's own otherwise. */
+export function editorIconSetSnapshot(): string {
+  const stored = effectiveSettings().appearance?.icons;
+  return isEditorIconSetId(stored) ? stored : defaultIconSetId();
+}
+
+export function setEditorIconSetPreference(id: string): void {
+  if (!isEditorIconSetId(id)) throw new Error(`Unknown editor icon set “${id}”.`);
+  updatePreferenceSettings({ appearance: { icons: id } });
+  setActiveIconSet(id);
+  emit();
+}
+
+function fallBackFromMissingTheme(): void {
+  const requested = editorPaletteSnapshot();
+  if (resolveEditorTheme(requested)) return;
+  cachedPaletteId = defaultPaletteId();
+  // Repair a settings FILE naming a palette that no longer exists — never the
+  // adapter's own declaration. A models project's `blender` is unresolvable
+  // for as long as it takes `@volter/editor-blender`'s style contribution to register, and
+  // persisting Graphite in that window would write a project-layer override
+  // that permanently defeats the look the project declares in code.
+  if (adapterSettings().appearance?.palette === requested) return;
+  // The PRODUCT's declared look is unresolvable in exactly the same window and
+  // for exactly the same reason — its bundle is a package's contribution — so
+  // it gets the same protection. Nothing is repaired here anyway: what would be
+  // written is the default this code just fell back to.
+  if (productAppearance?.palette === requested) return;
+  updatePreferenceSettings({ appearance: { palette: defaultPaletteId() } });
+}
+
+export function editorPaletteSnapshot(): string {
+  cachedPaletteId ??= readStoredPaletteId();
+  return cachedPaletteId;
+}
+
+export function editorMaterialSnapshot(): EditorMaterialId {
+  cachedMaterialId ??= readStoredMaterialId();
+  return cachedMaterialId;
+}
+
+/**
+ * THE EDITOR AREAS THE ACTIVE PALETTE PAINTS SEPARATELY — its own
+ * `color.region` claims ({@link EditorRegionName}), as a space-joined key so a
+ * component can subscribe to the whole SET with one primitive snapshot.
+ *
+ * It answers a different question from a panel's claim. A panel says WHICH
+ * area it is (`workspace-static-panels.ts`); this says whether the installed
+ * palette has anything to say about that area at all. A palette naming none
+ * paints every group alike and must also not get the chrome that only reads as
+ * chrome INSIDE a painted area — Classic's reference frame is the host with no
+ * look declared (ARCHITECTURE-CORE §The core is the workbench, "Host default
+ * versus skew"), so a frame-justified shape belongs to the skew that measured
+ * it.
+ */
+export function editorPaintedRegions(): string {
+  const palette = previewTheme ?? resolveEditorTheme(editorPaletteSnapshot())?.theme;
+  const region = palette?.color.region;
+  if (!region) return '';
+  return EDITOR_REGION_NAMES.filter((name: EditorRegionName) => region[name] !== undefined).join(
+    ' ',
+  );
+}
+
+export function subscribeEditorTheme(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+function emit(): void {
+  for (const listener of listeners) listener();
+}
+
+function reducedTransparencyRequested(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+  try {
+    return window.matchMedia(REDUCED_TRANSPARENCY_QUERY).matches;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Resolve the token set actually painted from the independent palette and
+ * material axes. The material composer owns the reduced-transparency tier;
+ * custom palette documents cannot inject or replace surface treatment.
+ */
+function resolvePaintTheme(palette: EditorPalette): EditorTheme {
+  const materialId = editorMaterialSnapshot();
+  return composeEditorAppearance(
+    palette,
+    materialId,
+    materialId === 'glass' && reducedTransparencyRequested(),
+  );
+}
+
+function applyCurrentTheme(): void {
+  if (!installedRoot) return;
+  const persisted = resolveEditorTheme(editorPaletteSnapshot())?.theme;
+  const palette = previewTheme ?? persisted;
+  if (palette) {
+    applyEditorTheme(installedRoot, resolvePaintTheme(palette));
+    installedRoot.dataset['vgaiPalette'] = palette.id;
+    installedRoot.dataset['vgaiMaterial'] = editorMaterialSnapshot();
+  }
+  if (!previewTheme && persisted) {
+    const painted = resolvePaintTheme(persisted);
+    storage()?.setItem(
+      PREPAINT_EDITOR_THEME_STORAGE_KEY,
+      JSON.stringify({
+        paletteId: persisted.id,
+        materialId: editorMaterialSnapshot(),
+        id: painted.id,
+        shell: painted.color.surface.shell,
+      }),
+    );
+  }
+}
+
+export function setEditorPalettePreference(paletteId: string): void {
+  if (!resolveEditorTheme(paletteId)) throw new Error(`Unknown editor palette “${paletteId}”.`);
+  previewTheme = null;
+  if (editorPaletteSnapshot() === paletteId) {
+    applyCurrentTheme();
+    return;
+  }
+  cachedPaletteId = paletteId;
+  updatePreferenceSettings({ appearance: { palette: paletteId } });
+  applyCurrentTheme();
+  emit();
+}
+
+export function setEditorMaterialPreference(materialId: EditorMaterialId): void {
+  if (!isEditorMaterialId(materialId)) throw new Error(`Unknown editor material “${materialId}”.`);
+  if (editorMaterialSnapshot() === materialId) {
+    applyCurrentTheme();
+    return;
+  }
+  cachedMaterialId = materialId;
+  updatePreferenceSettings({ appearance: { material: materialId } });
+  applyCurrentTheme();
+  emit();
+}
+
+/** Temporarily paint an unsaved draft without changing the persisted choice. */
+export function previewEditorTheme(theme: EditorPalette): void {
+  previewTheme = theme;
+  applyCurrentTheme();
+}
+
+/** Return from a draft preview to the currently persisted library theme. */
+export function clearEditorThemePreview(): void {
+  previewTheme = null;
+  applyCurrentTheme();
+}
+
+/** Install persisted theming and settings-layer synchronization on one editor root. */
+export function installEditorTheme(root: HTMLElement): () => void {
+  installedRoot = root;
+  applyCurrentTheme();
+
+  // The settings layers changed (a load finished, a project with its own
+  // appearance override became active, a setter wrote): re-read both axes.
+  setActiveIconSet(editorIconSetSnapshot());
+  removeIconSetsListener?.();
+  removeIconSetsListener = subscribeIconSets(() => setActiveIconSet(editorIconSetSnapshot()));
+
+  removeSettingsListener?.();
+  removeSettingsListener = subscribeSettings(() => {
+    setActiveIconSet(editorIconSetSnapshot());
+    const palette = readStoredPaletteId();
+    const material = readStoredMaterialId();
+    if (palette === cachedPaletteId && material === cachedMaterialId) return;
+    cachedPaletteId = palette;
+    cachedMaterialId = material;
+    previewTheme = null;
+    applyCurrentTheme();
+    emit();
+  });
+
+  // A stored material a package carries is unknown until that package's style
+  // registers; Classic paints meanwhile and the stored choice wins on arrival.
+  removeMaterialsListener?.();
+  removeMaterialsListener = subscribeEditorMaterials(() => {
+    const material = readStoredMaterialId();
+    if (material === cachedMaterialId) return;
+    cachedMaterialId = material;
+    applyCurrentTheme();
+    emit();
+  });
+
+  removeReducedTransparencyListener?.();
+  if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+    try {
+      const query = window.matchMedia(REDUCED_TRANSPARENCY_QUERY);
+      const onChange = () => {
+        applyCurrentTheme();
+        emit();
+      };
+      query.addEventListener('change', onChange);
+      removeReducedTransparencyListener = () => query.removeEventListener('change', onChange);
+    } catch {
+      removeReducedTransparencyListener = null;
+    }
+  }
+
+  return () => {
+    if (installedRoot === root) installedRoot = null;
+    removeSettingsListener?.();
+    removeSettingsListener = null;
+    removeMaterialsListener?.();
+    removeMaterialsListener = null;
+    removeIconSetsListener?.();
+    removeIconSetsListener = null;
+    removeReducedTransparencyListener?.();
+    removeReducedTransparencyListener = null;
+  };
+}
+
+/** Test-only process reset; production callers should never clear the preference implicitly. */
+export function resetEditorThemePreferenceForTests(): void {
+  cachedPaletteId = null;
+  cachedMaterialId = null;
+  installedRoot = null;
+  previewTheme = null;
+  removeReducedTransparencyListener?.();
+  removeReducedTransparencyListener = null;
+  listeners.clear();
+}
+
+// Library changes made in this tab immediately repaint a selected custom
+// theme and update every menu/dialog subscriber.
+subscribeEditorThemeLibrary(() => {
+  // A palette a PACKAGE carries (`@volter/editor-blender`'s Blender palette, registered
+  // by its `workspace.style` contribution) does not exist yet when settings
+  // are first read, so `readStoredPaletteId` resolved the stored id to the
+  // default and cached it. Re-read it now that the library has grown — the
+  // stored choice wins on arrival, exactly as a late-registering MATERIAL
+  // already does in `installEditorTheme`. Without this, a project whose
+  // `.vgai/settings.json` names a contributed palette painted Graphite
+  // forever and nothing said why.
+  const stored = readStoredPaletteId();
+  if (stored !== cachedPaletteId) cachedPaletteId = stored;
+  fallBackFromMissingTheme();
+  applyCurrentTheme();
+  emit();
+});

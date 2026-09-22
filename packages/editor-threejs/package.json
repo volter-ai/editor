@@ -1,0 +1,43 @@
+{
+  "name": "@volter/editor-threejs",
+  "author": "Volter AI, Inc.",
+  "version": "0.5.57",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "license": "AGPL-3.0-only AND Apache-2.0",
+  "description": "Shared Three.js bounds, rendering and capture utilities used by Volter Editor.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/volter-ai/editor.git",
+    "directory": "packages/editor-threejs"
+  },
+  "files": [
+    "src",
+    "LICENSE",
+    "NOTICE",
+    "LICENSE-APACHE"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    "./*": {
+      "types": "./src/*.ts",
+      "default": "./src/*"
+    },
+    "./asset-parse-error": "./src/asset-parse-error.ts",
+    "./loader": "./src/loader.ts"
+  },
+  "peerDependencies": {
+    "three": "^0.180.0"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@volter/editor-project": "0.5.57",
+    "@sparkjsdev/spark": "^2.1.0",
+    "three.quarks": "^0.16.0",
+    "zod": "^4.3.6"
+  }
+}

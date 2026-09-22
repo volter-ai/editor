@@ -1,0 +1,20 @@
+Copyright 2026 Volter AI, Inc.
+
+The editor application is AGPL-3.0-only. Its Blender integration contains
+Blender-derived icon artwork under GPL-3.0-or-later; LICENSE-BLENDER preserves
+the integration license and attribution. The separately installed Blender
+engine has its own GPL license and corresponding-source requirements.
+Bundled dependency license texts are preserved in BUNDLED_NOTICES.
+The workbench and engine source/distribution reviews remain separate.
+
+The launcher helpers and modeling starter were transferred from the AGPL-3.0-only
+@vgai/cli and @vgai/editor packages. Workbench contributions were transferred
+from @vgai/model-editor. Provenance is recorded in editor-product.json and
+editor-workbench.json in the repository provenance directory.
+
+The Blender MCP transport and tool declarations were transferred from the
+AGPL-3.0-only CLI at the revision in provenance/editor-product.json.
+
+BlenderMCP tool descriptions and prompt follow ahujasid/blender-mcp,
+copyright (c) 2025 Siddharth Ahuja, MIT. The permission notice is included
+in LICENSE-MCP (verified at upstream revision 7cc602252386b92829bc7364e3a897253610be38).

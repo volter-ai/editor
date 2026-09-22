@@ -1,0 +1,53 @@
+Blender look — theme-blender
+
+This extension is the MODEL EDITOR's, and it lives in the vgai-engine
+repository (`packages/model-editor/workbench/extensions/theme-blender/`). It is
+copied into a Code-OSS checkout at build time by
+`scripts/workbench/overlay.mjs`, so in a built workbench it sits under
+`extensions/theme-blender/` beside Code-OSS's own MIT extensions. This
+extension's own manifest, theme JSON and layout defaults are MIT.
+
+ITS PRODUCT ICON FONT IS NOT. `producticons/blender-icons.otf` is a build of
+Blender's own icon artwork.
+
+  Blender
+  Copyright (C) Blender Authors
+  Licensed under the GNU General Public License, version 2 or later.
+  <https://www.blender.org/about/license/>
+
+WHAT THE FONT CONTAINS. `producticons/blender-product-icon-theme.json` maps 37
+product-icon ids onto 35 glyphs, and those glyphs are compiled from
+`@vgai/blender`'s `contributions/blender.icons.json` in this repository (the
+theme file records the source file's sha256). That icon set is part ours and
+part Blender's: 197 of its 346 glyphs are MACHINE-TRACED, byte for byte, from
+Blender's own vector sources — `release/datafiles/icons_svg/*.svg`, 188 distinct
+files — by an affine transform onto a 16-unit grid that re-proportions,
+re-strokes and re-centres nothing. A traced glyph IS Blender's drawing, and
+baking it into an OpenType font does not change that: the outlines in this OTF
+are Blender's outlines, and they are a derivative work of GPL-2.0-or-later
+artwork. Per-glyph provenance — `ICON_*` name, source SVG path and sha256 — is
+`packages/blender/contributions/blender.icons.traced.json`.
+
+THE LICENCE THAT APPLIES. Exercising Blender's "or later", the traced artwork in
+`producticons/blender-icons.otf` is conveyed under the GNU General Public
+License, version 3 or later. Neither the MIT grant on the Code-OSS tree this
+extension is built into, nor this repository's own AGPL grant, extends to it,
+and nothing in this extension may be read as relicensing Blender's artwork: the
+copyright in it is Blender's authors' and is not Volter AI, Inc.'s to
+relicense. No commercial licence Volter AI, Inc. offers reaches it (see
+COMMERCIAL.md).
+
+  SPDX-License-Identifier: MIT AND GPL-3.0-or-later
+
+A product that cannot carry the GPL replaces `blender-icons.otf` with its own
+drawings and re-points `blender-product-icon-theme.json` at them; the theme
+colours and the layout defaults in `package.json` are unaffected.
+
+THE UI FONT. The Blender look also loads `Inter.woff2`, which this product
+carries beside its contribution (`packages/model-editor/workbench/src/media/`)
+and the overlay copies into the workbench under
+`src/vs/workbench/contrib/vgaiProduct/browser/media/`. It is the Inter typeface,
+copyright (c) 2016 The Inter Project Authors, under the SIL Open Font License
+1.1. Its notice and full licence text are in `ThirdPartyNotices.txt` at the
+Code-OSS fork's root, and its component entry is in that tree's
+`cgmanifest.json` — the two files that describe what a BUILT workbench contains.

@@ -1,0 +1,33 @@
+/* One explicit, ordered stylesheet graph for every editor entry point.
+ *
+ * These imports intentionally remain UNLAYERED. Game-authored React CSS is
+ * loaded into the same document and is outside our import graph; by CSS
+ * cascade definition, an unlayered game rule would outrank every layered
+ * editor rule regardless of selector specificity. Editor selectors are
+ * namespaced/scoped instead. The order preserves the former production
+ * cascade: vendor and feature geometry first, canonical controls last.
+ *
+ * CONSEQUENCE, and the convention that follows from it: component sheets load
+ * BEFORE theme.css, so at equal specificity a canonical control rule in
+ * theme.css (`.vgai-btn[data-size]`, `.vgai-dialog-*`) WINS over a component's
+ * restyle of the same element, silently. A component that must override a
+ * canonical control's geometry scopes its rule under its own root
+ * (`.vgai-conversation-tray-root .vgai-btn.vgai-conversation-tray`), which
+ * outranks the canonical rule by specificity regardless of load order. Never
+ * re-order these imports for one component, and never reach for !important.
+ *
+ * Type is INHERITED from the theme root (`.vgai-editor-theme` declares the
+ * font family, size, line-height and colour). A component declares only what
+ * differs; a `font-family` restated on a component is redundant, not safe. */
+@import "./components/ConsolePanel.css";
+@import "./components/Object3DDocumentToolbar.css";
+@import "./components/viewport-header-controls.css";
+@import "./components/ProjectHeader.css";
+@import "./components/WorktreeSwitcher.css";
+@import "./components/CollaborationHeaderControl.css";
+@import "./components/product-shell.css";
+@import "./components/VgaiLogo.css";
+@import "./components/asset-workflow.css";
+@import "./components/compact-inspector.css";
+@import "./components/workspace-surfaces.css";
+@import "./theme.css";

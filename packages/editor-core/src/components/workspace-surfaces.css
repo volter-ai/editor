@@ -1,0 +1,621 @@
+/* THE DOCUMENT SURFACE, and every pane the editor portals into a part of the
+ * workbench: the document box, its header strip, its shelf rail, the utility
+ * panel portal, the workspace-task overlay, and the play-transition chrome
+ * classes `live-transition.ts` adds and removes.
+ *
+ * WHAT IS NOT HERE is the ARRANGEMENT. Groups, sashes, tab strips, splits and
+ * the grid they live in are the workbench's, and the workbench draws them;
+ * this file dresses only what the editor itself renders INSIDE a part it was
+ * handed. Every rule below was measured against a real surface, and the
+ * measurement is in its own comment.
+ *
+ * The `vgai-dock-*` class names are the editor's own document classes and the
+ * fork's skin CSS keys on the same names, so they are a two-repository wire
+ * rather than a private spelling.
+ */
+
+/* Workspace tasks (Account today) preserve the live authored subject behind
+   them in Glass + Floating. They are not fake viewport documents: the same
+   descriptor remains a normal center tab in Classic/Docked. */
+.vgai-workspace-task-overlay {
+  position: absolute;
+  top: 72px;
+  bottom: 64px;
+  left: 50%;
+  z-index: var(--vgai-z-modal);
+  width: min(760px, calc(100% - 96px));
+  min-height: 320px;
+  overflow: hidden;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
+  border-radius: var(--vgai-radius-lg);
+  box-shadow: var(--vgai-shadow-lg);
+}
+
+.vgai-workspace-task-overlay-header {
+  min-height: var(--vgai-panel-header-height);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--vgai-space-3);
+  padding: var(--vgai-space-1) var(--vgai-space-3);
+  color: var(--vgai-content-primary);
+  font-size: var(--vgai-font-md);
+  font-weight: 650;
+}
+
+.vgai-workspace-task-overlay-body,
+.vgai-workspace-task-overlay-body > .vgai-dock-document {
+  min-height: 0;
+  flex: 1;
+}
+
+@media (max-width: 720px) {
+  .vgai-workspace-task-overlay {
+    top: 56px;
+    bottom: 52px;
+    width: calc(100% - 32px);
+  }
+}
+
+.vgai-dock-panel,
+.vgai-dock-document,
+.vgai-dock-document-content {
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Interior wrappers paint NOTHING (liquid-glass productization, report
+   §2.31 interior-background audit): the surface a pane is drawn INTO
+   already carries the theme's panel color, so a
+   second `--vgai-bg-1` here double-tints translucent themes and occludes
+   the glass surface. Opaque themes keep their look because the group
+   surface carries the fill — for every theme. */
+.vgai-dock-panel,
+.vgai-dock-document,
+.vgai-dock-document-content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+/* THE CONTENT BOX IS A DOCUMENT'S CONTAINING BLOCK. A document body that
+   positions itself absolutely (the Asset Lab 3D stage: `inset: -12` to bleed
+   under the panel padding) resolves against the nearest POSITIONED ancestor.
+   With no `position` here that ancestor was the whole document box — header
+   strip included — so a document with a host toolbar painted its stage OVER
+   the strip (measured 2026-09-03 on the mesh document: the strip sat at
+   y=66 in the DOM and the stage's canvas at y=54, covering it; the chrome
+   capture showed the 3D pill exactly where the header should be). Positioned,
+   the content box is the frame a document's absolute children fill, and the
+   host's strip stays the host's. */
+.vgai-dock-document-content {
+  position: relative;
+}
+
+.vgai-dock-document-toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--vgai-space-2);
+  min-height: var(--vgai-local-toolbar-height);
+  /* A document's header is a step above its panel, the way Blender's area
+     header sits a step above its area. */
+  background: var(--vgai-surface-header);
+  border-bottom: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
+  pointer-events: auto;
+}
+
+/* THE SHELF RAIL — the host's second region (`DocumentShelfRail`): a
+   vertical rail over the leading edge of the content box, the geometry the
+   scene viewport's own transform strip used (`.vgai-viewport-toolbar-left`)
+   generalized to every document. Absolute inside the positioned content box,
+   so it never covers the header strip and the stage keeps its size. */
+.vgai-dock-document-shelf {
+  position: absolute;
+  left: var(--vgai-space-4);
+  top: var(--vgai-viewport-overlay-top, var(--vgai-space-4));
+  z-index: calc(var(--vgai-z-dropdown, 1000) - 1);
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--vgai-space-2);
+  pointer-events: auto;
+}
+
+/* Blender's toolbar is ONE column: the transform strip stacks its buttons
+   when it rides the rail (it lays them in a row over the stage otherwise),
+   and the RAIL is the panel — the strip and the document's own operators
+   drop their own borders and fills so the column reads as one. */
+.vgai-dock-document-shelf .vgai-floating-toolbar,
+.vgai-dock-document-shelf .vgai-floating-toolbar > * {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Blender's tool shelf is a FIXED-WIDTH region, not a card that grows to its
+   widest tool. RE-MEASURED 2026-09-18 in `modeling-edit-none.png` (2x, halved)
+   by reading the pixel columns and rows rather than the picture: what the
+   earlier reading took for a 38 px region FILL is the BUTTON — the dark 39-lum
+   box runs x 22..97 (38 CSS px of fill, one 1 px border each side) and its
+   rows run 765..830 (33 CSS px of fill inside the same border), with the
+   viewport's own 63-lum grey showing through the 7 CSS px between one button
+   and the next. So Blender's tool is 38 wide x ~34 tall of fill in a 40x35 box, and
+   the rail carries no fill of its own between them (our panel is this repo's
+   own decision, recorded in `a11f55c529`, and left standing here).
+
+   Overriding the control-height variables HERE resizes exactly this rail's
+   buttons — they already read them — without touching the same controls
+   anywhere else; the ToolStrip also draws in a ROW over the scene viewport,
+   where the size is that surface's. The size is a var with a fallback because
+   it wants a density home (`EditorDensity.chrome`, beside `treeRow`) the way
+   every other chrome measurement has one — `theme.ts` is being edited by
+   another unit, so the token is CONSUMED here and declared nowhere yet. */
+.vgai-dock-document-shelf:not(:empty) {
+  /* No panel: Blender's tool shelf paints nothing BETWEEN its groups — the
+     viewport shows through there. Each TOOL, though, is an opaque widget:
+     re-measured 2026-09-18 on the native 2x frame (`modeling-edit-none.png`,
+     row y=400) the box runs x 20..99 as 2 px of #3c3c3c border, 76 px of
+     #272727 fill, 2 px of border — i.e. at 1x a 40 px box of
+     `--vgai-widget-menu` inside a one-pixel boundary. See the tool rule
+     below for the fill and the pitch. */
+  --vgai-control-compact-height: var(--vgai-tool-size, 36px);
+  --vgai-control-default-height: var(--vgai-tool-size, 36px);
+  --vgai-control-comfortable-height: var(--vgai-tool-size, 36px);
+  /* Blender's operator glyph inks 20x20 CSS px (extrude 20x23 — the lifted
+     slab is taller). These glyphs ink at ~1.1 of their em box, so the rail's
+     rung is the chrome's LARGEST (`--vgai-icon-2xl`, 18 under Blender's
+     density) and the two rungs the rail's strips ask for resolve to it here.
+     The call sites keep their own rung so the row-over-the-stage ToolStrip is
+     untouched; a rail control that wants a small glyph (the snap popover's
+     caret, `xs`) still gets one. */
+  --vgai-tool-glyph-size: var(--vgai-icon-2xl);
+  --vgai-icon-sm: var(--vgai-tool-glyph-size);
+  --vgai-icon-md: var(--vgai-tool-glyph-size);
+  /* The rail is EXACTLY one tool wide: the tool's own boundary is inside its
+     border box now, so nothing is added for it here — a rail wider than its
+     tools showed a sliver of viewport down both sides of the column. */
+  width: var(--vgai-tool-width, 40px);
+  align-items: stretch;
+}
+
+/* One TOOL, stated once: every icon button on the rail is the shelf's tool
+   size, whatever shape its own surface gave it. The transform strip's
+   segments are `control + 12px` wide because a ROW of them reads as a
+   segmented capsule; in a column that extra width is what made the strip's
+   buttons 28 px against the mesh operators' 34 in the same rail. */
+.vgai-dock-document-shelf .vgai-btn[data-icon="true"][data-size],
+.vgai-dock-document-shelf .vgai-floating-toolbar .vgai-btn[data-icon="true"][data-shape] {
+  width: var(--vgai-tool-width, 40px);
+  height: var(--vgai-tool-size, 36px);
+}
+
+/* The strip's own inline padding is ROW geometry — in the column it inset the
+   tools 4 px each side of a 38 px rail (measured live through
+   `document-script`: the strip computed `0px 4px`, its tooltip anchors 30 px,
+   and every tool stretched to that). The rail IS the panel, so the strip
+   contributes no inset of its own. */
+.vgai-dock-document-shelf .vgai-toolbar.vgai-floating-toolbar {
+  padding-inline: 0;
+}
+
+/* A SPLIT tool (snap and its settings) is still ONE column wide. Blender's
+   rail is a single column and its "there is more here" is a corner triangle,
+   never a second button beside the first — measured live, at the tool's own
+   width the pair ran 68 px across a 38 px rail and the caret hung outside it.
+   The primary takes the tool's width less a caret sliver. */
+.vgai-dock-document-shelf .vgai-split-button {
+  width: var(--vgai-tool-width, 40px);
+}
+/* Its two halves are wrapped in tooltip anchors, so the flex items are those
+   spans, not the buttons — and the buttons inside them take the span's width
+   rather than the tool's. */
+.vgai-dock-document-shelf .vgai-split-button > * {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.vgai-dock-document-shelf .vgai-split-button > * + * {
+  flex: 0 0 13px;
+}
+.vgai-dock-document-shelf .vgai-split-button .vgai-btn[data-icon="true"][data-size] {
+  width: auto;
+  min-width: 0;
+}
+
+/* THE TOOL'S OWN SURFACE. Blender's rail tool is not a ghost: measured at 2x
+   in `modeling-edit-none.png` (row y=400, and column x=25 down the strip) the
+   resting box is an opaque #272727 fill — `--vgai-widget-menu`, the same fill
+   its menu buttons take — inside a 1 px #3c3c3c boundary. Ours drew nothing
+   but a near-invisible border, which is why the rail read as glyphs scattered
+   on the viewport instead of a toolbar. The pressed tool keeps the accent it
+   already paints (`aria-pressed`), so this rule stands aside for it. */
+/* …and its GLYPH is full-strength ink, not the ghost button's muted one.
+   MEASURED at 2x in `modeling-edit-none.png`, x 40..200 down the rail: every
+   glyph in the column peaks at (227,227,227)/(228,228,228) — the select,
+   move, rotate and scale tools EXACTLY as much as the six operator marks, so
+   this is the rail's ink and not a property of the marks' drawings. The same
+   frame set puts Blender's TEXT at the same place (viewport header 229,
+   outliner labels 229, properties 229), which is the finding: Blender does
+   not draw icons brighter than words — it draws both at its primary ink, and
+   ours drew the rail at `content.muted` #c2c2c2, 33 levels down. #c2c2c2 is
+   a real Blender ink, just the DIM one (the outliner's secondary labels). */
+.vgai-dock-document-shelf
+.vgai-btn[data-variant="ghost"]:not([aria-pressed="true"]):not(:disabled) {
+  background: var(--vgai-widget-menu);
+  border-color: var(--vgai-boundary-default);
+  color: var(--vgai-content-primary);
+}
+.vgai-dock-document-shelf
+  .vgai-btn[data-variant="ghost"]:not([aria-pressed="true"]):not(:disabled):hover {
+  background: var(--vgai-widget-menu-hover);
+}
+
+/* CORRECTED against the frame's own button borders (`modeling-edit-none.png`,
+   column x=25 at 2x: fills at 326..390, 393..460, 463..530, 533..599 with a
+   2 px border between them, then 16 px of plain viewport at 310..325 and
+   600..615): inside a GROUP Blender's pitch is 35 CSS px and the box is 35 —
+   the tools are CONTIGUOUS, separated only by the one pixel of border they
+   share. The 7-8 px of viewport this file first recorded between two tools is
+   the gap between GROUPS, and it appears exactly four times in a nine-tool
+   rail. So a strip's own gap is ZERO and the group gap is what the divider
+   and the shelf spend. */
+.vgai-dock-document-shelf .vgai-floating-toolbar {
+  gap: 0;
+}
+/* Contiguous means ONE border between two tools, not two — in EVERY strip the
+   rail carries, which is what `.vgai-document-shelf-tools` is: a contribution's
+   own column of operators (`@vgai/blender`'s Model document, whose own
+   comment already said the host states this pitch once and here). Listed here
+   rather than restated there, because the pitch is the RAIL's: measured live
+   before this line existed, the transform group ran at Blender's 35 and the
+   six mesh operators below it at 36, two rhythms in one column. */
+.vgai-dock-document-shelf :is(.vgai-floating-toolbar, .vgai-document-shelf-tools) > * + * {
+  margin-block-start: calc(-1 * var(--vgai-stroke-resting));
+}
+/* A divider inside the rail IS the group gap. The strip draws it as a 1x16
+   vertical rule because it was authored for a ROW; in the column Blender
+   shows plain viewport there, so it becomes empty height. */
+.vgai-dock-document-shelf .vgai-toolbar-divider {
+  width: 100%;
+  height: var(--vgai-tool-gap, var(--vgai-space-1));
+  background: none;
+  border: 0;
+  margin-block-start: 0;
+}
+/* …and so is the space between the rail's own groups. */
+.vgai-dock-document-shelf {
+  gap: var(--vgai-tool-gap, var(--vgai-space-2));
+}
+
+.vgai-dock-document-shelf .vgai-floating-toolbar {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* EVERY GROUP CASTS THE WIDGET EMBOSS, and it lands under the GROUP — which
+   is what `theme.css`'s emboss rule already says in prose ("Only stacked
+   widgets in one group escape the rule entirely… the emboss lands under the
+   GROUP") and what this rail is the first surface to actually paint.
+   MEASURED on `modeling-edit-none.png` at native 2x: the two rows under group
+   1's bottom border (device y 313-314, x 24..96) read luminance 53 against the
+   viewport's own 63, with the columns outside the group's width and the rows
+   beside its left and right edges untouched — bottom only, one CSS px, no
+   blur. `--vgai-widget-emboss-shadow` composites its 36/255 black over 63 to
+   54, one level off the frame, so this is the same token and not a second
+   number; a look that names no emboss resolves it to `none` and paints
+   exactly what it painted before.
+
+   TWO THINGS DECIDE THE SELECTOR, both measured live through the command
+   door across three cold boots rather than read off the cascade.
+
+   It has to be the rail's DIRECT children. A contributed shelf arrives inside
+   `ToolHost`'s wrapper, and that wrapper is `overflow: auto` — put the shadow
+   on the contribution's own column two levels down and the wrapper CLIPS it,
+   because the two boxes end on the same pixel (207..453 both, the last
+   button's bottom). Computed style said `rgba(0,0,0,0.14) 0 1px 0` and the
+   capture showed nothing under the group; that gap is what named the clip.
+
+   And `> *` alone is one class, which loses BOTH ways: to the reset a dozen
+   lines above (`.vgai-dock-document-shelf .vgai-floating-toolbar {
+   box-shadow: none }`, two classes) on specificity, and to `theme.css`'s
+   `.vgai-floating-toolbar { box-shadow: var(--vgai-island-shadow, …) }` on
+   ORDER, because this sheet is imported BEFORE `theme.css` —
+   `editor-styles.css` says so and prescribes exactly this remedy, scoping the
+   rule under your own root. The rail's `role="toolbar"` is that root's own
+   declaration (`DocumentShelfRail.tsx`), not a specificity trick. */
+.vgai-dock-document-shelf[role="toolbar"] > * {
+  box-shadow: var(--vgai-widget-emboss-shadow);
+}
+
+/* A viewport toolbar that used to position ITSELF over the stage sits
+   in-flow once the rail carries it: the rail is the positioned thing now. */
+.vgai-dock-document-shelf .vgai-viewport-toolbar {
+  position: static;
+}
+
+/* The document's OWN header keeps the leading, full-width part of the row,
+   so a header that right-aligns its controls (the Game document's) still
+   reaches the trailing edge when it is alone; the host's 3D controls, when
+   present, take only their content width beside it. */
+.vgai-dock-document-toolbar-own {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* THE HEADER'S TRANSFORM CONTROLS (`TransformHeaderControls`) — orientation,
+   pivot, snap and transform options, which are HEADER controls in Blender's 3D
+   viewport and rode our tool shelf until 2026-09-18. Like the 3D controls
+   beside them these are a plain in-flow group inside the strip, so they drop
+   the toolbar recipe's own band (its bottom rule) and keep only the
+   grouping.
+
+   The GAP is measured, not chosen: on the native 2x `modeling.png` at row
+   y=62 Blender's four wells (orientation x 1171..1322, pivot 1335..1396, snap
+   1409..1510, proportional editing 1523..1624) are separated by exactly 12
+   device px of bare header — 6 CSS px, which is `space-3`. Compounded with
+   `.vgai-toolbar` because theme.css declares the recipe LATER at the same
+   specificity (the precedent is `Object3DDocumentToolbar.css`'s own header
+   note): measured through `editor.document.query`, the uncompounded rule lost
+   and the row computed `gap: 4px`. Only the two declarations that WIN are
+   here: the compact recipe's own `padding-inline` and `min-height` outrank
+   even the compound (an attribute selector on top of the class), and both are
+   right for this row anyway — 4px of inset separates the cluster from the 3D
+   controls beside it, and the min-height already resolves to the density's
+   20px control. */
+.vgai-toolbar.vgai-transform-header-controls {
+  flex: 0 0 auto;
+  gap: var(--vgai-space-3);
+  border: 0;
+}
+
+.vgai-toolbar.vgai-transform-header-controls > * {
+  flex: 0 0 auto;
+}
+
+/* The orientation dropdown carries its LABEL, the way Blender's `Global v`
+   does (`Toolbar.tsx`'s `TransformOrientationButton` has the measurement).
+   Same three-part row as the model toolbar's own labelled triggers beside it:
+   glyph, word, chevron. */
+.vgai-transform-orientation-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vgai-space-1);
+  white-space: nowrap;
+}
+/* Apple-style material assignment for persistent, text-heavy tool panels.
+   Clear glass remains the compact navigation/control material; Hierarchy,
+   Inspector, Assets, Agent, and utility panels use ONE Regular surface at
+   their portal host. Regular applies the theme's strongest frost plus a
+   low-alpha, continuously sampled luminosity correction: dark scenery is
+   lifted and bright scenery is dimmed without an opaque panel fill.
+   The portal IS the host now: a utility is rendered into one element the
+   frame handed over, so the material is assigned to that element directly. */
+[data-vgai-chrome="islands"] .vgai-regular-panel-portal {
+  color: var(--vgai-content-primary);
+  text-shadow: var(--vgai-content-text-shadow, none);
+  background: var(
+    --vgai-glass-regular-panel-adaptive-bg,
+    var(--vgai-glass-regular-panel-bg, var(--vgai-surface-panel))
+  );
+  backdrop-filter: var(--vgai-glass-regular-panel-backdrop-filter, none);
+  -webkit-backdrop-filter: var(--vgai-glass-regular-panel-backdrop-filter, none);
+  border-color: color-mix(in srgb, var(--vgai-content-primary) 22%, transparent);
+}
+/* The Regular host already owns the 24px body frost. Semantic content floors
+   get the stronger adaptive luminosity correction, not a nested glass/filter
+   layer. The host's SVG chain still deepens blur toward the glass body. */
+[data-vgai-chrome="islands"] .vgai-regular-panel-portal .vgai-content-frost {
+  background: var(
+    --vgai-glass-regular-content-adaptive-bg,
+    var(--vgai-content-frost-bg, transparent)
+  );
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* A utility is always mounted and lives in a render portal, so that portal
+   owns the Regular material. Utility content may still use
+   EditorSurface for layout, but it must not repaint an opaque panel over that
+   shared adaptive host. */
+.vgai-regular-panel-portal > .vgai-surface {
+  background: transparent;
+}
+.vgai-dock-document,
+.vgai-dock-document-content,
+.vgai-dock-document-toolbar {
+  background: transparent;
+}
+
+/* ---- Play-mode entry/exit transition (play-transition.ts). ----------------
+   The chrome dissolve is pure GPU compositing (opacity/transform/filter) on
+   the chrome elements; no layout animates — a part leaves layout only AFTER
+   it is invisible. Material stays the
+   theme's own glass vocabulary (the elements already carry the card/group
+   paint); the dissolve only thins it to nothing: a brief brightness bloom,
+   blur ramp, slight scale-down, and a short slide toward the panel's own
+   nearest edge (--vgai-play-dx/dy, assigned per element by
+   `live-transition.ts` with a per-edge stagger). */
+
+@keyframes vgai-play-dissolve {
+  0% {
+    opacity: 1;
+    transform: none;
+    filter: blur(0) brightness(1);
+  }
+  42% {
+    opacity: 1;
+    transform: translate(var(--vgai-play-dx, 0px), var(--vgai-play-dy, 0px)) scale(0.985);
+    filter: blur(2px) brightness(1.06);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--vgai-play-dx, 0px), var(--vgai-play-dy, 0px)) scale(0.985);
+    filter: blur(8px) brightness(1);
+  }
+}
+
+@keyframes vgai-play-materialize {
+  0% {
+    opacity: 0;
+    transform: translate(var(--vgai-play-dx, 0px), var(--vgai-play-dy, 0px)) scale(0.985);
+    filter: blur(6px) brightness(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    filter: blur(0) brightness(1);
+  }
+}
+
+.vgai-play-chrome-exit,
+.vgai-play-chrome-enter {
+  --vgai-play-dx: 0px;
+  --vgai-play-dy: 0px;
+  --vgai-play-stagger: 0ms;
+}
+
+/* The DURATIONS below are not written here. `play-transition.ts` owns them
+   (`PLAY_DISSOLVE_MS` / `PLAY_MATERIALIZE_MS` / `PLAY_CROSSFADE_MS`) because
+   the same numbers are its JS timers, and publishes them onto the document
+   element when the dock installs — the same way `--vgai-play-stagger` below
+   already arrives from `PLAY_DISSOLVE_STAGGER_MS`. There is no fallback on
+   purpose: a fallback would be the second copy this removes, and nothing can
+   add these classes before the module that publishes the properties is live. */
+.vgai-play-chrome-exit {
+  animation: vgai-play-dissolve var(--vgai-play-dissolve-duration) var(--vgai-ease-standard) both;
+  animation-delay: var(--vgai-play-stagger, 0ms);
+  pointer-events: none;
+}
+
+/* Re-materialize immediately: entrance is deliberately unstaggered so an
+   explicit reveal never waits behind the cinematic play-entry cadence. */
+.vgai-play-chrome-enter {
+  animation: vgai-play-materialize var(--vgai-play-materialize-duration) var(--vgai-ease-standard)
+    both;
+}
+
+/* ---- Non-dock chrome dissolve + GLOBAL edge reveal. While play owns the
+   screen the THEME ROOT carries `data-vgai-play-chrome="hidden"`: the Game
+   document toolbar (Device/resolution/shading/stats island), the
+   capture-frame button, and the bottom bar (status + session tray) dissolve
+   with the rest of the chrome. A pointer dwell at ANY screen edge sets
+   `data-vgai-play-revealed` on the theme root and ALL of it slides back in
+   together — alongside the project header (ProjectHeader.css) and the panel
+   overlays above. `visibility` gates interactivity so hidden chrome can
+   never swallow game input. */
+.vgai-dock-document-toolbar,
+.vgai-editor-bottom-bar {
+  transition:
+    transform var(--vgai-duration-slow) var(--vgai-ease-standard),
+    opacity var(--vgai-duration-slow) var(--vgai-ease-standard);
+}
+[data-vgai-play-chrome="hidden"] .vgai-dock-document-toolbar:not([data-runtime-toolbar]) {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  pointer-events: none;
+  transition:
+    transform var(--vgai-duration-base) var(--vgai-ease-standard),
+    opacity var(--vgai-duration-base) var(--vgai-ease-standard) 100ms,
+    visibility 0s linear 280ms;
+}
+[data-vgai-play-chrome="hidden"] .vgai-editor-bottom-bar {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(calc(100% + 8px));
+  pointer-events: none;
+  transition:
+    transform var(--vgai-duration-base) var(--vgai-ease-standard),
+    opacity var(--vgai-duration-base) var(--vgai-ease-standard) 100ms,
+    visibility 0s linear 280ms;
+}
+[data-vgai-play-chrome="hidden"][data-vgai-play-revealed] .vgai-dock-document-toolbar,
+[data-vgai-play-chrome="hidden"][data-vgai-play-revealed] .vgai-editor-bottom-bar {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  pointer-events: auto;
+  transition:
+    transform var(--vgai-duration-base) var(--vgai-ease-standard),
+    opacity var(--vgai-duration-fast) var(--vgai-ease-standard),
+    visibility 0s;
+}
+
+/* ---- Restart-required pill. An unsafe script edit during play flips the
+   transport's Restart Game button to primary — but the transport is
+   dissolved, so the state needs a surface of its own while the chrome is
+   concealed. Same treatment-driven island material as every toolstrip
+   (PlayPanelOverlays adds the island classes); this block only places it
+   and gates its visibility. Deliberately subtle: small type, secondary
+   ink, a soft drop-in. When the chrome is revealed the header's own
+   Restart button is the affordance, so the pill yields. */
+.vgai-glass-island.vgai-play-restart-pill {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  z-index: 40;
+  display: none;
+  align-items: center;
+  gap: var(--vgai-space-2);
+  padding: 6px 14px;
+  border-radius: var(--vgai-radius-full);
+  font: inherit;
+  font-size: var(--vgai-font-md);
+  line-height: var(--vgai-leading-tight);
+  color: var(--vgai-content-muted);
+  cursor: pointer;
+}
+/* Scoped to the THEME root: the dock root carries the play-chrome flag too
+   but never the reveal attribute, so an unscoped :not() would match it and
+   keep the pill up over the revealed chrome. */
+.vgai-editor-theme[data-vgai-play-chrome="hidden"]:not([data-vgai-play-revealed])
+.vgai-glass-island.vgai-play-restart-pill {
+  display: flex;
+  animation: vgai-restart-pill-in var(--vgai-duration-slow) var(--vgai-ease-standard) both;
+}
+.vgai-glass-island.vgai-play-restart-pill:hover {
+  color: var(--vgai-content-primary);
+}
+@keyframes vgai-restart-pill-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Reduced motion: every play-transition animation collapses to an instant
+   state change with the same end state. */
+@media (prefers-reduced-motion: reduce) {
+  .vgai-play-chrome-exit,
+  .vgai-play-chrome-enter,
+  .vgai-editor-theme[data-vgai-play-chrome="hidden"]:not([data-vgai-play-revealed])
+    .vgai-glass-island.vgai-play-restart-pill {
+    animation: none;
+  }
+  .vgai-play-chrome-exit {
+    opacity: 0;
+  }
+  .vgai-dock-document-toolbar,
+  .vgai-editor-bottom-bar,
+  [data-vgai-play-chrome="hidden"] .vgai-dock-document-toolbar,
+  [data-vgai-play-chrome="hidden"] .vgai-editor-bottom-bar {
+    transition: none;
+  }
+}

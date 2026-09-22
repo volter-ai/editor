@@ -1,0 +1,32 @@
+/* THE KIT'S PARTS, hosted in the workbench — structure only, no look.
+   `vgai.contribution.ts` hands these elements over and `bridge.tsx` portals the editor's own
+   panels into them, so every rule here is about WHERE a part is and what the workbench must
+   stop drawing over it. Colour, type and corner radii are the PRODUCT's look
+   (`packages/model-editor/workbench/src/media/blender-look.css` is the worked one); this file
+   is what any product needs whatever it looks like. */
+.monaco-workbench .vgai-host-part { width: 100%; height: 100%; overflow: hidden; position: relative; }
+/* The title bar is the vgai header. THE STATUS BAR IS NOT HOSTED — it is the
+   workbench's own, and every vgai status item is a real `IStatusbarService`
+   entry in it (U8 step 7, `vgaiStatus.ts`). The two rules that used to live
+   here hid `.items-container` and stretched a `.vgai-status-host` over the
+   whole 22px band, so those entries measured 0x0 and the bar's context menu
+   was unreachable behind our overlay — walk 2's beat 7, and the last piece of
+   the SPIKE's "the status bar is the vgai bottom bar" that U8 replaced. */
+.monaco-workbench .part.titlebar .titlebar-container.vgai-hosted > :not(.vgai-host-part):not(.titlebar-right) { display: none !important; }
+.monaco-workbench .part.titlebar .titlebar-container.vgai-hosted { padding: 0; }
+.monaco-workbench .vgai-titlebar-host { flex: 1; height: 100%; -webkit-app-region: no-drag; }
+/* index.html's normalization, scoped to the vgai parts rather than the whole workbench. */
+:where(.vgai-part, .vgai-part *:not([data-vgai-world-surface], [data-vgai-world-surface] *)) { margin: 0; padding: 0; box-sizing: border-box; }
+/* Document tabs and editor sizing belong to the workbench. The document's own
+   toolbar lives inside its editor pane, below the native tab strip. */
+
+/* Keep the native layout controls beside the product header. */
+.monaco-workbench .part.titlebar .titlebar-container.vgai-hosted > .titlebar-right { order: 2; flex: 0 0 auto; width: auto; padding-left: 0; }
+.monaco-workbench .vgai-titlebar-host { min-width: 0; }
+
+.monaco-workbench.vgai-native-menus .part.titlebar .titlebar-container.vgai-hosted > .titlebar-left { display: flex !important; flex: 0 0 auto; width: auto; }
+
+/* Products using native menus also retain native navigation and the command
+   center. Only products supplying a complete replacement header suppress it. */
+.monaco-workbench.vgai-native-menus .part.titlebar .titlebar-container.vgai-hosted.has-center > .titlebar-center { display: flex !important; flex: 1 1 auto; }
+.monaco-workbench.vgai-native-menus .vgai-titlebar-host { order: 1; flex: 0 1 auto; }

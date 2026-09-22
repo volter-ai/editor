@@ -1,0 +1,37 @@
+{
+  "repository": "https://github.com/volter-ai/vgai-engine",
+  "revision": "cf9cb8e22dd7ae5709ed0dd8a46dd6f16d1e4945",
+  "files": [
+    {
+      "source": "packages/editor/server/frame-proxy.ts",
+      "path": "packages/editor-core/server/frame-proxy.ts",
+      "sha256": "06bf103bee5bd28521cff7fc7ca6c5dbd0c69d4fa0322a84bbfb13784f9ede38"
+    },
+    {
+      "source": "packages/editor/server/process-shutdown.ts",
+      "path": "packages/editor-core/server/process-shutdown.ts",
+      "sha256": "fe42379aad5ce56b88ced8651cd34d6c5e05e91fd8e500535589ce25e197b406"
+    },
+    {
+      "source": "packages/editor/server/session-registry.ts",
+      "path": "packages/editor-core/server/session-registry.ts",
+      "sha256": "65302904e1f34ee4ab3d042ded5d74ac6528699ea3ee99b05db0d824f945642b"
+    },
+    {
+      "source": "packages/editor/server/worktree-identity.ts",
+      "path": "packages/editor-core/server/worktree-identity.ts",
+      "sha256": "1ced63b65d7b742ec0700d15c4b734a768b3106f47e3013539940423515f6ebb"
+    },
+    {
+      "source": "packages/editor/server/open-browser.ts",
+      "path": "packages/editor-core/server/open-browser.ts",
+      "sha256": "2b871bcd03e7a39a2200d27118341e8a6e3e519c3be46f35bb67b2b617c44c18"
+    },
+    {
+      "source": "packages/editor/server/spawn-opener.ts",
+      "path": "packages/editor-core/server/spawn-opener.ts",
+      "sha256": "5a762b6fa3c012eb4fd2f060d844447bc5807166ac89c823d6f6d83fadec9f07"
+    }
+  ],
+  "note": "Existing workbench proxy, process shutdown, registry writer and opener. Server route composition and product launcher are not yet transferred. Storage identifiers are preserved for coordinated migration."
+}

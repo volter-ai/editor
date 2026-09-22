@@ -1,0 +1,51 @@
+[
+  {
+    "name": "rapier3d",
+    "repository": "dimforge/rapier.js",
+    "revision": "f072e6efa75f4f61a290bd0b58b61c443685ec01",
+    "path": "LICENSE",
+    "sha256": "4c05555705e3efde601fb1252ae48f1d63992af8a8fb8947745b7fa834e8f519"
+  },
+  {
+    "name": "fiber",
+    "repository": "pmndrs/react-three-fiber",
+    "revision": "0a107412ac64667b1908422e859447952f57feef",
+    "path": "LICENSE",
+    "sha256": "9c35b5de7b7493a707fffe4eb23bd2f7f449153c1911f7c6eefb4e591fd5349a"
+  },
+  {
+    "name": "react-three-rapier",
+    "repository": "pmndrs/react-three-rapier",
+    "revision": "ae5c3fede5ca489fd7eaa8271e9d9c5eabc88e98",
+    "path": "LICENSE",
+    "sha256": "cd14add33d47bcecae9fed5559224ae135c5ec41e1d3a126601f5fbd82291834"
+  },
+  {
+    "name": "storybook",
+    "repository": "storybookjs/storybook",
+    "revision": "f4eff4835ee6076bddf2fa2c8af680afebfaba0e",
+    "path": "LICENSE",
+    "sha256": "bc90586179d44dcb313a9a289d687a2f26226303b2066bd21dbefd2378e894e5"
+  },
+  {
+    "name": "supercode",
+    "repository": "volter-ai/supercode",
+    "revision": "b4bac5b48aaae2691b8662b7987ff208d6265d2d",
+    "path": "LICENSE-MIT",
+    "sha256": "47650bbb438e759a9398efc9f5f1156dd33a93f8d4a83c1e9e28fc5797d5fca6"
+  },
+  {
+    "name": "rrweb",
+    "repository": "rrweb-io/rrweb",
+    "revision": "5b08843faf9cb21c836613489ffd93d455f38181",
+    "path": "LICENSE",
+    "sha256": "e49e62397b603438476e0d6b5ca3b6e6d4f23a80594e596aff29ac04fa3e1b1c"
+  },
+  {
+    "name": "colord",
+    "repository": "pixijs/colord",
+    "revision": "5344fbf77b736f81cd33c21050021bc09bc9dd1d",
+    "path": "LICENSE.md",
+    "sha256": "7613d4594ee8b6163926af3435dae61c9e3d5a27cd137bd76a543ba40002d8fc"
+  }
+]

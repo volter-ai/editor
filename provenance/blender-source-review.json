@@ -1,0 +1,168 @@
+{
+  "reviewedAt": "2026-09-22",
+  "repository": "https://github.com/volter-ai/blender",
+  "binarySourceRevision": "a4dff7ba16a0cca24504d81ed0086457493e48dc",
+  "publicSourceRevision": "94d8f20b225d51755a0a93a7fdf1e0cd9f53d09c",
+  "sourceRelease": "blender-5.2.0-wasm.1",
+  "sourceArchive": {
+    "name": "blender-a4dff7ba16a-source.tar.gz",
+    "sha256": "60f4789ec1a3bc9379bc208c7ce28ee1a4fee7787436a998b2d1ed5748689ec4"
+  },
+  "dependencyArchive": {
+    "name": "blender-wasm-dependency-sources.tar",
+    "sha256": "8dc8ac05195380b5b81b3c292232efb9ca307062bb3bc26be58ee748e1421216"
+  },
+  "verifiedDependencyPayloads": [
+    {
+      "name": "zlib-1.3.1.tar.gz",
+      "sha256": "9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23"
+    },
+    {
+      "name": "brotli-v1.0.9.tar.gz",
+      "sha256": "f9e8d81d0405ba66d181529af42a3354f838c939095ff99930da6aa9cdf6fe46"
+    },
+    {
+      "name": "libjpeg-turbo-2.1.3.tar.gz",
+      "sha256": "dbda0c685942aa3ea908496592491e5ec8160d2cf1ec9d5fd5470e50768e7859"
+    },
+    {
+      "name": "libpng-1.6.58.tar.xz",
+      "sha256": "28eb403f51f0f7405249132cecfe82ea5c0ef97f1b32c5a65828814ae0d34775"
+    },
+    {
+      "name": "zstd-1.5.7.tar.gz",
+      "sha256": "eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3"
+    },
+    {
+      "name": "fmt-12.1.0.tar.gz",
+      "sha256": "ea7de4299689e12b6dddd392f9896f08fb0777ac7168897a244a6d6085043fea"
+    },
+    {
+      "name": "freetype-2.13.3.tar.gz",
+      "sha256": "5c3a8e78f7b24c20b25b54ee575d6daa40007a5f4eea2845861c3409b3021747"
+    },
+    {
+      "name": "eigen-8a1083e9bf41b91fdea6546681f806154efdc25a.tar.gz",
+      "sha256": "cc28a84fdec496c6777596350ea805519bf10f717d21044ae6ba3dd562183a26"
+    },
+    {
+      "name": "imath-3.2.2.tar.gz",
+      "sha256": "b4275d83fb95521510e389b8d13af10298ed5bed1c8e13efd961d91b1105e462"
+    },
+    {
+      "name": "openjph-v0.25.2.tar.gz",
+      "sha256": "ae5f09562cb811cb2fb881c5eb74583e18db941848cfa3c35787e2580f3defc6"
+    },
+    {
+      "name": "libdeflate-v1.18.tar.gz",
+      "sha256": "225d982bcaf553221c76726358d2ea139bb34913180b20823c782cede060affd"
+    },
+    {
+      "name": "openexr-3.4.10.tar.gz",
+      "sha256": "b61ae2d0fa4872c5f5fc45618f107945df37c0eba4853263091b949c513d3319"
+    },
+    {
+      "name": "libexpat-2_7_5.tar.gz",
+      "sha256": "7e23daf05f0ab028570d709ce48d724802baa6e4fbfa4db9b7cee3b72ee2062b"
+    },
+    {
+      "name": "yaml-cpp-0.8.0.tar.gz",
+      "sha256": "fbe74bbdcee21d656715688706da3c8becfd946d92cd44705cc6098bb23b3a16"
+    },
+    {
+      "name": "pystring-v1.1.3.tar.gz",
+      "sha256": "358a56e756e701836b69a31c75d3d9d41c34d447cf7b3775bbd5620dcd3203d9"
+    },
+    {
+      "name": "minizip-ng-4.0.10.tar.gz",
+      "sha256": "c362e35ee973fa7be58cc5e38a4a6c23cc8f7e652555daf4f115a9eb2d3a6be7"
+    },
+    {
+      "name": "OpenColorIO-2.5.0.tar.gz",
+      "sha256": "124e2bfa8a9071959d6ddbb64ffbf78d3f6fe3c923ae23e96a6bbadde1af55b6"
+    },
+    {
+      "name": "tiff-4.7.1.tar.gz",
+      "sha256": "f698d94f3103da8ca7438d84e0344e453fe0ba3b7486e04c5bf7a9a3fabe9b69"
+    },
+    {
+      "name": "robinmap-v1.3.0.tar.gz",
+      "sha256": "a8424ad3b0affd4c57ed26f0f3d8a29604f0e1f2ef2089f497f614b1c94c7236"
+    },
+    {
+      "name": "OpenImageIO-v3.1.13.1.tar.gz",
+      "sha256": "0fc59b8e2708ded02d3793b8f3331f037ed49bfcde38158f05ac0e876ebb85b7"
+    },
+    {
+      "name": "oneTBB-v2022.3.0.tar.gz",
+      "sha256": "01598a46c1162c27253a0de0236f520fd8ee8166e9ebb84a4243574f88e6e50a"
+    },
+    {
+      "name": "opensubdiv-v3_7_0.tar.gz",
+      "sha256": "f843eb49daf20264007d807cbc64516a1fed9cdb1149aaf84ff47691d97491f9"
+    },
+    {
+      "name": "gmp-6.3.0.tar.xz",
+      "sha256": "a3c2b80201b89e68616f4ad30bc66aee4927c3ce50e33929ca819d5c43538898"
+    },
+    {
+      "name": "manifold-v3.5.2.tar.gz",
+      "sha256": "35cb5e0d78882f461ec39b17d8f09c2aceca761356f3ce948e3f3908289b8f2e"
+    },
+    {
+      "name": "Python-3.13.13.tar.xz",
+      "sha256": "2ab91ff401783ccca64f75d10c882e957bdfd60e2bf5a72f8421793729b78a71"
+    },
+    {
+      "name": "numpy-2.3.4.tar.gz",
+      "sha256": "a7d018bfedb375a8d979ac758b120ba846a7fe764911a64465fd87b8729f4a6a"
+    },
+    {
+      "name": "attrs-25.3.0-py3-none-any.whl",
+      "sha256": "427318ce031701fea540783410126f03899a97ffc6f61596ad581ac2e40e3bc3"
+    },
+    {
+      "name": "cattrs-25.1.1-py3-none-any.whl",
+      "sha256": "1b40b2d3402af7be79a7e7e097a9b4cd16d4c06e6d526644b0b26a063a1cc064"
+    },
+    {
+      "name": "typing_extensions-4.14.1-py3-none-any.whl",
+      "sha256": "d1e1e3b58374dc93031d6eda2420a48ea44a36c2b4766a4fdeb3710755731d76"
+    },
+    {
+      "name": "idna-3.10-py3-none-any.whl",
+      "sha256": "946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3"
+    },
+    {
+      "name": "charset_normalizer-3.4.1-py3-none-any.whl",
+      "sha256": "d98b1668f06378c6dbefec3b92299716b931cd4e6061f3c875a71ced1780ab85"
+    },
+    {
+      "name": "urllib3-2.4.0-py3-none-any.whl",
+      "sha256": "4e16665048960a0900c702d4a66415956a584919c03361cac9f1df5c5dd7e813"
+    },
+    {
+      "name": "certifi-2025.4.26-py3-none-any.whl",
+      "sha256": "30350364dfe371162649852c63336a15c70c6510c2ad5015b21c2345311805f3"
+    },
+    {
+      "name": "requests-2.32.3-py3-none-any.whl",
+      "sha256": "70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6"
+    }
+  ],
+  "checks": [
+    "Source archive includes COPYING, complete Emscripten build recipe, pinned source and wheel manifests, and a materialized startup.blend.",
+    "All 26 source archives and eight wheels match their pinned manifest hashes.",
+    "Release BUNDLE.json and DEPENDENCY-LICENSES.txt match the copies in the engine package.",
+    "Secret scan of all 28 custom commit patches from upstream fbe6228777e7d9afefcd61a413844e790ae75db7 through da3e6b3b45a2cd7e9d186e5a4f43b1edbd20446d found no findings."
+  ],
+  "limitations": [
+    "This review does not claim bit-for-bit binary reproducibility or resolve pre-existing rendering differences.",
+    "The fresh public commit has a new identity because private history was deliberately not imported; the reviewed source tree and public provenance metadata are preserved."
+  ],
+  "distributionStatus": {
+    "visibility": "public",
+    "verifiedAt": "2026-09-22",
+    "note": "Corresponding source is public in a fresh repository with no inherited private history. The previous repository and release remain private under blender-private-history."
+  }
+}

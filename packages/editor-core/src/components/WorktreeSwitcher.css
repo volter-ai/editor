@@ -1,0 +1,239 @@
+.vgai-worktree-switcher {
+  display: flex;
+  min-width: 0;
+  /* A GLYPH DOES NOT SHRINK, and it needs air: at 2px the two leading inks
+     merged into one blob at 1x (read at full scale, not reasoned about). One
+     grid step separates them and they read as the two controls they are. */
+  flex: 0 0 auto;
+  margin-left: var(--vgai-space-2);
+  align-items: center;
+}
+
+/* A GLYPH IN THE APP-MARK BAND (see WorktreeSwitcher.tsx for why the label
+   went): the same 14px box as the project glyph beside it, with no padding,
+   no chevron, and the ink centred.
+   TWO CLASSES because theme.css's `.vgai-menu-trigger` padding is equal
+   specificity and lands later (see ProjectHeader.css's leading-glyph rule for
+   the measurement). */
+.vgai-menu-trigger.vgai-worktree-trigger {
+  position: relative;
+  display: inline-flex;
+  width: 14px;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  gap: var(--vgai-space-2);
+}
+
+.vgai-worktree-dirty-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: var(--vgai-radius-full);
+  background: var(--vgai-warn);
+}
+
+/* ON THE TRIGGER it is a BADGE, not a row item: with the label gone the dirty
+   mark would have widened the glyph by its own width plus a gap. It rides the
+   glyph's top-right corner and costs nothing. The menu ROWS keep the inline
+   dot above — there it sits after a branch name that is actually drawn. */
+.vgai-worktree-trigger .vgai-worktree-dirty-dot {
+  position: absolute;
+  top: 2px;
+  right: 1px;
+  width: 5px;
+  height: 5px;
+}
+
+.vgai-worktree-menu {
+  width: min(520px, calc(100vw - 24px));
+  padding: var(--vgai-space-2);
+}
+
+.vgai-worktree-version-control {
+  max-height: min(460px, 48vh);
+  overflow: auto;
+  padding: 0 var(--vgai-space-3) var(--vgai-space-2);
+}
+
+.vgai-worktree-version-control details > summary {
+  padding-block: var(--vgai-space-2);
+}
+
+.vgai-worktree-search {
+  display: flex;
+  align-items: center;
+  gap: var(--vgai-space-2);
+  padding: var(--vgai-space-1) var(--vgai-space-1) var(--vgai-space-2);
+}
+
+.vgai-worktree-search .vgai-input {
+  min-width: 0;
+  flex: 1;
+}
+
+.vgai-worktree-results {
+  max-height: min(420px, 60vh);
+  overflow: auto;
+}
+
+.vgai-worktree-section-label {
+  padding: var(--vgai-space-2) var(--vgai-space-4) var(--vgai-space-1);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.vgai-worktree-menu-item[data-current]:disabled {
+  color: var(--vgai-content-primary);
+}
+
+.vgai-worktree-menu-item[data-current]:disabled:hover {
+  background: var(--vgai-selection-bg);
+}
+
+.vgai-worktree-menu-item,
+.vgai-worktree-create-command {
+  min-width: 0;
+  min-height: 46px;
+  align-items: center;
+  gap: var(--vgai-space-2);
+  padding-block: var(--vgai-space-2);
+  padding-inline: var(--vgai-space-3);
+  white-space: normal;
+}
+
+.vgai-worktree-row-shell {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.vgai-worktree-row-shell > .vgai-worktree-menu-item {
+  min-width: 0;
+  flex: 1;
+}
+
+.vgai-worktree-row-icon {
+  display: inline-flex;
+  width: 18px;
+  flex: 0 0 18px;
+  align-items: center;
+  justify-content: center;
+  color: var(--vgai-content-muted);
+}
+
+.vgai-worktree-row-copy {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 1px;
+}
+
+.vgai-worktree-row-title,
+.vgai-worktree-row-detail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vgai-worktree-presence {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding-left: 5px;
+}
+
+.vgai-worktree-avatar {
+  --vgai-participant-color: var(--vgai-content-muted);
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  margin-left: -5px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--vgai-surface-overlay);
+  border-radius: var(--vgai-radius-full);
+  background: var(--vgai-participant-color);
+  color: white;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.vgai-worktree-avatar[data-kind="agent"] {
+  border-radius: 7px;
+}
+
+.vgai-worktree-avatar[data-status="needs-input"] {
+  box-shadow: 0 0 0 2px var(--vgai-warn);
+}
+
+.vgai-worktree-avatar[data-status="idle"],
+.vgai-worktree-avatar[data-status="done"] {
+  opacity: 0.62;
+}
+
+.vgai-worktree-avatar-more {
+  --vgai-participant-color: var(--vgai-surface-raised);
+  color: var(--vgai-content-muted);
+}
+
+.vgai-worktree-row-title {
+  display: flex;
+  align-items: center;
+  gap: var(--vgai-space-2);
+  font-size: var(--vgai-font-base);
+}
+
+.vgai-worktree-row-detail {
+  color: var(--vgai-content-dim);
+  font-size: var(--vgai-font-xs);
+}
+
+.vgai-worktree-empty,
+.vgai-worktree-error,
+.vgai-worktree-more,
+.vgai-worktree-notice {
+  padding: var(--vgai-space-3) var(--vgai-space-4);
+}
+
+.vgai-worktree-notice {
+  max-height: 140px;
+  overflow: auto;
+  border-top: 1px solid var(--vgai-boundary-default);
+  color: var(--vgai-content-muted);
+  white-space: pre-wrap;
+}
+
+.vgai-worktree-delegate {
+  display: grid;
+  gap: var(--vgai-space-2);
+  padding: var(--vgai-space-3);
+}
+
+.vgai-worktree-delegate textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.vgai-worktree-delegate label {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--vgai-space-2);
+  color: var(--vgai-content-dim);
+  font-size: var(--vgai-font-xs);
+}
+
+/* Structural only: the label grid's minmax(0, 1fr) column needs the control to
+   be allowed to shrink. All paint belongs to the canonical `.vgai-select`. */
+.vgai-worktree-delegate select {
+  min-width: 0;
+}
+
+.vgai-worktree-delegate-open {
+  width: 100%;
+  justify-content: center;
+}

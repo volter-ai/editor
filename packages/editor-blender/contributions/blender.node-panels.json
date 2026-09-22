@@ -1,0 +1,2436 @@
+{
+  "CompositorNodeColorBalance": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "input",
+        "name": "Image"
+      },
+      {
+        "kind": "output",
+        "name": "Image",
+        "alignWithPrevious": true
+      },
+      {
+        "kind": "input",
+        "name": "Factor",
+        "identifier": "Fac"
+      },
+      {
+        "kind": "input",
+        "name": "Type"
+      },
+      {
+        "kind": "input",
+        "name": "Lift",
+        "identifier": "Base Lift"
+      },
+      {
+        "kind": "input",
+        "name": "Lift",
+        "identifier": "Color Lift"
+      },
+      {
+        "kind": "input",
+        "name": "Gamma",
+        "identifier": "Base Gamma"
+      },
+      {
+        "kind": "input",
+        "name": "Gamma",
+        "identifier": "Color Gamma"
+      },
+      {
+        "kind": "input",
+        "name": "Gain",
+        "identifier": "Base Gain"
+      },
+      {
+        "kind": "input",
+        "name": "Gain",
+        "identifier": "Color Gain"
+      },
+      {
+        "kind": "input",
+        "name": "Offset",
+        "identifier": "Base Offset"
+      },
+      {
+        "kind": "input",
+        "name": "Offset",
+        "identifier": "Color Offset"
+      },
+      {
+        "kind": "input",
+        "name": "Power",
+        "identifier": "Base Power"
+      },
+      {
+        "kind": "input",
+        "name": "Power",
+        "identifier": "Color Power"
+      },
+      {
+        "kind": "input",
+        "name": "Slope",
+        "identifier": "Base Slope"
+      },
+      {
+        "kind": "input",
+        "name": "Slope",
+        "identifier": "Color Slope"
+      },
+      {
+        "kind": "panel",
+        "name": "Input",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Temperature",
+            "identifier": "Input Temperature"
+          },
+          {
+            "kind": "input",
+            "name": "Tint",
+            "identifier": "Input Tint"
+          },
+          {
+            "kind": "layout"
+          }
+        ]
+      },
+      {
+        "kind": "panel",
+        "name": "Output",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Temperature",
+            "identifier": "Output Temperature"
+          },
+          {
+            "kind": "input",
+            "name": "Tint",
+            "identifier": "Output Tint"
+          },
+          {
+            "kind": "layout"
+          }
+        ]
+      }
+    ]
+  },
+  "CompositorNodeColorCorrection": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "input",
+        "name": "Image"
+      },
+      {
+        "kind": "output",
+        "name": "Image",
+        "alignWithPrevious": true
+      },
+      {
+        "kind": "input",
+        "name": "Mask"
+      },
+      {
+        "kind": "panel",
+        "name": "Master",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Saturation",
+            "identifier": "Master Saturation"
+          },
+          {
+            "kind": "input",
+            "name": "Contrast",
+            "identifier": "Master Contrast"
+          },
+          {
+            "kind": "input",
+            "name": "Gamma",
+            "identifier": "Master Gamma"
+          },
+          {
+            "kind": "input",
+            "name": "Gain",
+            "identifier": "Master Gain"
+          },
+          {
+            "kind": "input",
+            "name": "Offset",
+            "identifier": "Master Offset"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Highlights",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Saturation",
+            "identifier": "Highlights Saturation"
+          },
+          {
+            "kind": "input",
+            "name": "Contrast",
+            "identifier": "Highlights Contrast"
+          },
+          {
+            "kind": "input",
+            "name": "Gamma",
+            "identifier": "Highlights Gamma"
+          },
+          {
+            "kind": "input",
+            "name": "Gain",
+            "identifier": "Highlights Gain"
+          },
+          {
+            "kind": "input",
+            "name": "Offset",
+            "identifier": "Highlights Offset"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Midtones",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Saturation",
+            "identifier": "Midtones Saturation"
+          },
+          {
+            "kind": "input",
+            "name": "Contrast",
+            "identifier": "Midtones Contrast"
+          },
+          {
+            "kind": "input",
+            "name": "Gamma",
+            "identifier": "Midtones Gamma"
+          },
+          {
+            "kind": "input",
+            "name": "Gain",
+            "identifier": "Midtones Gain"
+          },
+          {
+            "kind": "input",
+            "name": "Offset",
+            "identifier": "Midtones Offset"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Shadows",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Saturation",
+            "identifier": "Shadows Saturation"
+          },
+          {
+            "kind": "input",
+            "name": "Contrast",
+            "identifier": "Shadows Contrast"
+          },
+          {
+            "kind": "input",
+            "name": "Gamma",
+            "identifier": "Shadows Gamma"
+          },
+          {
+            "kind": "input",
+            "name": "Gain",
+            "identifier": "Shadows Gain"
+          },
+          {
+            "kind": "input",
+            "name": "Offset",
+            "identifier": "Shadows Offset"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Tonal Range",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Midtones Start"
+          },
+          {
+            "kind": "input",
+            "name": "Midtones End"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Channels",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Red",
+            "identifier": "Apply On Red"
+          },
+          {
+            "kind": "input",
+            "name": "Green",
+            "identifier": "Apply On Green"
+          },
+          {
+            "kind": "input",
+            "name": "Blue",
+            "identifier": "Apply On Blue"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "CompositorNodeColorSpill": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "output",
+        "name": "Image"
+      },
+      {
+        "kind": "input",
+        "name": "Image"
+      },
+      {
+        "kind": "input",
+        "name": "Factor",
+        "identifier": "Fac"
+      },
+      {
+        "kind": "input",
+        "name": "Spill Channel"
+      },
+      {
+        "kind": "input",
+        "name": "Limit Method"
+      },
+      {
+        "kind": "input",
+        "name": "Limit Channel"
+      },
+      {
+        "kind": "input",
+        "name": "Limit Strength"
+      },
+      {
+        "kind": "panel",
+        "name": "Spill Strength",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Use Spill Strength",
+            "panelToggle": true
+          },
+          {
+            "kind": "input",
+            "name": "Strength",
+            "identifier": "Spill Strength"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "CompositorNodeCornerPin": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "input",
+        "name": "Image"
+      },
+      {
+        "kind": "output",
+        "name": "Image",
+        "alignWithPrevious": true
+      },
+      {
+        "kind": "output",
+        "name": "Plane"
+      },
+      {
+        "kind": "input",
+        "name": "Upper Left"
+      },
+      {
+        "kind": "input",
+        "name": "Upper Right"
+      },
+      {
+        "kind": "input",
+        "name": "Lower Left"
+      },
+      {
+        "kind": "input",
+        "name": "Lower Right"
+      },
+      {
+        "kind": "panel",
+        "name": "Sampling",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Interpolation"
+          },
+          {
+            "kind": "input",
+            "name": "Extension X"
+          },
+          {
+            "kind": "input",
+            "name": "Extension Y"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "CompositorNodeDBlur": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "input",
+        "name": "Image"
+      },
+      {
+        "kind": "output",
+        "name": "Image",
+        "alignWithPrevious": true
+      },
+      {
+        "kind": "input",
+        "name": "Samples"
+      },
+      {
+        "kind": "input",
+        "name": "Center"
+      },
+      {
+        "kind": "input",
+        "name": "Rotation"
+      },
+      {
+        "kind": "input",
+        "name": "Scale"
+      },
+      {
+        "kind": "panel",
+        "name": "Translation",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Amount",
+            "identifier": "Translation Amount"
+          },
+          {
+            "kind": "input",
+            "name": "Direction",
+            "identifier": "Translation Direction"
+          }
+        ]
+      }
+    ]
+  },
+  "CompositorNodeDisplace": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "input",
+        "name": "Image"
+      },
+      {
+        "kind": "output",
+        "name": "Image",
+        "alignWithPrevious": true
+      },
+      {
+        "kind": "input",
+        "name": "Displacement"
+      },
+      {
+        "kind": "panel",
+        "name": "Sampling",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Interpolation"
+          },
+          {
+            "kind": "input",
+            "name": "Extension X"
+          },
+          {
+            "kind": "input",
+            "name": "Extension Y"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "CompositorNodeGlare": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "input",
+        "name": "Image"
+      },
+      {
+        "kind": "output",
+        "name": "Image",
+        "alignWithPrevious": true
+      },
+      {
+        "kind": "output",
+        "name": "Glare"
+      },
+      {
+        "kind": "output",
+        "name": "Highlights"
+      },
+      {
+        "kind": "input",
+        "name": "Type"
+      },
+      {
+        "kind": "input",
+        "name": "Quality"
+      },
+      {
+        "kind": "panel",
+        "name": "Highlights",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Threshold",
+            "identifier": "Highlights Threshold"
+          },
+          {
+            "kind": "input",
+            "name": "Smoothness",
+            "identifier": "Highlights Smoothness"
+          },
+          {
+            "kind": "panel",
+            "name": "Clamp",
+            "items": [
+              {
+                "kind": "input",
+                "name": "Clamp",
+                "identifier": "Clamp Highlights",
+                "panelToggle": true
+              },
+              {
+                "kind": "input",
+                "name": "Maximum",
+                "identifier": "Maximum Highlights"
+              }
+            ],
+            "defaultClosed": true
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Adjust",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Strength"
+          },
+          {
+            "kind": "input",
+            "name": "Saturation"
+          },
+          {
+            "kind": "input",
+            "name": "Tint"
+          }
+        ]
+      },
+      {
+        "kind": "panel",
+        "name": "Glare",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Size"
+          },
+          {
+            "kind": "input",
+            "name": "Streaks"
+          },
+          {
+            "kind": "input",
+            "name": "Streaks Angle"
+          },
+          {
+            "kind": "input",
+            "name": "Iterations"
+          },
+          {
+            "kind": "input",
+            "name": "Fade"
+          },
+          {
+            "kind": "input",
+            "name": "Color Modulation"
+          },
+          {
+            "kind": "input",
+            "name": "Diagonal",
+            "identifier": "Diagonal Star"
+          },
+          {
+            "kind": "input",
+            "name": "Sun Position"
+          },
+          {
+            "kind": "input",
+            "name": "Jitter"
+          },
+          {
+            "kind": "input",
+            "name": "Kernel Data Type"
+          },
+          {
+            "kind": "input",
+            "name": "Kernel",
+            "identifier": "Float Kernel"
+          },
+          {
+            "kind": "input",
+            "name": "Kernel",
+            "identifier": "Color Kernel"
+          }
+        ]
+      }
+    ]
+  },
+  "CompositorNodeKeying": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "input",
+        "name": "Image"
+      },
+      {
+        "kind": "output",
+        "name": "Image",
+        "alignWithPrevious": true
+      },
+      {
+        "kind": "output",
+        "name": "Matte"
+      },
+      {
+        "kind": "output",
+        "name": "Edges"
+      },
+      {
+        "kind": "input",
+        "name": "Key Color"
+      },
+      {
+        "kind": "panel",
+        "name": "Preprocess",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Blur Size",
+            "identifier": "Preprocess Blur Size"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Key",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Balance",
+            "identifier": "Key Balance"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Tweak",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Black Level"
+          },
+          {
+            "kind": "input",
+            "name": "White Level"
+          },
+          {
+            "kind": "panel",
+            "name": "Edges",
+            "items": [
+              {
+                "kind": "input",
+                "name": "Size",
+                "identifier": "Edge Search Size"
+              },
+              {
+                "kind": "input",
+                "name": "Tolerance",
+                "identifier": "Edge Tolerance"
+              }
+            ],
+            "defaultClosed": true
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Mask",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Garbage Matte"
+          },
+          {
+            "kind": "input",
+            "name": "Core Matte"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Postprocess",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Blur Size",
+            "identifier": "Postprocess Blur Size"
+          },
+          {
+            "kind": "input",
+            "name": "Dilate Size",
+            "identifier": "Postprocess Dilate Size"
+          },
+          {
+            "kind": "input",
+            "name": "Feather Size",
+            "identifier": "Postprocess Feather Size"
+          },
+          {
+            "kind": "input",
+            "name": "Feather Falloff"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Despill",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Strength",
+            "identifier": "Despill Strength"
+          },
+          {
+            "kind": "input",
+            "name": "Balance",
+            "identifier": "Despill Balance"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "CompositorNodeMapUV": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "input",
+        "name": "Image"
+      },
+      {
+        "kind": "output",
+        "name": "Image",
+        "alignWithPrevious": true
+      },
+      {
+        "kind": "input",
+        "name": "UV"
+      },
+      {
+        "kind": "panel",
+        "name": "Sampling",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Interpolation"
+          },
+          {
+            "kind": "input",
+            "name": "Extension X"
+          },
+          {
+            "kind": "input",
+            "name": "Extension Y"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "CompositorNodeMask": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "output",
+        "name": "Mask"
+      },
+      {
+        "kind": "layout"
+      },
+      {
+        "kind": "input",
+        "name": "Size Source"
+      },
+      {
+        "kind": "input",
+        "name": "Size X"
+      },
+      {
+        "kind": "input",
+        "name": "Size Y"
+      },
+      {
+        "kind": "input",
+        "name": "Feather"
+      },
+      {
+        "kind": "panel",
+        "name": "Motion Blur",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Motion Blur",
+            "panelToggle": true
+          },
+          {
+            "kind": "input",
+            "name": "Samples",
+            "identifier": "Motion Blur Samples"
+          },
+          {
+            "kind": "input",
+            "name": "Shutter",
+            "identifier": "Motion Blur Shutter"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "CompositorNodePlaneTrackDeform": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "input",
+        "name": "Image"
+      },
+      {
+        "kind": "output",
+        "name": "Image",
+        "alignWithPrevious": true
+      },
+      {
+        "kind": "output",
+        "name": "Plane"
+      },
+      {
+        "kind": "layout"
+      },
+      {
+        "kind": "panel",
+        "name": "Motion Blur",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Motion Blur",
+            "panelToggle": true
+          },
+          {
+            "kind": "input",
+            "name": "Samples",
+            "identifier": "Motion Blur Samples"
+          },
+          {
+            "kind": "input",
+            "name": "Shutter",
+            "identifier": "Motion Blur Shutter"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "CompositorNodeRotate": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "input",
+        "name": "Image"
+      },
+      {
+        "kind": "output",
+        "name": "Image",
+        "alignWithPrevious": true
+      },
+      {
+        "kind": "input",
+        "name": "Angle"
+      },
+      {
+        "kind": "panel",
+        "name": "Sampling",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Interpolation"
+          },
+          {
+            "kind": "input",
+            "name": "Extension X"
+          },
+          {
+            "kind": "input",
+            "name": "Extension Y"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "CompositorNodeScale": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "input",
+        "name": "Image"
+      },
+      {
+        "kind": "output",
+        "name": "Image",
+        "alignWithPrevious": true
+      },
+      {
+        "kind": "input",
+        "name": "Type"
+      },
+      {
+        "kind": "input",
+        "name": "X"
+      },
+      {
+        "kind": "input",
+        "name": "Y"
+      },
+      {
+        "kind": "input",
+        "name": "Frame Type"
+      },
+      {
+        "kind": "panel",
+        "name": "Sampling",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Interpolation"
+          },
+          {
+            "kind": "input",
+            "name": "Extension X"
+          },
+          {
+            "kind": "input",
+            "name": "Extension Y"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "CompositorNodeStabilize": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "input",
+        "name": "Image"
+      },
+      {
+        "kind": "output",
+        "name": "Image",
+        "alignWithPrevious": true
+      },
+      {
+        "kind": "layout"
+      },
+      {
+        "kind": "input",
+        "name": "Frame"
+      },
+      {
+        "kind": "input",
+        "name": "Invert"
+      },
+      {
+        "kind": "panel",
+        "name": "Sampling",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Interpolation"
+          },
+          {
+            "kind": "input",
+            "name": "Extension X"
+          },
+          {
+            "kind": "input",
+            "name": "Extension Y"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "CompositorNodeStringToImage": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "output",
+        "name": "Image"
+      },
+      {
+        "kind": "input",
+        "name": "String"
+      },
+      {
+        "kind": "input",
+        "name": "Font"
+      },
+      {
+        "kind": "input",
+        "name": "Size"
+      },
+      {
+        "kind": "panel",
+        "name": "Alignment",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Horizontal Alignment"
+          },
+          {
+            "kind": "input",
+            "name": "Vertical Alignment"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Wrap",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Wrap",
+            "panelToggle": true
+          },
+          {
+            "kind": "input",
+            "name": "Width",
+            "identifier": "Wrap Width"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "CompositorNodeTransform": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "input",
+        "name": "Image"
+      },
+      {
+        "kind": "output",
+        "name": "Image",
+        "alignWithPrevious": true
+      },
+      {
+        "kind": "input",
+        "name": "X"
+      },
+      {
+        "kind": "input",
+        "name": "Y"
+      },
+      {
+        "kind": "input",
+        "name": "Angle"
+      },
+      {
+        "kind": "input",
+        "name": "Scale"
+      },
+      {
+        "kind": "panel",
+        "name": "Sampling",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Interpolation"
+          },
+          {
+            "kind": "input",
+            "name": "Extension X"
+          },
+          {
+            "kind": "input",
+            "name": "Extension Y"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "CompositorNodeTranslate": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "input",
+        "name": "Image"
+      },
+      {
+        "kind": "output",
+        "name": "Image",
+        "alignWithPrevious": true
+      },
+      {
+        "kind": "input",
+        "name": "X"
+      },
+      {
+        "kind": "input",
+        "name": "Y"
+      },
+      {
+        "kind": "panel",
+        "name": "Sampling",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Interpolation"
+          },
+          {
+            "kind": "input",
+            "name": "Extension X"
+          },
+          {
+            "kind": "input",
+            "name": "Extension Y"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "FunctionNodeCombineMatrix": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "output",
+        "name": "Matrix"
+      },
+      {
+        "kind": "panel",
+        "name": "Column 1",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Column 1 Row 1"
+          },
+          {
+            "kind": "input",
+            "name": "Column 1 Row 2"
+          },
+          {
+            "kind": "input",
+            "name": "Column 1 Row 3"
+          },
+          {
+            "kind": "input",
+            "name": "Column 1 Row 4"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Column 2",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Column 2 Row 1"
+          },
+          {
+            "kind": "input",
+            "name": "Column 2 Row 2"
+          },
+          {
+            "kind": "input",
+            "name": "Column 2 Row 3"
+          },
+          {
+            "kind": "input",
+            "name": "Column 2 Row 4"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Column 3",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Column 3 Row 1"
+          },
+          {
+            "kind": "input",
+            "name": "Column 3 Row 2"
+          },
+          {
+            "kind": "input",
+            "name": "Column 3 Row 3"
+          },
+          {
+            "kind": "input",
+            "name": "Column 3 Row 4"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Column 4",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Column 4 Row 1"
+          },
+          {
+            "kind": "input",
+            "name": "Column 4 Row 2"
+          },
+          {
+            "kind": "input",
+            "name": "Column 4 Row 3"
+          },
+          {
+            "kind": "input",
+            "name": "Column 4 Row 4"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "FunctionNodeSeparateMatrix": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "panel",
+        "name": "Column 1",
+        "items": [
+          {
+            "kind": "output",
+            "name": "Column 1 Row 1"
+          },
+          {
+            "kind": "output",
+            "name": "Column 1 Row 2"
+          },
+          {
+            "kind": "output",
+            "name": "Column 1 Row 3"
+          },
+          {
+            "kind": "output",
+            "name": "Column 1 Row 4"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Column 2",
+        "items": [
+          {
+            "kind": "output",
+            "name": "Column 2 Row 1"
+          },
+          {
+            "kind": "output",
+            "name": "Column 2 Row 2"
+          },
+          {
+            "kind": "output",
+            "name": "Column 2 Row 3"
+          },
+          {
+            "kind": "output",
+            "name": "Column 2 Row 4"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Column 3",
+        "items": [
+          {
+            "kind": "output",
+            "name": "Column 3 Row 1"
+          },
+          {
+            "kind": "output",
+            "name": "Column 3 Row 2"
+          },
+          {
+            "kind": "output",
+            "name": "Column 3 Row 3"
+          },
+          {
+            "kind": "output",
+            "name": "Column 3 Row 4"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Column 4",
+        "items": [
+          {
+            "kind": "output",
+            "name": "Column 4 Row 1"
+          },
+          {
+            "kind": "output",
+            "name": "Column 4 Row 2"
+          },
+          {
+            "kind": "output",
+            "name": "Column 4 Row 3"
+          },
+          {
+            "kind": "output",
+            "name": "Column 4 Row 4"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "input",
+        "name": "Matrix"
+      }
+    ]
+  },
+  "FunctionNodeTrimString": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "input",
+        "name": "String"
+      },
+      {
+        "kind": "output",
+        "name": "String",
+        "alignWithPrevious": true
+      },
+      {
+        "kind": "input",
+        "name": "Characters"
+      },
+      {
+        "kind": "input",
+        "name": "Whitespace"
+      },
+      {
+        "kind": "panel",
+        "name": "Limit",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Start"
+          },
+          {
+            "kind": "input",
+            "name": "End"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "GeometryNodeCubeGridTopology": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "output",
+        "name": "Topology"
+      },
+      {
+        "kind": "input",
+        "name": "Bounds Min"
+      },
+      {
+        "kind": "input",
+        "name": "Bounds Max"
+      },
+      {
+        "kind": "input",
+        "name": "Resolution X"
+      },
+      {
+        "kind": "input",
+        "name": "Resolution Y"
+      },
+      {
+        "kind": "input",
+        "name": "Resolution Z"
+      },
+      {
+        "kind": "panel",
+        "name": "Min",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Min X"
+          },
+          {
+            "kind": "input",
+            "name": "Min Y"
+          },
+          {
+            "kind": "input",
+            "name": "Min Z"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "GeometryNodeForeachGeometryElementOutput": {
+    "customSocketOrder": true,
+    "conditional": true,
+    "items": [
+      {
+        "kind": "output",
+        "name": "Geometry"
+      },
+      {
+        "kind": "input",
+        "name": "",
+        "identifier": "__extend__main"
+      },
+      {
+        "kind": "output",
+        "name": "",
+        "identifier": "__extend__main",
+        "alignWithPrevious": true
+      },
+      {
+        "kind": "panel",
+        "name": "Generated",
+        "items": [
+          {
+            "kind": "separator"
+          },
+          {
+            "kind": "input",
+            "name": "",
+            "identifier": "__extend__generation"
+          },
+          {
+            "kind": "output",
+            "name": "",
+            "identifier": "__extend__generation",
+            "alignWithPrevious": true
+          }
+        ]
+      }
+    ]
+  },
+  "GeometryNodeGetAttributeNames": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "output",
+        "name": "Names"
+      },
+      {
+        "kind": "input",
+        "name": "Geometry"
+      },
+      {
+        "kind": "panel",
+        "name": "Filter Data Type",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Filter Data Type",
+            "panelToggle": true
+          },
+          {
+            "kind": "input",
+            "name": "Data Type"
+          }
+        ]
+      },
+      {
+        "kind": "panel",
+        "name": "Filter Domain",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Filter Domain",
+            "panelToggle": true
+          },
+          {
+            "kind": "input",
+            "name": "Domain"
+          }
+        ]
+      }
+    ]
+  },
+  "GeometryNodeGridToPoints": {
+    "customSocketOrder": true,
+    "conditional": true,
+    "items": [
+      {
+        "kind": "layout"
+      },
+      {
+        "kind": "output",
+        "name": "Points"
+      },
+      {
+        "kind": "output",
+        "name": "Value"
+      },
+      {
+        "kind": "panel",
+        "name": "Voxel Index",
+        "items": [
+          {
+            "kind": "output",
+            "name": "X"
+          },
+          {
+            "kind": "output",
+            "name": "Y"
+          },
+          {
+            "kind": "output",
+            "name": "Z"
+          },
+          {
+            "kind": "output",
+            "name": "Is Tile"
+          },
+          {
+            "kind": "output",
+            "name": "Extent"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "input",
+        "name": "Grid"
+      }
+    ]
+  },
+  "GeometryNodeInputVoxelIndex": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "output",
+        "name": "X"
+      },
+      {
+        "kind": "output",
+        "name": "Y"
+      },
+      {
+        "kind": "output",
+        "name": "Z"
+      },
+      {
+        "kind": "panel",
+        "name": "Tile",
+        "items": [
+          {
+            "kind": "output",
+            "name": "Is Tile"
+          },
+          {
+            "kind": "output",
+            "name": "Extent X"
+          },
+          {
+            "kind": "output",
+            "name": "Extent Y"
+          },
+          {
+            "kind": "output",
+            "name": "Extent Z"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "GeometryNodeMeshBevel": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "input",
+        "name": "Mesh"
+      },
+      {
+        "kind": "output",
+        "name": "Mesh",
+        "alignWithPrevious": true
+      },
+      {
+        "kind": "input",
+        "name": "Selection"
+      },
+      {
+        "kind": "input",
+        "name": "Affect Kind"
+      },
+      {
+        "kind": "input",
+        "name": "Start Left Offset"
+      },
+      {
+        "kind": "input",
+        "name": "Start Right Offset"
+      },
+      {
+        "kind": "input",
+        "name": "End Left Offset"
+      },
+      {
+        "kind": "input",
+        "name": "End Right Offset"
+      },
+      {
+        "kind": "input",
+        "name": "Offset"
+      },
+      {
+        "kind": "input",
+        "name": "Miter"
+      },
+      {
+        "kind": "input",
+        "name": "Spread"
+      },
+      {
+        "kind": "input",
+        "name": "Segments"
+      },
+      {
+        "kind": "input",
+        "name": "Shape"
+      },
+      {
+        "kind": "input",
+        "name": "Profile"
+      },
+      {
+        "kind": "panel",
+        "name": "Selections",
+        "items": [
+          {
+            "kind": "output",
+            "name": "Vertex Face"
+          },
+          {
+            "kind": "output",
+            "name": "Edge Face"
+          },
+          {
+            "kind": "output",
+            "name": "Outer Edge"
+          },
+          {
+            "kind": "output",
+            "name": "Mid Edge"
+          }
+        ]
+      }
+    ]
+  },
+  "GeometryNodeSampleSoundFrequencies": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "output",
+        "name": "Amplitude"
+      },
+      {
+        "kind": "input",
+        "name": "Sound"
+      },
+      {
+        "kind": "input",
+        "name": "Time"
+      },
+      {
+        "kind": "input",
+        "name": "All Channels"
+      },
+      {
+        "kind": "input",
+        "name": "Channel"
+      },
+      {
+        "kind": "input",
+        "name": "Low"
+      },
+      {
+        "kind": "input",
+        "name": "High"
+      },
+      {
+        "kind": "panel",
+        "name": "FFT",
+        "items": [
+          {
+            "kind": "input",
+            "name": "FFT Size"
+          },
+          {
+            "kind": "input",
+            "name": "Window Function"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "GeometryNodeStringToCurves": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "output",
+        "name": "Curve Instances"
+      },
+      {
+        "kind": "output",
+        "name": "Remainder"
+      },
+      {
+        "kind": "output",
+        "name": "Line"
+      },
+      {
+        "kind": "output",
+        "name": "Word"
+      },
+      {
+        "kind": "output",
+        "name": "Pivot Point"
+      },
+      {
+        "kind": "input",
+        "name": "String"
+      },
+      {
+        "kind": "input",
+        "name": "Size"
+      },
+      {
+        "kind": "input",
+        "name": "Font"
+      },
+      {
+        "kind": "panel",
+        "name": "Alignment",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Align X"
+          },
+          {
+            "kind": "input",
+            "name": "Align Y"
+          },
+          {
+            "kind": "input",
+            "name": "Pivot Point"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Spacing",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Character Spacing"
+          },
+          {
+            "kind": "input",
+            "name": "Word Spacing"
+          },
+          {
+            "kind": "input",
+            "name": "Line Spacing"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Text Box",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Overflow"
+          },
+          {
+            "kind": "input",
+            "name": "Text Box Width"
+          },
+          {
+            "kind": "input",
+            "name": "Text Box Height"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "GeometryNodeTransferAttributes": {
+    "customSocketOrder": true,
+    "conditional": true,
+    "items": [
+      {
+        "kind": "input",
+        "name": "Target"
+      },
+      {
+        "kind": "output",
+        "name": "Target",
+        "alignWithPrevious": true
+      },
+      {
+        "kind": "output",
+        "name": "Transferred Names"
+      },
+      {
+        "kind": "panel",
+        "name": "Target IDs",
+        "items": [],
+        "defaultClosed": true
+      },
+      {
+        "kind": "input",
+        "name": "Source"
+      },
+      {
+        "kind": "panel",
+        "name": "Source IDs",
+        "items": [],
+        "defaultClosed": true
+      },
+      {
+        "kind": "input",
+        "name": "Pattern Mode"
+      },
+      {
+        "kind": "input",
+        "name": "Attribute Names"
+      },
+      {
+        "kind": "input",
+        "name": "Exclude Names"
+      }
+    ]
+  },
+  "GeometryNodeXPBDSolver": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "input",
+        "name": "World"
+      },
+      {
+        "kind": "output",
+        "name": "World",
+        "alignWithPrevious": true
+      },
+      {
+        "kind": "input",
+        "name": "Delta Time"
+      },
+      {
+        "kind": "input",
+        "name": "Filter"
+      },
+      {
+        "kind": "input",
+        "name": "Simulation to World"
+      },
+      {
+        "kind": "panel",
+        "name": "Solver",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Substeps"
+          },
+          {
+            "kind": "input",
+            "name": "Constraint Iterations"
+          },
+          {
+            "kind": "input",
+            "name": "Solver Path"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Interpolation Range",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Begin"
+          },
+          {
+            "kind": "input",
+            "name": "End"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "NodeEvaluateClosure": {
+    "customSocketOrder": true,
+    "conditional": true,
+    "items": [
+      {
+        "kind": "input",
+        "name": "Closure"
+      },
+      {
+        "kind": "panel",
+        "name": "Interface",
+        "items": [
+          {
+            "kind": "output",
+            "name": "",
+            "identifier": "__extend__"
+          },
+          {
+            "kind": "input",
+            "name": "",
+            "identifier": "__extend__"
+          }
+        ]
+      }
+    ]
+  },
+  "ShaderNodeBsdfGlass": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "output",
+        "name": "BSDF"
+      },
+      {
+        "kind": "layout"
+      },
+      {
+        "kind": "input",
+        "name": "Color"
+      },
+      {
+        "kind": "input",
+        "name": "Roughness"
+      },
+      {
+        "kind": "input",
+        "name": "IOR"
+      },
+      {
+        "kind": "input",
+        "name": "Normal"
+      },
+      {
+        "kind": "input",
+        "name": "Weight",
+        "conditional": true
+      },
+      {
+        "kind": "panel",
+        "name": "Thin Film",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Thin Film Thickness"
+          },
+          {
+            "kind": "input",
+            "name": "Thin Film IOR"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "ShaderNodeBsdfMetallic": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "output",
+        "name": "BSDF"
+      },
+      {
+        "kind": "layout"
+      },
+      {
+        "kind": "input",
+        "name": "Base Color"
+      },
+      {
+        "kind": "input",
+        "name": "Edge Tint"
+      },
+      {
+        "kind": "input",
+        "name": "IOR"
+      },
+      {
+        "kind": "input",
+        "name": "Extinction"
+      },
+      {
+        "kind": "input",
+        "name": "Roughness"
+      },
+      {
+        "kind": "input",
+        "name": "Anisotropy"
+      },
+      {
+        "kind": "input",
+        "name": "Rotation"
+      },
+      {
+        "kind": "input",
+        "name": "Normal"
+      },
+      {
+        "kind": "input",
+        "name": "Tangent"
+      },
+      {
+        "kind": "input",
+        "name": "Weight",
+        "conditional": true
+      },
+      {
+        "kind": "panel",
+        "name": "Thin Film",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Thin Film Thickness"
+          },
+          {
+            "kind": "input",
+            "name": "Thin Film IOR"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "ShaderNodeBsdfPrincipled": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "output",
+        "name": "BSDF"
+      },
+      {
+        "kind": "input",
+        "name": "Base Color"
+      },
+      {
+        "kind": "input",
+        "name": "Metallic"
+      },
+      {
+        "kind": "input",
+        "name": "Roughness"
+      },
+      {
+        "kind": "input",
+        "name": "IOR"
+      },
+      {
+        "kind": "input",
+        "name": "Alpha"
+      },
+      {
+        "kind": "input",
+        "name": "Thin Wall"
+      },
+      {
+        "kind": "input",
+        "name": "Normal"
+      },
+      {
+        "kind": "input",
+        "name": "Weight",
+        "conditional": true
+      },
+      {
+        "kind": "panel",
+        "name": "Diffuse",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Diffuse Roughness"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Subsurface",
+        "items": [
+          {
+            "kind": "layout"
+          },
+          {
+            "kind": "input",
+            "name": "Subsurface Weight"
+          },
+          {
+            "kind": "input",
+            "name": "Subsurface Radius"
+          },
+          {
+            "kind": "input",
+            "name": "Subsurface Scale"
+          },
+          {
+            "kind": "input",
+            "name": "Subsurface IOR"
+          },
+          {
+            "kind": "input",
+            "name": "Subsurface Anisotropy"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Specular",
+        "items": [
+          {
+            "kind": "layout"
+          },
+          {
+            "kind": "input",
+            "name": "Specular IOR Level"
+          },
+          {
+            "kind": "input",
+            "name": "Specular Tint"
+          },
+          {
+            "kind": "input",
+            "name": "Anisotropic"
+          },
+          {
+            "kind": "input",
+            "name": "Anisotropic Rotation"
+          },
+          {
+            "kind": "input",
+            "name": "Tangent"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Transmission",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Transmission Weight"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Coat",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Coat Weight"
+          },
+          {
+            "kind": "input",
+            "name": "Coat Roughness"
+          },
+          {
+            "kind": "input",
+            "name": "Coat IOR"
+          },
+          {
+            "kind": "input",
+            "name": "Coat Tint"
+          },
+          {
+            "kind": "input",
+            "name": "Coat Normal"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Sheen",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Sheen Weight"
+          },
+          {
+            "kind": "input",
+            "name": "Sheen Roughness"
+          },
+          {
+            "kind": "input",
+            "name": "Sheen Tint"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Emission",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Emission Color"
+          },
+          {
+            "kind": "input",
+            "name": "Emission Strength"
+          }
+        ],
+        "defaultClosed": true
+      },
+      {
+        "kind": "panel",
+        "name": "Thin Film",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Thin Film Thickness"
+          },
+          {
+            "kind": "input",
+            "name": "Thin Film IOR"
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "ShaderNodeRaycast": {
+    "customSocketOrder": true,
+    "conditional": true,
+    "items": [
+      {
+        "kind": "layout"
+      },
+      {
+        "kind": "output",
+        "name": "Is Hit"
+      },
+      {
+        "kind": "output",
+        "name": "Self Hit"
+      },
+      {
+        "kind": "output",
+        "name": "Hit Distance"
+      },
+      {
+        "kind": "output",
+        "name": "Hit Position"
+      },
+      {
+        "kind": "output",
+        "name": "Hit Normal"
+      },
+      {
+        "kind": "input",
+        "name": "Position"
+      },
+      {
+        "kind": "input",
+        "name": "Direction"
+      },
+      {
+        "kind": "input",
+        "name": "Length"
+      },
+      {
+        "kind": "panel",
+        "name": "Attributes",
+        "items": [
+          {
+            "kind": "input",
+            "name": "",
+            "identifier": "__extend__"
+          },
+          {
+            "kind": "output",
+            "name": "",
+            "identifier": "__extend__",
+            "alignWithPrevious": true
+          }
+        ],
+        "defaultClosed": true
+      }
+    ]
+  },
+  "ShaderNodeVolumeCoefficients": {
+    "customSocketOrder": true,
+    "items": [
+      {
+        "kind": "output",
+        "name": "Volume"
+      },
+      {
+        "kind": "input",
+        "name": "Weight",
+        "conditional": true
+      },
+      {
+        "kind": "panel",
+        "name": "Absorption",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Absorption Coefficients"
+          }
+        ]
+      },
+      {
+        "kind": "panel",
+        "name": "Scatter",
+        "items": [
+          {
+            "kind": "layout"
+          },
+          {
+            "kind": "input",
+            "name": "Scatter Coefficients"
+          },
+          {
+            "kind": "input",
+            "name": "Anisotropy"
+          },
+          {
+            "kind": "input",
+            "name": "IOR"
+          },
+          {
+            "kind": "input",
+            "name": "Backscatter"
+          },
+          {
+            "kind": "input",
+            "name": "Alpha"
+          },
+          {
+            "kind": "input",
+            "name": "Diameter"
+          }
+        ]
+      },
+      {
+        "kind": "panel",
+        "name": "Emission",
+        "items": [
+          {
+            "kind": "input",
+            "name": "Emission Coefficients"
+          }
+        ]
+      }
+    ]
+  }
+}

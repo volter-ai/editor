@@ -1,0 +1,90 @@
+/* THE VIEWPORT HEADER'S TRANSCRIBED CONTROLS — the shading group
+ * (`ViewportShadingMenu.tsx`) and the overlays toggle
+ * (`ViewportOverlaysMenu.tsx`). One sheet because they are one row of chrome
+ * and share the icon rung below.
+ *
+ * THE SHADING CONTROL AS BLENDER DRAWS IT — a joined group of mode cells and
+ * a chevron, in place of a word dropdown. These rules only ever apply where a
+ * caller passes `segments`; the stage's floating shading trigger passes none
+ * and keeps its labelled button.
+ *
+ * The cells JOIN: square inner corners and a shared border, so the group is
+ * one widget with one cell lit rather than four boxes with daylight between
+ * them. Transcribed from the sibling group in this same header
+ * (`@vgai/blender`'s select-mode cells), whose own comment records why. */
+.vgai-viewport-shading-segments {
+  display: inline-flex;
+}
+
+/* EACH CELL ARRIVES WRAPPED IN A TOOLTIP ANCHOR, so the group's children are
+ * anchors and the buttons sit one level down — a `>` rule aimed at the button
+ * matched nothing and the group rendered as four separate rounded boxes with
+ * daylight between them. Both shapes are addressed here so a cell that loses
+ * its tooltip still joins. */
+.vgai-viewport-shading-segments > * {
+  display: inline-flex;
+}
+
+/* The DIVIDER between two cells is the left one's own right border: every
+ * cell but the first drops its left border rather than collapsing onto its
+ * neighbour with a negative margin, so the group carries exactly Blender's
+ * one-pixel separator and this sheet spends no pixel literal to get it. */
+.vgai-viewport-shading-segments > :not(:first-child) .vgai-btn,
+.vgai-viewport-shading-segments > .vgai-btn:not(:first-child) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left-width: 0;
+}
+
+.vgai-viewport-shading-segments > :not(:last-child) .vgai-btn,
+.vgai-viewport-shading-segments > .vgai-btn:not(:last-child) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* The pressed cell rides ABOVE its neighbours so the shared border it owns is
+ * its own, not the unpressed cell's drawn over it. */
+.vgai-viewport-shading-segments .vgai-btn[aria-pressed="true"] {
+  position: relative;
+  z-index: 1;
+}
+
+/* Sized off the ICON scale like every `EditorIcon` beside it, so a style that
+ * moves the chrome's glyph size moves these three with it. */
+.vgai-viewport-shading-glyph {
+  width: var(--vgai-icon-md);
+  height: var(--vgai-icon-md);
+  overflow: visible;
+}
+
+/* Blender keeps its lighting rows INSIDE the shading popover, under the modes.
+ * The grid matches the preview popover these rows came from. */
+.vgai-viewport-shading-options {
+  display: grid;
+  gap: var(--vgai-space-2);
+  padding: var(--vgai-space-2) var(--vgai-space-3);
+}
+
+.vgai-viewport-shading-options > label {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--vgai-space-2);
+  color: var(--vgai-text-2);
+  font-size: var(--vgai-font-xs);
+}
+
+.vgai-viewport-shading-options select {
+  grid-column: 2 / -1;
+}
+
+.vgai-viewport-shading-options input[type="range"] {
+  width: 120px;
+}
+
+/* The overlays mark sits on the same rung as the shading cells' glyphs. */
+.vgai-viewport-overlays-glyph {
+  width: var(--vgai-icon-md);
+  height: var(--vgai-icon-md);
+  overflow: visible;
+}

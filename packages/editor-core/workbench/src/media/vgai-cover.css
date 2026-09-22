@@ -1,0 +1,78 @@
+/* THE PRODUCT'S LOADING COVER — `vgaiCover.ts`'s element, and nothing else styles it.
+
+   EVERY COLOUR HERE IS A WORKBENCH THEME VARIABLE, never a product literal. The cover is a
+   child of `.monaco-workbench`, which is the selector the colour theme's generated stylesheet
+   is scoped to, so a product's look reaches it through that product's OWN theme extension
+   (`theme-blender` for the model editor) and its type through the look's own stylesheet
+   (`blender-look.css`'s `.monaco-workbench` font rules). The kit spells no palette; an
+   unthemed workbench paints the cover in the workbench's own defaults, which is the same rule
+   `vgaiColors.ts` states for its null defaults. */
+.monaco-workbench .vgai-opening-cover {
+	position: fixed;
+	inset: 0;
+	/* ABOVE every workbench PART and BELOW every modal layer — the modal editor backdrop
+	   (2540), the notification toasts (2545), quick input (2550) and dialogs (2575). A prompt
+	   that does appear has to be readable and clickable OVER the cover; a cover that sealed one
+	   behind it would be a window with no way forward. */
+	z-index: 2530;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	/* The cover absorbs the pointer, so nothing behind it is half-clicked while the editor is
+	   still assembling. It takes no focus and listens for no key, so the session's tab
+	   bootstrap and the keyboard are untouched. */
+	pointer-events: auto;
+	user-select: none;
+	background: var(--vscode-editor-background);
+	color: var(--vscode-foreground);
+}
+
+/* A PRODUCT DREW THIS ONE (`VgaiProduct.cover`), so the kit stops arranging its insides: the
+   splash is one element the product owns and centres for itself. The kit's own geometry — fixed
+   to the viewport, above the parts and below the modals, absorbing the pointer — is above and
+   is the same for both, because that is the mechanism and not the picture. The kit's `background`
+   stays as the FLOOR under a splash that does not fill every pixel, which is what keeps F1's
+   "no white frame" true whatever a product draws. */
+.monaco-workbench .vgai-opening-cover.vgai-opening-cover-product {
+	display: block;
+	gap: 0;
+}
+
+.monaco-workbench .vgai-opening-cover-title {
+	font-size: 20px;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+}
+
+.monaco-workbench .vgai-opening-cover-folder {
+	font-size: 13px;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .vgai-opening-cover-state {
+	font-size: 12px;
+	max-width: 64ch;
+	text-align: center;
+	white-space: pre-wrap;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .vgai-opening-cover.vgai-opening-cover-failed .vgai-opening-cover-state {
+	color: var(--vscode-errorForeground);
+}
+
+.monaco-workbench .vgai-opening-cover-dismiss {
+	margin-top: 8px;
+	padding: 4px 14px;
+	border: none;
+	cursor: pointer;
+	font: inherit;
+	background: var(--vscode-button-background);
+	color: var(--vscode-button-foreground);
+}
+
+.monaco-workbench .vgai-opening-cover-dismiss:hover {
+	background: var(--vscode-button-hoverBackground);
+}

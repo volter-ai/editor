@@ -1,0 +1,48 @@
+{
+  "name": "@volter/blender-engine",
+  "author": "Volter AI, Inc.",
+  "license": "GPL-3.0-or-later",
+  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "Blender WebAssembly engine, worker, wire protocol and Three.js frame presentation.",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/volter-ai/editor.git",
+    "directory": "packages/blender-engine"
+  },
+  "files": [
+    "browser",
+    "wasm",
+    "LICENSE"
+  ],
+  "exports": {
+    "./browser": "./browser/index.ts",
+    "./browser/protocol": "./browser/protocol.ts",
+    "./browser/rna": "./browser/rna.ts",
+    "./wasm/*": "./wasm/*",
+    "./package.json": "./package.json",
+    "./browser/three/*": {
+      "types": "./browser/three/*.ts",
+      "default": "./browser/three/*"
+    }
+  },
+  "peerDependencies": {
+    "three": "^0.180.0",
+    "zod": "^3.0.0 || ^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "three": {
+      "optional": true
+    },
+    "zod": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "build:blender-three": "vite build --config vite.release.config.ts",
+    "typecheck": "tsc -p tsconfig.browser.json"
+  }
+}

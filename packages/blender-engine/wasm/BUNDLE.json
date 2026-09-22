@@ -1,0 +1,65 @@
+{
+  "blender": "5.2.0 LTS",
+  "source": "94d8f20b225d51755a0a93a7fdf1e0cd9f53d09c",
+  "reviewedSource": "a4dff7ba16a0cca24504d81ed0086457493e48dc",
+  "upstream": "fbe6228777e7d9afefcd61a413844e790ae75db7",
+  "sourceRepository": "https://github.com/volter-ai/blender",
+  "sourceRecipe": "https://github.com/volter-ai/blender/blob/94d8f20b225d51755a0a93a7fdf1e0cd9f53d09c/build_files/emscripten/RELEASE.md",
+  "sourceRelease": "https://github.com/volter-ai/blender/releases/tag/blender-5.2.0-wasm.1",
+  "verification": "https://github.com/volter-ai/blender/blob/94d8f20b225d51755a0a93a7fdf1e0cd9f53d09c/build_files/emscripten/VERIFICATION.json",
+  "factoryEngine": "BLENDER_EEVEE",
+  "files": {
+    "blender_browser.js": "raw",
+    "blender_browser.wasm": "brotli",
+    "blender_browser.data": "brotli"
+  },
+  "rawFiles": {
+    "blender_browser.js": {
+      "bytes": 408162,
+      "sha256": "2a5d4dbcc90cab571eb16eef9672ef8583e1c0a3638d0b85165d1944d191d9a7"
+    },
+    "blender_browser.wasm": {
+      "bytes": 86289759,
+      "sha256": "cdf49c116bd5ce56bc4e1c87f7b5da306310eeb86bdf237487b8673e4d6f54a0"
+    },
+    "blender_browser.data": {
+      "bytes": 52698568,
+      "sha256": "bf86b5ca29b86a9d7e1185d8b3eba5bd5101eff9eeef47d36884fbe69b9a2cb7"
+    }
+  },
+  "shippedFiles": {
+    "blender_browser.js": {
+      "bytes": 408162,
+      "sha256": "2a5d4dbcc90cab571eb16eef9672ef8583e1c0a3638d0b85165d1944d191d9a7"
+    },
+    "blender_browser.wasm.br": {
+      "bytes": 18238560,
+      "sha256": "58c481c0500009276041dfee684ad5e5d392917fb1b569d7192225b395aa7501"
+    },
+    "blender_browser.data.br": {
+      "bytes": 7969535,
+      "sha256": "9bb922432659580c938b0124d84c3b95d1f54797e3df0ebe26463bbf0be7284c"
+    },
+    "DEPENDENCY-LICENSES.txt": {
+      "bytes": 241352,
+      "sha256": "4085e9336266cf66f061d4d5c962a5929cc96d5732c746b5c13ea05cd104a75b"
+    }
+  },
+  "note": "Official Blender v5.2.0 plus our headless wasm changes and our existing export/session integration. Dependencies are rebuilt from pinned official sources. No third-party Blender port commits or build scripts are inputs. PROXY_TO_PTHREAD, WasmFS, 512 MiB initial / 4 GiB maximum memory, twelve-worker pool. Build information is disabled. The source release includes the exact source tree, materialized startup.blend, dependency archives, pure Python wheels, and notices.",
+  "callTrampoline": "CPython 3.13.13 is compiled with PY_CALL_TRAMPOLINE for Blender CPython slot arity casts. This applies to CPython dispatch, not arbitrary indirect calls.",
+  "engineIds": "The existing session registers Python render engines under CYCLES, BLENDER_EEVEE and BLENDER_WORKBENCH; the headless build permits built-in IDs to be shadowed.",
+  "exportDoor": "Our existing bpy_web_export.cc and blender_web_session.cc are retained unchanged.",
+  "preloadedPayload": "releasePreloadedFileData releases the JS preload buffer after session ready. The measured working payload exclusions are retained.",
+  "verificationSummary": {
+    "completedCalls": 362,
+    "expectedCalls": 362,
+    "freshEnginePerModel": true,
+    "harnessFailures": 0,
+    "baselineLimitations": [
+      "The original working bundle also has the recorded geometry/image differences; no oracle or comparison threshold was changed.",
+      "On the current editor host both bundles produce the same courier render getX errors (27 total recorded error positions); the historical host recorded four.",
+      "Both bundles report geometry-less curve profile nodes in bridge/tram presentation.",
+      "The current shared-engine board stalled on the frozen baseline; the historical fresh-engine-per-model mode was used for this comparison."
+    ]
+  }
+}

@@ -1,0 +1,779 @@
+{
+  "editor": [
+    {
+      "name": "@codemirror/autocomplete",
+      "version": "6.20.3",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@codemirror/autocomplete/LICENSE",
+          "sha256": "05c6130cda97e7600ca91427a41e8a065efcf82365fc0293e7de80faec494c07"
+        }
+      ]
+    },
+    {
+      "name": "@codemirror/commands",
+      "version": "6.10.4",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@codemirror/commands/LICENSE",
+          "sha256": "05c6130cda97e7600ca91427a41e8a065efcf82365fc0293e7de80faec494c07"
+        }
+      ]
+    },
+    {
+      "name": "@codemirror/lang-javascript",
+      "version": "6.2.5",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@codemirror/lang-javascript/LICENSE",
+          "sha256": "05c6130cda97e7600ca91427a41e8a065efcf82365fc0293e7de80faec494c07"
+        }
+      ]
+    },
+    {
+      "name": "@codemirror/lang-json",
+      "version": "6.0.2",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@codemirror/lang-json/LICENSE",
+          "sha256": "05c6130cda97e7600ca91427a41e8a065efcf82365fc0293e7de80faec494c07"
+        }
+      ]
+    },
+    {
+      "name": "@codemirror/language",
+      "version": "6.12.4",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@codemirror/language/LICENSE",
+          "sha256": "05c6130cda97e7600ca91427a41e8a065efcf82365fc0293e7de80faec494c07"
+        }
+      ]
+    },
+    {
+      "name": "@codemirror/search",
+      "version": "6.7.1",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@codemirror/search/LICENSE",
+          "sha256": "05c6130cda97e7600ca91427a41e8a065efcf82365fc0293e7de80faec494c07"
+        }
+      ]
+    },
+    {
+      "name": "@codemirror/state",
+      "version": "6.7.0",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@codemirror/state/LICENSE",
+          "sha256": "05c6130cda97e7600ca91427a41e8a065efcf82365fc0293e7de80faec494c07"
+        }
+      ]
+    },
+    {
+      "name": "@codemirror/theme-one-dark",
+      "version": "6.1.3",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@codemirror/theme-one-dark/LICENSE",
+          "sha256": "05c6130cda97e7600ca91427a41e8a065efcf82365fc0293e7de80faec494c07"
+        }
+      ]
+    },
+    {
+      "name": "@codemirror/view",
+      "version": "6.43.4",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@codemirror/view/LICENSE",
+          "sha256": "05c6130cda97e7600ca91427a41e8a065efcf82365fc0293e7de80faec494c07"
+        }
+      ]
+    },
+    {
+      "name": "@dimforge/rapier3d-compat",
+      "version": "0.19.2",
+      "license": "Apache-2.0",
+      "notices": [
+        {
+          "file": "release/licenses/rapier3d.txt",
+          "sha256": "4c05555705e3efde601fb1252ae48f1d63992af8a8fb8947745b7fa834e8f519",
+          "source": "https://github.com/dimforge/rapier.js/blob/f072e6efa75f4f61a290bd0b58b61c443685ec01/LICENSE"
+        }
+      ]
+    },
+    {
+      "name": "@fortawesome/fontawesome-svg-core",
+      "version": "7.2.0",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@fortawesome/fontawesome-svg-core/LICENSE.txt",
+          "sha256": "20c6f40715a567c97b80f6944beb8bb325835cab47ea7dcab89ee3b8e077eced"
+        }
+      ]
+    },
+    {
+      "name": "@fortawesome/free-solid-svg-icons",
+      "version": "7.2.0",
+      "license": "(CC-BY-4.0 AND MIT)",
+      "notices": [
+        {
+          "file": "node_modules/@fortawesome/free-solid-svg-icons/LICENSE.txt",
+          "sha256": "20c6f40715a567c97b80f6944beb8bb325835cab47ea7dcab89ee3b8e077eced"
+        }
+      ]
+    },
+    {
+      "name": "@fortawesome/react-fontawesome",
+      "version": "3.5.0",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@fortawesome/react-fontawesome/LICENSE.txt",
+          "sha256": "aaeca2af41f9d13e49205099914902115ca197cdae49f7d2b31bc5d6aa2bbd83"
+        }
+      ]
+    },
+    {
+      "name": "@lezer/common",
+      "version": "1.5.2",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@lezer/common/LICENSE",
+          "sha256": "568902fb66eaf1f11750e966b33fd7b5d7c618e65af09f35ef843635bcf5f1ba"
+        }
+      ]
+    },
+    {
+      "name": "@lezer/highlight",
+      "version": "1.2.3",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@lezer/highlight/LICENSE",
+          "sha256": "568902fb66eaf1f11750e966b33fd7b5d7c618e65af09f35ef843635bcf5f1ba"
+        }
+      ]
+    },
+    {
+      "name": "@lezer/javascript",
+      "version": "1.5.5",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@lezer/javascript/LICENSE",
+          "sha256": "568902fb66eaf1f11750e966b33fd7b5d7c618e65af09f35ef843635bcf5f1ba"
+        }
+      ]
+    },
+    {
+      "name": "@lezer/json",
+      "version": "1.0.3",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@lezer/json/LICENSE",
+          "sha256": "7e744ae18ef84389d576469a5781172b0d50b7981111109f6da7cbc6b4188288"
+        }
+      ]
+    },
+    {
+      "name": "@lezer/lr",
+      "version": "1.4.10",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@lezer/lr/LICENSE",
+          "sha256": "568902fb66eaf1f11750e966b33fd7b5d7c618e65af09f35ef843635bcf5f1ba"
+        }
+      ]
+    },
+    {
+      "name": "@marijn/find-cluster-break",
+      "version": "1.0.4",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@marijn/find-cluster-break/LICENSE",
+          "sha256": "9360b00fdd091f05c783b568bdd46c679c41b72415599252de98949462ea1acb"
+        }
+      ]
+    },
+    {
+      "name": "@pixi/colord",
+      "version": "2.9.6",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "release/licenses/colord.txt",
+          "sha256": "7613d4594ee8b6163926af3435dae61c9e3d5a27cd137bd76a543ba40002d8fc",
+          "source": "https://github.com/pixijs/colord/blob/5344fbf77b736f81cd33c21050021bc09bc9dd1d/LICENSE.md"
+        }
+      ]
+    },
+    {
+      "name": "@react-three/drei",
+      "version": "10.7.8",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "packages/editor-core/node_modules/@react-three/drei/LICENSE",
+          "sha256": "2e36b208b403882158daf95cae207087bbb830db4d434a79ebafffca177244c8"
+        }
+      ]
+    },
+    {
+      "name": "@react-three/fiber",
+      "version": "9.7.0",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "release/licenses/fiber.txt",
+          "sha256": "9c35b5de7b7493a707fffe4eb23bd2f7f449153c1911f7c6eefb4e591fd5349a",
+          "source": "https://github.com/pmndrs/react-three-fiber/blob/0a107412ac64667b1908422e859447952f57feef/LICENSE"
+        }
+      ]
+    },
+    {
+      "name": "@react-three/rapier",
+      "version": "2.2.0",
+      "license": null,
+      "notices": [
+        {
+          "file": "release/licenses/react-three-rapier.txt",
+          "sha256": "cd14add33d47bcecae9fed5559224ae135c5ec41e1d3a126601f5fbd82291834",
+          "source": "https://github.com/pmndrs/react-three-rapier/blob/ae5c3fede5ca489fd7eaa8271e9d9c5eabc88e98/LICENSE"
+        }
+      ]
+    },
+    {
+      "name": "@sparkjsdev/spark",
+      "version": "2.1.0",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@sparkjsdev/spark/LICENSE",
+          "sha256": "51829693e5dccd9ca1daa093991faac3aaa93238eb8fd5f5cb4130af85791d64"
+        }
+      ]
+    },
+    {
+      "name": "@storybook/global",
+      "version": "5.0.0",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@storybook/global/LICENSE",
+          "sha256": "576f0541c45448ed6594d9d16bbae024a8bc4db400b33492e66cb3b7156bfad1"
+        }
+      ]
+    },
+    {
+      "name": "@storybook/react-dom-shim",
+      "version": "9.1.20",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "release/licenses/storybook.txt",
+          "sha256": "bc90586179d44dcb313a9a289d687a2f26226303b2066bd21dbefd2378e894e5",
+          "source": "https://github.com/storybookjs/storybook/blob/f4eff4835ee6076bddf2fa2c8af680afebfaba0e/LICENSE"
+        }
+      ]
+    },
+    {
+      "name": "@storybook/react",
+      "version": "9.1.20",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "release/licenses/storybook.txt",
+          "sha256": "bc90586179d44dcb313a9a289d687a2f26226303b2066bd21dbefd2378e894e5",
+          "source": "https://github.com/storybookjs/storybook/blob/f4eff4835ee6076bddf2fa2c8af680afebfaba0e/LICENSE"
+        }
+      ]
+    },
+    {
+      "name": "@volter/blender-engine",
+      "version": "0.1.0",
+      "license": "GPL-3.0-or-later",
+      "notices": [
+        {
+          "file": "packages/blender-engine/LICENSE",
+          "sha256": "998e4819b722ef87e4aa05f35e63d475a4f7077f3cf53241ab594a4e0c92915c"
+        }
+      ]
+    },
+    {
+      "name": "@volter/editor-blender",
+      "version": "0.1.0",
+      "license": "AGPL-3.0-only AND GPL-3.0-or-later",
+      "notices": [
+        {
+          "file": "packages/editor-blender/LICENSE",
+          "sha256": "6222bff8873f053552eb10770eb905c266725890276b9281419cd3028c18aec5"
+        }
+      ]
+    },
+    {
+      "name": "@volter/editor-core",
+      "version": "0.5.57",
+      "license": "AGPL-3.0-only AND Apache-2.0",
+      "notices": [
+        {
+          "file": "packages/editor-core/LICENSE",
+          "sha256": "8c9721ef06696672e4bfb95032a3bf277c39d4c85127372cb127024208eb7701"
+        },
+        {
+          "file": "packages/editor-core/LICENSE-APACHE",
+          "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
+        },
+        {
+          "file": "packages/editor-core/NOTICE",
+          "sha256": "8e75555dce677100afb0ce30343e2a1c07d2696d92b38da418c029d7112ddfd3"
+        }
+      ]
+    },
+    {
+      "name": "@volter/editor-project",
+      "version": "0.5.57",
+      "license": "Apache-2.0",
+      "notices": [
+        {
+          "file": "packages/editor-project/LICENSE",
+          "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
+        }
+      ]
+    },
+    {
+      "name": "@volter/editor-sdk",
+      "version": "0.5.57",
+      "license": "Apache-2.0",
+      "notices": [
+        {
+          "file": "packages/editor-sdk/LICENSE",
+          "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
+        },
+        {
+          "file": "packages/editor-sdk/NOTICE",
+          "sha256": "bde5e9f904a6ff37dc20514dc4197a22237076622795e2228773cb9236e3cdb2"
+        }
+      ]
+    },
+    {
+      "name": "@volter/editor-threejs",
+      "version": "0.5.57",
+      "license": "AGPL-3.0-only AND Apache-2.0",
+      "notices": [
+        {
+          "file": "packages/editor-threejs/LICENSE",
+          "sha256": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0"
+        },
+        {
+          "file": "packages/editor-threejs/LICENSE-APACHE",
+          "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
+        },
+        {
+          "file": "packages/editor-threejs/NOTICE",
+          "sha256": "7f2864eebec196ae72bd4cf18cb8cf54bda39bb09f3c5573b68e697f5f7fcef7"
+        }
+      ]
+    },
+    {
+      "name": "crelt",
+      "version": "1.0.7",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/crelt/LICENSE",
+          "sha256": "23852ebf6aef7fadffc92514b3c5df163a8651f2c3ed0dbb494cb49d93bd5de5"
+        }
+      ]
+    },
+    {
+      "name": "eventemitter3",
+      "version": "5.0.4",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/eventemitter3/LICENSE",
+          "sha256": "3aecc12b1cb28832b5f65ab64291de96568c3f236a74d646281b4491f7bcadbf"
+        }
+      ]
+    },
+    {
+      "name": "ismobilejs",
+      "version": "1.1.1",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/ismobilejs/LICENSE",
+          "sha256": "57c43c929cbc20653cb0e62620a413a8bc456888c1874ebc25d08e0122cd953e"
+        }
+      ]
+    },
+    {
+      "name": "pixi.js",
+      "version": "8.19.0",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/pixi.js/LICENSE",
+          "sha256": "5ce7447bc57f7349ffc48338782fbcabe613696e00712b20d66bc58e780f9473"
+        }
+      ]
+    },
+    {
+      "name": "postprocessing",
+      "version": "6.38.3",
+      "license": "Zlib",
+      "notices": [
+        {
+          "file": "node_modules/postprocessing/LICENSE.md",
+          "sha256": "b7650918449bd5fb011ce30ce0e5bcda27aa9639db1fb3aef8c67c32945237f2"
+        }
+      ]
+    },
+    {
+      "name": "quarks.core",
+      "version": "0.16.0",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/quarks.core/LICENSE",
+          "sha256": "a5475475eea369815620d571431d6293996ee2492c02c41f0c47596f6fbcd4dd"
+        }
+      ]
+    },
+    {
+      "name": "react-dom",
+      "version": "19.2.7",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/react-dom/LICENSE",
+          "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+        }
+      ]
+    },
+    {
+      "name": "react",
+      "version": "19.2.7",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/react/LICENSE",
+          "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+        }
+      ]
+    },
+    {
+      "name": "rrweb",
+      "version": "2.1.6",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "release/licenses/rrweb.txt",
+          "sha256": "e49e62397b603438476e0d6b5ca3b6e6d4f23a80594e596aff29ac04fa3e1b1c",
+          "source": "https://github.com/rrweb-io/rrweb/blob/5b08843faf9cb21c836613489ffd93d455f38181/LICENSE"
+        }
+      ]
+    },
+    {
+      "name": "scheduler",
+      "version": "0.27.0",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/scheduler/LICENSE",
+          "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+        }
+      ]
+    },
+    {
+      "name": "storybook",
+      "version": "9.1.20",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "release/licenses/storybook.txt",
+          "sha256": "bc90586179d44dcb313a9a289d687a2f26226303b2066bd21dbefd2378e894e5",
+          "source": "https://github.com/storybookjs/storybook/blob/f4eff4835ee6076bddf2fa2c8af680afebfaba0e/LICENSE"
+        }
+      ]
+    },
+    {
+      "name": "style-mod",
+      "version": "4.1.4",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/style-mod/LICENSE",
+          "sha256": "cb4474e26547397169061d3586c00022cda5330a1b64fa13e872319f3b63aff1"
+        }
+      ]
+    },
+    {
+      "name": "suspend-react",
+      "version": "0.1.3",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/suspend-react/LICENSE",
+          "sha256": "997e79b828d8b85d6f18730c8dbf58074811360a199506bd84e1263e17c227a2"
+        }
+      ]
+    },
+    {
+      "name": "three-stdlib",
+      "version": "2.36.1",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/three-stdlib/LICENSE",
+          "sha256": "28eb7edf059a39094aa3d169db1fec46ac4a6279c921a90f965828d92ec86e79"
+        }
+      ]
+    },
+    {
+      "name": "three.quarks",
+      "version": "0.16.0",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/three.quarks/LICENSE",
+          "sha256": "a5475475eea369815620d571431d6293996ee2492c02c41f0c47596f6fbcd4dd"
+        }
+      ]
+    },
+    {
+      "name": "three",
+      "version": "0.180.0",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/three/LICENSE",
+          "sha256": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601"
+        }
+      ]
+    },
+    {
+      "name": "typescript",
+      "version": "5.9.3",
+      "license": "Apache-2.0",
+      "notices": [
+        {
+          "file": "node_modules/typescript/LICENSE.txt",
+          "sha256": "a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47"
+        }
+      ]
+    },
+    {
+      "name": "use-sync-external-store",
+      "version": "1.7.0",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/use-sync-external-store/LICENSE",
+          "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+        }
+      ]
+    },
+    {
+      "name": "w3c-keyname",
+      "version": "2.2.8",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/w3c-keyname/LICENSE",
+          "sha256": "869c30f368eb08735e779027b9f4bc9fea2f39624351856aebe42741f0bc0884"
+        }
+      ]
+    },
+    {
+      "name": "zustand",
+      "version": "5.0.15",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/zustand/LICENSE",
+          "sha256": "c1e6e266563517467b1bf874817d23e426f3149252bd7d42758cd697514b8417"
+        }
+      ]
+    }
+  ],
+  "editor-core": [
+    {
+      "name": "@volter-ai-dev/supercode-ui",
+      "version": "0.1.83",
+      "license": "MIT OR Apache-2.0",
+      "notices": [
+        {
+          "file": "release/licenses/supercode.txt",
+          "sha256": "47650bbb438e759a9398efc9f5f1156dd33a93f8d4a83c1e9e28fc5797d5fca6",
+          "source": "https://github.com/volter-ai/supercode/blob/b4bac5b48aaae2691b8662b7987ff208d6265d2d/LICENSE-MIT"
+        }
+      ]
+    },
+    {
+      "name": "@volter/editor-project",
+      "version": "0.5.57",
+      "license": "Apache-2.0",
+      "notices": [
+        {
+          "file": "packages/editor-project/LICENSE",
+          "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
+        }
+      ]
+    },
+    {
+      "name": "@volter/editor-sdk",
+      "version": "0.5.57",
+      "license": "Apache-2.0",
+      "notices": [
+        {
+          "file": "packages/editor-sdk/LICENSE",
+          "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
+        },
+        {
+          "file": "packages/editor-sdk/NOTICE",
+          "sha256": "bde5e9f904a6ff37dc20514dc4197a22237076622795e2228773cb9236e3cdb2"
+        }
+      ]
+    },
+    {
+      "name": "@volter/editor-threejs",
+      "version": "0.5.57",
+      "license": "AGPL-3.0-only AND Apache-2.0",
+      "notices": [
+        {
+          "file": "packages/editor-threejs/LICENSE",
+          "sha256": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0"
+        },
+        {
+          "file": "packages/editor-threejs/LICENSE-APACHE",
+          "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
+        },
+        {
+          "file": "packages/editor-threejs/NOTICE",
+          "sha256": "7f2864eebec196ae72bd4cf18cb8cf54bda39bb09f3c5573b68e697f5f7fcef7"
+        }
+      ]
+    },
+    {
+      "name": "fdir",
+      "version": "6.5.0",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/fdir/LICENSE",
+          "sha256": "9a39f2aadab11a3697edd668ff2d8ad885b649737b7ab4d3bf12b34e5ada0c86"
+        }
+      ]
+    },
+    {
+      "name": "fflate",
+      "version": "0.8.3",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/fflate/LICENSE",
+          "sha256": "0a1df3a083d0c010560aa342e87959c8c1070e6fd54545741f083f22d0c8b551"
+        }
+      ]
+    },
+    {
+      "name": "picomatch",
+      "version": "4.0.7",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/picomatch/LICENSE",
+          "sha256": "d0cd141b0c322fded5dfad1d4645bb2fedfc05b7321fe1009469638190d59ef9"
+        }
+      ]
+    },
+    {
+      "name": "react",
+      "version": "19.2.7",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/react/LICENSE",
+          "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+        }
+      ]
+    },
+    {
+      "name": "semver",
+      "version": "7.8.5",
+      "license": "ISC",
+      "notices": [
+        {
+          "file": "node_modules/semver/LICENSE",
+          "sha256": "4ec3d4c66cd87f5c8d8ad911b10f99bf27cb00cdfcff82621956e379186b016b"
+        }
+      ]
+    },
+    {
+      "name": "three",
+      "version": "0.180.0",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/three/LICENSE",
+          "sha256": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601"
+        }
+      ]
+    },
+    {
+      "name": "tinyglobby",
+      "version": "0.2.17",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/tinyglobby/LICENSE",
+          "sha256": "22c68811e174cbbfb3813d4135918df4f540959c14d872e601d9abe83d3cde8f"
+        }
+      ]
+    }
+  ],
+  "editor-live": [
+    {
+      "name": "@volter/editor-project",
+      "version": "0.5.57",
+      "license": "Apache-2.0",
+      "notices": [
+        {
+          "file": "packages/editor-project/LICENSE",
+          "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
+        }
+      ]
+    },
+    {
+      "name": "@volter/editor-sdk",
+      "version": "0.5.57",
+      "license": "Apache-2.0",
+      "notices": [
+        {
+          "file": "packages/editor-sdk/LICENSE",
+          "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
+        },
+        {
+          "file": "packages/editor-sdk/NOTICE",
+          "sha256": "bde5e9f904a6ff37dc20514dc4197a22237076622795e2228773cb9236e3cdb2"
+        }
+      ]
+    }
+  ]
+}

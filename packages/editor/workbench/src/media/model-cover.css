@@ -1,0 +1,84 @@
+/* THE MODEL EDITOR'S OWN SPLASH — what this product draws into the kit's opening cover
+   (`VgaiProduct.cover`, `packages/editor/workbench/src/vgaiCover.ts`).
+
+   IT SPELLS BLENDER'S PALETTE, and that is the one place in this estate where a product's
+   stylesheet may: the cover paints BEFORE `theme-blender` is registered — the web workbench's
+   first frame is the page config's `initialColorTheme`, not an extension's — so a splash
+   written against `--vscode-*` would be the workbench's default dark for exactly the seconds
+   it exists, instead of Blender's. Every value here is `@vgai/blender`'s own traced
+   `blender.palette.json`, named beside it:
+
+     #161616  theme.color.surface.shell        the window's outermost band
+     #e6e6e6  theme.color.content.primary      the loudest ink in the window
+     #969696  theme.color.content.dim          an inactive workspace tab's ink
+     #3d3d3d  theme.color.boundary.default     a widget outline
+     #e96a00  theme.color.content.selected     Blender's selection orange
+
+   The type is the look's own (`blender-look.css` loads Inter off the app root and sets it on
+   `.monaco-workbench`, which this element is inside), so nothing here names a font. */
+
+.vgai-model-cover {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	background: #161616;
+	color: #e6e6e6;
+}
+
+/* THE MARK: Blender's three viewport axes, as the one drawing this splash carries. Its colours
+   are the traced `viewport.axisX`/`axisY` plus the Z blue Blender uses in the same gizmo, and
+   it is inline SVG in the product's own markup — there is no image to fetch, which is what
+   keeps the first frame the first frame. */
+.vgai-model-cover-mark {
+	width: 56px;
+	height: 56px;
+	opacity: 0.92;
+}
+
+.vgai-model-cover-title {
+	font-size: 26px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+}
+
+.vgai-model-cover-folder {
+	font-size: 12px;
+	color: #969696;
+}
+
+/* The wait itself: a 2px rail with a travelling lick of Blender's selection orange. It is
+   indeterminate ON PURPOSE — the product knows what it is waiting for (below) and not how far
+   along it is, and a bar that invented a percentage would be a lie a person can see. */
+.vgai-model-cover-rail {
+	position: relative;
+	width: 220px;
+	height: 2px;
+	margin-top: 6px;
+	overflow: hidden;
+	background: #3d3d3d;
+}
+
+.vgai-model-cover-rail::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 40%;
+	background: #e96a00;
+	animation: vgai-model-cover-travel 1.25s ease-in-out infinite;
+}
+
+@keyframes vgai-model-cover-travel {
+	0% { left: -40%; }
+	100% { left: 100%; }
+}
+
+.vgai-model-cover-state {
+	font-size: 11px;
+	min-height: 14px;
+	color: #969696;
+}

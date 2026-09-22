@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 3,
+  "name": "Maya",
+  "theme": {
+    "id": "maya",
+    "color": {
+      "surface": {
+        "shell": "#2b2b2b",
+        "panel": "#444444",
+        "chrome": "#373737",
+        "raised": "#4b4b4b",
+        "inset": "#333333",
+        "overlay": "rgba(55,55,55,0.94)"
+      },
+      "boundary": {
+        "default": "#2b2b2b",
+        "strong": "#5a5a5a"
+      },
+      "content": {
+        "primary": "#cccccc",
+        "muted": "#a8a8a8",
+        "dim": "#858585",
+        "onAccent": "#ffffff",
+        "onBright": {
+          "primary": "#1c1c1c",
+          "muted": "rgba(28,28,28,0.82)",
+          "dim": "rgba(28,28,28,0.7)"
+        }
+      },
+      "accent": {
+        "default": "#5285a6",
+        "muted": "rgba(82,133,166,0.34)"
+      },
+      "semantic": {
+        "danger": "#d9534f",
+        "dangerMuted": "rgba(217,83,79,0.28)",
+        "dangerFaint": "rgba(217,83,79,0.12)",
+        "warning": "#e0a030",
+        "warningMuted": "rgba(224,160,48,0.28)",
+        "success": "#4fd85b",
+        "successMuted": "rgba(79,216,91,0.28)",
+        "dynamic": "#e6a6ff",
+        "dynamicMuted": "rgba(230,166,255,0.18)",
+        "instance": "#4fd85b"
+      },
+      "neutralOverlay": {
+        "hover": "rgba(255,255,255,0.07)",
+        "active": "rgba(255,255,255,0.12)"
+      },
+      "scrim": "rgba(0,0,0,0.55)"
+    },
+    "typography": {
+      "sans": "'Helvetica Neue', Arial, system-ui, sans-serif",
+      "mono": "Menlo, Consolas, monospace"
+    }
+  }
+}

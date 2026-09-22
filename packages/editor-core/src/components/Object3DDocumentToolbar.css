@@ -1,0 +1,100 @@
+/* Compound with the shared floating-toolbar class so this document-local
+ * geometry outranks theme.css's later, intentionally generic
+ * `.vgai-floating-toolbar { position: relative }` paint rule. Without the
+ * extra specificity the toolbar participates in flow after the full-height
+ * canvas and lands below the viewport — mounted and agent-queryable, but
+ * invisible to the person using Asset Lab. */
+/* THE 3D DOCUMENT'S CONTROLS LIVE IN THE HOST'S HEADER STRIP now
+   (`WorkspaceDocumentSurface`), not floating over the stage: one row, the
+   view group first and the preview group pushed to the trailing edge. The
+   strip supplies the divider and height; these groups are plain in-flow
+   toolbars inside it. */
+.vgai-model-document-header {
+  display: flex;
+  align-items: center;
+  gap: var(--vgai-space-2);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.vgai-model-viewport-toolbar {
+  position: static;
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.vgai-model-viewport-toolbar--preview {
+  margin-left: auto;
+}
+
+.vgai-model-viewport-toolbar > * {
+  flex: 0 0 auto;
+}
+
+.vgai-model-toolbar-labelled-control {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vgai-space-1);
+  white-space: nowrap;
+}
+
+.vgai-model-preview-menu {
+  width: 250px;
+  padding: var(--vgai-space-3);
+  gap: var(--vgai-space-3);
+}
+
+.vgai-model-preview-menu > label {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--vgai-space-2);
+  color: var(--vgai-text-2);
+  font-size: var(--vgai-font-xs);
+}
+
+.vgai-model-preview-menu select {
+  grid-column: 2 / -1;
+}
+
+.vgai-model-preview-menu input[type="range"] {
+  width: 120px;
+}
+
+.vgai-model-capture-preview {
+  position: absolute;
+  z-index: var(--vgai-z-sticky);
+  top: calc(var(--vgai-space-3) + var(--vgai-control-default-height) + var(--vgai-space-2));
+  right: var(--vgai-space-3);
+  width: min(420px, calc(100% - 2 * var(--vgai-space-3)));
+  padding: var(--vgai-space-3);
+}
+
+.vgai-model-capture-preview > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--vgai-space-3);
+}
+
+.vgai-model-capture-preview img {
+  display: block;
+  width: 100%;
+}
+
+.vgai-model-toolbar-error {
+  position: absolute;
+  z-index: var(--vgai-z-sticky);
+  right: var(--vgai-space-3);
+  bottom: var(--vgai-space-3);
+  max-width: 420px;
+}
+
+@media (width <= 720px) {
+  .vgai-model-toolbar-labelled-control > span {
+    display: none;
+  }
+}

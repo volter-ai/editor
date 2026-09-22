@@ -1,0 +1,211 @@
+{
+  "repository": "https://github.com/volter-ai/vgai-engine",
+  "revision": "cf9cb8e22dd7ae5709ed0dd8a46dd6f16d1e4945",
+  "files": [
+    {
+      "source": "packages/editor/workbench/FORK.json",
+      "path": "packages/editor-core/workbench/FORK.json",
+      "sha256": "9300eeb92d0cb7a2b3884dee425fc5a3ffe66962d2b6bd9060f9587a4e0f54bb"
+    },
+    {
+      "source": "packages/editor/workbench/extensions/vgai-keymaps/package.json",
+      "path": "packages/editor-core/workbench/extensions/vgai-keymaps/package.json",
+      "sha256": "f0589972774bd204f0d32ffd30cca8053101abbf9d214e3b657ef3cdc80c7873"
+    },
+    {
+      "source": "packages/editor/workbench/src/media/vgai-cover.css",
+      "path": "packages/editor-core/workbench/src/media/vgai-cover.css",
+      "sha256": "8b8a80dea010a67fdc6fde9277a20dc767e5785517ec805c61a931aee6924ac0"
+    },
+    {
+      "source": "packages/editor/workbench/src/media/vgai-parts.css",
+      "path": "packages/editor-core/workbench/src/media/vgai-parts.css",
+      "sha256": "e0e6aaeb6c3911abcdc8fbf693f8f44dc62a5aac457facda402ebb6e40f81988"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgai.contribution.ts",
+      "path": "packages/editor-core/workbench/src/vgai.contribution.ts",
+      "sha256": "654e2d3a9d70cf92c24f795292bf245c230e799ed88fe1e686f6f4ff8ded6605"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiColors.ts",
+      "path": "packages/editor-core/workbench/src/vgaiColors.ts",
+      "sha256": "75011c5b181268539c55334cac2a0b1b52396bdf836ef02a4aa129bcc6f5883a"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiCommands.ts",
+      "path": "packages/editor-core/workbench/src/vgaiCommands.ts",
+      "sha256": "5452dc7bd39a238f5fcf1b06c2d586c0019b0c55e66afd6cbbbf704ee65bda86"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiCover.ts",
+      "path": "packages/editor-core/workbench/src/vgaiCover.ts",
+      "sha256": "74e2ec96871e19db07e23cde529a41d91055428a5e3eee30b561b80517d128a1"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiDocumentInput.ts",
+      "path": "packages/editor-core/workbench/src/vgaiDocumentInput.ts",
+      "sha256": "4f6dd2fda0c87e80b96c8beac6dd1e1b2757d1a4e7124fa7c3cef66fb8528c97"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiDocumentViews.ts",
+      "path": "packages/editor-core/workbench/src/vgaiDocumentViews.ts",
+      "sha256": "8c8aacb1a5786aa603670310ece55978874ceb5808a56b502fc5c4e68dc01df6"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiDocuments.ts",
+      "path": "packages/editor-core/workbench/src/vgaiDocuments.ts",
+      "sha256": "fd374e79d9223d6506b7599168d00e39bb54ce1191b3887422fc81f32beeea8b"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiFiles.ts",
+      "path": "packages/editor-core/workbench/src/vgaiFiles.ts",
+      "sha256": "93a5ae88e36604bfc4ac434c35378a374326ca117694bacba32bcad12bca97f0"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiGeneratedKeymaps.ts",
+      "path": "packages/editor-core/workbench/src/vgaiGeneratedKeymaps.ts",
+      "sha256": "e5d5f62e4fa997eb92e0c9316b7759c662118888cf5d01b21207008fc0d41179"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiGeneratedSettings.ts",
+      "path": "packages/editor-core/workbench/src/vgaiGeneratedSettings.ts",
+      "sha256": "f25e52841aa79741ceea29dc19a2da1b8e4b60182a904a9ad470dc6c66f01c4c"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiHistory.ts",
+      "path": "packages/editor-core/workbench/src/vgaiHistory.ts",
+      "sha256": "21b2fe97d990d9c5463ec85d3a385ba184996266952fa137faf0c81ce814dfd9"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiKeyboard.ts",
+      "path": "packages/editor-core/workbench/src/vgaiKeyboard.ts",
+      "sha256": "abc37fa9839b1039b6353c7c4a5a98d5e3527ed57b51da51b0c48ac24b83312d"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiNotifications.ts",
+      "path": "packages/editor-core/workbench/src/vgaiNotifications.ts",
+      "sha256": "7805a3b0f18cbac4143ced39230c8fefde4a449a27521a5aced4948916fcdc4b"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiOutput.ts",
+      "path": "packages/editor-core/workbench/src/vgaiOutput.ts",
+      "sha256": "d29a9e29f54c7c2d999c982bfa63cf3cccec07e8018a493a99ef7c371d35c28d"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiProduct.ts",
+      "path": "packages/editor-core/workbench/src/vgaiProduct.ts",
+      "sha256": "0f7f1db9a4f9469d3071fbd88cde3d306c2e0b813e9a784c03cdb40b1f6ae722"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiSessionOrigin.ts",
+      "path": "packages/editor-core/workbench/src/vgaiSessionOrigin.ts",
+      "sha256": "de943ffe7a32fc7e68afea01204e7d2e45dcc0eb648c0ec893bd1e485d0b4772"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiSettings.ts",
+      "path": "packages/editor-core/workbench/src/vgaiSettings.ts",
+      "sha256": "6a8eb665394b42b77a2bbcd0ac8674b25b293821ebd3d988e4805e8ba5e169b3"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiStatus.ts",
+      "path": "packages/editor-core/workbench/src/vgaiStatus.ts",
+      "sha256": "9d75a9dff256322d288cdfb435f06ddafa0c0951cafd56079c78eb7912b833fc"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiTitleBar.ts",
+      "path": "packages/editor-core/workbench/src/vgaiTitleBar.ts",
+      "sha256": "e86310b950af2b2346a838849dfb4436bdce35278ab85345260a1d356c486d34"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiUtilityViews.ts",
+      "path": "packages/editor-core/workbench/src/vgaiUtilityViews.ts",
+      "sha256": "55595b6af771ccbb95d01468538ba96a80513aea1846a7ef6812179e13b1c689"
+    },
+    {
+      "source": "packages/editor/workbench/src/vgaiViews.ts",
+      "path": "packages/editor-core/workbench/src/vgaiViews.ts",
+      "sha256": "a2e538c081fff4beb39e81384a115478863e85e27e25bcc292f320c257098623"
+    },
+    {
+      "source": "packages/model-editor/workbench/extensions/theme-blender/LICENSE",
+      "path": "packages/editor/workbench/extensions/theme-blender/LICENSE",
+      "sha256": "d04192c0abdeaab0656b66916ba1acb221a4b3627f74cdb9e7076f613d086765"
+    },
+    {
+      "source": "packages/model-editor/workbench/extensions/theme-blender/package.json",
+      "path": "packages/editor/workbench/extensions/theme-blender/package.json",
+      "sha256": "6f6ecbb0ab58eeb7a202fb9e62993abd3c1ee1891d7083ef84122d26a56856e0"
+    },
+    {
+      "source": "packages/model-editor/workbench/extensions/theme-blender/producticons/blender-icons.otf",
+      "path": "packages/editor/workbench/extensions/theme-blender/producticons/blender-icons.otf",
+      "sha256": "96c30664dda837589655af51c3797cc3335a1835e6e52a948ae91d922458c18c"
+    },
+    {
+      "source": "packages/model-editor/workbench/extensions/theme-blender/producticons/blender-product-icon-theme.json",
+      "path": "packages/editor/workbench/extensions/theme-blender/producticons/blender-product-icon-theme.json",
+      "sha256": "63d7ebfab2cf47e679687b38ff9989172a6db874824aef61dcc934b39732e8a4"
+    },
+    {
+      "source": "packages/model-editor/workbench/extensions/theme-blender/themes/blender-dark.json",
+      "path": "packages/editor/workbench/extensions/theme-blender/themes/blender-dark.json",
+      "sha256": "ac24c496eb601ab5fe0778186ec21f9c7077f9321cc92a2c8db0da0b2b635616"
+    },
+    {
+      "source": "packages/model-editor/workbench/src/media/Inter.woff2",
+      "path": "packages/editor/workbench/src/media/Inter.woff2",
+      "sha256": "fb865a5087637ba194b14aef6f0558214f3c4b3ec939e3c0812c66de41036a47"
+    },
+    {
+      "source": "packages/model-editor/workbench/src/media/blender-look.css",
+      "path": "packages/editor/workbench/src/media/blender-look.css",
+      "sha256": "3a39dffbac38897a51faab344d1374ee67cd7bbec0e911c749833acd5ec1b24c"
+    },
+    {
+      "source": "packages/model-editor/workbench/src/media/model-cover.css",
+      "path": "packages/editor/workbench/src/media/model-cover.css",
+      "sha256": "2b6fb0130227ed010180be4dbff565fefa72c733fb8a0defa4617ec863d6f5a4"
+    },
+    {
+      "source": "packages/model-editor/workbench/src/product.contribution.ts",
+      "path": "packages/editor/workbench/src/product.contribution.ts",
+      "sha256": "6071600e6156404a5f2a9af8a0d2c09a51dab1fc838dd4220604ffea22ee4aba"
+    },
+    {
+      "source": "scripts/workbench/build-release.mjs",
+      "path": "scripts/workbench/build-release.mjs",
+      "sha256": "1477b8c57365a45b9f84efffbfe8086aa3c727125e947690b5211d4259891675"
+    },
+    {
+      "source": "scripts/workbench/dev.mjs",
+      "path": "scripts/workbench/dev.mjs",
+      "sha256": "7ddffc89687db37c1241e0ad40c4b0f9c7d697fcf4b53807ce427563eeddeca0"
+    },
+    {
+      "source": "scripts/workbench/generate-icons.mjs",
+      "path": "scripts/workbench/generate-icons.mjs",
+      "sha256": "ab082b43b84950eb961328f2d6e4ff6a76d7c3f55eb7acd4aee815db0f616e23"
+    },
+    {
+      "source": "scripts/workbench/generate-keymaps.mjs",
+      "path": "scripts/workbench/generate-keymaps.mjs",
+      "sha256": "4991a80f23a06091feac9db67b7291902c2f10dfeaf3480353916687846ae2b6"
+    },
+    {
+      "source": "scripts/workbench/generate-settings.mjs",
+      "path": "scripts/workbench/generate-settings.mjs",
+      "sha256": "a08346314595548a1ef4e08f23208987e0abd631d3b3fbe835c9eef954dd9f91"
+    },
+    {
+      "source": "scripts/workbench/overlay.mjs",
+      "path": "scripts/workbench/overlay.mjs",
+      "sha256": "9c444d1dedd914c99cdec4cf805fe9f2a5f87165df5b7e5dcd2a93f3902a56a1"
+    },
+    {
+      "source": "LICENSE",
+      "path": "LICENSE",
+      "sha256": "f10839f8b0602d5bb4fefdcb5cd1619e5a11310ba25a6091a2e9961e284da3b6"
+    }
+  ]
+}
