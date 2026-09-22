@@ -11,8 +11,9 @@ The installed product starts its session
 server and opens Blender in a packaged Code-OSS workbench. Installed MCP can
 inspect, edit and photograph the model. Modeling edits persist to the project's
 `.blend` file and survive reopening. Packaged-workbench startup and reuse are
-verified on darwin-arm64. Public workbench publication, registry installation
-acceptance and consumer cutover are tracked in [WORK.md](WORK.md).
+verified on darwin-arm64. The matching workbench is public and anonymously
+downloadable. Registry installation acceptance and consumer cutover are tracked
+in [WORK.md](WORK.md).
 
 ## Package map
 

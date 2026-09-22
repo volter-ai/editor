@@ -35,8 +35,8 @@
       "entry": "./src/index.ts",
       "colorTheme": "dark",
       "workbench": {
-        "release": "editor-9b4e5584bdf9-856753836e29-darwin-arm64",
-        "tarballSha256": "c4f5c884853cda029e457a6e4dffa06a12fdc60d38f16b299b2f13b9a22f558a"
+        "release": "editor-f8664703ab59-d7489dea9dcd-darwin-arm64",
+        "tarballSha256": "57692dc03bd5e37f1b02c817bf0601ee3f3d410b6147c24ccd978d22ff4f81ca"
       }
     }
   },
