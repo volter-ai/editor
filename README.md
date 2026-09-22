@@ -12,8 +12,15 @@ server and opens Blender in a packaged Code-OSS workbench. Installed MCP can
 inspect, edit and photograph the model. Modeling edits persist to the project's
 `.blend` file and survive reopening. Packaged-workbench startup and reuse are
 verified on darwin-arm64. The matching workbench is public and anonymously
-downloadable. Registry installation acceptance and consumer cutover are tracked
-in [WORK.md](WORK.md).
+downloadable. The public npm packages and a credential-free, cache-empty
+installation have passed live modeling acceptance.
+
+```bash
+npx @volter/editor@0.5.57 create my-models
+```
+
+The command creates a modeling project, installs the pinned public workbench on
+first use, and opens Volter Editor.
 
 ## Package map
 
@@ -61,7 +68,7 @@ workbench responsibilities.
 Transferred code becomes authoritative here after verified cutover. Do not
 establish permanently divergent copies or a recurring source-export process.
 
-See [WORK.md](WORK.md) for the migration and release gates.
+See [WORK.md](WORK.md) for the recorded release acceptance.
 
 Source products may open an explicitly supplied matching Code-OSS checkout. The
 identity check still applies. Published product manifests pin a public workbench
