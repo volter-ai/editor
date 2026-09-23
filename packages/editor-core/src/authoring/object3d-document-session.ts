@@ -1,4 +1,5 @@
 import { createPerformanceProfiler } from '../performance-profiler';
+import { invalidateStages } from '../stage-invalidation';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { viewportCaptureOutputPass } from '@volter/editor-threejs/capture/output-pass';
 import { contentWorldBounds } from '@volter/editor-threejs/viewport/content-bounds';
@@ -191,6 +192,7 @@ export class Object3DDocumentSession {
 
   /** Replace authored content without replacing the editor session or camera. */
   replaceContent(root: THREE.Object3D, authoring: AuthoringAdapter): void {
+    invalidateStages();
     this.selectionOutline?.selection.clear();
     this.selectedObjects = [];
     this.boneSelectionSignature = '';
@@ -449,6 +451,7 @@ export class Object3DDocumentSession {
   }
 
   select(ids: readonly string[]): void {
+    invalidateStages();
     if (this.authoring) setAuthoringSelection(this.authoring, [...ids]);
   }
 
@@ -462,6 +465,7 @@ export class Object3DDocumentSession {
 
   /** Keep native hierarchy selection legible in this document's one viewport. */
   syncSelectionPresentation(): void {
+    invalidateStages();
     const selected = (this.authoring?.selection?.get() ?? [])
       .map((id) => this.authoring?.hierarchy.object3D?.(id) ?? null)
       .filter((object): object is THREE.Object3D => object !== null);
@@ -523,6 +527,7 @@ export class Object3DDocumentSession {
    * (`syncOrthographicCamera`) rather than posed independently.
    */
   setViewPreset(preset: ModelCameraPreset): void {
+    invalidateStages();
     this.settleFlight('superseded');
     const bounds = this.resolveFrameBounds();
     if (bounds.isEmpty()) return;
@@ -540,6 +545,7 @@ export class Object3DDocumentSession {
     target: { x: number; y: number; z: number },
     fov?: number,
   ): void {
+    invalidateStages();
     this.settleFlight('superseded');
     this.viewport.setPose(position, target, fov);
   }
@@ -571,6 +577,7 @@ export class Object3DDocumentSession {
   }
 
   setProjection(projection: 'perspective' | 'orthographic'): void {
+    invalidateStages();
     if (this.state.projection === projection) return;
     this.state = { ...this.state, projection };
     this.notify();
@@ -581,6 +588,7 @@ export class Object3DDocumentSession {
   }
 
   setLighting(lighting: 'studio' | 'outdoor' | 'flat'): void {
+    invalidateStages();
     if (this.state.lighting === lighting) return;
     this.setLightingValues(lighting);
     this.state = { ...this.state, lighting };
@@ -588,6 +596,7 @@ export class Object3DDocumentSession {
   }
 
   setMode(mode: Object3DDocumentViewMode): void {
+    invalidateStages();
     if (this.state.mode === mode) return;
     this.clearDiagnosticPresentation();
     this.state = { ...this.state, mode };
@@ -687,6 +696,7 @@ export class Object3DDocumentSession {
   }
 
   setBounds(bounds: boolean): void {
+    invalidateStages();
     if (this.state.bounds === bounds) return;
     this.state = { ...this.state, bounds };
     if (bounds) {
@@ -699,6 +709,7 @@ export class Object3DDocumentSession {
   }
 
   setSkeleton(skeleton: boolean): void {
+    invalidateStages();
     if (this.state.skeleton === skeleton) return;
     this.state = { ...this.state, skeleton };
     this.refreshSkeletonHelper();
@@ -706,6 +717,7 @@ export class Object3DDocumentSession {
   }
 
   setGrid(grid: boolean): void {
+    invalidateStages();
     if (this.state.grid === grid) return;
     this.viewport.grid.visible = grid;
     this.state = { ...this.state, grid };
@@ -720,12 +732,14 @@ export class Object3DDocumentSession {
   /** Re-tint the neutral backdrop (a palette switch re-derives the dressing's
    *  gradient, `standard-viewport-dressing.ts`). Repaints when it is showing. */
   setNeutralBackground(background: THREE.Color | THREE.Texture | null): void {
+    invalidateStages();
     const showing = this.scene.background === this.neutralBackground;
     this.neutralBackground = background;
     if (showing) this.scene.background = background;
   }
 
   setBackground(background: 'neutral' | 'transparent'): void {
+    invalidateStages();
     if (this.state.background === background) return;
     this.scene.background = background === 'transparent' ? null : this.neutralBackground;
     this.state = { ...this.state, background };
@@ -733,6 +747,7 @@ export class Object3DDocumentSession {
   }
 
   setExposure(exposure: number): void {
+    invalidateStages();
     if (!Number.isFinite(exposure) || exposure < 0.2 || exposure > 2) return;
     if (this.state.exposure === exposure) return;
     this.renderer.toneMappingExposure = exposure;
@@ -741,6 +756,7 @@ export class Object3DDocumentSession {
   }
 
   resetPresentation(): void {
+    invalidateStages();
     this.clearDiagnosticPresentation();
     this.state = INITIAL_PRESENTATION;
     this.refreshSkeletonHelper();
@@ -818,8 +834,17 @@ export class Object3DDocumentSession {
         resolve(frame);
       };
       this.presentedFrameWaiters.push(once);
+      // A stage that draws on change draws for this request.
+      invalidateStages();
       setTimeout(() => once(null), PRESENTED_FRAME_WAIT_MS);
     });
+  }
+
+  /** Whether the next frame must be drawn whatever else changed: a camera
+   *  flight is advanced by the draw itself, and a presented-frame request is
+   *  served only by a frame that draws. */
+  needsFrame(): boolean {
+    return this.flight !== null || this.presentedFrameWaiters.length > 0;
   }
 
   /** Called by the host at the END of a frame, after every overlay pass. */
@@ -890,6 +915,7 @@ export class Object3DDocumentSession {
   }
 
   resize(width: number, height: number): void {
+    invalidateStages();
     this.renderWidth = Math.max(1, width);
     this.renderHeight = Math.max(1, height);
     this.composer?.setSize(this.renderWidth, this.renderHeight);
@@ -1113,6 +1139,8 @@ export class Object3DDocumentSession {
         this.composer = composer;
         this.syncComposerOutput();
         composer.setSize(this.renderWidth, this.renderHeight);
+        // The outline draws from the next frame on; ask for it.
+        invalidateStages();
       })
       .catch(() => {
         // A failed chunk load must not wedge the surface: the plain draw path

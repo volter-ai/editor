@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {presenterChanged} from './blender-presenter-change';
 
 export type TextureExtension = 'REPEAT' | 'EXTEND' | 'MIRROR' | 'CLIP';
 
@@ -48,6 +49,7 @@ export class BlenderTextureSamplers {
         if (!held.disposed) {
           held.texture.needsUpdate = true;
           held.version = source.version;
+          presenterChanged();
         }
       }, () => {});
     }

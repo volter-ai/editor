@@ -14,6 +14,7 @@
  * built from the mesh's texture space (`orcoAttribute`).
  */
 import * as THREE from 'three';
+import {presenterChanged} from './blender-presenter-change';
 import {attributeVarying, type CompiledGraph, rampTexture, uvVarying} from './blender-node-graph';
 import {graphAttributeName} from './blender-runtime-geometry';
 
@@ -192,6 +193,7 @@ export function bindGraphDraw(material: THREE.MeshPhysicalMaterial, geometry: TH
       material.needsUpdate = true;
       retiring.get(material)?.shadow.dispose();
       retiring.set(material, {shadow, draws: 0});
+      presenterChanged();
     };
     // A program the GPU refuses is found on the material's own first draw
     // with it (below), exactly as an immediate one is.

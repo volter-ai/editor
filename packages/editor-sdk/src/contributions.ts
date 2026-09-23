@@ -58,6 +58,15 @@ export interface ToolObject3DPreviewSource {
    * where a world runs.
    */
   update?(deltaSeconds: number): void;
+  /**
+   * EVERY CHANGE TO WHAT THE SOURCE DRAWS, announced: the host calls
+   * `listener` whenever the source's graph, materials, textures or poses may
+   * look different, and returns nothing from it. A source that offers this is
+   * drawn only when something changed -- this, the camera, input on the
+   * stage, the editor's own state, playback -- so an idle document costs no
+   * frames. A source without it is drawn every frame.
+   */
+  onChange?(listener: () => void): () => void;
   dispose(): void;
 }
 

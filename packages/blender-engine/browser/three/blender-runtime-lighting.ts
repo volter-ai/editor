@@ -35,6 +35,7 @@
  * faked with a substitute light the scene never declared.
  */
 import * as THREE from 'three';
+import {presenterChanged} from './blender-presenter-change';
 import { z } from 'zod';
 import type { GradientType } from './blender-gradient-texture';
 import { hasSkyTexture, primeSkyTexture, type SkyParameters } from './blender-sky';
@@ -76,6 +77,7 @@ function prepareRectArea(): Promise<void> {
   rectAreaPromise ??= import('three/examples/jsm/lights/RectAreaLightUniformsLib.js').then(
     ({ RectAreaLightUniformsLib }) => {
       RectAreaLightUniformsLib.init();
+      presenterChanged();
     },
   );
   return rectAreaPromise;
@@ -765,6 +767,7 @@ export class WorldBackground {
       // composing now would paint a sky nobody asked for over the current one.
       if (this.generation !== generation || this.applied?.scene !== scene) return;
       this.compose(scene, world, expression, camera);
+      presenterChanged();
     })();
     this.pending = pending;
     pendingWorld.add(pending);

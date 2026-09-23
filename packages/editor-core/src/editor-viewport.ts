@@ -1,4 +1,5 @@
 import type { SparkRenderer } from '@sparkjsdev/spark';
+import { invalidateStages } from './stage-invalidation';
 import { themeVars, zIndex } from '@volter/editor-sdk/widgets';
 import type { AssetDropContext, AuthoringAdapter } from '@volter/editor-project/adapter';
 import {
@@ -1117,6 +1118,7 @@ export class EditorViewport {
     // viewport construction threw, and every 3D document died with
     // "Cannot read properties of undefined (reading 'geometry')".
     this._unsubscribeSelectionTheme = subscribeNativeSelectionTheme(canvas, () => {
+      invalidateStages();
       const color = nativeSelectionColors(canvas).visible;
       for (const helper of this._boxHelpers.values()) {
         if (helper instanceof SelectionBrackets) helper.setColor(color);
@@ -3163,6 +3165,7 @@ export class EditorViewport {
    * and follows the Helpers menu's toggle for its kind.
    */
   setHelper(kind: string, object: THREE.Object3D | null): void {
+    invalidateStages();
     const previous = this._helpers.get(kind);
     if (previous) {
       this._scene.remove(previous);
@@ -3656,6 +3659,7 @@ export class EditorViewport {
         const spark = new SparkRenderer({ renderer: this._renderer, enableLod: false });
         spark.traverse((node) => setUserData(node, 'engineInternal', true));
         this._sparkRenderer = spark;
+        invalidateStages();
       })
       .catch((error: unknown) => {
         this._sparkRendererFailed = true;

@@ -4,6 +4,7 @@ import type {
   ToolObject3DPreviewSource,
   ToolViewportDressing,
 } from '@volter/editor-sdk/contributions';
+import { stageGeneration } from '../stage-invalidation';
 import type { StageTransportSnapshot } from '@volter/editor-sdk/host';
 import { EditorIcon, editorIcons, IconButton, themeVars } from '@volter/editor-sdk/widgets';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
@@ -369,7 +370,7 @@ class Object3DDocumentHost {
   syncHostScene: (() => void) | null = null;
   /** The other participants on THIS stage, once its module has loaded
    *  (`stage-presence-markers.ts`). Null on a chromeless mount and until then. */
-  presence: { syncMarkers(dtSeconds: number): void } | null = null;
+  presence: { syncMarkers(dtSeconds: number): void; live(): boolean } | null = null;
   initialized = false;
   contentSeconds = 0;
   transportAdvances = 0;
@@ -826,6 +827,7 @@ export function Object3DDocumentViewport({
       let pointerUpListener: ((event: PointerEvent) => void) | null = null;
       let pointerCancelListener: ((event: PointerEvent) => void) | null = null;
       let escapeListener: ((event: KeyboardEvent) => void) | null = null;
+      let stopDrawSignals: (() => void) | null = null;
       let activateInteraction: (() => void) | null = null;
       let rollback: (() => void) | null = null;
       let published = false;
@@ -848,6 +850,8 @@ export function Object3DDocumentViewport({
           if (pointerCancelListener)
             container.removeEventListener('pointercancel', pointerCancelListener, true);
           if (escapeListener) window.removeEventListener('keydown', escapeListener);
+          stopDrawSignals?.();
+          stopDrawSignals = null;
           cleanup = (async () => {
             await gestureController?.settle();
             const failures: unknown[] = [];
@@ -1431,6 +1435,75 @@ export function Object3DDocumentViewport({
           retainedState.transport = null;
         }
         let previousTime = performance.now();
+        // DRAWING ON CHANGE. A source that announces its changes
+        // (`ToolObject3DPreviewSource.onChange`) is drawn only when something
+        // changed; one that does not is drawn every frame, as before. The loop
+        // itself still runs every frame -- transport, controls, flights and
+        // presence advance there -- and what is skipped is the render: the
+        // scene, the composer's passes and the compass. MEASURED before: an
+        // idle Model document spent 43% of the main thread drawing the same
+        // picture (4 s at load ~30: 372 frames, 1.7 s in the loop, 0.18 s of
+        // it WebGL calls, the rest three's render and the outline passes).
+        //
+        // What draws a frame: the content's own announcement; the stage
+        // store; pointer, wheel and key input on the stage (hover and gizmo
+        // highlights follow the pointer); the editor acting on a stage from
+        // outside those (`stage-invalidation.ts`); a moved camera or a resized
+        // surface; playback; a flight or a pending photograph
+        // (`needsFrame`); another participant's markers; particle systems;
+        // and an interaction extension that refines every frame.
+        const drawsOnChange = typeof source.onChange === 'function';
+        let dirty = true;
+        const markDirty = (): void => {
+          dirty = true;
+        };
+        if (drawsOnChange) {
+          const stopSource = source.onChange!(markDirty);
+          const stopStore = store.subscribe(markDirty);
+          const inputs = ['pointerdown', 'pointermove', 'pointerup', 'pointerleave', 'wheel', 'keydown', 'keyup'] as const;
+          for (const type of inputs) container.addEventListener(type, markDirty, { capture: true, passive: true });
+          stopDrawSignals = () => {
+            stopSource();
+            stopStore();
+            for (const type of inputs) container.removeEventListener(type, markDirty, { capture: true });
+          };
+        }
+        let drawnGeneration = -1;
+        const drawnCamera = new THREE.Matrix4();
+        const drawnProjection = new THREE.Matrix4();
+        const drawnSize = new THREE.Vector2();
+        const currentSize = new THREE.Vector2();
+        let drawnBackground: unknown = undefined;
+        let drawnToneMapping: THREE.ToneMapping | null = null;
+        let drawnExposure = Number.NaN;
+        const mustDraw = (advanced: number): boolean => {
+          if (!drawsOnChange || dirty || advanced > 0) return true;
+          if (stageGeneration() !== drawnGeneration) return true;
+          if (documentSession.needsFrame() || host.presence?.live()) return true;
+          if (interactionExtension?.prepareFrame || interactionExtension?.update) return true;
+          if (((viewport.batchedRenderer as unknown as { batches?: readonly unknown[] }).batches?.length ?? 0) > 0)
+            return true;
+          const camera = documentSession.camera();
+          camera.updateMatrixWorld();
+          renderer.getDrawingBufferSize(currentSize);
+          return !camera.matrixWorld.equals(drawnCamera) ||
+            !camera.projectionMatrix.equals(drawnProjection) ||
+            !currentSize.equals(drawnSize) ||
+            host.scene.background !== drawnBackground ||
+            renderer.toneMapping !== drawnToneMapping ||
+            renderer.toneMappingExposure !== drawnExposure;
+        };
+        const noteDrawn = (): void => {
+          dirty = false;
+          drawnGeneration = stageGeneration();
+          const camera = documentSession.camera();
+          drawnCamera.copy(camera.matrixWorld);
+          drawnProjection.copy(camera.projectionMatrix);
+          renderer.getDrawingBufferSize(drawnSize);
+          drawnBackground = host.scene.background;
+          drawnToneMapping = renderer.toneMapping;
+          drawnExposure = renderer.toneMappingExposure;
+        };
         const animate = (time: number, resumed: boolean) => {
           if (disposed || !renderer || !viewport) return;
           const activeRenderer = renderer;
@@ -1458,6 +1531,10 @@ export function Object3DDocumentViewport({
           if (!chromeless) runViewportFrame(documentId, delta);
           viewport.batchedRenderer.update(delta);
           profiler?.endPhase('editor');
+          if (!resumed && !mustDraw(advanced)) {
+            profiler?.endFrame();
+            return;
+          }
           profiler?.beginPhase();
           activeRenderer.info.reset();
           const timeFirstRender =
@@ -1479,6 +1556,7 @@ export function Object3DDocumentViewport({
           // Inside the frame that drew them — the canvas has no
           // preserveDrawingBuffer, so this is the only moment its pixels exist.
           documentSession.servePresentedFrame();
+          noteDrawn();
           if (!firstFrameGateRef.current) {
             firstFrameGateRef.current = true;
             if (timeFirstRender) markViewportSegment('first-render', Date.now() - tFirstRender);

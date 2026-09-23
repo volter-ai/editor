@@ -4,6 +4,7 @@
  */
 import * as THREE from 'three';
 import { z } from 'zod';
+import { onPresenterChange, presenterChanged } from './blender-presenter-change';
 import { bytesFromBase64 } from './blender-base64';
 import { ArmatureOverlay, armatureSchema } from './blender-runtime-armature';
 import { UNKNOWN_GEOMETRY, UNKNOWN_IMAGE } from './blender-runtime-frame';
@@ -262,6 +263,7 @@ function loadPngTexture(png: Uint8Array): { texture: THREE.Texture; ready: Promi
       }
       texture.image = bitmap;
       texture.needsUpdate = true;
+      presenterChanged();
     })
     .finally(() => {
       pendingTextures.delete(decoding);
@@ -632,6 +634,18 @@ export class BlenderRuntimeView {
     this.frameListeners.add(listener);
     return () => {
       this.frameListeners.delete(listener);
+    };
+  }
+
+  /** EVERY CHANGE TO WHAT THIS VIEW DRAWS: each applied frame, and each piece
+   *  of work that finishes after one (`blender-presenter-change.ts`). A stage
+   *  that subscribes may draw only when this fires. */
+  onChange(listener: () => void): () => void {
+    const stopFrames = this.subscribeFrames(listener);
+    const stopWork = onPresenterChange(listener);
+    return () => {
+      stopFrames();
+      stopWork();
     };
   }
 

@@ -31,6 +31,7 @@
  * where the rest of the dressing is plain scene-graph work.
  */
 
+import { invalidateStages } from '../stage-invalidation';
 import { contentWorldBounds } from '@volter/editor-threejs/viewport/content-bounds';
 import { EDITOR_LAYER } from '@volter/editor-threejs/viewport/editor-layers';
 import type { StandardEnvironment } from '@volter/editor-threejs/viewport/environment';
@@ -111,7 +112,10 @@ export function watchPaletteBackdrop(onChange: () => void): () => void {
   if (typeof document === 'undefined' || typeof MutationObserver === 'undefined') return () => {};
   const root = document.querySelector('[data-vgai-palette]');
   if (!root) return () => {};
-  const observer = new MutationObserver(onChange);
+  const observer = new MutationObserver(() => {
+    onChange();
+    invalidateStages();
+  });
   observer.observe(root, {
     attributes: true,
     attributeFilter: ['data-vgai-palette', 'data-vgai-material'],

@@ -241,6 +241,9 @@ export interface StagePresenceBinding {
   reportCamera(): void;
   /** Per frame: project new presence sequences and animate the markers. */
   syncMarkers(dtSeconds: number): void;
+  /** Whether another participant is drawn on this stage: their markers move
+   *  on their own, so the stage draws every frame while any are shown. */
+  live(): boolean;
   dispose(): void;
 }
 
@@ -428,6 +431,7 @@ export function bindStagePresenceMarkers(options: StagePresenceOptions): StagePr
         contentWorldBounds(marker.object, marker.box);
       }
     },
+    live: () => remoteCameraMarkers.size + remoteSelectionMarkers.size + remoteRayMarkers.size > 0,
     dispose: () => {
       viewport.orbitControls.removeEventListener('change', reportCamera);
       viewport.transformControls.removeEventListener('dragging-changed', reportTransformGesture);

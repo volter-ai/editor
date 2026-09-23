@@ -133,7 +133,23 @@ function BlenderModelViewport({
   documentId,
   surfaces,
 }: ToolContributionProps) {
-  const build = useCallback(() => ({ root: view.root, dispose() {} }), []);
+  const build = useCallback(
+    () => ({
+      root: view.root,
+      // What the view draws changes with each frame and the work after it,
+      // and with the skin's poses when the Timeline scrubs.
+      onChange(listener: () => void) {
+        const stopView = view.onChange(listener);
+        const stopSkin = blenderSkin.subscribe(listener);
+        return () => {
+          stopView();
+          stopSkin();
+        };
+      },
+      dispose() {},
+    }),
+    [],
+  );
   const blend = document?.source?.path;
   /**
    * THE INSPECTION OVERLAYS ARE HELPERS, and the Helpers menu owns them
