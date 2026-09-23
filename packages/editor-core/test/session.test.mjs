@@ -38,9 +38,12 @@ test('workbench proxy routes session and native requests and retains isolation h
     const control = await fetch(`${origin}/__editor/project`);
     assert.equal(control.headers.get('cross-origin-opener-policy'), 'same-origin');
     assert.equal(control.headers.get('cross-origin-embedder-policy'), 'credentialless');
+    assert.equal(control.headers.get('document-policy'), 'js-profiling');
     assert.deepEqual(await control.json(), {path: '/__editor/project'});
     assert.equal(discoveryRequests, 2);
     const native = await fetch(`${origin}/modeling/static/probe.js`);
+    const page = await fetch(origin);
+    assert.equal(page.headers.get('document-policy'), 'js-profiling');
     assert.equal(await native.text(), 'workbench:/modeling/static/probe.js');
   } finally {
     await proxy?.close();
