@@ -343,9 +343,9 @@ function reportBootErrors(): () => void {
         {
           id: `boot-error:${sent}`,
           severity: 'error',
-          // Named as a BOOT failure, so a reader knows the app never came up
-          // rather than hunting for a console that was never going to fill.
-          message: `editor app failed to start: ${message}`,
+          // Presence outlives startup. Report the error without claiming that
+          // a running editor failed to boot (for example during a later reload).
+          message: `editor runtime error: ${message}`,
           source: 'runtime',
           occurrences: 1,
         },

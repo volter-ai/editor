@@ -27,7 +27,7 @@
 import { blenderModelView } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import type { ToolContributionProps, ToolDocumentToolbar } from '@volter/editor-sdk/contributions';
 import { editorHost } from '@volter/editor-sdk/host';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { bindModelDocument, openModelDocumentBlend } from '../host/blender-runtime-host';
 import { BlenderObjectModeHeader } from './blender-header-menus';
@@ -79,17 +79,62 @@ export const inspectorBuiltins: readonly string[] = [];
 // one set of presented objects (`blender-runtime-skin.ts`).
 const view = blenderModelView;
 
-export default function BlenderModelDocument({
+export default function BlenderModelDocument(props: ToolContributionProps) {
+  const { active, document, documentId, notify, publishContext } = props;
+  const blend = document?.source?.path;
+  const entryId = document?.id;
+  const key = JSON.stringify([documentId, entryId, blend]);
+  const [opened, setOpened] = useState<{ key: string; error: string | null } | null>(null);
+  const callbacks = useRef({ notify, publishContext });
+  callbacks.current = { notify, publishContext };
+
+  useEffect(() => {
+    if (active === false || !documentId) return;
+    let cancelled = false;
+    let unpublish: (() => void) | undefined;
+    const binding = blend === undefined ? null : { documentId, entryId: entryId!, blend };
+    const unbind = bindModelDocument(binding);
+    const publish = () => { unpublish = callbacks.current.publishContext?.(view); };
+    setOpened(null);
+    void (async () => {
+      try {
+        if (binding) {
+          if (!await openModelDocumentBlend(binding, publish)) return;
+        } else {
+          // The standing Model document is the explicit blender-start target.
+          publish();
+        }
+        if (!cancelled) setOpened({ key, error: null });
+      } catch (error) {
+        if (cancelled) return;
+        unpublish?.();
+        unpublish = undefined;
+        const detail = error instanceof Error ? error.message : String(error);
+        setOpened({ key, error: detail });
+        callbacks.current.notify?.({ tone: 'error', title: `Blender could not open ${blend ?? 'the model'}`, detail });
+      }
+    })();
+    return () => {
+      cancelled = true;
+      unpublish?.();
+      unbind();
+    };
+  }, [active, blend, documentId, entryId, key]);
+
+  if (active === false || !documentId) return null;
+  if (opened?.key !== key) return <div role="status">Opening model…</div>;
+  if (opened.error) return <div role="alert">{opened.error}</div>;
+  return <BlenderModelViewport {...props} />;
+}
+
+function BlenderModelViewport({
   active,
   document,
   documentId,
   surfaces,
-  notify,
-  publishContext,
 }: ToolContributionProps) {
   const build = useCallback(() => ({ root: view.root, dispose() {} }), []);
   const blend = document?.source?.path;
-  useEffect(() => publishContext?.(view), [publishContext]);
   /**
    * THE INSPECTION OVERLAYS ARE HELPERS, and the Helpers menu owns them
    * (WORK.md §Blender in the tab is Blender, "Inspection parity", I4).
@@ -149,29 +194,6 @@ export default function BlenderModelDocument({
       detach?.();
     };
   }, [documentId]);
-  useEffect(() => {
-    if (!documentId) return;
-    if (blend === undefined) {
-      // Opened by address: the session names its own document.
-      bindModelDocument(null);
-      return;
-    }
-    // A FRESHLY OPENED MODEL DOCUMENT PRESENTS WITHOUT AN EXECUTE. Every
-    // mutation presents (`session.py::dispatch`), so the document only ever
-    // received a frame once something had RUN — open a `.blend` and the
-    // viewport stayed empty until a `vgai blender-exec`. The first present is
-    // the document's to ask for, because opening a document IS the request to
-    // see what is in it (I1 found this; WORK.md §Blender in the tab is
-    // Blender, "Inspection parity", I2 decision 6).
-    void openModelDocumentBlend(documentId, blend, document!.id).catch((error: unknown) => {
-      notify?.({
-        tone: 'error',
-        title: `Blender could not open ${blend}`,
-        detail: error instanceof Error ? error.message : String(error),
-      });
-    });
-    return () => bindModelDocument(null);
-  }, [blend, document?.id, documentId, notify]);
   if (!documentId) return null;
   const Surface = surfaces.Object3DAuthoring;
   return (

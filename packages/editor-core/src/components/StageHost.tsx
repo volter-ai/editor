@@ -63,6 +63,7 @@ import {
   studioStageApplies,
 } from '../stage-context';
 import { registerStageStore } from '../stage-store-registry';
+import { RetainedDocumentStates } from '../retained-document-states';
 import { perspectiveDistanceToFitBox } from '../three-viewport/camera-fit';
 import {
   acquireInteractiveViewportRenderer,
@@ -84,6 +85,7 @@ import {
   notifyWorkspaceDocumentSelectionChanged,
   openWorkspaceDocuments,
   registerWorkspaceDocumentSelection,
+  subscribeWorkspaceDocuments,
 } from '../workspace-document-registry';
 import { AssetEditorShell } from './AssetEditorShell';
 import { StageOverlays } from './StageOverlays';
@@ -257,7 +259,7 @@ interface RetainedObject3DStageState {
   readonly store: EditorShellStore;
   inUse: boolean;
   source: ToolObject3DPreviewSource | null;
-  camera: { position: THREE.Vector3; target: THREE.Vector3; fov: number } | null;
+  camera: { position: THREE.Vector3; target: THREE.Vector3; up: THREE.Vector3; fov: number } | null;
   presentation: Object3DDocumentPresentationState | null;
   transport: StageTransportSnapshot | null;
   contentSeconds: number;
@@ -269,48 +271,21 @@ interface RetainedObject3DStageState {
  * A second visible pane showing the same document claims a second state slot;
  * an inactive slot is reused only after its former pane has unmounted.
  */
-const retainedObject3DStages = new Map<string, RetainedObject3DStageState[]>();
-
-function claimRetainedObject3DStage(documentId: string): RetainedObject3DStageState {
-  const states = retainedObject3DStages.get(documentId) ?? [];
-  let state = states.find((candidate) => !candidate.inUse);
-  if (!state) {
-    state = {
-      documentId,
-      store: new EditorShellStore(),
-      inUse: false,
-      source: null,
-      camera: null,
-      presentation: null,
-      transport: null,
-      contentSeconds: 0,
-      transportAdvances: 0,
-    };
-    states.push(state);
-    retainedObject3DStages.set(documentId, states);
-  }
-  state.inUse = true;
-  return state;
-}
-
-function releaseRetainedObject3DStage(state: RetainedObject3DStageState): void {
-  state.inUse = false;
-  // Switching tabs unmounts the Code-OSS pane while its document remains in
-  // the open set. An actual close removes it first; discard retained CPU state
-  // after that registry mutation so closed documents do not form a new cache.
-  queueMicrotask(() => {
-    if (state.inUse) return;
-    if (openWorkspaceDocuments().some((document) => document.descriptor.id === state.documentId))
-      return;
-    state.source?.dispose();
-    state.source = null;
-    const states = retainedObject3DStages.get(state.documentId);
-    if (!states) return;
-    const remaining = states.filter((candidate) => candidate !== state || candidate.inUse);
-    if (remaining.length > 0) retainedObject3DStages.set(state.documentId, remaining);
-    else retainedObject3DStages.delete(state.documentId);
-  });
-}
+const retainedObject3DStages = new RetainedDocumentStates<RetainedObject3DStageState>(
+  documentId => ({
+    documentId,
+    store: new EditorShellStore(),
+    inUse: false,
+    source: null,
+    camera: null,
+    presentation: null,
+    transport: null,
+    contentSeconds: 0,
+    transportAdvances: 0,
+  }),
+  documentId => openWorkspaceDocuments().some(document => document.descriptor.id === documentId),
+  subscribeWorkspaceDocuments,
+);
 
 /**
  * The element the viewport draws INTO — an EMPTY host div in both lanes.
@@ -626,12 +601,13 @@ export function Object3DDocumentViewport({
   const documentHostRef = useRef<Object3DDocumentHost | null>(null);
   const retainedRef = useRef<RetainedObject3DStageState | null>(null);
   if (!retainedRef.current || retainedRef.current.documentId !== documentId) {
-    if (retainedRef.current) releaseRetainedObject3DStage(retainedRef.current);
-    retainedRef.current = claimRetainedObject3DStage(documentId);
+    if (retainedRef.current) retainedObject3DStages.release(retainedRef.current);
+    retainedRef.current = retainedObject3DStages.claim(documentId);
   }
   useEffect(() => {
     const retained = retainedRef.current!;
-    return () => releaseRetainedObject3DStage(retained);
+    const generation = retainedObject3DStages.generation(retained);
+    return () => retainedObject3DStages.release(retained, generation);
   }, [documentId]);
   const retainedState = retainedRef.current;
   // Only a visible pane owns an interactive attachment. Hidden documents
@@ -664,7 +640,9 @@ export function Object3DDocumentViewport({
         // mounted in retained CPU state while the expensive attachment goes
         // back to the pool. A source revision or final close still disposes it.
         retainSourceOnDisposeRef.current = !activeRef.current;
-        retainedState.camera = host.store.cameraPose;
+        const pose = host.store.cameraPose;
+        retainedState.camera =
+          pose && host.viewport ? { ...pose, up: host.viewport.camera.up.clone() } : null;
         retainedState.presentation = host.session?.presentation() ?? null;
         retainedState.transport = host.transport.snapshot();
         retainedState.contentSeconds = host.contentSeconds;
@@ -757,6 +735,7 @@ export function Object3DDocumentViewport({
         return;
       }
       let source: ReturnType<NonNullable<typeof build>>;
+      const retainedGeneration = retainedObject3DStages.generation(retainedState);
       try {
         source = retainedState.source ?? build();
         retainedState.source = null;
@@ -858,6 +837,8 @@ export function Object3DDocumentViewport({
         dispose: () => {
           if (cleanup) return cleanup;
           disposed = true;
+          const retainSource = retainSourceOnDisposeRef.current;
+          retainSourceOnDisposeRef.current = false;
           if (pointerDownListener)
             container.removeEventListener('pointerdown', pointerDownListener, true);
           if (pointerMoveListener)
@@ -876,9 +857,9 @@ export function Object3DDocumentViewport({
               () => defaultAdapter?.dispose(),
               () => scene.removeFromParent(),
               () => {
-                if (retainSourceOnDisposeRef.current) retainedState.source = source;
+                if (retainSource)
+                  retainedObject3DStages.retain(retainedState, source, retainedGeneration);
                 else source.dispose();
-                retainSourceOnDisposeRef.current = false;
               },
               returnSurface,
             ]) {
@@ -1356,6 +1337,9 @@ export function Object3DDocumentViewport({
         } else host.session.replaceContent(source.root, adapter);
         const retainedCamera = retainedState.camera;
         if (retainedCamera) {
+          // Top views and rolled cameras have their own up direction. Restore
+          // it before setPose derives the orientation with lookAt.
+          viewport.camera.up.copy(retainedCamera.up);
           viewport.setProjection(projection);
           viewport.setPose(
             retainedCamera.position,

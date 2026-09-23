@@ -202,6 +202,11 @@ export class BlenderRuntime {
     return this.#project;
   }
 
+  /** The startup document owned by this worker, including while boot is pending. */
+  get document(): string | null {
+    return this.#document;
+  }
+
   /** Idempotent: the first call boots Blender at `project`'s
    *  absolute path; later calls await it (a different path is refused).
    *

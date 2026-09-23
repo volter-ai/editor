@@ -362,7 +362,14 @@ function documentStylesCssText(document: Document): string {
       return Array.from(sheet.cssRules)
         .map((rule) => {
           const imported = (rule as CSSImportRule).styleSheet;
-          return imported ? read(imported) : rule.cssText;
+          if (imported) return read(imported);
+          // A detached SVG has no stylesheet URL against which to resolve fonts.
+          if (rule.type === CSSRule.FONT_FACE_RULE) {
+            return rule.cssText.replace(/url\((['"]?)(.*?)\1\)/g, (_match, _quote, url) =>
+              `url("${new URL(url, sheet.href ?? document.baseURI).href}")`,
+            );
+          }
+          return rule.cssText;
         })
         .join('\n');
     } catch {
@@ -370,6 +377,32 @@ function documentStylesCssText(document: Document): string {
     }
   };
   return Array.from(document.styleSheets, read).filter(Boolean).join('\n');
+}
+
+/** SVG images cannot fetch external fonts, even ones already loaded by the page.
+ * Carry the bytes with the capture so provider and toolbar glyphs remain legible. */
+async function embeddedDocumentStyles(document: Document): Promise<string> {
+  await document.fonts.ready;
+  let css = documentStylesCssText(document);
+  const urls = new Set<string>();
+  for (const face of css.matchAll(/@font-face\s*\{[^}]*\}/g)) {
+    for (const match of face[0].matchAll(/url\("([^"]+)"\)/g)) {
+      if (!match[1]!.startsWith('data:')) urls.add(match[1]!);
+    }
+  }
+  await Promise.all(Array.from(urls, async (url) => {
+    const response = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+    if (!response.ok) throw new Error(`Capture font could not be loaded (${response.status}): ${url}`);
+    const blob = await response.blob();
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+    css = css.replaceAll(`url("${url}")`, `url("${dataUrl}")`);
+  }));
+  return css;
 }
 
 /** Carry the effective theme across the detached-foreignObject boundary.
@@ -701,6 +734,7 @@ export function buildOverlaySvg(
   width: number,
   height: number,
   options?: CaptureOptions & {
+    readonly documentCssText?: string | undefined;
     readonly canvasPixels?: CanvasPixels | undefined;
     /** {@link rootSurfaceBackdrops} — cleared in the clone because the canvas
      *  leg painted them under the canvas they belong under. */
@@ -761,7 +795,7 @@ export function buildOverlaySvg(
     wrapper.setAttribute(GAME_CSS_SCOPE_ATTRIBUTE, '');
   }
   if (includeDocumentStyles) {
-    const css = documentStylesCssText(container.ownerDocument);
+    const css = options?.documentCssText ?? documentStylesCssText(container.ownerDocument);
     if (css) {
       const documentStyles = container.ownerDocument.createElement('style');
       documentStyles.textContent = css;
@@ -1605,6 +1639,9 @@ export async function drawPlayCompositeFrame(
       // text in a doubled box. See {@link buildOverlaySvg}'s `rasterSize`.
       const overlay = buildOverlaySvg(container, width / scaleX, height / scaleY, {
         includeDocumentStyles: options?.includeDocumentStyles,
+        documentCssText: options?.includeDocumentStyles
+          ? await embeddedDocumentStyles(container.ownerDocument)
+          : undefined,
         canvasPixels,
         transparentBackdrops: new Set<Element>(backdrops),
         snapshots: options?.snapshots,

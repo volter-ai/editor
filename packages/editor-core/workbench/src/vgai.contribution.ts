@@ -352,6 +352,10 @@ Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).registerEdit
 abstract class VgaiHostView extends ViewPane {
 	protected abstract readonly partId: 'outliner' | 'properties' | 'content';
 	private hostBody: HTMLElement | undefined;
+	// These panels supply their own headers. Keep the native layout informed,
+	// including when the container updates header visibility after a move.
+	override get headerVisible(): boolean { return false; }
+	override set headerVisible(_visible: boolean) { super.headerVisible = false; }
 	constructor(
 		options: IViewletViewOptions,
 		@IKeybindingService keybindingService: IKeybindingService,

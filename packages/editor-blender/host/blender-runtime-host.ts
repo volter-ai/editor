@@ -206,13 +206,40 @@ export const BLENDER_RUNTIME_DOCUMENT_ID = 'document:blender:runtime';
  * package: the document that binds it and the session that reads it ship
  * together, so there is nothing for the SDK to carry.
  */
-let boundModel: { readonly documentId: string; readonly entryId: string; readonly blend: string } | null = null;
+export interface ModelDocumentBinding {
+  readonly documentId: string;
+  readonly entryId: string;
+  readonly blend: string;
+}
 
-/** Called by the Model document when it mounts (and with `null` when it
- *  unmounts): the document id the host published its context under, and the
- *  project-relative `.blend` the engine should have open. */
-export function bindModelDocument(bound: { documentId: string; entryId: string; blend: string } | null): void {
+let boundModel: ModelDocumentBinding | null = null;
+let modelBindingGeneration = 0;
+
+/** Bind the mounted Model document; the returned cleanup releases only this
+ * binding. `null` names the standing Model without a file entry. */
+export function bindModelDocument(bound: ModelDocumentBinding | null): () => void {
+  const generation = ++modelBindingGeneration;
   boundModel = bound;
+  noteBlenderRnaChanged();
+  return () => {
+    // An old pane's asynchronous cleanup must not unbind its replacement.
+    if (modelBindingGeneration !== generation) return;
+    boundModel = null;
+    noteBlenderRnaChanged();
+  };
+}
+
+function modelDocumentConflict(): string | null {
+  const held = runtime?.document;
+  // The finder owns model:<path>, wrapped by the host as document:<entry>.
+  // Read the active address too: activation precedes the contributed pane's
+  // effect, so an immediate command must not slip through that binding gap.
+  const activeId = editorHost().documents.activeId();
+  const requested = activeId?.startsWith('document:model:')
+    ? activeId.slice('document:model:'.length)
+    : boundModel?.blend;
+  if (!requested || !held || requested === held) return null;
+  return `Blender is editing ${held}; ${requested} is not open. Return to ${held} before editing.`;
 }
 
 /** The document id a present must reach: the open Model document's, or the
@@ -233,25 +260,35 @@ export function blenderPresentationDocumentId(): string {
  * path run backwards. `session.py` opens the named file at start and saves
  * back to it, so naming it here IS opening it.
  *
- * Idempotent and quiet: the runtime binds one project and one document for the
- * tab's lifetime, so a second Model document mounting over a live session
- * simply presents what that session holds. A project with no open session has
- * no engine to open anything in, and says nothing.
+ * The worker owns one file. Validate ownership before publishing a context;
+ * a refused open must never expose the previous model under a new tab's
+ * identity. Boot itself can present, so the context must exist before awaiting
+ * boot completion. Return false when the requesting pane has since unmounted.
  */
-export async function openModelDocumentBlend(documentId: string, blend: string, entryId: string): Promise<void> {
-  bindModelDocument({ documentId, entryId, blend });
+export async function openModelDocumentBlend(
+  binding: ModelDocumentBinding,
+  publish: () => void,
+): Promise<boolean> {
   const host = editorHost();
-  if (!host.session.open()) return;
+  if (!host.session.open()) throw new Error('Opening a model requires an open project session.');
   const project = host.projectLocalState.projectRootPath();
-  if (project === null) return;
-  await blenderRuntime().start(project, blend);
+  if (project === null) throw new Error('Opening a model requires a project path.');
+  if (boundModel !== binding || host.documents.activeId() !== binding.documentId) return false;
+  const session = blenderRuntime();
+  // start claims its resource synchronously; its first frame may arrive before
+  // the returned promise resolves. The getter above rejects a conflicting file.
+  const started = session.start(project, binding.blend);
+  publish();
+  await started;
+  if (boundModel !== binding) return false;
   // AND SHOW WHAT IT OPENED. `start` binds the document and loads the file; it
   // does not present, because presenting is what a MUTATION does
   // (`session.py::dispatch`). So until this line a freshly opened Model
   // document displayed nothing until an execute happened to run — I1 measured
   // it, and "open a model, see the model" is the document's own request rather
   // than a side effect to hope for.
-  await blenderRuntime().present();
+  await session.present();
+  return boundModel === binding;
 }
 
 /**
@@ -268,7 +305,7 @@ export async function openModelDocumentBlend(documentId: string, blend: string, 
  * the same reason.
  */
 export function blenderSessionStarted(): boolean {
-  return runtime?.project != null;
+  return runtime?.project != null && modelDocumentConflict() === null;
 }
 
 /**
@@ -712,6 +749,8 @@ async function runtimeView(): Promise<RuntimeView> {
 }
 
 export function blenderRuntime(): BlenderRuntime {
+  const conflict = modelDocumentConflict();
+  if (conflict) throw new Error(conflict);
   if (runtime !== null) return runtime;
   watchSessionEnd();
   const lifetime = new AbortController();
@@ -747,6 +786,8 @@ export function blenderRuntime(): BlenderRuntime {
       }
     },
     present: async (frame, description, capture) => {
+      const conflict = modelDocumentConflict();
+      if (conflict) throw new Error(conflict);
       const documentId = presentationDocumentId();
       const endWait = beginBlenderWork('waiting for Model presenter');
       let view: RuntimeView;

@@ -149,7 +149,9 @@ function canvasFacts(): readonly CanvasVisibilityFact[] {
       area: Math.max(0, rect.width) * Math.max(0, rect.height),
       hiddenBy: canvasHiddenReason(canvas),
       inlineHiding: inlineHidingOf(canvas),
-      failsafeEligible: testId !== EDITOR_VIEWPORT_CANVAS_TESTID,
+      // Monaco owns the visibility of its minimap and overview ruler. A hidden
+      // ruler is not a stalled modeling viewport and must never be revealed by us.
+      failsafeEligible: testId !== EDITOR_VIEWPORT_CANVAS_TESTID && !canvas.closest('.monaco-editor'),
     };
   });
 }

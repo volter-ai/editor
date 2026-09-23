@@ -31,9 +31,8 @@
 /* Blender areas are separated by a dark gap, not a 1px line. */
 .monaco-workbench .monaco-grid-view .monaco-sash { background: #171717; }
 .monaco-workbench .part.editor .editor-group-container .title .tabs-container .tab { height: 28px; }
-.monaco-workbench .part.editor .editor-group-container > .title { height: 28px; }
+/* Let the native title control size its container: hidden tabs have zero
+   height. A fixed height here leaves an empty strip above each editor. */
 
-/* The sidebar's own title and the two view headers give way to the vgai panels' own. */
-.monaco-workbench .part.sidebar > .title { display: none !important; }
-.monaco-workbench .pane.vgai-pane > .pane-header { display: none !important; }
-.monaco-workbench .pane.vgai-pane > .pane-body { height: 100% !important; }
+/* Sidebar titles retain their native controls and layout. Hosted views hide
+   duplicate headers through ViewPane.headerVisible, which also sizes the body. */
