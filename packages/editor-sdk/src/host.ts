@@ -23,6 +23,7 @@ import type {
   SystemAdapters,
 } from '@volter/editor-project/adapter';
 import type { ComponentType } from 'react';
+import type { DocumentEntry } from '@volter/editor-project/adapter/adapter-module';
 import { useSyncExternalStore } from 'react';
 import type * as THREE from 'three';
 import type { StageTransportHandle } from './transport';
@@ -617,6 +618,10 @@ export interface EditorHostWorkerCallMetrics {
 
 /** The open project's declared SHAPE, as a contribution may gate on it. */
 export interface EditorHostProject {
+  /** The declared document table after its contributed finders have settled.
+   * A package starting a document before its UI mounts must resolve the real
+   * project entries, not guess an id from an uninitialized view. */
+  documentTable(): Promise<{ readonly entries: readonly DocumentEntry[]; readonly default: string | null }>;
   /** Whether the project declares at least one root that plays. */
   mounts(): boolean;
   /**

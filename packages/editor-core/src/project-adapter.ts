@@ -255,6 +255,19 @@ export function waitForProjectAdapter(): Promise<void> {
   });
 }
 
+/** A package opening a document during boot needs the final finder-backed
+ * table, not the initial declaration with contributed finders still pending. */
+export async function resolvedProjectDocumentTable(): Promise<ResolvedDocumentTable> {
+  await (await import('./initial-project')).projectBootstrapSettled();
+  await refreshProjectToolContributions();
+  await refreshProjectAdapter();
+  while (_inFlight) await _inFlight;
+  const facet = projectAdapterFacet();
+  if (!facet || facet.documentsPending)
+    throw new Error('The project document table could not finish loading; inspect the project diagnostics.');
+  return facet.scenes;
+}
+
 export function subscribeProjectAdapter(fn: () => void): () => void {
   _listeners.add(fn);
   return () => _listeners.delete(fn);

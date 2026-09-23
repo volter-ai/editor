@@ -1050,6 +1050,7 @@ export async function handleBlenderCommand(cmd: {
     };
   try {
     const project = cmd.type === 'blender-start' ? string(cmd, 'project') : null;
+    let requestedDocument = typeof cmd['document'] === 'string' ? cmd['document'] : undefined;
     if (cmd.type === 'blender-stop' || (cmd.type === 'blender-start' && cmd['fresh'] === true)) {
       // Do not invalidate history or discard the worker if persistence fails.
       await runtime?.stop();
@@ -1064,13 +1065,30 @@ export async function handleBlenderCommand(cmd: {
       // build's answer that nothing here opens that address; the Model
       // document is this package's own contribution, so it is a build without
       // `@volter/editor-blender` rather than a broken call.
-      const opened = await host.workspace.open({ kind: 'document', id: 'blender:runtime' });
+      // During startup the Model may not have mounted/bound yet. Resolve the
+      // real declared table, including custom entry ids. A generic fallback
+      // exists only in projects that have no file-backed Model of their own.
+      const table = await host.project.documentTable();
+      const models = table.entries.filter(entry => entry.kind === 'model');
+      const entry = requestedDocument !== undefined
+        ? models.find(candidate => candidate.source?.path === requestedDocument)
+        : models.find(candidate => candidate.id === (boundModel?.entryId ?? table.default))
+          ?? (models.length === 1 ? models[0] : undefined);
+      if (!entry) return {
+        ok: false,
+        error: requestedDocument !== undefined
+          ? `No declared Model document names ${requestedDocument}.`
+          : `Choose a Model document before starting Blender. Available: ${models.map(model => model.id).join(', ') || '(none)'}.`,
+      };
+      const entryId = entry.id;
+      requestedDocument = entry.source?.path;
+      const opened = await host.workspace.open({ kind: 'document', id: entryId });
       if (!opened)
         return {
           ok: false,
           error:
-            'blender-start could not open the Blender Model document: nothing in this editor ' +
-            "opens {kind: 'document', id: 'blender:runtime'} (it ships with @volter/editor-blender).",
+            `blender-start could not open the Blender Model document ${entryId}: nothing in this editor ` +
+            'opens that document (the Model document ships with @volter/editor-blender).',
         };
     }
     const session = blenderRuntime();
@@ -1081,8 +1099,8 @@ export async function handleBlenderCommand(cmd: {
         // `blender-start` that named none is asking for the session this tab
         // is showing, not for a second file beside it.
         const document =
-          typeof cmd['document'] === 'string'
-            ? cmd['document']
+          requestedDocument !== undefined
+            ? requestedDocument
             : (boundModel?.blend ?? DEFAULT_BLENDER_DOCUMENT);
         return { ok: true, data: { ...(await session.start(project!, document)) } };
       }
