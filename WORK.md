@@ -141,7 +141,7 @@ Coordinate, UV Map, Geometry (not Parametric), Attribute (Geometry type),
 Color Attribute, Value, RGB, Image Texture (Flat/Box/Sphere/Tube,
 Linear/Closest/Cubic/Smart, UDIM tiles), Mapping, Math, Vector Math, Vector
 Rotate, Mix, MixRGB, Color Ramp, Invert, Separate/Combine XYZ and Color,
-Map Range, Clamp, Hue/Saturation, Bright/Contrast, Gamma, RGB to BW, Noise,
+Map Range, Clamp, RGB/Vector/Float Curves, Hue/Saturation, Bright/Contrast, Gamma, RGB to BW, Noise,
 Voronoi, White Noise, Checker, Wave, Gradient, Magic, Brick, Fresnel, Layer
 Weight, Bump (EEVEE's height sub-function at the dF offsets) and Normal Map.
 Mix and Add Shader over one Principled BSDF, Emissions and gray Transparent
@@ -185,6 +185,14 @@ main thread went from 49% busy to 2% at machine load 54-69.
 The session's graph pass reads each node tree's links once per present
 (`NodeSocket.links` walks the whole tree per read): 15.5 s of a profiled pass
 down to 0.74 s in the battery's 28-material workshop scene, identical graphs.
+
+The engine is served with a validator (`ETag`, `no-cache`, 304 while
+unchanged), so Chrome keeps the code it compiled from the 86 MB module:
+fresh boots measured 12-36 s at load 32-37 before and 1.9-2.2 s at load
+48-52 after. A present re-reads which document it waits for, so a command
+sent before the Model pane has bound no longer waits out 15 s for
+`document:blender:runtime`; three close/open/first-command cycles answered in
+2.3-2.8 s.
 
 Also in this candidate, ported from fixes verified in the private-history
 checkout on 2026-09-23 but never committed there: no empty header strips
