@@ -168,12 +168,23 @@ Limits: a Principled BSDF inside a group on a shader mix's path, two
 Principled BSDFs in one mix, a tinted or linked Transparent colour, Box
 projection with Clip, Geometry's Parametric output, non-Geometry attribute
 types, and Generated coordinates through a topology-changing modifier are each
-a named warning. The idle Model viewport renders continuously: at load ~30,
-the stage loop spent 43% of the main thread idle (four seconds: 372 frames,
-1.7 s in `tick`, of which WebGL calls 0.18 s; the rest is three's scene render
-and the selection-outline composer passes). Redrawing only on change needs an
-invalidation door on the shared stage loop, which every document type
-presents through; it is not in this candidate.
+a named warning.
+
+The Model viewport draws only when something changed. A source that
+announces its changes (`ToolObject3DPreviewSource.onChange`, offered by the
+Blender view for every frame and every completion after one) skips the
+render on frames where nothing changed; the stage store, input on the stage,
+the editor's own invalidations (`stage-invalidation.ts`), camera, size,
+background, tone mapping, playback, flights, pending photographs, presence
+markers and particles all still draw, and sources without `onChange` draw
+every frame as before. Measured live: 0 draws in 3 idle seconds (was ~6,750
+per 2 s); an edit, a selection, a framing, a capture, pointer movement and a
+graph program's asynchronous swap each drew and then returned to 0; the idle
+main thread went from 49% busy to 2% at machine load 54-69.
+
+The session's graph pass reads each node tree's links once per present
+(`NodeSocket.links` walks the whole tree per read): 15.5 s of a profiled pass
+down to 0.74 s in the battery's 28-material workshop scene, identical graphs.
 
 Also in this candidate, ported from fixes verified in the private-history
 checkout on 2026-09-23 but never committed there: no empty header strips
