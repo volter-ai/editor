@@ -1,10 +1,10 @@
 {
   "blender": "5.2.0 LTS",
-  "source": "4f7167d7be0a1f4f18eca22326ce62df65254e55",
-  "reviewedSource": "4f7167d7be0a1f4f18eca22326ce62df65254e55",
+  "source": "071e080a21c09e07f2dac8593dca2f9a566e591e",
+  "reviewedSource": "071e080a21c09e07f2dac8593dca2f9a566e591e",
   "upstream": "fbe6228777e7d9afefcd61a413844e790ae75db7",
   "sourceRepository": "https://github.com/volter-ai/blender",
-  "sourceRecipe": "https://github.com/volter-ai/blender/blob/4f7167d7be0a1f4f18eca22326ce62df65254e55/build_files/emscripten/RELEASE.md",
+  "sourceRecipe": "https://github.com/volter-ai/blender/blob/071e080a21c09e07f2dac8593dca2f9a566e591e/build_files/emscripten/RELEASE.md",
   "sourceRelease": "https://github.com/volter-ai/blender/releases/tag/blender-5.2.0-wasm.3",
   "verification": "https://github.com/volter-ai/blender/releases/download/blender-5.2.0-wasm.3/VERIFICATION.json",
   "factoryEngine": "BLENDER_EEVEE",
@@ -19,8 +19,8 @@
       "sha256": "2a5d4dbcc90cab571eb16eef9672ef8583e1c0a3638d0b85165d1944d191d9a7"
     },
     "blender_browser.wasm": {
-      "bytes": 86295804,
-      "sha256": "7310671b069bd81b7973a840fa35c2e562eb374dcd6443d905148c30fdd3b7df"
+      "bytes": 86305783,
+      "sha256": "a9927fc4c71b41b9d464c34e8700b234bd736f75425e10a8b4d9986770d0954e"
     },
     "blender_browser.data": {
       "bytes": 52698568,
@@ -33,8 +33,8 @@
       "sha256": "2a5d4dbcc90cab571eb16eef9672ef8583e1c0a3638d0b85165d1944d191d9a7"
     },
     "blender_browser.wasm.br": {
-      "bytes": 18593764,
-      "sha256": "206762c7565500c74a3e6dd73cec7fc4ee9c4af2964eba53d3e6c75ec9b16e41"
+      "bytes": 18601875,
+      "sha256": "63098ef8988e1040aa9e97c9aa7c01f06c5f835582732e057daf2ccf69040440"
     },
     "blender_browser.data.br": {
       "bytes": 8056563,
@@ -48,6 +48,6 @@
   "note": "Official Blender v5.2.0 plus our headless wasm changes and our existing export/session integration. Dependencies are rebuilt from pinned official sources. No third-party Blender port commits or build scripts are inputs. PROXY_TO_PTHREAD, WasmFS, 512 MiB initial / 4 GiB maximum memory, twelve-worker pool. Build information is disabled. The source release includes the exact source tree, materialized startup.blend, dependency archives, pure Python wheels, and notices.",
   "callTrampoline": "CPython 3.13.13 is compiled with PY_CALL_TRAMPOLINE for Blender CPython slot arity casts. This applies to CPython dispatch, not arbitrary indirect calls.",
   "engineIds": "The existing session registers Python render engines under CYCLES, BLENDER_EEVEE and BLENDER_WORKBENCH; the headless build permits built-in IDs to be shadowed.",
-  "exportDoor": "The source-owned bpy_web_export.cc exports Principled physical inputs, normal images, eight named UV layers and evaluated corner normals, and takes graph_materials/graph_images: materials the session draws from their node graph are reduced quietly, and the images their graphs sample ship at the door revisions. blender_web_session.cc is unchanged.",
+  "exportDoor": "The source-owned bpy_web_export.cc exports Principled physical inputs, normal images, eight named UV layers and evaluated corner normals, and takes graph_materials/graph_images/graph_generated: materials the session draws from their node graph are reduced quietly (a shader mix to the one Principled BSDF it reaches), the images their graphs sample ship at the door revisions (a UDIM image with every tile), and a deformed mesh whose graph reads Generated coordinates ships its orco. Datablock revisions are keyed by session_uid. blender_web_session.cc is unchanged.",
   "preloadedPayload": "releasePreloadedFileData releases the JS preload buffer after session ready. The measured working payload exclusions are retained."
 }

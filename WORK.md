@@ -131,31 +131,49 @@ console. The task's editor sessions were closed after acceptance.
 ### Material node graphs (0.5.64 candidate, unreleased)
 
 A Principled BSDF's or Emission's linked Base Color, Metallic, Roughness,
-Alpha and Emission inputs render from the material's node graph. The session
-ships the flattened graph (`material_graph` in `session.py`); the presenter
-compiles it as EEVEE's codegen does, calling Blender's own node GLSL
-(`blender-node-glsl.generated.ts`, from Blender's processed shaders by
-`scripts/generate-node-glsl.mjs`, with a counted patch table for GLSL ES 3.00).
-Compiled nodes: Texture Coordinate, UV Map, Value, RGB, Image Texture (flat,
-Linear/Closest), Mapping, Math, Vector Math, Mix, MixRGB, Color Ramp, Invert,
-Separate/Combine XYZ, Noise, Voronoi, Checker. The exporter gains
-`graph_materials`/`graph_images` (Blender fork `4f7167d7`).
+Alpha, Emission and Normal inputs render from the material's node graph. The
+session ships the flattened graph (`material_graph` in `session.py`); the
+presenter compiles it as EEVEE's codegen does, calling Blender's own node GLSL
+(`blender-node-glsl.generated.ts`, 56 files from Blender's processed shaders
+by `scripts/generate-node-glsl.mjs`, with a counted patch table for GLSL ES
+3.00, every file compiled in the page's WebGL2). Compiled nodes: Texture
+Coordinate, UV Map, Geometry (not Parametric), Attribute (Geometry type),
+Color Attribute, Value, RGB, Image Texture (Flat/Box/Sphere/Tube,
+Linear/Closest/Cubic/Smart, UDIM tiles), Mapping, Math, Vector Math, Vector
+Rotate, Mix, MixRGB, Color Ramp, Invert, Separate/Combine XYZ and Color,
+Map Range, Clamp, Hue/Saturation, Bright/Contrast, Gamma, RGB to BW, Noise,
+Voronoi, White Noise, Checker, Wave, Gradient, Magic, Brick, Fresnel, Layer
+Weight, Bump (EEVEE's height sub-function at the dF offsets) and Normal Map.
+Mix and Add Shader over one Principled BSDF, Emissions and gray Transparent
+BSDFs compose as EEVEE weights closures. A deformed mesh whose graph reads
+Generated coordinates draws them from Blender's orco of the undeformed mesh.
+The exporter gains `graph_materials`/`graph_images`/`graph_generated`, the
+one Principled BSDF a graph-drawn mix reaches, UDIM tiles, and revisions keyed
+by `session_uid` (Blender fork `071e080a`).
 
-Measured on emission-only planes against desktop Blender 5.2 EEVEE, eight
-graphs: flat-region error at most 3 of 255; larger differences only on
-high-contrast edges, where EEVEE averages filtered samples. Linked and
-constant Principled inputs render identically (at most 2 levels). A constant
-edit updates uniforms without recompiling; undo/redo reach the graph. A graph
-the GPU refuses falls back to the constants with a named warning.
+Measured against desktop Blender 5.2 EEVEE on emission planes and spheres,
+seven scenes: flat and interior regions within 1-3 of 255 for every node
+above, including bump, normal map, geometry, attributes, deformed orco and
+UDIM; larger differences only on high-contrast edges, cell borders and
+filtered image detail (EEVEE's TAA and anisotropic sampling). Mixes are
+identical to their Principled equivalents (Transparent mix vs Alpha, Add
+Emission vs Principled Emission: 0 levels). A constant edit updates uniforms
+without recompiling; a structural edit compiles its program off the draw
+(`compileAsync`), the material showing its previous state until the program
+links; WebGL compile and link blocked the main thread 0 ms across three
+structural edits. A graph the GPU refuses falls back to the constants with a
+named warning.
 
-Limits: Bump, Fresnel, Layer Weight, Wave, Gradient, Magic and Brick are not
-compiled; Mix/Add Shader surfaces keep the door's reduction; Box/Sphere/Tube
-projection, Cubic sampling and tiled images are refused by name; Generated
-coordinates on a deformed mesh are a named warning (the export carries no
-orco column). A structural graph edit (a new node or node type) compiles a
-new program: one ~210 ms render stall measured under machine load ~26, with
-only the reachable node functions compiled (76 KB for the probe graph, down
-from 155 KB). Constant edits recompile nothing.
+Limits: a Principled BSDF inside a group on a shader mix's path, two
+Principled BSDFs in one mix, a tinted or linked Transparent colour, Box
+projection with Clip, Geometry's Parametric output, non-Geometry attribute
+types, and Generated coordinates through a topology-changing modifier are each
+a named warning. The idle Model viewport renders continuously: at load ~30,
+the stage loop spent 43% of the main thread idle (four seconds: 372 frames,
+1.7 s in `tick`, of which WebGL calls 0.18 s; the rest is three's scene render
+and the selection-outline composer passes). Redrawing only on change needs an
+invalidation door on the shared stage loop, which every document type
+presents through; it is not in this candidate.
 
 Also in this candidate, ported from fixes verified in the private-history
 checkout on 2026-09-23 but never committed there: no empty header strips

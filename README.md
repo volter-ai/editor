@@ -48,10 +48,12 @@ Release 0.5.63 adds physical material inputs, normal maps, named UV layers,
 Clip sampling and homogeneous World volumes. Its rebuilt workbench preserves
 the chosen sidebar across cold restarts, and its fresh product install reports
 zero npm vulnerabilities. These renderer features are not full Cycles parity.
-Release 0.5.64 renders a Principled BSDF's or Emission's linked inputs from the
-material's node graph with Blender's own node shaders (texture coordinates,
-mapping, math, mix, color ramp, noise, Voronoi, checker and image textures);
-see [WORK.md](WORK.md) for the compiled node set and its limits. It also keeps
+Release 0.5.64 renders a Principled BSDF's or Emission's linked inputs,
+including Normal, from the material's node graph with Blender's own node
+shaders (the procedural textures, image textures with every projection and
+UDIM tiles, bump and normal maps, geometry and attributes, colour and vector
+math) and composes Mix and Add Shader surfaces; see [WORK.md](WORK.md) for the
+compiled node set and its limits. It also keeps
 Properties on screen while an edit re-reads them, removes the empty header
 strips above the model, timeline and side panels, and restores a view's
 orientation after a tab switch. Projects pinned to 0.5.63 update their
