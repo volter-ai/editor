@@ -19,11 +19,15 @@ The packaged workbench currently supports **macOS on Apple Silicon**
 (`darwin-arm64`). Installation and startup were verified with Node.js 24.
 
 ```bash
-npx @volter/editor@0.5.62 create my-models
+npx @volter/editor@0.5.63 create my-models
 ```
 
 The command creates a modeling project, installs the pinned public workbench on
 first use, and opens Volter Editor.
+
+The Chat pane uses a separately installed `claude` executable on PATH. A machine
+without it can open the modeling surface, but reports a missing-agent-runtime
+diagnostic; this package does not install or authenticate that external runtime.
 
 To reopen the project later:
 
@@ -40,8 +44,18 @@ Essentials, coherent duplicate/delete operations, and World mapping/strength
 rendering fixes. Release 0.5.62 additionally makes edit acknowledgment wait for
 the saved file, guards close against failed saves, and fixes rapid history and
 cold-start races, including stale Properties reads after rapid edits.
+Release 0.5.63 adds physical material inputs, normal maps, named UV layers,
+Clip sampling and homogeneous World volumes. Its rebuilt workbench preserves
+the chosen sidebar across cold restarts, and its fresh product install reports
+zero npm vulnerabilities. These renderer features are not full Cycles parity.
 Windows/Linux remain deferred. An older intermittent renderer
 hang remains unexplained; see the acceptance limits in [WORK.md](WORK.md).
+
+Existing projects keep their machine-local workbench declaration. Updating npm
+packages alone does not replace that explicit choice. To use the newly pinned
+workbench, close the editor, update the project's declared `@volter` packages,
+and move `.vgai/workbench.json` aside before reopening; the product downloads and
+records its matching release. Preserve an intentional source-checkout declaration.
 
 ## Package map
 
