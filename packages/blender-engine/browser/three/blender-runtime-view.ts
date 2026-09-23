@@ -581,6 +581,9 @@ export class BlenderRuntimeView {
   private readonly textureSamplers = new BlenderTextureSamplers();
   /** Each material's graph image samplers, by sampler key. */
   private readonly graphSamplers = new Map<string, Set<string>>();
+  /** A view built for one photograph: its graph programs compile before its
+   *  one draw rather than off it (`setMaterialGraph`'s `immediate`). */
+  private photograph = false;
   /** Compiled graphs by their JSON: a frame re-sends every material. */
   private readonly graphs = new Map<string, CompiledGraph>();
 
@@ -1295,7 +1298,7 @@ export class BlenderRuntimeView {
           texture.needsUpdate = true;
         }
         return texture;
-      });
+      }, this.photograph);
       for (const key of this.graphSamplers.get(id) ?? []) if (!graphSamplers.has(key)) this.textureSamplers.delete(key);
       this.graphSamplers.set(id, graphSamplers);
       this.materials.set(id, material);
@@ -1518,6 +1521,7 @@ export class BlenderRuntimeView {
     }
     const effect = this.createWorldVolumePass();
     const detached = new BlenderRuntimeView();
+    detached.photograph = true;
     let disposed = false;
     const dispose = () => {
       if (disposed) return;

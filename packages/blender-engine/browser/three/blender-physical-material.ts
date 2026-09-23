@@ -34,6 +34,28 @@ export function applyWorldExtinction(material: THREE.MeshPhysicalMaterial, extin
   uniforms.get(material)!.blenderWorldExtinction.value.copy(extinction);
 }
 
+/** A copy of `material` with its own hooks and the same physical values:
+ *  the proxy a pending graph program compiles through, whose program key is
+ *  the one `material` asks for once the graph is swapped in. */
+function graphShadow(material: THREE.MeshPhysicalMaterial): THREE.MeshPhysicalMaterial {
+  const shadow = new THREE.MeshPhysicalMaterial();
+  const held = uniforms.get(material);
+  // The hooks, then the values: `applyPhysicalMaterial` sets its defaults,
+  // which `copy` replaces with the material's own (it leaves hooks alone).
+  applyPhysicalMaterial(shadow);
+  shadow.copy(material);
+  const values = uniforms.get(shadow)!;
+  if (held) {
+    values.blenderCoatIor.value = held.blenderCoatIor.value;
+    values.blenderCoatTint.value.copy(held.blenderCoatTint.value);
+    values.blenderMapClip.value = held.blenderMapClip.value;
+    values.blenderRoughnessClip.value = held.blenderRoughnessClip.value;
+    values.blenderNormalClip.value = held.blenderNormalClip.value;
+    values.blenderWorldExtinction.value.copy(held.blenderWorldExtinction.value);
+  }
+  return shadow;
+}
+
 export function applyPhysicalMaterial(material: THREE.MeshPhysicalMaterial, input?: Physical,
   clips: {map?: boolean; roughness?: boolean; normal?: boolean} = {}): void {
   const data = input ?? defaults;
@@ -57,9 +79,9 @@ export function applyPhysicalMaterial(material: THREE.MeshPhysicalMaterial, inpu
     uniforms.set(material, values);
     const held = values;
     material.customProgramCacheKey = () => `blender-principled-physical-v5${graphProgramKey(material)}`;
-    material.onBeforeRender = (renderer, _scene, _camera, geometry) => {
+    material.onBeforeRender = (renderer, scene, camera, geometry, object) => {
       bindNamedUvChannels(material, geometry);
-      bindGraphDraw(material, geometry, renderer);
+      bindGraphDraw(material, geometry, renderer, scene, camera, object, graphShadow);
       setGraphViewport(renderer);
     };
     material.onBeforeCompile = shader => {

@@ -34,16 +34,44 @@ export function materialGraph(material: THREE.MeshPhysicalMaterial): CompiledGra
   return bindings.get(material)?.compiled ?? null;
 }
 
+type ImageTexture = THREE.Texture | {tiles: THREE.Texture; map: THREE.Texture} | null;
+
+/**
+ * A NEW PROGRAM COMPILES OFF THE DRAW, as EEVEE's do: until it is ready the
+ * material draws what it drew before (its previous graph, or the door's
+ * constants), and the swap happens on the draw after `compileAsync` reports
+ * the program linked (`bindGraphDraw`). A structural edit therefore never
+ * blocks a frame on the GPU's compiler. A PHOTOGRAPH (`immediate`) cannot
+ * wait for a later frame and switches at once.
+ */
+interface Pending {
+  binding: Binding;
+  started: boolean;
+}
+const pendings = new WeakMap<THREE.MeshPhysicalMaterial, Pending>();
+/** The proxy material a swapped-in program was compiled through, disposed
+ *  once the material itself holds that program (its second draw after). */
+const retiring = new WeakMap<THREE.MeshPhysicalMaterial, {shadow: THREE.Material; draws: number}>();
+
+function dropPending(material: THREE.MeshPhysicalMaterial): void {
+  const waiting = pendings.get(material);
+  if (!waiting) return;
+  pendings.delete(material);
+  for (const ramp of waiting.binding.ramps) ramp.dispose();
+}
+
 /** Point `material` at `compiled` (or at nothing). `texture` answers each
  *  image the graph samples; a new structure recompiles, new values do not. */
 export function setMaterialGraph(
   material: THREE.MeshPhysicalMaterial,
   compiled: CompiledGraph | null,
-  texture: (image: CompiledGraph['images'][number]) => THREE.Texture | {tiles: THREE.Texture; map: THREE.Texture} | null,
+  texture: (image: CompiledGraph['images'][number]) => ImageTexture,
+  immediate = false,
 ): void {
   const held = bindings.get(material);
   if (compiled && failed.has(compiled.key)) compiled = null;
   if (!compiled) {
+    dropPending(material);
     if (held) {
       for (const ramp of held.ramps) ramp.dispose();
       bindings.delete(material);
@@ -51,13 +79,33 @@ export function setMaterialGraph(
     }
     return;
   }
-  let binding = held;
-  if (!binding || binding.compiled.key !== compiled.key) {
+  if (held && held.compiled.key === compiled.key) {
+    dropPending(material);
+    fill(held, compiled, texture);
+    return;
+  }
+  if (immediate) {
+    dropPending(material);
     for (const ramp of held?.ramps ?? []) ramp.dispose();
-    binding = {compiled, uniforms: {}, ramps: [], channels: held?.channels ?? {}};
+    const binding: Binding = {compiled, uniforms: {}, ramps: [], channels: held?.channels ?? {}};
+    fill(binding, compiled, texture);
     bindings.set(material, binding);
     material.needsUpdate = true;
+    return;
   }
+  const waiting = pendings.get(material);
+  if (waiting && waiting.binding.compiled.key === compiled.key) {
+    fill(waiting.binding, compiled, texture);
+    return;
+  }
+  dropPending(material);
+  const binding: Binding = {compiled, uniforms: {}, ramps: [], channels: held?.channels ?? {}};
+  fill(binding, compiled, texture);
+  pendings.set(material, {binding, started: false});
+}
+
+/** A binding's values: uniforms, ramp tables and textures. */
+function fill(binding: Binding, compiled: CompiledGraph, texture: (image: CompiledGraph['images'][number]) => ImageTexture): void {
   binding.compiled = compiled;
   for (const [name, value] of compiled.uniforms) {
     const next = typeof value === 'number' ? value
@@ -94,10 +142,61 @@ export function graphProgramKey(material: THREE.MeshPhysicalMaterial): string {
   return `${binding.compiled.key}|${JSON.stringify(binding.channels)}`;
 }
 
-/** Per draw: the channel each named layer is in on this geometry (a layer the
- *  mesh lacks reads zeros, Blender's missing attribute), and the orco. */
+/** The channel each named UV layer is in on `geometry` (a layer the mesh
+ *  lacks reads zeros from channel 9, Blender's missing attribute). */
+function channelsFor(compiled: CompiledGraph, geometry: THREE.BufferGeometry): Record<string, number> {
+  const named = geometry.userData['blenderUvChannels'] as Record<string, number> | undefined;
+  const count = geometry.getAttribute('position')?.count ?? 0;
+  const channels: Record<string, number> = {};
+  for (const name of compiled.uvs) {
+    let channel = name === '' ? 0 : named?.[name];
+    if (channel === undefined) {
+      channel = 9;
+      if (geometry.getAttribute('uv9')?.count !== count)
+        geometry.setAttribute('uv9', new THREE.BufferAttribute(new Float32Array(count * 2), 2));
+    }
+    channels[name] = channel;
+  }
+  return channels;
+}
+
+/** Per draw: a pending program started compiling (see `Pending`), a compiled
+ *  one swapped in, a refused one dropped, and the channel of each named layer
+ *  on this geometry. `shadowOf` makes the proxy a program compiles through:
+ *  the same material, hooks and all, bound to the pending graph. */
 export function bindGraphDraw(material: THREE.MeshPhysicalMaterial, geometry: THREE.BufferGeometry,
-  renderer: THREE.WebGLRenderer): void {
+  renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, object: THREE.Object3D,
+  shadowOf: (material: THREE.MeshPhysicalMaterial) => THREE.MeshPhysicalMaterial): void {
+  const retired = retiring.get(material);
+  if (retired && ++retired.draws > 1) {
+    retired.shadow.dispose();
+    retiring.delete(material);
+  }
+  const waiting = pendings.get(material);
+  if (waiting && !waiting.started) {
+    waiting.started = true;
+    waiting.binding.channels = channelsFor(waiting.binding.compiled, geometry);
+    const shadow = shadowOf(material);
+    bindings.set(shadow, waiting.binding);
+    const proxy = new THREE.Mesh(geometry, shadow);
+    proxy.castShadow = object.castShadow;
+    proxy.receiveShadow = object.receiveShadow;
+    const swap = () => {
+      if (pendings.get(material) !== waiting) {
+        shadow.dispose();
+        return;
+      }
+      pendings.delete(material);
+      for (const ramp of bindings.get(material)?.ramps ?? []) ramp.dispose();
+      bindings.set(material, waiting.binding);
+      material.needsUpdate = true;
+      retiring.get(material)?.shadow.dispose();
+      retiring.set(material, {shadow, draws: 0});
+    };
+    // A program the GPU refuses is found on the material's own first draw
+    // with it (below), exactly as an immediate one is.
+    renderer.compileAsync(proxy, camera, scene).then(swap, swap);
+  }
   const binding = bindings.get(material);
   if (!binding) return;
   // THE PROGRAM THE LAST DRAW USED, if the GPU refused it: fall back to the
@@ -114,18 +213,7 @@ export function bindGraphDraw(material: THREE.MeshPhysicalMaterial, geometry: TH
       `so it is drawn with its constant values. ${first}`);
     return;
   }
-  const named = geometry.userData['blenderUvChannels'] as Record<string, number> | undefined;
-  const count = geometry.getAttribute('position')?.count ?? 0;
-  const channels: Record<string, number> = {};
-  for (const name of binding.compiled.uvs) {
-    let channel = name === '' ? 0 : named?.[name];
-    if (channel === undefined) {
-      channel = 9;
-      if (geometry.getAttribute('uv9')?.count !== count)
-        geometry.setAttribute('uv9', new THREE.BufferAttribute(new Float32Array(count * 2), 2));
-    }
-    channels[name] = channel;
-  }
+  const channels = channelsFor(binding.compiled, geometry);
   if (JSON.stringify(channels) !== JSON.stringify(binding.channels)) {
     binding.channels = channels;
     material.needsUpdate = true;
