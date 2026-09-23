@@ -3,7 +3,7 @@ Bundled license notices
 These notices accompany code incorporated into this package. Separate npm dependencies retain their own licenses.
 
 
-@volter/editor-project@0.5.61
+@volter/editor-project@0.5.62
 Declared license: Apache-2.0
 
 --- packages/editor-project/LICENSE ---
@@ -212,7 +212,7 @@ Declared license: Apache-2.0
    limitations under the License.
 
 
-@volter/editor-sdk@0.5.61
+@volter/editor-sdk@0.5.62
 Declared license: Apache-2.0
 
 --- packages/editor-sdk/LICENSE ---
