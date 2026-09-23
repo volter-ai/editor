@@ -583,6 +583,7 @@ _GRAPH_NODES = frozenset((
     "ShaderNodeGamma", "ShaderNodeRGBToBW", "ShaderNodeSeparateColor", "ShaderNodeCombineColor",
     "ShaderNodeVectorRotate", "ShaderNodeFresnel", "ShaderNodeLayerWeight", "ShaderNodeBump",
     "ShaderNodeNormalMap", "ShaderNodeNewGeometry", "ShaderNodeVertexColor", "ShaderNodeAttribute",
+    "ShaderNodeRGBCurve", "ShaderNodeVectorCurve", "ShaderNodeFloatCurve",
 ))
 # The surfaces whose inputs map onto the presenter's standard material, and
 # the inputs of each the presenter reads from a graph.
@@ -630,6 +631,37 @@ def _socket_value(socket, gpu):
     return values
 
 
+def _curve_mapping(mapping):
+    """What `gpu_shader_curve_*` hands the GPU, read through Blender itself:
+    `BKE_curvemapping_table_RGBA`'s 257 samples per curve, each curve's table
+    range (`mintable`/`maxtable`: the clip rectangle widened to the points,
+    `curvemap_make_table`) and its extrapolation slopes in that normalized
+    range (`BKE_curvemapping_compute_slopes`; horizontal without Extrapolated).
+    The samples and slopes come from `CurveMapping.evaluate`, the same
+    evaluation the table holds -- never a transcribed Bezier."""
+    curves = list(mapping.curves)
+    table = [[0.0, 0.0, 0.0, 0.0] for _ in range(_RAMP_SAMPLES)]
+    minimums, dividers, starts, ends = [0.0] * 4, [1e8] * 4, [0.0] * 4, [0.0] * 4
+    extrapolate = mapping.extend == "EXTRAPOLATED"
+    for index, curve in enumerate(curves[:4]):
+        points = [p.location for p in curve.points]
+        if len(points) >= 2:
+            low = min([mapping.clip_min_x] + [p[0] for p in points])
+            high = max([mapping.clip_max_x] + [p[0] for p in points])
+        else:
+            low = high = 0.0
+        span = high - low
+        minimums[index] = low
+        dividers[index] = 1.0 / max(1e-8, span)
+        for i in range(_RAMP_SAMPLES):
+            table[i][index] = float(mapping.evaluate(curve, low + span * i / (_RAMP_SAMPLES - 1)))
+        if extrapolate and span > 0:
+            step = span * 1e-3
+            starts[index] = (mapping.evaluate(curve, low) - mapping.evaluate(curve, low - step)) / step * span
+            ends[index] = (mapping.evaluate(curve, high + step) - mapping.evaluate(curve, high)) / step * span
+    return {"table": table, "minimums": minimums, "dividers": dividers, "starts": starts, "ends": ends}
+
+
 def _node_properties(node):
     """The node's own RNA properties: enums, flags and numbers, plus the two
     data-block values a compiled node reads (its colour ramp, its image)."""
@@ -659,6 +691,8 @@ def _node_properties(node):
             # read through Blender's own evaluator.
             "table": [[float(c) for c in ramp.evaluate(i / 256)] for i in range(_RAMP_SAMPLES)],
         }
+    if node.bl_idname in ("ShaderNodeRGBCurve", "ShaderNodeVectorCurve", "ShaderNodeFloatCurve"):
+        props["curve_mapping"] = _curve_mapping(node.mapping)
     if node.bl_idname == "ShaderNodeTexImage":
         image = node.image
         props["image"] = image.name if image is not None else None

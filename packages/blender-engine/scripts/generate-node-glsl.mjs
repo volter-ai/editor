@@ -66,6 +66,7 @@ const ROOTS = [
   'gpu_shader_material_vertex_color.glsl',
   'gpu_shader_material_tex_image.glsl',
   'gpu_shader_material_implicit_defaults.glsl',
+  'gpu_shader_common_curves.glsl',
 ];
 
 /**
@@ -189,7 +190,12 @@ const code = name => {
     // A macro line that is only its continuation is empty in the macro;
     // ANGLE's preprocessor reads one as a directive that runs to end of file.
     .filter(line => !/^\s*\\$/.test(line))
-    .join('\n');
+    .join('\n')
+    // A COLOUR BAND IS A ONE-LAYER 1D ARRAY in Blender (`GPU_color_band`), which
+    // WebGL2 does not have; the presenter binds each band as its own 257x1
+    // sampler2D and passes layer 0.5, so `texture(map, float2(x, layer))` reads
+    // the same texel row and Blender's own curve and ramp functions compile.
+    .replaceAll('sampler1DArray', 'sampler2D');
   return dropUnavailable(text).replace(/\n{3,}/g, '\n\n').trim();
 };
 

@@ -49,6 +49,7 @@ export const GRAPH_NODE_TYPES = [
   'ShaderNodeGamma', 'ShaderNodeRGBToBW', 'ShaderNodeSeparateColor', 'ShaderNodeCombineColor',
   'ShaderNodeVectorRotate', 'ShaderNodeFresnel', 'ShaderNodeLayerWeight', 'ShaderNodeBump',
   'ShaderNodeNormalMap', 'ShaderNodeNewGeometry', 'ShaderNodeVertexColor', 'ShaderNodeAttribute',
+  'ShaderNodeRGBCurve', 'ShaderNodeVectorCurve', 'ShaderNodeFloatCurve',
 ] as const;
 
 const nodeSchema = z.object({
@@ -609,6 +610,35 @@ class Compiler {
             ? `${outs([0])} = texelFetch(${uniform}, ivec2(int(clamp(${fac}, 0.0, 1.0) * 256.0), 0), 0);`
             : `${outs([0])} = texture(${uniform}, vec2(clamp(${fac}, 0.0, 1.0) * (256.0 / 257.0) + 0.5 / 257.0, 0.5));`);
           body.push(`${outs([1])} = ${outs([0])}.a;`);
+        }
+        break;
+      }
+      case 'ShaderNodeRGBCurve':
+      case 'ShaderNodeVectorCurve':
+      case 'ShaderNodeFloatCurve': {
+        // gpu_shader_curve_rgb / _vec / _float: Blender's own curves_* over the
+        // band texture (layer 0.5 of a 257x1 sampler2D, see the generator), the
+        // table ranges and slopes as uniforms. RGB always takes
+        // curves_combined_rgb: `BKE_curvemapping_is_map_identity` reads the
+        // second point as (0, 0), so its combined-only branch is reached only by
+        // a curve whose points both sit at the origin, which draws the same.
+        const mapping = prop<{table: number[][]; minimums: number[]; dividers: number[]; starts: number[]; ends: number[]}>(node, 'curve_mapping');
+        const uniform = `bgRamp${this.s.ramps.length}`;
+        this.s.ramps.push({uniform, table: mapping.table});
+        this.s.structure.push(['curve']);
+        const fac = this.input(node, 'Fac', 'float');
+        if (node.type === 'ShaderNodeRGBCurve') {
+          body.push(`${this.use('curves_combined_rgb')}(${fac}, ${this.input(node, 'Color', 'vec4')}, vec4(0.0, 0.0, 0.0, 1.0), vec4(1.0), ` +
+            `${uniform}, 0.5, ${this.uniform('vec4', mapping.minimums)}, ${this.uniform('vec4', mapping.dividers)}, ` +
+            `${this.uniform('vec4', mapping.starts)}, ${this.uniform('vec4', mapping.ends)}, ${outs([0])});`);
+        } else if (node.type === 'ShaderNodeVectorCurve') {
+          body.push(`${this.use('curves_vector_mixed')}(${fac}, ${this.input(node, 'Vector', 'vec3')}, ${uniform}, 0.5, ` +
+            `${this.uniform('vec3', mapping.minimums.slice(0, 3))}, ${this.uniform('vec3', mapping.dividers.slice(0, 3))}, ` +
+            `${this.uniform('vec3', mapping.starts.slice(0, 3))}, ${this.uniform('vec3', mapping.ends.slice(0, 3))}, ${outs([0])});`);
+        } else {
+          body.push(`${this.use('curves_float_mixed')}(${fac}, ${this.input(node, 'Value', 'float')}, ${uniform}, 0.5, ` +
+            `${this.uniform('float', mapping.minimums[0]!)}, ${this.uniform('float', mapping.dividers[0]!)}, ` +
+            `${this.uniform('float', mapping.starts[0]!)}, ${this.uniform('float', mapping.ends[0]!)}, ${outs([0])});`);
         }
         break;
       }
