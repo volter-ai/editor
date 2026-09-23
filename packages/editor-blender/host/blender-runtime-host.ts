@@ -738,13 +738,26 @@ const isRuntimeView = (value: unknown): value is RuntimeView =>
 
 async function runtimeView(): Promise<RuntimeView> {
   const { documents } = editorHost();
-  const published = await documents.waitForContext(presentationDocumentId(), 15_000);
-  if (isRuntimeView(published)) return published;
+  // THE ID IS RE-READ WHILE WAITING. Which document a present reaches depends
+  // on the Model document's binding (`presentationDocumentId`), and at startup
+  // a present can begin before that pane has bound: reading the id once made
+  // it wait the whole window for `document:blender:runtime`, which a
+  // file-backed Model never publishes, while its own document published beside
+  // it -- the battery's preflight failed exactly so, 18 s after its first
+  // command (3 s of boot, then the full wait).
+  const deadline = Date.now() + 15_000;
+  let id = presentationDocumentId();
+  for (;;) {
+    id = presentationDocumentId();
+    const published = await documents.waitForContext(id, Math.max(0, Math.min(250, deadline - Date.now())));
+    if (isRuntimeView(published)) return published;
+    if (Date.now() >= deadline) break;
+  }
   throw new Error(
-    'The Blender Model document is not open, or the open one is not a Model this engine can present ' +
-      'to (it must answer applyFrame, captureSnapshot, recordPresentation and recordPhotograph): present ' +
-      '{kind: "document", id: "blender:runtime"} ' +
-      'first (it ships with the editor; `vgai blender-mcp` presents it before its first call).',
+    `The Blender Model document is not open, or the open one is not a Model this engine can present ` +
+      `to (it must answer applyFrame, captureSnapshot, recordPresentation and recordPhotograph): nothing ` +
+      `published a presentable view as ${id} within 15 s (bound model: ${boundModel?.documentId ?? 'none'}). ` +
+      'Open the Model document first (`vgai blender-mcp` opens it before its first call).',
   );
 }
 
