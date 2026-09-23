@@ -151,9 +151,8 @@ BSDF or shader-graph parity.
 
 The corresponding Blender exporter is public at
 `68bba09924c2cf08cbceb6608be4a9e1500a62bb` (PR #1). Verification used a rebuilt
-WASM override; the packaged WASM and public npm release are still unchanged.
-New binary provenance, the full engine battery, fresh packed acceptance and
-publication remain required before this candidate ships.
+WASM override. The candidate now carries that verified binary; public npm is
+still unchanged. Fresh packed acceptance and publication remain required.
 
 The candidate also implements homogeneous World Absorption, Scatter, Principled
 Volume and Emission closures, including Add/Mix weights and constant linked
@@ -178,15 +177,42 @@ transport, phase normalization, blackbody, named refusals, surface uniforms and
 pass ownership. The live orthographic absorption probe measured exactly 163/255
 against the Beer–Lambert/Standard prediction (clear: 255/255), and history
 restored the density. Perspective spotlight/point-light and occlusion captures
-ran with a silent console. Full engine battery and new packed acceptance remain
-pending; these feature probes do not substitute for release verification.
+ran with a silent console. The full engine battery is recorded below; new
+packed acceptance remains pending. These feature probes do not substitute for
+release verification.
 
 The first new-binary battery attempt completed the courtyard's 95 calls with
 the accepted baseline's four error positions, but its final verification was
 blocked by stale harness imports and an incomplete disposable-project dependency
 setup. It also exposed a real missing-named-UV regression: such a lookup now
 uses Blender's zero-coordinate behavior instead of throwing or substituting the
-active UV map. The complete battery must rerun with that correction.
+active UV map. The complete battery reran with that correction at editor
+`c7f0def0d717dfeef7b56f436156834a4b2250b4`: all 362 calls completed, no harness
+failures, and all photographed camera poses matched. Courtyard and workshop
+matched final geometry and presentation. Bridge, tram and courier retain exact
+comparison differences; they are not reported as native-parity passes.
+All 70 bridge snapshots are byte-identical to the previous accepted binary.
+Courier's five snapshots match that binary after index remapping except two
+normal components differing by 0.000001. The bridge/tram presentation reports
+still name the same geometry-less curve helpers. Courier now has only its four
+native script errors, rather than the old host's 27 error positions.
+See [binary verification](provenance/blender-material-verification.json) for
+source/harness hashes, timings, errors, runtime checks and comparison evidence.
+The public source archive at `blender-5.2.0-wasm.2` was anonymously verified;
+the 34 unchanged dependency payloads remain at `blender-5.2.0-wasm.1`.
+
+### Packaged sidebar restoration (unreleased)
+
+The reported outdated-looking UI exposed a reproducible packaged-only issue:
+manually opening Properties and Outliner did not survive a full cold reopen.
+Code-OSS 1.138's built-launch layout policy substitutes its default Explorer for
+a saved non-default sidebar (development and Reload Window do not). The kit now
+captures the native saved container before restoration overwrites it and opens
+that container through the native view service after restoration. It adds no
+layout store, product-specific ID or forced view visibility. The rebuilt macOS
+workbench and cold-reopen acceptance are pending. Source comparison found the
+recent Blender header/menu/icon/style fixes already present; the user's other
+missing visual changes have not yet been identified.
 
 The same candidate upgrades Storybook to 10.6.0, verifies its real portable
 story and ordering APIs and requires Node 24. Its repository and initial packed
