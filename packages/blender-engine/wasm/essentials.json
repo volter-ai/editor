@@ -1,0 +1,112 @@
+{
+  "sourceRepository": "https://github.com/volter-ai/blender",
+  "source": "94d8f20b225d51755a0a93a7fdf1e0cd9f53d09c",
+  "license": "CC0-1.0",
+  "licenseFile": "LICENSE",
+  "bytes": 11821256,
+  "sha256": "4f95016f965b1fd3542a4ae58160c1cb3254027b567111d2a4d23e447f27b7e2",
+  "files": [
+    {
+      "path": "LICENSE",
+      "offset": 0,
+      "bytes": 7048,
+      "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499"
+    },
+    {
+      "path": "blender_assets.cats.txt",
+      "offset": 7048,
+      "bytes": 5933,
+      "sha256": "fe62add99a5201173665682ceeeb606aef646eb81b6cadecfb7120ebb6e1def8"
+    },
+    {
+      "path": "brushes/essentials_brushes-curve_sculpt.blend",
+      "offset": 12981,
+      "bytes": 827070,
+      "sha256": "de873a20947e1fb7f19675b0f0c79dcdb9d58a75e5193aa2606f8ce0cc0b15f1"
+    },
+    {
+      "path": "brushes/essentials_brushes-gp_draw.blend",
+      "offset": 840051,
+      "bytes": 497193,
+      "sha256": "0596dce9286b824c31af67197b96e83a0c4a42ce2dbb36f40dfc8ecab3fe9f06"
+    },
+    {
+      "path": "brushes/essentials_brushes-gp_sculpt.blend",
+      "offset": 1337244,
+      "bytes": 357873,
+      "sha256": "235631a858c91b5cdaf70240ce0ed15bff11ef4474767e983d169a1bbf4723f6"
+    },
+    {
+      "path": "brushes/essentials_brushes-gp_vertex.blend",
+      "offset": 1695117,
+      "bytes": 245965,
+      "sha256": "ee1e9eee2cb898c3e95dbe2c059a51d4a5ec863a0d9bbd8ea1beb7d6a20bed06"
+    },
+    {
+      "path": "brushes/essentials_brushes-gp_weight.blend",
+      "offset": 1941082,
+      "bytes": 196914,
+      "sha256": "ec19a0cbca6a8413c45a25994a3db0ce1c7c8bd002d1968069dc1b558ce8500e"
+    },
+    {
+      "path": "brushes/essentials_brushes-mesh_sculpt.blend",
+      "offset": 2137996,
+      "bytes": 2715184,
+      "sha256": "f8b15126658f5a4ac455b0826a7eeae026576ed7c2ac45562d8880383fbf03bf"
+    },
+    {
+      "path": "brushes/essentials_brushes-mesh_texture.blend",
+      "offset": 4853180,
+      "bytes": 972168,
+      "sha256": "6c57caeaaa1f16e175783a2fbcbabf8772e108414edca92cad52bcc8019110f8"
+    },
+    {
+      "path": "brushes/essentials_brushes-mesh_vertex.blend",
+      "offset": 5825348,
+      "bytes": 600678,
+      "sha256": "7b4b5d973f1bc4a06f7553afc96c7cb0bd9a0c17921cd65903b40395eccd3300"
+    },
+    {
+      "path": "brushes/essentials_brushes-mesh_weight.blend",
+      "offset": 6426026,
+      "bytes": 404988,
+      "sha256": "67b141b9f15b0709f954fcd5e1d846deb95f5da8615ae70f0adcfacb3025d87f"
+    },
+    {
+      "path": "nodes/compositing_nodes_essentials.blend",
+      "offset": 6831014,
+      "bytes": 1329516,
+      "sha256": "8f40be4b9a811f2f4845c117eafb78c0b61dac7d943fb81fec2c7a450c6ac4b4"
+    },
+    {
+      "path": "nodes/geometry_nodes_dynamics_assets.blend",
+      "offset": 8160530,
+      "bytes": 307332,
+      "sha256": "a2e6b4013abfc3b9355927e33b2ae5af2182dc079e820041124652a75ce7b100"
+    },
+    {
+      "path": "nodes/geometry_nodes_essentials.blend",
+      "offset": 8467862,
+      "bytes": 696907,
+      "sha256": "4592ec2a51b1adbd87467812979ddebb09f6606a49aa75549fdd2b40b7ffac86"
+    },
+    {
+      "path": "nodes/principal_components.blend",
+      "offset": 9164769,
+      "bytes": 84028,
+      "sha256": "91cb8cada033daab6c6fbb8aef4767782cf75be867a0c2f38ced742160f38a39"
+    },
+    {
+      "path": "nodes/procedural_hair_node_assets.blend",
+      "offset": 9248797,
+      "bytes": 2488396,
+      "sha256": "b69d8bd8975b9db7f89693f8f19dd7fcb241f5a3786d2edfb0a243e91c1109bb"
+    },
+    {
+      "path": "nodes/shading_nodes_essentials.blend",
+      "offset": 11737193,
+      "bytes": 84063,
+      "sha256": "ffdaf64a4777233f6e47799bad17825a6c1e07c500eb1d9d0c23997f745327ee"
+    }
+  ]
+}

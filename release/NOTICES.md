@@ -42,3 +42,11 @@ and all 34 dependency archive hashes against the source's pinned manifests.
 This is source-distribution evidence, not a claim of binary reproducibility or
 complete rendering parity. The source release must be publicly accessible
 before conveying the engine binary outside the company.
+
+Blender Essentials is packaged separately from that binary. Run
+`node scripts/package-blender-essentials.mjs <pinned-blender-checkout>` after
+materializing its `assets/**` LFS objects. The packer verifies every file
+against the pinned public commit; `wasm/essentials.json` records per-file
+hashes and the complete payload hash. The payload includes the upstream
+CC0-1.0 license as `assets/LICENSE`. This data does not change the engine's
+GPL license or its corresponding-source obligation.
