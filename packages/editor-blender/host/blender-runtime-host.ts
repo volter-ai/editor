@@ -911,6 +911,7 @@ export function blenderRuntime(): BlenderRuntime {
         await snapshot.prepare(renderCamera);
         assertBinding();
         const captureOptions = {
+          effect: snapshot.effect,
           width: render.width,
           height: render.height,
           transparent: render.transparent === true,

@@ -10,6 +10,12 @@ export interface SceneCaptureOptions {
   transparent?: boolean;
   toneMapping?: THREE.ToneMapping;
   exposure?: number;
+  /** Caller-owned scene-linear effect. The input carries a depth texture;
+   * the returned target remains caller-owned and must contain half floats. */
+  effect?: {
+    render(renderer: THREE.WebGLRenderer, input: THREE.WebGLRenderTarget,
+      scene: THREE.Scene, camera: THREE.Camera): THREE.WebGLRenderTarget;
+  } | undefined;
 }
 
 export interface LinearCaptureFrame {
@@ -66,6 +72,7 @@ function capture(
   let completed = false;
   try {
     hdr = new THREE.WebGLRenderTarget(renderWidth, renderHeight, { type: THREE.HalfFloatType });
+    if (options.effect) hdr.depthTexture = new THREE.DepthTexture(renderWidth, renderHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -76,9 +83,12 @@ function capture(
     renderer.setRenderTarget(hdr);
     renderer.clear();
     renderer.render(scene, camera);
+    const resolved = options.effect?.render(renderer, hdr, scene, camera) ?? hdr;
+    if (resolved.texture.type !== THREE.HalfFloatType || resolved.width !== renderWidth || resolved.height !== renderHeight)
+      throw new Error('Scene capture effect must return a same-size half-float target');
     if (linear) {
       const pixels = new Uint16Array(renderWidth * renderHeight * 4);
-      renderer.readRenderTargetPixels(hdr, 0, 0, renderWidth, renderHeight, pixels);
+      renderer.readRenderTargetPixels(resolved, 0, 0, renderWidth, renderHeight, pixels);
       completed = true;
       return { pixels, width, height };
     }
@@ -86,7 +96,7 @@ function capture(
     viewportCaptureOutputPass(options.transparent === true).render(
       renderer,
       display,
-      hdr,
+      resolved,
       0,
       false,
     );

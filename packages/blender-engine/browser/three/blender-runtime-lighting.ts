@@ -531,6 +531,14 @@ const worldRadiance = z.object({
 });
 export const worldSchema = worldRadiance
   .extend({
+    volume: z.array(z.object({
+      kind: z.enum(['absorption', 'scatter', 'principled', 'emission']),
+      phase: z.string(), alpha: worldExpression,
+      weight: worldExpression, color: worldExpression, density: worldExpression,
+      anisotropy: worldExpression, absorption_color: worldExpression,
+      emission_color: worldExpression, emission_strength: worldExpression,
+      blackbody_intensity: worldExpression, temperature: worldExpression, blackbody_tint: worldExpression,
+    }).strict()).optional(),
     /** The world that LIGHTS the scene, present only when Blender's Light Path
      * `Is Camera Ray` split it from the world the camera photographs -- one
      * sky at two strengths is how a scene gets a bright backdrop and

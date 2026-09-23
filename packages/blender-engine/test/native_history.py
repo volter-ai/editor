@@ -159,6 +159,33 @@ class NativeHistoryTest(unittest.TestCase):
 
 
 class WorldDescriptionTest(unittest.TestCase):
+    def test_volume_only_world_and_mixed_closures(self):
+        def socket(value=0, links=None, kind="VALUE"):
+            return SimpleNamespace(default_value=value, type=kind, links=links or [], is_linked=bool(links))
+        def link(node):
+            return SimpleNamespace(from_node=node, from_socket=SimpleNamespace(name="Volume", type="SHADER"))
+        absorption = SimpleNamespace(bl_idname="ShaderNodeVolumeAbsorption", as_pointer=lambda: 1,
+            inputs={"Color": socket([0.2, 0.4, 0.8, 1], kind="RGBA"), "Density": socket(2)})
+        scatter = SimpleNamespace(bl_idname="ShaderNodeVolumeScatter", as_pointer=lambda: 2,
+            phase="RAYLEIGH", inputs={"Color": socket([1, 1, 1, 1], kind="RGBA"), "Density": socket(0.5)})
+        mix = SimpleNamespace(bl_idname="ShaderNodeMixShader", as_pointer=lambda: 3,
+            inputs=[socket(0.25), socket(links=[link(absorption)]), socket(links=[link(scatter)])])
+        output = SimpleNamespace(bl_idname="ShaderNodeOutputWorld", is_active_output=True,
+            inputs={"Surface": socket(), "Volume": socket(links=[link(mix)])})
+        tree = ast.parse((Path(__file__).parent.parent / "browser/session.py").read_text())
+        names = ("_surface_backgrounds", "_describe_world_socket", "_describe_world_volume", "_describe_background", "_describe_world")
+        nodes = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name in names]
+        namespace = {}
+        exec(compile(ast.Module(body=nodes, type_ignores=[]), "session.py", "exec"), namespace)
+        result = namespace["_describe_world"](SimpleNamespace(node_tree=SimpleNamespace(nodes=[output])))
+        self.assertEqual(result["color"], [0, 0, 0])
+        self.assertEqual([v["kind"] for v in result["volume"]], ["absorption", "scatter"])
+        self.assertEqual(result["volume"][0]["density"], 2)
+        self.assertEqual(result["volume"][1]["phase"], "RAYLEIGH")
+        mix.inputs[1].links = [link(mix)]
+        with self.assertRaisesRegex(NotImplementedError, "cycle"):
+            namespace["_describe_world"](SimpleNamespace(node_tree=SimpleNamespace(nodes=[output])))
+
     def test_linked_strength_survives_constant_color_optimization(self):
         def socket(value, kind="VALUE", links=None):
             return SimpleNamespace(default_value=value, type=kind, links=links or [],
@@ -177,7 +204,7 @@ class WorldDescriptionTest(unittest.TestCase):
         world = SimpleNamespace(node_tree=SimpleNamespace(nodes=[output]))
         tree = ast.parse((Path(__file__).parent.parent / "browser/session.py").read_text())
         nodes = [node for node in tree.body if isinstance(node, ast.FunctionDef)
-                 and node.name in ("_surface_backgrounds", "_describe_background", "_describe_world")]
+                 and node.name in ("_surface_backgrounds", "_describe_world_socket", "_describe_world_volume", "_describe_background", "_describe_world")]
         namespace = {}
         exec(compile(ast.Module(body=nodes, type_ignores=[]), "session.py", "exec"), namespace)
         result = namespace["_describe_world"](world)

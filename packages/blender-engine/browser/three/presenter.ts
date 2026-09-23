@@ -191,7 +191,10 @@ export function createPresenter(options: PresenterOptions = {}): Presenter {
     renderer.toneMapping = mappings[render.toneMapping] ?? THREE.AgXToneMapping;
     renderer.toneMappingExposure = render.exposure;
     const sceneTarget = new THREE.WebGLRenderTarget(width, height, { type: THREE.HalfFloatType });
+    let effect: ReturnType<BlenderRuntimeView['createWorldVolumePass']>;
     try {
+      effect = render.linearInput ? undefined : view.createWorldVolumePass();
+      if (effect) sceneTarget.depthTexture = new THREE.DepthTexture(width, height);
       await view.setRendered(true, camera);
       let pixels: Uint16Array;
       if (render.linearInput) {
@@ -210,7 +213,8 @@ export function createPresenter(options: PresenterOptions = {}): Presenter {
           scene.background = background;
         }
         pixels = new Uint16Array(width * height * 4);
-        renderer.readRenderTargetPixels(sceneTarget, 0, 0, width, height, pixels);
+        const resolved = effect?.render(renderer, sceneTarget, scene, camera) ?? sceneTarget;
+        renderer.readRenderTargetPixels(resolved, 0, 0, width, height, pixels);
         renderer.setRenderTarget(null);
       }
       const count = width * height;
@@ -239,6 +243,7 @@ export function createPresenter(options: PresenterOptions = {}): Presenter {
       }
       return answer(photograph);
     } finally {
+      effect?.dispose();
       sceneTarget.dispose();
       renderer.toneMapping = previousMapping;
       renderer.toneMappingExposure = previousExposure;
