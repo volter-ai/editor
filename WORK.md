@@ -184,6 +184,17 @@ Properties no longer blanks and repaints on every edit (measured through one
 edit: 0.5.63 went 225/28 elements/inputs to 38/1 and back; the candidate held
 225/28).
 
+Packed acceptance (0.5.64 candidate, unpublished): the eight archives from
+`00d8f6e` installed into an empty directory with no workspace links, with no
+engine override; the product resolved its pinned workbench
+`editor-f8664703ab59-2896a2901bb6` (seeded in the local workbench cache, since
+it is unpublished) and served the engine from the installed package
+(`blender_browser.wasm.br` sha256 `63098ef8…`, matching BUNDLE.json). The
+shader-mix/projection and UDIM/orco comparison scenes rendered with the same
+numbers as the development build; a graph constant's edit undid and redid
+exactly; a full close/reopen kept the edited value, the three UDIM tiles and
+the graph materials; console silent throughout.
+
 ### Material-rendering implementation (0.5.63)
 
 The candidate implements Principled coat weight/roughness/IOR/tint, sheen
