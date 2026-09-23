@@ -15,7 +15,7 @@ const stubs = {
     noteCommandReceipt=()=>{}, noteCommandRelay=()=>{}, removeClient=()=>{}, updateClientControlHealth=()=>{};
     export const sendToClientHandle=(id,event,command)=>{probe.command=command;return {};};`,
   '../play-stall': `export const playStallDiagnosis=({base})=>({message:base,phase:null,phaseAgeMs:null}),
-    playStallConsoleMessage=()=>"timeout";`,
+    playStallConsoleMessage=()=>"timeout", acceptPagePhase=(_,next)=>next;`,
   '../server-utils': `export {relayCommandTimeoutMs} from '@volter/editor-sdk/session/command-table';
     export const CONTROLLER_DISCONNECTED_MESSAGE="disconnected", DESKTOP_FRAME_ORIGIN="",
       RELAY_DELIVERY_ACK_MS=8000, RELAY_DELIVERY_MAX_WAIT_MS=45000,

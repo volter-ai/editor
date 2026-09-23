@@ -111,6 +111,8 @@ function body() {
      while the page is blocked — which is exactly when it matters. */
   if (phase !== undefined) {
     frame.phase = phase.value;
+    frame.phaseSource = phase.source;
+    frame.phaseSequence = phase.sequence;
     phase = undefined;
   }
   return frame;
@@ -221,7 +223,8 @@ self.onmessage = function (event) {
     return;
   }
   if (message.type === 'phase') {
-    phase = { value: typeof message.phase === 'string' ? message.phase : null };
+    phase = { value: typeof message.phase === 'string' ? message.phase : null,
+      source: message.source, sequence: message.sequence };
     return;
   }
   if (message.type === 'stop') {
@@ -367,6 +370,8 @@ export function parseBeat(raw: unknown): TabBeat | null {
     // and the profile is a passenger.
     ...(census === null ? {} : { census }),
     ...(phase === undefined ? {} : { phase }),
+    ...(typeof record['phaseSource'] === 'string' && Number.isSafeInteger(record['phaseSequence'])
+      ? { phaseSource: record['phaseSource'], phaseSequence: record['phaseSequence'] as number } : {}),
   };
 }
 

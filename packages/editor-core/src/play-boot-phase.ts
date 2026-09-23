@@ -61,7 +61,7 @@ export type PlayBootPhase = (typeof PLAY_BOOT_PHASES)[number];
 /** The page's standing answer to "what is play doing right now". */
 /** Any main-thread work the page announces before starting it: a play boot
  *  step, or a document's `building src/models/x.ts`. */
-export type PagePhase = PlayBootPhase | `building ${string}`;
+export type PagePhase = string;
 
 export interface PlayBootPhaseState {
   /** The phase being ENTERED, or `null` once the boot settled either way. */
@@ -73,6 +73,8 @@ export interface PlayBootPhaseState {
 }
 
 let _state: PlayBootPhaseState = { phase: null, at: 0, run: 0 };
+let _base = _state;
+const work = new Map<symbol, { phase: string; at: number }>();
 let _report: ((state: PlayBootPhaseState) => void) | null = null;
 
 /**
@@ -83,6 +85,8 @@ export function setPlayBootPhaseReporter(
   report: ((state: PlayBootPhaseState) => void) | null,
 ): void {
   _report = report;
+  // A document may have entered work before the command listener attached.
+  publish(_state);
 }
 
 function publish(next: PlayBootPhaseState): void {
@@ -97,15 +101,24 @@ function publish(next: PlayBootPhaseState): void {
   }
 }
 
+function publishCurrent(): void {
+  const current = [...work.values()].at(-1);
+  const next = current ? { ...current, run: _base.run } : _base;
+  if (next.phase === _state.phase && next.at === _state.at && next.run === _state.run) return;
+  publish(next);
+}
+
 /** Begin a play attempt. Returns its run ordinal. */
 export function beginPlayBoot(now: number = Date.now()): number {
-  publish({ phase: null, at: now, run: _state.run + 1 });
+  _base = { phase: null, at: now, run: _base.run + 1 };
+  publishCurrent();
   return _state.run;
 }
 
 /** Enter one phase. Called BEFORE the phase's work, never after it. */
 export function markPlayBootPhase(phase: PlayBootPhase, now: number = Date.now()): void {
-  publish({ phase, at: now, run: _state.run });
+  _base = { phase, at: now, run: _base.run };
+  publishCurrent();
 }
 
 /**
@@ -115,7 +128,8 @@ export function markPlayBootPhase(phase: PlayBootPhase, now: number = Date.now()
  * finished minutes ago.
  */
 export function endPlayBoot(now: number = Date.now()): void {
-  publish({ phase: null, at: now, run: _state.run });
+  _base = { phase: null, at: now, run: _base.run };
+  publishCurrent();
 }
 
 /**
@@ -124,13 +138,18 @@ export function endPlayBoot(now: number = Date.now()): void {
  * inside it is refused by name ("the page is still inside building
  * src/models/mushroom.ts") instead of "never answered". A blind session on a
  * swapped box read the generic refusal as its own module hanging and bisected
- * a parameter for five minutes (2026-09-06). Returns the end call; nested
- * work is not tracked — the latest announcement stands until it ends.
+ * a parameter for five minutes (2026-09-06). Returns an idempotent end call.
+ * Overlapping work has distinct tokens, even with identical labels: a late
+ * completion must not erase a newer call, or leave a completed child blamed.
+ * Labels name operations only, never model contents, scripts or credentials.
  */
-export function beginPageWork(label: `building ${string}`, now: number = Date.now()): () => void {
-  publish({ phase: label, at: now, run: _state.run });
+export function beginPageWork(label: string, now: number = Date.now()): () => void {
+  const token = Symbol();
+  work.set(token, { phase: label.slice(0, 160), at: now });
+  publishCurrent();
   return () => {
-    if (_state.phase === label) publish({ phase: null, at: Date.now(), run: _state.run });
+    if (!work.delete(token)) return;
+    publishCurrent();
   };
 }
 
@@ -141,5 +160,7 @@ export function currentPlayBootPhase(): PlayBootPhaseState {
 /** Test-only reset — drops the latch and the reporter. */
 export function __resetPlayBootPhaseForTest(): void {
   _state = { phase: null, at: 0, run: 0 };
+  _base = _state;
+  work.clear();
   _report = null;
 }

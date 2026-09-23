@@ -57,7 +57,7 @@ import {
   sendToClientHandle,
   updateClientControlHealth,
 } from '../editor-sse';
-import { playStallConsoleMessage, playStallDiagnosis } from '../play-stall';
+import { acceptPagePhase, playStallConsoleMessage, playStallDiagnosis } from '../play-stall';
 import {
   CONTROLLER_DISCONNECTED_MESSAGE,
   type CommandListenerHealth,
@@ -815,18 +815,21 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
     if (phase !== null && typeof phase !== 'string') {
       return { status: 400, error: 'play-phase requires { phase: string | null }.' };
     }
-    const changed = ctx.livePlayPhase?.phase !== phase;
-    ctx.livePlayPhase = {
+    const next = acceptPagePhase(ctx.livePlayPhase, {
       phase,
+      ...(typeof payload['source'] === 'string' && Number.isSafeInteger(payload['sequence'])
+        ? { source: payload['source'], sequence: payload['sequence'] as number } : {}),
       at: typeof payload['at'] === 'number' ? payload['at'] : 0,
       run: typeof payload['run'] === 'number' ? payload['run'] : 0,
       // The SERVER's clock, because it is the only one both parties share.
       receivedAt: Date.now(),
-    };
+    });
+    const changed = ctx.livePlayPhase?.phase !== next.phase;
+    ctx.livePlayPhase = next;
     // The durable half: a reader of the journal sees what the page said it
     // was entering, whether or not anything timed out inside it — once per
     // change, since the heartbeat road may have carried the same word.
-    if (changed) journalEvent({ kind: 'page-phase', phase });
+    if (changed) journalEvent({ kind: 'page-phase', phase: next.phase });
     return CONTROL_OK;
   }
 

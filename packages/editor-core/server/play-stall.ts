@@ -34,6 +34,8 @@
 
 /** What the page last said about its play boot, as the server holds it. */
 export interface PlayPhaseRecord {
+  readonly source?: string;
+  readonly sequence?: number;
   /** The phase being entered, or `null` once the boot settled either way. */
   readonly phase: string | null;
   /** Page clock: when it entered that phase. Never used for arithmetic — the
@@ -44,6 +46,18 @@ export interface PlayPhaseRecord {
   /** SERVER clock: when this report landed. Every age below is measured from
    *  here, because it is the only timestamp both parties agree on. */
   readonly receivedAt: number;
+}
+
+/** The page socket and heartbeat race. A delayed copy must not resurrect a
+ * completed operation or reset its age. Sequence belongs to a page-load source,
+ * not a wall clock; a new page may start again at one. */
+export function acceptPagePhase(
+  previous: PlayPhaseRecord | null, next: PlayPhaseRecord,
+): PlayPhaseRecord {
+  if (previous?.source !== undefined && previous.source === next.source &&
+      previous.sequence !== undefined && next.sequence !== undefined &&
+      next.sequence <= previous.sequence) return previous;
+  return next;
 }
 
 /** Commands whose timeout is about play whether or not a boot is in flight. */
@@ -83,11 +97,10 @@ export function playStallDiagnosis(args: {
       phase: phase.phase,
       phaseAgeMs: ageMs,
       message:
-        `${base} The page is still inside "${phase.phase}" — it entered that step ` +
-        `${(ageMs / 1000).toFixed(1)}s ago and has not left it. The page's own main thread is ` +
-        'inside that step; the heartbeat above is a worker, which is why the tab looks healthy ' +
-        'while nothing the page owns can answer. `volter-editor status` names the same phase, and the ' +
-        'session journal has the row.',
+        `${base} The last announced unfinished work is "${phase.phase}" ` +
+        `(reported ${(ageMs / 1000).toFixed(1)}s ago). This is an operation label, not a stack trace ` +
+        'or proof of the cause. The heartbeat runs separately from the page. ' +
+        '`volter-editor status` and the session journal carry the same observation.',
     };
   }
 
@@ -121,6 +134,6 @@ export function playStallDiagnosis(args: {
 export function playStallConsoleMessage(command: unknown, phase: string | null): string {
   const verb = typeof command === 'string' && command.length > 0 ? command : 'a command';
   return phase === null
-    ? `\`${verb}\` timed out against a beating tab whose page never answered, with no play boot in flight.`
+    ? `\`${verb}\` timed out against a beating tab whose page never answered, with no announced page work in flight.`
     : `\`${verb}\` timed out while the page was inside "${phase}".`;
 }

@@ -27,6 +27,9 @@ type DistributiveOmit<T, K extends keyof T> = T extends unknown ? Omit<T, K> : n
 type Request = DistributiveOmit<WorkerRequest, 'id'>;
 
 export interface BlenderRuntimeOptions {
+  /** Operation-only diagnostics, never request payloads. The optional observer
+   * must not affect work, even if it throws. End calls balance overlapping work. */
+  work?(label: string): () => void;
   history?(entries: readonly NativeHistoryEntry[]): void;
   /** Display a frame. A screenshot `capture` has its view REMEMBERED so the
    *  next document capture photographs what the agent asked for; a render
@@ -149,6 +152,7 @@ export class BlenderRuntime {
   };
   /** `performance.now()` at the `postMessage` of every outstanding call. */
   readonly #callStarts = new Map<number, number>();
+  readonly #callWork = new Map<number, () => void>();
   #lastCallMs: number | null = null;
   #maxCompletedMs = 0;
   #completedOver5s = 0;
@@ -442,7 +446,8 @@ export class BlenderRuntime {
     if (this.#terminated) return;
     this.#terminated = true;
     globalThis.removeEventListener?.('beforeunload', this.#beforeUnload);
-    this.#worker.terminate();
+    const end = this.#work('terminating worker');
+    try { this.#worker.terminate(); } finally { end(); }
     const error = new Error('The Blender session was terminated');
     for (const id of [...this.#pending.keys()]) this.#settled(id);
     for (const pending of this.#pending.values()) pending.reject(error);
@@ -489,6 +494,8 @@ export class BlenderRuntime {
 
   /** Close a call's window, whether it answered, threw, or was terminated. */
   #settled(id: number): void {
+    this.#callWork.get(id)?.();
+    this.#callWork.delete(id);
     const started = this.#callStarts.get(id);
     if (started === undefined) return;
     this.#callStarts.delete(id);
@@ -510,8 +517,22 @@ export class BlenderRuntime {
       const started = performance.now();
       this.#callStarts.set(id, started);
       this.#lastCallWindow = { start: started, end: null };
-      this.#worker.postMessage({ ...request, id });
+      this.#callWork.set(id, this.#work(`waiting for worker ${request.op}`));
+      try {
+        this.#worker.postMessage({ ...request, id });
+      } catch (error) {
+        this.#pending.delete(id);
+        this.#settled(id);
+        reject(error instanceof Error ? error : new Error(String(error)));
+      }
     });
+  }
+
+  #work(label: string): () => void {
+    try {
+      const end = this.#options.work?.(label);
+      return () => { try { end?.(); } catch { /* diagnostics never fail work */ } };
+    } catch { return () => {}; }
   }
 
   async #receive(reply: WorkerReply): Promise<void> {
@@ -539,6 +560,7 @@ export class BlenderRuntime {
       const frame = reply.frame as { session?: unknown; revision?: unknown } | null;
       if (typeof frame?.session === 'string' && typeof frame.revision === 'number')
         this.#presented = { session: frame.session, revision: frame.revision };
+      const end = this.#work('presenting worker frame');
       try {
         const answer = await this.#options.present(reply.frame, reply.description, reply.capture);
         this.#worker.postMessage({
@@ -555,6 +577,8 @@ export class BlenderRuntime {
           id: reply.id,
           error: error instanceof Error ? error.message : String(error),
         } satisfies WorkerRequest);
+      } finally {
+        end();
       }
       return;
     }

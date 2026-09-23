@@ -125,6 +125,40 @@ console. The task's editor sessions were closed after acceptance.
 
 ## Remaining work and limits
 
+### Renderer-hang diagnostics after 0.5.62 (source only)
+
+The original public acceptance log shows no receipt for `blender-stop`;
+the page was already failing to pick up commands. That does not establish
+worker shutdown as the cause.
+
+Contributions can now announce bounded, operation-only work through the host.
+Blender reports worker requests, Model-frame application and runtime release
+before entering them. Overlapping calls have distinct lifetimes. The existing
+heartbeat carries these labels even while the page is blocked; `status.pageWork`
+is server-held rather than a stale page snapshot. Sequence stamps prevent
+the heartbeat's delayed copy from resurrecting completed work. Neither request
+payloads nor Python code are included, and diagnostics cannot fail teardown.
+Labels are observations, not stack traces or claims about the cause.
+
+Seven new tests cover nesting, duplicate labels, reporter failures, request
+cleanup, transport ordering and heartbeat delivery without a page callback.
+A disposable live probe blocked Model-frame application for four seconds:
+the server named that operation throughout the block while heartbeat ages
+stayed below one second. It recovered, undo restored Cube X=84.125, and the
+console was silent. Fifteen instrumented edit/history/restart cycles passed;
+a separate sequential run passed fourteen with Properties explicitly open,
+six objects retained and silent consoles. Its fifteenth was interrupted by a
+page close beacon and disconnected channels, not a beating unresponsive tab.
+Reopening recovered the saved model; the isolated four-second diagnostic
+probe then passed again on the final build, restoring X=84.125 and clearing
+the work label. Other interrupted attempts (a build replacing live worker
+assets, and accidentally overlapping probe drivers) are not counted as passes.
+All 48 tests, eight package typechecks, the build, release boundary check and
+1,083-file packed-import check passed. These are diagnostic and recovery
+proofs, not a reproduction or fix of the older intermittent hang.
+
+### Unresolved observations and release limits
+
 - **The intermittent unresponsive-renderer observation remains unresolved.**
   Packed and public 0.5.58 acceptance encountered a worker stop/restart timeout
   while the renderer stopped answering. Full editor reopen recovered saved

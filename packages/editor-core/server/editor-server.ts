@@ -61,7 +61,7 @@ import { harnessChatCallerSessionFromEnv } from './harness-chat-caller';
 import { type FrontendHandoffResult, HarnessChatService } from './harness-chat-service';
 import { LAUNCHER_SETTINGS_PATH } from './launcher-settings';
 import { openBrowserUrl, shouldOpenTabInBackground } from './open-browser';
-import type { PlayPhaseRecord } from './play-stall';
+import { acceptPagePhase, type PlayPhaseRecord } from './play-stall';
 import { withDependencyChangeInvalidation } from './project-dependency-invalidation';
 import {
   hashAndSize,
@@ -745,17 +745,23 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
         ? null
         : 'Cross-origin request rejected.',
     beat: (beat) => {
+      const answer = hostTabLifecycle.onBeat(beat);
       // The phase the page's main thread is inside, carried on the beat
       // because the page's own socket cannot send once it is blocked. The
       // stall diagnosis reads livePlayPhase; this is its second road.
-      if (beat.phase !== undefined) {
+      if (beat.phase !== undefined && hostTabLifecycle.blessedTabId() === beat.tabId &&
+          hostTabLifecycle.tab(beat.tabId)?.epoch === beat.epoch) {
         // Two roads carry the same announcement; journal a CHANGE, not both
         // copies (a session's builds wrote 121 lines in eight minutes).
-        const changed = livePlayPhase?.phase !== beat.phase;
-        livePlayPhase = { phase: beat.phase, at: Date.now(), run: 0, receivedAt: Date.now() };
-        if (changed) journalEvent({ kind: 'page-phase', phase: beat.phase });
+        const next = acceptPagePhase(livePlayPhase, { phase: beat.phase,
+          ...(beat.phaseSource === undefined ? {} : { source: beat.phaseSource }),
+          ...(beat.phaseSequence === undefined ? {} : { sequence: beat.phaseSequence }),
+          at: Date.now(), run: 0, receivedAt: Date.now() });
+        const changed = livePlayPhase?.phase !== next.phase;
+        livePlayPhase = next;
+        if (changed) journalEvent({ kind: 'page-phase', phase: next.phase });
       }
-      return hostTabLifecycle.onBeat(beat);
+      return answer;
     },
     hint: () => hostTabLifecycle.tick(),
   });

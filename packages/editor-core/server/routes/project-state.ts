@@ -160,6 +160,11 @@ export function registerProjectStateRoutes(
       // reading a log.
       tabs,
       departedTabs,
+      // Server-held, so this remains readable while the page cannot answer.
+      pageWork: ctx.livePlayPhase === null ? null : {
+        label: ctx.livePlayPhase.phase,
+        reportedAgoMs: Math.max(0, Date.now() - ctx.livePlayPhase.receivedAt),
+      },
       // The auto-open runaway guard's state, so a session that gave up
       // opening windows says so where somebody will read it.
       tabAutoOpen: {},

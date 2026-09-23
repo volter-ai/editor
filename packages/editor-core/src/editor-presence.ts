@@ -40,7 +40,7 @@ interface EditorPresenceBootstrap {
   /** Hand the heartbeat worker what the page's main thread is about to do
    *  (`building src/models/x.ts`) or that it is done (`null`): the beat
    *  carries it while the page itself cannot speak. */
-  reportPhase?: (phase: string | null) => void;
+  reportPhase?: (phase: string | null, source: string, sequence: number) => void;
   /**
    * Stop the heartbeat worker, withdrawing this tab from the server's tab
    * table. The one caller is a TERMINAL session tombstone
@@ -99,8 +99,8 @@ export const EDITOR_PARTICIPANT_NAME = COLLABORATION_PARTICIPANT_NAME;
  * the census is diagnostics, and diagnostics that break their host are worse
  * than none.
  */
-export function reportTabPhase(phase: string | null): void {
-  bootstrap?.reportPhase?.(phase);
+export function reportTabPhase(phase: string | null, source: string, sequence: number): void {
+  bootstrap?.reportPhase?.(phase, source, sequence);
 }
 
 export function reportTabCensus(census: TabCensus): void {

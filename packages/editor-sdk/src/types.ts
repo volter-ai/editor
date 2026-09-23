@@ -575,6 +575,8 @@ export interface LabeledShotSetCapture {
 }
 
 export interface EditorState {
+  /** Last announced work, held by the server; not a stack trace or causal claim. */
+  pageWork?: { label: string | null; reportedAgoMs: number } | null;
   /**
    * The Code-OSS workbench this session is running, or `null` when it is
    * running none. The session's children are the session's to report, exactly
