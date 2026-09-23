@@ -170,6 +170,9 @@ let readFor: string | null = null;
  * A late answer for a deleted duplicate must not overwrite the new selection. */
 let readGeneration = 0;
 let contextRequest = 0;
+/** Views read at the current generation. A held view outside this set is
+ *  STALE: still shown, re-read on the next ask. */
+const fresh = new Set<string>();
 
 function publish(next: Partial<BlenderPropertiesState>, tabsMayHaveChanged = false): void {
   state = { ...state, ...next };
@@ -207,12 +210,17 @@ export function blenderPropertiesState(): BlenderPropertiesState {
  *  presenter draws ships no frame, and before this the rail simply kept the
  *  values it had. */
 function onEngineMoved(): void {
+  // STALE, NOT EMPTY. The generation moves, so every answer already in flight
+  // is dropped when it lands (a deleted duplicate's late read cannot overwrite
+  // the new selection) -- but the panel keeps showing what it holds until the
+  // re-read answers. Clearing here blanked and repainted the whole Properties
+  // panel on every edit, because every edit presents a frame.
   const subject = readFor;
   readGeneration += 1;
   inFlight.clear();
-  readFor = null;
-  publish({ context: null, views: new Map(), error: null, loading: subject !== null });
-  if (subject !== null) scheduleContextRead(subject);
+  fresh.clear();
+  if (subject !== null) scheduleContextRead(subject, true);
+  else publish({});
 }
 
 // THE FRAME IS ONE SIGNAL AND THE RNA DOOR IS THE OTHER. This subscription is
@@ -235,13 +243,13 @@ subscribeBlenderRna(() => {
  */
 let scheduledKey: string | null = null;
 
-function scheduleContextRead(key: string): void {
+function scheduleContextRead(key: string, refresh = false): void {
   if (scheduledKey === key) return;
   scheduledKey = key;
   setTimeout(() => {
     if (scheduledKey !== key) return;
     scheduledKey = null;
-    void readContext(key);
+    void readContext(key, refresh);
   }, 0);
 }
 
@@ -267,20 +275,30 @@ function watchFrames(): void {
   frameSubscription = view.subscribeFrames(noteBlenderRnaChanged);
 }
 
-async function readContext(key: string): Promise<void> {
+async function readContext(key: string, refresh = false): Promise<void> {
   const collection = key.startsWith('collection:') ? key.slice('collection:'.length) : null;
   const object = collection === null && key !== '' ? key : null;
+  // A REFRESH re-reads the subject already shown and keeps it on screen; a new
+  // subject starts empty, because nothing held belongs to it.
+  const sameSubject = refresh && readFor === key;
   if (readFor !== key) {
     readGeneration += 1;
     inFlight.clear();
+    fresh.clear();
   }
   const generation = readGeneration;
   const request = ++contextRequest;
   readFor = key;
-  publish({ loading: true, object, collection, context: null, error: null, views: new Map() });
+  const previous = sameSubject ? state.context : null;
+  if (!sameSubject) publish({ loading: true, object, collection, context: null, error: null, views: new Map() });
   try {
     const context = await blenderRnaContext(object ?? undefined, collection ?? undefined);
     if (generation !== readGeneration || request !== contextRequest) return;
+    if (sameSubject && JSON.stringify(context) === JSON.stringify(previous)) {
+      // Nothing the tab rail matches on moved: no rail recomposition.
+      publish({ loading: false, error: null });
+      return;
+    }
     // ALWAYS a tab-rail notification, and that is a correction rather than a
     // convenience: the gate a tab matches on is BOTH the subject this context
     // was read for and the tab list, so comparing only the list missed the
@@ -314,14 +332,16 @@ export function showBlenderSubject(subject: BlenderSubject): void {
  *  "not read yet", which is what a section renders as its loading state. */
 export function blenderRnaViewFor(path: string): BlenderRnaView | undefined {
   const held = state.views.get(path);
-  if (held !== undefined) return held;
-  if (inFlight.has(path) || !blenderSessionStarted()) return undefined;
+  if (held !== undefined && fresh.has(path)) return held;
+  // A stale view is shown while its re-read is in flight.
+  if (inFlight.has(path) || !blenderSessionStarted()) return held;
   inFlight.add(path);
   const generation = readGeneration;
   void blenderRna(path)
     .then((view) => {
       if (generation !== readGeneration) return;
       inFlight.delete(path);
+      fresh.add(path);
       if (view === null) return;
       const views = new Map(state.views);
       views.set(path, view);
@@ -332,7 +352,7 @@ export function blenderRnaViewFor(path: string): BlenderRnaView | undefined {
       inFlight.delete(path);
       publish({ error: describe(error) });
     });
-  return undefined;
+  return held;
 }
 
 /**
@@ -351,9 +371,8 @@ export async function writeBlenderRnaProperty(
     await blenderRnaSet(path, property, value, index);
     // The write presented; a re-read of this one datablock closes the loop
     // even if the frame listener has not been taken yet.
-    const views = new Map(state.views);
-    views.delete(path);
-    publish({ views, error: null });
+    fresh.delete(path);
+    publish({ error: null });
     return true;
   } catch (error) {
     publish({ error: describe(error) });
