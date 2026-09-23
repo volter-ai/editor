@@ -474,15 +474,15 @@ class Compiler {
       ordered.push(file);
     };
     for (const file of this.files) visit(file);
+    const graphBody = `void blenderGraph() {\n  ${[...this.lines, ...assignments].join('\n  ')}\n}`;
     const declarations = [
       BLENDER_NODE_GLSL_PRELUDE,
-      ...ordered.map(f => BLENDER_NODE_GLSL[f]!.code),
-      COORDINATES,
+      shakeLibrary(ordered.map(f => BLENDER_NODE_GLSL[f]!.code).join('\n') + '\n' + COORDINATES, graphBody),
       ...[...this.uniformTypes].map(([n, t]) => `uniform ${t} ${n};`),
       ...this.images.map(i => `uniform sampler2D ${i.uniform};`),
       ...this.ramps.map(r => `uniform sampler2D ${r.uniform};`),
       ...Object.values(outputs).map(o => `${o.type} ${o.global};`),
-      `void blenderGraph() {\n  ${[...this.lines, ...assignments].join('\n  ')}\n}`,
+      graphBody,
     ].join('\n');
     return {
       key: JSON.stringify([this.graph.surface, this.structure, [...this.uvs].sort()]),
@@ -495,6 +495,59 @@ class Compiler {
       surface: this.graph.surface,
     };
   }
+}
+
+/**
+ * ONLY THE FUNCTIONS THE GRAPH REACHES, as Blender's codegen links only the
+ * functions a material calls. A node's file holds every variant of it (each
+ * Noise type and dimension, each Voronoi feature), and a program carrying all
+ * of them measured ~155 KB of GLSL for a 30-line graph -- compile time the
+ * viewport spent blocked. Everything that is not a plain function definition
+ * (macros, which may generate or call functions; structs; constants) is kept,
+ * and a function is kept when its name appears in kept text, to a fixpoint.
+ * Overloads of a kept name are all kept.
+ */
+function shakeLibrary(library: string, root: string): string {
+  type Chunk = {text: string; name: string | null};
+  const chunks: Chunk[] = [];
+  const header = /^[A-Za-z_][\w ]*?\b([A-Za-z_]\w*)\s*\(/gm;
+  let from = 0;
+  for (let m; (m = header.exec(library)); ) {
+    if (m.index < from) continue;
+    let i = m.index + m[0].length;
+    for (let depth = 1; i < library.length && depth > 0; i++) depth += library[i] === '(' ? 1 : library[i] === ')' ? -1 : 0;
+    const after = library.slice(i).match(/^\s*(\{|;)/);
+    // Only a definition or prototype at top level is a function chunk; a
+    // macro invocation line (`NOISE_FBM(float)`) is kept as other text.
+    if (!after || /^\s*#/.test(library.slice(library.lastIndexOf('\n', m.index) + 1, m.index + 1))) continue;
+    const prev = library.slice(Math.max(0, m.index - 2), m.index);
+    if (prev.endsWith('\\\n')) continue;
+    let end = i + after[0].length;
+    if (after[1] === '{') {
+      for (let depth = 1; end < library.length && depth > 0; end++)
+        depth += library[end] === '{' ? 1 : library[end] === '}' ? -1 : 0;
+    }
+    chunks.push({text: library.slice(from, m.index), name: null});
+    chunks.push({text: library.slice(m.index, end), name: m[1]!});
+    from = end;
+    header.lastIndex = end;
+  }
+  chunks.push({text: library.slice(from), name: null});
+  const keep = new Set<Chunk>(chunks.filter(c => c.name === null));
+  const referenced = new Set<string>();
+  const scan = (text: string) => { for (const w of text.matchAll(/[A-Za-z_]\w*/g)) referenced.add(w[0]); };
+  scan(root);
+  for (const c of keep) scan(c.text);
+  for (let grew = true; grew; ) {
+    grew = false;
+    for (const c of chunks) {
+      if (keep.has(c) || c.name === null || !referenced.has(c.name)) continue;
+      keep.add(c);
+      scan(c.text);
+      grew = true;
+    }
+  }
+  return chunks.filter(c => keep.has(c)).map(c => c.text).join('');
 }
 
 /** The varying a UV layer arrives in; `''` is the render UV. */
