@@ -113,9 +113,17 @@ zero scale. The live worker presented the linked-strength/Texture-mapping world
 without warnings. World volumes remain excluded. Duplication is one coherent
 native operation; this does not claim Blender's modal duplicate-and-move UI.
 
-Release work remains: build a clean workbench from the committed source, pin it
-and publish the next npm train (including Essentials). The workbench's cached
-asset identity must include the editor overlay, not only the unchanged Code-OSS
-pin; `build-release.mjs` now supplies a composition fingerprint through upstream's
-`BUILD_SOURCEVERSION`. Windows/Linux still require suitable native runners;
-none were registered, and paid capacity has not been authorized.
+The clean workbench from editor `81f87ec200f3` is now published as
+`editor-f8664703ab59-81f87ec200f3-darwin-arm64`; a complete anonymous download
+matched SHA-256 `2e2139867dda53aaa6fef58005443b9626d2f2975011c342487b1613b8464ef5`.
+Its source and all extensions compiled without errors. The workbench's cached
+asset identity includes the editor overlay through upstream's `BUILD_SOURCEVERSION`.
+The 0.5.58 train (Blender packages 0.1.1) pins this artifact. Build, all package
+typechecks, 21 tests, release-boundary and 1,083-file packed-import checks passed.
+An installed-tarball project exercised Python and RNA undo/redo, Essentials
+Smooth by Angle loading, duplication and deletion restoration in that workbench.
+Publication and anonymous-registry acceptance of the npm train remain next.
+
+Windows/Linux still require suitable native runners; none were registered, and
+paid capacity has not been authorized. Their platform-specific implementation
+and native acceptance remain incomplete, not merely their artifact uploads.

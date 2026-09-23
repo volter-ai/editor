@@ -9,12 +9,13 @@
   },
   "editorSource": {
     "repository": "https://github.com/volter-ai/editor",
-    "revision": "d7489dea9dcd81299c96e67c07fcdea7c80b2225",
+    "revision": "81f87ec200f3ffd1c241ed4217c5723c0b7edb39",
     "dirty": false
   },
   "build": {
     "node": "v24.21.0",
-    "builtAt": "2026-09-22T18:59:50.902Z",
+    "builtAt": "2026-09-23T04:27:53.497Z",
+    "assetVersion": "cac2a2f9b252ba790af5e367120a5025476935fb",
     "mangled": false,
     "minified": true,
     "serverBin": "bin/code-server-oss",
@@ -25,19 +26,19 @@
   },
   "artifact": {
     "name": "vscode-reh-web-darwin-arm64-f8664703ab59-editor.tar.gz",
-    "bytes": 148794803,
-    "unpackedBytes": 477748217,
-    "sha256": "57692dc03bd5e37f1b02c817bf0601ee3f3d410b6147c24ccd978d22ff4f81ca"
+    "bytes": 148771971,
+    "unpackedBytes": 477748775,
+    "sha256": "2e2139867dda53aaa6fef58005443b9626d2f2975011c342487b1613b8464ef5"
   },
   "release": {
     "repository": "volter-ai/code-oss",
-    "tag": "editor-f8664703ab59-d7489dea9dcd-darwin-arm64",
-    "url": "https://github.com/volter-ai/code-oss/releases/tag/editor-f8664703ab59-d7489dea9dcd-darwin-arm64",
+    "tag": "editor-f8664703ab59-81f87ec200f3-darwin-arm64",
+    "url": "https://github.com/volter-ai/code-oss/releases/tag/editor-f8664703ab59-81f87ec200f3-darwin-arm64",
     "visibility": "public"
   },
   "verification": {
     "compile": "Code-OSS source, extension media, native extensions and non-native extensions completed with zero errors.",
-    "checksum": "The locally recomputed SHA-256 and GitHub release asset digest match.",
-    "anonymousDownload": "An unauthenticated HTTP range request returned the public release asset."
+    "checksum": "The locally recomputed SHA-256 and complete anonymous public download match.",
+    "anonymousDownload": "The full release archive was downloaded without credentials and its SHA-256 verified."
   }
 }
