@@ -4,6 +4,29 @@ Volter Editor 0.5.58 is public. Blender packages are 0.1.1; the other six
 packages are 0.5.58. The publication boundary remains the eight packages in
 [release/modeling.json](release/modeling.json). Game packages are excluded.
 
+## 0.5.59 release candidate
+
+The six editor packages are staged at 0.5.59 and the two Blender packages at
+0.1.2. The Blender binary, Essentials payload and pinned public workbench are
+unchanged. Generated notice differences are package-version labels only.
+All 28 tests, eight package typechecks, build, release boundary and 1,084-file
+packed-import checks passed. The exact eight packed archives installed without
+workspace links. Ten duplicate/delete/undo/redo/stop/start cycles retained one
+object and Cube X=7.125; native RNA undo/redo and Essentials modifier restoration
+passed. Full editor close/reopen retained the value and modifier with a silent
+console. A startup zero-size canvas sample was acknowledged only after current
+invariants, 120 fps and a visible capture passed.
+
+The workbench proxy now grants the existing JS profiling document policy to
+the actual Code-OSS page. Live profiling was previously refused and now works.
+A 12-cycle source profile found no lifecycle hang; its longest recorded main
+thread frame was 689 ms, attributed to the viewport render callback. Profiling
+itself increased worker-start latency, so those timings are not ordinary
+performance acceptance. The old npm build passed 42 stop/start attempts,
+including captures and duplication/deletion, plus overlapping inspection calls.
+This comparison does not explain the earlier intermittent renderer stall.
+Publication and anonymous registry-install acceptance remain pending.
+
 ## Published artifacts
 
 - [Editor v0.5.58](https://github.com/volter-ai/editor/releases/tag/v0.5.58)
