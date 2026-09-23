@@ -526,6 +526,283 @@ def draw_camera(obj):
     }
 
 
+# ------------------------------------------------------- the material graphs
+
+# THE MATERIAL GRAPH, for a surface whose inputs are more than constants.
+#
+# The export door reduces each material to what a three.js standard material
+# holds -- a constant or one image per input. A LINKED input of a Principled
+# BSDF or an Emission is instead shipped as the node graph that drives it, and
+# the presenter compiles that graph with Blender's own node GLSL
+# (`three/blender-node-graph.ts`, `three/blender-node-glsl.generated.ts`). The
+# door is told which materials those are (`graph_materials`), so it stays quiet
+# about reducing them, and which images their graphs sample (`graph_images`),
+# so it ships those pictures with the same revisions as every other.
+#
+# The graph is flattened here: reroutes and muted nodes are followed the way
+# Blender's own node tree evaluation follows them, and group nodes are inlined
+# (their nodes keyed by the group path), so the presenter sees one acyclic
+# list of Blender nodes. What reaches the presenter is Blender's own data:
+# every input socket in declaration order with its GPU type and value, every
+# output socket's GPU type, and the node's own RNA properties.
+
+# The node types the presenter compiles. A graph reaching any other type is
+# not shipped; the door's reduction stands and a warning names the node.
+_GRAPH_NODES = frozenset((
+    "ShaderNodeTexCoord", "ShaderNodeUVMap", "ShaderNodeValue", "ShaderNodeRGB",
+    "ShaderNodeTexImage", "ShaderNodeMapping", "ShaderNodeMath", "ShaderNodeVectorMath",
+    "ShaderNodeMix", "ShaderNodeMixRGB", "ShaderNodeValToRGB", "ShaderNodeInvert",
+    "ShaderNodeSeparateXYZ", "ShaderNodeCombineXYZ", "ShaderNodeTexNoise",
+    "ShaderNodeTexVoronoi", "ShaderNodeTexChecker",
+))
+# The surfaces whose inputs map onto the presenter's standard material, and
+# the inputs of each the presenter reads from a graph.
+_GRAPH_SURFACES = {
+    "ShaderNodeBsdfPrincipled": ("Base Color", "Metallic", "Roughness", "Alpha",
+                                 "Emission Color", "Emission Strength"),
+    "ShaderNodeEmission": ("Color", "Strength"),
+}
+# RNA properties every node has, which describe the node's place in the editor
+# rather than what it computes.
+_NODE_BASE_PROPERTIES = frozenset(p.identifier for p in bpy.types.ShaderNode.bl_rna.properties)
+
+
+def _gpu_type(socket):
+    """Blender's `node_gpu_stack_from_data`: the GLSL type a socket is passed
+    as, or None for a socket GPU codegen leaves out of the call."""
+    kind = socket.type
+    if kind in ("VALUE", "INT", "BOOLEAN"):
+        return "float"
+    if kind == "VECTOR":
+        return "vec%d" % len(socket.default_value) if hasattr(socket, "default_value") else "vec3"
+    if kind in ("RGBA", "ROTATION"):
+        return "vec4"
+    if kind == "SHADER":
+        return "closure"
+    return None
+
+
+def _socket_value(socket, gpu):
+    """An unlinked socket's value in its GPU type (`nodestack_get_vec`)."""
+    if not hasattr(socket, "default_value"):
+        return 0.0 if gpu == "float" else [0.0] * int(gpu[3:])
+    value = socket.default_value
+    if gpu == "float":
+        return float(value)
+    values = [float(v) for v in value]
+    if socket.type == "ROTATION":
+        # A rotation socket's value is an Euler; codegen carries it as a vec4.
+        values = values + [0.0]
+    return values
+
+
+def _node_properties(node):
+    """The node's own RNA properties: enums, flags and numbers, plus the two
+    data-block values a compiled node reads (its colour ramp, its image)."""
+    props = {}
+    for prop in node.bl_rna.properties:
+        name = prop.identifier
+        if name in _NODE_BASE_PROPERTIES:
+            continue
+        if prop.type in ("ENUM", "BOOLEAN", "INT", "FLOAT", "STRING") and not getattr(prop, "is_array", False):
+            value = getattr(node, name)
+            props[name] = sorted(value) if isinstance(value, set) else value
+    if node.bl_idname == "ShaderNodeValToRGB":
+        ramp = node.color_ramp
+        props["color_ramp"] = {
+            "interpolation": ramp.interpolation,
+            "color_mode": ramp.color_mode,
+            "elements": [[float(e.position)] + [float(c) for c in e.color] for e in ramp.elements],
+            # The table Blender's GPU path samples (BKE_colorband_evaluate_table_rgba),
+            # read through Blender's own evaluator.
+            "table": [[float(c) for c in ramp.evaluate(i / 256)] for i in range(_RAMP_SAMPLES)],
+        }
+    if node.bl_idname == "ShaderNodeTexImage":
+        image = node.image
+        props["image"] = image.name if image is not None else None
+        if image is not None:
+            # What decides the Color output's alpha handling
+            # (`node_shader_gpu_tex_image`): the image's alpha mode, and
+            # whether its colour space is data.
+            props["image_alpha_mode"] = image.alpha_mode
+            props["image_is_data"] = bool(image.colorspace_settings.is_data)
+    if node.bl_idname in ("ShaderNodeValue", "ShaderNodeRGB"):
+        # These nodes' value is their OUTPUT socket's (`set_value`/`set_rgba`
+        # of a uniform in Blender's GPU path).
+        props["value"] = _socket_value(node.outputs[0], _gpu_type(node.outputs[0]))
+    return props
+
+
+def _refusal(node):
+    """What of a supported node type the presenter does not compile yet, or None."""
+    kind = node.bl_idname
+    if kind == "ShaderNodeTexImage":
+        image = node.image
+        if node.projection != "FLAT":
+            return "%s projects %s; only Flat is compiled" % (node.name, node.projection)
+        if node.interpolation in ("Cubic", "Smart"):
+            return "%s samples %s; Linear and Closest are compiled" % (node.name, node.interpolation)
+        if image is not None and image.source not in ("FILE", "GENERATED"):
+            return "%s's image is a %s source" % (node.name, image.source)
+    if kind == "ShaderNodeTexCoord" and node.object is not None:
+        return "%s reads object coordinates of %s" % (node.name, node.object.name)
+    return None
+
+
+class _GraphRefusal(Exception):
+    pass
+
+
+class _MaterialGraph:
+    """One material's graph, flattened. `nodes` is keyed by group path."""
+
+    def __init__(self, material):
+        self.material = material
+        self.nodes = {}
+        self.images = set()
+        self._building = set()
+
+    # A socket is addressed inside a STACK of group nodes; the empty stack is
+    # the material's own tree.
+
+    def source(self, stack, socket):
+        """An input socket's value: `{"value": v}` or `{"link": [node, output]}`."""
+        gpu = _gpu_type(socket)
+        links = [link for link in socket.links if link.is_valid and not link.is_muted]
+        if not links:
+            return {"value": _socket_value(socket, gpu)}
+        return self.output(stack, links[0].from_node, links[0].from_socket, gpu)
+
+    def output(self, stack, node, socket, wanted):
+        kind = node.bl_idname
+        if kind == "NodeReroute":
+            return self.source(stack, node.inputs[0])
+        if node.mute:
+            for link in node.internal_links:
+                if link.to_socket == socket:
+                    return self.source(stack, link.from_socket)
+            return {"value": 0.0 if wanted == "float" else [0.0] * int(wanted[3:])}
+        if kind == "ShaderNodeGroup":
+            tree = node.node_tree
+            if tree is None:
+                raise _GraphRefusal("group %s has no node tree" % node.name)
+            outputs = [n for n in tree.nodes if n.bl_idname == "NodeGroupOutput"]
+            active = next((n for n in outputs if n.is_active_output), outputs[0] if outputs else None)
+            if active is None:
+                raise _GraphRefusal("group %s has no Group Output" % tree.name)
+            inner = next(s for s in active.inputs if s.identifier == socket.identifier)
+            return self.source(stack + [node], inner)
+        if kind == "NodeGroupInput":
+            if not stack:
+                raise _GraphRefusal("a Group Input outside a group")
+            outer = stack[-1]
+            outer_socket = next(s for s in outer.inputs if s.identifier == socket.identifier)
+            return self.source(stack[:-1], outer_socket)
+        if kind not in _GRAPH_NODES:
+            raise _GraphRefusal("%s (%s) is not compiled by the presenter" % (node.name, kind))
+        refusal = _refusal(node)
+        if refusal is not None:
+            raise _GraphRefusal(refusal)
+        key = "/".join([group.name for group in stack] + [node.name])
+        if key not in self.nodes:
+            if key in self._building:
+                raise _GraphRefusal("%s is part of a cycle" % node.name)
+            self._building.add(key)
+            self.nodes[key] = self._describe(stack, node)
+            self._building.discard(key)
+        index = next(i for i, s in enumerate(node.outputs) if s == socket)
+        return {"link": [key, index]}
+
+    def _describe(self, stack, node):
+        props = _node_properties(node)
+        if props.get("image"):
+            self.images.add(props["image"])
+        return {
+            "type": node.bl_idname,
+            "props": props,
+            "inputs": [
+                dict(self.source(stack, s), id=s.identifier, gpu=_gpu_type(s), enabled=s.enabled)
+                for s in node.inputs if _gpu_type(s) not in (None, "closure")
+            ],
+            "outputs": [{"id": s.identifier, "gpu": _gpu_type(s)} for s in node.outputs],
+        }
+
+
+def _surface_node(tree):
+    """The shader node Surface reaches, through reroutes and groups, or None."""
+    outputs = [n for n in tree.nodes
+               if n.bl_idname == "ShaderNodeOutputMaterial" and n.target in ("ALL", "EEVEE")]
+    output = next((n for n in outputs if n.is_active_output), outputs[0] if outputs else None)
+    if output is None:
+        return None, None
+    socket, stack = output.inputs["Surface"], []
+    while True:
+        links = [link for link in socket.links if link.is_valid and not link.is_muted]
+        if not links:
+            return None, None
+        node, out = links[0].from_node, links[0].from_socket
+        if node.bl_idname == "NodeReroute":
+            socket = node.inputs[0]
+        elif node.bl_idname == "ShaderNodeGroup" and node.node_tree is not None:
+            inner = [n for n in node.node_tree.nodes if n.bl_idname == "NodeGroupOutput"]
+            if not inner:
+                return None, None
+            stack = stack + [node]
+            socket = next(s for s in inner[0].inputs if s.identifier == out.identifier)
+        elif node.bl_idname == "NodeGroupInput" and stack:
+            socket = next(s for s in stack[-1].inputs if s.identifier == out.identifier)
+            stack = stack[:-1]
+        else:
+            return stack, node
+
+
+def material_graph(material):
+    """The graph the presenter compiles for this material, or None when the
+    door's reduction describes it fully (or the surface is not one the graph
+    covers). A graph outside `_GRAPH_NODES` is a warning naming the node."""
+    if not material.use_nodes or material.node_tree is None:
+        return None
+    stack, surface = _surface_node(material.node_tree)
+    if surface is None or surface.bl_idname not in _GRAPH_SURFACES:
+        return None
+    sockets = [surface.inputs[name] for name in _GRAPH_SURFACES[surface.bl_idname]]
+    if not any(any(l.is_valid and not l.is_muted for l in s.links) for s in sockets):
+        return None
+    # The door is quiet about a material whose graph ships, so a linked input
+    # the graph does not carry is named here. Normal stays the door's: it
+    # reduces an image through a Normal Map node.
+    for other in surface.inputs:
+        linked = any(l.is_valid and not l.is_muted for l in other.links)
+        if not linked or other in sockets:
+            continue
+        if other.name == "Normal" and other.links[0].from_node.bl_idname == "ShaderNodeNormalMap":
+            continue
+        warn("%s: %s is linked; only its constant is drawn" % (material.name, other.name))
+    graph = _MaterialGraph(material)
+    try:
+        inputs = {s.name: graph.source(stack, s) for s in sockets}
+    except _GraphRefusal as refusal:
+        warn("%s: its graph is drawn as constants; %s" % (material.name, refusal))
+        return None
+    return {
+        "surface": surface.bl_idname,
+        "inputs": inputs,
+        "nodes": graph.nodes,
+        "images": sorted(graph.images),
+    }
+
+
+def material_graphs(scene):
+    """Every graph the scene's materials need, by material name."""
+    graphs = {}
+    for obj in scene.objects:
+        for slot in getattr(obj, "material_slots", ()):
+            material = slot.material
+            if material is not None and material.name not in graphs:
+                graphs[material.name] = material_graph(material)
+    return {name: graph for name, graph in graphs.items() if graph is not None}
+
+
 # ------------------------------------------------------------- the overlays
 #
 # INSPECTION OVERLAYS, READ OFF THE ENGINE (ARCHITECTURE-CORE §Blender north
@@ -760,7 +1037,11 @@ class Session:
         bones and the active vertex group's weights (`_armatures`,
         `_weights`). All per-scene, none of them geometry.
         """
-        options = {"session": self.session, "evaluate": True, "known": self._known}
+        scene = bpy.context.scene
+        graphs = material_graphs(scene)
+        options = {"session": self.session, "evaluate": True, "known": self._known,
+                   "graph_materials": sorted(graphs),
+                   "graph_images": sorted({i for g in graphs.values() for i in g["images"]})}
         # THE ARENA IS WRITTEN BEFORE THE ASK, and on a skew whose channel is
         # an ordered stream of filesystem patches that is the whole
         # correctness argument: whatever carries `ask/<id>.done` out of this
@@ -784,7 +1065,31 @@ class Session:
         # nine of 17-workshop-interior's 63 calls died on that refusal.
         self.revision += 1
         frame["revision"] = self.revision
-        scene = bpy.context.scene
+        # THE GRAPHS JOIN THE DOOR'S MATERIALS, each image a graph samples
+        # named at the revision the door holds it at (`graph_images`, which is
+        # the session's to read and not part of the presenter's frame).
+        revisions = frame.pop("graph_images", {})
+        for name, graph in graphs.items():
+            if name not in frame["materials"]:
+                continue
+            for node in graph["nodes"].values():
+                image = node["props"].get("image")
+                if image is not None:
+                    node["props"]["image"] = {"name": image, "revision": int(revisions.get(image, 0))}
+            del graph["images"]
+            frame["materials"][name]["graph"] = graph
+        # A MANUAL TEXTURE SPACE, which Generated coordinates map through; the
+        # automatic one is the evaluated bounds the presenter already holds.
+        if graphs:
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            for row in frame["objects"]:
+                if not any(m in graphs for m in row["materials"] if m is not None):
+                    continue
+                obj = scene.objects.get(row["name"])
+                data = obj.evaluated_get(depsgraph).data if obj is not None else None
+                if getattr(data, "use_auto_texspace", True) is False:
+                    row["texspace"] = [[float(v) for v in data.texspace_location],
+                                       [float(v) for v in data.texspace_size]]
         frame["world"] = draw_world(scene)
         frame["cameras"] = {
             obj.name: draw_camera(obj) for obj in scene.objects if obj.type == "CAMERA"

@@ -25,6 +25,8 @@ import {
 import { fitModelDirectionalShadow, visibleShadowReceivers } from './blender-runtime-shadows';
 import { volumeMesh, volumeSchema } from './blender-runtime-volume';
 import { applyPhysicalMaterial, applyWorldExtinction, physicalMaterialSchema } from './blender-physical-material';
+import { prepareGraphGeometry, setMaterialGraph } from './blender-graph-material';
+import { type CompiledGraph, compileMaterialGraph, materialGraphSchema } from './blender-node-graph';
 import {worldMedium, WorldVolumePass} from './blender-world-volume';
 import { BlenderTextureSamplers } from './blender-texture-samplers';
 import { WeightOverlay, weightsSchema } from './blender-runtime-weights';
@@ -360,6 +362,11 @@ const materialSchema = z
       .object({ color: z.tuple([scalar, scalar, scalar]), strength: scalar })
       .strict()
       .optional(),
+    /** The node graph driving a Principled BSDF's or Emission's linked
+     *  inputs (`session.py`'s `material_graph`), compiled by
+     *  `blender-node-graph.ts`. The constants above still apply to every
+     *  input the graph does not carry. */
+    graph: materialGraphSchema.optional(),
   })
   .strict();
 /** THE FRAME CONTRACT, and the reason it is exported: the C++ export door
@@ -410,6 +417,10 @@ export const frameSchema = z
           render_visible: z.boolean().default(true),
           selected: z.boolean(),
           parent: z.string().nullable(),
+          /** A manual texture space (`[location, size]`), which Generated
+           *  coordinates map through; absent means Blender's automatic one,
+           *  the evaluated bounds (`blender-graph-material.ts`'s orco). */
+          texspace: z.tuple([z.tuple([scalar, scalar, scalar]), z.tuple([scalar, scalar, scalar])]).optional(),
         })
         .strict(),
     ),
@@ -512,6 +523,21 @@ export class BlenderRuntimeView {
   /** Which runtime image each material's roughness map is, by material id. */
   private readonly roughnessTextureNames = new Map<string, string>();
   private readonly textureSamplers = new BlenderTextureSamplers();
+  /** Each material's graph image samplers, by sampler key. */
+  private readonly graphSamplers = new Map<string, Set<string>>();
+  /** Compiled graphs by their JSON: a frame re-sends every material. */
+  private readonly graphs = new Map<string, CompiledGraph>();
+
+  private compiledGraph(graph: z.infer<typeof materialGraphSchema>): CompiledGraph {
+    const text = JSON.stringify(graph);
+    let compiled = this.graphs.get(text);
+    if (!compiled) {
+      compiled = compileMaterialGraph(graph);
+      if (this.graphs.size > 256) this.graphs.clear();
+      this.graphs.set(text, compiled);
+    }
+    return compiled;
+  }
   private frame: Frame | null = null;
   private readonly retiredSessions = new Set<string>();
   private geometryBuilds = 0;
@@ -1063,7 +1089,10 @@ export class BlenderRuntimeView {
       // carries no alpha on a texture, and Blender's Alpha is a separate
       // Principled socket.
       material.opacity = data.color[3];
-      const transparent = material.opacity < 1;
+      // A graph-driven Alpha is per pixel; the constant cannot say whether the
+      // surface is see-through, so a linked one is.
+      const alpha = data.graph?.inputs['Alpha'];
+      const transparent = material.opacity < 1 || (alpha !== undefined && 'link' in alpha);
       if (material.transparent !== transparent) {
         material.transparent = transparent;
         material.needsUpdate = true;
@@ -1172,6 +1201,31 @@ export class BlenderRuntimeView {
           material.needsUpdate = true;
         }
       }
+      // THE NODE GRAPH, when the session shipped one: compiled once per
+      // distinct graph, its images through the same cache and per-input
+      // sampler ownership as the maps above.
+      const graph = data.graph ? this.compiledGraph(data.graph) : null;
+      const graphSamplers = new Set<string>();
+      setMaterialGraph(material, graph, (image) => {
+        const held = this.textures.get(image.name);
+        if (!held)
+          throw new Error(
+            `${UNKNOWN_IMAGE}: the presenter does not hold runtime image ${image.name} ` +
+              `(revision ${image.revision})`,
+          );
+        const key = `${id}:graph:${image.node}`;
+        graphSamplers.add(key);
+        const texture = this.textureSamplers.get(key, held.texture, image.extension, held.ready);
+        const filter = image.closest ? THREE.NearestFilter : THREE.LinearFilter;
+        if (texture.magFilter !== filter) {
+          texture.magFilter = filter;
+          texture.minFilter = image.closest ? THREE.NearestFilter : THREE.LinearMipmapLinearFilter;
+          texture.needsUpdate = true;
+        }
+        return texture;
+      });
+      for (const key of this.graphSamplers.get(id) ?? []) if (!graphSamplers.has(key)) this.textureSamplers.delete(key);
+      this.graphSamplers.set(id, graphSamplers);
       this.materials.set(id, material);
     }
     for (const obj of next.objects) {
@@ -1201,12 +1255,15 @@ export class BlenderRuntimeView {
         object.matrix.premultiply(parent.invert());
       }
       object.matrix.decompose(object.position, object.quaternion, object.scale);
+      if (obj.texspace) object.userData['blenderTexspace'] = obj.texspace;
+      else delete object.userData['blenderTexspace'];
       if (obj.mesh !== null) {
         const mesh = object as THREE.Mesh;
         mesh.geometry = this.meshes.get(obj.mesh)!.geometry;
         mesh.material = obj.materials.length
           ? obj.materials.map((id) => (id === null ? this.fallback : this.materials.get(id)!))
           : this.fallback;
+        prepareGraphGeometry(mesh);
       }
       if (obj.light) {
         // The light hangs on its object's own node, so the object's matrix
@@ -1247,6 +1304,8 @@ export class BlenderRuntimeView {
     for (const [id, material] of this.materials)
       if (!next.materials[id]) {
         for (const slot of ['normal', 'roughness', 'color']) this.textureSamplers.delete(`${id}:${slot}`);
+        for (const key of this.graphSamplers.get(id) ?? []) this.textureSamplers.delete(key);
+        this.graphSamplers.delete(id);
         material.dispose();
         this.materials.delete(id);
       }
@@ -1347,9 +1406,15 @@ export class BlenderRuntimeView {
       frame.volumes[id] = volumeSchema.parse(JSON.parse(signature));
     const images = new Set(
       Object.values(frame.materials).flatMap((material) =>
-        [material.texture?.image.name, material.roughness_texture?.image.name, material.normal_texture?.image.name].filter(
-          (name): name is string => name !== undefined,
-        ),
+        [
+          material.texture?.image.name,
+          material.roughness_texture?.image.name,
+          material.normal_texture?.image.name,
+          // The images a material's node graph samples.
+          ...Object.values(material.graph?.nodes ?? {}).map(
+            (node) => (node.props['image'] as { name?: string } | null | undefined)?.name,
+          ),
+        ].filter((name): name is string => name !== undefined),
       ),
     );
     for (const name of images) {

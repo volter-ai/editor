@@ -4,6 +4,7 @@
  * that MeshPhysicalMaterial does not expose as properties. */
 import * as THREE from 'three';
 import {z} from 'zod';
+import {applyGraphShader, bindGraphDraw, graphProgramKey, setGraphViewport} from './blender-graph-material';
 import {bindNamedUvChannels} from './blender-texture-samplers';
 
 const scalar = z.number().finite();
@@ -55,8 +56,12 @@ export function applyPhysicalMaterial(material: THREE.MeshPhysicalMaterial, inpu
       blenderWorldExtinction: {value: new THREE.Vector3()}};
     uniforms.set(material, values);
     const held = values;
-    material.customProgramCacheKey = () => 'blender-principled-physical-v5';
-    material.onBeforeRender = (_renderer, _scene, _camera, geometry) => bindNamedUvChannels(material, geometry);
+    material.customProgramCacheKey = () => `blender-principled-physical-v5${graphProgramKey(material)}`;
+    material.onBeforeRender = (renderer, _scene, _camera, geometry) => {
+      bindNamedUvChannels(material, geometry);
+      bindGraphDraw(material, geometry, renderer);
+      setGraphViewport(renderer);
+    };
     material.onBeforeCompile = shader => {
       // Three declares channels 0..3. Blender has eight named UV maps in
       // addition to the default channel; only the used attributes survive GLSL.
@@ -121,6 +126,9 @@ export function applyPhysicalMaterial(material: THREE.MeshPhysicalMaterial, inpu
             blenderCoatIor * blenderCoatIor - (1.0 - dotNVcc * dotNVcc)));
           outgoingLight *= mix(vec3(1.0), pow(max(blenderCoatTint, vec3(0.0)), vec3(coatPath)), material.clearcoat);
           vec3 Fcc = F_Schlick`);
+      // The material's node graph, when the session shipped one, drives the
+      // surface inputs it carries (`blender-graph-material.ts`).
+      applyGraphShader(material, shader);
     };
     material.needsUpdate = true;
   }
