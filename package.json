@@ -10,7 +10,7 @@
     "build:blender-three": "npm run build:blender-three -w @volter/blender-engine",
     "build": "node scripts/build-release-packages.mjs && node scripts/write-bundled-notices.mjs",
     "check:release": "node scripts/check-release.mjs",
-    "test": "npm run test:session -w @volter/editor-core && node --test packages/editor-core/test/history.test.mjs packages/editor-core/test/session-close.test.mjs packages/editor-core/test/command-readiness.test.mjs packages/blender-engine/test/world-field.test.mjs packages/blender-engine/test/shutdown.test.mjs packages/editor-blender/test/history-refresh.test.mjs && python3 packages/blender-engine/test/native_history.py",
+    "test": "npm run test:session -w @volter/editor-core && node --test packages/editor-core/test/history.test.mjs packages/editor-core/test/session-close.test.mjs packages/editor-core/test/command-readiness.test.mjs packages/editor-core/test/command-deadline.test.mjs packages/blender-engine/test/world-field.test.mjs packages/blender-engine/test/shutdown.test.mjs packages/editor-blender/test/history-refresh.test.mjs && python3 packages/blender-engine/test/native_history.py",
     "check:packed-imports": "node scripts/check-packed-imports.mjs"
   },
   "devDependencies": {

@@ -12,6 +12,17 @@ checks pass. Packed and anonymous registry acceptance are not yet complete.
 Generated notice changes are package-version labels only; the Blender binary,
 Essentials and workbench remain unchanged.
 
+Packed acceptance completed 20 selected-object duplicate/delete/history/worker
+restart cycles, then exposed a server deadline race on the third full reopen:
+an early `blender-start` inherited the generic five-second limit before its
+120-second contribution row arrived. The worker completed in 10.925 seconds;
+the page remained responsive and Cube X=21.375 survived. Unknown package verbs
+now get bounded discovery time, and pending commands adopt the discovered
+budget without resetting elapsed work on repeated reports. Two fake-clock
+regression tests exercise the real control plane. All 37 tests, eight
+typechecks, build and release/import checks pass. The unpublished archives
+are being replaced before acceptance; this is not an npm republish.
+
 Rapid full editor close/reopen of the published 0.5.60 archives exposed two
 startup races: package commands could arrive before contribution discovery,
 and Blender start could guess the standing Model ID before the file-backed
