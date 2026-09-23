@@ -3,99 +3,266 @@
   "registry": "https://registry.npmjs.org",
   "source": {
     "repository": "https://github.com/volter-ai/editor",
-    "revision": "c488c9fc5e253093b95a014d07bdc0c501dd8408"
+    "revision": "377651068f63e359589735f9b707e00df58b39b4"
   },
-  "publication": "All eight versions are public; every registry integrity and shasum matches the tested immutable archive. Credential-free fresh-cache installation passed.",
+  "publication": "All eight versions are public; every registry integrity and shasum matches the exact tested archive. Normal credential-free fresh-cache creation, automatic workbench download and live acceptance passed.",
   "packages": [
     {
       "name": "@volter/editor-project",
-      "version": "0.5.62",
-      "shasum": "c72713834e2acacf3ee362a43cf9ccd3b2a2c48b",
-      "integrity": "sha512-hDtLuE9E7x8FyqXbFfHwWgOO7zaRqfXhMjW711X8eSnVuu7SvWE1w6nlmjm7ic1g2cdfHE0we293ZYzTuRk5EQ=="
+      "version": "0.5.63",
+      "shasum": "7853441ee9f73410eb171a1f0f384112a11738e9",
+      "integrity": "sha512-3Q29EzfdUSmzn5DisGib+CtieHOoEfACeZiqyg58PY0lKqRjMwK69Tf6x85FREtAXI06o1DXA6mZANutNNXXRA=="
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.62",
-      "shasum": "fec346c27f8c74b4793fa68dcba4b0609dfe9797",
-      "integrity": "sha512-N/nyB4g5fkbLNdLfwfdFbsOBieKCaKbX7krk1HN7Yw8k9pE6GaxFZv5tKmJMk3ngFxsT2FaQCWtkBZXIfgRgYw=="
+      "version": "0.5.63",
+      "shasum": "dd0161a27c9906e6339715cc8b0da0b63eaf87e5",
+      "integrity": "sha512-l4jPQRQPyY8iWm3DwvtVJLpKqWNoFRbeci2wtub86N5FjdJmJpu4FNkbSjJ+CJ3TmZSZ4GRocWyNLwegM+qbrQ=="
     },
     {
       "name": "@volter/editor-threejs",
-      "version": "0.5.62",
-      "shasum": "6635a43dcf2f58d561c06f95fe2e21f129a30145",
-      "integrity": "sha512-12dvRbWhRjTBD/qVGc2rNAW9LBh039J78mS8sLiDfqIXs8kvJB7SbyuvlEcImYbuQGasC34BIYjcs40Zo1lvGQ=="
+      "version": "0.5.63",
+      "shasum": "7030888ba6bea2517cb2df87cf7f08a7103ff4da",
+      "integrity": "sha512-4xjjDBUgBfSBP1wrM5ZUPqu1isH2W9VVaVXyNH+u+ovmB8Mt8xmdAAVXsOeoBcBZo1yATj1r8I+d0JCq5JNhww=="
     },
     {
       "name": "@volter/blender-engine",
-      "version": "0.1.5",
-      "shasum": "5cf6a53d1c8598ef12134f5041b609e15ae377d3",
-      "integrity": "sha512-xUdlxYIhmZegoTtYt2z/fM31/AI+7DVIqG61S1oW2vcmRkovoX5Z/QpJK/maJOWyXgZDyNCwWIXyUMruf2gTDg=="
+      "version": "0.1.6",
+      "shasum": "904c73f55a8d0f3ed6dc03c6b1173a2a6e9faf45",
+      "integrity": "sha512-gs9JAX74SZiky/t9kFJBtHnvqIis9CSl2OPyU+UJng1Qmc+z+cCUs6QqF+VURCEcv2BKLqtBSkd6gWLj9+/elg=="
     },
     {
       "name": "@volter/editor-blender",
-      "version": "0.1.5",
-      "shasum": "83f473aba632d5743a7290b54a63feacb494fb63",
-      "integrity": "sha512-Vxk6wud6fZaQ+5uOD7uT4l4TGYf1TtpBUw9zKFUrgUndQSIgeR4D7a6POO8/gg2iF24B2EkrQ74/FbGfEqJ7Tw=="
+      "version": "0.1.6",
+      "shasum": "eff9a70847872b3179093438e2bd8b62d7f37a5a",
+      "integrity": "sha512-9Ll0xMB2aYkp208M5z14iSsdJ0KNnLETedp/JFT0oZ6ENKMNqBzF61M55p5shy4eUhK4gpVPO+m41iFmhaH/Iw=="
     },
     {
       "name": "@volter/editor-core",
-      "version": "0.5.62",
-      "shasum": "5c7651b9b40027b948d0dfcf5aed425197ea41d6",
-      "integrity": "sha512-9ieroUmgCQGtWsrYAeVtvxWb4qX1Tsmh0ATiifP/BCiEw21NBuCsxKZEWVp6pGiQgG7sh1zoO+5WAKITPZQnmA=="
+      "version": "0.5.63",
+      "shasum": "7a6a78bf0d5ece0d71bb55f7112425a890cc986e",
+      "integrity": "sha512-S5a6amxJWep2U9H9vMtj6/L95oC75fZe4JhqcRLxPg6DEo+64J6y8UrEVPt9sjBDMC2oM4wYStHQl8ubXqO5Tg=="
     },
     {
       "name": "@volter/editor-live",
-      "version": "0.5.62",
-      "shasum": "04444bb90a2d3f1db251ca30d314e48d9abc193a",
-      "integrity": "sha512-HjC0QK7ZlD55pKozgREio/ltRFyJZOKNK4noNaPmStJeaOS40qamu6lamFBtTbuAZwL4IB/RQSrxB80bjrmRwQ=="
+      "version": "0.5.63",
+      "shasum": "a7b4bd9445f0cf4756e74a46695b8a29199ad29e",
+      "integrity": "sha512-CR2rB7fb+6izA0UQODm1e7ObLN8hTeqsmsxj2wMv23+Rip1+XGMrKuPm6nZdbS93GKrfU4HHeQBRUUHBWqW3aA=="
     },
     {
       "name": "@volter/editor",
-      "version": "0.5.62",
-      "shasum": "eef830eeebc4ea982e986d4c2b117ad4bb64835b",
-      "integrity": "sha512-b7ELMM0rzyV5yxPoS/u3FNbmOLC8IIZkPxMMXvc7dODt3IKT80NqUR8Urt/KY/XWVDFG+0QqDsUAiywPglGSBw=="
+      "version": "0.5.63",
+      "shasum": "860a2d58b75dc33b4c3e24ae357dc48038ace6d2",
+      "integrity": "sha512-vwcXn2eds7nUJfPUFATrh87A+US3piSuZ1ZiZtmmGGl4yVUR2DETRkd7HbCed1TcMsSIiFc7cjLSFdvIgKd4Cg=="
     }
   ],
-  "workbenchRelease": "editor-f8664703ab59-81f87ec200f3-darwin-arm64",
-  "packedAcceptance": {
-    "platform": "darwin-arm64",
-    "node": "v24.21.0",
-    "workspaceLinks": false,
-    "tests": 41,
+  "workbenchRelease": "editor-f8664703ab59-c9551e8c6f18-darwin-arm64",
+  "blenderRelease": "blender-5.2.0-wasm.2",
+  "checks": {
+    "tests": 72,
     "typecheckedPackages": 8,
-    "packedImportFiles": 1083,
-    "structuralHistory": "Python/RNA undo and redo passed (Cube X=0 ↔ 3.125 ↔ 5.625), including Essentials-backed modifier restoration. Fifteen rapid duplicate/delete/history cycles asserted persisted=true and no stale Properties error; three worker restarts retained X=5.625.",
-    "fullReopen": "Five full close/reopen cycles immediately invoked default MCP-shaped Blender start and checked RNA undo/redo. Saved values survived through Cube X=10.625; every cycle had a silent console.",
-    "mcp": "Actual MCP transport opened the closed editor and read the saved scene. Essentials NodesModifier remained. Explorer was visible on cold reopen; Properties was explicitly focused, its populated fields checked, and its capture inspected.",
-    "saveFailure": "Read-only model directory forced edit and CLI close to refuse EACCES while retaining the worker. Original permissions 755 restored; next call retried save; full reopen retained Cube X=12.625 with a silent console.",
-    "diagnostics": "Initial zero-size canvas sample acknowledged after visible capture and healthy current rendering at 45.4fps. Deliberate save-failure diagnostic acknowledged after recovery.",
-    "earlierPendingCloseEvidence": "0.5.61: close during a two-second Python edit waited 2250ms and reopen retained Cube X=6.875. No claim of a new 0.5.62 pending-Python-close probe."
+    "build": "passed",
+    "manifestBoundaryPackages": 8,
+    "packedImportFiles": 1086,
+    "fullBlenderBattery": "362/362 calls, zero harness failures; exact native differences retained in blender-material-verification.json"
+  },
+  "packedAcceptance": {
+    "completedAt": "2026-09-23T10:17:21.831Z",
+    "pythonRnaHistory": true,
+    "structuralCycles": 5,
+    "coldReopens": 5,
+    "nativePanelsRestored": true,
+    "sourceControlChoicePreserved": true,
+    "essentials": true,
+    "x": 5.625,
+    "console": {
+      "errors": 0,
+      "warnings": 0,
+      "errorOccurrences": 0,
+      "warningOccurrences": 0,
+      "acked": 0,
+      "dropped": 0,
+      "measuredAt": 1790158641858
+    },
+    "saveRecovery": {
+      "refusedEdit": true,
+      "refusedClose": true,
+      "restoredMode": "755",
+      "recoveredX": 12.625,
+      "pendingCloseMs": 2396,
+      "reopenedX": 14.625,
+      "console": {
+        "errors": 0,
+        "warnings": 0,
+        "errorOccurrences": 0,
+        "warningOccurrences": 0,
+        "acked": 0,
+        "dropped": 0,
+        "measuredAt": 1790158670745
+      }
+    },
+    "coldMcp": {
+      "coldStdioMcp": true,
+      "x": 14.625,
+      "essentials": true,
+      "console": {
+        "errors": 0,
+        "warnings": 0,
+        "errorOccurrences": 0,
+        "warningOccurrences": 0,
+        "acked": 0,
+        "dropped": 0,
+        "measuredAt": 1790158688980
+      }
+    },
+    "workspaceLinks": false,
+    "wasmOverride": false
+  },
+  "renderer": {
+    "physical": "Packed GPU: physical inputs on/off, tangent and object-space DirectX normals, edit/undo/redo, first/eighth/missing named UV, Repeat/Clip passed.",
+    "volume": "Packed absorption/clear, spotlight/blocker, point/zero-energy and history probes passed. Dark image has maximum one-code-value residual, not exact black parity.",
+    "pixels": {
+      "volume-absorption": {
+        "center": [
+          163,
+          163,
+          163
+        ],
+        "rgbSum": 8011842,
+        "max": 164
+      },
+      "volume-clear": {
+        "center": [
+          255,
+          255,
+          255
+        ],
+        "rgbSum": 12529662,
+        "max": 255
+      },
+      "volume-scatter": {
+        "center": [
+          69,
+          69,
+          69
+        ],
+        "rgbSum": 958731,
+        "max": 214
+      },
+      "volume-shadow": {
+        "center": [
+          69,
+          69,
+          69
+        ],
+        "rgbSum": 767031,
+        "max": 214
+      },
+      "volume-point": {
+        "center": [
+          115,
+          115,
+          115
+        ],
+        "rgbSum": 5753064,
+        "max": 255
+      },
+      "volume-dark": {
+        "center": [
+          0,
+          0,
+          0
+        ],
+        "rgbSum": 4164,
+        "max": 1
+      }
+    },
+    "nativeCyclesParity": false
   },
   "installation": {
-    "status": "passed",
-    "credentials": "NODE_AUTH_TOKEN and NPM_TOKEN removed; user config /dev/null; task-owned credential-free global config.",
-    "cache": "New empty npm cache after registry propagation; unchanged previously checksum-verified public workbench cache reused.",
-    "installedPackages": 369,
+    "completedAt": "2026-09-23T10:34:11.735Z",
+    "credentialFree": true,
+    "initiallyEmptyCache": true,
     "workspaceLinks": false,
-    "packageSources": "All eight declared packages resolved from https://registry.npmjs.org with matching versions and archive integrities.",
-    "liveAcceptance": "Python/RNA native undo/redo, Essentials modifier restoration, ten rapid persisted duplicate/delete/history cycles and two worker restarts passed. Properties showed no stale error. Inspected capture showed selected Cube X=5.625, grid, Outliner, populated Properties and Chat.",
-    "diagnostics": "Initial zero-size canvas sample acknowledged after visible capture and current canvas-revealed invariant OK at 95.9fps.",
-    "pendingClose": "Close during a two-second Python edit waited 2249ms. Full reopen retained Cube X=9.875 and the Essentials NodesModifier with a silent console. The task session was then closed."
+    "allEightRegistryDigestsMatch": true,
+    "project": "public-anonymous",
+    "credentials": "NPM_TOKEN, NODE_AUTH_TOKEN, GITHUB_TOKEN and GH_TOKEN removed; npm user config /dev/null, task-owned credential-free global config; PATH excludes gh so no login fallback is possible.",
+    "cache": "New empty npm cache/prefix; matching public workbench absent and fetched automatically, SHA-256 checked before extraction.",
+    "installedPackages": 436,
+    "liveAcceptance": {
+      "completedAt": "2026-09-23T10:37:43.337Z",
+      "pythonRnaHistory": true,
+      "structuralCycles": 5,
+      "coldReopens": 5,
+      "nativePanelsRestored": true,
+      "sourceControlChoicePreserved": true,
+      "essentials": true,
+      "x": 5.625,
+      "console": {
+        "errors": 0,
+        "warnings": 0,
+        "errorOccurrences": 0,
+        "warningOccurrences": 0,
+        "acked": 0,
+        "dropped": 0,
+        "measuredAt": 1790159863359
+      }
+    },
+    "saveRecovery": {
+      "refusedEdit": true,
+      "refusedClose": true,
+      "restoredMode": "755",
+      "recoveredX": 12.625,
+      "pendingCloseMs": 2424,
+      "reopenedX": 14.625,
+      "console": {
+        "errors": 0,
+        "warnings": 0,
+        "errorOccurrences": 0,
+        "warningOccurrences": 0,
+        "acked": 0,
+        "dropped": 0,
+        "measuredAt": 1790159883608
+      }
+    },
+    "coldMcp": {
+      "coldStdioMcp": true,
+      "x": 14.625,
+      "essentials": true,
+      "console": {
+        "errors": 0,
+        "warnings": 0,
+        "errorOccurrences": 0,
+        "warningOccurrences": 0,
+        "acked": 0,
+        "dropped": 0,
+        "measuredAt": 1790159893277
+      }
+    },
+    "missingUv": "Live render and undo passed, silent console.",
+    "capture": "Inspected selected Cube at X=14.625, grid, Outliner, populated Properties and Chat.",
+    "diagnostics": [
+      "Initial canvas zero-size sample acknowledged only after inspected populated UI capture and current canvas invariant OK at 120 fps.",
+      "The restricted anonymous-install PATH also hid installed Claude. Its missing-runtime warning was recorded; normal PATH restored before live acceptance. Final full run has zero unresolved and zero acknowledged diagnostics.",
+      "npm version endpoint propagated before install metadata; first npx attempt refused ETARGET. Retried with another empty cache after install-index propagation.",
+      "Initial authenticated GitHub API listing reported zero workbench assets while direct download worked. Later authenticated/anonymous lists agreed; fully anonymous normal installer fetched successfully. No archive replacement."
+    ]
   },
   "audit": {
-    "moderate": 4,
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
     "high": 0,
     "critical": 0,
-    "measuredVersion": "0.5.62",
-    "rootAdvisory": "https://github.com/advisories/GHSA-82fw-gwwq-j7x9",
-    "dependencyChain": "Storybook -> @vitest/mocker",
-    "resolved": false
+    "total": 0,
+    "scope": "Fresh installed product only; not the Code-OSS build-only dependency tree."
   },
   "limitations": [
-    "Windows/Linux explicitly deferred; darwin-arm64 only.",
-    "The intermittent unresponsive renderer observed on 0.5.58 remains unexplained. Later source, packed and old-version comparison runs did not reproduce it. Do not claim the persistence, Outliner or startup-deadline fixes establish its cause.",
-    "Browser unload prompts require user activation and can be overridden. Forced process termination and power loss cannot guarantee an in-flight edit's final save.",
-    "History is session-local; worker replacement and direct Blender file/history operations invalidate prior workbench model entries.",
-    "World volumes, complete rendering parity, expanded inspection-only editing, game publication and full viewport extraction remain outside this pass."
+    "Windows/Linux deferred by owner; macOS Apple Silicon only.",
+    "Earlier intermittent unresponsive renderer remains unresolved; new operation diagnostics do not claim to fix it.",
+    "General material graphs, heterogeneous volumes, multiple scattering and additional listed renderer paths remain implementation work, not fundamental Three.js impossibilities.",
+    "Bridge/courier exact native geometry and bridge/tram helper presentation differences remain declared with unchanged oracles.",
+    "Existing projects retain explicit machine-local workbench declarations; npm update alone does not replace those choices.",
+    "Chat requires a separately installed external agent runtime; it is not provided or authenticated by the modeling packages."
   ]
 }

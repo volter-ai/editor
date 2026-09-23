@@ -1,8 +1,9 @@
 # Public release status
 
-Volter Editor 0.5.62 / Blender packages 0.1.5 are public on npm. Every
+Volter Editor 0.5.63 / Blender packages 0.1.6 are public on npm. Every
 registry digest matches its tested archive. Credential-free installation from
-an initially empty npm cache succeeded. Only the
+an initially empty npm cache and automatic public workbench download succeeded.
+The new install reports zero npm vulnerabilities. Only the
 eight packages in [release/modeling.json](release/modeling.json) are published;
 game packages remain excluded.
 
@@ -22,8 +23,9 @@ game packages remain excluded.
 3. **Rendering:** linked World Background strength and Blender's
    POINT/TEXTURE/VECTOR/NORMAL Mapping semantics are evaluated, including
    inverse mapping with zero scale. This is not complete material-renderer
-   parity. General shader graphs and World volumes are implementation work,
-   not established Three.js limitations.
+   parity. Release 0.5.63 adds the physical-material and homogeneous World-volume
+   features described below; remaining shader-graph and volume features are
+   implementation work, not established Three.js limitations.
 4. **Duplication/deletion:** batch operations are one native edit; copied
    parent/child relationships and selection are preserved. Undo/redo restores
    both objects and relationships. History acknowledgment waits for the
@@ -56,7 +58,7 @@ pursue these builds in this pass. Only darwin-arm64 is supported.
   is cleared while the new subject loads. Four regression tests fail against
   the previous implementation and pass with the correction.
 
-## Verification
+## Earlier 0.5.62 verification
 
 All 41 tests, all eight package typechecks, build, release-boundary checks and
 packed-import checks covering 1,083 files pass. Generated bundled notices were
@@ -104,29 +106,29 @@ console. The task's editor sessions were closed after acceptance.
 
 ## Source and artifacts
 
-- npm source: `c488c9fc5e253093b95a014d07bdc0c501dd8408` in the public
+- npm source for 0.5.63: `377651068f63e359589735f9b707e00df58b39b4` in the public
   [editor repository](https://github.com/volter-ai/editor). The earlier 0.5.59
   and 0.5.60 patches are immutable: 0.5.59 lacks the Outliner barrier, and
   0.5.60 lacks the cold-start corrections; 0.5.61 lacks revision-safe
   Properties reads.
   [Release v0.5.62](https://github.com/volter-ai/editor/releases/tag/v0.5.62)
-  and the [npm receipt](provenance/public-npm-release.json) record the exact
+  records the preceding acceptance. The current [npm receipt](provenance/public-npm-release.json) records the exact
   archive digests, acceptance evidence and remaining limits.
-- The workbench is Code-OSS `f8664703ab59` plus editor overlay `81f87ec200f3`,
-  release `editor-f8664703ab59-81f87ec200f3-darwin-arm64`, SHA-256
-  `2e2139867dda53aaa6fef58005443b9626d2f2975011c342487b1613b8464ef5`.
-  Its complete anonymous download was verified for 0.5.58; later patches reuse
-  this unchanged cache. See [workbench provenance](provenance/public-workbench-release.json).
+- The workbench is Code-OSS `f8664703ab59` plus editor overlay `c9551e8c6f18`,
+  release `editor-f8664703ab59-c9551e8c6f18-darwin-arm64`, SHA-256
+  `99e97f43474e0a5fdbfef7c8d7c61718a4c4a6d96a924dfa0cd8de5cf5c7b82b`.
+  Its complete anonymous download and normal fresh installer fetch were verified.
+  See [workbench provenance](provenance/public-workbench-release.json).
 - Blender corresponding source and all 34 dependency-source archives were
   public before binary distribution. See [source review](provenance/blender-source-review.json)
-  and the [source release](https://github.com/volter-ai/blender/releases/tag/blender-5.2.0-wasm.1).
+  and the [source/binary release](https://github.com/volter-ai/blender/releases/tag/blender-5.2.0-wasm.2).
 - All three public repositories began from reviewed root snapshots without
   private history. Former repositories and legacy releases remain private
   under explicit `*-private-history` names. No recurring export is required.
 
 ## Remaining work and limits
 
-### Material-rendering implementation (unreleased candidate)
+### Material-rendering implementation (0.5.63)
 
 The candidate implements Principled coat weight/roughness/IOR/tint, sheen
 weight/roughness/tint, anisotropy/rotation, specular level/tint and thin-film
@@ -151,8 +153,8 @@ BSDF or shader-graph parity.
 
 The corresponding Blender exporter is public at
 `68bba09924c2cf08cbceb6608be4a9e1500a62bb` (PR #1). Verification used a rebuilt
-WASM override. The candidate now carries that verified binary; public npm is
-still unchanged. Fresh packed acceptance has passed; publication remains required.
+WASM override. Public npm now carries that verified binary. Fresh packed
+acceptance passed before publication; corresponding source was public first.
 
 The candidate also implements homogeneous World Absorption, Scatter, Principled
 Volume and Emission closures, including Add/Mix weights and constant linked
@@ -201,7 +203,7 @@ source/harness hashes, timings, errors, runtime checks and comparison evidence.
 The public source archive at `blender-5.2.0-wasm.2` was anonymously verified;
 the 34 unchanged dependency payloads remain at `blender-5.2.0-wasm.1`.
 
-### Packaged sidebar restoration (unreleased)
+### Packaged sidebar restoration (0.5.63)
 
 The reported outdated-looking UI exposed a reproducible packaged-only issue:
 manually opening Properties and Outliner did not survive a full cold reopen.
@@ -246,10 +248,34 @@ spotlight scattering; point-light scattering disappeared when energy was zero,
 apart from an observed maximum one-code-value residual (not exact black parity).
 All probes restored their temporary edits and ended with a silent console.
 An inspected settled capture shows populated Cube Properties at X=14.625,
-Outliner, grid and the retained material probe. Publication and registry-only
-installation acceptance remain to be completed.
+Outliner, grid and the retained material probe.
 
-### Renderer-hang diagnostics after 0.5.62 (source only)
+### Public 0.5.63 installation and acceptance
+
+All eight immutable archives are public and every registry digest matches.
+Fresh-cache creation installed 436 packages with zero audit findings, no links
+and no npm or GitHub credentials (including no `gh` login fallback). The product
+automatically downloaded the new public workbench and verified its checksum.
+Registry installation metadata and GitHub asset listings initially lagged their
+direct endpoints; those attempts refused and were retried after propagation,
+without replacing any archive.
+
+The public install repeated Python/RNA and structural history, Essentials and
+five full cold-reopen checks including Source Control selection. Failed-save
+recovery preserved X=12.625; close during a two-second edit waited 2,424 ms and
+reopen retained X=14.625. Cold stdio MCP read the saved scene and Essentials.
+Missing named UV rendering and undo passed. Final capture was inspected: selected
+Cube, grid, Outliner, populated Properties at X=14.625 and Chat. The final console
+is silent with no acknowledged diagnostics in that session.
+
+The initial public launch's zero-size canvas sample was acknowledged only after
+visible capture and healthy current rendering at 120 fps. The credential-free
+test PATH also hid the separately installed Claude runtime; its warning was
+recorded, and normal PATH restored before the final acceptance. Neither initial
+warning is claimed never to have occurred. The current editor is left open for
+the owner; other task probe sessions are closed.
+
+### Renderer-hang diagnostics (included in 0.5.63)
 
 The original public acceptance log shows no receipt for `blender-stop`;
 the page was already failing to pick up commands. That does not establish
@@ -298,7 +324,9 @@ proofs, not a reproduction or fix of the older intermittent hang.
 - Fresh anonymous 0.5.62 installation reported four moderate dependency entries
   through Storybook and `@vitest/mocker`
   ([GHSA-82fw-gwwq-j7x9](https://github.com/advisories/GHSA-82fw-gwwq-j7x9));
-  zero high/critical entries. This release does not resolve that advisory.
+  zero high/critical entries. Release 0.5.63 resolves those entries; both its packed
+  and anonymous public installations report zero vulnerabilities. This is the
+  installed product audit, not a claim about the workbench's build-only toolchain.
 - Existing project filenames and protocol/settings identifiers remain unchanged.
   A full rename is a separate migration. Game publication and full viewport
   extraction remain outside this release. Emscripten is shipped; optional WALI
