@@ -305,7 +305,7 @@
     },
     {
       "name": "@volter/blender-engine",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "license": "GPL-3.0-or-later",
       "notices": [
         {
@@ -316,7 +316,7 @@
     },
     {
       "name": "@volter/editor-blender",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "license": "AGPL-3.0-only AND GPL-3.0-or-later",
       "notices": [
         {
@@ -327,7 +327,7 @@
     },
     {
       "name": "@volter/editor-core",
-      "version": "0.5.60",
+      "version": "0.5.61",
       "license": "AGPL-3.0-only AND Apache-2.0",
       "notices": [
         {
@@ -346,7 +346,7 @@
     },
     {
       "name": "@volter/editor-project",
-      "version": "0.5.60",
+      "version": "0.5.61",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -357,7 +357,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.60",
+      "version": "0.5.61",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -372,7 +372,7 @@
     },
     {
       "name": "@volter/editor-threejs",
-      "version": "0.5.60",
+      "version": "0.5.61",
       "license": "AGPL-3.0-only AND Apache-2.0",
       "notices": [
         {
@@ -627,7 +627,7 @@
     },
     {
       "name": "@volter/editor-project",
-      "version": "0.5.60",
+      "version": "0.5.61",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -638,7 +638,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.60",
+      "version": "0.5.61",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -653,7 +653,7 @@
     },
     {
       "name": "@volter/editor-threejs",
-      "version": "0.5.60",
+      "version": "0.5.61",
       "license": "AGPL-3.0-only AND Apache-2.0",
       "notices": [
         {
@@ -751,7 +751,7 @@
   "editor-live": [
     {
       "name": "@volter/editor-project",
-      "version": "0.5.60",
+      "version": "0.5.61",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -762,7 +762,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.60",
+      "version": "0.5.61",
       "license": "Apache-2.0",
       "notices": [
         {

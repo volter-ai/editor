@@ -1221,7 +1221,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@volter/blender-engine@0.1.3
+@volter/blender-engine@0.1.4
 Declared license: GPL-3.0-or-later
 
 --- packages/blender-engine/LICENSE ---
@@ -1952,7 +1952,7 @@ Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
 
 
-@volter/editor-blender@0.1.3
+@volter/editor-blender@0.1.4
 Declared license: AGPL-3.0-only AND GPL-3.0-or-later
 
 --- packages/editor-blender/LICENSE ---
@@ -3368,7 +3368,7 @@ Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
 
 
-@volter/editor-core@0.5.60
+@volter/editor-core@0.5.61
 Declared license: AGPL-3.0-only AND Apache-2.0
 
 --- packages/editor-core/LICENSE ---
@@ -4289,7 +4289,7 @@ server/support/ modules transferred from @vgai/sdk are Apache-2.0.
 Their source paths and hashes are recorded in provenance/editor-server.json.
 
 
-@volter/editor-project@0.5.60
+@volter/editor-project@0.5.61
 Declared license: Apache-2.0
 
 --- packages/editor-project/LICENSE ---
@@ -4498,7 +4498,7 @@ Declared license: Apache-2.0
    limitations under the License.
 
 
-@volter/editor-sdk@0.5.60
+@volter/editor-sdk@0.5.61
 Declared license: Apache-2.0
 
 --- packages/editor-sdk/LICENSE ---
@@ -4719,7 +4719,7 @@ The project output-root policy is Apache-2.0, transferred from the original
 SDK; its exact source is recorded in provenance/editor-server.json.
 
 
-@volter/editor-threejs@0.5.60
+@volter/editor-threejs@0.5.61
 Declared license: AGPL-3.0-only AND Apache-2.0
 
 --- packages/editor-threejs/LICENSE ---
