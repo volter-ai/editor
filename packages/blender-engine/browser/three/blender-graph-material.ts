@@ -220,6 +220,11 @@ ${compiled.uvs.map(n => `${uvVarying(n)} = ${attribute(channels[n] ?? 0)};`).joi
     fragment.push(['#include <metalnessmap_fragment>', `metalnessFactor = ${out('Metallic')};`, false]);
     fragment.push(['#include <emissivemap_fragment>',
       `totalEmissiveRadiance = ${out('Emission Color')}.rgb * ${out('Emission Strength')};`, false]);
+    // A linked Normal replaces three's shading normal (view space), after its
+    // own normal map and before the clearcoat normal is derived from it.
+    if (out('Normal'))
+      fragment.push(['#include <clearcoat_normal_fragment_begin>',
+        `normal = normalize((viewMatrix * vec4(transpose(blender_from_three) * ${out('Normal')}, 0.0)).xyz);`, true]);
   }
   // MACROS BOTH SIDES DEFINE (three's `saturate` and Blender's, say): each
   // side's code is compiled under its own definition -- Blender's library

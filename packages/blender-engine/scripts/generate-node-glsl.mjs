@@ -59,6 +59,9 @@ const ROOTS = [
   'gpu_shader_material_tex_white_noise.glsl',
   'gpu_shader_material_vector_math.glsl',
   'gpu_shader_material_vector_rotate.glsl',
+  'gpu_shader_material_normal_map.glsl',
+  'gpu_shader_material_bump.glsl',
+  'gpu_shader_material_geometry.glsl',
 ];
 
 /**
@@ -86,6 +89,10 @@ const PATCHES = [
     'float cellOffset = float(i) + closestPointOffset;', 1],
   ['gpu_shader_material_fractal_voronoi.glsl', 'i <= ceil(params.detail)', 'float(i) <= ceil(params.detail)', 5],
   ['gpu_shader_material_fractal_voronoi.glsl', 'i <= params.detail)', 'float(i) <= params.detail)', 5],
+  ['gpu_shader_material_transform_utils.glsl', /^(\s+)const ((?:Object|View)Matrices \w+ =)/gm, '$1$2', 24],
+  ['gpu_shader_material_normal_map.glsl', '(object_infos_get().flag & OBJECT_NEGATIVE_SCALE) != 0',
+    '(object_infos_get().flag & OBJECT_NEGATIVE_SCALE) != 0u', 1],
+  ['gpu_shader_material_normal_map.glsl', 'saturate(strength)', 'clamp(strength, 0.0f, 1.0f)', 1],
   ['gpu_shader_math_euler_lib.glsl', '_ctor(EulerXYZ) 0, 0, 0 _rotc()', '_ctor(EulerXYZ) 0.0f, 0.0f, 0.0f _rotc()', 1],
   ['gpu_shader_math_angle_lib.glsl', '_ctor(AngleRadian) 0 _rotc()', '_ctor(AngleRadian) 0.0f _rotc()', 1],
   ['gpu_shader_math_axis_angle_lib.glsl', '_ctor(AxisAngle) float3(0, 1, 0), 0 _rotc()',

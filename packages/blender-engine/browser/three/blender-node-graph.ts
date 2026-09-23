@@ -46,7 +46,8 @@ export const GRAPH_NODE_TYPES = [
   'ShaderNodeTexWave', 'ShaderNodeTexGradient', 'ShaderNodeTexMagic', 'ShaderNodeTexBrick',
   'ShaderNodeMapRange', 'ShaderNodeClamp', 'ShaderNodeHueSaturation', 'ShaderNodeBrightContrast',
   'ShaderNodeGamma', 'ShaderNodeRGBToBW', 'ShaderNodeSeparateColor', 'ShaderNodeCombineColor',
-  'ShaderNodeVectorRotate', 'ShaderNodeFresnel', 'ShaderNodeLayerWeight',
+  'ShaderNodeVectorRotate', 'ShaderNodeFresnel', 'ShaderNodeLayerWeight', 'ShaderNodeBump',
+  'ShaderNodeNormalMap', 'ShaderNodeNewGeometry',
 ] as const;
 
 const nodeSchema = z.object({
@@ -160,17 +161,62 @@ function prop<T>(node: GraphNode, name: string): T {
   return node.props[name] as T;
 }
 
-/** What EEVEE's node library reads from EEVEE itself, supplied for the nodes
- *  that read it (Fresnel, Layer Weight): the shading globals `g_data`
- *  (world position and normal, set at the top of `blenderGraph`), EEVEE's
- *  `coordinate_incoming` (`eevee_nodetree_lib`: toward the eye; the view axis
- *  in orthographic), and codegen's `FrontFacing`. */
+/** What EEVEE's node library reads from EEVEE itself, transcribed: the
+ *  shading globals `g_data` (`init_globals`: N faces the viewer, Ng the true
+ *  normal), the object/view matrix accessors `transform_utils` calls, the
+ *  object's negative-scale flag, `coordinate_incoming` (toward the eye; the
+ *  view axis in orthographic), `derivative_scale_get` (1 at full resolution)
+ *  and codegen's precise `dF_impl`, which the bump sub-function evaluates
+ *  with its derivative flag set (`gpu_shader_codegen_lib.glsl`).
+ *  BLENDER'S WORLD IS Z-UP: the presenter's model root maps it into three's
+ *  Y-up world by the exact permutation (x, y, z) -> (x, z, -y)
+ *  (`blender-runtime-view.ts`), so every world-space quantity handed to the
+ *  library goes back through `blender_from_three`, and a normal the graph
+ *  returns comes out through its transpose. */
 const EEVEE_GLOBALS = `
+#define GPU_FRAGMENT_SHADER
 #define FrontFacing gl_FrontFacing
-struct BlenderGlobalData { vec3 P; vec3 N; };
+uniform mat4 modelMatrix;
+const mat3 blender_from_three = mat3(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0);
+const mat4 blender_from_three4 = mat4(blender_from_three);
+struct BlenderGlobalData { vec3 P; vec3 N; vec3 Ng; vec3 Ni; bool is_strand; vec3 curve_T; vec2 barycentric_coords; };
 BlenderGlobalData g_data;
+struct ObjectMatrices { mat4 model; mat4 model_inverse; };
+ObjectMatrices object_matrices_get() {
+  mat4 model = blender_from_three4 * modelMatrix;
+  return ObjectMatrices(model, inverse(model));
+}
+struct ViewMatrices { mat4 viewmat; mat4 viewinv; };
+ViewMatrices view_matrices_get() {
+  mat4 viewinv = blender_from_three4 * inverse(viewMatrix);
+  return ViewMatrices(inverse(viewinv), viewinv);
+}
+#define OBJECT_NEGATIVE_SCALE 1u
+struct ObjectInfos { uint flag; };
+ObjectInfos object_infos_get() { return ObjectInfos(determinant(mat3(modelMatrix)) < 0.0 ? 1u : 0u); }
 vec3 coordinate_incoming(vec3 P) {
-  return isOrthographic ? normalize(vec3(inverse(viewMatrix)[2])) : normalize(cameraPosition - P);
+  return isOrthographic ? normalize(blender_from_three * vec3(inverse(viewMatrix)[2]))
+    : normalize(blender_from_three * cameraPosition - P);
+}
+float derivative_scale_get() { return 1.0; }
+float g_derivative_filter_width = 0.0;
+int g_derivative_flag = 0;
+vec3 dF_impl(vec3 v) {
+  if (g_derivative_flag > 0) return dFdx(v) * g_derivative_filter_width;
+  else if (g_derivative_flag < 0) return dFdy(v) * g_derivative_filter_width;
+  return vec3(0.0);
+}
+void blender_init_globals() {
+  // EEVEE's init_globals: the shading normal faces the viewer.
+  vec3 N = blender_from_three * normalize(vBlenderWorldNormal);
+  g_data.P = blender_from_three * vBlenderWorldPosition;
+  g_data.N = gl_FrontFacing ? N : -N;
+  g_data.Ni = g_data.N;
+  vec3 Ng = normalize(cross(dFdx(g_data.P), dFdy(g_data.P)));
+  g_data.Ng = gl_FrontFacing ? Ng : -Ng;
+  g_data.is_strand = false;
+  g_data.curve_T = vec3(0.0);
+  g_data.barycentric_coords = vec2(0.0);
 }
 `;
 
@@ -195,47 +241,86 @@ vec3 blender_window() {
   // coordinate_screen, without a camera border.
   return vec3(gl_FragCoord.xy / blenderViewport, 0.0);
 }
+vec4 blender_uv_tangent(vec2 uv) {
+  // A tangent from the UV layer's screen derivatives (three's
+  // perturbNormal2Arb), where EEVEE reads the mesh's MikkTSpace tangent.
+  vec3 N = g_data.N;
+  vec3 dp1 = dFdx(g_data.P), dp2 = dFdy(g_data.P);
+  vec2 duv1 = dFdx(uv), duv2 = dFdy(uv);
+  vec3 dp2perp = cross(dp2, N), dp1perp = cross(N, dp1);
+  vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;
+  vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;
+  float m = max(dot(T, T), dot(B, B));
+  if (m == 0.0) return vec4(0.0, 0.0, 0.0, 1.0);
+  T *= inversesqrt(m); B *= inversesqrt(m);
+  return vec4(normalize(T), dot(cross(N, T), B) < 0.0 ? -1.0 : 1.0);
+}
 vec3 blender_reflection() {
   // coordinate_reflect: -reflect(world incident, N), incident toward the eye.
   vec3 incident = isOrthographic
     ? normalize(vec3(inverse(viewMatrix)[2]))
     : normalize(cameraPosition - vBlenderWorldPosition);
-  return -reflect(incident, normalize(vBlenderWorldNormal));
+  return blender_from_three * -reflect(incident, normalize(vBlenderWorldNormal));
 }
 `;
 
-class Compiler {
-  private readonly files = new Set<string>();
-  private readonly lines: string[] = [];
-  private readonly emitted = new Map<string, {name: string; type: GpuType}[]>();
-  readonly uniforms = new Map<string, number | readonly number[]>();
-  private readonly uniformTypes = new Map<string, GpuType>();
-  readonly images: GraphImage[] = [];
-  readonly ramps: GraphRamp[] = [];
-  readonly uvs = new Set<string>();
-  private readonly structure: unknown[] = [];
+/** What every compiler of one material shares: its program's library files,
+ *  uniforms, textures, UV layers, structure key and sub-functions. */
+interface Shared {
+  readonly files: Set<string>;
+  readonly uniforms: Map<string, number | readonly number[]>;
+  readonly uniformTypes: Map<string, GpuType>;
+  readonly images: GraphImage[];
+  readonly ramps: GraphRamp[];
+  readonly uvs: Set<string>;
+  readonly structure: unknown[];
+  /** Sub-functions (a Bump's height), defined before `blenderGraph`. */
+  readonly functions: string[];
+}
 
-  constructor(private readonly graph: MaterialGraph) {}
+class Compiler {
+  readonly lines: string[] = [];
+  private readonly emitted = new Map<string, {name: string; type: GpuType}[]>();
+  private readonly s: Shared;
+
+  /** `derivative` is Blender's `node_shader_gpu_bump_tex_coord`: in a bump's
+   *  height sub-function every coordinate read carries `dF_impl`, so the
+   *  sub-function evaluated with the derivative flag set samples the offset
+   *  position. */
+  constructor(private readonly graph: MaterialGraph, shared?: Shared,
+    private readonly derivative = false, private readonly prefix = 'bgN') {
+    this.s = shared ?? {files: new Set(), uniforms: new Map(), uniformTypes: new Map(), images: [], ramps: [],
+      uvs: new Set(), structure: [], functions: []};
+  }
+
+  get uniforms() { return this.s.uniforms; }
+  get images() { return this.s.images; }
+  get ramps() { return this.s.ramps; }
+
+  /** A coordinate as the height sub-function reads it (see `derivative`). */
+  private d(expr: string): string {
+    return this.derivative ? `(${expr} + dF_impl(${expr}))` : expr;
+  }
 
   private uniform(type: GpuType, v: number | readonly number[]): string {
-    const name = `bgU${this.uniforms.size}`;
+    const name = `bgU${this.s.uniforms.size}`;
     const values = literal(type, v);
-    this.uniforms.set(name, type === 'float' ? values[0]! : values);
-    this.uniformTypes.set(name, type);
+    this.s.uniforms.set(name, type === 'float' ? values[0]! : values);
+    this.s.uniformTypes.set(name, type);
     return name;
   }
 
   private use(fn: string): string {
     const file = DEFINED_IN.get(fn);
     if (!file) throw new Error(`Blender's node library has no ${fn}`);
-    this.files.add(file);
+    this.s.files.add(file);
     return fn;
   }
 
   /** An input as a GLSL expression of `to`. */
   source(source: Source, to: GpuType): string {
     if ('value' in source) {
-      this.structure.push('v');
+      this.s.structure.push('v');
       return this.uniform(to, source.value);
     }
     const [key, index] = source.link;
@@ -244,7 +329,7 @@ class Compiler {
     const outputs = this.node(key, node);
     const output = outputs[index];
     if (!output) throw new Error(`${key} has no output ${index}`);
-    this.structure.push(['l', key, index]);
+    this.s.structure.push(['l', key, index]);
     return convert(output.name, output.type, to);
   }
 
@@ -259,17 +344,17 @@ class Compiler {
   private coordinate(node: GraphNode, fallback: 'orco' | 'uv'): string {
     const input = node.inputs[0]!;
     if ('link' in input) return this.source(input, 'vec3');
-    this.structure.push(['default', fallback]);
-    if (fallback === 'orco') return 'blender_orco()';
-    this.uvs.add('');
-    return `vec3(${uvVarying('')}, 0.0)`;
+    this.s.structure.push(['default', fallback]);
+    if (fallback === 'orco') return this.d('blender_orco()');
+    this.s.uvs.add('');
+    return this.d(`vec3(${uvVarying('')}, 0.0)`);
   }
 
   /** Each node's outputs, declared once, as `{name, type}` by socket index. */
   private node(key: string, node: GraphNode): {name: string; type: GpuType}[] {
     const held = this.emitted.get(key);
     if (held) return held;
-    const id = `bgN${this.emitted.size}`;
+    const id = `${this.prefix}${this.emitted.size}`;
     // A closure output is not a value any graph input reads; it is declared as
     // a float so socket indices stay Blender's.
     const outputs = node.outputs.map((o, i) => ({name: `${id}_${i}`, type: (o.gpu === 'closure' || o.gpu === null ? 'float' : o.gpu) as GpuType}));
@@ -282,7 +367,7 @@ class Compiler {
       const args = node.inputs.map(i => this.source(i, i.gpu));
       return [...args, ...extras, ...outputs.map(o => o.name)].join(', ');
     };
-    this.structure.push(['n', node.type, node.props['operation'], node.props['blend_type'], node.props['data_type'],
+    this.s.structure.push(['n', node.type, node.props['operation'], node.props['blend_type'], node.props['data_type'],
       node.props['factor_mode'], node.props['clamp_factor'], node.props['clamp_result'], node.props['use_clamp'],
       node.props['noise_dimensions'], node.props['noise_type'], node.props['voronoi_dimensions'], node.props['feature'],
       node.props['distance'], node.props['vector_type'], node.props['uv_map'], node.props['extension'],
@@ -299,16 +384,16 @@ class Compiler {
       }
       case 'ShaderNodeTexCoord': {
         // node_tex_coord's outputs, in socket order.
-        this.uvs.add('');
+        this.s.uvs.add('');
         const values = ['blender_orco()', 'blender_object_normal()', `vec3(${uvVarying('')}, 0.0)`,
           'vBlenderObjectPosition', 'blender_camera()', 'blender_window()', 'blender_reflection()'];
-        values.forEach((v, i) => { if (outputs[i]) body.push(`${outputs[i]!.name} = ${v};`); });
+        values.forEach((v, i) => { if (outputs[i]) body.push(`${outputs[i]!.name} = ${this.d(v)};`); });
         break;
       }
       case 'ShaderNodeUVMap': {
         const name = prop<string>(node, 'uv_map');
-        this.uvs.add(name);
-        body.push(`${outputs[0]!.name} = vec3(${uvVarying(name)}, 0.0);`);
+        this.s.uvs.add(name);
+        body.push(`${outputs[0]!.name} = ${this.d(`vec3(${uvVarying(name)}, 0.0)`)};`);
         break;
       }
       case 'ShaderNodeMath': {
@@ -389,9 +474,9 @@ class Compiler {
             body.push(`${this.use(fn)}(${fac}, ${this.uniform('vec2', [mul, -mul * e0[0]!])}, ${color(e0)}, ${color(e1)}, ${outs([0, 1])});`);
           }
         } else {
-          const uniform = `bgRamp${this.ramps.length}`;
-          this.ramps.push({uniform, table: ramp.table});
-          this.structure.push(['ramp', ramp.interpolation === 'CONSTANT']);
+          const uniform = `bgRamp${this.s.ramps.length}`;
+          this.s.ramps.push({uniform, table: ramp.table});
+          this.s.structure.push(['ramp', ramp.interpolation === 'CONSTANT']);
           // valtorgb / valtorgb_nearest over a 257x1 texture.
           body.push(ramp.interpolation === 'CONSTANT'
             ? `${outs([0])} = texelFetch(${uniform}, ivec2(int(clamp(${fac}, 0.0, 1.0) * 256.0), 0), 0);`
@@ -493,10 +578,65 @@ class Compiler {
         // An unlinked Normal is the shading normal (`world_normals_get`).
         const n = node.inputs[1]!;
         const normal = 'link' in n ? this.source(n, 'vec3') : 'g_data.N';
-        if (!('link' in n)) this.structure.push('world-normal');
+        if (!('link' in n)) this.s.structure.push('world-normal');
         const first = this.source(node.inputs[0]!, 'float');
         const fn = node.type === 'ShaderNodeFresnel' ? 'node_fresnel' : 'node_layer_weight';
         body.push(`${this.use(fn)}(${[first, normal, outs(outputs.map((_, i) => i))].join(', ')});`);
+        break;
+      }
+      case 'ShaderNodeBump': {
+        // gpu_shader_bump: no Height is a no-op (the Normal, or the shading
+        // normal); otherwise the height sub-function evaluated at the shading
+        // point and at the dF offsets, into node_bump.
+        const height = node.inputs.find(i => i.id === 'Height');
+        const normalIn = node.inputs.find(i => i.id === 'Normal');
+        const normal = normalIn && 'link' in normalIn ? this.source(normalIn, 'vec3') : 'g_data.N';
+        if (!height || !('link' in height)) {
+          body.push(`${outs([0])} = ${normal};`);
+          break;
+        }
+        const fn = `bgHeight${this.s.functions.length}`;
+        this.s.functions.push('');
+        const child = new Compiler(this.graph, this.s, true, `${fn}_`);
+        const expr = child.source(height, 'float');
+        this.s.functions[Number(fn.slice('bgHeight'.length))] =
+          `float ${fn}() {\n  ${child.lines.join('\n  ')}\n  return ${expr};\n}`;
+        const width = this.input(node, 'Filter Width', 'float');
+        body.push(`float ${id}_h = ${fn}();`,
+          `g_derivative_filter_width = ${width} * derivative_scale_get();`,
+          `g_derivative_flag = 1; float ${id}_hx = ${fn}();`,
+          `g_derivative_flag = -1; float ${id}_hy = ${fn}();`,
+          `g_derivative_flag = 0;`);
+        const invert = prop<boolean>(node, 'invert') ? '-1.0' : '1.0';
+        body.push(`${this.use('node_bump')}(${this.input(node, 'Strength', 'float')}, ${this.input(node, 'Distance', 'float')}, ` +
+          `${width}, ${id}_h, ${normal}, vec2(${id}_hx, ${id}_hy), ${invert}, ${outs([0])});`);
+        break;
+      }
+      case 'ShaderNodeNormalMap': {
+        // gpu_shader_normal_map.
+        const space = prop<string>(node, 'space');
+        const strength = this.input(node, 'Strength', 'float');
+        const color = this.input(node, 'Color', 'vec3');
+        const n = `${id}_n`;
+        body.push(`vec3 ${n}; ${this.use(space.startsWith('BLENDER_') ? 'color_to_blender_normal_new_shading' : 'color_to_normal_new_shading')}(${color}, ${n});`);
+        if (node.props['convention'] === 'DIRECTX') body.push(`${this.use('color_invert_green_channel')}(${n}, ${n});`);
+        if (space === 'TANGENT') {
+          const uv = prop<string>(node, 'uv_map');
+          this.s.uvs.add(uv);
+          body.push(`${this.use('node_normal_map')}(blender_uv_tangent(${uvVarying(uv)}), ${strength}, ${n}, g_data.Ni, ${outs([0])});`);
+        } else {
+          if (space === 'OBJECT' || space === 'BLENDER_OBJECT')
+            body.push(`${this.use('normal_transform_object_to_world')}(${n}, ${n});`);
+          body.push(`${this.use('node_normal_map_mix')}(${strength}, ${n}, ${outs([0])});`);
+        }
+        break;
+      }
+      case 'ShaderNodeNewGeometry': {
+        // node_shader_gpu_geometry: every output a coordinate, 1/2/4 normalized.
+        body.push(`${this.use('node_geometry')}(${['blender_orco()', outs(outputs.map((_, i) => i))].join(', ')});`);
+        // Only Position is a bump coordinate (node_shader_gpu_geometry).
+        if (outputs[0]) body.push(`${outputs[0].name} = ${this.d(outputs[0].name)};`);
+        for (const i of [1, 2, 4]) if (outputs[i]) body.push(`${outputs[i]!.name} = normalize(${outputs[i]!.name});`);
         break;
       }
       case 'ShaderNodeTexImage': {
@@ -506,8 +646,8 @@ class Compiler {
           body.push(`${outs([0])} = vec4(0.0); ${outs([1])} = 0.0;`);
           break;
         }
-        const uniform = `bgImage${this.images.length}`;
-        this.images.push({
+        const uniform = `bgImage${this.s.images.length}`;
+        this.s.images.push({
           uniform, node: key, name: image.name, revision: image.revision,
           extension: prop<GraphImage['extension']>(node, 'extension'),
           closest: prop<string>(node, 'interpolation') === 'Closest',
@@ -545,16 +685,18 @@ class Compiler {
     const surfaceInputs = this.graph.surface === 'ShaderNodeEmission'
       ? {Color: 'vec4', Strength: 'float'} as const
       : {'Base Color': 'vec4', Metallic: 'float', Roughness: 'float', Alpha: 'float',
-         'Emission Color': 'vec4', 'Emission Strength': 'float'} as const;
+         'Emission Color': 'vec4', 'Emission Strength': 'float', Normal: 'vec3'} as const;
     const outputs: Record<string, {global: string; type: GpuType}> = {};
     const assignments: string[] = [];
     let index = 0;
     for (const [name, type] of Object.entries(surfaceInputs)) {
       const source = this.graph.inputs[name];
       if (!source) continue;
+      // An unlinked Normal is the geometry's own, which three already shades.
+      if (name === 'Normal' && !('link' in source)) continue;
       const global = `bgOut${index++}`;
       outputs[name] = {global, type};
-      this.structure.push(['out', name]);
+      this.s.structure.push(['out', name]);
       assignments.push(`${global} = ${this.source(source, type)};`);
     }
     const ordered: string[] = [];
@@ -565,24 +707,26 @@ class Compiler {
       for (const dep of BLENDER_NODE_GLSL[file]!.deps) visit(dep);
       ordered.push(file);
     };
-    for (const file of this.files) visit(file);
-    const graphBody = `void blenderGraph() {\n  g_data.P = vBlenderWorldPosition;\n  g_data.N = normalize(vBlenderWorldNormal);\n  ${[...this.lines, ...assignments].join('\n  ')}\n}`;
+    for (const file of this.s.files) visit(file);
+    const graphBody = `void blenderGraph() {\n  blender_init_globals();\n  ${[...this.lines, ...assignments].join('\n  ')}\n}`;
     const declarations = [
       BLENDER_NODE_GLSL_PRELUDE,
-      shakeLibrary(EEVEE_GLOBALS + ordered.map(f => BLENDER_NODE_GLSL[f]!.code).join('\n') + '\n' + COORDINATES, graphBody),
-      ...[...this.uniformTypes].map(([n, t]) => `uniform ${t} ${n};`),
+      shakeLibrary(EEVEE_GLOBALS + ordered.map(f => BLENDER_NODE_GLSL[f]!.code).join('\n') + '\n' + COORDINATES,
+        [...this.s.functions, graphBody].join('\n')),
+      ...[...this.s.uniformTypes].map(([n, t]) => `uniform ${t} ${n};`),
       ...this.images.map(i => `uniform sampler2D ${i.uniform};`),
       ...this.ramps.map(r => `uniform sampler2D ${r.uniform};`),
       ...Object.values(outputs).map(o => `${o.type} ${o.global};`),
+      ...this.s.functions,
       graphBody,
     ].join('\n');
     return {
-      key: JSON.stringify([this.graph.surface, this.structure, [...this.uvs].sort()]),
+      key: JSON.stringify([this.graph.surface, this.s.structure, [...this.s.uvs].sort()]),
       declarations,
       uniforms: this.uniforms,
       images: this.images,
       ramps: this.ramps,
-      uvs: [...this.uvs],
+      uvs: [...this.s.uvs],
       outputs,
       surface: this.graph.surface,
     };

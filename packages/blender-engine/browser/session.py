@@ -557,13 +557,14 @@ _GRAPH_NODES = frozenset((
     "ShaderNodeTexWave", "ShaderNodeTexGradient", "ShaderNodeTexMagic", "ShaderNodeTexBrick",
     "ShaderNodeMapRange", "ShaderNodeClamp", "ShaderNodeHueSaturation", "ShaderNodeBrightContrast",
     "ShaderNodeGamma", "ShaderNodeRGBToBW", "ShaderNodeSeparateColor", "ShaderNodeCombineColor",
-    "ShaderNodeVectorRotate", "ShaderNodeFresnel", "ShaderNodeLayerWeight",
+    "ShaderNodeVectorRotate", "ShaderNodeFresnel", "ShaderNodeLayerWeight", "ShaderNodeBump",
+    "ShaderNodeNormalMap", "ShaderNodeNewGeometry",
 ))
 # The surfaces whose inputs map onto the presenter's standard material, and
 # the inputs of each the presenter reads from a graph.
 _GRAPH_SURFACES = {
     "ShaderNodeBsdfPrincipled": ("Base Color", "Metallic", "Roughness", "Alpha",
-                                 "Emission Color", "Emission Strength"),
+                                 "Emission Color", "Emission Strength", "Normal"),
     "ShaderNodeEmission": ("Color", "Strength"),
 }
 # Procedural textures whose unlinked Vector is Generated coordinates.
@@ -661,6 +662,10 @@ def _refusal(node):
             return "%s samples %s; Linear and Closest are compiled" % (node.name, node.interpolation)
         if image is not None and image.source not in ("FILE", "GENERATED"):
             return "%s's image is a %s source" % (node.name, image.source)
+    if kind == "ShaderNodeNewGeometry" and node.outputs["Parametric"].is_linked:
+        # EEVEE's parametric is the triangle's barycentrics, which the
+        # presenter's meshes do not carry.
+        return "%s's Parametric output is not compiled" % node.name
     if kind == "ShaderNodeTexCoord" and node.object is not None:
         return "%s reads object coordinates of %s" % (node.name, node.object.name)
     return None
@@ -795,13 +800,10 @@ def material_graph(material):
     if not any(any(l.is_valid and not l.is_muted for l in s.links) for s in sockets):
         return None
     # The door is quiet about a material whose graph ships, so a linked input
-    # the graph does not carry is named here. Normal stays the door's: it
-    # reduces an image through a Normal Map node.
+    # the graph does not carry is named here.
     for other in surface.inputs:
         linked = any(l.is_valid and not l.is_muted for l in other.links)
         if not linked or other in sockets:
-            continue
-        if other.name == "Normal" and other.links[0].from_node.bl_idname == "ShaderNodeNormalMap":
             continue
         warn("%s: %s is linked; only its constant is drawn" % (material.name, other.name))
     graph = _MaterialGraph(material)
