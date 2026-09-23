@@ -15,6 +15,9 @@ verified on darwin-arm64. The matching workbench is public and anonymously
 downloadable. The public npm packages and a credential-free, cache-empty
 installation have passed live modeling acceptance.
 
+The packaged workbench currently supports **macOS on Apple Silicon**
+(`darwin-arm64`). Installation and startup were verified with Node.js 24.
+
 ```bash
 npx @volter/editor@0.5.57 create my-models
 ```
@@ -22,10 +25,21 @@ npx @volter/editor@0.5.57 create my-models
 The command creates a modeling project, installs the pinned public workbench on
 first use, and opens Volter Editor.
 
+To reopen the project later:
+
+```bash
+cd my-models
+npm run dev
+```
+
+From that project directory, `npx volter-editor status` reports the session,
+`npx volter-editor console` reports unresolved diagnostics, and
+`npx volter-editor close` stops the session. The current background Blender
+engine does not support native undo.
+
 ## Package map
 
-The npm scope is `@volter`, confirmed by the owner and the organization's member
-page. Package availability and release readiness are checked separately.
+The npm scope is `@volter`.
 
 | Package | Responsibility |
 | --- | --- |
@@ -39,10 +53,8 @@ page. Package availability and release readiness are checked separately.
 | `@volter/blender-engine` | Blender WebAssembly engine and worker |
 
 Users install one product; required supporting packages install transitively.
-The CLI need not be a separate public package. The old general SDK must be
-reviewed and its required code placed with its actual owners, not renamed into
-a second ambiguous SDK. Subpath exports represent modules within packages,
-not separately installable packages.
+The CLI ships in `@volter/editor`. Subpath exports represent modules within
+packages, not separately installable packages.
 
 Blender and Code-OSS source forks remain separate repositories, pinned by this
 repository's build configuration. Their source and release provenance
@@ -65,8 +77,8 @@ Three-aware core is permitted for this release. Full viewport extraction is
 deferred; this migration must not restart that refactor or duplicate Code-OSS
 workbench responsibilities.
 
-Transferred code becomes authoritative here after verified cutover. Do not
-establish permanently divergent copies or a recurring source-export process.
+This repository is authoritative for the released modeling product. The previous
+repositories are archived and private.
 
 See [WORK.md](WORK.md) for the recorded release acceptance.
 
@@ -85,6 +97,23 @@ request attaches to or opens that project's editor.
 
 The current background Blender engine does not support native undo. The editor
 reports that limitation; an empty history does not claim an edit was undone.
+
+## Building from source
+
+With Node.js 24 and npm, install the lockfile and build before typechecking:
+
+```bash
+npm ci
+npm run build
+npm run typecheck
+npm test
+npm run check:release
+npm run check:packed-imports
+```
+
+The build generates modules needed by the typechecks and packaging checks.
+Building the separate Code-OSS workbench is described in
+[`scripts/workbench/build-release.mjs`](scripts/workbench/build-release.mjs).
 
 Public product names and commands use Volter Editor. This first release retains
 `vgai.project.json`, `vgai.adapter.ts`, `.vgai/` and existing internal protocol
