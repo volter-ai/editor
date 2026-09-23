@@ -26,9 +26,11 @@ npx @volter/editor@0.5.64 create my-models
 The command creates a modeling project, installs the pinned public workbench on
 first use, and opens Volter Editor.
 
-The Chat pane uses a separately installed `claude` executable on PATH. A machine
-without it can open the modeling surface, but reports a missing-agent-runtime
-diagnostic; this package does not install or authenticate that external runtime.
+The Chat pane runs whichever coding agent Supercode finds installed and signed in
+(Claude Code, Codex, Grok, Gemini and the others it supports), resuming the
+project's last conversation with the agent that held it. A machine with none can
+open the modeling surface, and the pane names each agent with Supercode's own
+repair; this package does not install or authenticate any agent.
 
 To reopen the project later:
 

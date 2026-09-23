@@ -204,12 +204,22 @@ type SupercodeClientConstructor = new (options?: {
 const RUNTIME_POLICY = 'default' as const;
 
 /**
- * WHICH AGENT FILLS THE CHAT VIEW. ARCHITECTURE-CORE §The core is Code-OSS, rule 7:
- * "the same coding-agent session (Claude Code by default; any harness supercode runs)".
- * There is deliberately no setting: a second harness in the panel is a decision the
- * owner makes, and until then the answer is the one the doctrine already gives.
+ * WHICH AGENT FILLS THE CHAT VIEW: whichever one supercode says can run here. Supercode
+ * probes every harness it knows (Claude Code, Codex, Grok, Gemini, …) and reports, per
+ * harness, whether it is installed and signed in and what it can do now
+ * (`availableActions`); the editor names none of them. A project's own most recent
+ * session is resumed with the harness that ran it, when that harness can still resume;
+ * otherwise the first harness supercode lists as able to start is started. When none
+ * can, the refusal names each one with supercode's own reason and repair.
  */
-const FRONTEND_HARNESS = 'claude-code';
+function harnessRefusal(harnesses: readonly HarnessChatHarness[]): string {
+  if (harnesses.length === 0) return 'Supercode reports no coding agents on this machine, so the Chat view has none to start.';
+  const lines = harnesses.map((harness) => {
+    const why = harness.reason ?? (harness.installed ? `not ready (${harness.auth})` : 'not installed');
+    return `${harness.label}: ${why}${harness.repair ? ` — ${harness.repair}` : ''}`;
+  });
+  return `No coding agent is available for the Chat view. ${lines.join('; ')}.`;
+}
 
 /** What the host gets back: the environment to spawn the REH with, or why there is none. */
 export interface FrontendHandoffResult {
@@ -998,15 +1008,18 @@ export class HarnessChatService {
   }
 
   /**
-   * The key of this project's most recent {@link FRONTEND_HARNESS} session, or `null` when it
-   * has none. Only sessions whose `cwd` IS this project count: a session the person ran
-   * somewhere else is not this project's history, and resuming it would put another folder's
-   * conversation in this folder's panel.
+   * The key of this project's most recent session whose harness can still resume, or `null`
+   * when it has none. Only sessions whose `cwd` IS this project count: a session the person
+   * ran somewhere else is not this project's history, and resuming it would put another
+   * folder's conversation in this folder's panel.
    */
   private resumableSessionKey(): string | null {
     const root = resolve(this.options.getProjectRoot());
+    const resumable = new Set(
+      this.lastSnapshot.harnesses.filter((harness) => harness.availableActions.resume).map((harness) => harness.id),
+    );
     const mine = this.lastSnapshot.sessions
-      .filter((session) => session.harness === FRONTEND_HARNESS && session.cwd !== null)
+      .filter((session) => resumable.has(session.harness) && session.cwd !== null)
       .filter((session) => resolve(session.cwd as string) === root)
       .sort((left, right) => (right.updatedAt ?? 0) - (left.updatedAt ?? 0));
     return mine[0]?.id ?? null;
@@ -1028,10 +1041,23 @@ export class HarnessChatService {
         // that is not signed in is still refused BY NAME with its own login command —
         // which is the sentence a person needs, and the one that travels to the cover,
         // `.vgai/session.json` and the console ledger.
+        this.capture();
+        if (this.lastSnapshot.harnesses.length === 0) {
+          await controller.dispatch({ type: 'refresh', autoObserve: false });
+          this.capture();
+        }
         const resumable = this.resumableSessionKey();
+        // A harness that reports a login goes before one whose login is unknown, so a
+        // signed-in agent is never passed over for one that will refuse; within each group
+        // supercode's own order stands.
+        const signedIn = (harness: HarnessChatHarness) => harness.auth === 'ready' || harness.auth === 'configured';
+        const startable = [...this.lastSnapshot.harnesses]
+          .filter((harness) => harness.availableActions.start)
+          .sort((left, right) => Number(signedIn(right)) - Number(signedIn(left)))[0];
+        if (resumable === null && !startable) throw new Error(harnessRefusal(this.lastSnapshot.harnesses));
         await controller.dispatch(
           resumable === null
-            ? { type: 'start', harness: FRONTEND_HARNESS }
+            ? { type: 'start', harness: startable!.id }
             : { type: 'resume', sessionKey: resumable },
         );
         this.capture();
@@ -1039,7 +1065,7 @@ export class HarnessChatService {
       const runtimeId = this.managedRuntime?.handle?.runtime_id;
       if (!runtimeId) {
         throw new Error(
-          `Supercode started no ${FRONTEND_HARNESS} runtime for this project, so the Chat view has nothing to attach to.`,
+          'Supercode started no agent runtime for this project, so the Chat view has nothing to attach to.',
         );
       }
       const handoff = await mintFrontendHandoff({
