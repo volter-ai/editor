@@ -626,7 +626,8 @@ class Compiler {
         const uniform = `bgRamp${this.s.ramps.length}`;
         this.s.ramps.push({uniform, table: mapping.table});
         this.s.structure.push(['curve']);
-        const fac = this.input(node, 'Fac', 'float');
+        // The Float Curve names its factor `Factor`; the other two `Fac`.
+        const fac = this.input(node, node.inputs.some(i => i.id === 'Factor') ? 'Factor' : 'Fac', 'float');
         if (node.type === 'ShaderNodeRGBCurve') {
           body.push(`${this.use('curves_combined_rgb')}(${fac}, ${this.input(node, 'Color', 'vec4')}, vec4(0.0, 0.0, 0.0, 1.0), vec4(1.0), ` +
             `${uniform}, 0.5, ${this.uniform('vec4', mapping.minimums)}, ${this.uniform('vec4', mapping.dividers)}, ` +

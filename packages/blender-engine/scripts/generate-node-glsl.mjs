@@ -80,6 +80,8 @@ const ROOTS = [
  * (measured in the editor page against every file in ROOTS' closure).
  */
 const PATCHES = [
+  ['gpu_shader_common_color_ramp.glsl', 'int2(fac * (textureSize(colormap, 0).x - 1), layer)',
+    'int2(fac * float(textureSize(colormap, 0).x - 1), layer)', 1],
   ['gpu_shader_math_safe_lib.glsl', 'return a - N * b;', 'return a - float(N) * b;', 1],
   ['gpu_shader_material_tex_brick.glsl', 'brick_width * bricknum', 'brick_width * float(bricknum)', 1],
   ['gpu_shader_material_tex_brick.glsl', 'row_height * rownum', 'row_height * float(rownum)', 1],
@@ -153,8 +155,11 @@ const includes = name => {
 
 /** Parameter types WebGL2's GLSL ES 3.00 does not have. A function taking one
  *  is dropped whole (GLSL compiles every function it is given, used or not);
- *  the presenter's compiler supplies the WebGL form of any it calls. */
-const UNAVAILABLE = /\b(sampler1D\w*|samplerCubeArray\w*|image\w+)\b/;
+ *  the presenter's compiler supplies the WebGL form of any it calls.
+ *  `sampler2DArray` exists in WebGL2 but only with a precision qualifier the
+ *  processed source does not carry, and its one user is the UDIM lookup,
+ *  which `blender-node-graph.ts` writes out itself (`blender_tile_lookup`). */
+const UNAVAILABLE = /\b(sampler1D\w*|sampler2DArray|samplerCubeArray\w*|image\w+)\b/;
 
 /** Top-level function definitions whose parameters name an unavailable type,
  *  removed by paren and brace matching (a processed parameter list holds
