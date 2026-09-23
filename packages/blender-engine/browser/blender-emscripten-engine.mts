@@ -267,6 +267,8 @@ export async function startEmscriptenBlenderEngine(
     }
 
   const files = moduleFiles(module);
+  FS.chmod('/bw/datafiles', 0o755);
+  await mountEssentials(files);
   const { request } = openSessionChannel(files, options);
 
   return {
@@ -286,4 +288,33 @@ export async function startEmscriptenBlenderEngine(
     memoryBytes: () => module.HEAPU8.length,
     releasedPayloadBytes,
   };
+}
+
+/** Assets are data, not a second engine. Ship them separately so a data update
+ * does not relink the 86 MB Wasm binary. Both payload and per-file bounds are
+ * checked before anything enters Blender's filesystem. */
+async function mountEssentials(files: BlenderFiles): Promise<void> {
+  const [indexResponse, payloadResponse] = await Promise.all([
+    fetch(artifactUrl('essentials.json')), fetch(artifactUrl('essentials.bin')),
+  ]);
+  if (!indexResponse.ok || !payloadResponse.ok)
+    throw new Error(`Blender Essentials assets are missing (${indexResponse.status}/${payloadResponse.status})`);
+  const index = await indexResponse.json() as {
+    bytes: number; sha256: string;
+    files: { path: string; offset: number; bytes: number; sha256: string }[];
+  };
+  const payload = await payloadResponse.arrayBuffer();
+  const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', payload)),
+    (byte) => byte.toString(16).padStart(2, '0')).join('');
+  if (payload.byteLength !== index.bytes || hash !== index.sha256)
+    throw new Error('Blender Essentials payload does not match its source manifest');
+  for (const file of index.files) {
+    if (!file.path || file.path.includes('\\') || file.path.split('/').some(p => !p || p === '.' || p === '..') ||
+        !Number.isInteger(file.offset) || !Number.isInteger(file.bytes) ||
+        file.offset < 0 || file.bytes < 0 || file.offset + file.bytes > payload.byteLength)
+      throw new Error(`Invalid Blender Essentials file: ${file.path}`);
+    const path = `/bw/datafiles/assets/${file.path}`;
+    await files.mkdirTree(path.slice(0, path.lastIndexOf('/')));
+    await files.writeFile(path, new Uint8Array(payload, file.offset, file.bytes));
+  }
 }

@@ -61,11 +61,13 @@ import { brotliDecompressSync } from 'node:zlib';
 
 export type BlenderSkew = 'emscripten' | 'wali';
 
-/** The three files the Emscripten runtime asks for, by the names the glue uses. */
+/** Engine artifacts plus the separately packaged Essentials asset payload. */
 export const BLENDER_WASM_FILES = [
   'blender_browser.js',
   'blender_browser.wasm',
   'blender_browser.data',
+  'essentials.json',
+  'essentials.bin',
 ] as const;
 
 export type BlenderWasmFile = (typeof BLENDER_WASM_FILES)[number];

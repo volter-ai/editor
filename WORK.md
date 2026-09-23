@@ -60,8 +60,8 @@ not the workbench pinned by the published product.
 
 - Only darwin-arm64 has a published, accepted packaged workbench. Other
   platforms are not part of this release's support claim.
-- The background Blender engine does not support native undo. Unsupported undo
-  reports `moved: false`; no alternate undo implementation was introduced.
+- The published release has no undo integration. Explicit native undo works in
+  the background engine; integration is in progress below, not yet released.
 - Public names and commands use Volter Editor. Project filenames and internal
   protocol/settings identifiers remain unchanged, as documented in
   [README.md](README.md). A full format/protocol rename is a separate migration.
@@ -70,5 +70,26 @@ not the workbench pinned by the published product.
 - The shipped engine is Emscripten. Optional WALI support requires externally
   supplied artifacts and is not a claim of a shipped WALI browser substrate.
 
-No required work remains for this modeling release on darwin-arm64. The limits
-above are not claims of completed support or authorization to expand this release.
+## Supported-editing follow-up (owner requested)
+
+The original darwin-arm64 release is published. The next assigned work is:
+
+1. Native Blender undo/redo for supported UI and Python/MCP edits, integrated
+   with Code-OSS history; verify grouping, restoration, redo and saving.
+2. Ship Blender Essentials assets and verify the asset-backed operations.
+3. Build, publish and verify Windows/Linux workbenches.
+4. Close common material/environment rendering gaps within the Three.js renderer;
+   world-volume rendering remains outside this pass.
+5. Polish duplication/deletion interactions without expanding inspection-only
+   panels into full manual authoring tools.
+
+Investigation: the shipped worker successfully executes `bpy.ops.ed.undo_push`,
+`undo` and `redo`. Background mode does not prohibit undo; it needs explicit
+initialization and edit recording. No engine binary change was needed for that
+probe. Integration and full supported-edit verification are still outstanding.
+
+Essentials source integration verified: the pinned 17-file asset payload mounts
+at `/bw/datafiles/assets`. In the live worker, Blender loaded the Smooth by
+Angle node group, evaluated it on Cube, and loaded the Smooth sculpt brush,
+with zero console errors/warnings. An anonymous public LFS download matched
+the manifest SHA-256. The next npm release still needs to convey this payload.
