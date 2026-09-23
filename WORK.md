@@ -181,6 +181,13 @@ restored the density. Perspective spotlight/point-light and occlusion captures
 ran with a silent console. Full engine battery and new packed acceptance remain
 pending; these feature probes do not substitute for release verification.
 
+The first new-binary battery attempt completed the courtyard's 95 calls with
+the accepted baseline's four error positions, but its final verification was
+blocked by stale harness imports and an incomplete disposable-project dependency
+setup. It also exposed a real missing-named-UV regression: such a lookup now
+uses Blender's zero-coordinate behavior instead of throwing or substituting the
+active UV map. The complete battery must rerun with that correction.
+
 The same candidate upgrades Storybook to 10.6.0, verifies its real portable
 story and ordering APIs and requires Node 24. Its repository and initial packed
 install audits reported zero vulnerabilities, resolving the advisory in the
