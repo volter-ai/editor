@@ -6,6 +6,13 @@ packages are 0.5.58. The publication boundary remains the eight packages in
 
 ## 0.5.59 release candidate
 
+The corrected candidate is now 0.5.60 (six editor packages) / 0.1.3 (two
+Blender packages), adding the Outliner restoration barrier described below.
+All 30 tests, eight typechecks, build, release boundary and 1,083-file packed
+import checks pass. Blender WASM, Essentials and the workbench are unchanged;
+generated notice changes are package-version labels only. Packed and registry
+acceptance of this candidate remain pending.
+
 The six editor packages are staged at 0.5.59 and the two Blender packages at
 0.1.2. The Blender binary, Essentials payload and pinned public workbench are
 unchanged. Generated notice differences are package-version labels only.
