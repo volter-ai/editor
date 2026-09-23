@@ -32,6 +32,7 @@ import {
 } from './document-context-registry';
 import { openRegisteredDocumentAsync } from './document-open-registry';
 import { editorConsole } from './editor-console';
+import { resolvedProjectDocumentTable } from './project-adapter';
 import { notify } from './editor-notifications';
 import { registerEditorStateFacet } from './editor-state-facets';
 import { setFilesProvider } from './files/file-provider';
@@ -259,6 +260,7 @@ export function installEditorHostDoor(): void {
       reportWorkerCallMeter: setBlenderCallMeter,
     },
     project: {
+      documentTable: resolvedProjectDocumentTable,
       mounts: projectMounts,
       // The ONE reading of the pinned engine version — `ProjectHeader.tsx`'s
       // `v{engineVersion}` and a package's status item are the same number

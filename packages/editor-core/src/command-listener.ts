@@ -51,7 +51,7 @@ import {
 } from './authoring/shell-document-ops';
 import { parseCameraChoice, parsePoseChoice } from './capture-camera-pose';
 import { noteCommandDispatched } from './command-dispatch';
-import { contributedCommand, contributedCommandDerivedRefresh } from './command-registry';
+import { resolveContributedCommand, contributedCommandDerivedRefresh } from './command-registry';
 import {
   isAssetDocumentId,
   openAssetDocument,
@@ -1237,7 +1237,7 @@ export async function handleCommand(
   // answered by its own handler, through the same relay, ack and derivation
   // as the host's table below. Asked first so a contributed verb never
   // reads as "editor page predates this CLI".
-  const contributed = contributedCommand(cmd['type']);
+  const contributed = await resolveContributedCommand(cmd['type']);
   if (contributed) {
     try {
       const answer = await contributed.handle(cmd);

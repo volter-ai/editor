@@ -6,6 +6,18 @@ packages are 0.5.58. The publication boundary remains the eight packages in
 
 ## 0.5.59 release candidate
 
+Rapid full editor close/reopen of the published 0.5.60 archives exposed two
+startup races: package commands could arrive before contribution discovery,
+and Blender start could guess the standing Model ID before the file-backed
+document mounted. Command resolution now awaits discovery, and Blender opens
+the settled declared Model table (including custom IDs and a declared default).
+Ambiguous Models require a choice. All 35 tests and eight typechecks pass;
+build, release boundary and 1,083-file packed-import checks pass. Five source
+full close/reopen cycles immediately invoked the default MCP-shaped start,
+edited/undid/redid Cube X=80.125 through 84.125, and closed with silent consoles.
+The changes require a new immutable npm patch. They do not establish the cause
+of the separately observed intermittent renderer stall.
+
 The corrected candidate is now 0.5.60 (six editor packages) / 0.1.3 (two
 Blender packages), adding the Outliner restoration barrier described below.
 All 30 tests, eight typechecks, build, release boundary and 1,083-file packed
