@@ -338,9 +338,10 @@ export async function blenderRnaSet(
   property: string,
   value: unknown,
   index?: number,
+  history = true,
 ): Promise<BlenderRnaWrite | null> {
   if (!blenderSessionStarted()) return null;
-  const written = await blenderRuntime().rnaSet(path, property, value, index);
+  const written = await blenderRuntime().rnaSet(path, property, value, index, history);
   noteBlenderRnaChanged();
   return written;
 }
@@ -391,8 +392,8 @@ export async function blenderRnaSet(
  * two prefixes and records the same lesson from its own bug; this is the
  * second time, so the parse lives at the door now and both read it.
  */
-export async function blenderExecute(code: string): Promise<BlenderExecuteAnswer> {
-  const text = await blenderRuntime().execute(code);
+export async function blenderExecute(code: string, history = true, label = 'Blender Python'): Promise<BlenderExecuteAnswer> {
+  const text = await blenderRuntime().execute(code, history, label);
   noteBlenderRnaChanged();
   const failed = /^Error executing code:/.exec(text);
   return {
@@ -401,6 +402,16 @@ export async function blenderExecute(code: string): Promise<BlenderExecuteAnswer
     result: failed === null ? text.replace(/^Code executed successfully: ?/, '') : '',
     error: failed === null ? null : text.replace(/^Error executing code: ?/, ''),
   };
+}
+
+/** Coalesce a human gesture; Blender retains the states, Code-OSS the ordering. */
+export function beginBlenderGesture(): void {
+  void blenderRuntime().historyGesture('history-begin').catch(error =>
+    editorHost().console.error(`Could not begin Blender undo gesture: ${String(error)}`, 'blender-history'));
+}
+
+export async function endBlenderGesture(): Promise<void> {
+  await blenderRuntime().historyGesture('history-end');
 }
 
 /** One script's answer, with the MCP door's text split from what it means.
@@ -626,6 +637,12 @@ interface RuntimeView {
 }
 
 let runtime: BlenderRuntime | null = null;
+const historyResources = new Set<string>();
+
+function invalidateBlenderHistory(): void {
+  if (historyResources.size) editorHost().history.invalidate([...historyResources]);
+  historyResources.clear();
+}
 let captureLifetime: AbortController | null = null;
 /** Whether this module has asked the host to tell it when the session ends.
  *  Once per page, taken on the first runtime — before one there is nothing to
@@ -633,6 +650,7 @@ let captureLifetime: AbortController | null = null;
 let watchingSessionEnd = false;
 
 function terminateBlenderRuntime(): void {
+  invalidateBlenderHistory();
   captureLifetime?.abort();
   captureLifetime = null;
   runtime?.terminate();
@@ -684,6 +702,29 @@ export function blenderRuntime(): BlenderRuntime {
   captureLifetime = lifetime;
   let photographing = false;
   runtime = new BlenderRuntime({
+    history: (entries) => {
+      const owner = runtime;
+      if (!owner) throw new Error('Blender history arrived before its runtime');
+      for (const entry of entries) {
+        if ('reset' in entry) {
+          invalidateBlenderHistory();
+          continue;
+        }
+        if (!entry.resource) throw new Error('A Blender edit has no document resource');
+        historyResources.add(entry.resource);
+        const restore = async (direction: 'undo' | 'redo'): Promise<boolean> => {
+          if (runtime !== owner) throw new Error('This Blender history belongs to a closed worker');
+          const moved = await owner.historyStep(entry.id, direction);
+          noteBlenderRnaChanged();
+          return moved;
+        };
+        editorHost().history.record({
+          id: entry.id, label: entry.label, resources: [entry.resource],
+          document: presentationDocumentId(),
+          undo: () => restore('undo'), redo: () => restore('redo'),
+        });
+      }
+    },
     present: async (frame, description, capture) => {
       const documentId = presentationDocumentId();
       const view = await runtimeView();
@@ -941,13 +982,13 @@ const string = (cmd: Record<string, unknown>, key: string): string => {
  * path is outside the project, because a record is better absent than wrong.
  */
 async function sessionDocumentPath(session: {
-  execute(code: string): Promise<string>;
+  execute(code: string, history?: boolean): Promise<string>;
 }): Promise<{ document?: string }> {
   const project = editorHost().projectLocalState.projectRootPath();
   if (project === null) return {};
   let answer: string;
   try {
-    answer = await session.execute('import bpy\nprint(bpy.data.filepath)\n');
+    answer = await session.execute('import bpy\nprint(bpy.data.filepath)\n', false);
   } catch {
     return {};
   }

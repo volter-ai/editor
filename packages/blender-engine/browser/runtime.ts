@@ -9,6 +9,7 @@ import type {
   RuntimeStart,
   WorkerReply,
   WorkerRequest,
+  NativeHistoryEntry,
 } from './protocol';
 import type {
   BlenderActionClip,
@@ -26,6 +27,7 @@ type DistributiveOmit<T, K extends keyof T> = T extends unknown ? Omit<T, K> : n
 type Request = DistributiveOmit<WorkerRequest, 'id'>;
 
 export interface BlenderRuntimeOptions {
+  history?(entries: readonly NativeHistoryEntry[]): void;
   /** Display a frame. A screenshot `capture` has its view REMEMBERED so the
    *  next document capture photographs what the agent asked for; a render
    *  capture (`capture.render`) is photographed here and now, and its answer
@@ -222,9 +224,20 @@ export class BlenderRuntime {
     return this.start(this.#project);
   }
 
-  async execute(code: string): Promise<string> {
+  async execute(code: string, history = true, label = 'Blender Python'): Promise<string> {
     await this.#ready();
-    return (await this.#request({ op: 'execute', code })) as string;
+    return (await this.#request({ op: 'execute', code, history, label })) as string;
+  }
+
+  async historyGesture(op: 'history-begin' | 'history-end'): Promise<void> {
+    await this.#ready();
+    await this.#request({ op });
+  }
+
+  async historyStep(token: string, direction: 'undo' | 'redo'): Promise<boolean> {
+    await this.#ready();
+    const result = await this.#request({ op: 'history-step', token, direction }) as { moved: boolean };
+    return result.moved;
   }
 
   async sceneInfo(): Promise<string> {
@@ -267,10 +280,12 @@ export class BlenderRuntime {
     property: string,
     value: unknown,
     index?: number,
+    history = true,
   ): Promise<BlenderRnaWrite> {
     await this.#ready();
     return (await this.#request({
       op: 'rna-set',
+      history,
       path,
       property,
       value,
@@ -468,6 +483,10 @@ export class BlenderRuntime {
 
   async #receive(reply: WorkerReply): Promise<void> {
     if ('op' in reply) {
+      if (reply.op === 'history') {
+        this.#options.history?.(reply.entries);
+        return;
+      }
       if (reply.op === 'log') {
         this.#options.log?.(reply.level, reply.text);
         return;

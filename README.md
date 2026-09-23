@@ -34,8 +34,8 @@ npm run dev
 
 From that project directory, `npx volter-editor status` reports the session,
 `npx volter-editor console` reports unresolved diagnostics, and
-`npx volter-editor close` stops the session. The current background Blender
-engine does not support native undo.
+`npx volter-editor close` stops the session. Release 0.5.57 does not expose
+native Blender undo; the supported-editing follow-up is tracked in [WORK.md](WORK.md).
 
 ## Package map
 
@@ -95,8 +95,15 @@ project, `volter-editor eval` drives its automation API, and
 inside a project. MCP initialization does not start Blender; its first scene
 request attaches to or opens that project's editor.
 
-The current background Blender engine does not support native undo. The editor
-reports that limitation; an empty history does not claim an edit was undone.
+Blender supports explicit native undo in background mode. The follow-up connects
+its checkpoints to VS Code's history; native snapshots stay in Blender, and
+redo never reruns a Python script. History is session-local and is reset when
+another `.blend` is opened. Use the dedicated inspection tools for read-only
+queries: arbitrary Python executions are conservatively treated as edits,
+including scripts that change data before failing.
+Use the editor's Undo/Redo for integrated history; scripts should not manage
+`bpy.ops.ed.undo_push` themselves. Loading a file or moving Blender's native
+history directly invalidates the workbench's previous model entries.
 
 ## Building from source
 

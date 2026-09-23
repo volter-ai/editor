@@ -75,7 +75,7 @@ import type {
   WriteAck,
 } from '@volter/editor-project/adapter';
 import type * as THREE from 'three';
-import { blenderExecute, blenderRnaSet } from '../host/blender-runtime-host';
+import { blenderExecute, blenderRnaSet, beginBlenderGesture, endBlenderGesture } from '../host/blender-runtime-host';
 import {
   blenderEngineSelection,
   blenderOutlinerState,
@@ -858,6 +858,7 @@ function py(name: string): string {
  */
 async function runBlenderOperator(
   body: string,
+  label = 'Blender Python',
 ): Promise<{ readonly made: readonly string[]; readonly error: string | null }> {
   const code = [
     'before = {o.name for o in bpy.data.objects}',
@@ -865,7 +866,7 @@ async function runBlenderOperator(
     'made = [o.name for o in bpy.data.objects if o.name not in before]',
     'print("\\n".join(made))',
   ].join('\n');
-  const answer = await blenderExecute(code);
+  const answer = await blenderExecute(code, true, label);
   // THE ENGINE'S REFUSAL, VERBATIM. `session.py::execute` answers with the
   // traceback in `error` rather than raising, and a paraphrase here is how a
   // refusal becomes a shrug.
@@ -919,7 +920,7 @@ async function writeBlenderSelection(
       ? '_vl.objects.active = None'
       : `_vl.objects.active = bpy.data.objects.get(${py(active)})`,
   ].join('\n');
-  const answer = await blenderExecute(body);
+  const answer = await blenderExecute(body, false);
   // THE ENGINE'S REFUSAL, VERBATIM — never a shrug. A selection that did not
   // land is the difference between the Properties rail showing this object and
   // showing the last one, so it is said out loud on the editor's console.
@@ -1004,6 +1005,9 @@ export const createBlenderOutlinerAuthoring: ToolObject3DDocumentAuthoringFactor
   let lastEngineKey: string | null = null;
   /** The world matrix each live gesture started from — see `beginEdit`. */
   const gestureStart = new Map<THREE.Object3D, THREE.Matrix4>();
+  // Retain the subject until endEdit, even if a concurrent native edit removes
+  // it from the presented frame. The history group must still be closed.
+  const gestureObjects = new Map<string, THREE.Object3D>();
 
   const notify = (): void => {
     for (const listener of [...listeners]) listener();
@@ -1386,7 +1390,11 @@ export const createBlenderOutlinerAuthoring: ToolObject3DDocumentAuthoringFactor
      *  one gesture in both id spaces (see the header). */
     beginEdit: (id) => {
       const object = objectFor(id);
-      if (object !== null) gestureStart.set(object, object.matrixWorld.clone());
+      if (object !== null && !gestureStart.has(object)) {
+        gestureStart.set(object, object.matrixWorld.clone());
+        gestureObjects.set(id, object);
+        beginBlenderGesture();
+      }
     },
     apply: (id, transform) => {
       const object = objectFor(id);
@@ -1404,29 +1412,35 @@ export const createBlenderOutlinerAuthoring: ToolObject3DDocumentAuthoringFactor
       object.updateMatrixWorld(true);
     },
     endEdit: async (id): Promise<WriteAck | undefined> => {
-      const object = objectFor(id);
+      const object = gestureObjects.get(id) ?? objectFor(id);
+      gestureObjects.delete(id);
       const view = blenderPresentedView();
-      if (object === null || view === null) return undefined;
+      if (object === null) return undefined;
       const started = gestureStart.get(object);
       gestureStart.delete(object);
-      object.updateWorldMatrix(true, false);
-      if (started?.equals(object.matrixWorld) === true) return undefined;
-      const name = view.blenderObjectName(object);
-      if (name === null) return undefined;
-      // The engine's own address, quoted the way `_rna_resolve` parses it.
-      const path = `bpy.data.objects[${JSON.stringify(name)}]`;
       try {
-        await blenderRnaSet(path, 'matrix_world', blenderWorldMatrixRows(object, view.root));
-        return {
-          destination: `Blender — ${path}.matrix_world; the session saves the .blend`,
-          persisted: true,
-        };
-      } catch (error) {
-        // The engine's refusal, verbatim — never paraphrased and never acked.
-        return {
-          destination: error instanceof Error ? error.message : String(error),
-          persisted: false,
-        };
+        if (view === null) return undefined;
+        object.updateWorldMatrix(true, false);
+        if (started?.equals(object.matrixWorld) === true) return undefined;
+        const name = view.blenderObjectName(object);
+        if (name === null) return undefined;
+        // The engine's own address, quoted the way `_rna_resolve` parses it.
+        const path = `bpy.data.objects[${JSON.stringify(name)}]`;
+        try {
+          await blenderRnaSet(path, 'matrix_world', blenderWorldMatrixRows(object, view.root));
+          return {
+            destination: `Blender — ${path}.matrix_world; the session saves the .blend`,
+            persisted: true,
+          };
+        } catch (error) {
+          // The engine's refusal, verbatim — never paraphrased and never acked.
+          return {
+            destination: error instanceof Error ? error.message : String(error),
+            persisted: false,
+          };
+        }
+      } finally {
+        if (started) await endBlenderGesture();
       }
     },
   };
@@ -1484,11 +1498,9 @@ export const createBlenderOutlinerAuthoring: ToolObject3DDocumentAuthoringFactor
    * writing the engine's selection first — a write the document would then
    * save.
    *
-   * THERE IS NO UNDO, and that is recorded rather than silently absent: the
-   * engine runs `--background` with no undo stack, and this editor's history
-   * has no door a contributed package can push an element through (WORK.md
-   * §THE BLENDER RELEASE, B5's OPEN (a)). Every verb here is as un-undoable as
-   * the gizmo drag beside it.
+   * The script door checkpoints Blender's native undo stack and records its
+   * callback in Code-OSS. These operators are undone by restoring Blender's
+   * state, never by constructing an inverse operator or replaying the script.
    */
   const structure: StructureProvider = {
     /**
@@ -1572,9 +1584,10 @@ export const createBlenderOutlinerAuthoring: ToolObject3DDocumentAuthoringFactor
       const body = [
         `targets = ${targets}`,
         'with bpy.context.temp_override(selected_objects=targets, active_object=targets[0]):',
-        '    bpy.ops.object.delete(use_global=False)',
+        '    result = bpy.ops.object.delete(use_global=False)',
+        'if "FINISHED" not in result: raise RuntimeError("Blender cancelled deleting the selected objects")',
       ].join('\n');
-      const { error } = await runBlenderOperator(body);
+      const { error } = await runBlenderOperator(body, 'Delete Objects');
       if (error !== null) return refuse(error);
       // The deleted rows are gone; re-read with NO selection so nothing points
       // at a name `bpy.data.objects` no longer has.
@@ -1608,12 +1621,13 @@ export const createBlenderOutlinerAuthoring: ToolObject3DDocumentAuthoringFactor
       const body = [
         `source = bpy.data.objects[${py(name)}]`,
         'with bpy.context.temp_override(selected_objects=[source], active_object=source):',
-        '    bpy.ops.object.duplicate(linked=False)',
+        '    result = bpy.ops.object.duplicate(linked=False)',
+        'if "FINISHED" not in result: raise RuntimeError("Blender cancelled duplicating the selected object")',
       ].join('\n');
       return {
         id,
         ack: (async (): Promise<WriteAck> => {
-          const { made, error } = await runBlenderOperator(body);
+          const { made, error } = await runBlenderOperator(body, 'Duplicate Object');
           if (error !== null) return refuse(error);
           await selectAfterOperator(made);
           return {
@@ -1621,6 +1635,24 @@ export const createBlenderOutlinerAuthoring: ToolObject3DDocumentAuthoringFactor
             persisted: true,
           };
         })(),
+      };
+    },
+    duplicateMany: async (ids): Promise<WriteAck> => {
+      const names = [...new Set(ids.map(objectNameFor))];
+      if (names.length === 0 || names.some(name => name === null))
+        return refuse('Select objects to duplicate; collections and data rows cannot be duplicated here.');
+      const body = [
+        `sources = [bpy.data.objects[name] for name in ${JSON.stringify(names)}]`,
+        'with bpy.context.temp_override(selected_objects=sources, active_object=sources[0]):',
+        '    result = bpy.ops.object.duplicate(linked=False)',
+        'if "FINISHED" not in result: raise RuntimeError("Blender cancelled duplicating the selected objects")',
+      ].join('\n');
+      const { made, error } = await runBlenderOperator(body, 'Duplicate Objects');
+      if (error !== null) return refuse(error);
+      await selectAfterOperator(made);
+      return {
+        destination: 'Blender — duplicate selected objects as one native operation; the session saves the .blend',
+        persisted: true,
       };
     },
     /** REFUSED BY NAME. Parenting in Blender is `object.parent_set`, and it is

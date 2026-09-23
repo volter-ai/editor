@@ -194,6 +194,7 @@ def _load_post(_arg):
     # in wasm (35 s at 1280x720, 48 samples) and `_photograph` never ran. The
     # engine ids are taken again on every load.
     ENGINES[:], UNAVAILABLE_ENGINES[:] = _register_engine()
+    HISTORY.reset()
 
 
 # ---------------------------------------------------------------- warnings
@@ -352,12 +353,11 @@ def _describe_background(background, camera_ray):
                         "inputs": [{"kind": "math", "operation": "ADD", "clamp": False,
                                     "inputs": products[:2]}, products[2]]}
             if kind == "ShaderNodeMapping" and socket == "Vector":
-                if node.vector_type != "POINT":
-                    raise NotImplementedError("World Mapping vector type %s" % node.vector_type)
                 for name in ("Location", "Rotation", "Scale"):
                     if node.inputs[name].links:
                         raise NotImplementedError("Linked World Mapping " + name)
-                return {"kind": "mapping", "vector": value(node.inputs["Vector"]),
+                return {"kind": "mapping", "vector_type": node.vector_type,
+                        "vector": value(node.inputs["Vector"]),
                         "location": [float(c) for c in node.inputs["Location"].default_value],
                         "rotation": [float(c) for c in node.inputs["Rotation"].default_value],
                         "scale": [float(c) for c in node.inputs["Scale"].default_value]}
@@ -402,9 +402,17 @@ def _describe_background(background, camera_ray):
         finally:
             visiting.remove(key)
 
+    color = value(background.inputs["Color"])
+    strength = value(background.inputs["Strength"])
+    # The field evaluator already implements an unclamped color mix. Mixing
+    # black with radiance at factor strength is exact multiplication, including
+    # spatially varying strength, with no second shader implementation.
+    if not isinstance(strength, (int, float)):
+        color = {"kind": "mix_color", "factor": strength, "a": [0.0, 0.0, 0.0],
+                 "b": color, "clamp_factor": False, "clamp_result": False}
+        strength = 1.0
     return {"color": [float(c) for c in list(background.inputs["Color"].default_value)[:3]],
-            "strength": float(background.inputs["Strength"].default_value),
-            "shader": value(background.inputs["Color"])}
+            "strength": float(strength), "shader": color}
 
 
 def _describe_world(world):
@@ -417,18 +425,17 @@ def _describe_world(world):
     if outputs[0].inputs["Volume"].links:
         raise NotImplementedError("World volume rendering is not implemented")
     background, lighting = _surface_backgrounds(surface[0].from_node)
-    for node in (background, lighting):
-        if node is not None and node.inputs["Strength"].links:
-            raise NotImplementedError("Linked World Background strength is not implemented")
     described = _describe_background(background, camera_ray=True)
     lighting_data = _describe_background(lighting or background, camera_ray=False)
     if lighting_data != described:
         described["lighting"] = lighting_data
-    # A constant Color needs no expression; the presenter reads `color`.
-    if not background.inputs["Color"].is_linked:
+    # Only a wholly constant background can drop the expression: linked
+    # Strength may carry spatial radiance even when Color itself is constant.
+    if not any(background.inputs[name].is_linked for name in ("Color", "Strength")):
         described.pop("shader", None)
-        if "lighting" in described and not (lighting or background).inputs["Color"].is_linked:
-            described["lighting"].pop("shader", None)
+    if "lighting" in described and not any(
+            (lighting or background).inputs[name].is_linked for name in ("Color", "Strength")):
+        described["lighting"].pop("shader", None)
     return described
 
 
@@ -780,9 +787,8 @@ class Session:
             # How many COLUMN BYTES this frame actually shipped: a move ships
             # zero, a vertex edit one mesh's worth.
             "bytes": int(_blender_web.buffer_size()),
-            # Blender's `is_dirty`, carried as an INSTRUMENT only: it is always
-            # False in this build (no undo stack in `--background`), which is
-            # why `save_document` does not read it. See the note there.
+            # Blender's `is_dirty` is instrumentation, not our save predicate:
+            # its value also depends on native undo initialization/checkpoints.
             "dirty": bool(bpy.data.is_dirty),
         }
         # A PRESENT IS WHAT LEAVES THE DOCUMENT STALE, and the predicate is the
@@ -1060,13 +1066,10 @@ class Session:
         if self.document is None:
             return {"saved": False, "reason": "no-document"}
         # `bpy.data.is_dirty` IS NOT A PREDICATE HERE, and this is the measurement
-        # rather than a preference. It reports `is_memfile_undo_written`, which
-        # only a GLOBAL UNDO PUSH clears -- and `--background` has no undo stack,
-        # so nothing ever pushes one. MEASURED 2026-09-18 in the tab, straight
-        # after `lantern.py` built fourteen objects: `bpy.data.is_dirty` is
-        # False. It is False before a save, False after one, and False across a
-        # script that models an entire scene; the only state it ever named here
-        # was "saved".
+        # rather than a preference. Before native undo initialization it stayed
+        # False even after a script built fourteen objects; with explicit undo
+        # checkpoints it can stay True across read-only operations. It is not
+        # a reliable change detector for this request-driven background session.
         #
         # It was briefly used to skip a redundant write, and it froze the
         # document after its first save -- a reopened session could model all
@@ -1418,6 +1421,109 @@ def _register_engine():
         made.append(VgaiRenderEngine.bl_idname)
     return made, unavailable
 
+
+# ---------------------------------------------------------------- native document history
+
+class NativeHistory:
+    """Blender owns the snapshots. These ids only address its steps from Code-OSS.
+
+    Background mode supports explicit undo_push (ed_undo_push_exec). Initialize
+    after opening the document, then checkpoint at the request boundary, including
+    scripts that mutate and subsequently fail. Never replay a script to redo it.
+    """
+    def __init__(self):
+        self.epoch = 0
+        self.serial = 0
+        self.steps = []
+        self.cursor = 0
+        self.events = []
+        self.initialized = False
+        self.group_depth = 0
+        self.group_label = None
+        self.mutation_serial = 0
+        self.moving = False
+
+    def changed(self):
+        self.mutation_serial += 1
+
+    def native_moved(self):
+        # A script can invoke Blender's undo directly. It must not leave our
+        # tokens addressing a different native cursor. Host-owned moves retain
+        # their ledger; external moves invalidate it and start a fresh baseline.
+        if not self.moving:
+            self.reset()
+
+    def reset(self):
+        self.epoch += 1
+        self.steps = []
+        self.cursor = 0
+        self.initialized = False
+        self.group_depth = 0
+        self.group_label = None
+        self.events = [{"reset": True}]
+
+    def begin(self):
+        if self.initialized:
+            return
+        preferences = bpy.context.preferences.edit
+        preferences.use_global_undo = True
+        # Native eviction may exhaust history before our address ledger. poll()
+        # below then refuses instead of claiming a restoration. Bound memory in
+        # the browser worker; retaining hundreds of full scenes can exhaust wasm.
+        preferences.undo_steps = 32
+        preferences.undo_memory_limit = 256
+        if "FINISHED" not in bpy.ops.ed.undo_push(message="Open document"):
+            raise RuntimeError("Blender could not initialize native undo; the edit was not started")
+        self.initialized = True
+
+    def commit(self, label):
+        self.begin()
+        if self.group_depth:
+            self.group_label = self.group_label or label
+            return
+        bpy.context.view_layer.update()
+        if "FINISHED" not in bpy.ops.ed.undo_push(message=label[:63]):
+            raise RuntimeError("Blender could not checkpoint this edit in native undo")
+        self.serial += 1
+        token = "%s:%s:%s" % (SESSION.session, self.epoch, self.serial)
+        self.steps[self.cursor:] = [token]
+        # Blender keeps at most undo_steps native states, including the baseline.
+        if len(self.steps) > 31:
+            del self.steps[:-31]
+        self.cursor = len(self.steps)
+        self.events.append({"id": token, "label": label,
+                            "resource": SESSION.document_relative})
+
+    def move(self, token, direction):
+        if self.group_depth:
+            raise RuntimeError("Finish the current Blender gesture before undo or redo")
+        index = self.cursor - 1 if direction == "undo" else self.cursor
+        if index < 0 or index >= len(self.steps) or self.steps[index] != token:
+            raise RuntimeError("Blender history expired or changed outside this edit; no other step was restored")
+        operator = bpy.ops.ed.undo if direction == "undo" else bpy.ops.ed.redo
+        if not operator.poll():
+            raise RuntimeError("Blender cannot %s this native step in the current context" % direction)
+        self.moving = True
+        try:
+            if "FINISHED" not in operator():
+                raise RuntimeError("Blender did not finish %s" % direction)
+        finally:
+            self.moving = False
+        self.cursor += -1 if direction == "undo" else 1
+        # Native undo replaces datablocks. Both revision caches must forget their
+        # old pointers before the restored scene is exported to the presenter.
+        _blender_web.session_reset()
+        SESSION.forget()
+        SESSION.present()
+        return {"moved": True}
+
+
+HISTORY = NativeHistory()
+
+
+@bpy.app.handlers.persistent
+def _history_post(_arg):
+    HISTORY.native_moved()
 
 # ---------------------------------------------------------------- the MCP tools
 
@@ -2049,6 +2155,7 @@ def rna_set(path, identifier, value, index=None):
             setattr(target, identifier, value)
     else:
         getattr(target, identifier)[index] = value
+    HISTORY.changed()
     return {"path": path, "property": identifier, "value": _rna_value(target, prop)}
 
 
@@ -3925,28 +4032,35 @@ def outliner_set(path, column, value):
     if isinstance(target, bpy.types.Object):
         if column == "hide":
             target.hide_set(value, view_layer=bpy.context.view_layer)
+            HISTORY.changed()
             return {"path": path, "column": column, "value": bool(target.hide_get())}
         if column == "render":
             target.hide_render = value
+            HISTORY.changed()
             return {"path": path, "column": column, "value": bool(target.hide_render)}
         if column == "viewport":
             target.hide_viewport = value
+            HISTORY.changed()
             return {"path": path, "column": column, "value": bool(target.hide_viewport)}
     if isinstance(target, bpy.types.LayerCollection):
         if column in ("exclude", "hide"):
             member = "exclude" if column == "exclude" else "hide_viewport"
             setattr(target, member, value)
+            HISTORY.changed()
             return {"path": path, "column": column, "value": bool(getattr(target, member))}
         if column == "render":
             target.collection.hide_render = value
+            HISTORY.changed()
             return {"path": path, "column": column, "value": bool(target.collection.hide_render)}
     if isinstance(target, bpy.types.Modifier):
         member = {"render": "show_render", "viewport": "show_viewport"}.get(column)
         if member is not None:
             setattr(target, member, not value)
+            HISTORY.changed()
             return {"path": path, "column": column, "value": not getattr(target, member)}
     if isinstance(target, bpy.types.Constraint) and column == "hide":
         target.enabled = not value
+        HISTORY.changed()
         return {"path": path, "column": column, "value": not target.enabled}
     raise ValueError(
         "Blender's Outliner draws no %r column on a %s, so nothing was written -- the columns "
@@ -3955,6 +4069,45 @@ def outliner_set(path, column, value):
 
 
 def dispatch(request):
+    op = request.get("op")
+    if op == "history-begin":
+        HISTORY.begin()
+        HISTORY.group_depth += 1
+        return None
+    if op == "history-end":
+        if HISTORY.group_depth == 0:
+            raise RuntimeError("No Blender gesture is open")
+        HISTORY.group_depth -= 1
+        if HISTORY.group_depth == 0 and HISTORY.group_label:
+            label, HISTORY.group_label = HISTORY.group_label, None
+            HISTORY.commit(label)
+        return None
+    if op == "history-events":
+        events, HISTORY.events = HISTORY.events, []
+        return events
+    if op == "history-step":
+        if request["direction"] not in ("undo", "redo"):
+            raise ValueError("Unknown history direction")
+        return HISTORY.move(request["token"], request["direction"])
+    mutation = op in ("execute", "rna-set", "outliner-set") and request.get("history", True)
+    if not mutation:
+        return _dispatch(request)
+    HISTORY.begin()
+    before = HISTORY.mutation_serial
+    epoch = HISTORY.epoch
+    try:
+        return _dispatch(request)
+    finally:
+        # Loading a file resets Blender's native stack. Its final state cannot
+        # serve as both the before and after of an invented undo checkpoint.
+        if HISTORY.epoch == epoch and HISTORY.mutation_serial != before:
+            HISTORY.commit(request.get("label") or {
+                "execute": "Blender Python", "rna-set": "Set " + request.get("property", "property"),
+                "outliner-set": "Set " + request.get("column", "visibility"),
+            }[op])
+
+
+def _dispatch(request):
     op = request.get("op")
     if op == "execute":
         engine = bpy.context.scene.render.engine
@@ -3967,6 +4120,9 @@ def dispatch(request):
         absent = _absent_capability(request["code"])
         if absent is not None:
             return {"executed": False, "result": "", "error": absent}
+        # Arbitrary Python can partially mutate before throwing. Once execution
+        # starts it needs a checkpoint; capability refusals above do not.
+        HISTORY.changed()
         answer = execute(request["code"])
         # Every mutation is presented, the rule: the Model
         # document is what the agent is looking at.
@@ -4076,6 +4232,8 @@ def dispatch(request):
 
 _prepare_directories()
 bpy.app.handlers.load_post.append(_load_post)
+bpy.app.handlers.undo_post.append(_history_post)
+bpy.app.handlers.redo_post.append(_history_post)
 ENGINES, UNAVAILABLE_ENGINES = _register_engine()
 _say("@@VGAI-READY " + json.dumps({"blender": bpy.app.version_string, "engines": ENGINES,
                                    "unavailableEngines": UNAVAILABLE_ENGINES}))

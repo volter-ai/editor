@@ -116,6 +116,7 @@ export const STRUCTURE_PROVIDER_SHAPE = defineSeamShape<StructureProvider>()({
   create: { optional: false, kind: 'function', required: 'round-trip' },
   remove: { optional: false, kind: 'function', required: 'round-trip' },
   duplicate: { optional: false, kind: 'function', required: 'round-trip' },
+  duplicateMany: { optional: true, kind: 'function', required: 'round-trip' },
   reparent: { optional: false, kind: 'function', required: 'round-trip' },
   reorder: { optional: true, kind: 'function', required: 'round-trip' },
   creatableKinds: { optional: true, kind: 'function', required: 'operation' },

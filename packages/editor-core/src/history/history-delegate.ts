@@ -80,10 +80,12 @@ export interface HistoryElement {
  * is worse than one that is absent.
  */
 export interface HistoryDelegate {
-  undo(): void;
-  redo(): void;
+  undo(): void | boolean | Promise<void | boolean>;
+  redo(): void | boolean | Promise<void | boolean>;
   canUndo(): boolean;
   canRedo(): boolean;
+  undoLabel?(): string | null;
+  redoLabel?(): string | null;
 }
 
 let delegate: HistoryDelegate | null = null;
@@ -93,6 +95,7 @@ let delegate: HistoryDelegate | null = null;
 let documentResolver: (() => string | null) | null = null;
 const ownerListeners = new Set<() => void>();
 const elementListeners = new Set<(element: HistoryElement) => void>();
+const invalidationListeners = new Set<(resources: readonly string[]) => void>();
 /** Everything recorded while a delegate was installed, so a LATE subscriber
  *  (the bridge mounts after the editor's first edits are possible) can catch
  *  up rather than start with a stack that is missing its beginning. */
@@ -131,16 +134,24 @@ export function subscribeHistoryDelegate(listener: () => void): () => void {
   return () => ownerListeners.delete(listener);
 }
 
+export function notifyHistoryDelegateChanged(): void {
+  for (const listener of ownerListeners) listener();
+}
+
 /**
  * Offer one committed transaction to the frame. Recorded even before the
  * delegate arrives — that buffer is what lets a frame that mounts after the
  * editor's first edits push what it missed, in order, rather than start with a
  * stack missing its beginning.
  */
-export function emitHistoryElement(element: Omit<HistoryElement, 'document'>): void {
-  const stamped: HistoryElement = { ...element, document: documentResolver?.() ?? null };
+export function emitHistoryElement(element: Omit<HistoryElement, 'document'> & { document?: string | null }): void {
+  const stamped: HistoryElement = {
+    ...element,
+    document: element.document === undefined ? documentResolver?.() ?? null : element.document,
+  };
   recorded.push(stamped);
   for (const listener of elementListeners) listener(stamped);
+  for (const listener of ownerListeners) listener();
 }
 
 /** Install the reader of "which document is active". Called once by the host
@@ -160,4 +171,17 @@ export function recordedHistoryElements(): readonly HistoryElement[] {
 export function onHistoryElement(listener: (element: HistoryElement) => void): () => void {
   elementListeners.add(listener);
   return () => elementListeners.delete(listener);
+}
+
+/** A native document was replaced or its snapshot owner was closed. */
+export function invalidateHistoryResources(resources: readonly string[]): void {
+  const expired = new Set(resources);
+  recorded = recorded.filter(element => !element.resources.some(path => expired.has(path)));
+  for (const listener of invalidationListeners) listener(resources);
+  for (const listener of ownerListeners) listener();
+}
+
+export function onHistoryInvalidated(listener: (resources: readonly string[]) => void): () => void {
+  invalidationListeners.add(listener);
+  return () => invalidationListeners.delete(listener);
 }

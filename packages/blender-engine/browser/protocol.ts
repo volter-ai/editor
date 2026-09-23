@@ -2,11 +2,13 @@
  * worker; the model lives in the worker's Python and nowhere else. */
 
 export type WorkerRequest =
+  | { id: number; op: 'history-begin' | 'history-end' }
+  | { id: number; op: 'history-step'; token: string; direction: 'undo' | 'redo' }
   /** `document` is the session's `.blend`, PROJECT-RELATIVE (`models/model.blend`
    *  by default). An existing one is opened at start; an absent one starts
    *  empty and is created by the first save. */
   | { id: number; op: 'start'; project: string; document?: string }
-  | { id: number; op: 'execute'; code: string }
+  | { id: number; op: 'execute'; code: string; history?: boolean; label?: string }
   | { id: number; op: 'scene-info' }
   | { id: number; op: 'object-info'; name: string }
   | { id: number; op: 'screenshot-view'; maxSize: number }
@@ -32,6 +34,7 @@ export type WorkerRequest =
   | {
       id: number;
       op: 'rna-set';
+      history?: boolean;
       path: string;
       property: string;
       value: unknown;
@@ -90,6 +93,7 @@ export type WorkerRequest =
     };
 
 export type WorkerReply =
+  | { op: 'history'; entries: NativeHistoryEntry[] }
   | { id: number; result: unknown }
   | { id: number; error: string }
   /** The worker asks the tab to display a frame (and to remember the view a
@@ -120,6 +124,12 @@ export type WorkerReply =
    * a permanent cost for the life of the tab.
    */
   | { op: 'memory'; bytes: number };
+
+export type NativeHistoryEntry = { reset: true } | {
+  id: string;
+  label: string;
+  resource: string | null;
+};
 
 export interface CaptureRequest {
   /** A viewport screenshot's bound, the longer side of a square frame.

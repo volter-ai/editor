@@ -397,6 +397,7 @@ export type WorldExpression =
     }
   | {
       kind: 'mapping';
+      vector_type?: 'POINT' | 'TEXTURE' | 'VECTOR' | 'NORMAL' | undefined;
       vector: WorldExpression;
       location: WorldVector;
       rotation: WorldVector;
@@ -475,6 +476,7 @@ const worldExpression: z.ZodType<WorldExpression> = z.lazy(() =>
     z
       .object({
         kind: z.literal('mapping'),
+        vector_type: z.enum(['POINT', 'TEXTURE', 'VECTOR', 'NORMAL']).optional(),
         vector: worldExpression,
         location: worldVector,
         rotation: worldVector,

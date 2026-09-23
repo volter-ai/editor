@@ -93,3 +93,29 @@ at `/bw/datafiles/assets`. In the live worker, Blender loaded the Smooth by
 Angle node group, evaluated it on Cube, and loaded the Smooth sculpt brush,
 with zero console errors/warnings. An anonymous public LFS download matched
 the manifest SHA-256. The next npm release still needs to convey this payload.
+
+Native-history source acceptance (2026-09-23, darwin-arm64): a local validation
+workbench exercised the real Code-OSS undo service and Blender worker. Python
+and RNA edits restored and redid their exact positions; a refused read-only
+property preserved redo; a partially failing Python edit remained undoable.
+A Properties number edit and an eight-move viewport gizmo drag each restored in
+one undo. Batch duplication preserved the copied parent/child relationship and
+selected both copies; one undo removed both, and redo restored both. Batch
+deletion restored both objects and their relationship in one undo. File loading
+and direct native undo invalidated old workbench entries; worker stop/start
+reopened the saved position with empty session history. Final console was silent.
+This is source acceptance, not a new published release; the validation workbench
+is explicitly dirty and cannot be published.
+
+The follow-up also evaluates linked World Background strength and Blender's
+POINT/TEXTURE/VECTOR/NORMAL Mapping semantics, including inverse mapping with a
+zero scale. The live worker presented the linked-strength/Texture-mapping world
+without warnings. World volumes remain excluded. Duplication is one coherent
+native operation; this does not claim Blender's modal duplicate-and-move UI.
+
+Release work remains: build a clean workbench from the committed source, pin it
+and publish the next npm train (including Essentials). The workbench's cached
+asset identity must include the editor overlay, not only the unchanged Code-OSS
+pin; `build-release.mjs` now supplies a composition fingerprint through upstream's
+`BUILD_SOURCEVERSION`. Windows/Linux still require suitable native runners;
+none were registered, and paid capacity has not been authorized.

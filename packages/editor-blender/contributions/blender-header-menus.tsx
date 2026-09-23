@@ -452,13 +452,10 @@ export function BlenderObjectModeHeader({
           disabled={selected.length === 0}
           title={nothingSelected}
           onSelect={run('Duplicate Objects', async (outliner) => {
-            // One at a time, for the reason `duplicateSelection` awaits its own
-            // loop: each call runs a bpy script and the next must start from
-            // what the last produced.
-            for (const name of [...outliner.selectedObjectNames()]) {
-              const id = outliner.rowIdForObject(name);
-              if (id !== null) await outliner.structure.duplicate(id).ack;
-            }
+            const ids = outliner.selectedObjectNames()
+              .map(name => outliner.rowIdForObject(name))
+              .filter((id): id is string => id !== null);
+            return outliner.structure.duplicateMany?.(ids);
           })}
         >
           Duplicate Objects

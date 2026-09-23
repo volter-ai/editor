@@ -139,6 +139,7 @@ import {
   createAuthoringNode,
   cutAuthoringNodes,
   duplicateAuthoringNode,
+  duplicateManyAuthoringNodes,
   groupAuthoringNodes,
   pasteAuthoringNodes,
   removeAuthoringNode,
@@ -1943,6 +1944,10 @@ export async function handleCommand(
             return { ok: true, data: { write } };
           }
           case 'duplicate': {
+            if (ids.length > 1 && structure.duplicateMany) {
+              const write = await duplicateManyAuthoringNodes(adapter, ids);
+              return { ok: true, data: { write } };
+            }
             const copy = duplicateAuthoringNode(adapter, needsId());
             return { ok: true, data: { id: copy.id, write: await copy.ack } };
           }
