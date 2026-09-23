@@ -553,7 +553,11 @@ _GRAPH_NODES = frozenset((
     "ShaderNodeTexImage", "ShaderNodeMapping", "ShaderNodeMath", "ShaderNodeVectorMath",
     "ShaderNodeMix", "ShaderNodeMixRGB", "ShaderNodeValToRGB", "ShaderNodeInvert",
     "ShaderNodeSeparateXYZ", "ShaderNodeCombineXYZ", "ShaderNodeTexNoise",
-    "ShaderNodeTexVoronoi", "ShaderNodeTexChecker",
+    "ShaderNodeTexVoronoi", "ShaderNodeTexChecker", "ShaderNodeTexWhiteNoise",
+    "ShaderNodeTexWave", "ShaderNodeTexGradient", "ShaderNodeTexMagic", "ShaderNodeTexBrick",
+    "ShaderNodeMapRange", "ShaderNodeClamp", "ShaderNodeHueSaturation", "ShaderNodeBrightContrast",
+    "ShaderNodeGamma", "ShaderNodeRGBToBW", "ShaderNodeSeparateColor", "ShaderNodeCombineColor",
+    "ShaderNodeVectorRotate", "ShaderNodeFresnel", "ShaderNodeLayerWeight",
 ))
 # The surfaces whose inputs map onto the presenter's standard material, and
 # the inputs of each the presenter reads from a graph.
@@ -563,7 +567,10 @@ _GRAPH_SURFACES = {
     "ShaderNodeEmission": ("Color", "Strength"),
 }
 # Procedural textures whose unlinked Vector is Generated coordinates.
-_GENERATED_BY_DEFAULT = frozenset(("ShaderNodeTexNoise", "ShaderNodeTexVoronoi", "ShaderNodeTexChecker"))
+_GENERATED_BY_DEFAULT = frozenset((
+    "ShaderNodeTexNoise", "ShaderNodeTexVoronoi", "ShaderNodeTexChecker", "ShaderNodeTexWave",
+    "ShaderNodeTexGradient", "ShaderNodeTexMagic", "ShaderNodeTexBrick",
+))
 # RNA properties every node has, which describe the node's place in the editor
 # rather than what it computes.
 _NODE_BASE_PROPERTIES = frozenset(p.identifier for p in bpy.types.ShaderNode.bl_rna.properties)
@@ -609,6 +616,14 @@ def _node_properties(node):
         if prop.type in ("ENUM", "BOOLEAN", "INT", "FLOAT", "STRING") and not getattr(prop, "is_array", False):
             value = getattr(node, name)
             props[name] = sorted(value) if isinstance(value, set) else value
+            if prop.type == "ENUM" and not prop.is_enum_flag:
+                # The enum's DNA value, which is what the GPU binding passes as
+                # a constant (`GPU_constant(&tex->wave_type)`): read from RNA,
+                # never transcribed.
+                try:
+                    props[name + "#value"] = prop.enum_items[value].value
+                except (KeyError, TypeError):
+                    pass  # a dynamic enum has no static item table
     if node.bl_idname == "ShaderNodeValToRGB":
         ramp = node.color_ramp
         props["color_ramp"] = {

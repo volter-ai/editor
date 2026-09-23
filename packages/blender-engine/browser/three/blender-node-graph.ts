@@ -42,7 +42,11 @@ export const GRAPH_NODE_TYPES = [
   'ShaderNodeTexImage', 'ShaderNodeMapping', 'ShaderNodeMath', 'ShaderNodeVectorMath',
   'ShaderNodeMix', 'ShaderNodeMixRGB', 'ShaderNodeValToRGB', 'ShaderNodeInvert',
   'ShaderNodeSeparateXYZ', 'ShaderNodeCombineXYZ', 'ShaderNodeTexNoise',
-  'ShaderNodeTexVoronoi', 'ShaderNodeTexChecker',
+  'ShaderNodeTexVoronoi', 'ShaderNodeTexChecker', 'ShaderNodeTexWhiteNoise',
+  'ShaderNodeTexWave', 'ShaderNodeTexGradient', 'ShaderNodeTexMagic', 'ShaderNodeTexBrick',
+  'ShaderNodeMapRange', 'ShaderNodeClamp', 'ShaderNodeHueSaturation', 'ShaderNodeBrightContrast',
+  'ShaderNodeGamma', 'ShaderNodeRGBToBW', 'ShaderNodeSeparateColor', 'ShaderNodeCombineColor',
+  'ShaderNodeVectorRotate', 'ShaderNodeFresnel', 'ShaderNodeLayerWeight',
 ] as const;
 
 const nodeSchema = z.object({
@@ -156,6 +160,20 @@ function prop<T>(node: GraphNode, name: string): T {
   return node.props[name] as T;
 }
 
+/** What EEVEE's node library reads from EEVEE itself, supplied for the nodes
+ *  that read it (Fresnel, Layer Weight): the shading globals `g_data`
+ *  (world position and normal, set at the top of `blenderGraph`), EEVEE's
+ *  `coordinate_incoming` (`eevee_nodetree_lib`: toward the eye; the view axis
+ *  in orthographic), and codegen's `FrontFacing`. */
+const EEVEE_GLOBALS = `
+#define FrontFacing gl_FrontFacing
+struct BlenderGlobalData { vec3 P; vec3 N; };
+BlenderGlobalData g_data;
+vec3 coordinate_incoming(vec3 P) {
+  return isOrthographic ? normalize(vec3(inverse(viewMatrix)[2])) : normalize(cameraPosition - P);
+}
+`;
+
 /** The GLSL the graph's coordinate nodes read, from three's own varyings and
  *  EEVEE's definitions of each Texture Coordinate output. */
 const COORDINATES = `
@@ -231,7 +249,7 @@ class Compiler {
   }
 
   private input(node: GraphNode, id: string, to?: GpuType): string {
-    const input = node.inputs.find(i => i.id === id);
+    const input = node.inputs.find(i => i.id === id) ?? node.inputs.find(i => i.id.replace(/_/g, ' ') === id);
     if (!input) throw new Error(`${node.type} arrived without its '${id}' input`);
     return this.source(input, to ?? input.gpu);
   }
@@ -407,6 +425,80 @@ class Compiler {
         body.push(`${this.use('node_tex_checker')}(${[co, ...rest, outs(outputs.map((_, i) => i))].join(', ')});`);
         break;
       }
+      case 'ShaderNodeTexWhiteNoise': {
+        const dims = Number(prop<string>(node, 'noise_dimensions')[0]);
+        body.push(`${this.use(`node_white_noise_${dims}d`)}(${stack()});`);
+        break;
+      }
+      case 'ShaderNodeTexWave':
+      case 'ShaderNodeTexGradient':
+      case 'ShaderNodeTexMagic':
+      case 'ShaderNodeTexBrick': {
+        // Procedural textures with node constants (`GPU_constant`/`GPU_uniform`
+        // after the inputs), their Vector defaulting to Generated.
+        const co = this.coordinate(node, 'orco');
+        const rest = node.inputs.slice(1).map(i => this.source(i, i.gpu));
+        const e = (name: string) => prop<number>(node, `${name}#value`).toFixed(1);
+        const extras = node.type === 'ShaderNodeTexWave'
+          ? [e('wave_type'), e('bands_direction'), e('rings_direction'), e('wave_profile')]
+          : node.type === 'ShaderNodeTexGradient' ? [e('gradient_type')]
+          : node.type === 'ShaderNodeTexMagic' ? [prop<number>(node, 'turbulence_depth').toFixed(1)]
+          : [this.uniform('float', prop<number>(node, 'offset')), prop<number>(node, 'offset_frequency').toFixed(1),
+             this.uniform('float', prop<number>(node, 'squash')), prop<number>(node, 'squash_frequency').toFixed(1)];
+        const fn = {ShaderNodeTexWave: 'node_tex_wave', ShaderNodeTexGradient: 'node_tex_gradient',
+          ShaderNodeTexMagic: 'node_tex_magic', ShaderNodeTexBrick: 'node_tex_brick'}[node.type];
+        body.push(`${this.use(fn)}(${[co, ...rest, ...extras, outs(outputs.map((_, i) => i))].join(', ')});`);
+        break;
+      }
+      case 'ShaderNodeMapRange': {
+        // gpu_shader_map_range: every socket, the clamp flag; a clamped
+        // linear/stepped float result then goes through clamp_range(To Min, To Max).
+        const vector = prop<string>(node, 'data_type') === 'FLOAT_VECTOR';
+        const mode = prop<string>(node, 'interpolation_type').toLowerCase();
+        const clamp = prop<boolean>(node, 'clamp');
+        body.push(`${this.use(`${vector ? 'vector_' : ''}map_range_${mode}`)}(${stack([clamp ? '1.0' : '0.0'])});`);
+        if (clamp && !vector && (mode === 'linear' || mode === 'stepped'))
+          body.push(`${this.use('clamp_range')}(${outs([0])}, ${this.input(node, 'To Min', 'float')}, ${this.input(node, 'To Max', 'float')}, ${outs([0])});`);
+        break;
+      }
+      case 'ShaderNodeClamp':
+        body.push(`${this.use(prop<string>(node, 'clamp_type') === 'MINMAX' ? 'clamp_minmax' : 'clamp_range')}(${stack()});`);
+        break;
+      case 'ShaderNodeHueSaturation':
+        body.push(`${this.use('hue_sat')}(${stack()});`);
+        break;
+      case 'ShaderNodeBrightContrast':
+        body.push(`${this.use('brightness_contrast')}(${stack()});`);
+        break;
+      case 'ShaderNodeGamma':
+        body.push(`${this.use('node_gamma')}(${stack()});`);
+        break;
+      case 'ShaderNodeRGBToBW':
+        body.push(`${this.use('rgbtobw')}(${stack([LUMINANCE])});`);
+        break;
+      case 'ShaderNodeSeparateColor':
+        body.push(`${this.use(`separate_color_${prop<string>(node, 'mode').toLowerCase()}`)}(${stack()});`);
+        break;
+      case 'ShaderNodeCombineColor':
+        body.push(`${this.use(`combine_color_${prop<string>(node, 'mode').toLowerCase()}`)}(${stack()});`);
+        break;
+      case 'ShaderNodeVectorRotate': {
+        const name = {AXIS_ANGLE: 'axis_angle', X_AXIS: 'axis_x', Y_AXIS: 'axis_y', Z_AXIS: 'axis_z',
+          EULER_XYZ: 'euler_xyz'}[prop<string>(node, 'rotation_type')];
+        body.push(`${this.use(`node_vector_rotate_${name}`)}(${stack([prop<boolean>(node, 'invert') ? '-1.0' : '1.0'])});`);
+        break;
+      }
+      case 'ShaderNodeFresnel':
+      case 'ShaderNodeLayerWeight': {
+        // An unlinked Normal is the shading normal (`world_normals_get`).
+        const n = node.inputs[1]!;
+        const normal = 'link' in n ? this.source(n, 'vec3') : 'g_data.N';
+        if (!('link' in n)) this.structure.push('world-normal');
+        const first = this.source(node.inputs[0]!, 'float');
+        const fn = node.type === 'ShaderNodeFresnel' ? 'node_fresnel' : 'node_layer_weight';
+        body.push(`${this.use(fn)}(${[first, normal, outs(outputs.map((_, i) => i))].join(', ')});`);
+        break;
+      }
       case 'ShaderNodeTexImage': {
         const image = prop<{name: string; revision: number} | null>(node, 'image');
         if (image === null) {
@@ -474,10 +566,10 @@ class Compiler {
       ordered.push(file);
     };
     for (const file of this.files) visit(file);
-    const graphBody = `void blenderGraph() {\n  ${[...this.lines, ...assignments].join('\n  ')}\n}`;
+    const graphBody = `void blenderGraph() {\n  g_data.P = vBlenderWorldPosition;\n  g_data.N = normalize(vBlenderWorldNormal);\n  ${[...this.lines, ...assignments].join('\n  ')}\n}`;
     const declarations = [
       BLENDER_NODE_GLSL_PRELUDE,
-      shakeLibrary(ordered.map(f => BLENDER_NODE_GLSL[f]!.code).join('\n') + '\n' + COORDINATES, graphBody),
+      shakeLibrary(EEVEE_GLOBALS + ordered.map(f => BLENDER_NODE_GLSL[f]!.code).join('\n') + '\n' + COORDINATES, graphBody),
       ...[...this.uniformTypes].map(([n, t]) => `uniform ${t} ${n};`),
       ...this.images.map(i => `uniform sampler2D ${i.uniform};`),
       ...this.ramps.map(r => `uniform sampler2D ${r.uniform};`),
