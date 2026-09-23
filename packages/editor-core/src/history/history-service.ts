@@ -1,4 +1,4 @@
-import { emitHistoryElement, historyDelegate, historyDelegateInstalled } from './history-delegate';
+import { emitHistoryElement, historyDelegate, historyDelegateInstalled, subscribeHistoryDelegate } from './history-delegate';
 import { PersistenceCoordinator } from './persistence-coordinator';
 import { ResourceRegistry } from './resource-registry';
 import { SnapshotStore } from './snapshot-store';
@@ -236,6 +236,7 @@ export class HistoryService {
   private droppedTotal = 0;
   private executionTail: Promise<void> = Promise.resolve();
   private publicSnapshot: HistorySnapshot;
+  private readonly unsubscribeOwner: () => void;
 
   constructor(options: HistoryServiceOptions = {}) {
     this.registry = options.registry ?? new ResourceRegistry();
@@ -257,6 +258,7 @@ export class HistoryService {
       throw new Error('History limits must be positive.');
     }
     this.publicSnapshot = this.buildSnapshot();
+    this.unsubscribeOwner = subscribeHistoryDelegate(() => this.notify());
   }
 
   subscribe = (listener: () => void): (() => void) => {
@@ -265,7 +267,17 @@ export class HistoryService {
     return () => this.listeners.delete(listener);
   };
 
-  getSnapshot = (): HistorySnapshot => this.publicSnapshot;
+  getSnapshot = (): HistorySnapshot => {
+    // Focus may move between documents without changing any history entry.
+    // Keep the external-store snapshot stable unless the native answer changes.
+    if (historyDelegateInstalled()) {
+      const next = this.buildSnapshot();
+      if (next.canUndo !== this.publicSnapshot.canUndo || next.canRedo !== this.publicSnapshot.canRedo ||
+          next.undoLabel !== this.publicSnapshot.undoLabel || next.redoLabel !== this.publicSnapshot.redoLabel)
+        this.publicSnapshot = next;
+    }
+    return this.publicSnapshot;
+  };
 
   subscribeCommits(listener: (transaction: HistoryTransaction) => void): () => void {
     this.assertNotDisposed();
@@ -447,15 +459,18 @@ export class HistoryService {
    * ONE stack instead of walking a cursor nobody is driving. A frame that has
    * not installed its undo yet gets a named refusal rather than silence.
    */
-  private delegateOrRefuse(direction: 'undo' | 'redo'): boolean {
+  private async delegateOrRefuse(direction: 'undo' | 'redo'): Promise<boolean> {
     const delegate = historyDelegate();
     if (delegate) {
       // A handled keyboard command is not evidence that history moved. In
       // particular, a native document may have no entry on Code-OSS's stack.
       if (!(direction === 'undo' ? delegate.canUndo() : delegate.canRedo())) return false;
-      if (direction === 'undo') delegate.undo();
-      else delegate.redo();
-      return true;
+      try {
+        const moved = direction === 'undo' ? await delegate.undo() : await delegate.redo();
+        return moved !== false;
+      } finally {
+        this.notify();
+      }
     }
     this.lastErrorValue = historyError(
       'busy',
@@ -634,6 +649,7 @@ export class HistoryService {
   dispose(): void {
     if (this.disposeRequested) return;
     this.disposeRequested = true;
+    this.unsubscribeOwner();
     this.listeners.clear();
     this.commitListeners.clear();
     this.finishDisposeIfIdle();
@@ -1162,8 +1178,8 @@ export class HistoryService {
       canRedo: historyDelegateInstalled()
         ? (historyDelegate()?.canRedo() ?? false)
         : idle && !!redo && redo.status !== 'expired' && !this.blockedValue,
-      undoLabel: undo?.label ?? null,
-      redoLabel: redo?.label ?? null,
+      undoLabel: historyDelegateInstalled() ? historyDelegate()?.undoLabel?.() ?? null : undo?.label ?? null,
+      redoLabel: historyDelegateInstalled() ? historyDelegate()?.redoLabel?.() ?? null : redo?.label ?? null,
       uniqueSnapshotBytes: this.snapshots.uniqueByteLength,
       lastError: this.lastErrorValue,
       limitWarning: this.limitWarningValue,

@@ -3,6 +3,7 @@ import {
   copyAuthoringNodes,
   cutAuthoringNodes,
   duplicateAuthoringNode,
+  duplicateManyAuthoringNodes,
   groupAuthoringNodes,
   pasteAuthoringNodes,
   removeAuthoringNode,
@@ -216,7 +217,21 @@ async function runDuplicateSelection(store: EditorShellStore): Promise<void> {
       ? (adapter.hierarchy.node(selection[0] as string)?.label ?? 'selection')
       : `${selection.length} objects`;
   showTransientHint(`Duplicating ${label}…`);
-  for (const id of selection) await duplicateAuthoringNode(adapter, id).ack;
+  if (structure.duplicateMany) {
+    const ack = await duplicateManyAuthoringNodes(adapter, selection);
+    if (ack && !ack.persisted) {
+      showTransientHint(ack.destination);
+      return;
+    }
+  } else {
+    for (const id of selection) {
+      const ack = await duplicateAuthoringNode(adapter, id).ack;
+      if (ack && !ack.persisted) {
+        showTransientHint(ack.destination);
+        return;
+      }
+    }
+  }
   showTransientHint(`Duplicated ${label}`);
 }
 

@@ -41,22 +41,12 @@
  *     keeps the per-document ledger of files touched, and a stage's ⌘Z asks the undo service
  *     about the most recently edited of THAT document's files that still has a step. A
  *     component view's elements carry that view's id, so its ⌘Z can never reach the main
- *     scene's. The Model document is the case where the answer is a refusal rather than a step
- *     — see THE MODEL DOCUMENT below.
+ *     scene's. Model documents use the same resource ordering for native Blender callbacks.
  *
- *  THE MODEL DOCUMENT, decided here and MEASURED rather than assumed. A `.blend` document's
- *  edits are bpy calls that reach the engine, and the obvious mapping would be to push one
- *  resource element per call whose `undo()` is `bpy.ops.ed.undo` through the session. It does
- *  not exist: this Blender runs `--background`, which has NO UNDO STACK — stated twice in
- *  `packages/blender/browser/session.py` (the `dirty` instrument at ~l.551 and `save_document`
- *  at ~l.820: "`--background` has no undo stack, so nothing ever pushes one", with
- *  `bpy.data.is_dirty` measured False before a save, after one, and across a script that
- *  models an entire scene). Nor do those edits enter the editor's history at all —
- *  `packages/blender` imports nothing of `history/`. So a Model document's ⌘Z REFUSES BY NAME
- *  on that resource, in the vgai console, naming the mechanism (the engine's own undo, absent
- *  in this build). It is a standing warning naming its mechanism, never a silent degrade and
- *  never someone else's stack quietly taking the keystroke. The day the engine runs with an
- *  undo stack, this is the one place that changes.
+ *  THE MODEL DOCUMENT records native Blender checkpoints through the host history door.
+ *  Background mode needs explicit initialization with undo_push; it does not prohibit
+ *  native undo. The engine owns snapshots and restoration, this service owns ordering.
+ *  Await restoration so a command cannot acknowledge before the document has changed.
  *--------------------------------------------------------------------------------------------*/
 
 import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
@@ -79,6 +69,8 @@ export interface VgaiHistoryBridge {
 	elements(): readonly VgaiHistoryElement[];
 	/** Every entry as it is recorded from here on. Returns the removal. */
 	onElement(listener: (element: VgaiHistoryElement) => void): () => void;
+	onInvalidated(listener: (resources: readonly string[]) => void): () => void;
+	changed(): void;
 	/** The focused document's own project-relative file, or null when the active document is
 	 *  not a file on disk. The FIRST resource a stage's ⌘Z tries, and what a refusal names. */
 	focusedResource(): string | null;
@@ -87,7 +79,7 @@ export interface VgaiHistoryBridge {
 	/** Hand the editor the frame's OWN undo: its Edit menu ("Undo Set position"), its
 	 *  palette and `vgai eval`'s undo verb all call the editor's `edit.undo`, and under
 	 *  the frame every one of them has to reach THIS stack. */
-	setDelegate(delegate: { undo(): void; redo(): void; canUndo(): boolean; canRedo(): boolean }): void;
+	setDelegate(delegate: { undo(): boolean | Promise<boolean>; redo(): boolean | Promise<boolean>; canUndo(): boolean; canRedo(): boolean; undoLabel(): string | null; redoLabel(): string | null }): void;
 	/** Say something in the vgai editor's OWN console, where `vgai console` reads it. */
 	report(level: 'warn' | 'error', message: string): void;
 }
@@ -140,6 +132,12 @@ export class VgaiHistory extends Disposable {
 
 		for (const element of bridge.elements()) { this.push(element); }
 		this._register(toDisposable(bridge.onElement(element => this.push(element))));
+		this._register(toDisposable(bridge.onInvalidated(paths => {
+			for (const path of paths) {
+				const resource = this.resolve(path);
+				if (resource) { this.undoRedoService.removeElements(resource); }
+			}
+		})));
 
 		// The same priority and the same door upstream's custom editors use. The `when` is
 		// U6's context key, so the implementation is consulted only while focus is on one of
@@ -147,17 +145,19 @@ export class VgaiHistory extends Disposable {
 		// undo runs exactly as it always did.
 		const stageFocused = ContextKeyExpr.has('vgai.stage.focused');
 		const PRIORITY = 105;
-		this._register(UndoCommand.addImplementation(PRIORITY, 'vgai-stage', () => this.run('undo'), stageFocused));
-		this._register(RedoCommand.addImplementation(PRIORITY, 'vgai-stage', () => this.run('redo'), stageFocused));
+		this._register(UndoCommand.addImplementation(PRIORITY, 'vgai-stage', async () => { await this.run('undo'); }, stageFocused));
+		this._register(RedoCommand.addImplementation(PRIORITY, 'vgai-stage', async () => { await this.run('redo'); }, stageFocused));
 
 		// The editor's OWN undo affordances (its Edit menu, its palette, `vgai eval`) now run
 		// this same resolution rather than the editor's cursor, so there is one answer to
 		// "undo" however it is asked for. `canUndo`/`canRedo` are what enable those items.
 		bridge.setDelegate({
-			undo: () => { this.run('undo'); },
-			redo: () => { this.run('redo'); },
+			undo: () => this.run('undo', true),
+			redo: () => this.run('redo', true),
 			canUndo: () => this.available('undo'),
 			canRedo: () => this.available('redo'),
+			undoLabel: () => this.label('undo'),
+			redoLabel: () => this.label('redo'),
 		});
 	}
 
@@ -213,25 +213,31 @@ export class VgaiHistory extends Disposable {
 	 * ⌘Z (or ⇧⌘Z) with a vgai stage focused. ALWAYS returns true — see the header: falling
 	 * through would hand the keystroke to a stack the person is not looking at.
 	 */
-	private run(direction: 'undo' | 'redo'): boolean {
+	private async run(direction: 'undo' | 'redo', acknowledge = false): Promise<boolean> {
 		const doc = this.bridge.focusedDocument();
 		if (!doc) {
 			this.bridge.report('warn', localize('vgaiHistoryNoSubject', "Cannot {0}: {1}.", direction, Refusal.NoDocument));
-			return true;
+			return !acknowledge;
 		}
 		const resource = this.resourceFor(doc.id, direction);
 		if (resource) {
-			void (direction === 'undo' ? this.undoRedoService.undo(resource) : this.undoRedoService.redo(resource));
-			return true;
+			const before = this.undoRedoService.getElements(resource);
+			const candidate = (direction === 'undo' ? before.past : before.future).at(-1);
+			try {
+				await (direction === 'undo' ? this.undoRedoService.undo(resource) : this.undoRedoService.redo(resource));
+			} finally {
+				this.bridge.changed();
+			}
+			// Upstream catches restoration errors and removes failed stacks. A
+			// resolved promise alone does not mean the requested entry moved.
+			const after = this.undoRedoService.getElements(resource);
+			const moved = !!candidate && (direction === 'undo' ? after.future : after.past).includes(candidate);
+			return acknowledge ? moved : true;
 		}
-		// THE MODEL DOCUMENT LANDS HERE, and this message carries its decision (header): a
-		// `.blend`'s edits are bpy calls the engine keeps, and this Blender build runs
-		// `--background`, which has no undo stack at all. Every other document lands here too
-		// when its own stack is simply empty, and the message reads correctly for both
-		// because it names the document rather than guessing why.
+		// An empty stack belongs to this document; never fall through to another editor.
 		const where = this.bridge.focusedResource() ?? doc.label;
-		this.bridge.report('warn', localize('vgaiHistoryEmpty', "Nothing to {0} in “{1}” ({2}). An edit an engine keeps its own history for — a .blend document's bpy calls — is not on this stack, and this Blender build has no undo stack of its own either.", direction, doc.label, where));
-		return true;
+		this.bridge.report('warn', localize('vgaiHistoryEmpty', "Nothing to {0} in “{1}” ({2}).", direction, doc.label, where));
+		return !acknowledge;
 	}
 
 	/** Whether the focused document has a step in this direction — what enables the
@@ -239,6 +245,14 @@ export class VgaiHistory extends Disposable {
 	private available(direction: 'undo' | 'redo'): boolean {
 		const doc = this.bridge.focusedDocument();
 		return !!doc && !!this.resourceFor(doc.id, direction);
+	}
+
+	private label(direction: 'undo' | 'redo'): string | null {
+		const doc = this.bridge.focusedDocument();
+		const resource = doc ? this.resourceFor(doc.id, direction) : undefined;
+		if (!resource) { return null; }
+		const elements = this.undoRedoService.getElements(resource);
+		return (direction === 'undo' ? elements.past : elements.future).at(-1)?.label ?? null;
 	}
 
 	/**

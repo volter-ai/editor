@@ -585,6 +585,10 @@ export interface StructureProvider {
    *  `duplicate` has no refusal channel, so an empty string there would be
    *  indistinguishable from "refused". */
   duplicate(id: string): StructuralIdWrite;
+  /** Duplicate a selection as one native operation and select all copies.
+   * Preserves relationships within the selection and creates one undo step.
+   * Absent means the caller falls back to individual duplicate operations. */
+  duplicateMany?(ids: readonly string[]): StructuralWriteOutcome;
   reparent(id: string, newParentId: string | null): StructuralWriteOutcome;
   /** Reorder `id` to sit immediately before `beforeSiblingId` among its siblings
    *  (`null` = move to the end). Absent ⇒ the shell has no sibling-reorder UI

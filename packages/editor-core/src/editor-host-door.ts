@@ -38,6 +38,10 @@ import { setFilesProvider } from './files/file-provider';
 import { projectFiles } from './files/project-files';
 import {
   onHistoryElement,
+  invalidateHistoryResources,
+  onHistoryInvalidated,
+  notifyHistoryDelegateChanged,
+  emitHistoryElement,
   recordedHistoryElements,
   setHistoryDelegate,
   setHistoryDocumentResolver,
@@ -332,8 +336,12 @@ export function installEditorHostDoor(): void {
     // keyed by the document's own file; `history-service.ts` stays the
     // RECORDER and stops deciding which entry is next.
     history: {
+      record: emitHistoryElement,
       setDelegate: setHistoryDelegate,
       onElement: onHistoryElement,
+      invalidate: invalidateHistoryResources,
+      onInvalidated: onHistoryInvalidated,
+      changed: notifyHistoryDelegateChanged,
       elements: recordedHistoryElements,
       focusedResource: () => {
         const document = activeWorkspaceDocument();

@@ -111,24 +111,32 @@ export function worldField(
   }
   if (expression.kind === 'mapping') {
     const source = worldField(expression.vector, windowCoordinates);
-    const matrix = new THREE.Matrix4().compose(
-      new THREE.Vector3(...expression.location),
-      new THREE.Quaternion().setFromEuler(
+    const location = new THREE.Vector3(...expression.location);
+    const scale = new THREE.Vector3(...expression.scale);
+    const rotation = new THREE.Quaternion().setFromEuler(
         new THREE.Euler(
           expression.rotation[0],
           expression.rotation[1],
           expression.rotation[2],
           'ZYX',
         ),
-      ),
-      new THREE.Vector3(...expression.scale),
     );
+    const inverseRotation = rotation.clone().invert();
+    const inverseScale = new THREE.Vector3(...expression.scale.map(v => v === 0 ? 0 : 1 / v));
     const value = new THREE.Vector3();
     return (direction) => {
       const input = source(direction);
       if (typeof input === 'number') value.setScalar(input);
       else value.copy(input);
-      return value.applyMatrix4(matrix);
+      // Blender's gpu_shader_material_mapping.glsl: texture uses inverse
+      // rotation then safe division, normals inverse scale then normalization.
+      // A generic inverse matrix is incorrect when a scale component is zero.
+      switch (expression.vector_type ?? 'POINT') {
+        case 'TEXTURE': return value.sub(location).applyQuaternion(inverseRotation).multiply(inverseScale);
+        case 'VECTOR': return value.multiply(scale).applyQuaternion(rotation);
+        case 'NORMAL': return value.multiply(inverseScale).applyQuaternion(rotation).normalize();
+        case 'POINT': return value.multiply(scale).applyQuaternion(rotation).add(location);
+      }
     };
   }
   if (expression.kind === 'map_range') {

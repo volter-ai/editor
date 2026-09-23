@@ -894,13 +894,18 @@ export interface EditorHostHistoryElement {
  */
 /** The frame's own undo, for every editor affordance that is not a chord. */
 export interface EditorHostHistoryDelegate {
-  undo(): void;
-  redo(): void;
+  undo(): void | boolean | Promise<void | boolean>;
+  redo(): void | boolean | Promise<void | boolean>;
   canUndo(): boolean;
   canRedo(): boolean;
+  undoLabel?(): string | null;
+  redoLabel?(): string | null;
 }
 
 export interface EditorHostHistory {
+  /** Record a native document edit in the workbench's existing history.
+   * The document owns restoration; the frame owns ordering and shortcuts. */
+  record(element: EditorHostHistoryElement): void;
   /**
    * Install the frame's own undo as the one stack. Called once its service
    * exists, which is AFTER the editor mounts.
@@ -919,6 +924,11 @@ export interface EditorHostHistory {
    * already possible, so it pushes what it missed first, in order.
    */
   onElement(listener: (element: EditorHostHistoryElement) => void): () => void;
+  /** Discard history for replaced/closed native documents, never ordinary edits. */
+  invalidate(resources: readonly string[]): void;
+  onInvalidated(listener: (resources: readonly string[]) => void): () => void;
+  /** The workbench finished moving its own stack (including keyboard commands). */
+  changed(): void;
   /** Everything recorded so far, oldest first. */
   elements(): readonly EditorHostHistoryElement[];
   /**

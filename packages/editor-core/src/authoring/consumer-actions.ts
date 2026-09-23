@@ -320,6 +320,17 @@ export function duplicateAuthoringNode(
   );
 }
 
+export function duplicateManyAuthoringNodes(
+  adapter: AuthoringAdapter,
+  nodeIds: readonly string[],
+): StructuralWriteOutcome {
+  const provider = adapter.structure;
+  if (!provider?.duplicateMany) return;
+  return structureWrite(adapter, 'duplicateMany',
+    `the editor duplicated ${nodeIds.length} selected node(s) as one operation`,
+    () => provider.duplicateMany?.(nodeIds));
+}
+
 export function reparentAuthoringNode(
   adapter: AuthoringAdapter,
   nodeId: string,

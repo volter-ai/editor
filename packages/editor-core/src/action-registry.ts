@@ -211,14 +211,14 @@ export function buildStaticActions(
       label: 'Duplicate',
       category: 'action',
       shortcut: shortcutFor('edit.duplicate'),
-      execute: () => void duplicateSelection(store),
+      execute: () => duplicateSelection(store),
     },
     {
       id: 'editor.delete',
       label: 'Delete Selected',
       category: 'action',
       shortcut: shortcutFor('edit.delete'),
-      execute: () => void deleteSelection(store),
+      execute: () => deleteSelection(store),
     },
     {
       id: 'editor.select-all',

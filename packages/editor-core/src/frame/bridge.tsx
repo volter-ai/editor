@@ -200,15 +200,19 @@ export interface VgaiKeyboardHandle {
 export interface VgaiHistoryHandle {
   elements(): readonly VgaiHistoryElementHandle[];
   onElement(listener: (element: VgaiHistoryElementHandle) => void): () => void;
+  onInvalidated(listener: (resources: readonly string[]) => void): () => void;
+  changed(): void;
   focusedResource(): string | null;
   focusedDocument(): { id: string; label: string } | null;
   /** Hand the frame's OWN undo to the editor, so its Edit menu, palette and
    *  `vgai eval` reach the one stack instead of a cursor nobody drives. */
   setDelegate(delegate: {
-    undo(): void;
-    redo(): void;
+    undo(): void | boolean | Promise<void | boolean>;
+    redo(): void | boolean | Promise<void | boolean>;
     canUndo(): boolean;
     canRedo(): boolean;
+    undoLabel?(): string | null;
+    redoLabel?(): string | null;
   }): void;
   report(level: 'warn' | 'error', message: string): void;
 }
@@ -1181,6 +1185,8 @@ export async function mountEditor(next: VscodeParts): Promise<{
   const history: VgaiHistoryHandle = {
     elements: () => editorHost().history.elements(),
     onElement: (listener) => editorHost().history.onElement(listener),
+    onInvalidated: (listener) => editorHost().history.onInvalidated(listener),
+    changed: () => editorHost().history.changed(),
     focusedResource: () => editorHost().history.focusedResource(),
     // The document's TITLE is what a refusal should say ("Nothing to undo in
     // MainScene"), and the id is what scopes the stack; both come from the

@@ -480,10 +480,21 @@ async function handle(request: WorkerRequest): Promise<unknown> {
    *  shape the caller wants (the RNA door). */
   const ask = engine.request.bind(engine);
   switch (request.op) {
+    case 'history-begin':
+    case 'history-end':
+      return ask({ op: request.op });
+    case 'history-step':
+      return ask({ op: 'history-step', token: request.token, direction: request.direction });
     case 'execute':
       // Code about to run may open a file the host wrote since the last call.
       await stageProjectFiles(files, projectRoot);
-      return session.execute(request.code);
+      {
+        const answer = await ask({ op: 'execute', code: request.code, history: request.history ?? true,
+          label: request.label ?? 'Blender Python' }) as {
+          error?: string; result: string;
+        };
+        return answer.error ? `Error executing code: ${answer.error}` : `Code executed successfully: ${answer.result}`;
+      }
     case 'present':
       // Straight through to `session.py`'s own `present` op — the worker adds
       // nothing, and a capture-less present answers `{ presented, revision }`.
@@ -517,6 +528,7 @@ async function handle(request: WorkerRequest): Promise<unknown> {
     case 'rna-set':
       return ask({
         op: 'rna-set',
+        history: request.history !== false,
         path: request.path,
         property: request.property,
         value: request.value,
@@ -636,9 +648,19 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
   // session is quiet" from "a script is still running".
   callsInFlight += 1;
   try {
-    post({ id: request.id, result: await handle(request) });
+    const result = await handle(request);
+    await reportHistory();
+    post({ id: request.id, result });
   } catch (error) {
-    post({ id: request.id, error: describeThrown(error) });
+    // A failed history drain must never strand the request's promise. Preserve
+    // both failures: the edit may have changed Blender before either failed.
+    let message = describeThrown(error);
+    try {
+      await reportHistory();
+    } catch (historyError) {
+      message += `\nUnable to deliver Blender history: ${describeThrown(historyError)}`;
+    }
+    post({ id: request.id, error: message });
   } finally {
     callsInFlight -= 1;
   }
@@ -646,3 +668,9 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
   // sit between a finished call and the reply the caller is waiting on.
   reportMemory();
 };
+
+async function reportHistory(): Promise<void> {
+  if (!engine || !session) return;
+  const entries = await engine.request({ op: 'history-events' }) as import('./protocol').NativeHistoryEntry[];
+  if (entries.length) post({ op: 'history', entries });
+}

@@ -284,6 +284,19 @@ step('git', ['-C', clone, 'checkout', '--quiet', '--detach', pin.commit]);
 //         which is exactly why the overlay is re-applied here rather than assumed.
 step(process.execPath, [join(REPO_ROOT, 'scripts/workbench/overlay.mjs'), '--checkout', clone, '--product', args.product]);
 
+// Code-OSS serves assets with a one-year cache under product.commit. The fork
+// commit alone is NOT the build identity: a new editor overlay otherwise loads
+// last release's JavaScript at the same URL. Use upstream's BUILD_SOURCEVERSION
+// hook for a composition fingerprint; keep both actual source SHAs in BUILD.json.
+const overlay = args.dryRun ? null : JSON.parse(readFileSync(join(clone, '.vgai-overlay.json'), 'utf8'));
+const assetVersion = overlay ? createHash('sha1').update(JSON.stringify({
+	product: args.product,
+	codeOss: pin.commit,
+	editor: overlay.editorSource,
+	...(overlay.editorSource.dirty ? { overlaidAt: overlay.overlaidAt } : {}),
+})).digest('hex') : 'dry-run-composition-fingerprint';
+CHILD_ENV.BUILD_SOURCEVERSION = assetVersion;
+
 // ---- 3. dependencies (the exclusive resource — see the header).
 step('npm', ['ci'], { cwd: clone });
 
@@ -325,6 +338,7 @@ if (!args.dryRun) {
 		platform: args.platform,
 		product: args.product,
 		commit: pin.commit,
+		assetVersion,
 		editorSource: JSON.parse(readFileSync(join(clone, '.vgai-overlay.json'), 'utf8')).editorSource,
 		codeOssVersion: JSON.parse(readFileSync(join(clone, 'package.json'), 'utf8')).version,
 		node: process.version,

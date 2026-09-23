@@ -521,7 +521,8 @@ export class BlenderSkinDirector {
     this.#engineCalls++;
     // `rna_set` refuses `bpy.context.scene` — the scene must be addressed by
     // name through `bpy.data.scenes[...]`.
-    await blenderRnaSet(`bpy.data.scenes[${JSON.stringify(scene)}]`, 'frame_current', frame);
+    // Timeline navigation, like selection, must not erase an available redo.
+    await blenderRnaSet(`bpy.data.scenes[${JSON.stringify(scene)}]`, 'frame_current', frame, undefined, false);
     this.#clip = { ...clip, frameCurrent: frame };
     this.#publish();
     return frame;
