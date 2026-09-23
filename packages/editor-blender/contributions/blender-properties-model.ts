@@ -166,6 +166,10 @@ let frameSubscription: (() => void) | null = null;
 const inFlight = new Set<string>();
 /** The subject the last context was read for, so a re-render does not refetch. */
 let readFor: string | null = null;
+/** Reads belong to a model revision and selected subject, not merely a path.
+ * A late answer for a deleted duplicate must not overwrite the new selection. */
+let readGeneration = 0;
+let contextRequest = 0;
 
 function publish(next: Partial<BlenderPropertiesState>, tabsMayHaveChanged = false): void {
   state = { ...state, ...next };
@@ -204,8 +208,10 @@ export function blenderPropertiesState(): BlenderPropertiesState {
  *  values it had. */
 function onEngineMoved(): void {
   const subject = readFor;
+  readGeneration += 1;
+  inFlight.clear();
   readFor = null;
-  publish({ views: new Map() });
+  publish({ context: null, views: new Map(), error: null, loading: subject !== null });
   if (subject !== null) scheduleContextRead(subject);
 }
 
@@ -264,11 +270,17 @@ function watchFrames(): void {
 async function readContext(key: string): Promise<void> {
   const collection = key.startsWith('collection:') ? key.slice('collection:'.length) : null;
   const object = collection === null && key !== '' ? key : null;
+  if (readFor !== key) {
+    readGeneration += 1;
+    inFlight.clear();
+  }
+  const generation = readGeneration;
+  const request = ++contextRequest;
   readFor = key;
-  publish({ loading: true, object, collection });
+  publish({ loading: true, object, collection, context: null, error: null, views: new Map() });
   try {
     const context = await blenderRnaContext(object ?? undefined, collection ?? undefined);
-    if (readFor !== key) return;
+    if (generation !== readGeneration || request !== contextRequest) return;
     // ALWAYS a tab-rail notification, and that is a correction rather than a
     // convenience: the gate a tab matches on is BOTH the subject this context
     // was read for and the tab list, so comparing only the list missed the
@@ -279,7 +291,7 @@ async function readContext(key: string): Promise<void> {
     // disappeared on the first selection and only came back on a re-select.
     publish({ context, loading: false, error: null }, true);
   } catch (error) {
-    if (readFor !== key) return;
+    if (generation !== readGeneration || request !== contextRequest) return;
     publish({ context: null, loading: false, error: describe(error) }, true);
   }
 }
@@ -305,8 +317,10 @@ export function blenderRnaViewFor(path: string): BlenderRnaView | undefined {
   if (held !== undefined) return held;
   if (inFlight.has(path) || !blenderSessionStarted()) return undefined;
   inFlight.add(path);
+  const generation = readGeneration;
   void blenderRna(path)
     .then((view) => {
+      if (generation !== readGeneration) return;
       inFlight.delete(path);
       if (view === null) return;
       const views = new Map(state.views);
@@ -314,6 +328,7 @@ export function blenderRnaViewFor(path: string): BlenderRnaView | undefined {
       publish({ views, error: null });
     })
     .catch((error: unknown) => {
+      if (generation !== readGeneration) return;
       inFlight.delete(path);
       publish({ error: describe(error) });
     });
