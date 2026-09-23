@@ -24,6 +24,8 @@ import {
 } from './blender-runtime-lighting';
 import { fitModelDirectionalShadow, visibleShadowReceivers } from './blender-runtime-shadows';
 import { volumeMesh, volumeSchema } from './blender-runtime-volume';
+import { applyPhysicalMaterial, physicalMaterialSchema } from './blender-physical-material';
+import { BlenderTextureSamplers } from './blender-texture-samplers';
 import { WeightOverlay, weightsSchema } from './blender-runtime-weights';
 
 const scalar = z.number().finite();
@@ -103,6 +105,7 @@ const drawArraysSchema = z
     positions: z.instanceof(Float32Array),
     normals: z.instanceof(Float32Array).nullable(),
     uv: z.instanceof(Float32Array).nullable(),
+    uvLayers: z.array(z.object({name: z.string(), data: z.instanceof(Float32Array)}).strict()).optional(),
     indices: z.instanceof(Uint32Array),
     groups: z.array(
       z
@@ -158,6 +161,7 @@ const unchangedMeshSchema = z
 const columnsSchema = z
   .object({
     co: z.instanceof(Float64Array),
+    cornerNormal: z.instanceof(Float32Array).optional(),
     faceStart: z.instanceof(Uint32Array),
     corner: z.instanceof(Uint32Array),
     cornerEdge: z.instanceof(Int32Array),
@@ -321,8 +325,8 @@ const frameImageSchema = z.union([rasterImageSchema, pngImageSchema]);
 const textureReferenceSchema = z
   .object({
     image: z.object({ name: z.string(), revision: z.number().int().nonnegative() }).strict(),
-    /** Blender's `extension`; CLIP never arrives -- the reducer refuses it. */
-    extension: z.enum(['REPEAT', 'EXTEND', 'MIRROR']).default('REPEAT'),
+    /** CLIP is transparent black outside the image, applied in the shader. */
+    extension: z.enum(['REPEAT', 'EXTEND', 'MIRROR', 'CLIP']).default('REPEAT'),
     uv: z.string(),
     /** A constant the texture is multiplied by -- Blender's MULTIPLY mix at
      *  full factor, which is what `map * color` already is. */
@@ -337,6 +341,11 @@ const materialSchema = z
     metallic: scalar,
     transmission: scalar,
     ior: scalar,
+    physical: physicalMaterialSchema.optional(),
+    normal_texture: textureReferenceSchema.optional(),
+    normal_strength: scalar.default(1),
+    normal_space: z.enum(['TANGENT', 'OBJECT']).default('TANGENT'),
+    normal_directx: z.boolean().default(false),
     /** A Base Color image, NAMED. Its bytes travel in the frame's `images`
      *  map, once per `(name, revision)`. */
     texture: textureReferenceSchema.optional(),
@@ -501,6 +510,7 @@ export class BlenderRuntimeView {
   private readonly textureNames = new Map<string, string>();
   /** Which runtime image each material's roughness map is, by material id. */
   private readonly roughnessTextureNames = new Map<string, string>();
+  private readonly textureSamplers = new BlenderTextureSamplers();
   private frame: Frame | null = null;
   private readonly retiredSessions = new Set<string>();
   private geometryBuilds = 0;
@@ -1059,6 +1069,33 @@ export class BlenderRuntimeView {
       material.metalness = data.metallic;
       material.transmission = data.transmission;
       material.ior = data.ior;
+      applyPhysicalMaterial(material, data.physical, {
+        map: data.texture?.extension === 'CLIP',
+        roughness: data.roughness_texture?.extension === 'CLIP',
+        normal: data.normal_texture?.extension === 'CLIP',
+      });
+      const normalName = data.normal_texture?.image.name;
+      if (normalName === undefined) {
+        if (material.normalMap) {
+          this.textureSamplers.delete(`${id}:normal`);
+          material.normalMap = null;
+          material.needsUpdate = true;
+        }
+      } else {
+        const held = this.textures.get(normalName);
+        if (!held) throw new Error(`${UNKNOWN_IMAGE}: missing normal image ${normalName}`);
+        const normalMap = this.textureSamplers.get(`${id}:normal`, held.texture, data.normal_texture!.extension, held.ready, data.normal_texture!.uv);
+        if (material.normalMap !== normalMap) {
+          material.normalMap = normalMap;
+          material.needsUpdate = true;
+        }
+        const normalType = data.normal_space === 'OBJECT' ? THREE.ObjectSpaceNormalMap : THREE.TangentSpaceNormalMap;
+        if (material.normalMapType !== normalType) {
+          material.normalMapType = normalType;
+          material.needsUpdate = true;
+        }
+        material.normalScale.set(data.normal_strength, data.normal_strength * (data.normal_directx ? -1 : 1));
+      }
       if (data.emission) {
         material.emissive.setRGB(
           data.emission.color[0],
@@ -1077,6 +1114,7 @@ export class BlenderRuntimeView {
       const roughnessWanted = data.roughness_texture?.image.name ?? null;
       if (roughnessWanted === null) {
         if (this.roughnessTextureNames.has(id)) {
+          this.textureSamplers.delete(`${id}:roughness`);
           material.roughnessMap = null;
           this.roughnessTextureNames.delete(id);
           material.needsUpdate = true;
@@ -1088,18 +1126,8 @@ export class BlenderRuntimeView {
             `${UNKNOWN_IMAGE}: the presenter does not hold runtime image ${roughnessWanted} ` +
               `(revision ${data.roughness_texture!.image.revision})`,
           );
-        const roughnessMap = heldRoughness.texture;
-        const roughnessWrap =
-          data.roughness_texture!.extension === 'EXTEND'
-            ? THREE.ClampToEdgeWrapping
-            : data.roughness_texture!.extension === 'MIRROR'
-              ? THREE.MirroredRepeatWrapping
-              : THREE.RepeatWrapping;
-        if (roughnessMap.wrapS !== roughnessWrap || roughnessMap.wrapT !== roughnessWrap) {
-          roughnessMap.wrapS = roughnessWrap;
-          roughnessMap.wrapT = roughnessWrap;
-          if (roughnessMap.image) roughnessMap.needsUpdate = true;
-        }
+        const roughnessMap = this.textureSamplers.get(`${id}:roughness`, heldRoughness.texture,
+          data.roughness_texture!.extension, heldRoughness.ready, data.roughness_texture!.uv);
         if (material.roughnessMap !== roughnessMap) {
           material.roughnessMap = roughnessMap;
           this.roughnessTextureNames.set(id, roughnessWanted);
@@ -1113,6 +1141,7 @@ export class BlenderRuntimeView {
       const wanted = data.texture?.image.name ?? null;
       if (wanted === null) {
         if (this.textureNames.has(id)) {
+          this.textureSamplers.delete(`${id}:color`);
           material.map = null;
           this.textureNames.delete(id);
           material.needsUpdate = true;
@@ -1129,35 +1158,7 @@ export class BlenderRuntimeView {
             `${UNKNOWN_IMAGE}: the presenter does not hold runtime image ${wanted} ` +
               `(revision ${data.texture!.image.revision})`,
           );
-        const map = held.texture;
-        // REPEAT, because that is what Blender's Image Texture node does:
-        // its `extension` defaults to REPEAT (asked the oracle), while
-        // three's wrapping defaults to ClampToEdge. Any UV outside [0,1]
-        // then smears the edge pixel across the whole surface, which is the
-        // "weirdly stretched" texture the owner saw on the courtyard.
-        //
-        // `extension`, as the description carries it. CLIP never arrives:
-        // the reducer refuses it by name, which is why three modes are
-        // mapped here and not four.
-        const wrap =
-          data.texture!.extension === 'EXTEND'
-            ? THREE.ClampToEdgeWrapping
-            : data.texture!.extension === 'MIRROR'
-              ? THREE.MirroredRepeatWrapping
-              : THREE.RepeatWrapping;
-        if (map.wrapS !== wrap || map.wrapT !== wrap) {
-          map.wrapS = wrap;
-          map.wrapT = wrap;
-          // ONLY IF THERE IS AN IMAGE TO RE-UPLOAD. A wrap change is a sampler
-          // parameter and three re-reads it when the texture's version moves,
-          // so an already-resident map needs the bump -- but bumping one whose
-          // `createImageBitmap` is still in flight is exactly what three warns
-          // about, and it did, 34 times on one courtyard replay:
-          // `THREE.WebGLRenderer: Texture marked for update but no image data
-          // found`. The decode sets `needsUpdate` itself when the bitmap
-          // lands, and it carries whatever wrap is on the texture by then.
-          if (map.image) map.needsUpdate = true;
-        }
+        const map = this.textureSamplers.get(`${id}:color`, held.texture, data.texture!.extension, held.ready, data.texture!.uv);
         // RE-POINTED WHENEVER THE TEXTURE OBJECT CHANGED, which is how a
         // RESIZED image reaches a material: the cache disposes the old texture
         // and builds a new one. A repaint at the same size keeps this exact
@@ -1242,6 +1243,7 @@ export class BlenderRuntimeView {
       }
     for (const [id, material] of this.materials)
       if (!next.materials[id]) {
+        for (const slot of ['normal', 'roughness', 'color']) this.textureSamplers.delete(`${id}:${slot}`);
         material.dispose();
         this.materials.delete(id);
       }
@@ -1323,6 +1325,11 @@ export class BlenderRuntimeView {
         positions,
         normals: attribute('normal'),
         uv: attribute('uv'),
+        uvLayers: Object.entries(geometry.userData['blenderUvChannels'] as Record<string, number> ?? {}).map(([name, channel]) => {
+          const data = attribute(`uv${channel}`);
+          if (!data) throw new Error(`Blender capture mesh ${id} is missing UV layer ${name}`);
+          return {name, data};
+        }),
         indices: index
           ? new Uint32Array(index.array)
           : Uint32Array.from({ length: positions.length / 3 }, (_, i) => i),
@@ -1337,7 +1344,7 @@ export class BlenderRuntimeView {
       frame.volumes[id] = volumeSchema.parse(JSON.parse(signature));
     const images = new Set(
       Object.values(frame.materials).flatMap((material) =>
-        [material.texture?.image.name, material.roughness_texture?.image.name].filter(
+        [material.texture?.image.name, material.roughness_texture?.image.name, material.normal_texture?.image.name].filter(
           (name): name is string => name !== undefined,
         ),
       ),
@@ -1446,6 +1453,8 @@ export class BlenderRuntimeView {
     for (const { texture } of this.textures.values()) texture.dispose();
     this.textures.clear();
     this.textureNames.clear();
+    this.roughnessTextureNames.clear();
+    this.textureSamplers.clear();
     this.volumes.clear();
     this.objects.clear();
     this.meshes.clear();

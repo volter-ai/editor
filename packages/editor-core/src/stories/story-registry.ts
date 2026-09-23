@@ -147,6 +147,7 @@ export function getProjectPreviewStories(): ProjectPreviewStory[] {
   const byId = new Map(out.map((story) => [story.id, story]));
   const entries: IndexEntry[] = out.map((story) => ({
     type: 'story',
+    subtype: 'story',
     id: story.id,
     name: story.label,
     title:

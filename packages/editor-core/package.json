@@ -1,11 +1,14 @@
 {
   "name": "@volter/editor-core",
   "author": "Volter AI, Inc.",
-  "version": "0.5.62",
+  "version": "0.5.63",
   "publishConfig": {
     "access": "public"
   },
   "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
   "license": "AGPL-3.0-only AND Apache-2.0",
   "description": "Shared host, server and Code-OSS integration for Volter Editor.",
   "repository": {
@@ -69,7 +72,7 @@
     "@react-three/fiber": "9.7.0",
     "@react-three/rapier": "2.2.0",
     "@sparkjsdev/spark": "2.1.0",
-    "@storybook/react": "9.1.20",
+    "@storybook/react": "10.6.0",
     "mediabunny": "1.56.2",
     "pixi.js": "^8.6.0",
     "postprocessing": "6.38.3",
@@ -77,14 +80,14 @@
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "rrweb": "2.1.6",
-    "storybook": "9.1.20",
+    "storybook": "10.6.0",
     "three": "0.180.0",
     "three.quarks": "0.16.0",
     "typescript": "5.9.3",
     "zod": "4.3.6",
-    "@volter/editor-project": "0.5.62",
-    "@volter/editor-sdk": "0.5.62",
-    "@volter/editor-threejs": "0.5.62",
+    "@volter/editor-project": "0.5.63",
+    "@volter/editor-sdk": "0.5.63",
+    "@volter/editor-threejs": "0.5.63",
     "vite": "^6.4.3",
     "express": "^5.2.1",
     "chokidar": "^5.0.0",

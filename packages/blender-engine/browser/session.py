@@ -870,7 +870,7 @@ class Session:
         """
         carried = frame.get("images") or {}
         for material in (frame.get("materials") or {}).values():
-            for slot in ("texture", "roughness_texture"):
+            for slot in ("texture", "roughness_texture", "normal_texture"):
                 reference = material.get(slot)
                 if not isinstance(reference, dict):
                     continue

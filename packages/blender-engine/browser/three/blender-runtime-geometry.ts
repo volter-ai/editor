@@ -39,6 +39,8 @@ export interface DrawArrays {
   normals: Float32Array | null;
   /** Per drawn vertex, or null when the mesh has no UV map. */
   uv: Float32Array | null;
+  /** All named UV layers; material inputs choose their own layer per draw. */
+  uvLayers?: {name: string; data: Float32Array}[] | undefined;
   indices: Uint32Array;
   groups: { start: number; count: number; materialIndex: number }[];
   /** THE BLENDER VERTEX EACH DRAWN VERTEX CAME FROM, one per drawn vertex.
@@ -58,6 +60,7 @@ export interface DrawArrays {
 interface DrawView {
   vertexCount: number;
   normals: Normal[] | null;
+  cornerNormal?: Float32Array | undefined;
   co(i: number): THREE.Vector3;
   /** CSR faces: corner `starts[i]..starts[i+1]` hold vertex indices. */
   starts: Uint32Array;
@@ -69,6 +72,7 @@ interface DrawView {
   sharp: Iterable<[number, number]>;
   /** A corner's UV, or undefined when the mesh has no map. */
   uv: ((corner: number) => [number, number]) | null;
+  uvLayers?: {name: string; read: (corner: number) => [number, number]}[];
 }
 
 function drawCore(view: DrawView): Omit<DrawArrays, 'hash'> {
@@ -147,28 +151,32 @@ function drawCore(view: DrawView): Omit<DrawArrays, 'hash'> {
   const positions = new Float32Array(capacity * 3),
     texcoords = new Float32Array(capacity * 2);
   const sourceVertex = new Uint32Array(capacity);
+  const uvLayers = (view.uvLayers ?? []).map(layer => ({...layer, data: new Float32Array(capacity * 2)}));
   const indices = new Uint32Array(capacity),
     shared = new Map<string, number>();
   const groups: DrawArrays['groups'] = [];
-  const normals = view.normals ? new Float32Array(capacity * 3) : null;
+  const normals = view.normals || view.cornerNormal ? new Float32Array(capacity * 3) : null;
   let count = 0,
     indexCount = 0;
-  const emit = (v: number, texture?: [number, number], normal?: Normal): number => {
+  const emit = (v: number, texture?: [number, number], normal?: Normal, sourceCorner?: number): number => {
     const index = count++;
     sourceVertex[index] = v;
     view.co(v).toArray(positions, index * 3);
     if (texture) texcoords.set(texture, index * 2);
     if (normal) normals!.set(normal, index * 3);
+    if (sourceCorner !== undefined) for (const layer of uvLayers) layer.data.set(layer.read(sourceCorner), index * 2);
     return index;
   };
   const corner = (c: number): number => {
     const texture = uv?.(c);
-    const normal = view.normals?.[c];
-    if (!mixed) return emit(cornerVerts[c]!, texture, normal);
-    const key = `${smooth[c] ? find(c) : c}${texture ? `:${texture[0]}:${texture[1]}` : ''}${normal ? `:n${normal.join(':')}` : ''}`;
+    const normal: Normal | undefined = view.cornerNormal
+      ? [view.cornerNormal[c * 3]!, view.cornerNormal[c * 3 + 1]!, view.cornerNormal[c * 3 + 2]!]
+      : view.normals?.[c];
+    if (!mixed) return emit(cornerVerts[c]!, texture, normal, c);
+    const key = `${smooth[c] ? find(c) : c}${texture ? `:${texture[0]}:${texture[1]}` : ''}${normal ? `:n${normal.join(':')}` : ''}${uvLayers.map(layer => ':' + layer.read(c).join(':')).join('')}`;
     let index = shared.get(key);
     if (index === undefined) {
-      index = emit(cornerVerts[c]!, texture, normal);
+      index = emit(cornerVerts[c]!, texture, normal, c);
       shared.set(key, index);
     }
     return index;
@@ -191,6 +199,7 @@ function drawCore(view: DrawView): Omit<DrawArrays, 'hash'> {
     positions: positions.slice(0, count * 3),
     normals: normals?.slice(0, count * 3) ?? null,
     uv: uv ? texcoords.slice(0, count * 2) : null,
+    uvLayers: uvLayers.map(layer => ({name: layer.name, data: layer.data.slice(0, count * 2)})),
     indices: indices.slice(0, indexCount),
     sourceVertex: sourceVertex.slice(0, count),
     groups,
@@ -207,6 +216,15 @@ export function geometryFromDrawArrays(
     new THREE.BufferAttribute(arrays.uv ?? new Float32Array((arrays.positions.length / 3) * 2), 2),
   );
   geometry.setIndex(new THREE.BufferAttribute(arrays.indices, 1));
+  const channels: Record<string, number> = Object.create(null);
+  for (const [index, layer] of (arrays.uvLayers ?? []).entries()) {
+    // Blender's MAX_MTFACE is eight. Channel zero is the active render map;
+    // named inputs use their independently selectable channel, including it.
+    if (index >= 8) throw new Error('A Blender mesh supports at most eight UV maps');
+    channels[layer.name] = index + 1;
+    geometry.setAttribute(`uv${index + 1}`, new THREE.BufferAttribute(layer.data, 2));
+  }
+  geometry.userData['blenderUvChannels'] = channels;
   for (const group of arrays.groups)
     geometry.addGroup(group.start, group.count, group.materialIndex);
   if (arrays.normals) geometry.setAttribute('normal', new THREE.BufferAttribute(arrays.normals, 3));
@@ -233,7 +251,7 @@ export function drawArraysFromColumns(c: MeshColumns, hash: string): DrawArrays 
   for (let i = 0; i < ne; i++) edges[i] = [c.edge[i * 2]!, c.edge[i * 2 + 1]!];
   const sharp: [number, number][] = [];
   for (let i = 0; i < ne; i++) if (c.edgeSharp[i] === 1) sharp.push(edges[i]!);
-  const custom = c.attributes.find((a) => a.name === 'custom_normal');
+  const custom = c.cornerNormal ? undefined : c.attributes.find((a) => a.name === 'custom_normal');
   const normalMesh = custom
     ? {
         v: Array.from(
@@ -269,6 +287,7 @@ export function drawArraysFromColumns(c: MeshColumns, hash: string): DrawArrays 
   const view: DrawView = {
     vertexCount: nv,
     normals: normalMesh ? customCornerNormals(normalMesh, customData) : null,
+    cornerNormal: c.cornerNormal,
     co: (i) => scratch.set(c.co[i * 3]!, c.co[i * 3 + 1]!, c.co[i * 3 + 2]!).clone(),
     starts: c.faceStart,
     cornerVerts: c.corner,
@@ -277,6 +296,8 @@ export function drawArraysFromColumns(c: MeshColumns, hash: string): DrawArrays 
     edges,
     sharp,
     uv: uvData ? (corner) => [uvData[corner * 2]!, uvData[corner * 2 + 1]!] : null,
+    uvLayers: maps.map(layer => ({name: layer.name, read: (corner: number) =>
+      [Number(layer.data[corner * 2]), Number(layer.data[corner * 2 + 1])] as [number, number]})),
   };
   if (map && ATTRIBUTE_LAYOUT.FLOAT2.size !== 2) throw new Error('FLOAT2 layout');
   return { ...drawCore(view), hash };
@@ -337,6 +358,8 @@ export function drawRuntimeGeometry(data: MeshData): THREE.BufferGeometry {
     edges: data.edge_order ?? data.e ?? null,
     sharp: data.sharp ?? [],
     uv: uv ? (corner) => uv[corner]! : null,
+    uvLayers: maps.map(layer => ({name: layer.name, read: (corner: number) =>
+      (layer.data as [number, number][])[corner]!})),
   };
   return geometryFromDrawArrays(drawCore(view));
 }
