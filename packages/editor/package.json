@@ -1,7 +1,7 @@
 {
   "name": "@volter/editor",
   "author": "Volter AI, Inc.",
-  "version": "0.5.57",
+  "version": "0.5.58",
   "publishConfig": {
     "access": "public"
   },
@@ -35,18 +35,18 @@
       "entry": "./src/index.ts",
       "colorTheme": "dark",
       "workbench": {
-        "release": "editor-f8664703ab59-d7489dea9dcd-darwin-arm64",
-        "tarballSha256": "57692dc03bd5e37f1b02c817bf0601ee3f3d410b6147c24ccd978d22ff4f81ca"
+        "release": "editor-f8664703ab59-81f87ec200f3-darwin-arm64",
+        "tarballSha256": "2e2139867dda53aaa6fef58005443b9626d2f2975011c342487b1613b8464ef5"
       }
     }
   },
   "dependencies": {
-    "@volter/editor-core": "0.5.57",
-    "@volter/editor-blender": "0.1.0",
-    "@volter/blender-engine": "0.1.0",
-    "@volter/editor-project": "0.5.57",
-    "@volter/editor-sdk": "0.5.57",
-    "@volter/editor-live": "0.5.57",
+    "@volter/editor-core": "0.5.58",
+    "@volter/editor-blender": "0.1.1",
+    "@volter/blender-engine": "0.1.1",
+    "@volter/editor-project": "0.5.58",
+    "@volter/editor-sdk": "0.5.58",
+    "@volter/editor-live": "0.5.58",
     "@modelcontextprotocol/sdk": "1.30.0",
     "undici": "7.29.1"
   },
