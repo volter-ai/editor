@@ -9,8 +9,17 @@ export function bindNamedUvChannels(material: THREE.MeshPhysicalMaterial, geomet
   for (const texture of [material.map, material.roughnessMap, material.normalMap]) {
     if (!texture) continue;
     const name = texture.userData['blenderUvName'] as string | undefined;
-    const channel = name ? channels?.[name] : 0;
-    if (channel === undefined) throw new Error(`Material ${material.name} requests missing UV map ${name}`);
+    let channel = name ? channels?.[name] : 0;
+    if (channel === undefined) {
+      // Blender's missing named surface attribute is zero, not the active UV
+      // map and not an error. Shared materials routinely cover meshes without
+      // that layer. Reserve a separate zero channel so other slots retain UV0.
+      channel = 9;
+      const count = geometry.getAttribute('position')?.count;
+      if (count === undefined) throw new Error('A textured Blender draw has no positions');
+      if (geometry.getAttribute('uv9')?.count !== count)
+        geometry.setAttribute('uv9', new THREE.BufferAttribute(new Float32Array(count*2),2));
+    }
     if (texture.channel !== channel) {
       texture.channel = channel;
       material.needsUpdate = true;

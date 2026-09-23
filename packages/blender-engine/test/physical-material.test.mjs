@@ -113,6 +113,14 @@ test('revision-owned render snapshots preserve all named UVs and native normals'
       visible:true,selected:true,parent:null}]});
   const capture=view.captureSnapshot(), mesh=capture.root.getObjectByName('probe');
   assert(mesh?.isMesh);
+  const sampler=new Texture();sampler.userData.blenderUvName='Absent';
+  const material=new MeshPhysicalMaterial({map:sampler});bindNamedUvChannels(material,mesh.geometry);
+  assert.equal(sampler.channel,9);
+  assert.deepEqual(Array.from(mesh.geometry.getAttribute('uv9').array),new Array(6).fill(0));
+  const zero=mesh.geometry.getAttribute('uv9');bindNamedUvChannels(material,mesh.geometry);
+  assert.equal(mesh.geometry.getAttribute('uv9'),zero,'missing-map zeros are allocated once per draw geometry');
+  sampler.userData.blenderUvName='Layer0';bindNamedUvChannels(material,mesh.geometry);assert.equal(sampler.channel,1);
+  sampler.dispose();material.dispose();
   for(let i=0;i<8;i++) assert.deepEqual(Array.from(mesh.geometry.getAttribute(`uv${i+1}`).array),Array.from(uvLayers[i].data));
   assert.deepEqual(Array.from(mesh.geometry.getAttribute('normal').array),Array.from(normals));
   const current=view.root.getObjectByName('probe');assert.notEqual(mesh.geometry,current.geometry);
