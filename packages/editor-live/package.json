@@ -1,7 +1,7 @@
 {
   "name": "@volter/editor-live",
   "author": "Volter AI, Inc.",
-  "version": "0.5.58",
+  "version": "0.5.59",
   "publishConfig": {
     "access": "public"
   },
@@ -30,8 +30,8 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@volter/editor-sdk": "0.5.58",
-    "@volter/editor-project": "0.5.58",
+    "@volter/editor-sdk": "0.5.59",
+    "@volter/editor-project": "0.5.59",
     "undici": "^7.28.0"
   },
   "devDependencies": {

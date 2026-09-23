@@ -1,7 +1,7 @@
 {
   "name": "@volter/editor-threejs",
   "author": "Volter AI, Inc.",
-  "version": "0.5.58",
+  "version": "0.5.59",
   "publishConfig": {
     "access": "public"
   },
@@ -35,7 +35,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@volter/editor-project": "0.5.58",
+    "@volter/editor-project": "0.5.59",
     "@sparkjsdev/spark": "^2.1.0",
     "three.quarks": "^0.16.0",
     "zod": "^4.3.6"
