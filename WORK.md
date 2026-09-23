@@ -25,7 +25,19 @@ itself increased worker-start latency, so those timings are not ordinary
 performance acceptance. The old npm build passed 42 stop/start attempts,
 including captures and duplication/deletion, plus overlapping inspection calls.
 This comparison does not explain the earlier intermittent renderer stall.
-Publication and anonymous registry-install acceptance remain pending.
+All eight versions are public and their registry integrities match the tested
+archives. Anonymous, cache-empty installation succeeded with no workspace links,
+reusing the unchanged pinned workbench. Acceptance exposed a fast-sequence bug:
+duplicate → undo → redo → delete could refuse the restored object because the
+Outliner index had not refreshed. Reading between steps hid the defect.
+
+History restoration now waits for the Outliner to refresh before acknowledging.
+Both regression tests fail without that barrier and pass with it; all 30 tests,
+eight typechecks, build and 1,083-file packed-import checks pass. Fifteen live
+source cycles without intervening reads persisted each delete and restored the
+correct operation through undo/redo. This correction needs a new npm patch;
+0.5.59 is immutable and does not contain it. The renderer stall remains a
+separate unresolved observation, not a claimed consequence of this race.
 
 ## Published artifacts
 
