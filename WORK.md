@@ -6,6 +6,12 @@ packages are 0.5.58. The publication boundary remains the eight packages in
 
 ## 0.5.59 release candidate
 
+The next unpublished candidate is 0.5.61 / 0.1.4, incorporating the startup
+fixes below. Its eight archives are packed; build, boundary and packed-import
+checks pass. Packed and anonymous registry acceptance are not yet complete.
+Generated notice changes are package-version labels only; the Blender binary,
+Essentials and workbench remain unchanged.
+
 Rapid full editor close/reopen of the published 0.5.60 archives exposed two
 startup races: package commands could arrive before contribution discovery,
 and Blender start could guess the standing Model ID before the file-backed
