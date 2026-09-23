@@ -1042,6 +1042,8 @@ export async function handleBlenderCommand(cmd: {
   try {
     const project = cmd.type === 'blender-start' ? string(cmd, 'project') : null;
     if (cmd.type === 'blender-stop' || (cmd.type === 'blender-start' && cmd['fresh'] === true)) {
+      // Do not invalidate history or discard the worker if persistence fails.
+      await runtime?.stop();
       terminateBlenderRuntime();
       if (cmd.type === 'blender-stop') return { ok: true, data: { stopped: true } };
     }

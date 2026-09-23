@@ -139,6 +139,8 @@ export class BlenderRuntime {
   >();
   #nextId = 0;
   #started: Promise<RuntimeStart> | null = null;
+  #stopping: Promise<void> | null = null;
+  #terminated = false;
   /** `performance.now()` at the `postMessage` of every outstanding call. */
   readonly #callStarts = new Map<number, number>();
   #lastCallMs: number | null = null;
@@ -410,7 +412,28 @@ export class BlenderRuntime {
     return this.#presented;
   }
 
+  /** Drain accepted calls and persist the document before destroying its only
+   * copy. A failed save keeps the worker alive so the caller can retry. */
+  stop(): Promise<void> {
+    if (this.#terminated) return Promise.resolve();
+    if (this.#stopping) return this.#stopping;
+    this.#stopping = (async () => {
+      if (this.#started) {
+        await this.#started;
+        await this.#request({ op: 'flush-document' }, true);
+      }
+      this.terminate();
+    })().catch(error => {
+      this.#stopping = null;
+      throw error;
+    });
+    return this.#stopping;
+  }
+
+  /** Forced teardown for a lost session; explicit user stops must use stop(). */
   terminate(): void {
+    if (this.#terminated) return;
+    this.#terminated = true;
     this.#worker.terminate();
     const error = new Error('The Blender session was terminated');
     for (const id of [...this.#pending.keys()]) this.#settled(id);
@@ -470,7 +493,9 @@ export class BlenderRuntime {
       this.#lastCallWindow = { start: started, end: started + elapsed };
   }
 
-  #request(request: Request): Promise<unknown> {
+  #request(request: Request, shutdown = false): Promise<unknown> {
+    if (this.#terminated || (this.#stopping && !shutdown))
+      return Promise.reject(new Error('The Blender session is stopping or terminated'));
     const id = ++this.#nextId;
     return new Promise((resolve, reject) => {
       this.#pending.set(id, { resolve, reject });

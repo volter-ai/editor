@@ -68,10 +68,10 @@ acknowledged only after current invariants and the visible capture passed.
 
 ## Remaining work and limits
 
-- **Windows/Linux are still incomplete.** No native runners were registered;
-  suitable 32-GiB machines or paid-runner approval are needed. Platform-specific
-  implementation, packaged builds and native acceptance remain work, not just
-  uploads. Only darwin-arm64 is supported by this release.
+- **Windows/Linux are deferred by the owner.** Do not provision paid runners
+  or pursue these builds in the current pass. Platform-specific implementation,
+  packaged builds and native acceptance remain incomplete. Only darwin-arm64
+  is supported by this release.
 - **Intermittent worker lifecycle stall remains unresolved.** Packed and public
   acceptance both encountered a worker stop/restart timeout and an unresponsive
   renderer. Fresh editor reopen recovered saved data, and a separate packed
@@ -80,9 +80,22 @@ acknowledged only after current invariants and the visible capture passed.
   A focused source trace completed history invalidation, capture abort and
   worker termination after both RNA undo/redo and duplicate/delete undo/redo;
   the following worker starts also passed. This did not reproduce or explain
-  the intermittent stall. The probe did establish a separate lifecycle limit:
-  explicit worker stop before the one-second idle autosave can discard the
-  latest unsaved edit. Stop needs a save-flush barrier before termination.
+  the intermittent stall.
+- **Explicit worker stop now flushes pending edits in source.** Commands and
+  autosaves share one worker queue; frame acknowledgments bypass it so an edit
+  waiting for its frame cannot deadlock. Stop and fresh-start wait for the
+  document upload before terminating or invalidating history. A failed upload
+  refuses the stop and keeps the live model available for retry. Forced teardown
+  after losing the editor session is unchanged; this is not a guarantee against
+  browser/process closure or the editor's bounded session-close teardown.
+  Four new regression tests cover ordering, failed-save retry, startup and
+  presentation acknowledgment. All 25 tests, eight package typechecks, build,
+  release boundary and 1,083-file packed-import checks passed. Live source
+  acceptance reopened an immediate RNA edit at X=17.25, then five immediate
+  edit/undo/redo/stop/start cycles at X=18.25 through 22.25; deletion/undo/redo
+  followed by immediate restart retained six objects (the deleted Cube.001 did
+  not return). The console was silent. None of these runs reproduced the
+  intermittent renderer stall. This fix is not in published npm 0.5.58.
 - Fresh-install `npm audit` reported six moderate affected dependency entries,
   all through Storybook and `@vitest/mocker`
   ([GHSA-82fw-gwwq-j7x9](https://github.com/advisories/GHSA-82fw-gwwq-j7x9));

@@ -115,8 +115,14 @@ let engine: BlenderEngine | null = null;
 // no host path is ever on the wire.
 let documentPath: string | null = null;
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
-/** Calls the tab is waiting on. A save waits for zero. */
-let callsInFlight = 0;
+// Commands and saves share one lane. In particular a flush cannot overtake
+// an accepted edit, and a later edit cannot race an upload of older bytes.
+let workTail: Promise<unknown> = Promise.resolve();
+function enqueue<T>(work: () => Promise<T>): Promise<T> {
+  const result = workTail.then(work);
+  workTail = result.catch(() => undefined);
+  return result;
+}
 
 /** The idle second. One save per second of quiet, however many presents
  *  arrived during it: the timer is RESET by each, so a script presenting in a
@@ -128,22 +134,18 @@ function armDocumentSave(): void {
   if (saveTimer !== null) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     saveTimer = null;
-    void saveDocument();
+    void enqueue(saveDocument).catch(error => log('error', describeThrown(error)));
   }, DOCUMENT_SAVE_IDLE_MS);
 }
 
 /**
  * Save the document and land it in the project.
  *
- * NEVER MID-CALL: a call still outstanding means a script is running, and its
- * half-built model is not the document. The timer re-arms instead of writing.
+ * Only called inside the command lane, after previous calls have finished.
+ * Failure is a rejection: explicit shutdown must retain the live model.
  */
 async function saveDocument(): Promise<void> {
   if (!engine || documentPath === null) return;
-  if (callsInFlight > 0) {
-    armDocumentSave();
-    return;
-  }
   const relative = documentPath;
   let answer: { saved?: boolean; path?: string; size?: number };
   try {
@@ -151,22 +153,15 @@ async function saveDocument(): Promise<void> {
   } catch (error) {
     // A document that cannot be written is the session's work at risk, so it
     // is a named condition in the editor's console, not a debug line.
-    log(
-      'error',
-      `@@VGAI-ERROR the Blender document ${relative} could not be saved: ${describeThrown(error)}`,
-    );
-    return;
+    throw new Error(`The Blender document ${relative} could not be saved: ${describeThrown(error)}`);
   }
-  if (!answer?.saved || typeof answer.path !== 'string') return;
+  if (!answer?.saved || typeof answer.path !== 'string')
+    throw new Error(`Blender did not save the document ${relative}`);
   let bytes: Uint8Array;
   try {
     bytes = await engine.files.readFile(answer.path);
   } catch (error) {
-    log(
-      'error',
-      `@@VGAI-ERROR the Blender document ${relative} was saved but could not be read back out of the engine: ${describeThrown(error)}`,
-    );
-    return;
+    throw new Error(`The Blender document ${relative} could not be read back out of the engine: ${describeThrown(error)}`);
   }
   // The engine's copy is now the newer one, so the stager must stop treating
   // this path as the host's: an entry left in `staged` would make the next
@@ -181,18 +176,10 @@ async function saveDocument(): Promise<void> {
     });
     if (!posted.ok) {
       const said = await posted.text().catch(() => '');
-      log(
-        'error',
-        `@@VGAI-ERROR the Blender document ${relative} was not written to the project: HTTP ${posted.status} ${said}`,
-      );
-      return;
+      throw new Error(`HTTP ${posted.status} ${said}`);
     }
   } catch (error) {
-    log(
-      'error',
-      `@@VGAI-ERROR the Blender document ${relative} was not written to the project: ${describeThrown(error)}`,
-    );
-    return;
+    throw new Error(`The Blender document ${relative} was not written to the project: ${describeThrown(error)}`);
   }
   log('log', `@@VGAI-DOCUMENT ${JSON.stringify({ path: relative, bytes: bytes.length })}`);
 }
@@ -480,6 +467,11 @@ async function handle(request: WorkerRequest): Promise<unknown> {
    *  shape the caller wants (the RNA door). */
   const ask = engine.request.bind(engine);
   switch (request.op) {
+    case 'flush-document':
+      if (saveTimer !== null) clearTimeout(saveTimer);
+      saveTimer = null;
+      await saveDocument();
+      return { saved: true };
     case 'history-begin':
     case 'history-end':
       return ask({ op: request.op });
@@ -638,15 +630,16 @@ function reportMemory(): void {
   if (bytes !== null) post({ op: 'memory', bytes });
 }
 
-self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
+self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   const request = event.data;
   if (request.op === 'present-result') {
-    await handle(request);
+    void handle(request);
     return;
   }
-  // Held across the WHOLE call, so the document's save timer can tell "the
-  // session is quiet" from "a script is still running".
-  callsInFlight += 1;
+  void enqueue(() => answerRequest(request));
+};
+
+async function answerRequest(request: WorkerRequest): Promise<void> {
   try {
     const result = await handle(request);
     await reportHistory();
@@ -661,13 +654,11 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
       message += `\nUnable to deliver Blender history: ${describeThrown(historyError)}`;
     }
     post({ id: request.id, error: message });
-  } finally {
-    callsInFlight -= 1;
   }
   // AFTER the answer, never before it: the reading is a passenger and must not
   // sit between a finished call and the reply the caller is waiting on.
   reportMemory();
-};
+}
 
 async function reportHistory(): Promise<void> {
   if (!engine || !session) return;

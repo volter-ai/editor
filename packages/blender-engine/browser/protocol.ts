@@ -2,6 +2,7 @@
  * worker; the model lives in the worker's Python and nowhere else. */
 
 export type WorkerRequest =
+  | { id: number; op: 'flush-document' }
   | { id: number; op: 'history-begin' | 'history-end' }
   | { id: number; op: 'history-step'; token: string; direction: 'undo' | 'redo' }
   /** `document` is the session's `.blend`, PROJECT-RELATIVE (`models/model.blend`
