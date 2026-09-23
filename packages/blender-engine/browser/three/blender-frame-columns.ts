@@ -81,6 +81,10 @@ export interface MeshColumns {
   co: Float64Array;
   /** Blender-evaluated normals, 3 per corner, independent of UV splits. */
   cornerNormal?: Float32Array | undefined;
+  /** 3 * nv, a deformed mesh's Generated coordinates in Blender's stored
+   *  -1..1 range (the door's `deformed_orco`); absent when the drawn
+   *  positions are the undeformed ones. */
+  orco?: Float32Array | undefined;
   /** nf + 1 */
   faceStart: Uint32Array;
   /** faceStart[nf] entries: vertex index per loop */

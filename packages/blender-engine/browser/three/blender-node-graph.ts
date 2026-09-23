@@ -61,11 +61,40 @@ const nodeSchema = z.object({
   outputs: z.array(z.object({id: z.string(), gpu: gpuType.or(z.literal('closure')).nullable()}).strict()),
 }).strict();
 
+/** A shader mix as `session.py`'s `_closure` ships it. */
+export type Closure =
+  | {principled: true}
+  | {emission: [Source, Source]}
+  | {transparent: number}
+  | {none: true}
+  | {mix: [Source, Closure, Closure]}
+  | {add: [Closure, Closure]};
+const closureSchema: z.ZodType<Closure> = z.lazy(() => z.union([
+  z.object({principled: z.literal(true)}).strict(),
+  z.object({emission: z.tuple([sourceSchema, sourceSchema])}).strict(),
+  z.object({transparent: z.number()}).strict(),
+  z.object({none: z.literal(true)}).strict(),
+  z.object({mix: z.tuple([sourceSchema, closureSchema, closureSchema])}).strict(),
+  z.object({add: z.tuple([closureSchema, closureSchema])}).strict(),
+]));
+
 export const materialGraphSchema = z.object({
-  surface: z.enum(['ShaderNodeBsdfPrincipled', 'ShaderNodeEmission']),
+  /** `closure` is a shader mix with no Principled BSDF in it. */
+  surface: z.enum(['ShaderNodeBsdfPrincipled', 'ShaderNodeEmission', 'closure']),
   inputs: z.record(z.string(), sourceSchema),
+  closure: closureSchema.optional(),
   nodes: z.record(z.string(), nodeSchema),
 }).strict();
+
+/** Whether a graph's surface can let the background through where its
+ *  constants cannot say: a linked Alpha, or a Transparent BSDF in its mix. */
+export function graphSeeThrough(graph: MaterialGraph): boolean {
+  const alpha = graph.inputs['Alpha'];
+  const transparent = (c: Closure): boolean =>
+    'transparent' in c || ('mix' in c && (transparent(c.mix[1]) || transparent(c.mix[2])))
+    || ('add' in c && (transparent(c.add[0]) || transparent(c.add[1])));
+  return (alpha !== undefined && 'link' in alpha) || (graph.closure !== undefined && transparent(graph.closure));
+}
 export type MaterialGraph = z.infer<typeof materialGraphSchema>;
 type GraphNode = z.infer<typeof nodeSchema>;
 type Source = z.infer<typeof sourceSchema>;
@@ -82,6 +111,12 @@ export interface GraphImage {
   readonly revision: number;
   readonly extension: 'REPEAT' | 'EXTEND' | 'MIRROR' | 'CLIP';
   readonly closest: boolean;
+  /** False for Sphere and Tube projections, which EEVEE samples without
+   *  mipmaps to hide their derivative seam. */
+  readonly mipmap: boolean;
+  /** A UDIM image sampled by tile: `uniform` is its tiles' array texture and
+   *  `${uniform}Map` the tile map (`blender_tile_lookup`). */
+  readonly tiled: boolean;
 }
 export interface GraphRamp {
   readonly uniform: string;
@@ -105,6 +140,8 @@ export interface CompiledGraph {
   /** Which surface inputs the graph drives, each a GLSL global of `type`. */
   readonly outputs: Readonly<Record<string, {readonly global: string; readonly type: GpuType}>>;
   readonly surface: MaterialGraph['surface'];
+  /** A shader mix's composition (`bgClosureP/E/T`), or false. */
+  readonly closure: boolean;
 }
 
 const width = (type: GpuType): number => (type === 'float' ? 1 : Number(type[3]));
@@ -203,6 +240,9 @@ vec3 coordinate_incoming(vec3 P) {
     : normalize(blender_from_three * cameraPosition - P);
 }
 float derivative_scale_get() { return 1.0; }
+// EEVEE sharpens image LODs by 1/1.5 because its TAA blurs them back
+// (eevee_film.cc, #122941); the presenter runs no TAA, so the unsharpened LOD.
+float texture_lod_bias_get() { return 1.0; }
 float g_derivative_filter_width = 0.0;
 int g_derivative_flag = 0;
 #define BLENDER_DF_IMPL(T) T dF_impl(T v) { \\
@@ -251,6 +291,49 @@ vec3 blender_camera() {
 vec3 blender_window() {
   // coordinate_screen, without a camera border.
   return vec3(gl_FragCoord.xy / blenderViewport, 0.0);
+}
+// UDIM: tiled_image_lookup and node_tex_tile_linear/cubic
+// (gpu_shader_tiled_image_lookup_lib.glsl, gpu_shader_material_tex_image.glsl),
+// with the tile map a two-row sampler2D where Blender's is a sampler1DArray,
+// which WebGL2 does not have.
+bool blender_tile_lookup(inout vec3 co, highp sampler2D map) {
+  vec2 tile_pos = floor(co.xy);
+  if (tile_pos.x < 0.0 || tile_pos.y < 0.0 || tile_pos.x >= 10.0) return false;
+  float tile = 10.0 * tile_pos.y + tile_pos.x;
+  if (tile >= float(textureSize(map, 0).x)) return false;
+  float tile_layer = texelFetch(map, ivec2(int(tile), 0), 0).x;
+  if (tile_layer < 0.0) return false;
+  vec4 tile_info = texelFetch(map, ivec2(int(tile), 1), 0);
+  co = vec3((co.xy - tile_pos) * tile_info.zw + tile_info.xy, tile_layer);
+  return true;
+}
+void blender_tex_tile_linear(vec3 co, highp sampler2DArray ima, highp sampler2D map, out vec4 color, out float alpha) {
+  color = blender_tile_lookup(co, map) ? texture(ima, co) : vec4(1.0, 0.0, 1.0, 1.0);
+  alpha = color.a;
+}
+void blender_tex_tile_cubic(vec3 co, highp sampler2DArray ima, highp sampler2D map, out vec4 color, out float alpha) {
+  if (blender_tile_lookup(co, map)) {
+    vec2 tex_size = vec2(textureSize(ima, 0).xy);
+    co.xy *= tex_size;
+    vec2 tc = floor(co.xy - 0.5) + 0.5;
+    vec2 w0, w1, w2, w3;
+    cubic_bspline_coefficients(co.xy - tc, w0, w1, w2, w3);
+    vec2 s0 = w0 + w1;
+    vec2 s1 = w2 + w3;
+    vec2 f0 = w1 / (w0 + w1);
+    vec2 f1 = w3 / (w2 + w3);
+    vec4 final_co;
+    final_co.xy = tc - 1.0 + f0;
+    final_co.zw = tc + 1.0 + f1;
+    final_co /= tex_size.xyxy;
+    color = textureLod(ima, vec3(final_co.xy, co.z), 0.0) * s0.x * s0.y;
+    color += textureLod(ima, vec3(final_co.zy, co.z), 0.0) * s1.x * s0.y;
+    color += textureLod(ima, vec3(final_co.xw, co.z), 0.0) * s0.x * s1.y;
+    color += textureLod(ima, vec3(final_co.zw, co.z), 0.0) * s1.x * s1.y;
+  } else {
+    color = vec4(1.0, 0.0, 1.0, 1.0);
+  }
+  alpha = color.a;
 }
 vec4 blender_uv_tangent(vec2 uv) {
   // A tangent from the UV layer's screen derivatives (three's
@@ -670,17 +753,45 @@ class Compiler {
           body.push(`${outs([0])} = vec4(0.0); ${outs([1])} = 0.0;`);
           break;
         }
+        // node_shader_gpu_tex_image.
+        const projection = prop<string>(node, 'projection');
+        const interpolation = prop<string>(node, 'interpolation');
+        const cubic = interpolation === 'Cubic' || interpolation === 'Smart';
+        const extension = prop<GraphImage['extension']>(node, 'extension');
         const uniform = `bgImage${this.s.images.length}`;
         this.s.images.push({
-          uniform, node: key, name: image.name, revision: image.revision,
-          extension: prop<GraphImage['extension']>(node, 'extension'),
-          closest: prop<string>(node, 'interpolation') === 'Closest',
+          uniform, node: key, name: image.name, revision: image.revision, extension,
+          closest: interpolation === 'Closest',
+          mipmap: projection !== 'SPHERE' && projection !== 'TUBE',
+          // EEVEE samples tiles only through a flat projection; any other
+          // treats the first tile as the image (#141776).
+          tiled: projection === 'FLAT' && node.props['image_tiled'] === true,
         });
-        const co = this.coordinate(node, 'uv');
-        const clip = prop<string>(node, 'extension') === 'CLIP';
-        body.push(`${outs([0])} = texture(${uniform}, ${co}.xy);`);
-        if (clip) body.push(`if (any(lessThan(${co}.xy, vec2(0.0))) || any(greaterThan(${co}.xy, vec2(1.0)))) ${outs([0])} = vec4(0.0);`);
-        body.push(`${outs([1])} = ${outs([0])}.a;`);
+        const tiled = this.s.images.at(-1)!.tiled;
+        this.s.structure.push(['img', projection, cubic, tiled]);
+        let co = this.coordinate(node, 'uv');
+        const color = outs([0]), alpha = outs([1]);
+        if (projection === 'BOX') {
+          const n = `${id}_n`;
+          body.push(`vec3 ${n}; ${this.use('world_normals_get')}(${n}); ${this.use('normal_transform_world_to_object')}(${n}, ${n});`,
+            `vec4 ${id}_c1, ${id}_c2, ${id}_c3;`,
+            `${this.use(cubic ? 'tex_box_sample_cubic' : 'tex_box_sample_linear')}(${co}, ${n}, ${uniform}, ${id}_c1, ${id}_c2, ${id}_c3);`,
+            `${this.use('tex_box_blend')}(${n}, ${id}_c1, ${id}_c2, ${id}_c3, ${this.uniform('float', prop<number>(node, 'projection_blend'))}, ${color}, ${alpha});`);
+        } else if (tiled) {
+          if (cubic) this.use('cubic_bspline_coefficients');
+          body.push(`${cubic ? 'blender_tex_tile_cubic' : 'blender_tex_tile_linear'}(${co}, ${uniform}, ${uniform}Map, ${color}, ${alpha});`);
+        } else {
+          if (projection === 'SPHERE' || projection === 'TUBE') {
+            const mapped = `${id}_co`;
+            body.push(`vec3 ${mapped}; ${this.use('point_texco_remap_square')}(${co}, ${mapped});`,
+              `${this.use(projection === 'SPHERE' ? 'point_map_to_sphere' : 'point_map_to_tube')}(${mapped}, ${mapped});`);
+            co = mapped;
+          }
+          body.push(`${this.use(cubic ? 'node_tex_image_cubic' : 'node_tex_image_linear')}(${co}, ${uniform}, ${color}, ${alpha});`);
+          // CLAMP_TO_BORDER, whose border is transparent black.
+          if (extension === 'CLIP')
+            body.push(`if (any(lessThan(${co}.xy, vec2(0.0))) || any(greaterThan(${co}.xy, vec2(1.0)))) { ${color} = vec4(0.0); ${alpha} = 0.0; }`);
+        }
         // node_shader_gpu_tex_image's Color output, for three's straight-alpha
         // upload: cleared for ignored/packed/data alpha; premultiplied (and
         // cleared) when Alpha is used; straight otherwise.
@@ -701,8 +812,13 @@ class Compiler {
    *  `hasoutput`). */
   private uses(key: string, index: number): boolean {
     const reads = (s: Source) => 'link' in s && s.link[0] === key && s.link[1] === index;
+    const closure = (c: Closure | undefined): boolean => c !== undefined && (
+      'emission' in c ? c.emission.some(reads)
+      : 'mix' in c ? reads(c.mix[0]) || closure(c.mix[1]) || closure(c.mix[2])
+      : 'add' in c ? closure(c.add[0]) || closure(c.add[1]) : false);
     return Object.values(this.graph.inputs).some(reads)
-      || Object.values(this.graph.nodes).some(n => n.inputs.some(reads));
+      || Object.values(this.graph.nodes).some(n => n.inputs.some(reads))
+      || closure(this.graph.closure);
   }
 
   compile(): CompiledGraph {
@@ -723,6 +839,42 @@ class Compiler {
       this.s.structure.push(['out', name]);
       assignments.push(`${global} = ${this.source(source, type)};`);
     }
+    // A SHADER MIX, as EEVEE composes closures: each leaf weighted by the
+    // factors above it (node_mix_shader: saturated factor to the second
+    // input, the rest to the first; node_add_shader: both whole). The one
+    // Principled BSDF's radiance is three's lighting, scaled by its weight
+    // (`bgClosureP`); Emission adds its radiance (`bgClosureE`); a gray
+    // Transparent adds its transmittance (`bgClosureT`).
+    const closure = this.graph.closure;
+    if (closure) {
+      let factors = 0;
+      const walk = (c: Closure, w: string): void => {
+        if ('principled' in c) {
+          this.s.structure.push('cP');
+          assignments.push(`bgClosureP += ${w};`);
+        } else if ('emission' in c) {
+          this.s.structure.push('cE');
+          assignments.push(`bgClosureE += ${w} * ${this.source(c.emission[0], 'vec4')}.rgb * ${this.source(c.emission[1], 'float')};`);
+        } else if ('transparent' in c) {
+          this.s.structure.push('cT');
+          assignments.push(`bgClosureT += ${w} * ${this.source({value: c.transparent}, 'float')};`);
+        } else if ('mix' in c) {
+          this.s.structure.push('cM');
+          const f = `bgClosureF${factors++}`;
+          assignments.push(`float ${f} = clamp(${this.source(c.mix[0], 'float')}, 0.0, 1.0);`);
+          walk(c.mix[1], `${w} * (1.0 - ${f})`);
+          walk(c.mix[2], `${w} * ${f}`);
+        } else if ('add' in c) {
+          this.s.structure.push('cA');
+          walk(c.add[0], w);
+          walk(c.add[1], w);
+        } else {
+          this.s.structure.push('c0');
+        }
+      };
+      assignments.push('bgClosureP = 0.0;', 'bgClosureE = vec3(0.0);', 'bgClosureT = 0.0;');
+      walk(closure, '1.0');
+    }
     const ordered: string[] = [];
     const seen = new Set<string>();
     const visit = (file: string) => {
@@ -738,9 +890,12 @@ class Compiler {
       shakeLibrary(EEVEE_GLOBALS + ordered.map(f => BLENDER_NODE_GLSL[f]!.code).join('\n') + '\n' + COORDINATES,
         [...this.s.functions, graphBody].join('\n')),
       ...[...this.s.uniformTypes].map(([n, t]) => `uniform ${t} ${n};`),
-      ...this.images.map(i => `uniform sampler2D ${i.uniform};`),
+      ...this.images.map(i => i.tiled
+        ? `uniform highp sampler2DArray ${i.uniform};\nuniform highp sampler2D ${i.uniform}Map;`
+        : `uniform sampler2D ${i.uniform};`),
       ...this.ramps.map(r => `uniform sampler2D ${r.uniform};`),
       ...Object.values(outputs).map(o => `${o.type} ${o.global};`),
+      ...(closure ? ['float bgClosureP;', 'vec3 bgClosureE;', 'float bgClosureT;'] : []),
       ...this.s.functions,
       graphBody,
     ].join('\n');
@@ -754,6 +909,7 @@ class Compiler {
       attributes: [...this.s.attributes],
       outputs,
       surface: this.graph.surface,
+      closure: closure !== undefined,
     };
   }
 }

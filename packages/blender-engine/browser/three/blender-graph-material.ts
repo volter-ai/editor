@@ -39,7 +39,7 @@ export function materialGraph(material: THREE.MeshPhysicalMaterial): CompiledGra
 export function setMaterialGraph(
   material: THREE.MeshPhysicalMaterial,
   compiled: CompiledGraph | null,
-  texture: (image: CompiledGraph['images'][number]) => THREE.Texture | null,
+  texture: (image: CompiledGraph['images'][number]) => THREE.Texture | {tiles: THREE.Texture; map: THREE.Texture} | null,
 ): void {
   const held = bindings.get(material);
   if (compiled && failed.has(compiled.key)) compiled = null;
@@ -74,8 +74,16 @@ export function setMaterialGraph(
     (binding.uniforms[r.uniform] ??= {value: null}).value = tex;
     return tex;
   });
-  for (const image of compiled.images)
-    (binding.uniforms[image.uniform] ??= {value: null}).value = texture(image);
+  for (const image of compiled.images) {
+    const value = texture(image);
+    if (image.tiled) {
+      const tiled = value !== null && 'tiles' in value ? value : null;
+      (binding.uniforms[image.uniform] ??= {value: null}).value = tiled?.tiles ?? null;
+      (binding.uniforms[`${image.uniform}Map`] ??= {value: null}).value = tiled?.map ?? null;
+    } else {
+      (binding.uniforms[image.uniform] ??= {value: null}).value = value !== null && 'tiles' in value ? null : value;
+    }
+  }
 }
 
 /** Part of the material's program cache key: the graph's structure and the
@@ -139,7 +147,8 @@ export function prepareGraphGeometry(mesh: THREE.Mesh): void {
   const texspace = (mesh.userData['blenderTexspace'] ?? null) as [number[], number[]] | null;
   const position = geometry.getAttribute('position') as THREE.BufferAttribute | undefined;
   const stamp = JSON.stringify([texspace, position?.version ?? 0, position?.count ?? 0]);
-  if (geometry.userData['blenderOrcoStamp'] !== stamp) {
+  // A deformed mesh's orco came with its columns (`DrawArrays.orco`).
+  if (!geometry.userData['blenderOrcoFromDoor'] && geometry.userData['blenderOrcoStamp'] !== stamp) {
     geometry.setAttribute('blenderOrco', orcoAttribute(geometry, texspace));
     geometry.userData['blenderOrcoStamp'] = stamp;
   }
@@ -234,6 +243,10 @@ ${compiled.uvs.map(n => `${uvVarying(n)} = ${attribute(channels[n] ?? 0)};`).joi
     fragment.push(['#include <emissivemap_fragment>', `totalEmissiveRadiance = ${out('Color')}.rgb * ${out('Strength')};`, false]);
     // An Emission surface reflects nothing: what leaves it is its emission.
     fragment.push(['#include <opaque_fragment>', 'outgoingLight = totalEmissiveRadiance;', true]);
+  } else if (compiled.surface === 'closure') {
+    // A mix with no lit shader: nothing reflects, the composition below is all.
+    fragment.push(['#include <color_fragment>', 'diffuseColor = vec4(0.0, 0.0, 0.0, 1.0);', false]);
+    fragment.push(['#include <emissivemap_fragment>', 'totalEmissiveRadiance = vec3(0.0);', false]);
   } else {
     fragment.push(['#include <color_fragment>', `diffuseColor.rgb = ${out('Base Color')}.rgb;`, false]);
     fragment.push(['#include <alphamap_fragment>', `diffuseColor.a = ${out('Alpha')};`, false]);
@@ -248,6 +261,24 @@ ${compiled.uvs.map(n => `${uvVarying(n)} = ${attribute(channels[n] ?? 0)};`).joi
     if (out('Normal'))
       fragment.push(['#include <clearcoat_normal_fragment_begin>',
         `normal = normalize((viewMatrix * vec4(transpose(blender_from_three) * ${out('Normal')}, 0.0)).xyz);`, true]);
+  }
+  if (compiled.closure) {
+    // THE SHADER MIX'S COMPOSITION (`bgClosure*`), before three writes the
+    // pixel: radiance is the lit shader's (its own alpha already a mix with
+    // transparency) plus emission; transmittance is the transparent weight
+    // plus what the lit shader's alpha lets through. Three blends straight
+    // alpha, so the radiance goes out divided by the coverage.
+    fragment.push(['#include <opaque_fragment>', `{
+  float blenderCoverage = diffuseColor.a;
+  vec3 blenderRadiance = bgClosureP * blenderCoverage * outgoingLight + bgClosureE;
+  float blenderAlpha = 1.0 - min(bgClosureT + bgClosureP * (1.0 - blenderCoverage), 1.0);
+#ifdef OPAQUE
+  outgoingLight = blenderRadiance;
+#else
+  outgoingLight = blenderRadiance / max(blenderAlpha, 1e-4);
+#endif
+  diffuseColor.a = blenderAlpha;
+}`, true]);
   }
   // MACROS BOTH SIDES DEFINE (three's `saturate` and Blender's, say): each
   // side's code is compiled under its own definition -- Blender's library

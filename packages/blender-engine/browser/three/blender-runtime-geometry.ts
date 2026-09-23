@@ -45,6 +45,9 @@ export interface DrawArrays {
    *  Attribute node can read, four floats per drawn vertex as EEVEE loads them
    *  (`graphAttributeLayers`). */
   attributeLayers?: {name: string; data: Float32Array}[] | undefined;
+  /** Per drawn vertex, a deformed mesh's Generated coordinates (0..1), or
+   *  null when the positions are undeformed and orco derives from them. */
+  orco?: Float32Array | null | undefined;
   indices: Uint32Array;
   groups: { start: number; count: number; materialIndex: number }[];
   /** THE BLENDER VERTEX EACH DRAWN VERTEX CAME FROM, one per drawn vertex.
@@ -65,6 +68,8 @@ interface DrawView {
   vertexCount: number;
   normals: Normal[] | null;
   cornerNormal?: Float32Array | undefined;
+  /** Blender's stored orco (-1..1), 3 per vertex. */
+  orco?: Float32Array | undefined;
   co(i: number): THREE.Vector3;
   /** CSR faces: corner `starts[i]..starts[i+1]` hold vertex indices. */
   starts: Uint32Array;
@@ -200,6 +205,7 @@ function drawCore(view: DrawView): Omit<DrawArrays, 'hash'> {
   const sourceVertex = new Uint32Array(capacity);
   const uvLayers = (view.uvLayers ?? []).map(layer => ({...layer, data: new Float32Array(capacity * 2)}));
   const attributeLayers = (view.attributeLayers ?? []).map(layer => ({...layer, data: new Float32Array(capacity * 4)}));
+  const orco = view.orco ? new Float32Array(capacity * 3) : null;
   const indices = new Uint32Array(capacity),
     shared = new Map<string, number>();
   const groups: DrawArrays['groups'] = [];
@@ -209,6 +215,8 @@ function drawCore(view: DrawView): Omit<DrawArrays, 'hash'> {
   const emit = (v: number, texture?: [number, number], normal?: Normal, sourceCorner?: number, face?: number): number => {
     const index = count++;
     for (const layer of attributeLayers) layer.data.set(layer.read(v, sourceCorner, face), index * 4);
+    // attr_load_orco: the stored -1..1 orco, mapped to 0..1.
+    if (orco) for (let k = 0; k < 3; k++) orco[index * 3 + k] = view.orco![v * 3 + k]! * 0.5 + 0.5;
     sourceVertex[index] = v;
     view.co(v).toArray(positions, index * 3);
     if (texture) texcoords.set(texture, index * 2);
@@ -252,6 +260,7 @@ function drawCore(view: DrawView): Omit<DrawArrays, 'hash'> {
     uv: uv ? texcoords.slice(0, count * 2) : null,
     uvLayers: uvLayers.map(layer => ({name: layer.name, data: layer.data.slice(0, count * 2)})),
     attributeLayers: attributeLayers.map(layer => ({name: layer.name, data: layer.data.slice(0, count * 4)})),
+    orco: orco ? orco.slice(0, count * 3) : null,
     indices: indices.slice(0, indexCount),
     sourceVertex: sourceVertex.slice(0, count),
     groups,
@@ -287,6 +296,10 @@ export function geometryFromDrawArrays(
   for (const layer of arrays.attributeLayers ?? [])
     geometry.setAttribute(graphAttributeName(layer.name), new THREE.BufferAttribute(layer.data, 4));
   geometry.userData['blenderAttributes'] = (arrays.attributeLayers ?? []).map(layer => layer.name);
+  if (arrays.orco) {
+    geometry.setAttribute('blenderOrco', new THREE.BufferAttribute(arrays.orco, 3));
+    geometry.userData['blenderOrcoFromDoor'] = true;
+  }
   for (const group of arrays.groups)
     geometry.addGroup(group.start, group.count, group.materialIndex);
   if (arrays.normals) geometry.setAttribute('normal', new THREE.BufferAttribute(arrays.normals, 3));
@@ -350,6 +363,7 @@ export function drawArraysFromColumns(c: MeshColumns, hash: string): DrawArrays 
     vertexCount: nv,
     normals: normalMesh ? customCornerNormals(normalMesh, customData) : null,
     cornerNormal: c.cornerNormal,
+    orco: c.orco,
     co: (i) => scratch.set(c.co[i * 3]!, c.co[i * 3 + 1]!, c.co[i * 3 + 2]!).clone(),
     starts: c.faceStart,
     cornerVerts: c.corner,

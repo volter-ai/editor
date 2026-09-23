@@ -536,8 +536,10 @@ def draw_camera(obj):
 # the presenter compiles that graph with Blender's own node GLSL
 # (`three/blender-node-graph.ts`, `three/blender-node-glsl.generated.ts`). The
 # door is told which materials those are (`graph_materials`), so it stays quiet
-# about reducing them, and which images their graphs sample (`graph_images`),
-# so it ships those pictures with the same revisions as every other.
+# about reducing them, which images their graphs sample (`graph_images`), so it
+# ships those pictures with the same revisions as every other, and which read
+# Generated coordinates (`graph_generated`), so a deformed mesh wearing one
+# ships Blender's orco -- or the door names why it cannot.
 #
 # The graph is flattened here: reroutes and muted nodes are followed the way
 # Blender's own node tree evaluation follows them, and group nodes are inlined
@@ -644,6 +646,8 @@ def _node_properties(node):
             # whether its colour space is data.
             props["image_alpha_mode"] = image.alpha_mode
             props["image_is_data"] = bool(image.colorspace_settings.is_data)
+            # UDIM: a flat projection samples every tile (the door ships them).
+            props["image_tiled"] = image.source == "TILED"
     if node.bl_idname in ("ShaderNodeValue", "ShaderNodeRGB"):
         # These nodes' value is their OUTPUT socket's (`set_value`/`set_rgba`
         # of a uniform in Blender's GPU path).
@@ -656,11 +660,9 @@ def _refusal(node):
     kind = node.bl_idname
     if kind == "ShaderNodeTexImage":
         image = node.image
-        if node.projection != "FLAT":
-            return "%s projects %s; only Flat is compiled" % (node.name, node.projection)
-        if node.interpolation in ("Cubic", "Smart"):
-            return "%s samples %s; Linear and Closest are compiled" % (node.name, node.interpolation)
-        if image is not None and image.source not in ("FILE", "GENERATED"):
+        if node.projection == "BOX" and node.extension == "CLIP":
+            return "%s clips a Box projection, which is not compiled" % node.name
+        if image is not None and image.source not in ("FILE", "GENERATED", "TILED"):
             return "%s's image is a %s source" % (node.name, image.source)
     if kind == "ShaderNodeNewGeometry" and node.outputs["Parametric"].is_linked:
         # EEVEE's parametric is the triangle's barycentrics, which the
@@ -740,7 +742,10 @@ class _MaterialGraph:
             self.nodes[key] = self._describe(stack, node)
             self._building.discard(key)
         index = next(i for i, s in enumerate(node.outputs) if s == socket)
-        if kind == "ShaderNodeTexCoord" and index == 0:
+        # Generated coordinates, and the Geometry node's Tangent (node_tangent
+        # of the orco).
+        if (kind == "ShaderNodeTexCoord" and index == 0) or (
+                kind == "ShaderNodeNewGeometry" and socket.name == "Tangent"):
             self.generated = True
         return {"link": [key, index]}
 
@@ -769,7 +774,12 @@ def _surface_node(tree):
     output = next((n for n in outputs if n.is_active_output), outputs[0] if outputs else None)
     if output is None:
         return None, None
-    socket, stack = output.inputs["Surface"], []
+    return _follow(output.inputs["Surface"], [])
+
+
+def _follow(socket, stack):
+    """The node an input socket's link comes from, through reroutes and groups,
+    as `(stack, node)`, or `(None, None)` when nothing is linked."""
     while True:
         links = [link for link in socket.links if link.is_valid and not link.is_muted]
         if not links:
@@ -790,13 +800,80 @@ def _surface_node(tree):
             return stack, node
 
 
+def _light_path_side(socket, stack):
+    """A Mix Shader factor that separates the camera's surface (a Light Path's
+    Is Camera Ray: 1, Is Shadow Ray: 0 on a camera ray), or a constant 0 or 1,
+    as the input index the camera sees; None for any other factor. The door
+    collapses exactly these (`bpy_web_export.cc`)."""
+    links = [l for l in socket.links if l.is_valid and not l.is_muted]
+    if not links:
+        value = socket.default_value
+        return 1 if value == 0.0 else 2 if value == 1.0 else None
+    link = links[0]
+    if link.from_node.bl_idname == "ShaderNodeLightPath":
+        return {"Is Shadow Ray": 1, "Is Camera Ray": 2}.get(link.from_socket.name)
+    return None
+
+
+def _collapse(stack, node):
+    """Follow the Mix Shaders the camera sees one side of (`_light_path_side`)."""
+    while node is not None and node.bl_idname == "ShaderNodeMixShader" and not node.mute:
+        side = _light_path_side(node.inputs[0], stack)
+        if side is None:
+            break
+        stack, node = _follow(node.inputs[side], stack)
+    return stack, node
+
+
+def _closure(graph, stack, node, lit):
+    """A shader mix as the tree the presenter composes: `{"mix": [factor, a,
+    b]}`, `{"add": [a, b]}`, and its leaves `{"principled": true}`,
+    `{"emission": [color, strength]}`, `{"transparent": gray}` and `{"none":
+    true}` (an empty shader socket). The one Principled BSDF is appended to
+    `lit`; the door reduces its constants, and it reaches it only through
+    mixes and reroutes, never a group."""
+    stack, node = _collapse(stack, node)
+    if node is None:
+        return {"none": True}
+    if stack:
+        raise _GraphRefusal("its shader mix passes through group %s" % stack[-1].name)
+    if node.mute:
+        raise _GraphRefusal("%s is muted" % node.name)
+    kind = node.bl_idname
+    if kind in ("ShaderNodeMixShader", "ShaderNodeAddShader"):
+        sides = [_closure(graph, *_follow(node.inputs[i], stack), lit)
+                 for i in ((1, 2) if kind == "ShaderNodeMixShader" else (0, 1))]
+        if kind == "ShaderNodeAddShader":
+            return {"add": sides}
+        return {"mix": [graph.source(stack, node.inputs[0])] + sides}
+    if kind == "ShaderNodeBsdfPrincipled":
+        if lit and lit[0] != node:
+            raise _GraphRefusal("it mixes two Principled BSDFs (%s and %s)" % (lit[0].name, node.name))
+        lit[:] = [node]
+        return {"principled": True}
+    if kind == "ShaderNodeEmission":
+        return {"emission": [graph.source(stack, node.inputs["Color"]),
+                             graph.source(stack, node.inputs["Strength"])]}
+    if kind == "ShaderNodeBsdfTransparent":
+        color = node.inputs["Color"]
+        if color.is_linked:
+            raise _GraphRefusal("%s's Color is linked; a tinted transparency is not compiled" % node.name)
+        r, g, b = color.default_value[:3]
+        if not (r == g == b):
+            raise _GraphRefusal("%s is tinted; only a gray transparency is compiled" % node.name)
+        return {"transparent": float(r)}
+    raise _GraphRefusal("%s (%s) is not a shader the presenter composes" % (node.name, kind))
+
+
 def material_graph(material):
     """The graph the presenter compiles for this material, or None when the
     door's reduction describes it fully (or the surface is not one the graph
     covers). A graph outside `_GRAPH_NODES` is a warning naming the node."""
     if not material.use_nodes or material.node_tree is None:
         return None
-    stack, surface = _surface_node(material.node_tree)
+    stack, surface = _collapse(*_surface_node(material.node_tree))
+    if surface is not None and surface.bl_idname in ("ShaderNodeMixShader", "ShaderNodeAddShader"):
+        return _mixed_graph(material, stack, surface)
     if surface is None or surface.bl_idname not in _GRAPH_SURFACES:
         return None
     sockets = [surface.inputs[name] for name in _GRAPH_SURFACES[surface.bl_idname]]
@@ -824,6 +901,33 @@ def material_graph(material):
     }
 
 
+def _mixed_graph(material, stack, surface):
+    """A surface that mixes or adds shaders: the closure tree, and the one
+    Principled BSDF's graph-driven inputs (`_closure`)."""
+    graph = _MaterialGraph(material)
+    lit = []
+    try:
+        closure = _closure(graph, stack, surface, lit)
+        inputs = {}
+        if lit:
+            sockets = [lit[0].inputs[name] for name in _GRAPH_SURFACES["ShaderNodeBsdfPrincipled"]]
+            for other in lit[0].inputs:
+                if other not in sockets and any(l.is_valid and not l.is_muted for l in other.links):
+                    warn("%s: %s is linked; only its constant is drawn" % (material.name, other.name))
+            inputs = {s.name: graph.source([], s) for s in sockets}
+    except _GraphRefusal as refusal:
+        warn("%s: its shader mix is not drawn; %s" % (material.name, refusal))
+        return None
+    return {
+        "surface": "ShaderNodeBsdfPrincipled" if lit else "closure",
+        "inputs": inputs,
+        "closure": closure,
+        "nodes": graph.nodes,
+        "images": sorted(graph.images),
+        "generated": graph.generated,
+    }
+
+
 def material_graphs(scene):
     """Every graph the scene's materials need, by material name."""
     graphs = {}
@@ -832,17 +936,6 @@ def material_graphs(scene):
             material = slot.material
             if material is not None and material.name not in graphs:
                 graphs[material.name] = material_graph(material)
-    # GENERATED COORDINATES ON A DEFORMED MESH: Blender maps them from the
-    # undeformed mesh (orco), which the export does not carry; the presenter
-    # maps the evaluated one. Named, never drawn silently different.
-    for obj in scene.objects:
-        if obj.type != "MESH" or not (obj.modifiers or getattr(obj.data, "shape_keys", None)):
-            continue
-        for slot in obj.material_slots:
-            graph = graphs.get(slot.material.name) if slot.material is not None else None
-            if graph is not None and graph["generated"]:
-                warn("%s: %s reads Generated coordinates, which are drawn from the deformed mesh; "
-                     "Blender maps them from the undeformed one" % (obj.name, slot.material.name))
     return {name: graph for name, graph in graphs.items() if graph is not None}
 
 
@@ -1084,7 +1177,8 @@ class Session:
         graphs = material_graphs(scene)
         options = {"session": self.session, "evaluate": True, "known": self._known,
                    "graph_materials": sorted(graphs),
-                   "graph_images": sorted({i for g in graphs.values() for i in g["images"]})}
+                   "graph_images": sorted({i for g in graphs.values() for i in g["images"]}),
+                   "graph_generated": sorted(n for n, g in graphs.items() if g["generated"])}
         # THE ARENA IS WRITTEN BEFORE THE ASK, and on a skew whose channel is
         # an ordered stream of filesystem patches that is the whole
         # correctness argument: whatever carries `ask/<id>.done` out of this

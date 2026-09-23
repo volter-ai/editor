@@ -27,7 +27,7 @@ import { fitModelDirectionalShadow, visibleShadowReceivers } from './blender-run
 import { volumeMesh, volumeSchema } from './blender-runtime-volume';
 import { applyPhysicalMaterial, applyWorldExtinction, physicalMaterialSchema } from './blender-physical-material';
 import { prepareGraphGeometry, setMaterialGraph } from './blender-graph-material';
-import { type CompiledGraph, compileMaterialGraph, materialGraphSchema } from './blender-node-graph';
+import { type CompiledGraph, compileMaterialGraph, graphSeeThrough, materialGraphSchema } from './blender-node-graph';
 import {worldMedium, WorldVolumePass} from './blender-world-volume';
 import { BlenderTextureSamplers } from './blender-texture-samplers';
 import { WeightOverlay, weightsSchema } from './blender-runtime-weights';
@@ -111,6 +111,7 @@ const drawArraysSchema = z
     uv: z.instanceof(Float32Array).nullable(),
     uvLayers: z.array(z.object({name: z.string(), data: z.instanceof(Float32Array)}).strict()).optional(),
     attributeLayers: z.array(z.object({name: z.string(), data: z.instanceof(Float32Array)}).strict()).optional(),
+    orco: z.instanceof(Float32Array).nullable().optional(),
     indices: z.instanceof(Uint32Array),
     groups: z.array(
       z
@@ -167,6 +168,7 @@ const columnsSchema = z
   .object({
     co: z.instanceof(Float64Array),
     cornerNormal: z.instanceof(Float32Array).optional(),
+    orco: z.instanceof(Float32Array).optional(),
     faceStart: z.instanceof(Uint32Array),
     corner: z.instanceof(Uint32Array),
     cornerEdge: z.instanceof(Int32Array),
@@ -298,6 +300,47 @@ function rasterTexture(
   return texture;
 }
 
+/**
+ * A UDIM IMAGE AS A GRAPH SAMPLES IT: every tile a layer of one array texture
+ * (each at its layer's origin, the layer as large as the largest tile), and
+ * the tile map `blender_tile_lookup` reads -- row 0 each tile's layer (-1 for
+ * none), row 1 its offset and scale within the layer, Blender's
+ * `GPU_image_tiled` layout.
+ */
+function udimTextures(
+  name: string,
+  frame: NonNullable<z.infer<typeof rasterImageSchema>['tiles']>,
+  colorspace: 'sRGB' | 'data',
+): {tiles: THREE.DataArrayTexture; map: THREE.DataTexture; frame: typeof frame} {
+  if (frame.length === 0) throw new Error(`Runtime image ${name} is tiled with no tiles`);
+  const width = Math.max(...frame.map(t => t.width));
+  const height = Math.max(...frame.map(t => t.height));
+  const layers = new Uint8Array(width * height * 4 * frame.length);
+  const count = Math.max(...frame.map(t => t.number - 1001)) + 1;
+  const map = new Float32Array(count * 2 * 4);
+  for (let i = 0; i < count; i++) map[i * 4] = -1;
+  frame.forEach((tile, layer) => {
+    const rgba = tile.rgba ?? (tile.rgbaBase64 ? bytesFromBase64(tile.rgbaBase64) : undefined);
+    if (!rgba) throw new Error(`Runtime image ${name} tile ${tile.number} carries no raster`);
+    for (let row = 0; row < tile.height; row++)
+      layers.set(rgba.subarray(row * tile.width * 4, (row + 1) * tile.width * 4),
+        ((layer * height + row) * width) * 4);
+    const index = tile.number - 1001;
+    map[index * 4] = layer;
+    map.set([0, 0, tile.width / width, tile.height / height], (count + index) * 4);
+  });
+  const tiles = new THREE.DataArrayTexture(layers, width, height, frame.length);
+  tiles.colorSpace = colorspace === 'data' ? THREE.NoColorSpace : THREE.SRGBColorSpace;
+  tiles.magFilter = THREE.LinearFilter;
+  tiles.minFilter = THREE.LinearMipmapLinearFilter;
+  tiles.generateMipmaps = true;
+  tiles.needsUpdate = true;
+  const mapTexture = new THREE.DataTexture(map, count, 2, THREE.RGBAFormat, THREE.FloatType);
+  mapTexture.magFilter = mapTexture.minFilter = THREE.NearestFilter;
+  mapTexture.needsUpdate = true;
+  return {tiles, map: mapTexture, frame};
+}
+
 /** One image the frame carries in full, in the only two shapes it comes in.
  *
  * A RASTER states its size, because a `DataTexture` cannot be built without
@@ -316,6 +359,14 @@ const rasterImageSchema = z
     /** Blender's `colorspace_settings.name`, reduced to the two the sampler
      *  tells apart. Absent means sRGB. */
     colorspace: z.enum(['sRGB', 'data']).optional(),
+    /** A UDIM image's tiles, by tile number (the door's `write_image`). */
+    tiles: z.array(z.object({
+      number: z.number().int().min(1001),
+      width: z.number().int().positive(),
+      height: z.number().int().positive(),
+      rgba: z.instanceof(Uint8Array).optional(),
+      rgbaBase64: z.string().optional(),
+    }).strict()).optional(),
   })
   .strict();
 const pngImageSchema = z
@@ -519,6 +570,8 @@ export class BlenderRuntimeView {
       revision: number;
       png?: Uint8Array;
       ready?: Promise<void>;
+      /** A UDIM image's tiles as a graph samples them (`udimTextures`). */
+      udim?: {tiles: THREE.DataArrayTexture; map: THREE.DataTexture; frame: NonNullable<z.infer<typeof rasterImageSchema>['tiles']>};
     }
   >();
   /** Which image each material's `map` is currently pointing at. */
@@ -1016,6 +1069,12 @@ export class BlenderRuntimeView {
       if ('width' in data) {
         const rgba = data.rgba ?? (data.rgbaBase64 ? bytesFromBase64(data.rgbaBase64) : undefined);
         if (!rgba) throw new Error(`Runtime image ${name} carries no raster`);
+        const udim = data.tiles ? udimTextures(name, data.tiles, data.colorspace ?? 'sRGB') : undefined;
+        if (held?.udim) {
+          held.udim.tiles.dispose();
+          held.udim.map.dispose();
+          delete held.udim;
+        }
         // A REPAINT AT THE SAME SIZE IS AN UPLOAD, not a new texture: the
         // bytes go into the resident image and three re-uploads it, so every
         // material pointing at it keeps pointing at it. Native does exactly
@@ -1026,6 +1085,7 @@ export class BlenderRuntimeView {
             image.data.set(rgba);
             held.texture.needsUpdate = true;
             held.revision = data.revision;
+            if (udim) held.udim = udim;
             continue;
           }
         }
@@ -1035,6 +1095,7 @@ export class BlenderRuntimeView {
           width: data.width,
           height: data.height,
           revision: data.revision,
+          ...(udim ? {udim} : {}),
         });
         continue;
       }
@@ -1045,6 +1106,8 @@ export class BlenderRuntimeView {
       const png = data.png ?? (data.pngBase64 ? bytesFromBase64(data.pngBase64) : undefined);
       if (!png) throw new Error(`Runtime image ${name} carries no bytes`);
       held?.texture.dispose();
+      held?.udim?.tiles.dispose();
+      held?.udim?.map.dispose();
       const { texture, ready } = loadPngTexture(png);
       texture.colorSpace = THREE.SRGBColorSpace;
       this.textures.set(name, {
@@ -1092,10 +1155,10 @@ export class BlenderRuntimeView {
       // carries no alpha on a texture, and Blender's Alpha is a separate
       // Principled socket.
       material.opacity = data.color[3];
-      // A graph-driven Alpha is per pixel; the constant cannot say whether the
-      // surface is see-through, so a linked one is.
-      const alpha = data.graph?.inputs['Alpha'];
-      const transparent = material.opacity < 1 || (alpha !== undefined && 'link' in alpha);
+      // A graph-driven Alpha, or a Transparent BSDF in a shader mix, is per
+      // pixel; the constant cannot say whether the surface is see-through, so
+      // such a graph is.
+      const transparent = material.opacity < 1 || (data.graph !== undefined && graphSeeThrough(data.graph));
       if (material.transparent !== transparent) {
         material.transparent = transparent;
         material.needsUpdate = true;
@@ -1216,13 +1279,19 @@ export class BlenderRuntimeView {
             `${UNKNOWN_IMAGE}: the presenter does not hold runtime image ${image.name} ` +
               `(revision ${image.revision})`,
           );
+        if (image.tiled) {
+          if (!held.udim) throw new Error(`${UNKNOWN_IMAGE}: runtime image ${image.name} arrived without its UDIM tiles`);
+          return held.udim;
+        }
         const key = `${id}:graph:${image.node}`;
         graphSamplers.add(key);
         const texture = this.textureSamplers.get(key, held.texture, image.extension, held.ready);
         const filter = image.closest ? THREE.NearestFilter : THREE.LinearFilter;
-        if (texture.magFilter !== filter) {
+        const minFilter = image.closest ? THREE.NearestFilter
+          : image.mipmap ? THREE.LinearMipmapLinearFilter : THREE.LinearFilter;
+        if (texture.magFilter !== filter || texture.minFilter !== minFilter) {
           texture.magFilter = filter;
-          texture.minFilter = image.closest ? THREE.NearestFilter : THREE.LinearMipmapLinearFilter;
+          texture.minFilter = minFilter;
           texture.needsUpdate = true;
         }
         return texture;
@@ -1397,6 +1466,7 @@ export class BlenderRuntimeView {
           if (!data) throw new Error(`Blender capture mesh ${id} is missing UV layer ${name}`);
           return {name, data};
         }),
+        orco: geometry.userData['blenderOrcoFromDoor'] ? attribute('blenderOrco') : null,
         attributeLayers: (geometry.userData['blenderAttributes'] as string[] | undefined ?? []).map(name => {
           const data = attribute(graphAttributeName(name));
           if (!data) throw new Error(`Blender capture mesh ${id} is missing attribute ${name}`);
@@ -1442,6 +1512,7 @@ export class BlenderRuntimeView {
           height: held.height,
           rgba: data.slice(),
           colorspace: held.texture.colorSpace === THREE.NoColorSpace ? 'data' : 'sRGB',
+          ...(held.udim ? {tiles: held.udim.frame} : {}),
         };
       }
     }
@@ -1536,7 +1607,11 @@ export class BlenderRuntimeView {
     // The pictures go with the session that sent them: the cache OWNS every
     // texture in it (a material only points at one), so this is the one place
     // they are disposed, beside the meshes for the same reason.
-    for (const { texture } of this.textures.values()) texture.dispose();
+    for (const { texture, udim } of this.textures.values()) {
+      texture.dispose();
+      udim?.tiles.dispose();
+      udim?.map.dispose();
+    }
     this.textures.clear();
     this.textureNames.clear();
     this.roughnessTextureNames.clear();
