@@ -168,6 +168,21 @@ function registerBlenderFileRoutes(router: EditorServerRouter, ctx: RouteContext
       res.status(404).json({ error: `${file} vanished from ${status.dir}.` });
       return;
     }
+    // A VALIDATOR, SO THE COMPILED ENGINE IS CACHED. Chrome keeps the machine
+    // code it compiled from an `instantiateStreaming` response only while that
+    // response sits in its HTTP cache, and a response with no validator is
+    // never stored -- so every boot compiled all 86 MB of Blender again,
+    // measured at 12-36 s of a boot at load ~35 and 49-84 s in the battery.
+    // `no-cache` still asks this server every time, which answers 304 while
+    // the file on disk is the same one.
+    const info = await stat(found.path);
+    const etag = `"${found.encoding ?? 'identity'}-${info.size}-${Math.floor(info.mtimeMs)}"`;
+    res.setHeader('cache-control', 'no-cache');
+    res.setHeader('etag', etag);
+    if (req.headers['if-none-match'] === etag) {
+      res.status(304).end();
+      return;
+    }
     // A pre-compressed file goes out as stored, declared as brotli: the
     // browser inflates it before `instantiateStreaming` / the `.data` preload
     // read a byte, so `content-type` stays what the runtime requires.
