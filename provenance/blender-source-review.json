@@ -1,14 +1,15 @@
 {
-  "reviewedAt": "2026-09-22",
+  "reviewedAt": "2026-09-23",
   "repository": "https://github.com/volter-ai/blender",
-  "binarySourceRevision": "a4dff7ba16a0cca24504d81ed0086457493e48dc",
-  "publicSourceRevision": "94d8f20b225d51755a0a93a7fdf1e0cd9f53d09c",
-  "sourceRelease": "blender-5.2.0-wasm.1",
+  "binarySourceRevision": "68bba09924c2cf08cbceb6608be4a9e1500a62bb",
+  "publicSourceRevision": "68bba09924c2cf08cbceb6608be4a9e1500a62bb",
+  "sourceRelease": "blender-5.2.0-wasm.2",
   "sourceArchive": {
-    "name": "blender-a4dff7ba16a-source.tar.gz",
-    "sha256": "60f4789ec1a3bc9379bc208c7ce28ee1a4fee7787436a998b2d1ed5748689ec4"
+    "name": "blender-68bba09924c2-source.tar.gz",
+    "sha256": "54b1d864aed5817ec39a60a1a127e92ca3269773c9d2316cecd5053232f99160"
   },
   "dependencyArchive": {
+    "release": "blender-5.2.0-wasm.1",
     "name": "blender-wasm-dependency-sources.tar",
     "sha256": "8dc8ac05195380b5b81b3c292232efb9ca307062bb3bc26be58ee748e1421216"
   },
@@ -151,6 +152,9 @@
     }
   ],
   "checks": [
+    "The material exporter source archive was anonymously downloaded and its complete SHA-256 verified before distributing the new binary.",
+    "The incremental link's 369 archive arguments contain only the source-owned Blender build, pinned dependency install and Emscripten toolchain; no host-native or foreign port libraries.",
+    "The new browser battery completed all 362 frozen calls with zero harness failures. Exact comparison differences remain declared in blender-material-verification.json.",
     "Source archive includes COPYING, complete Emscripten build recipe, pinned source and wheel manifests, and a materialized startup.blend.",
     "All 26 source archives and eight wheels match their pinned manifest hashes.",
     "Release BUNDLE.json and DEPENDENCY-LICENSES.txt match the copies in the engine package.",
@@ -162,7 +166,7 @@
   ],
   "distributionStatus": {
     "visibility": "public",
-    "verifiedAt": "2026-09-22",
+    "verifiedAt": "2026-09-23",
     "note": "Corresponding source is public in a fresh repository with no inherited private history. The previous repository and release remain private under blender-private-history."
   }
 }

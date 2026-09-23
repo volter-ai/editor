@@ -151,9 +151,8 @@ BSDF or shader-graph parity.
 
 The corresponding Blender exporter is public at
 `68bba09924c2cf08cbceb6608be4a9e1500a62bb` (PR #1). Verification used a rebuilt
-WASM override; the packaged WASM and public npm release are still unchanged.
-New binary provenance, the full engine battery, fresh packed acceptance and
-publication remain required before this candidate ships.
+WASM override. The candidate now carries that verified binary; public npm is
+still unchanged. Fresh packed acceptance has passed; publication remains required.
 
 The candidate also implements homogeneous World Absorption, Scatter, Principled
 Volume and Emission closures, including Add/Mix weights and constant linked
@@ -178,21 +177,77 @@ transport, phase normalization, blackbody, named refusals, surface uniforms and
 pass ownership. The live orthographic absorption probe measured exactly 163/255
 against the Beer–Lambert/Standard prediction (clear: 255/255), and history
 restored the density. Perspective spotlight/point-light and occlusion captures
-ran with a silent console. Full engine battery and new packed acceptance remain
-pending; these feature probes do not substitute for release verification.
+ran with a silent console. The full engine battery is recorded below. These
+feature probes have also passed against the final installed archives, without
+a WASM override or workspace links.
 
 The first new-binary battery attempt completed the courtyard's 95 calls with
 the accepted baseline's four error positions, but its final verification was
 blocked by stale harness imports and an incomplete disposable-project dependency
 setup. It also exposed a real missing-named-UV regression: such a lookup now
 uses Blender's zero-coordinate behavior instead of throwing or substituting the
-active UV map. The complete battery must rerun with that correction.
+active UV map. The complete battery reran with that correction at editor
+`c7f0def0d717dfeef7b56f436156834a4b2250b4`: all 362 calls completed, no harness
+failures, and all photographed camera poses matched. Courtyard and workshop
+matched final geometry and presentation. Bridge, tram and courier retain exact
+comparison differences; they are not reported as native-parity passes.
+All 70 bridge snapshots are byte-identical to the previous accepted binary.
+Courier's five snapshots match that binary after index remapping except two
+normal components differing by 0.000001. The bridge/tram presentation reports
+still name the same geometry-less curve helpers. Courier now has only its four
+native script errors, rather than the old host's 27 error positions.
+See [binary verification](provenance/blender-material-verification.json) for
+source/harness hashes, timings, errors, runtime checks and comparison evidence.
+The public source archive at `blender-5.2.0-wasm.2` was anonymously verified;
+the 34 unchanged dependency payloads remain at `blender-5.2.0-wasm.1`.
+
+### Packaged sidebar restoration (unreleased)
+
+The reported outdated-looking UI exposed a reproducible packaged-only issue:
+manually opening Properties and Outliner did not survive a full cold reopen.
+Code-OSS 1.138's built-launch layout policy substitutes its default Explorer for
+a saved non-default sidebar (development and Reload Window do not). The kit now
+captures the native saved container before restoration overwrites it and opens
+that container through the native view service after restoration. It adds no
+layout store, product-specific ID or forced view visibility. The rebuilt macOS
+workbench passed five cold-reopen checks, including preservation of a deliberate
+Source Control selection. Its complete anonymous download matches the pinned
+SHA-256. Source comparison found the
+recent Blender header/menu/icon/style fixes already present; the user's other
+missing visual changes have not yet been identified.
 
 The same candidate upgrades Storybook to 10.6.0, verifies its real portable
 story and ordering APIs and requires Node 24. Its repository and initial packed
 install audits reported zero vulnerabilities, resolving the advisory in the
 published release below. That packed probe predates the material changes and
-does not establish acceptance of the new renderer.
+does not establish acceptance of the new renderer. The final packed install also
+reports zero vulnerabilities.
+
+### Final 0.5.63 packed acceptance
+
+All 72 tests, eight package typechecks, the build, release-boundary check and
+1,086-file packed-import check pass. The exact eight archives install without
+workspace links or a WASM override. Python/RNA undo/redo, Essentials restoration,
+five persisted duplicate/delete/history cycles and five full cold reopens pass.
+The final run has no unresolved or acknowledged diagnostics. Earlier attempts
+exposed readiness assumptions in the harness (panels mounted before their fields
+loaded); bounded UI readiness checks corrected the harness, not the product.
+
+Making the disposable model directory read-only made both edit and close refuse
+EACCES while retaining the live worker. Restoring mode 755 allowed the pending
+X=12.625 to save and survive reopening. Closing during a two-second Python edit
+waited 2,396 ms; reopening retained X=14.625. Real stdio MCP then opened the closed
+editor and read that model and its Essentials modifier, with a silent console.
+
+Packed GPU checks passed physical inputs, tangent/object-space DirectX normals,
+first/eighth/missing named UVs, Repeat/Clip and edit history. Homogeneous volume
+absorption measured 163/255 versus clear 255/255 at the center. A blocker reduced
+spotlight scattering; point-light scattering disappeared when energy was zero,
+apart from an observed maximum one-code-value residual (not exact black parity).
+All probes restored their temporary edits and ended with a silent console.
+An inspected settled capture shows populated Cube Properties at X=14.625,
+Outliner, grid and the retained material probe. Publication and registry-only
+installation acceptance remain to be completed.
 
 ### Renderer-hang diagnostics after 0.5.62 (source only)
 

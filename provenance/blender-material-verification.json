@@ -1,0 +1,552 @@
+{
+  "measuredAt": "2026-09-23T10:01:33.415Z",
+  "source": "68bba09924c2cf08cbceb6608be4a9e1500a62bb",
+  "editorRevision": "c7f0def0d717dfeef7b56f436156834a4b2250b4",
+  "execution": "World-attached file-backed Model document, fresh editor and Blender engine for each of five frozen models",
+  "harnessModified": true,
+  "harnessChanges": [
+    "Public package imports and compiled capture helper",
+    "Public CLI session/console reads",
+    "File-backed Model identity and starter reset",
+    "Source and harness hashes"
+  ],
+  "frozenRequestsChanged": false,
+  "oraclesChanged": false,
+  "comparisonThresholdsChanged": false,
+  "rawBundle": {
+    "blender_browser.js": {
+      "bytes": 408162,
+      "sha256": "2a5d4dbcc90cab571eb16eef9672ef8583e1c0a3638d0b85165d1944d191d9a7"
+    },
+    "blender_browser.wasm": {
+      "bytes": 86296622,
+      "sha256": "fcc411449beadda7e7a73ec151844f62e0beaf1371f41d43a04a53b884c81c4d"
+    },
+    "blender_browser.data": {
+      "bytes": 52698568,
+      "sha256": "bf86b5ca29b86a9d7e1185d8b3eba5bd5101eff9eeef47d36884fbe69b9a2cb7"
+    }
+  },
+  "models": [
+    {
+      "id": "16-market-courtyard",
+      "calls": 95,
+      "expectedCalls": 95,
+      "status": "complete",
+      "errorsAt": [
+        2,
+        5,
+        25,
+        61
+      ],
+      "errors": [
+        {
+          "seq": 2,
+          "isError": false,
+          "response": [
+            "Error executing code: AttributeError: type object 'HydraRenderEngine' has no attribute 'bl_idname'"
+          ]
+        },
+        {
+          "seq": 5,
+          "isError": false,
+          "response": [
+            "Error executing code: TypeError: bpy_struct: item.attr = val: enum \"AgX - Medium Contrast\" not found in ('None', 'AgX - Punchy', 'AgX - Greyscale', 'AgX - Very High Contrast', 'AgX - High Contrast', 'AgX - Medium High Contrast', 'AgX - Base Contrast', 'AgX - Medium Low Contrast', 'AgX - Low Contrast', 'AgX - Very Low Contrast')"
+          ]
+        },
+        {
+          "seq": 25,
+          "isError": false,
+          "response": [
+            "Error executing code: AttributeError: 'Action' object has no attribute 'fcurves'"
+          ]
+        },
+        {
+          "seq": 61,
+          "isError": false,
+          "response": [
+            "Error executing code: TypeError: bpy_struct: item.attr = val: enum \"OPENIMAGEDENOISE\" not found in ()"
+          ]
+        }
+      ],
+      "harnessErrors": [],
+      "geometry": {
+        "result": "match",
+        "differingObjects": []
+      },
+      "presentation": {
+        "result": "match",
+        "differences": [],
+        "cameraCount": 45,
+        "camerasMatch": true
+      },
+      "artifacts": {
+        "result": "different",
+        "matched": 125,
+        "expected": 126
+      },
+      "startedAt": "2026-09-23T09:34:05.170711+00:00",
+      "finishedAt": "2026-09-23T09:35:25.716265+00:00",
+      "source": {
+        "revision": "c7f0def0d717dfeef7b56f436156834a4b2250b4",
+        "dirtyDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harnessAdapterSha256": "3cd6ca4b4bb3ef6e718d490bc065870fc9f1ecaf5709e53f0b282c53c931c442",
+        "collectorSha256": "2c8e9ce66f2a5f50035ef663ed53af210df6011a42d2b19c6b84fa98b7b2bdd4",
+        "readinessSha256": "199b01b81751a0a33ba111cab542e2d1d53ba2c60a3efd97ad0f078be93f1b85",
+        "rawWasmSha256": "fcc411449beadda7e7a73ec151844f62e0beaf1371f41d43a04a53b884c81c4d"
+      },
+      "evidence": {
+        "result.json": "d9d583bcf5f63d79273fd5c55f23f7e8c0d29e8b08409ee5fd0eb784fd1cfb27",
+        "session-trace.jsonl": "f68788764cfb95dfec06ad7dce1b78cc1c0d21dede006e3bdd46ccc6ce70aaa2",
+        "geometry-comparison.json": "179fc296c4345f6f72fde0a56843e59f32f0964eccec5e68e258075cb3350db1",
+        "presentation-comparison.json": "4f8481713d3bf1733ec1f2d3f15f0e2030f053e14e9af2812473dc7666ecf499",
+        "artifact-comparison.json": "5073f567c0d41a39ae1666e5b810b60a59a211852785c15efe1cf9f558526e64"
+      }
+    },
+    {
+      "id": "17-workshop-interior",
+      "calls": 63,
+      "expectedCalls": 63,
+      "status": "complete",
+      "errorsAt": [
+        2,
+        16
+      ],
+      "errors": [
+        {
+          "seq": 2,
+          "isError": false,
+          "response": [
+            "Error executing code: AttributeError: type object 'HydraRenderEngine' has no attribute 'bl_idname'"
+          ]
+        },
+        {
+          "seq": 16,
+          "isError": false,
+          "response": [
+            "Error executing code: TypeError: bpy_struct: item.attr = val: enum \"AgX - Medium Contrast\" not found in ('None', 'AgX - Punchy', 'AgX - Greyscale', 'AgX - Very High Contrast', 'AgX - High Contrast', 'AgX - Medium High Contrast', 'AgX - Base Contrast', 'AgX - Medium Low Contrast', 'AgX - Low Contrast', 'AgX - Very Low Contrast')"
+          ]
+        }
+      ],
+      "harnessErrors": [],
+      "geometry": {
+        "result": "match",
+        "differingObjects": []
+      },
+      "presentation": {
+        "result": "match",
+        "differences": [],
+        "cameraCount": 35,
+        "camerasMatch": true
+      },
+      "artifacts": {
+        "result": "different",
+        "matched": 149,
+        "expected": 150
+      },
+      "startedAt": "2026-09-23T09:35:42.408518+00:00",
+      "finishedAt": "2026-09-23T09:36:56.585930+00:00",
+      "source": {
+        "revision": "c7f0def0d717dfeef7b56f436156834a4b2250b4",
+        "dirtyDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harnessAdapterSha256": "3cd6ca4b4bb3ef6e718d490bc065870fc9f1ecaf5709e53f0b282c53c931c442",
+        "collectorSha256": "2c8e9ce66f2a5f50035ef663ed53af210df6011a42d2b19c6b84fa98b7b2bdd4",
+        "readinessSha256": "199b01b81751a0a33ba111cab542e2d1d53ba2c60a3efd97ad0f078be93f1b85",
+        "rawWasmSha256": "fcc411449beadda7e7a73ec151844f62e0beaf1371f41d43a04a53b884c81c4d"
+      },
+      "evidence": {
+        "result.json": "6bd081542c856cdda779b6e6ec11c0e5c6a44ac8599ff6467705449ab20df5ab",
+        "session-trace.jsonl": "16ac03c12c09198c0c28b0f4148b7d1ebabbc375dd747248c038247d9a0c4067",
+        "geometry-comparison.json": "6169db0d6a3829111ec32ba0d1fc5b2afec5e80aef05505cb29c9ce271590cc8",
+        "presentation-comparison.json": "ca13976c47e9a96784a372fc2032bc5d60fb9bab8455f7fd1ca61ce626fa38dc",
+        "artifact-comparison.json": "06657cf40fc09126ed7098e6bbf2309ae7638c6e08b1a86561700647e4cd60d0"
+      }
+    },
+    {
+      "id": "18-riverside-bridge",
+      "calls": 41,
+      "expectedCalls": 41,
+      "status": "different",
+      "errorsAt": [
+        18
+      ],
+      "errors": [
+        {
+          "seq": 18,
+          "isError": false,
+          "response": [
+            "Error executing code: AttributeError: 'Object' object has no attribute 'bound_box_cached'"
+          ]
+        }
+      ],
+      "harnessErrors": [],
+      "geometry": {
+        "result": "different",
+        "differingObjects": [
+          "raw-FINAL-Tree_01_Canopy.json",
+          "raw-FINAL-Tree_02_Trunk.json",
+          "raw-FINAL-Tree_05_Canopy.json",
+          "raw-FINAL-Tree_05_Trunk.json",
+          "raw-FINAL-Tree_06_Canopy.json",
+          "raw-FINAL-Tree_07_Canopy.json",
+          "raw-FINAL-Tree_07_Trunk.json",
+          "raw-FINAL-Tree_08_Canopy.json",
+          "raw-FINAL-Tree_09_Canopy.json",
+          "raw-FINAL-Tree_10_Canopy.json"
+        ]
+      },
+      "presentation": {
+        "result": "different",
+        "differences": [
+          "Drawable object has no observed geometry: Stream_Path",
+          "Drawable object has no observed geometry: Path_Curve"
+        ],
+        "cameraCount": 16,
+        "camerasMatch": true
+      },
+      "artifacts": {
+        "result": "different",
+        "matched": 76,
+        "expected": 87
+      },
+      "startedAt": "2026-09-23T09:37:08.187294+00:00",
+      "finishedAt": "2026-09-23T09:38:03.171782+00:00",
+      "source": {
+        "revision": "c7f0def0d717dfeef7b56f436156834a4b2250b4",
+        "dirtyDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harnessAdapterSha256": "3cd6ca4b4bb3ef6e718d490bc065870fc9f1ecaf5709e53f0b282c53c931c442",
+        "collectorSha256": "2c8e9ce66f2a5f50035ef663ed53af210df6011a42d2b19c6b84fa98b7b2bdd4",
+        "readinessSha256": "199b01b81751a0a33ba111cab542e2d1d53ba2c60a3efd97ad0f078be93f1b85",
+        "rawWasmSha256": "fcc411449beadda7e7a73ec151844f62e0beaf1371f41d43a04a53b884c81c4d"
+      },
+      "evidence": {
+        "result.json": "4665a6fe6ab245d1320773546d294cb0297184716eb481d938f092e9da214edb",
+        "session-trace.jsonl": "9d3d0655ac0478c2d6a014c174aa5b2cd6f0532fd6d6e75edbcf7e30d80008de",
+        "geometry-comparison.json": "b83725312294eeaa21e3ad75c8fc40aff827d85b0a06cc2695dcdae95f02b611",
+        "presentation-comparison.json": "f5b5ae6e502205d6a47acd492074b4e65b2a7ba9980ab7c4f0869bdb97946563",
+        "artifact-comparison.json": "7f2e624d54fc74c08afee29701ee6e5155878f1095c54bd2f139fd8df6bbc4cc"
+      }
+    },
+    {
+      "id": "19-tram-stop",
+      "calls": 70,
+      "expectedCalls": 70,
+      "status": "different",
+      "errorsAt": [
+        11
+      ],
+      "errors": [
+        {
+          "seq": 11,
+          "isError": false,
+          "response": [
+            "Error executing code: AttributeError: 'Scene' object has no attribute 'node_tree'"
+          ]
+        }
+      ],
+      "harnessErrors": [],
+      "geometry": {
+        "result": "match",
+        "differingObjects": []
+      },
+      "presentation": {
+        "result": "different",
+        "differences": [
+          "Drawable object has no observed geometry: Profile_Rail",
+          "Drawable object has no observed geometry: Profile_Canopy",
+          "Drawable object has no observed geometry: Profile_Beam"
+        ],
+        "cameraCount": 48,
+        "camerasMatch": true
+      },
+      "artifacts": {
+        "result": "different",
+        "matched": 172,
+        "expected": 173
+      },
+      "startedAt": "2026-09-23T09:38:15.182738+00:00",
+      "finishedAt": "2026-09-23T09:39:31.367929+00:00",
+      "source": {
+        "revision": "c7f0def0d717dfeef7b56f436156834a4b2250b4",
+        "dirtyDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harnessAdapterSha256": "3cd6ca4b4bb3ef6e718d490bc065870fc9f1ecaf5709e53f0b282c53c931c442",
+        "collectorSha256": "2c8e9ce66f2a5f50035ef663ed53af210df6011a42d2b19c6b84fa98b7b2bdd4",
+        "readinessSha256": "199b01b81751a0a33ba111cab542e2d1d53ba2c60a3efd97ad0f078be93f1b85",
+        "rawWasmSha256": "fcc411449beadda7e7a73ec151844f62e0beaf1371f41d43a04a53b884c81c4d"
+      },
+      "evidence": {
+        "result.json": "ef698f4326f7daf907adf6b4a60a1faeb3d005b287dca184440b83acfcebcaff",
+        "session-trace.jsonl": "0ea0bac7d72dcfd664af38a8328d6099e3b7699b8c5c0c59af23decb47cbfd57",
+        "geometry-comparison.json": "6ecf3094f6b3d16768b0c1316e23d48e651da5f251d1df539f463724b39e6357",
+        "presentation-comparison.json": "9e309df9f6cee0bf716d9b9b13055e7b01410f7a0cd3619c1c342dd88c657652",
+        "artifact-comparison.json": "3b0281badb9c3b559980fb0af621adda99a8b209b5a040032af40a9c07f47345"
+      }
+    },
+    {
+      "id": "20-rigged-courier",
+      "calls": 93,
+      "expectedCalls": 93,
+      "status": "different",
+      "errorsAt": [
+        3,
+        39,
+        57,
+        69
+      ],
+      "errors": [
+        {
+          "seq": 3,
+          "isError": false,
+          "response": [
+            "Error executing code: AttributeError: 'Action' object has no attribute 'fcurves'"
+          ]
+        },
+        {
+          "seq": 39,
+          "isError": false,
+          "response": [
+            "Error executing code: ValueError: geom: found the same (BMVert/BMEdge/BMFace) used multiple times"
+          ]
+        },
+        {
+          "seq": 57,
+          "isError": false,
+          "response": [
+            "Error executing code: TypeError: VertexGroup.add(): error with argument 2, \"weight\" -  Function.weight expected a float type, not list"
+          ]
+        },
+        {
+          "seq": 69,
+          "isError": false,
+          "response": [
+            "Error executing code: ValueError: 'Hair' is not in list"
+          ]
+        }
+      ],
+      "harnessErrors": [],
+      "geometry": {
+        "result": "different",
+        "differingObjects": [
+          "raw-FINAL-Adventurer_Body.json",
+          "raw-FINAL-Adventurer_Feet.json",
+          "raw-FINAL-Adventurer_Head.json",
+          "raw-FINAL-Adventurer_Legs.json",
+          "raw-FINAL-Courier_Satchel.json"
+        ]
+      },
+      "presentation": {
+        "result": "match",
+        "differences": [],
+        "cameraCount": 78,
+        "camerasMatch": true
+      },
+      "artifacts": {
+        "result": "different",
+        "matched": 78,
+        "expected": 84
+      },
+      "startedAt": "2026-09-23T09:39:43.341302+00:00",
+      "finishedAt": "2026-09-23T09:42:33.551958+00:00",
+      "source": {
+        "revision": "c7f0def0d717dfeef7b56f436156834a4b2250b4",
+        "dirtyDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harnessAdapterSha256": "3cd6ca4b4bb3ef6e718d490bc065870fc9f1ecaf5709e53f0b282c53c931c442",
+        "collectorSha256": "2c8e9ce66f2a5f50035ef663ed53af210df6011a42d2b19c6b84fa98b7b2bdd4",
+        "readinessSha256": "199b01b81751a0a33ba111cab542e2d1d53ba2c60a3efd97ad0f078be93f1b85",
+        "rawWasmSha256": "fcc411449beadda7e7a73ec151844f62e0beaf1371f41d43a04a53b884c81c4d"
+      },
+      "evidence": {
+        "result.json": "b2b69919a57359e1100f27f9286989b6b91e31432592355d0ac19c533ded5b96",
+        "session-trace.jsonl": "4751b6da2a1b44d8110306d7166a2c8ebebfb9c1c474a956d70870854e253e6c",
+        "geometry-comparison.json": "a767ad4806887747227d90f2ca4d96cd473ec5465b8fcddebf71ff5e227d906c",
+        "presentation-comparison.json": "48765f10d8a371fde22ad6c85cd974b8a16d803947f18f85e08e99fe15ad17c2",
+        "artifact-comparison.json": "530f1d1dd5484c56a01cb4230057df782f85e0bdfb40f6abd793cff891a1ebd2"
+      }
+    }
+  ],
+  "runtime": {
+    "blender": "5.2.0 LTS",
+    "buildOptions": {
+      "alembic": false,
+      "audaspace": false,
+      "bullet": false,
+      "codec_avi": false,
+      "codec_ffmpeg": false,
+      "codec_sndfile": false,
+      "compositor_cpu": true,
+      "coreaudio": false,
+      "cycles": true,
+      "cycles_osl": false,
+      "experimental_features": false,
+      "fluid": false,
+      "freestyle": false,
+      "haru": false,
+      "image_cineon": false,
+      "image_dds": true,
+      "image_hdr": true,
+      "image_openexr": true,
+      "image_openjpeg": false,
+      "image_tiff": true,
+      "image_webp": false,
+      "input_ndof": false,
+      "international": false,
+      "io_fbx": false,
+      "io_gpencil": false,
+      "io_ply": true,
+      "io_stl": true,
+      "io_wavefront_obj": true,
+      "jack": false,
+      "libmv": false,
+      "mod_oceansim": false,
+      "mod_remesh": true,
+      "openal": false,
+      "opencolorio": true,
+      "openmp": false,
+      "opensubdiv": true,
+      "openvdb": false,
+      "potrace": false,
+      "pugixml": false,
+      "pulseaudio": false,
+      "sdl": false,
+      "usd": false,
+      "wasapi": false,
+      "xr_openxr": false
+    },
+    "builtins": [
+      "_abc",
+      "_ast",
+      "_asyncio",
+      "_bisect",
+      "_blake2",
+      "_blender_web",
+      "_bpy_path",
+      "_codecs",
+      "_codecs_cn",
+      "_codecs_hk",
+      "_codecs_iso2022",
+      "_codecs_jp",
+      "_codecs_kr",
+      "_codecs_tw",
+      "_collections",
+      "_contextvars",
+      "_csv",
+      "_cycles",
+      "_datetime",
+      "_elementtree",
+      "_functools",
+      "_heapq",
+      "_imp",
+      "_io",
+      "_json",
+      "_locale",
+      "_lsprof",
+      "_md5",
+      "_multibytecodec",
+      "_opcode",
+      "_operator",
+      "_pickle",
+      "_queue",
+      "_random",
+      "_sha1",
+      "_sha2",
+      "_sha3",
+      "_signal",
+      "_socket",
+      "_sre",
+      "_stat",
+      "_statistics",
+      "_string",
+      "_struct",
+      "_suggestions",
+      "_symtable",
+      "_sysconfig",
+      "_thread",
+      "_tokenize",
+      "_tracemalloc",
+      "_typing",
+      "_warnings",
+      "_weakref",
+      "_zoneinfo",
+      "array",
+      "atexit",
+      "binascii",
+      "bl_math",
+      "blf",
+      "bmesh",
+      "builtins",
+      "cmath",
+      "errno",
+      "faulthandler",
+      "gc",
+      "gpu",
+      "idprop",
+      "imbuf",
+      "itertools",
+      "marshal",
+      "math",
+      "mathutils",
+      "mmap",
+      "numpy._core._multiarray_umath",
+      "numpy.fft._pocketfft_umath",
+      "numpy.linalg._umath_linalg",
+      "numpy.linalg.lapack_lite",
+      "numpy.random._bounded_integers",
+      "numpy.random._common",
+      "numpy.random._generator",
+      "numpy.random._mt19937",
+      "numpy.random._pcg64",
+      "numpy.random._philox",
+      "numpy.random._sfc64",
+      "numpy.random.bit_generator",
+      "numpy.random.mtrand",
+      "posix",
+      "pyexpat",
+      "select",
+      "sys",
+      "time",
+      "unicodedata",
+      "zlib"
+    ],
+    "driverX": 4,
+    "engine": "BLENDER_EEVEE",
+    "hashesXmlNumpyMathutils": "passed",
+    "numpy": "2.3.4",
+    "objects": [
+      "Camera",
+      "Cube",
+      "Light"
+    ],
+    "platform": "emscripten",
+    "python": "3.13.13 (main, Sep 22 2026, 02:47:11) [Clang 24.0.0git (https:/github.com/llvm/llvm-project abd3b3a1445b5a8eeffae5c391"
+  },
+  "previousBinaryComparison": {
+    "bridge": {
+      "snapshots": 70,
+      "byteIdentical": 70
+    },
+    "courier": {
+      "snapshots": 5,
+      "byteIdentical": 3,
+      "remaining": [
+        {
+          "object": "Adventurer_Body",
+          "afterIndexRemapping": "one polygon normal component",
+          "absoluteDifference": 0.000001
+        },
+        {
+          "object": "Courier_Satchel",
+          "afterIndexRemapping": "one vertex normal component",
+          "absoluteDifference": 0.000001
+        }
+      ]
+    },
+    "baselineRawWasmSha256": "cdf49c116bd5ce56bc4e1c87f7b5da306310eeb86bdf237487b8673e4d6f54a0"
+  },
+  "limitations": [
+    "Exact native geometry comparisons remain different for bridge and courier; thresholds and oracles are unchanged.",
+    "All 70 bridge snapshots match the previous accepted binary byte-for-byte. Courier matches that binary after index remapping except two normal components differing by 0.000001.",
+    "Bridge/tram retain the previous geometry-less curve helper presentation reports.",
+    "Native Cycles image equality is not claimed. All photographed camera poses match.",
+    "The release adapter changes package imports, product document addressing and project setup, not frozen requests or comparison rules."
+  ]
+}

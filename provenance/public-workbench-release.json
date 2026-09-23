@@ -9,13 +9,13 @@
   },
   "editorSource": {
     "repository": "https://github.com/volter-ai/editor",
-    "revision": "81f87ec200f3ffd1c241ed4217c5723c0b7edb39",
+    "revision": "c9551e8c6f181c2816329ac15702eb9f0eabf368",
     "dirty": false
   },
   "build": {
     "node": "v24.21.0",
-    "builtAt": "2026-09-23T04:27:53.497Z",
-    "assetVersion": "cac2a2f9b252ba790af5e367120a5025476935fb",
+    "builtAt": "2026-09-23T10:08:13.029Z",
+    "assetVersion": "d3188c3c5fb41c0a03cf1faf9664e78d823da27c",
     "mangled": false,
     "minified": true,
     "serverBin": "bin/code-server-oss",
@@ -26,19 +26,20 @@
   },
   "artifact": {
     "name": "vscode-reh-web-darwin-arm64-f8664703ab59-editor.tar.gz",
-    "bytes": 148771971,
-    "unpackedBytes": 477748775,
-    "sha256": "2e2139867dda53aaa6fef58005443b9626d2f2975011c342487b1613b8464ef5"
+    "bytes": 148770091,
+    "unpackedBytes": 477749097,
+    "sha256": "99e97f43474e0a5fdbfef7c8d7c61718a4c4a6d96a924dfa0cd8de5cf5c7b82b"
   },
   "release": {
     "repository": "volter-ai/code-oss",
-    "tag": "editor-f8664703ab59-81f87ec200f3-darwin-arm64",
-    "url": "https://github.com/volter-ai/code-oss/releases/tag/editor-f8664703ab59-81f87ec200f3-darwin-arm64",
+    "tag": "editor-f8664703ab59-c9551e8c6f18-darwin-arm64",
+    "url": "https://github.com/volter-ai/code-oss/releases/tag/editor-f8664703ab59-c9551e8c6f18-darwin-arm64",
     "visibility": "public"
   },
   "verification": {
     "compile": "Code-OSS source, extension media, native extensions and non-native extensions completed with zero errors.",
     "checksum": "The locally recomputed SHA-256 and complete anonymous public download match.",
-    "anonymousDownload": "The full release archive was downloaded without credentials and its SHA-256 verified."
+    "anonymousDownload": "The full release archive was downloaded without credentials and its SHA-256 verified.",
+    "sidebar": "Five packed cold-reopen cycles preserved native saved selection, including a deliberate Source Control choice and return to Blender Properties/Outliner. No second layout store."
   }
 }
