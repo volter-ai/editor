@@ -63,6 +63,7 @@ import { basename } from 'node:path';
 import type { Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { createBrotliCompress, createGzip, constants as zlibConstants } from 'node:zlib';
+import { JS_PROFILING_POLICY_HEADER, JS_PROFILING_POLICY_VALUE } from './js-profiling-policy';
 
 export interface FrameProxyOptions {
   /** The one port a person opens: this proxy's. */
@@ -152,6 +153,9 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
   const projectId = basename(projectRoot);
 
   const isolation: Record<string, string> = {
+    // The Code-OSS HTML comes from the upstream, not Express. Keep the
+    // editor's profiling permission on the actual top-level document too.
+    [JS_PROFILING_POLICY_HEADER]: JS_PROFILING_POLICY_VALUE,
     'Cross-Origin-Opener-Policy': 'same-origin',
     'Cross-Origin-Embedder-Policy': 'credentialless',
     'Cross-Origin-Resource-Policy': 'cross-origin',
