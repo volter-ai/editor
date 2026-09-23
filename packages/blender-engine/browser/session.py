@@ -550,6 +550,28 @@ def draw_camera(obj):
 
 # The node types the presenter compiles. A graph reaching any other type is
 # not shipped; the door's reduction stands and a warning names the node.
+
+# EVERY LINK INTO A SOCKET, from one pass over its tree. `NodeSocket.links`
+# is Python in Blender (`_bpy_types.py`): each read walks ALL of the tree's
+# links, and the graph pass reads it per socket per present -- measured on a
+# 28-material scene, 875 reads and 9 of the pass's 15 profiled seconds. The
+# map is built once per tree per present (`material_graphs` clears it).
+_TREE_LINKS = {}
+
+
+def _links_into(socket):
+    """The valid, unmuted links into `socket` (Blender's own `links`, filtered)."""
+    tree = socket.id_data
+    held = _TREE_LINKS.get(tree.as_pointer())
+    if held is None:
+        held = {}
+        for link in tree.links:
+            if link.is_valid and not link.is_muted:
+                held.setdefault(link.to_socket.as_pointer(), []).append(link)
+        _TREE_LINKS[tree.as_pointer()] = held
+    return held.get(socket.as_pointer(), [])
+
+
 _GRAPH_NODES = frozenset((
     "ShaderNodeTexCoord", "ShaderNodeUVMap", "ShaderNodeValue", "ShaderNodeRGB",
     "ShaderNodeTexImage", "ShaderNodeMapping", "ShaderNodeMath", "ShaderNodeVectorMath",
@@ -699,7 +721,7 @@ class _MaterialGraph:
     def source(self, stack, socket):
         """An input socket's value: `{"value": v}` or `{"link": [node, output]}`."""
         gpu = _gpu_type(socket)
-        links = [link for link in socket.links if link.is_valid and not link.is_muted]
+        links = _links_into(socket)
         if not links:
             return {"value": _socket_value(socket, gpu)}
         return self.output(stack, links[0].from_node, links[0].from_socket, gpu)
@@ -750,8 +772,7 @@ class _MaterialGraph:
         return {"link": [key, index]}
 
     def _describe(self, stack, node):
-        if node.bl_idname in _GENERATED_BY_DEFAULT and not any(
-                l.is_valid and not l.is_muted for l in node.inputs[0].links):
+        if node.bl_idname in _GENERATED_BY_DEFAULT and not bool(_links_into(node.inputs[0])):
             self.generated = True
         props = _node_properties(node)
         if props.get("image"):
@@ -781,7 +802,7 @@ def _follow(socket, stack):
     """The node an input socket's link comes from, through reroutes and groups,
     as `(stack, node)`, or `(None, None)` when nothing is linked."""
     while True:
-        links = [link for link in socket.links if link.is_valid and not link.is_muted]
+        links = _links_into(socket)
         if not links:
             return None, None
         node, out = links[0].from_node, links[0].from_socket
@@ -805,7 +826,7 @@ def _light_path_side(socket, stack):
     Is Camera Ray: 1, Is Shadow Ray: 0 on a camera ray), or a constant 0 or 1,
     as the input index the camera sees; None for any other factor. The door
     collapses exactly these (`bpy_web_export.cc`)."""
-    links = [l for l in socket.links if l.is_valid and not l.is_muted]
+    links = _links_into(socket)
     if not links:
         value = socket.default_value
         return 1 if value == 0.0 else 2 if value == 1.0 else None
@@ -877,12 +898,12 @@ def material_graph(material):
     if surface is None or surface.bl_idname not in _GRAPH_SURFACES:
         return None
     sockets = [surface.inputs[name] for name in _GRAPH_SURFACES[surface.bl_idname]]
-    if not any(any(l.is_valid and not l.is_muted for l in s.links) for s in sockets):
+    if not any(_links_into(s) for s in sockets):
         return None
     # The door is quiet about a material whose graph ships, so a linked input
     # the graph does not carry is named here.
     for other in surface.inputs:
-        linked = any(l.is_valid and not l.is_muted for l in other.links)
+        linked = bool(_links_into(other))
         if not linked or other in sockets:
             continue
         warn("%s: %s is linked; only its constant is drawn" % (material.name, other.name))
@@ -912,7 +933,7 @@ def _mixed_graph(material, stack, surface):
         if lit:
             sockets = [lit[0].inputs[name] for name in _GRAPH_SURFACES["ShaderNodeBsdfPrincipled"]]
             for other in lit[0].inputs:
-                if other not in sockets and any(l.is_valid and not l.is_muted for l in other.links):
+                if other not in sockets and _links_into(other):
                     warn("%s: %s is linked; only its constant is drawn" % (material.name, other.name))
             inputs = {s.name: graph.source([], s) for s in sockets}
     except _GraphRefusal as refusal:
@@ -930,6 +951,7 @@ def _mixed_graph(material, stack, surface):
 
 def material_graphs(scene):
     """Every graph the scene's materials need, by material name."""
+    _TREE_LINKS.clear()
     graphs = {}
     for obj in scene.objects:
         for slot in getattr(obj, "material_slots", ()):
