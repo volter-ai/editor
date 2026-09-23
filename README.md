@@ -19,7 +19,7 @@ The packaged workbench currently supports **macOS on Apple Silicon**
 (`darwin-arm64`). Installation and startup were verified with Node.js 24.
 
 ```bash
-npx @volter/editor@0.5.63 create my-models
+npx @volter/editor@0.5.64 create my-models
 ```
 
 The command creates a modeling project, installs the pinned public workbench on
@@ -48,6 +48,14 @@ Release 0.5.63 adds physical material inputs, normal maps, named UV layers,
 Clip sampling and homogeneous World volumes. Its rebuilt workbench preserves
 the chosen sidebar across cold restarts, and its fresh product install reports
 zero npm vulnerabilities. These renderer features are not full Cycles parity.
+Release 0.5.64 renders a Principled BSDF's or Emission's linked inputs from the
+material's node graph with Blender's own node shaders (texture coordinates,
+mapping, math, mix, color ramp, noise, Voronoi, checker and image textures);
+see [WORK.md](WORK.md) for the compiled node set and its limits. It also keeps
+Properties on screen while an edit re-reads them, removes the empty header
+strips above the model, timeline and side panels, and restores a view's
+orientation after a tab switch. Projects pinned to 0.5.63 update their
+`@volter` pins and `vgai.project.json`'s engine version to open in 0.5.64.
 Windows/Linux remain deferred. An older intermittent renderer
 hang remains unexplained; see the acceptance limits in [WORK.md](WORK.md).
 

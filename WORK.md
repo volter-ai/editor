@@ -128,6 +128,44 @@ console. The task's editor sessions were closed after acceptance.
 
 ## Remaining work and limits
 
+### Material node graphs (0.5.64 candidate, unreleased)
+
+A Principled BSDF's or Emission's linked Base Color, Metallic, Roughness,
+Alpha and Emission inputs render from the material's node graph. The session
+ships the flattened graph (`material_graph` in `session.py`); the presenter
+compiles it as EEVEE's codegen does, calling Blender's own node GLSL
+(`blender-node-glsl.generated.ts`, from Blender's processed shaders by
+`scripts/generate-node-glsl.mjs`, with a counted patch table for GLSL ES 3.00).
+Compiled nodes: Texture Coordinate, UV Map, Value, RGB, Image Texture (flat,
+Linear/Closest), Mapping, Math, Vector Math, Mix, MixRGB, Color Ramp, Invert,
+Separate/Combine XYZ, Noise, Voronoi, Checker. The exporter gains
+`graph_materials`/`graph_images` (Blender fork `4f7167d7`).
+
+Measured on emission-only planes against desktop Blender 5.2 EEVEE, eight
+graphs: flat-region error at most 3 of 255; larger differences only on
+high-contrast edges, where EEVEE averages filtered samples. Linked and
+constant Principled inputs render identically (at most 2 levels). A constant
+edit updates uniforms without recompiling; undo/redo reach the graph. A graph
+the GPU refuses falls back to the constants with a named warning.
+
+Limits: Bump, Fresnel, Layer Weight, Wave, Gradient, Magic and Brick are not
+compiled; Mix/Add Shader surfaces keep the door's reduction; Box/Sphere/Tube
+projection, Cubic sampling and tiled images are refused by name; Generated
+coordinates on a deformed mesh are a named warning (the export carries no
+orco column). A structural graph edit (a new node or node type) compiles a
+new program: one ~210 ms render stall measured under machine load ~26, with
+only the reachable node functions compiled (76 KB for the probe graph, down
+from 155 KB). Constant edits recompile nothing.
+
+Also in this candidate, ported from fixes verified in the private-history
+checkout on 2026-09-23 but never committed there: no empty header strips
+above the Model and Timeline editors or in the side panels; a view's camera
+up vector survives a tab switch; a refused second `.blend` cannot expose or
+edit the first; closing a hidden document releases its stage state.
+Properties no longer blanks and repaints on every edit (measured through one
+edit: 0.5.63 went 225/28 elements/inputs to 38/1 and back; the candidate held
+225/28).
+
 ### Material-rendering implementation (0.5.63)
 
 The candidate implements Principled coat weight/roughness/IOR/tint, sheen
