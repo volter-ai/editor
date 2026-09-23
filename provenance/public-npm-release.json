@@ -3,124 +3,99 @@
   "registry": "https://registry.npmjs.org",
   "source": {
     "repository": "https://github.com/volter-ai/editor",
-    "revision": "0504deca7580bab3d43c552852deeaaa387ef315"
+    "revision": "c488c9fc5e253093b95a014d07bdc0c501dd8408"
   },
-  "publication": "All eight versions are publicly available; every public registry integrity matches the tested immutable archive.",
+  "publication": "All eight versions are public; every registry integrity and shasum matches the tested immutable archive. Credential-free fresh-cache installation passed.",
   "packages": [
     {
       "name": "@volter/editor-project",
-      "version": "0.5.58",
-      "shasum": "c2be1bfd84eb05a45e5e6b7957966ceda4c4ee61",
-      "integrity": "sha512-K6aINR6wGQET4L5AhTeiSze8AEdfULwEnHyO4aA6Z8MbdfI8rFaHavUCaVO57Bs2X2O3Qx/lSq01+ZWaMW09/A=="
+      "version": "0.5.62",
+      "shasum": "c72713834e2acacf3ee362a43cf9ccd3b2a2c48b",
+      "integrity": "sha512-hDtLuE9E7x8FyqXbFfHwWgOO7zaRqfXhMjW711X8eSnVuu7SvWE1w6nlmjm7ic1g2cdfHE0we293ZYzTuRk5EQ=="
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.58",
-      "shasum": "1d4654edfa4475bb9704e17f617f3625ca414c18",
-      "integrity": "sha512-DRgm4OE8JoYk9XDptvd4D1FHntz2cx/OO8eS77KpN8NK5NqIks+wHpBSnVNj6/ulMvxksoc9sVavb0p9XkxGYw=="
+      "version": "0.5.62",
+      "shasum": "fec346c27f8c74b4793fa68dcba4b0609dfe9797",
+      "integrity": "sha512-N/nyB4g5fkbLNdLfwfdFbsOBieKCaKbX7krk1HN7Yw8k9pE6GaxFZv5tKmJMk3ngFxsT2FaQCWtkBZXIfgRgYw=="
     },
     {
       "name": "@volter/editor-threejs",
-      "version": "0.5.58",
-      "shasum": "d715bf526fe7e9e2820761fd91c1bb0cee30eceb",
-      "integrity": "sha512-PioeR80dwZXRTZysDfh7lxrAOn2lzPxZXjeM9UA1eL2eI/jOcNg7u5FBqRAJVEgcE+uRJnPZ/UU965GpmcJ+IQ=="
+      "version": "0.5.62",
+      "shasum": "6635a43dcf2f58d561c06f95fe2e21f129a30145",
+      "integrity": "sha512-12dvRbWhRjTBD/qVGc2rNAW9LBh039J78mS8sLiDfqIXs8kvJB7SbyuvlEcImYbuQGasC34BIYjcs40Zo1lvGQ=="
     },
     {
       "name": "@volter/blender-engine",
-      "version": "0.1.1",
-      "shasum": "08490485cfc74f1efb84415720337483edaf8550",
-      "integrity": "sha512-o/rtgijzVXA5fT2CXheOZ+UinD1IXUJYHwlXgJ3ONZ9i0zYSft86vJ+4Bet6z30EdYCMJFZl7EbdVwC2szWeVw=="
+      "version": "0.1.5",
+      "shasum": "5cf6a53d1c8598ef12134f5041b609e15ae377d3",
+      "integrity": "sha512-xUdlxYIhmZegoTtYt2z/fM31/AI+7DVIqG61S1oW2vcmRkovoX5Z/QpJK/maJOWyXgZDyNCwWIXyUMruf2gTDg=="
     },
     {
       "name": "@volter/editor-blender",
-      "version": "0.1.1",
-      "shasum": "3744e5b363ba0c5bf638fb8b0e82fb6756d27451",
-      "integrity": "sha512-wdzSsIiwW3gVti/Q/H0RWGtCvyQc0lGaFuTgo4wZCh9Xfw+//yVpFUkQ8B27GYGyek2cX/blo6OO55ndwDx/Ew=="
+      "version": "0.1.5",
+      "shasum": "83f473aba632d5743a7290b54a63feacb494fb63",
+      "integrity": "sha512-Vxk6wud6fZaQ+5uOD7uT4l4TGYf1TtpBUw9zKFUrgUndQSIgeR4D7a6POO8/gg2iF24B2EkrQ74/FbGfEqJ7Tw=="
     },
     {
       "name": "@volter/editor-core",
-      "version": "0.5.58",
-      "shasum": "59c9f52416c502605efb086443dbdd5a4b6be82d",
-      "integrity": "sha512-lwU0nngYPy2SZZ2TpC30AB/d6hGq3vxGDNPd1hcVEwxF0nUYEiAw0r+ZIgFn4p2fZT/3EhsSBSKncm84YGcZIg=="
+      "version": "0.5.62",
+      "shasum": "5c7651b9b40027b948d0dfcf5aed425197ea41d6",
+      "integrity": "sha512-9ieroUmgCQGtWsrYAeVtvxWb4qX1Tsmh0ATiifP/BCiEw21NBuCsxKZEWVp6pGiQgG7sh1zoO+5WAKITPZQnmA=="
     },
     {
       "name": "@volter/editor-live",
-      "version": "0.5.58",
-      "shasum": "71ad4b647650f379701115f038811046a75eb5ff",
-      "integrity": "sha512-BI06WRpBhFGI2ycFln9aF2wJUG/aKBGIsP2VCRta1T50DVLgo4kOs0aH0f6fxjmn69R5l0r191ma+L9swZ6b+A=="
+      "version": "0.5.62",
+      "shasum": "04444bb90a2d3f1db251ca30d314e48d9abc193a",
+      "integrity": "sha512-HjC0QK7ZlD55pKozgREio/ltRFyJZOKNK4noNaPmStJeaOS40qamu6lamFBtTbuAZwL4IB/RQSrxB80bjrmRwQ=="
     },
     {
       "name": "@volter/editor",
-      "version": "0.5.58",
-      "shasum": "d3e5fb84450de06790c260e7736ece6e7c6e59b8",
-      "integrity": "sha512-aDdIBJltzGL4OwjGs7ALM83wHVjIl3f6aT1dGeXCDE5qUMGa7ED0/QRol5AwqjglTe36IZZoEnDxiWJJcNKPmA=="
+      "version": "0.5.62",
+      "shasum": "eef830eeebc4ea982e986d4c2b117ad4bb64835b",
+      "integrity": "sha512-b7ELMM0rzyV5yxPoS/u3FNbmOLC8IIZkPxMMXvc7dODt3IKT80NqUR8Urt/KY/XWVDFG+0QqDsUAiywPglGSBw=="
     }
   ],
   "workbenchRelease": "editor-f8664703ab59-81f87ec200f3-darwin-arm64",
   "packedAcceptance": {
     "platform": "darwin-arm64",
+    "node": "v24.21.0",
     "workspaceLinks": false,
-    "pythonUndoRedo": {
-      "beforeX": 0,
-      "afterX": 4.125
-    },
-    "rnaUndoRedo": {
-      "beforeX": 4.125,
-      "afterX": 6.25
-    },
-    "essentials": "Smooth by Angle loaded from packaged assets and assigned to a modifier; undo/redo completed.",
-    "duplicateDelete": "Duplicate undo/redo succeeded; deletion removed Cube.001 and one undo restored it.",
-    "persistence": "Fresh editor and independent worker stop/start reopened two objects with Cube X=6.25; history empty after restart.",
-    "diagnostics": "Initial zero-size canvas warning acknowledged against a visible capture and current healthy invariant. One worker restart stalled and a tab disconnected; a fresh editor and later independent worker restart passed. Cause of initial stall not established. A pre-ready combined-transform key refusal was acknowledged; final console silent."
+    "tests": 41,
+    "typecheckedPackages": 8,
+    "packedImportFiles": 1083,
+    "structuralHistory": "Python/RNA undo and redo passed (Cube X=0 ↔ 3.125 ↔ 5.625), including Essentials-backed modifier restoration. Fifteen rapid duplicate/delete/history cycles asserted persisted=true and no stale Properties error; three worker restarts retained X=5.625.",
+    "fullReopen": "Five full close/reopen cycles immediately invoked default MCP-shaped Blender start and checked RNA undo/redo. Saved values survived through Cube X=10.625; every cycle had a silent console.",
+    "mcp": "Actual MCP transport opened the closed editor and read the saved scene. Essentials NodesModifier remained. Explorer was visible on cold reopen; Properties was explicitly focused, its populated fields checked, and its capture inspected.",
+    "saveFailure": "Read-only model directory forced edit and CLI close to refuse EACCES while retaining the worker. Original permissions 755 restored; next call retried save; full reopen retained Cube X=12.625 with a silent console.",
+    "diagnostics": "Initial zero-size canvas sample acknowledged after visible capture and healthy current rendering at 45.4fps. Deliberate save-failure diagnostic acknowledged after recovery.",
+    "earlierPendingCloseEvidence": "0.5.61: close during a two-second Python edit waited 2250ms and reopen retained Cube X=6.875. No claim of a new 0.5.62 pending-Python-close probe."
   },
   "installation": {
-    "credentials": "NODE_AUTH_TOKEN and NPM_TOKEN removed; npm user config /dev/null; empty task-owned global config.",
-    "cache": "New empty npm cache; workbench release cache entry absent before create.",
-    "localPackages": false,
+    "status": "passed",
+    "credentials": "NODE_AUTH_TOKEN and NPM_TOKEN removed; user config /dev/null; task-owned credential-free global config.",
+    "cache": "New empty npm cache after registry propagation; unchanged previously checksum-verified public workbench cache reused.",
+    "installedPackages": 369,
     "workspaceLinks": false,
-    "resolvedPackages": 379,
-    "command": "npm exec --yes --package=@volter/editor@0.5.58 -- volter-editor create public-probe",
-    "node": "v24.21.0"
-  },
-  "acceptance": {
-    "platform": "darwin-arm64",
-    "product": "@volter/editor@0.5.58",
-    "workbenchRelease": "editor-f8664703ab59-81f87ec200f3-darwin-arm64",
-    "workbenchSha256": "2e2139867dda53aaa6fef58005443b9626d2f2975011c342487b1613b8464ef5",
-    "capture": {
-      "visible": [
-        "centered Cube",
-        "grid",
-        "Outliner",
-        "Properties",
-        "Chat"
-      ],
-      "degenerate": false
-    },
-    "pythonUndoRedo": {
-      "beforeX": 0,
-      "afterX": 3.75
-    },
-    "rnaUndoRedo": {
-      "beforeX": 3.75,
-      "afterX": 5.5
-    },
-    "essentials": "Smooth by Angle loaded from bundled assets and assigned to a modifier; native undo and redo completed.",
-    "duplicateDelete": "Duplicate created Cube.001; deletion removed it; undo restored it; redo removed it.",
-    "persistence": "Fresh editor reopened one saved object at Cube X=5.5.",
-    "finalConsole": {
-      "errors": 0,
-      "warnings": 0,
-      "acked": 0
-    },
-    "limitations": "A worker-stop check timed out and the renderer became unresponsive; subsequent full editor reopen passed. Root cause is not established and lifecycle reliability is not claimed complete. An initial zero-size canvas warning was acknowledged against a visible capture and healthy current invariant."
+    "packageSources": "All eight declared packages resolved from https://registry.npmjs.org with matching versions and archive integrities.",
+    "liveAcceptance": "Python/RNA native undo/redo, Essentials modifier restoration, ten rapid persisted duplicate/delete/history cycles and two worker restarts passed. Properties showed no stale error. Inspected capture showed selected Cube X=5.625, grid, Outliner, populated Properties and Chat.",
+    "diagnostics": "Initial zero-size canvas sample acknowledged after visible capture and current canvas-revealed invariant OK at 95.9fps.",
+    "pendingClose": "Close during a two-second Python edit waited 2249ms. Full reopen retained Cube X=9.875 and the Essentials NodesModifier with a silent console. The task session was then closed."
   },
   "audit": {
-    "moderate": 6,
+    "moderate": 4,
     "high": 0,
     "critical": 0,
+    "measuredVersion": "0.5.62",
     "rootAdvisory": "https://github.com/advisories/GHSA-82fw-gwwq-j7x9",
     "dependencyChain": "Storybook -> @vitest/mocker",
     "resolved": false
-  }
+  },
+  "limitations": [
+    "Windows/Linux explicitly deferred; darwin-arm64 only.",
+    "The intermittent unresponsive renderer observed on 0.5.58 remains unexplained. Later source, packed and old-version comparison runs did not reproduce it. Do not claim the persistence, Outliner or startup-deadline fixes establish its cause.",
+    "Browser unload prompts require user activation and can be overridden. Forced process termination and power loss cannot guarantee an in-flight edit's final save.",
+    "History is session-local; worker replacement and direct Blender file/history operations invalidate prior workbench model entries.",
+    "World volumes, complete rendering parity, expanded inspection-only editing, game publication and full viewport extraction remain outside this pass."
+  ]
 }

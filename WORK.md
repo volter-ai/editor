@@ -1,103 +1,12 @@
 # Public release status
 
-Volter Editor 0.5.58 is public. Blender packages are 0.1.1; the other six
-packages are 0.5.58. The publication boundary remains the eight packages in
-[release/modeling.json](release/modeling.json). Game packages are excluded.
+Volter Editor 0.5.62 / Blender packages 0.1.5 are public on npm. Every
+registry digest matches its tested archive. Credential-free installation from
+an initially empty npm cache succeeded. Only the
+eight packages in [release/modeling.json](release/modeling.json) are published;
+game packages remain excluded.
 
-## 0.5.59 release candidate
-
-The next unpublished candidate is 0.5.61 / 0.1.4, incorporating the startup
-fixes below. Its eight archives are packed; build, boundary and packed-import
-checks pass. Packed and anonymous registry acceptance are not yet complete.
-Generated notice changes are package-version labels only; the Blender binary,
-Essentials and workbench remain unchanged.
-
-Packed acceptance completed 20 selected-object duplicate/delete/history/worker
-restart cycles, then exposed a server deadline race on the third full reopen:
-an early `blender-start` inherited the generic five-second limit before its
-120-second contribution row arrived. The worker completed in 10.925 seconds;
-the page remained responsive and Cube X=21.375 survived. Unknown package verbs
-now get bounded discovery time, and pending commands adopt the discovered
-budget without resetting elapsed work on repeated reports. Two fake-clock
-regression tests exercise the real control plane. All 37 tests, eight
-typechecks, build and release/import checks pass. The unpublished archives
-are being replaced before acceptance; this is not an npm republish.
-
-Rapid full editor close/reopen of the published 0.5.60 archives exposed two
-startup races: package commands could arrive before contribution discovery,
-and Blender start could guess the standing Model ID before the file-backed
-document mounted. Command resolution now awaits discovery, and Blender opens
-the settled declared Model table (including custom IDs and a declared default).
-Ambiguous Models require a choice. All 35 tests and eight typechecks pass;
-build, release boundary and 1,083-file packed-import checks pass. Five source
-full close/reopen cycles immediately invoked the default MCP-shaped start,
-edited/undid/redid Cube X=80.125 through 84.125, and closed with silent consoles.
-The changes require a new immutable npm patch. They do not establish the cause
-of the separately observed intermittent renderer stall.
-
-The corrected candidate is now 0.5.60 (six editor packages) / 0.1.3 (two
-Blender packages), adding the Outliner restoration barrier described below.
-All 30 tests, eight typechecks, build, release boundary and 1,083-file packed
-import checks pass. Blender WASM, Essentials and the workbench are unchanged;
-generated notice changes are package-version labels only. Packed and registry
-acceptance of this candidate remain pending.
-
-The six editor packages are staged at 0.5.59 and the two Blender packages at
-0.1.2. The Blender binary, Essentials payload and pinned public workbench are
-unchanged. Generated notice differences are package-version labels only.
-All 28 tests, eight package typechecks, build, release boundary and 1,084-file
-packed-import checks passed. The exact eight packed archives installed without
-workspace links. Ten duplicate/delete/undo/redo/stop/start cycles retained one
-object and Cube X=7.125; native RNA undo/redo and Essentials modifier restoration
-passed. Full editor close/reopen retained the value and modifier with a silent
-console. A startup zero-size canvas sample was acknowledged only after current
-invariants, 120 fps and a visible capture passed.
-
-The workbench proxy now grants the existing JS profiling document policy to
-the actual Code-OSS page. Live profiling was previously refused and now works.
-A 12-cycle source profile found no lifecycle hang; its longest recorded main
-thread frame was 689 ms, attributed to the viewport render callback. Profiling
-itself increased worker-start latency, so those timings are not ordinary
-performance acceptance. The old npm build passed 42 stop/start attempts,
-including captures and duplication/deletion, plus overlapping inspection calls.
-This comparison does not explain the earlier intermittent renderer stall.
-All eight versions are public and their registry integrities match the tested
-archives. Anonymous, cache-empty installation succeeded with no workspace links,
-reusing the unchanged pinned workbench. Acceptance exposed a fast-sequence bug:
-duplicate → undo → redo → delete could refuse the restored object because the
-Outliner index had not refreshed. Reading between steps hid the defect.
-
-History restoration now waits for the Outliner to refresh before acknowledging.
-Both regression tests fail without that barrier and pass with it; all 30 tests,
-eight typechecks, build and 1,083-file packed-import checks pass. Fifteen live
-source cycles without intervening reads persisted each delete and restored the
-correct operation through undo/redo. This correction needs a new npm patch;
-0.5.59 is immutable and does not contain it. The renderer stall remains a
-separate unresolved observation, not a claimed consequence of this race.
-
-## Published artifacts
-
-- [Editor v0.5.58](https://github.com/volter-ai/editor/releases/tag/v0.5.58)
-  records npm source commit `0504deca7580bab3d43c552852deeaaa387ef315`.
-  [public-npm-release.json](provenance/public-npm-release.json) records all
-  archive digests, registry verification, acceptance and its limits.
-- The darwin-arm64 workbench is Code-OSS `f8664703ab59` plus clean editor
-  overlay `81f87ec200f3`, published as
-  `editor-f8664703ab59-81f87ec200f3-darwin-arm64`. SHA-256:
-  `2e2139867dda53aaa6fef58005443b9626d2f2975011c342487b1613b8464ef5`.
-  Its complete anonymous download matched. Source and extensions compiled with
-  zero errors. The asset-cache identity includes the editor overlay through
-  upstream's `BUILD_SOURCEVERSION`. See
-  [public-workbench-release.json](provenance/public-workbench-release.json).
-- Blender corresponding source and all 34 dependency-source archives were
-  public before binary distribution. See
-  [blender-source-review.json](provenance/blender-source-review.json) and the
-  [source release](https://github.com/volter-ai/blender/releases/tag/blender-5.2.0-wasm.1).
-- All three public repositories began from reviewed root snapshots without
-  private history. Former repositories and legacy releases remain private
-  under explicit `*-private-history` names. No recurring export is required.
-
-## Supported-editing work shipped
+## Supported-editing work
 
 1. **Native undo/redo:** Code-OSS owns resource ordering and commands; Blender
    owns native snapshots. Redo does not rerun Python. Supported Python/RNA
@@ -106,88 +15,133 @@ separate unresolved observation, not a claimed consequence of this race.
    mutations remain undoable. File loading, direct native history moves and
    worker replacement invalidate old entries. History is session-local.
 2. **Blender Essentials:** the pinned 17-file CC0 payload mounts at
-   `/bw/datafiles/assets`. Smooth by Angle and the Smooth sculpt brush were
-   loaded in source acceptance; the installed public release loaded Smooth by
-   Angle and restored its modifier through undo/redo. The public LFS bytes and
-   packaged manifest hashes were verified.
+   `/bw/datafiles/assets`. Smooth by Angle and the Smooth sculpt brush passed
+   source acceptance; packed acceptance restored an Essentials-backed modifier
+   through undo/redo and full editor reopen. Public LFS bytes and packaged
+   manifest hashes were verified.
 3. **Rendering:** linked World Background strength and Blender's
    POINT/TEXTURE/VECTOR/NORMAL Mapping semantics are evaluated, including
    inverse mapping with zero scale. This is not complete material-renderer
    parity. World volumes remain outside this pass.
 4. **Duplication/deletion:** batch operations are one native edit; copied
    parent/child relationships and selection are preserved. Undo/redo restores
-   both objects and relationships. This does not claim Blender's modal
-   duplicate-and-move UI or expanded editing of inspection-only panels.
+   both objects and relationships. History acknowledgment waits for the
+   restored Outliner index, so an immediate delete after redo sees the object.
+   Blender's modal duplicate-and-move UI and expanded editing of inspection-only
+   panels are not claimed.
+
+**Windows/Linux remain deferred by the owner.** Do not provision runners or
+pursue these builds in this pass. Only darwin-arm64 is supported.
+
+## Persistence and startup corrections
+
+- Every edited command uploads its complete document before acknowledging.
+  Worker calls and saves share one queue; frame acknowledgments bypass that
+  queue so a command waiting for its frame cannot deadlock.
+- Explicit worker stop, fresh start and CLI close drain/save before terminating.
+  A failed upload refuses close and retains the live worker for retry.
+  Browser unload warns while calls or unsaved data remain. Native prompts need
+  user activation and can be overridden; forced kills and power loss cannot
+  promise an in-flight edit's final save.
+- Early package commands wait for contribution discovery. Blender start resolves
+  the declared Model table, including custom IDs and a declared default;
+  ambiguous Models require a choice rather than a guessed fallback.
+- The server gives undiscovered package commands bounded discovery time and
+  adopts their declared deadline when registration arrives. Repeated reports
+  do not reset elapsed work. This fixes the measured five-second false timeout
+  on an otherwise successful 10.925-second Blender startup.
+- Properties reads belong to their model revision and selected subject. Late
+  success/error responses cannot overwrite a newer selection, and old context
+  is cleared while the new subject loads. Four regression tests fail against
+  the previous implementation and pass with the correction.
 
 ## Verification
 
-Build, all eight package typechecks, 21 tests, release-boundary checks and
-packed-import checks covering 1,083 files passed. Generated bundled notices
-were reviewed with the release; see [release/NOTICES.md](release/NOTICES.md).
+All 41 tests, all eight package typechecks, build, release-boundary checks and
+packed-import checks covering 1,083 files pass. Generated bundled notices were
+reviewed: only Volter package-version labels changed. Blender WASM, Essentials
+and the pinned public workbench are unchanged.
 
-A credential-free, initially cache-empty `create` installed all eight packages
-from npm with no workspace links, downloaded the public workbench, verified
-its checksum and opened the model in macOS Apple Silicon on Node.js 24.
-Every registry archive integrity matched its tested tarball.
+The eight 0.5.62 candidate archives installed without workspace links.
+Python and RNA undo/redo passed (Cube X=0 ↔ 3.125 ↔ 5.625), followed by an
+Essentials-backed modifier undo/redo. Fifteen rapid duplicate/delete/history
+cycles checked each structural write for `persisted: true` and checked for
+stale Properties errors. Three worker restarts retained X=5.625.
+Five full editor close/reopen cycles immediately invoked the default
+MCP-shaped Blender start, preserving successive values through X=10.625.
+Every cycle had a silent console. The real MCP transport opened a closed
+editor and read the saved scene; the Essentials NodesModifier remained.
+The workbench initially showed Explorer, so Properties was explicitly focused
+before verifying its populated fields and capturing the selected Cube and grid.
 
-The public-installed session verified Python undo/redo (Cube X=0 ↔ 3.75),
-RNA undo/redo (3.75 ↔ 5.5), Essentials-backed modifier restoration, duplication,
-and deletion/undo/redo. A visible capture showed a centered cube, grid,
-Outliner, Properties and Chat. A fresh editor reopened the saved model at
-X=5.5 with a silent console. The initial zero-size canvas sample was
-acknowledged only after current invariants and the visible capture passed.
+In 0.5.61 acceptance, closing during a two-second pending Python edit waited
+2.25 seconds; reopening
+retained X=6.875. Making the model directory read-only caused both edit save and
+CLI close to refuse with EACCES while the worker remained alive. Restoring its
+original 755 permissions allowed the pending X=44.625 to save and survive full
+close/reopen with a silent console. The intentional fault was acknowledged only
+after recovery. An initial zero-size canvas sample was acknowledged against a
+visible capture and healthy current canvas invariant at 113.7 fps.
+
+The same save-failure check passed on the exact 0.5.62 archives: both edit and
+close refused EACCES, the worker stayed alive, and restoring directory mode
+755 allowed the pending X=12.625 to save. Full reopen retained that value with
+a silent console. Its initial zero-size canvas warning was acknowledged only
+after a visible capture and healthy current rendering at 45.4 fps.
+
+The credential-free public install resolved all eight packages from npm,
+matched every archive digest, and contained no workspace links. It repeated
+Python/RNA history, Essentials modifier restoration, ten rapid structural
+history cycles and two worker restarts. Each structural write persisted;
+Properties showed no stale errors. The inspected capture showed the selected
+Cube at X=5.625, grid, Outliner, populated Properties and Chat. Its initial
+zero-size canvas sample was acknowledged only after the current invariant
+passed and visible rendering measured 95.9 fps.
+Closing during a two-second pending Python edit waited 2.249 seconds.
+Full reopen retained X=9.875 and the Essentials NodesModifier with a silent
+console. The task's editor sessions were closed after acceptance.
+
+## Source and artifacts
+
+- npm source: `c488c9fc5e253093b95a014d07bdc0c501dd8408` in the public
+  [editor repository](https://github.com/volter-ai/editor). The earlier 0.5.59
+  and 0.5.60 patches are immutable: 0.5.59 lacks the Outliner barrier, and
+  0.5.60 lacks the cold-start corrections; 0.5.61 lacks revision-safe
+  Properties reads.
+  [Release v0.5.62](https://github.com/volter-ai/editor/releases/tag/v0.5.62)
+  and the [npm receipt](provenance/public-npm-release.json) record the exact
+  archive digests, acceptance evidence and remaining limits.
+- The workbench is Code-OSS `f8664703ab59` plus editor overlay `81f87ec200f3`,
+  release `editor-f8664703ab59-81f87ec200f3-darwin-arm64`, SHA-256
+  `2e2139867dda53aaa6fef58005443b9626d2f2975011c342487b1613b8464ef5`.
+  Its complete anonymous download was verified for 0.5.58; later patches reuse
+  this unchanged cache. See [workbench provenance](provenance/public-workbench-release.json).
+- Blender corresponding source and all 34 dependency-source archives were
+  public before binary distribution. See [source review](provenance/blender-source-review.json)
+  and the [source release](https://github.com/volter-ai/blender/releases/tag/blender-5.2.0-wasm.1).
+- All three public repositories began from reviewed root snapshots without
+  private history. Former repositories and legacy releases remain private
+  under explicit `*-private-history` names. No recurring export is required.
 
 ## Remaining work and limits
 
-- **Windows/Linux are deferred by the owner.** Do not provision paid runners
-  or pursue these builds in the current pass. Platform-specific implementation,
-  packaged builds and native acceptance remain incomplete. Only darwin-arm64
-  is supported by this release.
-- **Intermittent worker lifecycle stall remains unresolved.** Packed and public
-  acceptance both encountered a worker stop/restart timeout and an unresponsive
-  renderer. Fresh editor reopen recovered saved data, and a separate packed
-  worker restart passed, but that does not establish the cause or fix it.
-  Do not describe lifecycle acceptance as uniformly clean.
-  A focused source trace completed history invalidation, capture abort and
-  worker termination after both RNA undo/redo and duplicate/delete undo/redo;
-  the following worker starts also passed. This did not reproduce or explain
-  the intermittent stall.
-- **Explicit worker stop now flushes pending edits in source.** Commands and
-  autosaves share one worker queue; frame acknowledgments bypass it so an edit
-  waiting for its frame cannot deadlock. Stop and fresh-start wait for the
-  document upload before terminating or invalidating history. A failed upload
-  refuses the stop and keeps the live model available for retry. Forced teardown
-  after losing the editor session remains forced resource teardown.
-  Four new regression tests cover ordering, failed-save retry, startup and
-  presentation acknowledgment. All 25 tests, eight package typechecks, build,
-  release boundary and 1,083-file packed-import checks passed. Live source
-  acceptance reopened an immediate RNA edit at X=17.25, then five immediate
-  edit/undo/redo/stop/start cycles at X=18.25 through 22.25; deletion/undo/redo
-  followed by immediate restart retained six objects (the deleted Cube.001 did
-  not return). The console was silent. None of these runs reproduced the
-  intermittent renderer stall. This fix is not in published npm 0.5.58.
-- **Save-before-ack and guarded close now pass source acceptance.** Each edited
-  command writes its complete document before answering, replacing the idle
-  debounce. The runtime warns on browser unload while calls or unsaved data
-  remain. CLI close asks document owners to drain/save before sending SIGTERM;
-  a failed save refuses close, and genuinely headless sessions still close.
-  Native browser prompts require user activation and can be overridden; forced
-  kills and power loss cannot promise an in-flight edit's final save.
-  All 28 tests, eight typechecks, build, release boundary and 1,084-file packed
-  import checks passed. Twenty immediate edit/undo/redo/stop/start cycles
-  retained X=30.25 through 49.25. Making the probe's model directory read-only
-  caused both the edit save and CLI close to refuse while retaining the worker.
-  Restoring its original 755 permissions allowed X=61.125 to save and survive
-  full close/reopen; the intentional fault was acknowledged after recovery.
-  These changes are not yet published. The old npm build also passed 30 worker
-  restart attempts and overlapping inspection calls in the comparison run, so
-  the intermittent stall still needs an explanation.
-- Fresh-install `npm audit` reported six moderate affected dependency entries,
-  all through Storybook and `@vitest/mocker`
+- **The intermittent unresponsive-renderer observation remains unresolved.**
+  Packed and public 0.5.58 acceptance encountered a worker stop/restart timeout
+  while the renderer stopped answering. Full editor reopen recovered saved
+  data. Native sampling did not establish a source-level cause. A 12-cycle JS
+  profile found no hang (longest recorded frame 689 ms in viewport rendering);
+  profiling itself increased startup latency. Numerous later comparisons,
+  including 20 selected-object cycles on the old build, did not reproduce it.
+  The last old-build comparison encountered disk exhaustion instead; moving
+  this task's retained npm cache to the internal disk restored capacity and a
+  subsequent model save succeeded. None of this proves the old renderer stall
+  fixed. The separately reproduced cold-start deadline race is diagnosed and
+  corrected, not substituted as an explanation for that observation.
+- Fresh anonymous 0.5.62 installation reported four moderate dependency entries
+  through Storybook and `@vitest/mocker`
   ([GHSA-82fw-gwwq-j7x9](https://github.com/advisories/GHSA-82fw-gwwq-j7x9));
   zero high/critical entries. This release does not resolve that advisory.
 - Existing project filenames and protocol/settings identifiers remain unchanged.
-  A full rename is a separate migration.
-- Game editing/templates/runtime publication and full viewport extraction remain
-  outside this release. Emscripten is shipped; optional WALI needs external
-  artifacts and is not a shipped browser-substrate claim.
+  A full rename is a separate migration. Game publication and full viewport
+  extraction remain outside this release. Emscripten is shipped; optional WALI
+  requires external artifacts and is not a shipped browser-substrate claim.

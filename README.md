@@ -19,7 +19,7 @@ The packaged workbench currently supports **macOS on Apple Silicon**
 (`darwin-arm64`). Installation and startup were verified with Node.js 24.
 
 ```bash
-npx @volter/editor@0.5.58 create my-models
+npx @volter/editor@0.5.62 create my-models
 ```
 
 The command creates a modeling project, installs the pinned public workbench on
@@ -37,7 +37,11 @@ From that project directory, `npx volter-editor status` reports the session,
 `npx volter-editor close` stops the session. Release 0.5.58 adds native Blender
 undo/redo for supported model edits through VS Code's history, bundled Blender
 Essentials, coherent duplicate/delete operations, and World mapping/strength
-rendering fixes. Remaining platform work is tracked in [WORK.md](WORK.md).
+rendering fixes. Release 0.5.62 additionally makes edit acknowledgment wait for
+the saved file, guards close against failed saves, and fixes rapid history and
+cold-start races, including stale Properties reads after rapid edits.
+Windows/Linux remain deferred. An older intermittent renderer
+hang remains unexplained; see the acceptance limits in [WORK.md](WORK.md).
 
 ## Package map
 
