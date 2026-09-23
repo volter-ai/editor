@@ -60,6 +60,7 @@ import {
 import { fitClipPlanes } from '@volter/editor-threejs/viewport/clip-planes';
 import { contentWorldBounds } from '@volter/editor-threejs/viewport/content-bounds';
 import * as THREE from 'three';
+import { blenderEngineSelection, refreshBlenderOutliner } from '../contributions/blender-outliner-model';
 import {
   type NodeViewState,
   nodeViewState,
@@ -720,6 +721,10 @@ export function blenderRuntime(): BlenderRuntime {
           if (runtime !== owner) throw new Error('This Blender history belongs to a closed worker');
           const moved = await owner.historyStep(entry.id, direction);
           noteBlenderRnaChanged();
+          // The restored frame arrives before the Outliner's scheduled read.
+          // A following structural edit resolves its targets through that index:
+          // redo-duplicate -> delete must not see the tree from before redo.
+          await refreshBlenderOutliner(blenderEngineSelection().selected);
           return moved;
         };
         editorHost().history.record({
