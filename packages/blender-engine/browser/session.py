@@ -283,8 +283,8 @@ def _surface_backgrounds(node):
     return branches[0], branches[1]
 
 
-def _describe_background(background, camera_ray):
-    """The Background's Color as the presenter's world expression (its grammar
+def _describe_world_socket(root_socket, camera_ray):
+    """A World input as the presenter's expression (its grammar
     is `blender-runtime-lighting.ts`'s `worldExpression`); anything outside it
     is refused BY NAME through NotImplementedError."""
     visiting = set()
@@ -402,8 +402,12 @@ def _describe_background(background, camera_ray):
         finally:
             visiting.remove(key)
 
-    color = value(background.inputs["Color"])
-    strength = value(background.inputs["Strength"])
+    return value(root_socket)
+
+
+def _describe_background(background, camera_ray):
+    color = _describe_world_socket(background.inputs["Color"], camera_ray)
+    strength = _describe_world_socket(background.inputs["Strength"], camera_ray)
     # The field evaluator already implements an unclamped color mix. Mixing
     # black with radiance at factor strength is exact multiplication, including
     # spatially varying strength, with no second shader implementation.
@@ -415,20 +419,65 @@ def _describe_background(background, camera_ray):
             "strength": float(strength), "shader": color}
 
 
+def _describe_world_volume(socket, weight=1.0, visiting=None):
+    """Volume closures and their authored inputs, not a guessed fog color.
+    Mix/Add preserve individual scatter lobes rather than averaging anisotropy."""
+    links = list(socket.links)
+    if not links:
+        return []
+    node = links[0].from_node
+    visiting = set() if visiting is None else visiting
+    key = node.as_pointer()
+    if key in visiting:
+        raise NotImplementedError("World volume contains a cycle")
+    visiting.add(key)
+    try:
+        kind = node.bl_idname
+        if kind == "NodeReroute":
+            return _describe_world_volume(node.inputs[0], weight, visiting)
+        if kind == "ShaderNodeAddShader":
+            return sum((_describe_world_volume(s, weight, visiting) for s in node.inputs), [])
+        if kind == "ShaderNodeMixShader":
+            factor = _describe_world_socket(node.inputs[0], False)
+            factor = {"kind": "math", "operation": "MULTIPLY", "clamp": True, "inputs": [factor, 1.0]}
+            first = {"kind": "math", "operation": "SUBTRACT", "clamp": False, "inputs": [1.0, factor]}
+            return sum((_describe_world_volume(node.inputs[i + 1],
+                {"kind": "math", "operation": "MULTIPLY", "clamp": False, "inputs": [weight, f]}, visiting)
+                for i, f in enumerate((first, factor))), [])
+        kinds = {"ShaderNodeVolumeAbsorption": "absorption", "ShaderNodeVolumeScatter": "scatter",
+                 "ShaderNodeVolumePrincipled": "principled", "ShaderNodeEmission": "emission"}
+        if kind not in kinds:
+            raise NotImplementedError("World volume shader %s" % kind)
+        def read(name, default):
+            value = node.inputs.get(name)
+            return _describe_world_socket(value, False) if value is not None else default
+        return [{"kind": kinds[kind], "weight": weight,
+                 "phase": getattr(node, "phase", "HENYEY_GREENSTEIN"), "alpha": read("Alpha", 0.0),
+                 "color": read("Color", [1.0, 1.0, 1.0]), "density": read("Density", 0.0),
+                 "anisotropy": read("Anisotropy", 0.0), "absorption_color": read("Absorption Color", [0.0, 0.0, 0.0]),
+                 "emission_color": read("Emission Color", [1.0, 1.0, 1.0]),
+                 "emission_strength": read("Strength" if kinds[kind] == "emission" else "Emission Strength", 0.0),
+                 "blackbody_intensity": read("Blackbody Intensity", 0.0), "temperature": read("Temperature", 1000.0),
+                 "blackbody_tint": read("Blackbody Tint", [1.0, 1.0, 1.0])}]
+    finally:
+        visiting.remove(key)
+
+
 def _describe_world(world):
     outputs = [n for n in world.node_tree.nodes if n.bl_idname == "ShaderNodeOutputWorld" and n.is_active_output]
     if len(outputs) != 1:
         raise NotImplementedError("World rendering needs one active World Output")
     surface = list(outputs[0].inputs["Surface"].links)
-    if len(surface) != 1:
-        raise NotImplementedError("World Surface must connect to Background")
-    if outputs[0].inputs["Volume"].links:
-        raise NotImplementedError("World volume rendering is not implemented")
+    volume = _describe_world_volume(outputs[0].inputs["Volume"])
+    if not surface:
+        return {"color": [0.0, 0.0, 0.0], "strength": 0.0, "volume": volume}
     background, lighting = _surface_backgrounds(surface[0].from_node)
     described = _describe_background(background, camera_ray=True)
     lighting_data = _describe_background(lighting or background, camera_ray=False)
     if lighting_data != described:
         described["lighting"] = lighting_data
+    if volume:
+        described["volume"] = volume
     # Only a wholly constant background can drop the expression: linked
     # Strength may carry spatial radiance even when Color itself is constant.
     if not any(background.inputs[name].is_linked for name in ("Color", "Strength")):

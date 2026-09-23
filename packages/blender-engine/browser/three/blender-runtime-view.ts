@@ -24,7 +24,8 @@ import {
 } from './blender-runtime-lighting';
 import { fitModelDirectionalShadow, visibleShadowReceivers } from './blender-runtime-shadows';
 import { volumeMesh, volumeSchema } from './blender-runtime-volume';
-import { applyPhysicalMaterial, physicalMaterialSchema } from './blender-physical-material';
+import { applyPhysicalMaterial, applyWorldExtinction, physicalMaterialSchema } from './blender-physical-material';
+import {worldMedium, WorldVolumePass} from './blender-world-volume';
 import { BlenderTextureSamplers } from './blender-texture-samplers';
 import { WeightOverlay, weightsSchema } from './blender-runtime-weights';
 
@@ -489,7 +490,7 @@ export class BlenderRuntimeView {
   private readonly armatureRoot = new THREE.Group();
   private readonly weightRoot = new THREE.Group();
   private rendered = false;
-  private readonly fallback = new THREE.MeshStandardMaterial({ color: 0xb9bec6, roughness: 0.72 });
+  private readonly fallback = new THREE.MeshPhysicalMaterial({ color: 0xb9bec6, roughness: 0.72 });
   /** Base Color images, by image name -- ONE texture per image however many
    *  materials read it, and the cache OWNS it: a material points at one and
    *  never disposes it. Held with the size and revision the resident bytes
@@ -716,6 +717,8 @@ export class BlenderRuntimeView {
    * distinction Blender draws between its solid viewport and a render.
    */
   async setRendered(rendered: boolean, camera?: THREE.Camera): Promise<void> {
+    const extinction = (rendered ? worldMedium(this.frame?.world)?.extinction : null) ?? new THREE.Vector3();
+    for (const material of [...this.materials.values(), this.fallback]) applyWorldExtinction(material, extinction);
     // An area light cannot be DRAWN until its lookup tables are uploaded, and a
     // render is one photograph with no second chance at it.
     // A sky is derived off the main thread now, so a render waits for it the
@@ -1367,11 +1370,13 @@ export class BlenderRuntimeView {
         };
       }
     }
+    const effect = this.createWorldVolumePass();
     const detached = new BlenderRuntimeView();
     let disposed = false;
     const dispose = () => {
       if (disposed) return;
       disposed = true;
+      effect?.dispose();
       detached.dispose();
       detached.root.removeFromParent();
     };
@@ -1385,6 +1390,7 @@ export class BlenderRuntimeView {
       throw error;
     }
     return {
+      effect,
       root: detached.root,
       session: source.session,
       revision: source.revision,
@@ -1394,6 +1400,11 @@ export class BlenderRuntimeView {
       },
       dispose,
     };
+  }
+
+  createWorldVolumePass(): WorldVolumePass | undefined {
+    const medium = worldMedium(this.frame?.world);
+    return medium ? new WorldVolumePass(medium) : undefined;
   }
 
   /** Keep the description that arrived with this frame. Called by the tab's

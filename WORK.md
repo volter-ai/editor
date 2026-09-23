@@ -155,9 +155,31 @@ WASM override; the packaged WASM and public npm release are still unchanged.
 New binary provenance, the full engine battery, fresh packed acceptance and
 publication remain required before this candidate ships.
 
-Linked physical sockets, general material node graphs, additional normal/bump
-paths and World volumes remain unfinished implementation, not fundamental
-renderer limitations. No claim that these cannot be implemented is made.
+The candidate also implements homogeneous World Absorption, Scatter, Principled
+Volume and Emission closures, including Add/Mix weights and constant linked
+input expressions. A depth-aware scene-linear pass integrates absorption and
+emission analytically and local-light single scattering numerically. It uses
+point/spot shadow maps, rectangle-light quadrature, HG/Draine/Rayleigh phase
+functions and Blender's blackbody coefficients. Surface lighting receives
+matching medium attenuation; the rectangle surface-light path uses center
+distance with its existing LTC approximation. Both capture hosts use the pass
+before display transforms, with revision-owned disposal.
+
+This is not Cycles volume parity: heterogeneous fields, multiple scattering,
+Mie/Fournier-Forand phases and multilayer transparent depth remain implementation
+work. Unsupported spatial inputs and phases refuse by name; unbounded emission
+without extinction refuses its divergent radiance instead of inventing a far
+boundary. Linked physical sockets, general material graphs and additional
+normal/bump paths also remain unfinished implementation, not fundamental
+Three.js limitations. No claim that these cannot be implemented is made.
+
+Eight new volume tests cover export, Mix/cycle handling, coefficients, analytic
+transport, phase normalization, blackbody, named refusals, surface uniforms and
+pass ownership. The live orthographic absorption probe measured exactly 163/255
+against the Beer–Lambert/Standard prediction (clear: 255/255), and history
+restored the density. Perspective spotlight/point-light and occlusion captures
+ran with a silent console. Full engine battery and new packed acceptance remain
+pending; these feature probes do not substitute for release verification.
 
 The same candidate upgrades Storybook to 10.6.0, verifies its real portable
 story and ordering APIs and requires Node 24. Its repository and initial packed

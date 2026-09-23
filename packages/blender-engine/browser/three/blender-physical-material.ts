@@ -25,7 +25,13 @@ const defaults: Physical = {
 const uniforms = new WeakMap<THREE.MeshPhysicalMaterial, {
   blenderCoatIor: {value: number}; blenderCoatTint: {value: THREE.Color};
   blenderMapClip: {value: boolean}; blenderRoughnessClip: {value: boolean}; blenderNormalClip: {value: boolean};
+  blenderWorldExtinction: {value: THREE.Vector3};
 }>();
+
+export function applyWorldExtinction(material: THREE.MeshPhysicalMaterial, extinction: THREE.Vector3): void {
+  if (!uniforms.has(material)) applyPhysicalMaterial(material);
+  uniforms.get(material)!.blenderWorldExtinction.value.copy(extinction);
+}
 
 export function applyPhysicalMaterial(material: THREE.MeshPhysicalMaterial, input?: Physical,
   clips: {map?: boolean; roughness?: boolean; normal?: boolean} = {}): void {
@@ -45,10 +51,11 @@ export function applyPhysicalMaterial(material: THREE.MeshPhysicalMaterial, inpu
   let values = uniforms.get(material);
   if (!values) {
     values = {blenderCoatIor: {value: 1.5}, blenderCoatTint: {value: new THREE.Color(1, 1, 1)},
-      blenderMapClip: {value: false}, blenderRoughnessClip: {value: false}, blenderNormalClip: {value: false}};
+      blenderMapClip: {value: false}, blenderRoughnessClip: {value: false}, blenderNormalClip: {value: false},
+      blenderWorldExtinction: {value: new THREE.Vector3()}};
     uniforms.set(material, values);
     const held = values;
-    material.customProgramCacheKey = () => 'blender-principled-physical-v3';
+    material.customProgramCacheKey = () => 'blender-principled-physical-v4';
     material.onBeforeRender = (_renderer, _scene, _camera, geometry) => bindNamedUvChannels(material, geometry);
     material.onBeforeCompile = shader => {
       // Three declares channels 0..3. Blender has eight named UV maps in
@@ -56,6 +63,9 @@ export function applyPhysicalMaterial(material: THREE.MeshPhysicalMaterial, inpu
       shader.vertexShader = [4, 5, 6, 7, 8].map(i => `attribute vec2 uv${i};`).join('\n') + '\n' + shader.vertexShader;
       Object.assign(shader.uniforms, held);
       shader.fragmentShader = `uniform float blenderCoatIor;
+        uniform vec3 blenderWorldExtinction;
+        vec3 blenderInfiniteTransmission() { return vec3(
+          blenderWorldExtinction.x>0.?0.:1., blenderWorldExtinction.y>0.?0.:1., blenderWorldExtinction.z>0.?0.:1.); }
         uniform vec3 blenderCoatTint;
         uniform bool blenderMapClip, blenderRoughnessClip, blenderNormalClip;
         vec4 blenderImageSample(sampler2D image, vec2 uv, bool clipImage) {
@@ -83,7 +93,24 @@ export function applyPhysicalMaterial(material: THREE.MeshPhysicalMaterial, inpu
         .replace('diffuseColor *= sampledDiffuseColor;', 'diffuseColor.rgb *= sampledDiffuseColor.rgb;');
       const roughnessMap = THREE.ShaderChunk.roughnessmap_fragment
         .replace('texture2D( roughnessMap, vRoughnessMapUv )', 'blenderImageSample(roughnessMap, vRoughnessMapUv, blenderRoughnessClip)');
+      const lighting = THREE.ShaderChunk.lights_fragment_begin
+        .replace('getPointLightInfo( pointLight, geometryPosition, directLight );',
+          'getPointLightInfo( pointLight, geometryPosition, directLight ); directLight.color *= exp(-blenderWorldExtinction * length(pointLight.position-geometryPosition));')
+        .replace('getSpotLightInfo( spotLight, geometryPosition, directLight );',
+          'getSpotLightInfo( spotLight, geometryPosition, directLight ); directLight.color *= exp(-blenderWorldExtinction * length(spotLight.position-geometryPosition));')
+        .replace('getDirectionalLightInfo( directionalLight, directLight );',
+          'getDirectionalLightInfo( directionalLight, directLight ); directLight.color *= blenderInfiniteTransmission();')
+        // LTC integrates the rectangle without participating media. Its center
+        // distance is the attenuation approximation; the volume pass samples
+        // the rectangle itself. Neither is claimed as path-traced area lighting.
+        .replace('rectAreaLight = rectAreaLights[ i ];',
+          'rectAreaLight = rectAreaLights[ i ]; rectAreaLight.color *= exp(-blenderWorldExtinction * length(rectAreaLight.position-geometryPosition));')
+        .replace('getAmbientLightIrradiance( ambientLightColor )', 'getAmbientLightIrradiance( ambientLightColor ) * blenderInfiniteTransmission()');
+      const environment = THREE.ShaderChunk.lights_fragment_maps
+        .replaceAll(/(getIBL(?:Irradiance|Radiance|AnisotropyRadiance)\([^;]+\))/g, '$1 * blenderInfiniteTransmission()');
       shader.fragmentShader = shader.fragmentShader.replace('#include <lights_physical_fragment>', physical)
+        .replace('#include <lights_fragment_begin>', lighting)
+        .replace('#include <lights_fragment_maps>', environment)
         .replace('#include <normal_fragment_maps>', normals)
         .replace('#include <map_fragment>', baseMap)
         .replace('#include <roughnessmap_fragment>', roughnessMap)
