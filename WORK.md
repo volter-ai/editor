@@ -152,7 +152,7 @@ BSDF or shader-graph parity.
 The corresponding Blender exporter is public at
 `68bba09924c2cf08cbceb6608be4a9e1500a62bb` (PR #1). Verification used a rebuilt
 WASM override. The candidate now carries that verified binary; public npm is
-still unchanged. Fresh packed acceptance and publication remain required.
+still unchanged. Fresh packed acceptance has passed; publication remains required.
 
 The candidate also implements homogeneous World Absorption, Scatter, Principled
 Volume and Emission closures, including Add/Mix weights and constant linked
@@ -177,9 +177,9 @@ transport, phase normalization, blackbody, named refusals, surface uniforms and
 pass ownership. The live orthographic absorption probe measured exactly 163/255
 against the Beer–Lambert/Standard prediction (clear: 255/255), and history
 restored the density. Perspective spotlight/point-light and occlusion captures
-ran with a silent console. The full engine battery is recorded below; new
-packed acceptance remains pending. These feature probes do not substitute for
-release verification.
+ran with a silent console. The full engine battery is recorded below. These
+feature probes have also passed against the final installed archives, without
+a WASM override or workspace links.
 
 The first new-binary battery attempt completed the courtyard's 95 calls with
 the accepted baseline's four error positions, but its final verification was
@@ -210,7 +210,9 @@ a saved non-default sidebar (development and Reload Window do not). The kit now
 captures the native saved container before restoration overwrites it and opens
 that container through the native view service after restoration. It adds no
 layout store, product-specific ID or forced view visibility. The rebuilt macOS
-workbench and cold-reopen acceptance are pending. Source comparison found the
+workbench passed five cold-reopen checks, including preservation of a deliberate
+Source Control selection. Its complete anonymous download matches the pinned
+SHA-256. Source comparison found the
 recent Blender header/menu/icon/style fixes already present; the user's other
 missing visual changes have not yet been identified.
 
@@ -218,7 +220,34 @@ The same candidate upgrades Storybook to 10.6.0, verifies its real portable
 story and ordering APIs and requires Node 24. Its repository and initial packed
 install audits reported zero vulnerabilities, resolving the advisory in the
 published release below. That packed probe predates the material changes and
-does not establish acceptance of the new renderer.
+does not establish acceptance of the new renderer. The final packed install also
+reports zero vulnerabilities.
+
+### Final 0.5.63 packed acceptance
+
+All 72 tests, eight package typechecks, the build, release-boundary check and
+1,086-file packed-import check pass. The exact eight archives install without
+workspace links or a WASM override. Python/RNA undo/redo, Essentials restoration,
+five persisted duplicate/delete/history cycles and five full cold reopens pass.
+The final run has no unresolved or acknowledged diagnostics. Earlier attempts
+exposed readiness assumptions in the harness (panels mounted before their fields
+loaded); bounded UI readiness checks corrected the harness, not the product.
+
+Making the disposable model directory read-only made both edit and close refuse
+EACCES while retaining the live worker. Restoring mode 755 allowed the pending
+X=12.625 to save and survive reopening. Closing during a two-second Python edit
+waited 2,396 ms; reopening retained X=14.625. Real stdio MCP then opened the closed
+editor and read that model and its Essentials modifier, with a silent console.
+
+Packed GPU checks passed physical inputs, tangent/object-space DirectX normals,
+first/eighth/missing named UVs, Repeat/Clip and edit history. Homogeneous volume
+absorption measured 163/255 versus clear 255/255 at the center. A blocker reduced
+spotlight scattering; point-light scattering disappeared when energy was zero,
+apart from an observed maximum one-code-value residual (not exact black parity).
+All probes restored their temporary edits and ended with a silent console.
+An inspected settled capture shows populated Cube Properties at X=14.625,
+Outliner, grid and the retained material probe. Publication and registry-only
+installation acceptance remain to be completed.
 
 ### Renderer-hang diagnostics after 0.5.62 (source only)
 
