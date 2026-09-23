@@ -13,7 +13,7 @@ const fallbackNames={
   '@storybook/react':'storybook', '@storybook/react-dom-shim':'storybook',
   'storybook':'storybook', 'rrweb':'rrweb', '@volter-ai-dev/supercode-ui':'supercode',
 };
-const fallbackVersions={'@dimforge/rapier3d-compat':'0.19.2','@pixi/colord':'2.9.6','@react-three/fiber':'9.7.0','@react-three/rapier':'2.2.0','@storybook/react':'9.1.20','@storybook/react-dom-shim':'9.1.20','storybook':'9.1.20','rrweb':'2.1.6','@volter-ai-dev/supercode-ui':'0.1.83'};
+const fallbackVersions={'@dimforge/rapier3d-compat':'0.19.2','@pixi/colord':'2.9.6','@react-three/fiber':'9.7.0','@react-three/rapier':'2.2.0','@storybook/react':'10.6.0','@storybook/react-dom-shim':'10.6.0','storybook':'10.6.0','rrweb':'2.1.6','@volter-ai-dev/supercode-ui':'0.1.83'};
 const fallbackSources=new Map(read('release/licenses/sources.json').map(s=>[s.name,s]));
 const groups={
   editor:[...read('.artifacts/product-bundle-inputs.json'),...Object.values(read('.artifacts/node-bundle-meta.json').outputs).flatMap(output=>Object.entries(output.inputs).filter(([,info])=>info.bytesInOutput>0).map(([file])=>resolve('packages/editor',file)))],

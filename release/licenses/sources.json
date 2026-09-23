@@ -23,7 +23,7 @@
   {
     "name": "storybook",
     "repository": "storybookjs/storybook",
-    "revision": "f4eff4835ee6076bddf2fa2c8af680afebfaba0e",
+    "revision": "a77777356be2aeaff89d7a2b25254db7b2318392",
     "path": "LICENSE",
     "sha256": "bc90586179d44dcb313a9a289d687a2f26226303b2066bd21dbefd2378e894e5"
   },

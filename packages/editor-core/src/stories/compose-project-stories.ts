@@ -1,5 +1,5 @@
 /**
- * Portable-story mounting — C3 (spec §9). Wraps the REAL Storybook 9
+ * Portable-story mounting — C3 (spec §9). Uses the REAL Storybook
  * portable-stories API (`composeStories`/`setProjectAnnotations` from
  * `@storybook/react`, confirmed against `node_modules/@storybook/react/dist/
  * index.d.ts`) so a dynamically-imported CSF module (`*.stories.tsx`/
@@ -7,8 +7,8 @@
  * fully-composed React components — args/decorators/play all applied by
  * Storybook itself, never re-implemented here. `loaders` are ALSO applied by
  * Storybook itself, but only once the caller awaits the composed story's own
- * `.load()` — Storybook 9's portable-story contract requires that explicit
- * call before render (confirmed in `storybook/dist/preview-api/index.cjs`'s
+ * `.load()` — Storybook's portable-story contract requires that explicit
+ * call before render (the preview-api's
  * `composeStory`: loader data is populated inside `load()`, and the render
  * function only picks it up if `load()` already ran). `mountIsolatedStory`
  * (`StoryPreviewMount.tsx`) is the caller that does this, awaiting `.load()`

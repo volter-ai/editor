@@ -22,7 +22,8 @@ game packages remain excluded.
 3. **Rendering:** linked World Background strength and Blender's
    POINT/TEXTURE/VECTOR/NORMAL Mapping semantics are evaluated, including
    inverse mapping with zero scale. This is not complete material-renderer
-   parity. World volumes remain outside this pass.
+   parity. General shader graphs and World volumes are implementation work,
+   not established Three.js limitations.
 4. **Duplication/deletion:** batch operations are one native edit; copied
    parent/child relationships and selection are preserved. Undo/redo restores
    both objects and relationships. History acknowledgment waits for the
@@ -124,6 +125,45 @@ console. The task's editor sessions were closed after acceptance.
   under explicit `*-private-history` names. No recurring export is required.
 
 ## Remaining work and limits
+
+### Material-rendering implementation (unreleased candidate)
+
+The candidate implements Principled coat weight/roughness/IOR/tint, sheen
+weight/roughness/tint, anisotropy/rotation, specular level/tint and thin-film
+thickness/IOR. Shader adjustments carry coat absorption and IOR and preserve
+Blender's specular grazing behavior. Tangent/object-space image Normal Maps
+carry strength and OpenGL/DirectX conventions. Image Texture Clip extension
+is implemented; material inputs have independent sampler state even when
+they share one image, and connecting Image Color no longer connects its Alpha.
+Named UV selection supports all eight Blender layers, including render
+snapshots and shared materials on meshes with different layer order. Evaluated
+corner normals come from Blender, not from normals recomputed after UV splits.
+
+Nine regression tests cover physical values, live uniform updates, restoration,
+sampler ownership/repaint/decode/disposal, Clip/alpha, named UV seams/channel
+selection and revision-owned snapshot buffers. Source-linked live GPU captures
+verified physical inputs on/off, tangent and object-space DirectX normals,
+Repeat versus Clip and first versus eighth named UV. Each edit/history probe
+restored its original state and ended with a silent console. The first UV
+capture exposed a missing snapshot copy; that path was corrected and both
+the regression and live rerun passed. These are feature checks, not complete
+BSDF or shader-graph parity.
+
+The corresponding Blender exporter is public at
+`68bba09924c2cf08cbceb6608be4a9e1500a62bb` (PR #1). Verification used a rebuilt
+WASM override; the packaged WASM and public npm release are still unchanged.
+New binary provenance, the full engine battery, fresh packed acceptance and
+publication remain required before this candidate ships.
+
+Linked physical sockets, general material node graphs, additional normal/bump
+paths and World volumes remain unfinished implementation, not fundamental
+renderer limitations. No claim that these cannot be implemented is made.
+
+The same candidate upgrades Storybook to 10.6.0, verifies its real portable
+story and ordering APIs and requires Node 24. Its repository and initial packed
+install audits reported zero vulnerabilities, resolving the advisory in the
+published release below. That packed probe predates the material changes and
+does not establish acceptance of the new renderer.
 
 ### Renderer-hang diagnostics after 0.5.62 (source only)
 

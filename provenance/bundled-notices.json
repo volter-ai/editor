@@ -281,31 +281,42 @@
     },
     {
       "name": "@storybook/react-dom-shim",
-      "version": "9.1.20",
+      "version": "10.6.0",
       "license": "MIT",
       "notices": [
         {
           "file": "release/licenses/storybook.txt",
           "sha256": "bc90586179d44dcb313a9a289d687a2f26226303b2066bd21dbefd2378e894e5",
-          "source": "https://github.com/storybookjs/storybook/blob/f4eff4835ee6076bddf2fa2c8af680afebfaba0e/LICENSE"
+          "source": "https://github.com/storybookjs/storybook/blob/a77777356be2aeaff89d7a2b25254db7b2318392/LICENSE"
         }
       ]
     },
     {
       "name": "@storybook/react",
-      "version": "9.1.20",
+      "version": "10.6.0",
       "license": "MIT",
       "notices": [
         {
           "file": "release/licenses/storybook.txt",
           "sha256": "bc90586179d44dcb313a9a289d687a2f26226303b2066bd21dbefd2378e894e5",
-          "source": "https://github.com/storybookjs/storybook/blob/f4eff4835ee6076bddf2fa2c8af680afebfaba0e/LICENSE"
+          "source": "https://github.com/storybookjs/storybook/blob/a77777356be2aeaff89d7a2b25254db7b2318392/LICENSE"
+        }
+      ]
+    },
+    {
+      "name": "@testing-library/dom",
+      "version": "10.4.2",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@testing-library/dom/LICENSE",
+          "sha256": "bf8fd38056b7606deccfcadb4d8ca1c210082d8ef5513426d2650daedc30bed3"
         }
       ]
     },
     {
       "name": "@volter/blender-engine",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "license": "GPL-3.0-or-later",
       "notices": [
         {
@@ -316,7 +327,7 @@
     },
     {
       "name": "@volter/editor-blender",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "license": "AGPL-3.0-only AND GPL-3.0-or-later",
       "notices": [
         {
@@ -327,7 +338,7 @@
     },
     {
       "name": "@volter/editor-core",
-      "version": "0.5.62",
+      "version": "0.5.63",
       "license": "AGPL-3.0-only AND Apache-2.0",
       "notices": [
         {
@@ -346,7 +357,7 @@
     },
     {
       "name": "@volter/editor-project",
-      "version": "0.5.62",
+      "version": "0.5.63",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -357,7 +368,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.62",
+      "version": "0.5.63",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -372,7 +383,7 @@
     },
     {
       "name": "@volter/editor-threejs",
-      "version": "0.5.62",
+      "version": "0.5.63",
       "license": "AGPL-3.0-only AND Apache-2.0",
       "notices": [
         {
@@ -390,6 +401,39 @@
       ]
     },
     {
+      "name": "ansi-regex",
+      "version": "5.0.1",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/ansi-regex/license",
+          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0"
+        }
+      ]
+    },
+    {
+      "name": "ansi-styles",
+      "version": "5.2.0",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/ansi-styles/license",
+          "sha256": "48da2f39e100d4085767e94966b43f4fa95ff6a0698fba57ed460914e35f94a0"
+        }
+      ]
+    },
+    {
+      "name": "aria-query",
+      "version": "5.3.0",
+      "license": "Apache-2.0",
+      "notices": [
+        {
+          "file": "node_modules/aria-query/LICENSE",
+          "sha256": "c8df456c7ccba74b959087dff494d4ac2a12dfb0400c08b46b2494a08a000567"
+        }
+      ]
+    },
+    {
       "name": "crelt",
       "version": "1.0.7",
       "license": "MIT",
@@ -397,6 +441,28 @@
         {
           "file": "node_modules/crelt/LICENSE",
           "sha256": "23852ebf6aef7fadffc92514b3c5df163a8651f2c3ed0dbb494cb49d93bd5de5"
+        }
+      ]
+    },
+    {
+      "name": "dequal",
+      "version": "2.0.3",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/dequal/license",
+          "sha256": "306fa513e39b23a6e8747520de761809d206b99800ef41907b530226574c59ae"
+        }
+      ]
+    },
+    {
+      "name": "dom-accessibility-api",
+      "version": "0.5.16",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/dom-accessibility-api/LICENSE.md",
+          "sha256": "0ffe67fe630169de46df2d29dc18f5857b4c98f0f95b0cd9e3c21fef51f9a9b8"
         }
       ]
     },
@@ -423,6 +489,17 @@
       ]
     },
     {
+      "name": "lz-string",
+      "version": "1.5.0",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/lz-string/LICENSE",
+          "sha256": "433fc9dfe659dbfb1e91eed8351f13651e97bfa3ac6d03394c3d63f61d4bbc80"
+        }
+      ]
+    },
+    {
       "name": "pixi.js",
       "version": "8.19.0",
       "license": "MIT",
@@ -445,6 +522,17 @@
       ]
     },
     {
+      "name": "pretty-format",
+      "version": "27.5.1",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/pretty-format/LICENSE",
+          "sha256": "52412d7bc7ce4157ea628bbaacb8829e0a9cb3c58f57f99176126bc8cf2bfc85"
+        }
+      ]
+    },
+    {
       "name": "quarks.core",
       "version": "0.16.0",
       "license": "MIT",
@@ -463,6 +551,17 @@
         {
           "file": "node_modules/react-dom/LICENSE",
           "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+        }
+      ]
+    },
+    {
+      "name": "react-is",
+      "version": "17.0.2",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/react-is/LICENSE",
+          "sha256": "52412d7bc7ce4157ea628bbaacb8829e0a9cb3c58f57f99176126bc8cf2bfc85"
         }
       ]
     },
@@ -502,13 +601,13 @@
     },
     {
       "name": "storybook",
-      "version": "9.1.20",
+      "version": "10.6.0",
       "license": "MIT",
       "notices": [
         {
           "file": "release/licenses/storybook.txt",
           "sha256": "bc90586179d44dcb313a9a289d687a2f26226303b2066bd21dbefd2378e894e5",
-          "source": "https://github.com/storybookjs/storybook/blob/f4eff4835ee6076bddf2fa2c8af680afebfaba0e/LICENSE"
+          "source": "https://github.com/storybookjs/storybook/blob/a77777356be2aeaff89d7a2b25254db7b2318392/LICENSE"
         }
       ]
     },
@@ -627,7 +726,7 @@
     },
     {
       "name": "@volter/editor-project",
-      "version": "0.5.62",
+      "version": "0.5.63",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -638,7 +737,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.62",
+      "version": "0.5.63",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -653,7 +752,7 @@
     },
     {
       "name": "@volter/editor-threejs",
-      "version": "0.5.62",
+      "version": "0.5.63",
       "license": "AGPL-3.0-only AND Apache-2.0",
       "notices": [
         {
@@ -751,7 +850,7 @@
   "editor-live": [
     {
       "name": "@volter/editor-project",
-      "version": "0.5.62",
+      "version": "0.5.63",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -762,7 +861,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.62",
+      "version": "0.5.63",
       "license": "Apache-2.0",
       "notices": [
         {

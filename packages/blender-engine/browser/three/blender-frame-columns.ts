@@ -79,6 +79,8 @@ export const ATTRIBUTE_LAYOUT: Record<AttributeType, { size: number }> = {
 export interface MeshColumns {
   /** 3 * nv */
   co: Float64Array;
+  /** Blender-evaluated normals, 3 per corner, independent of UV splits. */
+  cornerNormal?: Float32Array | undefined;
   /** nf + 1 */
   faceStart: Uint32Array;
   /** faceStart[nf] entries: vertex index per loop */
