@@ -114,6 +114,7 @@ const alwaysRefresh = (timeoutMs = DEFAULT_RELAY_COMMAND_TIMEOUT_MS): RelayComma
  * Rows without an explicit budget take {@link DEFAULT_RELAY_COMMAND_TIMEOUT_MS}.
  */
 export const RELAY_COMMANDS = {
+  'session-prepare-close': noDerivedRefresh(120_000),
   // ---- Selection and framing ---------------------------------------------
   select: noDerivedRefresh(30_000),
   'select-multiple': noDerivedRefresh(),

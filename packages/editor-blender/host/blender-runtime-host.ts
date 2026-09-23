@@ -670,6 +670,10 @@ function terminateBlenderRuntime(): void {
 function watchSessionEnd(): void {
   if (watchingSessionEnd) return;
   watchingSessionEnd = true;
+  editorHost().session.onBeforeClose(async () => {
+    await runtime?.stop();
+    terminateBlenderRuntime();
+  });
   editorHost().session.onEnded(terminateBlenderRuntime);
 }
 let lastCapture: CaptureRequest | null = null;

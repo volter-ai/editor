@@ -141,6 +141,12 @@ export class BlenderRuntime {
   #started: Promise<RuntimeStart> | null = null;
   #stopping: Promise<void> | null = null;
   #terminated = false;
+  #dirty = false;
+  readonly #beforeUnload = (event: BeforeUnloadEvent): void => {
+    if (!this.#dirty && this.#pending.size === 0) return;
+    event.preventDefault();
+    event.returnValue = '';
+  };
   /** `performance.now()` at the `postMessage` of every outstanding call. */
   readonly #callStarts = new Map<number, number>();
   #lastCallMs: number | null = null;
@@ -159,6 +165,7 @@ export class BlenderRuntime {
       type: 'module',
       name: 'blender',
     });
+    globalThis.addEventListener?.('beforeunload', this.#beforeUnload);
     this.#worker.onmessage = (event: MessageEvent<WorkerReply>) => void this.#receive(event.data);
     this.#worker.onerror = (event) => {
       // A module worker that fails to LOAD reports an ErrorEvent with an empty
@@ -434,6 +441,7 @@ export class BlenderRuntime {
   terminate(): void {
     if (this.#terminated) return;
     this.#terminated = true;
+    globalThis.removeEventListener?.('beforeunload', this.#beforeUnload);
     this.#worker.terminate();
     const error = new Error('The Blender session was terminated');
     for (const id of [...this.#pending.keys()]) this.#settled(id);
@@ -508,6 +516,10 @@ export class BlenderRuntime {
 
   async #receive(reply: WorkerReply): Promise<void> {
     if ('op' in reply) {
+      if (reply.op === 'document-dirty') {
+        this.#dirty = reply.dirty;
+        return;
+      }
       if (reply.op === 'history') {
         this.#options.history?.(reply.entries);
         return;

@@ -19,18 +19,17 @@
  * before every call, and what the session writes is mirrored back out by the
  * transport (`list-files`/`read-file`).
  *
- * THE DOCUMENT'S DEBOUNCE LIVES HERE, because this is the only side of the
- * session that has a clock. Python's loop cannot ask the tab for anything
+ * THE DOCUMENT'S SAVE BARRIER LIVES HERE. Python's loop cannot ask the tab for anything
  * while it is idle — `serveAsks` only runs inside a request's poll loop, so an
  * `ask` raised between calls is never answered and wedges the Blender pthread.
- * So the session marks a present `saveDue`, this file waits out one idle
- * second, calls `save-document` as an ordinary request (which Python's loop
+ * So the session marks a present `saveDue`, this file finishes the command,
+ * calls `save-document` as an ordinary request (which Python's loop
  * picks up BETWEEN calls, never mid-call), and carries the bytes to the
- * project through `/__editor/blender-document`.
+ * project through `/__editor/blender-document` BEFORE acknowledging the edit.
  *
  * WHY THE CARRY IS NOT THE MIRROR'S JOB (`vgai blender-mcp`, class Mirror):
  * the Mirror is pull-based and runs only after an `execute_blender_code`, so
- * a document saved one idle second after the LAST call of a modeling session
+ * a document saved after the LAST call of a modeling session
  * would never leave the worker — which is exactly the state this closes
  * ("closing the tab loses the model"). The Mirror still lists and mirrors the
  * same file in the MCP lane; it just is not what persistence depends on.
@@ -114,7 +113,7 @@ let engine: BlenderEngine | null = null;
 // the only one that crosses to the server, which joins it to its own root so
 // no host path is ever on the wire.
 let documentPath: string | null = null;
-let saveTimer: ReturnType<typeof setTimeout> | null = null;
+let documentDirty = false;
 // Commands and saves share one lane. In particular a flush cannot overtake
 // an accepted edit, and a later edit cannot race an upload of older bytes.
 let workTail: Promise<unknown> = Promise.resolve();
@@ -124,18 +123,9 @@ function enqueue<T>(work: () => Promise<T>): Promise<T> {
   return result;
 }
 
-/** The idle second. One save per second of quiet, however many presents
- *  arrived during it: the timer is RESET by each, so a script presenting in a
- *  tight loop writes the document once, when it stops. */
-const DOCUMENT_SAVE_IDLE_MS = 1_000;
-
-function armDocumentSave(): void {
-  if (documentPath === null) return;
-  if (saveTimer !== null) clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    saveTimer = null;
-    void enqueue(saveDocument).catch(error => log('error', describeThrown(error)));
-  }, DOCUMENT_SAVE_IDLE_MS);
+function setDocumentDirty(dirty: boolean): void {
+  documentDirty = dirty;
+  post({ op: 'document-dirty', dirty });
 }
 
 /**
@@ -181,6 +171,7 @@ async function saveDocument(): Promise<void> {
   } catch (error) {
     throw new Error(`The Blender document ${relative} was not written to the project: ${describeThrown(error)}`);
   }
+  setDocumentDirty(false);
   log('log', `@@VGAI-DOCUMENT ${JSON.stringify({ path: relative, bytes: bytes.length })}`);
 }
 
@@ -193,9 +184,8 @@ async function startBlender(project: string, document?: string): Promise<unknown
     log,
     ask: async ({ frame, capture, saveDue }) => {
       if (!holder.engine) throw new Error('The Blender session presented before it started');
-      // The session says this present left the document behind the model. The
-      // clock is here; the write is one idle second away.
-      if (saveDue) armDocumentSave();
+      // Save once after the whole command, never during a partial frame.
+      if (saveDue && documentPath !== null) setDocumentDirty(true);
       // THE ARENA IS READ ONCE, HERE, and both readers share those bytes: the
       // typed arrays the tab draws from, and the record of what was sent
       // (`describeFrame`). After the post the buffers are detached and the
@@ -468,8 +458,6 @@ async function handle(request: WorkerRequest): Promise<unknown> {
   const ask = engine.request.bind(engine);
   switch (request.op) {
     case 'flush-document':
-      if (saveTimer !== null) clearTimeout(saveTimer);
-      saveTimer = null;
       await saveDocument();
       return { saved: true };
     case 'history-begin':
@@ -642,6 +630,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
 async function answerRequest(request: WorkerRequest): Promise<void> {
   try {
     const result = await handle(request);
+    if (documentDirty) await saveDocument();
     await reportHistory();
     post({ id: request.id, result });
   } catch (error) {

@@ -471,6 +471,11 @@ export class EditorClient {
     await this.command({ type: 'play' });
   }
 
+  /** Refuse shutdown if a document cannot be saved. Does not stop the server. */
+  async prepareClose(): Promise<void> {
+    await this.command({ type: 'session-prepare-close' });
+  }
+
   /** Stops play, and finalizes this run's recording before the surface it was
    *  photographing is torn down. The capture is absent when nothing recorded. */
   async stop(): Promise<{ recording?: GameplayRecordingCapture }> {

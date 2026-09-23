@@ -94,6 +94,7 @@ export type WorkerRequest =
     };
 
 export type WorkerReply =
+  | { op: 'document-dirty'; dirty: boolean }
   | { op: 'history'; entries: NativeHistoryEntry[] }
   | { id: number; result: unknown }
   | { id: number; error: string }
