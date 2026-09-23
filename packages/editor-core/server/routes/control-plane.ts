@@ -31,6 +31,7 @@ import {
   parseEditorControlLifecycle,
 } from '@volter/editor-sdk/session/editor-control-lifecycle';
 import { COMMAND_RESULT_RECEIPT_EVENT } from '@volter/editor-sdk/session/editor-control-protocol';
+import { isRelayCommandType } from '@volter/editor-sdk/session/command-table';
 import type { Request, Response } from 'express';
 import {
   ABNORMAL_SOCKET_CLOSE,
@@ -358,6 +359,8 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
        *  restarts it so time spent queued behind a blocked main thread cannot
        *  consume the work budget before the page begins the work. */
       restartWorkTimerAfterReceipt?: () => void;
+      /** Adopt a late contribution's declared budget without resetting elapsed work. */
+      refreshWorkTimer?: () => void;
       controller?: EditorEventClient;
       controllerClientId?: string;
     }
@@ -460,11 +463,14 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
     if (typeof type === 'string') {
       const contributed = contributedCommandTimeouts.get(type);
       if (contributed !== undefined) return contributed;
+      // The listener can receive a package command before discovery reports
+      // its row. Allow bounded discovery, then adopt its real work budget.
+      if (!isRelayCommandType(type)) return RELAY_DELIVERY_MAX_WAIT_MS;
     }
     return relayCommandTimeoutMs(type);
   }
   function commandAckDeadlineMs(type: unknown): number | null {
-    if (typeof type === 'string' && contributedCommandTimeouts.has(type))
+    if (typeof type === 'string' && !isRelayCommandType(type))
       return commandTimeoutMs(type) > RELAY_DELIVERY_ACK_MS ? RELAY_DELIVERY_ACK_MS : null;
     return relayCommandAckDeadlineMs(type);
   }
@@ -486,6 +492,10 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
     }
     contributedCommandTimeouts.clear();
     for (const [type, timeoutMs] of next) contributedCommandTimeouts.set(type, timeoutMs);
+    for (const pending of pendingCommands.values()) {
+      const type = pending.command?.['type'];
+      if (typeof type === 'string' && next.has(type)) pending.refreshWorkTimer?.();
+    }
     return CONTROL_OK;
   }
 
@@ -1703,7 +1713,8 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
     const requestId = randomUUID();
     const commandWithId = { ...body, _requestId: requestId };
 
-    const timeoutMs = commandTimeoutMs(body['type']);
+    let timeoutMs = commandTimeoutMs(body['type']);
+    let workStartedAt = Date.now();
     const hasSeparateDeliveryBudget = commandAckDeadlineMs(body['type']) !== null;
     const resultPromise = new Promise<SettledCommandResult>((resolve) => {
       const expire = (): void => {
@@ -1752,19 +1763,25 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
         });
       };
       const timer = setTimeout(expire, timeoutMs);
+      const refreshWorkTimer = (): void => {
+        const pending = pendingCommands.get(requestId);
+        if (pending === undefined) return;
+        timeoutMs = commandTimeoutMs(body['type']);
+        clearTimeout(pending.timer);
+        pending.timer = setTimeout(expire, Math.max(0, workStartedAt + timeoutMs - Date.now()));
+      };
       pendingCommands.set(requestId, {
         resolve,
         timer,
         tabId: targetTabId,
         command: commandWithId,
+        refreshWorkTimer,
         epochAtRelay: table?.tab(targetTabId)?.epochCount ?? 0,
         ...(hasSeparateDeliveryBudget
           ? {
               restartWorkTimerAfterReceipt: () => {
-                const pending = pendingCommands.get(requestId);
-                if (pending === undefined) return;
-                clearTimeout(pending.timer);
-                pending.timer = setTimeout(expire, timeoutMs);
+                workStartedAt = Date.now();
+                refreshWorkTimer();
               },
             }
           : {}),
