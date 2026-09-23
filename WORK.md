@@ -77,6 +77,12 @@ acknowledged only after current invariants and the visible capture passed.
   renderer. Fresh editor reopen recovered saved data, and a separate packed
   worker restart passed, but that does not establish the cause or fix it.
   Do not describe lifecycle acceptance as uniformly clean.
+  A focused source trace completed history invalidation, capture abort and
+  worker termination after both RNA undo/redo and duplicate/delete undo/redo;
+  the following worker starts also passed. This did not reproduce or explain
+  the intermittent stall. The probe did establish a separate lifecycle limit:
+  explicit worker stop before the one-second idle autosave can discard the
+  latest unsaved edit. Stop needs a save-flush barrier before termination.
 - Fresh-install `npm audit` reported six moderate affected dependency entries,
   all through Storybook and `@vitest/mocker`
   ([GHSA-82fw-gwwq-j7x9](https://github.com/advisories/GHSA-82fw-gwwq-j7x9));
