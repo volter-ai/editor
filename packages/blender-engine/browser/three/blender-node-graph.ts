@@ -24,6 +24,7 @@
 import * as THREE from 'three';
 import {z} from 'zod';
 import {BLENDER_NODE_GLSL, BLENDER_NODE_GLSL_PRELUDE} from './blender-node-glsl.generated';
+import {graphAttributeName} from './blender-runtime-geometry';
 
 const scalar = z.number().finite();
 const gpuType = z.enum(['float', 'vec2', 'vec3', 'vec4']);
@@ -47,7 +48,7 @@ export const GRAPH_NODE_TYPES = [
   'ShaderNodeMapRange', 'ShaderNodeClamp', 'ShaderNodeHueSaturation', 'ShaderNodeBrightContrast',
   'ShaderNodeGamma', 'ShaderNodeRGBToBW', 'ShaderNodeSeparateColor', 'ShaderNodeCombineColor',
   'ShaderNodeVectorRotate', 'ShaderNodeFresnel', 'ShaderNodeLayerWeight', 'ShaderNodeBump',
-  'ShaderNodeNormalMap', 'ShaderNodeNewGeometry',
+  'ShaderNodeNormalMap', 'ShaderNodeNewGeometry', 'ShaderNodeVertexColor', 'ShaderNodeAttribute',
 ] as const;
 
 const nodeSchema = z.object({
@@ -98,6 +99,9 @@ export interface CompiledGraph {
   readonly ramps: readonly GraphRamp[];
   /** UV layer names the graph reads ('' is the render UV). */
   readonly uvs: readonly string[];
+  /** The mesh attributes the graph reads, by Blender name; '' is the mesh's
+   *  default colour attribute (a Color Attribute node with no layer). */
+  readonly attributes: readonly string[];
   /** Which surface inputs the graph drives, each a GLSL global of `type`. */
   readonly outputs: Readonly<Record<string, {readonly global: string; readonly type: GpuType}>>;
   readonly surface: MaterialGraph['surface'];
@@ -201,11 +205,18 @@ vec3 coordinate_incoming(vec3 P) {
 float derivative_scale_get() { return 1.0; }
 float g_derivative_filter_width = 0.0;
 int g_derivative_flag = 0;
-vec3 dF_impl(vec3 v) {
-  if (g_derivative_flag > 0) return dFdx(v) * g_derivative_filter_width;
-  else if (g_derivative_flag < 0) return dFdy(v) * g_derivative_filter_width;
-  return vec3(0.0);
-}
+#define BLENDER_DF_IMPL(T) T dF_impl(T v) { \\
+  if (g_derivative_flag > 0) return dFdx(v) * g_derivative_filter_width; \\
+  else if (g_derivative_flag < 0) return dFdy(v) * g_derivative_filter_width; \\
+  return T(0.0); }
+BLENDER_DF_IMPL(float)
+BLENDER_DF_IMPL(vec2)
+BLENDER_DF_IMPL(vec3)
+BLENDER_DF_IMPL(vec4)
+// A surface's attribute loads (eevee_surf_lib): the value as loaded.
+vec4 attr_load_color_post(vec4 a) { return a; }
+float attr_load_temperature_post(float t) { return t; }
+vec4 attr_load_uniform(vec4 a, uint hash) { return a; }
 void blender_init_globals() {
   // EEVEE's init_globals: the shading normal faces the viewer.
   vec3 N = blender_from_three * normalize(vBlenderWorldNormal);
@@ -273,6 +284,7 @@ interface Shared {
   readonly images: GraphImage[];
   readonly ramps: GraphRamp[];
   readonly uvs: Set<string>;
+  readonly attributes: Set<string>;
   readonly structure: unknown[];
   /** Sub-functions (a Bump's height), defined before `blenderGraph`. */
   readonly functions: string[];
@@ -290,7 +302,7 @@ class Compiler {
   constructor(private readonly graph: MaterialGraph, shared?: Shared,
     private readonly derivative = false, private readonly prefix = 'bgN') {
     this.s = shared ?? {files: new Set(), uniforms: new Map(), uniformTypes: new Map(), images: [], ramps: [],
-      uvs: new Set(), structure: [], functions: []};
+      uvs: new Set(), attributes: new Set(), structure: [], functions: []};
   }
 
   get uniforms() { return this.s.uniforms; }
@@ -388,6 +400,18 @@ class Compiler {
         const values = ['blender_orco()', 'blender_object_normal()', `vec3(${uvVarying('')}, 0.0)`,
           'vBlenderObjectPosition', 'blender_camera()', 'blender_window()', 'blender_reflection()'];
         values.forEach((v, i) => { if (outputs[i]) body.push(`${outputs[i]!.name} = ${this.d(v)};`); });
+        break;
+      }
+      case 'ShaderNodeVertexColor':
+      case 'ShaderNodeAttribute': {
+        // node_shader_gpu_vertex_color / node_shader_gpu_attribute (GEOMETRY):
+        // the named layer as a float4, bump-offset like any coordinate.
+        const name = prop<string>(node, node.type === 'ShaderNodeAttribute' ? 'attribute_name' : 'layer_name');
+        this.s.attributes.add(name);
+        this.s.structure.push(['a', name]);
+        const fn = node.type === 'ShaderNodeAttribute' ? 'node_attribute' : 'node_vertex_color';
+        body.push(`${this.use(fn)}(${attributeVarying(name)}, ${outs(outputs.map((_, i) => i))});`);
+        for (const o of outputs) body.push(`${o.name} = ${this.d(o.name)};`);
         break;
       }
       case 'ShaderNodeUVMap': {
@@ -727,6 +751,7 @@ class Compiler {
       images: this.images,
       ramps: this.ramps,
       uvs: [...this.s.uvs],
+      attributes: [...this.s.attributes],
       outputs,
       surface: this.graph.surface,
     };
@@ -787,6 +812,11 @@ function shakeLibrary(library: string, root: string): string {
 }
 
 /** The varying a UV layer arrives in; `''` is the render UV. */
+/** The varying a graph reads Blender attribute `name` through. */
+export function attributeVarying(name: string): string {
+  return `v${graphAttributeName(name)}`;
+}
+
 export function uvVarying(name: string): string {
   return name === '' ? 'vBlenderUvRender' : `vBlenderUv_${[...name].map(c => c.charCodeAt(0).toString(16)).join('')}`;
 }

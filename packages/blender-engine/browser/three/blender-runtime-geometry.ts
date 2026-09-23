@@ -41,6 +41,10 @@ export interface DrawArrays {
   uv: Float32Array | null;
   /** All named UV layers; material inputs choose their own layer per draw. */
   uvLayers?: {name: string; data: Float32Array}[] | undefined;
+  /** The mesh's generic attribute layers a material's Attribute or Color
+   *  Attribute node can read, four floats per drawn vertex as EEVEE loads them
+   *  (`graphAttributeLayers`). */
+  attributeLayers?: {name: string; data: Float32Array}[] | undefined;
   indices: Uint32Array;
   groups: { start: number; count: number; materialIndex: number }[];
   /** THE BLENDER VERTEX EACH DRAWN VERTEX CAME FROM, one per drawn vertex.
@@ -73,6 +77,49 @@ interface DrawView {
   /** A corner's UV, or undefined when the mesh has no map. */
   uv: ((corner: number) => [number, number]) | null;
   uvLayers?: {name: string; read: (corner: number) => [number, number]}[];
+  /** A corner's value of each generic attribute layer, by vertex, corner and
+   *  face; `corner` and `face` are undefined for a loose vertex. */
+  attributeLayers?: {name: string; domain: string;
+    read: (vertex: number, corner: number | undefined, face: number | undefined) => ArrayLike<number>}[];
+}
+
+/** EEVEE's float4 of an attribute value: float (f, f, f, 1), float2 (x, y, 0,
+ *  1), float3 (x, y, z, 1), a colour as itself, a byte colour decoded from
+ *  sRGB (`ColorGeometry4b::decode`). */
+const GRAPH_ATTRIBUTE_TYPES = new Set(['FLOAT', 'FLOAT2', 'FLOAT_VECTOR', 'FLOAT_COLOR', 'BYTE_COLOR']);
+function srgbToLinear(byte: number): number {
+  const c = byte / 255;
+  return c < 0.04045 ? (c < 0 ? 0 : c * (1 / 12.92)) : ((c + 0.055) * (1 / 1.055)) ** 2.4;
+}
+function attributeFloat4(type: string, values: ArrayLike<number>, i: number): [number, number, number, number] {
+  switch (type) {
+    case 'FLOAT': { const f = Number(values[i]); return [f, f, f, 1]; }
+    case 'FLOAT2': return [Number(values[i * 2]), Number(values[i * 2 + 1]), 0, 1];
+    case 'FLOAT_VECTOR': return [Number(values[i * 3]), Number(values[i * 3 + 1]), Number(values[i * 3 + 2]), 1];
+    case 'BYTE_COLOR': return [srgbToLinear(Number(values[i * 4])), srgbToLinear(Number(values[i * 4 + 1])),
+      srgbToLinear(Number(values[i * 4 + 2])), Number(values[i * 4 + 3]) / 255];
+    default: return [Number(values[i * 4]), Number(values[i * 4 + 1]), Number(values[i * 4 + 2]), Number(values[i * 4 + 3])];
+  }
+}
+/** The readable layers of `attributes`: every generic layer of a type EEVEE
+ *  loads as a float4, on a domain a drawn vertex has a value on. UV maps stay
+ *  `uvLayers`; names Blender keeps internal (`.select_vert`, the positions,
+ *  the custom normals) are not material inputs. */
+function graphAttributeLayers(
+  attributes: readonly {name: string; domain: string; type: string; data: ArrayLike<unknown>}[],
+  flat: (data: ArrayLike<unknown>, type: string) => ArrayLike<number>,
+): NonNullable<DrawView['attributeLayers']> {
+  return attributes
+    .filter(a => GRAPH_ATTRIBUTE_TYPES.has(a.type) && a.domain !== 'EDGE' && !a.name.startsWith('.')
+      && a.name !== 'position' && a.name !== 'custom_normal' && !(a.type === 'FLOAT2' && a.domain === 'CORNER'))
+    .map(a => {
+      const values = flat(a.data, a.type);
+      const zero = [0, 0, 0, 0];
+      return {name: a.name, domain: a.domain, read: (vertex: number, corner: number | undefined, face: number | undefined) =>
+        a.domain === 'POINT' ? attributeFloat4(a.type, values, vertex)
+        : a.domain === 'CORNER' ? (corner === undefined ? zero : attributeFloat4(a.type, values, corner))
+        : face === undefined ? zero : attributeFloat4(a.type, values, face)};
+    });
 }
 
 function drawCore(view: DrawView): Omit<DrawArrays, 'hash'> {
@@ -152,14 +199,16 @@ function drawCore(view: DrawView): Omit<DrawArrays, 'hash'> {
     texcoords = new Float32Array(capacity * 2);
   const sourceVertex = new Uint32Array(capacity);
   const uvLayers = (view.uvLayers ?? []).map(layer => ({...layer, data: new Float32Array(capacity * 2)}));
+  const attributeLayers = (view.attributeLayers ?? []).map(layer => ({...layer, data: new Float32Array(capacity * 4)}));
   const indices = new Uint32Array(capacity),
     shared = new Map<string, number>();
   const groups: DrawArrays['groups'] = [];
   const normals = view.normals || view.cornerNormal ? new Float32Array(capacity * 3) : null;
   let count = 0,
     indexCount = 0;
-  const emit = (v: number, texture?: [number, number], normal?: Normal, sourceCorner?: number): number => {
+  const emit = (v: number, texture?: [number, number], normal?: Normal, sourceCorner?: number, face?: number): number => {
     const index = count++;
+    for (const layer of attributeLayers) layer.data.set(layer.read(v, sourceCorner, face), index * 4);
     sourceVertex[index] = v;
     view.co(v).toArray(positions, index * 3);
     if (texture) texcoords.set(texture, index * 2);
@@ -167,16 +216,18 @@ function drawCore(view: DrawView): Omit<DrawArrays, 'hash'> {
     if (sourceCorner !== undefined) for (const layer of uvLayers) layer.data.set(layer.read(sourceCorner), index * 2);
     return index;
   };
-  const corner = (c: number): number => {
+  const corner = (c: number, face: number): number => {
     const texture = uv?.(c);
     const normal: Normal | undefined = view.cornerNormal
       ? [view.cornerNormal[c * 3]!, view.cornerNormal[c * 3 + 1]!, view.cornerNormal[c * 3 + 2]!]
       : view.normals?.[c];
-    if (!mixed) return emit(cornerVerts[c]!, texture, normal, c);
-    const key = `${smooth[c] ? find(c) : c}${texture ? `:${texture[0]}:${texture[1]}` : ''}${normal ? `:n${normal.join(':')}` : ''}${uvLayers.map(layer => ':' + layer.read(c).join(':')).join('')}`;
+    if (!mixed) return emit(cornerVerts[c]!, texture, normal, c, face);
+    // A POINT layer's value is the vertex's, which the smooth fan already
+    // shares; a face or corner layer splits the fan where its values differ.
+    const key = `${smooth[c] ? find(c) : c}${texture ? `:${texture[0]}:${texture[1]}` : ''}${normal ? `:n${normal.join(':')}` : ''}${uvLayers.map(layer => ':' + layer.read(c).join(':')).join('')}${attributeLayers.map(layer => layer.domain === 'POINT' ? '' : ':' + Array.from(layer.read(cornerVerts[c]!, c, face)).join(':')).join('')}`;
     let index = shared.get(key);
     if (index === undefined) {
-      index = emit(cornerVerts[c]!, texture, normal, c);
+      index = emit(cornerVerts[c]!, texture, normal, c, face);
       shared.set(key, index);
     }
     return index;
@@ -188,7 +239,7 @@ function drawCore(view: DrawView): Omit<DrawArrays, 'hash'> {
     const points: THREE.Vector3[] = [];
     for (let j = 0; j < length; j++) points.push(view.co(cornerVerts[faceStart + j]!));
     for (const triangle of triangulatePolygon(points).triangles)
-      for (const c of triangle) indices[indexCount++] = corner(faceStart + c);
+      for (const c of triangle) indices[indexCount++] = corner(faceStart + c, i);
     const materialIndex = view.material(i),
       previous = groups.at(-1);
     if (previous?.materialIndex === materialIndex) previous.count += indexCount - start;
@@ -200,10 +251,18 @@ function drawCore(view: DrawView): Omit<DrawArrays, 'hash'> {
     normals: normals?.slice(0, count * 3) ?? null,
     uv: uv ? texcoords.slice(0, count * 2) : null,
     uvLayers: uvLayers.map(layer => ({name: layer.name, data: layer.data.slice(0, count * 2)})),
+    attributeLayers: attributeLayers.map(layer => ({name: layer.name, data: layer.data.slice(0, count * 4)})),
     indices: indices.slice(0, indexCount),
     sourceVertex: sourceVertex.slice(0, count),
     groups,
   };
+}
+
+/** The three attribute a graph reads Blender attribute `name` from: a GLSL
+ *  identifier spelled from the name's UTF-8 bytes, so every name has one and
+ *  no two names share one. */
+export function graphAttributeName(name: string): string {
+  return `blenderA_${Array.from(new TextEncoder().encode(name), b => b.toString(16).padStart(2, '0')).join('')}`;
 }
 
 export function geometryFromDrawArrays(
@@ -225,6 +284,9 @@ export function geometryFromDrawArrays(
     geometry.setAttribute(`uv${index + 1}`, new THREE.BufferAttribute(layer.data, 2));
   }
   geometry.userData['blenderUvChannels'] = channels;
+  for (const layer of arrays.attributeLayers ?? [])
+    geometry.setAttribute(graphAttributeName(layer.name), new THREE.BufferAttribute(layer.data, 4));
+  geometry.userData['blenderAttributes'] = (arrays.attributeLayers ?? []).map(layer => layer.name);
   for (const group of arrays.groups)
     geometry.addGroup(group.start, group.count, group.materialIndex);
   if (arrays.normals) geometry.setAttribute('normal', new THREE.BufferAttribute(arrays.normals, 3));
@@ -298,6 +360,7 @@ export function drawArraysFromColumns(c: MeshColumns, hash: string): DrawArrays 
     uv: uvData ? (corner) => [uvData[corner * 2]!, uvData[corner * 2 + 1]!] : null,
     uvLayers: maps.map(layer => ({name: layer.name, read: (corner: number) =>
       [Number(layer.data[corner * 2]), Number(layer.data[corner * 2 + 1])] as [number, number]})),
+    attributeLayers: graphAttributeLayers(c.attributes, data => data as ArrayLike<number>),
   };
   if (map && ATTRIBUTE_LAYOUT.FLOAT2.size !== 2) throw new Error('FLOAT2 layout');
   return { ...drawCore(view), hash };
@@ -360,6 +423,9 @@ export function drawRuntimeGeometry(data: MeshData): THREE.BufferGeometry {
     uv: uv ? (corner) => uv[corner]! : null,
     uvLayers: maps.map(layer => ({name: layer.name, read: (corner: number) =>
       (layer.data as [number, number][])[corner]!})),
+    // The JSON door nests each element's components; the reader wants them flat.
+    attributeLayers: graphAttributeLayers(data.attributes ?? [],
+      values => (Array.from(values) as (number | number[])[]).flat()),
   };
   return geometryFromDrawArrays(drawCore(view));
 }

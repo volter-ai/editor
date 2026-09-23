@@ -558,7 +558,7 @@ _GRAPH_NODES = frozenset((
     "ShaderNodeMapRange", "ShaderNodeClamp", "ShaderNodeHueSaturation", "ShaderNodeBrightContrast",
     "ShaderNodeGamma", "ShaderNodeRGBToBW", "ShaderNodeSeparateColor", "ShaderNodeCombineColor",
     "ShaderNodeVectorRotate", "ShaderNodeFresnel", "ShaderNodeLayerWeight", "ShaderNodeBump",
-    "ShaderNodeNormalMap", "ShaderNodeNewGeometry",
+    "ShaderNodeNormalMap", "ShaderNodeNewGeometry", "ShaderNodeVertexColor", "ShaderNodeAttribute",
 ))
 # The surfaces whose inputs map onto the presenter's standard material, and
 # the inputs of each the presenter reads from a graph.
@@ -666,6 +666,9 @@ def _refusal(node):
         # EEVEE's parametric is the triangle's barycentrics, which the
         # presenter's meshes do not carry.
         return "%s's Parametric output is not compiled" % node.name
+    if kind == "ShaderNodeAttribute" and node.attribute_type != "GEOMETRY":
+        return "%s reads an %s attribute; only Geometry attributes are compiled" % (
+            node.name, node.attribute_type.replace("_", " ").title())
     if kind == "ShaderNodeTexCoord" and node.object is not None:
         return "%s reads object coordinates of %s" % (node.name, node.object.name)
     return None
@@ -1131,6 +1134,10 @@ class Session:
                 if getattr(data, "use_auto_texspace", True) is False:
                     row["texspace"] = [[float(v) for v in data.texspace_location],
                                        [float(v) for v in data.texspace_size]]
+                # The layer a Color Attribute node with no name reads.
+                default_color = getattr(getattr(data, "color_attributes", None), "default_color_name", "")
+                if default_color:
+                    row["default_color"] = default_color
         frame["world"] = draw_world(scene)
         frame["cameras"] = {
             obj.name: draw_camera(obj) for obj in scene.objects if obj.type == "CAMERA"

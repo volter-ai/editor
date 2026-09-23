@@ -14,7 +14,8 @@
  * built from the mesh's texture space (`orcoAttribute`).
  */
 import * as THREE from 'three';
-import {type CompiledGraph, rampTexture, uvVarying} from './blender-node-graph';
+import {attributeVarying, type CompiledGraph, rampTexture, uvVarying} from './blender-node-graph';
+import {graphAttributeName} from './blender-runtime-geometry';
 
 interface Binding {
   compiled: CompiledGraph;
@@ -142,6 +143,25 @@ export function prepareGraphGeometry(mesh: THREE.Mesh): void {
     geometry.setAttribute('blenderOrco', orcoAttribute(geometry, texspace));
     geometry.userData['blenderOrcoStamp'] = stamp;
   }
+  // THE ATTRIBUTES THE GRAPHS READ. The draw carries every readable layer
+  // (`graphAttributeLayers`); '' is the mesh's default colour attribute
+  // (`GPU_attribute_default_color`), and a layer the mesh lacks reads zeros,
+  // as a missing attribute does in EEVEE.
+  const count = position?.count ?? 0;
+  const defaultColor = mesh.userData['blenderDefaultColor'] as string | undefined;
+  for (const material of materials) {
+    const binding = material instanceof THREE.MeshPhysicalMaterial ? bindings.get(material) : undefined;
+    for (const name of binding?.compiled.attributes ?? []) {
+      const target = graphAttributeName(name);
+      const source = name === '' ? (defaultColor === undefined ? undefined : geometry.getAttribute(graphAttributeName(defaultColor)))
+        : geometry.getAttribute(target);
+      if (source && source.count === count) {
+        if (geometry.getAttribute(target) !== source) geometry.setAttribute(target, source);
+      } else if (geometry.getAttribute(target)?.count !== count) {
+        geometry.setAttribute(target, new THREE.BufferAttribute(new Float32Array(count * 4), 4));
+      }
+    }
+  }
 }
 
 /**
@@ -192,14 +212,17 @@ varying vec3 vBlenderObjectNormal;
 varying vec3 vBlenderWorldPosition;
 varying vec3 vBlenderWorldNormal;
 varying vec3 vBlenderOrco;
+${compiled.attributes.map(n => `varying vec4 ${attributeVarying(n)};`).join('\n')}
 ${compiled.uvs.map(n => `varying vec2 ${uvVarying(n)};`).join('\n')}`;
-  shader.vertexShader = `${guards}\nattribute vec3 blenderOrco;\n${varyings}\n${shader.vertexShader}`.replace(
+  const attributes = compiled.attributes.map(n => `attribute vec4 ${graphAttributeName(n)};`).join('\n');
+  shader.vertexShader = `${guards}\nattribute vec3 blenderOrco;\n${attributes}\n${varyings}\n${shader.vertexShader}`.replace(
     '#include <project_vertex>',
     `vBlenderObjectPosition = transformed;
 vBlenderObjectNormal = objectNormal;
 vBlenderWorldPosition = (modelMatrix * vec4(transformed, 1.0)).xyz;
 vBlenderWorldNormal = normalize(transpose(inverse(mat3(modelMatrix))) * objectNormal);
 vBlenderOrco = blenderOrco;
+${compiled.attributes.map(n => `${attributeVarying(n)} = ${graphAttributeName(n)};`).join('\n')}
 ${compiled.uvs.map(n => `${uvVarying(n)} = ${attribute(channels[n] ?? 0)};`).join('\n')}
 #include <project_vertex>`,
   );

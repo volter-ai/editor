@@ -62,6 +62,8 @@ const ROOTS = [
   'gpu_shader_material_normal_map.glsl',
   'gpu_shader_material_bump.glsl',
   'gpu_shader_material_geometry.glsl',
+  'gpu_shader_material_attribute.glsl',
+  'gpu_shader_material_vertex_color.glsl',
 ];
 
 /**

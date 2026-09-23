@@ -9,6 +9,7 @@ import { ArmatureOverlay, armatureSchema } from './blender-runtime-armature';
 import { UNKNOWN_GEOMETRY, UNKNOWN_IMAGE } from './blender-runtime-frame';
 import {
   drawArraysFromColumns,
+  graphAttributeName,
   drawRuntimeGeometry,
   geometryFromDrawArrays,
 } from './blender-runtime-geometry';
@@ -109,6 +110,7 @@ const drawArraysSchema = z
     normals: z.instanceof(Float32Array).nullable(),
     uv: z.instanceof(Float32Array).nullable(),
     uvLayers: z.array(z.object({name: z.string(), data: z.instanceof(Float32Array)}).strict()).optional(),
+    attributeLayers: z.array(z.object({name: z.string(), data: z.instanceof(Float32Array)}).strict()).optional(),
     indices: z.instanceof(Uint32Array),
     groups: z.array(
       z
@@ -421,6 +423,7 @@ export const frameSchema = z
            *  coordinates map through; absent means Blender's automatic one,
            *  the evaluated bounds (`blender-graph-material.ts`'s orco). */
           texspace: z.tuple([z.tuple([scalar, scalar, scalar]), z.tuple([scalar, scalar, scalar])]).optional(),
+          default_color: z.string().optional(),
         })
         .strict(),
     ),
@@ -1257,6 +1260,8 @@ export class BlenderRuntimeView {
       object.matrix.decompose(object.position, object.quaternion, object.scale);
       if (obj.texspace) object.userData['blenderTexspace'] = obj.texspace;
       else delete object.userData['blenderTexspace'];
+      if (obj.default_color !== undefined) object.userData['blenderDefaultColor'] = obj.default_color;
+      else delete object.userData['blenderDefaultColor'];
       if (obj.mesh !== null) {
         const mesh = object as THREE.Mesh;
         mesh.geometry = this.meshes.get(obj.mesh)!.geometry;
@@ -1390,6 +1395,11 @@ export class BlenderRuntimeView {
         uvLayers: Object.entries(geometry.userData['blenderUvChannels'] as Record<string, number> ?? {}).map(([name, channel]) => {
           const data = attribute(`uv${channel}`);
           if (!data) throw new Error(`Blender capture mesh ${id} is missing UV layer ${name}`);
+          return {name, data};
+        }),
+        attributeLayers: (geometry.userData['blenderAttributes'] as string[] | undefined ?? []).map(name => {
+          const data = attribute(graphAttributeName(name));
+          if (!data) throw new Error(`Blender capture mesh ${id} is missing attribute ${name}`);
           return {name, data};
         }),
         indices: index
