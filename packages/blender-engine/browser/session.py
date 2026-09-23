@@ -716,6 +716,8 @@ def _refusal(node):
     kind = node.bl_idname
     if kind == "ShaderNodeTexImage":
         image = node.image
+        if node.projection == "BOX" and node.extension == "CLIP":
+            return "%s clips a Box projection, which is not compiled" % node.name
         if image is not None and image.source not in ("FILE", "GENERATED", "TILED"):
             return "%s's image is a %s source" % (node.name, image.source)
     if kind == "ShaderNodeNewGeometry" and node.outputs["Parametric"].is_linked:
