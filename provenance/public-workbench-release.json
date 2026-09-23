@@ -9,13 +9,13 @@
   },
   "editorSource": {
     "repository": "https://github.com/volter-ai/editor",
-    "revision": "c9551e8c6f181c2816329ac15702eb9f0eabf368",
+    "revision": "2896a2901bb6e67aa23b7ed977339f79763f53f8",
     "dirty": false
   },
   "build": {
     "node": "v24.21.0",
-    "builtAt": "2026-09-23T10:08:13.029Z",
-    "assetVersion": "d3188c3c5fb41c0a03cf1faf9664e78d823da27c",
+    "builtAt": "2026-09-23T13:02:05.394Z",
+    "assetVersion": "ec961cc7dd78be2f0a08c33ee0c79cf8024491fc",
     "mangled": false,
     "minified": true,
     "serverBin": "bin/code-server-oss",
@@ -26,20 +26,19 @@
   },
   "artifact": {
     "name": "vscode-reh-web-darwin-arm64-f8664703ab59-editor.tar.gz",
-    "bytes": 148770091,
-    "unpackedBytes": 477749097,
-    "sha256": "99e97f43474e0a5fdbfef7c8d7c61718a4c4a6d96a924dfa0cd8de5cf5c7b82b"
+    "bytes": 148781807,
+    "unpackedBytes": 477748784,
+    "sha256": "98e0a485119020be52bd81e4ada0b37ec1dd100ae2e96e3d6c07ccda5c4f8269"
   },
   "release": {
     "repository": "volter-ai/code-oss",
-    "tag": "editor-f8664703ab59-c9551e8c6f18-darwin-arm64",
-    "url": "https://github.com/volter-ai/code-oss/releases/tag/editor-f8664703ab59-c9551e8c6f18-darwin-arm64",
+    "tag": "editor-f8664703ab59-2896a2901bb6-darwin-arm64",
+    "url": "https://github.com/volter-ai/code-oss/releases/tag/editor-f8664703ab59-2896a2901bb6-darwin-arm64",
     "visibility": "public"
   },
   "verification": {
-    "compile": "Code-OSS source, extension media, native extensions and non-native extensions completed with zero errors.",
     "checksum": "The locally recomputed SHA-256 and complete anonymous public download match.",
-    "anonymousDownload": "The full release archive was downloaded without credentials and its SHA-256 verified.",
-    "sidebar": "Five packed cold-reopen cycles preserved native saved selection, including a deliberate Source Control choice and return to Blender Properties/Outliner. No second layout store."
+    "anonymousDownload": "The full release archive was downloaded with curl and no credentials, and its SHA-256 verified; a fresh-cache registry install fetched it automatically (through the installer's gh-token fallback) and checked the pin before extraction.",
+    "layout": "Built from clean editor 2896a29: no empty header strips above the Model and Timeline editors or in the side panels, measured 0 px on the packed install."
   }
 }

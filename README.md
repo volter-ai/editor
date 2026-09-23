@@ -12,8 +12,9 @@ server and opens Blender in a packaged Code-OSS workbench. Installed MCP can
 inspect, edit and photograph the model. Modeling edits persist to the project's
 `.blend` file and survive reopening. Packaged-workbench startup and reuse are
 verified on darwin-arm64. The matching workbench is public and anonymously
-downloadable. The public npm packages and a credential-free, cache-empty
-installation have passed live modeling acceptance.
+downloadable. The public npm packages download anonymously byte-identical to
+the tested archives, and a cache-empty installation from the registry has passed
+live modeling acceptance.
 
 The packaged workbench currently supports **macOS on Apple Silicon**
 (`darwin-arm64`). Installation and startup were verified with Node.js 24.

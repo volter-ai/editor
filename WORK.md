@@ -1,8 +1,11 @@
 # Public release status
 
-Volter Editor 0.5.63 / Blender packages 0.1.6 are public on npm. Every
-registry digest matches its tested archive. Credential-free installation from
-an initially empty npm cache and automatic public workbench download succeeded.
+Volter Editor 0.5.64 / Blender packages 0.1.7 are public on npm. Every
+registry digest matches its tested archive, and every tarball downloads without
+credentials byte-identical to it. Installation from an initially empty npm cache
+and automatic public workbench download succeeded and passed live acceptance;
+that install ran in a shell holding npm tokens and a gh login, so the
+credential-free proof is the anonymous downloads (provenance/public-npm-release.json).
 The new install reports zero npm vulnerabilities. Only the
 eight packages in [release/modeling.json](release/modeling.json) are published;
 game packages remain excluded.
@@ -106,29 +109,33 @@ console. The task's editor sessions were closed after acceptance.
 
 ## Source and artifacts
 
-- npm source for 0.5.63: `377651068f63e359589735f9b707e00df58b39b4` in the public
-  [editor repository](https://github.com/volter-ai/editor). The earlier 0.5.59
+- npm source for 0.5.64: `839179069050f6965cf51d27adfcd5b60a3898be` in the public
+  [editor repository](https://github.com/volter-ai/editor);
+  [release v0.5.64](https://github.com/volter-ai/editor/releases/tag/v0.5.64).
+  0.5.63's source was `377651068f63e359589735f9b707e00df58b39b4`. The earlier 0.5.59
   and 0.5.60 patches are immutable: 0.5.59 lacks the Outliner barrier, and
   0.5.60 lacks the cold-start corrections; 0.5.61 lacks revision-safe
   Properties reads.
   [Release v0.5.62](https://github.com/volter-ai/editor/releases/tag/v0.5.62)
   records the preceding acceptance. The current [npm receipt](provenance/public-npm-release.json) records the exact
   archive digests, acceptance evidence and remaining limits.
-- The workbench is Code-OSS `f8664703ab59` plus editor overlay `c9551e8c6f18`,
-  release `editor-f8664703ab59-c9551e8c6f18-darwin-arm64`, SHA-256
-  `99e97f43474e0a5fdbfef7c8d7c61718a4c4a6d96a924dfa0cd8de5cf5c7b82b`.
-  Its complete anonymous download and normal fresh installer fetch were verified.
+- The workbench is Code-OSS `f8664703ab59` plus editor overlay `2896a2901bb6`,
+  release `editor-f8664703ab59-2896a2901bb6-darwin-arm64`, SHA-256
+  `98e0a485119020be52bd81e4ada0b37ec1dd100ae2e96e3d6c07ccda5c4f8269`.
+  Its complete anonymous download and fresh installer fetch were verified.
   See [workbench provenance](provenance/public-workbench-release.json).
 - Blender corresponding source and all 34 dependency-source archives were
   public before binary distribution. See [source review](provenance/blender-source-review.json)
-  and the [source/binary release](https://github.com/volter-ai/blender/releases/tag/blender-5.2.0-wasm.2).
+  and the [source/binary release](https://github.com/volter-ai/blender/releases/tag/blender-5.2.0-wasm.3)
+  (source `071e080a`; the archive and all six binary files downloaded
+  anonymously byte-identical before and after upload).
 - All three public repositories began from reviewed root snapshots without
   private history. Former repositories and legacy releases remain private
   under explicit `*-private-history` names. No recurring export is required.
 
 ## Remaining work and limits
 
-### Material node graphs (0.5.64 candidate, unreleased)
+### Material node graphs (0.5.64)
 
 A Principled BSDF's or Emission's linked Base Color, Metallic, Roughness,
 Alpha, Emission and Normal inputs render from the material's node graph. The
@@ -203,7 +210,7 @@ Properties no longer blanks and repaints on every edit (measured through one
 edit: 0.5.63 went 225/28 elements/inputs to 38/1 and back; the candidate held
 225/28).
 
-Packed acceptance (0.5.64 candidate, unpublished): the eight archives from
+Packed acceptance (0.5.64): the eight archives from
 `8391790` installed into an empty directory with no workspace links and no
 engine override; the product resolved its pinned workbench
 `editor-f8664703ab59-2896a2901bb6` (seeded in the local workbench cache, since

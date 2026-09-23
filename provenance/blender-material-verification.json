@@ -1,7 +1,7 @@
 {
-  "measuredAt": "2026-09-23T10:01:33.415Z",
-  "source": "68bba09924c2cf08cbceb6608be4a9e1500a62bb",
-  "editorRevision": "c7f0def0d717dfeef7b56f436156834a4b2250b4",
+  "measuredAt": "2026-09-23T17:06:12.761Z",
+  "source": "071e080a21c09e07f2dac8593dca2f9a566e591e",
+  "editorRevision": "839179069050f6965cf51d27adfcd5b60a3898be",
   "execution": "World-attached file-backed Model document, fresh editor and Blender engine for each of five frozen models",
   "harnessModified": true,
   "harnessChanges": [
@@ -19,8 +19,8 @@
       "sha256": "2a5d4dbcc90cab571eb16eef9672ef8583e1c0a3638d0b85165d1944d191d9a7"
     },
     "blender_browser.wasm": {
-      "bytes": 86296622,
-      "sha256": "fcc411449beadda7e7a73ec151844f62e0beaf1371f41d43a04a53b884c81c4d"
+      "bytes": 86305783,
+      "sha256": "a9927fc4c71b41b9d464c34e8700b234bd736f75425e10a8b4d9986770d0954e"
     },
     "blender_browser.data": {
       "bytes": 52698568,
@@ -85,22 +85,22 @@
         "matched": 125,
         "expected": 126
       },
-      "startedAt": "2026-09-23T09:34:05.170711+00:00",
-      "finishedAt": "2026-09-23T09:35:25.716265+00:00",
+      "startedAt": "2026-09-23T16:56:42.364740+00:00",
+      "finishedAt": "2026-09-23T16:57:47.362113+00:00",
       "source": {
-        "revision": "c7f0def0d717dfeef7b56f436156834a4b2250b4",
+        "revision": "839179069050f6965cf51d27adfcd5b60a3898be",
         "dirtyDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "harnessAdapterSha256": "3cd6ca4b4bb3ef6e718d490bc065870fc9f1ecaf5709e53f0b282c53c931c442",
+        "harnessAdapterSha256": "0df090e2115883b7b35647696aab8a87e98334cfca88f58df2d509f2ee49bea4",
         "collectorSha256": "2c8e9ce66f2a5f50035ef663ed53af210df6011a42d2b19c6b84fa98b7b2bdd4",
         "readinessSha256": "199b01b81751a0a33ba111cab542e2d1d53ba2c60a3efd97ad0f078be93f1b85",
-        "rawWasmSha256": "fcc411449beadda7e7a73ec151844f62e0beaf1371f41d43a04a53b884c81c4d"
+        "rawWasmSha256": "a9927fc4c71b41b9d464c34e8700b234bd736f75425e10a8b4d9986770d0954e"
       },
       "evidence": {
-        "result.json": "d9d583bcf5f63d79273fd5c55f23f7e8c0d29e8b08409ee5fd0eb784fd1cfb27",
-        "session-trace.jsonl": "f68788764cfb95dfec06ad7dce1b78cc1c0d21dede006e3bdd46ccc6ce70aaa2",
-        "geometry-comparison.json": "179fc296c4345f6f72fde0a56843e59f32f0964eccec5e68e258075cb3350db1",
-        "presentation-comparison.json": "4f8481713d3bf1733ec1f2d3f15f0e2030f053e14e9af2812473dc7666ecf499",
-        "artifact-comparison.json": "5073f567c0d41a39ae1666e5b810b60a59a211852785c15efe1cf9f558526e64"
+        "result.json": "102fe43744e0eec3b464444c02675079c0bde55d822aa58359c948b4d7fe42f5",
+        "session-trace.jsonl": "949ed5ed8ff975288bb2badf61f3497e204d6fae3e5a5834b949eb4c9abfcaf9",
+        "geometry-comparison.json": "8851162071b3061a84ea550d29e05cc4e12522da2290466ec9ec2f35af8416c4",
+        "presentation-comparison.json": "98b09c20f97a5ac7c1d51d9ac6f97edf180bb53cf1ce96b8077f5d67d62029ef",
+        "artifact-comparison.json": "fe93497d2978e0c51a9f60c3a3b7de8650d7e26abf267bd7a09114bad85cde7d"
       }
     },
     {
@@ -144,22 +144,22 @@
         "matched": 149,
         "expected": 150
       },
-      "startedAt": "2026-09-23T09:35:42.408518+00:00",
-      "finishedAt": "2026-09-23T09:36:56.585930+00:00",
+      "startedAt": "2026-09-23T16:57:55.473490+00:00",
+      "finishedAt": "2026-09-23T16:58:55.532162+00:00",
       "source": {
-        "revision": "c7f0def0d717dfeef7b56f436156834a4b2250b4",
+        "revision": "839179069050f6965cf51d27adfcd5b60a3898be",
         "dirtyDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "harnessAdapterSha256": "3cd6ca4b4bb3ef6e718d490bc065870fc9f1ecaf5709e53f0b282c53c931c442",
+        "harnessAdapterSha256": "0df090e2115883b7b35647696aab8a87e98334cfca88f58df2d509f2ee49bea4",
         "collectorSha256": "2c8e9ce66f2a5f50035ef663ed53af210df6011a42d2b19c6b84fa98b7b2bdd4",
         "readinessSha256": "199b01b81751a0a33ba111cab542e2d1d53ba2c60a3efd97ad0f078be93f1b85",
-        "rawWasmSha256": "fcc411449beadda7e7a73ec151844f62e0beaf1371f41d43a04a53b884c81c4d"
+        "rawWasmSha256": "a9927fc4c71b41b9d464c34e8700b234bd736f75425e10a8b4d9986770d0954e"
       },
       "evidence": {
-        "result.json": "6bd081542c856cdda779b6e6ec11c0e5c6a44ac8599ff6467705449ab20df5ab",
-        "session-trace.jsonl": "16ac03c12c09198c0c28b0f4148b7d1ebabbc375dd747248c038247d9a0c4067",
-        "geometry-comparison.json": "6169db0d6a3829111ec32ba0d1fc5b2afec5e80aef05505cb29c9ce271590cc8",
-        "presentation-comparison.json": "ca13976c47e9a96784a372fc2032bc5d60fb9bab8455f7fd1ca61ce626fa38dc",
-        "artifact-comparison.json": "06657cf40fc09126ed7098e6bbf2309ae7638c6e08b1a86561700647e4cd60d0"
+        "result.json": "78d15fdead1d8aad3bcb749e3896f5b4fee42e67d8f022266e5e5fe4a3768140",
+        "session-trace.jsonl": "499739f3183877f11fda4c148e6df30762eb6cf75636f9ce27415e4557887fab",
+        "geometry-comparison.json": "2bccfbae9c7a96666be6015fb53a93d694c616714a6d2880c3096b71eddd8508",
+        "presentation-comparison.json": "fb33aa572541946154eb9571aa84b02685aae1f46fc6c623cb3ab97b8f067680",
+        "artifact-comparison.json": "1f7287cc661d2085663a133c04c30e537564027cc49aef4ba10cefde30c7dfb8"
       }
     },
     {
@@ -209,22 +209,22 @@
         "matched": 76,
         "expected": 87
       },
-      "startedAt": "2026-09-23T09:37:08.187294+00:00",
-      "finishedAt": "2026-09-23T09:38:03.171782+00:00",
+      "startedAt": "2026-09-23T16:59:03.685877+00:00",
+      "finishedAt": "2026-09-23T16:59:49.764791+00:00",
       "source": {
-        "revision": "c7f0def0d717dfeef7b56f436156834a4b2250b4",
+        "revision": "839179069050f6965cf51d27adfcd5b60a3898be",
         "dirtyDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "harnessAdapterSha256": "3cd6ca4b4bb3ef6e718d490bc065870fc9f1ecaf5709e53f0b282c53c931c442",
+        "harnessAdapterSha256": "0df090e2115883b7b35647696aab8a87e98334cfca88f58df2d509f2ee49bea4",
         "collectorSha256": "2c8e9ce66f2a5f50035ef663ed53af210df6011a42d2b19c6b84fa98b7b2bdd4",
         "readinessSha256": "199b01b81751a0a33ba111cab542e2d1d53ba2c60a3efd97ad0f078be93f1b85",
-        "rawWasmSha256": "fcc411449beadda7e7a73ec151844f62e0beaf1371f41d43a04a53b884c81c4d"
+        "rawWasmSha256": "a9927fc4c71b41b9d464c34e8700b234bd736f75425e10a8b4d9986770d0954e"
       },
       "evidence": {
-        "result.json": "4665a6fe6ab245d1320773546d294cb0297184716eb481d938f092e9da214edb",
-        "session-trace.jsonl": "9d3d0655ac0478c2d6a014c174aa5b2cd6f0532fd6d6e75edbcf7e30d80008de",
-        "geometry-comparison.json": "b83725312294eeaa21e3ad75c8fc40aff827d85b0a06cc2695dcdae95f02b611",
-        "presentation-comparison.json": "f5b5ae6e502205d6a47acd492074b4e65b2a7ba9980ab7c4f0869bdb97946563",
-        "artifact-comparison.json": "7f2e624d54fc74c08afee29701ee6e5155878f1095c54bd2f139fd8df6bbc4cc"
+        "result.json": "ac58be4ffd112a6dfefa4047718608414362e60e0e354cc410a82cb80d8eb21d",
+        "session-trace.jsonl": "653708d6bd099e35054dead62d5d8eedf22c8e52bfb7c210069decf28e4cad80",
+        "geometry-comparison.json": "7a54df5e6a6c53ee3b01b83afe1d37c69d3cb59ae66d7f7256618cf454a63040",
+        "presentation-comparison.json": "b62c92edd2f11bf4c4667fbf253c31f54fd1303842f084fefd1785271ed3f620",
+        "artifact-comparison.json": "7df5a68e98a6ea907acc54f393e27b2a65bba8884fbb31dcea6aa2d49ecaa918"
       }
     },
     {
@@ -264,22 +264,22 @@
         "matched": 172,
         "expected": 173
       },
-      "startedAt": "2026-09-23T09:38:15.182738+00:00",
-      "finishedAt": "2026-09-23T09:39:31.367929+00:00",
+      "startedAt": "2026-09-23T16:59:58.180695+00:00",
+      "finishedAt": "2026-09-23T17:02:27.575822+00:00",
       "source": {
-        "revision": "c7f0def0d717dfeef7b56f436156834a4b2250b4",
+        "revision": "839179069050f6965cf51d27adfcd5b60a3898be",
         "dirtyDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "harnessAdapterSha256": "3cd6ca4b4bb3ef6e718d490bc065870fc9f1ecaf5709e53f0b282c53c931c442",
+        "harnessAdapterSha256": "0df090e2115883b7b35647696aab8a87e98334cfca88f58df2d509f2ee49bea4",
         "collectorSha256": "2c8e9ce66f2a5f50035ef663ed53af210df6011a42d2b19c6b84fa98b7b2bdd4",
         "readinessSha256": "199b01b81751a0a33ba111cab542e2d1d53ba2c60a3efd97ad0f078be93f1b85",
-        "rawWasmSha256": "fcc411449beadda7e7a73ec151844f62e0beaf1371f41d43a04a53b884c81c4d"
+        "rawWasmSha256": "a9927fc4c71b41b9d464c34e8700b234bd736f75425e10a8b4d9986770d0954e"
       },
       "evidence": {
-        "result.json": "ef698f4326f7daf907adf6b4a60a1faeb3d005b287dca184440b83acfcebcaff",
-        "session-trace.jsonl": "0ea0bac7d72dcfd664af38a8328d6099e3b7699b8c5c0c59af23decb47cbfd57",
-        "geometry-comparison.json": "6ecf3094f6b3d16768b0c1316e23d48e651da5f251d1df539f463724b39e6357",
-        "presentation-comparison.json": "9e309df9f6cee0bf716d9b9b13055e7b01410f7a0cd3619c1c342dd88c657652",
-        "artifact-comparison.json": "3b0281badb9c3b559980fb0af621adda99a8b209b5a040032af40a9c07f47345"
+        "result.json": "e84be72bf76bd5a74293e46d33b7f6dbe70c8a342ded9fd0ba5fa46a49e7831f",
+        "session-trace.jsonl": "3e69dce0d667357dafc2e26a66e7be76a5241e4bf2ab14e33f54b20d966b5d95",
+        "geometry-comparison.json": "f4e94eaf580b16679d540c951ad19dace125c19a0ed30dfae17e802ec3ee1595",
+        "presentation-comparison.json": "b841dc82694f78028034e9cf715d4b7be60101c970888f8e25e36b2297d4b69d",
+        "artifact-comparison.json": "91031c17c9ff13548b558ac7a5662d81511e3ffbb2a805b8d8414242a26fb137"
       }
     },
     {
@@ -345,22 +345,22 @@
         "matched": 78,
         "expected": 84
       },
-      "startedAt": "2026-09-23T09:39:43.341302+00:00",
-      "finishedAt": "2026-09-23T09:42:33.551958+00:00",
+      "startedAt": "2026-09-23T17:02:36.792646+00:00",
+      "finishedAt": "2026-09-23T17:04:50.573496+00:00",
       "source": {
-        "revision": "c7f0def0d717dfeef7b56f436156834a4b2250b4",
+        "revision": "839179069050f6965cf51d27adfcd5b60a3898be",
         "dirtyDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-        "harnessAdapterSha256": "3cd6ca4b4bb3ef6e718d490bc065870fc9f1ecaf5709e53f0b282c53c931c442",
+        "harnessAdapterSha256": "0df090e2115883b7b35647696aab8a87e98334cfca88f58df2d509f2ee49bea4",
         "collectorSha256": "2c8e9ce66f2a5f50035ef663ed53af210df6011a42d2b19c6b84fa98b7b2bdd4",
         "readinessSha256": "199b01b81751a0a33ba111cab542e2d1d53ba2c60a3efd97ad0f078be93f1b85",
-        "rawWasmSha256": "fcc411449beadda7e7a73ec151844f62e0beaf1371f41d43a04a53b884c81c4d"
+        "rawWasmSha256": "a9927fc4c71b41b9d464c34e8700b234bd736f75425e10a8b4d9986770d0954e"
       },
       "evidence": {
-        "result.json": "b2b69919a57359e1100f27f9286989b6b91e31432592355d0ac19c533ded5b96",
-        "session-trace.jsonl": "4751b6da2a1b44d8110306d7166a2c8ebebfb9c1c474a956d70870854e253e6c",
-        "geometry-comparison.json": "a767ad4806887747227d90f2ca4d96cd473ec5465b8fcddebf71ff5e227d906c",
-        "presentation-comparison.json": "48765f10d8a371fde22ad6c85cd974b8a16d803947f18f85e08e99fe15ad17c2",
-        "artifact-comparison.json": "530f1d1dd5484c56a01cb4230057df782f85e0bdfb40f6abd793cff891a1ebd2"
+        "result.json": "fd06ae112a4ef768efe562d8d462ce60b4d86377782604a259f52e99174b4ed9",
+        "session-trace.jsonl": "2854247d28c2fc212f277666621408fe8ae21c23860f2ddea75589e384dcd64b",
+        "geometry-comparison.json": "1c87b078dfd7c006b79ae739d24c7ec3b28e5f1961b177e5db29b295a4cb4fac",
+        "presentation-comparison.json": "61d9adbd4d3a5a75c2b622886fca9ddf42a0956882f08e5bea84112568d65838",
+        "artifact-comparison.json": "e59cd08d0ea79c2528ff122dbc6158788b609f7b53ea31b043c184c67184de62"
       }
     }
   ],
@@ -520,33 +520,20 @@
     "python": "3.13.13 (main, Sep 22 2026, 02:47:11) [Clang 24.0.0git (https:/github.com/llvm/llvm-project abd3b3a1445b5a8eeffae5c391"
   },
   "previousBinaryComparison": {
-    "bridge": {
-      "snapshots": 70,
-      "byteIdentical": 70
+    "baseline": "blender-5.2.0-wasm.2 battery (accepted)",
+    "baselineRawWasmSha256": "fcc411449beadda7e7a73ec151844f62e0beaf1371f41d43a04a53b884c81c4d",
+    "rawSnapshots": {
+      "compared": 388,
+      "byteIdentical": 387,
+      "differing": 1
     },
-    "courier": {
-      "snapshots": 5,
-      "byteIdentical": 3,
-      "remaining": [
-        {
-          "object": "Adventurer_Body",
-          "afterIndexRemapping": "one polygon normal component",
-          "absoluteDifference": 0.000001
-        },
-        {
-          "object": "Courier_Satchel",
-          "afterIndexRemapping": "one vertex normal component",
-          "absoluteDifference": 0.000001
-        }
-      ]
-    },
-    "baselineRawWasmSha256": "cdf49c116bd5ce56bc4e1c87f7b5da306310eeb86bdf237487b8673e4d6f54a0"
+    "differingSnapshots": "17-workshop-interior Wall_Back: element order only. Canonicalized (vertex coordinate multiset, faces as rotation-normalized coordinate cycles, edges as coordinate pairs), it is identical to the baseline.",
+    "statusAndErrorsPerModel": "identical to the baseline for all five models"
   },
   "limitations": [
-    "Exact native geometry comparisons remain different for bridge and courier; thresholds and oracles are unchanged.",
-    "All 70 bridge snapshots match the previous accepted binary byte-for-byte. Courier matches that binary after index remapping except two normal components differing by 0.000001.",
+    "Exact native geometry comparisons remain different for bridge and courier, identical to the accepted wasm.2 run; thresholds and oracles are unchanged.",
     "Bridge/tram retain the previous geometry-less curve helper presentation reports.",
-    "Native Cycles image equality is not claimed. All photographed camera poses match.",
-    "The release adapter changes package imports, product document addressing and project setup, not frozen requests or comparison rules."
+    "Native Cycles image equality is not claimed.",
+    "The harness is the wasm.2 release adapter with its task paths changed; frozen requests and comparison rules are unchanged."
   ]
 }

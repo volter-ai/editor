@@ -3,266 +3,122 @@
   "registry": "https://registry.npmjs.org",
   "source": {
     "repository": "https://github.com/volter-ai/editor",
-    "revision": "377651068f63e359589735f9b707e00df58b39b4"
+    "revision": "839179069050f6965cf51d27adfcd5b60a3898be"
   },
-  "publication": "All eight versions are public; every registry integrity and shasum matches the exact tested archive. Normal credential-free fresh-cache creation, automatic workbench download and live acceptance passed.",
-  "packages": [
-    {
-      "name": "@volter/editor-project",
-      "version": "0.5.63",
-      "shasum": "7853441ee9f73410eb171a1f0f384112a11738e9",
-      "integrity": "sha512-3Q29EzfdUSmzn5DisGib+CtieHOoEfACeZiqyg58PY0lKqRjMwK69Tf6x85FREtAXI06o1DXA6mZANutNNXXRA=="
-    },
-    {
-      "name": "@volter/editor-sdk",
-      "version": "0.5.63",
-      "shasum": "dd0161a27c9906e6339715cc8b0da0b63eaf87e5",
-      "integrity": "sha512-l4jPQRQPyY8iWm3DwvtVJLpKqWNoFRbeci2wtub86N5FjdJmJpu4FNkbSjJ+CJ3TmZSZ4GRocWyNLwegM+qbrQ=="
-    },
-    {
-      "name": "@volter/editor-threejs",
-      "version": "0.5.63",
-      "shasum": "7030888ba6bea2517cb2df87cf7f08a7103ff4da",
-      "integrity": "sha512-4xjjDBUgBfSBP1wrM5ZUPqu1isH2W9VVaVXyNH+u+ovmB8Mt8xmdAAVXsOeoBcBZo1yATj1r8I+d0JCq5JNhww=="
-    },
-    {
-      "name": "@volter/blender-engine",
-      "version": "0.1.6",
-      "shasum": "904c73f55a8d0f3ed6dc03c6b1173a2a6e9faf45",
-      "integrity": "sha512-gs9JAX74SZiky/t9kFJBtHnvqIis9CSl2OPyU+UJng1Qmc+z+cCUs6QqF+VURCEcv2BKLqtBSkd6gWLj9+/elg=="
-    },
-    {
-      "name": "@volter/editor-blender",
-      "version": "0.1.6",
-      "shasum": "eff9a70847872b3179093438e2bd8b62d7f37a5a",
-      "integrity": "sha512-9Ll0xMB2aYkp208M5z14iSsdJ0KNnLETedp/JFT0oZ6ENKMNqBzF61M55p5shy4eUhK4gpVPO+m41iFmhaH/Iw=="
-    },
-    {
-      "name": "@volter/editor-core",
-      "version": "0.5.63",
-      "shasum": "7a6a78bf0d5ece0d71bb55f7112425a890cc986e",
-      "integrity": "sha512-S5a6amxJWep2U9H9vMtj6/L95oC75fZe4JhqcRLxPg6DEo+64J6y8UrEVPt9sjBDMC2oM4wYStHQl8ubXqO5Tg=="
-    },
-    {
-      "name": "@volter/editor-live",
-      "version": "0.5.63",
-      "shasum": "a7b4bd9445f0cf4756e74a46695b8a29199ad29e",
-      "integrity": "sha512-CR2rB7fb+6izA0UQODm1e7ObLN8hTeqsmsxj2wMv23+Rip1+XGMrKuPm6nZdbS93GKrfU4HHeQBRUUHBWqW3aA=="
-    },
-    {
-      "name": "@volter/editor",
-      "version": "0.5.63",
-      "shasum": "860a2d58b75dc33b4c3e24ae357dc48038ace6d2",
-      "integrity": "sha512-vwcXn2eds7nUJfPUFATrh87A+US3piSuZ1ZiZtmmGGl4yVUR2DETRkd7HbCed1TcMsSIiFc7cjLSFdvIgKd4Cg=="
-    }
-  ],
-  "workbenchRelease": "editor-f8664703ab59-c9551e8c6f18-darwin-arm64",
-  "blenderRelease": "blender-5.2.0-wasm.2",
+  "publication": "All eight versions are public; every registry integrity and shasum matches the exact tested archive, and every tarball downloaded with no credentials or environment is byte-identical to it. Fresh-cache creation from the registry, automatic workbench download and live acceptance passed.",
+  "workbenchRelease": "editor-f8664703ab59-2896a2901bb6-darwin-arm64",
+  "blenderRelease": "blender-5.2.0-wasm.3",
   "checks": {
-    "tests": 72,
-    "typecheckedPackages": 8,
+    "typecheckedPackages": "blender-engine, editor-sdk, editor-blender, editor-core configs: zero errors",
     "build": "passed",
-    "manifestBoundaryPackages": 8,
-    "packedImportFiles": 1086,
-    "fullBlenderBattery": "362/362 calls, zero harness failures; exact native differences retained in blender-material-verification.json"
+    "libraryCompile": "All 57 node-library files and the presenter's coordinate functions compile in the page's WebGL2",
+    "eevee": "Emission/sphere comparison scenes against desktop Blender 5.2 EEVEE: interiors within 0.5-2 levels mean for every compiled node family; differences only on edges and filtered image detail",
+    "fullBlenderBattery": "362/362 calls, zero harness failures; statuses and error sequences identical to wasm.2; 387/388 raw snapshots byte-identical, the other element-order only"
   },
   "packedAcceptance": {
-    "completedAt": "2026-09-23T10:17:21.831Z",
-    "pythonRnaHistory": true,
-    "structuralCycles": 5,
-    "coldReopens": 5,
-    "nativePanelsRestored": true,
-    "sourceControlChoicePreserved": true,
-    "essentials": true,
-    "x": 5.625,
+    "archivesFrom": "8391790",
+    "workspaceLinks": false,
+    "wasmOverride": false,
+    "engineWasmBrSha256": "63098ef8988e1040aa9e97c9aa7c01f06c5f835582732e057daf2ccf69040440",
+    "firstCommandMs": 2728,
+    "bootMs": 2234,
+    "graphUndoRedo": true,
+    "reopenKeptValueUdimTilesAndGraphs": true,
     "console": {
       "errors": 0,
-      "warnings": 0,
-      "errorOccurrences": 0,
-      "warningOccurrences": 0,
-      "acked": 0,
-      "dropped": 0,
-      "measuredAt": 1790158641858
-    },
-    "saveRecovery": {
-      "refusedEdit": true,
-      "refusedClose": true,
-      "restoredMode": "755",
-      "recoveredX": 12.625,
-      "pendingCloseMs": 2396,
-      "reopenedX": 14.625,
-      "console": {
-        "errors": 0,
-        "warnings": 0,
-        "errorOccurrences": 0,
-        "warningOccurrences": 0,
-        "acked": 0,
-        "dropped": 0,
-        "measuredAt": 1790158670745
-      }
-    },
-    "coldMcp": {
-      "coldStdioMcp": true,
-      "x": 14.625,
-      "essentials": true,
-      "console": {
-        "errors": 0,
-        "warnings": 0,
-        "errorOccurrences": 0,
-        "warningOccurrences": 0,
-        "acked": 0,
-        "dropped": 0,
-        "measuredAt": 1790158688980
-      }
-    },
-    "workspaceLinks": false,
-    "wasmOverride": false
-  },
-  "renderer": {
-    "physical": "Packed GPU: physical inputs on/off, tangent and object-space DirectX normals, edit/undo/redo, first/eighth/missing named UV, Repeat/Clip passed.",
-    "volume": "Packed absorption/clear, spotlight/blocker, point/zero-energy and history probes passed. Dark image has maximum one-code-value residual, not exact black parity.",
-    "pixels": {
-      "volume-absorption": {
-        "center": [
-          163,
-          163,
-          163
-        ],
-        "rgbSum": 8011842,
-        "max": 164
-      },
-      "volume-clear": {
-        "center": [
-          255,
-          255,
-          255
-        ],
-        "rgbSum": 12529662,
-        "max": 255
-      },
-      "volume-scatter": {
-        "center": [
-          69,
-          69,
-          69
-        ],
-        "rgbSum": 958731,
-        "max": 214
-      },
-      "volume-shadow": {
-        "center": [
-          69,
-          69,
-          69
-        ],
-        "rgbSum": 767031,
-        "max": 214
-      },
-      "volume-point": {
-        "center": [
-          115,
-          115,
-          115
-        ],
-        "rgbSum": 5753064,
-        "max": 255
-      },
-      "volume-dark": {
-        "center": [
-          0,
-          0,
-          0
-        ],
-        "rgbSum": 4164,
-        "max": 1
-      }
-    },
-    "nativeCyclesParity": false
+      "warnings": 0
+    }
   },
   "installation": {
-    "completedAt": "2026-09-23T10:34:11.735Z",
-    "credentialFree": true,
+    "credentialFree": false,
     "initiallyEmptyCache": true,
     "workspaceLinks": false,
     "allEightRegistryDigestsMatch": true,
-    "project": "public-anonymous",
-    "credentials": "NPM_TOKEN, NODE_AUTH_TOKEN, GITHUB_TOKEN and GH_TOKEN removed; npm user config /dev/null, task-owned credential-free global config; PATH excludes gh so no login fallback is possible.",
-    "cache": "New empty npm cache/prefix; matching public workbench absent and fetched automatically, SHA-256 checked before extraction.",
+    "credentials": "Not credential-free: the shell held NPM_TOKEN and NODE_AUTH_TOKEN (npm's user config was replaced by a registry-only file that references neither), and the workbench fetch falls back to the logged-in gh token. Public availability is shown separately: all eight tarballs and the workbench archive were downloaded with curl and no credentials or environment, each byte-identical to the tested artifact.",
+    "cache": "New empty npm cache; the matching workbench was absent and fetched automatically from volter-ai/code-oss, SHA-256 checked before extraction.",
     "installedPackages": 436,
     "liveAcceptance": {
-      "completedAt": "2026-09-23T10:37:43.337Z",
-      "pythonRnaHistory": true,
-      "structuralCycles": 5,
-      "coldReopens": 5,
-      "nativePanelsRestored": true,
-      "sourceControlChoicePreserved": true,
-      "essentials": true,
-      "x": 5.625,
+      "engineWasmBrSha256": "63098ef8988e1040aa9e97c9aa7c01f06c5f835582732e057daf2ccf69040440",
+      "engineValidator": true,
+      "firstCommandMs": 3031,
+      "bootMs": 2402,
+      "curvesSceneAgainstEevee": "interiors 0.54 / 1.37 / 0.57 levels mean",
+      "graphUndoRedo": true,
+      "reopenKeptEdit": true,
       "console": {
         "errors": 0,
-        "warnings": 0,
-        "errorOccurrences": 0,
-        "warningOccurrences": 0,
-        "acked": 0,
-        "dropped": 0,
-        "measuredAt": 1790159863359
+        "warnings": 0
       }
     },
-    "saveRecovery": {
-      "refusedEdit": true,
-      "refusedClose": true,
-      "restoredMode": "755",
-      "recoveredX": 12.625,
-      "pendingCloseMs": 2424,
-      "reopenedX": 14.625,
-      "console": {
-        "errors": 0,
-        "warnings": 0,
-        "errorOccurrences": 0,
-        "warningOccurrences": 0,
-        "acked": 0,
-        "dropped": 0,
-        "measuredAt": 1790159883608
-      }
-    },
-    "coldMcp": {
-      "coldStdioMcp": true,
-      "x": 14.625,
-      "essentials": true,
-      "console": {
-        "errors": 0,
-        "warnings": 0,
-        "errorOccurrences": 0,
-        "warningOccurrences": 0,
-        "acked": 0,
-        "dropped": 0,
-        "measuredAt": 1790159893277
-      }
-    },
-    "missingUv": "Live render and undo passed, silent console.",
-    "capture": "Inspected selected Cube at X=14.625, grid, Outliner, populated Properties and Chat.",
     "diagnostics": [
-      "Initial canvas zero-size sample acknowledged only after inspected populated UI capture and current canvas invariant OK at 120 fps.",
-      "The restricted anonymous-install PATH also hid installed Claude. Its missing-runtime warning was recorded; normal PATH restored before live acceptance. Final full run has zero unresolved and zero acknowledged diagnostics.",
-      "npm version endpoint propagated before install metadata; first npx attempt refused ETARGET. Retried with another empty cache after install-index propagation.",
-      "Initial authenticated GitHub API listing reported zero workbench assets while direct download worked. Later authenticated/anonymous lists agreed; fully anonymous normal installer fetched successfully. No archive replacement."
-    ]
+      "npm reported the publishes before the registry served the versions; the version document appeared about nine minutes later, after which all eight digests matched."
+    ],
+    "anonymousArtifacts": {
+      "npmTarballs": "8/8 byte-identical via credential-free curl",
+      "workbench": "sha256 98e0a485...8269 via credential-free curl",
+      "blenderRelease": "source archive and six binary files byte-identical via credential-free curl"
+    }
   },
   "audit": {
-    "info": 0,
-    "low": 0,
-    "moderate": 0,
-    "high": 0,
-    "critical": 0,
     "total": 0,
-    "scope": "Fresh installed product only; not the Code-OSS build-only dependency tree."
+    "scope": "Fresh installed product only (npm install: found 0 vulnerabilities); not the Code-OSS build-only dependency tree."
   },
   "limitations": [
     "Windows/Linux deferred by owner; macOS Apple Silicon only.",
-    "Earlier intermittent unresponsive renderer remains unresolved; new operation diagnostics do not claim to fix it.",
-    "General material graphs, heterogeneous volumes, multiple scattering and additional listed renderer paths remain implementation work, not fundamental Three.js impossibilities.",
+    "Earlier intermittent unresponsive renderer remains unresolved; one tab death under machine load ~50 during a battery run did not reproduce at lower load.",
+    "Material graphs: a Principled BSDF inside a group on a shader mix's path, two Principled BSDFs in one mix, tinted or linked Transparent colour, Box projection with Clip, Geometry's Parametric output, non-Geometry attribute types, and Generated coordinates through topology-changing modifiers are named warnings.",
     "Bridge/courier exact native geometry and bridge/tram helper presentation differences remain declared with unchanged oracles.",
     "Existing projects retain explicit machine-local workbench declarations; npm update alone does not replace those choices.",
     "Chat requires a separately installed external agent runtime; it is not provided or authenticated by the modeling packages."
+  ],
+  "packages": [
+    {
+      "name": "@volter/editor-project",
+      "version": "0.5.64",
+      "shasum": "41d94c2c85f9d7e8e1d805d20379f33e78cffabb",
+      "integrity": "sha512-Do1VGVhznor0Kz5XbGFaP3KBOFzQ1jIe57aVwrVm1eNoU+UHAuMD6ohtmTu7w/0OI3Cy1dnCXOblBQ+gndGCvw=="
+    },
+    {
+      "name": "@volter/editor-sdk",
+      "version": "0.5.64",
+      "shasum": "7081b1e2b50eb5a852e70e5344de8d7a16d54230",
+      "integrity": "sha512-gmHa3Ui87bmZmnhVh6FI4D/i93TIAgroo+uAnMos4mujohxdAXwRJWFWhVTnK54yoxX2ZTVYnNIIAQc6rrmslA=="
+    },
+    {
+      "name": "@volter/editor-threejs",
+      "version": "0.5.64",
+      "shasum": "92c806549613af7a9ab28b79dc6433a96e5c19e3",
+      "integrity": "sha512-JNzw80FpJRcGJggIGd6aPebdT30cqVWKy7gv1ttcFW2wl3c72EdMW1G18iGUlB565dou5BZNs2/JXiu1Y6iE6Q=="
+    },
+    {
+      "name": "@volter/blender-engine",
+      "version": "0.1.7",
+      "shasum": "1f3db5cecf0466dddccd93110f0648524473d0e2",
+      "integrity": "sha512-tGvlPyM/AbsU1WLRykAYJsu4Enh/eDeSGk4X5iUYbV7/ko7yvmAnAD/Tytcc+c0rc+uprHwvjFzh3WDnroHHBw=="
+    },
+    {
+      "name": "@volter/editor-blender",
+      "version": "0.1.7",
+      "shasum": "9309d4161b1f426a78386fbbd0ca5928ba008fc7",
+      "integrity": "sha512-npIId6N2hS3qsSwV1EcPvb5eM9mA93AGYVX04cWBjJfU+691W2V5p31yEblXnoJtK4fpcTBBzJap0j3+Ar63mg=="
+    },
+    {
+      "name": "@volter/editor-core",
+      "version": "0.5.64",
+      "shasum": "5da8d65e16b7b2f4f844a995644406d32980acdf",
+      "integrity": "sha512-qQKf0beoT8t3SSxxwIggHfb6DEamooX8EJhKvONPTGBYtaGDJcOVNu2Ig42k1TuPKDm84v730H1A4lA41epVdw=="
+    },
+    {
+      "name": "@volter/editor-live",
+      "version": "0.5.64",
+      "shasum": "a930f05cf47b8d5567189318ce7a67f091c26a00",
+      "integrity": "sha512-ublJe2yyXUpvqYkQaZ6QbHfjbl62xIT2Swm4hpXEZT7iofwOVAbwGCk9eKPRVv7FScCBRGvuCdYuNy+fda5x6g=="
+    },
+    {
+      "name": "@volter/editor",
+      "version": "0.5.64",
+      "shasum": "a80e4da417405f046e30a30db54ccf98e2263743",
+      "integrity": "sha512-EH0ZEh2OHhidnVTcrK87C/FZBXbq7gYoXfi2N3NOYNVZSLMVW0Fl1echesRp5xg1eMBaoq/RLR032D32s4tf3Q=="
+    }
   ]
 }
