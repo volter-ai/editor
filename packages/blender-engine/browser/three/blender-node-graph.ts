@@ -335,6 +335,26 @@ void blender_tex_tile_cubic(vec3 co, highp sampler2DArray ima, highp sampler2D m
   }
   alpha = color.a;
 }
+// tex_box_sample_linear/cubic (gpu_shader_material_tex_image.glsl) with the
+// Clip extension's transparent-black border applied to each projection.
+vec4 blender_box_clip_one(vec2 uv, sampler2D ima, bool cubic) {
+  if (any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0)))) return vec4(0.0);
+  if (!cubic) return texture(ima, uv);
+  vec4 color; float alpha;
+  node_tex_image_cubic(uv.xyy, ima, color, alpha);
+  return color;
+}
+void blender_box_sample_clip(vec3 texco, vec3 N, sampler2D ima, bool cubic, out vec4 color1, out vec4 color2, out vec4 color3) {
+  vec2 uv = texco.yz;
+  if (N.x < 0.0) uv.x = 1.0 - uv.x;
+  color1 = blender_box_clip_one(uv, ima, cubic);
+  uv = texco.xz;
+  if (N.y > 0.0) uv.x = 1.0 - uv.x;
+  color2 = blender_box_clip_one(uv, ima, cubic);
+  uv = texco.yx;
+  if (N.z > 0.0) uv.x = 1.0 - uv.x;
+  color3 = blender_box_clip_one(uv, ima, cubic);
+}
 vec4 blender_uv_tangent(vec2 uv) {
   // A tangent from the UV layer's screen derivatives (three's
   // perturbNormal2Arb), where EEVEE reads the mesh's MikkTSpace tangent.
@@ -773,9 +793,17 @@ class Compiler {
         const color = outs([0]), alpha = outs([1]);
         if (projection === 'BOX') {
           const n = `${id}_n`;
+          // The clip sampler below calls the cubic path, so its file links either way.
+          if (extension === 'CLIP') this.use('node_tex_image_cubic');
           body.push(`vec3 ${n}; ${this.use('world_normals_get')}(${n}); ${this.use('normal_transform_world_to_object')}(${n}, ${n});`,
             `vec4 ${id}_c1, ${id}_c2, ${id}_c3;`,
-            `${this.use(cubic ? 'tex_box_sample_cubic' : 'tex_box_sample_linear')}(${co}, ${n}, ${uniform}, ${id}_c1, ${id}_c2, ${id}_c3);`,
+            extension === 'CLIP'
+              // CLAMP_TO_BORDER on each of the three projections: Blender's own
+              // `tex_box_sample_*` reads its sampler's border, which WebGL has
+              // not; `blender_box_sample_clip` is that function with the border
+              // written out.
+              ? `blender_box_sample_clip(${co}, ${n}, ${uniform}, ${cubic}, ${id}_c1, ${id}_c2, ${id}_c3);`
+              : `${this.use(cubic ? 'tex_box_sample_cubic' : 'tex_box_sample_linear')}(${co}, ${n}, ${uniform}, ${id}_c1, ${id}_c2, ${id}_c3);`,
             `${this.use('tex_box_blend')}(${n}, ${id}_c1, ${id}_c2, ${id}_c3, ${this.uniform('float', prop<number>(node, 'projection_blend'))}, ${color}, ${alpha});`);
         } else if (tiled) {
           if (cubic) this.use('cubic_bspline_coefficients');
