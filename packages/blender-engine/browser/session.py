@@ -562,6 +562,8 @@ _GRAPH_SURFACES = {
                                  "Emission Color", "Emission Strength"),
     "ShaderNodeEmission": ("Color", "Strength"),
 }
+# Procedural textures whose unlinked Vector is Generated coordinates.
+_GENERATED_BY_DEFAULT = frozenset(("ShaderNodeTexNoise", "ShaderNodeTexVoronoi", "ShaderNodeTexChecker"))
 # RNA properties every node has, which describe the node's place in the editor
 # rather than what it computes.
 _NODE_BASE_PROPERTIES = frozenset(p.identifier for p in bpy.types.ShaderNode.bl_rna.properties)
@@ -661,6 +663,10 @@ class _MaterialGraph:
         self.nodes = {}
         self.images = set()
         self._building = set()
+        # Whether the graph reads Generated coordinates: Texture Coordinate's
+        # first output, or a procedural texture's unlinked Vector, which
+        # Blender defaults to Generated (`node_shader_gpu_default_tex_coord`).
+        self.generated = False
 
     # A socket is addressed inside a STACK of group nodes; the empty stack is
     # the material's own tree.
@@ -711,9 +717,14 @@ class _MaterialGraph:
             self.nodes[key] = self._describe(stack, node)
             self._building.discard(key)
         index = next(i for i, s in enumerate(node.outputs) if s == socket)
+        if kind == "ShaderNodeTexCoord" and index == 0:
+            self.generated = True
         return {"link": [key, index]}
 
     def _describe(self, stack, node):
+        if node.bl_idname in _GENERATED_BY_DEFAULT and not any(
+                l.is_valid and not l.is_muted for l in node.inputs[0].links):
+            self.generated = True
         props = _node_properties(node)
         if props.get("image"):
             self.images.add(props["image"])
@@ -789,6 +800,7 @@ def material_graph(material):
         "inputs": inputs,
         "nodes": graph.nodes,
         "images": sorted(graph.images),
+        "generated": graph.generated,
     }
 
 
@@ -800,6 +812,17 @@ def material_graphs(scene):
             material = slot.material
             if material is not None and material.name not in graphs:
                 graphs[material.name] = material_graph(material)
+    # GENERATED COORDINATES ON A DEFORMED MESH: Blender maps them from the
+    # undeformed mesh (orco), which the export does not carry; the presenter
+    # maps the evaluated one. Named, never drawn silently different.
+    for obj in scene.objects:
+        if obj.type != "MESH" or not (obj.modifiers or getattr(obj.data, "shape_keys", None)):
+            continue
+        for slot in obj.material_slots:
+            graph = graphs.get(slot.material.name) if slot.material is not None else None
+            if graph is not None and graph["generated"]:
+                warn("%s: %s reads Generated coordinates, which are drawn from the deformed mesh; "
+                     "Blender maps them from the undeformed one" % (obj.name, slot.material.name))
     return {name: graph for name, graph in graphs.items() if graph is not None}
 
 
@@ -1077,6 +1100,7 @@ class Session:
                 if image is not None:
                     node["props"]["image"] = {"name": image, "revision": int(revisions.get(image, 0))}
             del graph["images"]
+            del graph["generated"]
             frame["materials"][name]["graph"] = graph
         # A MANUAL TEXTURE SPACE, which Generated coordinates map through; the
         # automatic one is the evaluated bounds the presenter already holds.
