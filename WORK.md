@@ -204,15 +204,19 @@ edit: 0.5.63 went 225/28 elements/inputs to 38/1 and back; the candidate held
 225/28).
 
 Packed acceptance (0.5.64 candidate, unpublished): the eight archives from
-`00d8f6e` installed into an empty directory with no workspace links, with no
+`8391790` installed into an empty directory with no workspace links and no
 engine override; the product resolved its pinned workbench
 `editor-f8664703ab59-2896a2901bb6` (seeded in the local workbench cache, since
 it is unpublished) and served the engine from the installed package
-(`blender_browser.wasm.br` sha256 `63098ef8…`, matching BUNDLE.json). The
-shader-mix/projection and UDIM/orco comparison scenes rendered with the same
-numbers as the development build; a graph constant's edit undid and redid
-exactly; a full close/reopen kept the edited value, the three UDIM tiles and
-the graph materials; console silent throughout.
+(`blender_browser.wasm.br` sha256 `63098ef8…`, matching BUNDLE.json) with its
+validator, so the first command after opening answered in 2.7 s (boot 2.2 s).
+The curve and UDIM/orco comparison scenes rendered with the development
+build's numbers; a graph constant's edit undid and redid exactly; a full
+close/reopen kept the edited value, the three UDIM tiles and the graph
+materials; console silent throughout. The five-model battery on `8391790`
+completed 362 of 362 calls with every model's status and error sequence
+identical to the accepted wasm.2 run, and 387 of 388 raw snapshots
+byte-identical to it (the one other differs in element order only).
 
 ### Material-rendering implementation (0.5.63)
 
