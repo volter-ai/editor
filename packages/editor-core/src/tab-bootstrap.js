@@ -461,9 +461,9 @@
      null when it is done. Same road as the census, for the same reason:
      the phase that explains a stall has to leave on the thread that is
      still alive while the page's is inside the work. */
-  const reportPhase = (phase) => {
+  const reportPhase = (phase, source, sequence) => {
     try {
-      heartbeatWorker?.postMessage({ type: 'phase', phase });
+      heartbeatWorker?.postMessage({ type: 'phase', phase, source, sequence });
     } catch {
       /* the control channel carries it too, once the page can speak */
     }

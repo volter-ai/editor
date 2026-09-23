@@ -196,6 +196,8 @@ export interface TabBeat {
    *  src/models/x.ts`), or `null` when it left; present on the one beat
    *  that carries the change. */
   readonly phase?: string | null;
+  readonly phaseSource?: string;
+  readonly phaseSequence?: number;
 }
 
 /** One page-load of a tab, tracked only long enough to tell reload from duplicate. */

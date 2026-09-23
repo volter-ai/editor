@@ -650,13 +650,24 @@ let captureLifetime: AbortController | null = null;
  *  terminate, and the host door only exists inside a running editor. */
 let watchingSessionEnd = false;
 
+/** Diagnostics must not prevent teardown if the host has already detached. */
+function beginBlenderWork(label: string): () => void {
+  try {
+    const end = editorHost().session.beginWork(`Blender: ${label}`);
+    return () => { try { end(); } catch { /* preserve the operation's result */ } };
+  } catch { return () => {}; }
+}
+
 function terminateBlenderRuntime(): void {
-  invalidateBlenderHistory();
-  captureLifetime?.abort();
-  captureLifetime = null;
-  runtime?.terminate();
-  runtime = null;
-  lastCapture = null;
+  const end = beginBlenderWork('invalidating history and releasing runtime');
+  try {
+    invalidateBlenderHistory();
+    captureLifetime?.abort();
+    captureLifetime = null;
+    runtime?.terminate();
+    runtime = null;
+    lastCapture = null;
+  } finally { end(); }
 }
 
 // THE ENGINE DIES WITH THE SESSION, whether or not the tab can. A page told
@@ -707,6 +718,7 @@ export function blenderRuntime(): BlenderRuntime {
   captureLifetime = lifetime;
   let photographing = false;
   runtime = new BlenderRuntime({
+    work: beginBlenderWork,
     history: (entries) => {
       const owner = runtime;
       if (!owner) throw new Error('Blender history arrived before its runtime');
@@ -736,7 +748,9 @@ export function blenderRuntime(): BlenderRuntime {
     },
     present: async (frame, description, capture) => {
       const documentId = presentationDocumentId();
-      const view = await runtimeView();
+      const endWait = beginBlenderWork('waiting for Model presenter');
+      let view: RuntimeView;
+      try { view = await runtimeView(); } finally { endWait(); }
       lifetime.signal.throwIfAborted();
       if (presentationDocumentId() !== documentId)
         throw new Error('Blender document changed before its frame could be presented');
@@ -747,7 +761,11 @@ export function blenderRuntime(): BlenderRuntime {
       // still-running worker (`blender-runtime-view.ts::applyFrame` says how).
       // A document that answers `applyFrame` without one reports no `held` at
       // all, rather than a wrong `null`.
-      const applied = view.applyFrame(frame) as { held?: unknown } | null | undefined;
+      const endApply = beginBlenderWork('applying frame to Model');
+      const applied = (() => {
+        try { return view.applyFrame(frame) as { held?: unknown } | null | undefined; }
+        finally { endApply(); }
+      })();
       const reports = typeof applied === 'object' && applied !== null && 'held' in applied;
       const held = reports ? (applied.held as { session: string; revision: number } | null) : null;
       const answer = (capture: unknown): PresentAnswer => ({

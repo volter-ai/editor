@@ -91,6 +91,7 @@ export async function reportCommandListener(attached: boolean): Promise<void> {
  * healthy. Not awaited by the caller: the phase is diagnostics, and diagnostics
  * that can delay a boot are worse than none.
  */
+let phaseSequence = 0;
 export function reportPlayBootPhase(state: {
   phase: string | null;
   at: number;
@@ -101,8 +102,9 @@ export function reportPlayBootPhase(state: {
   // block ended (measured 2026-09-06: a 45 s build's phase arrived after the
   // build). The heartbeat worker's socket keeps beating through the block,
   // so the phase rides the next beat too; whichever lands first wins.
-  reportTabPhase(state.phase);
-  void sendControl('play-phase', { _clientId: EDITOR_CLIENT_ID, ...state });
+  const sequence = ++phaseSequence;
+  reportTabPhase(state.phase, EDITOR_CLIENT_ID, sequence);
+  void sendControl('play-phase', { _clientId: EDITOR_CLIENT_ID, ...state, source: EDITOR_CLIENT_ID, sequence });
 }
 
 /** Report a command result back to the server so the SDK/CLI gets the response.

@@ -490,6 +490,11 @@ export interface EditorHostHierarchy {
 
 /** The editor's own session state a contribution may read. */
 export interface EditorHostSession {
+  /** Announce work BEFORE entering it, on the existing heartbeat/phase channel.
+   * Returns an idempotent end call; use finally, including on refusal.
+   * Labels describe operations only, never scripts, model data or credentials.
+   * Diagnostics only: this neither cancels work nor changes its deadline. */
+  beginWork(label: string): () => void;
   /**
    * Contribute fields to the editor's state report (`vgai status`, the SDK's
    * `editor.state`): the collect runs on every report and its keys are

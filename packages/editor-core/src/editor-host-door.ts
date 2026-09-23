@@ -22,6 +22,7 @@ import {
 import { activeDocumentSourcePath, activeSaveDestination } from './authoring/shell-document-ops';
 import { availabilityTickVersion, subscribeAvailabilityTick } from './availability-tick';
 import { setBlenderCallMeter } from './blender-tab-metrics';
+import { beginPageWork } from './play-boot-phase';
 import { onCommandDispatched } from './command-dispatch';
 import { openToolDocument } from './components/tool-documents';
 import { onSessionSample } from './coverage/session-vitals';
@@ -229,6 +230,7 @@ export function installEditorHostDoor(): void {
       },
     },
     session: {
+      beginWork: beginPageWork,
       reportFacet: registerEditorStateFacet,
       onSample: onSessionSample,
       onCommandDispatched,

@@ -32,6 +32,52 @@ function fakeWorker(t) {
   });
 }
 
+test('work diagnostics precede posting and balance presentation, failure and termination', async t => {
+  fakeWorker(t);
+  const active=new Map(), events=[];
+  let next=0, presentDone;
+  const runtime=new BlenderRuntime({
+    work(label){const id=++next;active.set(id,label);events.push(label);return ()=>active.delete(id);},
+    present:()=>new Promise(resolve=>{presentDone=resolve;}),
+  });
+  const worker=FakeWorker.latest;
+  const original=worker.postMessage.bind(worker);
+  worker.postMessage=message=>{
+    if(message.op!=='present-result')assert([...active.values()].includes('waiting for worker '+message.op));
+    original(message);
+  };
+  const start=runtime.start('/project');
+  worker.reply(worker.messages[0]);await start;
+  assert.equal(active.size,0);
+  const edit=runtime.execute('SECRET MODEL CODE');
+  await tick();
+  worker.onmessage({data:{op:'present',id:99,frame:{},description:{}}});
+  assert([...active.values()].includes('presenting worker frame'));
+  presentDone({});await tick();
+  assert(![...active.values()].includes('presenting worker frame'));
+  worker.reply(worker.messages.find(m=>m.op==='execute'));await edit;
+  assert.equal(active.size,0);
+  const blocked=runtime.execute('other');await tick();
+  const refused=assert.rejects(blocked,/terminated/);
+  runtime.terminate();await refused;
+  assert.equal(active.size,0);
+  assert(events.includes('terminating worker'));
+  assert(!events.some(x=>x.includes('SECRET')));
+});
+
+test('throwing work observers and failed postMessage cannot leak a pending call', async t => {
+  fakeWorker(t);
+  for(const throwsAt of ['begin','end']){
+    const runtime=new BlenderRuntime({present:()=>({}),work(){if(throwsAt==='begin')throw Error('diagnostic');return ()=>{throw Error('diagnostic');};}});
+    const worker=FakeWorker.latest;
+    const start=runtime.start('/project');worker.reply(worker.messages[0]);await start;
+    worker.postMessage=()=>{throw Error('cannot post');};
+    await assert.rejects(runtime.execute('x'),/cannot post/);
+    assert.equal(runtime.metrics().inFlightMs,null);
+    runtime.terminate();
+  }
+});
+
 test('explicit shutdown persists before termination and refuses new work', async t => {
   fakeWorker(t);
   const runtime = new BlenderRuntime({ present: () => ({}) });
