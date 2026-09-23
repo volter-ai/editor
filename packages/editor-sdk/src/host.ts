@@ -563,6 +563,9 @@ export interface EditorHostSession {
    * A lane that owns a worker, a socket or a device ends it here.
    */
   onEnded(fn: () => void): () => void;
+  /** Save before an explicit session close, while HTTP and the relay are live.
+   * Rejection cancels close; onEnded remains forced resource teardown. */
+  onBeforeClose(fn: () => Promise<void>): () => void;
   /**
    * PUBLISH (or retract, with null) THIS LANE'S OUT-OF-PROCESS WORKER METER, so
    * the tab census carries it out on the heartbeat — the one channel that still

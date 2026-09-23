@@ -99,6 +99,7 @@ import { setPlayBootPhaseReporter } from './play-boot-phase';
 import { projectAdapterFacet, subscribeProjectAdapter } from './project-adapter';
 import { getProjectModuleSplitReports } from './project-module-split';
 import { onSessionEndedChange, sessionEndedRefusal, sessionEndedState } from './session-tombstone';
+import { prepareSessionClose } from './session-close';
 import { focusedStageStore } from './stage-context';
 import { scheduleDeferredFullReport } from './state-report-deferral';
 import { interactiveViewportRendererCounts } from './three-viewport/interactive-renderer';
@@ -1260,6 +1261,9 @@ export async function handleCommand(
   }
   const commandType: RelayCommandType = cmd['type'];
   switch (commandType) {
+    case 'session-prepare-close':
+      await prepareSessionClose();
+      return { ok: true };
     // Selection
     case 'select': {
       const id = (cmd['id'] as string | null) ?? null;

@@ -8,6 +8,10 @@ export async function control(verb: string, argument?: string, reason?: string):
   if (verb === 'close') {
     const session = (await verifiedSessions(live.session.port)).find(s => s.port === live.session.port && s.project === live.session.projectRoot && s.registered);
     if (!session?.pid) throw new Error('Cannot close a session without verified process ownership.');
+    const state = await client.getState();
+    // A genuinely headless session has no document owner to flush. A present
+    // but unresponsive tab is different: try its barrier and refuse on failure.
+    if (state.connected || (state.tabs?.length ?? 0) > 0) await client.prepareClose();
     console.log(await terminateEditorSession({ pid: session.pid }));
     return;
   }

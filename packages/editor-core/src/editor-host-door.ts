@@ -102,6 +102,7 @@ import { getCurrentProject } from './project-manager';
 import { onProjectReady } from './project-ready';
 import { projectMounts } from './project-shape';
 import { onSessionEndedChange } from './session-tombstone';
+import { onBeforeSessionClose } from './session-close';
 import { setSettingsProvider, subscribeSettingsProvider } from './settings/settings-provider';
 import { getSetting, inspectSetting, setSetting, subscribeSettings } from './settings-store';
 import { onShellStoreChange, shellStoreForHost } from './shell-store-door';
@@ -254,6 +255,7 @@ export function installEditorHostDoor(): void {
         onSessionEndedChange((state) => {
           if (state !== null) fn();
         }),
+      onBeforeClose: onBeforeSessionClose,
       reportWorkerCallMeter: setBlenderCallMeter,
     },
     project: {

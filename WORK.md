@@ -86,8 +86,7 @@ acknowledged only after current invariants and the visible capture passed.
   waiting for its frame cannot deadlock. Stop and fresh-start wait for the
   document upload before terminating or invalidating history. A failed upload
   refuses the stop and keeps the live model available for retry. Forced teardown
-  after losing the editor session is unchanged; this is not a guarantee against
-  browser/process closure or the editor's bounded session-close teardown.
+  after losing the editor session remains forced resource teardown.
   Four new regression tests cover ordering, failed-save retry, startup and
   presentation acknowledgment. All 25 tests, eight package typechecks, build,
   release boundary and 1,083-file packed-import checks passed. Live source
@@ -96,6 +95,22 @@ acknowledged only after current invariants and the visible capture passed.
   followed by immediate restart retained six objects (the deleted Cube.001 did
   not return). The console was silent. None of these runs reproduced the
   intermittent renderer stall. This fix is not in published npm 0.5.58.
+- **Save-before-ack and guarded close now pass source acceptance.** Each edited
+  command writes its complete document before answering, replacing the idle
+  debounce. The runtime warns on browser unload while calls or unsaved data
+  remain. CLI close asks document owners to drain/save before sending SIGTERM;
+  a failed save refuses close, and genuinely headless sessions still close.
+  Native browser prompts require user activation and can be overridden; forced
+  kills and power loss cannot promise an in-flight edit's final save.
+  All 28 tests, eight typechecks, build, release boundary and 1,084-file packed
+  import checks passed. Twenty immediate edit/undo/redo/stop/start cycles
+  retained X=30.25 through 49.25. Making the probe's model directory read-only
+  caused both the edit save and CLI close to refuse while retaining the worker.
+  Restoring its original 755 permissions allowed X=61.125 to save and survive
+  full close/reopen; the intentional fault was acknowledged after recovery.
+  These changes are not yet published. The old npm build also passed 30 worker
+  restart attempts and overlapping inspection calls in the comparison run, so
+  the intermittent stall still needs an explanation.
 - Fresh-install `npm audit` reported six moderate affected dependency entries,
   all through Storybook and `@vitest/mocker`
   ([GHSA-82fw-gwwq-j7x9](https://github.com/advisories/GHSA-82fw-gwwq-j7x9));

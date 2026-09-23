@@ -98,7 +98,7 @@ test('stop waits for startup; an unused runtime needs no save', async t => {
   assert.equal(FakeWorker.latest.terminations, 1);
 });
 
-test('worker flush waits for edits, present acknowledgments and durable upload', async () => {
+test('worker edit acknowledgment waits for durable upload; failed saves stay dirty and retry', async () => {
   const workerBundle = await build({
     entryPoints: [fileURLToPath(new URL('../browser/worker.ts', import.meta.url))],
     bundle: true, platform: 'node', format: 'cjs', write: false,
@@ -153,21 +153,52 @@ test('worker flush waits for edits, present acknowledgments and durable upload',
   send({ id: 1, op: 'start', project: '/project', document: 'model.blend' });
   await until(() => replies.some(r => r.id === 1 && 'result' in r));
   send({ id: 2, op: 'execute', code: 'edit' });
-  send({ id: 3, op: 'flush-document' });
   await until(() => replies.some(r => r.op === 'present'));
   assert.ok(!events.includes('save-document'));
   // This must bypass the command queue: the edit is waiting for its frame.
   send({ op: 'present-result', id: replies.find(r => r.op === 'present').id });
   await until(() => events.includes('upload:1'));
-  assert.ok(!replies.some(r => r.id === 3));
+  assert.ok(!replies.some(r => r.id === 2 && !r.op));
   failUpload = true;
   finishUpload();
-  await until(() => replies.some(r => r.id === 3));
-  assert.match(replies.find(r => r.id === 3).error, /disk full/);
+  await until(() => replies.some(r => r.id === 2 && !r.op));
+  assert.match(replies.find(r => r.id === 2 && !r.op).error, /disk full/);
+  assert.equal(replies.filter(r => r.op === 'document-dirty').at(-1).dirty, true);
   failUpload = false;
   send({ id: 4, op: 'flush-document' });
   await until(() => events.filter(e => e === 'upload:1').length === 2);
   finishUpload();
   await until(() => replies.some(r => r.id === 4));
   assert.equal(replies.find(r => r.id === 4).result.saved, true);
+  assert.equal(replies.filter(r => r.op === 'document-dirty').at(-1).dirty, false);
+});
+
+test('browser unload is guarded while calls or failed saves remain, not after persistence', async t => {
+  fakeWorker(t);
+  const events = new EventTarget();
+  const add = globalThis.addEventListener, remove = globalThis.removeEventListener;
+  globalThis.addEventListener = events.addEventListener.bind(events);
+  globalThis.removeEventListener = events.removeEventListener.bind(events);
+  t.after(() => { globalThis.addEventListener = add; globalThis.removeEventListener = remove; });
+  const runtime = new BlenderRuntime({ present: () => ({}) });
+  const worker = FakeWorker.latest;
+  const guarded = () => {
+    const event = new Event('beforeunload', { cancelable: true });
+    // DOM BeforeUnloadEvent has a writable string returnValue.
+    Object.defineProperty(event, 'returnValue', { value: '', writable: true });
+    events.dispatchEvent(event);
+    return event.defaultPrevented;
+  };
+  assert.equal(guarded(), false);
+  const start = runtime.start('/project');
+  assert.equal(guarded(), true);
+  worker.reply(worker.messages[0]);
+  await start;
+  assert.equal(guarded(), false);
+  worker.onmessage({ data: { op: 'document-dirty', dirty: true } });
+  assert.equal(guarded(), true);
+  worker.onmessage({ data: { op: 'document-dirty', dirty: false } });
+  assert.equal(guarded(), false);
+  runtime.terminate();
+  assert.equal(guarded(), false);
 });
