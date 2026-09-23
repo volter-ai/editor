@@ -19,7 +19,7 @@ The packaged workbench currently supports **macOS on Apple Silicon**
 (`darwin-arm64`). Installation and startup were verified with Node.js 24.
 
 ```bash
-npx @volter/editor@0.5.57 create my-models
+npx @volter/editor@0.5.58 create my-models
 ```
 
 The command creates a modeling project, installs the pinned public workbench on
@@ -34,8 +34,10 @@ npm run dev
 
 From that project directory, `npx volter-editor status` reports the session,
 `npx volter-editor console` reports unresolved diagnostics, and
-`npx volter-editor close` stops the session. Release 0.5.57 does not expose
-native Blender undo; the supported-editing follow-up is tracked in [WORK.md](WORK.md).
+`npx volter-editor close` stops the session. Release 0.5.58 adds native Blender
+undo/redo for supported model edits through VS Code's history, bundled Blender
+Essentials, coherent duplicate/delete operations, and World mapping/strength
+rendering fixes. Remaining platform work is tracked in [WORK.md](WORK.md).
 
 ## Package map
 
@@ -95,7 +97,7 @@ project, `volter-editor eval` drives its automation API, and
 inside a project. MCP initialization does not start Blender; its first scene
 request attaches to or opens that project's editor.
 
-Blender supports explicit native undo in background mode. The follow-up connects
+Blender supports explicit native undo in background mode. The editor connects
 its checkpoints to VS Code's history; native snapshots stay in Blender, and
 redo never reruns a Python script. History is session-local and is reset when
 another `.blend` is opened. Use the dedicated inspection tools for read-only

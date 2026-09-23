@@ -1,91 +1,126 @@
 {
-  "publishedAt": "2026-09-22",
+  "publishedAt": "2026-09-23",
   "registry": "https://registry.npmjs.org",
+  "source": {
+    "repository": "https://github.com/volter-ai/editor",
+    "revision": "0504deca7580bab3d43c552852deeaaa387ef315"
+  },
+  "publication": "All eight versions are publicly available; every public registry integrity matches the tested immutable archive.",
   "packages": [
     {
       "name": "@volter/editor-project",
-      "version": "0.5.57",
-      "shasum": "e60f46a15304561e3a7f39f55340badb0ccd032f",
-      "integrity": "sha512-McpCvZYdoCjB6QYjxbnJw1TRgyXxn+jtMQK+PRw8TsSjZJ931A4Un5uNWhY/HnN68KmTbr6FvOZHubvExKTXug=="
+      "version": "0.5.58",
+      "shasum": "c2be1bfd84eb05a45e5e6b7957966ceda4c4ee61",
+      "integrity": "sha512-K6aINR6wGQET4L5AhTeiSze8AEdfULwEnHyO4aA6Z8MbdfI8rFaHavUCaVO57Bs2X2O3Qx/lSq01+ZWaMW09/A=="
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.57",
-      "shasum": "00acd17415a88e3e8282adf7bcc7ad9fff581ca4",
-      "integrity": "sha512-chouWg+7xX6T+AAOHaCPhYBxf7ml1RHp3bi78UriJwSBhXbjrUKdEfk+6o4GDnOSQcfpiO9IXhCuJE4B5GxGBw=="
+      "version": "0.5.58",
+      "shasum": "1d4654edfa4475bb9704e17f617f3625ca414c18",
+      "integrity": "sha512-DRgm4OE8JoYk9XDptvd4D1FHntz2cx/OO8eS77KpN8NK5NqIks+wHpBSnVNj6/ulMvxksoc9sVavb0p9XkxGYw=="
     },
     {
       "name": "@volter/editor-threejs",
-      "version": "0.5.57",
-      "shasum": "1c91bf5fc32be61522f9644dafbb9ca39ce7c381",
-      "integrity": "sha512-JyO8CTvIjW73eexUQBKt5KfnprC9hFvMw/Duzrui6lcWTCeg7TGfroZa4pLEg7gGpXfjKbCluqUQ9YL4JsE+Tw=="
+      "version": "0.5.58",
+      "shasum": "d715bf526fe7e9e2820761fd91c1bb0cee30eceb",
+      "integrity": "sha512-PioeR80dwZXRTZysDfh7lxrAOn2lzPxZXjeM9UA1eL2eI/jOcNg7u5FBqRAJVEgcE+uRJnPZ/UU965GpmcJ+IQ=="
     },
     {
       "name": "@volter/blender-engine",
-      "version": "0.1.0",
-      "shasum": "1e266b080a9cad9eaed9c97e5362ec09d1ad4edb",
-      "integrity": "sha512-yGhPJrj6zqWcCXn20b3Vu/ThHM2p9vQSI5ewirADkmLgEh6W7llJkqgSp13gJBnoIags7/bNvEh+BLZZHu1e2w=="
+      "version": "0.1.1",
+      "shasum": "08490485cfc74f1efb84415720337483edaf8550",
+      "integrity": "sha512-o/rtgijzVXA5fT2CXheOZ+UinD1IXUJYHwlXgJ3ONZ9i0zYSft86vJ+4Bet6z30EdYCMJFZl7EbdVwC2szWeVw=="
     },
     {
       "name": "@volter/editor-blender",
-      "version": "0.1.0",
-      "shasum": "9e77a75323b52bcbc6e22c8079950e3abeebc20a",
-      "integrity": "sha512-RRGLSXbhc5m7sFsa/Kx5z1Xfmy84nq7Zk5f0SIMC6s4t4ACc5oKsR3a+eOQUxgBoJIr5CQZYaQNMv1retsQxgw=="
+      "version": "0.1.1",
+      "shasum": "3744e5b363ba0c5bf638fb8b0e82fb6756d27451",
+      "integrity": "sha512-wdzSsIiwW3gVti/Q/H0RWGtCvyQc0lGaFuTgo4wZCh9Xfw+//yVpFUkQ8B27GYGyek2cX/blo6OO55ndwDx/Ew=="
     },
     {
       "name": "@volter/editor-core",
-      "version": "0.5.57",
-      "shasum": "28e05b70d410b7e1cc78e466a5dc1938655817dd",
-      "integrity": "sha512-BuZRr9d8bcFw3QBFGsbql121GU+EEDFORKDEN0kmpTd5puds+umqcTsVRTKmeqUVsVwec7V3vEVLuiWH6l8Rag=="
+      "version": "0.5.58",
+      "shasum": "59c9f52416c502605efb086443dbdd5a4b6be82d",
+      "integrity": "sha512-lwU0nngYPy2SZZ2TpC30AB/d6hGq3vxGDNPd1hcVEwxF0nUYEiAw0r+ZIgFn4p2fZT/3EhsSBSKncm84YGcZIg=="
     },
     {
       "name": "@volter/editor-live",
-      "version": "0.5.57",
-      "shasum": "7f55cf20ae4cc57cbb5fe53634e97b1573c42dc1",
-      "integrity": "sha512-aD4voClDWAmlGFj0bm9au462LfAShMCPlr2ntMi7pWv1qHKVRuyUfPwH/R6xbx7zmZSu6LAicCtQx60JsLBtYQ=="
+      "version": "0.5.58",
+      "shasum": "71ad4b647650f379701115f038811046a75eb5ff",
+      "integrity": "sha512-BI06WRpBhFGI2ycFln9aF2wJUG/aKBGIsP2VCRta1T50DVLgo4kOs0aH0f6fxjmn69R5l0r191ma+L9swZ6b+A=="
     },
     {
       "name": "@volter/editor",
-      "version": "0.5.57",
-      "shasum": "a7cd0b5dae7a75e7891d09d06c60cca4293f9830",
-      "integrity": "sha512-9I+ZAXhgYUABZysPoye49TIcRbrGT3hPee8qshqyK4wo+eFR8X+6qIGYKNRv2bB/4CX8e1DAb/el+alx1RIhGQ=="
+      "version": "0.5.58",
+      "shasum": "d3e5fb84450de06790c260e7736ece6e7c6e59b8",
+      "integrity": "sha512-aDdIBJltzGL4OwjGs7ALM83wHVjIl3f6aT1dGeXCDE5qUMGa7ED0/QRol5AwqjglTe36IZZoEnDxiWJJcNKPmA=="
     }
   ],
+  "workbenchRelease": "editor-f8664703ab59-81f87ec200f3-darwin-arm64",
+  "packedAcceptance": {
+    "platform": "darwin-arm64",
+    "workspaceLinks": false,
+    "pythonUndoRedo": {
+      "beforeX": 0,
+      "afterX": 4.125
+    },
+    "rnaUndoRedo": {
+      "beforeX": 4.125,
+      "afterX": 6.25
+    },
+    "essentials": "Smooth by Angle loaded from packaged assets and assigned to a modifier; undo/redo completed.",
+    "duplicateDelete": "Duplicate undo/redo succeeded; deletion removed Cube.001 and one undo restored it.",
+    "persistence": "Fresh editor and independent worker stop/start reopened two objects with Cube X=6.25; history empty after restart.",
+    "diagnostics": "Initial zero-size canvas warning acknowledged against a visible capture and current healthy invariant. One worker restart stalled and a tab disconnected; a fresh editor and later independent worker restart passed. Cause of initial stall not established. A pre-ready combined-transform key refusal was acknowledged; final console silent."
+  },
   "installation": {
-    "credentials": "NODE_AUTH_TOKEN and NPM_TOKEN unset; npm user config /dev/null",
-    "cache": "new empty npm cache and absent workbench release directory",
+    "credentials": "NODE_AUTH_TOKEN and NPM_TOKEN removed; npm user config /dev/null; empty task-owned global config.",
+    "cache": "New empty npm cache; workbench release cache entry absent before create.",
     "localPackages": false,
     "workspaceLinks": false,
-    "resolvedPackages": 379
+    "resolvedPackages": 379,
+    "command": "npm exec --yes --package=@volter/editor@0.5.58 -- volter-editor create public-probe",
+    "node": "v24.21.0"
   },
   "acceptance": {
     "platform": "darwin-arm64",
-    "product": "@volter/editor@0.5.57",
-    "workbenchRelease": "editor-f8664703ab59-d7489dea9dcd-darwin-arm64",
-    "workbenchCommit": "f8664703ab59f6d206a2c152de35fc2fae61793d",
-    "workbenchSha256": "57692dc03bd5e37f1b02c817bf0601ee3f3d410b6147c24ccd978d22ff4f81ca",
+    "product": "@volter/editor@0.5.58",
+    "workbenchRelease": "editor-f8664703ab59-81f87ec200f3-darwin-arm64",
+    "workbenchSha256": "2e2139867dda53aaa6fef58005443b9626d2f2975011c342487b1613b8464ef5",
     "capture": {
-      "width": 1728,
-      "height": 941,
-      "degenerate": false,
-      "visible": ["Cube", "grid", "Outliner", "Properties", "Chat"]
+      "visible": [
+        "centered Cube",
+        "grid",
+        "Outliner",
+        "Properties",
+        "Chat"
+      ],
+      "degenerate": false
     },
-    "tabReuse": "same tab id, one editor client, one visible blessed tab",
-    "blenderMcp": {
-      "tools": 28,
-      "prompts": 1,
-      "sceneRead": true,
-      "savedCubeX": 3.125,
-      "objectInspected": true,
-      "viewportCapture": "image/png",
-      "adapterUnchanged": true,
-      "workerRestartPersisted": true
+    "pythonUndoRedo": {
+      "beforeX": 0,
+      "afterX": 3.75
     },
+    "rnaUndoRedo": {
+      "beforeX": 3.75,
+      "afterX": 5.5
+    },
+    "essentials": "Smooth by Angle loaded from bundled assets and assigned to a modifier; native undo and redo completed.",
+    "duplicateDelete": "Duplicate created Cube.001; deletion removed it; undo restored it; redo removed it.",
+    "persistence": "Fresh editor reopened one saved object at Cube X=5.5.",
     "finalConsole": {
       "errors": 0,
       "warnings": 0,
-      "pageErrors": 0,
-      "sessionErrors": 0
-    }
+      "acked": 0
+    },
+    "limitations": "A worker-stop check timed out and the renderer became unresponsive; subsequent full editor reopen passed. Root cause is not established and lifecycle reliability is not claimed complete. An initial zero-size canvas warning was acknowledged against a visible capture and healthy current invariant."
+  },
+  "audit": {
+    "moderate": 6,
+    "high": 0,
+    "critical": 0,
+    "rootAdvisory": "https://github.com/advisories/GHSA-82fw-gwwq-j7x9",
+    "dependencyChain": "Storybook -> @vitest/mocker",
+    "resolved": false
   }
 }
