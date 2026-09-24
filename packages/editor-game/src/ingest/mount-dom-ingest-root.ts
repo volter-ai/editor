@@ -5,18 +5,18 @@
  * is no scene to capture; the mounted tree IS React, D-N1).
  */
 
-import { measureAdapterReach } from '@editor/adapter-reach';
-import { setActiveAuthoring } from '@editor/authoring/active-adapter';
-import { setActiveSystems } from '@editor/authoring/active-systems';
-import { clearMountFailureReports } from '@editor/authoring/mount-failure-report';
-import { resolveAllRoots } from '@editor/binding-resolver';
-import { editorConsole } from '@editor/editor-console';
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import { setGameInputGate } from '@editor/gated-globals';
-import { authoringJournal } from '@editor/history/json-history-resource';
-import { acquireLiveDocument, liveDocumentContainer } from '@editor/live-document';
-import { DomAuthoringAdapter } from '@vgai/dom/dom-authoring-adapter';
-import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@vgai/project/manifest/load';
+import { measureAdapterReach } from '../host/adapter-reach';
+import { setActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
+import { setActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { clearMountFailureReports } from '@volter/editor-core/authoring/mount-failure-report';
+import { resolveAllRoots } from '../host/binding-resolver';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { setGameInputGate } from '../host/gated-globals';
+import { authoringJournal } from '../host/history/json-history-resource';
+import { acquireLiveDocument, liveDocumentContainer } from '@volter/editor-core/live-document';
+import { DomAuthoringAdapter } from '../react/dom-authoring-adapter';
+import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@volter/editor-project/manifest/load';
 import { serializeEntry, setActiveIngest } from './active-ingest';
 import { landIngestBootInEdit } from './ingest-boot-viewport';
 import { ingestHookEvidence, publishIngestHook, reactDomEvidence } from './ingest-evidence-hook';
@@ -96,7 +96,7 @@ async function mountDomIngestRootInner(store: EditorShellStore, folderId: string
   // world's entry executes in the editor realm and may declare the game
   // contract to defer its session until ▶. Opt-in, never demanded.
   (window as unknown as { __vgaiMountCold?: boolean }).__vgaiMountCold = true;
-  const { createGameRuntime } = await import('@vgai/game-runtime/runtime/create-runtime');
+  const { createGameRuntime } = await import('@volter/game-runtime/runtime/create-runtime');
   const specs = await resolveAllRoots(game.manifest, projectRoot);
   const w = gameContainer.clientWidth;
   const h = gameContainer.clientHeight;
@@ -216,7 +216,7 @@ export async function mountDomIngestRootFromManifest(
   // F26: same cold-mount announcement the vendored route makes — an
   // external-folder game may declare the game contract too.
   (window as unknown as { __vgaiMountCold?: boolean }).__vgaiMountCold = true;
-  const { createGameRuntime } = await import('@vgai/game-runtime/runtime/create-runtime');
+  const { createGameRuntime } = await import('@volter/game-runtime/runtime/create-runtime');
   const specs = await resolveAllRoots({ ...manifest, roots: [world] }, projectRoot);
   const w = gameContainer.clientWidth;
   const h = gameContainer.clientHeight;

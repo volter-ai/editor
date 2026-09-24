@@ -26,10 +26,10 @@
  *  Defined in a DOM-free module so the Node-side Vite plugin can import the same
  *  constant — see `game-globals-prelude.ts`. Re-exported here for the browser
  *  callers that already reach for it alongside the proxies. */
-export { GAME_GLOBALS_PRELUDE } from './game-globals-prelude';
+export { GAME_GLOBALS_PRELUDE } from '@volter/editor-core/game-globals-prelude';
 
-import { installCreationSiteRecorder } from './creation-site-registry';
-import { setConsoleRealmAttribution } from './editor-console';
+import { installCreationSiteRecorder } from '@volter/editor-core/creation-site-registry';
+import { setConsoleRealmAttribution } from '@volter/editor-core/editor-console';
 import { guardedGameLocation, refusedNavigationMessage } from './game-location-guard';
 import { GameRealmPage } from './game-realm-page';
 import {
@@ -44,7 +44,7 @@ import {
   type SameRealmLoopGate,
   type SameRealmLoopGateStats,
 } from './same-realm-loop-gate';
-import { surfaceHoldsKeyboard } from './surface-keyboard';
+import { surfaceHoldsKeyboard } from '@volter/editor-core/surface-keyboard';
 
 /**
  * The SAME-REALM LOOP GATE (S-5) — the scheduling half of the same idea.

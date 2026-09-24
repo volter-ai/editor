@@ -16,8 +16,8 @@ import type {
   EditorNode,
   PropertyDescriptor,
   Transform,
-} from '@vgai/project/adapter';
-import type { EditorShellStore } from '../editor-shell-store';
+} from '@volter/editor-project/adapter';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { createEphemeralPersistence } from './ephemeral-persistence';
 
 export interface PhaserGameObjectLike {

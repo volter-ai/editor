@@ -4,8 +4,8 @@
  * is a per-PROJECT property, not a per-realm one.
  */
 
-import type { IngestGame2D } from '@vgai/game-runtime/pixi/ingest';
-import type { ResolvedAdapterRoot } from '@vgai/project/manifest/load';
+import type { IngestGame2D } from '@volter/game-runtime/pixi/ingest';
+import type { ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';
 import { composeIngestLoad } from './entry-load';
 import { ingestModuleLoaders } from './resolve-three';
 

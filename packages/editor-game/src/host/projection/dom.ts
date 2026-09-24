@@ -28,9 +28,9 @@
  * raycast the projector can own the way {@link ThreeProjector.pick} does.
  */
 
-import type { ProjectedNode, Projection } from './types';
+import type { ProjectedNode, Projection } from '@volter/editor-core/projection/types';
 
-export type { ProjectedNode, Projection } from './types';
+export type { ProjectedNode, Projection } from '@volter/editor-core/projection/types';
 
 /**
  * The minimum shape a live DOM walk needs. Deliberately not `Element` so a

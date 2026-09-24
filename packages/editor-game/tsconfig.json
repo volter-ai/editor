@@ -27,7 +27,13 @@
     "skipLibCheck": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@editor/*": [
+        "../editor-core/src/*"
+      ]
+    }
   },
   "include": [
     "src",

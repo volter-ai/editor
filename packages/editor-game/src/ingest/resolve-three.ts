@@ -13,8 +13,8 @@ import {
   beginProjectMountEpoch,
   fsImportPath,
   INGEST_REMOUNT_QUERY,
-} from '@vgai/editor-sdk/session/project-module-url';
-import type { ResolvedAdapterRoot } from '@vgai/project/manifest/load';
+} from '@volter/editor-sdk/session/project-module-url';
+import type { ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';
 import { composeIngestLoad, declaredSourceModules, ingestDataWriter } from './entry-load';
 import { servedEntryLoader, servedModuleLoader, servedProjectBaseUrl } from './served-bundle';
 import type { IngestGame } from './types';

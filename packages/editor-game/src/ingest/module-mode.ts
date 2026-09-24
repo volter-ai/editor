@@ -5,24 +5,24 @@
  * absence produces the same explicit no-authoring floor as ingest.
  */
 
-import { measureAdapterReach } from '@editor/adapter-reach';
-import { setActiveAuthoring } from '@editor/authoring/active-adapter';
-import { setActiveSystems } from '@editor/authoring/active-systems';
+import { measureAdapterReach } from '../host/adapter-reach';
+import { setActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
+import { setActiveSystems } from '@volter/editor-core/authoring/active-systems';
 import {
   addMountFailureReport,
   clearMountFailureReports,
   formatMountFailureMessage,
-} from '@editor/authoring/mount-failure-report';
-import { makeNoAuthoringAdapter } from '@editor/authoring/no-authoring-adapter';
-import { resolveAllRoots } from '@editor/binding-resolver';
-import { editorConsole } from '@editor/editor-console';
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import { fetchGameManifest } from '@editor/manifest-project';
-import { getCurrentProject } from '@editor/project-manager';
-import type { GameSession, RootMountSpec } from '@vgai/game-runtime/runtime/create-runtime';
-import type { AuthoringAdapter } from '@vgai/project/adapter';
-import { declaredRoots, ingestRoots } from '@vgai/project/adapter/manifest-interpreter';
-import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@vgai/project/manifest/load';
+} from '@volter/editor-core/authoring/mount-failure-report';
+import { makeNoAuthoringAdapter } from '@volter/editor-core/authoring/no-authoring-adapter';
+import { resolveAllRoots } from '../host/binding-resolver';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { fetchGameManifest } from '@volter/editor-core/manifest-project';
+import { getCurrentProject } from '@volter/editor-core/project-manager';
+import type { GameSession, RootMountSpec } from '@volter/game-runtime/runtime/create-runtime';
+import type { AuthoringAdapter } from '@volter/editor-project/adapter';
+import { declaredRoots, ingestRoots } from '@volter/editor-project/adapter/manifest-interpreter';
+import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@volter/editor-project/manifest/load';
 
 interface ModuleSession {
   store: EditorShellStore;
@@ -93,7 +93,7 @@ export async function mountModuleRootRuntime(
   width: number,
   height: number,
 ): Promise<{ session: GameSession; specs: RootMountSpec[] }> {
-  const { createGameRuntime } = await import('@vgai/game-runtime/runtime/create-runtime');
+  const { createGameRuntime } = await import('@volter/game-runtime/runtime/create-runtime');
   const specs = await resolveAllRoots({ ...manifest, roots: [world] }, projectRoot);
   const session = await createGameRuntime({ container, roots: specs, width, height });
   return { session, specs };
@@ -215,9 +215,9 @@ export async function tryManifestModuleRoute(store: EditorShellStore): Promise<b
   return true;
 }
 
-import { acquireLiveDocument, liveDocumentContainer } from '@editor/live-document';
+import { acquireLiveDocument, liveDocumentContainer } from '@volter/editor-core/live-document';
 // THE MODULE LANE, as the host sees it (`live-session-registry.ts`).
-import { registerLiveSession } from '@editor/live-session-registry';
+import { registerLiveSession } from '@volter/editor-core/live-session-registry';
 
 registerLiveSession({
   id: 'module',

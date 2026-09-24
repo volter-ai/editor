@@ -14,19 +14,19 @@ import {
   inspectedInstanceId,
   inspectedInstanceVersion,
   subscribeInspectedInstance,
-} from './authoring/active-systems';
+} from '@volter/editor-core/authoring/active-systems';
 import {
   type EditorPerformanceSource,
   performanceSourceForDocument,
   performanceSourceForGameInstance,
   performanceSourcesVersion,
   subscribePerformanceSources,
-} from './performance-sources';
+} from '@volter/editor-core/performance-sources';
 import {
   activeWorkspaceDocumentId,
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from './workspace-document-registry';
+} from '@volter/editor-core/workspace-document-registry';
 
 export function useActivePerformanceSource(): EditorPerformanceSource | null {
   useSyncExternalStore(

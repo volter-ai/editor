@@ -1,5 +1,5 @@
 /**
- * THE INGEST LANE, started (`@vgai/editor-sdk/services`, a
+ * THE INGEST LANE, started (`@volter/editor-sdk/services`, a
  * `workspace.service` contribution).
  *
  * Three jobs, and the order matters:
@@ -10,7 +10,7 @@
  *    `onShellStore` binding are module-load side effects of
  *    `mount-ingest-root.ts`. The static import below is therefore load-bearing
  *    — `vgai status` carries `ingest: null` / `ingestCaptureWait: null` before
- *    contribution pass. A product that composes no `@vgai/game` reports
+ *    contribution pass. A product that composes no `@volter/editor-game` reports
  *    neither key, which is the honest state: no lane claims to mount
  *    unmodified games.
  *
@@ -40,11 +40,11 @@
  * `mount-ingest-root.ts` binds itself on — read at launch time rather than
  * captured, so neither ordering can leave the launch holding `null`.
  */
-import { editorConsole } from '@editor/editor-console';
-import { importIngestAdapterModule, ingestAdapterModulePath } from '@editor/ingest/registry';
-import { registerAdapterDefinitionSource } from '@editor/project-adapter';
-import { shellStoreForHost } from '@editor/shell-store-door';
-import { editorHost } from '@vgai/editor-sdk/host';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import { importIngestAdapterModule, ingestAdapterModulePath } from '../src/host/ingest/registry';
+import { registerAdapterDefinitionSource } from '@volter/editor-core/project-adapter';
+import { shellStoreForHost } from '@volter/editor-core/shell-store-door';
+import { editorHost } from '@volter/editor-sdk/host';
 import { autoLaunchIngest } from '../src/ingest/mount-ingest-root';
 
 export const point = 'workspace.service';
@@ -52,7 +52,7 @@ export const point = 'workspace.service';
 export function start(): () => void {
   const stopSource = registerAdapterDefinitionSource({
     id: 'in-tree-ingest-registry',
-    owner: '@vgai/game/contributions/ingest.service.ts',
+    owner: '@volter/editor-game/contributions/ingest.service.ts',
     modulePathFor: (rootId) => ingestAdapterModulePath(rootId),
     // A module that exists and throws is left to throw: `defineAdapter`
     // validates at evaluation time, and the host names that failure by path

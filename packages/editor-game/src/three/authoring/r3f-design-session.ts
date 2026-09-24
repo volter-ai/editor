@@ -1,4 +1,4 @@
-import { onAssetReload } from '@editor/project-asset-refresh';
+import { onAssetReload } from '@volter/editor-core/project-asset-refresh';
 
 /**
  * R3F design session (W4) — mounts an entry-based R3F three world at DESIGN
@@ -61,33 +61,33 @@ import { onAssetReload } from '@editor/project-asset-refresh';
  *    published), and the returned disposer.
  */
 
-import { setActiveSystems, updateInstanceSystems } from '@editor/authoring/active-systems';
+import { setActiveSystems, updateInstanceSystems } from '@volter/editor-core/authoring/active-systems';
 import {
   BoundaryAuthoringAdapter,
   type BoundaryRootInfo,
-} from '@editor/authoring/boundary-authoring-adapter';
-import type { CompositeAuthoringAdapter } from '@editor/authoring/composite-authoring-adapter';
+} from '@volter/editor-core/authoring/boundary-authoring-adapter';
+import type { CompositeAuthoringAdapter } from '@volter/editor-core/authoring/composite-authoring-adapter';
 import {
   collaborationSnapshot,
   subscribeCollaborationRevision,
-} from '@editor/collaboration-client';
-import { editorConsole } from '@editor/editor-console';
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import { adjudicateThreeEntry } from '@editor/entry-adjudication';
-import { onPlayTransitionSettled } from '@editor/live-transition';
-import { fetchRawGameManifest } from '@editor/manifest-project';
-import { getCurrentProject } from '@editor/project-manager';
-import { activeRealmServices } from '@editor/realm-services';
-import { pickGameCamera } from '@editor/scene-framing';
-import { tierSourceWriteBackend } from '@editor/ui-source/tier-source-write-backend';
+} from '@volter/editor-core/collaboration-client';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { adjudicateThreeEntry } from '../../host/entry-adjudication';
+import { onPlayTransitionSettled } from '@volter/editor-core/live-transition';
+import { fetchRawGameManifest } from '@volter/editor-core/manifest-project';
+import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { activeRealmServices } from '../../host/realm-services';
+import { pickGameCamera } from '@volter/editor-core/scene-framing';
+import { tierSourceWriteBackend } from '@volter/editor-core/ui-source/tier-source-write-backend';
 import type {
   MountedThreeRoot,
   RootAdapter,
   SystemAdapters,
-  ThreeHostContext,
-} from '@vgai/project/adapter';
-import { nodeKeyedPhysics } from '@vgai/project/adapter';
-import { declaredRoots, rootById } from '@vgai/project/adapter/manifest-interpreter';
+} from '@volter/editor-project/adapter';
+import type { GameThreeHostContext } from '@volter/game-runtime/runtime/host-context';
+import { nodeKeyedPhysics } from '@volter/editor-project/adapter';
+import { declaredRoots, rootById } from '@volter/editor-project/adapter/manifest-interpreter';
 import {
   installNativeDebugBindings,
   installNativeSystemsBindings,
@@ -95,15 +95,15 @@ import {
   type NativeSystemsBinding,
   nativeDebugBindingFromEntryModule,
   nativeSystemsBindingFromEntryModule,
-} from '@vgai/game-runtime/adapter/native-debug-module';
-import { createAssetCache } from '@vgai/threejs-runtime/assets';
-import { createGameLoop } from '@vgai/game-runtime/core/game-loop';
-import { registerThreeRoot } from '@vgai/game-runtime/runtime/create-runtime';
-import { createGame, type GameInternal } from '@vgai/game-runtime/runtime/game';
+} from '@volter/game-runtime/adapter/native-debug-module';
+import { createAssetCache } from '@volter/threejs-runtime/assets';
+import { createGameLoop } from '@volter/game-runtime/core/game-loop';
+import { registerThreeRoot } from '@volter/game-runtime/runtime/create-runtime';
+import { createGame, type GameInternal } from '@volter/game-runtime/runtime/game';
 import {
   beginProjectMountEpoch,
   viteUpdateImportPath,
-} from '@vgai/editor-sdk/session/project-module-url';
+} from '@volter/editor-sdk/session/project-module-url';
 import * as THREE from 'three';
 import { createDesignTimeRenderer } from './design-time-renderer';
 
@@ -131,18 +131,18 @@ import {
   type EditModeRootSpec,
   parseEditModeManifest,
   queueEditModeRebuild,
-} from '@editor/authoring/edit-mode-authoring';
-import { liveGestureActive, whenLiveGestureIdle } from '@editor/authoring/live-gesture-lock';
+} from '@volter/editor-core/authoring/edit-mode-authoring';
+import { liveGestureActive, whenLiveGestureIdle } from '@volter/editor-core/authoring/live-gesture-lock';
 import {
   addMountFailureReport,
   clearMountFailureReport,
   formatMountFailureMessage,
-} from '@editor/authoring/mount-failure-report';
-import { SelectionRemountHandoff } from '@editor/authoring/selection-remount-handoff';
+} from '@volter/editor-core/authoring/mount-failure-report';
+import { SelectionRemountHandoff } from '../../host/authoring/selection-remount-handoff';
 import {
   type RefreshSource,
   SourceRefreshRevisions,
-} from '@editor/authoring/source-refresh-revisions';
+} from '../../host/authoring/source-refresh-revisions';
 import type { R3fSourceAuthoringAdapter } from './r3f-source-authoring-adapter';
 import { isThreeScene } from './three-scene-identity';
 
@@ -249,7 +249,7 @@ export function registerR3FDesignRoot(
  * and permits real offscreen work without transferring canvas ownership.
  */
 function createDesignHost(renderer: THREE.WebGLRenderer): {
-  host: ThreeHostContext;
+  host: GameThreeHostContext;
   game: GameInternal;
   dispose: () => void;
 } {

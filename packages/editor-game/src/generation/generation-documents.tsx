@@ -1,4 +1,4 @@
-import type { GenerationBilling, GenerationJob } from '@vgai/sdk/generations';
+import type { GenerationBilling, GenerationJob } from '@volter/editor-sdk/generations';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import './GenerationGallery.css';
 import {
@@ -6,27 +6,27 @@ import {
   accountVersion,
   contributionAccount,
   subscribeAccount,
-} from '@editor/account';
-import { toolContributionSurfaces } from '@editor/components/ToolContributionSurfaces';
-import { ToolErrorBoundary } from '@editor/components/ToolHost';
-import { openToolDocument } from '@editor/components/tool-documents';
+} from '@volter/editor-core/account';
+import { toolContributionSurfaces } from '@volter/editor-core/components/ToolContributionSurfaces';
+import { ToolErrorBoundary } from '@volter/editor-core/components/ToolHost';
+import { openToolDocument } from '@volter/editor-core/components/tool-documents';
 import {
   subscribeToolContributionPlay,
   toolContributionPlay,
   toolContributionPlayKey,
-} from '@editor/tool-contribution-play';
+} from '@volter/editor-core/tool-contribution-play';
 import {
   getGenerationResultContribution,
   getGlobalToolContributions,
   getToolContributionClient,
   subscribeToolContributions,
-} from '@editor/tool-loader';
+} from '@volter/editor-core/tool-loader';
 import {
   closeWorkspaceDocument,
   openWorkspaceDocument,
   type WorkspaceDocumentContentProps,
-} from '@editor/workspace-document-registry';
-import { Button, TextInput } from '@vgai/editor-sdk/widgets';
+} from '@volter/editor-core/workspace-document-registry';
+import { Button, TextInput } from '@volter/editor-sdk/widgets';
 import {
   acceptGenerationJob,
   forgetGenerationJob,

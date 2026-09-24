@@ -24,7 +24,7 @@ import {
   gameFileKey,
   type IngestEntry,
   ingestEntriesOnSurface,
-} from '@editor/ingest/registry';
+} from '../host/ingest/registry';
 import { composeIngestLoad, declaredSourceModules, ingestDataWriter } from './entry-load';
 import type { IngestGame } from './types';
 

@@ -6,7 +6,7 @@
  * world-space geometry and a dragged world point back to the same native prop.
  */
 
-import type { SpatialHandleLayer, SpatialPoint3 } from '@vgai/project/adapter';
+import type { SpatialHandleLayer, SpatialPoint3 } from '@volter/editor-project/adapter';
 import * as THREE from 'three';
 import { applyTypedField, type TypedThreeField, typedFieldForPath } from './typed-three-inspector';
 

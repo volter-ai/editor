@@ -23,28 +23,28 @@
  * path is therefore its catch block.
  */
 
-import { getAuthoringOverride, setActiveAuthoring } from '@editor/authoring/active-adapter';
+import { getAuthoringOverride, setActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
 import {
   CompositeAuthoringAdapter,
   type CompositeChild,
-} from '@editor/authoring/composite-authoring-adapter';
+} from '@volter/editor-core/authoring/composite-authoring-adapter';
 import {
   addMountFailureReport,
   clearMountFailureReports,
   formatMountFailureMessage,
   getMountFailureReports,
   type MountFailureReport,
-} from '@editor/authoring/mount-failure-report';
-import { editorConsole } from '@editor/editor-console';
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import { registerEditorStateFacet } from '@editor/editor-state-facets';
-import { liveDocumentContainer } from '@editor/live-document';
-import { fetchGameManifest, isManifestAbsence } from '@editor/manifest-project';
-import { getCurrentProject } from '@editor/project-manager';
-import { onShellStore } from '@editor/shell-store-door';
-import { ingestRoots, rootById } from '@vgai/project/adapter/manifest-interpreter';
-import { MANIFEST_FILENAME } from '@vgai/project/manifest/filename';
-import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@vgai/project/manifest/load';
+} from '@volter/editor-core/authoring/mount-failure-report';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { registerEditorStateFacet } from '@volter/editor-core/editor-state-facets';
+import { liveDocumentContainer } from '@volter/editor-core/live-document';
+import { fetchGameManifest, isManifestAbsence } from '@volter/editor-core/manifest-project';
+import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { onShellStore } from '@volter/editor-core/shell-store-door';
+import { ingestRoots, rootById } from '@volter/editor-project/adapter/manifest-interpreter';
+import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
+import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@volter/editor-project/manifest/load';
 import { activeIngest, attachIngestSiblings } from './active-ingest';
 import { captureWaitStatus } from './capture-wait-report';
 import { resetIngestPlaySurface } from './ingest-play-control';

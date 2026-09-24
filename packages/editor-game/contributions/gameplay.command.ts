@@ -1,5 +1,5 @@
 /**
- * The DEBUG-SEAM verbs of the session wire (`@vgai/editor-sdk/commands`, a
+ * The DEBUG-SEAM verbs of the session wire (`@volter/editor-sdk/commands`, a
  * `workspace.command` contribution): reading a running game's declared state
  * and commands, and actuating its input, time scale, seed and tick loop.
  *
@@ -17,8 +17,8 @@
  * when they move. Nothing here is host API.
  */
 
-import { getActiveSystems } from '@editor/authoring/active-systems';
-import type { CommandContribution } from '@vgai/editor-sdk/commands';
+import { getActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import type { CommandContribution } from '@volter/editor-sdk/commands';
 import { notPlayingResult, structuredErrorResult } from '../src/command-results';
 import { getPlayRuntimeAccess, isPlayModeActive } from '../src/play/play-mode';
 

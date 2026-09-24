@@ -3,7 +3,7 @@
  * frame, and whether that wait is parked because the tab is hidden.
  *
  * WHY IT EXISTS. The capture window is a budget of VISIBLE time
- * (`@vgai/threejs-runtime/adapter/ingest/visible-capture-window`), so a tab that boots in the
+ * (`@volter/threejs-runtime/adapter/ingest/visible-capture-window`), so a tab that boots in the
  * background — the normal human path — no longer burns its window unable to
  * draw. What it does instead is WAIT, potentially for as long as the human
  * takes to come back to the tab, and a wait is exactly the state every door
@@ -24,8 +24,8 @@
  * path. A second mount replaces the first's entry; there is only ever one wait.
  */
 
-import { notifyLiveSessionsChanged } from '@editor/live-session-registry';
-import type { VisibleCaptureWindow } from '@vgai/threejs-runtime/adapter/ingest/visible-capture-window';
+import { notifyLiveSessionsChanged } from '@volter/editor-core/live-session-registry';
+import type { VisibleCaptureWindow } from '@volter/threejs-runtime/adapter/ingest/visible-capture-window';
 
 /** The wait as `vgai status` reports it. */
 export interface CaptureWaitStatus {

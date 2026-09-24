@@ -4,9 +4,9 @@ import {
   inspectedInstanceVersion,
   setInspectedInstance,
   subscribeInspectedInstance,
-} from '@editor/authoring/active-systems';
-import { useEditorStore } from '@editor/editor-runtime';
-import { gameRealmDiagnostics } from '@editor/gated-globals';
+} from '@volter/editor-core/authoring/active-systems';
+import { useEditorStore } from '@volter/editor-core/editor-runtime';
+import { gameRealmDiagnostics } from '../host/gated-globals';
 import { faEye } from '@fortawesome/free-solid-svg-icons';
 import {
   AnchoredMenu,
@@ -17,7 +17,7 @@ import {
   MenuSeparator,
   Text,
   themeVars,
-} from '@vgai/editor-sdk/widgets';
+} from '@volter/editor-sdk/widgets';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
   focusedInstanceId,

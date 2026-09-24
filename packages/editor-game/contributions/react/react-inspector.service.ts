@@ -1,5 +1,5 @@
 /**
- * THE REACT/DOM INSPECTOR (`@vgai/editor-sdk/services`, a `workspace.service`
+ * THE REACT/DOM INSPECTOR (`@volter/editor-sdk/services`, a `workspace.service`
  * contribution): the rich CSS/layout section that stands in for the shell's
  * generic property grid on a node owned by a react or DOM adapter — borders,
  * radii, shadows, gradients, filters, fonts, alignment, the breakpoint strip
@@ -17,9 +17,9 @@
  * DOM included. The gate was corrected first (PR #7225) so this cut could be
  * measured rather than asserted.
  *
- * ## Why its own package rather than `@vgai/game`
+ * ## Why its own package rather than `@volter/editor-game`
  *
- * Because `@vgai/game` already imports the surface this section drives from
+ * Because `@volter/editor-game` already imports the surface this section drives from
  * two unrelated lanes — `src/play/react-play-live-authoring.ts` and the
  * ingest lane's DOM mount both reach `ReactRootAuthoringAdapter` — and the
  * planned design skew (a Figma-shaped canvas) wants the same surface and is
@@ -31,7 +31,7 @@
  * `@editor/inspector-section-registry` is the host's own registry and has been
  * "the PERMANENT, sanctioned adapter-module seam" since it was written; the
  * package REGISTERS, and the host names no lane. The service point is
- * transcribed from `@vgai/game`'s `story-documents.service.ts`, which installs
+ * transcribed from `@volter/editor-game`'s `story-documents.service.ts`, which installs
  * a story-scoped Inspector section the same way and for the same reason: a
  * section is not a document, so it never opens and never persists, and what a
  * contribution pass owns is when its registration exists.
@@ -48,13 +48,13 @@
  *
  * THE ADAPTERS THEMSELVES MOVED HERE on 2026-09-18 (phase 1 unit 12):
  * `react-world-authoring-adapter.ts` and `dom-authoring-adapter.ts` are
- * `@vgai/dom/src/` files now. The blocker this docblock used to name —
+ * `@volter/editor-game/src/react/` files now. The blocker this docblock used to name —
  * "`authoring/design-time-layers.ts` CONSTRUCTS the React adapter" — is gone,
  * because the design-time mount is a REGISTRATION now
  * (`@editor/authoring/design-time-mount-registry`), so both constructions
  * moved into this package with `mountReactLayer` and the pair had no host
- * importer left. `@vgai/game`'s play-live authoring and four modules of its
- * ingest lane import them as `@vgai/dom/…`; that package declares the
+ * importer left. `@volter/editor-game`'s play-live authoring and four modules of its
+ * ingest lane import them as `@volter/editor-game/react/…`; that package declares the
  * dependency.
  *
  * Still host files, reached through `@editor/*` — the shape units 4 and 5
@@ -72,7 +72,7 @@
  * host's EAGER closure, which is what these cuts buy.
  */
 
-import { ensureReactInspectorSectionRegistered } from '../src/react-inspector-section';
+import { ensureReactInspectorSectionRegistered } from '../../src/react/react-inspector-section';
 
 export const point = 'workspace.service';
 

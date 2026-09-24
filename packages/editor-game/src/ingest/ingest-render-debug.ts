@@ -9,7 +9,7 @@
  * `RenderDebugAdapter` needs three things: a real WebGL2 context, the live scene
  * to attribute draws against, and a bracket around the render pass. A captured
  * ingest mount has all three and the host already holds them — the capture trap
- * (`@vgai/threejs-runtime/adapter/ingest/scene-capture`) stands between the game and its own
+ * (`@volter/threejs-runtime/adapter/ingest/scene-capture`) stands between the game and its own
  * `WebGLRenderer.render`, which is the ONLY place a host can see a
  * self-driven game's pass begin and end. So no game declares this slot: it is
  * derived from the mount, exactly like the first-party path, and a game that
@@ -34,7 +34,7 @@
  * five WebGL2 draw entry points on whatever real context it is handed and knows
  * nothing about three — so it is reused verbatim over the captured Pixi
  * renderer's own `gl`. The bracket is the renderer's own published seam, its
- * `prerender`/`postrender` runners (`@vgai/game-runtime/pixi/render-pass-bracket`).
+ * `prerender`/`postrender` runners (`@volter/game-runtime/pixi/render-pass-bracket`).
  *
  * What is NOT there is per-draw attribution, and it is absent for a structural
  * reason rather than a missing patch point: three calls `onBeforeRender` on the
@@ -55,26 +55,26 @@
  * notice.
  */
 
-import { adapterObservations } from '@editor/adapter-observation';
-import { createContractDebugAdapter } from '@vgai/game-runtime/adapter/ingest/contract-debug-adapter';
+import { adapterObservations } from '@volter/editor-core/adapter-observation';
+import { createContractDebugAdapter } from '@volter/game-runtime/adapter/ingest/contract-debug-adapter';
 import {
   type ContractSurface,
   projectContractSystemAdapters,
-} from '@vgai/game-runtime/adapter/ingest/contract-system-adapters';
-import { mergeDebugAdapters } from '@vgai/game-runtime/adapter/ingest/merge-debug-adapters';
-import { createObservationDebugAdapter } from '@vgai/game-runtime/adapter/ingest/observation-debug-adapter';
+} from '@volter/game-runtime/adapter/ingest/contract-system-adapters';
+import { mergeDebugAdapters } from '@volter/game-runtime/adapter/ingest/merge-debug-adapters';
+import { createObservationDebugAdapter } from '@volter/game-runtime/adapter/ingest/observation-debug-adapter';
 import {
   createRenderDebugAdapter,
   frameCaptureContextFor,
   type RenderDebugWiring,
-} from '@vgai/game-runtime/dev/render-debug-adapter';
-import { collectRenderMemory } from '@vgai/game-runtime/dev/render-memory';
-import { createWebGLFrameCapture } from '@vgai/game-runtime/dev/webgl-frame-capture';
-import { pixiRenderingContext } from '@vgai/game-runtime/pixi/render-pass-bracket';
-import type { ObservationDeclaration } from '@vgai/project/adapter/adapter-module';
-import type { VgaiGameSystems } from '@vgai/project/adapter/ingest/game-contract';
-import type { SystemAdapters } from '@vgai/project/adapter/system-adapter';
-import type { RenderPassHooks } from '@vgai/threejs-runtime/adapter/ingest/scene-capture';
+} from '@volter/game-runtime/dev/render-debug-adapter';
+import { collectRenderMemory } from '@volter/game-runtime/dev/render-memory';
+import { createWebGLFrameCapture } from '@volter/game-runtime/dev/webgl-frame-capture';
+import { pixiRenderingContext } from '@volter/game-runtime/pixi/render-pass-bracket';
+import type { ObservationDeclaration } from '@volter/editor-project/adapter/adapter-module';
+import type { VgaiGameSystems } from '@volter/editor-project/adapter/ingest/game-contract';
+import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
+import type { RenderPassHooks } from '@volter/threejs-runtime/adapter/ingest/scene-capture';
 import type * as THREE from 'three';
 import { ingestGameRealmWindow } from './game-contract-realm';
 import {
@@ -197,7 +197,7 @@ export interface IngestSystemsWiring {
  * Four sources, each with a different provenance:
  *  - `debug` — projected from the contract's own `commands`/`state`;
  *  - `debug`, AGAIN — projected from the loaded ADAPTER's observation
- *    declarations (`@vgai/game-runtime/adapter/ingest/observation-debug-adapter`).
+ *    declarations (`@volter/game-runtime/adapter/ingest/observation-debug-adapter`).
  *    These two are peers onto ONE slot, so they are MERGED
  *    (`merge-debug-adapters.ts`) rather than layered: a name declared by both
  *    is refused by a coded error naming both sources, never shadowed;

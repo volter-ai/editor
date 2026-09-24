@@ -10,7 +10,7 @@
  * the host's own state and stay there; this one watches THIS package's
  * session, so it belongs here.
  */
-import type { ServiceContribution } from '@vgai/editor-sdk/services';
+import type { ServiceContribution } from '@volter/editor-sdk/services';
 import {
   getBuildSession,
   showBuildOutput,

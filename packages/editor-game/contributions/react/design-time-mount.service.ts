@@ -1,6 +1,6 @@
 /**
- * THE DOM MEDIUM'S DESIGN-TIME MOUNT (`@vgai/editor-sdk/services`, a
- * `workspace.service` contribution): `@vgai/dom` tells the host's design-time
+ * THE DOM MEDIUM'S DESIGN-TIME MOUNT (`@volter/editor-sdk/services`, a
+ * `workspace.service` contribution): `@volter/editor-game` tells the host's design-time
  * mount registry how a `dom` world mounts at design time, and when its
  * mounted layers go stale.
  *
@@ -21,14 +21,14 @@
  * the build's eager graph.
  */
 
-import { registerDesignTimeMount } from '@editor/authoring/design-time-mount-registry';
+import { registerDesignTimeMount } from '@volter/editor-core/authoring/design-time-mount-registry';
 
 export const point = 'workspace.service';
 
 export function start(): () => void {
   return registerDesignTimeMount({
     kind: 'dom',
-    owner: '@vgai/dom/design-time-mount',
+    owner: '@volter/editor-game/react/design-time-mount',
     // The `ResolvedAdapter['identity']` a mount failure is reported under —
     // the literal the host's own catch block used to spell.
     identity: 'default-react',
@@ -36,7 +36,7 @@ export function start(): () => void {
     // real UI competes with authoring gestures, so it stays behind the `eye`
     // row's `interactive` toggle. The canvas medium declares the opposite.
     mount: async (candidate, layer, context) => {
-      const { mountReactDesignLayer } = await import('../src/design-time-react-mount');
+      const { mountReactDesignLayer } = await import('../../src/react/design-time-react-mount');
       return mountReactDesignLayer(candidate, layer, context);
     },
     reprojectWhen: (invalidate) => {
@@ -46,7 +46,7 @@ export function start(): () => void {
       // load the board's whole graph for a project that has no dom root. The
       // host only calls this when a dom candidate exists, so loading here is
       // exactly the right moment.
-      void import('../src/design-time-react-mount').then((module) => {
+      void import('../../src/react/design-time-react-mount').then((module) => {
         if (stopped) return;
         stop = module.reprojectWhenStoriesRepublish(invalidate);
       });

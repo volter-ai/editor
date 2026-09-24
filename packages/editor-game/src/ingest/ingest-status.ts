@@ -8,8 +8,8 @@
  * what it mounted.
  */
 
-import type { CapabilityCoverageReport } from '@editor/coverage/capability-coverage';
-import type { MeasuredLoop } from '@editor/same-realm-loop-gate';
+import type { CapabilityCoverageReport } from '../host/coverage/capability-coverage';
+import type { MeasuredLoop } from '../host/same-realm-loop-gate';
 
 /**
  * The live ingest session, as the control API reports it. Every field is read
@@ -34,7 +34,7 @@ export interface IngestStatusFacet {
    *
    * Never inferred from the manifest — and now structurally unable to be: the
    * manifest declares the SAME two words as an author's intent
-   * (`@vgai/project/manifest/schema`'s `loop`), so a bare string here left a
+   * (`@volter/editor-project/manifest/schema`'s `loop`), so a bare string here left a
    * declaration and a measurement indistinguishable to every reader of this
    * facet. Evidence is producible only by the probe.
    */

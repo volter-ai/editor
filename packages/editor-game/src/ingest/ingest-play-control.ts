@@ -8,11 +8,11 @@
  * {@link resetIngestPlaySurface}.
  */
 
-import { gameContractEpoch } from '@editor/coverage/game-contract-seam-evidence';
-import { recordLiveSeamEvidence } from '@editor/coverage/live-seam-evidence';
-import { editorConsole } from '@editor/editor-console';
-import { activateLiveDocument } from '@editor/live-document';
-import type { VgaiGameContract } from '@vgai/project/adapter/ingest/game-contract';
+import { gameContractEpoch } from '../host/coverage/game-contract-seam-evidence';
+import { recordLiveSeamEvidence } from '@volter/editor-core/coverage/live-seam-evidence';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import { activateLiveDocument } from '@volter/editor-core/live-document';
+import type { VgaiGameContract } from '@volter/editor-project/adapter/ingest/game-contract';
 import { activeIngest, type IngestLifecycleControl } from './active-ingest';
 import { readIngestGameContract } from './game-contract-realm';
 

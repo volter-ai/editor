@@ -4,17 +4,17 @@
  * installer can be unit-tested without pulling Pixi/Three into jsdom.
  */
 
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import { projectAdapterFacet } from '@editor/project-adapter';
-import { isolationTabsReplaceGenericScene } from '@editor/scene-document-plan';
-import { CANVAS_SCENE_DOCUMENT_ID } from '@editor/workspace-document-ids';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { projectAdapterFacet } from '@volter/editor-core/project-adapter';
+import { isolationTabsReplaceGenericScene } from '@volter/editor-core/scene-document-plan';
+import { CANVAS_SCENE_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
 import {
   activateWorkspaceDocument,
   closeWorkspaceDocument,
   openWorkspaceDocument,
   type WorkspaceDocumentContentProps,
-} from '@editor/workspace-document-registry';
-import { registerRootDocumentRoute } from '@editor/world-document-routing';
+} from '@volter/editor-core/workspace-document-registry';
+import { registerRootDocumentRoute } from '@volter/editor-core/world-document-routing';
 import type { ReactNode } from 'react';
 import { activeIngest } from './active-ingest';
 

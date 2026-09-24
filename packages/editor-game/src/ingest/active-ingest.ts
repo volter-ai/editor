@@ -12,10 +12,10 @@
  * makes that whole graph acyclic.
  */
 
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import type { MeasuredLoop } from '@editor/same-realm-loop-gate';
-import type { DomAuthoringAdapter } from '@vgai/dom/dom-authoring-adapter';
-import type { AuthoringAdapter } from '@vgai/project/adapter/authoring';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { MeasuredLoop } from '../host/same-realm-loop-gate';
+import type { DomAuthoringAdapter } from '../react/dom-authoring-adapter';
+import type { AuthoringAdapter } from '@volter/editor-project/adapter/authoring';
 import type { IngestMount } from './authoring/ingest-root-adapter';
 import type { SiblingMount } from './ingest-siblings';
 import type { MountCoverageInputs } from './mount-coverage';
@@ -192,7 +192,7 @@ export function serializeEntry<T>(run: () => Promise<T>): Promise<T> {
   return result;
 }
 
-import { registerLiveSession } from '@editor/live-session-registry';
+import { registerLiveSession } from '@volter/editor-core/live-session-registry';
 // THE INGEST LANE, as the host sees it (`live-session-registry.ts`). Playing
 // is the host play-control latch, never an inferred loop
 // (`editor-session-mode.ts` records why); a deferred-ingest play counts.

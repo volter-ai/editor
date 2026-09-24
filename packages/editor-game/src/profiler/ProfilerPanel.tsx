@@ -1,5 +1,5 @@
-import { type ProfilerViewId, profilerView } from '@editor/components/utility-view-state';
-import { EditorTab, EditorTabList } from '@vgai/editor-sdk/widgets';
+import { type ProfilerViewId, profilerView } from '../host/components/utility-view-state';
+import { EditorTab, EditorTabList } from '@volter/editor-sdk/widgets';
 import { useSyncExternalStore } from 'react';
 import { FrameDebuggerPanel } from './FrameDebuggerPanel';
 import { PerformancePanel } from './PerformancePanel';

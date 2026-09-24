@@ -24,20 +24,20 @@
  * property that cannot be honestly source-anchored presents as live-only.
  */
 
-import type { NodeCreationSite } from '@vgai/project/adapter';
-import { base64ToBytes, bytesToBase64, sha256Hex } from '../bytes-codec';
+import type { NodeCreationSite } from '@volter/editor-project/adapter';
+import { base64ToBytes, bytesToBase64, sha256Hex } from '@volter/editor-core/bytes-codec';
 import type {
   ChannelValue,
   CreationSiteLiteralReport,
   CreationSiteSurface,
   CreationSiteWriteScope,
-} from '../creation-site-edit';
-import { editorConsole } from '../editor-console';
-import { editorIsAuthoring } from '../editor-session-mode';
-import type { HistoryService } from '../history/history-service';
-import { projectSourceAppliedChange } from '../history/source-history-backend';
-import type { ResourceDriver, ResourceKey } from '../history/types';
-import type { SourceWriteBackend } from '../ui-source/source-write-backend';
+} from '@volter/editor-core/creation-site-edit';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorIsAuthoring } from '@volter/editor-core/editor-session-mode';
+import type { HistoryService } from '@volter/editor-core/history/history-service';
+import { projectSourceAppliedChange } from '@volter/editor-core/history/source-history-backend';
+import type { ResourceDriver, ResourceKey } from '@volter/editor-core/history/types';
+import type { SourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
 import {
   type DataEditPlan,
   dataPlacementRefusal,

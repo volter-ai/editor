@@ -38,8 +38,8 @@
  *    path like this one can use it.
  */
 
-import { loadGameCssScoper, SCOPED_STYLE_MARK } from '@editor/game-realm-page';
-import { GAME_GLOBALS_PRELUDE, gameRealmPage } from '@editor/gated-globals';
+import { loadGameCssScoper, SCOPED_STYLE_MARK } from '../host/game-realm-page';
+import { GAME_GLOBALS_PRELUDE, gameRealmPage } from '../host/gated-globals';
 import { ingestGameRealmWindow } from './game-contract-realm';
 
 /** One `<script>` the document declares, in document order. */

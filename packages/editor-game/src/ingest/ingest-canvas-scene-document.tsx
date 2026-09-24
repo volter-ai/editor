@@ -17,26 +17,26 @@
 import {
   getMountFailureReports,
   subscribeToMountFailures,
-} from '@editor/authoring/mount-failure-report';
-import { installCanvasSceneNavigation } from '@editor/authoring/react-canvas-navigation';
-import { createRootViewController } from '@editor/authoring/world-pan-state';
+} from '@volter/editor-core/authoring/mount-failure-report';
+import { installCanvasSceneNavigation } from '@volter/editor-core/authoring/react-canvas-navigation';
+import { createRootViewController } from '@volter/editor-core/authoring/world-pan-state';
 import {
   CANVAS_SCENE_BACKGROUND,
   CanvasSceneBackdrop,
   CanvasSceneControls,
-} from '@editor/components/CanvasSceneViewport';
-import { RootSelectionOverlay } from '@editor/components/RootSelectionOverlay';
-import { SurfaceStateOverlay } from '@editor/components/SurfaceStateOverlay';
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import { liveDocumentContainer } from '@editor/live-document';
-import { projectAdapterFacet } from '@editor/project-adapter';
-import { readinessFacet, subscribeRootReadiness } from '@editor/readiness';
-import { explainSurface } from '@editor/surface-state';
+} from '@volter/editor-core/components/CanvasSceneViewport';
+import { RootSelectionOverlay } from '@volter/editor-core/components/RootSelectionOverlay';
+import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { liveDocumentContainer } from '@volter/editor-core/live-document';
+import { projectAdapterFacet } from '@volter/editor-core/project-adapter';
+import { readinessFacet, subscribeRootReadiness } from '@volter/editor-core/readiness';
+import { explainSurface } from '@volter/editor-core/surface-state';
 import {
   registerWorkspaceDocumentSelection,
   type WorkspaceDocumentContentProps,
-} from '@editor/workspace-document-registry';
-import type { AuthoringAdapter } from '@vgai/project/adapter';
+} from '@volter/editor-core/workspace-document-registry';
+import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { activeIngest } from './active-ingest';
 import { activeContractScenes } from './active-scene-navigation';

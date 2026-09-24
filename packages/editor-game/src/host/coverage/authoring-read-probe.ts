@@ -12,7 +12,7 @@ import type {
   EditorNode,
   SeamEvidenceReceipt,
   SeamProofStage,
-} from '@vgai/project/adapter';
+} from '@volter/editor-project/adapter';
 
 type ReadRecorder = (
   seam: string,
@@ -156,7 +156,7 @@ function probeIdForObject3D(
  * check the answer against the walk that just ran.
  *
  * `idForObject3D` was declared `required: 'effect'` and could therefore never
- * be verified (`@vgai/project/adapter/authoring-seam-contract`'s note, and the
+ * be verified (`@volter/editor-project/adapter/authoring-seam-contract`'s note, and the
  * orchestrator's ruling of 2026-09-19): it has no side effect for a consumer
  * to record a receipt for, so the hierarchy CARRIER graded `unverified` on
  * every three adapter forever while printing a sentence that said the seam was

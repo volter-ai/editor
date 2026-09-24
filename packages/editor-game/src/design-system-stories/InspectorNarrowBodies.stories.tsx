@@ -29,22 +29,22 @@
  *    Animation / Materials / Source sections are the real contributions.
  */
 
-import { UNCAPTURED_REACH } from '@editor/adapter-reach';
-import { SourceObject3DAuthoringAdapter } from '@editor/authoring/source-object3d-authoring-adapter';
+import { UNCAPTURED_REACH } from '../host/adapter-reach';
+import { SourceObject3DAuthoringAdapter } from '@volter/editor-core/authoring/source-object3d-authoring-adapter';
 import { faBrain, faPalette } from '@fortawesome/free-solid-svg-icons';
 import type { Meta, StoryObj } from '@storybook/react';
 import { type ReactNode, useState } from 'react';
 import * as THREE from 'three';
 // Side-effect: registers the model-asset section contributions (Geometry,
 // Animation, Materials, Source) into the inspector-section registry.
-import '@editor/authoring/model-asset-inspector-section';
-import { ingestCoverageSection } from '@editor/components/CapabilityCoverageSection';
-import { InspectionProjectionView } from '@editor/components/InspectionProjection';
-import { AuthoringInspectorSurface } from '@editor/components/Inspector';
-import { deriveCapabilityCoverage } from '@editor/coverage/capability-coverage';
-import { createAuthoringFixture } from '@editor/design-system-stories/fixtures/authoring';
-import { StoryEditorRuntime } from '@editor/design-system-stories/fixtures/editor-runtime';
-import type { InspectionSection, InspectionSubject } from '@editor/inspection/model';
+import '@volter/editor-core/authoring/model-asset-inspector-section';
+import { ingestCoverageSection } from '@volter/editor-core/components/CapabilityCoverageSection';
+import { InspectionProjectionView } from '@volter/editor-core/components/InspectionProjection';
+import { AuthoringInspectorSurface } from '@volter/editor-core/components/Inspector';
+import { deriveCapabilityCoverage } from '../host/coverage/capability-coverage';
+import { createAuthoringFixture } from '../host/design-system-stories/fixtures/authoring';
+import { StoryEditorRuntime } from '../host/design-system-stories/fixtures/editor-runtime';
+import type { InspectionSection, InspectionSubject } from '@volter/editor-core/inspection/model';
 import {
   AlignmentGrid,
   type AlignmentValue,
@@ -64,7 +64,7 @@ import {
   type ShadowValue,
   uniformBorder,
   uniformRadius,
-} from '@vgai/editor-sdk/widgets';
+} from '@volter/editor-sdk/widgets';
 import { characterAnimationMachine } from '../xstate/character-animation-machine.fixture';
 import { XStateMachineInspector } from '../xstate/XStateMachineInspector';
 

@@ -3,7 +3,7 @@ import type {
   EditorNode,
   PropertyDescriptor,
   Transform,
-} from '@vgai/project/adapter';
+} from '@volter/editor-project/adapter';
 
 const hierarchyNodes: Readonly<Record<string, Omit<EditorNode, 'label'>>> = {
   scene: {

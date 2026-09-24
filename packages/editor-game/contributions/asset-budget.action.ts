@@ -2,7 +2,7 @@
  * `Open Asset Budget` in the command palette — the same document Window ▸
  * Asset Budget opens, through the action point.
  */
-import type { ActionContribution } from '@vgai/editor-sdk/chrome';
+import type { ActionContribution } from '@volter/editor-sdk/chrome';
 import { openAssetBudgetDocument } from '../src/asset-budget/AssetBudgetPanel';
 
 export const point = 'workspace.action';

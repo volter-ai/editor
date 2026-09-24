@@ -21,9 +21,9 @@
  * which rows get hierarchy source items.
  */
 
-import type { NodeCreationSite, RelatedSubjectsProvider } from '@vgai/project/adapter';
-import { type InstanceSourceLocator, runInstanceSourceAction } from '../instance-source-actions';
-import { showTransientHint } from '../transient-hint';
+import type { NodeCreationSite, RelatedSubjectsProvider } from '@volter/editor-project/adapter';
+import { type InstanceSourceLocator, runInstanceSourceAction } from '@volter/editor-core/instance-source-actions';
+import { showTransientHint } from '@volter/editor-core/transient-hint';
 
 /** The related provider for an adapter whose truth can place a subject at a
  *  creation site. `resolveSite` is the adapter's own id→site hop. */

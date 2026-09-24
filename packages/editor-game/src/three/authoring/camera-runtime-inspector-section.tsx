@@ -9,16 +9,16 @@
  * the editor creates no camera graph or sidecar.
  */
 
-import { getActiveCamera } from '@editor/authoring/active-systems';
-import type { InspectorSectionProps } from '@editor/inspector-section-registry';
+import { getActiveCamera } from '@volter/editor-core/authoring/active-systems';
+import type { InspectorSectionProps } from '@volter/editor-core/inspector-section-registry';
 import type {
   AuthoringAdapter,
   CameraAdapter,
   CameraRuntimeCamera,
   CameraRuntimeSnapshot,
   EditorNode,
-} from '@vgai/project/adapter';
-import { EditorBanner, FieldGroup, FieldRow, Text } from '@vgai/editor-sdk/widgets';
+} from '@volter/editor-project/adapter';
+import { EditorBanner, FieldGroup, FieldRow, Text } from '@volter/editor-sdk/widgets';
 import { useEffect, useReducer } from 'react';
 import type * as THREE from 'three';
 

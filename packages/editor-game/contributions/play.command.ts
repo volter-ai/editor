@@ -1,5 +1,5 @@
 /**
- * THE PLAY VERBS of the session wire (`@vgai/editor-sdk/commands`, a
+ * THE PLAY VERBS of the session wire (`@volter/editor-sdk/commands`, a
  * `workspace.command` contribution): `play`, `stop`, `pause`, `resume`,
  * `step`, and the paused run's `bridge-recording-export`.
  *
@@ -18,7 +18,7 @@
  * Host internals Play still holds are reached through the `@editor/*` alias
  * the editor's Vite serves to every contribution (precedent:
  * `instances.command.ts`); the doors a lane is meant to use are
- * `@vgai/editor-sdk/host`.
+ * `@volter/editor-sdk/host`.
  *
  * `play-recording.ts` is Play's own (`../src/play/`): its idle watchdog reads
  * every relayed command through `host.session.onCommandDispatched`, the door
@@ -28,13 +28,13 @@
  * it, and no contribution point injects a panel's header component.
  */
 
-import { getActiveSystems } from '@editor/authoring/active-systems';
-import { setGameplayExportActive } from '@editor/gameplay-export-state';
-import { stopGameplayRecording } from '@editor/gameplay-recording';
-import { liveInstanceContainer } from '@editor/live-session-registry';
-import type { CommandContribution } from '@vgai/editor-sdk/commands';
-import { editorHost } from '@vgai/editor-sdk/host';
-import type { OfflineAudioRenderer } from '@vgai/project/adapter';
+import { getActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { setGameplayExportActive } from '@volter/editor-core/gameplay-export-state';
+import { stopGameplayRecording } from '../src/host/gameplay-recording';
+import { liveInstanceContainer } from '@volter/editor-core/live-session-registry';
+import type { CommandContribution } from '@volter/editor-sdk/commands';
+import { editorHost } from '@volter/editor-sdk/host';
+import type { OfflineAudioRenderer } from '@volter/editor-project/adapter';
 import { flushSync } from 'react-dom';
 import { notPlayingResult, structuredErrorResult } from '../src/command-results';
 import {
@@ -55,7 +55,7 @@ export const point = 'workspace.command';
 async function captureLiveCanvasFrame(
   canvas: HTMLCanvasElement,
 ): Promise<CanvasImageSource | null> {
-  const { liveCanvasFrame } = await import('@editor/live-canvas-frame');
+  const { liveCanvasFrame } = await import('@volter/editor-core/live-canvas-frame');
   return liveCanvasFrame(canvas);
 }
 
@@ -245,7 +245,7 @@ export const commands: CommandContribution['commands'] = {
       if (!container) return notPlayingResult();
       if (gameplayExportAbort) return { ok: false, error: 'A video export is already active.' };
       const { exportGameplayVideo, validateGameplayExport, assertGameplayVideoSupport } =
-        await import('@editor/gameplay-export');
+        await import('@volter/editor-core/gameplay-export');
       const exportOptions = {
         frames: Number(cmd['frames']),
         fps: cmd['fps'] === undefined ? 30 : Number(cmd['fps']),
@@ -280,7 +280,7 @@ export const commands: CommandContribution['commands'] = {
       try {
         await assertGameplayVideoSupport(container);
         controller.signal.throwIfAborted();
-        const { gameplayRecordingActive } = await import('@editor/gameplay-recording');
+        const { gameplayRecordingActive } = await import('../src/host/gameplay-recording');
         if (gameplayRecordingActive()) await stopGameplayRecording();
         const { blob, ...result } = await exportGameplayVideo(container, exportOptions, {
           step: () => flushSync(() => stepPlayMode()),
@@ -303,7 +303,7 @@ export const commands: CommandContribution['commands'] = {
           appendGameplayRecordingChunk,
           finishGameplayRecordingSink,
           abortGameplayRecordingSink,
-        } = await import('@editor/editor-api');
+        } = await import('@volter/editor-core/editor-api');
         controller.signal.throwIfAborted();
         const sink = await beginGameplayRecordingSink(
           {

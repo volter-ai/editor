@@ -14,7 +14,7 @@ import { getPlayRuntimeAccess } from '../play/play-mode';
 export async function captureLiveCanvasFrame(
   canvas: HTMLCanvasElement,
 ): Promise<CanvasImageSource | null> {
-  const { liveCanvasFrame } = await import('@editor/live-canvas-frame');
+  const { liveCanvasFrame } = await import('@volter/editor-core/live-canvas-frame');
   return liveCanvasFrame(canvas);
 }
 

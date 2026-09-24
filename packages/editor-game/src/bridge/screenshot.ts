@@ -11,10 +11,10 @@ import {
   CaptureLayerError,
   capturePlayComposite,
   sampleFlatness,
-} from '@editor/composite-screenshot';
-import { editorConsole } from '@editor/editor-console';
-import { presentationSurface } from '@editor/presentation-surface';
-import type { EditorCommandMessage, EditorCommandResult } from '@vgai/editor-sdk/commands';
+} from '@volter/editor-core/composite-screenshot';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import { presentationSurface } from '@volter/editor-core/presentation-surface';
+import type { EditorCommandMessage, EditorCommandResult } from '@volter/editor-sdk/commands';
 import { notPlayingResult, structuredErrorResult } from '../command-results';
 import { isIngestActive } from '../ingest/active-ingest';
 import {
@@ -38,7 +38,7 @@ import { captureLiveCanvasFrame } from './live-frames';
  *  or a rasterization failure), it degrades to the original canvas-only
  *  `toDataURL` capture, marked
  *  honestly with `composite: false`. A caller (`RelayTransport.screenshot`
- *  in `@vgai/live`) writes the PNG to disk — this relay op stays a pure
+ *  in `@volter/editor-live`) writes the PNG to disk — this relay op stays a pure
  *  "hand back the pixels" primitive, matching `bridge-call`'s own
  *  session-generic, run-lifecycle-free shape.
  *
@@ -50,7 +50,7 @@ import { captureLiveCanvasFrame } from './live-frames';
  *
  *  BOTH legs read a canvas, and a canvas is only readable after its frame when
  *  its WebGL context was created with `preserveDrawingBuffer: true`. Every
- *  canvas the vgai RUNTIME mounts sets it (`@vgai/game-runtime/runtime/create-runtime`,
+ *  canvas the vgai RUNTIME mounts sets it (`@volter/game-runtime/runtime/create-runtime`,
  *  D5 §1/§4); a canvas an INGESTED game created is the game's own and usually
  *  does not, which read as a silently BLACK screenshot over a perfectly
  *  healthy running game. {@link liveCanvasFrame} is the answer for that
@@ -278,7 +278,7 @@ export async function handleBridgeScreenshot(
     // Same seam as the composite leg, for the same reason: a game's own canvas
     // is unreadable this late, so ask for a same-frame copy first and fall back
     // to reading the canvas itself.
-    const frameModule = await import('@editor/live-canvas-frame');
+    const frameModule = await import('@volter/editor-core/live-canvas-frame');
     const readable =
       frameModule.readablePngSource(await frameModule.liveCanvasFrame(canvas)) ?? canvas;
     const dataUrl = readable.toDataURL('image/png');

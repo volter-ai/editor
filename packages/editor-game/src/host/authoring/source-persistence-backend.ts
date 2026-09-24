@@ -40,24 +40,24 @@
  * the JSX callsite the OID stamp names is the object's real source address.
  */
 
-import type { NodeCreationSite, WriteAnchorKind } from '@vgai/project/adapter';
+import type { NodeCreationSite, WriteAnchorKind } from '@volter/editor-project/adapter';
 import type {
   ChannelValue,
   CreationSiteLiteralReport,
   CreationSiteSurface,
   CreationSiteWriteScope,
-} from '../creation-site-edit';
-import { editorConsole } from '../editor-console';
-import { editorIsAuthoring } from '../editor-session-mode';
-import type { HistoryService } from '../history/history-service';
-import { ingestSourceWritesRecordedIfPrimed } from '../ui-source/tier-source-write-backend';
+} from '@volter/editor-core/creation-site-edit';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorIsAuthoring } from '@volter/editor-core/editor-session-mode';
+import type { HistoryService } from '@volter/editor-core/history/history-service';
+import { ingestSourceWritesRecordedIfPrimed } from '@volter/editor-core/ui-source/tier-source-write-backend';
 import type { IngestInspectRequest } from './ingest-source-persistence';
 import {
   IngestSourcePersistence,
   ingestOwnershipNow,
   reportIngestSourceRefusal,
 } from './ingest-source-persistence';
-import { LIVE_ONLY_DESTINATION } from './write-pipe';
+import { LIVE_ONLY_DESTINATION } from '@volter/editor-core/authoring/write-pipe';
 
 /**
  * The adapter's own channel read/write, handed to a backend so the live half of

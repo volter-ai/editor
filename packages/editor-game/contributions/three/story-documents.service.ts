@@ -1,12 +1,12 @@
 /**
- * THE THREE STORY TURNTABLE (`@vgai/editor-sdk/services`, a
+ * THE THREE STORY TURNTABLE (`@volter/editor-sdk/services`, a
  * `workspace.service` contribution): the center document a portable CSF story
  * whose medium is `three` opens as — the story's R3F world mounted on the
  * kit's Object3D stage, with its `Story Args` Inspector section.
  *
- * The DOM/canvas isolated story document is `@vgai/dom`'s contribution of the
+ * The DOM/canvas isolated story document is `@volter/editor-game`'s contribution of the
  * same name. They were one service while both documents lived in
- * `@vgai/game`; splitting them is what lets a product compose one medium
+ * `@volter/editor-game`; splitting them is what lets a product compose one medium
  * without the other, and neither registers anything the other needs.
  *
  * A SERVICE and not a `workspace.document`, for the same reason as its
@@ -16,7 +16,7 @@
  * (`@editor/workspace-document-restore`).
  */
 
-import { ensureThreeStoryContributionsRegistered } from '../src/story-documents/three-story-documents';
+import { ensureThreeStoryContributionsRegistered } from '../../src/three/story-documents/three-story-documents';
 
 export const point = 'workspace.service';
 

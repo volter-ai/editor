@@ -26,7 +26,7 @@
  * inspector shows is the one the JSX prop would set.
  */
 
-import type { PropertyDescriptor } from '@vgai/project/adapter';
+import type { PropertyDescriptor } from '@volter/editor-project/adapter';
 import * as THREE from 'three';
 
 /** The section a typed field renders under (a titled `PropertyDescriptor.group`). */

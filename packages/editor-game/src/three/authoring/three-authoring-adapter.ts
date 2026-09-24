@@ -51,23 +51,23 @@
  * create/delete/reparent is not meaningfully re-expressible against it.
  */
 
-import { getActiveNetworking, getActivePhysics } from '@editor/authoring/active-systems';
+import { getActiveNetworking, getActivePhysics } from '@volter/editor-core/authoring/active-systems';
 import {
   authoringOidOf,
   isComponentInstanceRoot,
   ownOidOf,
-} from '@editor/authoring/component-instance-root';
-import { creationSiteRelated } from '@editor/authoring/creation-site-related';
-import { createEphemeralPersistence } from '@editor/authoring/ephemeral-persistence';
-import { multiChannelRefusal, persistChannelWrite } from '@editor/authoring/gesture-persist';
-import { dataRecordAnchor, dataRecordIndexOf } from '@editor/authoring/ingest-data-writer';
-import type { IngestSourcePersistence } from '@editor/authoring/ingest-source-persistence';
+} from '@volter/editor-core/authoring/component-instance-root';
+import { creationSiteRelated } from '../../host/authoring/creation-site-related';
+import { createEphemeralPersistence } from '../../host/authoring/ephemeral-persistence';
+import { multiChannelRefusal, persistChannelWrite } from '../../host/authoring/gesture-persist';
+import { dataRecordAnchor, dataRecordIndexOf } from '../../host/authoring/ingest-data-writer';
+import type { IngestSourcePersistence } from '../../host/authoring/ingest-source-persistence';
 import {
   createCreationSitePersistence,
   type SourcePersistenceBackend,
   type SourceWriteSubject,
-} from '@editor/authoring/source-persistence-backend';
-import { readLocalTransform } from '@editor/authoring/three-projection-core';
+} from '../../host/authoring/source-persistence-backend';
+import { readLocalTransform } from '@volter/editor-core/authoring/three-projection-core';
 import {
   LIVE_ONLY_ACK,
   LIVE_ONLY_DESTINATION,
@@ -76,21 +76,21 @@ import {
   runWritePipe,
   type WriteAck,
   type WriteResolution,
-} from '@editor/authoring/write-pipe';
-import { componentStatesProvider } from '@editor/component-states-registry';
+} from '@volter/editor-core/authoring/write-pipe';
+import { componentStatesProvider } from '@volter/editor-core/component-states-registry';
 import {
   type ChannelValue,
   type CreationSiteLiteralReport,
   channelFor,
-} from '@editor/creation-site-edit';
+} from '@volter/editor-core/creation-site-edit';
 import {
   creationSiteAnchor,
   instancesAtSite,
   NO_OBJECT_REASON,
-} from '@editor/creation-site-registry';
-import { editorConsole } from '@editor/editor-console';
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import { type JournalSubject, JsonHistoryResource } from '@editor/history/json-history-resource';
+} from '@volter/editor-core/creation-site-registry';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { type JournalSubject, JsonHistoryResource } from '../../host/history/json-history-resource';
 import {
   nativeKindOf,
   oidIdentity,
@@ -100,8 +100,8 @@ import {
   type ThreeProjectionDelta,
   ThreeProjector,
   type ThreeWalkStats,
-} from '@editor/projection/three';
-import type { SourceWriteBackend } from '@editor/ui-source/source-write-backend';
+} from '@volter/editor-core/projection/three';
+import type { SourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
 import type {
   AuthoringAdapter,
   AuthoringCapabilities,
@@ -128,14 +128,14 @@ import type {
   TransformSourceCommitProvider,
   TruthProvider,
   WriteAnchorKind,
-} from '@vgai/project/adapter';
-import { emptyWriteAnchorKindCounts } from '@vgai/project/adapter';
-import { isEditorOwnedObject } from '@vgai/threejs/viewport/editor-layers';
-import { bodyOwningNode } from '@vgai/threejs-runtime/adapter/body-marks';
-import { colorMaterialOf } from '@vgai/threejs-runtime/adapter/ingest/structural-ids';
-import { object3DAuthoringSubjectOf } from '@vgai/threejs-runtime/adapter/object3d-authoring-subject';
-import { createRapierBodyEditing } from '@vgai/threejs-runtime/adapter/rapier-physics-adapter';
-import { getUserData } from '@vgai/threejs-runtime/ecs/user-data';
+} from '@volter/editor-project/adapter';
+import { emptyWriteAnchorKindCounts } from '@volter/editor-project/adapter';
+import { isEditorOwnedObject } from '@volter/editor-threejs/viewport/editor-layers';
+import { bodyOwningNode } from '@volter/threejs-runtime/adapter/body-marks';
+import { colorMaterialOf } from '@volter/threejs-runtime/adapter/ingest/structural-ids';
+import { object3DAuthoringSubjectOf } from '@volter/threejs-runtime/adapter/object3d-authoring-subject';
+import { createRapierBodyEditing } from '@volter/threejs-runtime/adapter/rapier-physics-adapter';
+import { getUserData } from '@volter/threejs-runtime/ecs/user-data';
 import type * as THREE from 'three';
 import {
   createOidSourcePersistence,
@@ -347,7 +347,7 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
 
   /**
    * The `freeze → commit → unfreeze` protocol over the bodies a world marked on
-   * its own nodes (`@vgai/threejs-runtime/adapter/body-marks`), for the worlds that register
+   * its own nodes (`@volter/threejs-runtime/adapter/body-marks`), for the worlds that register
    * no `SystemAdapters.physics`.
    *
    * The SAME four verbs and the SAME implementation the registered seam uses —

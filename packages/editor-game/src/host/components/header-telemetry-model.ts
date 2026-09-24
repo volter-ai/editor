@@ -1,5 +1,5 @@
-import { meterPercent } from '@vgai/game-runtime/adapter/audio-meter';
-import type { PerformanceFrame } from '@vgai/game-runtime/dev/performance-profiler';
+import { meterPercent } from '@volter/game-runtime/adapter/audio-meter';
+import type { PerformanceFrame } from '@volter/game-runtime/dev/performance-profiler';
 
 export const AUDIO_METER_SEGMENTS = 8;
 export const PERFORMANCE_SPARKLINE_SAMPLES = 24;

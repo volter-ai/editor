@@ -23,9 +23,9 @@
  * destroyed, so nothing leaks into the next session.
  */
 
-import { getActiveSystems } from '@editor/authoring/active-systems';
-import { nodeKeyedPhysics, type PhysicsAdapter } from '@vgai/project/adapter';
-import { setUserData } from '@vgai/threejs-runtime/ecs/user-data';
+import { getActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { nodeKeyedPhysics, type PhysicsAdapter } from '@volter/editor-project/adapter';
+import { setUserData } from '@volter/threejs-runtime/ecs/user-data';
 import * as THREE from 'three';
 import { getGameScene } from '../play/play-mode';
 

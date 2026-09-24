@@ -11,14 +11,14 @@
 import {
   type ProjectMountEpoch,
   projectEntryImportUrl,
-} from '@vgai/editor-sdk/session/project-module-url';
-import { relativePathRejection } from '@vgai/editor-sdk/session/relative-path-guard';
-import type { RootAdapter, SurfaceAdapter } from '@vgai/project/adapter';
-import type { AdapterSurface } from '@vgai/project/adapter/adapter-surface';
-import { assertNever } from '@vgai/project/adapter/adapter-surface';
-import type { HostContextFor } from '@vgai/project/adapter/host-context';
-import type { MountedRootFor } from '@vgai/project/adapter/root-adapter';
-import type { ResolvedAdapterRoot } from '@vgai/project/manifest/load';
+} from '@volter/editor-sdk/session/project-module-url';
+import { relativePathRejection } from '@volter/editor-sdk/session/relative-path-guard';
+import type { RootAdapter, SurfaceAdapter } from '@volter/editor-project/adapter';
+import type { AdapterSurface } from '@volter/editor-project/adapter/adapter-surface';
+import { assertNever } from '@volter/editor-project/adapter/adapter-surface';
+import type { HostContextFor } from '@volter/editor-project/adapter/host-context';
+import type { MountedRootFor } from '@volter/editor-project/adapter/root-adapter';
+import type { ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';
 import { formatCapabilityWarning, measureAdapterReach } from '../adapter-reach';
 
 /**
@@ -131,7 +131,7 @@ function withCapabilityWarning<K extends AdapterSurface>(
         mounted.kind,
       );
       if (warning) {
-        const { editorConsole } = await import('../editor-console');
+        const { editorConsole } = await import('@volter/editor-core/editor-console');
         editorConsole.warn(warning, 'adapter');
       }
       return mounted;

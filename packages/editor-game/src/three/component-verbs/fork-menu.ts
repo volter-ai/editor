@@ -17,17 +17,17 @@
  * asking the composite directly would ask the wrong object.
  */
 
-import { getActiveAuthoring } from '@editor/authoring/active-adapter';
-import { instanceSourceLocatorFor } from '@editor/authoring/instance-source-menu';
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import { registerHierarchyMenuItems } from '@editor/hierarchy-menu-registry';
+import { getActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
+import { instanceSourceLocatorFor } from '@volter/editor-core/authoring/instance-source-menu';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { registerHierarchyMenuItems } from '@volter/editor-core/hierarchy-menu-registry';
 import {
   canForkInstance,
   FORK_COMPONENT_LABEL,
   type InstanceForkSource,
-} from '@editor/instance-fork-actions';
-import { showTransientHint } from '@editor/transient-hint';
-import type { AuthoringAdapter } from '@vgai/project/adapter';
+} from '../../host/instance-fork-actions';
+import { showTransientHint } from '@volter/editor-core/transient-hint';
+import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 
 /** The fork surface for `nodeId`, or `null` — the host's own owner walk. */
 export function instanceForkSourceFor(

@@ -4,8 +4,8 @@
  * contributed id under `tool:`, so the utility revealed is
  * `tool:profiler.utility` (`profilerView.open` names it).
  */
-import { profilerView } from '@editor/components/utility-view-state';
-import type { MenuContribution } from '@vgai/editor-sdk/chrome';
+import { profilerView } from '../src/host/components/utility-view-state';
+import type { MenuContribution } from '@volter/editor-sdk/chrome';
 
 export const point = 'workspace.menu';
 

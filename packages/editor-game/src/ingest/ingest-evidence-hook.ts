@@ -9,11 +9,11 @@
  * appears here because the mounted object actually has it.
  */
 
-import { getActiveSystems } from '@editor/authoring/active-systems';
-import { loadIngestOwnership } from '@editor/authoring/ingest-source-persistence';
-import { gameLoopGate } from '@editor/gated-globals';
-import type { DomAuthoringAdapter } from '@vgai/dom/dom-authoring-adapter';
-import type { AuthoringAdapter } from '@vgai/project/adapter/authoring';
+import { getActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { loadIngestOwnership } from '../host/authoring/ingest-source-persistence';
+import { gameLoopGate } from '../host/gated-globals';
+import type { DomAuthoringAdapter } from '../react/dom-authoring-adapter';
+import type { AuthoringAdapter } from '@volter/editor-project/adapter/authoring';
 import type { IngestMount } from './authoring/ingest-root-adapter';
 import { ingestCoverageReport } from './mount-coverage';
 

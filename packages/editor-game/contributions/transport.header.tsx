@@ -1,11 +1,11 @@
 /**
- * The Play TRANSPORT in the project header (`@vgai/editor-sdk/chrome`, a
+ * The Play TRANSPORT in the project header (`@volter/editor-sdk/chrome`, a
  * `workspace.header` contribution): play, pause, step, restart, stop, the
  * run-configuration picker and the instance count. Only for a project that
  * declares something to run (ARCHITECTURE-CORE §Roots); a folder of models
  * renders nothing here.
  */
-import { editorHost } from '@vgai/editor-sdk/host';
+import { editorHost } from '@volter/editor-sdk/host';
 import { useSyncExternalStore } from 'react';
 import { PlayBar } from '../src/play-bar/PlayBar';
 

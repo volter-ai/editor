@@ -33,11 +33,11 @@ import {
   isSafeIngestId,
   PUBLIC_INGEST_BASE,
   publicIngestManifestUrl,
-} from '@editor/staged-projects';
-import { extractUpstreamPin } from '@vgai/game-runtime/adapter/ingest/upstream-pin';
-import type { IngestGame2D } from '@vgai/game-runtime/pixi/ingest';
-import { declaredRoots } from '@vgai/project/adapter/manifest-interpreter';
-import { loadGameManifest } from '@vgai/project/manifest/load';
+} from '../host/staged-projects';
+import { extractUpstreamPin } from '@volter/game-runtime/adapter/ingest/upstream-pin';
+import type { IngestGame2D } from '@volter/game-runtime/pixi/ingest';
+import { declaredRoots } from '@volter/editor-project/adapter/manifest-interpreter';
+import { loadGameManifest } from '@volter/editor-project/manifest/load';
 import { composeIngestLoad, ingestDataWriter } from './entry-load';
 import { servedEntryLoader, servedModuleLoader } from './served-bundle';
 import type { IngestGame } from './types';

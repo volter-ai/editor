@@ -1,6 +1,6 @@
 /**
  * Projects an ingested game's declared SCENES (`window.vgaiGame.scenes`, see
- * `@vgai/project/adapter/ingest/game-contract`) onto the ordinary
+ * `@volter/editor-project/adapter/ingest/game-contract`) onto the ordinary
  * {@link StoriesProvider} the editor's story picker already reads — the sibling
  * of `contract-hierarchy-authoring.ts`, which does the same job for the
  * contract's `hierarchy` member.
@@ -27,11 +27,11 @@ import type {
   LiveSceneSwitch,
   LiveSceneSwitchSettled,
   LiveSceneTable,
-} from '@vgai/editor-sdk/host';
-import type { StoriesProvider, StoryRef } from '@vgai/project/adapter';
-import type { VgaiGameContract, VgaiGameScene } from '@vgai/project/adapter/ingest/game-contract';
-import { readGameScenes } from '@vgai/project/adapter/ingest/game-contract';
-import { editorConsole } from '../editor-console';
+} from '@volter/editor-sdk/host';
+import type { StoriesProvider, StoryRef } from '@volter/editor-project/adapter';
+import type { VgaiGameContract, VgaiGameScene } from '@volter/editor-project/adapter/ingest/game-contract';
+import { readGameScenes } from '@volter/editor-project/adapter/ingest/game-contract';
+import { editorConsole } from '@volter/editor-core/editor-console';
 
 function assertScenes(value: unknown): VgaiGameScene[] {
   if (!Array.isArray(value)) throw new Error('scenes.list() did not return an array');

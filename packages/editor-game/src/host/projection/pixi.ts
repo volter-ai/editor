@@ -9,10 +9,10 @@
  * where an edit lands.
  */
 
-import type { AuthoringAdapter2D, EditorNode2D } from '@vgai/game-runtime/pixi/authoring';
-import type { DOMRectLike } from '@vgai/project/adapter';
+import type { AuthoringAdapter2D, EditorNode2D } from '@volter/game-runtime/pixi/authoring';
+import type { DOMRectLike } from '@volter/editor-project/adapter';
 import type { Container, PointData } from 'pixi.js';
-import type { ProjectedNode, Projection } from './types';
+import type { ProjectedNode, Projection } from '@volter/editor-core/projection/types';
 
 export type PixiNode = ProjectedNode<Container>;
 

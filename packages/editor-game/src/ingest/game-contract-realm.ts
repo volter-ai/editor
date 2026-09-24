@@ -1,8 +1,8 @@
-import { gameRealmForMountId } from '@editor/gated-globals';
+import { gameRealmForMountId } from '../host/gated-globals';
 import {
   readGameContract,
   type VgaiGameContract,
-} from '@vgai/project/adapter/ingest/game-contract';
+} from '@volter/editor-project/adapter/ingest/game-contract';
 
 /**
  * The browser realm used by the singleton ingest routes.

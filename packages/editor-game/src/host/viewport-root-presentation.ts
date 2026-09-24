@@ -1,7 +1,7 @@
-import type { RootInstance } from '@vgai/game-runtime/runtime/game';
+import type { RootInstance } from '@volter/game-runtime/runtime/game';
 import { stampMountedAuthoringIds } from './authoring/mounted-authoring';
-import type { EditorShellStore } from './editor-shell-store';
-import { stampThreeIdentities } from './projection/three';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { stampThreeIdentities } from '@volter/editor-core/projection/three';
 
 /**
  * The Three viewport's PRESENTER — what `the world root's stage` binds as

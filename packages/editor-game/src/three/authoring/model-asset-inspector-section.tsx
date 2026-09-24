@@ -10,30 +10,30 @@ import {
   type ModelRigInspection,
   modelSelectionObjects,
   type Object3DNodeInspection,
-} from '@editor/asset-workflow/model-inspection';
-import { setAuthoringSelection } from '@editor/authoring/consumer-actions';
-import { SourceObject3DAuthoringAdapter } from '@editor/authoring/source-object3d-authoring-adapter';
-import { openToolDocument } from '@editor/components/tool-documents';
-import { useEditorStore } from '@editor/editor-runtime';
-import { createHmrRegistrationGroup } from '@editor/hmr-registration-group';
+} from '@volter/editor-core/asset-workflow/model-inspection';
+import { setAuthoringSelection } from '@volter/editor-core/authoring/consumer-actions';
+import { SourceObject3DAuthoringAdapter } from '@volter/editor-core/authoring/source-object3d-authoring-adapter';
+import { openToolDocument } from '@volter/editor-core/components/tool-documents';
+import { useEditorStore } from '@volter/editor-core/editor-runtime';
+import { createHmrRegistrationGroup } from '@volter/editor-core/hmr-registration-group';
 import {
   CONTRIBUTED_SECTION_ORDER,
   type InspectionSection,
   PROPERTIES_SECTION_ID,
-} from '@editor/inspection/model';
-import { registerInspectorSections } from '@editor/inspector-section-registry';
+} from '@volter/editor-core/inspection/model';
+import { registerInspectorSections } from '@volter/editor-core/inspector-section-registry';
 import {
   type ProjectOutputProvenance,
   provenanceForProjectAsset,
-} from '@editor/project-provenance';
+} from '@volter/editor-core/project-provenance';
 import {
   getDocumentToolContributions,
   getGlobalToolContributions,
   subscribeToolContributions,
-} from '@editor/tool-loader';
-import type { AuthoringAdapter, EditorNode } from '@vgai/project/adapter';
-import { object3DAuthoringSubjectOf } from '@vgai/threejs-runtime/adapter/object3d-authoring-subject';
-import { getUserData } from '@vgai/threejs-runtime/ecs/user-data';
+} from '@volter/editor-core/tool-loader';
+import type { AuthoringAdapter, EditorNode } from '@volter/editor-project/adapter';
+import { object3DAuthoringSubjectOf } from '@volter/threejs-runtime/adapter/object3d-authoring-subject';
+import { getUserData } from '@volter/threejs-runtime/ecs/user-data';
 import {
   faBone,
   faCircleNodes,
@@ -55,7 +55,7 @@ import {
   StateSurface,
   Text,
   TextInput,
-} from '@vgai/editor-sdk/widgets';
+} from '@volter/editor-sdk/widgets';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import * as THREE from 'three';
 
@@ -647,7 +647,7 @@ const MODEL_SECTION_ORDER = {
   splat: CONTRIBUTED_SECTION_ORDER,
   geometry: CONTRIBUTED_SECTION_ORDER + 10,
   rig: CONTRIBUTED_SECTION_ORDER + 20,
-  // +25 is the RAGDOLL's, and it is `@vgai/game`'s
+  // +25 is the RAGDOLL's, and it is `@volter/editor-game`'s
   // (`contributions/ragdoll.inspector.tsx`, `export const order = 25`) — a
   // contributed section's order is this same base plus what it declares, so
   // the slot after Rig is held from there.

@@ -8,11 +8,11 @@
  * never sees it.
  */
 
-import { Button, themeVars } from '@vgai/editor-sdk/widgets';
+import { Button, themeVars } from '@volter/editor-sdk/widgets';
 import {
   subscribeXStateBehaviorInspections,
   xstateBehaviorInspectionsVersion,
-} from '@vgai/threejs-runtime/behavior/xstate-inspection';
+} from '@volter/threejs-runtime/behavior/xstate-inspection';
 import { useSyncExternalStore } from 'react';
 import type { AnyStateMachine, AnyStateNode } from 'xstate';
 import { liveBehaviorFor, openBehaviorDocument } from './live-behaviors';

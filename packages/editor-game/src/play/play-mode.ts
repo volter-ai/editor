@@ -1,5 +1,5 @@
-import { onAssetReload } from '@editor/project-asset-refresh';
-import { editorHost } from '@vgai/editor-sdk/host';
+import { onAssetReload } from '@volter/editor-core/project-asset-refresh';
+import { editorHost } from '@volter/editor-sdk/host';
 
 /**
  * Play-mode orchestrator.
@@ -13,110 +13,110 @@ import { editorHost } from '@vgai/editor-sdk/host';
  *   exitPlayMode  → game stop → remove canvas → re-enable editor
  */
 
-import { installAdapterRuntimeBindings } from '@editor/adapter-runtime-bindings';
-import { getAuthoringOverride, setActiveAuthoring } from '@editor/authoring/active-adapter';
+import { installAdapterRuntimeBindings } from '../host/adapter-runtime-bindings';
+import { getAuthoringOverride, setActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
 import {
   getActiveNetworking,
   inspectedInstanceId,
   setActiveSystems,
   setInspectedInstance,
   updateInstanceSystems,
-} from '@editor/authoring/active-systems';
-import { BoundaryAuthoringAdapter } from '@editor/authoring/boundary-authoring-adapter';
+} from '@volter/editor-core/authoring/active-systems';
+import { BoundaryAuthoringAdapter } from '@volter/editor-core/authoring/boundary-authoring-adapter';
 import {
   CompositeAuthoringAdapter,
   type CompositeChild,
-} from '@editor/authoring/composite-authoring-adapter';
-import { createEphemeralPersistence } from '@editor/authoring/ephemeral-persistence';
+} from '@volter/editor-core/authoring/composite-authoring-adapter';
+import { createEphemeralPersistence } from '../host/authoring/ephemeral-persistence';
 import {
   EPHEMERAL_DESTINATION,
   resolvesLiveOnly,
   runWritePipe,
   type WriteAck,
-} from '@editor/authoring/write-pipe';
-import { resolveAllRootEntries } from '@editor/binding-resolver';
-import type { LogEntry } from '@editor/editor-api';
-import { endLogSession, flushLogEntries, startLogSession } from '@editor/editor-api';
-import type { ConsoleEntry } from '@editor/editor-console';
+} from '@volter/editor-core/authoring/write-pipe';
+import { resolveAllRootEntries } from '../host/binding-resolver';
+import type { LogEntry } from '@volter/editor-core/editor-api';
+import { endLogSession, flushLogEntries, startLogSession } from '@volter/editor-core/editor-api';
+import type { ConsoleEntry } from '@volter/editor-core/editor-console';
 import {
   editorConsole,
   formatConsoleArgs,
   resumeEditorConsoleCapture,
   suspendEditorConsoleCapture,
-} from '@editor/editor-console';
-import { EDITOR_PARTICIPANT_ID, sendControl } from '@editor/editor-presence';
+} from '@volter/editor-core/editor-console';
+import { EDITOR_PARTICIPANT_ID, sendControl } from '@volter/editor-core/editor-presence';
 import {
   isEditorPresentationActive,
   subscribeEditorPresentationActivity,
-} from '@editor/editor-presentation-activity';
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import { GAME_SURFACE_CONTAINMENT_CSS } from '@editor/game-realm-page';
-import { reclaimGameRealm } from '@editor/game-realm-reclaim';
-import { toolContributionRecording } from '@editor/gameplay-sessions';
+} from '@volter/editor-core/editor-presentation-activity';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { GAME_SURFACE_CONTAINMENT_CSS } from '../host/game-realm-page';
+import { reclaimGameRealm } from '../host/game-realm-reclaim';
+import { toolContributionRecording } from '@volter/editor-core/gameplay-sessions';
 import {
   clearGameSurface,
   currentGameRealmMountId,
   installGatedGameGlobals,
   setGameInputGate,
   setGameSurface,
-} from '@editor/gated-globals';
-import { hierarchyProjectionFromProjectConfig } from '@editor/hierarchy-projection';
-import { type JournalSubject, playJournal } from '@editor/history/json-history-resource';
-import { isEditableTarget, setActiveScope } from '@editor/hotkeys';
-import { projectBootstrapSettled } from '@editor/initial-project';
-import { registerGameNullSubject } from '@editor/inspection/game-subject';
-import { fetchGameManifest } from '@editor/manifest-project';
-import { registerPerformanceSource } from '@editor/performance-sources';
+} from '../host/gated-globals';
+import { hierarchyProjectionFromProjectConfig } from '@volter/editor-core/hierarchy-projection';
+import { type JournalSubject, playJournal } from '../host/history/json-history-resource';
+import { isEditableTarget, setActiveScope } from '@volter/editor-core/hotkeys';
+import { projectBootstrapSettled } from '@volter/editor-core/initial-project';
+import { registerGameNullSubject } from '@volter/editor-core/inspection/game-subject';
+import { fetchGameManifest } from '@volter/editor-core/manifest-project';
+import { registerPerformanceSource } from '@volter/editor-core/performance-sources';
 import {
   beginPlayBoot,
   endPlayBoot,
   markPlayBootPhase,
   type PlayBootPhase,
-} from '@editor/play-boot-phase';
-import { presentationSurface } from '@editor/presentation-surface';
-import { getCurrentProject } from '@editor/project-manager';
+} from '@volter/editor-core/play-boot-phase';
+import { presentationSurface } from '@volter/editor-core/presentation-surface';
+import { getCurrentProject } from '@volter/editor-core/project-manager';
 import {
   beginProjectModuleSplitWatch,
   clearProjectModuleSplitReports,
   endProjectModuleSplitWatch,
   formatProjectModuleSplitMessage,
-} from '@editor/project-module-split';
-import { clearRootReadiness, recordRootReadiness } from '@editor/readiness';
-import { onShellStore } from '@editor/shell-store-door';
-import { mountedStoryHasPixiContent } from '@editor/stories/pixi-story-model';
-import { domHasRenderableContent, threeSceneHasRenderableContent } from '@editor/surface-content';
-import { subscribeSurfaceKeyboard, surfaceHoldsKeyboard } from '@editor/surface-keyboard';
-import { publishToolContributionPlay } from '@editor/tool-contribution-play';
-import { liveWorldId } from '@editor/viewport-root-presentation';
+} from '@volter/editor-core/project-module-split';
+import { clearRootReadiness, recordRootReadiness } from '@volter/editor-core/readiness';
+import { onShellStore } from '@volter/editor-core/shell-store-door';
+import { mountedStoryHasPixiContent } from '@volter/editor-core/stories/pixi-story-model';
+import { domHasRenderableContent, threeSceneHasRenderableContent } from '../host/surface-content';
+import { subscribeSurfaceKeyboard, surfaceHoldsKeyboard } from '@volter/editor-core/surface-keyboard';
+import { publishToolContributionPlay } from '@volter/editor-core/tool-contribution-play';
+import { liveWorldId } from '../host/viewport-root-presentation';
 import {
   cancelPendingWorkspacePlayUtilities,
   revealWorkspacePlayUtilities,
-} from '@editor/workspace-play-utilities';
-import { markGameCssScope } from '@vgai/editor-sdk/session/game-css-scope';
-import type { EntrypointSelectionOverride } from '@vgai/editor-sdk/session/project-module-url';
-import { isEditorLanePath } from '@vgai/editor-sdk/session/tool-contribution-convention';
-import { getSeededRandom, type SeededRandom } from '@vgai/game-runtime/core/seeded-random';
-import { _engineLogActive } from '@vgai/game-runtime/dev/logger';
-import type { PerformanceProfiler } from '@vgai/game-runtime/dev/performance-profiler';
-import type { GameSession } from '@vgai/game-runtime/runtime/create-runtime';
+} from '@volter/editor-core/workspace-play-utilities';
+import { markGameCssScope } from '@volter/editor-sdk/session/game-css-scope';
+import type { EntrypointSelectionOverride } from '@volter/editor-sdk/session/project-module-url';
+import { isEditorLanePath } from '@volter/editor-sdk/session/tool-contribution-convention';
+import { getSeededRandom, type SeededRandom } from '@volter/game-runtime/core/seeded-random';
+import { _engineLogActive } from '@volter/game-runtime/dev/logger';
+import type { PerformanceProfiler } from '@volter/game-runtime/dev/performance-profiler';
+import type { GameSession } from '@volter/game-runtime/runtime/create-runtime';
 import {
   type DebugVirtualInputTarget,
   getDebugRegistry,
   type RunTicksOptions,
-} from '@vgai/game-runtime/runtime/debug-registry';
-import type { GameLoop, RootInstance } from '@vgai/game-runtime/runtime/game';
-import type { PlaytestContext } from '@vgai/game-runtime/runtime/playtest';
-import { runTicksWhenSettled } from '@vgai/game-runtime/runtime/run-ticks-settled';
+} from '@volter/game-runtime/runtime/debug-registry';
+import type { GameLoop, RootInstance } from '@volter/game-runtime/runtime/game';
+import type { PlaytestContext } from '@volter/game-runtime/runtime/playtest';
+import { runTicksWhenSettled } from '@volter/game-runtime/runtime/run-ticks-settled';
 import {
   type AuthoringAdapter,
   type InspectorProvider,
   nodeKeyedPhysics,
   type TransformProvider,
-} from '@vgai/project/adapter';
-import { assertNever } from '@vgai/project/adapter/adapter-surface';
-import { declaredRoots, rootById } from '@vgai/project/adapter/manifest-interpreter';
-import { readOidSourceAnchors } from '@vgai/threejs/authoring/oid-source-persistence';
-import { oidThree, structuralThree } from '@vgai/threejs/authoring/three-authoring-adapter';
+} from '@volter/editor-project/adapter';
+import { assertNever } from '@volter/editor-project/adapter/adapter-surface';
+import { declaredRoots, rootById } from '@volter/editor-project/adapter/manifest-interpreter';
+import { readOidSourceAnchors } from '../three/authoring/oid-source-persistence';
+import { oidThree, structuralThree } from '../three/authoring/three-authoring-adapter';
 import type * as THREE from 'three';
 import { deviceEmulatedPixelRatio } from '../game-document/device-preview';
 import { exitDeferredIngestPlay, mountDeferredIngestForPlay } from '../ingest/deferred-ingest-play';
@@ -303,7 +303,7 @@ export function setFocusedInstance(id: string): void {
  *  The fourth term is U2's, and it exists for the engine's `InputManager`
  *  specifically. `gated-globals.ts` already ANDs the same predicate into every
  *  raw `window`/`document` listener a PROJECT module registers, but
- *  `InputManager` is `@vgai/game-runtime`'s — a dependency, not a project module, so
+ *  `InputManager` is `@volter/game-runtime`'s — a dependency, not a project module, so
  *  the dev server's lexical shadow never covers it and it attaches to the real
  *  `window`. Under the Code-OSS frame that window also carries Monaco, so
  *  without this a keystroke meant for the source file beside the running game
@@ -702,7 +702,7 @@ async function installPlayRootAuthoring(
     } else if (mounted.kind === 'canvas') {
       if (mounted.substrate.name === 'babylon') {
         const { BabylonAuthoringAdapter } = await import(
-          '@editor/authoring/babylon-authoring-adapter'
+          '../host/authoring/babylon-authoring-adapter'
         );
         if (!isCurrentGeneration()) {
           abandon();
@@ -710,7 +710,7 @@ async function installPlayRootAuthoring(
         }
         const adapter = new BabylonAuthoringAdapter(
           mounted.substrate
-            .root as import('@editor/authoring/babylon-authoring-adapter').BabylonEngineLike,
+            .root as import('../host/authoring/babylon-authoring-adapter').BabylonEngineLike,
           store,
           {
             canvas: mounted.canvas,
@@ -751,11 +751,11 @@ async function installPlayRootAuthoring(
       const stage = mounted.substrate.root as import('pixi.js').Container;
       const [physicsRegistry, physicsAdapters, pixiAuthoring, pixiWriteTarget, canvasRuntime] =
         await Promise.all([
-          import('@vgai/game-runtime/pixi/physics-registry'),
-          import('@vgai/game-runtime/pixi/system-adapters'),
-          import('@editor/authoring/pixi-authoring-adapter'),
-          import('@editor/authoring/pixi-live-write-target'),
-          import('@editor/canvas-entry-runtime'),
+          import('@volter/game-runtime/pixi/physics-registry'),
+          import('@volter/game-runtime/pixi/system-adapters'),
+          import('../host/authoring/pixi-authoring-adapter'),
+          import('../host/authoring/pixi-live-write-target'),
+          import('../host/canvas-entry-runtime'),
         ]);
       // Stop landed while those imports were in flight — see this function's
       // doc comment. Bail before building (and before the `await` below).
@@ -902,7 +902,7 @@ let _pendingEntries: LogEntry[] = [];
 let _lastPersistedDebugEventSeq = 0;
 
 /**
- * The per-entry half of a play log's identity (`@vgai/sdk`'s
+ * The per-entry half of a play log's identity (`@volter/editor-sdk`'s
  * `play/log-format.ts` owns the format; the run's session/project/name/start
  * are a header line the server writes once, and are deliberately NOT repeated
  * here).
@@ -1173,7 +1173,7 @@ export function gameRootSurfaceFacts(): readonly GameRootSurfaceFact[] {
 
 /**
  * #140 — the live play-mode game canvas, for `command-listener.ts`'s
- * `bridge-screenshot` relay op (`RelayTransport.screenshot` in `@vgai/live`).
+ * `bridge-screenshot` relay op (`RelayTransport.screenshot` in `@volter/editor-live`).
  * The universal host mounts its root surfaces into `editorHost().workspace.liveDocument.container()`;
  * querying it for the bottom canvas avoids a surface-specific session alias.
  * `null` when not in play mode or no canvas surface is mounted.
@@ -1743,7 +1743,7 @@ async function enterPlayModeInner(
     // MEASURED at N=20000: the block that ate three command budgets started
     // here and ran for 199.5s with nothing anywhere able to name it.
     markPlayBootPhase('mounting the runtime roots');
-    const { mountManifestRoots } = await import('@vgai/game-runtime/runtime/mount-manifest');
+    const { mountManifestRoots } = await import('@volter/game-runtime/runtime/mount-manifest');
     session = await mountManifestRoots({
       manifest,
       container: gameContainer,
@@ -2005,7 +2005,7 @@ export async function mountAdditionalInstance(
   }
   markGameCssScope(container);
   setGameSurface(container, mountId);
-  const { mountManifestRoots } = await import('@vgai/game-runtime/runtime/mount-manifest');
+  const { mountManifestRoots } = await import('@volter/game-runtime/runtime/mount-manifest');
   const session = await mountManifestRoots({
     manifest,
     container,
@@ -2495,7 +2495,7 @@ function unpatchConsole(): void {
 // name and asks its live-session registry instead. Registered at the module's
 // LOAD, which the contribution loader performs for every module this package
 // declares — so the lane exists from the moment a project that depends on
-// `@vgai/game` opens, long before anything asks to play.
+// `@volter/editor-game` opens, long before anything asks to play.
 editorHost().live.register({
   id: 'play',
   priority: 0,

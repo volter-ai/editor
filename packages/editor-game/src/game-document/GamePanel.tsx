@@ -13,21 +13,21 @@
 import {
   getMountFailureReports,
   subscribeToMountFailures,
-} from '@editor/authoring/mount-failure-report';
-import { SurfaceStateOverlay } from '@editor/components/SurfaceStateOverlay';
-import { editorConsole } from '@editor/editor-console';
-import { useEditorStore } from '@editor/editor-runtime';
-import { getCurrentProject, onProjectChange } from '@editor/project-manager';
-import { readinessFacet, subscribeRootReadiness } from '@editor/readiness';
-import { domHasRenderableContent } from '@editor/surface-content';
-import { explainSurface } from '@editor/surface-state';
-import { editorHost } from '@vgai/editor-sdk/host';
-import { themeVars } from '@vgai/editor-sdk/widgets';
+} from '@volter/editor-core/authoring/mount-failure-report';
+import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import { useEditorStore } from '@volter/editor-core/editor-runtime';
+import { getCurrentProject, onProjectChange } from '@volter/editor-core/project-manager';
+import { readinessFacet, subscribeRootReadiness } from '@volter/editor-core/readiness';
+import { domHasRenderableContent } from '../host/surface-content';
+import { explainSurface } from '@volter/editor-core/surface-state';
+import { editorHost } from '@volter/editor-sdk/host';
+import { themeVars } from '@volter/editor-sdk/widgets';
 import {
   fitPresentation,
   type PresentedSize,
   resolvePresentedSize,
-} from '@vgai/game-runtime/runtime/presentation';
+} from '@volter/game-runtime/runtime/presentation';
 import {
   type ReactNode,
   useCallback,

@@ -5,8 +5,8 @@
  * implementation as play mode. The mounted game's adapter temporarily wins
  * while Play is active; on Stop, `getActiveAudio()` falls back to this graph.
  *
- * It lives in `@vgai/game` because it IS the engine's audio runtime — the
- * mixer, the bus graph and the pose guard behind `@vgai/game-runtime/setup/setup-audio` —
+ * It lives in `@volter/editor-game` because it IS the engine's audio runtime — the
+ * mixer, the bus graph and the pose guard behind `@volter/game-runtime/setup/setup-audio` —
  * and the host was installing all of it at boot for every project, including a
  * models project that plays nothing and has no sound (WORK.md §The open-source
  * launch, phase 1 unit 7). The one host surface that reads it, the header
@@ -15,12 +15,12 @@
  * unit 2. Same shape as `edit-mode-networking.ts` beside it.
  */
 
-import { setEditModeAudio } from '@editor/authoring/active-systems';
+import { setEditModeAudio } from '@volter/editor-core/authoring/active-systems';
 import {
   createAudioSystemAdapter,
   releaseAudioMeters,
-} from '@vgai/game-runtime/adapter/first-party-audio-system';
-import { setupAudio } from '@vgai/game-runtime/setup/setup-audio';
+} from '@volter/game-runtime/adapter/first-party-audio-system';
+import { setupAudio } from '@volter/game-runtime/setup/setup-audio';
 import * as THREE from 'three';
 
 export function installEditModeAudio(camera: THREE.Camera = new THREE.Camera()): () => void {
@@ -30,7 +30,7 @@ export function installEditModeAudio(camera: THREE.Camera = new THREE.Camera()):
 
   setEditModeAudio(adapter);
 
-  // No Tone here, deliberately. This used to `import('@vgai/game-runtime/audio/audio-
+  // No Tone here, deliberately. This used to `import('@volter/game-runtime/audio/audio-
   // introspection')` unconditionally, which loaded the whole `tone` package on
   // EVERY editor boot to draw a meter — and the editor has no score of its
   // own to report a transport for. The graph and meters the Audio panel

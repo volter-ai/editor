@@ -32,8 +32,8 @@
  * this is absolute folder → served URL.
  */
 
-import { importServedModule } from '@editor/browser-transpile';
-import { ensureServedBundleRuntimeModules } from '@editor/served-bundle-runtime-modules';
+import { importServedModule } from '../host/browser-transpile';
+import { ensureServedBundleRuntimeModules } from '../host/served-bundle-runtime-modules';
 import { bootDeclaredDocument, declaresClassicEntry, readDeclaredBoot } from './served-html-boot';
 
 declare const __VGAI_ENGINE_ROOT__: string;

@@ -14,8 +14,8 @@
  * the other two rather than here.
  */
 
-import type { PersistenceProvider } from '@vgai/project/adapter';
-import { EPHEMERAL_DESTINATION } from './write-pipe';
+import type { PersistenceProvider } from '@volter/editor-project/adapter';
+import { EPHEMERAL_DESTINATION } from '@volter/editor-core/authoring/write-pipe';
 
 export function createEphemeralPersistence(): PersistenceProvider {
   return {

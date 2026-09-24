@@ -1,13 +1,13 @@
-import { instanceStampOf } from '@editor/authoring/component-instance-root';
-import { setAuthoringSelection } from '@editor/authoring/consumer-actions';
-import { useEditorStore } from '@editor/editor-runtime';
-import type { InspectorSectionProps } from '@editor/inspector-section-registry';
-import type { AuthoringAdapter, EditorNode } from '@vgai/project/adapter';
+import { instanceStampOf } from '@volter/editor-core/authoring/component-instance-root';
+import { setAuthoringSelection } from '@volter/editor-core/authoring/consumer-actions';
+import { useEditorStore } from '@volter/editor-core/editor-runtime';
+import type { InspectorSectionProps } from '@volter/editor-core/inspector-section-registry';
+import type { AuthoringAdapter, EditorNode } from '@volter/editor-project/adapter';
 import {
   type ConstraintMark,
   type ConstraintSnapshot,
   constraintsOf,
-} from '@vgai/threejs-runtime/adapter/constraint';
+} from '@volter/threejs-runtime/adapter/constraint';
 import {
   Button,
   EditorBanner,
@@ -15,7 +15,7 @@ import {
   FieldRow,
   Text,
   themeVars,
-} from '@vgai/editor-sdk/widgets';
+} from '@volter/editor-sdk/widgets';
 import type * as THREE from 'three';
 
 function objectFor(adapter: AuthoringAdapter, nodeId: string | null) {

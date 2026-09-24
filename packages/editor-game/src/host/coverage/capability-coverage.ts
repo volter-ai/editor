@@ -48,12 +48,12 @@ import type {
   AuthoringProviderKey,
   SeamEvidenceVerdict,
   WriteAnchorKind,
-} from '@vgai/project/adapter';
-import { WRITE_ANCHOR_KINDS } from '@vgai/project/adapter';
-import type { AdapterSurface } from '@vgai/project/adapter/adapter-surface';
-import type { VgaiGameContract } from '@vgai/project/adapter/ingest/game-contract';
-import type { SystemAdapters } from '@vgai/project/adapter/system-adapter';
-import { SYSTEM_ADAPTERS_SHAPE } from '@vgai/project/adapter/system-seam-contract';
+} from '@volter/editor-project/adapter';
+import { WRITE_ANCHOR_KINDS } from '@volter/editor-project/adapter';
+import type { AdapterSurface } from '@volter/editor-project/adapter/adapter-surface';
+import type { VgaiGameContract } from '@volter/editor-project/adapter/ingest/game-contract';
+import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
+import { SYSTEM_ADAPTERS_SHAPE } from '@volter/editor-project/adapter/system-seam-contract';
 import {
   type AdapterReach,
   AUTHORING_PROVIDER_KEYS,
@@ -65,7 +65,7 @@ import {
 import {
   type GameContractEvidence,
   inspectGameContractSeams,
-} from '../coverage/game-contract-seam-evidence';
+} from './game-contract-seam-evidence';
 import type { MeasuredLoop } from '../same-realm-loop-gate';
 import {
   assertCoverageReconciles,
@@ -85,7 +85,7 @@ export {
  * The seams a report can speak about.
  *
  * The `editor.*` family is GENERATED — it is the `AuthoringAdapter` provider
- * vocabulary (`@vgai/project/adapter/authoring`'s `AUTHORING_PROVIDER_KEYS`, which
+ * vocabulary (`@volter/editor-project/adapter/authoring`'s `AUTHORING_PROVIDER_KEYS`, which
  * the compiler pins to the interface) plus the one non-provider fact,
  * `editor.capture`. A capability nobody remembered to enumerate therefore still
  * gets a row.
@@ -1519,7 +1519,7 @@ export function formatCapabilityCoverageBlocks(
 ): readonly CapabilityCoverageConsoleBlock[] {
   const { summary } = report;
   // "root", not "ingest": the same derivation now reports NATIVE roots too
-  // (`@vgai/game/coverage/root-coverage.ts`), and a headline naming the ingest lane over a
+  // (`@volter/editor-game/coverage/root-coverage.ts`), and a headline naming the ingest lane over a
   // first-party root's gaps would tell the reader something false about where
   // the gap lives.
   const head = headOverride ?? `root coverage "${summary.worldId}"`;

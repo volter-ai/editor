@@ -10,17 +10,17 @@
  * the canvas mount fails its own first-commit ceiling ten seconds
  * later. See `../vite-plugin-module-doorways.ts` for the measured failure.
  *
- * `@vgai/game-runtime/canvas-react` is dynamic-imported on BOTH branches, deliberately: a
+ * `@volter/game-runtime/canvas-react` is dynamic-imported on BOTH branches, deliberately: a
  * static import would put `pixi.js` and the Pixi reconciler in every editor
  * bundle, including one opening a three-only project — the same reason the
  * call sites this replaces were already dynamic.
  */
 
-import type { resolveCanvasEntryAdapter } from '@vgai/game-runtime/canvas-react';
-import type { RootAdapter } from '@vgai/project/adapter';
+import type { resolveCanvasEntryAdapter } from '@volter/game-runtime/canvas-react';
+import type { RootAdapter } from '@volter/editor-project/adapter';
 import type * as PIXI from 'pixi.js';
-import { CANVAS_RUNTIME_PATH } from '../vite-plugin-module-doorways';
-import { isPackagedRuntime } from './packaged-runtime';
+import { CANVAS_RUNTIME_PATH } from '@volter/editor-core/build/module-doorways';
+import { isPackagedRuntime } from '@volter/editor-core/packaged-runtime';
 
 type CanvasEntryResolver = typeof resolveCanvasEntryAdapter;
 
@@ -87,7 +87,7 @@ export async function resolveCanvasEntryAdapterForEditor(
   rootId: string,
 ): Promise<RootAdapter<'canvas'> | null> {
   if (!(await isPackagedRuntime())) {
-    const { resolveCanvasEntryAdapter } = await import('@vgai/game-runtime/canvas-react');
+    const { resolveCanvasEntryAdapter } = await import('@volter/game-runtime/canvas-react');
     return resolveCanvasEntryAdapter(entryModule, rootId);
   }
   if (!cachedPackagedRuntime) cachedPackagedRuntime = packagedRuntime();

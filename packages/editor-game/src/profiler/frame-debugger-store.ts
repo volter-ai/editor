@@ -13,8 +13,8 @@
  * game mounted / play stopped) — captures from a prior session are stale.
  */
 
-import { CaptureHistoryModel } from '@editor/components/frame-debugger-model';
-import type { RenderDebugAdapter } from '@vgai/project/adapter';
+import { CaptureHistoryModel } from '../host/components/frame-debugger-model';
+import type { RenderDebugAdapter } from '@volter/editor-project/adapter';
 
 let history = new CaptureHistoryModel();
 let boundAdapter: RenderDebugAdapter | null = null;

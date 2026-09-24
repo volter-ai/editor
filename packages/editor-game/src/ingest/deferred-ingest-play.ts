@@ -30,16 +30,16 @@
  * ingest keeps its own lifecycle).
  */
 
-import { queueEditModeRebuild } from '@editor/authoring/edit-mode-authoring';
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import { fetchGameManifest } from '@editor/manifest-project';
+import { queueEditModeRebuild } from '@volter/editor-core/authoring/edit-mode-authoring';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { fetchGameManifest } from '@volter/editor-core/manifest-project';
 import {
   type ProjectAdapterFacet,
   projectAdapterFacet,
   subscribeProjectAdapter,
-} from '@editor/project-adapter';
-import { sceneTabRow } from '@editor/scene-document-plan';
-import { ingestRoots } from '@vgai/project/adapter/manifest-interpreter';
+} from '@volter/editor-core/project-adapter';
+import { sceneTabRow } from '@volter/editor-core/scene-document-plan';
+import { ingestRoots } from '@volter/editor-project/adapter/manifest-interpreter';
 import { activeIngest } from './active-ingest';
 import {
   beginDeferredIngestPlaySession,
@@ -166,7 +166,7 @@ export async function mountDeferredIngestForPlay(store: EditorShellStore): Promi
   // the case it was built for: isolation initialized the manager and no game
   // boot ever ran, where the game's first boot deserves a virgin manager.
   if (deferredCanvasRoot && !activeIngest()) {
-    const { resolveCanvasPixiForEditor } = await import('@editor/canvas-entry-runtime');
+    const { resolveCanvasPixiForEditor } = await import('../host/canvas-entry-runtime');
     const pixi = await resolveCanvasPixiForEditor();
     pixi.Assets.reset();
   }

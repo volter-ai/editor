@@ -1,6 +1,6 @@
-import { assertEditorServerResponse, editorServerJson } from '@editor/editor-server-response';
-import { runProjectTool } from '@editor/project-tools';
-import type { GenerationJob, GenerationJobsDocument } from '@vgai/sdk/generations';
+import { assertEditorServerResponse, editorServerJson } from '@volter/editor-core/editor-server-response';
+import { runProjectTool } from '@volter/editor-core/project-tools';
+import type { GenerationJob, GenerationJobsDocument } from '@volter/editor-sdk/generations';
 
 const EMPTY: GenerationJobsDocument = { version: 1, jobs: [] };
 let document = EMPTY;

@@ -1,12 +1,12 @@
 /**
- * THE ISOLATED STORY DOCUMENT (`@vgai/editor-sdk/services`, a
+ * THE ISOLATED STORY DOCUMENT (`@volter/editor-sdk/services`, a
  * `workspace.service` contribution): the center document a portable CSF story
  * opens as on the DOM/canvas surface, with its `Story Args` Inspector section
  * and its `Actions`/`Interactions`/`Accessibility` utilities, plus the
  * Storybook Docs companion.
  *
- * The three-medium turntable is `@vgai/threejs`'s own contribution of the same
- * name. They were one service while both documents lived in `@vgai/game`;
+ * The three-medium turntable is `@volter/editor-game`'s own contribution of the same
+ * name. They were one service while both documents lived in `@volter/editor-game`;
  * splitting them is what lets a product compose one medium without the other,
  * and neither registers anything the other needs.
  *
@@ -26,7 +26,7 @@
  * the inspection projection, the coverage families and the Edit tab row.
  */
 
-import { ensureStoryContributionsRegistered } from '../src/story-documents/story-documents';
+import { ensureStoryContributionsRegistered } from '../../src/react/story-documents/story-documents';
 
 export const point = 'workspace.service';
 

@@ -1,5 +1,5 @@
 /**
- * The Behavior debugger's palette actions (`@vgai/editor-sdk/chrome`, a
+ * The Behavior debugger's palette actions (`@volter/editor-sdk/chrome`, a
  * `workspace.action` contribution) — a LIVE set: `Inspect Behavior` (the
  * first truthful live actor, the same reveal as Debug ▸ Inspect Behavior)
  * plus one `Inspect Behavior: <machine>` per running XState actor. The host
@@ -8,9 +8,9 @@
  * the listing walks the object map only while a palette is open).
  */
 
-import type { ActionContribution } from '@vgai/editor-sdk/chrome';
-import { editorHost } from '@vgai/editor-sdk/host';
-import { subscribeXStateBehaviorInspections } from '@vgai/threejs-runtime/behavior/xstate-inspection';
+import type { ActionContribution } from '@volter/editor-sdk/chrome';
+import { editorHost } from '@volter/editor-sdk/host';
+import { subscribeXStateBehaviorInspections } from '@volter/threejs-runtime/behavior/xstate-inspection';
 import {
   listLiveBehaviors,
   openBehaviorDocument,

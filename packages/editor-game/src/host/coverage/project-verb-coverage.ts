@@ -1,5 +1,5 @@
 /**
- * THE `project.*` RULES — the pure half of `@vgai/game/coverage/live-project-verbs.ts`.
+ * THE `project.*` RULES — the pure half of `@volter/editor-game/coverage/live-project-verbs.ts`.
  *
  * ## The defect this closes
  *

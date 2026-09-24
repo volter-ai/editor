@@ -6,12 +6,12 @@
  * under one explicitly named folder.
  */
 
-import type { AuthoringAdapter, EditorNode, HierarchyProvider } from '@vgai/project/adapter';
+import type { AuthoringAdapter, EditorNode, HierarchyProvider } from '@volter/editor-project/adapter';
 import type {
   VgaiGameHierarchyGroup,
   VgaiGameHierarchyProvider,
-} from '@vgai/project/adapter/ingest/game-contract';
-import { editorConsole } from '../editor-console';
+} from '@volter/editor-project/adapter/ingest/game-contract';
+import { editorConsole } from '@volter/editor-core/editor-console';
 
 const GROUP_PREFIX = 'contract-hierarchy:group:';
 const RENDER_TREE_ID = 'contract-hierarchy:render-tree';

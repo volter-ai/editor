@@ -1,7 +1,7 @@
-import { getActiveSystems } from '@editor/authoring/active-systems';
-import { editorHost } from '@vgai/editor-sdk/host';
-import type { NavigationAdapter } from '@vgai/project/adapter';
-import { getUserData } from '@vgai/threejs-runtime/ecs/user-data';
+import { getActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { editorHost } from '@volter/editor-sdk/host';
+import type { NavigationAdapter } from '@volter/editor-project/adapter';
+import { getUserData } from '@volter/threejs-runtime/ecs/user-data';
 import * as THREE from 'three';
 import { NAVMESH_BAKE_EVENT, NAVMESH_CLEAR_EVENT } from './navmesh-actions';
 import {
@@ -58,7 +58,7 @@ export function setupNavMeshHandlers(): () => void {
    * Nodes tagged for navmesh baking.
    *
    * The role is read from `userData['navRole']` — the format-neutral key
-   * `@vgai/threejs-runtime/ecs/user-data` documents for exactly this ("navmesh role;
+   * `@volter/threejs-runtime/ecs/user-data` documents for exactly this ("navmesh role;
    * collected at runtime"). An adapter-backed world tags its own objects.
    */
   function collectNavigationIds(role: 'walkable' | 'obstacle'): Set<string> {

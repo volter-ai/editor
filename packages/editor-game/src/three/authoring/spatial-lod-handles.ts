@@ -1,7 +1,7 @@
 /** Native THREE.LOD distance thresholds projected onto generic viewport guides. */
 
-import type { R3fLodBinding } from '@editor/ui-source/r3f-lod-binding';
-import type { SpatialHandleLayer, SpatialPoint3 } from '@vgai/project/adapter';
+import type { R3fLodBinding } from '@volter/editor-core/ui-source/r3f-lod-binding';
+import type { SpatialHandleLayer, SpatialPoint3 } from '@volter/editor-project/adapter';
 import * as THREE from 'three';
 
 const COLORS = ['#7dd3fc', '#60a5fa', '#818cf8', '#a78bfa', '#c084fc'];

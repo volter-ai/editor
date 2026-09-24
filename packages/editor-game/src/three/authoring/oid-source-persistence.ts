@@ -35,21 +35,21 @@
  * the next mount shows it.
  */
 
-import { reportIngestSourceRefusal } from '@editor/authoring/ingest-source-persistence';
-import type { SourcePersistenceBackend } from '@editor/authoring/source-persistence-backend';
-import { LIVE_ONLY_DESTINATION } from '@editor/authoring/write-pipe';
-import type { ChannelValue } from '@editor/creation-site-edit';
-import { channelFor } from '@editor/creation-site-edit';
-import { editorConsole } from '@editor/editor-console';
-import { editorIsAuthoring } from '@editor/editor-session-mode';
-import type { HistoryService } from '@editor/history/history-service';
-import { withProjectSourceHistory } from '@editor/history/source-history-backend';
-import { getCurrentProject } from '@editor/project-manager';
-import type { OidEntry } from '@editor/ui-source/oid-transform';
-import { bodyPlacedChannel, physicsRefusal } from '@editor/ui-source/r3f-physics-binding';
-import type { SourceWriteBackend } from '@editor/ui-source/source-write-backend';
-import { sourceWriteBackendIfPrimed } from '@editor/ui-source/tier-source-write-backend';
-import type { NodeCreationSite, WriteAck } from '@vgai/project/adapter';
+import { reportIngestSourceRefusal } from '../../host/authoring/ingest-source-persistence';
+import type { SourcePersistenceBackend } from '../../host/authoring/source-persistence-backend';
+import { LIVE_ONLY_DESTINATION } from '@volter/editor-core/authoring/write-pipe';
+import type { ChannelValue } from '@volter/editor-core/creation-site-edit';
+import { channelFor } from '@volter/editor-core/creation-site-edit';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorIsAuthoring } from '@volter/editor-core/editor-session-mode';
+import type { HistoryService } from '@volter/editor-core/history/history-service';
+import { withProjectSourceHistory } from '@volter/editor-core/history/source-history-backend';
+import { getCurrentProject } from '@volter/editor-core/project-manager';
+import type { OidEntry } from '@volter/editor-core/ui-source/oid-transform';
+import { bodyPlacedChannel, physicsRefusal } from '@volter/editor-core/ui-source/r3f-physics-binding';
+import type { SourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
+import { sourceWriteBackendIfPrimed } from '@volter/editor-core/ui-source/tier-source-write-backend';
+import type { NodeCreationSite, WriteAck } from '@volter/editor-project/adapter';
 
 /** What `AuthoringAdapter.persistence.destination` reports once this backend is
  *  actually able to write. */

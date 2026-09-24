@@ -1,5 +1,5 @@
 /**
- * CAPABILITY COVERAGE (`@vgai/editor-sdk/services`, a `workspace.service`
+ * CAPABILITY COVERAGE (`@volter/editor-sdk/services`, a `workspace.service`
  * contribution): the four derived families that GRADE a mounted game's
  * adapters, and the union headline the editor console says out loud.
  *
@@ -33,7 +33,7 @@
  * that already reports every relayed command, rather than a line in the
  * host's dispatch naming this package.
  */
-import { editorHost } from '@vgai/editor-sdk/host';
+import { editorHost } from '@volter/editor-sdk/host';
 import { authoringSurfaceCoverage } from '../src/coverage/live-authoring-surface';
 import {
   invalidateProjectFileFacts,

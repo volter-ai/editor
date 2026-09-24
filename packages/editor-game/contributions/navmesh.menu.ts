@@ -11,8 +11,8 @@
  * on its availability tick while a menu is open, so they follow the mounted
  * game's `NavigationAdapter` and a bake in flight.
  */
-import { getActiveSystems } from '@editor/authoring/active-systems';
-import type { MenuContribution } from '@vgai/editor-sdk/chrome';
+import { getActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import type { MenuContribution } from '@volter/editor-sdk/chrome';
 import { dispatchNavMeshBake, dispatchNavMeshClear } from '../src/navmesh/navmesh-actions';
 import { navBakeBusy, navMeshBaked } from '../src/navmesh/navmesh-workflow-store';
 

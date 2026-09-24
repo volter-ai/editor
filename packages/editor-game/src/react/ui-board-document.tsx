@@ -1,4 +1,4 @@
-import { registerAvailableWorkspaceDocument } from '@editor/workspace-available-documents';
+import { registerAvailableWorkspaceDocument } from '@volter/editor-core/workspace-available-documents';
 /**
  * THE `UI` BOARD's DOCUMENT — what `ui-component-board.ts` installs, kept in
  * its own module so the registration's eager closure is the verdict and
@@ -29,17 +29,17 @@ import {
   designTimeRootDescriptors,
   projectStoryBoardDescriptor,
   rememberedPortableStory,
-} from '@editor/authoring/design-time-layers';
-import type { ComponentBoardContext } from '@editor/component-board-registry';
-import { RootDocumentContent } from '@editor/components/world-documents';
-import type { DocumentPreviewSource } from '@editor/document-preview-source';
-import { getCurrentProject } from '@editor/project-manager';
+} from '@volter/editor-core/authoring/design-time-layers';
+import type { ComponentBoardContext } from '@volter/editor-core/component-board-registry';
+import { RootDocumentContent } from '@volter/editor-core/components/world-documents';
+import type { DocumentPreviewSource } from '@volter/editor-core/document-preview-source';
+import { getCurrentProject } from '@volter/editor-core/project-manager';
 import {
   getProjectPreviewStories,
   subscribeProjectStoryModules,
-} from '@editor/stories/story-registry';
-import { UI_COMPONENTS_DOCUMENT_ID } from '@editor/workspace-document-ids';
-import type { WorkspaceDocumentContentProps } from '@editor/workspace-document-registry';
+} from '@volter/editor-core/stories/story-registry';
+import { UI_COMPONENTS_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
+import type { WorkspaceDocumentContentProps } from '@volter/editor-core/workspace-document-registry';
 
 import { UI_COMPONENTS_TITLE } from './ui-board-title';
 
@@ -48,7 +48,7 @@ const uiCanvasPreview: DocumentPreviewSource = {
     JSON.stringify(getProjectPreviewStories().map(({ id, modulePath }) => [id, modulePath])),
   subscribe: subscribeProjectStoryModules,
   capture: async ({ width, height }) => {
-    const { captureDomStoryBoardPreview } = await import('@editor/stories/story-capture');
+    const { captureDomStoryBoardPreview } = await import('@volter/editor-core/stories/story-capture');
     return captureDomStoryBoardPreview(width, height);
   },
 };

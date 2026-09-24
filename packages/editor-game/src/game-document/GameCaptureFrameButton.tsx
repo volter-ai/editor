@@ -6,15 +6,15 @@
  * registered no render-debug adapter.
  *
  * It sits HERE rather than beside the panel it opens because the panel moved
- * to `@vgai/game` (the game skew as a package) and this button's caller is a
+ * to `@volter/editor-game` (the game skew as a package) and this button's caller is a
  * host module: the host imports no package (WORKBENCH.md §The invariants), so
  * the button stays on this side of the line with the store and model it reads.
  */
-import { getInspectedRenderDebug } from '@editor/authoring/active-systems';
-import { useAvailabilitySelector } from '@editor/availability-tick';
-import { deriveRenderDebugCapabilities } from '@editor/components/frame-debugger-model';
-import { profilerView } from '@editor/components/utility-view-state';
-import { Button } from '@vgai/editor-sdk/widgets';
+import { getInspectedRenderDebug } from '@volter/editor-core/authoring/active-systems';
+import { useAvailabilitySelector } from '@volter/editor-core/availability-tick';
+import { deriveRenderDebugCapabilities } from '../host/components/frame-debugger-model';
+import { profilerView } from '../host/components/utility-view-state';
+import { Button } from '@volter/editor-sdk/widgets';
 import { captureFrame } from '../profiler/frame-debugger-store';
 
 export function GameCaptureFrameButton() {

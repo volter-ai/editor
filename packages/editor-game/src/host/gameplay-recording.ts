@@ -4,7 +4,7 @@
  *
  * This is intentionally a browser primitive, not a CLI workflow. The page
  * owns `MediaRecorder` and the live pixels/audio, streams bounded chunks to
- * the project server, and `@vgai/live` merely starts/stops it through the
+ * the project server, and `@volter/editor-live` merely starts/stops it through the
  * existing session wire.
  *
  * KNOWN, MEASURED LIMIT — THE HUD LAYER IS INTERMITTENT, AND THIS FILE CANNOT
@@ -29,29 +29,29 @@
 import type {
   ToolContributionRecordingFrame,
   ToolContributionRecordingSnapshot,
-} from '@vgai/editor-sdk/contributions';
-import type { AudioRecordingHandle } from '@vgai/project/adapter';
+} from '@volter/editor-sdk/contributions';
+import type { AudioRecordingHandle } from '@volter/editor-project/adapter';
 import type {
   CaptureOptions,
   CompositeFrame,
   ImageSnapshotCache,
   OverlayFrameCache,
-} from './composite-screenshot';
+} from '@volter/editor-core/composite-screenshot';
 import {
   createImageSnapshotCache,
   createOverlayFrameCache,
   drawPlayCompositeFrame,
   isRootCanvas,
-} from './composite-screenshot';
+} from '@volter/editor-core/composite-screenshot';
 import {
   abortGameplayRecordingSink,
   appendGameplayRecordingChunk,
   beginGameplayRecordingSink,
   finishGameplayRecordingSink,
   type GameplayRecordingSink,
-} from './editor-api';
-import { type GameplayDomRecording, startGameplayDomRecording } from './gameplay-dom-recording';
-import { publishToolContributionRecording } from './gameplay-sessions';
+} from '@volter/editor-core/editor-api';
+import { type GameplayDomRecording, startGameplayDomRecording } from '@volter/editor-core/gameplay-dom-recording';
+import { publishToolContributionRecording } from '@volter/editor-core/gameplay-sessions';
 import { createRecordingPreviewEncoder } from './recording-preview';
 
 export interface GameplayRecordingStartOptions {

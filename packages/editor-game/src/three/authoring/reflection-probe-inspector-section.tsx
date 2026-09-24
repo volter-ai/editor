@@ -1,8 +1,8 @@
-import { useEditorStore } from '@editor/editor-runtime';
-import type { InspectorSectionProps } from '@editor/inspector-section-registry';
-import type { AuthoringAdapter, EditorNode } from '@vgai/project/adapter';
-import { type ReflectionProbeSnapshot, reflectionProbeOf } from '@vgai/threejs-runtime/adapter/reflection-probe';
-import { Button, EditorBanner, FieldGroup, FieldRow, Text } from '@vgai/editor-sdk/widgets';
+import { useEditorStore } from '@volter/editor-core/editor-runtime';
+import type { InspectorSectionProps } from '@volter/editor-core/inspector-section-registry';
+import type { AuthoringAdapter, EditorNode } from '@volter/editor-project/adapter';
+import { type ReflectionProbeSnapshot, reflectionProbeOf } from '@volter/threejs-runtime/adapter/reflection-probe';
+import { Button, EditorBanner, FieldGroup, FieldRow, Text } from '@volter/editor-sdk/widgets';
 import { useSyncExternalStore } from 'react';
 
 export function matches(node: EditorNode | null, adapter: AuthoringAdapter): boolean {

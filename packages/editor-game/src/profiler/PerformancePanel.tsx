@@ -16,10 +16,10 @@ import {
   offLoopAccount,
   type TimeSpentRow,
   timeSpentRows,
-} from '@editor/components/frame-debugger-model';
-import { isJsHeapReading, readJsHeap } from '@editor/js-heap';
-import { useActivePerformanceSource } from '@editor/use-active-performance-source';
-import { editorHost, useHostAvailabilitySelector } from '@vgai/editor-sdk/host';
+} from '../host/components/frame-debugger-model';
+import { isJsHeapReading, readJsHeap } from '@volter/editor-core/js-heap';
+import { useActivePerformanceSource } from '../host/use-active-performance-source';
+import { editorHost, useHostAvailabilitySelector } from '@volter/editor-sdk/host';
 import {
   Button,
   EditorBadge,
@@ -29,14 +29,14 @@ import {
   fontSizeVar,
   spaceVar,
   themeVars,
-} from '@vgai/editor-sdk/widgets';
-import { buildChromeTrace } from '@vgai/game-runtime/dev/chrome-trace';
+} from '@volter/editor-sdk/widgets';
+import { buildChromeTrace } from '@volter/game-runtime/dev/chrome-trace';
 import type {
   PerformanceFrame,
   PerformanceProfiler,
   PerformanceSnapshot,
-} from '@vgai/game-runtime/dev/performance-profiler';
-import type { RenderMemorySnapshot } from '@vgai/game-runtime/dev/render-memory';
+} from '@volter/game-runtime/dev/performance-profiler';
+import type { RenderMemorySnapshot } from '@volter/game-runtime/dev/render-memory';
 import { useEffect, useRef, useState } from 'react';
 import { createMainThreadBusySampler, type MainThreadBusySampler } from './main-thread-busy';
 

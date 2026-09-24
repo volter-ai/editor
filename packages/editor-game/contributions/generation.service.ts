@@ -1,5 +1,5 @@
 /**
- * THE GENERATION ESTATE (`@vgai/editor-sdk/services`, a `workspace.service`
+ * THE GENERATION ESTATE (`@volter/editor-sdk/services`, a `workspace.service`
  * contribution): the paid-provider lane's editor surface — the Generations
  * drawer gallery over the durable job ledger, the Create-generation document
  * and the per-job result document.
@@ -18,7 +18,7 @@
  *    registry call is made here directly (the story documents' service does
  *    the same, for the same reason);
  *  - the two DOCUMENTS open through `document-open-registry.ts` under the
- *    `generation` VIEW ADDRESS — the kind `@vgai/editor-sdk`'s `EditorView`
+ *    `generation` VIEW ADDRESS — the kind `@volter/editor-sdk`'s `EditorView`
  *    already names — so `editor-view-presentation.ts` addresses a generation
  *    without importing one, and a build without this package answers `null`
  *    to the address instead of pretending.
@@ -30,9 +30,9 @@
  * routes over HTTP exactly as it did when it lived in the host.
  */
 
-import { registerDocumentOpener } from '@editor/document-open-registry';
-import { CONTRIBUTED_WORKSPACE_UTILITIES } from '@editor/workspace-core-utilities';
-import { registerWorkspaceUtility } from '@editor/workspace-utility-registry';
+import { registerDocumentOpener } from '@volter/editor-core/document-open-registry';
+import { CONTRIBUTED_WORKSPACE_UTILITIES } from '@volter/editor-core/workspace-core-utilities';
+import { registerWorkspaceUtility } from '@volter/editor-core/workspace-utility-registry';
 import { GenerationActivity } from '../src/generation/GenerationActivity';
 import {
   openGenerationCreateDocument,
@@ -49,7 +49,7 @@ import {
 
 export const point = 'workspace.service';
 
-/** The `generation` view address (`EditorView['document']`, `@vgai/editor-sdk`).
+/** The `generation` view address (`EditorView['document']`, `@volter/editor-sdk`).
  *  `id` is a job id, or `create` for the submit document. */
 const GENERATION_VIEW_ADDRESS = 'generation';
 
@@ -79,7 +79,7 @@ export function start(): () => void {
     }),
     registerDocumentOpener<{ readonly id: string }>({
       id: GENERATION_VIEW_ADDRESS,
-      owner: '@vgai/game/generation',
+      owner: '@volter/editor-game/generation',
       open: (_store, request) => {
         if (request.id === 'create') return openGenerationCreateDocument();
         const job = generationJobsSnapshot().jobs.find((entry) => entry.id === request.id);

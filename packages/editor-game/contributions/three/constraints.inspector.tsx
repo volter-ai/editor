@@ -13,12 +13,12 @@
  * `CONTRIBUTED_SECTION_ORDER` to whatever a module declares. The number below
  * is the relative order this section kept among its three siblings.
  */
-import type { AuthoringAdapter } from '@vgai/project/adapter';
+import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import type {
   ToolContributionNode,
   ToolInspectorContributionProps,
-} from '@vgai/editor-sdk/contributions';
-import { ConstraintStackSection, matches } from '../src/authoring/constraint-inspector-section';
+} from '@volter/editor-sdk/contributions';
+import { ConstraintStackSection, matches } from '../../src/three/authoring/constraint-inspector-section';
 
 export const point = 'selection.inspector';
 export const title = 'Constraints';

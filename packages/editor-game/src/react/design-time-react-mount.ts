@@ -23,7 +23,7 @@
  *
  * ## The seam, which is not a new one for this package
  *
- * `@vgai/dom` already contributes the React/DOM Inspector through the host's
+ * `@volter/editor-game` already contributes the React/DOM Inspector through the host's
  * own inspector-section registry; this is the second contribution and the
  * fifth registry of the same family (see the registry module's own note for
  * the four it transcribes). The package REGISTERS; the host names no medium.
@@ -34,8 +34,8 @@
  *    move, in the same unit: once this mount left, its only host importer
  *    was `dom-authoring-adapter.ts:70`
  *    (`cssColorToHex`/`mapBoxEditPatchKey`/`styleProp`), which had no host
- *    importer of its own, so the pair moved together. `@vgai/game` reaches
- *    them as `@vgai/dom/…` and declares the dependency.
+ *    importer of its own, so the pair moved together. `@volter/editor-game` reaches
+ *    them as `@volter/editor-game/react/…` and declares the dependency.
  *  - `@editor/authoring/react-story-board.ts` (the board geometry) —
  *    `@editor/components/RootSelectionOverlay.tsx:98`,
  *    `@editor/components/ReactCanvasControls.tsx:15`,
@@ -59,36 +59,36 @@
 import type {
   DesignTimeRootDescriptor,
   LayerMountResult,
-} from '@editor/authoring/design-time-layers';
+} from '@volter/editor-core/authoring/design-time-layers';
 import {
   rememberedPortableStory,
   rememberPortableStory,
-} from '@editor/authoring/design-time-layers';
-import type { DesignTimeMountContext } from '@editor/authoring/design-time-mount-registry';
-import { formatMountFailureMessage } from '@editor/authoring/mount-failure-report';
-import type { ReactStoryBoardSelectionIntent } from '@editor/authoring/react-story-board';
-import { createReactStoryBoard } from '@editor/authoring/react-story-board';
+} from '@volter/editor-core/authoring/design-time-layers';
+import type { DesignTimeMountContext } from '@volter/editor-core/authoring/design-time-mount-registry';
+import { formatMountFailureMessage } from '@volter/editor-core/authoring/mount-failure-report';
+import type { ReactStoryBoardSelectionIntent } from '@volter/editor-core/authoring/react-story-board';
+import { createReactStoryBoard } from '@volter/editor-core/authoring/react-story-board';
 import {
   getRootCanvasViewport,
   setRootCanvasViewport,
-} from '@editor/authoring/world-canvas-viewport-state';
-import { recordAuthoringConsumerUse } from '@editor/coverage/authoring-seam-evidence';
-import { CrashNullBoundary } from '@editor/crash-null-boundary';
-import { readProjectTextFile } from '@editor/editor-api';
-import { editorConsole } from '@editor/editor-console';
+} from '@volter/editor-core/authoring/world-canvas-viewport-state';
+import { recordAuthoringConsumerUse } from '@volter/editor-core/coverage/authoring-seam-evidence';
+import { CrashNullBoundary } from '@volter/editor-core/crash-null-boundary';
+import { readProjectTextFile } from '@volter/editor-core/editor-api';
+import { editorConsole } from '@volter/editor-core/editor-console';
 import {
   resolveReactRootMountRuntime,
   resolveWorldProviderForProject,
-} from '@editor/react-mount-runtime';
-import { activeRealmServices } from '@editor/realm-services';
-import { resolveReactAdapterRootComponent } from '@editor/roots/react-root';
-import { scopedGameStylesState } from '@editor/scoped-game-css';
-import { componentIdentityName } from '@editor/stories/compose-project-stories';
-import { mountIsolatedStory } from '@editor/stories/StoryPreviewMount';
+} from '../host/react-mount-runtime';
+import { activeRealmServices } from '../host/realm-services';
+import { resolveReactAdapterRootComponent } from '../host/roots/react-root';
+import { scopedGameStylesState } from '@volter/editor-core/scoped-game-css';
+import { componentIdentityName } from '@volter/editor-core/stories/compose-project-stories';
+import { mountIsolatedStory } from '@volter/editor-core/stories/StoryPreviewMount';
 import {
   createStoryPresentationIndex,
   storyBoardPresentation,
-} from '@editor/stories/story-presentation';
+} from '@volter/editor-core/stories/story-presentation';
 import {
   getComponentPreviewStory,
   getProjectPreviewStories,
@@ -97,16 +97,16 @@ import {
   projectStoriesReady,
   refreshProjectStories,
   subscribeProjectStoryModules,
-} from '@editor/stories/story-registry';
-import { domStoryBoardMembers } from '@editor/stories/three-story-model';
-import { getDesignTokens } from '@editor/ui-source/inspect';
-import { tierSourceWriteBackend } from '@editor/ui-source/tier-source-write-backend';
-import { recordViewportFirstFrame } from '@editor/viewport-activation-timings';
-import { createAssetCache } from '@vgai/threejs-runtime/assets';
-import { createGameLoop } from '@vgai/game-runtime/core/game-loop';
-import type { ResolvedAdapterRoot } from '@vgai/project/manifest/load';
-import { createGame, type GameInternal } from '@vgai/game-runtime/runtime/game';
-import { beginProjectMountEpoch } from '@vgai/editor-sdk/session/project-module-url';
+} from '@volter/editor-core/stories/story-registry';
+import { domStoryBoardMembers } from '@volter/editor-core/stories/three-story-model';
+import { getDesignTokens } from '@volter/editor-core/ui-source/inspect';
+import { tierSourceWriteBackend } from '@volter/editor-core/ui-source/tier-source-write-backend';
+import { recordViewportFirstFrame } from '@volter/editor-core/viewport-activation-timings';
+import { createAssetCache } from '@volter/threejs-runtime/assets';
+import { createGameLoop } from '@volter/game-runtime/core/game-loop';
+import type { ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';
+import { createGame, type GameInternal } from '@volter/game-runtime/runtime/game';
+import { beginProjectMountEpoch } from '@volter/editor-sdk/session/project-module-url';
 import type { ComponentType } from 'react';
 import { type OidElementLike, ReactRootAuthoringAdapter } from './react-world-authoring-adapter';
 import { paintedContentBounds } from './story-paint-bounds';
@@ -174,7 +174,7 @@ async function seedRootViewportFromManifest(): Promise<void> {
  * this repo's own test convention (`packages/editor/test/adapter-conformance-kit.ts`'s
  * `headlessGame()`) — built with a loop that is constructed but NEVER
  * started/ticked, and with NO roots ever registered. This satisfies
- * `useGame`/`useWorldState` (`@vgai/game-runtime/react/world-state`, and any project's own
+ * `useGame`/`useWorldState` (`@volter/game-runtime/react/world-state`, and any project's own
  * re-export of it) without throwing, genuinely inertly:
  *  - `state.subscribe` never fires — nothing ever calls
  *    `GameStateBridgeInternal.bump()` (only `GameInternal.runFrame` does, and
@@ -205,7 +205,7 @@ function createDesignTimeGame(): GameInternal {
  * honest "this is a native default-react world" values.
  *
  * `loop: 'gated'` here is the MANIFEST's declared-intent vocabulary
- * (`ResolvedAdapterRoot.loop`, `@vgai/project/manifest/load`), and specifically the
+ * (`ResolvedAdapterRoot.loop`, `@volter/editor-project/manifest/load`), and specifically the
  * schema's own `.default('gated')` — not a verdict about anything. It is safe as
  * a declaration precisely because nothing projects it: the only consumer of this
  * stub is `resolveEntryComponent` below, the stub never reaches

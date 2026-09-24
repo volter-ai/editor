@@ -5,15 +5,15 @@
  * On the contributed band, see `constraints.inspector.tsx`'s note; the number
  * below is this section's relative order among its siblings.
  */
-import type { AuthoringAdapter } from '@vgai/project/adapter';
+import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import type {
   ToolContributionNode,
   ToolInspectorContributionProps,
-} from '@vgai/editor-sdk/contributions';
+} from '@volter/editor-sdk/contributions';
 import {
   matches,
   ReflectionProbeCaptureSection,
-} from '../src/authoring/reflection-probe-inspector-section';
+} from '../../src/three/authoring/reflection-probe-inspector-section';
 
 export const point = 'selection.inspector';
 export const title = 'Capture';

@@ -40,7 +40,7 @@
  * resolves — so any walk done at adoption time would miss them.
  *
  * Patching a library prototype to host a foreign game is an established
- * mechanism here, not a new one: `@vgai/threejs-runtime/adapter/ingest/scene-capture` traps
+ * mechanism here, not a new one: `@volter/threejs-runtime/adapter/ingest/scene-capture` traps
  * `WebGLRenderer.prototype.render` for exactly the same reason (the host must
  * observe a game it does not own, at a seam the game never offered).
  *
@@ -59,10 +59,10 @@
  * and source-served runtime import separate copies against the same Three.
  */
 
-import { editorHost } from '@vgai/editor-sdk/host';
-import { installAudioPoseGuard as installSharedAudioPoseGuard } from '@vgai/game-runtime/audio/pose-guard';
+import { editorHost } from '@volter/editor-sdk/host';
+import { installAudioPoseGuard as installSharedAudioPoseGuard } from '@volter/game-runtime/audio/pose-guard';
 
-export { audioPoseUpdatesDropped } from '@vgai/game-runtime/audio/pose-guard';
+export { audioPoseUpdatesDropped } from '@volter/game-runtime/audio/pose-guard';
 
 let reported = false;
 

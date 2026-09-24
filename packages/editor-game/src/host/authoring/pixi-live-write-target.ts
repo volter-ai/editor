@@ -34,8 +34,8 @@ import type {
   AuthoringAdapter2D,
   Overlay2D,
   Transform2DValue,
-} from '@vgai/game-runtime/pixi/authoring';
-import type { PhysicsAdapter2D } from '@vgai/game-runtime/pixi/system-adapters';
+} from '@volter/game-runtime/pixi/authoring';
+import type { PhysicsAdapter2D } from '@volter/game-runtime/pixi/system-adapters';
 import type {
   ComponentInstanceApplyResult,
   ComponentInstanceDescription,
@@ -46,11 +46,11 @@ import type {
   PropertyDescriptor,
   TransformChannel,
   TransformEditability,
-} from '@vgai/project/adapter';
+} from '@volter/editor-project/adapter';
 import type { Container } from 'pixi.js';
-import type { ChannelValue, CreationSiteLiteralReport } from '../creation-site-edit';
-import { creationSiteAnchor, instancesAtSite } from '../creation-site-registry';
-import { editorConsole } from '../editor-console';
+import type { ChannelValue, CreationSiteLiteralReport } from '@volter/editor-core/creation-site-edit';
+import { creationSiteAnchor, instancesAtSite } from '@volter/editor-core/creation-site-registry';
+import { editorConsole } from '@volter/editor-core/editor-console';
 import { JsonHistoryResource } from '../history/json-history-resource';
 import { createEphemeralPersistence } from './ephemeral-persistence';
 import { multiChannelRefusal, persistChannelWrite } from './gesture-persist';
@@ -64,7 +64,7 @@ import {
   runWritePipe,
   type WriteAck,
   type WriteResolution,
-} from './write-pipe';
+} from '@volter/editor-core/authoring/write-pipe';
 
 interface PixiLiveHistoryState {
   overlay: Overlay2D;

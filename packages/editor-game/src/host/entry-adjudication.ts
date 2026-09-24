@@ -25,7 +25,7 @@
  * through `canvas-entry-runtime.ts`) and is not adjudicated here.
  */
 
-import type { RootAdapter } from '@vgai/project/adapter';
+import type { RootAdapter } from '@volter/editor-project/adapter';
 import { resolveR3FEntryAdapterForEditor } from './r3f-entry-runtime';
 
 /**

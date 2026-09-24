@@ -15,15 +15,15 @@
  * while it constructs, then explicitly releases the hold and flips to Game.
  */
 
-import { editorConsole } from '@editor/editor-console';
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import { projectAdapterFacet } from '@editor/project-adapter';
-import { sceneDocumentId } from '@editor/scene-document-plan';
-import { CANVAS_SCENE_DOCUMENT_ID, SCENE_DOCUMENT_ID } from '@editor/workspace-document-ids';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { projectAdapterFacet } from '@volter/editor-core/project-adapter';
+import { sceneDocumentId } from '@volter/editor-core/scene-document-plan';
+import { CANVAS_SCENE_DOCUMENT_ID, SCENE_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
 import {
   activateWorkspaceDocument,
   openWorkspaceDocuments,
-} from '@editor/workspace-document-registry';
+} from '@volter/editor-core/workspace-document-registry';
 import { activeIngest } from './active-ingest';
 import { activeIngestPauseGap, holdIngestContentTimeForMode } from './ingest-play-control';
 

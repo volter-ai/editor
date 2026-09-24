@@ -16,12 +16,12 @@
  * resetting the gate is no longer a separate step.
  */
 
-import { setActiveAuthoring } from '@editor/authoring/active-adapter';
-import { setActiveSystems } from '@editor/authoring/active-systems';
-import { clearMountFailureReports } from '@editor/authoring/mount-failure-report';
-import { editorConsole } from '@editor/editor-console';
-import { reclaimGameRealm } from '@editor/game-realm-reclaim';
-import { setGameRealmReloadHandler } from '@editor/gated-globals';
+import { setActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
+import { setActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { clearMountFailureReports } from '@volter/editor-core/authoring/mount-failure-report';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import { reclaimGameRealm } from '../host/game-realm-reclaim';
+import { setGameRealmReloadHandler } from '../host/gated-globals';
 import {
   activeIngest,
   type IngestSession,

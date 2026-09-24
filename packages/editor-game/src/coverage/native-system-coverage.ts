@@ -28,17 +28,17 @@
  * for the mounts that have no contract to read.
  */
 
-import { getActiveSystems } from '@editor/authoring/active-systems';
-import { mountedRootSubjects } from '@editor/authoring/mounted-root-subjects';
+import { getActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { mountedRootSubjects } from '@volter/editor-core/authoring/mounted-root-subjects';
 import {
   type CapabilityCoverageReport,
   deriveCapabilityCoverage,
-} from '@editor/coverage/capability-coverage';
-import { measureNativeSystemAdapters } from '@editor/coverage/system-adapter-coverage';
-import { liveCoverage } from '@editor/live-session-registry';
-import { getCurrentProject } from '@editor/project-manager';
-import { toolContributionPlay } from '@editor/tool-contribution-play';
-import type { DeclaredSystemAbsence, Game } from '@vgai/game-runtime/runtime/game';
+} from '../host/coverage/capability-coverage';
+import { measureNativeSystemAdapters } from '../host/coverage/system-adapter-coverage';
+import { liveCoverage } from '@volter/editor-core/live-session-registry';
+import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { toolContributionPlay } from '@volter/editor-core/tool-contribution-play';
+import type { DeclaredSystemAbsence, Game } from '@volter/game-runtime/runtime/game';
 import { projectDependencyNames } from './live-project-verbs';
 
 /**

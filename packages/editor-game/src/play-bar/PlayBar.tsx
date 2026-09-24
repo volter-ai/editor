@@ -3,12 +3,12 @@ import {
   listConfigurations,
   startConfiguration,
   stopConfiguration,
-} from '@editor/api/configurations';
-import { isGameplayExportActive, subscribeGameplayExport } from '@editor/gameplay-export-state';
-import { PLAY_CONTROL_TEST_ID } from '@editor/play-control-hook';
+} from '../host/api/configurations';
+import { isGameplayExportActive, subscribeGameplayExport } from '@volter/editor-core/gameplay-export-state';
+import { PLAY_CONTROL_TEST_ID } from '../host/play-control-hook';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
-import { editorHost } from '@vgai/editor-sdk/host';
+import { editorHost } from '@volter/editor-sdk/host';
 import {
   AnchoredMenu,
   Button,
@@ -19,7 +19,7 @@ import {
   MenuItem,
   Text,
   ToolbarDivider,
-} from '@vgai/editor-sdk/widgets';
+} from '@volter/editor-sdk/widgets';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { isIngestActive } from '../ingest/active-ingest';
@@ -37,7 +37,7 @@ import {
 } from '../play/play-mode';
 import { InstanceCountPicker } from './PlayerCountPicker';
 
-export { type Resolution, ResolutionPicker } from '@editor/components/ResolutionPicker';
+export { type Resolution, ResolutionPicker } from '../host/components/ResolutionPicker';
 
 export interface PlayBarViewProps {
   readonly placement?: 'launcher' | 'runtime';

@@ -30,8 +30,8 @@
  */
 
 import type { Container } from 'pixi.js';
-import { editorConsole } from '../editor-console';
-import type { EditorShellStore } from '../editor-shell-store';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { type JournalSubject, JsonHistoryResource } from '../history/json-history-resource';
 
 /** The stage root's stand-in uid: it is not one of the adapter's nodes, but it

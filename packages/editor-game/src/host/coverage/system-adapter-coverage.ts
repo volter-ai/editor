@@ -1,10 +1,10 @@
 /**
  * THE `SystemAdapters` TWO-STATE RULE FOR A NATIVE MOUNT — the pure half of
- * `@vgai/game/coverage/native-system-coverage.ts`.
+ * `@volter/editor-game/coverage/native-system-coverage.ts`.
  *
  * ## The defect this closes
  *
- * `@vgai/game/coverage/root-coverage.ts` made coverage provenance-neutral for the
+ * `@volter/editor-game/coverage/root-coverage.ts` made coverage provenance-neutral for the
  * `editor.*` family — every mounted root, native or ingested, gets a row per
  * `AuthoringAdapter` provider. It deliberately keeps ONLY that family, on the
  * grounds that the remaining facts are "the ingested lane's own questions".
@@ -46,14 +46,14 @@
  * no live session.
  */
 
-import type { DeclaredSystemAbsence } from '@vgai/game-runtime/runtime/game';
-import type { SystemAdapters } from '@vgai/project/adapter/system-adapter';
+import type { DeclaredSystemAbsence } from '@volter/game-runtime/runtime/game';
+import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
 import {
   SYSTEM_ADAPTER_SLOTS,
   type SystemAdapterMeasurement,
   type SystemAdapterSlot,
 } from './capability-coverage';
-import { inspectSystemAdapterSeam } from './system-seam-evidence';
+import { inspectSystemAdapterSeam } from '@volter/editor-core/coverage/system-seam-evidence';
 
 /** What the native derivation needs to know that the live registry cannot tell
  *  it. Both facts are read off things that already exist; neither is a guess. */

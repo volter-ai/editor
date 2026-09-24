@@ -1,17 +1,17 @@
 import { type ReactNode, useEffect, useLayoutEffect, useState } from 'react';
-import { resetProjectThumbnailManifestCache } from '../../asset-workflow/thumbnail-system';
-import { type EditorRuntime, EditorRuntimeProvider, type EditorStats } from '../../editor-runtime';
-import { EditorShellStore } from '../../editor-shell-store';
-import { EditorSession } from '../../history/editor-session';
-import { getStorageBackend, MemStorage, setStorageBackend } from '../../storage';
+import { resetProjectThumbnailManifestCache } from '@volter/editor-core/asset-workflow/thumbnail-system';
+import { type EditorRuntime, EditorRuntimeProvider, type EditorStats } from '@volter/editor-core/editor-runtime';
+import { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { EditorSession } from '@volter/editor-core/history/editor-session';
+import { getStorageBackend, MemStorage, setStorageBackend } from '@volter/editor-core/storage/index';
 import {
   activeWorkspaceUtility,
   installWorkspaceHostCommands,
   setActiveWorkspaceUtility,
   setWorkspaceUtilityTabs,
   workspaceUtilityTabs,
-} from '../../workspace-host-commands';
-import { availableWorkspaceUtilities } from '../../workspace-utility-registry';
+} from '@volter/editor-core/workspace-host-commands';
+import { availableWorkspaceUtilities } from '@volter/editor-core/workspace-utility-registry';
 
 const ZERO_STATS: EditorStats = {
   fps: 60,

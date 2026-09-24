@@ -1,6 +1,6 @@
 /**
  * THE COMPONENT-INSTANCE VERBS of an R3F world's hierarchy row
- * (`@vgai/editor-sdk/services`, a `workspace.service` contribution):
+ * (`@volter/editor-sdk/services`, a `workspace.service` contribution):
  * "Extract Component…", "Fork Component…" and "Reveal / Hide Internals".
  *
  * ## Why this is a package and not the host's
@@ -15,7 +15,7 @@
  * and has no component instances at all, so it paid eight files of the host's
  * eager closure for three menu items it can never show.
  *
- * ## Why `@vgai/game` and not a package named for the substrate
+ * ## Why `@volter/editor-game` and not a package named for the substrate
  *
  * The substrate rule (WORK.md §The open-source launch, unit 9) sends a module
  * to a package named for its substrate only when a SECOND sibling package
@@ -31,12 +31,12 @@
  * been the "escape hatch, registered elsewhere by the adapter modules"
  * (`components/GameHierarchy.tsx:26`, `hierarchy-menu-registry.ts:50`); the
  * package REGISTERS and the panel names no lane. The service point is
- * transcribed from `@vgai/dom`'s `react-inspector.service.ts`, which installs
+ * transcribed from `@volter/editor-game`'s `react-inspector.service.ts`, which installs
  * a contributed Inspector section the same way and for the same reason: a menu
  * item is not a document, so it never opens and never persists, and what a
  * contribution pass owns is when its registration exists. Host internals are
  * reached through the `@editor/*` alias the editor's Vite serves to every
- * contribution — the precedent `@vgai/game`'s own `bridge.command.ts` and
+ * contribution — the precedent `@volter/editor-game`'s own `bridge.command.ts` and
  * `instances.command.ts` already set.
  *
  * ## What did NOT come, and why
@@ -63,15 +63,15 @@
 import {
   ensureInstanceExtractMenuRegistered,
   unregisterInstanceExtractMenu,
-} from '../src/component-verbs/extract-menu';
+} from '../../src/three/component-verbs/extract-menu';
 import {
   ensureInstanceForkMenuRegistered,
   unregisterInstanceForkMenu,
-} from '../src/component-verbs/fork-menu';
+} from '../../src/three/component-verbs/fork-menu';
 import {
   ensureInstanceInternalsMenuRegistered,
   unregisterInstanceInternalsMenu,
-} from '../src/component-verbs/internals-menu';
+} from '../../src/three/component-verbs/internals-menu';
 
 export const point = 'workspace.service';
 

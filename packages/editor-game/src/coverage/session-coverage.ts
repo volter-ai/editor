@@ -29,16 +29,16 @@
  * subject, and it is the HUMAN-facing sentence that has to be a union.
  */
 
-import { mountedRootSubjects } from '@editor/authoring/mounted-root-subjects';
+import { mountedRootSubjects } from '@volter/editor-core/authoring/mounted-root-subjects';
 import {
   type CoveragePart,
   formatCapabilityCoverageBlocks,
   unionCoverageReport,
-} from '@editor/coverage/capability-coverage';
-import { editorConsole } from '@editor/editor-console';
-import { editorIsPlaying } from '@editor/editor-session-mode';
-import { projectAdapterFacet } from '@editor/project-adapter';
-import { getCurrentProject } from '@editor/project-manager';
+} from '../host/coverage/capability-coverage';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorIsPlaying } from '@volter/editor-core/editor-session-mode';
+import { projectAdapterFacet } from '@volter/editor-core/project-adapter';
+import { getCurrentProject } from '@volter/editor-core/project-manager';
 import { authoringSurfaceCoverage } from './live-authoring-surface';
 import { projectVerbCoverage } from './live-project-verbs';
 import { nativeSystemCoverage } from './native-system-coverage';

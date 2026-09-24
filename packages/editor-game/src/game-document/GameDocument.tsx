@@ -1,4 +1,4 @@
-import { HeaderTelemetry } from '@editor/components/HeaderTelemetry';
+import { HeaderTelemetry } from '../host/components/HeaderTelemetry';
 import { PlayBar } from '../play-bar/PlayBar';
 /**
  * THE GAME DOCUMENT's CONTENT AND TOOLBAR — what the host's live document
@@ -11,17 +11,17 @@ import { PlayBar } from '../play-bar/PlayBar';
  * alias, like every other editor internal this document still holds.
  */
 
-import { ResolutionPicker } from '@editor/components/ResolutionPicker';
-import { useEditorStore } from '@editor/editor-runtime';
-import { getCurrentProject, onProjectChange } from '@editor/project-manager';
-import type { LiveDocumentContentProps } from '@vgai/editor-sdk/host';
+import { ResolutionPicker } from '../host/components/ResolutionPicker';
+import { useEditorStore } from '@volter/editor-core/editor-runtime';
+import { getCurrentProject, onProjectChange } from '@volter/editor-core/project-manager';
+import type { LiveDocumentContentProps } from '@volter/editor-sdk/host';
 import {
   AnchoredMenu,
   Button,
   DisclosureIcon,
   MenuItem,
   themeVars,
-} from '@vgai/editor-sdk/widgets';
+} from '@volter/editor-sdk/widgets';
 import { useRef, useState, useSyncExternalStore } from 'react';
 import { crowdDebugEnabled, setCrowdDebugEnabled } from './crowd-debug';
 import { DevicePresetPicker } from './DevicePresetPicker';

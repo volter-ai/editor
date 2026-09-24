@@ -44,14 +44,14 @@
  * three gizmo drag during play. That is the regime, not a defect.
  */
 
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import type { SourceWriteBackend } from '@editor/ui-source/source-write-backend';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { SourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
 import {
   type OidElementLike,
   ReactRootAuthoringAdapter,
   walkOidTree,
-} from '@vgai/dom/react-world-authoring-adapter';
-import type { AuthoringProvenance } from '@vgai/project/adapter';
+} from '../react/react-world-authoring-adapter';
+import type { AuthoringProvenance } from '@volter/editor-project/adapter';
 
 /** Disclosed up front on the adapter, alongside `capabilities.persist: false` and
  *  the ephemeral `persistence.destination` play-mode's own wrapper installs — the

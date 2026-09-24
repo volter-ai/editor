@@ -12,8 +12,8 @@
  * rendered with an explicit `≥`, inspection failures with their reason).
  */
 
-import { getStorageBackend } from '@editor/storage';
-import { editorHost } from '@vgai/editor-sdk/host';
+import { getStorageBackend } from '@volter/editor-core/storage/index';
+import { editorHost } from '@volter/editor-sdk/host';
 import {
   accent,
   Button,
@@ -28,7 +28,7 @@ import {
   spaceVar,
   text,
   warn,
-} from '@vgai/editor-sdk/widgets';
+} from '@volter/editor-sdk/widgets';
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
   type AssetBudgetCategory,

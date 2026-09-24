@@ -1,6 +1,6 @@
 /**
  * "MATERIALIZE PASTEBOARD FROM UI BOARD" in the command palette
- * (`@vgai/editor-sdk/chrome`, a `workspace.action` contribution) — the ONE
+ * (`@volter/editor-sdk/chrome`, a `workspace.action` contribution) — the ONE
  * action that turns the UI board's derived auto-grid into an authored
  * pasteboard `.tsx`.
  *
@@ -8,7 +8,7 @@
  * importing `pasteboard-materialize.ts` — a host action about THIS package's
  * design-time surface, which is the only thing that kept both files in the
  * host (WORK.md §The open-source launch item 17). Shape transcribed from
- * `@vgai/game/contributions/profiler.action.ts`: a static `actions` array, no
+ * `@volter/editor-game/contributions/profiler.action.ts`: a static `actions` array, no
  * subscribe, because this action's availability never changes — it either
  * materializes or it refuses by name.
  *
@@ -17,8 +17,8 @@
  * names its remedy.
  */
 
-import { editorConsole } from '@editor/editor-console';
-import type { ActionContribution } from '@vgai/editor-sdk/chrome';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import type { ActionContribution } from '@volter/editor-sdk/chrome';
 
 export const point = 'workspace.action';
 
@@ -27,7 +27,7 @@ export const actions: ActionContribution['actions'] = [
     id: 'pasteboard.materialize',
     label: 'Materialize Pasteboard from UI Board',
     execute: async () => {
-      const { materializePasteboard } = await import('../src/pasteboard-materialize');
+      const { materializePasteboard } = await import('../../src/react/pasteboard-materialize');
       try {
         editorConsole.log(`[pasteboard] ${await materializePasteboard()}`, 'authoring');
       } catch (error) {

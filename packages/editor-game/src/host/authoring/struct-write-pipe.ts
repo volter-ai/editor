@@ -27,9 +27,9 @@
  * those in; this module never guesses them.
  */
 
-import { showTransientHint } from '../transient-hint';
-import type { SourceWriteBackend } from '../ui-source/source-write-backend';
-import { resolvesLiveOnly, runWritePipe, type WriteAck, type WriteResolution } from './write-pipe';
+import { showTransientHint } from '@volter/editor-core/transient-hint';
+import type { SourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
+import { resolvesLiveOnly, runWritePipe, type WriteAck, type WriteResolution } from '@volter/editor-core/authoring/write-pipe';
 
 /** The `writeStruct` options bag, spelled once (the backend's own shape). */
 export type StructOpOptions = Parameters<SourceWriteBackend['writeStruct']>[2];

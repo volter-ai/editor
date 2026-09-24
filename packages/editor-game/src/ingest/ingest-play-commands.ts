@@ -30,7 +30,7 @@ import {
   type CommandResult,
   type IngestPlayCommandType,
   isIngestPlayCommandType,
-} from '@vgai/editor-sdk/session/command-table';
+} from '@volter/editor-sdk/session/command-table';
 
 /** The shape {@link handleIngestPlayControl} needs — structurally satisfied by
  *  `ingest/ingest-play-control.ts`'s `IngestPlayControl`, named locally so this module imports

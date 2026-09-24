@@ -13,7 +13,7 @@
  * This module is the surface every consumer imports. It re-exports rather than
  * renames: there is ONE vocabulary, and it is this one.
  */
-export { ToolError } from './errors.js';
+export { ToolError } from '@volter/editor-sdk/tools/errors';
 export {
   defineTool,
   type ToolDefinition,
@@ -21,11 +21,11 @@ export {
   type ToolOutcome,
   ToolRegistry,
   type ToolSummary,
-} from './registry.js';
+} from '@volter/editor-sdk/tools/registry';
 export type {
   ExecutionHost as ToolHost,
   ExecutionRequirements as ToolRequirements,
   PermissionMetadata as ToolPermission,
   PermissionRisk as ToolPermissionRisk,
   ToolContext,
-} from './types.js';
+} from '@volter/editor-sdk/tools/types';

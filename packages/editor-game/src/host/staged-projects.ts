@@ -5,7 +5,7 @@
  * Staged content is the HOST's catalog: the New Project screen's IMPORTED
  * group (`imported-gallery.ts`, the generated gallery) and the in-tree fixture
  * registry (`ingest/registry.ts`) read these; the LANE that mounts an
- * unmodified game (`@vgai/game`'s `src/ingest/`) resolves a
+ * unmodified game (`@volter/editor-game`'s `src/ingest/`) resolves a
  * staged manifest to a mountable game from the same addresses.
  */
 

@@ -18,18 +18,18 @@
  * that picks between them is `mount-ingest-root.ts`.
  */
 
-import { measureAdapterReach } from '@editor/adapter-reach';
-import { setActiveAuthoring } from '@editor/authoring/active-adapter';
-import { setActiveSystems } from '@editor/authoring/active-systems';
-import { withContractHierarchy } from '@editor/authoring/contract-hierarchy-authoring';
-import { clearMountFailureReports } from '@editor/authoring/mount-failure-report';
-import { editorConsole } from '@editor/editor-console';
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import { gameLoopGate, setGameInputGate } from '@editor/gated-globals';
-import { acquireLiveDocument, liveDocumentContainer } from '@editor/live-document';
-import { pickGameCamera } from '@editor/scene-framing';
-import type { ResolvedAdapterRoot } from '@vgai/project/manifest/load';
-import type { CaptureMechanism } from '@vgai/threejs-runtime/adapter/ingest/scene-capture';
+import { measureAdapterReach } from '../host/adapter-reach';
+import { setActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
+import { setActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { withContractHierarchy } from '../host/authoring/contract-hierarchy-authoring';
+import { clearMountFailureReports } from '@volter/editor-core/authoring/mount-failure-report';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { gameLoopGate, setGameInputGate } from '../host/gated-globals';
+import { acquireLiveDocument, liveDocumentContainer } from '@volter/editor-core/live-document';
+import { pickGameCamera } from '@volter/editor-core/scene-framing';
+import type { ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';
+import type { CaptureMechanism } from '@volter/threejs-runtime/adapter/ingest/scene-capture';
 import { type IngestSession, serializeEntry, setActiveIngest } from './active-ingest';
 import { withDetectedDomSurface } from './authoring/ingest-dom-surface-authoring';
 import { type MountIngestOptions, mountIngestGame } from './authoring/ingest-root-adapter';

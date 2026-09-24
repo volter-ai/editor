@@ -10,7 +10,7 @@
  * actor, but is a real distinct value from "no live actor at all").
  */
 
-import type { InspectableXStateActor } from '@vgai/threejs-runtime/behavior/xstate-inspection';
+import type { InspectableXStateActor } from '@volter/threejs-runtime/behavior/xstate-inspection';
 import { useEffect, useState } from 'react';
 import type { AnyStateMachine, StateValue } from 'xstate';
 import { activeStateIdsOf } from './xstate-graph';

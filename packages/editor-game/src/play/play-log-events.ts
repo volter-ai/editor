@@ -1,5 +1,5 @@
-import type { LogEntry } from '@editor/editor-api';
-import type { TickStampedEvent } from '@vgai/project/adapter/system-adapter';
+import type { LogEntry } from '@volter/editor-core/editor-api';
+import type { TickStampedEvent } from '@volter/editor-project/adapter/system-adapter';
 
 /** Convert newly observed game-authored debug events into persistent JSONL entries. */
 export function debugEventsToLogEntries(

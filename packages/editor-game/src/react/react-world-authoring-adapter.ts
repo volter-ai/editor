@@ -27,32 +27,32 @@
  * unavailable via a loud console warning instead of silently no-op'ing).
  */
 
-import { activeBreakpoint } from '@editor/authoring/breakpoint-state';
+import { activeBreakpoint } from '@volter/editor-core/authoring/breakpoint-state';
 import {
   cssTextForStyleValue,
   numericStyleValue,
   preserveNumericStyleUnit,
-} from '@editor/authoring/css-numeric-style';
-import { WORLD_SCOPE_NODE_ID } from '@editor/authoring/stories-scope';
-import { createStructWritePipe, type StructOpOptions } from '@editor/authoring/struct-write-pipe';
-import { getRootPan } from '@editor/authoring/world-pan-state';
+} from '@volter/editor-core/authoring/css-numeric-style';
+import { WORLD_SCOPE_NODE_ID } from '@volter/editor-core/authoring/stories-scope';
+import { createStructWritePipe, type StructOpOptions } from '../host/authoring/struct-write-pipe';
+import { getRootPan } from '@volter/editor-core/authoring/world-pan-state';
 import {
   resolvesLiveOnly,
   runWritePipe,
   type WriteAck,
   type WriteResolution,
-} from '@editor/authoring/write-pipe';
-import { guideClientEdges } from '@editor/components/board-guides';
-import { editorConsole } from '@editor/editor-console';
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import { withProjectSourceHistory } from '@editor/history/source-history-backend';
-import { DomProjector, oidDomIdentity, projectOidDom } from '@editor/projection/dom';
-import { storyArgPropertyDescriptors } from '@editor/stories/story-arg-descriptors';
-import { storyDiscoveryUnavailable } from '@editor/stories/story-discovery';
-import { deriveStoryGroupPath, formatStoryGroupPath } from '@editor/stories/story-grouping';
-import type { StoryPresentationIndex } from '@editor/stories/story-presentation';
-import { subscribeProjectStoryModules } from '@editor/stories/story-registry';
-import { showTransientHint } from '@editor/transient-hint';
+} from '@volter/editor-core/authoring/write-pipe';
+import { guideClientEdges } from '@volter/editor-core/components/board-guides';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { withProjectSourceHistory } from '@volter/editor-core/history/source-history-backend';
+import { DomProjector, oidDomIdentity, projectOidDom } from '../host/projection/dom';
+import { storyArgPropertyDescriptors } from '../host/stories/story-arg-descriptors';
+import { storyDiscoveryUnavailable } from '@volter/editor-core/stories/story-discovery';
+import { deriveStoryGroupPath, formatStoryGroupPath } from '@volter/editor-core/stories/story-grouping';
+import type { StoryPresentationIndex } from '@volter/editor-core/stories/story-presentation';
+import { subscribeProjectStoryModules } from '@volter/editor-core/stories/story-registry';
+import { showTransientHint } from '@volter/editor-core/transient-hint';
 import {
   browserOrInlineResolver,
   type ComputedStyleResolver,
@@ -69,19 +69,19 @@ import {
   getMatchedCssRules,
   getReactComponentName,
   type MatchableElement,
-} from '@editor/ui-source/inspect';
-import type { ComponentPropSpec, OidEntry } from '@editor/ui-source/oid-transform';
-import { relativeImportSpecifier } from '@editor/ui-source/relative-import-specifier';
-import type { SourceWriteBackend } from '@editor/ui-source/source-write-backend';
-import { writeCsfStory, writeNamedStyle } from '@editor/ui-source/source-write-backend';
+} from '@volter/editor-core/ui-source/inspect';
+import type { ComponentPropSpec, OidEntry } from '@volter/editor-core/ui-source/oid-transform';
+import { relativeImportSpecifier } from '@volter/editor-core/ui-source/relative-import-specifier';
+import type { SourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
+import { writeCsfStory, writeNamedStyle } from '@volter/editor-core/ui-source/source-write-backend';
 import {
   type CssRuleTarget,
   namedStyleRuleFor,
   pickCssRuleTarget,
   tokenReferenceGuardText,
-} from '@editor/ui-source/writer';
-import { UI_COMPONENTS_DOCUMENT_ID } from '@editor/workspace-document-ids';
-import { activateWorkspaceDocument } from '@editor/workspace-document-registry';
+} from '@volter/editor-core/ui-source/writer';
+import { UI_COMPONENTS_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
+import { activateWorkspaceDocument } from '@volter/editor-core/workspace-document-registry';
 import type {
   AssetDropContext,
   AssetDropProvider,
@@ -111,7 +111,7 @@ import type {
   TextProvider,
   TruthProvider,
   WriteAnchorKind,
-} from '@vgai/project/adapter';
+} from '@volter/editor-project/adapter';
 
 /**
  * The minimal structural shape this adapter needs from a live DOM element —
@@ -3253,7 +3253,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
    * `toEditorNode`'s label lookup). Returns `undefined` when the id has no OID (e.g. a
    * catalog node) or the index hasn't resolved (no dev-server backend, or the index
    * fetch hasn't landed yet) — an honest "unavailable", never a guess. The editor UI
-   * (`@vgai/dom/react-inspector-section.tsx`'s `LaneDisclosure`) uses this to offer copy-path /
+   * (`@volter/editor-game/react/react-inspector-section.tsx`'s `LaneDisclosure`) uses this to offer copy-path /
    * go-to-line without ever exposing a write surface.
    */
   sourceLocation(id: string): OidEntry | undefined {

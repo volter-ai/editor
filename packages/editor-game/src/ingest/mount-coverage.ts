@@ -12,10 +12,10 @@
  * exactly this file open.
  */
 
-import type { AdapterReach } from '@editor/adapter-reach';
-import { getActiveSystems } from '@editor/authoring/active-systems';
-import { ingestDataWriterNow } from '@editor/authoring/ingest-data-writer';
-import { ingestOwnershipNow } from '@editor/authoring/ingest-source-persistence';
+import type { AdapterReach } from '../host/adapter-reach';
+import { getActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { ingestDataWriterNow } from '../host/authoring/ingest-data-writer';
+import { ingestOwnershipNow } from '../host/authoring/ingest-source-persistence';
 import {
   type CapabilityCoverageReport,
   createCapabilityCoverageConsole,
@@ -25,20 +25,20 @@ import {
   SYSTEM_ADAPTER_SLOTS,
   type SystemAdapterMeasurement,
   type WriteReachFacts,
-} from '@editor/coverage/capability-coverage';
-import { inspectSystemAdapterSeam } from '@editor/coverage/system-seam-evidence';
-import { editorConsole } from '@editor/editor-console';
+} from '../host/coverage/capability-coverage';
+import { inspectSystemAdapterSeam } from '@volter/editor-core/coverage/system-seam-evidence';
+import { editorConsole } from '@volter/editor-core/editor-console';
 import {
   type MeasuredLoop,
   measuredLoop,
   type SameRealmLoopVerdict,
-} from '@editor/same-realm-loop-gate';
+} from '../host/same-realm-loop-gate';
 import {
   type ContractSurface,
   projectContractSystemAdapters,
-} from '@vgai/game-runtime/adapter/ingest/contract-system-adapters';
-import type { VgaiGameContract } from '@vgai/project/adapter/ingest/game-contract';
-import type { SystemAdapters } from '@vgai/project/adapter/system-adapter';
+} from '@volter/game-runtime/adapter/ingest/contract-system-adapters';
+import type { VgaiGameContract } from '@volter/editor-project/adapter/ingest/game-contract';
+import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
 import { activeIngest } from './active-ingest';
 import type { IngestMount } from './authoring/ingest-root-adapter';
 import { activeIngestContract } from './ingest-play-control';
@@ -254,7 +254,7 @@ export function ingestCoverageReport(): CapabilityCoverageReport | null {
       : null,
     dataWriter: dataWriterFacts(),
     // The `project.*` family is about the opened PROJECT, not this mount, and
-    // it has one producer for both lanes (`@vgai/game/coverage/live-project-verbs.ts`).
+    // it has one producer for both lanes (`@volter/editor-game/coverage/live-project-verbs.ts`).
     // Reporting it here too would print two verdicts for one capability.
     projectVerbs: [],
     writeReach: inputs.writeReach?.() ?? null,

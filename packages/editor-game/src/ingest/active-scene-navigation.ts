@@ -18,8 +18,8 @@
 import {
   type ContractScenesStories,
   isContractScenesStories,
-} from '@editor/authoring/contract-scenes-stories';
-import type { AuthoringAdapter } from '@vgai/project/adapter/authoring';
+} from '../host/authoring/contract-scenes-stories';
+import type { AuthoringAdapter } from '@volter/editor-project/adapter/authoring';
 import { activeIngest } from './active-ingest';
 
 export function activeContractScenes(): ContractScenesStories | null {

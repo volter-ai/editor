@@ -37,8 +37,8 @@
  * recorder's stream never sees, so nothing about the evidence changes.
  */
 
-import { isRootCanvas } from '@editor/composite-screenshot';
-import { editorConsole } from '@editor/editor-console';
+import { isRootCanvas } from '@volter/editor-core/composite-screenshot';
+import { editorConsole } from '@volter/editor-core/editor-console';
 import {
   type GameplayRecordingCapture,
   type GameplayRecordingStarted,
@@ -46,9 +46,9 @@ import {
   gameplayRecordingActive,
   startGameplayRecording,
   stopGameplayRecording,
-} from '@editor/gameplay-recording';
-import { editorHost } from '@vgai/editor-sdk/host';
-import type { AudioRecordingHandle } from '@vgai/project/adapter';
+} from '../host/gameplay-recording';
+import { editorHost } from '@volter/editor-sdk/host';
+import type { AudioRecordingHandle } from '@volter/editor-project/adapter';
 
 /**
  * How long a play run may go with NO session command and NO player input

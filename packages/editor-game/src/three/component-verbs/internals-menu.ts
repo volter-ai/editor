@@ -18,16 +18,16 @@
  * probing the active adapter is already asking the right one.
  */
 
-import { getActiveAuthoring } from '@editor/authoring/active-adapter';
+import { getActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
 import {
   type InternalsSource,
   internalsProjection,
   isInternalsRevealed,
   revealedInternalsIds,
   toggleInternalsRevealed,
-} from '@editor/hierarchy-internals';
-import { registerHierarchyMenuItems } from '@editor/hierarchy-menu-registry';
-import type { AuthoringAdapter } from '@vgai/project/adapter';
+} from '@volter/editor-core/hierarchy-internals';
+import { registerHierarchyMenuItems } from '@volter/editor-core/hierarchy-menu-registry';
+import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 
 /** Menu capitalization follows the panel's Title Case idiom (`Rename`,
  *  `Go to Callsite`). */

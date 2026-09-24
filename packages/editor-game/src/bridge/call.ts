@@ -6,7 +6,7 @@
  * modules move too. Nothing here is host API.
  */
 
-import type { EditorCommandMessage, EditorCommandResult } from '@vgai/editor-sdk/commands';
+import type { EditorCommandMessage, EditorCommandResult } from '@volter/editor-sdk/commands';
 import { notPlayingResult, structuredErrorResult } from '../command-results';
 import { isIngestActive } from '../ingest/active-ingest';
 import { isPlayModeActive } from '../play/play-mode';

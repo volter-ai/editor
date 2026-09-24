@@ -12,19 +12,19 @@
  * whose verdict is `'present'`.
  */
 
-import type { ComponentBoard, ComponentBoardContext } from '@editor/component-board-registry';
-import { editorConsole } from '@editor/editor-console';
+import type { ComponentBoard, ComponentBoardContext } from '@volter/editor-core/component-board-registry';
+import { editorConsole } from '@volter/editor-core/editor-console';
 import {
   getStoryMediaPresence,
   subscribeStoryMediaPresence,
-} from '@editor/stories/story-media-presence';
-import { projectStoriesReady, subscribeProjectStoryModules } from '@editor/stories/story-registry';
-import { UI_COMPONENTS_DOCUMENT_ID } from '@editor/workspace-document-ids';
+} from '../host/stories/story-media-presence';
+import { projectStoriesReady, subscribeProjectStoryModules } from '@volter/editor-core/stories/story-registry';
+import { UI_COMPONENTS_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
 import { UI_COMPONENTS_TITLE } from './ui-board-title';
 
 export const uiComponentBoard: ComponentBoard = {
   medium: 'dom',
-  owner: '@vgai/dom/ui-board',
+  owner: '@volter/editor-game/react/ui-board',
   documentId: UI_COMPONENTS_DOCUMENT_ID,
   title: UI_COMPONENTS_TITLE,
   // A COMPONENT BOARD EXISTS BECAUSE THE PROJECT HAS STORIES OF ITS MEDIUM,

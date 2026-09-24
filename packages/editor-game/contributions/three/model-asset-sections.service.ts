@@ -1,6 +1,6 @@
 /**
  * THE OBJECT3D MODEL DOCUMENT'S INSPECTOR SECTIONS
- * (`@vgai/editor-sdk/services`, a `workspace.service` contribution): the
+ * (`@volter/editor-sdk/services`, a `workspace.service` contribution): the
  * Source / Geometry / Materials / Animation rail a loaded three model shows,
  * and the per-node sections inside it.
  *
@@ -16,7 +16,7 @@
  * and the model document outlives any one contribution pass.
  */
 
-import { ensureModelAssetSectionsRegistered } from '../src/authoring/model-asset-inspector-section';
+import { ensureModelAssetSectionsRegistered } from '../../src/three/authoring/model-asset-inspector-section';
 
 export const point = 'workspace.service';
 

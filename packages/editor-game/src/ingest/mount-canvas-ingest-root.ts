@@ -20,59 +20,59 @@
  * as an editable tree the editor fabricated.
  */
 
-import { measureAdapterReach } from '@editor/adapter-reach';
-import { nextPaint } from '@editor/after-paint';
-import { setActiveAuthoring } from '@editor/authoring/active-adapter';
-import { setActiveSystems } from '@editor/authoring/active-systems';
-import { BabylonAuthoringAdapter } from '@editor/authoring/babylon-authoring-adapter';
+import { measureAdapterReach } from '../host/adapter-reach';
+import { nextPaint } from '../host/after-paint';
+import { setActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
+import { setActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { BabylonAuthoringAdapter } from '../host/authoring/babylon-authoring-adapter';
 import {
   type BabylonRealmLike,
   findBabylonEngine,
   findPhaserGame,
   type PhaserRealmLike,
-} from '@editor/authoring/canvas-runtime-recognition';
+} from '../host/authoring/canvas-runtime-recognition';
 import {
   type ContractScenesStories,
   createContractScenesStories,
-} from '@editor/authoring/contract-scenes-stories';
-import { clearMountFailureReports } from '@editor/authoring/mount-failure-report';
-import { PhaserLiveAuthoringAdapter } from '@editor/authoring/phaser-live-authoring-adapter';
-import { PixiAuthoringAdapter } from '@editor/authoring/pixi-authoring-adapter';
-import { createCreationSiteCanvasWriteTarget } from '@editor/authoring/pixi-creation-site-write-target';
-import { resolveCanvasPixiForEditor } from '@editor/canvas-entry-runtime';
+} from '../host/authoring/contract-scenes-stories';
+import { clearMountFailureReports } from '@volter/editor-core/authoring/mount-failure-report';
+import { PhaserLiveAuthoringAdapter } from '../host/authoring/phaser-live-authoring-adapter';
+import { PixiAuthoringAdapter } from '../host/authoring/pixi-authoring-adapter';
+import { createCreationSiteCanvasWriteTarget } from '../host/authoring/pixi-creation-site-write-target';
+import { resolveCanvasPixiForEditor } from '../host/canvas-entry-runtime';
 import {
   capturePixiDisplayObjectThumbnail,
   registerPresentedPixiApps,
-} from '@editor/canvas-preview-frames';
-import { editorConsole } from '@editor/editor-console';
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import { GAME_SURFACE_CONTAINMENT_CSS } from '@editor/game-realm-page';
+} from '@volter/editor-core/canvas-preview-frames';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { GAME_SURFACE_CONTAINMENT_CSS } from '../host/game-realm-page';
 import {
   clearGameSurface,
   gameLoopGate,
   setGameInputGate,
   setGameSurface,
-} from '@editor/gated-globals';
-import { authoringJournal } from '@editor/history/json-history-resource';
-import { acquireLiveDocument, liveDocumentContainer } from '@editor/live-document';
-import { getCurrentProject } from '@editor/project-manager';
-import { recordRootReadiness } from '@editor/readiness';
-import type { MeasuredLoop } from '@editor/same-realm-loop-gate';
-import { projectContractSystemAdapters } from '@vgai/game-runtime/adapter/ingest/contract-system-adapters';
-import type { RenderDebugWiring } from '@vgai/game-runtime/dev/render-debug-adapter';
-import type { IngestGame2D } from '@vgai/game-runtime/pixi/ingest';
-import { INGEST_GAME_2D_LOAD_ERROR_NAME, mountIngestGame2D } from '@vgai/game-runtime/pixi/ingest';
-import { createPhysics2DRegistry } from '@vgai/game-runtime/pixi/physics-registry';
-import { installPixiRenderPassBracket } from '@vgai/game-runtime/pixi/render-pass-bracket';
+} from '../host/gated-globals';
+import { authoringJournal } from '../host/history/json-history-resource';
+import { acquireLiveDocument, liveDocumentContainer } from '@volter/editor-core/live-document';
+import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { recordRootReadiness } from '@volter/editor-core/readiness';
+import type { MeasuredLoop } from '../host/same-realm-loop-gate';
+import { projectContractSystemAdapters } from '@volter/game-runtime/adapter/ingest/contract-system-adapters';
+import type { RenderDebugWiring } from '@volter/game-runtime/dev/render-debug-adapter';
+import type { IngestGame2D } from '@volter/game-runtime/pixi/ingest';
+import { INGEST_GAME_2D_LOAD_ERROR_NAME, mountIngestGame2D } from '@volter/game-runtime/pixi/ingest';
+import { createPhysics2DRegistry } from '@volter/game-runtime/pixi/physics-registry';
+import { installPixiRenderPassBracket } from '@volter/game-runtime/pixi/render-pass-bracket';
 import {
   composePhysicsAdapters2D,
   createPhysicsAdapter2D,
   type PhysicsAdapter2D,
-} from '@vgai/game-runtime/pixi/system-adapters';
-import type { AuthoringAdapter } from '@vgai/project/adapter/authoring';
-import { readGameReady } from '@vgai/project/adapter/ingest/game-contract';
-import { displayKeyedPhysics } from '@vgai/project/adapter/system-adapter';
-import type { ResolvedAdapterRoot } from '@vgai/project/manifest/load';
+} from '@volter/game-runtime/pixi/system-adapters';
+import type { AuthoringAdapter } from '@volter/editor-project/adapter/authoring';
+import { readGameReady } from '@volter/editor-project/adapter/ingest/game-contract';
+import { displayKeyedPhysics } from '@volter/editor-project/adapter/system-adapter';
+import type { ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';
 import type { Application, Container } from 'pixi.js';
 import { serializeEntry, setActiveIngest } from './active-ingest';
 import { withDetectedDomSurface } from './authoring/ingest-dom-surface-authoring';
@@ -214,7 +214,7 @@ function rendererCanvasBelongsToHost(renderer: unknown, hostEl: HTMLElement): bo
  * The projection is the ONE validator: presence + typeof for the four members,
  * plus the keying check that makes a node-id-keyed declaration on this surface
  * `malformed` by name instead of a bound shape nothing here can call
- * (`@vgai/game-runtime/adapter/ingest/contract-system-adapters`). Both verdicts reach
+ * (`@volter/game-runtime/adapter/ingest/contract-system-adapters`). Both verdicts reach
  * the reader through the coverage row for `system.physics`, so a refusal here
  * is never silent.
  */
@@ -469,11 +469,11 @@ async function mountCanvasIngestRootInner(
   // sizing never loaded on the canvas lane, leaving the game a default
   // 300x150 canvas in the pane corner (2026-08-28).
   {
-    const { markGameCssScope } = await import('@vgai/editor-sdk/session/game-css-scope');
+    const { markGameCssScope } = await import('@volter/editor-sdk/session/game-css-scope');
     markGameCssScope(hostEl);
     const scopedCssProject = getCurrentProject();
     if (scopedCssProject) {
-      const { ensureScopedGameStyles } = await import('@editor/scoped-game-css');
+      const { ensureScopedGameStyles } = await import('@volter/editor-core/scoped-game-css');
       await ensureScopedGameStyles(scopedCssProject.rootPath);
     }
   }
@@ -587,7 +587,7 @@ async function mountCanvasIngestRootInner(
   }
 
   // The captured `Application` — the game's own, trapped on its first render
-  // (`@vgai/game-runtime/pixi/scene-capture`). Two things hang off it, and neither is
+  // (`@volter/game-runtime/pixi/scene-capture`). Two things hang off it, and neither is
   // available anywhere else.
   const app = mount.capture.captured?.app as Application | undefined;
 

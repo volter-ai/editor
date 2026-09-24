@@ -17,7 +17,7 @@
  * closed" went quiet while `stories`, `assetDrop`, `related`, `structure`,
  * `text` and a dozen more were missing on every mounted root and warned about
  * nowhere. The set is now `AUTHORING_PROVIDER_KEYS`
- * (`@vgai/project/adapter/authoring`), which the compiler pins to the
+ * (`@volter/editor-project/adapter/authoring`), which the compiler pins to the
  * `AuthoringAdapter` interface itself — so a capability nobody remembered to
  * enumerate still warns, and adding a provider to the contract without giving
  * it words here does not compile.
@@ -48,14 +48,14 @@ import type {
   AuthoringProviderKey,
   MountedThreeRoot,
   SeamEvidenceVerdict,
-} from '@vgai/project/adapter';
-import { AUTHORING_PROVIDER_KEYS, measureAuthoringProviders } from '@vgai/project/adapter';
-import type { AdapterSurface } from '@vgai/project/adapter/adapter-surface';
+} from '@volter/editor-project/adapter';
+import { AUTHORING_PROVIDER_KEYS, measureAuthoringProviders } from '@volter/editor-project/adapter';
+import type { AdapterSurface } from '@volter/editor-project/adapter/adapter-surface';
 import { probeAuthoringReads } from './coverage/authoring-read-probe';
 import {
   authoringAdapterEpoch,
   inspectAuthoringAdapterSeams,
-} from './coverage/authoring-seam-evidence';
+} from '@volter/editor-core/coverage/authoring-seam-evidence';
 
 /** Re-exported so consumers of a coverage row need one import, not two. */
 export type { AuthoringProviderKey };

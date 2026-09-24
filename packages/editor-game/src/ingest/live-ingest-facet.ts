@@ -9,7 +9,7 @@
  * nature: it reads the live singletons.
  */
 
-import { measuredLoop } from '@editor/same-realm-loop-gate';
+import { measuredLoop } from '../host/same-realm-loop-gate';
 import { activeIngest } from './active-ingest';
 import { getIngestPlayControl, ingestPlaying } from './ingest-play-control';
 import type { IngestStatusFacet } from './ingest-status';

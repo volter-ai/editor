@@ -1,9 +1,9 @@
 /**
- * THE THREE MEDIUM'S COMPONENT BOARD (`@vgai/editor-sdk/services`, a
- * `workspace.service` contribution): `@vgai/game` tells the host's component
+ * THE THREE MEDIUM'S COMPONENT BOARD (`@volter/editor-sdk/services`, a
+ * `workspace.service` contribution): `@volter/editor-game` tells the host's component
  * board registry that this project's `three` stories have a `3D` board.
  *
- * TRANSCRIBED from `@vgai/dom/contributions/component-board.service.ts`,
+ * TRANSCRIBED from `@volter/editor-game/contributions/react/component-board.service.ts`,
  * landed in the same unit.
  *
  * WHY A PACKAGE AND NOT THE KIT'S CSF LANE. The board builds a THREE.Scene of
@@ -14,8 +14,8 @@
  * the same question as "do you want three?".
  */
 
-import { registerComponentBoard } from '@editor/component-board-registry';
-import { threeComponentBoard } from '../src/three-board/three-component-board';
+import { registerComponentBoard } from '@volter/editor-core/component-board-registry';
+import { threeComponentBoard } from '../../src/three/three-board/three-component-board';
 
 export const point = 'workspace.service';
 

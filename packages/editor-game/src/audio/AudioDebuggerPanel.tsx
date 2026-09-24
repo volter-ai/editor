@@ -21,10 +21,10 @@
  * MIXER (sends/effects/gain editing) is SQ-4-gated and deliberately absent.
  */
 
-import { editorHost } from '@vgai/editor-sdk/host';
-import { Button, fontSizeVar, spaceVar, themeVars } from '@vgai/editor-sdk/widgets';
-import { meterPercent } from '@vgai/game-runtime/adapter/audio-meter';
-import type { AudioAdapter, AudioDebugEvent, AudioMeterFrame } from '@vgai/project/adapter';
+import { editorHost } from '@volter/editor-sdk/host';
+import { Button, fontSizeVar, spaceVar, themeVars } from '@volter/editor-sdk/widgets';
+import { meterPercent } from '@volter/game-runtime/adapter/audio-meter';
+import type { AudioAdapter, AudioDebugEvent, AudioMeterFrame } from '@volter/editor-project/adapter';
 import { useEffect, useReducer, useRef, useState } from 'react';
 import {
   AudioEventLogModel,

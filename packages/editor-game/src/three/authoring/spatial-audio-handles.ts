@@ -6,7 +6,7 @@
  * world-space drag point back into one native value. It stores nothing.
  */
 
-import type { SpatialHandleLayer, SpatialPoint3 } from '@vgai/project/adapter';
+import type { SpatialHandleLayer, SpatialPoint3 } from '@volter/editor-project/adapter';
 import * as THREE from 'three';
 import {
   applyTypedField,

@@ -5,8 +5,8 @@
  * and a running game holds ephemeral edits that are not on disk.
  */
 
-import { editorHost } from '@vgai/editor-sdk/host';
-import { Button, EditorIcon, editorIcons } from '@vgai/editor-sdk/widgets';
+import { editorHost } from '@volter/editor-sdk/host';
+import { Button, EditorIcon, editorIcons } from '@volter/editor-sdk/widgets';
 import { useSyncExternalStore } from 'react';
 import { openBuildProfilesDocument } from '../src/build/build-session';
 

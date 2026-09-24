@@ -2,7 +2,7 @@
  * Window ▸ Asset Budget — the document in the application menu, beside the
  * editor's own windows.
  */
-import type { MenuContribution } from '@vgai/editor-sdk/chrome';
+import type { MenuContribution } from '@volter/editor-sdk/chrome';
 import { openAssetBudgetDocument } from '../src/asset-budget/AssetBudgetPanel';
 
 export const point = 'workspace.menu';

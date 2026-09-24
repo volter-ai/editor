@@ -27,8 +27,8 @@
  * place a fallback could quietly pretend to persist.
  */
 
-import type { PhysicsAdapter2D } from '@vgai/game-runtime/pixi/system-adapters';
-import type { HistoryService } from '../history/history-service';
+import type { PhysicsAdapter2D } from '@volter/game-runtime/pixi/system-adapters';
+import type { HistoryService } from '@volter/editor-core/history/history-service';
 import type { IngestSourcePersistence } from './ingest-source-persistence';
 import type { CanvasWriteTarget } from './pixi-authoring-adapter';
 import { createLiveCanvasWriteTarget } from './pixi-live-write-target';

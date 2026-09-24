@@ -9,7 +9,7 @@
  * documents read it, so it is reached through the `@editor/*` alias.
  */
 
-import { RESOLUTIONS, type Resolution } from '@editor/components/ResolutionPicker';
+import { RESOLUTIONS, type Resolution } from '../host/components/ResolutionPicker';
 import { type DevicePreset, setDevicePreset } from './device-preview';
 
 // --- Game document view state (W2, inventory row V4) -----------------------

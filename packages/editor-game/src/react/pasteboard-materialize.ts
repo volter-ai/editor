@@ -16,23 +16,23 @@
  *
  * ## Why it is this package's
  *
- * Its subject is THE UI BOARD — the design-time surface `@vgai/dom` registers
+ * Its subject is THE UI BOARD — the design-time surface `@volter/editor-game` registers
  * a mount for (`design-time-react-mount.ts`, unit 12) — and it reads that
  * board's own frame placements. It stayed a host file only because its one
  * caller was a host `action-registry.ts` row; the action POINT
- * (`@vgai/editor-sdk/chrome`, `workspace.action`) is what that row becomes,
+ * (`@volter/editor-sdk/chrome`, `workspace.action`) is what that row becomes,
  * and `contributions/pasteboard.action.ts` is the row now. Unit 12's header
  * called this file "NOT the dom lane's" on the strength of that caller; the
  * caller is what moved (WORK.md §The open-source launch item 17, the edge map
  * in `scripts/validate-editor-closure.mjs`).
  */
 
-import { listProjectComponents } from '@editor/api/assets';
-import type { ProjectComponentEntry } from '@editor/asset-workflow/project-content';
-import { reactStoryBoardFramePlacements } from '@editor/authoring/react-story-board';
-import { getProjectPreviewStories } from '@editor/stories/story-registry';
-import { domStoryBoardMembers } from '@editor/stories/three-story-model';
-import { createProjectSourceFile } from '@editor/ui-source/source-write-backend';
+import { listProjectComponents } from '@volter/editor-core/api/assets';
+import type { ProjectComponentEntry } from '@volter/editor-core/asset-workflow/project-content';
+import { reactStoryBoardFramePlacements } from '@volter/editor-core/authoring/react-story-board';
+import { getProjectPreviewStories } from '@volter/editor-core/stories/story-registry';
+import { domStoryBoardMembers } from '@volter/editor-core/stories/three-story-model';
+import { createProjectSourceFile } from '@volter/editor-core/ui-source/source-write-backend';
 
 export const PASTEBOARD_HELPERS_PATH = 'src/lib/pasteboard/pasteboard.tsx';
 export const MATERIALIZED_PASTEBOARD_PATH = 'src/design/pasteboard.tsx';

@@ -1,4 +1,4 @@
-import { registerAvailableWorkspaceDocument } from '@editor/workspace-available-documents';
+import { registerAvailableWorkspaceDocument } from '@volter/editor-core/workspace-available-documents';
 /**
  * The 3D COMPONENTS board — a generated, never-persisted 3D scene laying out
  * every qualifying `three` story's mounted `Object3D` at TRUE SCALE, so a
@@ -52,45 +52,45 @@ import { registerAvailableWorkspaceDocument } from '@editor/workspace-available-
  * degradation). Same sentences, same clipboard path, never a silent no-op.
  */
 
-import { object3DDocumentSession } from '@editor/authoring/object3d-document-session-registry';
-import { Object3DDocumentViewport } from '@editor/components/Object3DDocumentViewport';
-import { STANDARD_COMPONENT_CAMERA_DIRECTION } from '@editor/components/standard-viewport-dressing';
-import { threeBoardBuildingCopy } from '@editor/components/viewport-surface-status';
-import { openRegisteredDocument } from '@editor/document-open-registry';
-import { listProjectComponents } from '@editor/editor-api';
-import { editorConsole } from '@editor/editor-console';
-import { createHmrRegistrationGroup } from '@editor/hmr-registration-group';
-import { CONTRIBUTED_SECTION_ORDER } from '@editor/inspection/model';
+import { object3DDocumentSession } from '@volter/editor-core/authoring/object3d-document-session-registry';
+import { Object3DDocumentViewport } from '@volter/editor-core/components/Object3DDocumentViewport';
+import { STANDARD_COMPONENT_CAMERA_DIRECTION } from '@volter/editor-core/components/standard-viewport-dressing';
+import { threeBoardBuildingCopy } from '@volter/editor-core/components/viewport-surface-status';
+import { openRegisteredDocument } from '@volter/editor-core/document-open-registry';
+import { listProjectComponents } from '@volter/editor-core/editor-api';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import { createHmrRegistrationGroup } from '@volter/editor-core/hmr-registration-group';
+import { CONTRIBUTED_SECTION_ORDER } from '@volter/editor-core/inspection/model';
 import {
   type InspectorSectionProps,
   registerInspectorSections,
-} from '@editor/inspector-section-registry';
-import { type ClipboardWriter, runInstanceSourceAction } from '@editor/instance-source-actions';
-import { getProjectStoryRegions } from '@editor/stories/project-story-regions';
-import { declaredStoryMedium } from '@editor/stories/story-declared-medium';
-import { THREE_STORY_DOCUMENT_OPENER } from '@editor/stories/story-document-openers';
+} from '@volter/editor-core/inspector-section-registry';
+import { type ClipboardWriter, runInstanceSourceAction } from '@volter/editor-core/instance-source-actions';
+import { getProjectStoryRegions } from '@volter/editor-core/stories/project-story-regions';
+import { declaredStoryMedium } from '@volter/editor-core/stories/story-declared-medium';
+import { THREE_STORY_DOCUMENT_OPENER } from '@volter/editor-core/stories/story-document-openers';
 import {
   getProjectStoryModules,
   type ProjectStoryModule,
   subscribeProjectStoryModules,
   whenProjectStoriesReady,
-} from '@editor/stories/story-registry';
-import { showTransientHint } from '@editor/transient-hint';
+} from '@volter/editor-core/stories/story-registry';
+import { showTransientHint } from '@volter/editor-core/transient-hint';
 import {
   beginViewportBreakdown,
   cancelViewportBreakdown,
   markViewportBoardReady,
   markViewportReactActive,
   markViewportSegment,
-} from '@editor/viewport-activation-timings';
-import { THREE_COMPONENTS_DOCUMENT_ID } from '@editor/workspace-document-ids';
+} from '@volter/editor-core/viewport-activation-timings';
+import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
 import {
   activeWorkspaceDocument,
   type WorkspaceDocumentContentProps,
-} from '@editor/workspace-document-registry';
-import type { WorkspaceStateStore } from '@editor/workspace-document-restore';
+} from '@volter/editor-core/workspace-document-registry';
+import type { WorkspaceStateStore } from '@volter/editor-core/workspace-document-restore';
 import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
-import { themeVars } from '@vgai/editor-sdk/widgets';
+import { themeVars } from '@volter/editor-sdk/widgets';
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import * as THREE from 'three';
 import {
@@ -814,7 +814,7 @@ const threeBoardPreview = {
   revision: () => JSON.stringify(getProjectStoryModules().map((module_) => module_.modulePath)),
   subscribe: subscribeProjectStoryModules,
   capture: async (
-    request: import('@editor/document-preview-source').DocumentPreviewCaptureRequest,
+    request: import('@volter/editor-core/document-preview-source').DocumentPreviewCaptureRequest,
   ) => {
     await whenProjectStoriesReady();
     const regions = getProjectStoryRegions();
@@ -826,12 +826,12 @@ const threeBoardPreview = {
     const listing = await listProjectComponents();
     const board = await buildThreeBoard(modules, listing.ok ? listing.entries : []);
     try {
-      const { captureAuthoredThreeScenePreview } = await import('@editor/document-preview-three');
-      const { createStandardEnvironment } = await import('../viewport/environment');
+      const { captureAuthoredThreeScenePreview } = await import('@volter/editor-core/document-preview-three');
+      const { createStandardEnvironment } = await import('@volter/editor-threejs/viewport/environment');
       const { applyStandardViewportDressing } = await import(
-        '@editor/components/standard-viewport-dressing'
+        '@volter/editor-core/components/standard-viewport-dressing'
       );
-      const { isEditorOwnedObject } = await import('@vgai/threejs/viewport/editor-layers');
+      const { isEditorOwnedObject } = await import('@volter/editor-threejs/viewport/editor-layers');
       board.root.traverse((object) => {
         if (isEditorOwnedObject(object)) object.visible = false;
       });

@@ -27,8 +27,8 @@ import {
   spaceVar,
   TONE_WARNING,
   themeVars,
-} from '@vgai/editor-sdk/widgets';
-import type { InspectableXStateActor } from '@vgai/threejs-runtime/behavior/xstate-inspection';
+} from '@volter/editor-sdk/widgets';
+import type { InspectableXStateActor } from '@volter/threejs-runtime/behavior/xstate-inspection';
 import { useMemo, useState } from 'react';
 import type { AnyStateMachine } from 'xstate';
 import { useLiveActorState } from './use-live-actor-state';

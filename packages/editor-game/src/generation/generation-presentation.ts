@@ -7,8 +7,8 @@
  * plus the small amount of text (state, model, charge) that frames them.
  */
 
-import { ASSET_ROOTS, assetRootServingUrl } from '@editor/asset-workflow/project-asset-roots';
-import type { GenerationBilling, GenerationJob } from '@vgai/sdk/generations';
+import { ASSET_ROOTS, assetRootServingUrl } from '@volter/editor-core/asset-workflow/project-asset-roots';
+import type { GenerationBilling, GenerationJob } from '@volter/editor-sdk/generations';
 
 /**
  * The state a card presents, which is NOT `job.status` alone.

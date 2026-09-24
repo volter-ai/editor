@@ -3,7 +3,7 @@
  * application menu. A build spawns `npm run <script>` on the session's own
  * server.
  */
-import type { MenuContribution } from '@vgai/editor-sdk/chrome';
+import type { MenuContribution } from '@volter/editor-sdk/chrome';
 import { openBuildProfilesDocument, showBuildOutput } from '../src/build/build-session';
 
 export const point = 'workspace.menu';

@@ -37,21 +37,21 @@
 import {
   beginProjectMountEpoch,
   type EntrypointSelectionOverride,
-} from '@vgai/editor-sdk/session/project-module-url';
+} from '@volter/editor-sdk/session/project-module-url';
 import {
   nativeDebugBindingFromEntryModule,
   nativeSystemsBindingFromEntryModule,
-} from '@vgai/game-runtime/adapter/native-debug-module';
-import type { RootMountSpec } from '@vgai/game-runtime/runtime/create-runtime';
-import type { MountEntry } from '@vgai/game-runtime/runtime/mount-manifest';
-import type { SurfaceAdapter } from '@vgai/project/adapter';
-import type { AdapterDefinition } from '@vgai/project/adapter/adapter-module';
-import { assertNever } from '@vgai/project/adapter/adapter-surface';
-import type { RootDeclaration } from '@vgai/project/adapter/binding';
-import { declaredRoots } from '@vgai/project/adapter/manifest-interpreter';
-import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@vgai/project/manifest/load';
+} from '@volter/game-runtime/adapter/native-debug-module';
+import type { RootMountSpec } from '@volter/game-runtime/runtime/create-runtime';
+import type { MountEntry } from '@volter/game-runtime/runtime/mount-manifest';
+import type { SurfaceAdapter } from '@volter/editor-project/adapter';
+import type { AdapterDefinition } from '@volter/editor-project/adapter/adapter-module';
+import { assertNever } from '@volter/editor-project/adapter/adapter-surface';
+import type { RootDeclaration } from '@volter/editor-project/adapter/binding';
+import { declaredRoots } from '@volter/editor-project/adapter/manifest-interpreter';
+import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@volter/editor-project/manifest/load';
 import { adjudicateThreeEntry } from './entry-adjudication';
-import { projectAdapterDefinition } from './project-adapter';
+import { projectAdapterDefinition } from '@volter/editor-core/project-adapter';
 import { activeRealmServices, type RealmServices } from './realm-services';
 import { resolveModuleAdapter } from './roots/module-root';
 import { resolveDomAdapter, resolveIngestReactAdapter } from './roots/react-root';
@@ -193,7 +193,7 @@ async function resolveThreeRoot(
 /**
  * A canvas root is source-as-truth exactly like a three root: its `entry` is a
  * TSX world file, and what that file EXPORTS is adjudicated in ONE place —
- * `resolveCanvasEntryAdapter` (`@vgai/game-runtime/canvas-react`, reached through the
+ * `resolveCanvasEntryAdapter` (`@volter/game-runtime/canvas-react`, reached through the
  * realm so the packaged runtime takes it from the PROJECT's graph), the same
  * function the standalone mount path uses. Keeping the adjudication there
  * rather than here is what stops the editor and the standalone build from

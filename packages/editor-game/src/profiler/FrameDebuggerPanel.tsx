@@ -26,13 +26,13 @@ import {
   deriveRenderDebugCapabilities,
   groupDrawCallsByTarget,
   summarizeCapture,
-} from '@editor/components/frame-debugger-model';
-import { editorHost, useHostAvailabilitySelector } from '@vgai/editor-sdk/host';
-import { Button, themeVars } from '@vgai/editor-sdk/widgets';
+} from '../host/components/frame-debugger-model';
+import { editorHost, useHostAvailabilitySelector } from '@volter/editor-sdk/host';
+import { Button, themeVars } from '@volter/editor-sdk/widgets';
 import type {
   FrameCapture,
   FrameCaptureDrawCall,
-} from '@vgai/game-runtime/dev/webgl-frame-capture';
+} from '@volter/game-runtime/dev/webgl-frame-capture';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import {
   captureFrame,

@@ -9,15 +9,15 @@
  */
 
 import { faFile, faFileLines, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
-import type { GenerationJob } from '@vgai/sdk/generations';
+import type { GenerationJob } from '@volter/editor-sdk/generations';
 import { useState, useSyncExternalStore } from 'react';
 import './GenerationGallery.css';
-import { assetCapabilities, assetDocumentKind } from '@editor/asset-workflow/asset-capabilities';
-import { openAssetDocument } from '@editor/components/asset-documents';
-import { AudioAssetThumb, ModelThumbnail } from '@editor/components/asset-thumbnails';
-import { editorConsole } from '@editor/editor-console';
-import { useEditorStore } from '@editor/editor-runtime';
-import { modelThumbnailFormat } from '@editor/model-thumbnail';
+import { assetCapabilities, assetDocumentKind } from '@volter/editor-core/asset-workflow/asset-capabilities';
+import { openAssetDocument } from '@volter/editor-core/components/asset-documents';
+import { AudioAssetThumb, ModelThumbnail } from '@volter/editor-core/components/asset-thumbnails';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import { useEditorStore } from '@volter/editor-core/editor-runtime';
+import { modelThumbnailFormat } from '@volter/editor-core/model-thumbnail';
 import {
   Button,
   EditorBadge,
@@ -28,7 +28,7 @@ import {
   StateSurface,
   type StateSurfaceTone,
   Text,
-} from '@vgai/editor-sdk/widgets';
+} from '@volter/editor-sdk/widgets';
 import { openGenerationCreateDocument, openGenerationDocument } from './generation-documents';
 import {
   acceptGenerationJob,

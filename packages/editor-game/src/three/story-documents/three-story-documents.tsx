@@ -25,56 +25,56 @@
  * it.
  */
 
-import { Object3DDocumentViewport } from '@editor/components/Object3DDocumentViewport';
-import type { SourceDocumentAuthoringFactory } from '@editor/components/StageHost';
-import { SurfaceStateOverlay } from '@editor/components/SurfaceStateOverlay';
-import { STANDARD_COMPONENT_CAMERA_DIRECTION } from '@editor/components/standard-viewport-dressing';
-import { registerDocumentOpener } from '@editor/document-open-registry';
-import type { ViewportTab } from '@editor/editor-shell-store';
-import { createHmrRegistrationGroup } from '@editor/hmr-registration-group';
+import { Object3DDocumentViewport } from '@volter/editor-core/components/Object3DDocumentViewport';
+import type { SourceDocumentAuthoringFactory } from '@volter/editor-core/components/StageHost';
+import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
+import { STANDARD_COMPONENT_CAMERA_DIRECTION } from '@volter/editor-core/components/standard-viewport-dressing';
+import { registerDocumentOpener } from '@volter/editor-core/document-open-registry';
+import type { ViewportTab } from '@volter/editor-core/editor-shell-store';
+import { createHmrRegistrationGroup } from '@volter/editor-core/hmr-registration-group';
 import {
   CONTRIBUTED_SECTION_ORDER,
   STORY_ARGS_SECTION_ID,
   STORY_ARGS_SECTION_TITLE,
-} from '@editor/inspection/model';
-import { registerInspectorSections } from '@editor/inspector-section-registry';
-import type { ComposedProjectStory } from '@editor/stories/compose-project-stories';
+} from '@volter/editor-core/inspection/model';
+import { registerInspectorSections } from '@volter/editor-core/inspector-section-registry';
+import type { ComposedProjectStory } from '@volter/editor-core/stories/compose-project-stories';
 import {
   type MountedStoryViewportSource,
   mountedStoryViewportSource,
-} from '@editor/stories/mounted-story-viewport-source';
-import { getProjectStoryRegions } from '@editor/stories/project-story-regions';
-import { storyArgPropertyDescriptors } from '@editor/stories/story-arg-descriptors';
-import { declaredStoryMedium } from '@editor/stories/story-declared-medium';
+} from '../../host/stories/mounted-story-viewport-source';
+import { getProjectStoryRegions } from '@volter/editor-core/stories/project-story-regions';
+import { storyArgPropertyDescriptors } from '../../host/stories/story-arg-descriptors';
+import { declaredStoryMedium } from '@volter/editor-core/stories/story-declared-medium';
 import {
   type StoryDocumentOpenRequest,
   THREE_STORY_DOCUMENT_OPENER,
-} from '@editor/stories/story-document-openers';
+} from '@volter/editor-core/stories/story-document-openers';
 import {
   getProjectStoryModules,
   subscribeProjectStoryModules,
-} from '@editor/stories/story-registry';
+} from '@volter/editor-core/stories/story-registry';
 import {
   disposeStoryObject3D,
   mountStoryObject3D,
   type StoryPreviewComponent,
-} from '@editor/stories/story-three-preview';
-import { mountedStoryHasThreeContent } from '@editor/stories/three-story-model';
-import { explainSurface } from '@editor/surface-state';
-import { sourceWriteBackendIfPrimed } from '@editor/ui-source/tier-source-write-backend';
+} from '@volter/editor-core/stories/story-three-preview';
+import { mountedStoryHasThreeContent } from '@volter/editor-core/stories/three-story-model';
+import { explainSurface } from '@volter/editor-core/surface-state';
+import { sourceWriteBackendIfPrimed } from '@volter/editor-core/ui-source/tier-source-write-backend';
 import {
   activeWorkspaceDocument,
   closeWorkspaceDocument,
   openWorkspaceDocument,
   type WorkspaceDocumentContentProps,
-} from '@editor/workspace-document-registry';
-import { registerWorkspaceDocumentRestorer } from '@editor/workspace-document-restore';
-import { STORY_ARGS_SECTION_ICON } from '@vgai/dom/story-documents/story-args-section';
+} from '@volter/editor-core/workspace-document-registry';
+import { registerWorkspaceDocumentRestorer } from '@volter/editor-core/workspace-document-restore';
+import { STORY_ARGS_SECTION_ICON } from '../../react/story-documents/story-args-section';
 import {
   prepareStoryDocumentRestore,
   storyDocumentId,
-} from '@vgai/dom/story-documents/story-documents';
-import { Checkbox, TextInput, themeVars } from '@vgai/editor-sdk/widgets';
+} from '../../react/story-documents/story-documents';
+import { Checkbox, TextInput, themeVars } from '@volter/editor-sdk/widgets';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { R3fSourceAuthoringAdapter } from '../authoring/r3f-source-authoring-adapter';
 

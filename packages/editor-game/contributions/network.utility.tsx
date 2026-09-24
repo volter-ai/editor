@@ -4,7 +4,7 @@
  * session's `NetworkingAdapter`. On offer only while such an adapter is
  * registered — a tab over nothing would be a measurement nobody made.
  */
-import { editorHost } from '@vgai/editor-sdk/host';
+import { editorHost } from '@volter/editor-sdk/host';
 import { NetworkInspectorPanel } from '../src/network/NetworkInspectorPanel';
 
 export const point = 'workspace.utility';

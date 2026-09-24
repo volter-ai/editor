@@ -1,6 +1,6 @@
 /**
  * The OID half of the canvas authoring surface's IDENTITY axis
- * (`@vgai/game-runtime/pixi/authoring`'s {@link CanvasIdentity}) — what a row is called
+ * (`@volter/game-runtime/pixi/authoring`'s {@link CanvasIdentity}) — what a row is called
  * when the display tree was authored as first-party `@pixi/react` TSX, and the
  * resolution from such an id back to the source tag it addresses.
  *
@@ -34,9 +34,9 @@
  * selection survives one.
  */
 
-import type { CanvasIdentity } from '@vgai/game-runtime/pixi/authoring';
+import type { CanvasIdentity } from '@volter/game-runtime/pixi/authoring';
 import type { Container } from 'pixi.js';
-import { occurrenceId } from './component-instance-root';
+import { occurrenceId } from '@volter/editor-core/authoring/component-instance-root';
 
 const PREFIX = 'pixi';
 

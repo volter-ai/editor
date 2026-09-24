@@ -6,7 +6,7 @@ import {
   EditorIcon,
   MenuItem,
   Text,
-} from '@vgai/editor-sdk/widgets';
+} from '@volter/editor-sdk/widgets';
 import { useRef, useState, useSyncExternalStore } from 'react';
 import {
   desiredExtraInstances,

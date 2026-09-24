@@ -6,11 +6,11 @@
  * crosses those graphs and crashes Fiber hooks on a null React dispatcher.
  */
 
-import { resolveR3FEntryAdapter } from '@vgai/game-runtime/world3d-react';
-import type { RootAdapter, ThreeHostContext } from '@vgai/project/adapter';
+import { resolveR3FEntryAdapter } from '@volter/game-runtime/world3d-react';
+import type { RootAdapter, ThreeHostContext } from '@volter/editor-project/adapter';
 import type * as THREE from 'three';
-import { R3F_RUNTIME_PATH } from '../vite-plugin-module-doorways';
-import { isPackagedRuntime } from './packaged-runtime';
+import { R3F_RUNTIME_PATH } from '@volter/editor-core/build/module-doorways';
+import { isPackagedRuntime } from '@volter/editor-core/packaged-runtime';
 
 type R3FEntryResolver = typeof resolveR3FEntryAdapter;
 

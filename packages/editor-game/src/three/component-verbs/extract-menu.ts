@@ -11,17 +11,17 @@
  * and lives server-side in the host's `ui-source/plan-extract-component.ts`.
  */
 
-import { getActiveAuthoring } from '@editor/authoring/active-adapter';
-import { instanceSourceLocatorFor } from '@editor/authoring/instance-source-menu';
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import { registerHierarchyMenuItems } from '@editor/hierarchy-menu-registry';
+import { getActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
+import { instanceSourceLocatorFor } from '@volter/editor-core/authoring/instance-source-menu';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { registerHierarchyMenuItems } from '@volter/editor-core/hierarchy-menu-registry';
 import {
   canExtractNode,
   EXTRACT_COMPONENT_LABEL,
   type InstanceExtractSource,
-} from '@editor/instance-extract-actions';
-import { showTransientHint } from '@editor/transient-hint';
-import type { AuthoringAdapter } from '@vgai/project/adapter';
+} from '../../host/instance-extract-actions';
+import { showTransientHint } from '@volter/editor-core/transient-hint';
+import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 
 /** The extract surface for `nodeId`, or `null` — the host's own owner walk. */
 export function instanceExtractSourceFor(

@@ -6,11 +6,11 @@
  * `vgai.project.json` through the history service) someone tunes and re-runs,
  * and because a modal would block the viewport while a build streams.
  *
- * It ships with `@vgai/game`, so a folder of models has no Build Profiles tab
+ * It ships with `@volter/editor-game`, so a folder of models has no Build Profiles tab
  * and no Build button at all.
  */
 
-import type { ToolContributionProps } from '@vgai/editor-sdk/contributions';
+import type { ToolContributionProps } from '@volter/editor-sdk/contributions';
 import { BuildProfilesPanel } from '../src/build/BuildProfilesPanel';
 
 export const point = 'workspace.document';

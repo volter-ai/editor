@@ -10,12 +10,12 @@
  * On the contributed band, see `constraints.inspector.tsx`'s note; the number
  * below is this section's relative order among its siblings.
  */
-import type { AuthoringAdapter } from '@vgai/project/adapter';
+import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import type {
   ToolContributionNode,
   ToolInspectorContributionProps,
-} from '@vgai/editor-sdk/contributions';
-import { CameraRuntimeSection, matches } from '../src/authoring/camera-runtime-inspector-section';
+} from '@volter/editor-sdk/contributions';
+import { CameraRuntimeSection, matches } from '../../src/three/authoring/camera-runtime-inspector-section';
 
 export const point = 'selection.inspector';
 export const title = 'Runtime Camera';

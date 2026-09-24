@@ -5,9 +5,9 @@
  * claiming "disconnected" for an unmeasured link would be worse than none.
  */
 
-import { editorHost, useHostAvailabilitySelector } from '@vgai/editor-sdk/host';
-import { Button } from '@vgai/editor-sdk/widgets';
-import type { ConnectionState } from '@vgai/project/adapter';
+import { editorHost, useHostAvailabilitySelector } from '@volter/editor-sdk/host';
+import { Button } from '@volter/editor-sdk/widgets';
+import type { ConnectionState } from '@volter/editor-project/adapter';
 
 export const point = 'workspace.status';
 export const title = 'Connection';

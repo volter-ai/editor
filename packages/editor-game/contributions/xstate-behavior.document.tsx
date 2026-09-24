@@ -12,11 +12,11 @@
  * No `tool`: it drives no registered callable.
  */
 
-import type { ToolContributionProps, ToolDocumentToolbar } from '@vgai/editor-sdk/contributions';
+import type { ToolContributionProps, ToolDocumentToolbar } from '@volter/editor-sdk/contributions';
 import {
   subscribeXStateBehaviorInspections,
   xstateBehaviorInspectionsVersion,
-} from '@vgai/threejs-runtime/behavior/xstate-inspection';
+} from '@volter/threejs-runtime/behavior/xstate-inspection';
 import { useSyncExternalStore } from 'react';
 import {
   behaviorSubject,

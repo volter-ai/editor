@@ -1,6 +1,6 @@
 /**
- * THE DOM MEDIUM'S COMPONENT BOARD (`@vgai/editor-sdk/services`, a
- * `workspace.service` contribution): `@vgai/dom` tells the host's component
+ * THE DOM MEDIUM'S COMPONENT BOARD (`@volter/editor-sdk/services`, a
+ * `workspace.service` contribution): `@volter/editor-game` tells the host's component
  * board registry that this project's `dom` stories have a `UI` board, when it
  * exists, and what to say when it does not.
  *
@@ -11,8 +11,8 @@
  * candidate appears: a promise cannot answer a verdict thunk.
  */
 
-import { registerComponentBoard } from '@editor/component-board-registry';
-import { uiComponentBoard } from '../src/ui-component-board';
+import { registerComponentBoard } from '@volter/editor-core/component-board-registry';
+import { uiComponentBoard } from '../../src/react/ui-component-board';
 
 export const point = 'workspace.service';
 

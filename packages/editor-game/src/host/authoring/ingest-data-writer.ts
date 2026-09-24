@@ -39,8 +39,8 @@
  * rebuilt on a project switch.
  */
 
-import type { NodeCreationSite } from '@vgai/project/adapter';
-import type { ChannelValue } from '../creation-site-edit';
+import type { NodeCreationSite } from '@volter/editor-project/adapter';
+import type { ChannelValue } from '@volter/editor-core/creation-site-edit';
 
 /**
  * The one `userData` key that anchors a live object to a record in its game's

@@ -47,10 +47,10 @@ import {
   type EntrypointSelectionOverride,
   type ProjectMountEpoch,
   projectEntryImportUrl,
-} from '@vgai/editor-sdk/session/project-module-url';
-import type { AdapterSurface } from '@vgai/project/adapter/adapter-surface';
+} from '@volter/editor-sdk/session/project-module-url';
+import type { AdapterSurface } from '@volter/editor-project/adapter/adapter-surface';
 import { resolveCanvasEntryAdapterForEditor } from './canvas-entry-runtime';
-import { isPackagedRuntime } from './packaged-runtime';
+import { isPackagedRuntime } from '@volter/editor-core/packaged-runtime';
 import { type ReactRootMountRuntime, resolveReactRootMountRuntime } from './react-mount-runtime';
 import {
   resolveThreeIngestRuntimeForEditor,

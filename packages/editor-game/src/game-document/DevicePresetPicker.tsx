@@ -8,7 +8,7 @@
  */
 
 import { faMobileScreenButton } from '@fortawesome/free-solid-svg-icons';
-import { AnchoredMenu, Button, EditorIcon, MenuItem, Text } from '@vgai/editor-sdk/widgets';
+import { AnchoredMenu, Button, EditorIcon, MenuItem, Text } from '@volter/editor-sdk/widgets';
 import { useRef, useState } from 'react';
 import {
   DEVICE_PRESETS,

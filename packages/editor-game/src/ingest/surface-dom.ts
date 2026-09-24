@@ -24,8 +24,8 @@
  * `tryManifestIngestRoute`).
  */
 
-import { type IngestEntry, ingestEntriesOnSurface } from '@editor/ingest/registry';
-import type { ResolvedGameManifest } from '@vgai/project/manifest/load';
+import { type IngestEntry, ingestEntriesOnSurface } from '../host/ingest/registry';
+import type { ResolvedGameManifest } from '@volter/editor-project/manifest/load';
 
 declare const __VGAI_ENGINE_ROOT__: string;
 

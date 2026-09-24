@@ -8,15 +8,15 @@
 import {
   installNativeDebugBindings,
   installNativeSystemsBindings,
-} from '@vgai/game-runtime/adapter/native-debug-module';
-import { publishDevInstruments } from '@vgai/game-runtime/dev/instruments';
+} from '@volter/game-runtime/adapter/native-debug-module';
+import { publishDevInstruments } from '@volter/game-runtime/dev/instruments';
 import {
   DebugError,
   type DebugRegistry,
   type DebugVirtualInputTarget,
   getDebugRegistry,
-} from '@vgai/game-runtime/runtime/debug-registry';
-import type { Game } from '@vgai/game-runtime/runtime/game';
+} from '@volter/game-runtime/runtime/debug-registry';
+import type { Game } from '@volter/game-runtime/runtime/game';
 import {
   ADAPTER_INPUT_VALUE_TYPES,
   type AdapterInputAction,
@@ -24,9 +24,9 @@ import {
   type AdapterInputValue,
   type AdapterInputValueType,
   type ObservationDeclaration,
-} from '@vgai/project/adapter/adapter-module';
-import type { ObservationBinding } from '@vgai/project/adapter/binding';
-import { adapterInputBinding, adapterObservations } from './adapter-observation';
+} from '@volter/editor-project/adapter/adapter-module';
+import type { ObservationBinding } from '@volter/editor-project/adapter/binding';
+import { adapterInputBinding, adapterObservations } from '@volter/editor-core/adapter-observation';
 
 const ADAPTER_REGISTRATION_ID = '__adapter__';
 const installedGames = new WeakSet<Game>();

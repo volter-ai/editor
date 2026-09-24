@@ -34,14 +34,14 @@ import {
   isOccurrenceId,
   ownOidOf,
   rendersSameSourceElement,
-} from '@editor/authoring/component-instance-root';
-import { beginLiveGesture, endLiveGesture } from '@editor/authoring/live-gesture-lock';
-import { createStructWritePipe, type StructOpOptions } from '@editor/authoring/struct-write-pipe';
+} from '@volter/editor-core/authoring/component-instance-root';
+import { beginLiveGesture, endLiveGesture } from '@volter/editor-core/authoring/live-gesture-lock';
+import { createStructWritePipe, type StructOpOptions } from '../../host/authoring/struct-write-pipe';
 import {
   CollapsedHierarchyView,
   readLocalTransform,
   StoreSelectionAdoption,
-} from '@editor/authoring/three-projection-core';
+} from '@volter/editor-core/authoring/three-projection-core';
 import {
   clipboardOutcome,
   LIVE_ONLY_ACK,
@@ -50,38 +50,38 @@ import {
   runWritePipe,
   type WriteAck,
   type WriteResolution,
-} from '@editor/authoring/write-pipe';
-import { componentStatesProvider } from '@editor/component-states-registry';
-import { openProjectToolDocument } from '@editor/components/project-tool-documents';
-import { editorConsole } from '@editor/editor-console';
-import type { EditorShellStore } from '@editor/editor-shell-store';
+} from '@volter/editor-core/authoring/write-pipe';
+import { componentStatesProvider } from '@volter/editor-core/component-states-registry';
+import { openProjectToolDocument } from '@volter/editor-core/components/project-tool-documents';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import {
   replaceProjectSource,
   withProjectSourceHistory,
-} from '@editor/history/source-history-backend';
-import { warnGuessedFromText } from '@editor/inference-diagnostics';
+} from '@volter/editor-core/history/source-history-backend';
+import { warnGuessedFromText } from '@volter/editor-core/inference-diagnostics';
 import {
   extractedHint,
   extractNoBackendHint,
   extractPartialHint,
   extractRefusedHint,
   extractUnavailableHint,
-} from '@editor/instance-extract-actions';
+} from '../../host/instance-extract-actions';
 import {
   forkedHint,
   forkNoBackendHint,
   forkPartialHint,
   forkRefusedHint,
   forkUnavailableHint,
-} from '@editor/instance-fork-actions';
+} from '../../host/instance-fork-actions';
 import {
   nativeKindOf,
   type SourceOidIdentity,
   sourceOidIdentity,
   ThreeProjector,
-} from '@editor/projection/three';
-import { getStorageBackend } from '@editor/storage';
-import { showTransientHint } from '@editor/transient-hint';
+} from '@volter/editor-core/projection/three';
+import { getStorageBackend } from '@volter/editor-core/storage/index';
+import { showTransientHint } from '@volter/editor-core/transient-hint';
 import {
   type ComponentPropSpec,
   lineColToOffset,
@@ -90,17 +90,17 @@ import {
   type R3fEnvironmentBinding,
   type R3fEnvironmentNumberBinding,
   type R3fEnvironmentStringBinding,
-} from '@editor/ui-source/oid-transform';
-import { mergeRowDiagnostics } from '@editor/ui-source/r3f-diagnostic-index';
-import type { R3fJointLiteral, R3fJointLiteralRange } from '@editor/ui-source/r3f-joint-binding';
-import type { R3fLodNumberBinding } from '@editor/ui-source/r3f-lod-binding';
-import { bodyPlacedChannel, physicsRefusal } from '@editor/ui-source/r3f-physics-binding';
-import { relativeImportSpecifier } from '@editor/ui-source/relative-import-specifier';
-import type { ReparentChannel, ReparentRebase } from '@editor/ui-source/reparent-guard';
+} from '@volter/editor-core/ui-source/oid-transform';
+import { mergeRowDiagnostics } from '@volter/editor-core/ui-source/r3f-diagnostic-index';
+import type { R3fJointLiteral, R3fJointLiteralRange } from '@volter/editor-core/ui-source/r3f-joint-binding';
+import type { R3fLodNumberBinding } from '@volter/editor-core/ui-source/r3f-lod-binding';
+import { bodyPlacedChannel, physicsRefusal } from '@volter/editor-core/ui-source/r3f-physics-binding';
+import { relativeImportSpecifier } from '@volter/editor-core/ui-source/relative-import-specifier';
+import type { ReparentChannel, ReparentRebase } from '@volter/editor-core/ui-source/reparent-guard';
 import type {
   SourceWriteBackend,
   StructReparentContext,
-} from '@editor/ui-source/source-write-backend';
+} from '@volter/editor-core/ui-source/source-write-backend';
 import {
   analyzeJsxAttributes,
   type DuplicateRewrite,
@@ -109,9 +109,9 @@ import {
   isNumberTupleLiteral,
   type JsxAttrInfo,
   offsetSnippetPositions,
-} from '@editor/ui-source/writer';
-import { THREE_COMPONENTS_DOCUMENT_ID } from '@editor/workspace-document-ids';
-import { activateWorkspaceDocument } from '@editor/workspace-document-registry';
+} from '@volter/editor-core/ui-source/writer';
+import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
+import { activateWorkspaceDocument } from '@volter/editor-core/workspace-document-registry';
 import type {
   AssetDropContext,
   AssetDropProvider,
@@ -139,10 +139,10 @@ import type {
   TransformProvider,
   TruthProvider,
   WriteAnchorKind,
-} from '@vgai/project/adapter';
-import { isEditorOwnedObject } from '@vgai/threejs/viewport/editor-layers';
-import { object3DAuthoringSubjectOf } from '@vgai/threejs-runtime/adapter/object3d-authoring-subject';
-import { getUserData } from '@vgai/threejs-runtime/ecs/user-data';
+} from '@volter/editor-project/adapter';
+import { isEditorOwnedObject } from '@volter/editor-threejs/viewport/editor-layers';
+import { object3DAuthoringSubjectOf } from '@volter/threejs-runtime/adapter/object3d-authoring-subject';
+import { getUserData } from '@volter/threejs-runtime/ecs/user-data';
 import type * as THREE from 'three';
 import { Box3, Vector3 } from 'three';
 import type { ColliderSourceBinding } from './spatial-collider-handles';

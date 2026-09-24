@@ -73,33 +73,33 @@
  * only way it comes back.
  */
 
-import { getProjectStoryRegions } from '@editor/stories/project-story-regions';
+import { getProjectStoryRegions } from '@volter/editor-core/stories/project-story-regions';
 import {
   declaredStoryMedium,
   reportUndeclaredStoryMedium,
-} from '@editor/stories/story-declared-medium';
+} from '@volter/editor-core/stories/story-declared-medium';
 import {
   deriveStoryGroupPath,
   formatStoryGroupPath,
   storyGroupKey,
-} from '@editor/stories/story-grouping';
-import { type ProjectStoryModule, pickComponentPreviewStory } from '@editor/stories/story-registry';
+} from '@volter/editor-core/stories/story-grouping';
+import { type ProjectStoryModule, pickComponentPreviewStory } from '@volter/editor-core/stories/story-registry';
 import {
   lastStoryMountPhaseTiming,
   type MountedStoryObject3D,
   type StoryMountInTurn,
   type StoryPreviewComponent,
   withStoryMountTurn,
-} from '@editor/stories/story-three-preview';
-import { mountedStoryHasThreeContent } from '@editor/stories/three-story-model';
+} from '@volter/editor-core/stories/story-three-preview';
+import { mountedStoryHasThreeContent } from '@volter/editor-core/stories/three-story-model';
 import {
   markViewportSegment,
   noteViewportBreakdownCounts,
   recordViewportStoryMount,
-} from '@editor/viewport-activation-timings';
-import { collectContentNodeRecords } from '@vgai/threejs/viewport/content-bounds';
-import { EDITOR_LAYER } from '@vgai/threejs/viewport/editor-layers';
-import { setUserData } from '@vgai/threejs-runtime/ecs/user-data';
+} from '@volter/editor-core/viewport-activation-timings';
+import { collectContentNodeRecords } from '@volter/editor-threejs/viewport/content-bounds';
+import { EDITOR_LAYER } from '@volter/editor-threejs/viewport/editor-layers';
+import { setUserData } from '@volter/threejs-runtime/ecs/user-data';
 import * as THREE from 'three';
 import {
   type BoardHelperKind,

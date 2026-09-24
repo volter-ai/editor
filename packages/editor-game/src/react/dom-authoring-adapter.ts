@@ -43,13 +43,13 @@
  * mount ends — which is also when the edits themselves expire.
  */
 
-import { numericStyleValue } from '@editor/authoring/css-numeric-style';
-import { createEphemeralPersistence } from '@editor/authoring/ephemeral-persistence';
-import { LIVE_ONLY_DESTINATION } from '@editor/authoring/write-pipe';
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import { type JournalSubject, JsonHistoryResource } from '@editor/history/json-history-resource';
-import { DomProjector, structuralDomIdentity } from '@editor/projection/dom';
-import { browserOrInlineResolver, getComputedStyleValue } from '@editor/ui-source/inspect';
+import { numericStyleValue } from '@volter/editor-core/authoring/css-numeric-style';
+import { createEphemeralPersistence } from '../host/authoring/ephemeral-persistence';
+import { LIVE_ONLY_DESTINATION } from '@volter/editor-core/authoring/write-pipe';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { type JournalSubject, JsonHistoryResource } from '../host/history/json-history-resource';
+import { DomProjector, structuralDomIdentity } from '../host/projection/dom';
+import { browserOrInlineResolver, getComputedStyleValue } from '@volter/editor-core/ui-source/inspect';
 import type {
   AssetSubjectProvider,
   AuthoringAdapter,
@@ -67,7 +67,7 @@ import type {
   PropertyDescriptor,
   RectProvider,
   SelectionProvider,
-} from '@vgai/project/adapter';
+} from '@volter/editor-project/adapter';
 import { cssColorToHex, mapBoxEditPatchKey, styleProp } from './react-world-authoring-adapter';
 
 /**

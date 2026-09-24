@@ -32,14 +32,14 @@
 import {
   type CapabilityCoverageReport,
   deriveCapabilityCoverage,
-} from '@editor/coverage/capability-coverage';
+} from '../host/coverage/capability-coverage';
 import {
   measureProjectVerbs,
   type ProjectRootFact,
   type ProjectVerbFacts,
-} from '@editor/coverage/project-verb-coverage';
-import { editorServerJson } from '@editor/editor-server-response';
-import { getCurrentProject } from '@editor/project-manager';
+} from '../host/coverage/project-verb-coverage';
+import { editorServerJson } from '@volter/editor-core/editor-server-response';
+import { getCurrentProject } from '@volter/editor-core/project-manager';
 
 /** What the server answers on `/__editor/project-verbs` — facts only. */
 interface ProjectFileFacts {

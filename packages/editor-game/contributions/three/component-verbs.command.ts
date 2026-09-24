@@ -1,6 +1,6 @@
 /**
  * THE COMPONENT-VERB commands of the session wire
- * (`@vgai/editor-sdk/commands`, a `workspace.command` contribution):
+ * (`@volter/editor-sdk/commands`, a `workspace.command` contribution):
  * `extract-component` and `fork-component`.
  *
  * These are the same two operations the hierarchy row's menu items perform
@@ -24,14 +24,14 @@
  * the two cannot drift.
  */
 
-import { getActiveAuthoring } from '@editor/authoring/active-adapter';
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import { canExtractNode, isExtractedHint } from '@editor/instance-extract-actions';
-import { canForkInstance, isForkedHint } from '@editor/instance-fork-actions';
-import { shellStoreForHost } from '@editor/shell-store-door';
-import type { CommandContribution } from '@vgai/editor-sdk/commands';
-import { instanceExtractSourceFor } from '../src/component-verbs/extract-menu';
-import { instanceForkSourceFor } from '../src/component-verbs/fork-menu';
+import { getActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { canExtractNode, isExtractedHint } from '../../src/host/instance-extract-actions';
+import { canForkInstance, isForkedHint } from '../../src/host/instance-fork-actions';
+import { shellStoreForHost } from '@volter/editor-core/shell-store-door';
+import type { CommandContribution } from '@volter/editor-sdk/commands';
+import { instanceExtractSourceFor } from '../../src/three/component-verbs/extract-menu';
+import { instanceForkSourceFor } from '../../src/three/component-verbs/fork-menu';
 
 /** The shell store, or the refusal that says the page has not installed one —
  *  the same shape `bridge.command.ts` takes it in, made explicit because both

@@ -1,11 +1,11 @@
 /**
  * The GAME workspace — building and playing the game: the editor's standing
- * arrangement, unchanged (`@vgai/editor-sdk/looks`, a `workspace.layout`
+ * arrangement, unchanged (`@volter/editor-sdk/looks`, a `workspace.layout`
  * contribution). It applies to a project with at least one root that plays;
  * a project with none has nothing for it. No captured state: the dock's own
  * reconcile builds the standing arrangement from nothing.
  */
-import type { WorkspaceLayoutContribution } from '@vgai/editor-sdk/looks';
+import type { WorkspaceLayoutContribution } from '@volter/editor-sdk/looks';
 
 export const point = 'workspace.layout';
 export const layout: WorkspaceLayoutContribution = {

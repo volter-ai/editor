@@ -1,16 +1,16 @@
-import { ensureCoreUtilitiesRegistered } from '@editor/components/core-utilities';
-import { ProjectHeader } from '@editor/components/ProjectHeader';
-import { ensureCoreStatusContributionsRegistered } from '@editor/components/status-contributions';
+import { ensureCoreUtilitiesRegistered } from '@volter/editor-core/components/core-utilities';
+import { ProjectHeader } from '@volter/editor-core/components/ProjectHeader';
+import { ensureCoreStatusContributionsRegistered } from '@volter/editor-core/components/status-contributions';
 import {
   installStoryWorkspaceUtilityController,
   StoryEditorRuntime,
-} from '@editor/design-system-stories/fixtures/editor-runtime';
-import { DesignSystemPage, StorySection } from '@editor/design-system-stories/StoryLayout';
-import { useEditorStore } from '@editor/editor-runtime';
-import { getCurrentProject, setActiveProject } from '@editor/project-manager';
+} from '../host/design-system-stories/fixtures/editor-runtime';
+import { DesignSystemPage, StorySection } from '../host/design-system-stories/StoryLayout';
+import { useEditorStore } from '@volter/editor-core/editor-runtime';
+import { getCurrentProject, setActiveProject } from '@volter/editor-core/project-manager';
 import type { Meta, StoryObj } from '@storybook/react';
 import { useLayoutEffect, useState } from 'react';
-// The transport is `@vgai/game`'s; this gallery story shows its view over
+// The transport is `@volter/editor-game`'s; this gallery story shows its view over
 // the design system (a story, not the shell, so no host closure pin counts it).
 import { PlayBarView } from '../play-bar/PlayBar';
 

@@ -1,5 +1,5 @@
 /**
- * The INSTANCE verbs of the session wire (`@vgai/editor-sdk/commands`, a
+ * The INSTANCE verbs of the session wire (`@volter/editor-sdk/commands`, a
  * `workspace.command` contribution): how many instances of the game play
  * split-screen, and which exist.
  *
@@ -10,8 +10,8 @@
  * when they move. Nothing here is host API.
  */
 
-import { liveInstanceIds } from '@editor/authoring/active-systems';
-import type { CommandContribution } from '@vgai/editor-sdk/commands';
+import { liveInstanceIds } from '@volter/editor-core/authoring/active-systems';
+import type { CommandContribution } from '@volter/editor-sdk/commands';
 import {
   instanceEntries,
   isPlayModeActive,
@@ -62,7 +62,7 @@ export const commands: CommandContribution['commands'] = {
   // NOT route through the bridge: it answers "which instances exist", and the
   // bridge RESOLVES an instance (and refuses when several are live), so
   // asking it "which exist" is the exact ambiguity it throws on. Returns the
-  // live mount ids so `@vgai/live`'s `game.instances()` can hand back one
+  // live mount ids so `@volter/editor-live`'s `game.instances()` can hand back one
   // addressed `GameClient` per id. No play gate: `liveInstanceIds()` is `[]`
   // when nothing is mounted, which is the honest answer, not a precondition
   // failure. `named` adds the friendly labels a HUD/driver shows ("Player

@@ -3,7 +3,7 @@
  * `Build for Desktop (Steam)`, both opening the Build Profiles document where
  * the target is chosen and the build is run.
  */
-import type { ActionContribution } from '@vgai/editor-sdk/chrome';
+import type { ActionContribution } from '@volter/editor-sdk/chrome';
 import { openBuildProfilesDocument } from '../src/build/build-session';
 
 export const point = 'workspace.action';

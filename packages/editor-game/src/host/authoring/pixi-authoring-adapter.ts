@@ -34,7 +34,7 @@ import {
   AuthoringAdapter2D,
   type CanvasIdentity,
   type Transform2DValue,
-} from '@vgai/game-runtime/pixi/authoring';
+} from '@volter/game-runtime/pixi/authoring';
 import type {
   AssetDropContext,
   AssetDropProvider,
@@ -66,13 +66,13 @@ import type {
   TransformProvider,
   TruthProvider,
   WriteAck,
-} from '@vgai/project/adapter';
+} from '@volter/editor-project/adapter';
 import type { Container, Graphics, Matrix, PointData, Sprite, Text, Texture } from 'pixi.js';
 import * as shellPixi from 'pixi.js';
 import type { CanvasPixiNamespace } from '../canvas-entry-runtime';
-import { componentStatesProvider } from '../component-states-registry';
-import { editorConsole } from '../editor-console';
-import type { EditorShellStore } from '../editor-shell-store';
+import { componentStatesProvider } from '@volter/editor-core/component-states-registry';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import type { JournalSubject } from '../history/json-history-resource';
 import { PixiProjector } from '../projection/pixi';
 import { creationSiteRelated } from './creation-site-related';
@@ -83,7 +83,7 @@ import {
 } from './pixi-source-identity';
 import { CanvasStructureHistory } from './pixi-structure-history';
 import { fromNeutralTransform, toNeutralTransform } from './pixi-transform-channels';
-import { resolvesLiveOnly, runWritePipe } from './write-pipe';
+import { resolvesLiveOnly, runWritePipe } from '@volter/editor-core/authoring/write-pipe';
 
 /**
  * What a write target is handed at construction — the live view it edits
@@ -347,7 +347,7 @@ const ORIGIN_UNWRITABLE_REASON =
  * from the one this prebuilt shell bundles — so a real `Sprite` from the world
  * fails `instanceof Sprite` here and every selected sprite would silently read
  * as a pivot node. The engine's own 2D authoring walk already refuses class
- * identity for the same reason (`@vgai/game-runtime/pixi/authoring`'s `kindOf` keys on the
+ * identity for the same reason (`@volter/game-runtime/pixi/authoring`'s `kindOf` keys on the
  * constructor NAME); asking for the two fields the anchor question is actually
  * about is the same move without depending on a name a minifier may mangle.
  *

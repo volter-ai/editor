@@ -23,8 +23,8 @@
  *
  * THREE FAMILIES, one resolver ({@link servedBundleRuntimeModuleLoader}):
  *   - the explicit table below (packages and package subpaths);
- *   - every RUNTIME-PACKAGE module, by glob — `@vgai/project/<path>`,
- *     `@vgai/threejs-runtime/<path>` and `@vgai/game-runtime/<path>` resolve
+ *   - every RUNTIME-PACKAGE module, by glob — `@volter/editor-project/<path>`,
+ *     `@volter/threejs-runtime/<path>` and `@volter/game-runtime/<path>` resolve
  *     to the editor's own source, minus each package's Node-only modules;
  *   - three's two spellings of one file (`three/addons/*` ≡
  *     `three/examples/jsm/*`), so either registers both.
@@ -117,40 +117,40 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   // Project source spells a runtime import by its published package name, and
   // the loader resolves it through the editor's own source, so the project and
   // the editor share one live module namespace.
-  '@vgai/threejs-runtime/adapter/constraint': () =>
-    import('@vgai/threejs-runtime/adapter/constraint'),
-  '@vgai/game-runtime/adapter/first-party-audio-system': () =>
-    import('@vgai/game-runtime/adapter/first-party-audio-system'),
-  '@vgai/threejs-runtime/adapter/first-party-navigation-system': () =>
-    import('@vgai/threejs-runtime/adapter/first-party-navigation-system'),
-  '@vgai/threejs-runtime/adapter/hierarchy-marks': () =>
-    import('@vgai/threejs-runtime/adapter/hierarchy-marks'),
-  '@vgai/project/adapter/system-adapter': () => import('@vgai/project/adapter/system-adapter'),
-  '@vgai/threejs-runtime/ai/navigation': () => import('@vgai/threejs-runtime/ai/navigation'),
-  '@vgai/threejs-runtime/animation/animation-clock': () =>
-    import('@vgai/threejs-runtime/animation/animation-clock'),
-  '@vgai/threejs-runtime/animation/xstate-animation-binding': () =>
-    import('@vgai/threejs-runtime/animation/xstate-animation-binding'),
-  '@vgai/game-runtime/canvas-react': () => import('@vgai/game-runtime/canvas-react'),
-  // `@vgai/game-runtime/config` also exports the Node-only Vite data-check plugin.
+  '@volter/threejs-runtime/adapter/constraint': () =>
+    import('@volter/threejs-runtime/adapter/constraint'),
+  '@volter/game-runtime/adapter/first-party-audio-system': () =>
+    import('@volter/game-runtime/adapter/first-party-audio-system'),
+  '@volter/threejs-runtime/adapter/first-party-navigation-system': () =>
+    import('@volter/threejs-runtime/adapter/first-party-navigation-system'),
+  '@volter/threejs-runtime/adapter/hierarchy-marks': () =>
+    import('@volter/threejs-runtime/adapter/hierarchy-marks'),
+  '@volter/editor-project/adapter/system-adapter': () => import('@volter/editor-project/adapter/system-adapter'),
+  '@volter/threejs-runtime/ai/navigation': () => import('@volter/threejs-runtime/ai/navigation'),
+  '@volter/threejs-runtime/animation/animation-clock': () =>
+    import('@volter/threejs-runtime/animation/animation-clock'),
+  '@volter/threejs-runtime/animation/xstate-animation-binding': () =>
+    import('@volter/threejs-runtime/animation/xstate-animation-binding'),
+  '@volter/game-runtime/canvas-react': () => import('@volter/game-runtime/canvas-react'),
+  // `@volter/game-runtime/config` also exports the Node-only Vite data-check plugin.
   // Hosted project code only consumes its browser-safe schema primitives, so
   // assemble that namespace from their source modules without pulling node:fs
   // into the editor build.
-  '@vgai/game-runtime/config': async () => ({
-    ...(await import('@vgai/game-runtime/data/curve')),
-    ...(await import('@vgai/game-runtime/data/data-ref')),
+  '@volter/game-runtime/config': async () => ({
+    ...(await import('@volter/game-runtime/data/curve')),
+    ...(await import('@volter/game-runtime/data/data-ref')),
   }),
-  '@vgai/game-runtime/data/curve': () => import('@vgai/game-runtime/data/curve'),
-  '@vgai/game-runtime/data/data-asset': () => import('@vgai/game-runtime/data/data-asset'),
-  '@vgai/game-runtime/dev/instruments': () => import('@vgai/game-runtime/dev/instruments'),
-  '@vgai/threejs-runtime/loader': () => import('@vgai/threejs-runtime/loader'),
-  '@vgai/game-runtime/react/world-state': () => import('@vgai/game-runtime/react/world-state'),
-  '@vgai/game-runtime/runtime/debug-registry': () =>
-    import('@vgai/game-runtime/runtime/debug-registry'),
-  '@vgai/game-runtime/runtime/game': () => import('@vgai/game-runtime/runtime/game'),
-  '@vgai/game-runtime/world3d-react': () => import('@vgai/game-runtime/world3d-react'),
-  '@vgai/game-runtime/world3d-react/rapier-physics-bridge': () =>
-    import('@vgai/game-runtime/world3d-react/rapier-physics-bridge'),
+  '@volter/game-runtime/data/curve': () => import('@volter/game-runtime/data/curve'),
+  '@volter/game-runtime/data/data-asset': () => import('@volter/game-runtime/data/data-asset'),
+  '@volter/game-runtime/dev/instruments': () => import('@volter/game-runtime/dev/instruments'),
+  '@volter/threejs-runtime/loader': () => import('@volter/threejs-runtime/loader'),
+  '@volter/game-runtime/react/world-state': () => import('@volter/game-runtime/react/world-state'),
+  '@volter/game-runtime/runtime/debug-registry': () =>
+    import('@volter/game-runtime/runtime/debug-registry'),
+  '@volter/game-runtime/runtime/game': () => import('@volter/game-runtime/runtime/game'),
+  '@volter/game-runtime/world3d-react': () => import('@volter/game-runtime/world3d-react'),
+  '@volter/game-runtime/world3d-react/rapier-physics-bridge': () =>
+    import('@volter/game-runtime/world3d-react/rapier-physics-bridge'),
   // …and the factory that mounts an example's default-exported world. A
   // three root cannot mount hosted without it.
   // The mesh-kit's two library-backed modifiers. `src/lib/mesh/modifiers.ts` —
@@ -172,37 +172,37 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   // specifier goes through this table exactly like a static one, and an
   // unregistered one throws only in the deployed build.
   'meshoptimizer/simplifier': () => import('meshoptimizer/simplifier'),
-  // `@vgai/project/adapter` is TYPE-ONLY since P-6, so a project importing it emits
+  // `@volter/editor-project/adapter` is TYPE-ONLY since P-6, so a project importing it emits
   // nothing and never reaches this table; the entry stays as a harmless
   // backstop. The seam's IMPLEMENTERS now live at their own paths, and a
   // project that calls one needs that path registered — top-down-strategy's
   // `use-squad.ts` calls `createNavigationAdapter`. Caught by
   // `browser-bundle-runtime-modules.test.ts`, which regenerates the real
   // bundle; without this, hosted Play throws "not a registered runtime module".
-  '@vgai/project/adapter': () => import('@vgai/project/adapter'),
+  '@volter/editor-project/adapter': () => import('@volter/editor-project/adapter'),
   '@dimforge/rapier3d-compat': () => import('@dimforge/rapier3d-compat'),
   // feature-scenes' WaterSurface loads its detail normal map via the shared cache:
-  '@vgai/threejs-runtime/asset-loaders': () => import('@vgai/threejs-runtime/asset-loaders'),
-  '@vgai/threejs-runtime/ecs/scene-query': () => import('@vgai/threejs-runtime/ecs/scene-query'),
-  '@vgai/threejs-runtime/ecs/user-data': () => import('@vgai/threejs-runtime/ecs/user-data'),
-  '@vgai/threejs-runtime/setup/setup-renderer': () =>
-    import('@vgai/threejs-runtime/setup/setup-renderer'),
+  '@volter/threejs-runtime/asset-loaders': () => import('@volter/threejs-runtime/asset-loaders'),
+  '@volter/threejs-runtime/ecs/scene-query': () => import('@volter/threejs-runtime/ecs/scene-query'),
+  '@volter/threejs-runtime/ecs/user-data': () => import('@volter/threejs-runtime/ecs/user-data'),
+  '@volter/threejs-runtime/setup/setup-renderer': () =>
+    import('@volter/threejs-runtime/setup/setup-renderer'),
   // littlest-tokyo (GLTF quick-start) extras:
-  '@vgai/game-runtime/input/rebind-controller': () =>
-    import('@vgai/game-runtime/input/rebind-controller'),
+  '@volter/game-runtime/input/rebind-controller': () =>
+    import('@volter/game-runtime/input/rebind-controller'),
   // The generic fetched-asset parse error — the template's and
   // top-down-strategy's `runtime/pixi-adapter.ts` raise it, so a canvas root
   // cannot mount hosted without it registered.
-  '@vgai/threejs-runtime/asset-parse-error': () =>
-    import('@vgai/threejs-runtime/asset-parse-error'),
+  '@volter/threejs-runtime/asset-parse-error': () =>
+    import('@volter/threejs-runtime/asset-parse-error'),
   // E5 — XState-driven character animation (third-person/rts/third-person-arena):
   xstate: () => import('xstate'),
   // rendering-scale's render lab drives the engine's batch renderer + scoped
   // render settings directly:
-  '@vgai/threejs-runtime/render/render-batch-system': () =>
-    import('@vgai/threejs-runtime/render/render-batch-system'),
-  '@vgai/threejs-runtime/render/render-settings': () =>
-    import('@vgai/threejs-runtime/render/render-settings'),
+  '@volter/threejs-runtime/render/render-batch-system': () =>
+    import('@volter/threejs-runtime/render/render-batch-system'),
+  '@volter/threejs-runtime/render/render-settings': () =>
+    import('@volter/threejs-runtime/render/render-settings'),
   // The bundle inlines @colyseus/schema (modular-action's rooms), and the
   // library's own BUFFER_SIZE warning string contains a verbatim
   // `import ... from "@colyseus/schema"` snippet the drift-guard's lexical
@@ -233,14 +233,14 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   // so these must resolve to the editor's LIVE modules — a second copy of the
   // contributions SDK would register into a registry nothing reads, exactly
   // the two-reconcilers failure `@pixi/react` documents above.
-  '@vgai/editor-sdk': () => import('@vgai/editor-sdk'),
-  '@vgai/editor-sdk/layouts': () => import('@vgai/editor-sdk/layouts'),
-  '@vgai/editor-sdk/layout-arrangements': () => import('@vgai/editor-sdk/layout-arrangements'),
-  '@vgai/editor-sdk/contributions': () => import('@vgai/editor-sdk/contributions'),
-  '@vgai/editor-sdk/widgets': () => import('@vgai/editor-sdk/widgets'),
+  '@volter/editor-sdk': () => import('@volter/editor-sdk'),
+  '@volter/editor-sdk/layouts': () => import('@volter/editor-sdk/layouts'),
+  '@volter/editor-sdk/layout-arrangements': () => import('@volter/editor-sdk/layout-arrangements'),
+  '@volter/editor-sdk/contributions': () => import('@volter/editor-sdk/contributions'),
+  '@volter/editor-sdk/widgets': () => import('@volter/editor-sdk/widgets'),
   '@editor/game-module-access': () => import('./game-module-access'),
-  '@vgai/sdk/tools': () => import('../../vgai-sdk/src/tools'),
-  '@vgai/sdk/generations': () => import('../../vgai-sdk/src/generations'),
+  '@volter/editor-sdk/tools': () => import('./sdk/tools'),
+  '@volter/editor-sdk/generations': () => import('@volter/editor-sdk/generations'),
   // Project stories usually import `@storybook/react` types only (erased),
   // but a value import must be the SAME csf-tools instance the editor's
   // story registry composes with.
@@ -274,7 +274,7 @@ export const REGISTERED_BUNDLE_SPECIFIERS: readonly string[] = Object.keys(
 /**
  * Every RUNTIME-PACKAGE source module, lazily, keyed by its path under that
  * package's `src/`. A game's source spells a runtime package by its published
- * name (`@vgai/threejs-runtime/adapter/constraint`), and it resolves HERE, to
+ * name (`@volter/threejs-runtime/adapter/constraint`), and it resolves HERE, to
  * the editor's own copy, which is what keeps the runtime's singletons single.
  * The exclusions name each package's Node-only modules (`node:fs` at module
  * scope); a project importing one gets the wall, correctly — they do not
@@ -284,13 +284,13 @@ export const REGISTERED_BUNDLE_SPECIFIERS: readonly string[] = Object.keys(
  * analyzable: Vite reads the literal array, so a loop over package names
  * cannot express it.
  *
- * `@vgai/game-runtime/config` stays in the explicit table above: its published
+ * `@volter/game-runtime/config` stays in the explicit table above: its published
  * entry also exports the Node-only Vite data plugin, so the browser namespace
  * is assembled from its browser-safe halves there, and the explicit table wins.
  */
 const PROJECT_SOURCE_MODULES = import.meta.glob([
-  '../../project/src/**/*.ts',
-  '../../project/src/**/*.tsx',
+  '../../../editor-project/src/**/*.ts',
+  '../../../editor-project/src/**/*.tsx',
   '!**/*.d.ts',
   '!**/manifest/load-file.ts',
   '!**/manifest/locate.ts',
@@ -299,19 +299,19 @@ const PROJECT_SOURCE_MODULES = import.meta.glob([
 ]) as Record<string, () => Promise<unknown>>;
 
 const THREEJS_RUNTIME_SOURCE_MODULES = import.meta.glob([
-  '../../threejs-runtime/src/**/*.ts',
-  '../../threejs-runtime/src/**/*.tsx',
+  '../../../threejs-runtime/src/**/*.ts',
+  '../../../threejs-runtime/src/**/*.tsx',
   '!**/*.d.ts',
 ]) as Record<string, () => Promise<unknown>>;
 
 const GAME_RUNTIME_SOURCE_MODULES = import.meta.glob([
-  '../../game-runtime/src/**/*.ts',
-  '../../game-runtime/src/**/*.tsx',
+  '../../../game-runtime/src/**/*.ts',
+  '../../../game-runtime/src/**/*.tsx',
   '!**/*.d.ts',
   '!**/data/vite-plugin-data.ts',
   // `config.ts` statically re-exports the data-check Vite plugin (node:fs), so
   // the published entry is Node-tainted as a whole — the explicit table above
-  // assembles `@vgai/game-runtime/config`'s browser-safe namespace instead.
+  // assembles `@volter/game-runtime/config`'s browser-safe namespace instead.
   '!**/src/config.ts',
 ]) as Record<string, () => Promise<unknown>>;
 
@@ -321,9 +321,9 @@ const RUNTIME_PACKAGE_SOURCES: readonly (readonly [
   string,
   Record<string, () => Promise<unknown>>,
 ])[] = [
-  ['@vgai/project', '../../project/src/', PROJECT_SOURCE_MODULES],
-  ['@vgai/threejs-runtime', '../../threejs-runtime/src/', THREEJS_RUNTIME_SOURCE_MODULES],
-  ['@vgai/game-runtime', '../../game-runtime/src/', GAME_RUNTIME_SOURCE_MODULES],
+  ['@volter/editor-project', '../../../editor-project/src/', PROJECT_SOURCE_MODULES],
+  ['@volter/threejs-runtime', '../../../threejs-runtime/src/', THREEJS_RUNTIME_SOURCE_MODULES],
+  ['@volter/game-runtime', '../../../game-runtime/src/', GAME_RUNTIME_SOURCE_MODULES],
 ];
 
 function runtimePackageLoader(specifier: string): (() => Promise<unknown>) | undefined {

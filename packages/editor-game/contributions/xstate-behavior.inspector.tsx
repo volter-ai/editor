@@ -9,7 +9,7 @@
 import type {
   ToolContributionNode,
   ToolInspectorContributionProps,
-} from '@vgai/editor-sdk/contributions';
+} from '@volter/editor-sdk/contributions';
 import { liveBehaviorFor } from '../src/xstate/live-behaviors';
 import { XStateMachineSection } from '../src/xstate/XStateBehaviorSection';
 

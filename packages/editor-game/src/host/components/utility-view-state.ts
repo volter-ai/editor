@@ -13,10 +13,10 @@
  * inside its own module, so there is nothing for this editor-owned store to
  * hold on its behalf. This store survives on the host side only because HOST
  * chrome reads it: the header heartbeat and the Game toolbar's Capture frame
- * button both select a view of a bench that now ships in `@vgai/game`.
+ * button both select a view of a bench that now ships in `@volter/editor-game`.
  */
 
-import { showWorkspaceUtility } from '../workspace-host-commands';
+import { showWorkspaceUtility } from '@volter/editor-core/workspace-host-commands';
 
 export type ProfilerViewId = 'profiler' | 'frame';
 
@@ -74,7 +74,7 @@ function createUtilityViewState<T extends string>(
 
 /** Engine instruments: the Profiler and the single-frame draw-call capture. */
 export const profilerView = createUtilityViewState<ProfilerViewId>(
-  // The bench is `@vgai/game`'s `profiler.utility` contribution, so its
+  // The bench is `@volter/editor-game`'s `profiler.utility` contribution, so its
   // registered id carries the host's `tool:` namespace. This store stays on
   // the host side because host chrome reads it (`HeaderTelemetry`'s heartbeat,
   // the Game toolbar's Capture frame button).

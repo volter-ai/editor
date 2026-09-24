@@ -23,7 +23,7 @@
  * diagnostics reveals that ONE utility.
  */
 
-import { editorHost } from '@vgai/editor-sdk/host';
+import { editorHost } from '@volter/editor-sdk/host';
 import {
   Button,
   DisclosureIcon,
@@ -32,13 +32,13 @@ import {
   spaceVar,
   TextInput,
   themeVars,
-} from '@vgai/editor-sdk/widgets';
+} from '@volter/editor-sdk/widgets';
 import type {
   ConnectionState,
   NetConditioning,
   NetMessageEvent,
   NetworkingAdapter,
-} from '@vgai/project/adapter';
+} from '@volter/editor-project/adapter';
 import { memo, useEffect, useReducer, useRef, useState } from 'react';
 import {
   deriveNetworkCapabilities,

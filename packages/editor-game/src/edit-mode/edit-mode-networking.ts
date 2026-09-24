@@ -30,15 +30,15 @@
  * active; on Stop, `getActiveNetworking()` falls back to this one.
  */
 
-import { setEditModeNetworking } from '@editor/authoring/active-systems';
-import { getCurrentProject } from '@editor/project-manager';
+import { setEditModeNetworking } from '@volter/editor-core/authoring/active-systems';
+import { getCurrentProject } from '@volter/editor-core/project-manager';
 import type {
   ConnectionState,
   NetPeer,
   NetServerConfig,
   NetworkingAdapter,
   ReplicationStats,
-} from '@vgai/project/adapter';
+} from '@volter/editor-project/adapter';
 
 /**
  * The endpoint a project gets when its manifest declares none — the SCAFFOLD

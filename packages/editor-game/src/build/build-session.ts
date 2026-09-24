@@ -14,10 +14,10 @@
 import {
   listConfigurations,
   startBuild as startBuildConfiguration,
-} from '@editor/api/configurations';
-import type { EditorHostOutputDiagnostic } from '@vgai/editor-sdk/host';
-import { editorHost } from '@vgai/editor-sdk/host';
-import type { BuildReport } from '@vgai/editor-sdk/session/build-report';
+} from '../host/api/configurations';
+import type { EditorHostOutputDiagnostic } from '@volter/editor-sdk/host';
+import { editorHost } from '@volter/editor-sdk/host';
+import type { BuildReport } from '@volter/editor-sdk/session/build-report';
 import { useEffect, useState } from 'react';
 import { formatBytes } from './format-bytes';
 

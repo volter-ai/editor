@@ -15,11 +15,11 @@ import type {
   PropertyDescriptor,
   Transform,
   WriteAck,
-} from '@vgai/project/adapter';
-import type { ChannelValue } from '../creation-site-edit';
-import { creationSiteAnchor, instancesAtSite } from '../creation-site-registry';
-import { editorConsole } from '../editor-console';
-import type { EditorShellStore } from '../editor-shell-store';
+} from '@volter/editor-project/adapter';
+import type { ChannelValue } from '@volter/editor-core/creation-site-edit';
+import { creationSiteAnchor, instancesAtSite } from '@volter/editor-core/creation-site-registry';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { type JournalSubject, JsonHistoryResource } from '../history/json-history-resource';
 import { createEphemeralPersistence } from './ephemeral-persistence';
 import { persistChannelWrite } from './gesture-persist';

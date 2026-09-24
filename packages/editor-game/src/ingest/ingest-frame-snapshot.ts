@@ -7,7 +7,7 @@
  * `composite-screenshot.ts` reads a game's canvas with `drawImage`, and that
  * only works on a WebGL canvas whose context was created with
  * `preserveDrawingBuffer: true`. Every canvas the vgai RUNTIME mounts sets it
- * (`@vgai/game-runtime/runtime/create-runtime`), which is why the composite leg has always
+ * (`@volter/game-runtime/runtime/create-runtime`), which is why the composite leg has always
  * worked for first-party play. An INGESTED game creates its own canvas: the
  * racing-game's `<Canvas>` passes no `gl` prop, so fiber's default
  * (`preserveDrawingBuffer: false`) applies, the browser discards the drawing
@@ -34,7 +34,7 @@
  * the game's own render call and the pixels are there, no flag required. The
  * host already has that bracket and did not have to invent it: the capture trap
  * stands between an ingested game and its own `WebGLRenderer.render`
- * (`@vgai/threejs-runtime/adapter/ingest/scene-capture`), and its `RenderPassHooks.after()`
+ * (`@volter/threejs-runtime/adapter/ingest/scene-capture`), and its `RenderPassHooks.after()`
  * runs synchronously inside that call — the same bracket `renderDebug` uses.
  * So this is arm-and-deliver on an existing seam, in the shape
  * `dev/render-debug-adapter.ts`'s `captureFrame()` already established: zero

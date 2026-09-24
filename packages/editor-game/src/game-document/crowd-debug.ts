@@ -13,9 +13,9 @@
  * the active-document debug-control pattern there.
  */
 
-import { getActiveSystems } from '@editor/authoring/active-systems';
-import type { NavCrowdAgentState } from '@vgai/project/adapter';
-import { setUserData } from '@vgai/threejs-runtime/ecs/user-data';
+import { getActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import type { NavCrowdAgentState } from '@volter/editor-project/adapter';
+import { setUserData } from '@volter/threejs-runtime/ecs/user-data';
 import * as THREE from 'three';
 import { getGameScene } from '../play/play-mode';
 

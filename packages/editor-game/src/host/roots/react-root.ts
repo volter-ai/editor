@@ -17,10 +17,10 @@
  * declared `entry` is ever imported, so that entry point is never reached.
  */
 
-import type { MountedReactGame, ReactRootAdapter } from '@vgai/game-runtime/runtime/create-runtime';
-import type { Game } from '@vgai/game-runtime/runtime/game';
-import type { DomHostContext } from '@vgai/project/adapter';
-import type { ResolvedAdapterRoot } from '@vgai/project/manifest/load';
+import type { MountedReactGame, ReactRootAdapter } from '@volter/game-runtime/runtime/create-runtime';
+import type { Game } from '@volter/game-runtime/runtime/game';
+import type { GameDomHostContext } from '@volter/game-runtime/runtime/host-context';
+import type { ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';
 import type { ComponentType } from 'react';
 import { resolveWorldProviderForProject } from '../react-mount-runtime';
 import type { RealmServices } from '../realm-services';
@@ -56,7 +56,7 @@ function loadReactEntryComponent(
  * A hand-rolled host that skipped the engine's mount path must fail loudly
  * here, never lie an `undefined` Game into the provider.
  */
-function requireHostGame(world: ResolvedAdapterRoot, host: DomHostContext, label: string): Game {
+function requireHostGame(world: ResolvedAdapterRoot, host: GameDomHostContext, label: string): Game {
   const game = host.game;
   if (!game) {
     throw new Error(
@@ -108,7 +108,7 @@ function reactMount(
 ): ReactRootAdapter {
   return {
     id: world.id,
-    async mount(host: DomHostContext): Promise<MountedReactGame> {
+    async mount(host: GameDomHostContext): Promise<MountedReactGame> {
       const game = requireHostGame(world, host, label);
       // The runtime comes from the realm — the PROJECT's own react under the
       // packaged runtime, the editor's static imports otherwise — so this

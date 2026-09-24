@@ -3,15 +3,15 @@
  * game's native `DebugAdapter` providers.
  *
  * It deliberately authors nothing: providers stay game-owned, values are read
- * through the same adapter `@vgai/live` uses, and pins are per-user editor
+ * through the same adapter `@volter/editor-live` uses, and pins are per-user editor
  * convenience in the host's project-local document
  * (`editorHost().projectLocalState`), not a project sidecar or a new format.
  */
 
-import { getActiveDebug } from '@editor/authoring/active-systems';
-import { editorHost } from '@vgai/editor-sdk/host';
-import { Button, DisclosureIcon, TextInput, themeVars } from '@vgai/editor-sdk/widgets';
-import type { DebugAdapter } from '@vgai/project/adapter/system-adapter';
+import { getActiveDebug } from '@volter/editor-core/authoring/active-systems';
+import { editorHost } from '@volter/editor-sdk/host';
+import { Button, DisclosureIcon, TextInput, themeVars } from '@volter/editor-sdk/widgets';
+import type { DebugAdapter } from '@volter/editor-project/adapter/system-adapter';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const POLL_MS = 250;

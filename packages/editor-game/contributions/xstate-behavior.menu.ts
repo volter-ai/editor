@@ -4,7 +4,7 @@
  * same predicate the open path itself refuses on; `disabled` is asked at
  * render, so it follows the session.
  */
-import type { MenuContribution } from '@vgai/editor-sdk/chrome';
+import type { MenuContribution } from '@volter/editor-sdk/chrome';
 import { listLiveBehaviors, openFirstBehaviorDocument } from '../src/xstate/live-behaviors';
 
 export const point = 'workspace.menu';

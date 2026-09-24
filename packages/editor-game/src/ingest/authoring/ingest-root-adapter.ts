@@ -17,47 +17,47 @@
  * content uses — no separate editor data model.
  */
 
-import { authoringOidOf } from '@editor/authoring/component-instance-root';
-import { setIngestDataWriter } from '@editor/authoring/ingest-data-writer';
-import { editorConsole } from '@editor/editor-console';
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import { GAME_SURFACE_CONTAINMENT_CSS } from '@editor/game-realm-page';
-import { clearGameSurface, gameLoopGate, setGameSurface } from '@editor/gated-globals';
-import { authoringJournal } from '@editor/history/json-history-resource';
-import { clearPresentationSurface, recordPresentationSurface } from '@editor/presentation-surface';
-import { getCurrentProject } from '@editor/project-manager';
-import { clearRootReadiness, recordRootReadiness } from '@editor/readiness';
+import { authoringOidOf } from '@volter/editor-core/authoring/component-instance-root';
+import { setIngestDataWriter } from '../../host/authoring/ingest-data-writer';
+import { editorConsole } from '@volter/editor-core/editor-console';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { GAME_SURFACE_CONTAINMENT_CSS } from '../../host/game-realm-page';
+import { clearGameSurface, gameLoopGate, setGameSurface } from '../../host/gated-globals';
+import { authoringJournal } from '../../host/history/json-history-resource';
+import { clearPresentationSurface, recordPresentationSurface } from '@volter/editor-core/presentation-surface';
+import { getCurrentProject } from '@volter/editor-core/project-manager';
+import { clearRootReadiness, recordRootReadiness } from '@volter/editor-core/readiness';
 import {
   type SameRealmLoopGate,
   type SameRealmLoopVerdict,
   verifySameRealmLoopControl,
-} from '@editor/same-realm-loop-gate';
-import { ensureScopedGameStyles } from '@editor/scoped-game-css';
-import { resolveThreeIngestRuntimeForEditor } from '@editor/three-ingest-runtime';
-import type { OidEntry } from '@editor/ui-source/oid-transform';
-import { createHttpSourceWriteBackend } from '@editor/ui-source/source-write-backend';
-import { serverRecordsSourceWrites } from '@editor/ui-source/tier-source-write-backend';
-import { clearWorldAdoption, worldAdoptionRecorder } from '@editor/world-adoption';
-import { markGameCssScope } from '@vgai/editor-sdk/session/game-css-scope';
-import type { MountedThreeRoot } from '@vgai/project/adapter';
+} from '../../host/same-realm-loop-gate';
+import { ensureScopedGameStyles } from '@volter/editor-core/scoped-game-css';
+import { resolveThreeIngestRuntimeForEditor } from '../../host/three-ingest-runtime';
+import type { OidEntry } from '@volter/editor-core/ui-source/oid-transform';
+import { createHttpSourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
+import { serverRecordsSourceWrites } from '@volter/editor-core/ui-source/tier-source-write-backend';
+import { clearWorldAdoption, worldAdoptionRecorder } from '@volter/editor-core/world-adoption';
+import { markGameCssScope } from '@volter/editor-sdk/session/game-css-scope';
+import type { MountedThreeRoot } from '@volter/editor-project/adapter';
 import {
   readGamePresentation,
   readGameReady,
   readGameWorld,
-} from '@vgai/project/adapter/ingest/game-contract';
-import { describeMountFailure } from '@vgai/project/adapter/ingest/mount-readiness';
-import { formatLoopGateMessage } from '@vgai/project/adapter/loop-gate-report';
+} from '@volter/editor-project/adapter/ingest/game-contract';
+import { describeMountFailure } from '@volter/editor-project/adapter/ingest/mount-readiness';
+import { formatLoopGateMessage } from '@volter/editor-project/adapter/loop-gate-report';
 import {
   oidSourceThree,
   structuralThree,
   type ThreeAuthoringAdapter,
-} from '@vgai/threejs/authoring/three-authoring-adapter';
-import { isHostRenderer } from '@vgai/threejs/viewport/renderer-ownership';
+} from '../../three/authoring/three-authoring-adapter';
+import { isHostRenderer } from '@volter/editor-threejs/viewport/renderer-ownership';
 import {
   type CapturedThreeRenderer,
   installSceneCapture,
   type SceneCaptureHandle,
-} from '@vgai/threejs-runtime/adapter/ingest/scene-capture';
+} from '@volter/threejs-runtime/adapter/ingest/scene-capture';
 // TYPES ONLY. Every VALUE this module needs from `three` — the namespace the
 // capture trap is installed on, its `DefaultLoadingManager`, and the two addon
 // renderer classes — comes from `resolveThreeIngestRuntimeForEditor()` instead,

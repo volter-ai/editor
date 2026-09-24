@@ -28,9 +28,9 @@
  * for is the honest shape of that point.
  */
 
-import { editorHost } from '@vgai/editor-sdk/host';
-import type { XStateBehaviorInspection } from '@vgai/threejs-runtime/behavior/xstate-inspection';
-import { getUserData } from '@vgai/threejs-runtime/ecs/user-data';
+import { editorHost } from '@volter/editor-sdk/host';
+import type { XStateBehaviorInspection } from '@volter/threejs-runtime/behavior/xstate-inspection';
+import { getUserData } from '@volter/threejs-runtime/ecs/user-data';
 
 /** This package's `xstate-behavior.document.tsx`, by the id the host derives
  *  from its filename (the workspace tab is `tool:` + this). */

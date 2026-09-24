@@ -1,21 +1,21 @@
 import { faVolumeHigh, faVolumeXmark } from '@fortawesome/free-solid-svg-icons';
-import { AnchoredMenu, Button, EditorIcon, Inline, MenuItem } from '@vgai/editor-sdk/widgets';
-import type { PerformanceSnapshot } from '@vgai/game-runtime/dev/performance-profiler';
-import type { AudioAdapter, AudioMeterFrame } from '@vgai/project/adapter';
+import { AnchoredMenu, Button, EditorIcon, Inline, MenuItem } from '@volter/editor-sdk/widgets';
+import type { PerformanceSnapshot } from '@volter/game-runtime/dev/performance-profiler';
+import type { AudioAdapter, AudioMeterFrame } from '@volter/editor-project/adapter';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
   activeAudioVersion,
   getAllActiveAudio,
   getInspectedAudio,
   subscribeActiveAudio,
-} from '../authoring/active-systems';
-import { useEditorStore } from '../editor-runtime';
+} from '@volter/editor-core/authoring/active-systems';
+import { useEditorStore } from '@volter/editor-core/editor-runtime';
 import { useActivePerformanceSource } from '../use-active-performance-source';
 import {
   activeChromeRegions,
   chromeRegionsKey,
   subscribeChromeRegions,
-} from '../workspace-regions';
+} from '@volter/editor-core/workspace-regions';
 import {
   AUDIO_METER_SEGMENTS,
   audioMeterSegmentCount,

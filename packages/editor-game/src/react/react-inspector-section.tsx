@@ -1,4 +1,4 @@
-import { setAuthoringSelection } from '@editor/authoring/consumer-actions';
+import { setAuthoringSelection } from '@volter/editor-core/authoring/consumer-actions';
 import { faBookBookmark, faCode, faPalette } from '@fortawesome/free-solid-svg-icons';
 import {
   Button,
@@ -7,7 +7,7 @@ import {
   Select,
   TextArea,
   TextInput,
-} from '@vgai/editor-sdk/widgets';
+} from '@volter/editor-sdk/widgets';
 
 /**
  * React-world inspector section (C2, spec 27 §5 C2) — the "wire the widgets"
@@ -52,25 +52,25 @@ import {
   activeBreakpoint,
   setActiveBreakpoint,
   subscribeBreakpoint,
-} from '@editor/authoring/breakpoint-state';
-import { CompositeAuthoringAdapter } from '@editor/authoring/composite-authoring-adapter';
-import { numericStyleValue, UNITLESS_NUMBER_PROPS } from '@editor/authoring/css-numeric-style';
-import { beginEyedropperSession } from '@editor/authoring/eyedropper-session';
-import { groupProperties } from '@editor/components/inspector-property-grouping';
-import { useEditorStore } from '@editor/editor-runtime';
-import { createHmrRegistrationGroup } from '@editor/hmr-registration-group';
-import { groupIcon } from '@editor/inspection/compose';
+} from '@volter/editor-core/authoring/breakpoint-state';
+import { CompositeAuthoringAdapter } from '@volter/editor-core/authoring/composite-authoring-adapter';
+import { numericStyleValue, UNITLESS_NUMBER_PROPS } from '@volter/editor-core/authoring/css-numeric-style';
+import { beginEyedropperSession } from '@volter/editor-core/authoring/eyedropper-session';
+import { groupProperties } from '@volter/editor-core/components/inspector-property-grouping';
+import { useEditorStore } from '@volter/editor-core/editor-runtime';
+import { createHmrRegistrationGroup } from '@volter/editor-core/hmr-registration-group';
+import { groupIcon } from '@volter/editor-core/inspection/compose';
 import {
   GROUP_SECTION_ORDER,
   groupSectionId,
   type InspectionSection,
   PROPERTIES_SECTION_ID,
   PROPERTIES_SECTION_ORDER,
-} from '@editor/inspection/model';
-import { registerInspectorSections } from '@editor/inspector-section-registry';
-import { effectiveColorFromChain, getAvailableFonts } from '@editor/ui-source/inspect';
-import type { OidEntry } from '@editor/ui-source/oid-transform';
-import type { AuthoringAdapter, EditorNode, PropertyDescriptor } from '@vgai/project/adapter';
+} from '@volter/editor-core/inspection/model';
+import { registerInspectorSections } from '@volter/editor-core/inspector-section-registry';
+import { effectiveColorFromChain, getAvailableFonts } from '@volter/editor-core/ui-source/inspect';
+import type { OidEntry } from '@volter/editor-core/ui-source/oid-transform';
+import type { AuthoringAdapter, EditorNode, PropertyDescriptor } from '@volter/editor-project/adapter';
 import {
   AlignmentGrid,
   type AlignmentValue,
@@ -104,7 +104,7 @@ import {
   spaceVar,
   TextShadowEditor,
   THEME,
-} from '@vgai/editor-sdk/widgets';
+} from '@volter/editor-sdk/widgets';
 import { createElement, useMemo, useState, useSyncExternalStore } from 'react';
 import { DomAuthoringAdapter } from './dom-authoring-adapter';
 import { cssColorToHex, ReactRootAuthoringAdapter } from './react-world-authoring-adapter';
@@ -2468,13 +2468,13 @@ const registrationGroup = createHmrRegistrationGroup(import.meta.hot, 'react-ins
 
 /**
  * Idempotent one-time registration of this surface's Inspector section, called
- * by `@vgai/dom/contributions/react-inspector.service.ts`.
+ * by `@volter/editor-game/contributions/react/react-inspector.service.ts`.
  *
  * It used to run at module scope, reached by a bare `import
  * './authoring/react-inspector-section';` on line 33 of the host's `main.tsx`
  * — which is how the whole React/DOM design-time surface, 28 files, entered
  * every editor boot including a `models` build that authors no DOM. The
- * `ensure`/`track` shape is `@vgai/game`'s story contributions', for the same
+ * `ensure`/`track` shape is `@volter/editor-game`'s story contributions', for the same
  * reason recorded there: importing this module (in a test, or to reach
  * {@link resolveReactOwner}) must not mutate a registry.
  */

@@ -42,9 +42,9 @@
  * project folder; it is deliberately not used here.
  */
 
-import { declaredRoots } from '@vgai/project/adapter/manifest-interpreter';
-import type { ResolvedAdapter, ResolvedAdapterRoot } from '@vgai/project/manifest/load';
-import { loadGameManifest, type ResolvedGameManifest } from '@vgai/project/manifest/load';
+import { declaredRoots } from '@volter/editor-project/adapter/manifest-interpreter';
+import type { ResolvedAdapter, ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';
+import { loadGameManifest, type ResolvedGameManifest } from '@volter/editor-project/manifest/load';
 
 /** The one manifest glob. Every in-tree ingest fixture, whatever its surface. */
 const manifestModules = import.meta.glob('./games/*/vgai.project.json', {

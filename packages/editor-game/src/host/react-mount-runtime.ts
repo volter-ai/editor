@@ -16,8 +16,8 @@
  * (confirmed live; see `packaged.ts`'s header).
  */
 
-import { WorldProvider as EngineWorldProvider } from '@vgai/game-runtime/react/world-state';
-import type { Game } from '@vgai/game-runtime/runtime/game';
+import { WorldProvider as EngineWorldProvider } from '@volter/game-runtime/react/world-state';
+import type { Game } from '@volter/game-runtime/runtime/game';
 import {
   type ComponentType,
   createElement,
@@ -26,8 +26,8 @@ import {
 } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
-import { REACT_WORLD_RUNTIME_PATH } from '../vite-plugin-module-doorways';
-import { isPackagedRuntime } from './packaged-runtime';
+import { REACT_WORLD_RUNTIME_PATH } from '@volter/editor-core/build/module-doorways';
+import { isPackagedRuntime } from '@volter/editor-core/packaged-runtime';
 
 /**
  * The pieces of "react itself" a react-world mount needs:
@@ -131,7 +131,7 @@ export async function resolveReactRootMountRuntime(): Promise<ReactRootMountRunt
 
 /**
  * `WorldProvider` is the canonical engine export from
- * `@vgai/game-runtime/react/world-state`, reached through the mount runtime above so
+ * `@volter/game-runtime/react/world-state`, reached through the mount runtime above so
  * the project's copy is used under the packaged runtime. Hosts and game
  * entries therefore share ONE module and one React context identity.
  *

@@ -1,5 +1,5 @@
 /**
- * THE THREE SURFACE'S DESIGN-TIME AUTHORING (`@vgai/editor-sdk/services`, a
+ * THE THREE SURFACE'S DESIGN-TIME AUTHORING (`@volter/editor-sdk/services`, a
  * `workspace.service` contribution): the two registrations that make a `three`
  * root editable, and the reason the kit names no medium.
  *
@@ -10,7 +10,7 @@
  *     whose surface nobody claims keeps its honest Boundary disclosure.
  *  2. THE DESIGN SESSION on the world root's 3D stage
  *     (`@editor/authoring/design-time-mount-registry`'s `kind: 'three'`),
- *     beside `@vgai/dom`'s `kind: 'dom'` and the canvas medium's. Those two
+ *     beside `@volter/editor-game`'s `kind: 'dom'` and the canvas medium's. Those two
  *     mount into a LAYER over the artboard; this one adopts the stage's own
  *     renderer and scene, which is why the registry carries two mount shapes.
  *
@@ -25,17 +25,17 @@
  * product that composes this package pays for it.
  */
 
-import { setBaseAuthoringFactory } from '@editor/authoring/active-adapter';
-import { registerDesignTimeMount } from '@editor/authoring/design-time-mount-registry';
-import { queueEditModeRebuild } from '@editor/authoring/edit-mode-authoring';
-import { authoringJournal } from '@editor/history/json-history-resource';
-import { oidThree } from '../src/authoring/three-authoring-adapter';
+import { setBaseAuthoringFactory } from '@volter/editor-core/authoring/active-adapter';
+import { registerDesignTimeMount } from '@volter/editor-core/authoring/design-time-mount-registry';
+import { queueEditModeRebuild } from '@volter/editor-core/authoring/edit-mode-authoring';
+import { authoringJournal } from '../../src/host/history/json-history-resource';
+import { oidThree } from '../../src/three/authoring/three-authoring-adapter';
 
 export const point = 'workspace.service';
 
 export function start(): () => void {
   // Warm the session chunk with the pass, not with the first mount.
-  const session = import('../src/authoring/r3f-design-session');
+  const session = import('../../src/three/authoring/r3f-design-session');
   void session.catch(() => {
     // The mount below awaits the same promise and reports its own failure;
     // this early start must not create a second unhandled rejection.
@@ -49,7 +49,7 @@ export function start(): () => void {
   );
   const stopMount = registerDesignTimeMount({
     kind: 'three',
-    owner: '@vgai/threejs/three-authoring',
+    owner: '@volter/editor-game/three/three-authoring',
     mountWorldRootSession: async (context) => {
       const { mountR3FDesignSession } = await session;
       return mountR3FDesignSession(context.store, context.composite, context.renderer);

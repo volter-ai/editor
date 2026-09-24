@@ -13,16 +13,16 @@ import {
   getActiveSystems,
   InstanceResolutionError,
   systemsForInstance,
-} from '@editor/authoring/active-systems';
-import { collectPlayRunPageErrors } from '@editor/command-listener';
-import { gameContractEpoch } from '@editor/coverage/game-contract-seam-evidence';
-import { recordLiveSeamEvidence } from '@editor/coverage/live-seam-evidence';
-import { systemAdapterEpoch } from '@editor/coverage/system-seam-evidence';
+} from '@volter/editor-core/authoring/active-systems';
+import { collectPlayRunPageErrors } from '@volter/editor-core/command-listener';
+import { gameContractEpoch } from '../host/coverage/game-contract-seam-evidence';
+import { recordLiveSeamEvidence } from '@volter/editor-core/coverage/live-seam-evidence';
+import { systemAdapterEpoch } from '@volter/editor-core/coverage/system-seam-evidence';
 import {
   HOLD_STARVED_NO_DRIVER_REASON,
   waitForHoldBudget,
-} from '@vgai/game-runtime/runtime/debug-bridge';
-import type { SystemAdapters } from '@vgai/project/adapter';
+} from '@volter/game-runtime/runtime/debug-bridge';
+import type { SystemAdapters } from '@volter/editor-project/adapter';
 import { activeIngestContract } from '../ingest/ingest-play-control';
 import { getPlayRuntimeAccess } from '../play/play-mode';
 
@@ -39,7 +39,7 @@ import { getPlayRuntimeAccess } from '../play/play-mode';
  *  game, so it never creates a play session at all, and what it publishes
  *  through `setActiveSystems` is the debug adapter projected from its own
  *  declared contract (`ingest-root-adapter.ts` →
- *  `@vgai/game-runtime/adapter/ingest/contract-debug-adapter`). The question asked here is
+ *  `@volter/game-runtime/adapter/ingest/contract-debug-adapter`). The question asked here is
  *  only ever "has a live mount published a plane", never who mounted it.
  *  `notPlayingResult()` stays the answer for the genuinely-no-world case. */
 export const hasLiveDebugPlane = (): boolean => getActiveSystems().debug != null;
@@ -109,14 +109,14 @@ function recordContractSystemUse(member: string, value: unknown, name?: string):
 
 /**
  * #140 — the generic session-wire dispatch table: the SAME method-name
- * surface `window.__vgai` exposes (`@vgai/game-runtime/runtime/debug-bridge`'s
+ * surface `window.__vgai` exposes (`@volter/game-runtime/runtime/debug-bridge`'s
  * `VgaiDebugHandle` — `state`/`stateAll`/`providers`/`commands`/`events`/
  * `snapshot`/`invoke`/`runTicks`/`input.*`), built from the SAME
  * registry-backed accessors the sibling
  * `gameplay.command.ts` verbs (`list-gameplay-state`/`inject-input`/`run-ticks`)
  * already use. This is what makes the
  * `bridge-call` relay op (below) a session-generic primitive rather than a
- * test-specific one — any client of the live session (the `@vgai/live`
+ * test-specific one — any client of the live session (the `@volter/editor-live`
  * `RelayTransport`, a future one-shot `vgai game state/call/hold` REPL) can
  * issue `{method, callArgs}` against it with no dependency on a proof run's
  * own lifecycle/env, and get byte-identical dispatch to the page-transport's

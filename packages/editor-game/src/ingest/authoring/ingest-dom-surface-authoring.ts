@@ -4,23 +4,23 @@
  * only AuthoringAdapter/CompositeAuthoringAdapter currency.
  */
 
-import { CompositeAuthoringAdapter } from '@editor/authoring/composite-authoring-adapter';
+import { CompositeAuthoringAdapter } from '@volter/editor-core/authoring/composite-authoring-adapter';
 import {
   findCanvasUiElements,
   findPrimaryCanvas,
   type OverlayElement,
-} from '@editor/coverage/capability-coverage';
-import type { EditorShellStore } from '@editor/editor-shell-store';
-import { authoringJournal } from '@editor/history/json-history-resource';
-import { sourceWriteBackendIfPrimed } from '@editor/ui-source/tier-source-write-backend';
-import { DomAuthoringAdapter, type DomElementLike } from '@vgai/dom/dom-authoring-adapter';
+} from '../../host/coverage/capability-coverage';
+import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { authoringJournal } from '../../host/history/json-history-resource';
+import { sourceWriteBackendIfPrimed } from '@volter/editor-core/ui-source/tier-source-write-backend';
+import { DomAuthoringAdapter, type DomElementLike } from '../../react/dom-authoring-adapter';
 import {
   type OidElementLike,
   ReactRootAuthoringAdapter,
   walkOidTree,
-} from '@vgai/dom/react-world-authoring-adapter';
-import type { AuthoringAdapter } from '@vgai/project/adapter';
-import type { VgaiGameContract } from '@vgai/project/adapter/ingest/game-contract';
+} from '../../react/react-world-authoring-adapter';
+import type { AuthoringAdapter } from '@volter/editor-project/adapter';
+import type { VgaiGameContract } from '@volter/editor-project/adapter/ingest/game-contract';
 
 type ReadableDomRoot = OverlayElement & DomElementLike & { readonly ownerDocument?: Document };
 

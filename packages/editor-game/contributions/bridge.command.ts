@@ -1,5 +1,5 @@
 /**
- * The PAGE-BRIDGE verbs of the session wire (`@vgai/editor-sdk/commands`, a
+ * The PAGE-BRIDGE verbs of the session wire (`@volter/editor-sdk/commands`, a
  * `workspace.command` contribution): the session-generic `bridge-call`, the
  * game-stack still, and the gameplay recorder's start/stop/timeline.
  *
@@ -21,14 +21,14 @@
  * imports when they move. Nothing here is host API.
  */
 
-import { getActiveSystems } from '@editor/authoring/active-systems';
+import { getActiveSystems } from '@volter/editor-core/authoring/active-systems';
 import {
   activeGameplayRecordingTimeline,
   startGameplayRecording,
   stopGameplayRecording,
-} from '@editor/gameplay-recording';
-import { captureGameplayReplay, exportGameplayReplay } from '@editor/gameplay-replay';
-import type { CommandContribution } from '@vgai/editor-sdk/commands';
+} from '../src/host/gameplay-recording';
+import { captureGameplayReplay, exportGameplayReplay } from '@volter/editor-core/gameplay-replay';
+import type { CommandContribution } from '@volter/editor-sdk/commands';
 import { handleBridgeCall } from '../src/bridge/call';
 import { hasLiveDebugPlane } from '../src/bridge/dispatch';
 import { captureLiveCanvasFrame, refreshRecordingFrame } from '../src/bridge/live-frames';
@@ -140,7 +140,7 @@ export const commands: CommandContribution['commands'] = {
           appendGameplayRecordingChunk,
           finishGameplayRecordingSink,
           abortGameplayRecordingSink,
-        } = await import('@editor/editor-api');
+        } = await import('@volter/editor-core/editor-api');
         const sink = await beginGameplayRecordingSink({
           startedAt: new Date().toISOString(),
           mimeType: 'video/webm',

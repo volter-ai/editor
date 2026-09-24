@@ -23,7 +23,7 @@
  * mouse that silently does not capture reads as a broken game.
  */
 
-import { gameSurfaces } from '@editor/gated-globals';
+import { gameSurfaces } from '../host/gated-globals';
 
 /** The real method, captured at install time so a refusal can still call
  *  through and a double install is impossible. */

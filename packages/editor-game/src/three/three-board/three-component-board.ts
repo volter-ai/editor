@@ -9,21 +9,21 @@
  * when it does not.
  */
 
-import type { ComponentBoard, ComponentBoardContext } from '@editor/component-board-registry';
-import { editorConsole } from '@editor/editor-console';
+import type { ComponentBoard, ComponentBoardContext } from '@volter/editor-core/component-board-registry';
+import { editorConsole } from '@volter/editor-core/editor-console';
 import {
   getStoryMediaPresence,
   subscribeStoryMediaPresence,
-} from '@editor/stories/story-media-presence';
-import { projectStoriesReady, subscribeProjectStoryModules } from '@editor/stories/story-registry';
-import { THREE_COMPONENTS_DOCUMENT_ID } from '@editor/workspace-document-ids';
+} from '../../host/stories/story-media-presence';
+import { projectStoriesReady, subscribeProjectStoryModules } from '@volter/editor-core/stories/story-registry';
+import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
 
 /** The tab reads `3D`, the peer of `Scene` and `UI` in the center strip. */
 const THREE_COMPONENTS_TITLE = '3D';
 
 export const threeComponentBoard: ComponentBoard = {
   medium: 'three',
-  owner: '@vgai/game/three-board',
+  owner: '@volter/editor-game/three-board',
   documentId: THREE_COMPONENTS_DOCUMENT_ID,
   title: THREE_COMPONENTS_TITLE,
   // A board exists because the project has STORIES of its medium, and for no
