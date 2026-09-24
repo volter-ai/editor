@@ -4,7 +4,6 @@
  * installer can be unit-tested without pulling Pixi/Three into jsdom.
  */
 
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { projectAdapterFacet } from '@volter/editor-core/project-adapter';
 import { isolationTabsReplaceGenericScene } from '@volter/editor-core/scene-document-plan';
 import { CANVAS_SCENE_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
@@ -19,7 +18,6 @@ import type { ReactNode } from 'react';
 import { activeIngest } from './active-ingest';
 
 export function installIngestCanvasSceneDocument(
-  store: EditorShellStore,
   Content: (props: WorkspaceDocumentContentProps) => ReactNode,
 ): () => void {
   const live = activeIngest();
@@ -38,7 +36,6 @@ export function installIngestCanvasSceneDocument(
     Content,
     closeable: false,
     presentation: () => ({ kind: 'world', id: worldId }),
-    onActivate: () => store.setActiveViewportTab('edit'),
   });
   activateWorkspaceDocument(CANVAS_SCENE_DOCUMENT_ID);
   const unregisterRoute = registerRootDocumentRoute(worldId, CANVAS_SCENE_DOCUMENT_ID);

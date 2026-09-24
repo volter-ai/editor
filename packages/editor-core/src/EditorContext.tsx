@@ -56,7 +56,7 @@ function hmrStableValue<T>(key: string, create: () => T): T {
 export function EditorProvider({ children }: { children: ReactNode }) {
   const storeRef = useRef<EditorShellStore | null>(null);
   if (!storeRef.current) {
-    storeRef.current = new EditorShellStore();
+    storeRef.current = new EditorShellStore({ followsWorkspaceFocus: true });
     // The host door (`@volter/editor-sdk/host`, `session`) reads this store.
     registerShellStoreForHost(storeRef.current);
   }
@@ -132,7 +132,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   // becomes a workspace document, the default open by default
   // (`components/scene-documents.tsx`). Bound beside the load above because it
   // consumes exactly what that publishes and nothing else.
-  useEffect(() => startSceneDocuments(storeRef.current!), []);
+  useEffect(() => startSceneDocuments(), []);
 
   // The tab's RESOURCE CENSUS (tab-census.ts) — a 0.2 Hz sample that rides the
   // heartbeat, so a browser-level renderer death has a cause line instead of a

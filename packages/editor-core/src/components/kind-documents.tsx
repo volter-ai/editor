@@ -28,7 +28,7 @@ import {
   waitForContributedDocumentMount,
 } from '../document-context-registry';
 import { registerDocumentOpener } from '../document-open-registry';
-import type { AssetKind, ViewportTab } from '../editor-shell-store';
+import type { AssetKind } from '../editor-shell-store';
 import {
   projectAdapterFacet,
   type ResolvedDocumentTable,
@@ -49,10 +49,6 @@ import {
 import { registerWorkspaceDocumentRestorer } from '../workspace-document-restore';
 import { openAssetDocument } from './asset-documents';
 import { ToolHost } from './ToolHost';
-
-export interface KindDocumentStore {
-  setActiveViewportTab(tab: ViewportTab): void;
-}
 
 const PREFIX = 'document:';
 
@@ -123,7 +119,6 @@ export function hasKindEditor(kind: string): boolean {
  * declares that kind — the caller decides what an unedited kind opens as.
  */
 export function openKindDocument(
-  store: KindDocumentStore | null,
   entry: DocumentEntry,
   options: OpenWorkspaceDocumentOptions = {},
 ): boolean {
@@ -150,7 +145,6 @@ export function openKindDocument(
       onDispose: (documentId) => {
         entries.delete(documentId);
       },
-      ...(store ? { onActivate: () => store.setActiveViewportTab('edit') } : {}),
     },
     options,
   );
@@ -177,10 +171,10 @@ export function openKindDocument(
 registerDocumentOpener<{ readonly id: string }>({
   id: 'document',
   owner: 'kind-documents',
-  open: (store, request) => {
+  open: (_store, request) => {
     const entry = tableEntry(request.id);
     if (!entry || !hasKindEditor(entry.kind)) return null;
-    return openKindDocument(store, entry) ? kindDocumentId(entry.id) : null;
+    return openKindDocument(entry) ? kindDocumentId(entry.id) : null;
   },
   settle: async (request) => {
     const REGISTRATION_WINDOW_MS = 20_000;
@@ -218,26 +212,25 @@ function tableEntry(id: string): DocumentEntry | undefined {
  * the document opened nothing). Gives up when the project changes under it.
  */
 export function openKindDocumentWhenReady(
-  store: KindDocumentStore | null,
   entry: DocumentEntry,
   options: OpenWorkspaceDocumentOptions = {},
 ): void {
-  if (openKindDocument(store, entry, options)) return;
+  if (openKindDocument(entry, options)) return;
   const stop = subscribeToolContributions(() => {
-    if (openKindDocument(store, entry, options)) stop();
+    if (openKindDocument(entry, options)) stop();
   });
 }
 
 /** Every open kind document takes its slots afresh when contributions
  *  change (a module re-evaluated on save may have gained or lost its
  *  `Toolbar`); `openWorkspaceDocument` on an open id refreshes the descriptor. */
-export function installKindDocumentRefresh(store: KindDocumentStore): () => void {
+export function installKindDocumentRefresh(): () => void {
   return subscribeToolContributions(() => {
     const open = new Set(openWorkspaceDocuments().map((d) => d.descriptor.id));
     for (const [id, { entry }] of entries) {
       if (!open.has(id)) continue;
       if (documentContributionForKind(entry.kind))
-        openKindDocument(store, entry, { activate: false });
+        openKindDocument(entry, { activate: false });
     }
   });
 }
@@ -314,7 +307,7 @@ let seenTableIds: Set<string> | null = null;
  * agent iterated a mushroom 24 times while the owner's viewport showed the
  * starter cube).
  */
-function followNewTableDocuments(store: KindDocumentStore, seen?: readonly string[]): void {
+function followNewTableDocuments(seen?: readonly string[]): void {
   stopFollowingTableDocuments?.();
   let known: Set<string> | null = seen ? new Set(seen) : null;
   const observe = (): void => {
@@ -339,7 +332,7 @@ function followNewTableDocuments(store: KindDocumentStore, seen?: readonly strin
     // Advance before opening: document activation can publish the table again.
     known = ids;
     seenTableIds = ids;
-    if (entry?.source && openKindDocument(store, entry, { activate: true, preview: true })) {
+    if (entry?.source && openKindDocument(entry, { activate: true, preview: true })) {
       setSelectedAsset({
         path: `/${entry.source.path}`,
         name: entry.label,
@@ -355,7 +348,7 @@ function followNewTableDocuments(store: KindDocumentStore, seen?: readonly strin
   stopFollowingTableDocuments = subscribeProjectAdapter(observe);
 }
 
-function openDefaultTableDocument(store: KindDocumentStore): void {
+function openDefaultTableDocument(): void {
   const attempt = (): boolean => {
     const facet = projectAdapterFacet();
     if (!facet || facet.documentsPending) return false;
@@ -374,8 +367,8 @@ function openDefaultTableDocument(store: KindDocumentStore): void {
       const path = `/${entry.source.path}`;
       // The kind's own editor when one is registered (a model opens as a
       // model); the source only for a kind nothing edits.
-      if (!openKindDocument(store, entry)) {
-        openAssetDocument(store, path, uneditedKindAssetKind(entry));
+      if (!openKindDocument(entry)) {
+        openAssetDocument(path, uneditedKindAssetKind(entry));
       }
       // Opened AND selected, the way a Content click leaves it: the kind's
       // own asset inspector (a model's Edit mesh door) is the first thing
@@ -408,17 +401,17 @@ registerWorkspaceDocumentRestorer({
   // it reopens — or the page lands on whichever sibling resolved first (a
   // session reloaded onto the starter cube while its mushroom was the tab in
   // use, 2026-09-06).
-  restore: ({ state, active, store }) => {
+  restore: ({ state, active }) => {
     const record = state as { entryId?: unknown } | null | undefined;
     const entryId = typeof record?.entryId === 'string' ? record.entryId : null;
     if (!entryId) return false;
     whenDocumentEntry(entryId, (entry) => {
-      openKindDocumentWhenReady(store, entry, { activate: active });
+      openKindDocumentWhenReady(entry, { activate: active });
     });
     return true;
   },
   persistKindState: () => (seenTableIds ? { seen: [...seenTableIds] } : undefined),
-  beginRestore: ({ state, hasDocumentsToRestore, store }) => {
+  beginRestore: ({ state, hasDocumentsToRestore }) => {
     const record = state as { seen?: unknown } | null | undefined;
     const seen = Array.isArray(record?.seen)
       ? record.seen.filter((id): id is string => typeof id === 'string')
@@ -436,8 +429,8 @@ registerWorkspaceDocumentRestorer({
     // measured on a `model-editor create` scaffold, where the product's cover
     // then sat out its 90 s budget and blamed Blender for a model nobody had
     // asked it to open).
-    if (!hasDocumentsToRestore) openDefaultTableDocument(store);
-    followNewTableDocuments(store, seen);
+    if (!hasDocumentsToRestore) openDefaultTableDocument();
+    followNewTableDocuments(seen);
   },
 });
 

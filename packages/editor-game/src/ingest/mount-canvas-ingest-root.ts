@@ -346,7 +346,7 @@ function publishStructuralCanvasRuntime(
   // host-owned registry carrier to compose with either: what the game itself
   // declared is the only physics this route can have.
   publishCanvasIngestSystems(game.name, undefined, declaredCanvasPhysics());
-  landIngestBootInEdit(store);
+  landIngestBootInEdit();
   store.notifyIngestEdit();
   clearMountFailureReports();
 
@@ -770,7 +770,7 @@ async function mountCanvasIngestRootInner(
     mount.capture.captured?.renderer,
     declaredPhysics ? physicsAdapter : null,
   );
-  landIngestBootInEdit(store);
+  landIngestBootInEdit();
   store.notifyIngestEdit();
   clearMountFailureReports(); // D-W3: mount succeeded
   // PD-3: the mount stood — but `contract-ready` may only be recorded when the

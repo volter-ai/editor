@@ -148,7 +148,7 @@ async function mountDomIngestRootInner(store: EditorShellStore, folderId: string
 
   setActiveAuthoring(adapter);
   setActiveSystems({});
-  landIngestBootInEdit(store);
+  landIngestBootInEdit();
   store.notifyIngestEdit();
   clearMountFailureReports(); // D-W3: mount succeeded
 
@@ -253,7 +253,7 @@ export async function mountDomIngestRootFromManifest(
 
   setActiveAuthoring(adapter);
   setActiveSystems({});
-  landIngestBootInEdit(store);
+  landIngestBootInEdit();
   store.notifyIngestEdit();
   clearMountFailureReports(); // D-W3: mount succeeded
 

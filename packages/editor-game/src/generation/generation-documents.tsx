@@ -134,7 +134,7 @@ export function GenerationCreateDocumentContent() {
                 variant="ghost"
                 className="vgai-generation-create-card"
                 key={contribution.id}
-                onClick={() => openToolDocument(null, contribution.id)}
+                onClick={() => openToolDocument(contribution.id)}
               >
                 <strong>{contribution.title}</strong>
                 <span>{contribution.tool?.summary}</span>

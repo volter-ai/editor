@@ -48,9 +48,9 @@ export function buildPaletteActions(
   // live set of actions arrives through `contributedActions()` below, pushed
   // by its own service — the host names no package here.
   const documents = [
-    ...buildProjectToolActions(store),
+    ...buildProjectToolActions(),
     ...buildBoardOpenActions(),
-    ...buildToolActions(store),
+    ...buildToolActions(),
   ];
   const entities = buildEntityActions(store);
   // A package's actions (`@volter/editor-sdk/chrome`), beside the editor's own.

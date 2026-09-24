@@ -881,7 +881,6 @@ export function installThreeBoardDocument(store: ThreeBoardStore): string {
       readOnly: true,
       preview: threeBoardPreview,
       presentation: () => ({ kind: 'workspace', id: THREE_COMPONENTS_DOCUMENT_ID }),
-      onActivate: () => store.setActiveViewportTab('edit'),
     },
     { category: 'canvas' },
   );

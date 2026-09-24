@@ -85,7 +85,6 @@ export function installUiBoard({ store, composite }: ComponentBoardContext): voi
           ...(story ? { story } : {}),
         };
       },
-      onActivate: () => store.setActiveViewportTab('edit'),
     },
     // A board NEVER steals focus — presence is answered asynchronously, so a
     // board that arrives late would otherwise yank the author off whatever

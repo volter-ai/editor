@@ -16,7 +16,6 @@
  */
 
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { projectAdapterFacet } from '@volter/editor-core/project-adapter';
 import { sceneDocumentId } from '@volter/editor-core/scene-document-plan';
 import { CANVAS_SCENE_DOCUMENT_ID, SCENE_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
@@ -27,7 +26,7 @@ import {
 import { activeIngest } from './active-ingest';
 import { activeIngestPauseGap, holdIngestContentTimeForMode } from './ingest-play-control';
 
-export function landIngestBootInEdit(store: EditorShellStore): void {
+export function landIngestBootInEdit(): void {
   const active = activeIngest();
   if (active) {
     const held = holdIngestContentTimeForMode('edit');
@@ -42,7 +41,6 @@ export function landIngestBootInEdit(store: EditorShellStore): void {
       'ingest',
     );
   }
-  store.setActiveViewportTab('edit');
   const open = openWorkspaceDocuments();
   const defaultId = projectAdapterFacet()?.scenes.default;
   const isolationId = defaultId ? sceneDocumentId(defaultId) : undefined;

@@ -16,7 +16,6 @@ import { assetCapabilities, assetDocumentKind } from '@volter/editor-sdk/kit/ass
 import { openAssetDocument } from '@volter/editor-core/components/asset-documents';
 import { AudioAssetThumb, ModelThumbnail } from '@volter/editor-core/components/asset-thumbnails';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { useEditorStore } from '@volter/editor-core/editor-runtime';
 import { modelThumbnailFormat } from '@volter/editor-core/model-thumbnail';
 import {
   Button,
@@ -238,7 +237,6 @@ function GenerationCard({
   error: string | null;
   run: (action: () => Promise<void>) => void;
 }) {
-  const store = useEditorStore();
   const state = generationCardState(job);
   const outputs = generationOutputs(job);
   const prompt = generationPrompt(job);
@@ -247,7 +245,7 @@ function GenerationCard({
     if (!output.url) return undefined;
     const kind = assetDocumentKind(assetCapabilities(output.name));
     if (!kind) return undefined;
-    return () => openAssetDocument(store, output.url as string, kind);
+    return () => openAssetDocument(output.url as string, kind);
   };
 
   return (

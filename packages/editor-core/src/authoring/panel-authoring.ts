@@ -21,7 +21,7 @@
  * override is already correct at the moment the panels are showing the wrong
  * thing. Resolution was never wrong. **It was a stale render**: the override
  * slot is module state with no change notification, and the panels only
- * re-rendered because ingest entry ALSO calls `setActiveViewportTab`, which in
+ * re-rendered because ingest entry ALSO moves workspace focus, which in
  * a Three-rooted project activates a different center document and the
  * workspace registry's `notifyChanged()` re-rendered them incidentally. With no
  * Three root there is one center document, that activation is a no-op, and the

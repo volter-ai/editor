@@ -476,7 +476,6 @@ export function installRootDocuments(
         },
         Content,
         presentation: () => ({ kind: 'world', id: descriptor.worldId }),
-        onActivate: () => store.setActiveViewportTab('edit'),
       },
       { category: 'scene', default: !hasThreeRoot, rootId: descriptor.worldId },
     );

@@ -44,7 +44,6 @@ import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import { type Resolution, ResolutionPicker } from '../../host/components/ResolutionPicker';
 import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
 import { registerDocumentOpener } from '@volter/editor-core/document-open-registry';
-import type { ViewportTab } from '@volter/editor-core/editor-shell-store';
 import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
 import {
   CONTRIBUTED_SECTION_ORDER,
@@ -205,7 +204,6 @@ export function clearStoryActionLog(id: string): void {
 /** The narrow store surface story documents need (T6.3 gate hand-off —
  *  same contract as `asset-documents.tsx`). */
 export interface StoryDocumentStore {
-  setActiveViewportTab(tab: ViewportTab): void;
 }
 
 /**
@@ -254,7 +252,6 @@ export function openStoryDocument(
       closeable: true,
       presentation: () => ({ kind: 'story', modulePath, storyName, mode: 'preview' }),
       persist: () => ({ modulePath, storyName }),
-      onActivate: () => store.setActiveViewportTab('edit'),
       onDispose: (documentId) => {
         if (_states.delete(documentId)) notifyChanged();
       },
@@ -298,7 +295,6 @@ export function openStoryDocsDocument(
     closeable: true,
     presentation: () => ({ kind: 'story', modulePath, storyName, mode: 'docs' }),
     persist: () => ({ modulePath, storyName, view: 'docs' }),
-    onActivate: () => store.setActiveViewportTab('edit'),
     onDispose: (documentId) => {
       if (_states.delete(documentId)) notifyChanged();
     },

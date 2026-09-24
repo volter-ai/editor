@@ -57,9 +57,9 @@ import {
  *  honest report; hanging forever would be worse than a bounded refusal. */
 const CONTAINER_MOUNT_TIMEOUT_MS = 4000;
 
+/** The editor session's binding: the live document exists only while one is bound. */
 interface LiveDocumentHooks {
-  /** The tab hand-off: activating the live document selects the play tab. */
-  onActivate(): void;
+  readonly session: true;
 }
 
 let _hooks: LiveDocumentHooks | null = null;
@@ -89,16 +89,16 @@ function descriptor(): WorkspaceDocumentDescriptor | null {
     ...(content?.Toolbar ? { Toolbar: content.Toolbar } : {}),
     closeable: false,
     presentation: () => ({ kind: 'workspace', id: GAME_DOCUMENT_ID }),
-    onActivate: () => hooks.onActivate(),
   };
 }
 
 /**
- * Bind this editor session's tab hook. `useCenterDocuments` calls this in
+ * Bind this editor session. `useCenterDocuments` calls this in
  * the same effect that installs the other center documents, and the returned
  * cleanup releases the document with the session.
  */
-export function bindLiveDocument(hooks: LiveDocumentHooks): () => void {
+export function bindLiveDocument(): () => void {
+  const hooks: LiveDocumentHooks = { session: true };
   _hooks = hooks;
   return () => {
     if (_hooks !== hooks) return;
@@ -135,7 +135,7 @@ export function liveDocumentOpen(): boolean {
  * left the person looking at the Scene, which for `three-points-waves` is the
  * honest "No renderable content" card while the points ran unseen behind it
  * (walk 3, beat 19). A play-time mount already does this for itself
- * (`deferred-ingest-play.ts`'s `store.setActiveViewportTab('play')`).
+ * (`deferred-ingest-play.ts` activates this document).
  *
  * It activates rather than writing the viewport tab because THIS module owns
  * `workspace:game`: activation fires the descriptor's `onActivate`, which is

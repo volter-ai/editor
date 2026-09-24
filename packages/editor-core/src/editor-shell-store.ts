@@ -25,6 +25,11 @@ import { findEntityLod } from './entity-lod';
 import { entityIdOf } from './entity-object';
 import type { HistoryService } from './history/history-service';
 import type { ShellDocumentState } from './shell-document-state';
+import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
+import {
+  activeWorkspaceDocumentId,
+  subscribeWorkspaceDocuments,
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { withSceneFogNeutralized } from './scene-view-fog';
 
 /** The store's persistence collaborator — installed by the shell, never
@@ -277,7 +282,21 @@ export class EditorShellStore implements ShellDocumentState {
   protected _playState: 'stopped' | 'playing' | 'paused' = 'stopped';
   /** See {@link PlayEditRegime} — set by play-mode.ts on play-enter, cleared on play-exit. */
   protected _playEditRegime: PlayEditRegime = null;
-  protected _activeViewportTab: ViewportTab = 'edit';
+  /** Only the session store follows workspace focus; a stage's own store is always `edit`. */
+  protected readonly _followsWorkspaceFocus: boolean;
+
+  constructor(options: { readonly followsWorkspaceFocus?: boolean } = {}) {
+    this._followsWorkspaceFocus = options.followsWorkspaceFocus === true;
+    if (!this._followsWorkspaceFocus) return;
+    // Focus is the workspace's; a flip of the derived tab is a change every reader must see.
+    let tab = this.activeViewportTab;
+    subscribeWorkspaceDocuments(() => {
+      const next = this.activeViewportTab;
+      if (next === tab) return;
+      tab = next;
+      this._notify();
+    });
+  }
   protected _vertexSnapActive = false;
   protected _listeners = new Set<() => void>();
   protected _viewportActionListeners = new Set<(action: ViewportAction) => void>();
@@ -531,12 +550,12 @@ export class EditorShellStore implements ShellDocumentState {
 
   // --- Selection ---
   get selectedEntityId(): string | null {
-    const selection = this._viewportSelections[this._activeViewportTab];
+    const selection = this._viewportSelections[this.activeViewportTab];
     if (selection.size === 0) return null;
     return [...selection].at(-1)!;
   }
   get selectedEntityIds(): ReadonlySet<string> {
-    return this._viewportSelections[this._activeViewportTab];
+    return this._viewportSelections[this.activeViewportTab];
   }
   get transformMode(): TransformMode {
     return this._transformMode;
@@ -743,7 +762,7 @@ export class EditorShellStore implements ShellDocumentState {
         })();
     this._objectMap = gameMap;
 
-    this._viewportSelections[this._activeViewportTab] = new Set(
+    this._viewportSelections[this.activeViewportTab] = new Set(
       [...this.selectedEntityIds].filter((id) => gameMap.has(id)),
     );
     // A viewport LOD pin must not follow the entity id into the adopted game
@@ -770,7 +789,7 @@ export class EditorShellStore implements ShellDocumentState {
     this._applyAdoptedImageConfig(frame.imageConfig);
     // Discard any play-time env/name/ui edits — restore the pre-play snapshot.
     this._restoreAdoptionExtras(frame.extras);
-    this._viewportSelections[this._activeViewportTab] = new Set(frame.selection);
+    this._viewportSelections[this.activeViewportTab] = new Set(frame.selection);
     this._composerVersion++; // scene swapped back → composer must rebuild against the editor scene
     this._notify();
   }
@@ -881,11 +900,7 @@ export class EditorShellStore implements ShellDocumentState {
   setPlayState(state: 'stopped' | 'playing' | 'paused'): void {
     const wasActive = this._playState !== 'stopped';
     this._playState = state;
-    if (state === 'playing' && this._activeViewportTab === 'edit') {
-      this._activeViewportTab = 'play';
-    }
     if (state === 'stopped') {
-      this._activeViewportTab = 'edit';
       // Apply anything deferred while play/ingest was active. play-mode.ts /
       // ingest/mount-ingest-root.ts call exitPlayScene() (restoring the editor scene) BEFORE
       // this — so by the time we get here `_scene` is already the editor scene,
@@ -907,13 +922,13 @@ export class EditorShellStore implements ShellDocumentState {
   }
 
   // --- Viewport tab ---
+  /**
+   * `play` exactly while the Game document is the active workspace document, else `edit`:
+   * derived from workspace focus, which Code-OSS owns, never set beside it. A surface that
+   * wants the other tab activates the document instead.
+   */
   get activeViewportTab(): ViewportTab {
-    return this._activeViewportTab;
-  }
-  setActiveViewportTab(tab: ViewportTab): void {
-    if (tab === this._activeViewportTab) return;
-    this._activeViewportTab = tab;
-    this._notify();
+    return this._followsWorkspaceFocus && activeWorkspaceDocumentId() === GAME_DOCUMENT_ID ? 'play' : 'edit';
   }
   // --- Vertex snap ---
   get vertexSnapActive(): boolean {
@@ -929,7 +944,7 @@ export class EditorShellStore implements ShellDocumentState {
   // mutates `_viewportSelections` and NOTHING ELSE. That is the whole warrant
   // for the scope — see `contentVersion`.
   select(id: string | null, notification: 'immediate' | 'deferred' = 'immediate'): void {
-    const selection = this._viewportSelections[this._activeViewportTab];
+    const selection = this._viewportSelections[this.activeViewportTab];
     selection.clear();
     if (id) selection.add(id);
     if (notification === 'deferred') this._notifyDeferred('selection');
@@ -937,7 +952,7 @@ export class EditorShellStore implements ShellDocumentState {
   }
 
   selectMultiple(ids: string[], notification: 'immediate' | 'deferred' = 'immediate'): void {
-    this._viewportSelections[this._activeViewportTab] = new Set(ids);
+    this._viewportSelections[this.activeViewportTab] = new Set(ids);
     if (notification === 'deferred') this._notifyDeferred('selection');
     else this._notify('selection');
   }
@@ -953,7 +968,7 @@ export class EditorShellStore implements ShellDocumentState {
    * the set is mutated before this method returns; only presentation is deferred.
    */
   applySelectionBeforePresentation(ids: readonly string[]): () => void {
-    this._viewportSelections[this._activeViewportTab] = new Set(ids);
+    this._viewportSelections[this.activeViewportTab] = new Set(ids);
     let presented = false;
     return () => {
       if (presented) return;
@@ -963,12 +978,12 @@ export class EditorShellStore implements ShellDocumentState {
   }
 
   addToSelection(id: string): void {
-    this._viewportSelections[this._activeViewportTab].add(id);
+    this._viewportSelections[this.activeViewportTab].add(id);
     this._notify('selection');
   }
 
   toggleSelection(id: string): void {
-    const selection = this._viewportSelections[this._activeViewportTab];
+    const selection = this._viewportSelections[this.activeViewportTab];
     if (selection.has(id)) {
       selection.delete(id);
     } else {
