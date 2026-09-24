@@ -10,7 +10,7 @@
  * `constructed outside project source` for EVERY object in the world and the
  * creation-site writer can never fire once. The game's own source still says
  * exactly where each object came from — it says it in JSX
- * (`<mesh position={[0, 1, 0]}>`), and `vite-plugin-ui-oid.ts` already stamps
+ * (`<mesh position={[0, 1, 0]}>`), and `@volter/editor-react`'s `serving/ui-oid-plugin.ts` already stamps
  * that callsite onto the constructed object as `userData.oid`. This backend is
  * the other end of that stamp.
  *
@@ -45,8 +45,8 @@ import { editorIsAuthoring } from '@volter/editor-core/editor-session-mode';
 import type { HistoryService } from '@volter/editor-core/history/history-service';
 import { withProjectSourceHistory } from '@volter/editor-core/history/source-history-backend';
 import { getCurrentProject } from '@volter/editor-core/project-manager';
-import type { OidEntry } from '@volter/editor-core/ui-source/oid-transform';
-import { bodyPlacedChannel, physicsRefusal } from '@volter/editor-core/ui-source/r3f-physics-binding';
+import type { OidEntry } from '@volter/editor-react/source/oid-transform';
+import { bodyPlacedChannel, physicsRefusal } from '@volter/editor-react/source/r3f-physics-binding';
 import type { SourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
 import { sourceWriteBackendIfPrimed } from '@volter/editor-core/ui-source/tier-source-write-backend';
 import type { NodeCreationSite, WriteAck } from '@volter/editor-project/adapter';

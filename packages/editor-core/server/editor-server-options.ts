@@ -26,7 +26,7 @@ export interface EditorServerOptions {
    * game's own source or is honestly live-only
    * (`src/ui-source/tier-source-write-backend.ts`). Hosts that boot a Vite
    * instance derive it from their own resolved plugin list
-   * (`servesUiSourceRoutes`, `vite-plugin-ui-oid.ts`) rather than declaring it,
+   * (`SOURCE_WRITE_ROUTES_PLUGIN`, `@volter/editor-sdk/session/project-serving`) rather than declaring it,
    * so the flag cannot drift from the registration it describes.
    *
    * Defaults to `false`: a bare router with no Vite in front of it carries no

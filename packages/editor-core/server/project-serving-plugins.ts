@@ -37,7 +37,6 @@ import { projectJsxInJsPlugin } from '../vite-plugin-project-jsx-js';
 import { projectRootAbsoluteAssetsPlugin } from '../vite-plugin-project-root-absolute-assets';
 import { sharedReactPlugin } from '../vite-plugin-shared-react';
 import { sharedThreePlugin } from '../vite-plugin-shared-three';
-import { uiOidPlugin } from '../vite-plugin-ui-oid';
 import {
   handleProjectScriptHotUpdate,
   recordReactBoundary,
@@ -130,6 +129,12 @@ export interface ProjectServingPluginOptions {
    * watch or to attribute an update to. `packaged.ts` always has one.
    */
   readonly scriptHmr: ScriptHmrServingOptions | null;
+  /**
+   * The plugins the product's composed packages contribute through their `vgai.serving`
+   * modules (`project-serving-services.ts`), in composition order: a lane's own transforms
+   * and routes over project source, such as the React integration's JSX identity stamp.
+   */
+  readonly contributed?: readonly PluginOption[];
 }
 
 /** Byte-identical between the hosts, so it is written once. */
@@ -177,7 +182,7 @@ function scriptHmrPlugin(options: ScriptHmrServingOptions): Plugin {
 }
 
 export function createProjectServingPlugins(options: ProjectServingPluginOptions): PluginOption[] {
-  const { projectRoots, currentProjectRoot, packagedOnly, scriptHmr } = options;
+  const { projectRoots, currentProjectRoot, packagedOnly, scriptHmr, contributed = [] } = options;
   return [
     ...(packagedOnly?.sharedReactUrls
       ? [
@@ -193,14 +198,9 @@ export function createProjectServingPlugins(options: ProjectServingPluginOptions
     // (every project-graph importer), unlike shared-React's editor-tree scope,
     // because three has no dev/prod split. See `../vite-plugin-shared-three.ts`.
     ...(packagedOnly?.sharedThreeUrl ? [sharedThreePlugin(packagedOnly.sharedThreeUrl)] : []),
-    // React-world OID authoring parity: live `data-oid` instrumentation + the
-    // `/__ui-source/*` read/write endpoints the hierarchy/inspector's
-    // source-write path needs. The project-root argument is a THUNK, like every
-    // other project-scoped plugin here — a boot-time snapshot would keep
-    // resolving an INGEST root's out-of-manifest sources, the reported
-    // `resourcePath` of a write, and the shared-session path gate against the
-    // project this process happened to start on.
-    ...(packagedOnly ? [uiOidPlugin(undefined, currentProjectRoot)] : []),
+    // What the product's integrations contribute to serving project source — where a lane's
+    // identity stamp and authoring routes (the React integration's `/__ui-source/*`) run.
+    ...contributed,
     // `/__ingest-source/*` — ownership, and the guarded
     // read/plan/apply that writes an ingest edit into the GAME's own source.
     // Without it the ingest lane's source writes have no route to reach at all

@@ -61,7 +61,9 @@
     "./session/editor-brand": "./src/session/editor-brand.ts",
     "./tools/errors": "./src/tools/errors.ts",
     "./project/output-roots": "./src/project/output-roots.ts",
-    "./source-authoring": "./src/source-authoring.ts"
+    "./source-authoring": "./src/source-authoring.ts",
+    "./source-analysis": "./src/source-analysis.ts",
+    "./css-numeric-style": "./src/css-numeric-style.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",

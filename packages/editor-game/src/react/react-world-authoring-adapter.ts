@@ -6,7 +6,7 @@
  * entities ARE the `data-oid`-stamped elements of its rendered DOM (the OID
  * instrumentation from the UI visual-edit program, `../ui-source/oid-transform.ts`,
  * whose vite-plugin include this slice widens from the `editable-components` fixture
- * dir to project scope — see `../../vite-plugin-ui-oid.ts`). This adapter derives
+ * dir to project scope — see `@volter/editor-react`'s `serving/ui-oid-plugin.ts`). This adapter derives
  * its hierarchy from the shared DOM projector (`../projection/dom.ts`) under the
  * OID identity, over the world's live DOM root (`RootInstance.reactRoot()`);
  * there is no cached/mirrored state to fall out of sync — every `hierarchy`
@@ -15,7 +15,7 @@
  * Writes (style/className/delete) reuse the EXISTING T3.2-slice-3 source-write seam
  * verbatim (`../ui-source/source-write-backend.ts`'s `SourceWriteBackend`, the same
  * `/__ui-source/write` + `/__ui-source/struct` dev-server endpoints
- * `vite-plugin-ui-oid.ts` serves for `UIAuthoringAdapter`/`SourceEditPanel`) — this
+ * `@volter/editor-react`'s `serving/ui-oid-plugin.ts` serves for `UIAuthoringAdapter`/`SourceEditPanel`) — this
  * file does NOT invent a second source-writer. Every edit prepares complete next-file
  * text and commits it through one checksum-guarded source history resource. Style,
  * text, prop, and structural changes therefore share exact-byte undo/redo semantics.
@@ -32,7 +32,7 @@ import {
   cssTextForStyleValue,
   numericStyleValue,
   preserveNumericStyleUnit,
-} from '@volter/editor-core/authoring/css-numeric-style';
+} from '@volter/editor-sdk/css-numeric-style';
 import { WORLD_SCOPE_NODE_ID } from '@volter/editor-core/authoring/stories-scope';
 import { createStructWritePipe, type StructOpOptions } from '../host/authoring/struct-write-pipe';
 import { getRootPan } from '@volter/editor-core/authoring/world-pan-state';
@@ -69,8 +69,8 @@ import {
   getReactComponentName,
   type MatchableElement,
 } from '@volter/editor-core/ui-source/inspect';
-import type { ComponentPropSpec, OidEntry } from '@volter/editor-core/ui-source/oid-transform';
-import { relativeImportSpecifier } from '@volter/editor-core/ui-source/relative-import-specifier';
+import type { ComponentPropSpec, OidEntry } from '@volter/editor-react/source/oid-transform';
+import { relativeImportSpecifier } from '@volter/editor-react/source/relative-import-specifier';
 import type { SourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
 import { writeCsfStory, writeNamedStyle } from '@volter/editor-core/ui-source/source-write-backend';
 import {
@@ -78,7 +78,7 @@ import {
   namedStyleRuleFor,
   pickCssRuleTarget,
   tokenReferenceGuardText,
-} from '@volter/editor-core/ui-source/writer';
+} from '@volter/editor-react/source/writer';
 import { UI_COMPONENTS_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
 import { activateWorkspaceDocument } from '@volter/editor-core/workspace-document-registry';
 import type {
@@ -2932,12 +2932,12 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
     // `removeMany` here as unsound because the OBVIOUS implementation is N
     // separate `structOp`-style calls, each targeting its OID's `{file,
     // line, col}` from the SERVER's `OidStore.index`
-    // (`vite-plugin-ui-oid.ts`'s `handleStruct`) — exactly the per-id
+    // (`@volter/editor-react`'s `serving/ui-oid-plugin.ts`'s `handleStruct`) — exactly the per-id
     // `remove` loop's own stale-offset hazard (see the CORRECTNESS INVARIANT
     // comment below), just without the ordering discipline that loop needs
     // to stay sound. This implementation is NOT that: `removeManyElements`
     // posts every id's raw oid in ONE request to `/__ui-source/struct-many`
-    // (`handleStructMany`, `vite-plugin-ui-oid.ts`), which resolves every
+    // (`handleStructMany`, `@volter/editor-react`'s `serving/ui-oid-plugin.ts`), which resolves every
     // oid's offset against a SINGLE shared `readFileSync` snapshot (never a
     // per-id re-read, so no write-to-write staleness is even possible) and
     // applies them highest-offset-first in one pass, one write. That is also
@@ -3565,7 +3565,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
    * `#n` siblings share ONE raw oid — deleting it once is correct, per
    * `walkOidTree`'s own disambiguation comment), and posts them ALL in ONE
    * `writeStructMany` call — see that method's doc comment on `SourceWriteBackend`
-   * (`source-write-backend.ts`) and `handleStructMany`'s (`vite-plugin-ui-oid.ts`)
+   * (`source-write-backend.ts`) and `handleStructMany`'s (`@volter/editor-react`'s `serving/ui-oid-plugin.ts`)
    * for the soundness argument (one shared file snapshot, highest-offset-first,
    * caller-order-independent). Degrades to a loud no-op — never a silent partial
    * delete — when this session's backend hasn't implemented `writeStructMany` (a

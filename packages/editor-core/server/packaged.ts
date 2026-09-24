@@ -53,8 +53,8 @@
  * `/__vgai-game-provider` module `binding-resolver.ts`'s
  * `loadProjectWorldProvider` imports — WITHOUT it, every `kind: 'dom'`
  * world 404s on mount, not just "authors without OID"). All are carried
- * over here, imported straight from this package's own `vite-plugin-ui-oid`
- * / `vite-plugin-creation-site-write` / `vite-plugin-react-world-provider`
+ * over here — the source-authoring integration's serving plugin through the project-serving
+ * door, and this package's own `vite-plugin-creation-site-write` / `vite-plugin-react-world-provider`
  * (same files, no copy) and registered
  * with NO extra scoping beyond their own built-in `defaultProjectScopeInclude`
  * (already project-scoped — see that file's doc comment: excludes
@@ -209,6 +209,7 @@ import express from 'express';
 import {
   createServer as createViteServer,
   type InlineConfig,
+  type PluginOption,
   optimizeDeps,
   resolveConfig,
 } from 'vite';
@@ -221,7 +222,7 @@ import { servesIngestSourceRoutes } from '../vite-plugin-creation-site-write';
 import { PACKAGED_MODULE_DOORWAYS } from '../vite-plugin-module-doorways';
 import { readSharedReactManifest, sharedReactUrls } from '../vite-plugin-shared-react';
 import { readSharedThreeManifest, sharedThreeUrl } from '../vite-plugin-shared-three';
-import { servesUiSourceRoutes } from '../vite-plugin-ui-oid';
+import { SOURCE_WRITE_ROUTES_PLUGIN } from '@volter/editor-sdk/session/project-serving';
 import { canonicalProjectRoot } from './canonical-path';
 import { createEditorServer } from './editor-server';
 import { clientCount } from './editor-sse';
@@ -264,7 +265,8 @@ import {
   resolveBindHost,
   resolveInstalledPackageSrcDir,
 } from './server-utils';
-import { resolveProductForProject, sessionProduct } from './session-product';
+import { createProjectServingServices, loadServingPlugins } from './project-serving-services';
+import { productServingModules, resolveProductForProject, sessionProduct } from './session-product';
 import { setProductNames } from '../src/product-command';
 import { registerSession, unregisterSession } from './session-registry';
 
@@ -537,6 +539,16 @@ async function main(): Promise<void> {
   // `configFile: false` to `boolean` and `appType: 'custom'` to `string`,
   // neither of which `resolveConfig` accepts — so the literal typechecks on
   // its own and only fails at the call site far below.
+  // The server halves of the product's integrations (`package.json#vgai.serving`): their
+  // plugins serve the project's source beside the kit's own, through the kit's services.
+  const contributedServing = (await loadServingPlugins(
+    productServingModules(sessionProductIdentity),
+    createProjectServingServices({
+      engineRoot: checkoutRoot,
+      projectRoots: () => projectRoots,
+      currentProjectRoot: () => currentProjectRoot,
+    }),
+  )) as PluginOption[];
   const viteInlineConfig: InlineConfig = {
     configFile: false,
     root: projectPath,
@@ -598,6 +610,7 @@ async function main(): Promise<void> {
       // unlike dev.ts's conditional-on-boot-time-projectPath gate. No
       // `watchDir`: this instance's Vite root IS the project.
       scriptHmr: { projectRoot: () => currentProjectRoot },
+      contributed: contributedServing,
     }),
     optimizeDeps: {
       // C3 (phase-b/c3-r3f-packaged) — SCOPED auto-discovery, not disabled
@@ -958,7 +971,7 @@ async function main(): Promise<void> {
     // the game's own TSX under a registry install. Read off the resolved
     // plugin list rather than hardcoded `true`, so removing the plugin can
     // never leave a flag claiming a route that is gone.
-    sourceWriteRoutes: servesUiSourceRoutes(vite.config.plugins),
+    sourceWriteRoutes: vite.config.plugins.some((plugin) => plugin.name === SOURCE_WRITE_ROUTES_PLUGIN),
     // And the ingest lane's route, off the same resolved list — this host
     // registers `creationSiteWritePlugin()` above, and saying so is what lets an
     // ingest edit be written into the game's own source under a registry

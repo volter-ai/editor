@@ -7,7 +7,7 @@
  * there is NO pending-write queue — every source edit (a style tweak, a struct op)
  * writes to disk IMMEDIATELY via a raw `fetch` call the instant the user commits it
  * (Enter / blur), server-side through the SAME surgical writer used in unit tests
- * (`ui-source/writer.ts`, invoked by `vite-plugin-ui-oid.ts`'s dev-server
+ * (the source-authoring integration's writer, invoked by its serving plugin's dev-server
  * middleware). So `save()` has nothing to flush; it is an honest no-op REGARDLESS of
  * whether a backend is wired (see `ui-authoring-adapter.ts`). This seam exists so:
  *   - the HTTP wire shape is reachable/testable through an injectable interface
@@ -28,7 +28,7 @@
  *
  * `index()` (T6.2 slice 2) is the read-side sibling added for
  * `ReactRootAuthoringAdapter`'s node labeling (`component:tag`): it exposes the SAME
- * `/__ui-source/index` GET endpoint `vite-plugin-ui-oid.ts` already serves
+ * `/__ui-source/index` GET endpoint the source-authoring integration's serving plugin already serves
  * (previously only fetched ad hoc by `source-edit-panel.tsx`) through this one
  * backend seam, rather than a second bespoke fetch call.
  */
@@ -101,7 +101,7 @@ export interface SourceWriteBackend {
    *  `value` accepts a NUMBER, and callers with a numeric descriptor MUST pass
    *  one: `String(300)` here writes `width: '300'`, which React passes through
    *  and the CSSOM rejects — source changes, the screen does not, and the ack
-   *  still says `persisted: true`. See `authoring/css-numeric-style.ts`. */
+   *  still says `persisted: true`. See `@volter/editor-sdk/css-numeric-style`. */
   writeStyle(
     oid: string,
     prop: string,
@@ -230,7 +230,7 @@ export interface SourceWriteBackend {
    * `writeStruct(oid, 'delete')` calls, the server resolves every `oids` entry's
    * offset against ONE shared file snapshot and applies them all in a single write
    * — sound and CALLER-ORDER-INDEPENDENT (see `handleStructMany`'s doc comment,
-   * `vite-plugin-ui-oid.ts`): the caller does not need to sort `oids` into any
+   * the source-authoring integration's serving plugin): the caller does not need to sort `oids` into any
    * particular order, source or otherwise. Same response shape as `writeStruct`
    * (one `prevSource`/`newSource`/`prevSha`/`newSha` snapshot for the whole batch
    * — one undo entry, not N). Optional: only a dev-server-backed implementation
@@ -418,7 +418,7 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
 
 /**
  * The ONE place every `/__ui-source/*` answer is read. That prefix is served by
- * the same dev server as `/__editor/*` (`vite-plugin-ui-oid.ts`), on the same
+ * the same dev server as `/__editor/*` (the source-authoring integration's serving plugin), on the same
  * origin, behind the same page fallback — so the fallback check is the same
  * check, run BEFORE the parse. Without it a source write against an origin with
  * no recorder died as `Unexpected token '<'` at the author's next keystroke.
@@ -529,7 +529,7 @@ async function frameApplySource(
 }
 
 /** Wraps the EXISTING `/__ui-source/write` + `/__ui-source/struct` dev-server
- *  endpoints (see `vite-plugin-ui-oid.ts`) — the dev-server-backed tier. */
+ *  endpoints (see the source-authoring integration's serving plugin) — the dev-server-backed tier. */
 export function createHttpSourceWriteBackend(): SourceWriteBackend {
   return {
     historyIdentity: HTTP_SOURCE_HISTORY_IDENTITY,

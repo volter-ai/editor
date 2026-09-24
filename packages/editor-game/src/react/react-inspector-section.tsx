@@ -54,7 +54,7 @@ import {
   subscribeBreakpoint,
 } from '@volter/editor-core/authoring/breakpoint-state';
 import { CompositeAuthoringAdapter } from '@volter/editor-core/authoring/composite-authoring-adapter';
-import { numericStyleValue, UNITLESS_NUMBER_PROPS } from '@volter/editor-core/authoring/css-numeric-style';
+import { numericStyleValue, UNITLESS_NUMBER_PROPS } from '@volter/editor-sdk/css-numeric-style';
 import { beginEyedropperSession } from '@volter/editor-core/authoring/eyedropper-session';
 import { groupProperties } from '@volter/editor-core/components/inspector-property-grouping';
 import { useEditorStore } from '@volter/editor-core/editor-runtime';
@@ -69,7 +69,7 @@ import {
 } from '@volter/editor-core/inspection/model';
 import { registerInspectorSections } from '@volter/editor-core/inspector-section-registry';
 import { effectiveColorFromChain, getAvailableFonts } from '@volter/editor-core/ui-source/inspect';
-import type { OidEntry } from '@volter/editor-core/ui-source/oid-transform';
+import type { OidEntry } from '@volter/editor-react/source/oid-transform';
 import type { AuthoringAdapter, EditorNode, PropertyDescriptor } from '@volter/editor-project/adapter';
 import {
   AlignmentGrid,

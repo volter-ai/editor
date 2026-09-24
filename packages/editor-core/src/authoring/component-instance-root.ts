@@ -4,7 +4,7 @@
  *
  * ## Why this exists
  *
- * `vite-plugin-ui-oid`'s transform stamps `userData.authoringInstance` (the
+ * the source-authoring integration's serving plugin transform stamps `userData.authoringInstance` (the
  * CALLSITE oid) on **every host element inside a component definition**, not
  * just on the one the component returns — that is what lets a click on a mesh
  * deep inside `<Coin/>` resolve to the `<Coin/>` callsite, and what lets a
@@ -59,7 +59,7 @@ export function instanceStampOf(object: THREE.Object3D | null | undefined): stri
  * The element's OWN definition-side oid — where this JSX element is WRITTEN, as
  * opposed to the callsite that instantiated whatever renders it.
  *
- * `oid` is stamped by `vite-plugin-ui-oid` on every host element, so it is
+ * `oid` is stamped by the source-authoring integration's serving plugin on every host element, so it is
  * present on a component's root element and on each of its interior ones alike.
  * It is NOT an address: at an instance root the address is the callsite
  * ({@link authoringOidOf}). Read it when the DEFINITION is the subject —

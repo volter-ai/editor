@@ -7,8 +7,8 @@ import type {
   RegionBinding,
 } from '../src/ui-source/file-region-resolver';
 import { resolveFileRegion } from '../src/ui-source/file-region-resolver';
-import type { DeclaredRootSurface, SourceDialectEvidence } from '../src/ui-source/oid-transform';
-import { sourceDialectEvidence, sourceProvesR3f } from '../src/ui-source/oid-transform';
+import type { DeclaredRootSurface, SourceDialectEvidence } from '@volter/editor-sdk/source-authoring';
+import { sourceDialectEvidence, sourceProvesR3f } from './source-analysis';
 import {
   ADAPTER_MODULE_FILENAME,
   adapterRegionIncludes,
@@ -21,7 +21,7 @@ import {
  * does this project declare, and is THIS file one of their entries), plus the
  * OID-specific diagnostics built on the answer.
  *
- * Shared by the OID-stamping transform (`../vite-plugin-ui-oid.ts`'s
+ * Shared by the OID-stamping transform (the source-authoring integration's serving plugin
  * `transform` hook) and the HMR classifier (`./project-hmr-files.ts`'s
  * `classifyProjectHotUpdate`). Before this module existed, the two answered
  * the "is this file R3F or react-dom" question with two SEPARATE copies of
@@ -38,8 +38,7 @@ import {
  * value — so there is nothing for this probe to translate.
  *
  * Deliberately dependency-light (no Zod, no `@vgai/project/manifest/load`) — same
- * bar `vite-plugin-ui-oid.ts`'s `nearestManifestExcludesIngestReact` already
- * holds for this vite-config-time file: a best-effort identity probe, not
+ * bar a vite-config-time file holds: a best-effort identity probe, not
  * manifest validation. A malformed manifest never crashes a transform/HMR
  * hook; it degrades to "no declared regions", which the resolver answers as
  * AMBIGUOUS and every caller already handles (the documented `data-oid`
@@ -83,7 +82,7 @@ interface CachedManifestRoots {
 
 /** Cache: absolute directory -> nearest ancestor `vgai.project.json`'s parsed
  *  roots (or `null` if none exists above it). Cached both ways (hit and
- *  miss), the same pattern `vite-plugin-ui-oid.ts`'s
+ *  miss), the same pattern the source-authoring integration's serving plugin
  *  `nearestManifestExcludesIngestReact` uses for the identical walk — no
  *  invalidation on manifest edit; a `vgai.project.json` edit already triggers
  *  `classifyProjectHotUpdate`'s `'restart'` kind, so a stale in-process

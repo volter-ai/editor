@@ -8,7 +8,7 @@
  * workspace panel), while indexing a project's own TSX for components and
  * regions is TypeScript-AST work nothing at boot asks for. Keeping the two
  * apart is what stops one panel's five presentation helpers from carrying
- * `ui-source/oid-transform.ts` and the five R3F prop-contract bindings into
+ * the source-authoring integration's JSX transform and the five R3F prop-contract bindings into
  * every editor boot — measured at EIGHT files, 2026-09-18. Add a discovery
  * function to the index file; add a row-shaping one here.
  *

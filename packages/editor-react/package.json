@@ -1,0 +1,51 @@
+{
+  "name": "@volter/editor-react",
+  "author": "Volter AI, Inc.",
+  "license": "AGPL-3.0-only",
+  "version": "0.5.65",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "React source authoring for Volter Editor: JSX identity, source writes, component contracts and declared props.",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/volter-ai/editor.git",
+    "directory": "packages/editor-react"
+  },
+  "files": [
+    "src",
+    "contributions",
+    "serving",
+    "dist-node",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "exports": {
+    "./source/*": "./src/source/*.ts",
+    "./contributions/*": "./contributions/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "node scripts/build-serving.mjs",
+    "prepack": "npm run build",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "vgai": {
+    "contributions": [
+      "./contributions/component-contracts.service.ts"
+    ],
+    "serving": "./dist-node/serving.mjs"
+  },
+  "dependencies": {
+    "@volter/editor-sdk": "0.5.65",
+    "@volter/editor-project": "0.5.65",
+    "typescript": "5.9.3"
+  },
+  "peerDependencies": {
+    "vite": "^6.4.3"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  }
+}

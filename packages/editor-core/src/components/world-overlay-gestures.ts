@@ -33,7 +33,7 @@ import type {
 } from '@volter/editor-project/adapter';
 import { CompositeAuthoringAdapter } from '../authoring/composite-authoring-adapter';
 import { spatialHandlesForAdapter } from '../authoring/consumer-actions';
-import { numericStyleValue } from '../authoring/css-numeric-style';
+import { numericStyleValue } from '@volter/editor-sdk/css-numeric-style';
 import { isRootHidden } from '../authoring/world-session-state';
 import { recordAuthoringConsumerUse } from '../coverage/authoring-seam-evidence';
 

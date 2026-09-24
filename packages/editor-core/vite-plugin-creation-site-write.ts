@@ -5,7 +5,7 @@
  *
  * This file is wiring only; every decision lives in `server/creation-site-write.ts`
  * (ownership, containment, the checksum guard) and `src/creation-site-edit.ts`
- * (what may be rewritten). The split is the same one `vite-plugin-ui-oid.ts`
+ * (what may be rewritten). The split is the same one the source-authoring integration's serving plugin
  * makes, and for the same reason: a handler that is a pure function of
  * `(body, projectRoot, engineRoot)` is one a unit test can drive without a
  * server.
@@ -64,8 +64,8 @@ function send(res: ResponseLike, result: HandlerResult): void {
  * pair that fired minutes ago and NEVER RESOLVES: the request hangs, the client
  * awaits forever, and — because nothing threw — not one line appears in any log.
  * Measured live on SimCity: the write silently did nothing while every gate
- * reported open. `vite-plugin-ui-oid.ts`'s `readJson` has the same first line
- * for the same reason; do not "simplify" it away.
+ * reported open. The source-authoring integration's serving plugin has the same first line in
+ * its `readJson` for the same reason; do not "simplify" it away.
  */
 export async function readBody(req: RequestLike): Promise<Record<string, unknown>> {
   const parsed = (req as { body?: unknown }).body;
@@ -81,8 +81,8 @@ export async function readBody(req: RequestLike): Promise<Record<string, unknown
   return JSON.parse(text) as Record<string, unknown>;
 }
 
-/** One handler per route, as a table — `vite-plugin-ui-oid.ts`'s `postRoutes`
- *  shape. Every entry is a pure function of `(body, projectRoot, engineRoot)`,
+/** One handler per route, as a table — the source-authoring integration's serving plugin's
+ *  `postRoutes` shape. Every entry is a pure function of `(body, projectRoot, engineRoot)`,
  *  which is what lets `creation-site-write.test.ts` drive them with no server. */
 const POST_ROUTES: Record<
   string,
@@ -126,8 +126,8 @@ async function respondTo(
 /**
  * This plugin's Vite name — the ONE spelling, so a host can ask its own
  * resolved plugin list whether it serves `/__ingest-source/*` instead of
- * declaring the same fact a second time. `vite-plugin-ui-oid.ts`'s
- * `UI_OID_PLUGIN_NAME` is the sibling.
+ * declaring the same fact a second time. `SOURCE_WRITE_ROUTES_PLUGIN`
+ * (`@volter/editor-sdk/session/project-serving`) is the sibling.
  */
 export const CREATION_SITE_WRITE_PLUGIN_NAME = 'vgai-creation-site-write';
 

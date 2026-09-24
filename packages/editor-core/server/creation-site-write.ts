@@ -507,7 +507,7 @@ export function handleIngestRead(
  * opened from inside a worktree gets no watcher event for its own source at
  * all. Measured on the `/__ui-source/*` family first — an authored
  * `position={[0,1.5,0]}` read back as `[0,0,0]` after a reload — and closed
- * there by `vite-plugin-ui-oid.ts`'s `invalidateWrittenSource`. This is the
+ * there by the kit's `writeSource` service (`project-serving-services.ts`). This is the
  * same defect on the ingest lane's own write door, closed the same way. A write
  * path may not depend on an ignore list it does not own.
  *

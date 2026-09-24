@@ -10,6 +10,7 @@
     "@volter/editor",
     "@volter/threejs-runtime",
     "@volter/game-runtime",
+    "@volter/editor-react",
     "@volter/editor-game",
     "@volter/game-live",
     "@volter/game-editor"

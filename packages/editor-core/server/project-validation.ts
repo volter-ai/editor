@@ -21,7 +21,7 @@ import { transform } from 'esbuild';
 import { ZodError } from 'zod';
 import { AssetParseError } from '@volter/editor-threejs/asset-parse-error';
 import { loadGameManifest } from '@volter/editor-project/manifest/load';
-import { r3fAuthoringDiagnostics } from '../src/ui-source/r3f-project-contracts';
+import { sourceAuthoringDiagnostics } from './source-analysis';
 import { oidSurfaceSourceConflicts, resolveProjectFileRegion } from './project-root-surface';
 import { findVendoredTarget } from './vendored-lock-recorder';
 
@@ -186,17 +186,17 @@ async function validateSource(
   // `oidSurfaceSourceConflicts` sibling below does, and for the same reason:
   // without a graph every non-entry file looks unplaced, and reporting on that
   // basis is a claim the tier cannot support. The reach-dependent files are
-  // analyzed at stamp time (`vite-plugin-ui-oid.ts`), where the graph exists.
+  // analyzed at stamp time (the source-authoring integration's serving plugin), where the graph exists.
   const knownThreeSurface = resolveProjectFileRegion(absPath).surface === 'three';
   const warnings = [
-    ...r3fAuthoringDiagnostics(raw, absPath, { knownThreeSurface }).map(
+    ...sourceAuthoringDiagnostics(raw, absPath, { knownThreeSurface }).map(
       (diagnostic) =>
         `line ${diagnostic.line}:${diagnostic.col + 1} [${diagnostic.code}] ${diagnostic.message}`,
     ),
     // Task #45 — the OID-stamping surface conflicts that make an element
     // unselectable in the editor. Only the graph-FREE subset belongs here (see
     // `oidSurfaceSourceConflicts`); the reach-dependent ones are reported at
-    // stamp time by `vite-plugin-ui-oid.ts`, where a live import graph exists.
+    // stamp time by the source-authoring integration's serving plugin, where a live import graph exists.
     ...oidSurfaceSourceConflicts(absPath, raw).map(
       (diagnostic) => `[${diagnostic.code}] ${diagnostic.message}`,
     ),

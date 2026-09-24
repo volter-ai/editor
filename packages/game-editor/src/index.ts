@@ -24,12 +24,14 @@
 
 import blender from 'vgai:contributions/@volter/editor-blender';
 import game from 'vgai:contributions/@volter/editor-game';
+import react from 'vgai:contributions/@volter/editor-react';
 import { product } from '@volter/editor-core/frame/product';
 
 export const { mountVgai } = product({
   id: 'game-editor',
   packages: {
     '@volter/editor-game': game,
+    '@volter/editor-react': react,
     '@volter/editor-blender': blender,
   },
   look: 'classic',

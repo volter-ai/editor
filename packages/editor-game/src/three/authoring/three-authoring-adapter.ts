@@ -1337,7 +1337,7 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
     // world constructs every object inside `node_modules`, so the creation-site
     // registry below answers "constructed outside project source" for all of
     // them — while the game's own JSX says exactly where each one is written,
-    // and `vite-plugin-ui-oid.ts` stamped that callsite onto the object. The
+    // and `@volter/editor-react`'s `serving/ui-oid-plugin.ts` stamped that callsite onto the object. The
     // stamped answer is the SAME KIND of fact as a `new` site (a source
     // file:line an edit can be written at), so it belongs in the same slot
     // rather than beside it.

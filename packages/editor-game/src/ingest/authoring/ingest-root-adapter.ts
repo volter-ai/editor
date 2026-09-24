@@ -34,7 +34,7 @@ import {
 } from '../../host/same-realm-loop-gate';
 import { ensureScopedGameStyles } from '@volter/editor-core/scoped-game-css';
 import { resolveThreeIngestRuntimeForEditor } from '../../host/three-ingest-runtime';
-import type { OidEntry } from '@volter/editor-core/ui-source/oid-transform';
+import type { OidEntry } from '@volter/editor-react/source/oid-transform';
 import { createHttpSourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
 import { serverRecordsSourceWrites } from '@volter/editor-core/ui-source/tier-source-write-backend';
 import { clearWorldAdoption, worldAdoptionRecorder } from '@volter/editor-core/world-adoption';
@@ -295,7 +295,7 @@ export function ingestSourceRoots(
  * THE SERVE-TIME DOOR: did the OID transform stamp any of THIS root's own
  * source, according to the index the dev server built while serving it?
  *
- * `GET /__ui-source/index` (`vite-plugin-ui-oid.ts`) records exactly what the
+ * `GET /__ui-source/index` (`@volter/editor-react`'s `serving/ui-oid-plugin.ts`) records exactly what the
  * transform stamped, and it is populated at TRANSFORM time — before the module
  * is evaluated, and therefore long before any object exists to carry a stamp.
  * That is precisely the ordering the graph door cannot have: on a project's

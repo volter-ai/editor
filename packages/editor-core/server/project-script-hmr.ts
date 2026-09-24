@@ -531,7 +531,7 @@ export function handleProjectScriptHotUpdate(
     projectRoot,
     source,
     // T43: reach a non-entry R3F component through the live import graph,
-    // same as `vite-plugin-ui-oid.ts`'s transform hook — see
+    // same as the source-authoring integration's serving plugin transform hook — see
     // `project-hmr-files.ts`'s doc comment on why this is shared, not
     // re-derived.
     importersFromModuleGraph(server.moduleGraph),

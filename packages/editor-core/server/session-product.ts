@@ -108,5 +108,37 @@ export function productContributionFiles(product: ProductIdentity): string[] {
 }
 
 interface ContributingManifest {
-  vgai?: { contributions?: unknown };
+  vgai?: { contributions?: unknown; serving?: unknown };
+}
+
+/**
+ * EVERY SERVING MODULE THE PRODUCT COMPOSES — each composed package's
+ * `package.json#vgai.serving`, as an absolute file: the server half of an integration,
+ * whose Vite plugins take part in serving the project's own modules
+ * (`@volter/editor-sdk/session/project-serving`). Read from the same composition
+ * {@link productContributionFiles} reads, so the kit names no package.
+ */
+export function productServingModules(product: ProductIdentity): string[] {
+  const resolveFrom = createRequire(pathToFileURL(join(product.dir, 'package.json')));
+  const files: string[] = [];
+  for (const name of composedPackages(product)) {
+    let manifestPath: string;
+    try {
+      manifestPath = resolveFrom.resolve(`${name}/package.json`);
+    } catch {
+      continue;
+    }
+    const declared = (JSON.parse(readFileSync(manifestPath, 'utf8')) as ContributingManifest).vgai
+      ?.serving;
+    if (declared === undefined) continue;
+    if (typeof declared !== 'string') {
+      throw new Error(`${name}'s package.json#vgai.serving must name one module file.`);
+    }
+    const file = join(dirname(manifestPath), declared);
+    if (!existsSync(file)) {
+      throw new Error(`${name} declares vgai.serving ${declared}, and ${file} does not exist. Build the package.`);
+    }
+    files.push(file);
+  }
+  return files;
 }

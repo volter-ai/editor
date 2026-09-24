@@ -6,7 +6,7 @@
  * (projected directly, SourceObject3DAuthoringAdapter-style — no
  * mirror); the project's `.tsx` source is truth for persistence. Nodes whose
  * Object3D carries `userData.oid` (stamped by W1's `userData-oid` dialect in
- * `vite-plugin-ui-oid.ts`) are SOURCE-ADDRESSABLE: their JSX props (including
+ * `@volter/editor-react`'s `serving/ui-oid-plugin.ts`) are SOURCE-ADDRESSABLE: their JSX props (including
  * W2's number-tuple transforms) read from the real source text
  * (`analyzeJsxAttributes` over the oid index location) and write back through
  * the same `/__ui-source/*` seam the DOM adapter (`dom-authoring-adapter.ts`) uses — wrapped
@@ -90,13 +90,13 @@ import {
   type R3fEnvironmentBinding,
   type R3fEnvironmentNumberBinding,
   type R3fEnvironmentStringBinding,
-} from '@volter/editor-core/ui-source/oid-transform';
-import { mergeRowDiagnostics } from '@volter/editor-core/ui-source/r3f-diagnostic-index';
-import type { R3fJointLiteral, R3fJointLiteralRange } from '@volter/editor-core/ui-source/r3f-joint-binding';
-import type { R3fLodNumberBinding } from '@volter/editor-core/ui-source/r3f-lod-binding';
-import { bodyPlacedChannel, physicsRefusal } from '@volter/editor-core/ui-source/r3f-physics-binding';
-import { relativeImportSpecifier } from '@volter/editor-core/ui-source/relative-import-specifier';
-import type { ReparentChannel, ReparentRebase } from '@volter/editor-core/ui-source/reparent-guard';
+} from '@volter/editor-react/source/oid-transform';
+import { mergeRowDiagnostics } from '@volter/editor-react/source/r3f-diagnostic-index';
+import type { R3fJointLiteral, R3fJointLiteralRange } from '@volter/editor-react/source/r3f-joint-binding';
+import type { R3fLodNumberBinding } from '@volter/editor-react/source/r3f-lod-binding';
+import { bodyPlacedChannel, physicsRefusal } from '@volter/editor-react/source/r3f-physics-binding';
+import { relativeImportSpecifier } from '@volter/editor-react/source/relative-import-specifier';
+import type { ReparentChannel, ReparentRebase } from '@volter/editor-react/source/reparent-guard';
 import type {
   SourceWriteBackend,
   StructReparentContext,
@@ -109,7 +109,7 @@ import {
   isNumberTupleLiteral,
   type JsxAttrInfo,
   offsetSnippetPositions,
-} from '@volter/editor-core/ui-source/writer';
+} from '@volter/editor-react/source/writer';
 import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
 import { activateWorkspaceDocument } from '@volter/editor-core/workspace-document-registry';
 import type {
@@ -1026,7 +1026,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
    * WRITTEN, as opposed to {@link sourceLocation}'s callsite (where it is USED).
    *
    * Both live in the same OID index; they are different entries reached through
-   * different keys on the SAME object. `vite-plugin-ui-oid`'s transform stamps a
+   * different keys on the SAME object. `@volter/editor-react`'s `serving/ui-oid-plugin.ts`'s transform stamps a
    * host element inside a component definition with BOTH
    * `userData-oid="<this element, in the definition file>"` AND
    * `userData-authoringInstance={__vgaiOid}` (the callsite oid, passed in as a

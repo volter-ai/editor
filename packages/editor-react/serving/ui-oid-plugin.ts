@@ -77,31 +77,16 @@ import {
   readdirSync,
   readFileSync,
   realpathSync,
-  writeFileSync,
 } from 'node:fs';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { Worker } from 'node:worker_threads';
 import type { Plugin, ViteDevServer } from 'vite';
 import { resolveManifestPath } from '@volter/editor-project/manifest/locate';
-import { CollaborationConflictError, collaborationSession } from './server/collaboration-session';
 import {
-  importersFromModuleGraph,
-  reportOidSurfaceDiagnostics,
-  resolveOidSurface,
-} from './server/project-root-surface';
-import {
-  editorChromeStampBoundary,
-  type HmrInvalidationGraph,
-  staleModuleWarning,
-  stampHmrInvalidation,
-} from './server/project-script-hmr';
-import {
-  findVendoredTarget,
-  settleVendoredWrite,
-  writeRecordedVendoredFile,
-} from './server/vendored-lock-recorder';
-import { cssTextForStyleValue } from './src/authoring/css-numeric-style';
+  type ProjectServingServices,
+  SOURCE_WRITE_ROUTES_PLUGIN,
+} from '@volter/editor-sdk/session/project-serving';
+import { cssTextForStyleValue } from '@volter/editor-sdk/css-numeric-style';
 import {
   type ComponentPropSpec,
   lineColToOffset,
@@ -110,32 +95,32 @@ import {
   oidAttributeForSurface,
   type R3fComponentContract,
   transformSource,
-} from './src/ui-source/oid-transform';
-import { planDeleteStory, planRenameStory, planSaveStory } from './src/ui-source/plan-csf-story';
-import { planComponentExtraction } from './src/ui-source/plan-extract-component';
-import { planComponentFork } from './src/ui-source/plan-fork-component';
-import { planCreateClassRule } from './src/ui-source/plan-named-style';
+} from '../src/source/oid-transform';
+import { planDeleteStory, planRenameStory, planSaveStory } from '../src/source/plan-csf-story';
+import { planComponentExtraction } from '../src/source/plan-extract-component';
+import { planComponentFork } from '../src/source/plan-fork-component';
+import { planCreateClassRule } from '../src/source/plan-named-style';
 import {
   applyStyleWriteRequest,
   planSourceEdit,
   sourceEditFiles,
-} from './src/ui-source/plan-source-edit';
+} from '../src/source/plan-source-edit';
 import {
   type EntryDiagnosticSelector,
   fileDiagnosticJoin,
-} from './src/ui-source/r3f-diagnostic-index';
+} from '../src/source/r3f-diagnostic-index';
 import {
   importedR3fContracts,
   r3fAuthoringDiagnostics,
   visibleR3fContracts,
-} from './src/ui-source/r3f-project-contracts';
-import type { SourceEditRequest } from './src/ui-source/source-edit-request';
+} from '../src/source/r3f-project-contracts';
+import type { SourceEditRequest } from '../src/source/source-edit-request';
 import {
   detectUtilityClassSupport,
   isUtilityClassEvidenceFile,
   UTILITY_CLASS_EVIDENCE_FILES,
   type UtilityClassSupport,
-} from './src/ui-source/utility-class-support';
+} from '../src/source/utility-class-support';
 import {
   addClassNameToken,
   collectLiteralInlineStyles,
@@ -151,7 +136,7 @@ import {
   surgicalCssEdit,
   surgicalCssEditInMedia,
   writePropChange,
-} from './src/ui-source/writer';
+} from '../src/source/writer';
 
 // `applyStyleWriteRequest` and `oidAttributeForSurface` live in browser-safe
 // modules (`plan-source-edit.ts` / `oid-transform.ts`), because a PAGE reaches
@@ -418,7 +403,7 @@ function indexEntriesByFile(store: OidStore): Map<string, Map<string, OidEntry>>
 function analyzeIndexFile(
   file: string,
   fileEntries: ReadonlyMap<string, OidEntry>,
-  importersOf: ReturnType<typeof importersFromModuleGraph>,
+  moduleGraph: unknown,
 ): IndexFileAnalysis {
   let source: string;
   try {
@@ -428,7 +413,7 @@ function analyzeIndexFile(
   }
   // The SAME decision the transform hook stamped with (task #45) — not a
   // second derivation that could disagree with it.
-  if (resolveOidSurface(file, source, importersOf).attribute !== 'userData-oid') {
+  if (serving().surfaceOf(file, source, moduleGraph).attribute !== 'userData-oid') {
     return INERT_FILE_ANALYSIS;
   }
   return {
@@ -489,14 +474,14 @@ function buildEnrichedOidIndex(
   devServer?: ViteDevServer,
   propsByTag: ReadonlyMap<string, ComponentPropSpec[]> = new Map(),
 ): Record<string, unknown> {
-  const importersOf = importersFromModuleGraph(devServer?.moduleGraph);
+  const moduleGraph = devServer?.moduleGraph;
   const entriesByFile = indexEntriesByFile(store);
 
   const analyses = new Map<string, IndexFileAnalysis>();
   const analysisFor = (file: string): IndexFileAnalysis => {
     const cached = analyses.get(file);
     if (cached) return cached;
-    const analysis = analyzeIndexFile(file, entriesByFile.get(file) ?? new Map(), importersOf);
+    const analysis = analyzeIndexFile(file, entriesByFile.get(file) ?? new Map(), moduleGraph);
     analyses.set(file, analysis);
     return analysis;
   };
@@ -533,12 +518,8 @@ const pendingPropRequests = new Map<
 >();
 
 function componentPropWorkerUrl(): URL {
-  // Source dev runs this plugin from `packages/editor/`; the published server
-  // runs its bundle from `dist-server/`, beside the separately-built worker.
-  const source = new URL('./server/component-prop-worker.ts', import.meta.url);
-  return existsSync(fileURLToPath(source))
-    ? source
-    : new URL('./component-prop-worker.mjs', import.meta.url);
+  // The serving module runs built (`dist-node/serving.mjs`), beside the worker built with it.
+  return new URL('./component-prop-worker.mjs', import.meta.url);
 }
 
 function rejectPendingPropRequests(error: Error): void {
@@ -710,184 +691,32 @@ export function __oidIndexEnrichStateForTest(): { queued: boolean; hasEnriched: 
  * forgotten one is not a visible bug — it is a vendored tree that quietly
  * stops matching its lock.
  */
-/**
- * This repo's root — `<root>/packages/editor/vite-plugin-ui-oid.ts` is where
- * this file lives, and `<root>/vendor/games/` is where the locks live. It is a
- * property of the CHECKOUT, not of the opened project, so deriving it from the
- * module's own URL is the right default for every real caller and none of them
- * passes anything.
- *
- * It is a DEFAULT rather than a constant so the estate the recorder judges
- * against is injectable — the same shape `server/creation-site-write.ts` has
- * carried all along, where `engineRoot` is an ordinary parameter of
- * `ingestSourceOwnership`/`resolveIngestSourceFile`. Without it, "does a
- * `/__ui-source/*` write reach the lock recorder?" could only be asked against
- * THIS checkout's real `vendor/games/`, i.e. by editing a shipped game — so the
- * recorder's contract was provable for the ingest routes and unprovable for
- * this family. `test/ui-source-vendored-recorder.test.ts` is the case that
- * needed it.
- */
-const DEFAULT_ENGINE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
+/** The kit's server capabilities this plugin was constructed with
+ *  (`@volter/editor-sdk/session/project-serving`). */
+let servingServices: ProjectServingServices | null = null;
 
-/**
- * THE MODULE GRAPH THE WRITE POINT ABOVE MUST INVALIDATE — and why the editor
- * cannot leave that to the file watcher.
- *
- * The editor writes the bytes itself. Making its OWN write visible to the next
- * mount is therefore its own job, and routing that through the filesystem
- * watcher makes it a property of the environment instead: Vite serves a module
- * from `ModuleGraph.transformResult` until something invalidates it, and the
- * only thing that ever did was the watcher's change event.
- *
- * Measured 2026-08-16 on `examples/third-person`, with a one-variable A/B: the
- * root config's `server.watch.ignored` carries a `.claude` glob (it is there to
- * stop one agent worktree's churn reloading every OTHER live session's tab), and
- * with it in place
- * a `position` prop written through `/__ui-source/prop` landed on disk, and the
- * dev server then served a BYTE-IDENTICAL pre-edit transform of `src/world.tsx`
- * for the rest of the session — to a cold `GET`, and to a `?t=`-busted one. A
- * page reload therefore re-derived the world from the PRE-EDIT bytes and the
- * authored value read back as the old one, with an honest-looking ack and a
- * real diff on disk behind it. Dropping that one pattern made the very next
- * fetch fresh. The write path may not depend on an ignore list it does not own:
- * an unwatched project is a silently-discarded edit.
- *
- * Graph-only, deliberately: this stamps invalidation exactly the way
- * `handleProjectScriptHotUpdate` does when it swallows Vite's HMR, and sends no
- * client event. Hot-update behaviour on a watched project is unchanged
- * (its watcher event still arrives and still drives the custom events), and
- * stamping twice is idempotent — what is NOT recoverable is the mount that
- * re-derives from bytes the server has already replaced.
- */
-let writtenSourceInvalidationGraph: HmrInvalidationGraph | undefined;
-let writtenSourceStampBoundary: ((moduleFile: string) => boolean) | undefined;
-
-/** Called once by `configureServer` — the plugin has exactly one dev server.
- *  `stampBoundary` bounds the stamp's importer propagation at editor-chrome
- *  modules: a written PROJECT module must re-evaluate on its next mount, and
- *  the editor modules that imported it must not be re-instanced mid-session.
- *  This route shipped UNBOUNDED while its creation-site sibling was bounded,
- *  and that one copy was the whole failure (measured on bubbo-bubbo,
- *  2026-08-21): every creation-site write re-stamped 33 editor modules
- *  through the isolation-document import edge, the next lazy import fetched
- *  a second `play-mode.ts?t=…` instance, and every ▶ after a write refused
- *  with "Game container not mounted". See `editorChromeStampBoundary`. */
-function bindWrittenSourceInvalidation(
-  graph: HmrInvalidationGraph,
-  stampBoundary?: (moduleFile: string) => boolean,
-): void {
-  writtenSourceInvalidationGraph = graph;
-  writtenSourceStampBoundary = stampBoundary;
-}
-
-function invalidateWrittenSource(file: string): void {
-  if (!writtenSourceInvalidationGraph) return;
-  const outcome = stampHmrInvalidation(
-    writtenSourceInvalidationGraph,
-    file,
-    undefined,
-    writtenSourceStampBoundary,
-  );
-  const warning = staleModuleWarning(file, outcome);
-  if (warning) console.warn(warning);
+function serving(): ProjectServingServices {
+  if (!servingServices) throw new Error('The React source-authoring plugin was used before the session constructed it.');
+  return servingServices;
 }
 
 /**
- * The path `findVendoredTarget` must judge, symlinks resolved.
- *
- * `realpathSync` is what makes the vendored check survive a symlinked checkout
- * (`vendored-lock-recorder.test.ts` pins that), but it REQUIRES the path to
- * exist — and one write path legitimately names a file that does not exist yet:
- * `/__ui-source/fork-component` writes the fork's brand-new file (it refuses
- * outright when that path already exists). So resolve the containing DIRECTORY
- * and re-join the basename when the file itself is not there; a new file's
- * vendored-ness is decided by the folder it lands in.
+ * THE read point for every `/__ui-source/*` handler: a crashed vendored write is rolled forward
+ * before its file is read, so no handler plans against bytes the recorder is about to replace.
+ * Welded to the read, the way the recorder is welded to the write, so no handler can forget it.
  */
-function realpathForWrite(file: string): string {
-  try {
-    return realpathSync(file);
-  } catch {
-    try {
-      return join(realpathSync(dirname(file)), basename(file));
-    } catch {
-      return file;
-    }
-  }
-}
-
-/**
- * THE read point for every `/__ui-source/*` handler — the twin of
- * {@link writeEditableSource} below, and centralised for the same reason it is.
- *
- * A crashed vendored write leaves a roll-forward journal, and the next request
- * that touches the game is what completes it (`settleVendoredWrite`). A read
- * that skips that step plans against bytes the crashed write has already
- * superseded — and MEASURED, that is neither caught downstream nor loud:
- *
- *  - Through the prepare/apply pair: `/__ui-source/read` returned the
- *    pre-settle bytes with a 200, `/__ui-source/prepare` planned from them, and
- *    `/__ui-source/apply` ACCEPTED, because the `ifMatchSha` gate compares the
- *    client's stale hash against the same stale bytes and so agrees with
- *    itself. A pending journal does not change the file's bytes — that is the
- *    whole point of rolling forward — so the 409 is unreachable in exactly the
- *    window it exists for.
- *  - Through any single-request write handler (`/prop` is the ordinary
- *    inspector "revert this prop" gesture): read → plan → `writeEditableSource`,
- *    which settles and THEN writes the stale-based edit over it. Strictly
- *    worse, because there is no `ifMatchSha` in the loop at all.
- *
- * Either way the journalled write vanishes, the lock comes out internally
- * consistent, and `verify-unaltered.mjs` stays green over a lost update.
- *
- * So the settle is not a line each handler remembers to add — it is welded to
- * the read, the way recorder routing is welded to the write below. Nine
- * handlers read source here; the first fix of this defect added the settle to
- * two of them and read as complete, which is the argument for a single point
- * rather than a convention.
- */
-function readSettledSource(file: string, engineRoot: string): string {
-  settlePendingVendoredWrite(file, engineRoot);
+function readSettledSource(file: string): string {
+  serving().settleSource(file);
   return readFileSync(file, 'utf8');
 }
 
 /**
- * Roll a crashed vendored write forward, and — when it moved bytes — stamp the
- * invalidation that a write of our own would have stamped.
- *
- * Settling REPLACES the file's content, so leaving the module graph alone
- * would serve the pre-settle module and leave the oid index on pre-settle
- * offsets: the same silently-discarded-edit class {@link
- * writtenSourceInvalidationGraph} exists to close, arriving through the settle
- * instead of through the write.
+ * THE write point for every `/__ui-source/*` handler: the kit's own write (a vendored file is
+ * recorded against its lock, and the served modules it replaces are invalidated, so the next
+ * mount reads the new bytes rather than a transform the dev server still holds).
  */
-function settlePendingVendoredWrite(file: string, engineRoot: string): void {
-  const vendored = findVendoredTarget(realpathForWrite(file), engineRoot);
-  if (vendored && settleVendoredWrite(vendored)) invalidateWrittenSource(file);
-}
-
-function writeEditableSource(
-  file: string,
-  code: string,
-  engineRoot: string = DEFAULT_ENGINE_ROOT,
-): void {
-  const target = findVendoredTarget(realpathForWrite(file), engineRoot);
-  if (!target) {
-    writeFileSync(file, code);
-    invalidateWrittenSource(file);
-    return;
-  }
-  settleVendoredWrite(target);
-  const result = writeRecordedVendoredFile(target, Buffer.from(code, 'utf8'), 'editor source edit');
-  if (!result.ok) {
-    // REFUSE LOUDLY rather than fall through to an unrecorded write: a lock
-    // that already disagrees with its folder is not a base anything may record
-    // onto, and writing anyway is precisely the silent drift the lock exists
-    // to make impossible.
-    throw new Error(
-      `vendored source write refused for ${target.id}/${target.rel}: ${result.error}`,
-    );
-  }
-  invalidateWrittenSource(file);
+function writeEditableSource(file: string, code: string): void {
+  serving().writeSource(file, code);
 }
 
 /** Default `include` predicate (see the module doc comment above for the reasoning). */
@@ -997,7 +826,6 @@ export function handlePrepare(
   store: OidStore,
   body: Record<string, unknown>,
   projectRoot = process.cwd(),
-  engineRoot: string = DEFAULT_ENGINE_ROOT,
 ): HandlerResult {
   const request = body as unknown as SourceEditRequest;
   if (request.kind === 'css' && (!request.file || !isEditableCssFile(request.file))) {
@@ -1010,7 +838,7 @@ export function handlePrepare(
   const sources = new Map<string, string>();
   const files = sourceEditFiles(request, resolveOid);
   for (const file of files) {
-    sources.set(file, readSettledSource(file, engineRoot));
+    sources.set(file, readSettledSource(file));
   }
   // The class-vs-inline gate is a question about the EDITED FILE's own project,
   // so it is answered here (the tier that has `node:fs`) and handed to the pure
@@ -1028,14 +856,13 @@ export function handlePrepare(
 export function handleSourceRead(
   body: Record<string, unknown>,
   projectRoot = process.cwd(),
-  engineRoot: string = DEFAULT_ENGINE_ROOT,
 ): HandlerResult {
   const file = body['file'];
   const resolved = typeof file === 'string' ? resolveEditableSourceFile(file, projectRoot) : null;
   if (!resolved) {
     return { status: 403, body: { error: 'file out of editable scope' } };
   }
-  const source = readSettledSource(resolved, engineRoot);
+  const source = readSettledSource(resolved);
   return {
     body: {
       source,
@@ -1048,9 +875,8 @@ export function handleSourceRead(
 export function handleSourceApply(
   body: Record<string, unknown>,
   projectRoot = process.cwd(),
-  engineRoot: string = DEFAULT_ENGINE_ROOT,
 ): HandlerResult {
-  const restored = handleRestore(body, projectRoot, engineRoot);
+  const restored = handleRestore(body, projectRoot);
   const value = restored.body as { restored: boolean; sha?: string; error?: string };
   return {
     ...(restored.status ? { status: restored.status } : {}),
@@ -1066,7 +892,6 @@ function handleWrite(
   store: OidStore,
   body: Record<string, unknown>,
   projectRoot = process.cwd(),
-  engineRoot: string = DEFAULT_ENGINE_ROOT,
 ): HandlerResult {
   // A numeric `value` stays a NUMBER all the way to the writer — the JSX then
   // carries a bare `12` (React px-ifies it) instead of `'12'`, which React
@@ -1078,7 +903,7 @@ function handleWrite(
   };
   const entry = store.index.get(oid);
   if (!entry) return { body: { changed: false, error: 'unknown oid' } };
-  const src = readSettledSource(entry.file, engineRoot);
+  const src = readSettledSource(entry.file);
   const off = lineColToOffset(src, entry.line, entry.col);
   const result = applyStyleWriteRequest(
     src,
@@ -1087,7 +912,7 @@ function handleWrite(
     value,
     utilityClassSupportFor(projectRoot, entry.file),
   );
-  if (result.changed) writeEditableSource(entry.file, result.code, engineRoot);
+  if (result.changed) writeEditableSource(entry.file, result.code);
   return {
     body: {
       changed: result.changed,
@@ -1116,7 +941,6 @@ function handleWrite(
  */
 export function handleCss(
   body: Record<string, unknown>,
-  engineRoot: string = DEFAULT_ENGINE_ROOT,
 ): HandlerResult {
   const { file, selector, prop, value, media } = body as {
     file: string;
@@ -1129,7 +953,7 @@ export function handleCss(
     return { body: { changed: false, error: 'css file out of editable scope' } };
   }
   const cleanFile = file.split('?')[0] ?? file;
-  const src = readSettledSource(cleanFile, engineRoot);
+  const src = readSettledSource(cleanFile);
   // `media` scopes the edit to a breakpoint: the rule inside `@media <media>`
   // (block and rule both created on demand — a breakpoint's first edit IS
   // what mints it). The base-path `generated` probe does not apply: the
@@ -1139,7 +963,7 @@ export function handleCss(
       ? surgicalCssEditInMedia(src, media, selector, prop, value)
       : surgicalCssEdit(src, selector, prop, value);
   if (edited === null) return { body: { changed: false, generated: true, file: cleanFile } };
-  if (edited !== src) writeEditableSource(cleanFile, edited, engineRoot);
+  if (edited !== src) writeEditableSource(cleanFile, edited);
   return { body: { changed: edited !== src, file: cleanFile } };
 }
 
@@ -1151,16 +975,15 @@ export function handleCss(
 function handleText(
   store: OidStore,
   body: Record<string, unknown>,
-  engineRoot: string = DEFAULT_ENGINE_ROOT,
 ): HandlerResult {
   const { oid, text } = body as { oid: string; text: string };
   const entry = store.index.get(oid);
   if (!entry) return { body: { changed: false, error: 'unknown oid' } };
-  const src = readSettledSource(entry.file, engineRoot);
+  const src = readSettledSource(entry.file);
   const off = lineColToOffset(src, entry.line, entry.col);
   const prevText = getEditableText(src, off);
   const result = editTextContent(src, off, text);
-  if (result.changed) writeEditableSource(entry.file, result.code, engineRoot);
+  if (result.changed) writeEditableSource(entry.file, result.code);
   return {
     body: { changed: result.changed, dynamic: result.dynamic, prevText, file: entry.file },
   };
@@ -1175,19 +998,18 @@ function handleText(
 function handleProp(
   store: OidStore,
   body: Record<string, unknown>,
-  engineRoot: string = DEFAULT_ENGINE_ROOT,
 ): HandlerResult {
   const { oid, prop, value } = body as { oid: string; prop: string; value: string | null };
   const entry = store.index.get(oid);
   if (!entry) return { body: { changed: false, error: 'unknown oid' } };
-  const src = readSettledSource(entry.file, engineRoot);
+  const src = readSettledSource(entry.file);
   const off = lineColToOffset(src, entry.line, entry.col);
   // `value: null` is the REMOVAL sentinel, the same shape `/__ui-source/write`
   // uses for `removeStyle` (D-A3). Removing a prop attribute is how the
   // inspector reverts a prop to the component's declared default.
   if (value === null) {
     const removed = removePropAttribute(src, off, prop);
-    if (removed.changed) writeEditableSource(entry.file, removed.code, engineRoot);
+    if (removed.changed) writeEditableSource(entry.file, removed.code);
     return { body: { changed: removed.changed, dynamic: removed.dynamic, file: entry.file } };
   }
   const result = writePropChange(src, off, prop, value, {
@@ -1197,7 +1019,7 @@ function handleProp(
     // pre-existing caller, so react-dom prop writes are byte-identical.
     allowShapeUpgrade: body['allowShapeUpgrade'] === true,
   });
-  if (result.changed) writeEditableSource(entry.file, result.code, engineRoot);
+  if (result.changed) writeEditableSource(entry.file, result.code);
   return { body: { changed: result.changed, dynamic: result.dynamic, file: entry.file } };
 }
 
@@ -1229,7 +1051,6 @@ function handleProp(
 export function handleStruct(
   store: OidStore,
   body: Record<string, unknown>,
-  engineRoot: string = DEFAULT_ENGINE_ROOT,
 ): HandlerResult {
   const { oid, op } = body as { oid?: unknown; op?: unknown };
   if (typeof oid !== 'string' || typeof op !== 'string') {
@@ -1239,13 +1060,13 @@ export function handleStruct(
   const resolveOid = (id: string): OidEntry | undefined => store.index.get(id);
   const sources = new Map<string, string>();
   for (const file of sourceEditFiles(request, resolveOid)) {
-    sources.set(file, readSettledSource(file, engineRoot));
+    sources.set(file, readSettledSource(file));
   }
   const plan = planSourceEdit(request, sources, resolveOid);
   if (plan.file === null) return { body: { changed: false, ...plan.result } };
   const { changed: _planned, ...detail } = plan.result;
   if (!plan.changed) return { body: { changed: false, file: plan.file, ...detail } };
-  writeEditableSource(plan.file, plan.newSource, engineRoot);
+  writeEditableSource(plan.file, plan.newSource);
   return {
     body: {
       changed: true,
@@ -1285,7 +1106,6 @@ export function handleStruct(
 export function handleStructMany(
   store: OidStore,
   body: Record<string, unknown>,
-  engineRoot: string = DEFAULT_ENGINE_ROOT,
 ): HandlerResult {
   const { oids, op, wrapperTag } = body as {
     oids?: unknown;
@@ -1306,14 +1126,14 @@ export function handleStructMany(
   const crossFile = entries.find((e) => e.entry!.file !== file);
   if (crossFile) return { body: { changed: false, error: 'cannot batch-edit across files' } };
 
-  const src = readSettledSource(file, engineRoot); // ONE snapshot every offset below resolves against
+  const src = readSettledSource(file); // ONE snapshot every offset below resolves against
   const offsets = entries.map((e) => lineColToOffset(src, e.entry!.line, e.entry!.col));
   const result =
     op === 'group' ? groupSiblingElements(src, offsets, wrapperTag) : deleteElements(src, offsets);
   if (!result.changed) return { body: { changed: false, file } };
   const prevSource = src;
   const newSource = result.code;
-  writeEditableSource(file, newSource, engineRoot);
+  writeEditableSource(file, newSource);
   return {
     body: {
       changed: true,
@@ -1350,7 +1170,6 @@ export function handleForkComponent(
   store: OidStore,
   body: Record<string, unknown>,
   projectRoot = process.cwd(),
-  engineRoot: string = DEFAULT_ENGINE_ROOT,
 ): HandlerResult {
   const { oid, definitionOid, name } = body as {
     oid?: string;
@@ -1372,11 +1191,11 @@ export function handleForkComponent(
   }
   const planned = planComponentFork({
     callsiteFile: callsite.file,
-    callsiteSource: readSettledSource(callsite.file, engineRoot),
+    callsiteSource: readSettledSource(callsite.file),
     callsiteLine: callsite.line,
     callsiteCol: callsite.col,
     definitionFile: definition.file,
-    definitionSource: readSettledSource(definition.file, engineRoot),
+    definitionSource: readSettledSource(definition.file),
     tag: callsite.tag,
     nameSeed: typeof name === 'string' ? name : undefined,
     siblingFiles,
@@ -1393,7 +1212,7 @@ export function handleForkComponent(
       },
     };
   }
-  writeEditableSource(newFile, plan.newFileSource, engineRoot);
+  writeEditableSource(newFile, plan.newFileSource);
   return {
     body: {
       ok: true,
@@ -1433,7 +1252,6 @@ export function handleExtractComponent(
   store: OidStore,
   body: Record<string, unknown>,
   projectRoot = process.cwd(),
-  engineRoot: string = DEFAULT_ENGINE_ROOT,
 ): HandlerResult {
   const { oid, name } = body as { oid?: string; name?: string };
   const entry = typeof oid === 'string' ? store.index.get(oid) : undefined;
@@ -1448,7 +1266,7 @@ export function handleExtractComponent(
   }
   const planned = planComponentExtraction({
     sourceFile: entry.file,
-    source: readSettledSource(entry.file, engineRoot),
+    source: readSettledSource(entry.file),
     line: entry.line,
     col: entry.col,
     nameSeed: typeof name === 'string' ? name : undefined,
@@ -1469,8 +1287,8 @@ export function handleExtractComponent(
     }
   }
   mkdirSync(prefabDir, { recursive: true });
-  writeEditableSource(plan.componentFile, plan.componentSource, engineRoot);
-  writeEditableSource(plan.storyFile, plan.storySource, engineRoot);
+  writeEditableSource(plan.componentFile, plan.componentSource);
+  writeEditableSource(plan.storyFile, plan.storySource);
   return {
     body: {
       ok: true,
@@ -1502,7 +1320,6 @@ export function handleExtractComponent(
 export function handleCsfStory(
   body: Record<string, unknown>,
   projectRoot = process.cwd(),
-  engineRoot: string = DEFAULT_ENGINE_ROOT,
 ): HandlerResult {
   const { op, file, name, newName, args } = body as {
     op?: 'save' | 'rename' | 'delete';
@@ -1518,7 +1335,7 @@ export function handleCsfStory(
   if (!resolved) {
     return { status: 403, body: { changed: false, error: 'file out of editable scope' } };
   }
-  const source = readSettledSource(resolved, engineRoot);
+  const source = readSettledSource(resolved);
   const plan =
     op === 'save'
       ? planSaveStory(source, name, args ?? {})
@@ -1526,7 +1343,7 @@ export function handleCsfStory(
         ? planRenameStory(source, name, typeof newName === 'string' ? newName : '')
         : planDeleteStory(source, name);
   if (!plan.ok) return { body: { changed: false, error: plan.reason } };
-  writeEditableSource(resolved, plan.nextSource, engineRoot);
+  writeEditableSource(resolved, plan.nextSource);
   return { body: { changed: true, summary: plan.summary, file } };
 }
 
@@ -1559,7 +1376,6 @@ function cssValueFromJsxLiteral(name: string, raw: string): string | null {
 export function handleNamedStyle(
   store: OidStore,
   body: Record<string, unknown>,
-  engineRoot: string = DEFAULT_ENGINE_ROOT,
 ): HandlerResult {
   const { op, oid, className, file } = body as {
     op?: 'create' | 'apply' | 'remove';
@@ -1579,7 +1395,7 @@ export function handleNamedStyle(
   }
   const entry = store.index.get(oid);
   if (!entry) return { body: { changed: false, error: 'unknown oid' } };
-  const src = readSettledSource(entry.file, engineRoot);
+  const src = readSettledSource(entry.file);
   const off = lineColToOffset(src, entry.line, entry.col);
 
   if (op === 'apply' || op === 'remove') {
@@ -1592,7 +1408,7 @@ export function handleNamedStyle(
         },
       };
     }
-    if (r.changed) writeEditableSource(entry.file, r.code, engineRoot);
+    if (r.changed) writeEditableSource(entry.file, r.code);
     return { body: { changed: r.changed, file: entry.file } };
   }
 
@@ -1608,7 +1424,7 @@ export function handleNamedStyle(
   if (!isEditableCssFile(cleanCss)) {
     return { body: { changed: false, error: 'css file out of editable scope' } };
   }
-  const cssSrc = existsSync(cleanCss) ? readSettledSource(cleanCss, engineRoot) : '';
+  const cssSrc = existsSync(cleanCss) ? readSettledSource(cleanCss) : '';
   const decls: { prop: string; value: string }[] = [];
   const moved: string[] = [];
   for (const member of collectLiteralInlineStyles(src, off)) {
@@ -1648,8 +1464,8 @@ export function handleNamedStyle(
   ) {
     elementCode = `import '${specifier}';\n${elementCode}`;
   }
-  writeEditableSource(cleanCss, plan.nextSource, engineRoot);
-  if (elementCode !== src) writeEditableSource(entry.file, elementCode, engineRoot);
+  writeEditableSource(cleanCss, plan.nextSource);
+  if (elementCode !== src) writeEditableSource(entry.file, elementCode);
   return {
     body: { changed: true, file: cleanCss, elementFile: entry.file, moved, summary: plan.summary },
   };
@@ -1672,7 +1488,6 @@ export function handleNamedStyle(
 export function handleRestore(
   body: Record<string, unknown>,
   projectRoot = process.cwd(),
-  engineRoot: string = DEFAULT_ENGINE_ROOT,
 ): HandlerResult {
   const { file, source, ifMatchSha } = body as {
     file: string;
@@ -1685,7 +1500,7 @@ export function handleRestore(
   }
   let current: string;
   try {
-    current = readSettledSource(resolved, engineRoot);
+    current = readSettledSource(resolved);
   } catch (e) {
     return { status: 404, body: { restored: false, error: String(e) } };
   }
@@ -1700,43 +1515,16 @@ export function handleRestore(
       },
     };
   }
-  writeEditableSource(resolved, source, engineRoot);
+  writeEditableSource(resolved, source);
   return { body: { restored: true, sha: sha256(source) } };
 }
 
-/**
- * This plugin's Vite name — the ONE spelling, so a host can ask its own
- * resolved plugin list whether it serves `/__ui-source/*` instead of declaring
- * the same fact a second time. See {@link servesUiSourceRoutes}.
- */
-export const UI_OID_PLUGIN_NAME = 'vgai-ui-oid';
-
-/**
- * Does this Vite instance serve the `/__ui-source/*` read/write endpoints?
- *
- * Read off the RESOLVED plugin list, never declared: an editor host that boots
- * a Vite instance registers `uiOidPlugin()` or it does not, and that
- * registration is the only fact there is. A host with no Vite at all has no
- * plugins and correctly answers `false`.
- *
- * This is what `/__editor/project`'s `sourceWrite` reports and what the editor
- * client's `tier-source-write-backend.ts` reads to decide whether authoring
- * edits are recorded to the game's own source or are honestly live-only — the
- * axis that used to be (wrongly) `import.meta.env.DEV`.
- */
-export function servesUiSourceRoutes(plugins: readonly { name: string }[]): boolean {
-  return plugins.some((plugin) => plugin.name === UI_OID_PLUGIN_NAME);
-}
-
 export function uiOidPlugin(
+  services: ProjectServingServices,
   include: RegExp | ((id: string) => boolean) = defaultProjectScopeInclude,
-  projectRoot?: string | (() => string | undefined),
-  /** The vendored ESTATE this plugin's writes are recorded against — see
-   *  {@link DEFAULT_ENGINE_ROOT}. A parameter, not a config option: no shipped
-   *  caller passes it and none should, it exists so a test can stand up a
-   *  synthetic `vendor/games/` instead of editing a real one. */
-  engineRoot: string = DEFAULT_ENGINE_ROOT,
 ): Plugin {
+  servingServices = services;
+  const projectRoot = services.currentProjectRoot;
   const test = typeof include === 'function' ? include : (id: string) => include.test(id);
   const store = new OidStore();
   // Captured by `configureServer` below, read by `transform` — the dev
@@ -1748,7 +1536,7 @@ export function uiOidPlugin(
   // answer, same as before this existed.
   let devServer: ViteDevServer | undefined;
   return {
-    name: UI_OID_PLUGIN_NAME,
+    name: SOURCE_WRITE_ROUTES_PLUGIN,
     enforce: 'pre',
     transform(code, id) {
       // A VIRTUAL MODULE IS NOT A FILE, and everything below this line treats
@@ -1777,12 +1565,7 @@ export function uiOidPlugin(
       // The project root is threaded because an INGEST root's sources live
       // outside its manifest's directory (see `manifestOwning`), so the walk
       // alone cannot find the project that declares them.
-      const decision = resolveOidSurface(
-        clean,
-        code,
-        importersFromModuleGraph(devServer?.moduleGraph),
-        typeof projectRoot === 'function' ? projectRoot() : projectRoot,
-      );
+      const decision = services.surfaceOf(clean, code, devServer?.moduleGraph, projectRoot());
       const { code: out, entries } = transformSource(code, clean, store, {
         attribute: decision.attribute,
         canvasComponents: decision.surface === 'canvas',
@@ -1791,21 +1574,14 @@ export function uiOidPlugin(
       // Task #45: a wrong stamp must not be silent. Reported only when this
       // file actually GOT stamps — a module with no JSX has no selection to
       // break, so its (irrelevant) attribute is not worth a terminal line.
-      if (entries.length > 0) reportOidSurfaceDiagnostics(decision);
+      if (entries.length > 0) decision.report();
       return { code: out, map: null };
     },
     configureServer(server) {
       devServer = server;
-      const activeProjectRoot = (): string =>
-        (typeof projectRoot === 'function' ? projectRoot() : projectRoot) ?? server.config.root;
-      // The editor's own writes invalidate the modules they replace — see
-      // `writtenSourceInvalidationGraph` for the measured stale-remount this
-      // closes, and why the watcher is not allowed to be the only path. The
-      // stamp is BOUNDED at editor chrome (see `bindWrittenSourceInvalidation`).
-      bindWrittenSourceInvalidation(
-        server.moduleGraph,
-        editorChromeStampBoundary(engineRoot, activeProjectRoot),
-      );
+      const activeProjectRoot = (): string => projectRoot() ?? server.config.root;
+      // The editor's own writes invalidate the modules they replace; the kit binds the graph.
+      services.bindModuleGraph(server.moduleGraph, activeProjectRoot);
       // The Express host may apply express.json() app-wide, consuming the body and
       // leaving the parsed object on req.body. Prefer that; else read the raw stream.
       const readJson = async (
@@ -1883,13 +1659,13 @@ export function uiOidPlugin(
           };
         });
         if (resources.length === 0) return undefined;
-        const session = collaborationSession(activeProjectRoot());
+        const session = services.collaboration(activeProjectRoot());
         // `null` means the bytes were already recorded (a filesystem observer
         // won the race) — the session's CURRENT revision is still the honest
         // answer to "what must the next write expect".
         return (
           session.recordSourceMutation({ authorId: participantId, source: 'editor', resources })
-            ?.revision ?? session.snapshot().revision
+            ?.revision ?? session.revision()
         );
       };
       // Single middleware switching on the URL — avoids connect prefix-matching subtleties.
@@ -1939,7 +1715,7 @@ export function uiOidPlugin(
             ) {
               throw new Error(`The ${trustedRole} share role cannot edit source.`);
             }
-            collaborationSession(activeProjectRoot()).assertSourceMutation(
+            services.collaboration(activeProjectRoot()).assertSourceMutation(
               participantId,
               expectedRevision as number,
               beforeFiles.map(resourcePath),
@@ -1967,27 +1743,27 @@ export function uiOidPlugin(
           json(
             res,
             { changed: false, error: e instanceof Error ? e.message : String(e) },
-            e instanceof CollaborationConflictError ? 409 : 400,
+            services.isCollaborationConflict(e) ? 409 : 400,
           );
         }
       };
       // POST route table — keeps the dispatcher flat (one lookup, no per-endpoint branch).
       const postRoutes: Record<string, (body: Record<string, unknown>) => HandlerResult> = {
-        '/__ui-source/prepare': (b) => handlePrepare(store, b, activeProjectRoot(), engineRoot),
-        '/__ui-source/read': (b) => handleSourceRead(b, activeProjectRoot(), engineRoot),
-        '/__ui-source/apply': (b) => handleSourceApply(b, activeProjectRoot(), engineRoot),
-        '/__ui-source/write': (b) => handleWrite(store, b, activeProjectRoot(), engineRoot),
-        '/__ui-source/css': (b) => handleCss(b, engineRoot),
-        '/__ui-source/text': (b) => handleText(store, b, engineRoot),
-        '/__ui-source/prop': (b) => handleProp(store, b, engineRoot),
-        '/__ui-source/struct': (b) => handleStruct(store, b, engineRoot),
-        '/__ui-source/struct-many': (b) => handleStructMany(store, b, engineRoot),
+        '/__ui-source/prepare': (b) => handlePrepare(store, b, activeProjectRoot()),
+        '/__ui-source/read': (b) => handleSourceRead(b, activeProjectRoot()),
+        '/__ui-source/apply': (b) => handleSourceApply(b, activeProjectRoot()),
+        '/__ui-source/write': (b) => handleWrite(store, b, activeProjectRoot()),
+        '/__ui-source/css': (b) => handleCss(b),
+        '/__ui-source/text': (b) => handleText(store, b),
+        '/__ui-source/prop': (b) => handleProp(store, b),
+        '/__ui-source/struct': (b) => handleStruct(store, b),
+        '/__ui-source/struct-many': (b) => handleStructMany(store, b),
         '/__ui-source/csf-story': (b) => handleCsfStory(b, activeProjectRoot()),
-        '/__ui-source/named-style': (b) => handleNamedStyle(store, b, engineRoot),
+        '/__ui-source/named-style': (b) => handleNamedStyle(store, b),
         '/__ui-source/fork-component': (b) =>
-          handleForkComponent(store, b, activeProjectRoot(), engineRoot),
+          handleForkComponent(store, b, activeProjectRoot()),
         '/__ui-source/extract-component': (b) =>
-          handleExtractComponent(store, b, activeProjectRoot(), engineRoot),
+          handleExtractComponent(store, b, activeProjectRoot()),
       };
       server.middlewares.use(async (req, res, next) => {
         const url = (req.url ?? '').split('?')[0] ?? '';

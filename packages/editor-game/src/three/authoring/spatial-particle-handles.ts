@@ -3,7 +3,7 @@
 import type {
   QuarksEmitterShape,
   R3fParticleBinding,
-} from '@volter/editor-core/ui-source/r3f-particle-binding';
+} from '@volter/editor-react/source/r3f-particle-binding';
 import type { SpatialHandleLayer, SpatialPoint3 } from '@volter/editor-project/adapter';
 import * as THREE from 'three';
 

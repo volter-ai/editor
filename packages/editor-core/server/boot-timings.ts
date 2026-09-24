@@ -10,7 +10,7 @@
  * the SAME stage was 83–139s, and answering "why" needed a hand-built request
  * trace plus a V8 CPU profile of the dev server. The cause turned out to be the
  * server's own event loop blocked ~85% of two minutes inside the TypeScript
- * parser (`ui-source/r3f-project-contracts.ts`) — which is exactly the shape a
+ * parser (the source-authoring integration's R3F contract analysis) — which is exactly the shape a
  * loop-delay number reports for free. A product whose slow stage can only be
  * diagnosed by attaching a profiler is missing a door; this is that door.
  *

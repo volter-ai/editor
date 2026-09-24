@@ -189,7 +189,7 @@ export function classifyProjectHotUpdate(
   // replacing its scene. Mixed component/data exports still need the editor's
   // remount boundary, because React Refresh cannot safely accept them.
   //
-  // `resolveOidSurface` — the SAME single decision `vite-plugin-ui-oid.ts`'s
+  // `resolveOidSurface` — the SAME single decision the source-authoring integration's serving plugin
   // OID-stamping transform stamps with, not a separate copy kept in lockstep
   // by hand. It decides from the manifest when this exact file is a root's
   // `entry`, from the live import graph when it's reachable from exactly one

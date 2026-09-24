@@ -43,7 +43,7 @@
  * mount ends — which is also when the edits themselves expire.
  */
 
-import { numericStyleValue } from '@volter/editor-core/authoring/css-numeric-style';
+import { numericStyleValue } from '@volter/editor-sdk/css-numeric-style';
 import { createEphemeralPersistence } from '../host/authoring/ephemeral-persistence';
 import { LIVE_ONLY_DESTINATION } from '@volter/editor-core/authoring/write-pipe';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';

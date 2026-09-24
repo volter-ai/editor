@@ -8,7 +8,7 @@
  * means opening the editor does not initialize that estate to answer a
  * different question. The Content browser panel imports its SIBLING half for
  * five presentation helpers, and that one import carried this half's
- * TypeScript-AST work — `ui-source/oid-transform.ts` (1,811 lines), the five
+ * TypeScript-AST work — the source-authoring integration's JSX transform, the five
  * R3F prop-contract bindings, `ui-source/ts-ast.ts` and
  * `ui-source/adapter-region-includes.ts`, EIGHT files — into every editor boot,
  * a `models` build that indexes no R3F source included.
@@ -31,10 +31,7 @@ import {
 } from '../ui-source/adapter-region-includes';
 import type { ImportersOf, RegionBinding, RegionSurface } from '../ui-source/file-region-resolver';
 import { resolveFileRegion } from '../ui-source/file-region-resolver';
-import {
-  analyzeR3fComponentContracts,
-  builtinR3fContractsForSource,
-} from '../ui-source/oid-transform';
+import { componentContractAnalyzer } from '@volter/editor-sdk/source-analysis';
 import type { ProjectComponentEntry } from './project-content';
 
 const PROJECT_SOURCE_EXTENSIONS = /\.(?:[cm]?[jt]sx)$/i;
@@ -196,9 +193,9 @@ export function discoverComponentsInSource(
   );
   const exported = exportedBindings(sourceFile);
   const defaultExports = defaultExportBindings(sourceFile);
-  const contracts = [
-    ...analyzeR3fComponentContracts(source, path, builtinR3fContractsForSource(source, path)),
-  ];
+  // The contracts a source-authoring integration reads off the module; none registered,
+  // none declared.
+  const contracts = [...(componentContractAnalyzer()?.(source, path) ?? new Map())];
   const sourceInfo = componentSourceInfo(sourceFile);
   const sourceUses = componentSourceUses(sourceFile);
   return contracts
