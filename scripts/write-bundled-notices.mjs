@@ -74,7 +74,11 @@ for(const [owner,files] of Object.entries(groups)){
       notices.push({file,bytes,source:[`https://github.com/${fallback.repository}/blob/${fallback.revision}/${fallback.path}`,
         ...(fallback.url?[fallback.url]:[])].join(' ; ')});
     }else for(const name of paths)notices.push({file:relative(root,join(dir,name)),bytes:readFileSync(join(dir,name))});
-    sections.push(`\n${id}`,`Declared license: ${manifest.license ?? 'See the upstream license text below.'}`);
+    // Where the bundled code's source is — MPL-2.0 requires saying so, and it
+    // is the same answer for every license: the unmodified published package.
+    const repository=typeof manifest.repository==='string'?manifest.repository:manifest.repository?.url;
+    const source=`Source: the unmodified npm package ${id}${repository?`, from ${String(repository).replace(/^git\+/,'')}`:''}`;
+    sections.push(`\n${id}`,`Declared license: ${manifest.license ?? 'See the upstream license text below.'}`,source);
     for(const notice of notices)sections.push(`\n--- ${notice.source ?? notice.file} ---\n`,notice.bytes.toString('utf8'));
     records.push({name:manifest.name,version:manifest.version,license:manifest.license ?? null,
       notices:notices.map(({file,bytes,source})=>({file,sha256:sha(bytes),...(source?{source}:{})}))});
