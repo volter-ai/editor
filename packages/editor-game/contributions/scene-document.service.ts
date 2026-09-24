@@ -11,6 +11,8 @@
  * autoplay entry does) and unbinds the previous store's binding first.
  */
 import { onShellStore } from '@volter/editor-core/shell-store-door';
+import { unregisterAvailableWorkspaceDocument } from '@volter/editor-core/workspace-available-documents';
+import { SCENE_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
 import { bindSceneDocument } from '../src/host/components/scene-document';
 
 export const point = 'workspace.service';
@@ -25,5 +27,6 @@ export function start(): () => void {
     stopStore();
     unbind?.();
     unbind = null;
+    unregisterAvailableWorkspaceDocument(SCENE_DOCUMENT_ID);
   };
 }

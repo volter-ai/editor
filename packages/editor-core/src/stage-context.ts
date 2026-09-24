@@ -168,7 +168,23 @@ export function documentStageContext(
 ): StageContext {
   const subject = subjectOf(documentId);
   const session = object3DDocumentSession(documentId);
-  if (session === null) return worldStageContext(store, documentId, subject, chrome);
+  if (session === null) {
+    // A RESOURCE document with no stage session of its own (a table, a
+    // report, a text document) shows no stage at all; only the world's own
+    // documents answer with the world stage.
+    const kind = openWorkspaceDocuments().find((doc) => doc.descriptor.id === documentId)
+      ?.descriptor.kind;
+    if (kind !== undefined && kind !== 'game' && kind !== 'scene' && kind !== 'world')
+      return {
+        documentId,
+        chrome,
+        subject,
+        surface: null,
+        selection: EMPTY_SELECTION,
+        play: store.playState,
+      };
+    return worldStageContext(store, documentId, subject, chrome);
+  }
   // A document stage's own selection: the session reads it straight off its
   // authoring adapter, and its stage is the only thing painting it, so an owner
   // it reports is by construction three-owned and visible here.

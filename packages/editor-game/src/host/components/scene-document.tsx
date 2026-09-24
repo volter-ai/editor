@@ -398,7 +398,7 @@ export function syncCenterDocuments(
 
 /**
  * Installs the Scene document for one session store and keeps it synced. The
- * returned teardown stops syncing and withdraws the Scene document; the kit's
+ * returned teardown stops syncing; the service withdraws the Scene document, and the kit's
  * `useCenterDocuments` closes every open document on session teardown.
  */
 export function bindSceneDocument(store: EditorShellStore): () => void {
@@ -437,9 +437,11 @@ export function bindSceneDocument(store: EditorShellStore): () => void {
   run();
   const unsubscribe = store.subscribe(run);
   const unsubscribeAdapter = subscribeProjectAdapter(run);
+  // Unbinding follows the session's store and leaves the document registered:
+  // a store arriving again at boot must not close a restored Scene tab. The
+  // service withdraws the document when it stops.
   return () => {
     unsubscribe();
     unsubscribeAdapter();
-    unregisterAvailableWorkspaceDocument(SCENE_DOCUMENT_ID);
   };
 }
