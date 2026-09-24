@@ -34,16 +34,6 @@ session running. The editor is where the source is observed and verified;
 source edits remain ordinary file edits. `npm run dev:standalone` serves only
 an exported build and is not a development bypass.
 
-Study the closest shipped example before inventing a structure:
-
-```bash
-npm run --silent vgai -- examples
-npm run --silent vgai -- create study --example <id>
-```
-
-The study project is a disposable copy. Never put a user game in the engine
-repo's `examples/` directory.
-
 ## Roadmap and journal
 
 `ROADMAP.md` is the only game-level tracker. Its first entry is the complete

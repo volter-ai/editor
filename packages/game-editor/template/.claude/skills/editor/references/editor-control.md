@@ -258,9 +258,6 @@ this game side by side in one editor, each addressed from your program, so
 you can watch them play each other. It is not a different kind of test, and
 it never needs a second browser or a synthetic second player.
 
-**doctor vs playtest:** `npx volter-game-editor doctor` asks "does this project mount in the
-editor?"; the live playtest asks "does this game actually play?"
-
 The playtest loop (exported setup/read functions, the tester's repertoire, and
 sim-time budgets) is documented in the sibling
 `.agents/references/project-manual.md`.

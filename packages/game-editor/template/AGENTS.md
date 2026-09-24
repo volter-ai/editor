@@ -29,18 +29,16 @@ the installed source is project-owned and editable. A doc naming
 
 1. Read the brief; write the initial `ROADMAP.md` task first (shape:
    the ROADMAP rule below).
-2. Study the closest shipped example (`npm run --silent vgai -- examples` lists;
-   `create study --example <id>` scaffolds a copy) and copy its idioms.
-3. Read `vgai.project.json` — each root's `adapter` owns its document
+2. Read `vgai.project.json` — each root's `adapter` owns its document
    and lifecycle; read the root entry files and any data schema before
    editing. `src/main.ts` registers each root's adapter (`three`, `dom`).
-4. Start the editor now (`npm run dev`); tell the user the URL in your
+3. Start the editor now (`npm run dev`); tell the user the URL in your
    FIRST visible message. Keep it running and narrate as you build. The
    editor IS the Code-OSS workbench this machine declares in
    `.vgai/workbench.json` (the product's `create --workbench <dir>` writes it); with
    no declaration `npm run dev` refuses and prints the exact JSON to write —
    write it, do not work around it.
-5. Multiplayer: every SEAT is a person — an INSTANCE in one editor,
+4. Multiplayer: every SEAT is a person — an INSTANCE in one editor,
    played by its resident tester (`game.instance(id)` → the running
    `tester-station.ts` module's `hireTester`) or a human via handoff; never a
    second browser or synthetic player.
