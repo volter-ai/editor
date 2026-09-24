@@ -27,8 +27,7 @@
  *
  * It used to call `renderToneOffline` itself, which put `tone` in the engine's
  * dependency list for a page that merely wanted to publish a global. The
- * offline renderer moved to the `music` capability (`src/lib/music/
- * tone-offline-render.ts`); a fixture composes the two in one line, and a page
+ * offline renderer is the project's; a fixture composes the two in one line, and a page
  * scoring with anything else — a pre-rendered WAV decoded into an
  * `AudioBuffer`, a WebAudio `OfflineAudioContext` graph, another library —
  * satisfies the same contract without touching Tone at all.

@@ -5,7 +5,6 @@
     "src/lib/bake/bake-schema.ts",
     "src/lib/bake/clip-layering.ts",
     "src/lib/bake/gltf-bake.ts",
-    "src/lib/bake/mesh-slice.ts",
     "src/lib/bake/node-image.ts",
     "src/lib/bake/object3d-bake.ts",
     "src/lib/bake/object3d-lifecycle.ts",

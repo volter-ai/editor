@@ -348,10 +348,9 @@ registerWorkspaceDocumentRestorer({
  * hand because it knew the rule.
  */
 /**
- * THE ASSET DOCUMENT'S READINESS — this family's rule, and a DOOR two callers
- * outside the view protocol hold besides the `ready` below
- * (`command-listener.ts`'s `open-asset-tab` and `@vgai/game`'s ragdoll
- * command). It lived in `editor-view-presentation.ts` while the presenter did
+ * THE ASSET DOCUMENT'S READINESS — this family's rule, and a DOOR a caller
+ * outside the view protocol holds besides the `ready` below
+ * (`command-listener.ts`'s `open-asset-tab`). It lived in `editor-view-presentation.ts` while the presenter did
  * the waiting by hand; the presenter holds no kind's rule any more, so the
  * rule lives beside the documents it describes.
  */

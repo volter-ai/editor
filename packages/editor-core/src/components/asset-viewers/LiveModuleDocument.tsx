@@ -66,7 +66,6 @@ import {
   LiveModuleError,
   type LiveModuleRefusal,
 } from '../../live-module-source';
-import { probePasteboardModule } from '../../pasteboard-module';
 import {
   clearProjectModuleTransformError,
   projectModuleChangeMatches,
@@ -76,7 +75,6 @@ import {
 import { notifyWorkspaceDocumentSelectionChanged } from '../../workspace-document-registry';
 import { Object3DDocumentViewport } from '../Object3DDocumentViewport';
 import { STANDARD_COMPONENT_CAMERA_DIRECTION } from '../standard-viewport-dressing';
-import { PasteboardModuleDocument } from './PasteboardModuleDocument';
 
 /**
  * The asset-document host (`components/asset-documents.tsx`) hands its content
@@ -104,9 +102,6 @@ const FILL_CHILD = { flex: 1, minWidth: 0, minHeight: 0, display: 'flex' } as co
 type ProbeState =
   | { readonly status: 'probing' }
   | { readonly status: 'live'; readonly exportName: string }
-  /** The default export is a pasteboard component — the design-canvas
-   *  document, not a model and not plain source (`pasteboard-module.ts`). */
-  | { readonly status: 'pasteboard' }
   | { readonly status: 'fallback'; readonly reason: string };
 
 interface BuildFailure {
@@ -201,7 +196,7 @@ export function LiveModuleDocument({
       // transport; `model-inspection.ts`'s `root.animations.map` builds the
       // Animation section). Measured on a rigged module with two looping clips:
       // no transport, no Animation section, `editor.inspect()` listing only
-      // Preview/Geometry/Rig/Ragdoll/Materials/Source. Copying the reference
+      // Preview/Geometry/Rig/Materials/Source. Copying the reference
       // here is what makes the container the same subject the child is.
       container.animations = root.animations;
       // The hierarchy/inspector project the live graph on every render, so the
@@ -239,18 +234,6 @@ export function LiveModuleDocument({
       } catch (error) {
         if (superseded(attempt)) return;
         if (!(error instanceof LiveModuleError)) throw error;
-        // Not a model: it may still be the OTHER structural document a project
-        // `.tsx` can be — a pasteboard (same revisioned import url, so this
-        // probe rides the fetch the model probe already paid for).
-        if (error.refusal.kind === 'not-a-model' && mounted === null) {
-          const pasteboard = await probePasteboardModule(projectRoot, modulePath, importRevision);
-          if (superseded(attempt)) return;
-          if (pasteboard) {
-            setFailure(null);
-            setProbe({ status: 'pasteboard' });
-            return;
-          }
-        }
         captureFailure = error;
         fail(error.refusal, mounted !== null);
         return;
@@ -336,11 +319,6 @@ export function LiveModuleDocument({
   if (probe.status === 'probing') {
     return (
       <div style={{ padding: 20, color: themeVars.content.muted }}>Inspecting {displayName}…</div>
-    );
-  }
-  if (probe.status === 'pasteboard') {
-    return (
-      <PasteboardModuleDocument documentId={documentId} active={active} modulePath={modulePath} />
     );
   }
   if (probe.status === 'fallback') {

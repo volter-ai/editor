@@ -25,8 +25,7 @@
  * `{ generator: 'castle', variant: 'keep', params: { towers: 4 },
  * palette: { stone: 0x8a8a92 } }` and fits it exactly. Each lib supplies its
  * own thin instance — the pair of functions that turn a seed into a built
- * asset and a built asset's inputs back into a seed (the humanoid's is
- * `src/lib/humanoid/seed.ts`). There is deliberately no registry, no
+ * asset and a built asset's inputs back into a seed. There is deliberately no registry, no
  * dispatcher and no "seed system": resolving `generator` to a builder is one
  * `switch` in your game, written where your game knows which libs it has.
  *

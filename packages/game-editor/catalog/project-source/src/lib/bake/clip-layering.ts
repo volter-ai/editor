@@ -4,8 +4,8 @@
  * This is the family-level animation floor: a humanoid layers an expression or
  * an aim pose over a walk, and a walking castle layers a drawbridge over its
  * gait, by the same mechanism. It lives here in `lib/bake` — the
- * procedural-asset family's shared home, required by `humanoid` and `castle`
- * alike — precisely so the castle never has to import humanoid code to get it.
+ * procedural-asset family's shared home — precisely so no lib ever has to
+ * import another lib's code to get it.
  * Nothing in this file knows what a spine is.
  *
  * HELPERS, NOT A SYSTEM. Every function returns a real `THREE.AnimationClip`
@@ -116,8 +116,7 @@ export interface MaskClipOptions {
  * a chain that hangs off an ANCESTOR of your split node is on the other side,
  * even if it is anatomically "above" it. (Concretely for a humanoid rig: the
  * clavicles hang off the chest vertebra, so an upper-body mask rooted at the
- * ARM bones leaves clavicle motion on the TORSO side. That is usually right —
- * see this lib's humanoid notes on the retargeter's clavicle pass-through —
+ * ARM bones leaves clavicle motion on the TORSO side. That is usually right,
  * but it is a decision, so it is spelled out rather than implied.)
  *
  * Loud on a name the clip does not animate: a mask is written by hand against

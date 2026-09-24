@@ -1656,42 +1656,6 @@ export function handleNamedStyle(
 }
 
 /**
- * POST `/__ui-source/create-file` — create a NEW project source file. The
- * pasteboard "materialize" action's door (extraction and fork keep their own
- * purpose-built routes); creation is the ONLY thing it does — edits go
- * through the surgical writers, and an existing file is a refusal, never an
- * overwrite. Same editable-scope guard as every other source route.
- */
-export function handleCreateSourceFile(
-  body: Record<string, unknown>,
-  projectRoot = process.cwd(),
-  engineRoot: string = DEFAULT_ENGINE_ROOT,
-): HandlerResult {
-  const { file, source } = body as { file?: string; source?: string };
-  if (typeof file !== 'string' || typeof source !== 'string') {
-    return {
-      status: 400,
-      body: { created: false, error: 'create-file requires {file, source}.' },
-    };
-  }
-  const resolved = resolveEditableSourceFile(file, projectRoot);
-  if (!resolved) {
-    return { status: 403, body: { created: false, error: 'file out of editable scope' } };
-  }
-  if (existsSync(resolved)) {
-    return {
-      body: {
-        created: false,
-        error: `${sourceResourcePath(resolved, projectRoot)} already exists — create-file never overwrites.`,
-      },
-    };
-  }
-  mkdirSync(dirname(resolved), { recursive: true });
-  writeEditableSource(resolved, source, engineRoot);
-  return { body: { created: true, file } };
-}
-
-/**
  * POST `/__ui-source/restore` — D-1 (Phase D, spec27 §2): the checksum-guarded whole-file
  * restore that makes Cap-5 structural edits (delete/duplicate/wrap/unwrap/reorder/reparent/
  * create) undoable. `ReactRootAuthoringAdapter.structOp` captures `{prevSource, newSource,
@@ -1989,7 +1953,6 @@ export function uiOidPlugin(
             response['restored'] === true ||
             ((url === '/__ui-source/fork-component' || url === '/__ui-source/extract-component') &&
               response['ok'] === true) ||
-            (url === '/__ui-source/create-file' && response['created'] === true) ||
             (url === '/__ui-source/csf-story' && response['changed'] === true);
           const revision =
             !readOnlySourceRequest && changed && typeof participantId === 'string'
@@ -2019,7 +1982,6 @@ export function uiOidPlugin(
         '/__ui-source/prop': (b) => handleProp(store, b, engineRoot),
         '/__ui-source/struct': (b) => handleStruct(store, b, engineRoot),
         '/__ui-source/struct-many': (b) => handleStructMany(store, b, engineRoot),
-        '/__ui-source/create-file': (b) => handleCreateSourceFile(b, activeProjectRoot()),
         '/__ui-source/csf-story': (b) => handleCsfStory(b, activeProjectRoot()),
         '/__ui-source/named-style': (b) => handleNamedStyle(store, b, engineRoot),
         '/__ui-source/fork-component': (b) =>

@@ -355,24 +355,10 @@ function adoptResponseRevision(value: unknown): void {
   }
 }
 
-/**
- * Create a NEW project source file through the dev server's
- * `/__ui-source/create-file` route (the pasteboard materialize action's
- * door). Kept here so the collaboration attribution/revision envelope every
- * source mutation carries is attached in exactly one place ({@link postJson}).
- * The server refuses an existing file — creation never overwrites.
- */
-export async function createProjectSourceFile(
-  file: string,
-  source: string,
-): Promise<{ created: boolean; error?: string }> {
-  return postJson('/__ui-source/create-file', { file, source });
-}
-
 /** The CSF story write door (`/__ui-source/csf-story`) — save an arg set as
- *  a new story export, rename one, delete one. Kept beside
- *  {@link createProjectSourceFile} so the collaboration envelope stays
- *  attached in one place; the planner's refusals arrive as `error`. */
+ *  a new story export, rename one, delete one, through {@link postJson} so the
+ *  collaboration envelope stays attached in one place; the planner's refusals
+ *  arrive as `error`. */
 export async function writeCsfStory(request: {
   op: 'save' | 'rename' | 'delete';
   file: string;

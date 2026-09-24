@@ -114,14 +114,6 @@ export interface DesignTimeRootDescriptor {
   readonly path: string | undefined;
   readonly zOrder: number;
   readonly pausable: boolean;
-  /**
-   * Mount the declared `path` entry component ALONE, skipping the project
-   * story board a dom layer otherwise becomes whenever the project has dom
-   * stories. The pasteboard document's contract (queue item 4): the FILE is
-   * the canvas and its default export the one subject — a gallery of every
-   * project story on that surface would be a different document.
-   */
-  readonly entryOnly?: boolean;
 }
 
 function readCandidates(composite: CompositeAuthoringAdapter): DesignTimeRootDescriptor[] {

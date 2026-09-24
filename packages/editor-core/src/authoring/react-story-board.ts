@@ -270,34 +270,6 @@ export function subscribeReactStoryBoardViewport(listener: () => void): () => vo
   return () => boardViewportListeners.delete(listener);
 }
 
-/**
- * The active board's frame placements in BOARD coordinates (the unzoomed
- * layer pixels `layout()` writes to each frame's `style.left/top`) — what
- * "Materialize pasteboard" reads to turn the DERIVED auto-grid into AUTHORED
- * `<At x y>` literals. Null when the container holds no board.
- */
-export function reactStoryBoardFramePlacements(
-  element: HTMLElement | null,
-): Array<{ storyId: string; x: number; y: number }> | null {
-  // Boards register under the layer's PARENT (`createReactStoryBoard`'s
-  // `container`), while the queryable marker sits on the layer itself —
-  // accept either, so a caller holding `[data-vgai-react-story-board]` works.
-  const board = element
-    ? (boardsByContainer.get(element) ??
-      (element.parentElement ? boardsByContainer.get(element.parentElement) : undefined))
-    : undefined;
-  if (!board) return null;
-  const placements: Array<{ storyId: string; x: number; y: number }> = [];
-  for (const [storyId, frame] of board.frames) {
-    placements.push({
-      storyId,
-      x: Math.round(Number.parseFloat(frame.element.style.left) || 0),
-      y: Math.round(Number.parseFloat(frame.element.style.top) || 0),
-    });
-  }
-  return placements;
-}
-
 export function getReactStoryBoardViewport(
   container: HTMLElement | null,
 ): ReactStoryBoardViewportState | null {

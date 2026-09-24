@@ -97,9 +97,9 @@ export interface EditorHostWorkspace {
    *
    * It is the async form on purpose. A kind may need to SETTLE — re-read the
    * ledger it opens documents out of — before it can answer, which is exactly
-   * what a package that just WROTE the subject needs (a generated ragdoll's
-   * Setup story, addressed `{ kind: 'story', modulePath, storyName }` the
-   * moment the file exists).
+   * what a package that just WROTE the subject needs (a generated story,
+   * addressed `{ kind: 'story', modulePath, storyName }` the moment the file
+   * exists).
    */
   open(address: { readonly kind: string } & Record<string, unknown>): Promise<boolean>;
   readonly liveDocument: EditorHostLiveDocument;

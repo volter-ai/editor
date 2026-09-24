@@ -647,10 +647,8 @@ const MODEL_SECTION_ORDER = {
   splat: CONTRIBUTED_SECTION_ORDER,
   geometry: CONTRIBUTED_SECTION_ORDER + 10,
   rig: CONTRIBUTED_SECTION_ORDER + 20,
-  // +25 is the RAGDOLL's, and it is `@volter/editor-game`'s
-  // (`contributions/ragdoll.inspector.tsx`, `export const order = 25`) — a
-  // contributed section's order is this same base plus what it declares, so
-  // the slot after Rig is held from there.
+  // A contributed section's order is this same base plus what it declares, so
+  // a package's section after Rig takes a slot in this gap.
   materials: CONTRIBUTED_SECTION_ORDER + 40,
   source: CONTRIBUTED_SECTION_ORDER + 50,
 } as const;

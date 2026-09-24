@@ -67,7 +67,7 @@ export interface XStateAnimationSnapshot {
  *    compare `Actor<StateMachine<…>>` from one copy against `AnyActorRef` from
  *    the other — structurally, through `system`, `src`, `_parent` and a generic
  *    `select`, until it gives up with `TS2321: Excessive stack depth`. Measured
- *    on a fresh scaffold + `vgai add humanoid`, where every in-repo gate
+ *    on a fresh scaffold with a second xstate copy, where every in-repo gate
  *    stayed green because the monorepo resolves exactly one copy. A shape this
  *    shallow cannot blow that budget however many copies are in play.
  *

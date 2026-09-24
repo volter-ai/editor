@@ -126,8 +126,7 @@ const BUILT_IN_WORKSPACES: readonly EditorWorkspaceDescriptor[] = Object.freeze(
     id: 'design',
     title: 'Design',
     description:
-      'Figma-shaped design: pasteboards, moodboards and the UI board. Uses the standing ' +
-      'arrangement until the design program ships its reserved panels.',
+      "Designing UI: the UI board, every one of the project's UI stories laid out as a frame.",
     arrangement: 'game',
   },
   {

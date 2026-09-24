@@ -106,10 +106,9 @@ import type { Plugin } from 'vite';
  * and therefore the shell's `pixi.js`, while the contribution's own
  * `Texture`/`Assets` stay the project's: one renderer looking at another
  * renderer's textures, the same renderer-instance split that broke Play mode
- * when the game was redirected. The `sprite` capability's Sprite Lab took the
- * other exit instead — it drives plain `pixi.js` imperatively
- * (`sprite-lab/stage.ts`), because `pixi.js` calls no React hooks and so
- * crosses nothing. Reach for that shape first; a new line in this map is for a
+ * when the game was redirected. The other exit is driving plain `pixi.js`
+ * imperatively: `pixi.js` calls no React hooks and so crosses nothing. Reach
+ * for that shape first; a new line in this map is for a
  * dependency whose whole job IS rendering in the editor's tree.
  */
 export const SHARED_REACT_ENTRIES = {

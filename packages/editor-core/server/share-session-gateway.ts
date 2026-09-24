@@ -184,14 +184,6 @@ function roleAllowsRole(ceiling: ShareRole, role: ShareRole): boolean {
 const NEVER_SHARE_PATHS = new Set([
   '/__editor/adapt-project',
   '/__editor/browse-folder',
-  // The ComfyUI bridge reaches a LOCAL machine's install and its provider
-  // credentials; `never-share` is the conservative default this list exists to
-  // make explicit, and the route's own workstream can widen it deliberately.
-  // (Undeclared until now — the literal-route guard below has been red on
-  // main since these landed.)
-  '/__editor/comfyui/bridge/connect',
-  '/__editor/comfyui/bridge/install',
-  '/__editor/comfyui/provider-operation',
   '/__editor/create-project',
   '/__editor/download',
   // Seven more that were never declared — the literal-route guard below has

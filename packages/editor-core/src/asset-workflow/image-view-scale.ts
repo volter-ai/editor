@@ -1,7 +1,6 @@
 /**
- * Integer zoom for pixel art. Transcribed from the sprite-lab stage
- * (`fitScale`): a fractional factor resamples the art, and a resampled
- * sheet is a blur with the correct pixels still in the file.
+ * Integer zoom for pixel art: a fractional factor resamples the art, and a
+ * resampled sheet is a blur with the correct pixels still in the file.
  */
 
 /** Largest scale that fits `src` inside `box` without resampling. */

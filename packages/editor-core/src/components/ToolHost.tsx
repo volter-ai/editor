@@ -126,7 +126,7 @@ export class ToolErrorBoundary extends Component<ToolErrorBoundaryProps, ToolErr
  * reconciled by another is "Invalid hook call", and it killed EVERY workspace
  * document and utility on a packaged editor while the same contributions
  * rendered fine in a checkout — measured on `node dist-server/packaged.mjs`:
- * `[tools] src/contributions/sprite-lab.document.tsx crashed while rendering: Minified
+ * `[tools] <a project document contribution> crashed while rendering: Minified
  * React error #321`, thrown at the document's FIRST hook, with a one-frame
  * component stack (this root) rather than the editor's.
  *

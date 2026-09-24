@@ -4,8 +4,8 @@
  * composed story of the project laid out as an isolated, labeled frame, with
  * the root entry's own story (derived, never labeled — the story whose CSF
  * `meta.component` is the entry's default export) as the frame it opens on.
- * A project with no stories, and the pasteboard document's `entryOnly`
- * descriptor, fall back to mounting the entry once against an inert Game.
+ * A project with no stories falls back to mounting the entry once against an
+ * inert Game.
  *
  * ## Why this is a package and not the host's
  *
@@ -38,8 +38,7 @@
  *    them as `@volter/editor-game/react/…` and declares the dependency.
  *  - `@editor/authoring/react-story-board.ts` (the board geometry) —
  *    `@editor/components/RootSelectionOverlay.tsx:98`,
- *    `@editor/components/ReactCanvasControls.tsx:15`,
- *    `@editor/pasteboard-materialize.ts:20` and
+ *    `@editor/components/ReactCanvasControls.tsx:15` and
  *    `@editor/canvas-board/CanvasBoardDocument.tsx:57` read its frame
  *    placements. Host chrome drawn OVER the board, which is a different
  *    question from how the board mounts.
@@ -352,7 +351,7 @@ export async function mountReactDesignLayer(
   // is only what picks the INITIAL frame). Without this the derivation would
   // silently gate the entire design surface — a broken entry would take every
   // story down with it.
-  if (portableStories.length > 0 && !candidate.entryOnly) {
+  if (portableStories.length > 0) {
     const rememberedStoryId = rememberedPortableStory(projectRoot, candidate.worldId);
     // Remembered choice, else the derived default, else discovery order —
     // the same "no explicit default falls back to first" rule the registry
@@ -612,18 +611,13 @@ export async function mountReactDesignLayer(
   // (the caller degrades it to a #18 disclosure node).
   if (!entry.ok) throw entry.error instanceof Error ? entry.error : new Error(String(entry.error));
 
-  // An entryOnly mount (the pasteboard document) ASKED for exactly this
-  // branch — the file is the canvas and its default export the one subject —
-  // so "no CSF preview, falling back" would be noise about working-as-designed.
-  if (!candidate.entryOnly) {
-    editorConsole.warn(
-      `[design-time-layers] React root "${candidate.worldId}" has no portable CSF preview — the ` +
-        'project declares no UI stories. Add a *.stories.tsx; give it a `meta.component` of ' +
-        `this root's entry component${entryComponentName ? ` (${entryComponentName}, ${candidate.path})` : ''} ` +
-        'to make it this root’s default preview. Falling back to the inert-Game preview.',
-      'authoring',
-    );
-  }
+  editorConsole.warn(
+    `[design-time-layers] React root "${candidate.worldId}" has no portable CSF preview — the ` +
+      'project declares no UI stories. Add a *.stories.tsx; give it a `meta.component` of ' +
+      `this root's entry component${entryComponentName ? ` (${entryComponentName}, ${candidate.path})` : ''} ` +
+      'to make it this root’s default preview. Falling back to the inert-Game preview.',
+    'authoring',
+  );
 
   const Entry = entry.Entry;
   const WorldProvider = await resolveWorldProviderForProject();

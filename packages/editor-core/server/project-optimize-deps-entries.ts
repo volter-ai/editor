@@ -75,11 +75,10 @@ export const SERVER_ONLY_PREBUNDLE_EXCLUDE: readonly string[] = [
  *
  * A project's `index.html` -> `src/main.ts` bootstrap ties every declared
  * world together for the STANDALONE (`npm run game`) build, and — critically
- * — the scaffolded template's own `main.ts` also carries the P2P-Colyseus
- * URL-param branch that dynamically imports the project's OWN `server/rooms`
- * (`await import('../server/rooms')`, gated behind `?net=p2p-host`, but
- * esbuild's dependency scanner follows a string-literal dynamic `import()`
- * as an unconditional graph edge regardless of the runtime guard around it).
+ * — a project's `main.ts` may reach its OWN server code (a guarded
+ * `await import('../server/rooms')` is still an edge: esbuild's dependency
+ * scanner follows a string-literal dynamic `import()` as an unconditional
+ * graph edge regardless of the runtime guard around it).
  * `server/rooms.ts` re-exports real Colyseus `Room` classes, whose `colyseus`
  * (SERVER package) import chain reaches `@colyseus/core` -> `@pm2/io`, a
  * package esbuild's prebundle step cannot resolve an entry for (confirmed

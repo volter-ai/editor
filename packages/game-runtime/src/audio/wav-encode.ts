@@ -1,10 +1,10 @@
 /**
  * Pure PCM -> 16-bit WAV encoder (spec §15 I6 "Encode and Mux", audio half).
  * This module takes already-rendered Float32 channel data (e.g.
- * `AudioBuffer.getChannelData(n)` from a `Tone.Offline` render — that renderer
- * lives in the `music` capability, `src/lib/music/tone-offline-render.ts`, NOT
- * in the engine, because `runtime/render-audio-control.ts` deliberately keeps
- * `tone` out of the engine's dependency graph) and produces a standard
+ * `AudioBuffer.getChannelData(n)` from the project's own offline render — the
+ * renderer is the project's, NOT the engine's, because
+ * `runtime/render-audio-control.ts` deliberately keeps `tone` out of the
+ * engine's dependency graph) and produces a standard
  * little-endian,
  * 16-bit-PCM, interleaved RIFF/WAVE file as raw bytes — no
  * `AudioBuffer`/`AudioContext` dependency, so this runs equally in a browser

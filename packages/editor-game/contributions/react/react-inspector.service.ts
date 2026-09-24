@@ -64,9 +64,9 @@
  * structural write pipe (`authoring/r3f-source-authoring-adapter.ts`,
  * `@vgai/canvas/pixi-source-write-target.ts`); the breakpoint state
  * (`components/BoardRulers.tsx`); `authoring/react-story-board.ts`, the
- * board's geometry, which four host surfaces read
+ * board's geometry, which three host surfaces read
  * (`components/RootSelectionOverlay.tsx:98`,
- * `components/ReactCanvasControls.tsx:15`, `pasteboard-materialize.ts:20`,
+ * `components/ReactCanvasControls.tsx:15`,
  * `canvas-board/CanvasBoardDocument.tsx:57`) because they draw chrome OVER
  * the board. Each is its own unit with its own seam; none of them is in the
  * host's EAGER closure, which is what these cuts buy.

@@ -1,6 +1,5 @@
 /**
- * `/__editor/project-tools/**`, `/__editor/comfyui/**` and
- * `/__editor/generations/**` — the doors that RUN something on the
+ * `/__editor/project-tools/**` and `/__editor/generations/**` — the doors that RUN something on the
  * editor's machine rather than read or write a file.
  *
  * Callable project tools are loaded on the NODE side: merely listing a native
@@ -11,12 +10,6 @@
  */
 
 import type { Request, Response } from 'express';
-import {
-  allowedComfyUIProviderOperation,
-  configureComfyUIBridge,
-  installComfyUIBridge,
-  validComfyUIBridgeAuthorization,
-} from '../comfyui-bridge';
 import type { EditorServerRouter } from '../editor-server';
 import { broadcast } from '../editor-sse';
 import { forgetGenerationJob, markGenerationJobRead, readGenerationJobs } from '../generation-jobs';
@@ -25,7 +18,7 @@ import { discoverProjectTools, executeProjectTool } from '../project-tools';
 import type { RouteContext } from './context';
 
 export function registerToolRoutes(router: EditorServerRouter, ctx: RouteContext): void {
-  const { account, engineRoot, loadProjectModule, localOwnerRequest, requireLocalOwner } = ctx;
+  const { account, engineRoot, loadProjectModule } = ctx;
 
   // ---- Registered project tools ----
   //
@@ -84,86 +77,6 @@ export function registerToolRoutes(router: EditorServerRouter, ctx: RouteContext
     // its Assets view after a successful declared mutation; no generator- or
     // asset-specific operation contract is needed.
     if (result.changedProject) broadcast('assets-changed', {});
-    res.status(result.status).json(result.body);
-  });
-
-  // ---- Native ComfyUI adapter ----
-  // The editor configures the installed local ComfyUI Python extension
-  // server-to-server with one editor-session token. The browser never receives
-  // it, and the Python process never receives reusable account/provider secrets.
-  router.post('/__editor/comfyui/bridge/connect', async (req: Request, res: Response) => {
-    if (!requireLocalOwner(req, res)) return;
-    const baseUrl = (req.body as { baseUrl?: unknown }).baseUrl;
-    const localPort = req.socket.localPort;
-    if (typeof baseUrl !== 'string' || !baseUrl.trim() || !localPort) {
-      res.status(400).json({ error: 'A ComfyUI URL and live editor port are required.' });
-      return;
-    }
-    try {
-      res.json(await configureComfyUIBridge(baseUrl, `http://127.0.0.1:${localPort}`));
-    } catch (error) {
-      res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-
-  router.post('/__editor/comfyui/bridge/install', async (req: Request, res: Response) => {
-    if (!requireLocalOwner(req, res)) return;
-    const root = (req.body as { root?: unknown }).root;
-    if (typeof root !== 'string' || !root.trim()) {
-      res.status(400).json({ error: 'A ComfyUI installation directory is required.' });
-      return;
-    }
-    try {
-      res.json(await installComfyUIBridge(root));
-    } catch (error) {
-      res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-
-  router.post('/__editor/comfyui/provider-operation', async (req: Request, res: Response) => {
-    if (!localOwnerRequest(req)) {
-      res
-        .status(403)
-        .json({ error: 'The ComfyUI provider bridge is local to this editor session.' });
-      return;
-    }
-    const authorization = req.header('authorization') ?? '';
-    if (!validComfyUIBridgeAuthorization(authorization)) {
-      res.status(403).json({ error: 'Invalid ComfyUI bridge token.' });
-      return;
-    }
-    if (ctx.projectRoot === engineRoot) {
-      res.status(400).json({ error: 'Open a project before running a provider operation.' });
-      return;
-    }
-    const body = req.body as { name?: unknown; input?: unknown; confirm?: unknown };
-    if (typeof body.name !== 'string') {
-      res.status(400).json({ error: 'Expected a registered provider operation name.' });
-      return;
-    }
-    const catalog = await discoverProjectTools(ctx.projectRoot, loadProjectModule);
-    const entry = catalog.tools.find((candidate) => candidate.name === body.name);
-    if (!allowedComfyUIProviderOperation(entry?.generation)) {
-      res.status(403).json({
-        error:
-          'ComfyUI may call only registered Fal, Tripo, World Labs, or OpenRouter submit/poll/cancel operations.',
-      });
-      return;
-    }
-    const controller = new AbortController();
-    req.once('aborted', () => controller.abort());
-    // The allowlist above already proved this names a provider operation; the
-    // credential read for that provider is `executeProjectTool`'s, the one
-    // place that resolves a tool's declared provider.
-    const result = await executeProjectTool({
-      account: ctx.account,
-      projectRoot: ctx.projectRoot,
-      loadModule: loadProjectModule,
-      name: body.name,
-      input: Object.hasOwn(body, 'input') ? body.input : {},
-      confirmed: body.confirm === true,
-      signal: controller.signal,
-    });
     res.status(result.status).json(result.body);
   });
 

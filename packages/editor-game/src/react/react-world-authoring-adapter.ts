@@ -62,7 +62,6 @@ import {
   findClassRuleSource,
   findEmptyContainers,
   firstPartyStylesheetFiles,
-  getCallSiteOid,
   getComponentProps,
   getComputedStyleValue,
   getDesignTokens,
@@ -253,20 +252,6 @@ export function mapBoxEditPatchKey(key: string, isPositioned: boolean): BoxEditP
     default:
       return null;
   }
-}
-
-/**
- * A pasteboard `<At>` mount — detected by the STRUCTURAL marker the pasteboard
- * capability's helper renders (`data-vgai-at="true"`), never by filename or
- * import path, so a project's freely edited copy of the helper keeps working
- * (the LiveModuleDocument precedent: detection is structural). An `x`/`y` drag
- * on one of these writes the callsite's `x`/`y` JSX literals instead of inline
- * `left`/`top` style — the authored form the pasteboard design ratified
- * (docs/PARITY-PROGRAM-HANDOFF.md, queue item 4: "drag = OID literal write to
- * x/y").
- */
-function isPasteboardAtElement(el: OidElementLike): boolean {
-  return el.getAttribute('data-vgai-at') === 'true';
 }
 
 const OID_ATTR = 'data-oid';
@@ -1993,37 +1978,9 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
           bestOrder = order;
         }
       }
-      return bestId === null ? null : this.resolvePlacementUnit(bestId);
+      return bestId;
     },
   };
-
-  /**
-   * The pasteboard's PICK RULE: a hit anywhere inside an `<At>` subtree
-   * selects the At — the placement unit whose `x`/`y` a drag writes — never
-   * the helper's internals. Without this, the deepest-wins rule above picked
-   * a Swatch's inner chip div (a STATIC node whose x/y drag drops by design),
-   * and the drag gesture that followed re-picked it out from under the
-   * selected At on pointerdown, so no pasteboard drag could ever commit
-   * (measured on the moodboard acceptance run, 2026-08-30). Deeper selection
-   * stays reachable through the hierarchy panel, which projects the full
-   * subtree. Structural (`data-vgai-at`), so it costs nothing outside
-   * pasteboard content.
-   */
-  private resolvePlacementUnit(pickedId: string): string {
-    const { nodes } = this.snapshot();
-    const picked = nodes.get(pickedId);
-    const el = picked?.el as unknown as
-      | { closest?(selector: string): unknown; getAttribute?(name: string): string | null }
-      | undefined;
-    if (!el?.closest) return pickedId;
-    if (el.getAttribute?.('data-vgai-at') === 'true') return pickedId;
-    const at = el.closest('[data-vgai-at="true"]');
-    if (!at) return pickedId;
-    for (const [id, node] of nodes) {
-      if ((node.el as unknown) === at) return id;
-    }
-    return pickedId;
-  }
 
   /** Host rect to subtract for {@link rects}' HOST-RELATIVE geometry — `this.root`
    *  IS the world's own mounted DOM layer (`world.mounted.container` / the ingest
@@ -2308,30 +2265,13 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
     priorInline: Map<string, string>,
   ): Promise<void> {
     const wasDirty = this.dirty;
-    // A pasteboard `<At>` mount routes its position to the CALLSITE's `x`/`y`
-    // JSX literals rather than inline `left`/`top` style — the drag's live
-    // preview still moved `el.style.left/top` (the helper renders exactly that
-    // from `x`/`y`), but the AUTHORED truth is the props, so that is what the
-    // commit writes. Resolved from the fiber (the helper's own internal stamp
-    // sits on the same element, so the element's `data-oid` alone would name
-    // the helper file, not the callsite in the pasteboard file).
-    const node = this.snapshot().nodes.get(id);
-    const atCallSiteOid = node && isPasteboardAtElement(node.el) ? getCallSiteOid(node.el) : null;
-    const atPropForStyle = (prop: string): 'x' | 'y' | null =>
-      atCallSiteOid === null ? null : prop === 'left' ? 'x' : prop === 'top' ? 'y' : null;
     // A4 — echo every touched prop BEFORE any write, so the inspector field shows
     // the dragged value at once (same discipline as `inspector.set`). The echo holds
     // the BARE numeric (a `type:'number'` descriptor's `Inspector` field needs an
     // actual number — see `inspector.get`'s `numericStyleValue` note), NOT the
-    // px-suffixed source form D1 writes below. An At placement echoes on the
-    // PROP path instead (its Props section is where x/y render).
+    // px-suffixed source form D1 writes below.
     for (const [prop, value] of touched) {
-      const atProp = atPropForStyle(prop);
-      if (atProp && typeof value === 'number') {
-        this.setEcho(id, `${PROP_PATH_PREFIX}${atProp}`, String(Math.round(value)));
-      } else {
-        this.setEcho(id, `${STYLE_PATH_PREFIX}${prop}`, value);
-      }
+      this.setEcho(id, `${STYLE_PATH_PREFIX}${prop}`, value);
     }
     // A GESTURE THAT WROTE NOTHING SAYS SO. Every refusal below only warned in
     // the browser console, so a drag whose commit was refused looked done —
@@ -2345,12 +2285,6 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
     this.lastStyleWriteRefusal = null;
     const commit = async (backend: SourceWriteBackend | undefined): Promise<void> => {
       for (const [prop, value] of touched) {
-        const atProp = atPropForStyle(prop);
-        if (atProp && typeof value === 'number') {
-          await this.writeAtPlacement(id, atCallSiteOid as string, atProp, value, backend);
-          applied += 1;
-          continue;
-        }
         // D1 (spec 27 §4 B2/B3 reload-safety) — a numeric length-prop value must
         // persist to JSX SOURCE in a form React honors on REMOUNT. React 19 DROPS a
         // bare UNITLESS numeric STRING (the writer quotes `String(152)` → `width:
@@ -2394,52 +2328,6 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
       this.store.notifyIngestEdit();
       throw error;
     }
-  }
-
-  /**
-   * The pasteboard placement write: one `<At>` callsite prop (`x` or `y`) as a
-   * JSX NUMBER LITERAL, `addIfMissing` because the helper defaults both to 0
-   * and an author legitimately omits them until the first drag. Refusals
-   * follow {@link writePropEdit}'s contract: a dynamic expression (`x={GRID *
-   * 2}`) is authored truth the drag must not flatten — guarded and warned by
-   * name, never overwritten. Runs inside {@link commitBoxEdit}'s gesture, so a
-   * corner drag that writes both axes stays one undo entry.
-   */
-  private async writeAtPlacement(
-    id: string,
-    callSiteOid: string,
-    prop: 'x' | 'y',
-    value: number,
-    backend: SourceWriteBackend | undefined,
-  ): Promise<void> {
-    const echoPath = `${PROP_PATH_PREFIX}${prop}`;
-    const b = backend ?? this.writeBackend;
-    if (!b?.writeProp) {
-      this.clearEcho(id, echoPath);
-      console.warn(
-        `[ReactRootAuthoringAdapter] cannot write At placement "${prop}" on "${id}": no ` +
-          'source-write backend with prop support in this session (hosted/no dev server).',
-      );
-      return;
-    }
-    const res = await b.writeProp(callSiteOid, prop, String(Math.round(value)), {
-      addIfMissing: true,
-    });
-    if (!res.changed) {
-      this.clearEcho(id, echoPath);
-      if (res.dynamic) this.markGuarded(id, echoPath, DYNAMIC_EXPRESSION_GUARD);
-      this.store.notifyIngestEdit();
-      console.warn(
-        `[ReactRootAuthoringAdapter] At placement write refused/no-op for oid ` +
-          `"${callSiteOid}" prop "${prop}": ${
-            res.dynamic
-              ? 'value is a dynamic expression (guarded) — authored truth the drag must not flatten'
-              : (res.error ?? 'no change')
-          }`,
-      );
-      return;
-    }
-    this.dirty = true;
   }
 
   /**

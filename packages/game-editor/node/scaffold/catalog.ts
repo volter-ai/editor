@@ -38,8 +38,8 @@ export const DEFAULT_REACT_CAPABILITIES = ['react-root'] as const;
  * So the capability declares the pack, `addCapabilities` merges the declaration
  * into the project's own `asset-manifest.json`, and the bytes arrive through the
  * one materialization contract (D-AP1/D-AP3: pinned digest, verified fetch,
- * `.vgai/assets.json` ledger). Without this, `vgai add humanoid` landed source
- * that fetched a URL nothing had ever delivered.
+ * `.vgai/assets.json` ledger). Without this, adding such a capability landed
+ * source that fetched a URL nothing had ever delivered.
  */
 export interface CatalogAssetPackEntry {
   /** `source:id` — the library's variant-precise identity. */

@@ -72,7 +72,6 @@
       "./contributions/xstate-behavior.menu.ts",
       "./contributions/react/component-board.service.ts",
       "./contributions/react/design-time-mount.service.ts",
-      "./contributions/react/pasteboard.action.ts",
       "./contributions/react/react-inspector.service.ts",
       "./contributions/react/story-documents.service.ts",
       "./contributions/three/camera-runtime.inspector.tsx",

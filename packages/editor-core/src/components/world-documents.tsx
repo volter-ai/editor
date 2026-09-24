@@ -344,31 +344,10 @@ function ReactDesignCanvasBackdrop() {
  * design surface IS a board — no separate document of its own — is routed at
  * that board by matching the root descriptor's `kind` against the registered
  * `medium`; the host compares two values it was handed and spells neither. */
-/**
- * The live session's composite + store, published while root documents are
- * installed — how a document hosted OUTSIDE this module's own closures (the
- * pasteboard asset document, which any `.tsx` in the project can turn out to
- * be) reaches the same {@link RootDocumentContent} machinery the boards use.
- * Null between sessions; a host that finds it null says so instead of
- * mounting nothing.
- */
-let rootDocumentHost: {
-  readonly store: EditorShellStore;
-  readonly composite: CompositeAuthoringAdapter;
-} | null = null;
-
-export function activeRootDocumentHost(): {
-  readonly store: EditorShellStore;
-  readonly composite: CompositeAuthoringAdapter;
-} | null {
-  return rootDocumentHost;
-}
-
 export function installRootDocuments(
   store: EditorShellStore,
   composite: CompositeAuthoringAdapter,
 ): () => void {
-  rootDocumentHost = { store, composite };
   const previouslyActive = activeWorkspaceDocumentId();
   const hasThreeRoot = composite
     .childAdapters()
@@ -576,7 +555,6 @@ export function installRootDocuments(
 
   return () => {
     disposed = true;
-    if (rootDocumentHost?.store === store) rootDocumentHost = null;
     unsubscribePresence();
     for (const unregister of unregisterRoutes) unregister();
     for (const unregister of boardRoutes.values()) unregister();

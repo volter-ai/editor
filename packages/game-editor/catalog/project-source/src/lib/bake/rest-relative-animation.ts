@@ -7,10 +7,9 @@
  * Skeleton-agnostic by construction — it speaks `THREE.Bone`, `THREE.Object3D`
  * and `THREE.AnimationClip` and knows nothing about humanoids — so it lives
  * here in `lib/bake`, the procedural-asset family's shared home, beside
- * `clip-layering.ts`. `lib/humanoid/rest-relative-animation.ts` re-exports it
- * verbatim, so every import path that ever worked still does.
+ * `clip-layering.ts`.
  *
- * REMOVAL LINE: delete this file and its humanoid re-export. You lose the
+ * REMOVAL LINE: delete this file. You lose the
  * ability to AUTHOR clips as pose deltas and the loud checks; retargeted
  * clips and baking are unaffected.
  */

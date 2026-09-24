@@ -12,9 +12,8 @@
  *
  * `z.toJSONSchema` is zod's own public projection of exactly what was
  * declared — bounds, defaults, and `.describe()` prose — so this file is the
- * whole mechanism. Both shipped libs (`lib/humanoid`, `lib/castle`)
- * bind their Builder controls to it; a lib of your own gets a tuning UI by
- * declaring a schema and nothing else.
+ * whole mechanism. A parametric lib binds its Builder controls to it, so a lib
+ * of your own gets a tuning UI by declaring a schema and nothing else.
  */
 
 import type { z } from 'zod';

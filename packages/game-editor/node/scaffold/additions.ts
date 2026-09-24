@@ -138,14 +138,8 @@ export const STUDIO_OWNED_PATHS = [
  *  that still declared it, which is exactly the misplaced piece the `full`
  *  preset exists to catch (ARCHITECTURE-CORE §Apps, "The four skews"). */
 export const REACT_ONLY_REMOVED_PATHS = [
-  'src/runtime',
-  'src/scripts',
   'src/prefabs',
-  'src/stage',
   'src/world.tsx',
-  'src/lib/humanoid',
-  'src/lib/mesh',
-  'src/lib/native-three',
   'src/components',
   'public',
 ] as const;

@@ -1,7 +1,7 @@
 /**
  * Image Asset Lab document. A sprite is a frame, not the packed page —
  * Aseprite's canvas, Unity's Sprite inspector, Godot's AtlasTexture.
- * Integer nearest-neighbor zoom (sprite-lab `fitScale`); the atlas is
+ * Integer nearest-neighbor zoom (`integerFitScale`); the atlas is
  * metadata, never the stage.
  */
 
