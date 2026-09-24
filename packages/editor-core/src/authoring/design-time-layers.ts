@@ -243,6 +243,11 @@ function createLayerElement(
   // makes behavior pan-invariant: without it, space-pan's transform (below)
   // suddenly captured `fixed` children that were page-anchored un-panned.
   layer.style.contain = 'layout paint';
+  // A project's root renders as it ships: its inherited text properties start from a page's
+  // defaults, not the editor's own typography, which would otherwise inherit into it.
+  layer.style.cssText +=
+    'font: initial; color: initial; letter-spacing: normal; word-spacing: normal;' +
+    ' text-align: start; text-indent: 0; text-transform: none; white-space: normal; direction: ltr;';
   applySessionStyle(layer, worldId, candidate.kind);
   // D4 (spec27 §8 "space-pan" row) — seed this layer with whatever pan is
   // currently in effect (normally none — `mountDesignTimeLayers` resets pan

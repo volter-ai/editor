@@ -41,6 +41,7 @@ import {
   closeAdditions,
   joinAdditionFinders,
   KIT_DECLARED_PACKAGES,
+  REACT_HUD_PAGE_SOURCE,
   REACT_ONLY_FILES,
   REACT_ONLY_REMOVED_PATHS,
   type ScaffoldAddition,
@@ -1441,10 +1442,15 @@ function rewriteTemplateVariantFiles(
     // land beside the world and nothing of the world is removed
     // (`compositionKeepsPath` states the same rule for the browser seed).
     // The template's `main.ts` already registers both adapters.
+    // Over a world, the page is its HUD: the world stays visible and keeps its input.
     for (const [relative, source] of Object.entries(REACT_ONLY_FILES)) {
       if (relative === 'src/main.ts') continue;
       mkdirSync(dirname(join(targetDir, relative)), { recursive: true });
-      writeFileSync(join(targetDir, relative), source, 'utf-8');
+      writeFileSync(
+        join(targetDir, relative),
+        relative === 'src/ui/game-page.tsx' ? REACT_HUD_PAGE_SOURCE : source,
+        'utf-8',
+      );
     }
     return;
   }

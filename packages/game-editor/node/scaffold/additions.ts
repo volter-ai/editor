@@ -201,6 +201,46 @@ export function ReactGamePage({ lastInput, title = 'My Game' }: ReactGamePagePro
 }
 `;
 
+/** The same page as a HUD over a 3D world (the `ui` addition composed with `three`): the
+ *  world stays visible and keeps its input; only the panel takes the pointer. */
+export const REACT_HUD_PAGE_SOURCE = `export interface ReactGamePageProps {
+  readonly lastInput: string;
+  readonly title?: string;
+}
+
+/** The game's HUD over its 3D world. Runtime input ownership stays in game.tsx. */
+export function ReactGamePage({ lastInput, title = 'My Game' }: ReactGamePageProps) {
+  return (
+    <main
+      data-testid="game-ui-root"
+      style={{
+        position: 'absolute',
+        inset: 0,
+        padding: 16,
+        pointerEvents: 'none',
+        fontFamily: 'system-ui, sans-serif',
+      }}
+    >
+      <section
+        style={{
+          display: 'inline-block',
+          padding: '10px 14px',
+          borderRadius: 8,
+          pointerEvents: 'auto',
+          color: '#f7f4ea',
+          background: 'rgba(17, 24, 39, 0.72)',
+        }}
+      >
+        <h1 style={{ margin: 0, fontSize: 18 }}>{title}</h1>
+        <p aria-live="polite" style={{ margin: '4px 0 0', color: '#cbd5e1', fontSize: 13 }}>
+          Last input: {lastInput}
+        </p>
+      </section>
+    </main>
+  );
+}
+`;
+
 export const REACT_ONLY_GAME_SOURCE = `import { useEffect, useState } from 'react';
 import { useDebugProvider } from '@volter/game-runtime/react/world-state';
 import { ReactGamePage } from './game-page';

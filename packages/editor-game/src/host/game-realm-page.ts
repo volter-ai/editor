@@ -42,16 +42,24 @@
  */
 
 /**
- * What the host stamps on an adopted surface so a game's `position:fixed`
- * overlay is contained to the pane.
+ * What the host stamps on an adopted surface so it behaves as the game's own page.
  *
  * `contain: layout` makes the element a containing block for absolutely AND
- * fixed positioned descendants — the one CSS primitive that does this without
- * the side effects of the alternatives (`transform`/`filter` also create the
- * containing block but force a compositing layer and, on the ADOPTED element
- * itself, are exactly the stamp {@link claimHostSurfaceBox} exists to clear).
+ * fixed positioned descendants, so a game's `position:fixed` overlay is contained to the
+ * pane — the one CSS primitive that does this without the side effects of the alternatives
+ * (`transform`/`filter` also create the containing block but force a compositing layer and,
+ * on the ADOPTED element itself, are exactly the stamp {@link claimHostSurfaceBox} exists to
+ * clear).
+ *
+ * The inherited text properties start from a page's defaults, as the game's `<body>` does
+ * when it ships: otherwise the editor's own typography (11px, its line height and colour)
+ * inherited into the game's DOM, and a game's text rendered smaller in the editor than in
+ * its build.
  */
-export const GAME_SURFACE_CONTAINMENT_CSS = 'contain: layout;';
+export const GAME_SURFACE_CONTAINMENT_CSS =
+  'contain: layout; font: initial; color: initial; letter-spacing: normal; word-spacing: normal;' +
+  ' text-align: start; text-indent: 0; text-transform: none; white-space: normal;' +
+  ' direction: ltr; cursor: auto; visibility: visible;';
 
 /** `EventTarget`'s own listener identity is (type, callback, capture) — read
  *  the capture flag out of either options form so the page's registration
