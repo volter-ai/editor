@@ -1,4 +1,4 @@
-import { optionalThreeStateOf } from '../editor-shell-store';
+import { optionalThreeStateOf } from '../three-state';
 import type {
   ToolObject3DAuthoringProps,
   ToolObject3DDocumentAuthoring,

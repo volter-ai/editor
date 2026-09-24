@@ -24,7 +24,7 @@
  * described the asset browser's selection while the box described a scene node.
  */
 
-import { threeStateOf } from '../editor-shell-store';
+import { threeStateOf } from '../three-state';
 import { zIndex } from '@volter/editor-sdk/widgets';
 import { useCallback, useState, useSyncExternalStore } from 'react';
 import {

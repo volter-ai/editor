@@ -20,7 +20,20 @@
  */
 
 import type { AssetCapabilities } from '@volter/editor-sdk/kit/asset-capabilities';
-import type { AssetKind, OnlineAssetInfo } from './editor-shell-store';
+
+export type AssetKind = 'model' | 'image' | 'video' | 'audio' | 'json' | 'source';
+
+export interface OnlineAssetInfo {
+  source: 'polyhaven' | 'ambientcg' | 'local';
+  id: string;
+  name: string;
+  thumbnailUrl: string;
+  type: string;
+  tags: string[];
+  license?: string;
+  author?: string;
+  sourceUrl?: string;
+}
 
 /** The §5.1 compact-selection payload — enough for the Inspector section to
  *  render preview + metadata without re-deriving browser state. */

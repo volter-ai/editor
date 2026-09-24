@@ -7,7 +7,7 @@
  * presentation-notice store and mirrors it into a card.
  */
 
-import { threeStateOf } from '../editor-shell-store';
+import { threeStateOf } from '../three-state';
 import { useEffect, useSyncExternalStore } from 'react';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { dismissNotification, notify } from '../editor-notifications';

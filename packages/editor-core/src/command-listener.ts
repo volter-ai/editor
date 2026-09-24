@@ -36,7 +36,7 @@ import {
   captureSourceReviewShotSetModelPreview,
   parseShotSetDefinition,
 } from './asset-preview';
-import { setSelectedAsset } from './asset-selection';
+import { type AssetKind, setSelectedAsset } from './asset-selection';
 import { assetCapabilities, assetDocumentKind } from '@volter/editor-sdk/kit/asset-capabilities';
 import { systemsForInstance } from './authoring/active-systems';
 import { getMountFailureReports } from '@volter/editor-sdk/kit/mount-failure-report';
@@ -73,11 +73,7 @@ import type { ConsoleEntry } from '@volter/editor-sdk/kit/editor-console';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { currentEditorView } from './editor-current-view';
 import { editorIsPlaying } from '@volter/editor-sdk/kit/editor-session-mode';
-import type {
-  AssetKind,
-  EditorShellStore,
-  HelperVisibility,
-} from './editor-shell-store';
+import type { EditorShellStore, HelperVisibility } from './editor-shell-store';
 import { collectEditorStateFacets, reusableFacetKeys } from '@volter/editor-sdk/kit/editor-state-facets';
 import { entityObject3D } from './entity-object';
 import {

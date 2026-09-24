@@ -30,7 +30,7 @@
  * half of every host door, and each handle's own comment names the contribution
  * that consumes it.
  */
-import { threeStateOf } from '../editor-shell-store';
+import { threeStateOf } from '../three-state';
 import { loadProductNames, productDisplayName } from '@volter/editor-sdk/kit/product-command';
 import '../editor-styles.css';
 import '../authoring/instance-source-menu-register';

@@ -20,7 +20,7 @@
  * is never visible here.
  */
 
-import { threeStateOf } from '../editor-shell-store';
+import { threeStateOf } from '../three-state';
 import { faUpRightAndDownLeftFromCenter } from '@fortawesome/free-solid-svg-icons';
 import { EditorIcon, IconButton, Panel, themeVars } from '@volter/editor-sdk/widgets';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';

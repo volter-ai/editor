@@ -47,7 +47,7 @@ import { authoringAssetDataUrl } from '../authoring/authoring-asset-url';
 import { awaitAnnouncedObject3DDocumentSession } from '../document-context-registry';
 import { registerDocumentOpener } from '../document-open-registry';
 import { projectFileExists } from '../editor-api';
-import type { AssetKind, OnlineAssetInfo } from '../editor-shell-store';
+import type { AssetKind, OnlineAssetInfo } from '../asset-selection';
 import { type InspectionSection, PROPERTIES_SECTION_ORDER } from '@volter/editor-sdk/kit/inspection-model';
 import { threeStoreForHost } from '../shell-store-door';
 import { DOCUMENT_REGISTRATION_TIMEOUT_MS, waitUntil } from '../wait-until';

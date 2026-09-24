@@ -20,7 +20,6 @@ import { findEntityLod } from './entity-lod';
 import { entityIdOf } from './entity-object';
 import { ShellStore } from './shell-store';
 import { registerThreeState } from './three-state';
-export { optionalThreeStateOf, threeStateOf } from './three-state';
 export type { NotifyScope, PlayEditRegime } from './shell-store';
 import { withSceneFogNeutralized } from './scene-view-fog';
 
@@ -112,20 +111,6 @@ const OBJECT_MAP_MEMBERSHIP_HISTORY = 256;
  *  vocabulary (`@volter/editor-sdk`), because the control API speaks it too;
  *  re-exported here so editor modules keep one import site. */
 export type { ViewportTab };
-
-export type AssetKind = 'model' | 'image' | 'video' | 'audio' | 'json' | 'source';
-
-export interface OnlineAssetInfo {
-  source: 'polyhaven' | 'ambientcg' | 'local';
-  id: string;
-  name: string;
-  thumbnailUrl: string;
-  type: string;
-  tags: string[];
-  license?: string;
-  author?: string;
-  sourceUrl?: string;
-}
 
 export interface HelperVisibility {
   bounds: boolean;

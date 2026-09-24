@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useLayoutEffect, useState } from 'react';
 import { resetProjectThumbnailManifestCache } from '@volter/editor-core/asset-workflow/thumbnail-system';
 import { type EditorRuntime, EditorRuntimeProvider, type EditorStats } from '@volter/editor-core/editor-runtime';
-import { EditorShellStore, threeStateOf } from '@volter/editor-core/editor-shell-store';
+import { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { EditorSession } from '@volter/editor-core/history/editor-session';
 import { getStorageBackend, MemStorage, setStorageBackend } from '@volter/editor-core/storage/index';
 import {
@@ -24,7 +24,10 @@ const ZERO_STATS: EditorStats = {
 
 /** A story runtime's Three half, for a production component that reads the scene. */
 export function storyThreeStore(runtime: EditorRuntime): EditorShellStore {
-  return threeStateOf(runtime.store);
+  if (!(runtime.store instanceof EditorShellStore)) {
+    throw new Error('This runtime was not made by createStoryEditorRuntime: it has no Three store.');
+  }
+  return runtime.store;
 }
 
 /** A real, bounded editor runtime for production component stories. */

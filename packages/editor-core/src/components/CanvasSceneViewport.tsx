@@ -1,4 +1,4 @@
-import { threeStateOf } from '../editor-shell-store';
+import { threeStateOf } from '../three-state';
 import {
   faBorderAll,
   faExpand,

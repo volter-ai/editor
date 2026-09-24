@@ -83,7 +83,7 @@ import { openRegisteredDocument } from '../document-open-registry';
 import { type AssetEntry, listAssets, listProjectComponents, revealInFinder } from '../editor-api';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { useEditorStore, useHistoryService } from '../editor-runtime';
-import type { AssetKind as DocumentAssetKind } from '../editor-shell-store';
+import type { AssetKind as DocumentAssetKind } from '../asset-selection';
 import { hierarchyNodesBreadthFirst } from '../hierarchy-walk';
 import { isEditableTarget, setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { modelThumbnailFormat } from '../model-thumbnail';

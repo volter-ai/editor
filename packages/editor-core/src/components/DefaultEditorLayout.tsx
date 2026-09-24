@@ -1,4 +1,4 @@
-import { threeStateOf } from '../editor-shell-store';
+import { threeStateOf } from '../three-state';
 import { lazy, Suspense, use, useEffect, useSyncExternalStore } from 'react';
 import { connectAssetEvents } from '../asset-events';
 import { installAssetSelectionAutoClear } from '../asset-selection';

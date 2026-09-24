@@ -28,7 +28,7 @@ import {
   waitForContributedDocumentMount,
 } from '../document-context-registry';
 import { registerDocumentOpener } from '../document-open-registry';
-import type { AssetKind } from '../editor-shell-store';
+import type { AssetKind } from '../asset-selection';
 import {
   projectAdapterFacet,
   type ResolvedDocumentTable,

@@ -56,7 +56,7 @@
  * pure, in `world-overlay-gestures.ts`, same split as B2/B3.
  */
 
-import { threeStateOf } from '../editor-shell-store';
+import { threeStateOf } from '../three-state';
 import { Menu, MenuItem, ThemeRootPortal, themeVars, zIndex } from '@volter/editor-sdk/widgets';
 import type {
   AssetDropContext,

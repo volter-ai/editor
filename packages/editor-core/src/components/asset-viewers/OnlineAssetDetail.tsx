@@ -10,7 +10,7 @@ import {
   getOnlineAssetPreview,
   type OnlineAssetPreview,
 } from '../../editor-api';
-import type { OnlineAssetInfo } from '../../editor-shell-store';
+import type { OnlineAssetInfo } from '../../asset-selection';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import { downloadOnlineAssetWithHistory } from '../asset-editor-persistence';
 

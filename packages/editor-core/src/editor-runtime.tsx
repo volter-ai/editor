@@ -20,7 +20,8 @@
 import { type InteractiveEditScope, InteractiveEditScopeContext } from '@volter/editor-sdk/widgets';
 import { type ReactNode, Suspense, useContext, useMemo, useSyncExternalStore } from 'react';
 import type { ShellStore } from './shell-store';
-import { type EditorShellStore, optionalThreeStateOf, threeStateOf } from './editor-shell-store';
+import type { EditorShellStore } from './editor-shell-store';
+import { optionalThreeStateOf, threeStateOf } from './three-state';
 import type { EditorSession } from './history/editor-session';
 import type { HistoryCommandSnapshot, HistoryCommands } from './history/history-commands';
 import type { HistoryService, HistorySnapshot } from './history/history-service';

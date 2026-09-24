@@ -1,4 +1,4 @@
-import { threeStateOf } from '../../editor-shell-store';
+import { threeStateOf } from '../../three-state';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { liveMixerFor } from '@volter/editor-threejs/animation/live-mixers';
 import { useCallback, useSyncExternalStore } from 'react';
