@@ -12,7 +12,7 @@ import type * as THREE from 'three';
 import {
   R3F_ENTRY_RUNTIME_PATH,
   R3F_RUNTIME_PATH,
-} from '@volter/editor-core/build/module-doorways';
+} from '@volter/editor-sdk/host';
 import { isPackagedRuntime } from '@volter/editor-core/packaged-runtime';
 
 type R3FEntryResolver = typeof resolveR3FEntryAdapter;

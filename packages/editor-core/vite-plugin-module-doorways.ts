@@ -196,7 +196,14 @@
  * served, which is what stops the prebundle list from drifting from what the
  * modules actually import.
  */
-import { STORY_RUNTIME_PATH } from '@volter/editor-sdk/host';
+import {
+  CANVAS_RUNTIME_PATH,
+  R3F_ENTRY_RUNTIME_PATH,
+  R3F_RUNTIME_PATH,
+  REACT_WORLD_RUNTIME_PATH,
+  STORY_RUNTIME_PATH,
+  THREE_INGEST_RUNTIME_PATH,
+} from '@volter/editor-sdk/host';
 import type { Plugin } from 'vite';
 
 /** One `from '<specifier>'` line of a doorway's synthetic module body. */
@@ -224,15 +231,15 @@ export interface ModuleDoorway {
   readonly rows: readonly ModuleDoorwayRow[];
 }
 
-/**
- * The dynamic-import-facing URL `src/binding-resolver.ts`'s
- * `resolveReactRootMountRuntime` imports.
- */
-export const REACT_WORLD_RUNTIME_PATH = '/__vgai-react-world-runtime';
-export const R3F_RUNTIME_PATH = '/__vgai-r3f-runtime';
-export const R3F_ENTRY_RUNTIME_PATH = '/__vgai-r3f-entry-runtime';
-export const CANVAS_RUNTIME_PATH = '/__vgai-canvas-runtime';
-export const THREE_INGEST_RUNTIME_PATH = '/__vgai-three-ingest-runtime';
+/** Each doorway's address is spelled once, on the SDK's host door, where the
+ *  browser code that imports it reads it; this plugin owns what is served. */
+export {
+  CANVAS_RUNTIME_PATH,
+  R3F_ENTRY_RUNTIME_PATH,
+  R3F_RUNTIME_PATH,
+  REACT_WORLD_RUNTIME_PATH,
+  THREE_INGEST_RUNTIME_PATH,
+};
 /** The dynamic-import-facing URL `stories/story-dom-runtime.ts` imports. Its
  *  one spelling is `@volter/editor-sdk/host`, because a reader reaches a host
  *  fact through the published door and never through this build tier; this

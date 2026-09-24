@@ -19,7 +19,7 @@
 import type { resolveCanvasEntryAdapter } from '@volter/game-runtime/canvas-react';
 import type { RootAdapter } from '@volter/editor-project/adapter';
 import type * as PIXI from 'pixi.js';
-import { CANVAS_RUNTIME_PATH } from '@volter/editor-core/build/module-doorways';
+import { CANVAS_RUNTIME_PATH } from '@volter/editor-sdk/host';
 import { isPackagedRuntime } from '@volter/editor-core/packaged-runtime';
 
 type CanvasEntryResolver = typeof resolveCanvasEntryAdapter;

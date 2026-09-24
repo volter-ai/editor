@@ -47,6 +47,14 @@ import type { StageTransportHandle } from './transport';
 export const STORY_RUNTIME_PATH = '/__vgai-story-runtime';
 /** Project-owned React/Three namespace shared by preview consumers and the server. */
 export const R3F_RUNTIME_PATH = '/__vgai-r3f-runtime';
+/** The game runtime's R3F entry resolver, served from the project's graph. */
+export const R3F_ENTRY_RUNTIME_PATH = '/__vgai-r3f-entry-runtime';
+/** The project's React and world-state provider for a React world mount. */
+export const REACT_WORLD_RUNTIME_PATH = '/__vgai-react-world-runtime';
+/** The project's Pixi and canvas entry resolver for a canvas root mount. */
+export const CANVAS_RUNTIME_PATH = '/__vgai-canvas-runtime';
+/** The project's three.js and post-processing for an ingested three root. */
+export const THREE_INGEST_RUNTIME_PATH = '/__vgai-three-ingest-runtime';
 
 /** The live session's system adapters, as the editor inspects them: the
  *  instance under inspection when several run, the solo one otherwise. */

@@ -26,7 +26,7 @@ import {
 } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
-import { REACT_WORLD_RUNTIME_PATH } from '@volter/editor-core/build/module-doorways';
+import { REACT_WORLD_RUNTIME_PATH } from '@volter/editor-sdk/host';
 import { isPackagedRuntime } from '@volter/editor-core/packaged-runtime';
 
 /**
