@@ -94,8 +94,8 @@ request needs.
   stories; support in `src/components/`. Owned parts stay inside their
   owner; independent entities never hide in scenery; no monoliths, no
   prefab-per-primitive. E10/E11 enforce declared classifications and W10
-  warns when a Three project silently loses all prefabs. Characters are ALWAYS the rigged generator
-  (`add humanoid`), never primitive stacks.
+  warns when a Three project silently loses all prefabs. Characters are ALWAYS rigged models
+  authored in Blender (`vgai-3d-models`), never primitive stacks.
 - Use Three.js, PixiJS, React, Rapier, and Colyseus directly — no
   wrappers, no parallel ECS or mirror tree.
 - The world node is the entity. On a TSX root, behavior is a React

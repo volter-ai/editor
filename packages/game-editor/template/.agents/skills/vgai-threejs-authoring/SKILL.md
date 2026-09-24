@@ -242,46 +242,6 @@ quantize pose time while rendering and responding at display refresh rate.
 Derive transforms from stored base values; do not accumulate with `+=` unless
 drift is intentional.
 
-## Use the walking castle as removable source
-
-The `castle` capability is a removable premade: editable construction,
-rigging, ink, validation, and bake source that a project is expected to
-remake. **It is not in your project until you add it** — `npx volter-game-editor add castle`
-(invoking one of its registered tools through the CLI also adds it, loudly,
-but reading its source is not an invocation). It adds its
-required capabilities, copies transparent source into `src/lib/` and
-`src/contributions/` and `src/tools/`, and registers the project tools without overwriting existing
-files. Restart `npx volter-game-editor edit .`, open **Tools → Walking Castle Builder**,
-validate, and bake. Never import the premade from the engine checkout at
-runtime.
-
-Edit `src/lib/castle/generate.ts` first for visual changes. Read
-`rig.ts` only for mechanical or gait changes and `presentation.ts` only for a
-castle-specific showcase. The generated GLB is a disposable output; the copied
-TypeScript remains the project's source of truth. Read the bundle's
-`src/lib/castle/README.md` and `src/lib/castle/PROVENANCE.md` before changing
-its integration boundary.
-
-## Add secondary motion as a project dependency
-
-The `motion` capability ("Secondary motion", `npx volter-game-editor add motion`) is a removable
-kit for spring-bone chains and
-Jolt soft-body cloth. It preserves failure-prone setup and lifetime rules
-without making hair, capes, garments, or physics tuning part of engine core.
-
-Like every capability it is ADDED, not shipped: `npx volter-game-editor add motion` copies
-`src/lib/motion/` in and
-declares its two direct dependencies. Initialize Jolt in the project and pass
-the resolved module into the cloth helper; import the VRM spring-bone library
-directly when the project needs its manager or types.
-
-Use spring chains for hair, tails, straps, and short strips. Use soft-body
-cloth only when drape and collision justify the cost. Collider placement,
-topology, materials, and tuning belong beside the character that uses them.
-Always render moving acceptance evidence: these helpers can typecheck and pass
-structural tests while still clipping, tunneling, exploding, or appearing
-frozen.
-
 ## Render self-review is MANDATORY — the look protocol
 
 After EVERY modeling milestone — a new mesh, a kit op applied, a material/
@@ -346,7 +306,7 @@ boundary instead of taking an unrelated page screenshot:
 ```ts
 const shown = await editor.present({
   version: 1,
-  document: { kind: 'tool', id: 'walking-castle-builder' },
+  document: { kind: 'workspace', id: 'workspace:scene' },
   viewport: { camera: 'isometric', frame: 'document' },
 });
 const actual = await editor.currentView();

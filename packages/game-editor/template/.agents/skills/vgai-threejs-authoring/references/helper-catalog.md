@@ -32,16 +32,8 @@ accepted reusable motion into ordinary `AnimationClip`s.
 Do not wrap `AnimationMixer`, `AnimationClip`, `KeyframeTrack`, or normal bone
 transforms. Rigid machinery attaches parts directly to joints; deforming
 meshes require real normalized skin attributes — weight them in Blender and
-let the glTF exporter write `JOINTS_0`/`WEIGHTS_0` (see
-`vgai-humanoid-characters` for the traps, including the one where automatic
-weighting reports FINISHED having weighted nothing).
-
-Optional secondary motion lives in the installable `motion` capability.
-Its spring-chain helpers assemble native
-Three.js bones and `@pixiv/three-vrm-springbone` objects; its cloth helpers
-assemble ordinary Three.js render geometry and raw `jolt-physics` soft bodies.
-Install those libraries in the project and keep character-specific topology,
-colliders, and tuning local.
+let the glTF exporter write `JOINTS_0`/`WEIGHTS_0`. Blender's automatic
+weighting can report FINISHED having weighted nothing: check the weights.
 
 ## Geometry libraries
 
@@ -62,19 +54,12 @@ adopt an alternate persistent scene model to imitate them.
 
 ## Proven prototype surface
 
-The preserved `agent-only-three` walking-castle experiment tested profile
-lathing, beveled extrusion, arched frames, deterministic canvas textures, CSG,
-curve pipes, per-material anime profiles, pixel-width silhouette ink,
-distance-faded creases, rigid bone chains, exact-time gait validation, stepped
-pose timing, hard shadows, environment lighting, limited AO/bloom, a subtle
-color composite, and SMAA. Treat these as proven craft techniques and
-candidate copyable helpers, not automatic VGAI runtime APIs.
-
-Its accepted typed source lived in `src/lib/stylized/` and `src/lib/castle/`;
-only `stylized` remains (`npx volter-game-editor add stylized`, and none of it is in a fresh
-scaffold) — the `castle` and `mesh` halves are deleted, at
-`archive/mesh-kit-capabilities-2026-09-19`. Edit only the helpers implicated by
-the project's real work. The portable GLB ink
-helpers emit ordinary expanded meshes and `LineSegments`; the source-quality
+Proven craft techniques: profile lathing, beveled extrusion, arched frames,
+deterministic canvas textures, CSG, curve pipes, per-material anime profiles,
+pixel-width silhouette ink, distance-faded creases, rigid bone chains,
+exact-time gait validation, stepped pose timing, hard shadows, environment
+lighting, limited AO/bloom, a subtle color composite, and SMAA. Treat them as
+techniques to write in project source, not runtime APIs. Portable GLB ink
+emits ordinary expanded meshes and `LineSegments`; the source-quality
 ink uses project shader hooks and should remain source-only unless an explicit
 import recipe recreates it.
