@@ -21,11 +21,10 @@
  * LOAD too.
  */
 
-import type { ViewportPresentation } from '@volter/editor-sdk/host';
+import type { ViewportPresentation, ViewportRoot } from '@volter/editor-sdk/host';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { createPerformanceProfiler } from '@volter/game-runtime/dev/performance-profiler';
 import { createWebGLGpuTimer } from '@volter/game-runtime/dev/webgl-gpu-timer';
-import type { RootInstance } from '@volter/game-runtime/runtime/game';
 import type { AuthoringAdapter, Transform } from '@volter/editor-project/adapter';
 import { markHostRenderer } from '@volter/editor-threejs/viewport/renderer-ownership';
 import { applyWorldRendererConfig } from '@volter/threejs-runtime/adapter/renderer-config';
@@ -175,7 +174,7 @@ export interface WorldRootStage {
   readonly scene: THREE.Scene;
   readonly viewport: EditorViewport;
   frame(timeMs: number, resumed: boolean): void;
-  present(roots: readonly RootInstance[]): ViewportPresentation | null;
+  present(roots: readonly ViewportRoot[]): ViewportPresentation | null;
   setHelper(kind: string, object: THREE.Object3D | null): void;
   dispose(): void;
 }

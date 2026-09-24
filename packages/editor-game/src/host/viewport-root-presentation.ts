@@ -1,4 +1,4 @@
-import type { RootInstance } from '@volter/game-runtime/runtime/game';
+import type { ViewportRoot } from '@volter/editor-sdk/host';
 import { stampMountedAuthoringIds } from './authoring/mounted-authoring';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { stampThreeIdentities } from '@volter/editor-core/projection/three';
@@ -13,7 +13,7 @@ import { stampThreeIdentities } from '@volter/editor-core/projection/three';
  */
 export function presentThreeRoots(
   store: Pick<EditorShellStore, 'enterPlayScene' | 'releaseAdoptedScene'>,
-  roots: readonly RootInstance[],
+  roots: readonly ViewportRoot[],
 ): { readonly worldId: string; dispose(): void } | null {
   const world = roots.find((candidate) => candidate.mounted.kind === 'three');
   if (!world || world.mounted.kind !== 'three') return null;
