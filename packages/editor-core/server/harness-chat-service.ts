@@ -1175,13 +1175,15 @@ export class HarnessChatService {
    * conversation in this folder's panel.
    */
   private resumableSessionKey(): string | null {
-    const saved = this.chatCatalog.active && this.chatCatalog.sessions.get(this.chatCatalog.active);
-    if (saved) {
-      if (!saved.identity) throw new Error('The saved chat has no persisted harness session. Start a new chat explicitly.');
+    const saved = this.chatCatalog.active ? this.chatCatalog.sessions.get(this.chatCatalog.active) : undefined;
+    // A saved conversation that never persisted a session (nothing was sent) starts again
+    // with its own selection; one that did resumes exactly that session or says why not.
+    if (saved?.identity) {
       const exact = this.lastSnapshot.sessions.find(s => s.identity === saved.identity && s.harness === saved.selection.harness);
       if (!exact) throw new Error('The saved harness session could not be found. Start a new chat explicitly.');
       return exact.id;
     }
+    if (saved) return null;
     const root = resolve(this.options.getProjectRoot());
     const resumable = new Set(
       this.lastSnapshot.harnesses.filter((harness) => harness.availableActions.resume).map((harness) => harness.id),
