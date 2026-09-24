@@ -71,10 +71,8 @@ arcs; `DEVLOG.md` is the development journal. Coding agents begin with
 `AGENTS.md`, which routes task-specific details to `.agents/` skills and the
 project manual.
 
-This project keeps versioned `@volter/*` dependencies. To use a local engine
-checkout without changing the manifest or lockfile, follow that checkout's
-`docs/LOCAL-DEV.md` link procedure. `npm run vgai -- status` reports the engine
-provenance serving the active session.
+This project keeps versioned `@volter/*` dependencies. `npm run vgai -- status`
+reports the product and packages serving the active session.
 
 Learn and manual: https://vgai-learn.pages.dev
 

@@ -93,8 +93,8 @@ orders. Mounting the game is STEP ONE of seven, not the deliverable.
    coverage rows on `npx volter-game-editor status`. Never synthetic key events, never raw
    window reads — the eval seam exists so that is never necessary. (In a
    sandboxed worktree where the CLI's eval form is blocked, the same door
-   is `@volter/editor-live`'s `connect()` from a script INSIDE the worktree, run
-   with `npx tsx` — see docs/LOCAL-DEV.md.)
+   is `@volter/game-live`'s `connect()` from a script INSIDE the worktree, run
+   with `npx tsx`.)
 7. **The ledger.** For vendored copies: lock updated (host-added hashes,
    patches with reverse-apply), `node vendor/games/verify-unaltered.mjs`
    green, UPSTREAM.md carrying every binding and every empty claim with

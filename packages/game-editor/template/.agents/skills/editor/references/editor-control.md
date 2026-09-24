@@ -94,7 +94,7 @@ status`/`npx volter-game-editor play`/etc. from another shell will reach it for 
 game's control and readout surface is its own ordinary exported modules. There
 is no command registry, provider registry, or fixed game vocabulary to learn.
 `npx volter-game-editor eval` runs literal JS against this project's live session with
-`{ editor, game, page, tools, session }` from `@volter/editor-live` already in scope:
+`{ editor, game, page, tools, session }` from `@volter/game-live` already in scope:
 
 ```bash
 npm run --silent vgai -- eval --list                     # what's in scope (no session needed)
@@ -326,12 +326,12 @@ npm run --silent vgai -- eval 'await editor.view("top"); await editor.shading("w
 
 ## SDK (Programmatic Access)
 
-For TypeScript automation, use **`@volter/editor-live`** — the same surface `npx volter-game-editor eval`
+For TypeScript automation, use **`@volter/game-live`** — the same surface `npx volter-game-editor eval`
 binds, so anything you prototyped at the command line moves into a script
 unchanged:
 
 ```typescript
-import { connect } from '@volter/editor-live';
+import { connect } from '@volter/game-live';
 
 const { editor, game, tools, session } = await connect();
 await editor.play();
