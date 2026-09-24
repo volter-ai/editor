@@ -45,8 +45,8 @@ Rules:
   `@volter/editor-blender` is the reference integration.
 - `@volter/editor-react` (React source authoring, moved out of the kit) imports **zero** kit
   internals.
-- `@volter/editor-game` imports kit internals from **153** files (156 before the React move) (`authoring` 131 imports,
-  `stories` 42, `ui-source` 39, `components` 39, `editor-shell-store` 35). It is the
+- `@volter/editor-game` imports kit internals from **153** files (156 before the React move) (`authoring`,
+  `stories`, `components` and `editor-shell-store` lead). It is the
   three.js integration, React authoring and the game product's purpose code fused into one
   package; `@volter/editor-core` exports `./*`, so nothing stops it.
 - The kit is not media-neutral. Of its 671 modules: 78 import three.js or
@@ -70,10 +70,9 @@ measurements, not yet an owner ruling.*
 | From | To | Door that replaces the direct import |
 | --- | --- | --- |
 | `editor-game/src/react/`, `contributions/react/`, kit `ui-source/inspect.ts` (React fiber reads) | `@volter/editor-react` (its server half moved 2026-09-24) | `vgai.contributions`; a fiber-inspection door for the kit's selection overlay |
-| kit `ui-source/r3f-*` bindings, `editor-game/src/three/`, `contributions/three/`, kit three-viewport, Object3D document sessions, three projection | `@volter/editor-threejs` (in the modeling release already) | SDK doors for stage, selection and picking; the React Three Fiber bindings ride `@volter/editor-react`'s source-writing export |
+| the `r3f-*` bindings (in `@volter/editor-react` since the React move), `editor-game/src/three/`, `contributions/three/`, kit three-viewport, Object3D document sessions, three projection | `@volter/editor-threejs` (in the modeling release already) | SDK doors for stage, selection and picking; the React Three Fiber bindings ride `@volter/editor-react`'s source-writing export |
 | kit Pixi story preview and model, spritesheets; `editor-game`'s canvas authoring | the canvas lane, inside the game product until a Pixi integration exists | a story-renderer registry keyed by medium, so the kit's CSF knows no renderer |
 | kit Play (`gameplay-*`, `play-boot-phase`, `reported-play-state`, scoped game CSS, game globals, `play-stall`, `support/play`); `editor-game`'s play, bridge, play bar, ingest, State Watch, network, navmesh, XState, profiler, asset budget, build | `@volter/game-editor` | the product composes; the kit keeps only media-neutral lifecycle doors |
-| kit `capture-viewport`'s Play branch | the Game document's owner | a capture door the owning document registers |
 | `src/main.ts`, `sfx.ts`'s adapter type, entry-module `systems`/`debug` | `vgai.adapter.ts` declares them; the game's modules stay plain | structural types in the adapter contract |
 
 Order: `@volter/editor-react` first, end to end, as the reference (its server half and
