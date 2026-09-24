@@ -36,7 +36,6 @@ import type {
   TruthProvider,
   WriteAck,
 } from '@volter/editor-project/adapter';
-import type * as THREE from 'three';
 import { recordAuthoringConsumerUse } from '@volter/editor-sdk/kit/authoring-seam-evidence';
 import { NO_OBJECT_REASON } from '@volter/editor-sdk/kit/creation-site-registry';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
@@ -1017,7 +1016,7 @@ export class CompositeAuthoringAdapter implements AuthoringAdapter {
       isGroupNodeId(id) || isOrganizationNodeId(id)
         ? null
         : (this.routeOwned(id, 'hierarchy.object3D')?.hierarchy.object3D?.(id) ?? null),
-    idForObject3D: (o: THREE.Object3D) => {
+    idForObject3D: (o) => {
       for (const child of this.children) {
         const id = child.adapter.hierarchy.idForObject3D?.(o);
         if (id) return id;

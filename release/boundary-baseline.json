@@ -446,7 +446,6 @@
  "kit-media  packages/editor-core/src/asset-workflow/model-inspection.ts -> three",
  "kit-media  packages/editor-core/src/authoring/component-instance-root.ts -> @volter/editor-threejs/ecs/user-data",
  "kit-media  packages/editor-core/src/authoring/component-instance-root.ts -> three",
- "kit-media  packages/editor-core/src/authoring/composite-authoring-adapter.ts -> three",
  "kit-media  packages/editor-core/src/authoring/design-time-mount-registry.ts -> three",
  "kit-media  packages/editor-core/src/authoring/design-time-settle.ts -> three",
  "kit-media  packages/editor-core/src/authoring/live-object-transform.ts -> three",
