@@ -30,7 +30,8 @@
   },
   "dependencies": {
     "@volter/editor-live": "0.5.65",
-    "@volter/editor-sdk": "0.5.65"
+    "@volter/editor-sdk": "0.5.65",
+    "undici": "^7.28.0"
   },
   "peerDependencies": {
     "@playwright/test": ">=1.58.2 <2"
