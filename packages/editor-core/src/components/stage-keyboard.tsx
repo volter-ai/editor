@@ -25,12 +25,12 @@
  * as `StageOverlays.tsx`.
  */
 import { useEffect } from 'react';
-import { registerEditorViewportHotkeys } from '../editor-hotkeys';
+import { registerViewportHotkeys } from '../viewport-hotkeys';
 import type { StageHandle } from './stage-overlay-set';
 
 export function StageKeyboardBinding({ stage }: { readonly stage: StageHandle }): null {
   useEffect(
-    () => registerEditorViewportHotkeys(stage.store, stage.viewport, stage.canvas),
+    () => registerViewportHotkeys(stage.store, stage.viewport, stage.canvas),
     [stage.store, stage.viewport, stage.canvas],
   );
   return null;

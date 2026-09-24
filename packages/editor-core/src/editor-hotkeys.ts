@@ -28,27 +28,23 @@ import {
 } from './components/world-overlay-gestures';
 import { openCommandPalette } from './editor-commands';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import type { EditorShellStore } from './editor-shell-store';
-import type { EditorViewport } from './editor-viewport';
+import type { EditorHostKeyAction } from '@volter/editor-sdk/host';
+import type { ShellStore } from './shell-store';
 import type { HistoryCommands } from './history/history-commands';
 import {
   allowsAppUndoWhileEditable,
-  getActiveScope,
   type HotkeyBinding,
   installHotkeys,
   isEditableTarget,
   registerHotkeys,
-  setActiveScope,
 } from '@volter/editor-sdk/kit/hotkeys';
 import { type KeyActionScope, registerKeyAction } from './key-actions';
 import {
   type EditorKeyActionId,
   keyChordsFor,
-  shortcutFor,
   subscribeEditorKeymap,
 } from './keymap-presets';
 import { stopAllLiveSessions } from '@volter/editor-sdk/kit/live-session-registry';
-import { requestTransformMode } from './transform-mode-request';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import { saveActiveWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { toggleWorkspaceFocus } from './workspace-host-commands';
@@ -134,17 +130,17 @@ export function shouldHandleEditorClipboard(): boolean {
  * `editor.status()` already reports and what the hierarchy panel already
  * draws, so reading it here makes the three agree instead of two against one.
  */
-function actionSelectionIds(store: EditorShellStore): string[] {
+function actionSelectionIds(store: ShellStore): string[] {
   return activeSelectionIds(store);
 }
 
-export async function copySelection(store: EditorShellStore): Promise<void> {
+export async function copySelection(store: ShellStore): Promise<void> {
   const ids = actionSelectionIds(store);
   if (ids.length === 0) return;
   await copyAuthoringNodes(resolvePanelAuthoring(store).adapter, ids);
 }
 
-export async function cutSelection(store: EditorShellStore): Promise<void> {
+export async function cutSelection(store: ShellStore): Promise<void> {
   const ids = actionSelectionIds(store);
   if (ids.length === 0) return;
   await cutAuthoringNodes(resolvePanelAuthoring(store).adapter, ids);
@@ -152,7 +148,7 @@ export async function cutSelection(store: EditorShellStore): Promise<void> {
 
 /** Ordinary Paste creates siblings: the current selection's native parent is
  * the destination. With no selection, the adapter's document root is used. */
-export async function pasteSelection(store: EditorShellStore): Promise<void> {
+export async function pasteSelection(store: ShellStore): Promise<void> {
   const adapter = resolvePanelAuthoring(store).adapter;
   const selectedId = actionSelectionIds(store)[0];
   const parentId = selectedId ? (adapter.hierarchy.node(selectedId)?.parentId ?? null) : null;
@@ -190,7 +186,7 @@ export async function pasteSelection(store: EditorShellStore): Promise<void> {
  */
 let duplicateQueue: Promise<void> = Promise.resolve();
 
-export function duplicateSelection(store: EditorShellStore): Promise<void> {
+export function duplicateSelection(store: ShellStore): Promise<void> {
   const queued = duplicateQueue.then(() => runDuplicateSelection(store));
   // The queue never inherits a rejection — one failed duplicate must not
   // strand every later press (the commit-queue rule in the canvas lane).
@@ -201,7 +197,7 @@ export function duplicateSelection(store: EditorShellStore): Promise<void> {
   return queued;
 }
 
-async function runDuplicateSelection(store: EditorShellStore): Promise<void> {
+async function runDuplicateSelection(store: ShellStore): Promise<void> {
   const selection = actionSelectionIds(store);
   if (selection.length === 0) return;
   const adapter = resolvePanelAuthoring(store).adapter;
@@ -274,7 +270,7 @@ async function runDuplicateSelection(store: EditorShellStore): Promise<void> {
  * so THIS loop is never reached for it; it stays here, documented and tested,
  * as the honest degrade for any override adapter that has no batched delete.
  */
-export async function deleteSelection(store: EditorShellStore): Promise<void> {
+export async function deleteSelection(store: ShellStore): Promise<void> {
   const ids = actionSelectionIds(store);
   if (ids.length === 0) return;
   const adapter = resolvePanelAuthoring(store).adapter;
@@ -306,7 +302,7 @@ export async function deleteSelection(store: EditorShellStore): Promise<void> {
  *  in-flight structural writes against the SAME source file each read it before
  *  either wrote back, and whichever lands second silently loses the first. The
  *  awaited value is that edit's own `{destination, persisted}` ack. */
-export async function wrapSelection(store: EditorShellStore): Promise<void> {
+export async function wrapSelection(store: ShellStore): Promise<void> {
   const ids = actionSelectionIds(store);
   if (ids.length === 0) return;
   const adapter = resolvePanelAuthoring(store).adapter;
@@ -315,7 +311,7 @@ export async function wrapSelection(store: EditorShellStore): Promise<void> {
   for (const id of ids) await wrapAuthoringNode(adapter, id);
 }
 
-export async function unwrapSelection(store: EditorShellStore): Promise<void> {
+export async function unwrapSelection(store: ShellStore): Promise<void> {
   const ids = actionSelectionIds(store);
   if (ids.length === 0) return;
   const adapter = resolvePanelAuthoring(store).adapter;
@@ -328,7 +324,7 @@ export async function unwrapSelection(store: EditorShellStore): Promise<void> {
  * supports lossless grouping. One provider call owns one undo entry, and its
  * ack is awaited the same way `wrapSelection` awaits `wrap` — a caller that
  * awaits this function has awaited the byte. */
-export async function groupSelection(store: EditorShellStore): Promise<void> {
+export async function groupSelection(store: ShellStore): Promise<void> {
   const ids = actionSelectionIds(store);
   if (ids.length === 0) return;
   const adapter = resolvePanelAuthoring(store).adapter;
@@ -346,7 +342,7 @@ export async function groupSelection(store: EditorShellStore): Promise<void> {
  * rect/position/margin inputs it needs and brackets the write in a single
  * `begin`/`apply`/`end` (one undo step per nudged node, per B1/D-1).
  */
-export function nudgeSelection(store: EditorShellStore, dx: number, dy: number): void {
+export function nudgeSelection(store: ShellStore, dx: number, dy: number): void {
   const ids = actionSelectionIds(store);
   if (ids.length === 0) return;
   const adapter = resolvePanelAuthoring(store).adapter;
@@ -468,7 +464,7 @@ function registerKeymapBindings(build: () => HotkeyBinding[]): () => void {
  * both chords fire the same action.
  */
 export function registerEditorShellHotkeys(
-  store: EditorShellStore,
+  store: ShellStore,
   history: HistoryCommands,
 ): () => void {
   // NARRATED undo/redo: the hint names what just happened ("Undid Paste 3
@@ -712,146 +708,21 @@ export function registerEditorShellHotkeys(
 }
 
 /**
- * Three-viewport bindings (the gizmo-mode trio, numpad views, vertex snap).
- * Only the 3D Scene document has an `EditorViewport`; canvas isolation
- * documents do not. Which keys the trio lands on is the active KEYMAP's call
- * (`keymap-presets.ts`): W/E/R under `vgai`, G/R/S under `blender`.
+ * A LANE'S KEYBOARD ACTIONS, bound through the host door
+ * (`host.keyboard.bindActions`): the lane writes what each action does, and the
+ * active keymap supplies its chords, rebuilt on a keymap switch like every
+ * binding set here. A `'stage'` action answers only while a stage holds the
+ * editor's keyboard scope.
  */
-export function registerEditorViewportHotkeys(
-  store: EditorShellStore,
-  viewport: EditorViewport,
-  canvas: HTMLCanvasElement,
-): () => void {
-  const unregister = registerKeymapBindings(() => [
-    // --- Viewport-scoped (only when viewport/canvas is active) ---
-    ...bind('transform.select', {
-      scope: 'viewport',
-      action: () => {
-        if (!viewport.isFlying) requestTransformMode(store, 'select');
-      },
+export function bindKeyActions(actions: readonly EditorHostKeyAction[]): () => void {
+  return registerKeymapBindings(() =>
+    actions.flatMap((entry) => {
+      const enabled = entry.enabled;
+      return bind(entry.id, {
+        scope: entry.scope === 'stage' ? 'viewport' : 'global',
+        action: (event) => entry.run(event),
+        ...(enabled ? { when: () => enabled(), frameEnabled: () => enabled() } : {}),
+      });
     }),
-    ...bind('transform.combined', {
-      scope: 'viewport',
-      action: () => {
-        if (!viewport.isFlying) requestTransformMode(store, 'combined');
-      },
-    }),
-    ...bind('transform.translate', {
-      scope: 'viewport',
-      action: () => {
-        if (!viewport.isFlying) requestTransformMode(store, 'translate');
-      },
-    }),
-    ...bind('transform.rotate', {
-      scope: 'viewport',
-      action: () => {
-        if (!viewport.isFlying) requestTransformMode(store, 'rotate');
-      },
-    }),
-    ...bind('transform.scale', {
-      scope: 'viewport',
-      action: () => {
-        if (!viewport.isFlying) requestTransformMode(store, 'scale');
-      },
-    }),
-    // Snap has a key and says what it did: a human build session asked "how
-    // do you toggle the snap" with the magnet button on screen the whole time.
-    // The hint names the ACTIVE keymap's key, never a remembered literal.
-    // Holding Ctrl/⌘ during a drag snaps temporarily (editor-viewport.ts).
-    ...bind('viewport.toggleSnap', {
-      scope: 'viewport',
-      action: () => {
-        store.toggleSnap();
-        const { translate, rotate, scale } = store.snapValues;
-        const toggles = `${shortcutFor('viewport.toggleSnap') ?? ''} toggles; hold Ctrl while dragging to snap once`;
-        showTransientHint(
-          store.snapEnabled
-            ? `Snap on — ${translate} units, ${rotate}°, ×${scale} (${toggles})`
-            : `Snap off (${toggles})`,
-        );
-      },
-    }),
-    ...bind('viewport.frameSelection', {
-      scope: 'viewport',
-      action: () => store.focusOnSelection(),
-    }),
-    ...bind('viewport.cyclePivot', {
-      scope: 'viewport',
-      action: () => {
-        const pivotModes = ['active-element', 'median-point', 'individual-origins'] as const;
-        const idx = pivotModes.indexOf(store.pivotMode);
-        store.setPivotMode(pivotModes[(idx + 1) % pivotModes.length]!);
-      },
-    }),
-    ...bind('view.top', { scope: 'viewport', action: () => viewport.setViewPreset('top') }),
-    ...bind('view.front', { scope: 'viewport', action: () => viewport.setViewPreset('front') }),
-    ...bind('view.right', { scope: 'viewport', action: () => viewport.setViewPreset('right') }),
-    ...bind('view.perspective', {
-      scope: 'viewport',
-      action: () => viewport.setViewPreset('perspective'),
-    }),
-    ...bind('viewport.snapToFloor', {
-      scope: 'viewport',
-      action: () => viewport.snapSelectionToFloor(),
-    }),
-  ]);
-
-  const onPointerDown = () => setActiveScope('viewport');
-  canvas.addEventListener('pointerdown', onPointerDown);
-  installHotkeys();
-
-  // Vertex snap: HOLD to activate. Not a `registerHotkeys` row because that
-  // dispatcher is single-fire-per-keydown with no held concept, so this pair
-  // reads the same keymap entry directly rather than a literal key.
-  const isVertexSnapKey = (e: KeyboardEvent): boolean =>
-    keyChordsFor('viewport.vertexSnapHold').some((chord) => chord.key === e.key.toLowerCase());
-  const onKeyDown = (e: KeyboardEvent) => {
-    if (isVertexSnapKey(e) && !e.metaKey && !e.ctrlKey && !e.repeat) {
-      // THE STAGE'S OWN SCOPE, which is what keeps this from being a second
-      // keyboard owner: it fires only while the viewport holds the editor's
-      // scope, the same fact the frame publishes as `vgai.stage.focused`.
-      if (getActiveScope() !== 'viewport') return;
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      store.setVertexSnapActive(true);
-      viewport.activateVertexSnap();
-    }
-  };
-  const onKeyUp = (e: KeyboardEvent) => {
-    if (isVertexSnapKey(e) && !e.metaKey && !e.ctrlKey) {
-      store.setVertexSnapActive(false);
-      viewport.deactivateVertexSnap();
-    }
-  };
-  // THE ONE KEY LISTENER THE EDITOR STILL INSTALLS, and it is not a second
-  // keyboard owner: a keybinding rule fires on keydown and has no HELD
-  // concept, so vertex-snap hold has no workbench counterpart to become. It
-  // consumes nothing — no `preventDefault`, no action table — reads only
-  // whether a chord is DOWN, and fires only while the viewport holds the
-  // editor's own scope. That is the stage-local gesture WORK.md U6 left open,
-  // living beside `editor-viewport.ts`'s fly keys and snap-hold, which are
-  // gated the same way.
-  window.addEventListener('keydown', onKeyDown);
-  window.addEventListener('keyup', onKeyUp);
-
-  return () => {
-    unregister();
-    canvas.removeEventListener('pointerdown', onPointerDown);
-    window.removeEventListener('keydown', onKeyDown);
-    window.removeEventListener('keyup', onKeyUp);
-  };
-}
-
-/** Test/legacy wrapper: shell bindings plus the Three viewport set. */
-export function registerEditorHotkeys(
-  store: EditorShellStore,
-  viewport: EditorViewport,
-  canvas: HTMLCanvasElement,
-  history: HistoryCommands,
-): () => void {
-  const unregisterShell = registerEditorShellHotkeys(store, history);
-  const unregisterViewport = registerEditorViewportHotkeys(store, viewport, canvas);
-  return () => {
-    unregisterShell();
-    unregisterViewport();
-  };
+  );
 }

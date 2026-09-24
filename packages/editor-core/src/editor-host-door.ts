@@ -55,10 +55,13 @@ import {
   registeredKeyActions,
   subscribeKeyActions,
 } from './key-actions';
+import { bindKeyActions } from './editor-hotkeys';
 import {
   activeEditorKeymap,
   editorKeymaps,
+  keyChordsFor,
   keymapTable,
+  shortcutFor,
   subscribeEditorKeymap,
 } from './keymap-presets';
 import {
@@ -472,6 +475,9 @@ export function installEditorHostDoor(): void {
         // Blender, "Inspection parity", I3, item 4).
         return { surface: focusedStageContext(store).surface, mode: activeStageMode() };
       },
+      bindActions: bindKeyActions,
+      chordsFor: keyChordsFor,
+      shortcutFor: (id) => shortcutFor(id) ?? null,
     },
   });
 }

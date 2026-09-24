@@ -24,6 +24,7 @@ import type {
 } from '@volter/editor-project/adapter';
 import type { ComponentType } from 'react';
 import type { DocumentEntry } from '@volter/editor-project/adapter/adapter-module';
+import type { EditorKeyActionId, KeyChord } from '@volter/editor-project/adapter/editor-looks';
 import { useSyncExternalStore } from 'react';
 import type * as THREE from 'three';
 import type { StageTransportHandle } from './transport';
@@ -853,6 +854,28 @@ export interface EditorHostKeyboard {
     readonly surface: 'three' | 'canvas' | 'dom' | null;
     readonly mode: string | null;
   };
+  /**
+   * REGISTER A LANE'S KEYBOARD ACTIONS for as long as the lane lives. The lane
+   * writes what each action does; its chords are the ACTIVE keymap's for that
+   * id and move when the keymap does. A `'stage'` action answers only while a
+   * stage holds the editor's keyboard scope. Returns the removal.
+   */
+  bindActions(actions: readonly EditorHostKeyAction[]): () => void;
+  /** The active keymap's chords for one action — for a HELD gesture, which a
+   *  keybinding rule has no way to express. */
+  chordsFor(id: EditorKeyActionId): readonly KeyChord[];
+  /** The active keymap's chord for one action as a person reads it, or null
+   *  when the keymap gives the action none. */
+  shortcutFor(id: EditorKeyActionId): string | null;
+}
+
+/** One action a lane binds through {@link EditorHostKeyboard.bindActions}. */
+export interface EditorHostKeyAction {
+  readonly id: EditorKeyActionId;
+  readonly scope: 'stage' | 'global';
+  run(event?: KeyboardEvent): void;
+  /** Whether the action applies right now, asked without an event. */
+  enabled?(): boolean;
 }
 
 /**

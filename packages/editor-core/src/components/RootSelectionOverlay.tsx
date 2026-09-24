@@ -1949,7 +1949,7 @@ export function RootSelectionOverlay({
   // keydown/keyup pair, mounted once — NOT routed through `registerHotkeys`/
   // `editor-hotkeys.ts` (that registry fires once per keydown and has no
   // "held" concept; this mirrors the existing vertex-snap V-key pattern in
-  // `registerEditorHotkeys` instead, which is the established precedent for a
+  // `viewport-hotkeys.ts` instead, which is the established precedent for a
   // literal key-HOLD state in this codebase). Matches `hotkeys.ts`'s own
   // not-typing guard exactly (input/textarea/select/contentEditable) so Space
   // still types a literal space character in any of those, never arming pan.
