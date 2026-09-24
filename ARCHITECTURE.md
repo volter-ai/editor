@@ -25,7 +25,10 @@ Rules:
 4. **The code side is unopinionated.** A game's own modules (its world, scenes, prefabs,
    components) are plain library code and import nothing of the editor. What the editor
    needs to know about a game is declared editor-side: `vgai.adapter.ts` and
-   `src/contributions/`.
+   `src/contributions/`. The game is idiomatic code in its own libraries (XState's
+   `createActor`, React Three Fiber components); the editor and its adapters make it the
+   engine (owner ruling, 2026-09-24). A game never calls a registration API so the editor can
+   see it: what the editor needs, it observes from the served module graph or the adapter.
 
 ## Doors
 
