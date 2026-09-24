@@ -2,7 +2,7 @@
   "name": "@volter/editor-game",
   "author": "Volter AI, Inc.",
   "license": "AGPL-3.0-only",
-  "version": "0.5.64",
+  "version": "0.5.65",
   "publishConfig": {
     "access": "public"
   },
@@ -87,12 +87,12 @@
     ]
   },
   "dependencies": {
-    "@volter/editor-core": "0.5.64",
-    "@volter/editor-sdk": "0.5.64",
-    "@volter/editor-project": "0.5.64",
-    "@volter/editor-threejs": "0.5.64",
-    "@volter/threejs-runtime": "0.5.64",
-    "@volter/game-runtime": "0.5.64",
+    "@volter/editor-core": "0.5.65",
+    "@volter/editor-sdk": "0.5.65",
+    "@volter/editor-project": "0.5.65",
+    "@volter/editor-threejs": "0.5.65",
+    "@volter/threejs-runtime": "0.5.65",
+    "@volter/game-runtime": "0.5.65",
     "@colyseus/schema": "^4.0.14",
     "@colyseus/sdk": "^0.17.34",
     "@fortawesome/free-solid-svg-icons": "^7.2.0",

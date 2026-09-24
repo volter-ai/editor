@@ -1,10 +1,10 @@
 {
-  "description": "Blender-style modeling — TWO PACKAGES. `@volter/blender-engine` is Blender itself, compiled to WebAssembly and running headless in the editor tab's worker (GPL-3.0-or-later, because Blender is); `@volter/editor-blender` is the editor-side half that drives it: the Model document (a `.blend` the engine opens, edits and saves), the `modelsFromBlendFiles` finder, the display transforms and the Blender look — style, keymap, palette, icons and the Model/Sculpt/Texture layouts (ARCHITECTURE-CORE §Blender north star). Adding this capability declares both dependencies and copies in the starter model: `src/models/cube.blend` — a real Blender document — and `src/models/cube.py`, the bpy script that authored it, which stays in the project as the asset's source. Select the finder in `vgai.adapter.ts`: `{ finder: 'modelsFromBlendFiles', include: ['src/models/**/*.blend'] }`. THE ID IS `blender`, renamed from `mesh` on 2026-09-19 by the owner: `mesh` named the TypeScript BMesh kit this entry used to declare beside the two packages, and that kit is deleted (“The mesh kit retires”). A project whose `.vgai/catalog/` still carries the old id is REFUSED LOUDLY, naming the one-line fix — never silently mapped, on the `vgai.game.json` precedent (CLAUDE.md, “The manifest is vgai.project.json”).",
+  "description": "Blender-style modeling \u2014 TWO PACKAGES. `@volter/blender-engine` is Blender itself, compiled to WebAssembly and running headless in the editor tab's worker (GPL-3.0-or-later, because Blender is); `@volter/editor-blender` is the editor-side half that drives it: the Model document (a `.blend` the engine opens, edits and saves), the `modelsFromBlendFiles` finder, the display transforms and the Blender look \u2014 style, keymap, palette, icons and the Model/Sculpt/Texture layouts (ARCHITECTURE-CORE \u00a7Blender north star). Adding this capability declares both dependencies and copies in the starter model: `src/models/cube.blend` \u2014 a real Blender document \u2014 and `src/models/cube.py`, the bpy script that authored it, which stays in the project as the asset's source. Select the finder in `vgai.adapter.ts`: `{ finder: 'modelsFromBlendFiles', include: ['src/models/**/*.blend'] }`.",
   "files": [],
   "id": "blender",
   "packageJson": {
     "dependencies": {
-      "@volter/editor-blender": "0.1.7",
+      "@volter/editor-blender": "0.1.8",
       "@volter/blender-engine": "0.1.7"
     }
   },
