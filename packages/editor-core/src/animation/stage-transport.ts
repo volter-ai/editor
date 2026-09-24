@@ -39,7 +39,7 @@ import type {
   TransportPlaybackState,
   TransportSubject,
 } from '@volter/editor-sdk/host';
-import { AnimationClock } from '@volter/editor-threejs/animation/animation-clock';
+import { AnimationClock } from './animation-clock';
 import type { ShellStore } from '../shell-store';
 
 /** The range a transport reports with nothing attached — a real, inert

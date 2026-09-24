@@ -10,9 +10,15 @@
  * cannot be asked of the status code alone.
  */
 
-import { resolveUrl } from '@volter/editor-threejs/loader';
 import { base64ToBytes } from '@volter/editor-sdk/kit/bytes-codec';
 import { getStorageBackend } from '../storage';
+
+/** A project path as the session serves it: rooted at `/`, while an absolute,
+ *  `data:` or `blob:` address is already one. */
+function servedUrl(path: string): string {
+  return /^(\/|https?:|data:|blob:)/.test(path) ? path : `/${path}`;
+}
+
 /**
  * Read a project text file from the session that owns the project namespace.
  *
@@ -23,7 +29,7 @@ import { getStorageBackend } from '../storage';
  */
 export async function readProjectTextFile(path: string): Promise<string | null> {
   try {
-    const res = await fetch(resolveUrl(path));
+    const res = await fetch(servedUrl(path));
     if (res.ok) return await res.text();
   } catch {
     /* ignore */
@@ -102,7 +108,7 @@ export async function probeProjectFile(path: string): Promise<ProjectFilePresenc
   // Ask the origin; the fallback detector below keeps a SPA 200 from counting
   // as the file.
   try {
-    const res = await fetch(resolveUrl(path), { method: 'HEAD' });
+    const res = await fetch(servedUrl(path), { method: 'HEAD' });
     if (!res.ok) return 'absent';
     return isSpaFallbackDocument(res) ? 'absent' : 'present';
   } catch {
