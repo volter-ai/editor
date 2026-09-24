@@ -48,6 +48,16 @@ named instances side by side, opens the UI and 3D component boards, and the
 web build packages `<project>-web.zip`; Profiler, Asset Budget and Build
 Profiles work; `website` opens its page source in Design.
 
+On the runtime image: a game whose `node_modules` links the checkout's image
+plays (`screenshot` shows the rendered scene), and an Inspector edit writes
+`src/scenes/MainScene.tsx` and undo/redo round-trip it. vgai's `arena` example,
+ported with registry pins and linked to the image, opened on the published
+pinned workbench (hash matched): its `.blend` model and its World (59 entities)
+render; Play runs the three.js world under its React HUD with enemies engaging;
+`game.input.hold('fire', { simSeconds: 0.6 })` spent two rounds (12 → 10);
+moving the Center Jump Pad wrote `src/scenes/ArenaScene.tsx:33` and undo
+restored it. The one console warning is Rapier's own initialization notice.
+
 Remaining, each closed by the same live walk:
 
 1. The release gates: `release/game.json`, packed-import and notice checks
@@ -60,17 +70,17 @@ Remaining, each closed by the same live walk:
    `screenshot` (the game's own capture) and document captures are correct.
 4. `editor.captureEditorChrome()` rasterizes a React root's text over itself
    (measured DOM geometry is correct).
-5. State Watch opens only with a debug adapter, Network only with networking;
-   the starter game has neither, so both, XState behaviour and navmesh are
-   unwalked on real content.
+5. State Watch shows in `arena`'s status bar but was not opened; Network
+   (needs networking), XState behaviour and navmesh are unwalked on real
+   content.
 6. The design skew (`website`): the DOM root is read-only and the Pages
    list is empty — unfinished upstream too.
 7. `empty` opens in Blender's Model workspace (Game requires mounts).
 8. Worktree isolation runs a product `create` form no CLI supports; messages
    suggest `deploy`, `add deploy-cloudflare` and `add pasteboard`, which the
    catalog does not carry.
-9. A product bundle build takes about a minute and several GB; the owner's
-   30-second rule needs it faster or a source-serving development host.
+9. The game product bundle builds in about 32 s at a 3.2 GB peak, over the
+   owner's 30-second rule; it needs a source-serving development host.
 10. 156 of `editor-game`'s modules import kit internals; `editor-threejs`
     duplicates 19 twin files.
 
