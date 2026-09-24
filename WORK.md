@@ -25,6 +25,13 @@ point down.
 | `@volter/game-live` | The game client over a session: `game`, `page`, recording; `eval` scope and tester scripts |
 | `@volter/game-runtime`, `@volter/threejs-runtime` | The Apache twins a shipped game carries |
 
+A game is its own code. The product's dependencies are a game's full runtime
+set — the union of what the template and the catalog's capabilities declare,
+held there by the pre-commit check — so one installation per version is the
+runtime image every game of that version links as `node_modules`
+(`~/.volter/images/game-editor-<version>`; a checkout's root in development).
+`create` links it instead of installing, and `add` never installs into it.
+
 The kit gained product-neutral doors only: the launcher takes the launching
 product; the served product's command and display name come from its own
 `package.json` and name every message; the stage host takes a package's
