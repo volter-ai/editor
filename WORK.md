@@ -78,6 +78,20 @@ Remaining:
 2. **The architecture plan** ([ARCHITECTURE.md](ARCHITECTURE.md) §The plan): the model editor
    rename, the frozen reverse-edge baseline, the viewport unit, Blender as its first consumer,
    then idiomatic games. `@volter/editor-game` imports kit internals from 122 files.
+   Units 1–2 are done (`@volter/model-editor`; `release/boundary-baseline.json`, 696 edges). The
+   model editor's workbench still needs its rebuild for the new product id: the compile wants a
+   9 GB heap and was killed at 17 GB compressed memory, so it runs on a box with headroom.
+   Unit 3, measured: the viewport's closure in `editor-core` is 186 modules, 47 of them
+   Three-bound (25k lines). The baseline refuses new core-to-`@volter/editor-threejs` edges, so
+   the set moves in one step after core stops importing it. Remaining cut points: the store's
+   Three members read by kit modules (`ShellDocumentState` names the neutral half; selection,
+   history and change), the Edit/Play tab and `playState` read by `active-adapter`,
+   `tool-documents`, `workspace-document-restore` and `stage-context` (the game product's, via
+   Code-OSS focus), the viewport commands inside `editor-hotkeys` and `action-registry` (to the
+   Three integration's contributed actions and keys), the SDK's `surfaces.Object3DAuthoring`
+   factory into `StageHost` (Blender imports the viewport directly), `TransportStrip` into the
+   stage transport, and viewport UI (`ViewportOverlay`, `ViewportViewMenu`, `stage-overlay-set`,
+   `transform-mode-request`, `viewport-tool-context`) that moves with the set.
 3. **Animation seen from outside.** The editor finds a game's mixers through a served stamp on
    the project's own `new AnimationMixer(...)` and `useAnimations(...)` call sites
    (`@volter/editor-threejs/serving`); `status` reports them as `liveMixers` (walked on `arena`:
