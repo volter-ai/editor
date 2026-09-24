@@ -30,7 +30,6 @@ import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { readinessFacet, subscribeRootReadiness } from '@volter/editor-core/readiness';
 import { documentStageContext, threeSelectionToolsApply } from '@volter/editor-core/stage-context';
 import { explainSurface } from '@volter/editor-core/surface-state';
-import { SCENE_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
 import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
@@ -88,14 +87,20 @@ function SceneViewportStateOverlay({
   return <SurfaceStateOverlay explanation={explanation} testId="scene-viewport-status" />;
 }
 
-function WorldRootOverlays({ store, cameraPreviewRef, mountStatus, rootIds }: WorldRootOverlayProps) {
+function WorldRootOverlays({
+  store,
+  documentId,
+  cameraPreviewRef,
+  mountStatus,
+  rootIds,
+}: WorldRootOverlayProps) {
   useSyncExternalStore(store.subscribe, store.getShellSnapshot ?? store.getSnapshot);
   useSyncExternalStore(subscribeActiveAuthoring, activeAuthoringVersion);
   useSyncExternalStore(subscribeObject3DDocumentSessions, object3DDocumentSessionsVersion);
   useSyncExternalStore(subscribeWorkspaceDocuments, workspaceDocumentRegistryVersion);
   // The world root's stage is the Scene document's: the kit's overlay props
   // carry no document id, and the Scene document is the one world-root stage.
-  const ctx = documentStageContext(store, SCENE_DOCUMENT_ID, 'document');
+  const ctx = documentStageContext(store, documentId, 'document');
   const showsSelectionTools = threeSelectionToolsApply(ctx);
   return (
     <>

@@ -2032,6 +2032,7 @@ export function Object3DDocumentViewport({
         {shellStore && worldRootBinding ? (
           <worldRootBinding.Overlays
             store={shellStore}
+            documentId={documentId}
             cameraPreviewRef={cameraPreviewRef}
             mountStatus={designMountStatus}
             rootIds={designRootIds}

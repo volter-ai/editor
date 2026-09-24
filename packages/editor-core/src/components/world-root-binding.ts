@@ -44,6 +44,8 @@ export interface WorldRootStage {
 
 export interface WorldRootOverlayProps {
   readonly store: EditorShellStore;
+  /** The stage's own document — its stage context is read by this id. */
+  readonly documentId: string;
   readonly cameraPreviewRef: RefObject<HTMLDivElement | null>;
   readonly mountStatus: 'mounting' | 'ready';
   readonly rootIds: readonly string[];
