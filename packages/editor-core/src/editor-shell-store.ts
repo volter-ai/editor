@@ -194,7 +194,8 @@ export class EditorShellStore {
    *  transition still needs the design scene alive — the design session then
    *  unwinds its own frame from the middle via releaseAdoptedScene. */
   protected _adoptionStack: Array<{
-    scene: THREE.Scene;
+    /** `null` when the adoption replaced no scene: a session with no Scene stage plays too. */
+    scene: THREE.Scene | null;
     objectMap: Map<string, THREE.Object3D>;
     /** Opaque payload from {@link _captureAdoptionExtras} — a document half's
      *  own per-adoption snapshot. The shell never inspects it. */
@@ -320,7 +321,11 @@ export class EditorShellStore {
     batchedRenderer?: BatchedRenderer | null,
     camera?: THREE.Camera,
   ): void {
-    this._scene = scene;
+    // A stage mounting while a scene is adopted binds the edit scene UNDER the adoption, where
+    // Stop restores it; the adopted scene stays the active one.
+    const base = this._adoptionStack[0];
+    if (base) base.scene = scene;
+    else this._scene = scene;
     this._renderer = renderer ?? null;
     this._batchedRenderer = batchedRenderer ?? null;
     if (camera) this._camera = camera;
@@ -708,7 +713,6 @@ export class EditorShellStore {
     imageConfig?: WorldRendererConfig | undefined,
     projectedObjects?: ReadonlyMap<string, THREE.Object3D>,
   ): void {
-    if (!this._scene) return;
     this._adoptionStack.push({
       scene: this._scene,
       objectMap: this._objectMap,

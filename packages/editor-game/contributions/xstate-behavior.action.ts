@@ -23,7 +23,15 @@ export const actions: ActionContribution['actions'] = () => [
   {
     id: 'inspect-behavior',
     label: 'Inspect Behavior',
-    execute: () => void openFirstBehaviorDocument(),
+    execute: () => {
+      if (openFirstBehaviorDocument()) return;
+      editorHost().notify({
+        id: 'inspect-behavior',
+        tone: 'info',
+        title: 'No live behavior to inspect',
+        detail: 'A behavior appears here once the running world binds an XState actor.',
+      });
+    },
   },
   ...listLiveBehaviors().map((entry) => ({
     id: `xstate-machine:${entry.machineId}:${entry.nodeId}`,

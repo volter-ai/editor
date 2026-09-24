@@ -29,6 +29,7 @@ import {
   activateWorkspaceDocument,
   activeWorkspaceDocument,
   activeWorkspaceDocumentId,
+  openWorkspaceDocuments,
   workspaceDocumentSelection,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { openAvailableWorkspaceDocument } from './workspace-available-documents';
@@ -233,8 +234,14 @@ type ViewDocument<K extends NonNullable<EditorView['document']>['kind']> = Extra
  * parses the path.
  */
 function openSceneView(_store: EditorShellStore, _document: ViewDocument<'scene'>) {
-  activateWorkspaceDocument('workspace:scene');
-  return 'workspace:scene';
+  if (activateWorkspaceDocument('workspace:scene')) return 'workspace:scene';
+  // Refused rather than reported as presented: a session whose surface is another document
+  // (a product's Game tab) has no Scene tab to move to.
+  const open = openWorkspaceDocuments().map((entry) => entry.descriptor.id);
+  throw new Error(
+    'This session has no Scene document open. Open documents: ' +
+      `${open.join(', ') || 'none'}; address one as { kind: "workspace", id }.`,
+  );
 }
 
 /**

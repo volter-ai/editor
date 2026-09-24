@@ -87,7 +87,7 @@ import { mountedStoryHasPixiContent } from '@volter/editor-core/stories/pixi-sto
 import { domHasRenderableContent, threeSceneHasRenderableContent } from '../host/surface-content';
 import { subscribeSurfaceKeyboard, surfaceHoldsKeyboard } from '@volter/editor-sdk/kit/surface-keyboard';
 import { publishToolContributionPlay } from '@volter/editor-core/tool-contribution-play';
-import { liveWorldId } from '../host/viewport-root-presentation';
+import { liveWorldId, presentThreeRoots } from '../host/viewport-root-presentation';
 import {
   cancelPendingWorkspacePlayUtilities,
   revealWorkspacePlayUtilities,
@@ -1821,7 +1821,12 @@ async function enterPlayModeInner(
     // liveHierarchy: first-party play mode is the ONLY adoption path that may
     // synthesize descriptors for untagged runtime objects (anti-shim rule —
     // ingest/module mounts adopt foreign scenes and must never fabricate).
-    _instance.presentation = editorHost().viewport.presentRoots(session.game.roots);
+    // With no stage bound to present them (no Scene tab open: the Game tab and a model document
+    // are the whole layout), Play still adopts its roots, so the hierarchy door and every
+    // inspector reach the live objects exactly as they do beside a Scene tab.
+    _instance.presentation =
+      editorHost().viewport.presentRoots(session.game.roots) ??
+      presentThreeRoots(store, session.game.roots);
     markPlayBootPhase('installing play authoring for each root');
     await installPlayRootAuthoring(
       store,

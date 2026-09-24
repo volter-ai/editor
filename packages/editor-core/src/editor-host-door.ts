@@ -285,9 +285,10 @@ export function installEditorHostDoor(): void {
     availability: { subscribe: subscribeAvailabilityTick, version: availabilityTickVersion },
     workspace: {
       showUtility: showWorkspaceUtility,
-      // A null store: the opened document simply does not switch the
-      // viewport tab, which is the host's own `onActivate` nicety.
-      openContributedDocument: (id) => openToolDocument(null, id),
+      // The session store, so activating the document moves the store's viewport tab off
+      // `play`: without it the Scene/Game mirror re-activates the Game tab during Play and a
+      // package's document can never take focus there.
+      openContributedDocument: (id) => openToolDocument(shellStoreForHost(), id),
       // Without a store (no project session) the document still opens; the
       // tab hand-off is the store's nicety. The kind's own `settle` is what
       // the removed `openStory` did by hand before it addressed anything

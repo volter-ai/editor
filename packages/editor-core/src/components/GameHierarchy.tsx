@@ -3206,7 +3206,7 @@ export function GameHierarchySurface({ store, adapter }: GameHierarchySurfacePro
   // and the whole pass is one `undefined` per visible row; `@volter/editor-blender`'s
   // Outliner answers it for its layer-collection rows.
   const excludeColumnShown = useMemo(
-    () => rows.some((row) => adapter.inspector?.get(row.node.id, 'exclude') !== undefined),
+    () => rows.some((row) => !row.more && adapter.inspector?.get(row.node.id, 'exclude') !== undefined),
     [rows, adapter, adapterVersion, deferredContentVersion],
   );
 

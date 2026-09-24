@@ -70,6 +70,7 @@
       "./contributions/xstate-behavior.document.tsx",
       "./contributions/xstate-behavior.inspector.tsx",
       "./contributions/xstate-behavior.menu.ts",
+      "./contributions/xstate-behavior.service.ts",
       "./contributions/react/component-board.service.ts",
       "./contributions/react/design-time-mount.service.ts",
       "./contributions/react/react-inspector.service.ts",
