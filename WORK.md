@@ -58,31 +58,39 @@ render; Play runs the three.js world under its React HUD with enemies engaging;
 moving the Center Jump Pad wrote `src/scenes/ArenaScene.tsx:33` and undo
 restored it. The one console warning is Rapier's own initialization notice.
 
+Released as 0.5.65 with modeling from one revision
+([provenance/public-npm-release.json](provenance/public-npm-release.json)):
+from an empty npm cache, `npx @volter/game-editor@0.5.65 create` installed the
+runtime image from the registry and linked it, the game played, and an edit
+with undo/redo round-tripped in source; a second game installed nothing.
+Acceptance from the archives found three defects the checkout could not show
+(`game-live`'s external import of the SDK's TypeScript source, a bare `create`
+making the empty preset, and machine-local files a new game showed as
+changes); all three are fixed in the release.
+
 Remaining, each closed by the same live walk:
 
-1. The release gates: `release/game.json`, packed-import and notice checks
-   for the game packages, registry-mode `create`, a released game
-   workbench, and installation from archives outside the checkout.
-2. First boot logs "No default agent registered" (the Supercode chat
+1. First boot logs "No default agent registered" (the Supercode chat
    extension), and under machine load the workbench's GitHub sign-in lookups
    time out; both are the shared workbench's, the modeling product's too.
-3. `editor.screenshot()` during Play draws the adopted scene white; the CLI
+2. `editor.screenshot()` during Play draws the adopted scene white; the CLI
    `screenshot` (the game's own capture) and document captures are correct.
-4. `editor.captureEditorChrome()` rasterizes a React root's text over itself
+3. `editor.captureEditorChrome()` rasterizes a React root's text over itself
    (measured DOM geometry is correct).
-5. State Watch shows in `arena`'s status bar but was not opened; Network
+4. State Watch shows in `arena`'s status bar but was not opened; Network
    (needs networking), XState behaviour and navmesh are unwalked on real
    content.
-6. The design skew (`website`): the DOM root is read-only and the Pages
+5. The design skew (`website`): the DOM root is read-only and the Pages
    list is empty — unfinished upstream too.
-7. `empty` opens in Blender's Model workspace (Game requires mounts).
-8. Worktree isolation runs a product `create` form no CLI supports; messages
+6. `empty` opens in Game with no world; the Hierarchy reads "No authoring
+   adapter" instead of naming how to add a root.
+7. Worktree isolation runs a product `create` form no CLI supports; messages
    suggest `deploy`, `add deploy-cloudflare` and `add pasteboard`, which the
    catalog does not carry.
-9. The game product bundle builds in about 32 s at a 3.2 GB peak, over the
+8. The game product bundle builds in about 32 s at a 3.2 GB peak, over the
    owner's 30-second rule; it needs a source-serving development host.
-10. 156 of `editor-game`'s modules import kit internals; `editor-threejs`
-    duplicates 19 twin files.
+9. 156 of `editor-game`'s modules import kit internals; `editor-threejs`
+   duplicates 19 twin files.
 
 ## Supported-editing work
 

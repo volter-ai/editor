@@ -1,7 +1,8 @@
 # Volter Editor
 
-Volter Editor is an extensible editor. Its first release provides Blender-based
-modeling. Game editing will join the same repository when ready.
+Volter Editor is an extensible editor. It ships two products from this
+repository: Blender-based modeling (`@volter/editor`) and game editing
+(`@volter/game-editor`).
 
 The public source repositories begin with reviewed snapshots and no inherited
 private git history. The previous repositories and their legacy releases remain
@@ -13,14 +14,14 @@ inspect, edit and photograph the model. Modeling edits persist to the project's
 `.blend` file and survive reopening. Packaged-workbench startup and reuse are
 verified on darwin-arm64. The matching workbench is public and anonymously
 downloadable. The public npm packages download anonymously byte-identical to
-the tested archives, and a cache-empty installation from the registry has passed
-live modeling acceptance.
+the tested archives, and cache-empty installations of both products from the
+registry have passed live acceptance.
 
 The packaged workbench currently supports **macOS on Apple Silicon**
 (`darwin-arm64`). Installation and startup were verified with Node.js 24.
 
 ```bash
-npx @volter/editor@0.5.64 create my-models
+npx @volter/editor@0.5.65 create my-models
 ```
 
 The command creates a modeling project, installs the pinned public workbench on
@@ -61,6 +62,10 @@ Properties on screen while an edit re-reads them, removes the empty header
 strips above the model, timeline and side panels, and restores a view's
 orientation after a tab switch. Projects pinned to 0.5.63 update their
 `@volter` pins and `vgai.project.json`'s engine version to open in 0.5.64.
+Release 0.5.65 publishes the game editor beside modeling from the same
+source revision, and every bundled dependency notice names its source.
+Projects pinned to 0.5.64 update their `@volter` pins and engine version the
+same way to open in 0.5.65.
 Windows/Linux remain deferred. An older intermittent renderer
 hang remains unexplained; see the acceptance limits in [WORK.md](WORK.md).
 
@@ -69,6 +74,33 @@ packages alone does not replace that explicit choice. To use the newly pinned
 workbench, close the editor, update the project's declared `@volter` packages,
 and move `.vgai/workbench.json` aside before reopening; the product downloads and
 records its matching release. Preserve an intentional source-checkout declaration.
+
+## Game editor
+
+```bash
+npx @volter/game-editor@0.5.65 create my-game
+```
+
+`create` takes a preset: `game` (the default 3D starter), `prototype`,
+`full`, `website` or `empty`. The game opens in the Game workspace: Scene
+editing writes the game's own source and undoes through the workbench's
+history, Play runs it beside the editor, and Export builds a web bundle.
+
+A game is only its code. Its `node_modules` is a link to the game editor's
+**runtime image**: one installation per version, carrying every package the
+template and the capability catalog use (React, Three.js and its React
+bindings, Rapier, Colyseus, Storybook, Vite, TypeScript and the rest). The
+first `create` of a version installs the image into
+`~/.volter/images/game-editor-<version>` (or `$VOLTER_HOME/images/...`); every
+later game of that version installs nothing. `vgai.project.json`'s
+`engine.version` names the image a game opens with. A game that needs a
+package outside the image installs its own dependencies into a real
+`node_modules` directory instead of the link.
+
+From a game directory, `npx volter-game-editor` provides `status`, `console`,
+`eval`, `play`, `stop`, `screenshot`, `add`/`remove`/`outdated` for catalog
+capabilities, and `close`. The game editor pins its own public workbench
+release, verified on darwin-arm64.
 
 ## Package map
 
@@ -84,9 +116,15 @@ The npm scope is `@volter`.
 | `@volter/editor-threejs` | Shared Three.js editor functionality |
 | `@volter/editor-blender` | Blender documents, tools and presentation |
 | `@volter/blender-engine` | Blender WebAssembly engine and worker |
+| `@volter/game-editor` | Installable game product, `volter-game-editor` executable, template and capability catalog |
+| `@volter/editor-game` | Game documents, Play, Scene/UI authoring and game host modules |
+| `@volter/game-live` | Session client for a running game: `game`, `page`, recordings |
+| `@volter/game-runtime` | Runtime a game ships with |
+| `@volter/threejs-runtime` | Three.js runtime a game ships with |
 
 Users install one product; required supporting packages install transitively.
-The CLI ships in `@volter/editor`. Subpath exports represent modules within
+The modeling CLI ships in `@volter/editor`, the game CLI in
+`@volter/game-editor`. Subpath exports represent modules within
 packages, not separately installable packages.
 
 Blender and Code-OSS source forks remain separate repositories, pinned by this
@@ -95,9 +133,10 @@ are part of distribution readiness.
 
 ## Release boundary
 
-The publication list is [release/modeling.json](release/modeling.json).
-`npm run check:release` checks its manifest dependency boundary. Only this
-explicitly reviewed package list may be published. Repository membership does
+The publication lists are [release/modeling.json](release/modeling.json) and
+[release/game.json](release/game.json). `npm run check:release` and
+`npm run check:release:game` check their manifest dependency boundaries. Only
+these explicitly reviewed package lists may be published. Repository membership does
 not imply publication.
 
 The modeling release must not depend on unreleased game runtime, game editor,
@@ -150,6 +189,9 @@ npm test
 npm run check:release
 npm run check:packed-imports
 ```
+
+`npm run build:game`, `npm run check:release:game` and
+`npm run check:packed-imports:game` do the same for the game release.
 
 The build generates modules needed by the typechecks and packaging checks.
 Building the separate Code-OSS workbench is described in
