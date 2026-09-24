@@ -12,28 +12,46 @@ game packages remain excluded.
 
 ## Game editor (branch `game-editor`)
 
-Game editing is built on the `game-editor` branch; it does not join the
-modeling release list ([release/modeling.json](release/modeling.json)).
-Source: `volter-ai/vgai-engine` at `09c2749ce`, where the product is
-`@vgai/game-editor` (`packages/game-editor`: one `product()` entry mounting
-`@vgai/dom`, `@vgai/threejs`, `@vgai/blender` and `@vgai/game`, the `game`
-workspace, `presets.mjs` for `create`, and its workbench contribution).
+Game editing is built on the `game-editor` branch and does not join
+[release/modeling.json](release/modeling.json). The working reference is
+`volter-ai/vgai-engine` at `09c2749ce`: the product `@vgai/game-editor`
+(one `product()` entry composing `@vgai/dom`, `@vgai/threejs`,
+`@vgai/blender` and `@vgai/game`, the `game` workspace, `presets.mjs`),
+over its own copy of the kit. Its architecture is vgai-engine's
+`docs/ARCHITECTURE-CORE.md` §The target shape: kit, integrations,
+products, shipped twins; dependencies point down; a package imports only
+other packages' exports.
 
-Its workspace dependency closure, against what this repository already owns:
+Measured against this branch's `editor-core` (copies diverged 2026-09-22;
+nothing is synced):
 
-| vgai-engine package | Here |
-| --- | --- |
-| `@vgai/editor`, `@vgai/editor-sdk`, `@vgai/project`, `@vgai/live`, `@vgai/cli` | `editor-core`, `editor-sdk`, `editor-project`, `editor-live`, `editor` |
-| `@vgai/blender`, `@vgai/blender-engine` | `editor-blender`, `blender-engine` |
-| `@vgai/threejs` | `editor-threejs` holds bounds, rendering and capture only; authoring, component verbs, story documents and the three board are not transferred |
-| `@vgai/game` (154 files), `@vgai/dom` (19) | not transferred |
-| `@vgai/game-runtime` (95), `@vgai/threejs-runtime` (72) | not transferred |
-| `@vgai/sdk` | not transferred; its required code goes to its actual owners |
-| `@vgai/game-editor` (9) | not transferred |
+- The game packages import 229 kit-internal modules (`@editor/*`); 62 no
+  longer exist here: game realm and reclaim, gameplay recording, Play
+  control, the root presenter (`viewport-root-presentation`), coverage,
+  ingest registry and source persistence, Pixi/Phaser/Babylon/React
+  authoring, DOM projection, story fixtures.
+- Of the 704 kit files both copies share, 170 differ (3,592 lines), after
+  package renames. The Game and Scene documents were cut from
+  `CenterDocuments.tsx` (493 lines to 22) and `scene-documents.tsx`.
+- Play remnants the modeling closure reached are still in `editor-core`
+  (`play-boot-phase`, `gameplay-sessions`, `reported-play-state`,
+  `tool-contribution-play`, `workspace-play-utilities`,
+  `GameplaySessionTimeline`, server `gameplay-sessions` and `play-stall`),
+  as is the R3F source vocabulary (`ui-source/oid-transform.ts`, 1,845 lines).
+  The live-session, viewport and shell-store doors are present.
+- `editor-threejs` holds 21 files copied from `@vgai/threejs-runtime` (object
+  marks, scene capture, loaders, animation), which a shipped game carries
+  as its own twin.
+- Not transferred: `@vgai/game` (154 files, 85 of them import the kit),
+  `@vgai/dom` (19), `@vgai/threejs`'s authoring, component verbs, story
+  documents and three board, `@vgai/game-runtime` (95), `@vgai/threejs-runtime`
+  (72), the game template and copied capabilities (`template/`,
+  `catalog/project-source/`), and the scaffolder `create-vgai-project`.
 
-Closed when a game project created by the installed Volter Editor opens in the
-game workspace, plays, and is edited and saved through the product's own doors,
-with the modeling release boundary (`npm run check:release`) still passing.
+Closed when a game project created by the installed product opens in the
+Game workspace, reaches `playing` with a silent console, and is edited and
+saved through the product's own doors, while `npm run check:release` passes
+and the modeling packages reach no game module.
 
 ## Supported-editing work
 
