@@ -1,5 +1,5 @@
 import { connectEvents } from './editor-api';
-import { announceAssetReload, evictLoaderCaches } from '@volter/editor-sdk/kit/project-asset-refresh';
+import { announceAssetReload } from '@volter/editor-sdk/kit/project-asset-refresh';
 
 export interface AssetMovedEvent {
   oldPath: string;
@@ -33,7 +33,7 @@ export function connectAssetEvents(
       /* ignore malformed events */
     }
   });
-  source.addEventListener('assets-changed', async (event: MessageEvent) => {
+  source.addEventListener('assets-changed', (event: MessageEvent) => {
     let detail: AssetsChangedEvent;
     try {
       detail = JSON.parse(event.data) as AssetsChangedEvent;
@@ -42,7 +42,6 @@ export function connectAssetEvents(
     }
     const paths =
       detail.paths?.map((path) => `/${path.replace(/^\/?public\//, '').replace(/^\//, '')}`) ?? [];
-    await evictLoaderCaches(paths);
     announceAssetReload(paths);
     onAssetsChanged(detail);
   });

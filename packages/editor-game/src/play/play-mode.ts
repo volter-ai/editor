@@ -1,4 +1,5 @@
 import { onAssetReload } from '@volter/editor-sdk/kit/project-asset-refresh';
+import { evictDreiCaches } from '../three/drei-asset-caches';
 import { editorHost } from '@volter/editor-sdk/host';
 
 /**
@@ -945,7 +946,9 @@ function drainDebugEventsToPlayLog(): void {
 }
 
 // Asset bytes have changed, but a running game retains its own instances.
-const stopAssetReload = onAssetReload(() => {
+const stopAssetReload = onAssetReload((paths) => {
+  // Cleared whether or not a run is live, so the next run loads the new bytes.
+  void evictDreiCaches(paths);
   if (!_instance.session) return;
   markRestartRequired(
     'Project assets changed — restart play to load the revised models or textures.',

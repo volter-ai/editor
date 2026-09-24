@@ -1,14 +1,8 @@
-/** Parsed asset caches outlive R3F mounts. Invalidate before asking a document
- * to reload, so replacing a GLB updates every placement without editing JSX.
+/** Project asset BYTES changed on disk. A lane whose loaders cache parsed assets
+ * across mounts listens here, invalidates those paths, then reloads — so
+ * replacing a GLB updates every placement without editing source.
  */
-export async function evictLoaderCaches(paths: readonly string[]): Promise<void> {
-  if (!paths.length) return;
-  const { useGLTF, useTexture } = await import('@react-three/drei');
-  for (const path of paths) {
-    useGLTF.clear(path);
-    useTexture.clear(path);
-  }
-}
+const ASSET_RELOAD_EVENT = 'editor:asset-loaders-changed';
 
 export function announceAssetReload(paths: readonly string[]): void {
   if (
@@ -16,11 +10,14 @@ export function announceAssetReload(paths: readonly string[]): void {
     !paths.some((path) => /\.(glb|gltf|png|jpe?g|webp|avif)$/i.test(path))
   )
     return;
-  window.dispatchEvent(new CustomEvent('editor:asset-loaders-changed'));
+  window.dispatchEvent(new CustomEvent(ASSET_RELOAD_EVENT, { detail: { paths } }));
 }
 
-export function onAssetReload(listener: () => void): () => void {
+export function onAssetReload(listener: (paths: readonly string[]) => void): () => void {
   if (typeof window === 'undefined') return () => {};
-  window.addEventListener('editor:asset-loaders-changed', listener);
-  return () => window.removeEventListener('editor:asset-loaders-changed', listener);
+  const handler = (event: Event): void => {
+    listener((event as CustomEvent<{ paths: readonly string[] }>).detail?.paths ?? []);
+  };
+  window.addEventListener(ASSET_RELOAD_EVENT, handler);
+  return () => window.removeEventListener(ASSET_RELOAD_EVENT, handler);
 }

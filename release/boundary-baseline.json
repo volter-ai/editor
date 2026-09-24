@@ -627,7 +627,6 @@
  "kit-media  packages/editor-project/src/adapter/system-adapter.ts -> three",
  "kit-media  packages/editor-sdk/src/contributions.ts -> three",
  "kit-media  packages/editor-sdk/src/host.ts -> three",
- "kit-media  packages/editor-sdk/src/kit/project-asset-refresh.ts -> @react-three/drei",
  "runtime-editor  packages/game-runtime/src/adapter/first-party-audio-system.ts -> @volter/editor-project/adapter/system-adapter",
  "runtime-editor  packages/game-runtime/src/adapter/ingest/contract-debug-adapter.ts -> @volter/editor-project/adapter/ingest/game-contract",
  "runtime-editor  packages/game-runtime/src/adapter/ingest/contract-debug-adapter.ts -> @volter/editor-project/adapter/system-adapter",

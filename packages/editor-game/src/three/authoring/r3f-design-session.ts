@@ -145,6 +145,7 @@ import {
 } from '../../host/authoring/source-refresh-revisions';
 import type { R3fSourceAuthoringAdapter } from './r3f-source-authoring-adapter';
 import { isThreeScene } from './three-scene-identity';
+import { evictDreiCaches } from '../drei-asset-caches';
 
 // The world root's stage is recreated when the workspace changes.
 // The outgoing panel restores the editor scene and the incoming panel loads
@@ -1042,9 +1043,11 @@ export async function mountR3FDesignSession(
     }, 80);
   };
 
-  const stopAssetReload = onAssetReload(() => {
-    writeStamp += 1;
-    scheduleRemount();
+  const stopAssetReload = onAssetReload((paths) => {
+    void evictDreiCaches(paths).then(() => {
+      writeStamp += 1;
+      scheduleRemount();
+    });
   });
 
   const hot = import.meta.hot;
