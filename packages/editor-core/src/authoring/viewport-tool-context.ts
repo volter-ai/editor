@@ -1,5 +1,5 @@
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
-import type { EditorShellStore } from '../editor-shell-store';
+import type { ShellStore } from '../shell-store';
 import { adapterOnlyToolOwner, type ViewportToolOwner } from '../viewport-authoring-policy';
 import { CompositeAuthoringAdapter } from './composite-authoring-adapter';
 import { resolveThreeViewportRootId } from './world-hidden-viewport';
@@ -63,7 +63,7 @@ export function resolveViewportToolContext(
  * viewport chrome only while that root is visible.
  */
 export function isViewportToolContextVisible(
-  store: EditorShellStore,
+  store: ShellStore,
   context: ViewportToolOwner | null,
 ): boolean {
   if (!context) return false;

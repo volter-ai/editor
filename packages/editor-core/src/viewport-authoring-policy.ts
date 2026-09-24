@@ -43,7 +43,7 @@
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import type * as THREE from 'three';
 import { makeNoAuthoringAdapter } from './authoring/no-authoring-adapter';
-import type { EditorShellStore } from './editor-shell-store';
+import type { ShellStore } from './shell-store';
 
 /**
  * The native root whose viewport tools may claim the current selection, as far
@@ -60,15 +60,15 @@ export interface ViewportToolOwner {
 
 export interface ViewportAuthoringPolicy {
   /** The adapter this viewport drives when its host injected none. */
-  activeAuthoring(store: EditorShellStore): AuthoringAdapter;
+  activeAuthoring(store: ShellStore): AuthoringAdapter;
   /**
    * The adapter a selection SCOPE is keyed on — the Hierarchy's own resolution,
    * so a viewport drill-in and the panel breadcrumb name the same scope.
    */
-  panelAuthoring(store: EditorShellStore): AuthoringAdapter;
+  panelAuthoring(store: ShellStore): AuthoringAdapter;
   /** Topmost-first hit test across every visible, pick-unlocked layer. */
   pick(
-    store: EditorShellStore,
+    store: ShellStore,
     clientX: number,
     clientY: number,
     intent: 'normal' | 'deep',
@@ -77,13 +77,13 @@ export interface ViewportAuthoringPolicy {
    *  organizational and cross-root selections. */
   toolOwner(adapter: AuthoringAdapter, selectedIds: Iterable<string>): ViewportToolOwner | null;
   /** Is that owner's surface actually PAINTED in this viewport right now? */
-  toolOwnerPainted(store: EditorShellStore, owner: ViewportToolOwner | null): boolean;
+  toolOwnerPainted(store: ShellStore, owner: ViewportToolOwner | null): boolean;
   /** Is a THREE stage painted here at all, selection or not — the gate for
    *  the grid and axis lines (Blender's floor is persistent; only the gizmos
    *  need an owner). */
-  threeSurfaceShowing(store: EditorShellStore, adapter: AuthoringAdapter): boolean;
+  threeSurfaceShowing(store: ShellStore, adapter: AuthoringAdapter): boolean;
   /** The one three world rendered here, for the world-hidden eye. */
-  threeViewportRootId(store: EditorShellStore): string | null;
+  threeViewportRootId(store: ShellStore): string | null;
   /** Apply the eye to every entity object (a no-op unless that root is hidden). */
   applyRootHiddenVisibility(
     objectMap: ReadonlyMap<string, THREE.Object3D>,
@@ -120,7 +120,7 @@ export function adapterOnlyToolOwner(
 /** Memoized per store, because the viewport calls `activeAuthoring` per gesture
  *  and adapter IDENTITY keys the selection scope and the handle cache. Mirrors
  *  `authoring/active-adapter.ts`'s own per-store memo. */
-const _noAuthoringByStore = new WeakMap<EditorShellStore, AuthoringAdapter>();
+const _noAuthoringByStore = new WeakMap<ShellStore, AuthoringAdapter>();
 
 export const DEFAULT_VIEWPORT_AUTHORING_POLICY: ViewportAuthoringPolicy = {
   activeAuthoring(store) {

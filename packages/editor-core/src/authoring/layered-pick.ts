@@ -40,7 +40,7 @@
 
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { stackOrder } from '@volter/editor-project/adapter/root-stacking';
-import type { EditorShellStore } from '../editor-shell-store';
+import type { ShellStore } from '../shell-store';
 import { SCENE_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { getActiveAuthoring } from './active-adapter';
@@ -91,7 +91,7 @@ function resolveAdapterCandidates(
  *  (possibly composite) authoring adapter. Returns the winning node id, or
  *  `null` when nothing under `(clientX, clientY)` claims the point. */
 export function pickTopmost(
-  store: EditorShellStore,
+  store: ShellStore,
   clientX: number,
   clientY: number,
   options: { intent?: 'normal' | 'deep' } = {},
@@ -140,7 +140,7 @@ export function pickTopmost(
 
 /** Ordered overlap stack across the same visible layers as {@link pickTopmost}. */
 export function pickCandidates(
-  store: EditorShellStore,
+  store: ShellStore,
   clientX: number,
   clientY: number,
   options: { intent?: 'normal' | 'deep'; adapter?: AuthoringAdapter } = {},

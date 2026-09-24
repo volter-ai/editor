@@ -16,7 +16,7 @@
  */
 
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
-import type { EditorShellStore } from '../editor-shell-store';
+import type { ShellStore } from '../shell-store';
 import { registerHierarchyMenuItems } from '../hierarchy-menu-registry';
 import {
   INSTANCE_SOURCE_LABELS,
@@ -119,7 +119,7 @@ export function ensureInstanceSourceMenuRegistered(): void {
   );
 }
 
-function targetsFor(store: EditorShellStore, nodeId: string): InstanceSourceTarget[] {
+function targetsFor(store: ShellStore, nodeId: string): InstanceSourceTarget[] {
   const adapter = getActiveAuthoring(store);
   return instanceSourceTargets(
     adapter.hierarchy.node(nodeId),

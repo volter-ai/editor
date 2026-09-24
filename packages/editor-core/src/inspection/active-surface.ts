@@ -15,7 +15,7 @@
 import { getActiveAssetEditorContext } from '../asset-editor-context';
 import { CompositeAuthoringAdapter } from '../authoring/composite-authoring-adapter';
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
-import type { EditorShellStore } from '../editor-shell-store';
+import type { ShellStore } from '../shell-store';
 import { liveSurface } from '@volter/editor-sdk/kit/live-session-registry';
 import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
 import type { InspectionSurfaceKind } from '@volter/editor-sdk/kit/inspection-model';
@@ -49,7 +49,7 @@ function surfaceKindOf(kind: string): InspectionSurfaceKind | null {
  */
 function selectedChildSurface(
   adapter: CompositeAuthoringAdapter,
-  store: EditorShellStore,
+  store: ShellStore,
 ): InspectionSurfaceKind | null {
   const selected = store.selectedEntityId;
   if (selected === null) return null;
@@ -81,7 +81,7 @@ function selectedChildSurface(
  * rules out a stale context from a document that is no longer active, which
  * the proxy could not.
  */
-export function activeInspectionSurface(store: EditorShellStore): InspectionSurfaceKind {
+export function activeInspectionSurface(store: ShellStore): InspectionSurfaceKind {
   const assetDocument = getActiveAssetEditorContext();
   if (assetDocument !== null && assetDocument.documentId === activeWorkspaceDocumentId()) {
     return 'asset-lab';

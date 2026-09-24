@@ -32,12 +32,12 @@ import { isEditorOwnedObject } from '@volter/editor-threejs/viewport/editor-laye
 import { object3DAuthoringSubjectOf } from '@volter/editor-threejs/adapter/object3d-authoring-subject';
 import { getUserData } from '@volter/editor-threejs/ecs/user-data';
 import type * as THREE from 'three';
-import type { EditorShellStore } from '../editor-shell-store';
+import type { ShellStore } from '../shell-store';
 import { nativeKindOf, type ThreeProjector } from '../projection/three';
 import { localTransformOf } from './live-object-transform';
 
 export interface StoreSelectionAdoptionOptions {
-  readonly store: EditorShellStore;
+  readonly store: ShellStore;
   /** Which ids this projection owns. The store is shared, so it can hold
    *  another surface's ids and a synthetic row this projection invented. */
   readonly owns: (id: string) => boolean;
@@ -56,7 +56,7 @@ function sameIds(a: readonly string[], b: readonly string[]): boolean {
 /**
  * SELECTION, shared between the store and a configuration's own answer.
  *
- * `EditorViewport`'s additive/toggle paths mutate `EditorShellStore` directly
+ * `EditorViewport`'s additive/toggle paths mutate `ShellStore` directly
  * rather than going through the adapter, so a `SelectionProvider` that only
  * remembered what it was last told drifted from what the viewport had drawn.
  * Reading the store on every `get` is what keeps the hierarchy, the Inspector

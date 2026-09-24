@@ -31,7 +31,7 @@
 
 import { getUserData } from '@volter/editor-threejs/ecs/user-data';
 import * as THREE from 'three';
-import type { EditorShellStore } from '../editor-shell-store';
+import type { ShellStore } from '../shell-store';
 import { getActiveAuthoring } from './active-adapter';
 import { CompositeAuthoringAdapter } from './composite-authoring-adapter';
 import { isRootHidden } from './world-session-state';
@@ -47,7 +47,7 @@ import { isRootHidden } from './world-session-state';
  * session attaches. This reuses an existing, already-load-bearing signal
  * instead of adding an `instanceof` check or parallel bookkeeping slot.
  */
-export function resolveThreeViewportRootId(store: EditorShellStore): string | null {
+export function resolveThreeViewportRootId(store: ShellStore): string | null {
   const active = getActiveAuthoring(store);
   if (!(active instanceof CompositeAuthoringAdapter)) return null;
   const focused = active
@@ -96,7 +96,7 @@ const HIDDEN_WORLD_BACKGROUND = new THREE.Color('#aaaaaa');
  * SUPPRESSED state, idempotently, and callers invoke it on every notify while
  * the world is hidden (an inspector environment edit mid-hide re-paints the
  * authored values via `_applyEnvironment` — the very next notify re-suppresses
- * them here). The restore path is `EditorShellStore.reapplyEnvironment()`, whose
+ * them here). The restore path is `ShellStore.reapplyEnvironment()`, whose
  * truth is `_sceneMeta.environment` — never a snapshot taken here.
  *
  * Post-processing (bloom/vignette) is the composer's half: `the world root's stage`'s
@@ -142,7 +142,7 @@ export function suppressRootEnvironment(scene: THREE.Scene): void {
  * every store notify (`syncFromStore` / `the world root's stage` render), never cache
  * it across notifies.
  */
-export function isThreejsSurfaceVisible(store: EditorShellStore): boolean {
+export function isThreejsSurfaceVisible(store: ShellStore): boolean {
   const active = getActiveAuthoring(store);
   if (!(active instanceof CompositeAuthoringAdapter)) return true;
   const children = active.childAdapters();

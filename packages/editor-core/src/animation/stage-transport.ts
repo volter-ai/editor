@@ -40,7 +40,7 @@ import type {
   TransportSubject,
 } from '@volter/editor-sdk/host';
 import { AnimationClock } from '@volter/editor-threejs/animation/animation-clock';
-import type { EditorShellStore } from '../editor-shell-store';
+import type { ShellStore } from '../shell-store';
 
 /** The range a transport reports with nothing attached — a real, inert
  *  domain, so a look never has to special-case `null` arithmetic. */
@@ -71,7 +71,7 @@ export class StageTransport {
 
   private readonly stopStoreWatch: () => void;
 
-  constructor(private readonly store: EditorShellStore) {
+  constructor(private readonly store: ShellStore) {
     // `driver` reads the store, and the store changes WITHOUT any call on this
     // class (entering Play is a store event). A snapshot cached across that
     // would report `driver: 'editor'` while the world is already driving, so
