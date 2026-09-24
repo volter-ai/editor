@@ -200,7 +200,7 @@
  *   packaged template, examples, and registry dependency mode.
  */
 
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -225,6 +225,7 @@ import { readSharedThreeManifest, sharedThreeUrl } from '../vite-plugin-shared-t
 import { SOURCE_WRITE_ROUTES_PLUGIN } from '@volter/editor-sdk/session/project-serving';
 import { canonicalProjectRoot } from './canonical-path';
 import { createEditorServer, type EditorServerRouter } from './editor-server';
+import { productContributionsPlugin } from '../vite-plugin-product-contributions';
 import { clientCount } from './editor-sse';
 import {
   builtFrameBridgeModule,
@@ -333,6 +334,16 @@ const sessionProductIdentity: ProductIdentity = resolvedProduct;
 // Every message this server writes about a verb names the product's command.
 setProductNames(sessionProductIdentity);
 const distPath = path.join(sessionProductIdentity.dir, 'dist');
+/**
+ * SOURCE MODE — a checkout's development host (`VOLTER_EDITOR_FROM_SOURCE=1`): the product's own
+ * `src/index.ts` is served through the project-rooted Vite below instead of its production build,
+ * so a change is walked without bundling the product (a multi-gigabyte build). In a checkout the
+ * project resolves the same React and three files as the editor, so the shared-React/three
+ * doorways the prebuilt shell needs are off. An installed product has no `src/index.ts` beside
+ * its package, so this is never true there.
+ */
+const productSourceEntry = path.join(sessionProductIdentity.dir, 'src', 'index.ts');
+const fromSource = process.env['VOLTER_EDITOR_FROM_SOURCE'] === '1' && existsSync(productSourceEntry);
 
 // WHAT THIS SESSION WAS TOLD TO FRAME — the workbench directory `vgai edit`
 // resolved and the two reserved ports. `null` when the launch named none.
@@ -495,8 +506,8 @@ async function main(): Promise<void> {
   // below points the editor tree's React specifiers at those chunks' URLs. The
   // GAME keeps the project's own React — see that plugin's doc comment for the
   // measured reason that boundary exists.
-  const sharedReact = readSharedReactManifest(distPath);
-  if (!sharedReact) {
+  const sharedReact = fromSource ? null : readSharedReactManifest(distPath);
+  if (!sharedReact && !fromSource) {
     console.warn(
       `\n  \x1b[33mWarning:\x1b[0m ${distPath} carries no usable vgai-shared-react.json — this ` +
         'editor build predates the shared-React entry chunks, or predates one of ' +
@@ -519,8 +530,8 @@ async function main(): Promise<void> {
   // keeps three from being prebundled so Fiber's own `import 'three'` is
   // externalized and follows the same redirect. See
   // `../vite-plugin-shared-three.ts`.
-  const sharedThree = readSharedThreeManifest(distPath);
-  if (!sharedThree) {
+  const sharedThree = fromSource ? null : readSharedThreeManifest(distPath);
+  if (!sharedThree && !fromSource) {
     console.warn(
       `\n  \x1b[33mWarning:\x1b[0m ${distPath} carries no usable vgai-shared-three.json — this ` +
         'editor build predates the shared-three entry chunk. The page will load three.js twice ' +
@@ -946,6 +957,8 @@ async function main(): Promise<void> {
           // package's own `src/` must be readable even when it does not sit
           // under the project's own resolved `node_modules`.
           editorPackageRoot,
+          // Source mode serves the product and every package it composes from the checkout.
+          ...(fromSource ? [checkoutRoot] : []),
         ],
       },
     },
@@ -959,6 +972,13 @@ async function main(): Promise<void> {
   // React/R3F runtime can load against the provisional hash while the world
   // entry loads against the scan's committed hash, producing two React/Fiber
   // graphs and an invalid-hook-call failure on a clean packaged install.
+  if (fromSource) {
+    // The product's composition (`vgai:contributions/<package>`) and its module workers, which
+    // its production build resolves with the same plugin and format.
+    viteInlineConfig.plugins = [...(viteInlineConfig.plugins ?? []), productContributionsPlugin()];
+    viteInlineConfig.worker = { ...viteInlineConfig.worker, format: 'es' };
+    console.log(`  Source mode: ${sessionProductIdentity.name} from ${productSourceEntry}`);
+  }
   const resolvedViteConfig = await resolveConfig(viteInlineConfig, 'serve');
   await optimizeDeps(resolvedViteConfig);
   const vite = await createViteServer(resolvedViteConfig);
@@ -999,7 +1019,7 @@ async function main(): Promise<void> {
     // through the wrapper below rather than directly, because the built entry's
     // stylesheet has no HTML of ours to be injected into.
     frameBridgeUrl: () => {
-      readBuiltProductEntry(distPath, sessionProductIdentity);
+      if (!fromSource) readBuiltProductEntry(distPath, sessionProductIdentity);
       return FRAME_BRIDGE_PACKAGED_PATH;
     },
     // The session's children are its to report: which product it is serving,
@@ -1059,7 +1079,9 @@ async function main(): Promise<void> {
   app.get(FRAME_BRIDGE_PACKAGED_PATH, (_req, res) => {
     let body: string;
     try {
-      body = builtFrameBridgeModule(readBuiltProductEntry(distPath, sessionProductIdentity));
+      body = fromSource
+        ? `// Source mode: the product's own entry, served by the project Vite.\nexport * from ${JSON.stringify(`/@fs${productSourceEntry}`)};\n`
+        : builtFrameBridgeModule(readBuiltProductEntry(distPath, sessionProductIdentity));
     } catch (error) {
       // The door already reports this sentence as a refusal; a direct fetch of
       // this url gets it too rather than an empty 200 that imports nothing.
