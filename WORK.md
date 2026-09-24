@@ -84,11 +84,12 @@ Remaining:
    `support/project/session-journal.ts`, with its browser half `src/blender-tab-metrics.ts` and
    the SDK's `BlenderTabMetrics`), which becomes a contributed facet, and `packaged.ts`'s
    `@volter/blender-engine` prebundle exclusion, whose regression shows only in a registry
-   install, so it moves with a packed-install walk. The Edit/Play tab derived from workspace focus is on branch
-   `viewport-tab-from-focus`, typechecked and unwalked: it changes Play focus and the game's input
-   gate, so it merges after an arena walk (Play focuses Game and takes input; another document
-   closes the gate; Stop restores focus). Product builds need 3–5 GB and thrash this box while
-   other workloads hold its memory.
+   install, so it moves with a packed-install walk. The Edit/Play tab is derived from workspace
+   focus, and the shell store is split: `ShellStore` is its neutral half, and Three code asks for
+   its half through `threeStateOf`. Walked on `arena` on a product build: Play focuses Game and a
+   key moves the player; another document turns the tab to Edit; Stop restores the pre-play
+   document; an Inspector edit and its undo round-trip source byte for byte. Product builds need
+   3–5 GB and thrash this box while other workloads hold its memory.
    Units 1–2 are done (`@volter/model-editor`; `release/boundary-baseline.json`, 696 edges). The
    model editor's workbench still needs its rebuild for the new product id: the compile wants a
    9 GB heap and was killed at 17 GB compressed memory, so it runs on a box with headroom.
@@ -115,8 +116,18 @@ Remaining:
 5. **The design skew** (`website`): the DOM root is read-only, the Pages list is empty, and a
    `page` has no document editor.
 6. **Unwalked instruments:** navmesh on real content; Network needs a networking adapter.
-7. **Build time.** The game product bundle builds in 25–100 s, over the 30-second rule; it needs
-   a source-serving development host.
+7. **Build time.** The game product bundle builds in 25–100 s, over the 30-second rule.
+   `VOLTER_EDITOR_FROM_SOURCE=1` serves the product's source through the project Vite. Measured on
+   `arena`, two ways it differs from the build: the page requests the project's `src/main.ts` and
+   `src/contributions/use-game-modules.ts`, whose `virtual:vgai-manifest-entries` and
+   `@editor/game-module-access` do not resolve (29 console errors; none in packaged sessions), and
+   an Inspector source write reloads the page, which drops undo history and the active document.
+   Until both are closed, a walk of editing still needs a build.
+8. **Input a game owns is not gated.** `arena` builds its own `new InputManager()`
+   (`src/lib/input`). With a Model document active and the tab on Edit, a key still moves the player
+   the full distance (measured: z moved 5.9 in one second, with the same reading when Game is
+   focused). Play gates only `session.game.input`, and the listener shadow skips dependency code.
+   Machine input through the native door (`native-debug-module.ts`) is not gated either.
 
 ## Supported-editing work
 
