@@ -58,6 +58,7 @@
       "./contributions/profiler.action.ts",
       "./contributions/profiler.menu.ts",
       "./contributions/profiler.utility.tsx",
+      "./contributions/scene-document.service.ts",
       "./contributions/state-watch.action.ts",
       "./contributions/state-watch.menu.ts",
       "./contributions/state-watch.utility.tsx",

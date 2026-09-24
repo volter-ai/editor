@@ -10,7 +10,13 @@ The files in this package were imported from volter-ai/vgai-engine at commit
   packages/threejs/src except viewport/ and capture/, packages/threejs/contributions
   (@vgai/threejs) -> src/three, contributions/three
   host modules of packages/editor/src (@vgai/editor) -> src/host, including
-  gameplay-export.ts and document-preview-three.ts
+  gameplay-export.ts and document-preview-three.ts, and the world-root stage
+  (components/world-root-stage.ts and the modules it draws with)
+  src/host/components/world-root-stage-binding.tsx is transcribed from the
+  world-root parts of packages/editor/src/components/stage-overlay-set.tsx;
+  src/host/components/scene-document.tsx and
+  contributions/scene-document.service.ts from the Scene document half of
+  packages/editor/src/components/CenterDocuments.tsx
 
 src/host/sdk/tools.ts was imported from packages/vgai-sdk/src/tools.ts, part of
 the Apache-2.0 @vgai/sdk package, and retains that license. It re-exports the
