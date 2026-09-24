@@ -31,7 +31,7 @@
  */
 
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
-import type { EditorShellStore } from '../editor-shell-store';
+import type { ShellDocumentState } from '../shell-document-state';
 import type {
   InspectionAction,
   InspectionNote,
@@ -47,7 +47,7 @@ export interface NullSubjectContext {
    *  same answer instead of re-deriving one. Absent in a bounded host, where
    *  no provider matches and the honest answer is no empty-state subject. */
   readonly surface?: InspectionSurfaceKind | undefined;
-  readonly store: EditorShellStore;
+  readonly store: ShellDocumentState;
   /** Notify the shell that the adapter's (or scene's) truth changed. */
   readonly onEdit: () => void;
 }

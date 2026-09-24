@@ -49,7 +49,7 @@
  */
 
 import type { AdapterSurface, AuthoringAdapter } from '@volter/editor-project/adapter';
-import type { EditorShellStore } from '../editor-shell-store';
+import type { ShellDocumentState } from '../shell-document-state';
 import {
   activeWorkspaceDocument,
   activeWorkspaceDocumentSelection,
@@ -108,7 +108,7 @@ function rootDocumentBinding(
   return null;
 }
 
-export function resolvePanelAuthoring(store: EditorShellStore): PanelAuthoringBinding {
+export function resolvePanelAuthoring(store: ShellDocumentState): PanelAuthoringBinding {
   const documentSelection = activeWorkspaceDocumentSelection();
   const active = getActiveAuthoring(store);
   const rootBinding = rootDocumentBinding(active);

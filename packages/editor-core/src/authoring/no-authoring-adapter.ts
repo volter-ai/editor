@@ -16,7 +16,7 @@ import type {
   EditorNode,
   HierarchyProvider,
 } from '@volter/editor-project/adapter';
-import type { EditorShellStore } from '../editor-shell-store';
+import type { ShellDocumentState } from '../shell-document-state';
 
 /** The one hierarchy row this adapter publishes. Exported because it is a
  *  MESSAGE, not an entity: a surface that lists entities (the command palette)
@@ -24,7 +24,7 @@ import type { EditorShellStore } from '../editor-shell-store';
 export const NO_AUTHORING_ID = 'no-authoring:root';
 
 export function makeNoAuthoringAdapter(
-  store: EditorShellStore,
+  store: ShellDocumentState,
   label: string,
   secondaryLabel = 'No authoring surface',
 ): AuthoringAdapter {

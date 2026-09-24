@@ -24,6 +24,7 @@ import type { BatchedRenderer } from 'three.quarks';
 import { findEntityLod } from './entity-lod';
 import { entityIdOf } from './entity-object';
 import type { HistoryService } from './history/history-service';
+import type { ShellDocumentState } from './shell-document-state';
 import { withSceneFogNeutralized } from './scene-view-fog';
 
 /** The store's persistence collaborator — installed by the shell, never
@@ -183,7 +184,7 @@ export type ViewportAction =
       fov?: number;
     };
 
-export class EditorShellStore {
+export class EditorShellStore implements ShellDocumentState {
   // --- Scene graph references (set via bindScene) ---
   protected _scene: THREE.Scene | null = null;
   /** Adoption stack (see enterPlayScene): each frame is the scene state that

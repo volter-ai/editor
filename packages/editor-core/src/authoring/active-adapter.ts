@@ -15,9 +15,10 @@
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { inspectAuthoringAdapterSeams } from '@volter/editor-sdk/kit/authoring-seam-evidence';
 import type { EditorShellStore } from '../editor-shell-store';
+import type { ShellDocumentState } from '../shell-document-state';
 import { makeNoAuthoringAdapter } from './no-authoring-adapter';
 
-const byStore = new WeakMap<EditorShellStore, AuthoringAdapter>();
+const byStore = new WeakMap<ShellDocumentState, AuthoringAdapter>();
 
 /**
  * The LIVE authoring adapter a declared world of one surface gets: the
@@ -188,7 +189,7 @@ export function collectAllNodeIds(adapter: AuthoringAdapter): string[] {
  * declared world is asked for by SURFACE through {@link baseAuthoringFactory},
  * which is a different question from "what does this store fall back to".
  */
-export function getActiveAuthoring(store: EditorShellStore): AuthoringAdapter {
+export function getActiveAuthoring(store: ShellDocumentState): AuthoringAdapter {
   if (_override) return _override;
   let a = byStore.get(store);
   if (!a) {

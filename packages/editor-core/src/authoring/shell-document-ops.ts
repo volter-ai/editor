@@ -10,7 +10,7 @@
  */
 
 import type { AuthoringAdapter, NodeCreationSite, WriteAnchorKind } from '@volter/editor-project/adapter';
-import type { EditorShellStore } from '../editor-shell-store';
+import type { ShellDocumentState } from '../shell-document-state';
 import { forEachHierarchyNode } from '../hierarchy-walk';
 import { getActiveAuthoring } from './active-adapter';
 import { saveAuthoringDocument, setAuthoringSelection } from './consumer-actions';
@@ -19,7 +19,7 @@ import { resolvePanelAuthoring } from './panel-authoring';
 /** The authoring adapter owned by the active center document. This is the same
  * resolution used by Hierarchy and Inspector; shell commands must not keep
  * driving the scene adapter after an asset/source document becomes active. */
-export function activeDocumentAuthoring(store: EditorShellStore): AuthoringAdapter {
+export function activeDocumentAuthoring(store: ShellDocumentState): AuthoringAdapter {
   return resolvePanelAuthoring(store).adapter;
 }
 
@@ -34,7 +34,7 @@ export interface ShellHierarchyRow {
  * The active adapter's hierarchy, flattened breadth-first to id/name/childIds
  * rows. `[]` when the adapter owns no tree (the no-authoring floor).
  */
-export function activeHierarchyRows(store: EditorShellStore): ShellHierarchyRow[] {
+export function activeHierarchyRows(store: ShellDocumentState): ShellHierarchyRow[] {
   const rows: ShellHierarchyRow[] = [];
   forEachHierarchyNode(activeDocumentAuthoring(store).hierarchy, (node) => {
     rows.push({ id: node.id, name: node.label, childIds: [...node.childIds] });
@@ -63,7 +63,7 @@ export function authoringDocumentSourcePath(adapter: AuthoringAdapter): string |
 }
 
 /** The active source-authored document path, when its adapter exposes one. */
-export function activeDocumentSourcePath(store: EditorShellStore): string | null {
+export function activeDocumentSourcePath(store: ShellDocumentState): string | null {
   return authoringDocumentSourcePath(getActiveAuthoring(store));
 }
 
@@ -78,7 +78,7 @@ export function sourceFileName(sourcePath: string | null | undefined): string | 
  * Where a save would land, straight from the active adapter's
  * `PersistenceProvider`, or `null` when this adapter persists nothing.
  */
-export function activeSaveDestination(store: EditorShellStore): string | null {
+export function activeSaveDestination(store: ShellDocumentState): string | null {
   const adapter = getActiveAuthoring(store);
   return adapter.capabilities.persist ? (adapter.persistence?.destination ?? null) : null;
 }
@@ -90,14 +90,14 @@ export function activeSaveDestination(store: EditorShellStore): string | null {
  * Its provider still reports that failure until a later successful write
  * clears the project-history error; clean and successful are not synonyms.
  */
-export function activeSaveState(store: EditorShellStore): 'saved' | 'unsaved' | 'failed' {
+export function activeSaveState(store: ShellDocumentState): 'saved' | 'unsaved' | 'failed' {
   const persistence = getActiveAuthoring(store).persistence;
   if (persistence?.lastError?.()) return 'failed';
   return persistence?.isDirty() ? 'unsaved' : 'saved';
 }
 
 /** The active adapter's human-readable persistence failure, when any. */
-export function activeSaveFailure(store: EditorShellStore): string | null {
+export function activeSaveFailure(store: ShellDocumentState): string | null {
   return getActiveAuthoring(store).persistence?.lastError?.() ?? null;
 }
 
@@ -111,7 +111,7 @@ export function activeSaveFailure(store: EditorShellStore): string | null {
  * silent blank for "we couldn't find it" is exactly what the honest-floor rule
  * forbids.
  */
-export function activeSelectionCreationSite(store: EditorShellStore): NodeCreationSite | null {
+export function activeSelectionCreationSite(store: ShellDocumentState): NodeCreationSite | null {
   const adapter = activeDocumentAuthoring(store);
   const id = adapter.selection?.get()[0] ?? null;
   if (!id) return null;
@@ -137,7 +137,7 @@ export function activeSelectionCreationSite(store: EditorShellStore): NodeCreati
  * through a different resolver than the writer is how a subject came to be
  * reported in one lane while its edit travelled another.
  */
-export function activeSelectionWriteAnchorKind(store: EditorShellStore): WriteAnchorKind | null {
+export function activeSelectionWriteAnchorKind(store: ShellDocumentState): WriteAnchorKind | null {
   const adapter = activeDocumentAuthoring(store);
   const id = adapter.selection?.get()[0] ?? null;
   if (!id) return null;
@@ -145,18 +145,18 @@ export function activeSelectionWriteAnchorKind(store: EditorShellStore): WriteAn
 }
 
 /** Current document-local selection, shared by UI actions and the control API. */
-export function activeSelectionIds(store: EditorShellStore): string[] {
+export function activeSelectionIds(store: ShellDocumentState): string[] {
   return [...(activeDocumentAuthoring(store).selection?.get() ?? store.selectedEntityIds)];
 }
 
 /** Route selection through the active document's native adapter. */
-export function selectAuthoringNodes(store: EditorShellStore, ids: readonly string[]): void {
+export function selectAuthoringNodes(store: ShellDocumentState, ids: readonly string[]): void {
   const adapter = activeDocumentAuthoring(store);
   if (!setAuthoringSelection(adapter, ids)) store.selectMultiple([...ids]);
 }
 
 /** Select every node the active adapter's hierarchy exposes. */
-export function selectAllAuthoringNodes(store: EditorShellStore): void {
+export function selectAllAuthoringNodes(store: ShellDocumentState): void {
   selectAuthoringNodes(
     store,
     activeHierarchyRows(store).map((row) => row.id),
@@ -164,6 +164,6 @@ export function selectAllAuthoringNodes(store: EditorShellStore): void {
 }
 
 /** Save through the active adapter's persistence provider (no-op when it has none). */
-export async function saveActiveAuthoring(store: EditorShellStore): Promise<void> {
+export async function saveActiveAuthoring(store: ShellDocumentState): Promise<void> {
   await saveAuthoringDocument(getActiveAuthoring(store), 'the shell saved the active document');
 }
