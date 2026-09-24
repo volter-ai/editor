@@ -38,19 +38,20 @@ import { assertEditorServerAnswered } from '../editor-server-response';
 import { setCollaborationRevision, sourceMutationAttribution } from '../editor-session-attribution';
 import { projectFiles } from '../files/project-files';
 import { handleProjectMutationFailure } from '../source-conflict';
-import type { ComponentPropSpec, OidEntry } from './oid-transform';
 import type {
+  ComponentPropSpec,
+  DuplicateRewrite,
+  OidEntry,
   PreparedSourceEdit,
   SourceEditRequest,
   StructReparentContext,
-} from './source-edit-request';
-import type { DuplicateRewrite } from './writer';
+} from '@volter/editor-sdk/source-authoring';
 
 export type {
   PreparedSourceEdit,
   SourceEditRequest,
   StructReparentContext,
-} from './source-edit-request';
+} from '@volter/editor-sdk/source-authoring';
 
 /** The source-write operations (+ the OID index read) the dev-server middleware
  *  already exposes. */

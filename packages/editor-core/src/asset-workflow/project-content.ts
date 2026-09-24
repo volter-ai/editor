@@ -16,7 +16,7 @@
  * erased at build and costs no closure. Never make it a value import.
  */
 
-import type { R3fComponentContract } from '../ui-source/oid-transform';
+import type { R3fComponentContract } from '@volter/editor-sdk/source-authoring';
 import { assetCapabilities } from './asset-capabilities';
 import {
   parsePixiSpritesheet,

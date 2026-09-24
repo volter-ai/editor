@@ -63,37 +63,8 @@
 import ts from 'typescript';
 import { enclosingScope, refIdentifier } from './ts-ast';
 
-export type PhysicsChannel = 'position' | 'rotation' | 'scale';
-
-/**
- * The body binding that owns one element's transform.
- *
- * JSON-shaped on purpose: it rides an `OidEntry` over `/__ui-source/index` to
- * the page, so it holds no `ts.Node`.
- */
-export interface R3fPhysicsBinding {
-  /** The local name of the hook that created the body (`useBox`). */
-  hook: string;
-  /** 1-based line of the hook call, in the element's own file. */
-  line: number;
-  /** Channels whose spawn the hook takes from the component's own props — the
-   *  write belongs at this component's CALLSITE. */
-  forwarded: PhysicsChannel[];
-  /** Channels the hook spells as an inline literal in its own argument. There
-   *  is no write anchor for those; a refusal names them. */
-  literal: PhysicsChannel[];
-  /**
-   * Channels the component's OWN `useFrame` drives through the hook's api
-   * (`api.position.set(...)`) — the spawn is not the last word for these, so
-   * a callsite literal cannot hold: the game re-poses the body every frame
-   * (measured on racing-game's `Train`, a Kinematic body driven from its
-   * animated group — the doctor's settle leg read the authored spawn back as
-   * the old pose, digit for digit). Absent (never `[]`) when nothing drives
-   * the api, so an older recorded binding compares equal to one with no
-   * opinion — same rule as `bodyForwarded`'s absence.
-   */
-  apiDriven?: PhysicsChannel[];
-}
+import type { PhysicsChannel, R3fPhysicsBinding } from '@volter/editor-sdk/source-authoring';
+export type { PhysicsChannel, R3fPhysicsBinding } from '@volter/editor-sdk/source-authoring';
 
 /** What an element carrying a binding looks like to a writer. Structural rather
  *  than the whole `OidEntry`, so this stays the browser-safe half. */

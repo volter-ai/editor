@@ -9,6 +9,9 @@
 
 import { UTILITY_CLASSES_UNPROVEN, type UtilityClassSupport } from './utility-class-support';
 
+import type { DuplicateRewrite } from '@volter/editor-sdk/source-authoring';
+export type { DuplicateRewrite } from '@volter/editor-sdk/source-authoring';
+
 export interface StyleProperty {
   name: string;
   /** Raw value text as it appears in source. */
@@ -1561,16 +1564,6 @@ function closingTagStartOf(code: string, parentStart: number): number | null {
   let i = parentEnd;
   while (i > parentStart && code[i - 1] !== '<') i--;
   return i - 1; // point at the '<'
-}
-
-/** What a lane may ask {@link duplicateElement} to change on the COPY — the
- *  three lane's "a duplicate is visibly a second thing": a fresh `name` (only
- *  when the original carries a literal one — never invented) and a literal
- *  `position` nudged by `positionOffset` (added when absent, since an absent
- *  position IS the origin; left alone when dynamic). */
-export interface DuplicateRewrite {
-  name?: string;
-  positionOffset?: readonly [number, number, number];
 }
 
 /** Nudge one element's literal `position` by an offset — added when absent

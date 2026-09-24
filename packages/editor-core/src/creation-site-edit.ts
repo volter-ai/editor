@@ -67,7 +67,6 @@
 
 import ts from 'typescript';
 import type { CreationSite } from './creation-site-registry';
-import { lineColToOffset } from './ui-source/oid-transform';
 
 /** Float slack for "is this literal the value in force". Gizmo drags and the
  *  quaternion→Euler round trip both land a few ULPs off an authored decimal. */
@@ -1476,4 +1475,17 @@ function scriptKindFor(file: string): ts.ScriptKind {
   if (file.endsWith('.jsx')) return ts.ScriptKind.JSX;
   if (file.endsWith('.ts')) return ts.ScriptKind.TS;
   return ts.ScriptKind.JS;
+}
+
+/** The offset of a 1-based line and 0-based column in `code`. */
+function lineColToOffset(code: string, line: number, col: number): number {
+  let offset = 0;
+  let cur = 1;
+  while (cur < line) {
+    const nl = code.indexOf('\n', offset);
+    if (nl === -1) return code.length;
+    offset = nl + 1;
+    cur += 1;
+  }
+  return offset + col;
 }

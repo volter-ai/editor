@@ -10,35 +10,8 @@
 import ts from 'typescript';
 import { jsxAttribute, numericLiteral } from './ts-ast';
 
-export interface R3fEnvironmentNumberBinding {
-  readonly value: number;
-  readonly start: number;
-  readonly end: number;
-}
-
-export interface R3fEnvironmentStringBinding {
-  readonly value: string;
-  readonly start: number;
-  readonly end: number;
-  readonly quote: "'" | '"' | '`';
-}
-
-export type R3fEnvironmentBinding =
-  | {
-      readonly kind: 'background-color';
-      readonly color?: R3fEnvironmentStringBinding;
-    }
-  | {
-      readonly kind: 'fog';
-      readonly color?: R3fEnvironmentStringBinding;
-      readonly near?: R3fEnvironmentNumberBinding;
-      readonly far?: R3fEnvironmentNumberBinding;
-    }
-  | {
-      readonly kind: 'fog-exp2';
-      readonly color?: R3fEnvironmentStringBinding;
-      readonly density?: R3fEnvironmentNumberBinding;
-    };
+import type { R3fEnvironmentBinding, R3fEnvironmentNumberBinding, R3fEnvironmentStringBinding } from '@volter/editor-sdk/source-authoring';
+export type { R3fEnvironmentBinding, R3fEnvironmentNumberBinding, R3fEnvironmentStringBinding } from '@volter/editor-sdk/source-authoring';
 
 function attributeString(attribute: ts.JsxAttribute | undefined): string | undefined {
   const initializer = attribute?.initializer;

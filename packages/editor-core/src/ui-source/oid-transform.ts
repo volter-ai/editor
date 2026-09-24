@@ -22,6 +22,9 @@ import { particleBindingsByElement, type R3fParticleBinding } from './r3f-partic
 import { physicsBindingsByElement, type R3fPhysicsBinding } from './r3f-physics-binding';
 import { parseAuthoringTsx, refIdentifier } from './ts-ast';
 
+import type { DeclaredRootSurface, OidEntry, R3fComponentContract, R3fTransformProp, SourceDialectEvidence } from '@volter/editor-sdk/source-authoring';
+export type { ComponentPropSpec, DeclaredRootSurface, OidEntry, R3fAuthoringDiagnostic, R3fComponentContract, R3fTransformProp, SourceDialectEvidence } from '@volter/editor-sdk/source-authoring';
+
 export type {
   R3fEnvironmentBinding,
   R3fEnvironmentNumberBinding,
@@ -40,153 +43,6 @@ export type {
   R3fParticleNumberBinding,
 } from './r3f-particle-binding';
 export type { PhysicsChannel, R3fPhysicsBinding } from './r3f-physics-binding';
-
-export interface OidEntry {
-  file: string;
-  line: number; // 1-based
-  col: number; // 0-based (matches ts char)
-  component: string | null;
-  tag: string;
-  /**
-   * R3F-only, source-proven authoring contract for a LOCAL custom component
-   * callsite. `undefined` means the component definition is not in this file
-   * (usually an import), so the editor must retain its conservative fallback.
-   *
-   * A single native root plus forwarded standard group props is ordinary R3F,
-   * not a vgai wrapper. Recording it here lets the editor safely ADD an absent
-   * transform prop at the callsite: the source analyser has proven where that
-   * prop lands. An empty `transformProps` list is an equally useful result —
-   * the local component exists, but exposes no writable spatial channel.
-   */
-  r3fAuthoring?: R3fComponentContract;
-  /**
-   * The props the tag's component DECLARES — resolved server-side through the
-   * TypeScript type checker (`component-prop-types.ts`) and shipped here so
-   * the editor can inspect a node by its declared surface rather than by the
-   * attributes someone happened to write. Absent for a native tag, or when the
-   * definition could not be resolved; the editor then falls back to reading
-   * the authored attributes alone.
-   */
-  props?: ComponentPropSpec[];
-  /**
-   * True once the server-side declared-prop resolver has ANSWERED for this
-   * tag — present even when the answer was "no props". Distinguishes "the
-   * declaration rung has not landed yet" (the resolver's cold ts.Program
-   * takes seconds and enrichment is async) from "the resolver looked and
-   * found nothing": the inspector's no-declaration warning is honest only in
-   * the second state. Measured on racing-game: the doctor's sweep inspected
-   * before the cold program answered, the fallback warned once-per-key, and
-   * the session ledger held six "No declaration covers" rows for props the
-   * resolver demonstrably types (`allowSleep:boolean`, `broadphase:enum`, …).
-   */
-  propsResolved?: true;
-  /** Props physically authored on this JSX callsite. Unlike {@link props},
-   * which describes the component declaration, this is the byte-level answer
-   * needed by instance editing: an override exists only when the attribute is
-   * present here, and applying it to the component is safe only when its source
-   * value is a literal. */
-  authoredProps?: Array<{
-    name: string;
-    valueText: string;
-    literal: boolean;
-  }>;
-  /**
-   * The R3F authorability diagnostics that pertain to THIS element, attached
-   * server-side by `currentOidIndex` so they ride the exact same
-   * `/__ui-source/index` payload (and therefore the exact same freshness) as
-   * every other source-derived field on this entry. Absent when there are
-   * none.
-   *
-   * Two kinds land here, both selected by `fileDiagnosticJoin`:
-   * the diagnostic recorded AT this element (an R3F004 "has no name" on this
-   * very callsite), and the ones recorded against the component whose body
-   * lexically contains it (R3F002/R3F003/R3F005 — `component` matches). The
-   * second is what carries a definition-side warning out to the rows that
-   * INSTANTIATE that component: an instance's boundary object also carries its
-   * definition-root oid, so the client reads both entries. See
-   * `r3f-diagnostic-index.ts`.
-   */
-  diagnostics?: R3fAuthoringDiagnostic[];
-  /**
-   * The oid of the JSX element that lexically ENCLOSES this one, in the same
-   * file. Recorded because a wrapper tag does not always become its own node:
-   * `<RigidBody>` from `@react-three/rapier` never forwards the editor's stamp
-   * to the Object3D it renders, so it has no live object to select — yet its
-   * props (`type`, `gravityScale`, colliders) are exactly the configuration an
-   * author expects to find on the thing inside it. This chain is what lets the
-   * inspector attribute a collapsed wrapper's props to the node it wraps.
-   */
-  parentOid?: string;
-  /**
-   * The PHYSICS BODY that owns this element's transform, when a simulation
-   * binding attached one to its ref (`r3f-physics-binding.ts`).
-   *
-   * Present ⇒ this element's own `position`/`rotation`/`scale` props are dead
-   * on arrival: the body writes the object's matrix every frame from ITS OWN
-   * spawn, so a write here produces source that contradicts the running world.
-   * Every writer reads it as a refusal that can name the binding, and the
-   * component contract reads its `forwarded` channels as real forwarding —
-   * which is what routes the write to the callsite literal the hook reads.
-   */
-  physicsBinding?: R3fPhysicsBinding;
-  /** Native Rapier joint hooks that name this `<RigidBody ref={…}>` as one
-   * endpoint. Hook parameters remain the project's TSX source of truth. */
-  jointBindings?: readonly R3fJointBinding[];
-  /** Native three.quarks shape construction bound to this emitter primitive. */
-  particleBinding?: R3fParticleBinding;
-  /** Drei Detailed is a source projection of the native THREE.LOD it creates. */
-  lodBinding?: R3fLodBinding;
-  /** Native Fiber scene attachment (`background` or `fog`). */
-  environmentBinding?: R3fEnvironmentBinding;
-}
-
-/**
- * One R3F authoring-convention warning.
- *
- * DECLARED HERE, not in its producer. `r3f-project-contracts.ts` computes
- * these (and re-exports this type for its existing importers), but that module
- * imports `node:fs` — while this one is deliberately dependency-free so a
- * PAGE can import it. Since a diagnostic now travels ON an `OidEntry` (see its
- * `diagnostics` field), the TYPE has to live on the browser-safe side of that
- * line even though the ANALYSIS does not.
- */
-export interface R3fAuthoringDiagnostic {
-  code: 'R3F002' | 'R3F003' | 'R3F004' | 'R3F005';
-  severity: 'warning';
-  file: string;
-  /** 1-based, and computed from `node.getStart()` — the SAME position basis
-   *  `OidEntry.line`/`col` use, which is what makes an exact positional join
-   *  between the two sound rather than approximate. */
-  line: number;
-  col: number;
-  /** The component the warning is ABOUT: the definition it names (R3F002/3/5)
-   *  or the tag at the offending callsite (R3F004). */
-  component: string;
-  message: string;
-}
-
-/**
- * A prop as DECLARED by a component, independent of any callsite. Lives here
- * beside `OidEntry` because it travels on it; it is PRODUCED by
- * `component-prop-types.ts` (server-side, needs a `ts.Program`) and CONSUMED
- * by the editor's authoring adapters.
- */
-export interface ComponentPropSpec {
-  name: string;
-  /** Inspector widget implied by the declared type; `null` when no widget
-   *  honestly represents it (the consumer falls back to the attribute text). */
-  type: 'string' | 'number' | 'boolean' | 'enum' | 'vec3' | 'json' | null;
-  /** Allowed values, for a union of string literals. */
-  options?: Array<string | number>;
-  /** Declared `?:`, or given a default by the component's destructuring. */
-  optional: boolean;
-  /** The default's source text (`1.55`, `'raider'`, `defaultSpawn()`). */
-  defaultText?: string;
-  /** The default as a value, when the default is a literal. */
-  defaultValue?: string | number | boolean | number[];
-  /** The prop's jsdoc, as one line. */
-  doc?: string;
-}
 
 function literalJsxExpression(expression: ts.Expression | undefined): boolean {
   if (!expression) return false;
@@ -263,56 +119,6 @@ interface SourceEdit {
   pos: number;
   end?: number;
   text: string;
-}
-
-export type R3fTransformProp = 'position' | 'rotation' | 'scale';
-
-export interface R3fComponentContract {
-  root: 'single' | 'multiple' | 'non-spatial' | 'unknown';
-  rootTag?: string;
-  transformProps: R3fTransformProp[];
-  /** The callsite's native `visible` prop is proven to reach the single
-   * Object3D root. Omitted is deliberately false/unknown, so an editor never
-   * writes a decorative prop that the component silently ignores. */
-  visibleProp?: true;
-  /**
-   * The component's own source says the SIMULATION owns this transform: it
-   * neither accepts nor spreads a transform prop, and it writes its root's
-   * `position`/`rotation`/`quaternion`/`scale` through a ref every frame
-   * inside `useFrame`.
-   *
-   * Present (and only ever `true`) when both halves hold, so a contract that
-   * predates the distinction compares equal to one that has no opinion.
-   *
-   * This is a DECLARATION OF NON-AUTHORABILITY, never of authorability:
-   * `transformProps` stays empty, so every writer path
-   * (`transformEditability`) still refuses the edit — with an honest reason
-   * instead of "does not forward position". What it buys is silence from the
-   * convention diagnostics whose premise it falsifies (R3F002 asks the
-   * component to forward an authored transform the simulation would overwrite
-   * on the next tick; R3F005 warns that runtime motion fights an editor
-   * transform that cannot exist here).
-   */
-  simulationOwnedTransform?: boolean;
-  /**
-   * The subset of {@link transformProps} this component forwards to a PHYSICS
-   * BODY BINDING rather than to its native root — the channels whose callsite
-   * literal is read by a `useBox(…)`-family hook (`r3f-physics-binding.ts`).
-   *
-   * The write is exactly as real as any other forwarded prop, which is why
-   * these are IN `transformProps`; what this field adds is WHY it is real, and
-   * that fact has a consequence no other prop has: a body re-spawns from this
-   * literal and then owns the node's matrix, so the authored value must survive
-   * the re-settle after a remount. That is the `physics-binding`
-   * {@link WriteAnchorKind}'s own contract, and this is the source fact the
-   * planner reads to classify an anchor as one.
-   *
-   * Absent (never `[]`) when nothing is forwarded to a binding, so a contract
-   * that predates the distinction compares equal to one that has no opinion —
-   * the same rule `simulationOwnedTransform` above follows, and one the
-   * fixed-point loop in `collectR3fComponentContracts` depends on.
-   */
-  bodyForwarded?: R3fTransformProp[];
 }
 
 const R3F_TRANSFORM_PROPS = ['position', 'rotation', 'scale'] as const;
@@ -1072,17 +878,6 @@ export function analyzeR3fComponentContracts(
 }
 
 /**
- * Mirrors `@volter/editor-project/adapter/adapter-surface`'s `AdapterSurface` vocabulary
- * (`'three' | 'canvas' | 'dom'`) as a bare literal union rather than
- * importing it: this module is deliberately dependency-free (see the module
- * doc comment above `OidEntry`) so a page with no bundler alias resolution can
- * import it too. Every caller
- * that already carries the real `AdapterSurface` (e.g. `binding-resolver.ts`)
- * may pass it here directly; the two types are structurally identical.
- */
-export type DeclaredRootSurface = 'three' | 'canvas' | 'dom';
-
-/**
  * Intrinsic (lowercase-initial) JSX tags that exist ONLY in react-three-fiber's
  * reconciler — there is no HTML or SVG element with any of these names.
  *
@@ -1122,29 +917,6 @@ const R3F_ONLY_INTRINSIC_RE =
  */
 const DOM_ONLY_INTRINSIC_RE =
   /<(div|span|p|button|section|header|footer|nav|main|aside|form|input|textarea|select|option|label|table|thead|tbody|tr|td|th|img|iframe|br|hr|strong|em|pre|code|canvas|ul|ol|li|h[1-6])[\s/>]/g;
-
-/**
- * What ONE file's own bytes say about which reconciler its JSX targets.
- *
- * DIAGNOSTIC EVIDENCE ONLY — it decides no attribute anywhere. What a file
- * renders is REPORTED (`server/project-root-surface.ts`'s `OID003`/`OID004`);
- * which region it belongs to is a declaration or a reach, never a property of
- * its bytes.
- *
- * Deliberately a cheap regex scan, not an AST walk, because it runs in a
- * `transform` hook on every project `.tsx`. COMMENTS are
- * stripped first (see {@link stripCommentsForScan}) so prose that merely
- * NAMES a tag cannot count as rendering it; a mention inside a string still
- * matches, which is deliberate — import specifiers ARE strings.
- */
-export interface SourceDialectEvidence {
-  /** Imports the R3F reconciler, or the upstreamed `@vgai/game-runtime/world3d-react` bridge. */
-  reconcilerImport: boolean;
-  /** Distinct R3F-only intrinsic tags this file renders. */
-  r3fOnlyTags: string[];
-  /** Distinct DOM-only intrinsic tags this file renders. */
-  domOnlyTags: string[];
-}
 
 function distinctTags(code: string, pattern: RegExp): string[] {
   const found = new Set<string>();

@@ -44,25 +44,12 @@ import {
   writePropChange,
 } from './writer';
 
-export type ReparentChannel = 'position' | 'rotation' | 'scale';
+import type { ReparentChannel, ReparentRebase } from '@volter/editor-sdk/source-authoring';
+export type { ReparentChannel, ReparentRebase } from '@volter/editor-sdk/source-authoring';
 
 const CHANNELS: readonly ReparentChannel[] = ['position', 'rotation', 'scale'];
 const NUMBER_RE = /^-?\d+(\.\d+)?$/;
 const EPS = 1e-6;
-
-/**
- * The new LOCAL transform channels that preserve the element's world transform under
- * the destination parent — computed by the caller, which is the only side that knows
- * the live parents (R2). Absent channels are left exactly as authored.
- */
-export interface ReparentRebase {
-  readonly position?: readonly number[] | undefined;
-  readonly rotation?: readonly number[] | undefined;
-  readonly scale?: readonly number[] | undefined;
-  /** Channels whose native source spelling is scalar even when the live
-   * decomposition is carried as a one-value tuple (Pixi rotation). */
-  readonly scalarChannels?: readonly ReparentChannel[] | undefined;
-}
 
 export interface ReparentOptions {
   readonly rebase?: ReparentRebase | undefined;

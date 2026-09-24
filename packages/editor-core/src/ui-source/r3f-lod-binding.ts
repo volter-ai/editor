@@ -3,18 +3,8 @@
 import ts from 'typescript';
 import { jsxAttribute, numericLiteral } from './ts-ast';
 
-export interface R3fLodNumberBinding {
-  readonly value: number;
-  readonly start: number;
-  readonly end: number;
-}
-
-export interface R3fLodBinding {
-  readonly line: number;
-  readonly col: number;
-  readonly distances?: readonly R3fLodNumberBinding[];
-  readonly hysteresis?: R3fLodNumberBinding;
-}
+import type { R3fLodBinding, R3fLodNumberBinding } from '@volter/editor-sdk/source-authoring';
+export type { R3fLodBinding, R3fLodNumberBinding } from '@volter/editor-sdk/source-authoring';
 
 function detailedNames(sf: ts.SourceFile): Set<string> {
   const names = new Set<string>();

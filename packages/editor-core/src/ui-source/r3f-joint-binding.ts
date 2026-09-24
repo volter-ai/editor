@@ -12,31 +12,8 @@
 import ts from 'typescript';
 import { enclosingScope, numericLiteral, refIdentifier } from './ts-ast';
 
-export type R3fJointHook =
-  | 'useFixedJoint'
-  | 'useSphericalJoint'
-  | 'useRevoluteJoint'
-  | 'usePrismaticJoint'
-  | 'useRopeJoint'
-  | 'useSpringJoint';
-
-export type R3fJointLiteral = number | boolean | readonly R3fJointLiteral[];
-export type R3fJointLiteralRange =
-  | { readonly start: number; readonly end: number }
-  | readonly R3fJointLiteralRange[];
-
-export interface R3fJointBinding {
-  readonly hook: R3fJointHook;
-  readonly line: number;
-  readonly col: number;
-  readonly body1Ref: string;
-  readonly body2Ref: string;
-  readonly endpoint: 0 | 1;
-  readonly params?: readonly R3fJointLiteral[];
-  /** Exact leaf token ranges, shape-identical to `params`. Writers change only
-   * the numeric/boolean token they own, preserving formatting and comments. */
-  readonly paramRanges?: readonly R3fJointLiteralRange[];
-}
+import type { R3fJointBinding, R3fJointHook, R3fJointLiteral, R3fJointLiteralRange } from '@volter/editor-sdk/source-authoring';
+export type { R3fJointBinding, R3fJointHook, R3fJointLiteral, R3fJointLiteralRange } from '@volter/editor-sdk/source-authoring';
 
 const JOINT_HOOKS = new Set<R3fJointHook>([
   'useFixedJoint',

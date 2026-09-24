@@ -3,30 +3,8 @@
 import ts from 'typescript';
 import { enclosingScope, numericLiteral } from './ts-ast';
 
-export type QuarksEmitterShape =
-  | 'point'
-  | 'sphere'
-  | 'hemisphere'
-  | 'cone'
-  | 'circle'
-  | 'donut'
-  | 'rectangle'
-  | 'grid';
-
-export interface R3fParticleNumberBinding {
-  readonly value: number;
-  readonly start: number;
-  readonly end: number;
-}
-
-export interface R3fParticleBinding {
-  readonly system: string;
-  readonly shape: QuarksEmitterShape;
-  readonly constructor: string;
-  readonly line: number;
-  readonly col: number;
-  readonly fields: Readonly<Record<string, R3fParticleNumberBinding>>;
-}
+import type { QuarksEmitterShape, R3fParticleBinding, R3fParticleNumberBinding } from '@volter/editor-sdk/source-authoring';
+export type { QuarksEmitterShape, R3fParticleBinding, R3fParticleNumberBinding } from '@volter/editor-sdk/source-authoring';
 
 const SHAPES: Record<string, QuarksEmitterShape> = {
   PointEmitter: 'point',
