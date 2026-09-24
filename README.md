@@ -117,6 +117,7 @@ The npm scope is `@volter`.
 | `@volter/editor-blender` | Blender documents, tools and presentation |
 | `@volter/blender-engine` | Blender WebAssembly engine and worker |
 | `@volter/game-editor` | Installable game product, `volter-game-editor` executable, template and capability catalog |
+| `@volter/editor-react` | React source authoring: JSX identity, source writes, component contracts and declared props |
 | `@volter/editor-game` | Game documents, Play, Scene/UI authoring and game host modules |
 | `@volter/game-live` | Session client for a running game: `game`, `page`, recordings |
 | `@volter/game-runtime` | Runtime a game ships with |
