@@ -1,4 +1,4 @@
-// A release build: `node scripts/build-release-packages.mjs [list]`, default
+// A release build: `node scripts/build-release-packages.mjs [list] [package...]`, default
 // release/modeling.json. Builds every listed package that ships build output,
 // recording actual bundle inputs to .artifacts/ so write-bundled-notices can
 // preserve their license texts before npm pack. The game release lists the
@@ -13,10 +13,12 @@ function run(workspace,script,metafile){
     ...(metafile?{VOLTER_BUILD_METAFILE:resolve('.artifacts',metafile)}:{})}});
 }
 // A product's browser bundle: the modules that rendered into its chunks. Each
-// runs in its own process with a larger heap: the game product's graph does
-// not fit Node's default heap, least of all behind a previous product's build.
+// runs in its own process, never behind a previous product's build, with the
+// heap capped at 4 GB: the box is shared. The game product's bundle measured a
+// 5.4 GB peak RSS under an 8 GB cap and ran out of heap behind the modeling
+// build at Node's default; whether it completes under this cap is unmeasured.
 function product(folder,inputs){
-  execFileSync(process.execPath,['--max-old-space-size=8192',fileURLToPath(import.meta.url),'--product',folder,inputs],{stdio:'inherit'});
+  execFileSync(process.execPath,['--max-old-space-size=4096',fileURLToPath(import.meta.url),'--product',folder,inputs],{stdio:'inherit'});
 }
 if(process.argv[2]==='--product'){
   const [folder,inputs]=process.argv.slice(3);
@@ -30,8 +32,10 @@ if(process.argv[2]==='--product'){
   }]});
   process.exit(0);
 }
-const list=process.argv[2]??'release/modeling.json';
-const release=new Set(JSON.parse(readFileSync(list,'utf8')).packages);
+// `[list] [package...]`: naming packages builds only their steps, so a
+// release build can run one step per command.
+const [list='release/modeling.json',...only]=process.argv.slice(2);
+const release=new Set(JSON.parse(readFileSync(list,'utf8')).packages.filter(name=>!only.length||only.includes(name)));
 mkdirSync('.artifacts',{recursive:true});
 const steps=[
   ['@volter/editor-core',()=>{
@@ -41,6 +45,7 @@ const steps=[
   }],
   ['@volter/editor-live',()=>run('@volter/editor-live','build')],
   ['@volter/game-runtime',()=>run('@volter/game-runtime','build')],
+  ['@volter/game-live',()=>run('@volter/game-live','build')],
   ['@volter/editor',()=>{
     run('@volter/editor','build:node','node-bundle-meta.json');
     product('editor','product-bundle-inputs.json');

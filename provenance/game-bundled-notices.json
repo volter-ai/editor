@@ -923,6 +923,7 @@
       ]
     }
   ],
+  "game-live": [],
   "game-editor": [
     {
       "name": "@babel/runtime",

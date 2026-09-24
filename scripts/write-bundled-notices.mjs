@@ -33,6 +33,7 @@ const bundles={
   'editor-core':()=>[...metafileInputs('server-bundle-meta.json','editor-core'),
     ...sourceMapInputs('packages/editor-core/dist/build'),...sourceMapInputs('packages/editor-core/dist/server')],
   'editor-live':()=>sourceMapInputs('packages/editor-live/dist'),
+  'game-live':()=>sourceMapInputs('packages/game-live/dist'),
   'game-editor':()=>[...read('.artifacts/game-editor-bundle-inputs.json'),...metafileInputs('game-editor-node-bundle-meta.json','game-editor')],
 };
 const groups=Object.fromEntries(Object.entries(bundles).filter(([owner])=>release.has(`@volter/${owner}`))
@@ -78,7 +79,9 @@ for(const [owner,files] of Object.entries(groups)){
     records.push({name:manifest.name,version:manifest.version,license:manifest.license ?? null,
       notices:notices.map(({file,bytes,source})=>({file,sha256:sha(bytes),...(source?{source}:{})}))});
   }
-  outputs.push([`packages/${owner}/BUNDLED_NOTICES`,sections.join('\n')+'\n']);
+  // A bundle of only its own package's modules has nothing to notice; the
+  // inventory's empty record says so.
+  if(records.length)outputs.push([`packages/${owner}/BUNDLED_NOTICES`,sections.join('\n')+'\n']);
   inventory[owner]=records;
   console.log(`${owner}: ${records.length} bundled dependency notices`);
 }

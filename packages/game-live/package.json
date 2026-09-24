@@ -2,7 +2,9 @@
   "name": "@volter/game-live",
   "author": "Volter AI, Inc.",
   "version": "0.5.64",
-  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "license": "Apache-2.0",
   "description": "Attach to a Volter Game Editor session and drive the running game: { editor, game, page, tools, session }.",

@@ -11,6 +11,7 @@
     "@volter/threejs-runtime",
     "@volter/game-runtime",
     "@volter/editor-game",
+    "@volter/game-live",
     "@volter/game-editor"
   ]
 }
