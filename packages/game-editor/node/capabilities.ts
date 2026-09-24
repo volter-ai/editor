@@ -10,9 +10,11 @@
  * `create` uses to add a template's capabilities.
  */
 import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { findProjectRootFrom } from '@volter/editor-live';
 import { installRoot, productRoot } from './create';
+import { usesRuntimeImage } from './runtime-image';
 import {
   addCapabilities,
   capabilityVersions,
@@ -121,6 +123,14 @@ export function runCapabilityCommand(verb: CapabilityVerb, ids: string[], option
     // checkout's own copy answers it, exactly as `create` resolves it.
     resolveDependencySpec: (name, spec) => checkoutPackageSpec(name, monoRoot) ?? spec,
     installDependencies: dependencyNames => {
+      // A game on the runtime image installs nothing: the image carries every
+      // capability's dependencies. One it lacks is named, never installed into
+      // the image every game of this version shares.
+      if (usesRuntimeImage(projectDir)) {
+        const missing = dependencyNames.filter(name => !existsSync(join(projectDir, 'node_modules', ...name.split('/'), 'package.json')));
+        if (missing.length > 0) throw new Error(`The runtime image lacks ${missing.join(', ')}; this capability needs a game that installs its own dependencies.`);
+        return;
+      }
       if (!json) log(`Installing dependencies: ${dependencyNames.join(', ')}`);
       execFileSync('npm', ['install', '--prefer-offline', '--no-audit', '--no-fund', '--loglevel=error'], {
         cwd: projectDir, stdio: json ? 'ignore' : 'inherit', shell: process.platform === 'win32',

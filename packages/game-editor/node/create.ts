@@ -11,14 +11,15 @@
  * Read by the product's own `bin` (`volter-game-editor create`) and, through
  * `presets.mjs`, by the editor server's New Project route.
  */
-import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
+
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { ProductCreateDeclaration, ProductCreateRequest, ProductCreateResult } from '@volter/editor-sdk/session/product-create';
 import { closeAdditions, type ScaffoldAddition } from './scaffold/additions';
 import { assertScaffoldComposition, type ProductCreateDeclaration as ScaffoldPresets } from './scaffold/product';
-import { linkCheckoutPackages, repinEngineAfterInstall, scaffoldProject, type ScaffoldResult } from './scaffold/scaffold';
+import { repinEngineAfterInstall, scaffoldProject, type ScaffoldResult } from './scaffold/scaffold';
+import { ensureRuntimeImage, linkRuntimeImage } from './runtime-image';
 import { initGitRepo } from './scaffold/git-init';
 import { loadTemplateRegistry } from './scaffold/templates';
 
@@ -106,16 +107,12 @@ export function writeProject({ name, targetDir, template, additions = [] }: Game
   });
 }
 
-/** Scaffold, install, point a checkout's packages at the checkout, re-pin, and start history. */
+/** Scaffold, link the runtime image as the game's dependencies, re-pin, and
+ *  start history. A game installs nothing of its own (`runtime-image.ts`). */
 export async function createGameProject(request: GameCreateRequest): Promise<ProductCreateResult> {
   const result = writeProject(request);
-  await new Promise<void>((done, fail) => {
-    const child = spawn(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['install'], { cwd: result.targetDir, stdio: 'inherit' });
-    child.once('error', fail);
-    child.once('exit', code => code === 0 ? done() : fail(new Error(`Dependency installation failed (${code}); project source remains at ${result.targetDir}.`)));
-  });
-  const linked = linkCheckoutPackages(result.targetDir, installRoot());
-  if (linked.packages.length > 0) console.error(`Linked this checkout's ${linked.packages.join(', ')} into the project.`);
+  const version = (JSON.parse(readFileSync(join(productRoot, 'package.json'), 'utf8')) as { version: string }).version;
+  linkRuntimeImage(result.targetDir, await ensureRuntimeImage(productRoot, version));
   repinEngineAfterInstall(result.targetDir);
   console.error(initGitRepo(result.targetDir, request.name).notice);
   return { targetDir: result.targetDir, manifest: result.manifest };

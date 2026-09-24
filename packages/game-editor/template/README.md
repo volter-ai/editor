@@ -71,8 +71,12 @@ arcs; `DEVLOG.md` is the development journal. Coding agents begin with
 `AGENTS.md`, which routes task-specific details to `.agents/` skills and the
 project manual.
 
-This project keeps versioned `@volter/*` dependencies. `npm run vgai -- status`
-reports the product and packages serving the active session.
+This project installs nothing of its own. `node_modules` links the Volter Game
+Editor runtime image for its engine version (`~/.volter/images/`), which
+carries every package the template and the catalog's capabilities use; the
+game is its own code. `package.json` still declares what the game uses, so
+replacing the link with `npm install` gives a standalone installation.
+`npm run vgai -- status` reports the product serving the active session.
 
 Learn and manual: https://vgai-learn.pages.dev
 

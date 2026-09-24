@@ -61,3 +61,25 @@ if (missing.length || unused.length) {
   process.exit(1);
 }
 console.log(`served-bundle table matches the template and catalog (${loaded.size} packages).`);
+
+// THE RUNTIME IMAGE carries a game's full runtime set: a game links the
+// product's install as its node_modules (packages/game-editor/node/runtime-image.ts),
+// so the product must depend on everything the template and the catalog declare.
+const productManifest = JSON.parse(readFileSync(join(product, 'package.json'), 'utf8'));
+const templateManifest = JSON.parse(readFileSync(join(product, 'template/package.json'), 'utf8'));
+const declared = new Set([
+  ...Object.keys(templateManifest.dependencies ?? {}),
+  ...Object.keys(templateManifest.devDependencies ?? {}),
+]);
+for (const file of readdirSync(join(product, 'catalog/entries'))) {
+  const entry = JSON.parse(readFileSync(join(product, 'catalog/entries', file), 'utf8'));
+  for (const name of Object.keys(entry.packageJson?.dependencies ?? {})) declared.add(name);
+}
+declared.delete(productManifest.name);
+const carried = new Set(Object.keys(productManifest.dependencies ?? {}));
+const absent = [...declared].filter((name) => !carried.has(name));
+if (absent.length) {
+  console.error(`the runtime image (the product's dependencies) lacks what games declare: ${absent.sort().join(', ')}`);
+  process.exit(1);
+}
+console.log(`runtime image carries every template and catalog dependency (${declared.size}).`);
