@@ -801,6 +801,16 @@ export function blenderRuntime(): BlenderRuntime {
     present: async (frame, description, capture) => {
       const conflict = modelDocumentConflict();
       if (conflict) throw new Error(conflict);
+      // THE ENGINE DOES NOT NEED A VIEW. With no Model document bound, no presenter is coming:
+      // the frame is presented to nobody and the session keeps running (a headless agent, a save
+      // on close). The Model document presents the session's current state when it binds. Only a
+      // photograph needs a view, so only a capture is refused.
+      if (boundModel === null) {
+        if (capture?.render) {
+          throw new Error('Rendering a Blender frame needs the Model document open; nothing is presenting.');
+        }
+        return {};
+      }
       const documentId = presentationDocumentId();
       const endWait = beginBlenderWork('waiting for Model presenter');
       let view: RuntimeView;

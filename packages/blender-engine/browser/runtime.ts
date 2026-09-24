@@ -434,10 +434,10 @@ export class BlenderRuntime {
     if (this.#terminated) return Promise.resolve();
     if (this.#stopping) return this.#stopping;
     this.#stopping = (async () => {
-      if (this.#started) {
-        await this.#started;
-        await this.#request({ op: 'flush-document' }, true);
-      }
+      // A start that failed opened no document, so there is nothing to flush: its stale
+      // rejection must not refuse every later close.
+      const started = this.#started ? await this.#started.then(() => true, () => false) : false;
+      if (started) await this.#request({ op: 'flush-document' }, true);
       this.terminate();
     })().catch(error => {
       this.#stopping = null;
