@@ -41,7 +41,7 @@ export async function writeProject({ name, targetDir, template }: Parameters<Pro
     await write('package.json', JSON.stringify({
       name: name.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-|-$/g, '') || 'models',
       private: true, version: '0.1.0', type: 'module',
-      scripts: { dev: 'volter-editor edit .' },
+      scripts: { dev: 'volter-editor edit .', 'volter-editor': 'volter-editor' },
       devDependencies: {
         '@volter/editor': product.version,
         '@volter/editor-project': product.version,
@@ -57,6 +57,13 @@ export default defineAdapter({
   documents: { find: [{ finder: 'modelsFromBlendFiles', include: ['src/models/**/*.blend'] }] },
 });
 `);
+    // THE PROJECT NAMES ITS AGENT'S SERVERS, as every scaffolded project does
+    // (editor-core's project-mcp-servers.ts reads this file into the Chat's runtime,
+    // and a person's own Claude Code reads it by hand). Through the package script,
+    // as the game template does, so the command is the project's own install.
+    await write('.mcp.json', JSON.stringify({
+      mcpServers: { blender: { command: 'npm', args: ['run', '--silent', 'volter-editor', '--', 'blender-mcp'] } },
+    }, null, 2) + '\n');
     await write('.gitignore', 'node_modules/\n.vgai/\nlogs/\n');
     for (const file of ['cube.blend', 'cube.py']) {
       await copyFile(join(productRoot, 'starter', file), join(target, 'src/models', file));
