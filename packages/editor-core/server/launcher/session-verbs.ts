@@ -83,22 +83,40 @@ export async function openProject(path: string): Promise<void> {
 // restart
 // ---------------------------------------------------------------------------
 
+export interface RestartOptions {
+  /** The product's witnessed page reload (the game product's
+   *  `page.reload()`); without one, a stale public/ asset cache is reported
+   *  rather than cured. */
+  reloadPage?: () => Promise<unknown>;
+}
+
 /**
  * `restart` — dispose and remount every game root, acknowledging only when
  * the session is READY for the next command (`restart-readiness.ts`). The
  * remount is the `play` relay command, re-issued against a reconnected tab
  * when the page reloads mid-command.
  */
-export async function restart(command: string): Promise<void> {
+export async function restart(command: string, options: RestartOptions = {}): Promise<void> {
   const { client, url, projectRoot } = await sessionClient();
   const noOpen = Boolean(process.env['VGAI_NO_OPEN']);
+  // A source remount cannot freshen page-lifetime binary caches. When public/
+  // bytes changed after the current document loaded, destroy that document
+  // before asking it to remount — through the product's own witnessed reload
+  // (a new tab epoch, then a command answered by the new document). With no
+  // tab attached, the tab convergence below opens a fresh document anyway.
   const before = await client.getState().catch(() => null);
-  // A source remount cannot freshen page-lifetime binary caches. vgai reloaded
-  // the document first through `RelayTransport.reloadPage` (a new tab epoch,
-  // then a command answered by the new document); this SDK has no such door,
-  // so the divergence is reported instead of cured.
   const divergence = staleAssetCacheWarning(before);
-  if (divergence) console.error(divergence);
+  const attached = before?.connected === true || (before?.editorsConnected ?? 0) > 0;
+  if (divergence && attached && options.reloadPage) {
+    console.error(`${command} restart: public/ assets changed after this tab loaded — reloading the document before remounting…`);
+    try {
+      await options.reloadPage();
+    } catch (error) {
+      console.error(`✗ ${command} restart: the required asset-cache reload did not complete — ${error instanceof Error ? error.message : String(error)}`);
+      process.exitCode = 1;
+      return;
+    }
+  } else if (divergence) console.error(divergence);
 
   const result = await restartToReady({
     command,
@@ -138,7 +156,7 @@ export async function restart(command: string): Promise<void> {
   // Another public/ write can land during the remount window; keep the
   // postcondition loud rather than claim fresh pixels over that race.
   const after = staleAssetCacheWarning(await client.getState().catch(() => null));
-  if (after && after !== divergence) console.error(after);
+  if (after) console.error(after);
 }
 
 /** "public/ bytes changed after the running document loaded" — a divergence,

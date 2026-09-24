@@ -1,0 +1,8 @@
+Copyright 2026 Volter AI, Inc.
+
+@volter/game-live is Apache-2.0.
+
+Transferred from the Apache-2.0 @vgai/live package in the vgai-engine
+repository at revision 09c2749ce (packages/vgai-live): src/game.ts,
+src/recording.ts and src/game-client/. The lazy-session helpers
+(src/lazy-proxy.ts, src/singleton.ts) are @volter/editor-live's.

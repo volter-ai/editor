@@ -1,8 +1,12 @@
-import { connect } from '@volter/editor-live';
+import { connect, type LiveSession } from '@volter/editor-live';
 import { EditorClient } from '@volter/editor-sdk/client';
 import { verifiedSessions, terminateEditorSession } from './editor-sessions';
 
-export async function control(command: string, verb: string, argument?: string, reason?: string): Promise<void> {
+/** Extra `eval` bindings a product adds on the same session (the game
+ *  product's `game` and `page`); a returned name replaces the kit's own. */
+export type EvalScope = (live: LiveSession) => Record<string, unknown>;
+
+export async function control(command: string, verb: string, argument?: string, reason?: string, scope?: EvalScope): Promise<void> {
   const live = await connect();
   const client = new EditorClient({ url: `http://127.0.0.1:${live.session.port}` });
   if (verb === 'close') {
@@ -24,7 +28,8 @@ export async function control(command: string, verb: string, argument?: string, 
   else if (verb === 'eval') {
     if (!argument) throw new Error('eval requires a JavaScript function body; use return to print a result.');
     const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
-    const result: unknown = await new AsyncFunction('editor', 'tools', 'session', argument)(live.editor, live.tools, live.session);
+    const bindings: Record<string, unknown> = { editor: live.editor, tools: live.tools, session: live.session, ...scope?.(live) };
+    const result: unknown = await new AsyncFunction(...Object.keys(bindings), argument)(...Object.values(bindings));
     if (result !== undefined) console.log(JSON.stringify(result, null, 2));
   } else if (verb !== 'console') throw new Error(`Unknown command: ${verb}`);
   const consoleState = await client.getUnresolvedConsole() as { entries?: unknown[] };

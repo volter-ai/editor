@@ -46,7 +46,7 @@ try {
   volter-game-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]
   volter-game-editor status | console | close
   volter-game-editor console ack <id> --reason <text>
-  volter-game-editor eval <JavaScript body>
+  volter-game-editor eval <JavaScript body>   # { editor, game, page, tools, session } in scope
   volter-game-editor play | stop | restart
   volter-game-editor ${SCREENSHOT_USAGE}
   volter-game-editor sessions | project | projects
@@ -82,7 +82,8 @@ try {
     await screenshot(positionals[1], values);
   } else if (verb === 'restart') {
     if (positionals.length > 1) throw new Error('Usage: volter-game-editor restart');
-    await restart(PRODUCT.command);
+    const { connect } = await import('@volter/game-live');
+    await restart(PRODUCT.command, { reloadPage: async () => (await connect()).page.reload() });
   } else if (verb === 'sessions' || verb === 'project' || verb === 'projects') {
     if (positionals.length > 1) throw new Error(`Usage: volter-game-editor ${verb}`);
     await (verb === 'sessions' ? listSessions() : verb === 'project' ? showProject() : listRecentProjects());
@@ -94,7 +95,12 @@ try {
     await control(PRODUCT.command, 'console-ack', positionals[2], values.reason);
   } else if (['status', 'console', 'eval', 'close'].includes(verb)) {
     if (positionals.length > (verb === 'eval' ? 2 : 1)) throw new Error('Unexpected arguments.');
-    await control(PRODUCT.command, verb, positionals[1]);
+    // `eval`'s scope adds the game half (`@volter/game-live`) on the same session.
+    const { gameBindings } = await import('@volter/game-live');
+    await control(PRODUCT.command, verb, positionals[1], undefined, live => {
+      const { game, page, recording } = gameBindings(live.session);
+      return { editor: Object.assign(live.editor, { recording }), game, page };
+    });
   } else if (verb === 'play' || verb === 'stop') {
     if (positionals.length > 1) throw new Error('Unexpected arguments.');
     await playVerb(verb);

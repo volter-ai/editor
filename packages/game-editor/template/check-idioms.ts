@@ -26,7 +26,7 @@ import { fileURLToPath } from 'node:url';
 //         VALUE imports only: a type-only import (`import type {Page}`, or
 //         an inline `{ type Page }` with no value specifier) binds nothing
 //         that could boot a browser, so it never flags.
-//         `@volter/editor-live` re-exports the Playwright types a `game.page(step)`
+//         `@volter/game-live` re-exports the Playwright types a `game.page(step)`
 //         step normally needs, so the direct import is usually avoidable
 //         anyway.
 //     E2. package.json scripts invoking `playwright` directly.
@@ -348,7 +348,7 @@ function checkPlaywrightImports(): void {
         'error',
         'bot-canonical',
         `"${pkg}" imported — the resident tester, directed through the running game's own module, is the ONE bot harness; hand-rolled Playwright boots are banned.`,
-        "Drive the game through the live session (vgai eval + the running tester module), or take the Playwright types from '@volter/editor-live' as a type-only import.",
+        "Drive the game through the live session (vgai eval + the running tester module), or take the Playwright types from '@volter/game-live' as a type-only import.",
       );
     }
   }
@@ -484,7 +484,7 @@ function checkNoTestFurniture(): void {
 function checkWindowVgai(): void {
   // Two-part, same-line heuristic rather than a single `window\.__vgai`
   // regex: this codebase's OWN canonical way to reach the bridge (see
-  // @volter/editor-live's game-client/client.ts) is a cast in between —
+  // @volter/game-live's game-client/client.ts) is a cast in between —
   // `(window as unknown as { __vgai?: ... }).__vgai` — so `window` and
   // `.__vgai` are literal-adjacent only coincidentally. Flag any line that
   // mentions the `window` token AND a bare `.__vgai`/`['__vgai']` property

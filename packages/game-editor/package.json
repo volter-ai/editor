@@ -48,6 +48,7 @@
     "@volter/editor-project": "0.5.64",
     "@volter/editor-sdk": "0.5.64",
     "@volter/editor-live": "0.5.64",
+    "@volter/game-live": "0.5.64",
     "@modelcontextprotocol/sdk": "1.30.0",
     "@volter/game-runtime": "0.5.64",
     "@volter/threejs-runtime": "0.5.64",

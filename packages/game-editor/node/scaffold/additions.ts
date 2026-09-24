@@ -115,6 +115,7 @@ export const KIT_DECLARED_PACKAGES = [
   '@volter/editor-sdk',
   '@volter/game-runtime',
   '@volter/editor-live',
+  '@volter/game-live',
   '@volter/editor-project',
   '@volter/threejs-runtime',
 ] as const;
