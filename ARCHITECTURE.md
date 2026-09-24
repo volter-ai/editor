@@ -12,7 +12,7 @@ through adapters and contributions. The rulings this follows were made on
 | Row | Here | Knows |
 | --- | --- | --- |
 | Kit | `@volter/editor-core` (host, session server, workbench tier), `@volter/editor-sdk` (the one API integrations import), `@volter/editor-project` (the project contract) | documents, views, selection, history, source writing, stories as portable CSF, the session. No tool, no product, no purpose. |
-| Integration | `@volter/editor-blender`, `@volter/editor-threejs`, `@volter/editor-react`; a canvas lane is due | one tool made a document kind: its adapters, inspectors, instruments, looks, template fragment. No purpose. |
+| Integration | `@volter/editor-blender`, `@volter/editor-threejs`, `@volter/editor-react`, `@volter/editor-xstate`; a canvas lane is due | one tool made a document kind: its adapters, inspectors, instruments, looks, template fragment. No purpose. |
 | Product | `@volter/editor` (modeling), `@volter/game-editor` | purpose code only: for the game editor, Play, the transport, input gating, the game layout, ingest of foreign games, the HUD template. |
 | Shipped twin | `@volter/threejs-runtime`, `@volter/game-runtime` | what a project's own code ships with. Apache. |
 
@@ -48,6 +48,11 @@ Rules:
   `@volter/editor-blender` is the reference integration.
 - `@volter/editor-react` (React source authoring, moved out of the kit) imports **zero** kit
   internals.
+- `@volter/editor-xstate` imports **zero** kit internals. A project's XState machines are `machine`
+  documents: read and written through the module's syntax tree, with the running actors shown
+  on them. The actors are observed through a serving-side stamp on each machine the project
+  declares; the game registers nothing. It replaced the inspect-only Behavior document, which
+  read actors a game had to register.
 - `@volter/editor-game` imports kit internals from **122** files (156 before this work). 70
   self-contained kit modules integrations share now live in `@volter/editor-sdk/kit/*`
   (registries, ids, types, codecs, the console, the session's HTTP clients); the kit imports
@@ -78,7 +83,7 @@ measurements, not yet an owner ruling.*
 | `editor-game/src/react/`, `contributions/react/`, kit `ui-source/inspect.ts` (React fiber reads) | `@volter/editor-react` (its server half moved 2026-09-24) | `vgai.contributions`; a fiber-inspection door for the kit's selection overlay |
 | the `r3f-*` bindings (in `@volter/editor-react` since the React move), `editor-game/src/three/`, `contributions/three/`, kit three-viewport, Object3D document sessions, three projection | `@volter/editor-threejs` (in the modeling release already) | SDK doors for stage, selection and picking; the React Three Fiber bindings ride `@volter/editor-react`'s source-writing export |
 | kit Pixi story preview and model, spritesheets; `editor-game`'s canvas authoring | the canvas lane, inside the game product until a Pixi integration exists | a story-renderer registry keyed by medium, so the kit's CSF knows no renderer |
-| kit Play (`gameplay-*`, `play-boot-phase`, `reported-play-state`, scoped game CSS, game globals, `play-stall`, `support/play`); `editor-game`'s play, bridge, play bar, ingest, State Watch, network, navmesh, XState, profiler, asset budget, build | `@volter/game-editor` | the product composes; the kit keeps only media-neutral lifecycle doors |
+| kit Play (`gameplay-*`, `play-boot-phase`, `reported-play-state`, scoped game CSS, game globals, `play-stall`, `support/play`); `editor-game`'s play, bridge, play bar, ingest, State Watch, network, navmesh, profiler, asset budget, build | `@volter/game-editor` | the product composes; the kit keeps only media-neutral lifecycle doors |
 | `src/main.ts`, `sfx.ts`'s adapter type, entry-module `systems`/`debug` | `vgai.adapter.ts` declares them; the game's modules stay plain | structural types in the adapter contract |
 
 **The next seam is the store.** Of `EditorShellStore`'s members integrations touch (about 45),

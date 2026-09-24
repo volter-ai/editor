@@ -49,7 +49,6 @@
  * - `_availableClips`     — string[] of clip names discovered on the GLTF
  *                           (inspector dropdown; same names as `_animClips`' keys).
  * - `_animationRuntime`   — format-neutral live native mixer/action inspection.
- * - `_xstateBehavior`     — optional live XState behavior actor inspection.
  * - `_xstateAnimation`    — compatibility handle for the optional XState→Three
  *                           bridge; animation UI never discovers through it.
  *
@@ -134,7 +133,6 @@ import type { ReflectionProbeMark } from '../adapter/reflection-probe';
 import type { TriggerVolumeMark } from '../adapter/trigger-volume';
 import type { AnimationRuntimeInspection } from '../animation/runtime-inspection';
 import type { XStateAnimationBinding } from '../animation/xstate-animation-binding';
-import type { XStateBehaviorInspection } from '../behavior/xstate-inspection';
 import { ObjectMarkKeys, type ObjectMarkSchema } from './object-marks';
 
 export type { EditorHelperType } from './object-marks';
@@ -159,7 +157,6 @@ export interface UserDataSchema extends ObjectMarkSchema {
   _animClips: Map<string, THREE.AnimationClip>;
   _availableClips: string[];
   _animationRuntime: AnimationRuntimeInspection;
-  _xstateBehavior: XStateBehaviorInspection;
   _xstateAnimation: XStateAnimationBinding;
   __sharedGeometry: boolean;
   __shadeOrig: THREE.Material | THREE.Material[];
@@ -216,7 +213,6 @@ export const UserDataKeys = {
   _animClips: '_animClips',
   _availableClips: '_availableClips',
   _animationRuntime: '_animationRuntime',
-  _xstateBehavior: '_xstateBehavior',
   _xstateAnimation: '_xstateAnimation',
   __sharedGeometry: '__sharedGeometry',
   __shadeOrig: '__shadeOrig',

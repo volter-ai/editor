@@ -70,6 +70,7 @@ export default defineAdapter({
     find: [
       { finder: 'scenesFromEntrypointSelection', regions: ['world'], selection: 'scenes' },
       { finder: 'prefabsFromStories' },
+      { finder: 'machinesFromModules', include: ['src/**/*.ts', 'src/**/*.tsx'] },
     ],
     default: 'main',
   },

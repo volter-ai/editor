@@ -9,9 +9,9 @@
  *    Ordinary log traffic never auto-opens the region; only actionable
  *    failures reveal it automatically (today: a world that failed to mount —
  *    `workspace-utility-commands.ts`).
- * Animation and Behavior are deliberately absent: each is an authored center
- * document (animation inside its owning Asset Lab; XState as an inspect-only
- * Behavior document), not a global debugger drawer instrument.
+ * Animation and state machines are deliberately absent: each is an authored
+ * center document (animation inside its owning Asset Lab; an XState machine as
+ * its own Machine document), not a global debugger drawer instrument.
  * The Profiler bench and State Watch are deliberately absent: both moved to
  * `@vgai/game` as the `profiler.utility` / `state-watch.utility`
  * contributions (WORKBENCH.md §The invariants — the host imports no package).

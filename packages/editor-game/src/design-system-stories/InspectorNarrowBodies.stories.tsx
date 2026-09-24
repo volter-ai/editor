@@ -14,9 +14,6 @@
  *    subject wrapping them is synthetic (a live react/DOM subject needs a
  *    running document session + OID index, not constructible in a bounded
  *    story).
- *  - State machine — the REAL `XStateMachineInspector` over the REAL
- *    `characterAnimationMachine` fixture. Fully real; no live actor is needed
- *    (the static graph view is the design-time state).
  *  - Ingest coverage — the REAL `ingestCoverageSection(deriveCapabilityCoverage(…))`
  *    section, the exact one the Game Inspector composes.
  *  - Typed-three groups — a REAL composed subject: `AuthoringInspectorSurface`
@@ -31,7 +28,7 @@
 
 import { UNCAPTURED_REACH } from '../host/adapter-reach';
 import { SourceObject3DAuthoringAdapter } from '@volter/editor-core/authoring/source-object3d-authoring-adapter';
-import { faBrain, faPalette } from '@fortawesome/free-solid-svg-icons';
+import { faPalette } from '@fortawesome/free-solid-svg-icons';
 import type { Meta, StoryObj } from '@storybook/react';
 import { type ReactNode, useState } from 'react';
 import * as THREE from 'three';
@@ -65,8 +62,6 @@ import {
   uniformBorder,
   uniformRadius,
 } from '@volter/editor-sdk/widgets';
-import { characterAnimationMachine } from '../xstate/character-animation-machine.fixture';
-import { XStateMachineInspector } from '../xstate/XStateMachineInspector';
 
 /** The narrow column's target width. `overflow: hidden` so a body that was
  *  built wider than the rail SPILLS visibly instead of scrolling. */
@@ -208,28 +203,6 @@ const cssSubject = columnSubject({
   ],
 });
 
-// ---- State machine (real inspector + real fixture machine) ---------------
-
-const stateMachineSubject = columnSubject({
-  id: 'asset:character-animation',
-  title: 'Character Animation',
-  kindLabel: 'State machine',
-  sections: [
-    customSection(
-      'state-machine',
-      'State machine',
-      faBrain,
-      4000,
-      <div style={{ height: 300, minHeight: 0 }}>
-        <XStateMachineInspector
-          machine={characterAnimationMachine}
-          currentStateId="character-animation.idle"
-        />
-      </div>,
-    ),
-  ],
-});
-
 // ---- Ingest coverage (the real composed section) -------------------------
 
 const coverageReport = deriveCapabilityCoverage({
@@ -337,20 +310,7 @@ export const CssEditorsColumn: Story = {
   ),
 };
 
-/** (2) The real xstate machine inspector (static graph view). */
-export const StateMachineColumn: Story = {
-  render: () => (
-    <RailColumn>
-      <InspectionProjectionView
-        subject={stateMachineSubject}
-        presentation="column"
-        surface="asset-lab"
-      />
-    </RailColumn>
-  ),
-};
-
-/** (3) The real ingest coverage section. */
+/** (2) The real ingest coverage section. */
 export const IngestCoverageColumn: Story = {
   render: () => (
     <RailColumn>
@@ -359,7 +319,7 @@ export const IngestCoverageColumn: Story = {
   ),
 };
 
-/** (4) Typed-three grouped descriptor bodies — a real composed mesh subject
+/** (3) Typed-three grouped descriptor bodies — a real composed mesh subject
  *  (Material / Gameplay groups + loose fields). */
 export const TypedThreeGroupsColumn: Story = {
   render: () => {
@@ -382,7 +342,7 @@ export const TypedThreeGroupsColumn: Story = {
   },
 };
 
-/** (5) Model-asset sections — a real composed subject (Geometry / Animation /
+/** (4) Model-asset sections — a real composed subject (Geometry / Animation /
  *  Materials / Source) from a hand-authored THREE scene. */
 export const ModelAssetColumn: Story = {
   render: () => (

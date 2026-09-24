@@ -45,9 +45,8 @@ export function buildPaletteActions(
   // W3 (workspace-shell §9/W3) — document-open discovery lives HERE now
   // that the permanent bottom tabs are gone: document-placement project
   // tools and contributed documents. All read live snapshots. A PACKAGE's
-  // live set (the Behavior debugger's one action per running actor) arrives
-  // through `contributedActions()` below, pushed by its own service — the
-  // host names no package here.
+  // live set of actions arrives through `contributedActions()` below, pushed
+  // by its own service — the host names no package here.
   const documents = [
     ...buildProjectToolActions(store),
     ...buildBoardOpenActions(),

@@ -4,9 +4,9 @@
  * preview, React story, asset preview, data asset, Build Profiles — the real
  * first-party implementers §7.1 names) becomes an OPEN DOCUMENT here, and the
  * center workspace (W1) renders the open set as tabs. Live-observation
- * instruments such as Profiler and Network stay in the Debugger; XState is a
- * truthful inspect-only Behavior document because its actor/statechart is the
- * subject being inspected.
+ * instruments such as Profiler and Network stay in the Debugger; an XState
+ * machine is a document because the machine in its source is the subject
+ * being edited, with its running actors shown on it.
  *
  * `frame/bridge.tsx` consumes this registry and maps open subjects
  * to editor panes with always-mounted content.

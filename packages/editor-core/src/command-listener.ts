@@ -191,6 +191,7 @@ import {
   whenEditorWorkspaceApplied,
 } from './workspace-presets';
 import { activeWorkspaceStyleId, applyWorkspaceStyle, workspaceStyles } from './workspace-style';
+import { documentContributionForKind } from './tool-loader';
 import { toggleConsoleUtility } from './workspace-utility-commands';
 import { worldAdoptionFacet } from './world-adoption';
 
@@ -2213,8 +2214,12 @@ export async function handleCommand(
       // mode predicate so opening an adapter scene reaches that running game's
       // contract instead of silently falling back to its Edit document.
       const liveGame = editorIsPlaying();
+      // An entry whose KIND has its own document editor (a model, a machine, a page) opens in
+      // that editor during Play too; only the rest navigate the running game.
       const entry = liveGame
-        ? projectAdapterFacet()?.scenes.entries.find((candidate) => candidate.id === id)
+        ? projectAdapterFacet()?.scenes.entries.find(
+            (candidate) => candidate.id === id && documentContributionForKind(candidate.kind) === undefined,
+          )
         : undefined;
       // The running lane's own remount (Play), asked of the live
       // registry so this verb names no lane.

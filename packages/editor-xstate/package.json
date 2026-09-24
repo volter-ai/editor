@@ -1,0 +1,53 @@
+{
+  "name": "@volter/editor-xstate",
+  "author": "Volter AI, Inc.",
+  "license": "AGPL-3.0-only",
+  "version": "0.5.65",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "XState for Volter Editor: a project's state machines as documents, read and written in their own source, with running actors shown live.",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/volter-ai/editor.git",
+    "directory": "packages/editor-xstate"
+  },
+  "files": [
+    "src",
+    "contributions",
+    "serving",
+    "dist-node",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "exports": {
+    "./contributions/*": "./contributions/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "node scripts/build-serving.mjs",
+    "prepack": "npm run build",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "vgai": {
+    "contributions": [
+      "./contributions/machines.finder.ts",
+      "./contributions/machine.document.tsx"
+    ],
+    "serving": "./dist-node/serving.mjs"
+  },
+  "dependencies": {
+    "@volter/editor-sdk": "0.5.65",
+    "elkjs": "0.12.0",
+    "typescript": "5.9.3",
+    "zod": "^4.3.6"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "vite": "^6.4.3"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  }
+}

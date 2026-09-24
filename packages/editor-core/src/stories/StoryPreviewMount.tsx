@@ -124,7 +124,7 @@ const mountsByContainer = new WeakMap<HTMLElement, ContainerMount>();
  * isolated from whatever React root `container` itself lives inside.
  * Returns an `unmount` the caller runs on cleanup (e.g. story switch or
  * panel close) — same lifecycle discipline every other editor mount point
- * (`XStateMachineInspector.test.tsx`'s harness, `ToolHost`) uses. Safe to
+ * (`ToolHost`) uses. Safe to
  * call again on the same `container` before a previous `unmount()` has
  * landed (see `mountsByContainer` above) — the isolated root is reused, and
  * `unmount()` (below) removes it from the container entirely rather than
