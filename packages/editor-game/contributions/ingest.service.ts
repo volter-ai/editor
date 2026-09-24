@@ -43,7 +43,7 @@
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { importIngestAdapterModule, ingestAdapterModulePath } from '../src/host/ingest/registry';
 import { registerAdapterDefinitionSource } from '@volter/editor-core/project-adapter';
-import { shellStoreForHost } from '@volter/editor-core/shell-store-door';
+import { threeStoreForHost } from '@volter/editor-core/shell-store-door';
 import { editorHost } from '@volter/editor-sdk/host';
 import { autoLaunchIngest } from '../src/ingest/mount-ingest-root';
 
@@ -60,7 +60,7 @@ export function start(): () => void {
     importModule: async (rootId) => await importIngestAdapterModule(rootId),
   });
   const stopReady = editorHost().project.onReady(async () => {
-    const store = shellStoreForHost();
+    const store = threeStoreForHost();
     if (!store) {
       // The store arrives with `AppRoot`, long before any boot chain reaches
       // ready, so this cannot happen quietly — say so rather than skipping an

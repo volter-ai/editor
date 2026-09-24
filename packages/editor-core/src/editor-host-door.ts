@@ -107,7 +107,7 @@ import { onSessionEndedChange } from './session-tombstone';
 import { onBeforeSessionClose } from './session-close';
 import { setSettingsProvider, subscribeSettingsProvider } from './settings/settings-provider';
 import { getSetting, inspectSetting, setSetting, subscribeSettings } from './settings-store';
-import { onShellStoreChange, shellStoreForHost } from './shell-store-door';
+import { onShellStoreChange, shellStoreForHost, threeStoreForHost } from './shell-store-door';
 import { focusedStageContext } from './stage-context';
 import {
   onViewportFrame,
@@ -214,8 +214,8 @@ export function installEditorHostDoor(): void {
       },
     },
     hierarchy: {
-      object: (id) => shellStoreForHost()?.objectMap.get(id) ?? null,
-      objects: () => shellStoreForHost()?.objectMap ?? EMPTY_OBJECTS,
+      object: (id) => threeStoreForHost()?.objectMap.get(id) ?? null,
+      objects: () => threeStoreForHost()?.objectMap ?? EMPTY_OBJECTS,
       subscribe: (listener) => {
         const stopArrival = onShellStoreChange(listener);
         const stop = shellStoreForHost()?.subscribe(listener);
@@ -458,7 +458,7 @@ export function installEditorHostDoor(): void {
       },
       version: () => keyActionsVersion() + workspaceDocumentRegistryVersion(),
       stage: () => {
-        const store = shellStoreForHost();
+        const store = threeStoreForHost();
         // No shell yet: nothing is focused and nothing is showing, which is
         // the honest answer rather than a guessed surface.
         if (!store) return { surface: null, mode: null };

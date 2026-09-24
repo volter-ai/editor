@@ -49,7 +49,7 @@ import { registerDocumentOpener } from '../document-open-registry';
 import { projectFileExists } from '../editor-api';
 import type { AssetKind, OnlineAssetInfo } from '../editor-shell-store';
 import { type InspectionSection, PROPERTIES_SECTION_ORDER } from '@volter/editor-sdk/kit/inspection-model';
-import { shellStoreForHost } from '../shell-store-door';
+import { threeStoreForHost } from '../shell-store-door';
 import { DOCUMENT_REGISTRATION_TIMEOUT_MS, waitUntil } from '../wait-until';
 import {
   activeWorkspaceDocumentId,
@@ -378,7 +378,7 @@ registerDocumentOpener<{
       // address seam's narrow store (`WorkspaceStateStore`) does not carry and
       // should not: `shell-store-door.ts` is how a lane reaches the one shell
       // store without the seam widening for a single family.
-      const shell = shellStoreForHost();
+      const shell = threeStoreForHost();
       if (!shell) return null;
       const id = openEntityAssetDocument(shell, request.entityId);
       if (!id) throw new Error(`Scene entity is not available: ${request.entityId}`);

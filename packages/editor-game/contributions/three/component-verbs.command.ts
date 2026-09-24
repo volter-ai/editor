@@ -28,7 +28,7 @@ import { getActiveAuthoring } from '@volter/editor-core/authoring/active-adapter
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { canExtractNode, isExtractedHint } from '../../src/host/instance-extract-actions';
 import { canForkInstance, isForkedHint } from '../../src/host/instance-fork-actions';
-import { shellStoreForHost } from '@volter/editor-core/shell-store-door';
+import { threeStoreForHost } from '@volter/editor-core/shell-store-door';
 import type { CommandContribution } from '@volter/editor-sdk/commands';
 import { instanceExtractSourceFor } from '../../src/three/component-verbs/extract-menu';
 import { instanceForkSourceFor } from '../../src/three/component-verbs/fork-menu';
@@ -51,7 +51,7 @@ export const commands: CommandContribution['commands'] = {
     derivedRefresh: 'always',
     handle: async (cmd) => {
       try {
-        const store = shellStoreForHost();
+        const store = threeStoreForHost();
         if (!store) return NO_STORE;
         const id = subjectId(cmd, store);
         if (!id) return { ok: false, error: 'extract-component needs an id or a selected row.' };
@@ -82,7 +82,7 @@ export const commands: CommandContribution['commands'] = {
     derivedRefresh: 'always',
     handle: async (cmd) => {
       try {
-        const store = shellStoreForHost();
+        const store = threeStoreForHost();
         if (!store) return NO_STORE;
         const id = subjectId(cmd, store);
         if (!id) return { ok: false, error: 'fork-component needs an id or a selected row.' };

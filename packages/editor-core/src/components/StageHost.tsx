@@ -56,7 +56,7 @@ import {
   object3DDocumentWritePolicy,
 } from '../object3d-document-write-policy';
 import { registerPerformanceSource } from '../performance-sources';
-import { shellStoreForHost } from '../shell-store-door';
+import { threeStoreForHost } from '../shell-store-door';
 import {
   assetSubjectApplies,
   documentStageContext,
@@ -567,7 +567,7 @@ export function Object3DDocumentViewport({
    * overlays. That gap is real and named, not closed here: unit 1's bar is
    * that the Model document's Blender frame does not move.
    */
-  const contextStore = shellStore ?? shellStoreForHost();
+  const contextStore = shellStore ?? threeStoreForHost();
   /**
    * WHAT THIS STAGE IS SHOWING, asked once (ARCHITECTURE-CORE §One stage).
    * `chrome` is the host's own answer and nothing infers it: an EMBEDDED
@@ -784,7 +784,7 @@ export function Object3DDocumentViewport({
         // The world is the session's own subject: Play adoption, ingest, the
         // project history and the host door's hierarchy facet all address the
         // SESSION store, so this stage runs on it rather than a private one.
-        shellStoreForHost() ?? undefined,
+        threeStoreForHost() ?? undefined,
       );
       documentHostRef.current = host;
       host.cleanups.push(registerStageStore(documentId, host.store));

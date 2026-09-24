@@ -10,7 +10,7 @@
  * (`@volter/editor-core/shell-store-door`'s `onShellStore`, as Play's
  * autoplay entry does) and unbinds the previous store's binding first.
  */
-import { onShellStore } from '@volter/editor-core/shell-store-door';
+import { onThreeStore } from '@volter/editor-core/shell-store-door';
 import { unregisterAvailableWorkspaceDocument } from '@volter/editor-core/workspace-available-documents';
 import { SCENE_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import { bindSceneDocument } from '../src/host/components/scene-document';
@@ -19,7 +19,7 @@ export const point = 'workspace.service';
 
 export function start(): () => void {
   let unbind: (() => void) | null = null;
-  const stopStore = onShellStore((store) => {
+  const stopStore = onThreeStore((store) => {
     unbind?.();
     unbind = bindSceneDocument(store);
   });

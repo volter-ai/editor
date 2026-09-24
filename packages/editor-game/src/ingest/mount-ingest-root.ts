@@ -41,7 +41,7 @@ import { registerEditorStateFacet } from '@volter/editor-sdk/kit/editor-state-fa
 import { liveDocumentContainer } from '@volter/editor-sdk/kit/live-document';
 import { fetchGameManifest, isManifestAbsence } from '@volter/editor-core/manifest-project';
 import { getCurrentProject } from '@volter/editor-core/project-manager';
-import { onShellStore } from '@volter/editor-core/shell-store-door';
+import { onThreeStore } from '@volter/editor-core/shell-store-door';
 import { ingestRoots, rootById } from '@volter/editor-project/adapter/manifest-interpreter';
 import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
 import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@volter/editor-project/manifest/load';
@@ -149,7 +149,7 @@ let _boundStore: EditorShellStore | null = null;
  * `project-session-reset.ts`, fired by `project-manager.ts`'s
  * `onProjectSessionEnd`.
  */
-onShellStore((store) => {
+onThreeStore((store) => {
   _boundStore = store;
   clearMountFailureReports();
 });

@@ -9,25 +9,27 @@
  * at its own module load without an import cycle.
  */
 import type { EditorShellStore } from './editor-shell-store';
+import type { ShellStore } from './shell-store';
+import { optionalThreeStateOf, threeStateOf } from './three-state';
 
-let shellStore: EditorShellStore | null = null;
-const arrivals = new Set<(store: EditorShellStore) => void>();
+let shellStore: ShellStore | null = null;
+const arrivals = new Set<(store: ShellStore) => void>();
 const changeListeners = new Set<() => void>();
 
 /** `EditorContext.tsx` registers the store it created. */
-export function registerShellStoreForHost(store: EditorShellStore): void {
+export function registerShellStoreForHost(store: ShellStore): void {
   shellStore = store;
   for (const listener of arrivals) listener(store);
   for (const listener of changeListeners) listener();
 }
 
 /** The current store, or null before a project session opens. */
-export function shellStoreForHost(): EditorShellStore | null {
+export function shellStoreForHost(): ShellStore | null {
   return shellStore;
 }
 
 /** Runs on every store arrival — at once, when one is already registered. */
-export function onShellStore(listener: (store: EditorShellStore) => void): () => void {
+export function onShellStore(listener: (store: ShellStore) => void): () => void {
   arrivals.add(listener);
   if (shellStore) listener(shellStore);
   return () => {
@@ -42,4 +44,14 @@ export function onShellStoreChange(listener: () => void): () => void {
   return () => {
     changeListeners.delete(listener);
   };
+}
+
+/** The session store's Three half (`three-state.ts`), or `null` before a session opens. */
+export function threeStoreForHost(): EditorShellStore | null {
+  return optionalThreeStateOf(shellStore);
+}
+
+/** {@link onShellStore} for a lane that works on the store's Three half. */
+export function onThreeStore(listener: (store: EditorShellStore) => void): () => void {
+  return onShellStore((store) => listener(threeStateOf(store)));
 }

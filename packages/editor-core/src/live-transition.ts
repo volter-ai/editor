@@ -33,7 +33,7 @@
 import * as THREE from 'three';
 import { layoutPolicy } from './layout-policy';
 import { effectiveSettings } from './settings-store';
-import { shellStoreForHost } from './shell-store-door';
+import { threeStoreForHost } from './shell-store-door';
 import { onViewportFrame, viewportRig } from './viewport-door';
 import { setWorkspacePersistenceSuppressed } from './workspace-persistence-gate';
 
@@ -447,7 +447,7 @@ export interface PlayEntryTransitionOptions {
  */
 export function beginLiveTransition(): void {
   const immersive = usesImmersivePlayPresentation();
-  const store = shellStoreForHost();
+  const store = threeStoreForHost();
   beginPlayEntryTransition(immersive && store ? resolveAuthoredCameraTarget(store) : null, {
     immersive,
   });
