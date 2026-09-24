@@ -95,6 +95,10 @@ Remaining:
    Units 1–2 are done (`@volter/model-editor`; `release/boundary-baseline.json`, 696 edges). The
    model editor's workbench still needs its rebuild for the new product id: the compile wants a
    9 GB heap and was killed at 17 GB compressed memory, so it runs on a box with headroom.
+   The Three viewport binds its keys through `host.keyboard.bindActions` and publishes its
+   palette entries from the active three stage (walked on `arena`: the transform keys set the
+   mode, `tool:` palette entries toggle grid and shading, an entity entry selects and frames, and
+   the entries leave while a machine document is focused).
    Unit 3, measured: the viewport's closure in `editor-core` is 186 modules, 47 of them
    Three-bound (25k lines). The baseline refuses new core-to-`@volter/editor-threejs` edges, so
    the set moves in one step after core stops importing it. Remaining cut points: the store's
