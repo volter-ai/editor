@@ -1,5 +1,5 @@
 import { WorldProvider } from '@volter/game-runtime/react/world-state';
-import type { DomHostContext } from '@volter/editor-project/adapter';
+import type { GameDomHostContext } from '@volter/game-runtime/runtime/host-context';
 import type { MountedReactGame, ReactRootAdapter } from '@volter/game-runtime/runtime/create-runtime';
 import { isAdapterRegistered, registerAdapter } from '@volter/game-runtime/runtime/mount-game';
 import { type ComponentType, createElement } from 'react';
@@ -14,7 +14,7 @@ interface ReactEntryModule {
 export function createReactRootAdapter(id: string, Entry: ComponentType): ReactRootAdapter {
   return {
     id,
-    async mount(host: DomHostContext): Promise<MountedReactGame> {
+    async mount(host: GameDomHostContext): Promise<MountedReactGame> {
       if (!host.game) throw new Error(`React root "${id}" requires a Game host.`);
       const reactRoot = createRoot(host.container);
       flushSync(() => {

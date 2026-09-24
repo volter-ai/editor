@@ -31,6 +31,7 @@ import {
   activeWorkspaceDocumentId,
   workspaceDocumentSelection,
 } from './workspace-document-registry';
+import { openAvailableWorkspaceDocument } from './workspace-available-documents';
 import {
   activeWorkspaceStaticPanel,
   showWorkspaceStaticPanel,
@@ -343,7 +344,10 @@ async function openWorkspaceView(store: EditorShellStore, document: ViewDocument
   // was answering fine.
   let activated = false;
   await waitUntil(() => {
-    activated = activateWorkspaceDocument(document.id);
+    // An available document a package registered opens on this request; an
+    // open one is activated.
+    activated =
+      openAvailableWorkspaceDocument(document.id) || activateWorkspaceDocument(document.id);
     return activated || workspaceDocumentGap(document.id) !== null;
   }, DOCUMENT_REGISTRATION_TIMEOUT_MS);
   if (activated) {
