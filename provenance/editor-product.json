@@ -60,6 +60,20 @@
       "source": "LICENSE",
       "path": "packages/editor/LICENSE-MCP",
       "sha256": "049501fd54d27852507853a5b88094ca1c6ff97404418a5032f3310eecc9cde6"
+    },
+    {
+      "repository": "https://github.com/ahujasid/blender-mcp",
+      "revision": "7cc602252386b92829bc7364e3a897253610be38",
+      "source": "LICENSE",
+      "path": "packages/editor-blender/LICENSE-MCP",
+      "sha256": "049501fd54d27852507853a5b88094ca1c6ff97404418a5032f3310eecc9cde6"
+    },
+    {
+      "repository": "https://github.com/ahujasid/blender-mcp",
+      "revision": "7cc602252386b92829bc7364e3a897253610be38",
+      "source": "LICENSE",
+      "path": "packages/game-editor/LICENSE-MCP",
+      "sha256": "049501fd54d27852507853a5b88094ca1c6ff97404418a5032f3310eecc9cde6"
     }
   ]
 }

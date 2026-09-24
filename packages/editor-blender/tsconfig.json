@@ -32,6 +32,7 @@
   "include": [
     "src",
     "host",
-    "contributions"
+    "contributions",
+    "node"
   ]
 }

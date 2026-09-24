@@ -1,5 +1,5 @@
 /**
- * `volter-editor blender-mcp` — the blender-mcp server SHAPE (the published server's 28
+ * `<product> blender-mcp` — the blender-mcp server SHAPE (the published server's 28
  * tools, names, parameters, descriptions, result strings and its one prompt)
  * as pure transport onto Blender running in the project's editor tab.
  *
@@ -141,6 +141,8 @@ class Mirror {
   constructor(
     private readonly project: string,
     private readonly roots: string[],
+    /** The command that served this transport, recorded as the write's source. */
+    private readonly source: string,
   ) {}
 
   async sync(tab: TabSession, callId: string | null): Promise<number> {
@@ -196,7 +198,7 @@ class Mirror {
             path: shipped,
             session: listing.session as string,
             revision: String(listing.revision as number),
-            source: 'volter-editor blender-mcp',
+            source: this.source,
             ...(callId === null ? {} : { callId }),
           });
           // WHAT THE BYTES WERE MADE FROM, when the session holds a document:
@@ -295,6 +297,7 @@ const text = (value: string) => ({ content: [{ type: 'text' as const, text: valu
 export async function serveBlenderMcp(
   project: string,
   ensureEditor: () => Promise<void> = async () => {},
+  command = 'volter-editor',
 ): Promise<void> {
   const runtimeIdentity = `Blender ${blenderBundle.blender} (source ${blenderBundle.source}), compiled to WebAssembly and running headless in the editor tab; three.js takes its photographs. Factory bpy.context.scene.render.engine: '${blenderBundle.factoryEngine}'. Documents are .blend. save_as_mainfile records the actual saved path in bpy.data.filepath; open_mainfile reopens it.`;
   const tools = (blenderTools as ToolShape[]).map((tool) =>
@@ -308,7 +311,7 @@ export async function serveBlenderMcp(
     ...(process.env['VGAI_BLENDER_MIRROR_ROOTS'] ?? '')
       .split(':')
       .filter((root) => root.startsWith('/')),
-  ]);
+  ], `${command} blender-mcp`);
   const tab = new TabSession(project, ensureEditor);
   const server = new Server(
     { name: 'BlenderMCP', version: BLENDER_MCP_VERSION },

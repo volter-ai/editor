@@ -17,12 +17,15 @@
     "src",
     "contributions",
     "host",
-    "LICENSE"
+    "node",
+    "LICENSE",
+    "LICENSE-MCP"
   ],
   "exports": {
     "./contributions/*": "./contributions/*",
     "./looks": "./src/looks.ts",
     "./layouts": "./src/layouts.tsx",
+    "./mcp": "./node/blender-mcp.ts",
     "./package.json": "./package.json"
   },
   "vgai": {
@@ -61,12 +64,14 @@
     ]
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
     "@volter/blender-engine": "0.1.7",
     "@volter/editor-threejs": "0.5.64",
     "zod": "^4.3.6"
   },
   "peerDependencies": {
     "@volter/editor-sdk": "0.5.64",
+    "@volter/editor-live": "0.5.64",
     "@volter/editor-project": "0.5.64",
     "react": "^19.0.0",
     "three": "^0.180.0"

@@ -14,3 +14,8 @@ Transferred from the AGPL-3.0-only vgai-engine repository at revision
   - packages/editor/template-dotfiles (template-dotfiles/)
   - packages/editor/catalog/project-source and catalog/entries (catalog/)
   - packages/editor/starter (starter/)
+
+Its command line bundles the Blender MCP transport from @volter/editor-blender.
+BlenderMCP tool descriptions and prompt follow ahujasid/blender-mcp,
+copyright (c) 2025 Siddharth Ahuja, MIT. The permission notice is included
+in LICENSE-MCP.

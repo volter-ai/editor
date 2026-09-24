@@ -5,7 +5,7 @@ const result = await build({
   metafile: true,
   entryPoints: ['create', 'cli'].map(name => fileURLToPath(new URL(`../node/${name}.ts`, import.meta.url))),
   outdir: fileURLToPath(new URL('../dist-node', import.meta.url)),
-  external: ['@volter/editor-live', 'undici', 'typescript'],
+  external: ['@volter/editor-live', '@modelcontextprotocol/sdk', 'undici', 'typescript'],
   // jsonc-parser's `main` is a UMD build whose relative requires an ESM bundle
   // cannot resolve; its `module` build bundles cleanly.
   mainFields: ['module', 'main'],

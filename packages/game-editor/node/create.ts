@@ -22,7 +22,7 @@ import { linkCheckoutPackages, repinEngineAfterInstall, scaffoldProject, type Sc
 import { initGitRepo } from './scaffold/git-init';
 import { loadTemplateRegistry } from './scaffold/templates';
 
-const productRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+export const productRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PRODUCT = '@volter/game-editor';
 
 export const presets: ScaffoldPresets = {
@@ -76,7 +76,7 @@ export const presets: ScaffoldPresets = {
 
 /** The directory whose `node_modules` resolves this product's packages: the
  *  repository root in a checkout, the installation root otherwise. */
-function installRoot(): string {
+export function installRoot(): string {
   for (let dir = productRoot; ; dir = dirname(dir)) {
     if (existsSync(join(dir, 'node_modules', '@volter', 'editor-project', 'package.json'))) return dir;
     if (dirname(dir) === dir) throw new Error(`Cannot scaffold: @volter/editor-project is not installed above ${productRoot}.`);

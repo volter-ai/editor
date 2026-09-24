@@ -8,6 +8,7 @@ import productPackage from '../package.json';
 import { declaration } from './create';
 import { launch, type LaunchingProduct } from '@volter/editor-core/server/launcher/launch';
 import { control } from '@volter/editor-core/server/launcher/control';
+import { listRecentProjects, listSessions, openProject, screenshot, showProject, SCREENSHOT_OPTIONS, SCREENSHOT_USAGE } from '@volter/editor-core/server/launcher/session-verbs';
 import { resolveWorkbench, writeWorkbenchDeclaration } from '@volter/editor-sdk/session/workbench-locator';
 
 const PRODUCT: LaunchingProduct = { packageName: '@volter/editor', id: 'editor', displayName: 'Volter Editor', command: 'volter-editor' };
@@ -16,12 +17,15 @@ try {
   const { values, positionals } = parseArgs({ allowPositionals: true, options: {
     workbench: { type: 'string' }, reason: { type: 'string' }, 'no-open': { type: 'boolean' },
     port: { type: 'string' }, version: { type: 'boolean', short: 'v' }, help: { type: 'boolean', short: 'h' },
+    ...SCREENSHOT_OPTIONS,
   } });
   const [verb = 'edit', folder = '.'] = positionals;
+  for (const key of Object.keys(SCREENSHOT_OPTIONS) as (keyof typeof SCREENSHOT_OPTIONS)[])
+    if (values[key] !== undefined && verb !== 'screenshot') throw new Error(`--${key} belongs to screenshot.`);
   if (values.version) {
-    console.log(verb === 'blender-mcp' ? `BlenderMCP ${(await import('./blender-mcp')).BLENDER_MCP_VERSION}` : productPackage.version);
+    console.log(verb === 'blender-mcp' ? `BlenderMCP ${(await import('@volter/editor-blender/mcp')).BLENDER_MCP_VERSION}` : productPackage.version);
   } else if (values.help) {
-    console.log('Volter Editor\n  volter-editor create <folder> [--workbench <dir>]\n  volter-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  volter-editor status | console | close\n  volter-editor console ack <id> --reason <text>\n  volter-editor eval <JavaScript body>\n  volter-editor blender-mcp    # stdio MCP transport to Blender in the editor');
+    console.log(`Volter Editor\n  volter-editor create <folder> [--workbench <dir>]\n  volter-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  volter-editor status | console | close\n  volter-editor console ack <id> --reason <text>\n  volter-editor eval <JavaScript body>\n  volter-editor ${SCREENSHOT_USAGE}\n  volter-editor sessions | project | projects\n  volter-editor open <path>\n  volter-editor blender-mcp    # stdio MCP transport to Blender in the editor`);
   } else if (verb === 'blender-mcp') {
     if (positionals.length !== 1) throw new Error('Usage: volter-editor blender-mcp');
     let project = resolve(process.cwd());
@@ -30,7 +34,7 @@ try {
       if (parent === project) throw new Error('Run volter-editor blender-mcp inside a modeling project.');
       project = parent;
     }
-    const { serveBlenderMcp } = await import('./blender-mcp');
+    const { serveBlenderMcp } = await import('@volter/editor-blender/mcp');
     // MCP must answer initialization immediately. Only a scene request opens
     // an editor; launcher output goes to stderr so stdout remains JSON-RPC.
     await serveBlenderMcp(project, async () => {
@@ -44,6 +48,15 @@ try {
         child.once('close', code => code === 0 ? done() : fail(new Error(`Blender editor startup exited with code ${code}`)));
       });
     });
+  } else if (verb === 'screenshot') {
+    if (positionals.length > 2) throw new Error(`Usage: volter-editor ${SCREENSHOT_USAGE}`);
+    await screenshot(positionals[1], values);
+  } else if (verb === 'sessions' || verb === 'project' || verb === 'projects') {
+    if (positionals.length > 1) throw new Error(`Usage: volter-editor ${verb}`);
+    await (verb === 'sessions' ? listSessions() : verb === 'project' ? showProject() : listRecentProjects());
+  } else if (verb === 'open') {
+    if (positionals.length !== 2) throw new Error('Usage: volter-editor open <path>');
+    await openProject(positionals[1]!);
   } else if (verb === 'console' && positionals[1] === 'ack') {
     if (positionals.length !== 3 || !values.reason?.trim()) throw new Error('Usage: volter-editor console ack <id> --reason <text>');
     await control(PRODUCT.command, 'console-ack', positionals[2], values.reason);
