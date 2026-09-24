@@ -218,7 +218,7 @@ scrub rail, current elapsed time, and optional video hover preview. The game's
 Session store and deliberately receives no live `play` handle, so charts
 cannot accidentally depend on ephemeral simulation state.
 
-In a React component, `useDebugEmit` from `@vgai/game-runtime/react/world-state`
+In a React component, `useDebugEmit` from `@volter/game-runtime/react/world-state`
 returns the event callback: `const emit = useDebugEmit()`. Call
 `emit('gem-collected', { count })` in the mechanic's collection handler; the
 editor stamps and records it. Build charts from the selected log at the shared cursor.

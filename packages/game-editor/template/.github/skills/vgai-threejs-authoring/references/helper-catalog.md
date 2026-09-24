@@ -3,22 +3,14 @@
 Use this reference to decide whether a task needs Blender, direct Three.js, a
 small project helper, or a specialist geometry library.
 
-**MODELING IS BLENDER'S, and this catalog no longer lists a TypeScript
-alternative.** It used to open with ~370 lines of `@vgai/mesh` — the BMesh
-substrate, edit-mode ops, modifiers, morph targets, skinning fields, UV and
-atlas unwrap, bakers, and two worked recipes — carrying Blender's modeling
-vocabulary name-for-name into three.js. That package is DELETED (2026-09-19,
-ARCHITECTURE-CORE §Blender north star, "The mesh kit retires"): a model is a
-`.blend` now, authored in the real Blender running headless in the editor tab,
-and a game loads the GLB it exports. Reach for `vgai-3d-models` (bpy through
-the Blender MCP) and `vgai-3d-assets` (the asset floor and its ladder). The
-kit is readable at `archive/mesh-kit-capabilities-2026-09-19` if you ever need
-to see how a shipped shape was derived; nothing on main imports it.
+**MODELING IS BLENDER'S.** A model is a `.blend`, authored in the real Blender
+running headless in the editor tab, and a game loads the GLB it exports. Reach
+for `vgai-3d-models` (bpy through the Blender MCP).
 
 **Add a capability before you look for its source.** Everything under
 `src/lib/` below is a CAPABILITY, not scaffold contents — a fresh project has
-no `src/lib/` directory at all. Run `vgai add <id>` to copy the source in as
-ordinary project files you own and edit; bare `vgai add` lists every
+no `src/lib/` directory at all. Run `npx volter-game-editor add <id>` to copy the source in as
+ordinary project files you own and edit; bare `npx volter-game-editor add` lists every
 capability and marks what is already present.
 
 
@@ -79,7 +71,7 @@ color composite, and SMAA. Treat these as proven craft techniques and
 candidate copyable helpers, not automatic VGAI runtime APIs.
 
 Its accepted typed source lived in `src/lib/stylized/` and `src/lib/castle/`;
-only `stylized` remains (`vgai add stylized`, and none of it is in a fresh
+only `stylized` remains (`npx volter-game-editor add stylized`, and none of it is in a fresh
 scaffold) — the `castle` and `mesh` halves are deleted, at
 `archive/mesh-kit-capabilities-2026-09-19`. Edit only the helpers implicated by
 the project's real work. The portable GLB ink

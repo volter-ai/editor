@@ -140,9 +140,9 @@ endless rewrite cycle. Playtest live; the play log is the receipt.
    the editor-owned tab — set up, enter Play, advance sim time, inspect,
    act one step at a time. Keep the probe disposable (never a spec,
    script, or harness). After init-time edits, `restart`.
-3. `vgai status` must show `connected: true`; it tails the session
+3. `npx volter-game-editor status` must show `connected: true`; it tails the session
    journal (`logs/editor-*.jsonl`). Read the play logs. Any
-   `UNRESOLVED CONSOLE SET` is remaining work; `vgai console` silent is
+   `UNRESOLVED CONSOLE SET` is remaining work; `npx volter-game-editor console` silent is
    the only all-clear.
 4. Enter Play and look. Capture a legible screenshot; **a hidden tab
    captures t≈0** — drive `game.waitSimTime` first.

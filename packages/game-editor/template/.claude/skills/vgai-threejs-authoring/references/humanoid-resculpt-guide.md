@@ -2,7 +2,7 @@
 
 How to turn the humanoid into a different character — a goblin, a
 child, a brawler — by editing DATA ONLY. Every path below is under
-`src/lib/humanoid/`, which `vgai add humanoid` copies into your project; a
+`src/lib/humanoid/`, which `npx volter-game-editor add humanoid` copies into your project; a
 fresh scaffold has none of it. The body engine
 (`src/lib/humanoid/body-engine.ts`) owns topology, rig wiring, and
 skinning math; you never touch it. Everything visual lives in a SCULPT SPEC

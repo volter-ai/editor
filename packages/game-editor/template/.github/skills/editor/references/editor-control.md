@@ -5,7 +5,7 @@
 - [CLI invocation](#cli-invocation--use-the-project-local-cli)
 - [Quick start](#quick-start)
 - [Connection precondition](#precondition-most-verbs-need-a-connected-browser-tab-not-just-vgai-edit-running)
-- [**Drive the running game — `vgai eval`**](#drive-the-running-game--vgai-eval-the-general-door)
+- [**Drive the running game — `npx volter-game-editor eval`**](#drive-the-running-game--vgai-eval-the-general-door)
 - [CLI reference](#cli-reference)
 - [Entity IDs](#entity-ids)
 - [Typical workflows](#typical-workflows)
@@ -14,13 +14,13 @@
 Use the `vgai` CLI to create projects, launch the editor, and control it programmatically. The editor is a browser-based WebGL app; the CLI sends commands to it over HTTP.
 
 **Driving a running GAME is a different question from driving the editor**, and
-it has one answer: `vgai eval`. Read that section before the verb list — the
+it has one answer: `npx volter-game-editor eval`. Read that section before the verb list — the
 verbs cover the editor, and a game's own commands are never verbs.
 
 ## CLI invocation — use the project-local CLI
 
 Inside this scaffold, invoke every CLI verb as `npm run --silent vgai -- <verb>`. The
-script points at the versioned `@vgai/cli` installed with this project. Never
+script points at the versioned `@volter/game-editor` installed with this project. Never
 use a bare global `vgai` command here: another installation can own that binary
 and can silently target the wrong session or apply different manifest rules.
 
@@ -44,32 +44,32 @@ DIFFERENT project's already-running editor — if one is already open
 elsewhere, this one starts a second instance on a fresh free port and prints
 that URL instead (use `--switch` to retarget the existing one on purpose).
 If you might have another vgai project's tab open in the browser already,
-don't assume it's this project: read the URL `vgai edit` actually prints
-(check `vgai sessions` to see every live session's port → project), or pass
-`vgai edit --port <n>` to pin an explicit port for this project so a stale
+don't assume it's this project: read the URL `npx volter-game-editor edit` actually prints
+(check `npx volter-game-editor sessions` to see every live session's port → project), or pass
+`npx volter-game-editor edit --port <n>` to pin an explicit port for this project so a stale
 tab from a different project can't be mistaken for this session.
 
-## Precondition: most verbs need a connected browser tab, not just `vgai edit` running
+## Precondition: most verbs need a connected browser tab, not just `npx volter-game-editor edit` running
 
-`vgai edit` starts the dev server and prints a URL — it does **not** by
+`npx volter-game-editor edit` starts the dev server and prints a URL — it does **not** by
 itself give the CLI anything to talk to. Every control verb (`play`,
 `select`, `focus`, `show`, `status`, ...) is relayed over HTTP/SSE to an
 actual browser tab that has the editor page open and running; the dev
-server just serves that page. Running `vgai edit` and then immediately
-calling `vgai status` with **no tab ever opened** does not error — it
+server just serves that page. Running `npx volter-game-editor edit` and then immediately
+calling `npx volter-game-editor status` with **no tab ever opened** does not error — it
 returns the last **cached** state from a previous session (or an empty
 default), and prints a prominent multi-line `STALE SNAPSHOT` banner to
 stderr (with the snapshot's age, if known) instead of a hard error, so
 scripts that legitimately want last-known state still get it. Read that
 banner: it means the JSON below it is stale, not live. Before trusting
-`vgai status` (or issuing `play`/`select`/etc. and expecting them to do
+`npx volter-game-editor status` (or issuing `play`/`select`/etc. and expecting them to do
 anything), make sure a tab is actually open on the printed URL — a real
 browser, or a Playwright/Puppeteer page you navigated to it yourself.
 
 **`--no-open`: skip the browser auto-open.** Only for contexts where NO
 human could possibly be watching (unattended CI). On WSL the auto-open
 reaches the WINDOWS browser, so headless WSL is not a reason to pass this —
-let `vgai edit` auto-open and tell the user the printed URL instead. The
+let `npx volter-game-editor edit` auto-open and tell the user the printed URL instead. The
 one legitimate case is a fully unattended CI job that then drives the
 editor itself, e.g. via Playwright:
 
@@ -86,15 +86,15 @@ await page.goto('http://localhost:5173', { waitUntil: 'load' });
 ```
 
 Once that page has loaded, it registers as a connected client and `vgai
-status`/`vgai play`/etc. from another shell will reach it for real.
+status`/`npx volter-game-editor play`/etc. from another shell will reach it for real.
 
-## Drive the running game — `vgai eval`, the general door
+## Drive the running game — `npx volter-game-editor eval`, the general door
 
 **This is the section to read before the verb list below.** A first-party
 game's control and readout surface is its own ordinary exported modules. There
 is no command registry, provider registry, or fixed game vocabulary to learn.
-`vgai eval` runs literal JS against this project's live session with
-`{ editor, game, page, tools, session }` from `@vgai/live` already in scope:
+`npx volter-game-editor eval` runs literal JS against this project's live session with
+`{ editor, game, page, tools, session }` from `@volter/editor-live` already in scope:
 
 ```bash
 npm run --silent vgai -- eval --list                     # what's in scope (no session needed)
@@ -116,7 +116,7 @@ events, rAF loops, wall-clock sleeps, or direct `window.__vgai*`/scene-graph
 reads.** Arrange expensive preconditions with exported setup functions, then
 hire the resident tester to act through the game's real input store.
 `waitSimTime` advances deterministically even while the editor tab is HIDDEN.
-`vgai status` reports the tab's own
+`npx volter-game-editor status` reports the tab's own
 visibility MEASUREMENTS (`visibilityReport` — the reported value, its age,
 and a live tick probe when the loop looks stopped) instead of letting
 `connected: true` read as usable — and instead of asserting a story:
@@ -160,7 +160,7 @@ npm run --silent vgai -- projects         # List recent projects
 ```
 
 `open` / `project` / `projects` stay first-class for a concrete reason: project
-management lives on `EditorClient` and was never lifted onto `@vgai/live`'s
+management lives on `EditorClient` and was never lifted onto `@volter/editor-live`'s
 `editor`, so there is no `eval` equivalent to point them at.
 
 ### Play Control
@@ -173,7 +173,7 @@ npm run --silent vgai -- restart          # Dispose + remount every game root �
 npm run --silent vgai -- stop             # Exit play mode
 ```
 
-`pause` / `resume` / `step` were REMOVED — `vgai eval 'editor.pause()'`,
+`pause` / `resume` / `step` were REMOVED — `npx volter-game-editor eval 'editor.pause()'`,
 `editor.resume()`, `editor.step(1)`.
 
 Component-source HMR swaps class prototypes onto live instances. That keeps
@@ -184,7 +184,7 @@ behavior. The same action is always available in the Play bar; when the editor
 knows a source change is structurally unsafe it highlights the button with the
 reason.
 
-### Navigation, Panels, and Display — REMOVED, use `vgai eval`
+### Navigation, Panels, and Display — REMOVED, use `npx volter-game-editor eval`
 
 Every verb in this group was a 1:1 wrapper over a method `eval` already
 exposes, so they were deleted rather than kept as aliases. Typing one now
@@ -258,14 +258,14 @@ this game side by side in one editor, each addressed from your program, so
 you can watch them play each other. It is not a different kind of test, and
 it never needs a second browser or a synthetic second player.
 
-**doctor vs playtest:** `vgai doctor` asks "does this project mount in the
+**doctor vs playtest:** `npx volter-game-editor doctor` asks "does this project mount in the
 editor?"; the live playtest asks "does this game actually play?"
 
 The playtest loop (exported setup/read functions, the tester's repertoire, and
 sim-time budgets) is documented in the sibling
 `.agents/references/project-manual.md`.
 
-Reading and driving the game's own modules is **`vgai eval`'s job,
+Reading and driving the game's own modules is **`npx volter-game-editor eval`'s job,
 permanently**, not a gap waiting on more CLI verbs. A game names its own
 functions, which is exactly why the door is general.
 
@@ -284,7 +284,7 @@ keyed on the OID its source carries — stable across reloads). To find one:
 1. `npm run --silent vgai -- eval 'return editor.hierarchy()'` — the hierarchy panel's
    rows as data, each with its `id` and label
 2. Use that id with `editor.select("<id>")` / `editor.focus("<id>")` through
-   `vgai eval`
+   `npx volter-game-editor eval`
 
 ## Typical Workflows
 
@@ -329,12 +329,12 @@ npm run --silent vgai -- eval 'await editor.view("top"); await editor.shading("w
 
 ## SDK (Programmatic Access)
 
-For TypeScript automation, use **`@vgai/live`** — the same surface `vgai eval`
+For TypeScript automation, use **`@volter/editor-live`** — the same surface `npx volter-game-editor eval`
 binds, so anything you prototyped at the command line moves into a script
 unchanged:
 
 ```typescript
-import { connect } from '@vgai/live';
+import { connect } from '@volter/editor-live';
 
 const { editor, game, tools, session } = await connect();
 await editor.play();
@@ -351,15 +351,15 @@ const player = await game.run(async ({ modules }) => {
 });
 ```
 
-`connect()` ATTACHES to a session `vgai edit` is already serving — it never
-starts one, and fails with a clear "run `vgai edit` first" rather than silently
+`connect()` ATTACHES to a session `npx volter-game-editor edit` is already serving — it never
+starts one, and fails with a clear "run `npx volter-game-editor edit` first" rather than silently
 booting a second editor. Top-level `editor` / `game` / `page` / `tools`
 singletons are also exported for one-liners.
 
-`@vgai/editor-sdk`'s `EditorClient` is the lower layer underneath, and remains
+`@volter/editor-sdk`'s `EditorClient` is the lower layer underneath, and remains
 the right import for editor-only automation that has no game running — plus the
 handful of project-management calls (`createProject()`, `openProject()`,
-`getProject()`, `listRecentProjects()`) that `@vgai/live` does not re-expose.
+`getProject()`, `listRecentProjects()`) that `@volter/editor-live` does not re-expose.
 
 Run `npm run --silent vgai -- eval --list` for the current member list on every binding.
 It walks the live objects at runtime, so it is accurate in a way this page

@@ -82,7 +82,7 @@ Legend: **ERROR** fails every run; **WARN** prints but fails only with
 - Gameplay source must not accumulate for many commits before the first Play
   receipt. `logs/play-*.jsonl` is written by the editor and cannot be replaced
   by an assertion that somebody intended to play. **WARN W9**
-- At handoff, read `vgai console`, inspect the live hierarchy and Content
+- At handoff, read `npx volter-game-editor console`, inspect the live hierarchy and Content
   gallery, look at several relevant situations, and promote only reviewed
   screenshots/clips into `media/`. **LOOK**
 
@@ -97,7 +97,7 @@ Legend: **ERROR** fails every run; **WARN** prints but fails only with
   gameplay `Math.random()` or wall-clock reads violate that claim. **ERROR
   E5**
 - Every owner releases what it creates: listeners, timers, bodies, scene
-  objects, and GPU resources. Play→Stop must leave `vgai console` silent.
+  objects, and GPU resources. Play→Stop must leave `npx volter-game-editor console` silent.
   **LOOK**
 
 ## Run the scanner

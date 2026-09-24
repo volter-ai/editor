@@ -53,7 +53,7 @@ orders. Mounting the game is STEP ONE of seven, not the deliverable.
 ## The workflow
 
 1. **Mount (checklist A–B).** Manifest with an `{ ingest }` root beside the
-   game; open through the session (`vgai edit <folder>` — a local editor
+   game; open through the session (`npx volter-game-editor edit <folder>` — a local editor
    rejects URL params); pin CDN importmaps if any (pattern 4, a recorded
    patch for vendored copies, an ordinary edit in a user's own folder).
 2. **Read the game's real surface before declaring anything.** Its exports,
@@ -88,12 +88,12 @@ orders. Mounting the game is STEP ONE of seven, not the deliverable.
    random-walk cars are not pathfinding — but its public road graph still
    made the slot bindable).
 6. **Verify live (checklist G).** Through the product's doors only:
-   `vgai eval 'game.commands()'`, drive a verb, read state, ⏸/▶ (pause
+   `npx volter-game-editor eval 'game.commands()'`, drive a verb, read state, ⏸/▶ (pause
    must freeze what the game's own pause freezes; input must gate), the
-   coverage rows on `vgai status`. Never synthetic key events, never raw
+   coverage rows on `npx volter-game-editor status`. Never synthetic key events, never raw
    window reads — the eval seam exists so that is never necessary. (In a
    sandboxed worktree where the CLI's eval form is blocked, the same door
-   is `@vgai/live`'s `connect()` from a script INSIDE the worktree, run
+   is `@volter/editor-live`'s `connect()` from a script INSIDE the worktree, run
    with `npx tsx` — see docs/LOCAL-DEV.md.)
 7. **The ledger.** For vendored copies: lock updated (host-added hashes,
    patches with reverse-apply), `node vendor/games/verify-unaltered.mjs`

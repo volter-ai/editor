@@ -12,7 +12,7 @@ by filename:
 There is no registry, command vocabulary, generated form, or prescribed panel
 layout. A contribution exports its `point`, its `title`, and its default React
 component. Write the surface this game's studio would actually use, in the
-game's own vocabulary. Import controls from `@vgai/editor-sdk/widgets`; use ordinary
+game's own vocabulary. Import controls from `@volter/editor-sdk/widgets`; use ordinary
 React and CSS for the rest.
 
 A completed contribution is a usable interface: game-specific labels,
@@ -28,8 +28,8 @@ gameplay module from a contribution: the editor and game have different import
 graphs, so that creates a second, phantom copy of module state.
 
 ```tsx
-import type { ToolInspectorContributionProps } from '@vgai/editor-sdk/contributions';
-import { Button } from '@vgai/editor-sdk/widgets';
+import type { ToolInspectorContributionProps } from '@volter/editor-sdk/contributions';
+import { Button } from '@volter/editor-sdk/widgets';
 import { useGameModules } from './use-game-modules';
 
 export const point = 'selection.inspector';
