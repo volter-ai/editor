@@ -82,7 +82,7 @@ import {
   formatProjectModuleSplitMessage,
 } from '@volter/editor-sdk/kit/project-module-split';
 import { clearRootReadiness, recordRootReadiness } from '@volter/editor-sdk/kit/readiness';
-import { onShellStore } from '@volter/editor-core/shell-store-door';
+import { onThreeStore } from '@volter/editor-core/shell-store-door';
 import { mountedStoryHasPixiContent } from '@volter/editor-core/stories/pixi-story-model';
 import { domHasRenderableContent, threeSceneHasRenderableContent } from '../host/surface-content';
 import { subscribeSurfaceKeyboard, surfaceHoldsKeyboard } from '@volter/editor-sdk/kit/surface-keyboard';
@@ -1036,7 +1036,7 @@ function focusGameSurface(): void {
  * workspace panel names Play to hand it the store; the authored viewport is
  * read through `viewport-door.ts` when a session presents its roots.
  */
-onShellStore((store) => bindPlayMode(store));
+onThreeStore((store) => bindPlayMode(store));
 
 export function bindPlayMode(store: EditorShellStore): void {
   _ctx = { store, gameContainer: null! }; // set dynamically from the live document's container
