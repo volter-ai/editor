@@ -17,7 +17,7 @@
  */
 
 import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
-import { activeWorkspaceDocumentId } from '../workspace-document-registry';
+import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
 import type { NullInspectionSubject } from './null-subject';
 import { registerNullSubjectProvider } from './null-subject';
 

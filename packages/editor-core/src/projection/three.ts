@@ -52,9 +52,9 @@ import { authoringOidOf, occurrenceId } from '../authoring/component-instance-ro
 import { raycastCandidates, raycastPick } from '../authoring/viewport-raycast';
 import type { EditorShellStore } from '../editor-shell-store';
 import { entityIdOf, stampEntityId } from '../entity-object';
-import type { ProjectedNode, Projection } from './types';
+import type { ProjectedNode, Projection } from '@volter/editor-sdk/kit/projection-types';
 
-export type { ProjectedNode, Projection } from './types';
+export type { ProjectedNode, Projection } from '@volter/editor-sdk/kit/projection-types';
 
 /** One projected authoring node over a live three graph. */
 export type ThreeNode = ProjectedNode<THREE.Object3D>;

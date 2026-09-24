@@ -26,7 +26,7 @@ import {
   activeWorkspaceDocumentId,
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from '@volter/editor-core/workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 
 export function useActivePerformanceSource(): EditorPerformanceSource | null {
   useSyncExternalStore(

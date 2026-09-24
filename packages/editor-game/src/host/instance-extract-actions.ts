@@ -20,7 +20,7 @@
  * action that writes NEW FILES — this one writes two.
  */
 
-import type { InstanceSourceLocator } from '@volter/editor-core/instance-source-actions';
+import type { InstanceSourceLocator } from '@volter/editor-sdk/kit/instance-source-actions';
 
 export const EXTRACT_COMPONENT_LABEL = 'Extract Component…';
 

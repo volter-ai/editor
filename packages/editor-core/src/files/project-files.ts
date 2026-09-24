@@ -35,10 +35,10 @@
  * view onto this door.
  */
 
-import { bytesToBase64 } from '../bytes-codec';
+import { bytesToBase64 } from '@volter/editor-sdk/kit/bytes-codec';
 import { getProjectDefinePath } from '../editor-mode';
-import { assertEditorServerAnswered, editorServerJson } from '../editor-server-response';
-import { sourceMutationAttribution } from '../editor-session-attribution';
+import { assertEditorServerAnswered, editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
+import { sourceMutationAttribution } from '@volter/editor-sdk/kit/editor-session-attribution';
 import { filesProvider, filesProviderInstalled, type ProjectFileEvent } from './file-provider';
 
 const BASE = '/__editor';

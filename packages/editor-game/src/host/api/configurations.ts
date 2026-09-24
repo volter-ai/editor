@@ -4,8 +4,8 @@
  * verbs the transport's picker and `vgai run` share.
  */
 
-import { assertEditorServerResponse, editorServerJson } from '@volter/editor-core/editor-server-response';
-import { BASE } from '@volter/editor-core/api/base';
+import { assertEditorServerResponse, editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
+import { BASE } from '@volter/editor-sdk/kit/api-base';
 
 export interface ConfigurationStatus {
   readonly id: string;

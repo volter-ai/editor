@@ -16,11 +16,11 @@ import { getProjectDefinePath } from '../editor-mode';
 import { filesProviderInstalled } from '../files/file-provider';
 import { HostFilesStorage } from './host-files-storage';
 import { HttpStorage } from './http-storage';
-import type { StorageBackend } from './types';
+import type { StorageBackend } from '@volter/editor-sdk/kit/storage-types';
 
 export { HttpStorage } from './http-storage';
 export { MemStorage } from './mem-storage';
-export type { DirEntry, HostCapabilities, Stat, StorageBackend, WatchEvent } from './types';
+export type { DirEntry, HostCapabilities, Stat, StorageBackend, WatchEvent } from '@volter/editor-sdk/kit/storage-types';
 
 let _backend: StorageBackend | null = null;
 /** The tier's own backend, kept beside the active one so the frame decorator

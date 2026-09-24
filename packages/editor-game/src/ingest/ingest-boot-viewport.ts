@@ -23,7 +23,7 @@ import { CANVAS_SCENE_DOCUMENT_ID, SCENE_DOCUMENT_ID } from '@volter/editor-sdk/
 import {
   activateWorkspaceDocument,
   openWorkspaceDocuments,
-} from '@volter/editor-core/workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { activeIngest } from './active-ingest';
 import { activeIngestPauseGap, holdIngestContentTimeForMode } from './ingest-play-control';
 

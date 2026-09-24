@@ -11,7 +11,7 @@
  */
 
 import { dirAndBase, normalize } from './paths';
-import type { DirEntry, Stat, StorageBackend, WatchCallback, WatchEvent } from './types';
+import type { DirEntry, Stat, StorageBackend, WatchCallback, WatchEvent } from '@volter/editor-sdk/kit/storage-types';
 
 type Node = { type: 'file'; data: Uint8Array; mtime: number } | { type: 'dir'; mtime: number };
 

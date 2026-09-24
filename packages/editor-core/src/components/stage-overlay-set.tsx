@@ -13,7 +13,7 @@ import { documentStageContext, type StageChrome, threeSelectionToolsApply } from
 import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { CameraInfo } from './CameraInfo';
 import { StatsOverlay } from './StatsOverlay';
 import { TransientHintOverlay } from './TransientHint';

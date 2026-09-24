@@ -13,7 +13,7 @@ import {
   SYSTEM_PROVIDER_SHAPES,
   type SystemAdapters,
 } from '@volter/editor-project/adapter';
-import { liveSeamEvidence } from './live-seam-evidence';
+import { liveSeamEvidence } from '@volter/editor-sdk/kit/live-seam-evidence';
 
 const EPOCHS = new WeakMap<object, string>();
 let nextEpoch = 1;

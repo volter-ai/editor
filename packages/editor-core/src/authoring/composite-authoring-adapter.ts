@@ -38,9 +38,9 @@ import type {
 } from '@volter/editor-project/adapter';
 import type * as THREE from 'three';
 import { recordAuthoringConsumerUse } from '../coverage/authoring-seam-evidence';
-import { NO_OBJECT_REASON } from '../creation-site-registry';
+import { NO_OBJECT_REASON } from '@volter/editor-sdk/kit/creation-site-registry';
 import { editorConsole } from '../editor-console';
-import type { HierarchyProjection, HierarchyProjectionGroup } from '../hierarchy-projection';
+import type { HierarchyProjection, HierarchyProjectionGroup } from '@volter/editor-sdk/kit/hierarchy-projection';
 import { forEachHierarchyNode } from '../hierarchy-walk';
 import {
   applyAuthoringInstanceToComponent,

@@ -94,7 +94,7 @@ function projectName(path: string | null): string | null {
  */
 async function tearDownVoidLease(): Promise<void> {
   try {
-    const { stopAllLiveSessions } = await import('../live-session-registry');
+    const { stopAllLiveSessions } = await import('@volter/editor-sdk/kit/live-session-registry');
     stopAllLiveSessions();
   } catch {
     /* the overlay is raised regardless — see above */

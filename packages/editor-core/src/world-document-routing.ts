@@ -2,7 +2,7 @@ import {
   availableWorkspaceDocuments,
   openAvailableWorkspaceDocument,
 } from './workspace-available-documents';
-import { activateWorkspaceDocument } from './workspace-document-registry';
+import { activateWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-document-registry';
 
 const _documentIdByRoot = new Map<string, string>();
 

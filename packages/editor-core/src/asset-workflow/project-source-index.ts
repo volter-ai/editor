@@ -24,7 +24,7 @@
 import ts from 'typescript';
 import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
 import { resolveRelativeSpecifier } from '../resolve-relative-specifier';
-import type { StorageBackend } from '../storage/types';
+import type { StorageBackend } from '@volter/editor-sdk/kit/storage-types';
 import {
   ADAPTER_MODULE_FILENAME,
   parseAdapterRegionIncludes,

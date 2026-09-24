@@ -6,7 +6,7 @@ import {
   openWorkspaceDocument,
   WORKSPACE_DOCUMENT_KINDS,
   type WorkspaceDocumentDescriptor,
-} from './workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { registerWorkspaceDocumentRestorer } from './workspace-document-restore';
 
 export interface AvailableWorkspaceDocument {

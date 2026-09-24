@@ -12,7 +12,7 @@
 import type { AuthoringAdapter2D, EditorNode2D } from '@volter/game-runtime/pixi/authoring';
 import type { DOMRectLike } from '@volter/editor-project/adapter';
 import type { Container, PointData } from 'pixi.js';
-import type { ProjectedNode, Projection } from '@volter/editor-core/projection/types';
+import type { ProjectedNode, Projection } from '@volter/editor-sdk/kit/projection-types';
 
 export type PixiNode = ProjectedNode<Container>;
 

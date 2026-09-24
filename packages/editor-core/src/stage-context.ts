@@ -27,7 +27,7 @@ import {
 import { isThreejsSurfaceVisible } from './authoring/world-hidden-viewport';
 import type { EditorShellStore } from './editor-shell-store';
 import { stageStore } from './stage-store-registry';
-import { activeWorkspaceDocumentId, openWorkspaceDocuments } from './workspace-document-registry';
+import { activeWorkspaceDocumentId, openWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-document-registry';
 
 export type StageSurface = 'three' | 'canvas' | 'dom';
 

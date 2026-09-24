@@ -192,7 +192,7 @@ export function serializeEntry<T>(run: () => Promise<T>): Promise<T> {
   return result;
 }
 
-import { registerLiveSession } from '@volter/editor-core/live-session-registry';
+import { registerLiveSession } from '@volter/editor-sdk/kit/live-session-registry';
 // THE INGEST LANE, as the host sees it (`live-session-registry.ts`). Playing
 // is the host play-control latch, never an inferred loop
 // (`editor-session-mode.ts` records why); a deferred-ingest play counts.

@@ -106,7 +106,7 @@ import {
 } from '@volter/editor-sdk/kit/world-pan-state';
 import { isRootHidden } from '../authoring/world-session-state';
 import { useEditorStore } from '../editor-runtime';
-import { anyLiveSessionMounted } from '../live-session-registry';
+import { anyLiveSessionMounted } from '@volter/editor-sdk/kit/live-session-registry';
 import { effectiveColorFromChain } from '../ui-source/inspect';
 import { AlignToolbar } from './AlignToolbar';
 import { transformDimensionsFor } from './inspector-transform-subject';

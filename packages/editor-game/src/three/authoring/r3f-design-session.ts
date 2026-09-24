@@ -1,4 +1,4 @@
-import { onAssetReload } from '@volter/editor-core/project-asset-refresh';
+import { onAssetReload } from '@volter/editor-sdk/kit/project-asset-refresh';
 
 /**
  * R3F design session (W4) — mounts an entry-based R3F three world at DESIGN
@@ -132,7 +132,7 @@ import {
   parseEditModeManifest,
   queueEditModeRebuild,
 } from '@volter/editor-core/authoring/edit-mode-authoring';
-import { liveGestureActive, whenLiveGestureIdle } from '@volter/editor-core/authoring/live-gesture-lock';
+import { liveGestureActive, whenLiveGestureIdle } from '@volter/editor-sdk/kit/live-gesture-lock';
 import {
   addMountFailureReport,
   clearMountFailureReport,

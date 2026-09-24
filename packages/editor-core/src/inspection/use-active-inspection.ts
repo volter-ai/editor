@@ -46,12 +46,12 @@ import {
 import {
   inspectorSectionRegistryVersion,
   subscribeInspectorSectionRegistry,
-} from '../inspector-section-registry';
+} from '@volter/editor-sdk/kit/inspector-section-registry';
 import { subscribeToolContributionPlay, toolContributionPlayKey } from '../tool-contribution-play';
 import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { chromeRegionsVersion, subscribeChromeRegions } from '../workspace-regions';
 import { describeActiveInspectionSubject } from './active-subject';
 import type { InspectionDisplay } from './display';

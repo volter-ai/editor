@@ -31,7 +31,7 @@ import {
 import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 
 type SortKey = 'name' | 'type' | 'intensity' | 'range' | 'shadows';
 type SortDirection = 'ascending' | 'descending';

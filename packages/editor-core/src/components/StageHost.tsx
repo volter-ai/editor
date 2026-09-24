@@ -29,7 +29,7 @@ import {
 import * as THREE from 'three';
 import { registerStageTransport, StageTransport } from '../animation/stage-transport';
 import { scanClipSubjects } from '../animation/three-clips-subject';
-import { liveGestureActive, whenLiveGestureIdle } from '../authoring/live-gesture-lock';
+import { liveGestureActive, whenLiveGestureIdle } from '@volter/editor-sdk/kit/live-gesture-lock';
 import {
   type Object3DDocumentPresentationState,
   Object3DDocumentSession,
@@ -49,7 +49,7 @@ import {
   lookDeclaresViewportColors,
   nativeViewportLook,
   subscribeNativeSelectionTheme,
-} from '../native-selection-style';
+} from '@volter/editor-sdk/kit/native-selection-style';
 import {
   type Object3DDocumentPersistenceSession,
   object3DDocumentWritePolicy,
@@ -87,7 +87,7 @@ import {
   openWorkspaceDocuments,
   registerWorkspaceDocumentSelection,
   subscribeWorkspaceDocuments,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { AssetEditorShell } from './AssetEditorShell';
 import { StageOverlays } from './StageOverlays';
 import type { WorldRootStageBinding } from './world-root-binding';
@@ -109,7 +109,7 @@ import {
   watchPaletteBackdrop,
 } from './standard-viewport-dressing';
 import { ViewportFurniture } from './ViewportFurniture';
-import { OBJECT3D_SURFACE_BUILDING, ViewportSurfaceStatus } from './viewport-surface-status';
+import { OBJECT3D_SURFACE_BUILDING, ViewportSurfaceStatus } from '@volter/editor-sdk/kit/viewport-surface-status';
 import { workspaceHistoryService } from './workspace-history';
 
 /** WHERE THIS DOCUMENT'S BYTES GO — the one collaborator the shell installs

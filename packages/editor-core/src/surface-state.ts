@@ -1,5 +1,5 @@
 import type { MountFailureReport } from '@volter/editor-sdk/kit/mount-failure-report';
-import type { RootReadiness } from './readiness';
+import type { RootReadiness } from '@volter/editor-sdk/kit/readiness';
 
 export type SurfaceContentState = 'unknown' | 'present' | 'empty';
 export type SurfacePhase = 'loading' | 'ready';

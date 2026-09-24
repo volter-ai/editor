@@ -59,7 +59,7 @@
  * than advice.
  */
 
-import { editorServerJson } from './editor-server-response';
+import { editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
 
 let cachedIsPackaged: Promise<boolean> | null = null;
 

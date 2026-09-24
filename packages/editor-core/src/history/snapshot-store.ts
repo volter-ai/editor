@@ -1,5 +1,5 @@
-import { sha256Hex } from '../bytes-codec';
-import type { ResourceSnapshot, SnapshotRef } from './types';
+import { sha256Hex } from '@volter/editor-sdk/kit/bytes-codec';
+import type { ResourceSnapshot, SnapshotRef } from '@volter/editor-sdk/kit/history-types';
 
 interface BlobRecord {
   readonly bytes: Uint8Array;

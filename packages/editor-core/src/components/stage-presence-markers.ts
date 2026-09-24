@@ -30,7 +30,7 @@ import { reportCollaborationPresence } from '../collaboration-presence';
 import { EDITOR_PARTICIPANT_ID } from '../editor-presence';
 import type { EditorShellStore } from '../editor-shell-store';
 import type { EditorViewport } from '../editor-viewport';
-import { activeWorkspaceDocumentId } from '../workspace-document-registry';
+import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
 
 interface RemoteCameraMarker {
   camera: THREE.PerspectiveCamera;

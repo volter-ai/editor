@@ -30,12 +30,12 @@ import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceState
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { liveDocumentContainer } from '@volter/editor-core/live-document';
 import { projectAdapterFacet } from '@volter/editor-core/project-adapter';
-import { readinessFacet, subscribeRootReadiness } from '@volter/editor-core/readiness';
+import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import { explainSurface } from '@volter/editor-core/surface-state';
 import {
   registerWorkspaceDocumentSelection,
   type WorkspaceDocumentContentProps,
-} from '@volter/editor-core/workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { activeIngest } from './active-ingest';

@@ -5,10 +5,10 @@ import {
   downloadOnlineAsset,
   restoreProjectAssetHistory,
 } from '../api/assets';
-import { sha256Hex } from '../bytes-codec';
+import { sha256Hex } from '@volter/editor-sdk/kit/bytes-codec';
 import type { HistoryService } from '../history/history-service';
 import { getProjectFileHistory } from '../history/project-file-history';
-import type { ResourceDriver, ResourceKind } from '../history/types';
+import type { ResourceDriver, ResourceKind } from '@volter/editor-sdk/kit/history-types';
 import { getStorageBackend } from '../storage';
 import { workspaceHistoryService } from './workspace-history';
 

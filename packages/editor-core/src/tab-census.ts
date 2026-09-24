@@ -41,7 +41,7 @@ import { PROJECT_MOUNT_QUERY } from '@volter/editor-sdk/session/project-module-u
 import type { BlenderTabMetrics, TabCensus } from '@volter/editor-sdk/tab-census';
 import { getActiveRenderDebug } from './authoring/active-systems';
 import { blenderTabMetrics } from './blender-tab-metrics';
-import { isJsHeapReading, type JsHeapReading, readJsHeap } from './js-heap';
+import { isJsHeapReading, type JsHeapReading, readJsHeap } from '@volter/editor-sdk/kit/js-heap';
 
 /** How often the page samples itself. Slow on purpose — see the header. */
 export const TAB_CENSUS_INTERVAL_MS = 5_000;

@@ -13,7 +13,7 @@
  * server and the `vgai` CLI read too.
  */
 
-import { assertEditorServerAnswered, editorServerJson } from './editor-server-response';
+import { assertEditorServerAnswered, editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
 
 export type { GitWorkflowStatus as EditorGitStatus } from './api/git-wire';
 

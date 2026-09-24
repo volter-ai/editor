@@ -3,8 +3,8 @@
  * editor is serving, and the create / open / delegate / archive / stop verbs.
  */
 
-import { assertEditorServerAnswered } from '../editor-server-response';
-import { BASE } from './base';
+import { assertEditorServerAnswered } from '@volter/editor-sdk/kit/editor-server-response';
+import { BASE } from '@volter/editor-sdk/kit/api-base';
 export interface EditorRepositoryParticipant {
   participantId: string;
   displayName: string;

@@ -35,7 +35,7 @@ import {
   deriveCapabilityCoverage,
 } from '../host/coverage/capability-coverage';
 import { measureNativeSystemAdapters } from '../host/coverage/system-adapter-coverage';
-import { liveCoverage } from '@volter/editor-core/live-session-registry';
+import { liveCoverage } from '@volter/editor-sdk/kit/live-session-registry';
 import { getCurrentProject } from '@volter/editor-core/project-manager';
 import { toolContributionPlay } from '@volter/editor-core/tool-contribution-play';
 import type { DeclaredSystemAbsence, Game } from '@volter/game-runtime/runtime/game';

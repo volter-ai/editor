@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { assetCapabilities } from '../src/asset-workflow/asset-capabilities';
+import { assetCapabilities } from '@volter/editor-sdk/kit/asset-capabilities';
 import {
   type AssetCatalog,
   type AssetFamily,

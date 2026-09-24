@@ -16,7 +16,7 @@ import {
   GAME_LIFECYCLE_SHAPE,
   GAME_SYSTEMS_SHAPE,
 } from '@volter/editor-project/adapter/ingest/game-contract-seams';
-import { liveSeamEvidence } from '@volter/editor-core/coverage/live-seam-evidence';
+import { liveSeamEvidence } from '@volter/editor-sdk/kit/live-seam-evidence';
 
 const EPOCHS = new WeakMap<object, string>();
 let nextEpoch = 1;

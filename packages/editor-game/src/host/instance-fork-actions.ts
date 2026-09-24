@@ -19,7 +19,7 @@
  * FILE, which no other hierarchy item does.
  */
 
-import type { InstanceSourceLocator } from '@volter/editor-core/instance-source-actions';
+import type { InstanceSourceLocator } from '@volter/editor-sdk/kit/instance-source-actions';
 
 export const FORK_COMPONENT_LABEL = 'Fork Component…';
 

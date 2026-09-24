@@ -41,7 +41,7 @@ import type { NullInspectionSubject } from '../inspection/null-subject';
 import {
   registerWorkspaceDocumentSelection,
   type WorkspaceDocumentSelection,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 
 /** What a document with no authoring of its own selects: itself. */
 const DOCUMENT_IS_THE_SUBJECT: WorkspaceDocumentSelection = { adapter: null, nodeId: null };

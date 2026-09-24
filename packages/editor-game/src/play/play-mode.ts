@@ -1,4 +1,4 @@
-import { onAssetReload } from '@volter/editor-core/project-asset-refresh';
+import { onAssetReload } from '@volter/editor-sdk/kit/project-asset-refresh';
 import { editorHost } from '@volter/editor-sdk/host';
 
 /**
@@ -48,7 +48,7 @@ import { EDITOR_PARTICIPANT_ID, sendControl } from '@volter/editor-core/editor-p
 import {
   isEditorPresentationActive,
   subscribeEditorPresentationActivity,
-} from '@volter/editor-core/editor-presentation-activity';
+} from '@volter/editor-sdk/kit/editor-presentation-activity';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { GAME_SURFACE_CONTAINMENT_CSS } from '../host/game-realm-page';
 import { reclaimGameRealm } from '../host/game-realm-reclaim';
@@ -60,9 +60,9 @@ import {
   setGameInputGate,
   setGameSurface,
 } from '../host/gated-globals';
-import { hierarchyProjectionFromProjectConfig } from '@volter/editor-core/hierarchy-projection';
+import { hierarchyProjectionFromProjectConfig } from '@volter/editor-sdk/kit/hierarchy-projection';
 import { type JournalSubject, playJournal } from '../host/history/json-history-resource';
-import { isEditableTarget, setActiveScope } from '@volter/editor-core/hotkeys';
+import { isEditableTarget, setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { projectBootstrapSettled } from '@volter/editor-core/initial-project';
 import { registerGameNullSubject } from '@volter/editor-core/inspection/game-subject';
 import { fetchGameManifest } from '@volter/editor-core/manifest-project';
@@ -73,19 +73,19 @@ import {
   markPlayBootPhase,
   type PlayBootPhase,
 } from '@volter/editor-core/play-boot-phase';
-import { presentationSurface } from '@volter/editor-core/presentation-surface';
+import { presentationSurface } from '@volter/editor-sdk/kit/presentation-surface';
 import { getCurrentProject } from '@volter/editor-core/project-manager';
 import {
   beginProjectModuleSplitWatch,
   clearProjectModuleSplitReports,
   endProjectModuleSplitWatch,
   formatProjectModuleSplitMessage,
-} from '@volter/editor-core/project-module-split';
-import { clearRootReadiness, recordRootReadiness } from '@volter/editor-core/readiness';
+} from '@volter/editor-sdk/kit/project-module-split';
+import { clearRootReadiness, recordRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import { onShellStore } from '@volter/editor-core/shell-store-door';
 import { mountedStoryHasPixiContent } from '@volter/editor-core/stories/pixi-story-model';
 import { domHasRenderableContent, threeSceneHasRenderableContent } from '../host/surface-content';
-import { subscribeSurfaceKeyboard, surfaceHoldsKeyboard } from '@volter/editor-core/surface-keyboard';
+import { subscribeSurfaceKeyboard, surfaceHoldsKeyboard } from '@volter/editor-sdk/kit/surface-keyboard';
 import { publishToolContributionPlay } from '@volter/editor-core/tool-contribution-play';
 import { liveWorldId } from '../host/viewport-root-presentation';
 import {

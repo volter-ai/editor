@@ -1,6 +1,6 @@
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { useEffect, useState } from 'react';
-import { assetCapabilities } from '../../asset-workflow/asset-capabilities';
+import { assetCapabilities } from '@volter/editor-sdk/kit/asset-capabilities';
 import { getCurrentProject } from '../../project-manager';
 import {
   projectModuleChangeMatches,

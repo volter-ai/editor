@@ -22,7 +22,7 @@
  */
 
 import type { NodeCreationSite, RelatedSubjectsProvider } from '@volter/editor-project/adapter';
-import { type InstanceSourceLocator, runInstanceSourceAction } from '@volter/editor-core/instance-source-actions';
+import { type InstanceSourceLocator, runInstanceSourceAction } from '@volter/editor-sdk/kit/instance-source-actions';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 
 /** The related provider for an adapter whose truth can place a subject at a

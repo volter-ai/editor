@@ -12,7 +12,7 @@ import { faFile, faFileLines, faTriangleExclamation } from '@fortawesome/free-so
 import type { GenerationJob } from '@volter/editor-sdk/generations';
 import { useState, useSyncExternalStore } from 'react';
 import './GenerationGallery.css';
-import { assetCapabilities, assetDocumentKind } from '@volter/editor-core/asset-workflow/asset-capabilities';
+import { assetCapabilities, assetDocumentKind } from '@volter/editor-sdk/kit/asset-capabilities';
 import { openAssetDocument } from '@volter/editor-core/components/asset-documents';
 import { AudioAssetThumb, ModelThumbnail } from '@volter/editor-core/components/asset-thumbnails';
 import { editorConsole } from '@volter/editor-core/editor-console';

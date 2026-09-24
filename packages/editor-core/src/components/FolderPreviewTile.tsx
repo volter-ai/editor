@@ -19,13 +19,13 @@
 import { faFolder, faFolderOpen } from '@fortawesome/free-solid-svg-icons';
 import { EditorIcon } from '@volter/editor-sdk/widgets';
 import { useEffect, useState } from 'react';
-import { assetCapabilities } from '../asset-workflow/asset-capabilities';
+import { assetCapabilities } from '@volter/editor-sdk/kit/asset-capabilities';
 import {
   type FolderPreviewItem,
   type FolderPreviewSummary,
   getFolderPreview,
 } from '../asset-workflow/folder-preview';
-import { type AssetRootId, assetRootServingUrl } from '../asset-workflow/project-asset-roots';
+import { type AssetRootId, assetRootServingUrl } from '@volter/editor-sdk/kit/project-asset-roots';
 import {
   AssetIcon,
   FOLDER_CELL_THUMBNAIL_PRIORITY,

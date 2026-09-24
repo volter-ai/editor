@@ -123,7 +123,7 @@ import {
   activeWorkspaceDocument,
   activeWorkspaceDocumentId,
   activeWorkspaceDocumentViewId,
-} from './workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 
 /** The active document's mounted content element — what the `document`,
  *  `header` and `shelf` scopes resolve from. Shared with

@@ -25,7 +25,7 @@ import {
   type StructuralWriteOutcome,
   type WriteAck,
 } from '@volter/editor-project/adapter';
-import { liveSeamEvidence, recordLiveSeamEvidence } from './live-seam-evidence';
+import { liveSeamEvidence, recordLiveSeamEvidence } from '@volter/editor-sdk/kit/live-seam-evidence';
 
 const EPOCHS = new WeakMap<object, string>();
 let nextEpoch = 1;

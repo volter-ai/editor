@@ -21,7 +21,7 @@
  * set it and therefore remains visible to the Edit-static invariant.
  */
 
-import { anyLiveSessionPlaying } from './live-session-registry';
+import { anyLiveSessionPlaying } from '@volter/editor-sdk/kit/live-session-registry';
 
 /** The editor is in Play when any registered lane is playing
  *  (`live-session-registry.ts`): first-party Play, a deferred-ingest play, an

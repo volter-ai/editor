@@ -54,7 +54,7 @@ import {
   activeWorkspaceDocument,
   activeWorkspaceDocumentSelection,
   type WorkspaceDocumentSelection,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { getActiveAuthoring } from './active-adapter';
 import { CompositeAuthoringAdapter } from './composite-authoring-adapter';
 

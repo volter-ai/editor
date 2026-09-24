@@ -26,7 +26,7 @@ import {
   type ObservationDeclaration,
 } from '@volter/editor-project/adapter/adapter-module';
 import type { ObservationBinding } from '@volter/editor-project/adapter/binding';
-import { adapterInputBinding, adapterObservations } from '@volter/editor-core/adapter-observation';
+import { adapterInputBinding, adapterObservations } from '@volter/editor-sdk/kit/adapter-observation';
 
 const ADAPTER_REGISTRATION_ID = '__adapter__';
 const installedGames = new WeakSet<Game>();

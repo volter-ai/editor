@@ -6,7 +6,15 @@ interface PresentationActivity {
 
 // Existing renderer sessions can survive a replacement of this module. Keep
 // their subscriptions and the host's last answer on the same shared object.
-const hotData = import.meta.hot?.data;
+/** Vite's HMR context when a dev server serves this module, typed here so the SDK carries no
+ *  bundler types. */
+const hot = (import.meta as ImportMeta & {
+  hot?: {
+    data?: { presentationActivity?: PresentationActivity };
+    dispose(callback: () => void): void;
+  };
+}).hot;
+const hotData = hot?.data;
 const activity: PresentationActivity = hotData?.presentationActivity ?? {
   hostActive: true,
   listeners: new Set<() => void>(),
@@ -43,7 +51,7 @@ if (typeof window !== 'undefined') {
   if (window.parent !== window && parentOrigin) {
     window.parent.postMessage({ type: 'vgai:request-embed-activity' }, parentOrigin);
   }
-  import.meta.hot?.dispose(() => {
+  hot?.dispose(() => {
     window.removeEventListener('message', receive);
     document.removeEventListener('visibilitychange', changed);
   });

@@ -41,8 +41,8 @@
  * entry they existed to refetch.
  */
 
-import { sha256Hex } from '../bytes-codec';
-import type { StorageBackend } from '../storage/types';
+import { sha256Hex } from '@volter/editor-sdk/kit/bytes-codec';
+import type { StorageBackend } from '@volter/editor-sdk/kit/storage-types';
 import { normalizeLedgerPath } from './asset-ledger';
 import {
   readAssetLedgerFromBackend,

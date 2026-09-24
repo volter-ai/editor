@@ -101,7 +101,7 @@ import {
 import { useSharedViewRestore } from '../shared-view-restore';
 import { installStaleChunkRecovery } from '../stale-chunk-recovery';
 import { installStoryLane } from '../stories/story-lane';
-import { notifySurfaceKeyboard, setSurfaceKeyboardProbe } from '../surface-keyboard';
+import { notifySurfaceKeyboard, setSurfaceKeyboardProbe } from '@volter/editor-sdk/kit/surface-keyboard';
 import { preloadEditorThemeLibrary } from '../theme-library';
 import {
   editorPaletteSnapshot,
@@ -121,7 +121,7 @@ import {
   subscribeWorkspaceDocuments,
   type WorkspaceDocumentDescriptor,
   workspaceDocumentRegistryVersion,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import {
   installWorkspaceHostCommands,
   setActiveWorkspaceStaticPanel,

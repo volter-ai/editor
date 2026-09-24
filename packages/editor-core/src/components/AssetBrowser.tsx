@@ -41,7 +41,7 @@ import {
   type AssetCapabilityKind,
   assetCapabilities,
   assetDocumentKind,
-} from '../asset-workflow/asset-capabilities';
+} from '@volter/editor-sdk/kit/asset-capabilities';
 import { confirmAssetAction } from '../asset-workflow/asset-workflow-quality';
 import { previewAssetAudio, stopAssetAudioPreview } from '../asset-workflow/audio-preview-player';
 import { invalidateFolderPreviews } from '../asset-workflow/folder-preview';
@@ -57,7 +57,7 @@ import {
   assetRootServingUrl,
   projectAssetPath,
   REFERENCE_ROOT,
-} from '../asset-workflow/project-asset-roots';
+} from '@volter/editor-sdk/kit/project-asset-roots';
 import {
   collectProjectContentAssets,
   expandSpritesheetContentAssets,
@@ -85,7 +85,7 @@ import { editorConsole } from '../editor-console';
 import { useEditorStore, useHistoryService } from '../editor-runtime';
 import type { AssetKind as DocumentAssetKind } from '../editor-shell-store';
 import { hierarchyNodesBreadthFirst } from '../hierarchy-walk';
-import { isEditableTarget, setActiveScope } from '../hotkeys';
+import { isEditableTarget, setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { modelThumbnailFormat } from '../model-thumbnail';
 import { object3DDocumentWritePolicy } from '../object3d-document-write-policy';
 import { projectAdapterFacet, subscribeProjectAdapter } from '../project-adapter';
@@ -104,7 +104,7 @@ import {
   activeWorkspaceDocumentId,
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { openAssetDocument, openAuthoringAssetDocument } from './asset-documents';
 import {
   type AssetGlyphKind,

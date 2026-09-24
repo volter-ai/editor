@@ -37,7 +37,7 @@ import {
   STORY_ARGS_SECTION_ID,
   STORY_ARGS_SECTION_TITLE,
 } from '@volter/editor-sdk/kit/inspection-model';
-import { registerInspectorSections } from '@volter/editor-core/inspector-section-registry';
+import { registerInspectorSections } from '@volter/editor-sdk/kit/inspector-section-registry';
 import type { ComposedProjectStory } from '@volter/editor-core/stories/compose-project-stories';
 import {
   type MountedStoryViewportSource,
@@ -67,7 +67,7 @@ import {
   closeWorkspaceDocument,
   openWorkspaceDocument,
   type WorkspaceDocumentContentProps,
-} from '@volter/editor-core/workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { registerWorkspaceDocumentRestorer } from '@volter/editor-core/workspace-document-restore';
 import { STORY_ARGS_SECTION_ICON } from '../../react/story-documents/story-args-section';
 import {

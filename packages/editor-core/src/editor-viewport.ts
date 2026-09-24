@@ -38,7 +38,7 @@ import {
   setAuthoringSelection,
   spatialHandlesForAdapter,
 } from './authoring/consumer-actions';
-import { beginLiveGesture, endLiveGesture } from './authoring/live-gesture-lock';
+import { beginLiveGesture, endLiveGesture } from '@volter/editor-sdk/kit/live-gesture-lock';
 import { drillIntoSelectionScope, pickAcrossScopeExit } from './authoring/selection-scope';
 import { setViewportPickContext } from './authoring/viewport-pick-context';
 import { isRootHidden } from './authoring/world-session-state';
@@ -57,8 +57,8 @@ import {
   nativeViewportLook,
   nativeViewportUpAxis,
   subscribeNativeSelectionTheme,
-} from './native-selection-style';
-import { presentationRegionBasis } from './presentation-surface';
+} from '@volter/editor-sdk/kit/native-selection-style';
+import { presentationRegionBasis } from '@volter/editor-sdk/kit/presentation-surface';
 import { ReflectionProbeHelper } from './reflection-probe-helper';
 import { frameableContentBounds, seededViewShowsWorld, viewFromGameCamera } from './scene-framing';
 import {

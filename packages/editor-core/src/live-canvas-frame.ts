@@ -27,7 +27,7 @@
  */
 
 import { presentedPixiFrame } from './canvas-preview-frames';
-import { snapshotLiveFrame } from './live-session-registry';
+import { snapshotLiveFrame } from '@volter/editor-sdk/kit/live-session-registry';
 
 /**
  * Same-frame pixels for `canvas`, whichever live surface owns it, or `null`

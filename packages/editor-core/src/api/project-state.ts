@@ -6,8 +6,8 @@
  */
 
 import type { LeasePollResult } from '../editor-lease';
-import { assertEditorServerResponse, editorServerJson } from '../editor-server-response';
-import { BASE } from './base';
+import { assertEditorServerResponse, editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
+import { BASE } from '@volter/editor-sdk/kit/api-base';
 /**
  * PD-13: the validation failures and authoring warnings the dev server knows
  * about RIGHT NOW, pre-formatted as `server-log` payloads. `editor-console.ts`

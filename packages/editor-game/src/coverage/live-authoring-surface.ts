@@ -14,7 +14,7 @@ import { getCurrentProject } from '@volter/editor-core/project-manager';
 import { authoringSurfaceFromTable } from '@volter/editor-core/scene-document-plan';
 import { projectStoriesReady } from '@volter/editor-core/stories/story-registry';
 import { availableWorkspaceDocuments } from '@volter/editor-core/workspace-available-documents';
-import { openWorkspaceDocuments } from '@volter/editor-core/workspace-document-registry';
+import { openWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-document-registry';
 
 export function authoringSurfaceCoverage(): CapabilityCoverageReport | null {
   const facet = projectAdapterFacet();

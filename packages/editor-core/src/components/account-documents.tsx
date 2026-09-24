@@ -38,7 +38,7 @@ import {
   updatePreferredGenerationRoute,
 } from '../account';
 import { registerDocumentOpener } from '../document-open-registry';
-import { openWorkspaceDocument } from '../workspace-document-registry';
+import { openWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { VgaiLogo } from './VgaiLogo';
 
 export const ACCOUNT_DOCUMENT_ID = 'account';

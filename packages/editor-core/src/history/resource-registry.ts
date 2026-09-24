@@ -1,4 +1,4 @@
-import type { ResourceDescriptor, ResourceKey, ResourceKind } from './types';
+import type { ResourceDescriptor, ResourceKey, ResourceKind } from '@volter/editor-sdk/kit/history-types';
 
 export type ResourceIdFactory = () => string;
 

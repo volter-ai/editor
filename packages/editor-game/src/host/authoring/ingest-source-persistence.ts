@@ -25,7 +25,7 @@
  */
 
 import type { NodeCreationSite } from '@volter/editor-project/adapter';
-import { base64ToBytes, bytesToBase64, sha256Hex } from '@volter/editor-core/bytes-codec';
+import { base64ToBytes, bytesToBase64, sha256Hex } from '@volter/editor-sdk/kit/bytes-codec';
 import type {
   ChannelValue,
   CreationSiteLiteralReport,
@@ -36,7 +36,7 @@ import { editorConsole } from '@volter/editor-core/editor-console';
 import { editorIsAuthoring } from '@volter/editor-core/editor-session-mode';
 import type { HistoryService } from '@volter/editor-core/history/history-service';
 import { projectSourceAppliedChange } from '@volter/editor-core/history/source-history-backend';
-import type { ResourceDriver, ResourceKey } from '@volter/editor-core/history/types';
+import type { ResourceDriver, ResourceKey } from '@volter/editor-sdk/kit/history-types';
 import type { SourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
 import {
   type DataEditPlan,

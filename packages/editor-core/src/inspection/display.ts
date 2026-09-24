@@ -39,7 +39,7 @@ import {
 import type {
   WorkspaceDocumentKind,
   WorkspaceDocumentSelection,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import {
   type InspectionPresentation,
   type InspectionSubject,

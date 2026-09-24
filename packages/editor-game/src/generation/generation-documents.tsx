@@ -25,7 +25,7 @@ import {
   closeWorkspaceDocument,
   openWorkspaceDocument,
   type WorkspaceDocumentContentProps,
-} from '@volter/editor-core/workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { Button, TextInput } from '@volter/editor-sdk/widgets';
 import {
   acceptGenerationJob,

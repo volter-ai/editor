@@ -19,7 +19,7 @@
  * `installAssetSelectionAutoClear`).
  */
 
-import type { AssetCapabilities } from './asset-workflow/asset-capabilities';
+import type { AssetCapabilities } from '@volter/editor-sdk/kit/asset-capabilities';
 import type { AssetKind, OnlineAssetInfo } from './editor-shell-store';
 
 /** The §5.1 compact-selection payload — enough for the Inspector section to

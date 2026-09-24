@@ -31,7 +31,7 @@
 import { getActiveSystems } from '@volter/editor-core/authoring/active-systems';
 import { setGameplayExportActive } from '@volter/editor-core/gameplay-export-state';
 import { stopGameplayRecording } from '../src/host/gameplay-recording';
-import { liveInstanceContainer } from '@volter/editor-core/live-session-registry';
+import { liveInstanceContainer } from '@volter/editor-sdk/kit/live-session-registry';
 import type { CommandContribution } from '@volter/editor-sdk/commands';
 import { editorHost } from '@volter/editor-sdk/host';
 import type { OfflineAudioRenderer } from '@volter/editor-project/adapter';

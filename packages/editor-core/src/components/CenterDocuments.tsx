@@ -5,7 +5,7 @@
 import { useEffect } from 'react';
 import type { EditorShellStore } from '../editor-shell-store';
 import { bindLiveDocument, syncLiveDocumentPlayState } from '../live-document';
-import { closeAllWorkspaceDocuments } from '../workspace-document-registry';
+import { closeAllWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-document-registry';
 
 export function useCenterDocuments(store: EditorShellStore): void {
   useEffect(() => {

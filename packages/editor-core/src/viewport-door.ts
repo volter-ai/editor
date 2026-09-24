@@ -22,7 +22,7 @@
 import type { EditorHostStage, ViewportPresentation, ViewportRig } from '@volter/editor-sdk/host';
 import type { ViewportRoot } from '@volter/editor-sdk/host';
 import type * as THREE from 'three';
-import { activeWorkspaceDocumentId } from './workspace-document-registry';
+import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
 
 type Presenter = (roots: readonly ViewportRoot[]) => ViewportPresentation | null;
 type HelperSink = (kind: string, object: THREE.Object3D | null) => void;

@@ -8,8 +8,8 @@ import type {
   TeamPlaytest,
 } from '@volter/editor-sdk/session/collaboration-types';
 import { connectEvents, EDITOR_PARTICIPANT_ID, type EditorEventSource } from './editor-presence';
-import { assertEditorServerAnswered } from './editor-server-response';
-import { setCollaborationRevision } from './editor-session-attribution';
+import { assertEditorServerAnswered } from '@volter/editor-sdk/kit/editor-server-response';
+import { setCollaborationRevision } from '@volter/editor-sdk/kit/editor-session-attribution';
 
 const BASE = '/__editor/collaboration';
 const EVENT_CHANNELS = [

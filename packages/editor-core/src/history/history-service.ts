@@ -14,7 +14,7 @@ import type {
   ResourceKey,
   ResourceSnapshot,
   SnapshotRef,
-} from './types';
+} from '@volter/editor-sdk/kit/history-types';
 
 const DEFAULT_MAX_TRANSACTIONS = 2000;
 const DEFAULT_MAX_BYTES = 64 * 1024 * 1024;

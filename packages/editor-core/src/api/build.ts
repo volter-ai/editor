@@ -3,8 +3,8 @@
  * from: `/__editor/export`, `/__editor/examples`, `/__editor/templates`.
  */
 
-import { editorServerJson } from '../editor-server-response';
-import { BASE } from './base';
+import { editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
+import { BASE } from '@volter/editor-sdk/kit/api-base';
 /** Start a build/export. Returns the raw Response for SSE streaming.
  *
  *  Deliberately NOT read through `editor-server-response.ts`: that reader's

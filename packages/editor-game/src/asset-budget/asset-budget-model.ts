@@ -21,8 +21,8 @@
  * raw attribute/index bytes for geometry.
  */
 
-import { sha256Hex } from '@volter/editor-core/bytes-codec';
-import type { StorageBackend } from '@volter/editor-core/storage/types';
+import { sha256Hex } from '@volter/editor-sdk/kit/bytes-codec';
+import type { StorageBackend } from '@volter/editor-sdk/kit/storage-types';
 import type { Document } from '@gltf-transform/core';
 import { inspect } from '@gltf-transform/functions';
 import { getGltfIO } from './gltf-io';

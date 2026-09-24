@@ -16,7 +16,7 @@ import {
 } from '@volter/editor-core/authoring/active-systems';
 import { collectPlayRunPageErrors } from '@volter/editor-core/command-listener';
 import { gameContractEpoch } from '../host/coverage/game-contract-seam-evidence';
-import { recordLiveSeamEvidence } from '@volter/editor-core/coverage/live-seam-evidence';
+import { recordLiveSeamEvidence } from '@volter/editor-sdk/kit/live-seam-evidence';
 import { systemAdapterEpoch } from '@volter/editor-core/coverage/system-seam-evidence';
 import {
   HOLD_STARVED_NO_DRIVER_REASON,

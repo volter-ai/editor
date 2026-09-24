@@ -21,7 +21,7 @@ import {
   activeWorkspaceDocumentId,
   openWorkspaceDocument,
   type WorkspaceDocumentContentProps,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { registerWorkspaceDocumentRestorer } from '../workspace-document-restore';
 import { openToolDocument } from './tool-documents';
 import { defaultValueForSchema, ToolSchemaForm } from './tool-schema-form';

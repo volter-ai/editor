@@ -1,4 +1,4 @@
-import { sha256Hex } from '../bytes-codec';
+import { sha256Hex } from '@volter/editor-sdk/kit/bytes-codec';
 import type {
   PreparedSourceEdit,
   SourceEditRequest,
@@ -9,7 +9,7 @@ import {
   HistoryOperationError,
   type HistoryService,
 } from './history-service';
-import type { ResourceDescriptor, ResourceDriver, ResourceKey } from './types';
+import type { ResourceDescriptor, ResourceDriver, ResourceKey } from '@volter/editor-sdk/kit/history-types';
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();

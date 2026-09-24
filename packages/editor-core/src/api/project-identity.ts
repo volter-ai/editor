@@ -13,8 +13,8 @@ import {
   editorServerUnavailableError,
   missingCompatibilityError,
 } from '@volter/editor-sdk/session/editor-compatibility';
-import { assertEditorServerResponse } from '../editor-server-response';
-import { BASE } from './base';
+import { assertEditorServerResponse } from '@volter/editor-sdk/kit/editor-server-response';
+import { BASE } from '@volter/editor-sdk/kit/api-base';
 
 function parseEditorCompatibility(value: unknown): EditorServerCompatibility | null {
   if (!value || typeof value !== 'object') return null;

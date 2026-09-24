@@ -39,7 +39,7 @@ import {
   subscribeProjectStoryModules,
 } from '@volter/editor-core/stories/story-registry';
 import { UI_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
-import type { WorkspaceDocumentContentProps } from '@volter/editor-core/workspace-document-registry';
+import type { WorkspaceDocumentContentProps } from '@volter/editor-sdk/kit/workspace-document-registry';
 
 import { UI_COMPONENTS_TITLE } from './ui-board-title';
 

@@ -67,7 +67,7 @@ import {
   PROPERTIES_SECTION_ID,
   PROPERTIES_SECTION_ORDER,
 } from '@volter/editor-sdk/kit/inspection-model';
-import { registerInspectorSections } from '@volter/editor-core/inspector-section-registry';
+import { registerInspectorSections } from '@volter/editor-sdk/kit/inspector-section-registry';
 import { effectiveColorFromChain, getAvailableFonts } from '@volter/editor-core/ui-source/inspect';
 import type { OidEntry } from '@volter/editor-react/source/oid-transform';
 import type { AuthoringAdapter, EditorNode, PropertyDescriptor } from '@volter/editor-project/adapter';

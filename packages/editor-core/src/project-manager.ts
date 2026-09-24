@@ -43,7 +43,7 @@ import {
   probeCurrentServerProject,
   requireEditorCompatibility,
 } from './editor-api';
-import { parseHierarchyProjection } from './hierarchy-projection';
+import { parseHierarchyProjection } from '@volter/editor-sdk/kit/hierarchy-projection';
 
 function describeManifestError(error: unknown): string {
   const issues =

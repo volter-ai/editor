@@ -1,6 +1,6 @@
 import type { HistoryService } from '../history/history-service';
 import { getProjectFileHistory } from '../history/project-file-history';
-import type { StorageBackend } from '../storage/types';
+import type { StorageBackend } from '@volter/editor-sdk/kit/storage-types';
 
 export type ProjectAssetOperation =
   | { readonly type: 'create-folder'; readonly path: string }

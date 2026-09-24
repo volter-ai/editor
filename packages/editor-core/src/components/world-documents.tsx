@@ -53,8 +53,8 @@ import {
   subscribeComponentBoards,
 } from '../component-board-registry';
 import type { EditorShellStore } from '../editor-shell-store';
-import { setActiveScope } from '../hotkeys';
-import { readinessFacet, subscribeRootReadiness } from '../readiness';
+import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
+import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import { explainSurface } from '../surface-state';
 import { recordViewportFirstFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import {
@@ -69,7 +69,7 @@ import {
   openWorkspaceDocuments,
   registerWorkspaceDocumentSelection,
   type WorkspaceDocumentContentProps,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import {
   registerRootDocumentGap,
   registerRootDocumentRoute,

@@ -11,7 +11,7 @@
  */
 
 import { resolveUrl } from '@volter/editor-threejs/loader';
-import { base64ToBytes } from '../bytes-codec';
+import { base64ToBytes } from '@volter/editor-sdk/kit/bytes-codec';
 import { getStorageBackend } from '../storage';
 /**
  * Read a project text file from the session that owns the project namespace.

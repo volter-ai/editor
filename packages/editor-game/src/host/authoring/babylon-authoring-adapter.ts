@@ -17,7 +17,7 @@ import type {
   WriteAck,
 } from '@volter/editor-project/adapter';
 import type { ChannelValue } from '@volter/editor-core/creation-site-edit';
-import { creationSiteAnchor, instancesAtSite } from '@volter/editor-core/creation-site-registry';
+import { creationSiteAnchor, instancesAtSite } from '@volter/editor-sdk/kit/creation-site-registry';
 import { editorConsole } from '@volter/editor-core/editor-console';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { type JournalSubject, JsonHistoryResource } from '../history/json-history-resource';

@@ -1,4 +1,4 @@
-import { sha256Hex } from '../bytes-codec';
+import { sha256Hex } from '@volter/editor-sdk/kit/bytes-codec';
 import { getStorageBackend } from '../storage';
 import type { HistoryService } from './history-service';
 import { normalizeProjectPath } from './resource-registry';
@@ -8,7 +8,7 @@ import type {
   ResourceKey,
   ResourceKind,
   ResourceSnapshot,
-} from './types';
+} from '@volter/editor-sdk/kit/history-types';
 
 const ABSENT = 0;
 const PRESENT = 1;

@@ -16,7 +16,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type * as THREE from 'three';
 import { type ParticleSystem, QuarksLoader } from 'three.quarks';
 import { quarksParticleSystems } from '../../authoring/quarks-particle-systems';
-import { projectOutputPath } from '../../project-provenance';
+import { projectOutputPath } from '@volter/editor-sdk/kit/project-provenance';
 import { Object3DDocumentViewport } from '../StageHost';
 
 type JsonObject = Record<string, unknown>;

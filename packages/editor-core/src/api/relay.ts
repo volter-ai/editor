@@ -16,8 +16,8 @@ import {
   sendCommandResultControl,
   sendControl,
 } from '../editor-presence';
-import { assertEditorServerAnswered } from '../editor-server-response';
-import { BASE } from './base';
+import { assertEditorServerAnswered } from '@volter/editor-sdk/kit/editor-server-response';
+import { BASE } from '@volter/editor-sdk/kit/api-base';
 
 // State reports can be triggered by several browser-owned transitions at once
 // (a Play click changes both play state and the active viewport, for example).

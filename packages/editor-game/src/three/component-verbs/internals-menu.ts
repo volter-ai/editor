@@ -25,7 +25,7 @@ import {
   isInternalsRevealed,
   revealedInternalsIds,
   toggleInternalsRevealed,
-} from '@volter/editor-core/hierarchy-internals';
+} from '@volter/editor-sdk/kit/hierarchy-internals';
 import { registerHierarchyMenuItems } from '@volter/editor-core/hierarchy-menu-registry';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 

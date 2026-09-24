@@ -4,8 +4,8 @@
  * (project), both files the editor server owns.
  */
 import type { EditorSettings } from '@volter/editor-project/settings/schema';
-import { assertEditorServerResponse, editorServerJson } from '../editor-server-response';
-import { BASE } from './base';
+import { assertEditorServerResponse, editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
+import { BASE } from '@volter/editor-sdk/kit/api-base';
 
 export type SettingsLayer = 'user' | 'project';
 

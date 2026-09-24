@@ -21,7 +21,7 @@ import { currentEditorView } from './editor-current-view';
 import { activeDocumentContainer } from './editor-document-probe';
 import type { EditorShellStore } from './editor-shell-store';
 import { activeEditorKeymap } from './keymap-presets';
-import { liveFrameCanvas, liveInstanceContainer } from './live-session-registry';
+import { liveFrameCanvas, liveInstanceContainer } from '@volter/editor-sdk/kit/live-session-registry';
 import { projectDocumentKinds } from './project-shape';
 import { DOCUMENT_REGISTRATION_TIMEOUT_MS, waitUntil } from './wait-until';
 import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
@@ -30,7 +30,7 @@ import {
   activeWorkspaceDocument,
   activeWorkspaceDocumentId,
   workspaceDocumentSelection,
-} from './workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { openAvailableWorkspaceDocument } from './workspace-available-documents';
 import {
   activeWorkspaceStaticPanel,

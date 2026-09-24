@@ -14,7 +14,7 @@ import {
   sampleFlatness,
 } from '@volter/editor-core/composite-screenshot';
 import { editorConsole } from '@volter/editor-core/editor-console';
-import { presentationSurface } from '@volter/editor-core/presentation-surface';
+import { presentationSurface } from '@volter/editor-sdk/kit/presentation-surface';
 import type { EditorCommandMessage, EditorCommandResult } from '@volter/editor-sdk/commands';
 import { notPlayingResult, structuredErrorResult } from '../command-results';
 import { isIngestActive } from '../ingest/active-ingest';

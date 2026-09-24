@@ -9,7 +9,7 @@
  */
 
 import type { LearnMetadata } from '@volter/editor-project/manifest/schema';
-import type { HierarchyProjection } from './hierarchy-projection';
+import type { HierarchyProjection } from '@volter/editor-sdk/kit/hierarchy-projection';
 
 /** One `run[]` declaration as the manifest carries it: the envelope plus the
  *  kind's own fields (spelled here, not imported, so a bounded host's closure

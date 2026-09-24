@@ -27,13 +27,13 @@ import type {
   WorldRootStageBinding,
 } from '@volter/editor-core/components/world-root-binding';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
-import { readinessFacet, subscribeRootReadiness } from '@volter/editor-core/readiness';
+import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import { documentStageContext, threeSelectionToolsApply } from '@volter/editor-core/stage-context';
 import { explainSurface } from '@volter/editor-core/surface-state';
 import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from '@volter/editor-core/workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { useMemo, useSyncExternalStore } from 'react';
 import type * as THREE from 'three';
 import { threeSceneHasRenderableContent } from '../surface-content';

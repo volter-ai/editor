@@ -36,7 +36,7 @@ import { COMPASS_CLUSTER_TOP_PX, type EditorViewport } from '../editor-viewport'
 import {
   lookDeclaresViewportColors,
   subscribeNativeSelectionTheme,
-} from '../native-selection-style';
+} from '@volter/editor-sdk/kit/native-selection-style';
 import type { ThreeViewportProjection } from '../three-viewport-presentation';
 
 /** The cluster sits 8px under the compass — one number, owned by the

@@ -12,7 +12,7 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { announceObject3DDocumentStage } from '../authoring/object3d-document-session-registry';
 import type { Object3DDocumentViewportProps } from './StageHost';
-import { OBJECT3D_SURFACE_BUILDING, ViewportSurfaceStatus } from './viewport-surface-status';
+import { OBJECT3D_SURFACE_BUILDING, ViewportSurfaceStatus } from '@volter/editor-sdk/kit/viewport-surface-status';
 
 const LazyObject3DDocumentViewport = lazy(async () => {
   const module = await import('./StageHost');

@@ -21,11 +21,11 @@ import {
   type InspectionSection,
   PROPERTIES_SECTION_ID,
 } from '@volter/editor-sdk/kit/inspection-model';
-import { registerInspectorSections } from '@volter/editor-core/inspector-section-registry';
+import { registerInspectorSections } from '@volter/editor-sdk/kit/inspector-section-registry';
 import {
   type ProjectOutputProvenance,
   provenanceForProjectAsset,
-} from '@volter/editor-core/project-provenance';
+} from '@volter/editor-sdk/kit/project-provenance';
 import {
   getDocumentToolContributions,
   getGlobalToolContributions,

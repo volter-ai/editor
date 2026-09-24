@@ -31,7 +31,7 @@
 import type { WorkspaceAreaContribution } from '@volter/editor-sdk/layout-arrangements';
 import { openToolDocument, toolDocumentId } from './components/tool-documents';
 import { subscribeToolContributions } from './tool-loader';
-import { closeWorkspaceDocument, openWorkspaceDocuments } from './workspace-document-registry';
+import { closeWorkspaceDocument, openWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-document-registry';
 
 let _areas: readonly WorkspaceAreaContribution[] = [];
 let _version = 0;

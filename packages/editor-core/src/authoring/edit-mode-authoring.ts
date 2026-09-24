@@ -22,11 +22,11 @@
 
 import { declaredRoots } from '@volter/editor-project/adapter/manifest-interpreter';
 import { editorConsole } from '../editor-console';
-import { assertEditorServerAnswered } from '../editor-server-response';
-import { sourceMutationAttribution } from '../editor-session-attribution';
+import { assertEditorServerAnswered } from '@volter/editor-sdk/kit/editor-server-response';
+import { sourceMutationAttribution } from '@volter/editor-sdk/kit/editor-session-attribution';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import type { EditorShellStore } from '../editor-shell-store';
-import { hierarchyProjectionFromProjectConfig } from '../hierarchy-projection';
+import { hierarchyProjectionFromProjectConfig } from '@volter/editor-sdk/kit/hierarchy-projection';
 import { getProjectFileHistory, type ProjectFileHistory } from '../history/project-file-history';
 import { getManifestHistoryBackend } from '../history/project-root-history-backends';
 import { fetchRawGameManifest } from '../manifest-project';

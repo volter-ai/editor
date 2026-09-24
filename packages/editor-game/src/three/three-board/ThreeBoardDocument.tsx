@@ -55,7 +55,7 @@ import { registerAvailableWorkspaceDocument } from '@volter/editor-core/workspac
 import { object3DDocumentSession } from '@volter/editor-core/authoring/object3d-document-session-registry';
 import { Object3DDocumentViewport } from '@volter/editor-core/components/Object3DDocumentViewport';
 import { STANDARD_COMPONENT_CAMERA_DIRECTION } from '@volter/editor-core/components/standard-viewport-dressing';
-import { threeBoardBuildingCopy } from '@volter/editor-core/components/viewport-surface-status';
+import { threeBoardBuildingCopy } from '@volter/editor-sdk/kit/viewport-surface-status';
 import { openRegisteredDocument } from '@volter/editor-core/document-open-registry';
 import { listProjectComponents } from '@volter/editor-core/editor-api';
 import { editorConsole } from '@volter/editor-core/editor-console';
@@ -64,8 +64,8 @@ import { CONTRIBUTED_SECTION_ORDER } from '@volter/editor-sdk/kit/inspection-mod
 import {
   type InspectorSectionProps,
   registerInspectorSections,
-} from '@volter/editor-core/inspector-section-registry';
-import { type ClipboardWriter, runInstanceSourceAction } from '@volter/editor-core/instance-source-actions';
+} from '@volter/editor-sdk/kit/inspector-section-registry';
+import { type ClipboardWriter, runInstanceSourceAction } from '@volter/editor-sdk/kit/instance-source-actions';
 import { getProjectStoryRegions } from '@volter/editor-core/stories/project-story-regions';
 import { declaredStoryMedium } from '@volter/editor-core/stories/story-declared-medium';
 import { THREE_STORY_DOCUMENT_OPENER } from '@volter/editor-sdk/kit/story-document-openers';
@@ -87,7 +87,7 @@ import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-d
 import {
   activeWorkspaceDocument,
   type WorkspaceDocumentContentProps,
-} from '@volter/editor-core/workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import type { WorkspaceStateStore } from '@volter/editor-core/workspace-document-restore';
 import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 import { themeVars } from '@volter/editor-sdk/widgets';

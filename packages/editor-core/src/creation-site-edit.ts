@@ -66,7 +66,7 @@
  */
 
 import ts from 'typescript';
-import type { CreationSite } from './creation-site-registry';
+import type { CreationSite } from '@volter/editor-sdk/kit/creation-site-registry';
 
 /** Float slack for "is this literal the value in force". Gizmo drags and the
  *  quaternion→Euler round trip both land a few ULPs off an authored decimal. */

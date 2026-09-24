@@ -36,7 +36,7 @@
  */
 
 import type { EditorNode, HierarchyProvider } from '@volter/editor-project/adapter';
-import type { InternalsSource } from './hierarchy-internals';
+import type { InternalsSource } from '@volter/editor-sdk/kit/hierarchy-internals';
 import type { HierarchyNodeRow } from './hierarchy-node-rows';
 
 /** What the marks say about ONE node. Both absent is the ordinary node. */

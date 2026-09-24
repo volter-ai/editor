@@ -7,7 +7,7 @@ import type { LeaseChannelState } from './editor-lease';
 import {
   COLLABORATION_PARTICIPANT_ID,
   COLLABORATION_PARTICIPANT_NAME,
-} from './editor-session-attribution';
+} from '@volter/editor-sdk/kit/editor-session-attribution';
 import { onSessionEndedChange } from './session-tombstone';
 import type { TabCensus } from './tab-census';
 import { type EditorTabRoute, installTabLifecycleListeners } from './tab-lifecycle-client';

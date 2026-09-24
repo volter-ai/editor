@@ -21,7 +21,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { border, EditorIcon } from '@volter/editor-sdk/widgets';
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
-import type { AssetCapabilityKind } from '../asset-workflow/asset-capabilities';
+import type { AssetCapabilityKind } from '@volter/editor-sdk/kit/asset-capabilities';
 import {
   getAssetAudioPreview,
   loadAudioWaveformPeaks,

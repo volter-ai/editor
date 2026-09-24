@@ -18,12 +18,12 @@
  * interface (see types.ts and editor-api.ts).
  */
 
-import { bytesToBase64 } from '../bytes-codec';
-import { assertEditorServerAnswered, editorServerJson } from '../editor-server-response';
-import { sourceMutationAttribution } from '../editor-session-attribution';
+import { bytesToBase64 } from '@volter/editor-sdk/kit/bytes-codec';
+import { assertEditorServerAnswered, editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
+import { sourceMutationAttribution } from '@volter/editor-sdk/kit/editor-session-attribution';
 import { handleProjectMutationFailure } from '../source-conflict';
 import { dirAndBase, normalize } from './paths';
-import type { DirEntry, Stat, StorageBackend, WatchCallback, WatchEvent } from './types';
+import type { DirEntry, Stat, StorageBackend, WatchCallback, WatchEvent } from '@volter/editor-sdk/kit/storage-types';
 
 const BASE = '/__editor';
 

@@ -24,9 +24,9 @@ import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { GAME_SURFACE_CONTAINMENT_CSS } from '../../host/game-realm-page';
 import { clearGameSurface, gameLoopGate, setGameSurface } from '../../host/gated-globals';
 import { authoringJournal } from '../../host/history/json-history-resource';
-import { clearPresentationSurface, recordPresentationSurface } from '@volter/editor-core/presentation-surface';
+import { clearPresentationSurface, recordPresentationSurface } from '@volter/editor-sdk/kit/presentation-surface';
 import { getCurrentProject } from '@volter/editor-core/project-manager';
-import { clearRootReadiness, recordRootReadiness } from '@volter/editor-core/readiness';
+import { clearRootReadiness, recordRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import {
   type SameRealmLoopGate,
   type SameRealmLoopVerdict,

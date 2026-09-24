@@ -35,7 +35,7 @@ import {
   ownOidOf,
   rendersSameSourceElement,
 } from '@volter/editor-core/authoring/component-instance-root';
-import { beginLiveGesture, endLiveGesture } from '@volter/editor-core/authoring/live-gesture-lock';
+import { beginLiveGesture, endLiveGesture } from '@volter/editor-sdk/kit/live-gesture-lock';
 import { createStructWritePipe, type StructOpOptions } from '../../host/authoring/struct-write-pipe';
 import {
   CollapsedHierarchyView,
@@ -111,7 +111,7 @@ import {
   offsetSnippetPositions,
 } from '@volter/editor-react/source/writer';
 import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
-import { activateWorkspaceDocument } from '@volter/editor-core/workspace-document-registry';
+import { activateWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-document-registry';
 import type {
   AssetDropContext,
   AssetDropProvider,

@@ -217,7 +217,7 @@ export async function tryManifestModuleRoute(store: EditorShellStore): Promise<b
 
 import { acquireLiveDocument, liveDocumentContainer } from '@volter/editor-core/live-document';
 // THE MODULE LANE, as the host sees it (`live-session-registry.ts`).
-import { registerLiveSession } from '@volter/editor-core/live-session-registry';
+import { registerLiveSession } from '@volter/editor-sdk/kit/live-session-registry';
 
 registerLiveSession({
   id: 'module',

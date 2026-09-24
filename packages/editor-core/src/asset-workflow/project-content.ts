@@ -17,14 +17,14 @@
  */
 
 import type { R3fComponentContract } from '@volter/editor-sdk/source-authoring';
-import { assetCapabilities } from './asset-capabilities';
+import { assetCapabilities } from '@volter/editor-sdk/kit/asset-capabilities';
 import {
   parsePixiSpritesheet,
   sheetVariantsFor,
   spritesheetFamilyKey,
   spritesheetResolutionRank,
 } from './pixi-spritesheet';
-import { ASSET_ROOTS, type AssetRootId } from './project-asset-roots';
+import { ASSET_ROOTS, type AssetRootId } from '@volter/editor-sdk/kit/project-asset-roots';
 
 export interface ProjectComponentEntry {
   name: string;

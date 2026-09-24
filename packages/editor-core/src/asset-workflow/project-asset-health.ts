@@ -1,5 +1,5 @@
-import type { StorageBackend } from '../storage/types';
-import { assetCapabilities } from './asset-capabilities';
+import type { StorageBackend } from '@volter/editor-sdk/kit/storage-types';
+import { assetCapabilities } from '@volter/editor-sdk/kit/asset-capabilities';
 import type { AssetHealth, AssetHealthCode } from './asset-types';
 
 export interface ProjectAssetFileSnapshot {

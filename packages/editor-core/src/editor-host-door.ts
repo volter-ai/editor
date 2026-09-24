@@ -20,7 +20,7 @@ import {
   subscribeActiveNetworking,
 } from './authoring/active-systems';
 import { activeDocumentSourcePath, activeSaveDestination } from './authoring/shell-document-ops';
-import { availabilityTickVersion, subscribeAvailabilityTick } from './availability-tick';
+import { availabilityTickVersion, subscribeAvailabilityTick } from '@volter/editor-sdk/kit/availability-tick';
 import { setBlenderCallMeter } from './blender-tab-metrics';
 import { beginPageWork } from './play-boot-phase';
 import { onCommandDispatched } from './command-dispatch';
@@ -35,7 +35,7 @@ import { openRegisteredDocumentAsync } from './document-open-registry';
 import { editorConsole } from './editor-console';
 import { resolvedProjectDocumentTable } from './project-adapter';
 import { notify } from './editor-notifications';
-import { registerEditorStateFacet } from './editor-state-facets';
+import { registerEditorStateFacet } from '@volter/editor-sdk/kit/editor-state-facets';
 import { setFilesProvider } from './files/file-provider';
 import { projectFiles } from './files/project-files';
 import {
@@ -87,7 +87,7 @@ import {
   restartLiveSession,
   snapshotLiveFrame,
   subscribeLiveSessions,
-} from './live-session-registry';
+} from '@volter/editor-sdk/kit/live-session-registry';
 import {
   beginLiveTransition,
   endPlayTransition,
@@ -123,7 +123,7 @@ import {
   activeWorkspaceDocumentId,
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from './workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { showWorkspaceUtility } from './workspace-host-commands';
 
 /**

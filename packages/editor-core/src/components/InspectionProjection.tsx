@@ -63,7 +63,7 @@ import {
   useState,
 } from 'react';
 import { hierarchyKindIcon } from '../hierarchy-kind-icon';
-import { setActiveScope } from '../hotkeys';
+import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import {
   actionsPlacedAt,
   type InspectionAction,

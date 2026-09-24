@@ -20,7 +20,7 @@ import { registerDesignTimeSurface } from '../../coverage/design-time-surfaces';
 import {
   isEditorPresentationActive,
   subscribeEditorPresentationActivity,
-} from '../../editor-presentation-activity';
+} from '@volter/editor-sdk/kit/editor-presentation-activity';
 import {
   createModelPreviewSource,
   loadModelThumbnailObject,

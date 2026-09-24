@@ -3,8 +3,8 @@
  * is bucketed with the CLI control channel.
  */
 
-import { assertEditorServerResponse, editorServerJson } from '../editor-server-response';
-import { BASE } from './base';
+import { assertEditorServerResponse, editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
+import { BASE } from '@volter/editor-sdk/kit/api-base';
 // ---------------------------------------------------------------------------
 // Play-mode console log persistence
 // ---------------------------------------------------------------------------

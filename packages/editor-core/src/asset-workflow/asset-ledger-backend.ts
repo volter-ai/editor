@@ -23,7 +23,7 @@
  */
 
 import { withPathLock } from '../storage/path-lock';
-import type { StorageBackend } from '../storage/types';
+import type { StorageBackend } from '@volter/editor-sdk/kit/storage-types';
 import {
   ASSET_LEDGER_PATH,
   type AssetLedger,

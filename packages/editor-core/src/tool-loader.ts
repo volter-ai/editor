@@ -45,13 +45,13 @@ import {
 import { contributedCommandRows, registerContributedCommands } from './command-registry';
 import { InspectorToolSection } from './components/InspectorToolSection';
 import { ToolHost } from './components/ToolHost';
-import { editorServerJson } from './editor-server-response';
+import { editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
 import { CONTRIBUTED_SECTION_ORDER } from '@volter/editor-sdk/kit/inspection-model';
 import {
   type InspectorSectionIcon,
   type InspectorSectionMatchContext,
   registerInspectorSections,
-} from './inspector-section-registry';
+} from '@volter/editor-sdk/kit/inspector-section-registry';
 import { registerContributedKeymap, reportUnavailableKeymap } from './keymap-presets';
 import { projectMounts } from './project-shape';
 import type { ProjectToolCatalog, ProjectToolCatalogEntry } from './project-tools';

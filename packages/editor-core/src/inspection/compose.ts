@@ -87,7 +87,7 @@ import {
 import {
   type InspectorSectionContribution,
   isSectionsProducer,
-} from '../inspector-section-registry';
+} from '@volter/editor-sdk/kit/inspector-section-registry';
 import { describeInstancedPresentation } from '../instanced-presentation';
 import {
   type FieldDescriptor,

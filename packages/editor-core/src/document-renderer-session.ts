@@ -1,7 +1,7 @@
 import {
   isEditorPresentationActive,
   subscribeEditorPresentationActivity,
-} from './editor-presentation-activity';
+} from '@volter/editor-sdk/kit/editor-presentation-activity';
 
 /**
  * The frame-loop + renderer lifetime for one Object3D document viewport.

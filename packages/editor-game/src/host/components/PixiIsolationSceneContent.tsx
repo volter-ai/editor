@@ -22,10 +22,10 @@ import { capturePixiDisplayObjectThumbnail } from '@volter/editor-core/canvas-pr
 import type { DocumentPreviewCaptureRequest } from '@volter/editor-sdk/kit/document-preview-source';
 import { useEditorStore } from '@volter/editor-core/editor-runtime';
 import { authoringJournal } from '../history/json-history-resource';
-import { setActiveScope } from '@volter/editor-core/hotkeys';
+import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { getCurrentProject } from '@volter/editor-core/project-manager';
 import { takeNamedExport } from '../take-named-export';
-import { registerWorkspaceDocumentSelection } from '@volter/editor-core/workspace-document-registry';
+import { registerWorkspaceDocumentSelection } from '@volter/editor-sdk/kit/workspace-document-registry';
 import {
   CANVAS_SCENE_BACKGROUND,
   CanvasSceneBackdrop,

@@ -80,7 +80,7 @@ import {
   tokenReferenceGuardText,
 } from '@volter/editor-react/source/writer';
 import { UI_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
-import { activateWorkspaceDocument } from '@volter/editor-core/workspace-document-registry';
+import { activateWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-document-registry';
 import type {
   AssetDropContext,
   AssetDropProvider,

@@ -28,7 +28,7 @@
  *  callers that already reach for it alongside the proxies. */
 export { GAME_GLOBALS_PRELUDE } from '@volter/editor-core/game-globals-prelude';
 
-import { installCreationSiteRecorder } from '@volter/editor-core/creation-site-registry';
+import { installCreationSiteRecorder } from '@volter/editor-sdk/kit/creation-site-registry';
 import { setConsoleRealmAttribution } from '@volter/editor-core/editor-console';
 import { guardedGameLocation, refusedNavigationMessage } from './game-location-guard';
 import { GameRealmPage } from './game-realm-page';
@@ -44,7 +44,7 @@ import {
   type SameRealmLoopGate,
   type SameRealmLoopGateStats,
 } from './same-realm-loop-gate';
-import { surfaceHoldsKeyboard } from '@volter/editor-core/surface-keyboard';
+import { surfaceHoldsKeyboard } from '@volter/editor-sdk/kit/surface-keyboard';
 
 /**
  * The SAME-REALM LOOP GATE (S-5) — the scheduling half of the same idea.

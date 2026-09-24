@@ -44,7 +44,7 @@ import {
   setWorkspaceDocumentDirty,
   type WorkspaceDocumentContentProps,
   type WorkspaceDocumentDescriptor,
-} from '@volter/editor-core/workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { Button, themeVars } from '@volter/editor-sdk/widgets';
 import { Component, type ErrorInfo, type ReactNode, useEffect, useState } from 'react';
 import { scheduleAfterPaint } from '../after-paint';

@@ -28,7 +28,7 @@
  */
 
 import { editorConsole } from './editor-console';
-import { editorServerJson } from './editor-server-response';
+import { editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
 
 /** What the open project's game CSS turned out to be. */
 export interface ScopedGameStylesState {

@@ -1,4 +1,4 @@
-import type { ResourceKey } from './types';
+import type { ResourceKey } from '@volter/editor-sdk/kit/history-types';
 
 /** Serializes every in-process writer that touches the same authored resource. */
 export class PersistenceCoordinator {

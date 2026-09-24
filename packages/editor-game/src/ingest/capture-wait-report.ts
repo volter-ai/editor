@@ -24,7 +24,7 @@
  * path. A second mount replaces the first's entry; there is only ever one wait.
  */
 
-import { notifyLiveSessionsChanged } from '@volter/editor-core/live-session-registry';
+import { notifyLiveSessionsChanged } from '@volter/editor-sdk/kit/live-session-registry';
 import type { VisibleCaptureWindow } from '@volter/threejs-runtime/adapter/ingest/visible-capture-window';
 
 /** The wait as `vgai status` reports it. */

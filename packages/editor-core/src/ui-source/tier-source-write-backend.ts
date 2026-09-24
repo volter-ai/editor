@@ -54,7 +54,7 @@
  * That is a warning that keeps firing, not a grade.
  */
 
-import { editorServerJson } from '../editor-server-response';
+import { editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
 import { createHttpSourceWriteBackend, type SourceWriteBackend } from './source-write-backend';
 
 /**

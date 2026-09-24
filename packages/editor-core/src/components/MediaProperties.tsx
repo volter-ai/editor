@@ -1,7 +1,7 @@
 import { text } from '@volter/editor-sdk/widgets';
 import { useEffect, useState } from 'react';
 import { listAssets } from '../api/assets';
-import { projectPathForAssetUrl } from '../asset-workflow/project-asset-roots';
+import { projectPathForAssetUrl } from '@volter/editor-sdk/kit/project-asset-roots';
 
 type MediaKind = 'image' | 'video' | 'audio';
 type MediaFacts = { width?: number; height?: number; duration?: number };

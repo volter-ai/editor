@@ -34,22 +34,22 @@ import { resolvePanelAuthoring } from '../authoring/panel-authoring';
 import { LIVE_ONLY_ACK, type WriteAck } from '@volter/editor-sdk/kit/write-pipe';
 import { openEntityAssetDocument } from '../components/asset-documents';
 import { describeAssetSelectionSubject } from '../components/asset-selection-section';
-import { ingestCoverageSection } from '../components/CapabilityCoverageSection';
+import { ingestCoverageSection } from '@volter/editor-sdk/kit/CapabilityCoverageSection';
 import { resolveInspectionSubjectId } from '../components/inspector-selection';
 import { resolveComposeStoriesInput } from '../components/inspector-stories-gating';
 import { kindDocumentEntry } from '../components/kind-documents';
 import type { EditorShellStore } from '../editor-shell-store';
 import { entityObject3D } from '../entity-object';
 import { inspectorPresentationOverride } from '../inspector-presentation';
-import { matchedInspectorSections } from '../inspector-section-registry';
-import { liveCoverage } from '../live-session-registry';
+import { matchedInspectorSections } from '@volter/editor-sdk/kit/inspector-section-registry';
+import { liveCoverage } from '@volter/editor-sdk/kit/live-session-registry';
 import { documentContributionForKind } from '../tool-loader';
 import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activeWorkspaceDocument,
   activeWorkspaceDocumentId,
   type WorkspaceDocumentSelection,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { activeChromeRegions } from '../workspace-regions';
 import { activeInspectionSurface } from './active-surface';
 import {

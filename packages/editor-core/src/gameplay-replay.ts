@@ -21,7 +21,7 @@ import {
   WebMOutputFormat,
 } from 'mediabunny';
 import { EventType, type eventWithTime, Replayer } from 'rrweb';
-import { BASE } from './api/base';
+import { BASE } from '@volter/editor-sdk/kit/api-base';
 import {
   type CompositeCapture,
   capturePlayComposite,

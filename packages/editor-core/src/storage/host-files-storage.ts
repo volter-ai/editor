@@ -27,7 +27,7 @@
  */
 
 import { projectFiles } from '../files/project-files';
-import type { DirEntry, Stat, StorageBackend, WatchCallback } from './types';
+import type { DirEntry, Stat, StorageBackend, WatchCallback } from '@volter/editor-sdk/kit/storage-types';
 
 export class HostFilesStorage implements StorageBackend {
   readonly id: string;

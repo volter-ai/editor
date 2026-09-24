@@ -5,7 +5,7 @@ import { activeEditorKeymap } from './keymap-presets';
 import {
   activeWorkspaceDocument,
   activeWorkspaceDocumentSelection,
-} from './workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { activeWorkspaceStaticPanel, activeWorkspaceUtility } from './workspace-host-commands';
 import { activeEditorWorkspace } from './workspace-presets';
 import { activeWorkspaceStyleId } from './workspace-style';

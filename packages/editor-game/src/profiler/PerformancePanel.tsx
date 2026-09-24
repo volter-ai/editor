@@ -17,7 +17,7 @@ import {
   type TimeSpentRow,
   timeSpentRows,
 } from '../host/components/frame-debugger-model';
-import { isJsHeapReading, readJsHeap } from '@volter/editor-core/js-heap';
+import { isJsHeapReading, readJsHeap } from '@volter/editor-sdk/kit/js-heap';
 import { useActivePerformanceSource } from '../host/use-active-performance-source';
 import { editorHost, useHostAvailabilitySelector } from '@volter/editor-sdk/host';
 import {

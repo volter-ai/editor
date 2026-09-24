@@ -3,8 +3,8 @@
  * JSON file per theme under `~/.vgai/themes/` (user) and
  * `<project>/.vgai/themes/` (project) — both files the editor server owns.
  */
-import { assertEditorServerResponse, editorServerJson } from '../editor-server-response';
-import { BASE } from './base';
+import { assertEditorServerResponse, editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
+import { BASE } from '@volter/editor-sdk/kit/api-base';
 import type { SettingsLayer } from './settings';
 
 export interface ThemeDocumentRead {

@@ -12,13 +12,13 @@ import {
 } from '../authoring/object3d-document-session-registry';
 import { useEditorStore } from '../editor-runtime';
 import type { EditorShellStore } from '../editor-shell-store';
-import { nativeViewportShelfTool } from '../native-selection-style';
+import { nativeViewportShelfTool } from '@volter/editor-sdk/kit/native-selection-style';
 import { documentStageContext, stageTransformDriver } from '../stage-context';
 import { stageStore, stageStoresVersion, subscribeStageStores } from '../stage-store-registry';
 import type {
   WorkspaceDocumentDescriptor,
   WorkspaceDocumentKind,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { assetDocumentSpec } from './asset-documents';
 import { DocumentHeaderStrip } from './DocumentHeaderStrip';
 import { DocumentShelfRail } from './DocumentShelfRail';

@@ -7,7 +7,7 @@ import type {
   ToolGameplaySessions,
   ToolGameplaySessionsSnapshot,
 } from '@volter/editor-sdk/contributions';
-import { editorServerJson } from './editor-server-response';
+import { editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
 
 let snapshot: ToolGameplaySessionsSnapshot = {
   sessions: [],

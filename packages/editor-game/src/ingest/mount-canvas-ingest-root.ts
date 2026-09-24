@@ -56,7 +56,7 @@ import {
 import { authoringJournal } from '../host/history/json-history-resource';
 import { acquireLiveDocument, liveDocumentContainer } from '@volter/editor-core/live-document';
 import { getCurrentProject } from '@volter/editor-core/project-manager';
-import { recordRootReadiness } from '@volter/editor-core/readiness';
+import { recordRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import type { MeasuredLoop } from '../host/same-realm-loop-gate';
 import { projectContractSystemAdapters } from '@volter/game-runtime/adapter/ingest/contract-system-adapters';
 import type { RenderDebugWiring } from '@volter/game-runtime/dev/render-debug-adapter';

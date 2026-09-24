@@ -35,7 +35,7 @@
  */
 
 import { editorConsole } from '../editor-console';
-import type { StorageBackend } from '../storage/types';
+import type { StorageBackend } from '@volter/editor-sdk/kit/storage-types';
 import type { AssetPackMaterializationResult } from './hosted-asset-materialization';
 
 /** One declared pack entry that did not materialize — the exact fields both

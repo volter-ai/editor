@@ -30,7 +30,7 @@ import {
   openWorkspaceDocuments,
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { openAssetDocument } from './asset-documents';
 import { WorkspaceDocumentSurface } from './WorkspaceDocumentSurface';
 

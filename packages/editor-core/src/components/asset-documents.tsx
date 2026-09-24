@@ -38,7 +38,7 @@ import type { AuthoringAssetSubject } from '@volter/editor-project/adapter';
 import { lazy, type ReactNode, Suspense, useEffect, useSyncExternalStore } from 'react';
 import type * as THREE from 'three';
 import { clearSelectedAsset } from '../asset-selection';
-import { assetCapabilities } from '../asset-workflow/asset-capabilities';
+import { assetCapabilities } from '@volter/editor-sdk/kit/asset-capabilities';
 import {
   splitSpritesheetAssetPath,
   spritesheetFrameTitle,
@@ -58,7 +58,7 @@ import {
   type WorkspaceDocumentContentProps,
   type WorkspaceDocumentDescriptor,
   workspaceDocumentSelection,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { registerWorkspaceDocumentRestorer } from '../workspace-document-restore';
 
 import { MediaProperties } from './MediaProperties';

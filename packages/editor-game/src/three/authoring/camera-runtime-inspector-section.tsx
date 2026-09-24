@@ -10,7 +10,7 @@
  */
 
 import { getActiveCamera } from '@volter/editor-core/authoring/active-systems';
-import type { InspectorSectionProps } from '@volter/editor-core/inspector-section-registry';
+import type { InspectorSectionProps } from '@volter/editor-sdk/kit/inspector-section-registry';
 import type {
   AuthoringAdapter,
   CameraAdapter,

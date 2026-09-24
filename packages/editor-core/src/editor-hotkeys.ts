@@ -39,7 +39,7 @@ import {
   isEditableTarget,
   registerHotkeys,
   setActiveScope,
-} from './hotkeys';
+} from '@volter/editor-sdk/kit/hotkeys';
 import { type KeyActionScope, registerKeyAction } from './key-actions';
 import {
   type EditorKeyActionId,
@@ -47,10 +47,10 @@ import {
   shortcutFor,
   subscribeEditorKeymap,
 } from './keymap-presets';
-import { stopAllLiveSessions } from './live-session-registry';
+import { stopAllLiveSessions } from '@volter/editor-sdk/kit/live-session-registry';
 import { requestTransformMode } from './transform-mode-request';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
-import { saveActiveWorkspaceDocument } from './workspace-document-registry';
+import { saveActiveWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { toggleWorkspaceFocus } from './workspace-host-commands';
 import { cycleEditorWorkspace } from './workspace-presets';
 import { toggleConsoleUtility } from './workspace-utility-commands';

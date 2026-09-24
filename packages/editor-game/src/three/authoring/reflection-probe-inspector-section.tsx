@@ -1,5 +1,5 @@
 import { useEditorStore } from '@volter/editor-core/editor-runtime';
-import type { InspectorSectionProps } from '@volter/editor-core/inspector-section-registry';
+import type { InspectorSectionProps } from '@volter/editor-sdk/kit/inspector-section-registry';
 import type { AuthoringAdapter, EditorNode } from '@volter/editor-project/adapter';
 import { type ReflectionProbeSnapshot, reflectionProbeOf } from '@volter/threejs-runtime/adapter/reflection-probe';
 import { Button, EditorBanner, FieldGroup, FieldRow, Text } from '@volter/editor-sdk/widgets';

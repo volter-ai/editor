@@ -1,5 +1,5 @@
 import { connectEvents } from './editor-api';
-import { announceAssetReload, evictLoaderCaches } from './project-asset-refresh';
+import { announceAssetReload, evictLoaderCaches } from '@volter/editor-sdk/kit/project-asset-refresh';
 
 export interface AssetMovedEvent {
   oldPath: string;

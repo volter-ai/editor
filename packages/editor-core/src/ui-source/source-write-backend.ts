@@ -33,9 +33,9 @@
  * backend seam, rather than a second bespoke fetch call.
  */
 
-import { sha256Hex } from '../bytes-codec';
-import { assertEditorServerAnswered } from '../editor-server-response';
-import { setCollaborationRevision, sourceMutationAttribution } from '../editor-session-attribution';
+import { sha256Hex } from '@volter/editor-sdk/kit/bytes-codec';
+import { assertEditorServerAnswered } from '@volter/editor-sdk/kit/editor-server-response';
+import { setCollaborationRevision, sourceMutationAttribution } from '@volter/editor-sdk/kit/editor-session-attribution';
 import { projectFiles } from '../files/project-files';
 import { handleProjectMutationFailure } from '../source-conflict';
 import type {

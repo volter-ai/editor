@@ -28,7 +28,7 @@ import {
   assetSelectionViewersVersion,
   subscribeAssetSelectionViewers,
 } from '../asset-selection-viewer-registry';
-import { assetDocumentKind } from '../asset-workflow/asset-capabilities';
+import { assetDocumentKind } from '@volter/editor-sdk/kit/asset-capabilities';
 import {
   type PixiSpritesheetFrame,
   parsePixiSpritesheet,
@@ -53,7 +53,7 @@ import {
   getGlobalToolContributions,
   subscribeToolContributions,
 } from '../tool-loader';
-import { activeWorkspaceDocumentSelection } from '../workspace-document-registry';
+import { activeWorkspaceDocumentSelection } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { AssetInspectorToolSection } from './AssetInspectorToolSection';
 import { ModelThumbnail, TypedAssetThumbnail } from './asset-thumbnails';
 import { SpritesheetSpriteView } from './asset-viewers/SpritesheetSpriteView';

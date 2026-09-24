@@ -1,6 +1,6 @@
 import type { ProjectToolCatalog } from '@volter/editor-sdk/project-tool-catalog';
 import { connectToolFileEvents } from './asset-events';
-import { editorServerJson } from './editor-server-response';
+import { editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
 import { onProjectChange } from './project-manager';
 
 export type {

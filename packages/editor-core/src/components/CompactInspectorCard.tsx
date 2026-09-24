@@ -38,7 +38,7 @@ import { useActiveInspection } from '../inspection/use-active-inspection';
 import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import {
   resolveViewportOverlayPlacement,
   subscribeWorkspaceViewportRect,

@@ -15,7 +15,7 @@ import { CORE_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-
 import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { showWorkspaceUtility } from '../workspace-host-commands';
 import { ViewportOverlaysMenu } from './ViewportOverlaysMenu';
 import { ViewportShadingMenu } from './ViewportShadingMenu';

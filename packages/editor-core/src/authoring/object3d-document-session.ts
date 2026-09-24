@@ -13,7 +13,7 @@ import * as THREE from 'three';
 import { cameraPresetDirection, type ModelCameraPreset } from '../asset-workflow/model-inspection';
 import { editorConsole } from '../editor-console';
 import { type EditorViewport } from '../editor-viewport';
-import { nativeSelectionColors, subscribeNativeSelectionTheme } from '../native-selection-style';
+import { nativeSelectionColors, subscribeNativeSelectionTheme } from '@volter/editor-sdk/kit/native-selection-style';
 import { BoneSelectionHighlight } from '../three-viewport/bone-selection-highlight';
 import { perspectiveDistanceToFitBox } from '../three-viewport/camera-fit';
 import {

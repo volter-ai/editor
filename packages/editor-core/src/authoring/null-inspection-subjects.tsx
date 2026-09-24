@@ -18,7 +18,7 @@
 import { getActiveAssetEditorContext } from '../asset-editor-context';
 import { documentInspectionSubject } from '../inspection/document-subject';
 import { registerNullSubjectProvider } from '../inspection/null-subject';
-import { activeWorkspaceDocumentId } from '../workspace-document-registry';
+import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
 
 /**
  * An open asset document's empty state: the DOCUMENT itself. Pick a part

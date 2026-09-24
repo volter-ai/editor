@@ -87,7 +87,7 @@ import {
   creationSiteAnchor,
   instancesAtSite,
   NO_OBJECT_REASON,
-} from '@volter/editor-core/creation-site-registry';
+} from '@volter/editor-sdk/kit/creation-site-registry';
 import { editorConsole } from '@volter/editor-core/editor-console';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { type JournalSubject, JsonHistoryResource } from '../../host/history/json-history-resource';

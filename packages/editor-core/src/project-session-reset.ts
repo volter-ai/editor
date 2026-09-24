@@ -32,10 +32,10 @@ import { clearSelectedAsset } from './asset-selection';
 import { setActiveAuthoring } from './authoring/active-adapter';
 import { resetActiveSystemsForNewProject } from './authoring/active-systems';
 import { resetSessionVitalsForNewProject } from './coverage/session-vitals';
-import { stopAllLiveSessions } from './live-session-registry';
+import { stopAllLiveSessions } from '@volter/editor-sdk/kit/live-session-registry';
 import { onProjectSessionEnd } from './project-manager';
 import { resetViewportActivationTimingsForNewProject } from '@volter/editor-sdk/kit/viewport-activation-timings';
-import { closeAllWorkspaceDocuments } from './workspace-document-registry';
+import { closeAllWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-document-registry';
 
 /**
  * Register the project-session resets. Called once at editor init

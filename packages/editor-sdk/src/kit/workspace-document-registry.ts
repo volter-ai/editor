@@ -25,7 +25,7 @@
  * behavior lives inside each descriptor's own `Content`/`Toolbar`.
  */
 
-import type { EditorViewDocument } from '@volter/editor-sdk';
+import type { EditorViewDocument } from '../index';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import type { ComponentType } from 'react';
 import type { DocumentPreviewSource } from '@volter/editor-sdk/kit/document-preview-source';

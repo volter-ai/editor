@@ -22,7 +22,7 @@ import { themeVars } from '@volter/editor-sdk/widgets';
 import type { DocumentEntry } from '@volter/editor-project/adapter/adapter-module';
 import { type ComponentType, useSyncExternalStore } from 'react';
 import { setSelectedAsset } from '../asset-selection';
-import { assetCapabilities } from '../asset-workflow/asset-capabilities';
+import { assetCapabilities } from '@volter/editor-sdk/kit/asset-capabilities';
 import {
   awaitAnnouncedObject3DDocumentSession,
   waitForContributedDocumentMount,
@@ -45,7 +45,7 @@ import {
   openWorkspaceDocument,
   openWorkspaceDocuments,
   type WorkspaceDocumentContentProps,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { registerWorkspaceDocumentRestorer } from '../workspace-document-restore';
 import { openAssetDocument } from './asset-documents';
 import { ToolHost } from './ToolHost';

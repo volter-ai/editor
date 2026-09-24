@@ -7,7 +7,7 @@
  * plus the small amount of text (state, model, charge) that frames them.
  */
 
-import { ASSET_ROOTS, assetRootServingUrl } from '@volter/editor-core/asset-workflow/project-asset-roots';
+import { ASSET_ROOTS, assetRootServingUrl } from '@volter/editor-sdk/kit/project-asset-roots';
 import type { GenerationBilling, GenerationJob } from '@volter/editor-sdk/generations';
 
 /**

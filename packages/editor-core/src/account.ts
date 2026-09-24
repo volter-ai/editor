@@ -15,8 +15,8 @@ import {
   generationAccountProjection,
   ProviderCredentialTestResultSchema,
 } from '@volter/editor-sdk/account';
-import { assertEditorServerAnswered } from './editor-server-response';
-import { COLLABORATION_REMOTE_SHARE } from './editor-session-attribution';
+import { assertEditorServerAnswered } from '@volter/editor-sdk/kit/editor-server-response';
+import { COLLABORATION_REMOTE_SHARE } from '@volter/editor-sdk/kit/editor-session-attribution';
 
 const EMPTY: EditorAccountSnapshot = {
   authenticated: false,

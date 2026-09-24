@@ -38,7 +38,7 @@ import * as THREE from 'three';
 // Side-effect: registers the model-asset section contributions (Geometry,
 // Animation, Materials, Source) into the inspector-section registry.
 import '@volter/editor-core/authoring/model-asset-inspector-section';
-import { ingestCoverageSection } from '@volter/editor-core/components/CapabilityCoverageSection';
+import { ingestCoverageSection } from '@volter/editor-sdk/kit/CapabilityCoverageSection';
 import { InspectionProjectionView } from '@volter/editor-core/components/InspectionProjection';
 import { AuthoringInspectorSurface } from '@volter/editor-core/components/Inspector';
 import { deriveCapabilityCoverage } from '../host/coverage/capability-coverage';

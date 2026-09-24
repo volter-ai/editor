@@ -9,7 +9,7 @@ import {
 import { type RefObject, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { getActiveAuthoring } from '../authoring/active-adapter';
 import { selectAllAuthoringNodes } from '../authoring/shell-document-ops';
-import { useAvailabilitySelector } from '../availability-tick';
+import { useAvailabilitySelector } from '@volter/editor-sdk/kit/availability-tick';
 import {
   contributedChromeVersion,
   contributedDisabledFingerprint,

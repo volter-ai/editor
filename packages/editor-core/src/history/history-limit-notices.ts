@@ -19,7 +19,7 @@
 import { editorConsole } from '../editor-console';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import type { HistoryService } from './history-service';
-import type { HistoryEviction, HistoryLimitWarning } from './types';
+import type { HistoryEviction, HistoryLimitWarning } from '@volter/editor-sdk/kit/history-types';
 
 export function connectHistoryLimitNotices(history: HistoryService): () => void {
   let seenWarning: HistoryLimitWarning | null = history.getSnapshot().limitWarning;

@@ -50,7 +50,7 @@ import {
   openWorkspaceDocument,
   openWorkspaceDocuments,
   type WorkspaceDocumentDescriptor,
-} from './workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 
 /** How long an acquire waits for the panel's first commit before giving up.
  *  The caller's failure message ("the game container is not mounted…") is the

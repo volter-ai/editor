@@ -46,7 +46,7 @@ import {
   openEditorWorktree,
   stopEditorWorktreeSession,
 } from '../editor-api';
-import { COLLABORATION_REMOTE_SHARE } from '../editor-session-attribution';
+import { COLLABORATION_REMOTE_SHARE } from '@volter/editor-sdk/kit/editor-session-attribution';
 import { VersionControlSection } from './VersionControlSection';
 
 // The kit's own answer to which agents a task can be delegated to: every harness supercode

@@ -1,4 +1,4 @@
-import { assertEditorServerAnswered } from './editor-server-response';
+import { assertEditorServerAnswered } from '@volter/editor-sdk/kit/editor-server-response';
 
 export interface SourceConflictResource {
   path: string;
@@ -92,7 +92,7 @@ export async function resolveSourceConflict(
   notice: SourceConflictNotice,
   resources: Record<string, string | null>,
 ): Promise<void> {
-  const { sourceMutationAttribution } = await import('./editor-session-attribution');
+  const { sourceMutationAttribution } = await import('@volter/editor-sdk/kit/editor-session-attribution');
   const response = await fetch('/__editor/source-conflict/resolve', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

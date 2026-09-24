@@ -20,11 +20,11 @@
  * happened, so the failure is returned for the UI to surface.
  */
 
-import { sha256Hex } from '@volter/editor-core/bytes-codec';
-import { assertEditorServerAnswered } from '@volter/editor-core/editor-server-response';
-import { sourceMutationAttribution } from '@volter/editor-core/editor-session-attribution';
+import { sha256Hex } from '@volter/editor-sdk/kit/bytes-codec';
+import { assertEditorServerAnswered } from '@volter/editor-sdk/kit/editor-server-response';
+import { sourceMutationAttribution } from '@volter/editor-sdk/kit/editor-session-attribution';
 import { handleProjectMutationFailure } from '@volter/editor-core/source-conflict';
-import type { StorageBackend } from '@volter/editor-core/storage/types';
+import type { StorageBackend } from '@volter/editor-sdk/kit/storage-types';
 import { invalidateCachedAsset } from '@volter/threejs-runtime/asset-loaders';
 
 const PROVENANCE_PATH = '.vgai/provenance.json';

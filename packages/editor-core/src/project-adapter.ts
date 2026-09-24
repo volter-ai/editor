@@ -99,7 +99,7 @@ import { declaredRoots, ingestRoots } from '@volter/editor-project/adapter/manif
 import type { ResolvedGameManifest } from '@volter/editor-project/manifest/load';
 import { activeProjectKey } from './active-project';
 import { setAdapterEditorConfiguration } from './adapter-editor-config';
-import { setAdapterInputBinding, setAdapterObservations } from './adapter-observation';
+import { setAdapterInputBinding, setAdapterObservations } from '@volter/editor-sdk/kit/adapter-observation';
 import { connectSourceFileEvents } from './asset-events';
 import {
   listProjectComponents,
@@ -109,7 +109,7 @@ import {
 } from './editor-api';
 import { editorConsole } from './editor-console';
 import { fetchGameManifest } from './manifest-project';
-import { setPresentationRegions } from './presentation-surface';
+import { setPresentationRegions } from '@volter/editor-sdk/kit/presentation-surface';
 import { type ActiveProject, getCurrentProject, onProjectChange } from './project-manager';
 import { projectModuleChangeMatches, subscribeProjectModuleChange } from './project-module-changes';
 import { notifyProjectShapeChanged, registerDocumentKindsSupplier } from './project-shape';

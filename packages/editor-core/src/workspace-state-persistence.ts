@@ -88,7 +88,7 @@ import {
   openWorkspaceDocuments,
   restorePinnedWorkspaceDocumentActivation,
   subscribeWorkspaceDocuments,
-} from './workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import {
   type WorkspaceStateStore,
   workspaceDocumentRestorerEntries,

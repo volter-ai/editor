@@ -15,12 +15,12 @@
 
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import type { AdapterSurface } from '@volter/editor-project/adapter/adapter-surface';
-import { liveSurface } from '../live-session-registry';
+import { liveSurface } from '@volter/editor-sdk/kit/live-session-registry';
 import { projectAdapterFacet } from '../project-adapter';
 import {
   activeWorkspaceDocument,
   activeWorkspaceDocumentSelection,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { getAuthoringOverride } from './active-adapter';
 import { CompositeAuthoringAdapter } from './composite-authoring-adapter';
 

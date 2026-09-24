@@ -4,7 +4,7 @@ import type { ViewportTab } from '../editor-shell-store';
 import { projectAdapterFacet, type ResolvedDocumentTable, subscribeProjectAdapter } from '../project-adapter';
 import { planSceneDocument, sceneTabRow } from '../scene-document-plan';
 import { openAvailableWorkspaceDocument } from '../workspace-available-documents';
-import { activateWorkspaceDocument, setWorkspaceDocumentTitle } from '../workspace-document-registry';
+import { activateWorkspaceDocument, setWorkspaceDocumentTitle } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { rootDocumentId } from '../world-document-routing';
 import { kindDocumentId, openKindDocument } from './kind-documents';
 

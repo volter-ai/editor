@@ -18,7 +18,7 @@ import type {
 import { useEffect, useState } from 'react';
 import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
 import { GROUP_SECTION_ORDER, type InspectionSection } from '@volter/editor-sdk/kit/inspection-model';
-import { registerInspectorSections } from '../inspector-section-registry';
+import { registerInspectorSections } from '@volter/editor-sdk/kit/inspector-section-registry';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import {
   applyAuthoringInstanceToComponent,

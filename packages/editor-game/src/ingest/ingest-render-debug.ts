@@ -55,7 +55,7 @@
  * notice.
  */
 
-import { adapterObservations } from '@volter/editor-core/adapter-observation';
+import { adapterObservations } from '@volter/editor-sdk/kit/adapter-observation';
 import { createContractDebugAdapter } from '@volter/game-runtime/adapter/ingest/contract-debug-adapter';
 import {
   type ContractSurface,

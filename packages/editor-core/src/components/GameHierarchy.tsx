@@ -165,7 +165,7 @@ import {
   setHierarchyExpansionPreferences,
 } from '../hierarchy-expansion-state';
 import { hierarchyHeaderSlot, subscribeHierarchyHeaderSlot } from '../hierarchy-header-slot';
-import { applyRevealExpansionDefaults, internalsProjection } from '../hierarchy-internals';
+import { applyRevealExpansionDefaults, internalsProjection } from '@volter/editor-sdk/kit/hierarchy-internals';
 import {
   hierarchyKindIcon,
   isDatablockKind,
@@ -206,7 +206,7 @@ import {
   UNLOCKED,
 } from '../hierarchy-row-model';
 import { CHILD_CAP } from '../hierarchy-rows';
-import { setActiveScope } from '../hotkeys';
+import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { instancedRowDetail } from '../instanced-presentation';
 import { getCurrentProject } from '../project-manager';
 import { focusedStageStore } from '../stage-context';
@@ -215,7 +215,7 @@ import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import {
   activeChromeRegions,
   type ChromeRegions,

@@ -29,7 +29,7 @@
  */
 
 import type { ProjectRegionEntry } from '../asset-workflow/project-source-index';
-import { editorServerJson } from '../editor-server-response';
+import { editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
 import { setProjectStoryRegions } from './project-story-regions';
 
 /**

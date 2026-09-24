@@ -16,8 +16,8 @@ import { getActiveAssetEditorContext } from '../asset-editor-context';
 import { CompositeAuthoringAdapter } from '../authoring/composite-authoring-adapter';
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
 import type { EditorShellStore } from '../editor-shell-store';
-import { liveSurface } from '../live-session-registry';
-import { activeWorkspaceDocumentId } from '../workspace-document-registry';
+import { liveSurface } from '@volter/editor-sdk/kit/live-session-registry';
+import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
 import type { InspectionSurfaceKind } from '@volter/editor-sdk/kit/inspection-model';
 
 function surfaceKindOf(kind: string): InspectionSurfaceKind | null {

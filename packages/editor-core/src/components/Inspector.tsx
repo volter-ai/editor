@@ -27,10 +27,10 @@ import { useEffect, useReducer, useSyncExternalStore } from 'react';
 import { assetSelectionVersion, subscribeAssetSelection } from '../asset-selection';
 import { getActiveCamera } from '../authoring/active-systems';
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
-import { useAvailabilitySelector } from '../availability-tick';
+import { useAvailabilitySelector } from '@volter/editor-sdk/kit/availability-tick';
 import { useEditorStore } from '../editor-runtime';
 import type { EditorShellStore } from '../editor-shell-store';
-import { setActiveScope } from '../hotkeys';
+import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { composeInspectionForBinding } from '../inspection/active-subject';
 import type { InspectionPresentation, InspectionSurfaceKind } from '@volter/editor-sdk/kit/inspection-model';
 import { useActiveInspection } from '../inspection/use-active-inspection';
@@ -38,10 +38,10 @@ import { setInspectorPresentationOverride } from '../inspector-presentation';
 import {
   inspectorSectionRegistryVersion,
   subscribeInspectorSectionRegistry,
-} from '../inspector-section-registry';
-import { liveAuthoringRefusal } from '../live-session-registry';
+} from '@volter/editor-sdk/kit/inspector-section-registry';
+import { liveAuthoringRefusal } from '@volter/editor-sdk/kit/live-session-registry';
 import { projectMounts } from '../project-shape';
-import type { WorkspaceDocumentSelection } from '../workspace-document-registry';
+import type { WorkspaceDocumentSelection } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { InspectionProjectionView } from './InspectionProjection';
 
 export interface AuthoringInspectorSurfaceProps {

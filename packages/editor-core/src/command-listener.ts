@@ -37,7 +37,7 @@ import {
   parseShotSetDefinition,
 } from './asset-preview';
 import { setSelectedAsset } from './asset-selection';
-import { assetCapabilities, assetDocumentKind } from './asset-workflow/asset-capabilities';
+import { assetCapabilities, assetDocumentKind } from '@volter/editor-sdk/kit/asset-capabilities';
 import { systemsForInstance } from './authoring/active-systems';
 import { getMountFailureReports } from '@volter/editor-sdk/kit/mount-failure-report';
 import { object3DDocumentSession } from './authoring/object3d-document-session-registry';
@@ -79,7 +79,7 @@ import type {
   HelperVisibility,
   ViewportTab,
 } from './editor-shell-store';
-import { collectEditorStateFacets, reusableFacetKeys } from './editor-state-facets';
+import { collectEditorStateFacets, reusableFacetKeys } from '@volter/editor-sdk/kit/editor-state-facets';
 import { entityObject3D } from './entity-object';
 import {
   hierarchyPanelSnapshot,
@@ -95,10 +95,10 @@ import {
   liveScenes,
   remountLiveSelection,
   subscribeLiveSessions,
-} from './live-session-registry';
+} from '@volter/editor-sdk/kit/live-session-registry';
 import { setPlayBootPhaseReporter } from './play-boot-phase';
 import { projectAdapterFacet, subscribeProjectAdapter } from './project-adapter';
-import { getProjectModuleSplitReports } from './project-module-split';
+import { getProjectModuleSplitReports } from '@volter/editor-sdk/kit/project-module-split';
 import { onSessionEndedChange, sessionEndedRefusal, sessionEndedState } from './session-tombstone';
 import { prepareSessionClose } from './session-close';
 import { focusedStageStore } from './stage-context';
@@ -170,7 +170,7 @@ import {
   runActiveInspectionAction,
   setActiveInspectionField,
 } from './inspection/active-subject';
-import { measuredReadinessWarning, readinessFacet } from './readiness';
+import { measuredReadinessWarning, readinessFacet } from '@volter/editor-sdk/kit/readiness';
 import { deriveReportedPlayState } from './reported-play-state';
 import { openLiveSceneEntry } from './scene-live-open';
 import { editorMaterialSnapshot, setEditorMaterialPreference } from './theme-preference';
@@ -180,7 +180,7 @@ import {
   activeWorkspaceDocumentId,
   closeWorkspaceDocument,
   openWorkspaceDocuments,
-} from './workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { availableWorkspaceDocuments } from './workspace-available-documents';
 import { activeWorkspaceUtility } from './workspace-host-commands';
 import {

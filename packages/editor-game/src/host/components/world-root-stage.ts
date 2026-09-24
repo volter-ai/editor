@@ -70,7 +70,7 @@ import { registerPresentedCanvasFrame } from '@volter/editor-core/canvas-preview
 import { collectState } from '@volter/editor-core/command-listener';
 import { getDownloadedAssetPath, getOnlineAssetFiles, reportEditorState } from '@volter/editor-core/editor-api';
 import { editorConsole } from '@volter/editor-core/editor-console';
-import { isEditorPresentationActive } from '@volter/editor-core/editor-presentation-activity';
+import { isEditorPresentationActive } from '@volter/editor-sdk/kit/editor-presentation-activity';
 import type { EditorStats } from '@volter/editor-core/editor-runtime';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { EditorViewport, type OnlineAssetDrop } from '@volter/editor-core/editor-viewport';
@@ -79,7 +79,7 @@ import {
   nativeSelectionColors,
   nativeViewportLook,
   subscribeNativeSelectionTheme,
-} from '@volter/editor-core/native-selection-style';
+} from '@volter/editor-sdk/kit/native-selection-style';
 import { registerPerformanceSource } from '@volter/editor-core/performance-sources';
 import { drawSceneUnlessRefused } from '../scene-view-drawability';
 import { withSceneFogNeutralized } from '@volter/editor-core/scene-view-fog';

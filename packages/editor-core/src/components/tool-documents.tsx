@@ -41,7 +41,7 @@ import {
   openWorkspaceDocument,
   openWorkspaceDocuments,
   type WorkspaceDocumentContentProps,
-} from '../workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { registerWorkspaceDocumentRestorer } from '../workspace-document-restore';
 import { ToolHost } from './ToolHost';
 

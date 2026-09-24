@@ -51,7 +51,7 @@ import {
   STORY_ARGS_SECTION_ID,
   STORY_ARGS_SECTION_TITLE,
 } from '@volter/editor-sdk/kit/inspection-model';
-import { registerInspectorSections } from '@volter/editor-core/inspector-section-registry';
+import { registerInspectorSections } from '@volter/editor-sdk/kit/inspector-section-registry';
 import type { ComposedProjectStory } from '@volter/editor-core/stories/compose-project-stories';
 import { getProjectStoryRegions } from '@volter/editor-core/stories/project-story-regions';
 import { mountIsolatedStory, runStoryPlay } from '@volter/editor-core/stories/StoryPreviewMount';
@@ -74,7 +74,7 @@ import {
   activeWorkspaceDocument,
   openWorkspaceDocument,
   type WorkspaceDocumentContentProps,
-} from '@volter/editor-core/workspace-document-registry';
+} from '@volter/editor-sdk/kit/workspace-document-registry';
 import { registerWorkspaceDocumentRestorer } from '@volter/editor-core/workspace-document-restore';
 import { registerWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-utility-registry';
 import { fitPresentation } from '@volter/game-runtime/runtime/presentation';
