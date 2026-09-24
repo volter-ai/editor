@@ -11,14 +11,13 @@
  * engine — so the game shares the singletons the editor already runs (two
  * copies of three break `instanceof`; two reconcilers cannot own one canvas).
  *
- * THE LIST IS DERIVED, NOT CURATED (owner decision, 2026-08-27). Capabilities
- * are the sanctioned way a game gains functionality, so the union of what the
- * template, every example and every catalog capability imports IS the
- * definition of the dependencies this resolver may have to answer — and it is
- * computable. `scripts/validate-browser-runtime-modules.mjs` (pre-commit)
- * holds this table to that union: a capability that starts importing a
- * package this list does not ship fails the commit naming the package, and
- * the fix is one loader below. An import outside the list is a wall
+ * THE LIST IS DERIVED, NOT CURATED. Capabilities are the sanctioned way a
+ * game gains functionality, so the union of what the game template and the
+ * catalog's capabilities import IS the definition of the dependencies this
+ * resolver may have to answer — and it is computable.
+ * `scripts/check-served-bundle-modules.mjs` (pre-commit) holds this table to
+ * that union: a capability that starts importing a package this list does not
+ * ship, or a loader nothing imports any more, fails the commit by name. An import outside the list is a wall
  * `browser-transpile.ts` states in product words; nothing degrades silently.
  *
  * THREE FAMILIES, one resolver ({@link servedBundleRuntimeModuleLoader}):

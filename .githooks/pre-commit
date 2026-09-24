@@ -1,0 +1,5 @@
+#!/bin/sh
+# Fast checks run where the change is made (owner rule): each is under a second.
+if git diff --cached --name-only | grep -qE '^packages/(game-editor/(template|catalog)|editor-game/src/host/served-bundle-runtime-modules\.ts)'; then
+  node scripts/check-served-bundle-modules.mjs || exit 1
+fi
