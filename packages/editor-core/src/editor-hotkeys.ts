@@ -19,7 +19,7 @@ import {
   exitSelectionScope,
 } from './authoring/selection-scope';
 import { activeSelectionIds, saveActiveAuthoring } from './authoring/shell-document-ops';
-import { resetRootPan } from './authoring/world-pan-state';
+import { resetRootPan } from '@volter/editor-sdk/kit/world-pan-state';
 import {
   boxEditForId,
   computeArrowNudgePatch,
@@ -49,7 +49,7 @@ import {
 } from './keymap-presets';
 import { stopAllLiveSessions } from './live-session-registry';
 import { requestTransformMode } from './transform-mode-request';
-import { showTransientHint } from './transient-hint';
+import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import { saveActiveWorkspaceDocument } from './workspace-document-registry';
 import { toggleWorkspaceFocus } from './workspace-host-commands';
 import { cycleEditorWorkspace } from './workspace-presets';

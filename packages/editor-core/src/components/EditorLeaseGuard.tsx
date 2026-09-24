@@ -54,7 +54,7 @@
  * no game-side flag is involved.
  */
 
-import { commandLine } from '../product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import { useEffect, useRef, useState } from 'react';
 import { pollEditorLeaseIdentity } from '../editor-api';
 import {

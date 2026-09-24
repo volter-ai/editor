@@ -36,7 +36,7 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 import { activateAssetEditorContext } from '../asset-editor-context';
 import { publishDocumentInspectionSubject } from '../inspection/document-subject';
-import type { InspectionSection } from '../inspection/model';
+import type { InspectionSection } from '@volter/editor-sdk/kit/inspection-model';
 import type { NullInspectionSubject } from '../inspection/null-subject';
 import {
   registerWorkspaceDocumentSelection,

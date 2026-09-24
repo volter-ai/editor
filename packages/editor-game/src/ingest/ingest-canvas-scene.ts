@@ -7,7 +7,7 @@
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { projectAdapterFacet } from '@volter/editor-core/project-adapter';
 import { isolationTabsReplaceGenericScene } from '@volter/editor-core/scene-document-plan';
-import { CANVAS_SCENE_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
+import { CANVAS_SCENE_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activateWorkspaceDocument,
   closeWorkspaceDocument,

@@ -25,7 +25,7 @@ import {
   instanceSourceTargets,
   runInstanceSourceAction,
 } from '../instance-source-actions';
-import { showTransientHint } from '../transient-hint';
+import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import { getActiveAuthoring } from './active-adapter';
 import { CompositeAuthoringAdapter } from './composite-authoring-adapter';
 import { enterSelectionScope } from './selection-scope';

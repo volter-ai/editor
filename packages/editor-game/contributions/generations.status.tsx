@@ -9,7 +9,7 @@
  * concern).
  */
 
-import { CONTRIBUTED_WORKSPACE_UTILITIES } from '@volter/editor-core/workspace-core-utilities';
+import { CONTRIBUTED_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-utilities';
 import { editorHost } from '@volter/editor-sdk/host';
 import { Button } from '@volter/editor-sdk/widgets';
 import { useSyncExternalStore } from 'react';

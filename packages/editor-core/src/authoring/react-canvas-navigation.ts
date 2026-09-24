@@ -1,4 +1,4 @@
-import { type RootPan, type RootViewController, sharedRootViewController } from './world-pan-state';
+import { type RootPan, type RootViewController, sharedRootViewController } from '@volter/editor-sdk/kit/world-pan-state';
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 4;

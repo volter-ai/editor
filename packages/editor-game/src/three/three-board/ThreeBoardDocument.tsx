@@ -59,8 +59,8 @@ import { threeBoardBuildingCopy } from '@volter/editor-core/components/viewport-
 import { openRegisteredDocument } from '@volter/editor-core/document-open-registry';
 import { listProjectComponents } from '@volter/editor-core/editor-api';
 import { editorConsole } from '@volter/editor-core/editor-console';
-import { createHmrRegistrationGroup } from '@volter/editor-core/hmr-registration-group';
-import { CONTRIBUTED_SECTION_ORDER } from '@volter/editor-core/inspection/model';
+import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
+import { CONTRIBUTED_SECTION_ORDER } from '@volter/editor-sdk/kit/inspection-model';
 import {
   type InspectorSectionProps,
   registerInspectorSections,
@@ -68,22 +68,22 @@ import {
 import { type ClipboardWriter, runInstanceSourceAction } from '@volter/editor-core/instance-source-actions';
 import { getProjectStoryRegions } from '@volter/editor-core/stories/project-story-regions';
 import { declaredStoryMedium } from '@volter/editor-core/stories/story-declared-medium';
-import { THREE_STORY_DOCUMENT_OPENER } from '@volter/editor-core/stories/story-document-openers';
+import { THREE_STORY_DOCUMENT_OPENER } from '@volter/editor-sdk/kit/story-document-openers';
 import {
   getProjectStoryModules,
   type ProjectStoryModule,
   subscribeProjectStoryModules,
   whenProjectStoriesReady,
 } from '@volter/editor-core/stories/story-registry';
-import { showTransientHint } from '@volter/editor-core/transient-hint';
+import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import {
   beginViewportBreakdown,
   cancelViewportBreakdown,
   markViewportBoardReady,
   markViewportReactActive,
   markViewportSegment,
-} from '@volter/editor-core/viewport-activation-timings';
-import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
+} from '@volter/editor-sdk/kit/viewport-activation-timings';
+import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activeWorkspaceDocument,
   type WorkspaceDocumentContentProps,
@@ -814,7 +814,7 @@ const threeBoardPreview = {
   revision: () => JSON.stringify(getProjectStoryModules().map((module_) => module_.modulePath)),
   subscribe: subscribeProjectStoryModules,
   capture: async (
-    request: import('@volter/editor-core/document-preview-source').DocumentPreviewCaptureRequest,
+    request: import('@volter/editor-sdk/kit/document-preview-source').DocumentPreviewCaptureRequest,
   ) => {
     await whenProjectStoriesReady();
     const regions = getProjectStoryRegions();

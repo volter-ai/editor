@@ -54,7 +54,7 @@ import {
   getMountFailureReports,
   type MountFailureReport,
   subscribeToMountFailures,
-} from '../authoring/mount-failure-report';
+} from '@volter/editor-sdk/kit/mount-failure-report';
 import { editorConsole } from '../editor-console';
 import {
   editorLeaseView,
@@ -62,7 +62,7 @@ import {
   subscribeEditorLeaseView,
 } from '../editor-lease-view';
 import { useEditorStore } from '../editor-runtime';
-import { createHmrRegistrationGroup } from '../hmr-registration-group';
+import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
 import { useProjectMounts } from '../project-shape';
 import { getStorageBackend } from '../storage';
 import { showWorkspaceUtility } from '../workspace-host-commands';
@@ -72,7 +72,7 @@ import {
   availableWorkspaceUtilities,
   subscribeWorkspaceUtilities,
   workspaceUtilityRegistryVersion,
-} from '../workspace-utility-registry';
+} from '@volter/editor-sdk/kit/workspace-utility-registry';
 import { SaveStatus } from './SaveStatus';
 
 /** Standard console counters remain visible when the drawer is closed. */

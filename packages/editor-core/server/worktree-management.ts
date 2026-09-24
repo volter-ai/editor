@@ -1,4 +1,4 @@
-import { commandLine, productCommand } from '../src/product-command';
+import { commandLine, productCommand } from '@volter/editor-sdk/kit/product-command';
 import { execFile, execFileSync } from 'node:child_process';
 import { existsSync, realpathSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';

@@ -24,7 +24,7 @@ import {
   removeCanvasSceneGuide,
   subscribeCanvasSceneGuides,
 } from '../authoring/canvas-scene-guides';
-import type { RootViewController } from '../authoring/world-pan-state';
+import type { RootViewController } from '@volter/editor-sdk/kit/world-pan-state';
 import { useEditorStore } from '../editor-runtime';
 import { ToolStrip } from './Toolbar';
 import { TransientHintOverlay } from './TransientHint';

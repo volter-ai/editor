@@ -39,8 +39,8 @@ import type {
   InspectionSectionData,
   InspectionSubject,
   InspectionSurfaceKind,
-} from './model';
-import { fieldReadonlyReason, isMixed } from './model';
+} from '@volter/editor-sdk/kit/inspection-model';
+import { fieldReadonlyReason, isMixed } from '@volter/editor-sdk/kit/inspection-model';
 
 /** How deep {@link toJsonSafe} walks a structured value before giving up. A
  *  `json`-typed descriptor can address an arbitrary blob; three levels covers

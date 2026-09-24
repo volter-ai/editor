@@ -1,4 +1,4 @@
-import type { WorkspaceUtilityRegistration } from '../workspace-utility-registry';
+import type { WorkspaceUtilityRegistration } from '@volter/editor-sdk/kit/workspace-utility-registry';
 
 /** Canonical host for one registered workspace utility. */
 export function WorkspaceUtilitySurface({

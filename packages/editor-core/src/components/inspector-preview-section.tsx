@@ -19,7 +19,7 @@ import { Button } from '@volter/editor-sdk/widgets';
 import { lazy, Suspense } from 'react';
 import type * as THREE from 'three';
 import type { ContentEntry, ContentEntrySource } from '../content-entry-source-registry';
-import type { InspectionAction, InspectionPreviewMode } from '../inspection/model';
+import type { InspectionAction, InspectionPreviewMode } from '@volter/editor-sdk/kit/inspection-model';
 import { useAfterPaint } from './use-after-paint';
 
 const InspectorObjectPreview = lazy(() =>

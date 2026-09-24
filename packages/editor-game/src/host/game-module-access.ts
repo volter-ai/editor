@@ -1,4 +1,4 @@
-import { commandLine } from '@volter/editor-core/product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 /**
  * THE MODULE LANE of `vgai eval` — reach the RUNNING mount's own module
  * instances, by served path, using URLs retained by their owning realm.

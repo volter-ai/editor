@@ -24,7 +24,7 @@ import { activeEditorKeymap } from './keymap-presets';
 import { liveFrameCanvas, liveInstanceContainer } from './live-session-registry';
 import { projectDocumentKinds } from './project-shape';
 import { DOCUMENT_REGISTRATION_TIMEOUT_MS, waitUntil } from './wait-until';
-import { GAME_DOCUMENT_ID } from './workspace-document-ids';
+import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activateWorkspaceDocument,
   activeWorkspaceDocument,
@@ -49,7 +49,7 @@ import { applyWorkspaceStyle, workspaceStyles } from './workspace-style';
 import {
   availableWorkspaceUtilities,
   subscribeWorkspaceUtilities,
-} from './workspace-utility-registry';
+} from '@volter/editor-sdk/kit/workspace-utility-registry';
 import {
   activateRootDocument,
   rootDocumentGap,

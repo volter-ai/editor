@@ -13,7 +13,7 @@
  */
 
 import { useSyncExternalStore } from 'react';
-import { createHmrRegistrationGroup } from './hmr-registration-group';
+import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
 import { registerWorkspaceStatus } from './workspace-status-registry';
 
 export interface AssetEditorContextValue {

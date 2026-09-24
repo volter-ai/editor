@@ -44,7 +44,7 @@
  * the report.
  */
 
-import type { MountFailureReport } from './authoring/mount-failure-report';
+import type { MountFailureReport } from '@volter/editor-sdk/kit/mount-failure-report';
 
 /** The vocabulary `EditorShellStore.playState` and the SDK's status both use. */
 export type ReportedPlayState = 'stopped' | 'playing' | 'paused';

@@ -30,7 +30,7 @@
  * pillars-only policy.
  */
 
-import { commandLine } from './product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import { ProjectCompatibilityError } from '@volter/editor-sdk/session/editor-compatibility';
 
 /** The minimum a recents entry must carry for routing. The real

@@ -8,7 +8,7 @@
  * isolation.
  */
 
-import { commandLine } from '../src/product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import { existsSync } from 'node:fs';
 import { realpath } from 'node:fs/promises';
 import { createRequire } from 'node:module';

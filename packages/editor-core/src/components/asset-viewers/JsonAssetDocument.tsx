@@ -1,6 +1,6 @@
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { useEffect, useState } from 'react';
-import type { InspectionSection } from '../../inspection/model';
+import type { InspectionSection } from '@volter/editor-sdk/kit/inspection-model';
 import { AssetEditorShell } from '../AssetEditorShell';
 import { GenericJsonViewer } from './GenericJsonViewer';
 import {

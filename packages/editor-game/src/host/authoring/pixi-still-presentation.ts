@@ -13,7 +13,7 @@
  */
 
 import { registerPresentedCanvasFrame } from '@volter/editor-core/canvas-preview-frames';
-import type { RootViewController } from '@volter/editor-core/authoring/world-pan-state';
+import type { RootViewController } from '@volter/editor-sdk/kit/world-pan-state';
 
 /**
  * Frame authored world bounds in the independent Scene camera. Unlike an

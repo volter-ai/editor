@@ -22,7 +22,7 @@
  * here, so the two transports cannot answer differently.
  */
 
-import { commandLine } from '../../src/product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import { randomUUID } from 'node:crypto';
 import type { Server as HttpServer } from 'node:http';
 import {

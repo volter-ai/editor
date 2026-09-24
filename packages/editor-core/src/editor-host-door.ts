@@ -117,7 +117,7 @@ import {
   viewportRig,
   viewportStages,
 } from './viewport-door';
-import { GAME_DOCUMENT_ID } from './workspace-document-ids';
+import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activeWorkspaceDocument,
   activeWorkspaceDocumentId,

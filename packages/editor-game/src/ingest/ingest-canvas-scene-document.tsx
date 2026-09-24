@@ -17,9 +17,9 @@
 import {
   getMountFailureReports,
   subscribeToMountFailures,
-} from '@volter/editor-core/authoring/mount-failure-report';
+} from '@volter/editor-sdk/kit/mount-failure-report';
 import { installCanvasSceneNavigation } from '@volter/editor-core/authoring/react-canvas-navigation';
-import { createRootViewController } from '@volter/editor-core/authoring/world-pan-state';
+import { createRootViewController } from '@volter/editor-sdk/kit/world-pan-state';
 import {
   CANVAS_SCENE_BACKGROUND,
   CanvasSceneBackdrop,

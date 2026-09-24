@@ -16,8 +16,8 @@ import type {
   StoryBoardPresentation,
   StoryPresentationIndex,
 } from './story-board-presentation';
-import { getRootCanvasViewport, subscribeRootCanvasViewport } from './world-canvas-viewport-state';
-import { getRootPan, setRootView, subscribeRootPan } from './world-pan-state';
+import { getRootCanvasViewport, subscribeRootCanvasViewport } from '@volter/editor-sdk/kit/world-canvas-viewport-state';
+import { getRootPan, setRootView, subscribeRootPan } from '@volter/editor-sdk/kit/world-pan-state';
 
 const DEFAULT_FRAME_WIDTH = 640;
 const DEFAULT_FRAME_HEIGHT = 400;

@@ -11,7 +11,7 @@ import {
   type OnlineAssetPreview,
 } from '../../editor-api';
 import type { OnlineAssetInfo } from '../../editor-shell-store';
-import { showTransientHint } from '../../transient-hint';
+import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import { downloadOnlineAssetWithHistory } from '../asset-editor-persistence';
 
 const Object3DPreview = lazy(() =>

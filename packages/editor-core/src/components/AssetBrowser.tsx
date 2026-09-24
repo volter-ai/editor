@@ -93,7 +93,7 @@ import { getCurrentProject } from '../project-manager';
 import { stageStore } from '../stage-store-registry';
 import { getStorageBackend } from '../storage';
 import { getGlobalToolContributions, subscribeToolContributions } from '../tool-loader';
-import { reportUnacceptedAssetDrop, showTransientHint } from '../transient-hint';
+import { reportUnacceptedAssetDrop, showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import {
   type AvailableWorkspaceDocument,
   availableWorkspaceDocuments,

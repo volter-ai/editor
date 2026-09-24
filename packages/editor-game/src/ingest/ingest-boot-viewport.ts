@@ -19,7 +19,7 @@ import { editorConsole } from '@volter/editor-core/editor-console';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { projectAdapterFacet } from '@volter/editor-core/project-adapter';
 import { sceneDocumentId } from '@volter/editor-core/scene-document-plan';
-import { CANVAS_SCENE_DOCUMENT_ID, SCENE_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
+import { CANVAS_SCENE_DOCUMENT_ID, SCENE_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activateWorkspaceDocument,
   openWorkspaceDocuments,

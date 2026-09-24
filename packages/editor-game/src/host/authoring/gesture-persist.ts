@@ -31,7 +31,7 @@
 import type { WriteAck, WriteAnchorKind } from '@volter/editor-project/adapter';
 import type { ChannelValue } from '@volter/editor-core/creation-site-edit';
 import type { SourcePersistenceBackend, SourceWriteSubject } from './source-persistence-backend';
-import { resolvesLiveOnly, runWritePipe, type WriteResolution } from '@volter/editor-core/authoring/write-pipe';
+import { resolvesLiveOnly, runWritePipe, type WriteResolution } from '@volter/editor-sdk/kit/write-pipe';
 
 /** The one-property-per-gesture refusal, spelled once — it is the persistence
  *  pipeline's own rule, not any substrate's voice. */

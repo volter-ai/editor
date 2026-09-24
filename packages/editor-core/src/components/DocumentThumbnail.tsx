@@ -13,7 +13,7 @@ import {
   DOCUMENT_PREVIEW_RECIPE,
   DOCUMENT_PREVIEW_WIDTH,
   type DocumentPreviewSource,
-} from '../document-preview-source';
+} from '@volter/editor-sdk/kit/document-preview-source';
 import { projectFiles } from '../files/project-files';
 import { getCurrentProject } from '../project-manager';
 import { getStorageBackend } from '../storage';

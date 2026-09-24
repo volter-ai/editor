@@ -6,7 +6,7 @@
  * `@editor/*` alias until those modules move too. Nothing here is host API.
  */
 
-import { commandLine } from '@volter/editor-core/product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import {
   type CaptureFlatness,
   CaptureLayerError,

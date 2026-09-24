@@ -34,7 +34,7 @@ import { resetActiveSystemsForNewProject } from './authoring/active-systems';
 import { resetSessionVitalsForNewProject } from './coverage/session-vitals';
 import { stopAllLiveSessions } from './live-session-registry';
 import { onProjectSessionEnd } from './project-manager';
-import { resetViewportActivationTimingsForNewProject } from './viewport-activation-timings';
+import { resetViewportActivationTimingsForNewProject } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import { closeAllWorkspaceDocuments } from './workspace-document-registry';
 
 /**

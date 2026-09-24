@@ -12,7 +12,7 @@ import {
   addMountFailureReport,
   clearMountFailureReports,
   formatMountFailureMessage,
-} from '@volter/editor-core/authoring/mount-failure-report';
+} from '@volter/editor-sdk/kit/mount-failure-report';
 import { makeNoAuthoringAdapter } from '@volter/editor-core/authoring/no-authoring-adapter';
 import { resolveAllRoots } from '../host/binding-resolver';
 import { editorConsole } from '@volter/editor-core/editor-console';

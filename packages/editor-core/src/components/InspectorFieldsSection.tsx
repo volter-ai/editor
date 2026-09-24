@@ -29,7 +29,7 @@ import {
   fieldReadonlyReason,
   type InspectionFieldIo,
   isMixed,
-} from '../inspection/model';
+} from '@volter/editor-sdk/kit/inspection-model';
 import { revertActionLabel } from './inspector-revert-label';
 import { DraftColorInput } from './primitives/DraftColorInput';
 import { useProjectImageAssets } from './use-project-image-assets';

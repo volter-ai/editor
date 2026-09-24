@@ -95,7 +95,7 @@ import {
   subscribeThreeViewportPresentation,
   threeViewportPresentation,
 } from '@volter/editor-core/three-viewport-presentation';
-import { recordViewportFirstFrame } from '@volter/editor-core/viewport-activation-timings';
+import { recordViewportFirstFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import { savedViewportPose, saveViewportPose } from '../viewport-pose-memory';
 import { presentThreeRoots } from '../viewport-root-presentation';
 import { isEditorViewportShadingTarget } from '@volter/editor-core/viewport-shading-boundary';

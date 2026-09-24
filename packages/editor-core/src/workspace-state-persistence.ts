@@ -80,7 +80,7 @@ import {
 } from './project-local-state';
 import { getCurrentProject } from './project-manager';
 import { refreshProjectToolContributions } from './tool-loader';
-import { PINNED_ASYNC_DOCUMENT_IDS } from './workspace-document-ids';
+import { PINNED_ASYNC_DOCUMENT_IDS } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activateWorkspaceDocument,
   activeWorkspaceDocumentId,

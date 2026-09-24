@@ -46,7 +46,7 @@ import { contributedCommandRows, registerContributedCommands } from './command-r
 import { InspectorToolSection } from './components/InspectorToolSection';
 import { ToolHost } from './components/ToolHost';
 import { editorServerJson } from './editor-server-response';
-import { CONTRIBUTED_SECTION_ORDER } from './inspection/model';
+import { CONTRIBUTED_SECTION_ORDER } from '@volter/editor-sdk/kit/inspection-model';
 import {
   type InspectorSectionIcon,
   type InspectorSectionMatchContext,
@@ -59,7 +59,7 @@ import { publishPlayUtilitiesReady } from './workspace-play-utilities';
 import { registerContributedWorkspace } from './workspace-presets';
 import { registerWorkspaceStatus } from './workspace-status-registry';
 import { registerContributedStyle } from './workspace-style';
-import { registerWorkspaceUtility } from './workspace-utility-registry';
+import { registerWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-utility-registry';
 
 /**
  * A SUBJECT-DEPENDENT GLYPH NAME (see {@link LoadedToolContributionBase.icon}).

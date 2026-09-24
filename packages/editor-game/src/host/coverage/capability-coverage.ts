@@ -44,7 +44,7 @@
  * `ingest/mount-coverage.ts` assembles the facts from the live singletons.
  */
 
-import { commandLine } from '@volter/editor-core/product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import type {
   AuthoringProviderKey,
   SeamEvidenceVerdict,

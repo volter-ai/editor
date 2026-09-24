@@ -118,7 +118,7 @@ import type {
   DocumentProbeStep,
   ProbedElement,
 } from '@volter/editor-sdk/document-probe';
-import { GAME_DOCUMENT_ID } from './workspace-document-ids';
+import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activeWorkspaceDocument,
   activeWorkspaceDocumentId,

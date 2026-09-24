@@ -1,4 +1,4 @@
-import { commandLine } from '../src/product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 /**
  * Idle self-shutdown — the editor dev server's own lifetime bound.
  *

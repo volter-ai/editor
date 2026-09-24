@@ -75,7 +75,7 @@ import { SelectionBrackets } from './three-viewport/selection-brackets';
 import { collectThreeSelectionOutlineTargets } from './three-viewport/selection-outline';
 import { toneMappedSourceColor } from './three-viewport/source-color';
 import type { ThreeViewportProjection } from './three-viewport-presentation';
-import { showTransientHint } from './transient-hint';
+import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import { TriggerVolumeHelper } from './trigger-volume-helper';
 import { viewportAuthoringPolicy } from './viewport-authoring-policy';
 import { recordOrbitGesture } from './viewport-controls-hint';

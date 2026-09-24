@@ -267,7 +267,7 @@ import {
 } from './server-utils';
 import { createProjectServingServices, loadServingPlugins } from './project-serving-services';
 import { productServingModules, resolveProductForProject, sessionProduct } from './session-product';
-import { setProductNames } from '../src/product-command';
+import { setProductNames } from '@volter/editor-sdk/kit/product-command';
 import { registerSession, unregisterSession } from './session-registry';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

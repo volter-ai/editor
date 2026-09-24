@@ -3,8 +3,8 @@ import { Checkbox, ColorInput, NumberInput, Select, themeVars } from '@volter/ed
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { readProjectTextFile } from '../../editor-api';
-import type { InspectionSection } from '../../inspection/model';
-import { CONTRIBUTED_SECTION_ORDER, PROPERTIES_SECTION_ORDER } from '../../inspection/model';
+import type { InspectionSection } from '@volter/editor-sdk/kit/inspection-model';
+import { CONTRIBUTED_SECTION_ORDER, PROPERTIES_SECTION_ORDER } from '@volter/editor-sdk/kit/inspection-model';
 import { AssetEditorShell } from '../AssetEditorShell';
 import { subscribeProjectAsset } from '../asset-editor-persistence';
 import {

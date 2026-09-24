@@ -31,12 +31,12 @@ import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceState
 import { STANDARD_COMPONENT_CAMERA_DIRECTION } from '@volter/editor-core/components/standard-viewport-dressing';
 import { registerDocumentOpener } from '@volter/editor-core/document-open-registry';
 import type { ViewportTab } from '@volter/editor-core/editor-shell-store';
-import { createHmrRegistrationGroup } from '@volter/editor-core/hmr-registration-group';
+import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
 import {
   CONTRIBUTED_SECTION_ORDER,
   STORY_ARGS_SECTION_ID,
   STORY_ARGS_SECTION_TITLE,
-} from '@volter/editor-core/inspection/model';
+} from '@volter/editor-sdk/kit/inspection-model';
 import { registerInspectorSections } from '@volter/editor-core/inspector-section-registry';
 import type { ComposedProjectStory } from '@volter/editor-core/stories/compose-project-stories';
 import {
@@ -49,7 +49,7 @@ import { declaredStoryMedium } from '@volter/editor-core/stories/story-declared-
 import {
   type StoryDocumentOpenRequest,
   THREE_STORY_DOCUMENT_OPENER,
-} from '@volter/editor-core/stories/story-document-openers';
+} from '@volter/editor-sdk/kit/story-document-openers';
 import {
   getProjectStoryModules,
   subscribeProjectStoryModules,

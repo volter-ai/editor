@@ -17,7 +17,7 @@ import { type CanvasPixiNamespace, resolveCanvasPixiForEditor } from '../canvas-
 import { createWithOwnedPixiTickerListeners } from './owned-pixi-ticker-listeners';
 import { initializePixiIsolationAssets } from './pixi-isolation-assets';
 import { fitSceneView, registerStillFramePresenter } from './pixi-still-presentation';
-import type { RootViewController } from '@volter/editor-core/authoring/world-pan-state';
+import type { RootViewController } from '@volter/editor-sdk/kit/world-pan-state';
 
 export type IsolatedPixiScreenCtor = (new () => IsolatedPixiScreen) & {
   readonly assetBundles?: readonly string[];

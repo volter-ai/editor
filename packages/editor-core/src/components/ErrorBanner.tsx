@@ -15,7 +15,7 @@
  * loud server-side throw still looked like a fresh launcher in a screenshot).
  */
 
-import { commandSequence } from '../product-command';
+import { commandSequence } from '@volter/editor-sdk/kit/product-command';
 import { faCheck, faCopy, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import type { StartupRecovery } from '@volter/editor-sdk/session/editor-compatibility';
 import { Button, EditorIcon } from '@volter/editor-sdk/widgets';

@@ -137,7 +137,7 @@ import {
   addMountFailureReport,
   clearMountFailureReport,
   formatMountFailureMessage,
-} from '@volter/editor-core/authoring/mount-failure-report';
+} from '@volter/editor-sdk/kit/mount-failure-report';
 import { SelectionRemountHandoff } from '../../host/authoring/selection-remount-handoff';
 import {
   type RefreshSource,

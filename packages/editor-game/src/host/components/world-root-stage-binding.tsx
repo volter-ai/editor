@@ -14,7 +14,7 @@ import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/editor
 import {
   getMountFailureReports,
   subscribeToMountFailures,
-} from '@volter/editor-core/authoring/mount-failure-report';
+} from '@volter/editor-sdk/kit/mount-failure-report';
 import {
   object3DDocumentSessionsVersion,
   subscribeObject3DDocumentSessions,

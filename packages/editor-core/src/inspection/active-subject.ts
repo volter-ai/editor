@@ -31,7 +31,7 @@ import { CompositeAuthoringAdapter } from '../authoring/composite-authoring-adap
 import type { Object3DDocumentSession } from '../authoring/object3d-document-session';
 import { object3DDocumentSession } from '../authoring/object3d-document-session-registry';
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
-import { LIVE_ONLY_ACK, type WriteAck } from '../authoring/write-pipe';
+import { LIVE_ONLY_ACK, type WriteAck } from '@volter/editor-sdk/kit/write-pipe';
 import { openEntityAssetDocument } from '../components/asset-documents';
 import { describeAssetSelectionSubject } from '../components/asset-selection-section';
 import { ingestCoverageSection } from '../components/CapabilityCoverageSection';
@@ -44,7 +44,7 @@ import { inspectorPresentationOverride } from '../inspector-presentation';
 import { matchedInspectorSections } from '../inspector-section-registry';
 import { liveCoverage } from '../live-session-registry';
 import { documentContributionForKind } from '../tool-loader';
-import { GAME_DOCUMENT_ID } from '../workspace-document-ids';
+import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activeWorkspaceDocument,
   activeWorkspaceDocumentId,
@@ -69,7 +69,7 @@ import {
   type InspectionFieldIo,
   type InspectionSubject,
   type InspectionSurfaceKind,
-} from './model';
+} from '@volter/editor-sdk/kit/inspection-model';
 import { describeNullInspectionSubject } from './null-subject';
 import { NO_INSPECTION, type SerializedInspection, serializeInspectionSubject } from './serialize';
 

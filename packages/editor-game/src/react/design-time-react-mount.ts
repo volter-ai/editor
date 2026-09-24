@@ -64,15 +64,15 @@ import {
   rememberPortableStory,
 } from '@volter/editor-core/authoring/design-time-layers';
 import type { DesignTimeMountContext } from '@volter/editor-core/authoring/design-time-mount-registry';
-import { formatMountFailureMessage } from '@volter/editor-core/authoring/mount-failure-report';
+import { formatMountFailureMessage } from '@volter/editor-sdk/kit/mount-failure-report';
 import type { ReactStoryBoardSelectionIntent } from '@volter/editor-core/authoring/react-story-board';
 import { createReactStoryBoard } from '@volter/editor-core/authoring/react-story-board';
 import {
   getRootCanvasViewport,
   setRootCanvasViewport,
-} from '@volter/editor-core/authoring/world-canvas-viewport-state';
+} from '@volter/editor-sdk/kit/world-canvas-viewport-state';
 import { recordAuthoringConsumerUse } from '@volter/editor-core/coverage/authoring-seam-evidence';
-import { CrashNullBoundary } from '@volter/editor-core/crash-null-boundary';
+import { CrashNullBoundary } from '@volter/editor-sdk/kit/crash-null-boundary';
 import { readProjectTextFile } from '@volter/editor-core/editor-api';
 import { editorConsole } from '@volter/editor-core/editor-console';
 import {
@@ -100,7 +100,7 @@ import {
 import { domStoryBoardMembers } from '@volter/editor-core/stories/three-story-model';
 import { getDesignTokens } from '@volter/editor-core/ui-source/inspect';
 import { tierSourceWriteBackend } from '@volter/editor-core/ui-source/tier-source-write-backend';
-import { recordViewportFirstFrame } from '@volter/editor-core/viewport-activation-timings';
+import { recordViewportFirstFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import { createAssetCache } from '@volter/threejs-runtime/assets';
 import { createGameLoop } from '@volter/game-runtime/core/game-loop';
 import type { ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';

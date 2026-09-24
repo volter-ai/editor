@@ -35,7 +35,7 @@ import {
   type ContractScenesStories,
   createContractScenesStories,
 } from '../host/authoring/contract-scenes-stories';
-import { clearMountFailureReports } from '@volter/editor-core/authoring/mount-failure-report';
+import { clearMountFailureReports } from '@volter/editor-sdk/kit/mount-failure-report';
 import { PhaserLiveAuthoringAdapter } from '../host/authoring/phaser-live-authoring-adapter';
 import { PixiAuthoringAdapter } from '../host/authoring/pixi-authoring-adapter';
 import { createCreationSiteCanvasWriteTarget } from '../host/authoring/pixi-creation-site-write-target';

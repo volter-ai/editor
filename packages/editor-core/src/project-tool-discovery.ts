@@ -26,7 +26,7 @@
 import { connectToolFileEvents } from './asset-events';
 import { onProjectChange } from './project-manager';
 import { refreshProjectToolContributions } from './tool-loader';
-import { waitForFirstViewportFrame } from './viewport-activation-timings';
+import { waitForFirstViewportFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
 
 async function refreshAfterOpeningViewport(): Promise<void> {
   // Contribution modules are executable UI, not an index. A plain startup

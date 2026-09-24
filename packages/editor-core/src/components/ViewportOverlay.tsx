@@ -11,7 +11,7 @@ import {
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
 import type { EditorShellStore } from '../editor-shell-store';
 import { activeLightCount } from '../light-explorer-model';
-import { CORE_WORKSPACE_UTILITIES } from '../workspace-core-utilities';
+import { CORE_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-utilities';
 import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,

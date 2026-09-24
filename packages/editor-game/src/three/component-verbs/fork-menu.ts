@@ -26,7 +26,7 @@ import {
   FORK_COMPONENT_LABEL,
   type InstanceForkSource,
 } from '../../host/instance-fork-actions';
-import { showTransientHint } from '@volter/editor-core/transient-hint';
+import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 
 /** The fork surface for `nodeId`, or `null` — the host's own owner walk. */

@@ -53,7 +53,7 @@ import type { Application, Container } from 'pixi.js';
 import { createElement } from 'react';
 import type { Root } from 'react-dom/client';
 import { withApplicationCollector } from '../canvas-preview-frames';
-import { CrashNullBoundary } from '../crash-null-boundary';
+import { CrashNullBoundary } from '@volter/editor-sdk/kit/crash-null-boundary';
 import { mountedStoryHasPixiContent } from './pixi-story-model';
 import { resolveStoryDomRuntime } from './story-dom-runtime';
 import { runInStoryMountTurn } from './story-mount-turn';

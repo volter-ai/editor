@@ -17,7 +17,7 @@
  */
 
 import { editorConsole } from '../editor-console';
-import { showTransientHint } from '../transient-hint';
+import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import type { HistoryService } from './history-service';
 import type { HistoryEviction, HistoryLimitWarning } from './types';
 

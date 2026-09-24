@@ -14,7 +14,7 @@
 import { useEffect, useState } from 'react';
 import type { ProjectComponentEntry } from '../asset-workflow/project-content';
 import { TypedAssetThumbnail } from '../components/asset-thumbnails';
-import { waitForFirstViewportFrame } from '../viewport-activation-timings';
+import { waitForFirstViewportFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import type { PixiStoryThumbnailOptions } from './story-pixi-preview';
 import type { ProjectPreviewStory } from './story-registry';
 import type { StoryPreviewComponent } from './story-three-preview';

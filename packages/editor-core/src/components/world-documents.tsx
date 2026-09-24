@@ -29,7 +29,7 @@ import { INVALID_MANIFEST_SURFACE } from '../authoring/edit-mode-authoring';
 import {
   getMountFailureReports,
   subscribeToMountFailures,
-} from '../authoring/mount-failure-report';
+} from '@volter/editor-sdk/kit/mount-failure-report';
 import {
   installCanvasSceneNavigation,
   installReactCanvasNavigation,
@@ -44,7 +44,7 @@ import {
   getRootPan,
   sharedRootViewController,
   subscribeRootPan,
-} from '../authoring/world-pan-state';
+} from '@volter/editor-sdk/kit/world-pan-state';
 import {
   type ComponentBoard,
   componentBoardForDocument,
@@ -56,12 +56,12 @@ import type { EditorShellStore } from '../editor-shell-store';
 import { setActiveScope } from '../hotkeys';
 import { readinessFacet, subscribeRootReadiness } from '../readiness';
 import { explainSurface } from '../surface-state';
-import { recordViewportFirstFrame } from '../viewport-activation-timings';
+import { recordViewportFirstFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import {
   CANVAS_SCENE_DOCUMENT_ID,
   GAME_DOCUMENT_ID,
   SCENE_DOCUMENT_ID,
-} from '../workspace-document-ids';
+} from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activateWorkspaceDocument,
   activeWorkspaceDocumentId,

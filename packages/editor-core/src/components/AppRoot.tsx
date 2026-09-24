@@ -23,7 +23,7 @@
  * is readable.
  */
 
-import { commandLine, commandSequence } from '../product-command';
+import { commandLine, commandSequence } from '@volter/editor-sdk/kit/product-command';
 import { editorDocumentTitle } from '@volter/editor-sdk/session/editor-brand';
 import {
   ProjectCompatibilityError,

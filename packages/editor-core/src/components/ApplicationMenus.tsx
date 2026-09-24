@@ -40,7 +40,7 @@ import { getCurrentProject, onProjectChange } from '../project-manager';
 import { getProjectTools, subscribeProjectTools } from '../project-tools';
 import { getSurfaceToolContributions, subscribeToolContributions } from '../tool-loader';
 import { openUndoHistory } from '../workspace-aux-commands';
-import { CORE_WORKSPACE_UTILITIES } from '../workspace-core-utilities';
+import { CORE_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-utilities';
 import {
   showWorkspaceStaticPanel,
   showWorkspaceUtility,

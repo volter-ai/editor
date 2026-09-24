@@ -53,7 +53,7 @@ import {
   ISOLATED_STORY_DOCUMENT_OPENER,
   STORY_DOCS_DOCUMENT_OPENER,
   THREE_STORY_DOCUMENT_OPENER,
-} from './story-document-openers';
+} from '@volter/editor-sdk/kit/story-document-openers';
 import { deriveStoryGroupPath } from './story-grouping';
 import {
   ensureProjectStoryModule,

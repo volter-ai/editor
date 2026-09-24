@@ -18,7 +18,7 @@ import { resolvePanelAuthoring } from '../authoring/panel-authoring';
 import type { EditorShellStore } from '../editor-shell-store';
 import { liveSurface } from '../live-session-registry';
 import { activeWorkspaceDocumentId } from '../workspace-document-registry';
-import type { InspectionSurfaceKind } from './model';
+import type { InspectionSurfaceKind } from '@volter/editor-sdk/kit/inspection-model';
 
 function surfaceKindOf(kind: string): InspectionSurfaceKind | null {
   return kind === 'three' || kind === 'canvas' || kind === 'dom' ? kind : null;

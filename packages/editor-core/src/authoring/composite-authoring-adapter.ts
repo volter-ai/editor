@@ -67,8 +67,8 @@ import {
   unwrapAuthoringNode,
   wrapAuthoringNode,
 } from './consumer-actions';
-import { WORLD_SCOPE_NODE_ID } from './stories-scope';
-import { LIVE_ONLY_ACK, NO_PERSISTABLE_CHILD_DESTINATION } from './write-pipe';
+import { WORLD_SCOPE_NODE_ID } from '@volter/editor-sdk/kit/stories-scope';
+import { LIVE_ONLY_ACK, NO_PERSISTABLE_CHILD_DESTINATION } from '@volter/editor-sdk/kit/write-pipe';
 
 /** One child world's authoring adapter, ordered as given to the constructor. */
 export interface CompositeChild {

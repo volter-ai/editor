@@ -57,7 +57,7 @@ import {
   ingestOwnershipNow,
   reportIngestSourceRefusal,
 } from './ingest-source-persistence';
-import { LIVE_ONLY_DESTINATION } from '@volter/editor-core/authoring/write-pipe';
+import { LIVE_ONLY_DESTINATION } from '@volter/editor-sdk/kit/write-pipe';
 
 /**
  * The adapter's own channel read/write, handed to a backend so the live half of

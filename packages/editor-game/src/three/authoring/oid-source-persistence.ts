@@ -37,7 +37,7 @@
 
 import { reportIngestSourceRefusal } from '../../host/authoring/ingest-source-persistence';
 import type { SourcePersistenceBackend } from '../../host/authoring/source-persistence-backend';
-import { LIVE_ONLY_DESTINATION } from '@volter/editor-core/authoring/write-pipe';
+import { LIVE_ONLY_DESTINATION } from '@volter/editor-sdk/kit/write-pipe';
 import type { ChannelValue } from '@volter/editor-core/creation-site-edit';
 import { channelFor } from '@volter/editor-core/creation-site-edit';
 import { editorConsole } from '@volter/editor-core/editor-console';

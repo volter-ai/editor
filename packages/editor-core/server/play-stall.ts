@@ -1,4 +1,4 @@
-import { commandLine } from '../src/product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 /**
  * THE ANSWER A STUCK PLAY OWES ITS CALLER.
  *

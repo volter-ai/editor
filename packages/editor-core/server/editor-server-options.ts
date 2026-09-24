@@ -7,7 +7,7 @@
  * inside it so the differences can be read in one place.
  */
 
-import { commandLine } from '../src/product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import type { EditorState } from '@volter/editor-sdk/index';
 import type { CollaborationAccountSession } from './account-service';
 import type { EditorBootTimings } from './boot-timings';

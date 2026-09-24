@@ -46,13 +46,13 @@
 import {
   addMountFailureReport,
   formatMountFailureMessage,
-} from '@volter/editor-core/authoring/mount-failure-report';
+} from '@volter/editor-sdk/kit/mount-failure-report';
 import { withStoreSelection } from '../host/authoring/mounted-authoring';
 import { makeNoAuthoringAdapter } from '@volter/editor-core/authoring/no-authoring-adapter';
 import { PixiAuthoringAdapter } from '../host/authoring/pixi-authoring-adapter';
 import { createLiveCanvasWriteTarget } from '../host/authoring/pixi-live-write-target';
 import { resolveCanvasPixiForEditor } from '../host/canvas-entry-runtime';
-import { CrashNullBoundary } from '@volter/editor-core/crash-null-boundary';
+import { CrashNullBoundary } from '@volter/editor-sdk/kit/crash-null-boundary';
 import { editorConsole } from '@volter/editor-core/editor-console';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { authoringJournal } from '../host/history/json-history-resource';

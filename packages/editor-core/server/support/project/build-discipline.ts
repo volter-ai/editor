@@ -43,7 +43,7 @@
  * already handles.
  */
 
-import { commandLine } from '../../../src/product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';

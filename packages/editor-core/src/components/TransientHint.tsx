@@ -9,7 +9,7 @@
 
 import { space, themeVars, zIndex } from '@volter/editor-sdk/widgets';
 import { useSyncExternalStore } from 'react';
-import { subscribeTransientHint, transientHint } from '../transient-hint';
+import { subscribeTransientHint, transientHint } from '@volter/editor-sdk/kit/transient-hint';
 
 export function TransientHintOverlay() {
   const hint = useSyncExternalStore(subscribeTransientHint, transientHint, transientHint);

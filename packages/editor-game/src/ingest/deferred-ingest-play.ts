@@ -30,7 +30,7 @@
  * ingest keeps its own lifecycle).
  */
 
-import { commandLine } from '@volter/editor-core/product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import { queueEditModeRebuild } from '@volter/editor-core/authoring/edit-mode-authoring';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { fetchGameManifest } from '@volter/editor-core/manifest-project';

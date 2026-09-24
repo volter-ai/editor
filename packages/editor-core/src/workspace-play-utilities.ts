@@ -3,7 +3,7 @@ import { editorConsole } from './editor-console';
 import { layoutPolicy } from './layout-policy';
 import { captureWorkspaceUtilities, showWorkspaceUtility } from './workspace-host-commands';
 import { activeChromeRegions } from './workspace-regions';
-import { availableWorkspaceUtilities } from './workspace-utility-registry';
+import { availableWorkspaceUtilities } from '@volter/editor-sdk/kit/workspace-utility-registry';
 
 let contributionsReady = false;
 let pending: readonly string[] = [];

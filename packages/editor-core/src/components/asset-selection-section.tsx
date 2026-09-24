@@ -41,12 +41,12 @@ import {
   contentEntrySourceRegistryVersion,
   subscribeContentEntrySources,
 } from '../content-entry-source-registry';
-import type { InspectionAction } from '../inspection/model';
+import type { InspectionAction } from '@volter/editor-sdk/kit/inspection-model';
 import {
   PREVIEW_SECTION_ID,
   PREVIEW_SECTION_ORDER,
   PROPERTIES_SECTION_ORDER,
-} from '../inspection/model';
+} from '@volter/editor-sdk/kit/inspection-model';
 import type { NullInspectionSubject } from '../inspection/null-subject';
 import {
   getAssetInspectorToolContributions,

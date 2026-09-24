@@ -31,8 +31,8 @@
  */
 
 import { registerDocumentOpener } from '@volter/editor-core/document-open-registry';
-import { CONTRIBUTED_WORKSPACE_UTILITIES } from '@volter/editor-core/workspace-core-utilities';
-import { registerWorkspaceUtility } from '@volter/editor-core/workspace-utility-registry';
+import { CONTRIBUTED_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-utilities';
+import { registerWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-utility-registry';
 import { GenerationActivity } from '../src/generation/GenerationActivity';
 import {
   openGenerationCreateDocument,

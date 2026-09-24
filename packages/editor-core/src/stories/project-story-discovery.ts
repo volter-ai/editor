@@ -11,7 +11,7 @@
 import { connectStoryFileEvents } from '../asset-events';
 import { getCurrentProject, onProjectChange } from '../project-manager';
 import { subscribeProjectModuleChange } from '../project-module-changes';
-import { waitForFirstViewportFrame } from '../viewport-activation-timings';
+import { waitForFirstViewportFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import { resetUndeclaredStoryMediumReports } from './story-declared-medium';
 import { refreshProjectStories } from './story-registry';
 

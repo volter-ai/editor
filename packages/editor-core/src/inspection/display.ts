@@ -45,7 +45,7 @@ import {
   type InspectionSubject,
   type InspectionSurfaceKind,
   inspectionAffinityFor,
-} from './model';
+} from '@volter/editor-sdk/kit/inspection-model';
 
 /** The two document kinds a project TOOL opens as: the generic runner
  *  (`project-tool`) and a capability's own React surface (`tool-contribution`).

@@ -16,7 +16,7 @@ import {
   type ProjectFileMutationSession,
 } from '../history/project-file-history';
 import { getProjectResourceHistoryBackend } from '../history/project-root-history-backends';
-import { runWritePipe, type WriteAck, type WriteResolution } from './write-pipe';
+import { runWritePipe, type WriteAck, type WriteResolution } from '@volter/editor-sdk/kit/write-pipe';
 
 export interface OpenObject3DDocumentPersistenceOptions {
   readonly binding: ToolObject3DDocumentPersistence;

@@ -73,7 +73,7 @@ import {
   type InspectionSubject,
   type InspectionSurfaceKind,
   type SubjectLink,
-} from '../inspection/model';
+} from '@volter/editor-sdk/kit/inspection-model';
 import { compactInspectorTabs, setInspectorPresentationOverride } from '../inspector-presentation';
 import { useCompactInspectorHost } from './CompactInspectorShell';
 import { InspectorFieldsSection } from './InspectorFieldsSection';

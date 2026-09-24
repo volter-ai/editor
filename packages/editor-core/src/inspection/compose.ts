@@ -76,7 +76,7 @@ import {
   InspectorComponentPreviewBody,
   InspectorPreviewBody,
 } from '../components/inspector-preview-section';
-import { groupProperties } from '../components/inspector-property-grouping';
+import { groupProperties } from '@volter/editor-sdk/kit/inspector-property-grouping';
 import { rotationDegrees, withTransformChannel } from '../components/inspector-transform';
 import { transformDimensionsFor } from '../components/inspector-transform-subject';
 import {
@@ -107,7 +107,7 @@ import {
   STORIES_SECTION_ORDER,
   TRANSFORM_SECTION_ID,
   TRANSFORM_SECTION_ORDER,
-} from './model';
+} from '@volter/editor-sdk/kit/inspection-model';
 import type { NullInspectionSubject } from './null-subject';
 
 /** Above this many properties a group starts collapsed even when the document

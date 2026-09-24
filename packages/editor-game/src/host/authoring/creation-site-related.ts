@@ -23,7 +23,7 @@
 
 import type { NodeCreationSite, RelatedSubjectsProvider } from '@volter/editor-project/adapter';
 import { type InstanceSourceLocator, runInstanceSourceAction } from '@volter/editor-core/instance-source-actions';
-import { showTransientHint } from '@volter/editor-core/transient-hint';
+import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 
 /** The related provider for an adapter whose truth can place a subject at a
  *  creation site. `resolveSite` is the adapter's own id→site hop. */

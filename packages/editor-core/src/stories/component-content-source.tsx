@@ -36,7 +36,7 @@ import { StoryComponentThumbnail } from './StoryComponentThumbnail';
 import {
   ISOLATED_STORY_DOCUMENT_OPENER,
   THREE_STORY_DOCUMENT_OPENER,
-} from './story-document-openers';
+} from '@volter/editor-sdk/kit/story-document-openers';
 import {
   getProjectStoryModules,
   type ProjectPreviewStory,

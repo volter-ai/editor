@@ -28,7 +28,7 @@
 import type { IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import type { AuthoringAdapter, EditorNode } from '@volter/editor-project/adapter';
 import type { ComponentType } from 'react';
-import type { InspectionSection } from './inspection/model';
+import type { InspectionSection } from '@volter/editor-sdk/kit/inspection-model';
 
 export interface InspectorSectionProps {
   readonly adapter: AuthoringAdapter;

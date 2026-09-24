@@ -1,4 +1,4 @@
-import type { RootViewController } from './world-pan-state';
+import type { RootViewController } from '@volter/editor-sdk/kit/world-pan-state';
 
 export interface CanvasSceneGuide {
   readonly id: string;

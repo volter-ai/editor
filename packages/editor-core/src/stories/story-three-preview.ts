@@ -100,12 +100,12 @@ import { Component, type ReactNode } from 'react';
 import * as THREE from 'three';
 import { captureObjectAssetPreview } from '../asset-preview';
 import { settleDesignWorld } from '../authoring/design-time-settle';
-import { CrashNullBoundary } from '../crash-null-boundary';
+import { CrashNullBoundary } from '@volter/editor-sdk/kit/crash-null-boundary';
 import {
   resolveStoryThreePreviewRuntime,
   type StoryThreePreviewRuntime,
 } from '../story-three-preview-runtime';
-import { viewportTimingsEnabled } from '../viewport-activation-timings';
+import { viewportTimingsEnabled } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import { runInStoryMountTurn } from './story-mount-turn';
 
 /** Last mount's phase split — only written when timings are on. The board

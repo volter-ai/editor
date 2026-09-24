@@ -54,20 +54,20 @@ import {
   addMountFailureReport,
   clearMountFailureReport,
   formatMountFailureMessage,
-} from './mount-failure-report';
+} from '@volter/editor-sdk/kit/mount-failure-report';
 import {
   getRootCanvasViewport,
   resetRootCanvasViewport,
   setRootCanvasViewport,
   subscribeRootCanvasViewport,
-} from './world-canvas-viewport-state';
+} from '@volter/editor-sdk/kit/world-canvas-viewport-state';
 import {
   getRootPan,
   panTransformValue,
   type RootViewController,
   resetRootPan,
   subscribeRootPan,
-} from './world-pan-state';
+} from '@volter/editor-sdk/kit/world-pan-state';
 import { isRootHidden, isRootInteractive } from './world-session-state';
 
 /** D20: Play tears the design-time adapter down, so the selected CSF state

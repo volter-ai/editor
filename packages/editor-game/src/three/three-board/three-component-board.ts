@@ -9,7 +9,7 @@
  * when it does not.
  */
 
-import { commandLine } from '@volter/editor-core/product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import type { ComponentBoard, ComponentBoardContext } from '@volter/editor-core/component-board-registry';
 import { editorConsole } from '@volter/editor-core/editor-console';
 import {
@@ -17,7 +17,7 @@ import {
   subscribeStoryMediaPresence,
 } from '../../host/stories/story-media-presence';
 import { projectStoriesReady, subscribeProjectStoryModules } from '@volter/editor-core/stories/story-registry';
-import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
+import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 
 /** The tab reads `3D`, the peer of `Scene` and `UI` in the center strip. */
 const THREE_COMPONENTS_TITLE = '3D';

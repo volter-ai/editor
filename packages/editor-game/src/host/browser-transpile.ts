@@ -24,7 +24,7 @@
  * serves them.
  */
 
-import { commandLine } from '@volter/editor-core/product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import type { ImportSpecifier as EsModuleImport } from 'es-module-lexer';
 import { init as esModuleLexerInit, parse as parseEsModule } from 'es-module-lexer';
 import * as esbuild from 'esbuild-wasm';

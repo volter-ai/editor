@@ -44,7 +44,7 @@
  * wires this to sockets, the opener and a tick lives in `tab-lifecycle.ts`.
  */
 
-import { commandLine } from '../src/product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import type { SessionJournalEvent } from './support/project/session-journal';
 import type { TabCensus } from '@volter/editor-sdk/project/tab-census';
 

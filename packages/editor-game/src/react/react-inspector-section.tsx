@@ -52,13 +52,13 @@ import {
   activeBreakpoint,
   setActiveBreakpoint,
   subscribeBreakpoint,
-} from '@volter/editor-core/authoring/breakpoint-state';
+} from '@volter/editor-sdk/kit/breakpoint-state';
 import { CompositeAuthoringAdapter } from '@volter/editor-core/authoring/composite-authoring-adapter';
 import { numericStyleValue, UNITLESS_NUMBER_PROPS } from '@volter/editor-sdk/css-numeric-style';
-import { beginEyedropperSession } from '@volter/editor-core/authoring/eyedropper-session';
-import { groupProperties } from '@volter/editor-core/components/inspector-property-grouping';
+import { beginEyedropperSession } from '@volter/editor-sdk/kit/eyedropper-session';
+import { groupProperties } from '@volter/editor-sdk/kit/inspector-property-grouping';
 import { useEditorStore } from '@volter/editor-core/editor-runtime';
-import { createHmrRegistrationGroup } from '@volter/editor-core/hmr-registration-group';
+import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
 import { groupIcon } from '@volter/editor-core/inspection/compose';
 import {
   GROUP_SECTION_ORDER,
@@ -66,7 +66,7 @@ import {
   type InspectionSection,
   PROPERTIES_SECTION_ID,
   PROPERTIES_SECTION_ORDER,
-} from '@volter/editor-core/inspection/model';
+} from '@volter/editor-sdk/kit/inspection-model';
 import { registerInspectorSections } from '@volter/editor-core/inspector-section-registry';
 import { effectiveColorFromChain, getAvailableFonts } from '@volter/editor-core/ui-source/inspect';
 import type { OidEntry } from '@volter/editor-react/source/oid-transform';

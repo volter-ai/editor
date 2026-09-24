@@ -17,7 +17,7 @@ import {
 import type { LiveCoverageReport, LiveCoverageRow } from '@volter/editor-sdk/host';
 import { EditorIcon, SectionHeader, themeVars } from '@volter/editor-sdk/widgets';
 import type { ReactNode } from 'react';
-import type { InspectionSection } from '../inspection/model';
+import type { InspectionSection } from '@volter/editor-sdk/kit/inspection-model';
 
 /**
  * Human labels for the seams whose names are not self-describing — the contract

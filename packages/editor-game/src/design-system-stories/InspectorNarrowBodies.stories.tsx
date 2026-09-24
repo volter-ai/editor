@@ -44,7 +44,7 @@ import { AuthoringInspectorSurface } from '@volter/editor-core/components/Inspec
 import { deriveCapabilityCoverage } from '../host/coverage/capability-coverage';
 import { createAuthoringFixture } from '../host/design-system-stories/fixtures/authoring';
 import { StoryEditorRuntime } from '../host/design-system-stories/fixtures/editor-runtime';
-import type { InspectionSection, InspectionSubject } from '@volter/editor-core/inspection/model';
+import type { InspectionSection, InspectionSubject } from '@volter/editor-sdk/kit/inspection-model';
 import {
   AlignmentGrid,
   type AlignmentValue,

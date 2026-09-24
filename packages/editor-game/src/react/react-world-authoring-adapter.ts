@@ -27,21 +27,21 @@
  * unavailable via a loud console warning instead of silently no-op'ing).
  */
 
-import { activeBreakpoint } from '@volter/editor-core/authoring/breakpoint-state';
+import { activeBreakpoint } from '@volter/editor-sdk/kit/breakpoint-state';
 import {
   cssTextForStyleValue,
   numericStyleValue,
   preserveNumericStyleUnit,
 } from '@volter/editor-sdk/css-numeric-style';
-import { WORLD_SCOPE_NODE_ID } from '@volter/editor-core/authoring/stories-scope';
+import { WORLD_SCOPE_NODE_ID } from '@volter/editor-sdk/kit/stories-scope';
 import { createStructWritePipe, type StructOpOptions } from '../host/authoring/struct-write-pipe';
-import { getRootPan } from '@volter/editor-core/authoring/world-pan-state';
+import { getRootPan } from '@volter/editor-sdk/kit/world-pan-state';
 import {
   resolvesLiveOnly,
   runWritePipe,
   type WriteAck,
   type WriteResolution,
-} from '@volter/editor-core/authoring/write-pipe';
+} from '@volter/editor-sdk/kit/write-pipe';
 import { guideClientEdges } from '@volter/editor-core/components/board-guides';
 import { editorConsole } from '@volter/editor-core/editor-console';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
@@ -52,7 +52,7 @@ import { storyDiscoveryUnavailable } from '@volter/editor-core/stories/story-dis
 import { deriveStoryGroupPath, formatStoryGroupPath } from '@volter/editor-core/stories/story-grouping';
 import type { StoryPresentationIndex } from '@volter/editor-core/stories/story-presentation';
 import { subscribeProjectStoryModules } from '@volter/editor-core/stories/story-registry';
-import { showTransientHint } from '@volter/editor-core/transient-hint';
+import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import {
   browserOrInlineResolver,
   type ComputedStyleResolver,
@@ -79,7 +79,7 @@ import {
   pickCssRuleTarget,
   tokenReferenceGuardText,
 } from '@volter/editor-react/source/writer';
-import { UI_COMPONENTS_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
+import { UI_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import { activateWorkspaceDocument } from '@volter/editor-core/workspace-document-registry';
 import type {
   AssetDropContext,

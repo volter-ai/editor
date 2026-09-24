@@ -96,7 +96,7 @@ import {
   markViewportSegment,
   noteViewportBreakdownCounts,
   recordViewportStoryMount,
-} from '@volter/editor-core/viewport-activation-timings';
+} from '@volter/editor-sdk/kit/viewport-activation-timings';
 import { collectContentNodeRecords } from '@volter/editor-threejs/viewport/content-bounds';
 import { EDITOR_LAYER } from '@volter/editor-threejs/viewport/editor-layers';
 import { setUserData } from '@volter/threejs-runtime/ecs/user-data';

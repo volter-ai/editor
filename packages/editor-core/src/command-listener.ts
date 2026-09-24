@@ -1,4 +1,4 @@
-import { commandLine } from './product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import { isGameplayExportActive } from './gameplay-export-state';
 
 /**
@@ -39,7 +39,7 @@ import {
 import { setSelectedAsset } from './asset-selection';
 import { assetCapabilities, assetDocumentKind } from './asset-workflow/asset-capabilities';
 import { systemsForInstance } from './authoring/active-systems';
-import { getMountFailureReports } from './authoring/mount-failure-report';
+import { getMountFailureReports } from '@volter/editor-sdk/kit/mount-failure-report';
 import { object3DDocumentSession } from './authoring/object3d-document-session-registry';
 import {
   activeDocumentAuthoring,
@@ -107,7 +107,7 @@ import { interactiveViewportRendererCounts } from './three-viewport/interactive-
 import {
   subscribeViewportActivationTimings,
   viewportActivationTimings,
-} from './viewport-activation-timings';
+} from '@volter/editor-sdk/kit/viewport-activation-timings';
 
 type AssertSameKeys<P, Q> = [keyof P] extends [keyof Q]
   ? [keyof Q] extends [keyof P]
@@ -174,7 +174,7 @@ import { measuredReadinessWarning, readinessFacet } from './readiness';
 import { deriveReportedPlayState } from './reported-play-state';
 import { openLiveSceneEntry } from './scene-live-open';
 import { editorMaterialSnapshot, setEditorMaterialPreference } from './theme-preference';
-import { GAME_DOCUMENT_ID } from './workspace-document-ids';
+import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activateWorkspaceDocument,
   activeWorkspaceDocumentId,

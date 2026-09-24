@@ -28,7 +28,7 @@ import type { HistoryCommandSnapshot, HistoryCommands } from './history/history-
 import { editorKeymaps, setEditorKeymapPreference, shortcutFor } from './keymap-presets';
 import { requestTransformMode } from './transform-mode-request';
 import { openUndoHistory } from './workspace-aux-commands';
-import { CORE_WORKSPACE_UTILITIES } from './workspace-core-utilities';
+import { CORE_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-utilities';
 import {
   showWorkspaceStaticPanel,
   showWorkspaceUtility,

@@ -34,12 +34,12 @@
  */
 
 import { editorConsole } from '../editor-console';
-import { createHmrRegistrationGroup } from '../hmr-registration-group';
-import { CORE_WORKSPACE_UTILITIES } from '../workspace-core-utilities';
+import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
+import { CORE_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-utilities';
 import {
   registerWorkspaceUtility,
   type WorkspaceUtilityBadge,
-} from '../workspace-utility-registry';
+} from '@volter/editor-sdk/kit/workspace-utility-registry';
 import { ConsolePanel } from './ConsolePanel';
 import { LightExplorerPanel } from './LightExplorerPanel';
 

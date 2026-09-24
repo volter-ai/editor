@@ -20,7 +20,7 @@ import { activeProjectKey } from '../active-project';
 import {
   recordStoryDiscoveryTiming,
   waitForFirstViewportFrame,
-} from '../viewport-activation-timings';
+} from '@volter/editor-sdk/kit/viewport-activation-timings';
 import {
   type ComposedProjectStory,
   composeProjectStories,

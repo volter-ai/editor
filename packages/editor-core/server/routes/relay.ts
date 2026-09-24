@@ -12,7 +12,7 @@
  * the control plane, which is the point.
  */
 
-import { commandLine } from '../../src/product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import { randomUUID } from 'node:crypto';
 import { createReadStream, existsSync } from 'node:fs';
 import { appendFile, mkdir, readFile, rm, stat, unlink, writeFile } from 'node:fs/promises';

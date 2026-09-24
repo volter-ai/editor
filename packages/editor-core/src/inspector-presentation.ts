@@ -40,7 +40,7 @@ import type {
   InspectionPresentation,
   InspectionSection,
   InspectionSurfaceKind,
-} from './inspection/model';
+} from '@volter/editor-sdk/kit/inspection-model';
 
 /** What a user can ASK for — both projections, on any surface. */
 export type InspectorPresentationOverride = InspectionPresentation;

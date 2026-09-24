@@ -13,8 +13,8 @@ import {
   activeBreakpoint,
   setActiveBreakpoint,
   subscribeBreakpoint,
-} from '../authoring/breakpoint-state';
-import { getRootPan, subscribeRootPan } from '../authoring/world-pan-state';
+} from '@volter/editor-sdk/kit/breakpoint-state';
+import { getRootPan, subscribeRootPan } from '@volter/editor-sdk/kit/world-pan-state';
 import {
   addBoardGuide,
   type BoardGuide,

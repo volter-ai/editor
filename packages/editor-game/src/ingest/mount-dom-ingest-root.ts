@@ -8,7 +8,7 @@
 import { measureAdapterReach } from '../host/adapter-reach';
 import { setActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
 import { setActiveSystems } from '@volter/editor-core/authoring/active-systems';
-import { clearMountFailureReports } from '@volter/editor-core/authoring/mount-failure-report';
+import { clearMountFailureReports } from '@volter/editor-sdk/kit/mount-failure-report';
 import { resolveAllRoots } from '../host/binding-resolver';
 import { editorConsole } from '@volter/editor-core/editor-console';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';

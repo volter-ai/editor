@@ -19,13 +19,13 @@ import {
   getRootCanvasViewport,
   setRootCanvasViewport,
   subscribeRootCanvasViewport,
-} from '../authoring/world-canvas-viewport-state';
+} from '@volter/editor-sdk/kit/world-canvas-viewport-state';
 import {
   getRootPan,
   panTransformValue,
   setRootView,
   subscribeRootPan,
-} from '../authoring/world-pan-state';
+} from '@volter/editor-sdk/kit/world-pan-state';
 import { useEditorStore } from '../editor-runtime';
 
 const VIEWPORT_PRESETS = {

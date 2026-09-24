@@ -42,7 +42,7 @@
 
 import type { LiveDocumentContent, LiveDocumentContentProps } from '@volter/editor-sdk/host';
 import type { ComponentType } from 'react';
-import { GAME_DOCUMENT_ID } from './workspace-document-ids';
+import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activateWorkspaceDocument,
   activeWorkspaceDocumentId,

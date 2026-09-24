@@ -37,7 +37,7 @@ import type {
   InspectionNote,
   InspectionSection,
   InspectionSurfaceKind,
-} from './model';
+} from '@volter/editor-sdk/kit/inspection-model';
 
 export interface NullSubjectContext {
   /** The adapter whose surface is showing — the basis for the match. */

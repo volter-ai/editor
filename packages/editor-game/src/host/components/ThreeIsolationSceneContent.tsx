@@ -27,7 +27,7 @@
 import { fsImportPath } from '@volter/editor-sdk/session/project-module-url';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { useEffect, useRef, useState } from 'react';
-import type { DocumentPreviewCaptureRequest } from '@volter/editor-core/document-preview-source';
+import type { DocumentPreviewCaptureRequest } from '@volter/editor-sdk/kit/document-preview-source';
 import { captureAuthoredThreeScenePreview } from '../document-preview-three';
 import { getCurrentProject } from '@volter/editor-core/project-manager';
 import {

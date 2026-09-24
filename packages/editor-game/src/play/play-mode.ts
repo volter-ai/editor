@@ -33,7 +33,7 @@ import {
   resolvesLiveOnly,
   runWritePipe,
   type WriteAck,
-} from '@volter/editor-core/authoring/write-pipe';
+} from '@volter/editor-sdk/kit/write-pipe';
 import { resolveAllRootEntries } from '../host/binding-resolver';
 import type { LogEntry } from '@volter/editor-core/editor-api';
 import { endLogSession, flushLogEntries, startLogSession } from '@volter/editor-core/editor-api';

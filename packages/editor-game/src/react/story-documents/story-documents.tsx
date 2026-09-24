@@ -45,12 +45,12 @@ import { type Resolution, ResolutionPicker } from '../../host/components/Resolut
 import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
 import { registerDocumentOpener } from '@volter/editor-core/document-open-registry';
 import type { ViewportTab } from '@volter/editor-core/editor-shell-store';
-import { createHmrRegistrationGroup } from '@volter/editor-core/hmr-registration-group';
+import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
 import {
   CONTRIBUTED_SECTION_ORDER,
   STORY_ARGS_SECTION_ID,
   STORY_ARGS_SECTION_TITLE,
-} from '@volter/editor-core/inspection/model';
+} from '@volter/editor-sdk/kit/inspection-model';
 import { registerInspectorSections } from '@volter/editor-core/inspector-section-registry';
 import type { ComposedProjectStory } from '@volter/editor-core/stories/compose-project-stories';
 import { getProjectStoryRegions } from '@volter/editor-core/stories/project-story-regions';
@@ -60,7 +60,7 @@ import {
   ISOLATED_STORY_DOCUMENT_OPENER,
   STORY_DOCS_DOCUMENT_OPENER,
   type StoryDocumentOpenRequest,
-} from '@volter/editor-core/stories/story-document-openers';
+} from '@volter/editor-sdk/kit/story-document-openers';
 import {
   getProjectStoryModules,
   refreshProjectStories,
@@ -69,14 +69,14 @@ import {
 } from '@volter/editor-core/stories/story-registry';
 import { domHasRenderableContent } from '../../host/surface-content';
 import { explainSurface, type SurfaceContentState } from '@volter/editor-core/surface-state';
-import { CONTRIBUTED_WORKSPACE_UTILITIES } from '@volter/editor-core/workspace-core-utilities';
+import { CONTRIBUTED_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-utilities';
 import {
   activeWorkspaceDocument,
   openWorkspaceDocument,
   type WorkspaceDocumentContentProps,
 } from '@volter/editor-core/workspace-document-registry';
 import { registerWorkspaceDocumentRestorer } from '@volter/editor-core/workspace-document-restore';
-import { registerWorkspaceUtility } from '@volter/editor-core/workspace-utility-registry';
+import { registerWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-utility-registry';
 import { fitPresentation } from '@volter/game-runtime/runtime/presentation';
 import { Button, fontMono, fontSizeVar, spaceVar } from '@volter/editor-sdk/widgets';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';

@@ -32,13 +32,13 @@ import {
 } from '@volter/editor-core/authoring/design-time-layers';
 import type { ComponentBoardContext } from '@volter/editor-core/component-board-registry';
 import { RootDocumentContent } from '@volter/editor-core/components/world-documents';
-import type { DocumentPreviewSource } from '@volter/editor-core/document-preview-source';
+import type { DocumentPreviewSource } from '@volter/editor-sdk/kit/document-preview-source';
 import { getCurrentProject } from '@volter/editor-core/project-manager';
 import {
   getProjectPreviewStories,
   subscribeProjectStoryModules,
 } from '@volter/editor-core/stories/story-registry';
-import { UI_COMPONENTS_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
+import { UI_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import type { WorkspaceDocumentContentProps } from '@volter/editor-core/workspace-document-registry';
 
 import { UI_COMPONENTS_TITLE } from './ui-board-title';

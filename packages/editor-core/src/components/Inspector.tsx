@@ -32,7 +32,7 @@ import { useEditorStore } from '../editor-runtime';
 import type { EditorShellStore } from '../editor-shell-store';
 import { setActiveScope } from '../hotkeys';
 import { composeInspectionForBinding } from '../inspection/active-subject';
-import type { InspectionPresentation, InspectionSurfaceKind } from '../inspection/model';
+import type { InspectionPresentation, InspectionSurfaceKind } from '@volter/editor-sdk/kit/inspection-model';
 import { useActiveInspection } from '../inspection/use-active-inspection';
 import { setInspectorPresentationOverride } from '../inspector-presentation';
 import {

@@ -26,7 +26,7 @@ import {
   activeSaveState,
 } from '@volter/editor-core/authoring/shell-document-ops';
 import { Object3DDocumentViewport } from '@volter/editor-core/components/Object3DDocumentViewport';
-import type { DocumentPreviewSource } from '@volter/editor-core/document-preview-source';
+import type { DocumentPreviewSource } from '@volter/editor-sdk/kit/document-preview-source';
 import { editorConsole } from '@volter/editor-core/editor-console';
 import type { EditorShellStore, ViewportTab } from '@volter/editor-core/editor-shell-store';
 import { projectAdapterFacet, subscribeProjectAdapter } from '@volter/editor-core/project-adapter';
@@ -36,7 +36,7 @@ import {
   registerAvailableWorkspaceDocument,
   unregisterAvailableWorkspaceDocument,
 } from '@volter/editor-core/workspace-available-documents';
-import { GAME_DOCUMENT_ID, SCENE_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
+import { GAME_DOCUMENT_ID, SCENE_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activateWorkspaceDocument,
   activeWorkspaceDocumentId,

@@ -80,7 +80,7 @@ import {
   markViewportReactActive,
   markViewportSegment,
   recordViewportFirstFrame,
-} from '../viewport-activation-timings';
+} from '@volter/editor-sdk/kit/viewport-activation-timings';
 import { bindViewportRig, runViewportFrame } from '../viewport-door';
 import {
   notifyWorkspaceDocumentSelectionChanged,

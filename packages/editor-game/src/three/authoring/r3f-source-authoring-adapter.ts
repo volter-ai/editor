@@ -50,7 +50,7 @@ import {
   runWritePipe,
   type WriteAck,
   type WriteResolution,
-} from '@volter/editor-core/authoring/write-pipe';
+} from '@volter/editor-sdk/kit/write-pipe';
 import { componentStatesProvider } from '@volter/editor-core/component-states-registry';
 import { openProjectToolDocument } from '@volter/editor-core/components/project-tool-documents';
 import { editorConsole } from '@volter/editor-core/editor-console';
@@ -81,7 +81,7 @@ import {
   ThreeProjector,
 } from '@volter/editor-core/projection/three';
 import { getStorageBackend } from '@volter/editor-core/storage/index';
-import { showTransientHint } from '@volter/editor-core/transient-hint';
+import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import {
   type ComponentPropSpec,
   lineColToOffset,
@@ -110,7 +110,7 @@ import {
   type JsxAttrInfo,
   offsetSnippetPositions,
 } from '@volter/editor-react/source/writer';
-import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
+import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import { activateWorkspaceDocument } from '@volter/editor-core/workspace-document-registry';
 import type {
   AssetDropContext,

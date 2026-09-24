@@ -211,7 +211,7 @@ import { instancedRowDetail } from '../instanced-presentation';
 import { getCurrentProject } from '../project-manager';
 import { focusedStageStore } from '../stage-context';
 import { editorPaintedRegions, subscribeEditorTheme } from '../theme-preference';
-import { showTransientHint } from '../transient-hint';
+import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,

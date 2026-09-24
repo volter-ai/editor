@@ -64,7 +64,7 @@ import {
   runWritePipe,
   type WriteAck,
   type WriteResolution,
-} from '@volter/editor-core/authoring/write-pipe';
+} from '@volter/editor-sdk/kit/write-pipe';
 
 interface PixiLiveHistoryState {
   overlay: Overlay2D;

@@ -28,8 +28,8 @@
 import type { EditorViewDocument } from '@volter/editor-sdk';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import type { ComponentType } from 'react';
-import type { DocumentPreviewSource } from './document-preview-source';
-import { noteViewportActivationGesture } from './viewport-activation-timings';
+import type { DocumentPreviewSource } from '@volter/editor-sdk/kit/document-preview-source';
+import { noteViewportActivationGesture } from '@volter/editor-sdk/kit/viewport-activation-timings';
 
 /**
  * Semantic document kinds — §7.1 "title, semantic kind, and optional

@@ -16,10 +16,10 @@ import type {
   EditorNode,
 } from '@volter/editor-project/adapter';
 import { useEffect, useState } from 'react';
-import { createHmrRegistrationGroup } from '../hmr-registration-group';
-import { GROUP_SECTION_ORDER, type InspectionSection } from '../inspection/model';
+import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
+import { GROUP_SECTION_ORDER, type InspectionSection } from '@volter/editor-sdk/kit/inspection-model';
 import { registerInspectorSections } from '../inspector-section-registry';
-import { showTransientHint } from '../transient-hint';
+import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import {
   applyAuthoringInstanceToComponent,
   openAuthoringComponent,

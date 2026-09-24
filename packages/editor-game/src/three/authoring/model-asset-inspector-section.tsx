@@ -15,12 +15,12 @@ import { setAuthoringSelection } from '@volter/editor-core/authoring/consumer-ac
 import { SourceObject3DAuthoringAdapter } from '@volter/editor-core/authoring/source-object3d-authoring-adapter';
 import { openToolDocument } from '@volter/editor-core/components/tool-documents';
 import { useEditorStore } from '@volter/editor-core/editor-runtime';
-import { createHmrRegistrationGroup } from '@volter/editor-core/hmr-registration-group';
+import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
 import {
   CONTRIBUTED_SECTION_ORDER,
   type InspectionSection,
   PROPERTIES_SECTION_ID,
-} from '@volter/editor-core/inspection/model';
+} from '@volter/editor-sdk/kit/inspection-model';
 import { registerInspectorSections } from '@volter/editor-core/inspector-section-registry';
 import {
   type ProjectOutputProvenance,

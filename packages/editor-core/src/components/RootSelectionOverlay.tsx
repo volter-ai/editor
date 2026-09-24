@@ -92,7 +92,7 @@ import {
   isEyedropperSessionActive,
   resolveEyedropperSession,
   subscribeEyedropperSession,
-} from '../authoring/eyedropper-session';
+} from '@volter/editor-sdk/kit/eyedropper-session';
 import { pickCandidates, pickTopmost } from '../authoring/layered-pick';
 import {
   selectReactStoryFrameAtPoint,
@@ -103,7 +103,7 @@ import {
   panTransformValue,
   type RootViewController,
   sharedRootViewController,
-} from '../authoring/world-pan-state';
+} from '@volter/editor-sdk/kit/world-pan-state';
 import { isRootHidden } from '../authoring/world-session-state';
 import { useEditorStore } from '../editor-runtime';
 import { anyLiveSessionMounted } from '../live-session-registry';

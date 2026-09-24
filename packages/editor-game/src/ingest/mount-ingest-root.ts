@@ -34,7 +34,7 @@ import {
   formatMountFailureMessage,
   getMountFailureReports,
   type MountFailureReport,
-} from '@volter/editor-core/authoring/mount-failure-report';
+} from '@volter/editor-sdk/kit/mount-failure-report';
 import { editorConsole } from '@volter/editor-core/editor-console';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { registerEditorStateFacet } from '@volter/editor-core/editor-state-facets';

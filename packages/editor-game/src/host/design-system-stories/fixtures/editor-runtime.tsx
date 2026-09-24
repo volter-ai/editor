@@ -11,7 +11,7 @@ import {
   setWorkspaceUtilityTabs,
   workspaceUtilityTabs,
 } from '@volter/editor-core/workspace-host-commands';
-import { availableWorkspaceUtilities } from '@volter/editor-core/workspace-utility-registry';
+import { availableWorkspaceUtilities } from '@volter/editor-sdk/kit/workspace-utility-registry';
 
 const ZERO_STATS: EditorStats = {
   fps: 60,

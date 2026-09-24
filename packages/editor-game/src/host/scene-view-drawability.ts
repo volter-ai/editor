@@ -26,7 +26,7 @@
  * which is exactly what the message says.
  */
 
-import { commandLine } from '@volter/editor-core/product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import { editorConsole } from '@volter/editor-core/editor-console';
 
 const undrawable = new WeakMap<object, string>();

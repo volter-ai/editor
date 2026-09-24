@@ -1,4 +1,4 @@
-import type { EditorCameraState } from '@volter/editor-sdk';
+import type { EditorCameraState } from '../index';
 
 export const DOCUMENT_PREVIEW_WIDTH = 320;
 export const DOCUMENT_PREVIEW_HEIGHT = 180;

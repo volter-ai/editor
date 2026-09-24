@@ -59,7 +59,7 @@ import type * as THREE from 'three';
 import type { EditorShellStore } from '../editor-shell-store';
 import type { CompositeAuthoringAdapter } from './composite-authoring-adapter';
 import type { DesignTimeRootDescriptor, LayerMountResult } from './design-time-layers';
-import type { RootViewController } from './world-pan-state';
+import type { RootViewController } from '@volter/editor-sdk/kit/world-pan-state';
 
 /**
  * Everything a mount reads from the HOST, and deliberately nothing more — the

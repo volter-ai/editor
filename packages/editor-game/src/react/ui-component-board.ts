@@ -12,7 +12,7 @@
  * whose verdict is `'present'`.
  */
 
-import { commandLine } from '@volter/editor-core/product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import type { ComponentBoard, ComponentBoardContext } from '@volter/editor-core/component-board-registry';
 import { editorConsole } from '@volter/editor-core/editor-console';
 import {
@@ -20,7 +20,7 @@ import {
   subscribeStoryMediaPresence,
 } from '../host/stories/story-media-presence';
 import { projectStoriesReady, subscribeProjectStoryModules } from '@volter/editor-core/stories/story-registry';
-import { UI_COMPONENTS_DOCUMENT_ID } from '@volter/editor-core/workspace-document-ids';
+import { UI_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import { UI_COMPONENTS_TITLE } from './ui-board-title';
 
 export const uiComponentBoard: ComponentBoard = {

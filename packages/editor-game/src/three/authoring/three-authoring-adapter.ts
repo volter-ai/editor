@@ -76,7 +76,7 @@ import {
   runWritePipe,
   type WriteAck,
   type WriteResolution,
-} from '@volter/editor-core/authoring/write-pipe';
+} from '@volter/editor-sdk/kit/write-pipe';
 import { componentStatesProvider } from '@volter/editor-core/component-states-registry';
 import {
   type ChannelValue,

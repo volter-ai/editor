@@ -83,7 +83,7 @@ import {
 } from './pixi-source-identity';
 import { CanvasStructureHistory } from './pixi-structure-history';
 import { fromNeutralTransform, toNeutralTransform } from './pixi-transform-channels';
-import { resolvesLiveOnly, runWritePipe } from '@volter/editor-core/authoring/write-pipe';
+import { resolvesLiveOnly, runWritePipe } from '@volter/editor-sdk/kit/write-pipe';
 
 /**
  * What a write target is handed at construction — the live view it edits

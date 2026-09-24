@@ -1,4 +1,4 @@
-import { commandLine } from './product-command';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 /**
  * THE PAGE'S OWN DEATH CERTIFICATE — one latch, read by everything that would
  * otherwise let a dead page keep impersonating a live editor.

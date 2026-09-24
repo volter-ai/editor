@@ -1,4 +1,4 @@
-import type { MountFailureReport } from './authoring/mount-failure-report';
+import type { MountFailureReport } from '@volter/editor-sdk/kit/mount-failure-report';
 import type { RootReadiness } from './readiness';
 
 export type SurfaceContentState = 'unknown' | 'present' | 'empty';

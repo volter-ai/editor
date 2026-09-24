@@ -16,7 +16,7 @@
  * sections has nothing to inspect; its identity alone does not open a card.
  */
 
-import { GAME_DOCUMENT_ID } from '../workspace-document-ids';
+import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import { activeWorkspaceDocumentId } from '../workspace-document-registry';
 import type { NullInspectionSubject } from './null-subject';
 import { registerNullSubjectProvider } from './null-subject';

@@ -30,7 +30,7 @@
  * half of every host door, and each handle's own comment names the contribution
  * that consumes it.
  */
-import { loadProductNames, productDisplayName } from '../product-command';
+import { loadProductNames, productDisplayName } from '@volter/editor-sdk/kit/product-command';
 import '../editor-styles.css';
 import '../authoring/instance-source-menu-register';
 import { activeProduct } from '../active-product';
@@ -141,7 +141,7 @@ import {
   availableUtilityFingerprint,
   availableWorkspaceUtilities,
   subscribeWorkspaceUtilities,
-} from '../workspace-utility-registry';
+} from '@volter/editor-sdk/kit/workspace-utility-registry';
 import { setWorkspaceViewportRect } from '../workspace-viewport-rect';
 
 /**
