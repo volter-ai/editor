@@ -12,8 +12,9 @@
  *
  *  IT IS THE WHOLE INNER LOOP. Stop sessions serving this checkout with `vgai close`, edit
  *  `packages/editor-core/workbench/src/…` here, run this, then reopen with `vgai edit`. Compilation
- *  cleans `out/` and extension output; serving it mid-build causes missing modules. ~20 s warm, which is the fork's own `compile-client` (it typechecks `src/`
- *  and emits `out/`; `out/server-main.js` is part of it, so no separate server compile exists).
+ *  cleans `out/` and extension output; serving it mid-build causes missing modules. ~30 s warm: the fork's own `compile-client` (it typechecks `src/`
+ *  and emits `out/`; `out/server-main.js` is part of it, so no separate server compile exists),
+ *  then `compile-web` for the built-in extensions' browser entries.
  *
  *  IT RUNS NOTHING ELSE, deliberately: it does not start a session, open a tab or touch the
  *  project. `vgai edit` owns all three and the tab bijection is its invariant, so a second
@@ -71,4 +72,8 @@ const { checkout, product } = parseArgs(process.argv);
 assertNodeMajor(checkout);
 run(process.execPath, [join(REPO_ROOT, 'scripts/workbench/overlay.mjs'), '--checkout', checkout, '--product', product], REPO_ROOT);
 run('npm', ['run', 'compile-client'], checkout);
+// The web workbench loads each built-in extension's BROWSER entry, which only
+// `compile-web` builds; without it an extension a release carries (GitHub
+// authentication among them) never registers in a sources workbench.
+run('npm', ['run', 'compile-web'], checkout);
 console.log(`workbench dev: ${checkout} carries ${product} and is compiled. Reload the workbench tab.`);
