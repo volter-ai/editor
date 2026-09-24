@@ -142,6 +142,7 @@ import {
   availableWorkspaceUtilities,
   subscribeWorkspaceUtilities,
 } from '@volter/editor-sdk/kit/workspace-utility-registry';
+import { subscribeAvailabilityTick } from '@volter/editor-sdk/kit/availability-tick';
 import { setWorkspaceViewportRect } from '../workspace-viewport-rect';
 
 /**
@@ -1308,7 +1309,24 @@ export async function mountEditor(next: VscodeParts): Promise<{
         title: utility.title,
         order: utility.order ?? index,
       })),
-    subscribe: (listener) => subscribeWorkspaceUtilities(listener),
+    // A utility's availability is session state (State Watch and Network exist only while
+    // a running game exposes their adapters), so the workbench hears when the AVAILABLE set
+    // moves, not only when the registry does; otherwise a gate that opens at Play never
+    // gets a view.
+    subscribe: (listener) => {
+      let fingerprint = availableUtilityFingerprint();
+      const offRegistry = subscribeWorkspaceUtilities(listener);
+      const offTick = subscribeAvailabilityTick(() => {
+        const next = availableUtilityFingerprint();
+        if (next === fingerprint) return;
+        fingerprint = next;
+        listener();
+      });
+      return () => {
+        offRegistry();
+        offTick();
+      };
+    },
     offerBody: (id, element) => setUtilityBody(id, element),
   };
   // ---- THE GAME SKEW'S THREE FRAME ANSWERS (U2). See `vgaiGameSkew.ts` for why each exists.
