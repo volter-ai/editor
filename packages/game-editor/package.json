@@ -41,7 +41,11 @@
     "product": {
       "entry": "./src/index.ts",
       "displayName": "Volter Game Editor",
-      "colorTheme": "dark"
+      "colorTheme": "dark",
+      "workbench": {
+        "release": "game-editor-f8664703ab59-595ba7af8402-darwin-arm64",
+        "tarballSha256": "fac04a80a9745b6af25c232308faab1691ef2ecc40883cc8c9b89b42f12f8ccd"
+      }
     }
   },
   "dependencies": {

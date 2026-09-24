@@ -1,0 +1,38 @@
+{
+  "target": "vscode-reh-web-darwin-arm64",
+  "platform": "darwin-arm64",
+  "product": "game-editor",
+  "codeOss": {
+    "repository": "https://github.com/volter-ai/code-oss",
+    "revision": "f8664703ab59f6d206a2c152de35fc2fae61793d",
+    "version": "1.138.0"
+  },
+  "editorSource": {
+    "repository": "https://github.com/volter-ai/editor",
+    "revision": "595ba7af840213bad93b14255404dbb163649121",
+    "dirty": false
+  },
+  "build": {
+    "node": "v24.21.0",
+    "builtAt": "2026-09-24T13:36:56.741Z",
+    "assetVersion": "11ba13bcb3f98f8a35f534888c3a280c4444e407",
+    "mangled": false,
+    "minified": true,
+    "chatExtension": {
+      "id": "volter-ai-dev.supercode-frontend-vscode",
+      "version": "0.1.4"
+    }
+  },
+  "release": {
+    "repository": "https://github.com/volter-ai/code-oss",
+    "tag": "game-editor-f8664703ab59-595ba7af8402-darwin-arm64",
+    "tarball": "vscode-reh-web-darwin-arm64-f8664703ab59-game-editor.tar.gz",
+    "tarballBytes": 148384293,
+    "tarballSha256": "fac04a80a9745b6af25c232308faab1691ef2ecc40883cc8c9b89b42f12f8ccd",
+    "unpackedBytes": 477300305
+  },
+  "anonymousDownload": {
+    "verifiedAt": "2026-09-24",
+    "sha256Matches": true
+  }
+}
