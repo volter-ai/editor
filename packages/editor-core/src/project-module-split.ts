@@ -116,6 +116,10 @@ function projectModuleFetch(
   // cross-root split makes a healthy multi-root game report an error even
   // though every root entry still shares the one `vgai-mount` epoch.
   if (STORY_MODULE_PATTERN.test(path)) return null;
+  // The project's adapter is the same shape: a binding table the editor reads
+  // WITHOUT booting the game (`project-adapter.ts`'s `importAdapterModule`), fresh
+  // `?t=` on every read, and imported by no root.
+  if (path.endsWith('/vgai.adapter.ts')) return null;
   if (isNonModuleQuery(query)) return null;
   // The mount id is not a variant of a module — it names WHICH INSTANCE's copy
   // this is, and per-instance module graphs are the isolation working (see
