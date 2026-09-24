@@ -57,7 +57,7 @@
       "description": "The blender capability alone: Blender in the tab — .blend models under src/models/ with the bpy that authored them, the Model document and the model finder. No world to run.",
       "source": "template:models",
       "whatsInside": [
-        "blender capability (@vgai/blender + @vgai/blender-engine)",
+        "blender capability (@volter/editor-blender + @volter/blender-engine)",
         "src/models/ + the model finder",
         "Opens in the Model workspace"
       ]

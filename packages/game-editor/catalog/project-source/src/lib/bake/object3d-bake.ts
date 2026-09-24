@@ -1,4 +1,4 @@
-import type { ToolContext } from '@vgai/sdk/tools';
+import type { ToolContext } from '@volter/editor-sdk/tools/registry';
 import type * as THREE from 'three';
 import type { Object3DSourceBuild } from '../bake/object3d-source';
 import {

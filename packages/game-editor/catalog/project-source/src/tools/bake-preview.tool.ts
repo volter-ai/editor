@@ -23,7 +23,8 @@
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
-import { defineTool, ToolError, type ToolErrorDefinition } from '@vgai/sdk/tools';
+import { ToolError } from '@volter/editor-sdk/tools/errors';
+import { defineTool, type ToolErrorDefinition } from '@volter/editor-sdk/tools/registry';
 import * as THREE from 'three';
 import { z } from 'zod';
 import {
