@@ -9,6 +9,7 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "build:blender-three": "npm run build:blender-three -w @volter/blender-engine",
     "build": "node scripts/build-release-packages.mjs && node scripts/write-bundled-notices.mjs",
+    "build:game": "node scripts/build-release-packages.mjs release/game.json && node scripts/write-bundled-notices.mjs release/game.json",
     "check:release": "node scripts/check-release.mjs",
     "check:release:game": "node scripts/check-release.mjs release/game.json",
     "test": "npm run test:session -w @volter/editor-core && node --test packages/editor-core/test/sidebar-restore.test.mjs packages/editor-core/test/storybook-compatibility.test.mjs packages/editor-core/test/page-work.test.mjs packages/editor-core/test/command-readiness.test.mjs packages/editor-core/test/command-deadline.test.mjs packages/editor-core/test/history.test.mjs packages/editor-core/test/session-close.test.mjs packages/blender-engine/test/world-field.test.mjs packages/blender-engine/test/world-volume.test.mjs packages/blender-engine/test/physical-material.test.mjs packages/blender-engine/test/shutdown.test.mjs packages/editor-blender/test/history-refresh.test.mjs packages/editor-blender/test/properties-read-generation.test.mjs && python3 packages/blender-engine/test/native_history.py",

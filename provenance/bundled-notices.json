@@ -1,6 +1,17 @@
 {
   "editor": [
     {
+      "name": "@babel/runtime",
+      "version": "7.29.7",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/@babel/runtime/LICENSE",
+          "sha256": "117da2af0d4ce0fe1c8e19b5cff9dcd806adf973d328d27b11d4448c4ff24f76"
+        }
+      ]
+    },
+    {
       "name": "@codemirror/autocomplete",
       "version": "6.20.3",
       "license": "MIT",
@@ -228,7 +239,7 @@
       "license": "MIT",
       "notices": [
         {
-          "file": "packages/editor-core/node_modules/@react-three/drei/LICENSE",
+          "file": "node_modules/@react-three/drei/LICENSE",
           "sha256": "2e36b208b403882158daf95cae207087bbb830db4d434a79ebafffca177244c8"
         }
       ]
@@ -333,6 +344,10 @@
         {
           "file": "packages/editor-blender/LICENSE",
           "sha256": "6222bff8873f053552eb10770eb905c266725890276b9281419cd3028c18aec5"
+        },
+        {
+          "file": "packages/editor-blender/LICENSE-MCP",
+          "sha256": "049501fd54d27852507853a5b88094ca1c6ff97404418a5032f3310eecc9cde6"
         }
       ]
     },
@@ -700,6 +715,17 @@
       ]
     },
     {
+      "name": "zod",
+      "version": "4.3.6",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/zod/LICENSE",
+          "sha256": "3f1189b28e3866e0d979968d466b78f813f76827cfdca1fbb124cc0a5c8841f8"
+        }
+      ]
+    },
+    {
       "name": "zustand",
       "version": "5.0.15",
       "license": "MIT",
@@ -766,6 +792,17 @@
         {
           "file": "packages/editor-threejs/NOTICE",
           "sha256": "7f2864eebec196ae72bd4cf18cb8cf54bda39bb09f3c5573b68e697f5f7fcef7"
+        }
+      ]
+    },
+    {
+      "name": "es-module-lexer",
+      "version": "1.7.0",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/es-module-lexer/LICENSE",
+          "sha256": "fecc38b5e10d889686b3862e7ade17e8b3e5c94b24b7256b05a354d8524b3274"
         }
       ]
     },
@@ -843,6 +880,17 @@
         {
           "file": "node_modules/tinyglobby/LICENSE",
           "sha256": "22c68811e174cbbfb3813d4135918df4f540959c14d872e601d9abe83d3cde8f"
+        }
+      ]
+    },
+    {
+      "name": "zod",
+      "version": "4.3.6",
+      "license": "MIT",
+      "notices": [
+        {
+          "file": "node_modules/zod/LICENSE",
+          "sha256": "3f1189b28e3866e0d979968d466b78f813f76827cfdca1fbb124cc0a5c8841f8"
         }
       ]
     }
