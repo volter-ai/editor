@@ -22,6 +22,7 @@
 
 import './media/vgai-parts.css';
 import './vgaiSidebarRestore.js';
+import './vgaiChat.js';
 import { attachDocumentView, installDocumentViewSink, VgaiDocumentViews } from './vgaiDocumentViews.js';
 import { $, Dimension } from '../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../base/browser/window.js';

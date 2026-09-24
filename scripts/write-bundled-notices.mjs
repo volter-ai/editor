@@ -15,6 +15,7 @@ const fallbacks={
   '@storybook/react@10.6.0':'storybook', '@storybook/react-dom-shim@10.6.0':'storybook', 'storybook@10.6.0':'storybook',
   'rrweb@2.1.6':'rrweb', '@volter-ai-dev/supercode-ui@0.1.83':'supercode',
   'draco3d@1.5.7':'draco', 'maath@0.10.8':'maath', 'stats-gl@2.4.2':'stats-gl',
+  '@volter-ai-dev/supercode-frontend@0.2.3':'supercode-frontend',
 };
 const fallbackSources=new Map(read('release/licenses/sources.json').map(s=>[s.name,s]));
 // `node scripts/write-bundled-notices.mjs [list]`, default release/modeling.json:

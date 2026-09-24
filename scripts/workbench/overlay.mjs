@@ -93,6 +93,7 @@ export const CHAT_EXTENSION = {
 		'chatParticipantPrivate',
 		'chatParticipantAdditions',
 		'chatSessionsProvider',
+		'chatProvider',
 	],
 	/** The glyph the workbench draws for its default chat agent — the status bar entry and the
 	 *  chat title-bar actions. It is the CORE's, not the extension's, so removing
@@ -276,7 +277,72 @@ function writeChatExtension(checkout, extension) {
 	if (id !== CHAT_EXTENSION.id) {
 		fail(`the packed extension's id is ${id} and product.json is written for ${CHAT_EXTENSION.id}. A default chat participant nothing can name answers nothing; re-aim CHAT_EXTENSION.id here.`);
 	}
+	// This product grants defaultChatParticipant unconditionally. Advertise it
+	// before activation so native Chat does not select an unimplemented core
+	// fallback while waiting for the extension's context key to be published.
+	for (const participant of manifest.contributes?.chatParticipants ?? []) {
+		if (participant.isDefault) { delete participant.when; }
+	}
+	writeFileSync(join(target, 'package.json'), `${JSON.stringify(manifest, null, '\t')}\n`);
 	return manifest.version;
+}
+
+/**
+ * NATIVE CHAT REPAIRS at this pin. Each names the exact upstream text it replaces and fails
+ * when upstream moved, so a re-pin re-aims it rather than silently dropping it.
+ */
+function patchChatSource(checkout, relative, original, replacement, what) {
+	const file = join(checkout, relative);
+	const source = readFileSync(file, 'utf8');
+	if (source.includes(replacement)) { return; }
+	if (!source.includes(original)) { fail(`${relative}: ${what} changed upstream; re-aim this repair.`); }
+	writeFileSync(file, source.replace(original, replacement));
+}
+
+function patchNativeChat(checkout) {
+	// The native input-state API must not broadcast one conversation's permission
+	// changes into every other conversation owned by the same provider.
+	patchChatSource(checkout, 'src/vs/workbench/api/common/extHostChatSessions.ts', `\t\t// Temporary workaround: input state changes for one resource are propagated to all
+\t\t// input states for the same resource type until we can make this session-specific.
+\t\tfor (const inputState of controllerData?.inputStates ?? []) {`, `\t\t// Route changes only to input states bound to this exact conversation.
+\t\tfor (const inputState of controllerData.inputStates) {
+\t\t\tif (!isEqual(inputState.sessionResource ?? inputState.untitledSessionResource, sessionResource)) { continue; }`, 'input-state routing');
+
+	// Tree height changes mutate layout. Deliver them outside ResizeObserver's
+	// notification phase, retaining the latest measurement and the row's identity.
+	const renderer = 'src/vs/workbench/contrib/chat/browser/widget/chatListRenderer.ts';
+	patchChatSource(checkout, renderer, `\t\tconst resizeObserver = templateDisposables.add(new dom.DisposableResizeObserver('ChatListItemRenderer.itemHeight', (entries) => {
+\t\t\tconst entry = entries[0];
+\t\t\tif (entry) {
+\t\t\t\tthis.fireItemHeightChange(template, entry.borderBoxSize.at(0)?.blockSize);
+\t\t\t}
+\t\t}));`, `\t\tconst pendingResize = templateDisposables.add(new MutableDisposable<IDisposable>());
+\t\tconst resizeObserver = templateDisposables.add(new dom.DisposableResizeObserver('ChatListItemRenderer.itemHeight', (entries) => {
+\t\t\tconst entry = entries[0];
+\t\t\tif (entry) {
+\t\t\t\tconst element = template.currentElement;
+\t\t\t\tpendingResize.value = dom.scheduleAtNextAnimationFrame(dom.getWindow(rowContainer), () => {
+\t\t\t\t\tpendingResize.clear();
+\t\t\t\t\tif (template.currentElement === element && rowContainer.isConnected) {
+\t\t\t\t\t\tthis.fireItemHeightChange(template, entry.borderBoxSize.at(0)?.blockSize);
+\t\t\t\t\t}
+\t\t\t\t});
+\t\t\t}
+\t\t}));`, 'item-height delivery');
+	patchChatSource(checkout, renderer, '\t\t\tresizeObservation.clear();\n', '\t\t\tresizeObservation.clear();\n\t\t\tpendingResize.clear();\n', 'row disconnect');
+
+	// Activating the extension can retire the setup agent selected before the await, which
+	// surfaced as "No default agent registered" on a first boot.
+	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/common/chatService/chatServiceImpl.ts',
+		'const defaultAgent = this.chatAgentService.getActivatedAgents().find(agent => agent.id === defaultAgentData.id);',
+		'const defaultAgent = this.chatAgentService.getDefaultAgent(location) ?? this.chatAgentService.getDefaultAgent(ChatAgentLocation.Chat);',
+		'default-agent activation');
+
+	// The editor owns agent runtimes through Supercode: its service choice registers after the
+	// web defaults (packages/editor-core/workbench/src/vgaiChat.services.ts).
+	const webMain = join(checkout, 'src/vs/workbench/workbench.web.main.ts');
+	const servicesImport = "import './contrib/vgai/browser/vgaiChat.services.js';";
+	writeFileSync(webMain, `${readFileSync(webMain, 'utf8').replaceAll(servicesImport, '').trimEnd()}\n\n${servicesImport}\n`);
 }
 
 /**
@@ -424,6 +490,7 @@ function main() {
 	const chatExtensionVersion = writeChatExtension(checkout, extension);
 	copiedExtensions.push(CHAT_EXTENSION.directory);
 
+	patchNativeChat(checkout);
 	patchRegistrationImports(checkout);
 	patchWebResources(checkout);
 	patchRehCopilotShim(checkout);

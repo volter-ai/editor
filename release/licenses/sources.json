@@ -68,5 +68,12 @@
     "revision": "c12b2e391d5a88616e0b30f3c7f0577966426239",
     "path": "README.md",
     "sha256": "9281bde063bbf20ea4a6a24eb893a9a10f70673ab041afc4d1167358e8f3dd2f"
+  },
+  {
+    "name": "supercode-frontend",
+    "repository": "volter-ai/supercode",
+    "revision": "fc9962d0f88520c5661f299663a298bc17edda40",
+    "path": "LICENSE-MIT",
+    "sha256": "47650bbb438e759a9398efc9f5f1156dd33a93f8d4a83c1e9e28fc5797d5fca6"
   }
 ]

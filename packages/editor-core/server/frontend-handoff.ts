@@ -13,8 +13,8 @@
  * the pi frontend, without the `PI` infix. A Code-OSS server passes its
  * environment to its extension host, and `frame-workbench.ts` spawns that server,
  * so the handover costs no pasted token and no route of ours. The price is that
- * env is FIXED AT SPAWN: whatever the runtime is when the REH starts is what the
- * panel gets, which is why the session starts the runtime first.
+ * env is fixed at spawn, so the session starts the initial runtime first. The
+ * private lifecycle channel supplies replacement handoffs for later selections.
  *
  * WHY THE SESSION MINTS RATHER THAN FORWARDS. The runtime's receipt carries a
  * BOOTSTRAP bearer (`crates/harness/src/live_runtime.rs`), and handing that to a
@@ -32,15 +32,15 @@
  *
  * RESOURCE OWNERSHIP, stated once:
  *  - OWNER: the `HarnessChatService` that minted it. It holds exactly one
- *    handoff at a time and replaces it only by disposing the previous one.
+ *    handoff at a time; selection mints a replacement and disposes the previous one.
  *  - SHARERS: the REH child, which received the path in its environment and may
  *    re-read it across an extension-host reload for as long as the session lives.
- *  - THE ONE TEARDOWN: `dispose()`, called from the service's `close()` — the
- *    same shutdown list that stops the REH. Nothing else may revoke it, because
- *    a revoked grant with a live panel is a chat that has silently gone deaf.
+ *  - TEARDOWN: `dispose()`, called when replacing a handoff or closing the service.
+ *    The frontend reconnects using the lifecycle channel's current handoff.
  */
 
 import { randomUUID } from 'node:crypto';
+import { FrontendClient } from '@volter-ai-dev/supercode-frontend';
 import { chmodSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -73,6 +73,8 @@ export interface FrontendHandoff {
   /** True when the runtime's mint door answered; false when it 404'd and the receipt's own
    *  bearer was handed over instead (see the measurement in `mintFrontendHandoff`). */
   readonly minted: boolean;
+  /** Read the runtime itself: frontend turns do not pass through the headless controller. */
+  isBusy(): Promise<boolean>;
   /** Revoke the grant and delete the credential file. Idempotent. */
   dispose(): Promise<void>;
 }
@@ -206,6 +208,7 @@ export async function mintFrontendHandoff(options: {
   // a 0022 umask would leave 0644 and the extension refuses a world-readable credential.
   writeFileSync(credentialFile, token, { mode: 0o600 });
   chmodSync(credentialFile, 0o600);
+  const observer = new FrontendClient({baseUrl:receipt.base_url, token, clientId, permissions:['observe']});
   let disposed = false;
   return {
     env: {
@@ -216,6 +219,10 @@ export async function mintFrontendHandoff(options: {
     },
     clientId,
     minted,
+    async isBusy() {
+      if (disposed) throw new Error('The chat runtime handoff is no longer active.');
+      return (await observer.describe({signal:AbortSignal.timeout(5000)})).turn_state === 'busy';
+    },
     async dispose() {
       if (disposed) return;
       disposed = true;

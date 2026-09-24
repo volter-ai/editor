@@ -108,7 +108,8 @@
     "postcss": "8.5.28",
     "esbuild": "0.25.12",
     "picomatch": "4.0.7",
-    "undici": "7.29.1"
+    "undici": "7.29.1",
+    "@volter-ai-dev/supercode-frontend": "0.2.3"
   },
   "devDependencies": {
     "@types/express": "5.0.6",

@@ -3,13 +3,13 @@
  *
  * Supercode owns harness/session/runtime semantics, lifecycle normalization,
  * transcript projection, retries, reconciliation, and concurrency. VGAI owns
- * the trusted YOLO policy, HTTP/SSE boundary, shell-command presentation, and
- * React visuals. Keep this file as a mapping layer; reusable agent logic
+ * authenticated local launch controls and the HTTP/SSE boundary. Native Chat
+ * owns presentation and conversation-scoped approval choices. Keep this file as a mapping layer; reusable agent logic
  * belongs in @volter-ai-dev/supercode-client.
  */
 
 import { randomUUID } from 'node:crypto';
-import { existsSync, statSync } from 'node:fs';
+import { existsSync, statSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -42,6 +42,8 @@ import {
   FRONTEND_UNAVAILABLE_ENV,
   mintFrontendHandoff,
 } from './frontend-handoff';
+import { FrontendControls, DEFAULT_CHAT_SELECTION, chatModels, selectedChatLaunch, validateChatSelection, type ChatSelection } from './frontend-controls';
+import { ChatSessionCatalog } from './chat-session-catalog';
 import { projectMcpServers } from './project-mcp-servers';
 import type { HarnessChatCallerSession } from './harness-chat-caller';
 
@@ -123,6 +125,7 @@ type HeadlessControllerConstructor = new (options: {
 }) => HeadlessController;
 type HeadlessManagedRuntime = {
   readonly closed?: boolean;
+  on?(event: 'event', listener: (event: { raw?: { payload?: unknown } }) => void): unknown;
   /** The SDK's own `RuntimeHandle`. `runtime_id` is the string the runtime wrote into
    *  its live receipt as `runtime_session_id`, so it is how the frontend handoff finds
    *  the loopback address and the mint door. */
@@ -862,6 +865,11 @@ export class HarnessChatService {
   );
   /** The last managed runtime the SDK handed back, for the frontend handoff's receipt lookup. */
   private managedRuntime: HeadlessManagedRuntime | null = null;
+  private observedModel: string | null = null;
+  private chatSelection: ChatSelection = { ...DEFAULT_CHAT_SELECTION };
+  private selectingChat = false;
+  private readonly chatCatalog: ChatSessionCatalog;
+  private readonly frontendControls = new FrontendControls(() => this.chatControlState(), (selection) => this.selectChat(selection), id => this.openChat(id), (id, nativeId) => this.bindChatIdentity(id, nativeId));
   private frontendHandoffValue: FrontendHandoff | null = null;
   /** The standing reason the Chat view has no agent, or `null`. Held because a refusal
    *  OUTLIVES a page load and the console ledger's clearing rule (a) retires an entry whose
@@ -876,6 +884,10 @@ export class HarnessChatService {
 
   constructor(private readonly options: HarnessChatServiceOptions) {
     const workspace = resolve(options.getProjectRoot());
+    try { this.chatSelection = validateChatSelection(JSON.parse(readFileSync(join(workspace, '.vgai', 'chat-selection.json'), 'utf8'))); } catch { /* no saved selection */ }
+    this.chatCatalog = new ChatSessionCatalog(join(workspace, '.vgai', 'chat-sessions.json'));
+    const active = this.chatCatalog.active && this.chatCatalog.sessions.get(this.chatCatalog.active);
+    if (active) this.chatSelection = {...active.selection};
     for (const caller of options.callerSessions ?? []) this.rememberCaller(workspace, caller);
   }
 
@@ -978,13 +990,9 @@ export class HarnessChatService {
 
 
   /**
-   * THE CHAT VIEW'S RUNTIME, as four environment variables (`frontend-handoff.ts`).
-   *
-   * Called ONCE per session, by the host, BEFORE it spawns the REH — because the
-   * extension host inherits the REH's environment and that environment is fixed at
-   * spawn. So this is also what decides that a `vgai edit` starts a harness runtime at
-   * all: the panel is the product's agent surface, and a panel with nothing behind it
-   * is the silent degrade rule 7 exists to prevent.
+   * The initial Chat runtime is handed to the extension host before it starts.
+   * The private lifecycle channel supplies replacement handoffs when the user
+   * selects another harness or model; conversation actions still use frontend.v2.
    *
    * It never throws. A box with no signed-in harness is an ordinary state (B9c: the
    * refusal names the harness and its own login command), and the session still opens —
@@ -998,6 +1006,155 @@ export class HarnessChatService {
   }
 
   async frontendHandoff(): Promise<FrontendHandoffResult> {
+    const controls = await this.frontendControls.start();
+    const handoff = await this.runtimeFrontendHandoff();
+    return { ...handoff, env: { ...handoff.env, ...controls } };
+  }
+
+  private observeChatRuntime(runtime: HeadlessManagedRuntime): void {
+    this.managedRuntime = runtime;
+    this.observedModel = null;
+    runtime.on?.('event', event => {
+      if (this.managedRuntime !== runtime) return;
+      const payload = event.raw?.payload;
+      if (!payload || typeof payload !== 'object') return;
+      const record = payload as { model?: unknown; message?: { model?: unknown } };
+      const model = record.message?.model ?? record.model;
+      if (typeof model === 'string' && model.length > 0 && model.length < 200) this.observedModel = model;
+    });
+  }
+
+  private async chatControlState() {
+    await this.ensureController();
+    const snapshot = this.snapshot();
+    return {
+      selection: { ...this.chatSelection },
+      activeSession: this.chatCatalog.active,
+      openSessionCommand: 'volter.chat.openSession',
+      sessions: [...this.chatCatalog.sessions.values()],
+      actualModel: this.observedModel,
+      connection: this.frontendHandoffValue?.env,
+      busy: (await this.frontendHandoffValue?.isBusy()) || snapshot.turn.state === 'running' || snapshot.requests.length > 0,
+      harnesses: snapshot.harnesses.filter(h => h.availableActions.start).map(h => ({ id: h.id, name: h.label })),
+      models: chatModels(this.chatSelection.harness),
+      modelsByHarness: Object.fromEntries(snapshot.harnesses.filter(h => h.availableActions.start).map(h => [h.id, chatModels(h.id)])),
+      configurable: ['claude-code', 'codex'].includes(this.chatSelection.harness),
+    };
+  }
+
+  private rememberChatSession(): void {
+    if (this.selectingChat || !this.chatCatalog.active) return;
+    const entry = this.chatCatalog.sessions.get(this.chatCatalog.active);
+    const session = this.lastSnapshot.sessions.find(s => s.id === this.lastSnapshot.activeSessionId);
+    if (!entry?.identity || !session || session.harness !== entry.selection.harness) return;
+    if (entry.identity && entry.identity !== session.identity) return;
+    if (entry.identity !== session.identity || entry.title !== session.title) {
+      entry.identity = session.identity;
+      entry.title = session.title;
+      this.chatCatalog.save();
+    }
+  }
+
+  private async bindChatIdentity(id: string, nativeId: string) {
+    if (id !== this.chatCatalog.active || this.selectingChat) throw new Error('Cannot bind an inactive conversation.');
+    await this.ensureController();
+    await this.controller!.dispatch({type:'refresh', autoObserve:false, silent:true});
+    this.capture();
+    const entry = this.chatCatalog.sessions.get(id);
+    const session = this.lastSnapshot.sessions.find(s => s.nativeId === nativeId && s.harness === entry?.selection.harness && s.cwd && resolve(s.cwd) === resolve(this.options.getProjectRoot()));
+    if (!entry || !session) throw new Error('The harness has not persisted this conversation yet.');
+    if (entry.identity && entry.identity !== session.identity) throw new Error('The conversation is already bound to a different harness session.');
+    entry.identity = session.identity;
+    entry.title = session.title;
+    this.chatCatalog.save();
+    return this.chatControlState();
+  }
+
+  private async openChat(id: string) {
+    const entry = this.chatCatalog.sessions.get(id);
+    if (!entry) throw new Error('This chat session is not available. Start a new chat explicitly.');
+    if (!(id === this.chatCatalog.active && this.frontendHandoffValue && !this.managedRuntime?.closed)) {
+      if (!entry.identity) throw new Error('This chat has no persisted harness session to resume. Start a new chat.');
+      await this.selectChat(entry.selection, id);
+    }
+    let history: unknown[] = [];
+    let historyTruncated = false;
+    if (entry.identity) {
+      const session = this.lastSnapshot.sessions.find(s => s.identity === entry.identity);
+      if (!session) throw new Error('The saved conversation history is unavailable.');
+      const loaded = await this.controller!.loadSession(session.id);
+      const transcript = loaded as unknown as NormalizedSession;
+      const messages = transcript.messages;
+      historyTruncated = Math.max(messages.length, transcript.total_message_count ?? 0) > 120;
+      history = messages.slice(-120);
+    }
+    return {...await this.chatControlState(), history, historyTruncated};
+  }
+
+  private async selectChat(selection: ChatSelection, resumeId?: string) {
+    if (this.selectingChat) throw new Error('A chat selection is already being applied.');
+    this.selectingChat = true;
+    const previous = this.chatSelection;
+    let activated = false;
+    try {
+      await this.ensureController();
+      this.capture();
+      if ((await this.frontendHandoffValue?.isBusy()) || this.lastSnapshot.turn.state === 'running' || this.lastSnapshot.requests.length) throw new Error('Finish or cancel the current turn before starting a new chat.');
+      if (!this.lastSnapshot.harnesses.some(h => h.id === selection.harness && (resumeId ? h.availableActions.resume : h.availableActions.start))) throw new Error('This harness is unavailable or cannot perform the requested chat action.');
+      this.chatSelection = selection;
+      let action: HeadlessAction = {type:'start', harness:selection.harness};
+      if (resumeId) {
+        const entry = this.chatCatalog.sessions.get(resumeId)!;
+        await this.controller!.dispatch({type:'refresh', autoObserve:false, silent:true});
+        this.capture();
+        const session = this.lastSnapshot.sessions.find(s => s.identity === entry.identity && s.harness === selection.harness);
+        if (!session) throw new Error('The exact harness session could not be found. No replacement conversation was created.');
+        // The SDK refuses resume while its controller owns another runtime.
+        // Close our idle controller through its lifecycle API, then rediscover
+        // the exact durable identity in the replacement controller.
+        const previousController = this.controller!;
+        this.unsubscribe?.(); this.unsubscribe = null;
+        this.remoteHost?.close(); this.remoteHost = null;
+        this.controller = null;
+        this.discoveryClient = null;
+        const oldHandoff = this.frontendHandoffValue;
+        this.frontendHandoffValue = null;
+        await oldHandoff?.dispose();
+        await withTimeout(previousController.close(), 10_000, 'Closing previous chat runtime');
+        this.managedRuntime = null;
+        this.observedModel = null;
+        await this.ensureController(false);
+        const restored = this.lastSnapshot.sessions.find(s => s.identity === entry.identity && s.harness === selection.harness);
+        if (!restored) throw new Error('The saved conversation could not be rediscovered after closing its previous runtime.');
+        action = {type:'resume', sessionKey:restored.id};
+      }
+      const result = await this.controller!.dispatch(action);
+      if (result.error) throw new Error(result.error.message);
+      activated = true;
+      if (resumeId) { this.chatCatalog.active = resumeId; this.chatCatalog.save(); }
+      else this.chatCatalog.create(selection);
+      const runtimeId = this.managedRuntime?.handle?.runtime_id;
+      if (!runtimeId) throw new Error('The selected harness did not start.');
+      const handoff = await mintFrontendHandoff({ engineRoot: this.options.engineRoot, runtimeSessionId: runtimeId,
+        directory: join(homedir(), '.vgai', 'runtime', `frontend-${process.pid}-${randomUUID()}`) });
+      const old = this.frontendHandoffValue;
+      this.frontendHandoffValue = handoff;
+      this.frontendRefusalValue = null;
+      await old?.dispose();
+      const folder = join(this.options.getProjectRoot(), '.vgai');
+      mkdirSync(folder, { recursive: true });
+      writeFileSync(join(folder, 'chat-selection.json'), JSON.stringify(selection, null, 2) + '\n');
+      this.capture();
+      return { ...await this.chatControlState(), connection: handoff.env };
+    } catch (error) {
+      if (!activated) this.chatSelection = previous;
+      else this.frontendRefusalValue = errorMessage(error);
+      throw error;
+    }
+    finally { this.selectingChat = false; this.rememberChatSession(); }
+  }
+
+  private async runtimeFrontendHandoff(): Promise<FrontendHandoffResult> {
     if (this.frontendHandoffValue) {
       return { env: { ...this.frontendHandoffValue.env }, refusal: null };
     }
@@ -1008,18 +1165,27 @@ export class HarnessChatService {
   }
 
   /**
-   * The key of this project's most recent session whose harness can still resume, or `null`
-   * when it has none. Only sessions whose `cwd` IS this project count: a session the person
-   * ran somewhere else is not this project's history, and resuming it would put another
-   * folder's conversation in this folder's panel.
+   * The key of this project's saved conversation, or else of its most recent session whose
+   * harness can still resume (the selected harness's, when one was chosen), or `null` when it
+   * has none. Only sessions whose `cwd` IS this project count: a session the person ran
+   * somewhere else is not this project's history, and resuming it would put another folder's
+   * conversation in this folder's panel.
    */
   private resumableSessionKey(): string | null {
+    const saved = this.chatCatalog.active && this.chatCatalog.sessions.get(this.chatCatalog.active);
+    if (saved) {
+      if (!saved.identity) throw new Error('The saved chat has no persisted harness session. Start a new chat explicitly.');
+      const exact = this.lastSnapshot.sessions.find(s => s.identity === saved.identity && s.harness === saved.selection.harness);
+      if (!exact) throw new Error('The saved harness session could not be found. Start a new chat explicitly.');
+      return exact.id;
+    }
     const root = resolve(this.options.getProjectRoot());
     const resumable = new Set(
       this.lastSnapshot.harnesses.filter((harness) => harness.availableActions.resume).map((harness) => harness.id),
     );
     const mine = this.lastSnapshot.sessions
       .filter((session) => resumable.has(session.harness) && session.cwd !== null)
+      .filter((session) => !this.chatSelection.harness || session.harness === this.chatSelection.harness)
       .filter((session) => resolve(session.cwd as string) === root)
       .sort((left, right) => (right.updatedAt ?? 0) - (left.updatedAt ?? 0));
     return mine[0]?.id ?? null;
@@ -1057,10 +1223,15 @@ export class HarnessChatService {
         if (resumable === null && !startable) throw new Error(harnessRefusal(this.lastSnapshot.harnesses));
         await controller.dispatch(
           resumable === null
-            ? { type: 'start', harness: startable!.id }
+            ? { type: 'start', harness: this.chatSelection.harness || startable!.id }
             : { type: 'resume', sessionKey: resumable },
         );
         this.capture();
+        // With no choice made, the conversation's selection is the harness supercode ran.
+        if (!this.chatSelection.harness) {
+          const session = this.lastSnapshot.sessions.find((s) => s.id === this.lastSnapshot.activeSessionId);
+          if (session) this.chatSelection = { ...this.chatSelection, harness: session.harness };
+        }
       }
       const runtimeId = this.managedRuntime?.handle?.runtime_id;
       if (!runtimeId) {
@@ -1075,6 +1246,12 @@ export class HarnessChatService {
       });
       this.frontendHandoffValue = handoff;
       this.frontendRefusalValue = null;
+      if (!this.chatCatalog.active) {
+        const entry = this.chatCatalog.create(this.chatSelection);
+        const session = this.lastSnapshot.sessions.find(s => s.id === this.lastSnapshot.activeSessionId);
+        if (session?.harness === entry.selection.harness) { entry.identity = session.identity; entry.title = session.title; this.chatCatalog.save(); }
+      }
+      this.rememberChatSession();
       return { env: { ...handoff.env }, refusal: null };
     } catch (error) {
       // THE REFUSAL TRAVELS TO THE PANEL. The extension reads
@@ -1104,6 +1281,7 @@ export class HarnessChatService {
   async close(): Promise<void> {
     if (this.closing) return this.closing;
     this.closed = true;
+    this.frontendControls.close();
     if (this.discoveryTimer) clearTimeout(this.discoveryTimer);
     this.discoveryTimer = null;
     this.unsubscribe?.();
@@ -1237,12 +1415,20 @@ export class HarnessChatService {
     // harness that is not signed in is refused by name (ARCHITECTURE-CORE §Managed
     // services, "A coding harness is not a provider").
     const transformBackend = async (backend: unknown) => {
-      const params = await withCodingInference(
+      let params = await withCodingInference(
         backend,
         () => this.options.resolveCodingInference?.(workspace) ?? Promise.resolve(null),
         piExtensionPath,
         (harness) => this.harnessReadiness(harness, workspace),
       );
+      const configured = this.chatSelection;
+      if (params && typeof params === 'object' && (params as { harness?: string }).harness === configured.harness && (configured.model || configured.effort)) {
+        const client = this.discoveryClient as SupercodeClient & { supportReport(): Promise<{ harnesses: Array<{ id: string; runtime: { default_launch: { program: string; arguments: string[]; env?: Record<string, string> } | null } }> }> };
+        const report = await client.supportReport();
+        const launch = (params as { launch?: { program: string; arguments: string[]; env?: Record<string, string> } }).launch ?? report.harnesses.find(h => h.id === configured.harness)?.runtime.default_launch;
+        if (!launch) throw new Error('This harness exposes no configurable launch.');
+        params = { ...params, launch: selectedChatLaunch(configured, launch) };
+      }
       // THE PROJECT'S OWN MCP SERVERS ride the start, because discovery cannot reach them:
       // a `--print` runtime has no trust dialog, and Claude Code loads a project `.mcp.json`
       // only for a project the person has already approved by hand
@@ -1269,7 +1455,7 @@ export class HarnessChatService {
       const client = withCallerSessionDiscovery(
         withManagedRuntimeObserver(
           await this.options.createClient(workspace),
-          (runtime) => { this.managedRuntime = runtime; },
+          (runtime) => this.observeChatRuntime(runtime),
           transformBackend,
         ),
         () => this.callerSessions(),
@@ -1310,7 +1496,7 @@ export class HarnessChatService {
           cwd: workspace,
           ...(command ? { command } : {}),
         }),
-        (runtime) => { this.managedRuntime = runtime; },
+        (runtime) => this.observeChatRuntime(runtime),
         transformBackend,
       ),
       () => this.callerSessions(),
@@ -1577,6 +1763,7 @@ export class HarnessChatService {
     }
     this.lastHeadlessSnapshot = snapshot;
     this.lastSnapshot = toSnapshot(snapshot, frame);
+    this.rememberChatSession();
     this.renderedInventoryFingerprint = descriptorPresentationFingerprint([
       ...this.sessionDescriptorsByIdentity.values(),
     ]);
@@ -1597,6 +1784,7 @@ export class HarnessChatService {
 
   private async pollDiscovery(): Promise<void> {
     if (this.closed || this.discoveryInFlight) return;
+    if (this.selectingChat) { this.scheduleDiscovery(); return; }
     const controller = this.controller;
     const client = this.discoveryClient;
     const snapshot = this.lastSnapshot;
