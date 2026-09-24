@@ -30,34 +30,32 @@ binding; project roots are served through the globals shadow and mount
 isolation; the game runtimes are known runtime packages, reported missing only
 when a project declares them; doorway addresses live on `@volter/editor-sdk/host`.
 
-Measured on a `volter-game-editor create --template game` project over a
+Measured on fresh `volter-game-editor create --template game` projects over a
 sources workbench (`scripts/workbench/dev.mjs --product game-editor`): the
-session opens in the Game workspace with a silent console; Play reaches
-`playing` and the Game document draws the starter world; the Scene document
-mounts the world in Edit, and Inspector edits of the Hero Box's position and
-colour are written to `src/scenes/MainScene.tsx` and drawn.
+first boot opens the Game workspace with the Scene document open by default;
+Play reaches `playing`, the Game document draws the starter world, and Stop
+returns to the Scene; Inspector edits of the Hero Box's position and colour
+are written to `src/scenes/MainScene.tsx` and drawn.
 
 Remaining, each closed by the same live walk:
 
-1. `editor.screenshot()` during Play returns a blank white frame; the active
-   document capture is correct.
-2. No document is open at boot or after Stop; vgai returned to the Scene
-   document. Opening a scene by id works.
+1. `editor.screenshot()` returns a blank white frame during Play (correct in
+   Edit); the active document capture is correct in both.
+2. First boot logs one console error, "No default agent registered", from
+   the workbench's chat.
 3. The CLI lacks verbs the template's guides teach: `screenshot`, `restart`,
    `sessions`, `project`/`projects`, `open`, `blender-mcp` (the MCP server is
    the modeling product's; it belongs with `@volter/editor-blender` for both
    products), `add`, `examples`, `doctor`.
-4. The product's default workspace was verified only after a recorded
-   switch; a fresh project's first boot is unmeasured.
-5. 156 of `editor-game`'s 297 modules import kit internals
+4. 156 of `editor-game`'s 297 modules import kit internals
    (`@volter/editor-core/*`); each becomes an SDK door or moves.
-6. `editor-threejs` carries 19 files identical to `@volter/threejs-runtime`'s
+5. `editor-threejs` carries 19 files identical to `@volter/threejs-runtime`'s
    (the twin's `user-data.ts` also has the game keys): one owner is decided
    with the modeling release's dependency boundary.
-7. The served-bundle table keys `@editor/game-module-access` (now
+6. The served-bundle table keys `@editor/game-module-access` (now
    `editor-game`'s) and `@volter/editor-sdk/tools` (no such export) resolve
    nothing; ingest is unwalked.
-8. Packed archives, installation without checkout links, and a released game
+7. Packed archives, installation without checkout links, and a released game
    workbench are not yet built.
 
 ## Supported-editing work
