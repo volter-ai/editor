@@ -14,10 +14,15 @@
  * navigation adapter to run on).
  */
 
+import type { EditorKeyActionId } from '@volter/editor-project/adapter/editor-looks';
+
 export interface ContributedAction {
   readonly id: string;
   readonly label: string;
   readonly execute: () => void | Promise<void>;
+  /** The key action this entry also is: the palette prints that action's chord
+   *  in the ACTIVE keymap beside it. */
+  readonly shortcut?: EditorKeyActionId;
 }
 
 export interface ActionContribution {

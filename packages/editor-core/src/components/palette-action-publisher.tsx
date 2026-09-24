@@ -15,7 +15,6 @@
  * emits on every shell change and re-registering three dozen VS Code menu
  * items for an unchanged list would be churn the frame can see.
  */
-import { threeStateOf } from '../three-state';
 import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { buildEntityActions, buildStaticActions, type EditorAction } from '../action-registry';
 import { buildBoardOpenActions } from '../board-open-actions';
@@ -26,9 +25,9 @@ import {
 } from '../chrome-registry';
 import { publishPaletteActions } from '../editor-commands';
 import { useEditorStore, useHistoryCommandSnapshot, useHistoryCommands } from '../editor-runtime';
-import type { EditorShellStore } from '../editor-shell-store';
+import type { ShellStore } from '../shell-store';
 import type { HistoryCommandSnapshot, HistoryCommands } from '../history/history-commands';
-import { editorKeymapsVersion, subscribeEditorKeymap } from '../keymap-presets';
+import { editorKeymapsVersion, shortcutFor, subscribeEditorKeymap } from '../keymap-presets';
 import { subscribeWorkspaceStyles, workspaceStylesVersion } from '../workspace-style';
 import { buildProjectToolActions } from './project-tool-documents';
 import { buildToolActions } from './tool-documents';
@@ -38,7 +37,7 @@ import { buildToolActions } from './tool-documents';
  * live snapshots throughout: the caller re-invokes rather than this caching.
  */
 export function buildPaletteActions(
-  store: EditorShellStore,
+  store: ShellStore,
   history: HistoryCommands,
   historySnapshot: HistoryCommandSnapshot,
 ): EditorAction[] {
@@ -59,6 +58,7 @@ export function buildPaletteActions(
     id: action.id,
     label: action.label,
     category: 'action',
+    shortcut: action.shortcut ? shortcutFor(action.shortcut) : undefined,
     execute: action.execute,
   }));
   return [...statics, ...documents, ...contributed, ...entities];
@@ -71,7 +71,7 @@ function signatureOf(actions: readonly EditorAction[]): string {
 /** Renders nothing: it publishes the action table ⌘⇧P lists. Mounted by
  *  `DefaultEditorLayout`. */
 export function PaletteActionPublisher() {
-  const store = threeStateOf(useEditorStore());
+  const store = useEditorStore();
   const history = useHistoryCommands();
   const historySnapshot = useHistoryCommandSnapshot();
   const chromeVersion = useSyncExternalStore(

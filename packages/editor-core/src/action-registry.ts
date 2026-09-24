@@ -6,15 +6,6 @@ import {
   selectAllAuthoringNodes,
   selectAuthoringNodes,
 } from './authoring/shell-document-ops';
-import {
-  alignCameraToViewport,
-  cameraAuthoringPresentation,
-  currentCameraAuthoringSubject,
-  leaveCameraView,
-  pilotCamera,
-  toggleCameraPreviewPin,
-  viewThroughCamera,
-} from './camera-authoring';
 import { openAccountDocument } from './components/account-documents';
 import {
   copySelection,
@@ -23,10 +14,10 @@ import {
   duplicateSelection,
   pasteSelection,
 } from './editor-hotkeys';
-import type { EditorShellStore } from './editor-shell-store';
+import { invokeKeyAction } from './key-actions';
+import type { ShellStore } from './shell-store';
 import type { HistoryCommandSnapshot, HistoryCommands } from './history/history-commands';
 import { editorKeymaps, setEditorKeymapPreference, shortcutFor } from './keymap-presets';
-import { requestTransformMode } from './transform-mode-request';
 import { openUndoHistory } from './workspace-aux-commands';
 import { CORE_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-utilities';
 import {
@@ -78,14 +69,12 @@ export function pushRecentAction(id: string): void {
 
 /** Build the static list of editor command actions. */
 export function buildStaticActions(
-  store: EditorShellStore,
+  store: ShellStore,
   history: HistoryCommands,
   historySnapshot?: HistoryCommandSnapshot,
 ): EditorAction[] {
   const isMac = navigator.platform.includes('Mac');
   const mod = isMac ? '\u2318' : 'Ctrl+';
-  const cameraPresentation = cameraAuthoringPresentation();
-  const cameraSubject = currentCameraAuthoringSubject();
   const authoring = getActiveAuthoring(store);
   const clipboardIds = [...store.selectedEntityIds];
   const selectedId = clipboardIds[0];
@@ -134,48 +123,6 @@ export function buildStaticActions(
         ]
       : []),
   ];
-  const cameraActions: EditorAction[] = cameraPresentation.view
-    ? [
-        {
-          id: 'camera.exitView',
-          label: 'Exit Camera View',
-          category: 'action',
-          execute: leaveCameraView,
-        },
-      ]
-    : cameraSubject
-      ? [
-          {
-            id: 'camera.viewThrough',
-            label: `View Through ${cameraSubject.name}`,
-            category: 'action',
-            execute: () => viewThroughCamera(cameraSubject),
-          },
-          ...(cameraSubject.canAuthorPose
-            ? [
-                {
-                  id: 'camera.pilot',
-                  label: `Pilot ${cameraSubject.name}`,
-                  category: 'action' as const,
-                  execute: () => pilotCamera(cameraSubject),
-                },
-                {
-                  id: 'camera.alignToView',
-                  label: `Align ${cameraSubject.name} to Current View`,
-                  category: 'action' as const,
-                  execute: () => alignCameraToViewport(cameraSubject),
-                },
-              ]
-            : []),
-          {
-            id: 'camera.pinPreview',
-            label: cameraPresentation.previewPinned ? 'Unpin Camera Preview' : 'Pin Camera Preview',
-            category: 'action',
-            execute: toggleCameraPreviewPin,
-          },
-        ]
-      : [];
-
   return [
     {
       id: 'account.open',
@@ -234,155 +181,6 @@ export function buildStaticActions(
       shortcut: shortcutFor('edit.deselectAll') ?? shortcutFor('edit.exitScopeOrDeselect'),
       execute: () => selectAuthoringNodes(store, []),
     },
-    {
-      id: 'mode.select',
-      label: 'Select Tool (no gizmo)',
-      category: 'action',
-      shortcut: shortcutFor('transform.select'),
-      execute: () => requestTransformMode(store, 'select'),
-    },
-    {
-      id: 'mode.combined',
-      label: 'Transform Mode (all handles)',
-      category: 'action',
-      shortcut: shortcutFor('transform.combined'),
-      execute: () => requestTransformMode(store, 'combined'),
-    },
-    {
-      id: 'mode.translate',
-      label: 'Translate Mode',
-      category: 'action',
-      shortcut: shortcutFor('transform.translate'),
-      execute: () => requestTransformMode(store, 'translate'),
-    },
-    {
-      id: 'mode.rotate',
-      label: 'Rotate Mode',
-      category: 'action',
-      shortcut: shortcutFor('transform.rotate'),
-      execute: () => requestTransformMode(store, 'rotate'),
-    },
-    {
-      id: 'mode.scale',
-      label: 'Scale Mode',
-      category: 'action',
-      shortcut: shortcutFor('transform.scale'),
-      execute: () => requestTransformMode(store, 'scale'),
-    },
-    {
-      id: 'mode.world',
-      label: 'World Space',
-      category: 'action',
-      execute: () => store.setTransformSpace('world'),
-    },
-    {
-      id: 'mode.local',
-      label: 'Local Space',
-      category: 'action',
-      execute: () => store.setTransformSpace('local'),
-    },
-    {
-      id: 'toggle.grid',
-      label: 'Toggle Grid',
-      category: 'action',
-      execute: () => store.toggleGrid(),
-    },
-    {
-      id: 'toggle.helpers',
-      label: 'Toggle Helpers',
-      category: 'action',
-      execute: () => store.toggleHelpers(),
-    },
-    {
-      id: 'toggle.stats',
-      label: 'Toggle Stats Overlay',
-      category: 'action',
-      execute: () => store.toggleStats(),
-    },
-    {
-      id: 'toggle.snap',
-      label: 'Toggle Snap',
-      category: 'action',
-      execute: () => store.toggleSnap(),
-    },
-    {
-      id: 'toggle.surface-snap',
-      label: 'Toggle Surface Snap',
-      category: 'action',
-      execute: () => store.toggleSnapToSurface(),
-    },
-    {
-      id: 'shading.solid',
-      label: 'Material Shading',
-      category: 'action',
-      execute: () => store.setShadingMode('solid'),
-    },
-    {
-      id: 'shading.clay',
-      label: 'Solid Shading',
-      category: 'action',
-      execute: () => store.setShadingMode('clay'),
-    },
-    {
-      id: 'shading.wireframe',
-      label: 'Wireframe Shading',
-      category: 'action',
-      execute: () => store.setShadingMode('wireframe'),
-    },
-    {
-      id: 'shading.unlit',
-      label: 'Unlit Shading',
-      category: 'action',
-      execute: () => store.setShadingMode('unlit'),
-    },
-    {
-      id: 'shading.normals',
-      label: 'Normal Shading',
-      category: 'action',
-      execute: () => store.setShadingMode('normals'),
-    },
-    {
-      id: 'shading.overdraw',
-      label: 'Overdraw Shading',
-      category: 'action',
-      execute: () => store.setShadingMode('overdraw'),
-    },
-    {
-      id: 'view.top',
-      label: 'Top View',
-      category: 'action',
-      shortcut: shortcutFor('view.top'),
-      execute: () => store.setViewPreset('top'),
-    },
-    {
-      id: 'view.front',
-      label: 'Front View',
-      category: 'action',
-      shortcut: shortcutFor('view.front'),
-      execute: () => store.setViewPreset('front'),
-    },
-    {
-      id: 'view.right',
-      label: 'Right View',
-      category: 'action',
-      shortcut: shortcutFor('view.right'),
-      execute: () => store.setViewPreset('right'),
-    },
-    {
-      id: 'view.perspective',
-      label: 'Perspective View',
-      category: 'action',
-      shortcut: shortcutFor('view.perspective'),
-      execute: () => store.setViewPreset('perspective'),
-    },
-    {
-      id: 'focus.selected',
-      label: 'Focus Selected',
-      category: 'action',
-      shortcut: shortcutFor('viewport.frameSelection'),
-      execute: () => store.focusOnSelection(),
-    },
-    ...cameraActions,
     {
       id: 'toggle.console',
       label: 'Toggle Console',
@@ -517,16 +315,18 @@ export function buildStaticActions(
  *  **VGAI Entity: No authoring adapter** in the palette, whose whole effect is
  *  to select and focus nothing (measured under the frame on a Model document,
  *  U8 walk 3, 2026-09-20). */
-export function buildEntityActions(store: EditorShellStore): EditorAction[] {
+export function buildEntityActions(store: ShellStore): EditorAction[] {
   return activeHierarchyRows(store)
     .filter((row) => row.id !== NO_AUTHORING_ID)
     .map((row) => ({
       id: `entity:${row.id}`,
       label: row.name,
       category: 'entity' as const,
+      // Going to an entity is selecting it and framing the selection on the
+      // focused stage, which answers `viewport.frameSelection` if it has a camera.
       execute: () => {
         selectAuthoringNodes(store, [row.id]);
-        store.focusOnEntity(row.id);
+        invokeKeyAction('viewport.frameSelection');
       },
     }));
 }
