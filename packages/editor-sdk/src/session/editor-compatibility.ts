@@ -10,18 +10,23 @@ export interface EditorServerCompatibility {
     | { state: 'restart-required'; changedPath: string; changedAt: string };
 }
 
+/**
+ * What a person runs to recover. `verbs` are the product command's verbs, run
+ * in order — the kit names no product; the page prefixes the served product's
+ * command (`@volter/editor-core/product-command`'s `commandSequence`).
+ */
 export type StartupRecovery =
   | {
       kind: 'retry-editor';
       title: 'Editor server unavailable';
       guidance: string;
-      command: 'volter-editor edit .';
+      verbs: readonly ['edit .'];
     }
   | {
       kind: 'restart-editor';
       title: 'Restart this editor';
       guidance: string;
-      command: 'volter-editor edit .' | 'volter-editor close && volter-editor edit .';
+      verbs: readonly ['edit .'] | readonly ['close', 'edit .'];
     }
   | {
       kind: 'use-compatible-editor';
@@ -46,7 +51,7 @@ export function editorServerUnavailableError(detail?: string): ProjectCompatibil
       kind: 'retry-editor',
       title: 'Editor server unavailable',
       guidance: 'Make sure the local editor is running, then retry this operation.',
-      command: 'volter-editor edit .',
+      verbs: ['edit .'],
     },
   );
 }
@@ -57,16 +62,14 @@ export function isStartupRecovery(value: unknown): value is StartupRecovery {
   if (typeof candidate['title'] !== 'string' || typeof candidate['guidance'] !== 'string') {
     return false;
   }
+  const verbs = Array.isArray(candidate['verbs']) ? (candidate['verbs'] as unknown[]).join(' | ') : null;
   switch (candidate['kind']) {
     case 'retry-editor':
-      return candidate['command'] === 'volter-editor edit .';
+      return verbs === 'edit .';
     case 'restart-editor':
-      return (
-        candidate['command'] === 'volter-editor edit .' ||
-        candidate['command'] === 'volter-editor close && volter-editor edit .'
-      );
+      return verbs === 'edit .' || verbs === 'close | edit .';
     case 'use-compatible-editor':
-      return candidate['command'] === undefined;
+      return candidate['verbs'] === undefined;
     default:
       return false;
   }
@@ -141,7 +144,7 @@ export function missingCompatibilityError(): ProjectCompatibilityError {
       kind: 'restart-editor',
       title: 'Restart this editor',
       guidance: 'From the project folder, restart the local editor and then reopen this page.',
-      command: 'volter-editor close && volter-editor edit .',
+      verbs: ['close', 'edit .'],
     },
   );
 }
@@ -156,7 +159,7 @@ export function assertEditorCompatibility(identity: EditorServerCompatibility): 
         title: 'Restart this editor',
         guidance:
           'The browser has newer source than the running Node process. Run the editor command again from the project folder; it will replace the stale server on the same port.',
-        command: 'volter-editor edit .',
+        verbs: ['edit .'],
       },
     );
   }
@@ -168,7 +171,7 @@ export function assertEditorCompatibility(identity: EditorServerCompatibility): 
         kind: 'restart-editor',
         title: 'Restart this editor',
         guidance: 'The browser and server are from different editor builds. Restart them together.',
-        command: 'volter-editor close && volter-editor edit .',
+        verbs: ['close', 'edit .'],
       },
     );
   }

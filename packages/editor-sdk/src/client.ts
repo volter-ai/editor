@@ -387,7 +387,7 @@ export class EditorClient {
           throw new EditorCommandError(
             `The editor at ${this.baseUrl} never answered "${type}" ` +
               `within ${Math.round(deadlineMs / 1000)}s — past every server-side budget, so ` +
-              'the server itself is not answering. Check the terminal running `volter-editor edit`.',
+              'the server itself is not answering. Check the terminal that started this editor session.',
             undefined,
             true,
           );
@@ -409,7 +409,7 @@ export class EditorClient {
                 ' died after the request was written cannot prove the editor did not already run it.') +
             ' A transport failure means the port stopped answering, not that the editor refused —' +
             ' the dev server restarts on any watched source edit, and it shuts itself down after an' +
-            ' idle window. Check the terminal running `volter-editor edit` and confirm the port' +
+            ' idle window. Check the terminal that started this editor session and confirm the port' +
             ' this client resolved.',
           code,
           false,
@@ -1457,7 +1457,7 @@ export class EditorClient {
       throw new EditorCommandError(
         `${init?.method ?? 'GET'} ${url} never reached the editor: ${code}` +
           `${detail ? ` (${detail})` : ''}. Nothing answered on that port — check the terminal ` +
-          'running `volter-editor edit` and confirm the port this client resolved.',
+          'that started this editor session and confirm the port this client resolved.',
         code,
         false,
       );
@@ -1489,7 +1489,7 @@ export class EditorClient {
       throw new Error(
         `The editor at ${this.baseUrl} answered with its page fallback ` +
           `(${contentType || 'no content-type'}) rather than JSON, so no editor server handled ` +
-          'the request. Check that this URL is a running `volter-editor edit` session.',
+          'the request. Check that this URL is a running editor session.',
       );
     }
     const body: unknown = await res.json();

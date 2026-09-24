@@ -6,6 +6,7 @@
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { resolveManifestPath } from '@volter/editor-project/manifest/locate';
+import { resolveProductForProject } from '@volter/editor-sdk/session/product-locator';
 import {
   EDITOR_SESSION_DISCOVERY_TIMEOUT_MS,
   type EditorSessionInfo,
@@ -176,14 +177,14 @@ function noMatchingSessionRefusal(
       `@volter/editor-live: could not READ the editor session registry while looking for ${projectRoot} — ` +
         `${discoveryFailure}. This is not the answer "no editor is running": the question went ` +
         'unanswered, so nothing is known about what is live. Retry (a probe can time out while ' +
-        'the box is loaded); if it keeps failing, `vgai sessions` asks the same question directly.',
+        `the box is loaded); if it keeps failing, ${sessionsCommandFor(projectRoot)} asks the same question directly.`,
     );
   }
   if (sessions.length === 0) {
     return new Error(
       `@volter/editor-live: the editor session registry is readable and lists NO live sessions, so none ` +
         `covers ${projectRoot}. @volter/editor-live only attaches to an already-running session — it ` +
-        'never starts one — so run `volter-editor edit` in that project first, then retry.',
+        `never starts one — so run ${editCommandFor(projectRoot)} in that project first, then retry.`,
     );
   }
   const listed = sessions
@@ -196,7 +197,7 @@ function noMatchingSessionRefusal(
       `  live sessions:\n${listed}\n` +
       '  If one of those is meant to be this project, the two paths differ after resolution — ' +
       'the usual cause is a git worktree or a symlink, where the session was opened through a ' +
-      'different path to the same files. Run `volter-editor edit` from THIS path, or use the path the ' +
+      `different path to the same files. Run ${editCommandFor(projectRoot)} from THIS path, or use the path the ` +
       'session lists.',
   );
 }
@@ -211,7 +212,7 @@ export async function resolveSession(
   const projectRoot = findRoot(projectDir);
   if (projectRoot === null) {
     throw new Error(
-      `@volter/editor-live: no vgai.project.json found in ${projectDir} or any parent directory — is this a vgai project?`,
+      `@volter/editor-live: no vgai.project.json found in ${projectDir} or any parent directory — is this a project?`,
     );
   }
 
@@ -264,4 +265,23 @@ export async function resolveSession(
   if (match.manifestError != null) throw manifestRefusal(projectRoot, match.manifestError);
 
   return { port: match.port, projectRoot };
+}
+
+/** `` `<product> edit` `` for the product this project declares, or a generic
+ *  phrase when it declares none — this package serves every product and
+ *  names only the one the project installed. */
+function editCommandFor(projectRoot: string): string {
+  return verbFor(projectRoot, 'edit');
+}
+
+function sessionsCommandFor(projectRoot: string): string {
+  return verbFor(projectRoot, 'sessions');
+}
+
+function verbFor(projectRoot: string, verb: string): string {
+  try {
+    return `\`${resolveProductForProject(projectRoot).command} ${verb}\``;
+  } catch {
+    return `its product's \`${verb}\` command`;
+  }
 }

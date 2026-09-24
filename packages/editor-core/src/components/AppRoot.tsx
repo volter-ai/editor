@@ -23,7 +23,7 @@
  * is readable.
  */
 
-import { commandLine } from '../product-command';
+import { commandLine, commandSequence } from '../product-command';
 import { editorDocumentTitle } from '@volter/editor-sdk/session/editor-brand';
 import {
   ProjectCompatibilityError,
@@ -256,7 +256,7 @@ export function AppRoot() {
             // The console is server-held, so this reaches `vgai status` and
             // `vgai console` whether or not anyone looks at the tab.
             const command =
-              failure.recovery && 'command' in failure.recovery ? failure.recovery.command : null;
+              failure.recovery && 'verbs' in failure.recovery ? commandSequence(failure.recovery.verbs) : null;
             editorConsole.error(
               `Startup failed: ${failure.message}${command ? ` Run: ${command}` : ''}`,
               'editor',

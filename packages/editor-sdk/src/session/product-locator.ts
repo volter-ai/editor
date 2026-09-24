@@ -403,7 +403,7 @@ export function resolveProductForProject(projectRoot: string): ProductIdentity {
         'and which one runs is what the project installed, never a flag.\n' +
         'For THIS folder, install the one you are building with:\n' +
         `${PRODUCT_INSTALL_LINES.join('\n')}\n` +
-        'then run `volter-editor edit` again. For a NEW project, the product creates it:\n' +
+        "then run that product's `edit` command again. For a NEW project, the product creates it:\n" +
         `${PRODUCT_CREATE_LINES.join('\n')}`,
     );
   throw new Error(

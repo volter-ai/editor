@@ -510,7 +510,7 @@ async function fetchDeclaredRelease(
         'GitHub token to read it with. Two doors, either one:\n' +
         `${tokenDoors()}\n` +
         'Or name a workbench you already have, which needs no network at all:\n' +
-        '  volter-editor edit --workbench <dir>',
+        `  ${product.command} edit --workbench <dir>`,
     );
   if (response.status === 404)
     throw new Error(

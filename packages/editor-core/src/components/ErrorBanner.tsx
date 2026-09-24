@@ -15,6 +15,7 @@
  * loud server-side throw still looked like a fresh launcher in a screenshot).
  */
 
+import { commandSequence } from '../product-command';
 import { faCheck, faCopy, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import type { StartupRecovery } from '@volter/editor-sdk/session/editor-compatibility';
 import { Button, EditorIcon } from '@volter/editor-sdk/widgets';
@@ -36,7 +37,7 @@ export function ErrorBanner({
   onRetry?: (() => void) | undefined;
   startup?: boolean;
 }) {
-  const command = error.recovery && 'command' in error.recovery ? error.recovery.command : null;
+  const command = error.recovery && 'verbs' in error.recovery ? commandSequence(error.recovery.verbs) : null;
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {

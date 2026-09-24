@@ -45,6 +45,18 @@ export function commandLine(verb: string): string {
   return names ? `\`${names.command} ${verb}\`` : `the editor's \`${verb}\` command`;
 }
 
+/**
+ * Several verbs run in order, as one line a person can paste:
+ * `volter-game-editor close && volter-game-editor edit .`. Before the identity
+ * is known: ``the editor's `close`, then `edit .` ``.
+ */
+export function commandSequence(verbs: readonly string[]): string {
+  const known = names;
+  return known
+    ? verbs.map((verb) => `${known.command} ${verb}`).join(' && ')
+    : `the editor's ${verbs.map((verb) => `\`${verb}\``).join(', then ')}`;
+}
+
 /** The product's display name, or a generic phrase before it is known. */
 export function productDisplayName(): string {
   return names?.displayName ?? 'the editor';
