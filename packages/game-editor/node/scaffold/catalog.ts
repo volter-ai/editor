@@ -17,7 +17,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
-import { resolveManifestPath } from '../../project/src/manifest/locate.js';
+import { resolveManifestPath } from '@volter/editor-project/manifest/locate';
 import { mergeAdapterRegionIncludes, type RegionIncludeAddition } from './adapter-region-merge.js';
 
 export const PROJECT_CATALOG_DIR = join('.vgai', 'catalog');

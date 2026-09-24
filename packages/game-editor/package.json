@@ -49,7 +49,9 @@
     "@volter/editor-live": "0.5.64",
     "@volter/game-runtime": "0.5.64",
     "@volter/threejs-runtime": "0.5.64",
-    "undici": "7.29.1"
+    "undici": "7.29.1",
+    "jsonc-parser": "3.3.1",
+    "typescript": "5.9.3"
   },
   "bin": {
     "volter-game-editor": "./dist-node/cli.js"
