@@ -39,6 +39,24 @@ export interface ServingCollaboration {
   }): { revision: number } | null;
 }
 
+/** Bytes a tool produced for the shipped project (under `public/`), with what re-derives them. */
+export interface ProjectOutputWrite {
+  /** Project-relative, under `public/`, no traversal. */
+  readonly path: string;
+  readonly content: Uint8Array;
+  /** The transport that wrote it, 1–64 characters. */
+  readonly source: string;
+  /** The session and revision that produced the bytes. */
+  readonly session: {
+    readonly id: string;
+    readonly port: number;
+    readonly revision: number;
+    readonly callId?: string;
+  };
+  /** Project-relative files the bytes were produced from. */
+  readonly inputs?: readonly string[];
+}
+
 export interface ProjectServingServices {
   /** The editor estate a vendored game's writes are recorded against. */
   readonly engineRoot: string;
@@ -59,6 +77,28 @@ export interface ProjectServingServices {
   collaboration(projectRoot: string): ServingCollaboration;
   /** Whether `error` is a collaboration conflict (a stale expected revision). */
   isCollaborationConflict(error: unknown): boolean;
+  /**
+   * Write project resources as the project's one attributed, conflict-checked transaction
+   * (`request` supplies the author, as every kit write reads it). The collaboration revision it
+   * produced, or `null` when no session is recording. Throws what
+   * {@link answerProjectMutationError} answers.
+   */
+  commitProjectMutation(
+    request: unknown,
+    resources: readonly { readonly path: string; readonly content: string | Uint8Array | null }[],
+  ): Promise<{ readonly revision: number } | null>;
+  /** Answer a failed project mutation as every kit route does: a conflict is a structured 409. */
+  answerProjectMutationError(response: unknown, error: unknown): void;
+  /** Record bytes produced for the shipped project, with their provenance. */
+  writeProjectOutput(write: ProjectOutputWrite): Promise<{ readonly provenanceOperationId: string | null }>;
+  /** The open project's own files (what a tool that mirrors the project reads). */
+  projectFileIndex(): Promise<readonly { readonly path: string; readonly size: number; readonly mtime: number }[]>;
+  /** A project-relative path the project owns, outside the trees the editor keeps for itself. */
+  isProjectOwnedPath(path: string): boolean;
+  /** Whether `child`, symlinks resolved, lies inside `parent`. */
+  isCanonicalPathInside(parent: string, child: string): Promise<boolean>;
+  /** Let the editor's cross-origin-isolated frame embed this response. */
+  allowCrossOriginFrameEmbedding(response: { setHeader(name: string, value: string): void }): void;
 }
 
 /** What a `vgai.serving` module exports. */

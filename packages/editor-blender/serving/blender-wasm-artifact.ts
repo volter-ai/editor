@@ -116,9 +116,8 @@ export const BLENDER_WASM_DIR_VARIABLE = 'VGAI_BLENDER_WASM_DIR';
  * The bundle `@volter/blender-engine` ships — Blender itself, so its own GPL
  * package (ARCHITECTURE-CORE §Licensing, "Blender's licence stops at the
  * wire"). This resolution is a PATH, not an import: the editor serves those
- * bytes and never imports the engine. `import.meta.url` is THIS FILE in a
- * checkout (`packages/editor/server/`) and the esbuild bundle
- * (`<pkg>/dist-server/packaged.mjs`) in a registry install; from either, two
+ * bytes and never imports the engine. `import.meta.url` is THIS FILE's esbuild bundle
+ * (`<pkg>/dist-node/serving.mjs`, the `vgai.serving` module); from it, two
  * directories up and across is the sibling package -- `packages/blender-engine/wasm`
  * in a checkout, `node_modules/@volter/blender-engine/wasm` installed. Existence is
  * checked once so a realm that lacks it gets a named absence, not a path.

@@ -224,7 +224,7 @@ import { readSharedReactManifest, sharedReactUrls } from '../vite-plugin-shared-
 import { readSharedThreeManifest, sharedThreeUrl } from '../vite-plugin-shared-three';
 import { SOURCE_WRITE_ROUTES_PLUGIN } from '@volter/editor-sdk/session/project-serving';
 import { canonicalProjectRoot } from './canonical-path';
-import { createEditorServer } from './editor-server';
+import { createEditorServer, type EditorServerRouter } from './editor-server';
 import { clientCount } from './editor-sse';
 import {
   builtFrameBridgeModule,
@@ -541,12 +541,15 @@ async function main(): Promise<void> {
   // its own and only fails at the call site far below.
   // The server halves of the product's integrations (`package.json#vgai.serving`): their
   // plugins serve the project's source beside the kit's own, through the kit's services.
+  // The serving door is built before the editor router it writes through; bound below.
+  let servingEditorRouter: EditorServerRouter | null = null;
   const contributedServing = (await loadServingPlugins(
     productServingModules(sessionProductIdentity),
     createProjectServingServices({
       engineRoot: checkoutRoot,
       projectRoots: () => projectRoots,
       currentProjectRoot: () => currentProjectRoot,
+      projectMutations: () => servingEditorRouter?.projectMutations ?? null,
     }),
   )) as PluginOption[];
   const viteInlineConfig: InlineConfig = {
@@ -1038,6 +1041,7 @@ async function main(): Promise<void> {
       });
     },
   });
+  servingEditorRouter = editorRouter;
   app.use(editorRouter);
 
   // 3. The project-rooted Vite instance — handles `/@fs/`, `/@id/`, and any

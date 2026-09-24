@@ -191,6 +191,12 @@ export type EditorServerRouter = Router & {
   /** The standing reason the Chat view has no agent, or `null` — re-raised per page load
    *  because the console ledger's clearing rule (a) is page-scoped and this condition is not. */
   frontendRefusal(): string | null;
+  /** The project's one attributed write and its error answer, for the serving door
+   *  (`project-serving-services.ts`), which is built before this router exists. */
+  projectMutations: {
+    readonly commit: RouteContext['commitProjectMutation'];
+    readonly answerError: RouteContext['projectMutationError'];
+  };
 };
 
 export function createEditorServer(options: EditorServerOptions): EditorServerRouter {
@@ -1431,6 +1437,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
 
   router.sessionJournalPath = () => journal?.path ?? null;
   router.frontendRefusal = () => harnessChat.frontendRefusal();
+  router.projectMutations = { commit: commitProjectMutation, answerError: projectMutationError };
   router.frontendHandoff = async () => {
     const handoff = await harnessChat.frontendHandoff();
     // A Chat view with no runtime behind it is REMAINING WORK, not log noise:

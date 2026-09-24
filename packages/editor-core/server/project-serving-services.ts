@@ -25,7 +25,13 @@ import {
   staleModuleWarning,
   stampHmrInvalidation,
 } from './project-script-hmr';
+import type { Request, Response } from 'express';
+import type { EditorServerRouter } from './editor-server';
+import { isProjectOwnedRelativePath, projectFileIndex } from './project-file-scan';
+import { createProjectOutputWriter, projectOutputMediaType } from './project-output-writer';
+import { allowCrossOriginFrameEmbedding, isCanonicalPathInside } from './server-utils';
 import { adoptSourceAnalysis } from './source-analysis';
+import { PROJECT_SESSION_WRITE_OPERATION } from './support/project/provenance';
 import {
   findVendoredTarget,
   settleVendoredWrite,
@@ -52,6 +58,8 @@ export function createProjectServingServices(options: {
   engineRoot: string;
   projectRoots: () => ReadonlySet<string>;
   currentProjectRoot: () => string | undefined;
+  /** The editor router's write pair, bound once the router exists. */
+  projectMutations: () => EditorServerRouter['projectMutations'] | null;
 }): ProjectServingServices {
   const { engineRoot } = options;
   // The editor's own writes invalidate the modules they replace; the stamp is bounded at the
@@ -115,6 +123,44 @@ export function createProjectServingServices(options: {
       };
     },
     isCollaborationConflict: (error) => error instanceof CollaborationConflictError,
+    async commitProjectMutation(request, resources) {
+      const mutations = options.projectMutations();
+      if (!mutations) throw new Error('The editor server is not serving yet, so nothing can be written.');
+      const revision = await mutations.commit(
+        request as Request,
+        resources.map(({ path, content }) => ({
+          path,
+          content: content instanceof Uint8Array && !Buffer.isBuffer(content) ? Buffer.from(content) : content,
+        })),
+      );
+      return revision ? { revision: revision.revision } : null;
+    },
+    answerProjectMutationError(response, error) {
+      const mutations = options.projectMutations();
+      if (!mutations) throw error;
+      mutations.answerError(response as Response, error);
+    },
+    async writeProjectOutput(write) {
+      const root = options.currentProjectRoot();
+      if (root === undefined) throw new Error('No project is open, so there is nowhere to record the output.');
+      const mediaType = projectOutputMediaType(write.path);
+      const written = await createProjectOutputWriter(root, {
+        operationName: PROJECT_SESSION_WRITE_OPERATION,
+        operationSource: write.source,
+        session: write.session,
+        ...(write.inputs && write.inputs.length > 0 ? { inputs: [...write.inputs] } : {}),
+      }).write([
+        { path: write.path, content: Buffer.from(write.content), role: 'asset', ...(mediaType ? { mediaType } : {}) },
+      ]);
+      return { provenanceOperationId: written.provenanceOperationId ?? null };
+    },
+    async projectFileIndex() {
+      const root = options.currentProjectRoot();
+      return root === undefined ? [] : projectFileIndex(root);
+    },
+    isProjectOwnedPath: (path) => isProjectOwnedRelativePath(path),
+    isCanonicalPathInside: (parent, child) => isCanonicalPathInside(parent, child),
+    allowCrossOriginFrameEmbedding: (response) => allowCrossOriginFrameEmbedding(response),
   };
 }
 

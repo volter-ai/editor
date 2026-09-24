@@ -47,6 +47,7 @@ const steps=[
   ['@volter/game-runtime',()=>run('@volter/game-runtime','build')],
   ['@volter/game-live',()=>run('@volter/game-live','build')],
   ['@volter/editor-threejs',()=>run('@volter/editor-threejs','build')],
+  ['@volter/editor-blender',()=>run('@volter/editor-blender','build')],
   ['@volter/editor-react',()=>run('@volter/editor-react','build')],
   ['@volter/editor-xstate',()=>run('@volter/editor-xstate','build')],
   ['@volter/model-editor',()=>{

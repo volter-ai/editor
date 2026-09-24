@@ -30,6 +30,7 @@
     "jsx": "react-jsx"
   },
   "include": [
+    "serving",
     "src",
     "host",
     "contributions",

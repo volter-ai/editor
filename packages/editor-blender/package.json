@@ -19,7 +19,9 @@
     "host",
     "node",
     "LICENSE",
-    "LICENSE-MCP"
+    "LICENSE-MCP",
+    "serving",
+    "dist-node"
   ],
   "exports": {
     "./contributions/*": "./contributions/*",
@@ -61,7 +63,8 @@
       "./contributions/shading.layout.ts",
       "./contributions/uv-editing.layout.ts",
       "./contributions/texture.layout.ts"
-    ]
+    ],
+    "serving": "./dist-node/serving.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.30.0",
@@ -74,9 +77,15 @@
     "@volter/editor-live": "0.5.65",
     "@volter/editor-project": "0.5.65",
     "react": "^19.0.0",
-    "three": "^0.180.0"
+    "three": "^0.180.0",
+    "vite": "^6.4.3"
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "build": "node scripts/build-serving.mjs",
+    "prepack": "npm run build"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
   }
 }
