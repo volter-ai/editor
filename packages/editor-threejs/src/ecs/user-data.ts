@@ -42,10 +42,8 @@
  *
  * Animation (load-bearing — ED5 disposal contract):
  * - `_animMixer`          — THREE.AnimationMixer driving this subtree's clips.
- * - `_animClips`          — Map<string, AnimationClip> discovered on the GLTF.
  * - `_availableClips`     — string[] of clip names discovered on the GLTF
- *                           (inspector dropdown; same names as `_animClips`' keys).
- * - `_animationRuntime`   — format-neutral live native mixer/action inspection.
+ *                           (inspector dropdown).
  *
  * Disposal contract:
  * - `__sharedGeometry`    — `true` when a mesh's geometry is shared/cached and MUST
@@ -119,7 +117,6 @@ import type { ConstraintMark } from '../adapter/constraint';
 import type { Object3DAuthoringSubjectMark } from '../adapter/object3d-authoring-subject';
 import type { ReflectionProbeMark } from '../adapter/reflection-probe';
 import type { TriggerVolumeMark } from '../adapter/trigger-volume';
-import type { AnimationRuntimeInspection } from '../animation/runtime-inspection';
 import { ObjectMarkKeys, type ObjectMarkSchema } from './object-marks';
 
 export type { EditorHelperType } from './object-marks';
@@ -141,9 +138,7 @@ export interface UserDataSchema extends ObjectMarkSchema {
   _particleSystem: ParticleSystem;
   gaussianSplat: { src: string; numSplats: number };
   _animMixer: THREE.AnimationMixer;
-  _animClips: Map<string, THREE.AnimationClip>;
   _availableClips: string[];
-  _animationRuntime: AnimationRuntimeInspection;
   __sharedGeometry: boolean;
   __shadeOrig: THREE.Material | THREE.Material[];
   __shadeUnlit: THREE.Material[];
@@ -195,9 +190,7 @@ export const UserDataKeys = {
   _particleSystem: '_particleSystem',
   gaussianSplat: 'gaussianSplat',
   _animMixer: '_animMixer',
-  _animClips: '_animClips',
   _availableClips: '_availableClips',
-  _animationRuntime: '_animationRuntime',
   __sharedGeometry: '__sharedGeometry',
   __shadeOrig: '__shadeOrig',
   __shadeUnlit: '__shadeUnlit',

@@ -1,8 +1,6 @@
 import type { SystemFn, SystemOptions, SystemPhaseName } from '@volter/editor-project/core/system-phase';
 import * as THREE from 'three';
 import type { AnyStateMachine } from 'xstate';
-import { deleteUserData, getUserData, setUserData } from '../ecs/user-data';
-import { attachAnimationRuntimeInspection } from './runtime-inspection';
 import {
   type AnimationBoneMask,
   type AnimationMetaStateNodeLike,
@@ -113,8 +111,6 @@ export interface XStateAnimationBindingOptions {
   selectParameters?: (context: unknown) => Record<string, number | boolean>;
   /** Root whose named Bone/Object3D hierarchy is used by `boneMask`. Defaults to mixer root. */
   root?: THREE.Object3D;
-  /** Entity that exposes this binding to editor/runtime inspection. Defaults to `root`. */
-  owner?: THREE.Object3D;
   /**
    * Engine runner used to register `tick` in the canonical animation phase.
    * Pass `ctx.systems`; disposal removes the callback automatically. When
@@ -144,27 +140,8 @@ export interface XStateAnimationBinding {
   getParameters: () => ReadonlyMap<string, number | boolean>;
   /** Current native composition, useful to the editor and game diagnostics. */
   getActiveLayers: () => readonly XStateAnimationLayerState[];
-  /** Unsubscribe, stop/uncache actions, and remove owner inspection data. Idempotent. */
+  /** Unsubscribe and stop/uncache actions. Idempotent. */
   dispose: () => void;
-}
-
-let inspectionVersion = 0;
-const inspectionListeners = new Set<() => void>();
-
-/** React/useSyncExternalStore-compatible lifecycle signal for live editor inspection. */
-export function subscribeXStateAnimationBindings(listener: () => void): () => void {
-  inspectionListeners.add(listener);
-  return () => inspectionListeners.delete(listener);
-}
-
-/** Monotonic snapshot changed whenever a binding is attached or disposed. */
-export function getXStateAnimationBindingsVersion(): number {
-  return inspectionVersion;
-}
-
-function notifyInspectionLifecycle(): void {
-  inspectionVersion++;
-  for (const listener of inspectionListeners) listener();
 }
 
 interface WeightedClip {
@@ -288,7 +265,6 @@ export function bindXStateAnimation(
       '[bindXStateAnimation] a THREE.Object3D `root` option is required when the mixer uses AnimationObjectGroup',
     );
   }
-  const owner = options.owner ?? root;
   const machineRoot = machineOfXStateActor(actor).root as unknown as AnimationMetaStateNodeLike;
   const entries: MachineAnimationMetaEntry[] = collectMachineAnimationMeta(machineRoot);
   const metaByStateId = new Map(entries.map((entry) => [entry.stateId, entry.meta]));
@@ -379,7 +355,6 @@ export function bindXStateAnimation(
 
   const activeLayers = new Map<string, ActiveState>();
   let disposed = false;
-  let detachRuntimeInspection = () => {};
   function silence(weights: WeightedClip[], except: string | undefined, duration: number): void {
     for (const weighted of weights) {
       if (weighted.actionKey === except) continue;
@@ -514,7 +489,6 @@ export function bindXStateAnimation(
     dispose(): void {
       if (disposed) return;
       disposed = true;
-      detachRuntimeInspection();
       options.systems?.remove('animation', tick);
       subscription.unsubscribe();
       for (const { action, clip } of actionCache.values()) {
@@ -523,15 +497,8 @@ export function bindXStateAnimation(
       }
       actionCache.clear();
       activeLayers.clear();
-      if (getUserData(owner, '_xstateAnimation') === binding) {
-        deleteUserData(owner, '_xstateAnimation');
-        notifyInspectionLifecycle();
-      }
     },
   };
-  detachRuntimeInspection = attachAnimationRuntimeInspection(owner, { mixer, clips });
-  setUserData(owner, '_xstateAnimation', binding);
-  notifyInspectionLifecycle();
   options.systems?.add('animation', tick);
   return binding;
 }

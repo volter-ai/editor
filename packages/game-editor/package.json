@@ -52,6 +52,7 @@
     "@volter/editor-core": "0.5.65",
     "@volter/editor-game": "0.5.65",
     "@volter/editor-react": "0.5.65",
+    "@volter/editor-threejs": "0.5.65",
     "@volter/editor-xstate": "0.5.65",
     "@volter/editor-blender": "0.1.8",
     "@volter/blender-engine": "0.1.7",

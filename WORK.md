@@ -78,11 +78,13 @@ Remaining:
 2. **The architecture plan** ([ARCHITECTURE.md](ARCHITECTURE.md) §The plan): the model editor
    rename, the frozen reverse-edge baseline, the viewport unit, Blender as its first consumer,
    then idiomatic games. `@volter/editor-game` imports kit internals from 122 files.
-3. **Animation seen from outside.** The editor's animation instruments find a game's mixer only
-   through the `_animationRuntime` mark `bindXStateAnimation` sets. A served stamp on the
-   project's own `new AnimationMixer(...)` and `useAnimations(...)` call sites replaces it
-   (in progress in `@volter/editor-threejs/serving`). Closed when a mixer made in plain game
-   code is driven by the timeline and the mark is gone.
+3. **Animation seen from outside.** The editor finds a game's mixers through a served stamp on
+   the project's own `new AnimationMixer(...)` and `useAnimations(...)` call sites
+   (`@volter/editor-threejs/serving`); `status` reports them as `liveMixers` (walked on `arena`:
+   five mixers, their clips and the characters they animate). The runtime's
+   `_animMixer`/`_availableClips` userData keys are declared and read but never set; they leave
+   with the runtime framework (§The plan, unit 5). The timeline driving a stamped mixer in Edit
+   is unwalked.
 4. **Machine documents.** Authored edits and the live overlay are walked on `arena`; the fit on
    first size is unobserved, and an initial arrow can enter its state from below.
 5. **The design skew** (`website`): the DOM root is read-only, the Pages list is empty, and a

@@ -15,12 +15,16 @@
   },
   "files": [
     "src",
+    "serving",
+    "contributions",
+    "dist-node",
     "LICENSE",
     "NOTICE",
     "LICENSE-APACHE"
   ],
   "exports": {
     "./package.json": "./package.json",
+    "./contributions/*": "./contributions/*",
     "./*": {
       "types": "./src/*.ts",
       "default": "./src/*"
@@ -29,15 +33,29 @@
     "./loader": "./src/loader.ts"
   },
   "peerDependencies": {
-    "three": "^0.180.0"
+    "three": "^0.180.0",
+    "vite": "^6.4.3"
   },
   "scripts": {
+    "build": "node scripts/build-serving.mjs",
+    "prepack": "npm run build",
     "typecheck": "tsc -p tsconfig.json"
+  },
+  "vgai": {
+    "contributions": [
+      "./contributions/animation-mixers.service.ts"
+    ],
+    "serving": "./dist-node/serving.mjs"
   },
   "dependencies": {
     "@volter/editor-project": "0.5.65",
     "@sparkjsdev/spark": "^2.1.0",
     "three.quarks": "^0.16.0",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "typescript": "5.9.3",
+    "@volter/editor-sdk": "0.5.65"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
   }
 }

@@ -9,11 +9,11 @@
  *  1. `object.animations` — what a GLTF's own `AnimationClip[]` lands in when
  *     something assigns it. A subject here owns a NEW `AnimationMixer` on that
  *     object, because nothing else is playing it.
- *  2. `getUserData(object, '_animationRuntime')` — the inspection a world's
- *     own binding attached (`bindXStateAnimation` →
- *     `attachAnimationRuntimeInspection`). A subject here drives THAT
- *     inspection's existing mixer; minting a second mixer over the same object
- *     would give one skeleton two writers.
+ *  2. `liveMixerFor(object)` — the mixer the world's OWN code made for it
+ *     (`new THREE.AnimationMixer(…)`, drei's `useAnimations`), found through
+ *     the served animation stamp (`@volter/editor-threejs/animation/live-mixers`).
+ *     A subject here drives THAT mixer; minting a second mixer over the same
+ *     object would give one skeleton two writers.
  *
  * DISCOVERY 2 IS NOT OPTIONAL, and this is the measurement that says so:
  * three's `GLTFLoader` never assigns `scene.animations`, so an R3F character
@@ -25,7 +25,7 @@
  * subject over `AnimationMixer`, never a wrapper around it. `setTime` is the
  * one write; the transport owns the position.
  */
-import { getUserData } from '@volter/editor-threejs/ecs/user-data';
+import { liveMixerFor } from '@volter/editor-threejs/animation/live-mixers';
 import * as THREE from 'three';
 import type { StageTransport } from './stage-transport';
 
@@ -83,11 +83,11 @@ function attachOwnClips(object: THREE.Object3D, transport: StageTransport): (() 
 }
 
 /**
- * A subject over an inspection a world's own binding already owns. It drives
- * that mixer and never mints one; `clips` come from the inspection's map.
+ * A subject over a mixer the world's own code made. It drives that mixer and
+ * never mints one; `clips` are the ones the world has played through it.
  */
 function attachInspected(object: THREE.Object3D, transport: StageTransport): (() => void) | null {
-  const inspection = getUserData(object, '_animationRuntime');
+  const inspection = liveMixerFor(object);
   if (!inspection) return null;
   const entries = [...inspection.clips.entries()];
   let current = entries[0]?.[1];
@@ -115,7 +115,7 @@ function attachInspected(object: THREE.Object3D, transport: StageTransport): (()
     },
   });
 
-  // Deliberately NOT stopping the inspection's actions on detach: this subject
+  // Deliberately NOT stopping the mixer's actions on detach: this subject
   // borrowed a mixer the world owns, and a borrower does not decide what the
   // owner is playing when it leaves.
   return detach;

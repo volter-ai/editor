@@ -20,6 +20,7 @@
  * brackets on everything would be noise.
  */
 
+import { liveMixerFor } from '@volter/editor-threejs/animation/live-mixers';
 import { contentWorldBounds } from '@volter/editor-threejs/viewport/content-bounds';
 import * as THREE from 'three';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
@@ -220,16 +221,9 @@ export class SelectionBrackets extends LineSegments2 {
       if (
         (child as THREE.SkinnedMesh).isSkinnedMesh ||
         (Array.isArray(mesh.morphTargetInfluences) && mesh.morphTargetInfluences.length > 0) ||
-        // Presence, not `instanceof`. This mixer is written by the ENGINE
-        // (`ecs/user-data.ts`), which under the packaged runtime is the
-        // PROJECT's installed engine constructing it from the PROJECT's
-        // `three` — a different module instance, so `instanceof` is false for
-        // a real mixer and an animated selection silently loses its
-        // continuous bounds. `AnimationMixer` carries no `is*` brand, but the
-        // userData KEY is itself the declaration, which is exactly how the
-        // engine's own reader tests it (`render-batch-system.ts`'s
-        // `getUserData(cur, '_animMixer')`).
-        Boolean(child.userData['_animMixer'])
+        // A mixer the game's own code made animates it (the served animation stamp,
+        // `@volter/editor-threejs/animation/live-mixers`).
+        liveMixerFor(child) !== null
       ) {
         requiresContinuousBounds = true;
       }

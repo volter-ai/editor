@@ -1,5 +1,5 @@
 import { themeVars } from '@volter/editor-sdk/widgets';
-import { getUserData } from '@volter/editor-threejs/ecs/user-data';
+import { liveMixerFor } from '@volter/editor-threejs/animation/live-mixers';
 import { useCallback, useSyncExternalStore } from 'react';
 import type * as THREE from 'three';
 import {
@@ -13,10 +13,8 @@ import { Object3DDocumentViewport } from '../StageHost';
 function entityClips(source: THREE.Object3D): THREE.AnimationClip[] {
   const discovered = new Set<THREE.AnimationClip>();
   source.traverse((object) => {
-    const runtime = getUserData(object, '_animationRuntime');
-    if (runtime) for (const clip of runtime.clips.values()) discovered.add(clip);
-    const clips = getUserData(object, '_animClips');
-    if (clips) for (const clip of clips.values()) discovered.add(clip);
+    const live = liveMixerFor(object);
+    if (live) for (const clip of live.clips.values()) discovered.add(clip);
     for (const clip of object.animations) discovered.add(clip);
   });
   return [...discovered];
