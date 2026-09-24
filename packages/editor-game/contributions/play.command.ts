@@ -245,7 +245,7 @@ export const commands: CommandContribution['commands'] = {
       if (!container) return notPlayingResult();
       if (gameplayExportAbort) return { ok: false, error: 'A video export is already active.' };
       const { exportGameplayVideo, validateGameplayExport, assertGameplayVideoSupport } =
-        await import('@volter/editor-core/gameplay-export');
+        await import('../src/host/gameplay-export');
       const exportOptions = {
         frames: Number(cmd['frames']),
         fps: cmd['fps'] === undefined ? 30 : Number(cmd['fps']),

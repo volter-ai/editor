@@ -9,7 +9,8 @@ The files in this package were imported from volter-ai/vgai-engine at commit
     -> src/react, contributions/react
   packages/threejs/src except viewport/ and capture/, packages/threejs/contributions
   (@vgai/threejs) -> src/three, contributions/three
-  host modules of packages/editor/src (@vgai/editor) -> src/host
+  host modules of packages/editor/src (@vgai/editor) -> src/host, including
+  gameplay-export.ts and document-preview-three.ts
 
 src/host/sdk/tools.ts was imported from packages/vgai-sdk/src/tools.ts, part of
 the Apache-2.0 @vgai/sdk package, and retains that license. It re-exports the

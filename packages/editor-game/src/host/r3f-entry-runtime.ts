@@ -9,7 +9,10 @@
 import { resolveR3FEntryAdapter } from '@volter/game-runtime/world3d-react';
 import type { RootAdapter, ThreeHostContext } from '@volter/editor-project/adapter';
 import type * as THREE from 'three';
-import { R3F_RUNTIME_PATH } from '@volter/editor-core/build/module-doorways';
+import {
+  R3F_ENTRY_RUNTIME_PATH,
+  R3F_RUNTIME_PATH,
+} from '@volter/editor-core/build/module-doorways';
 import { isPackagedRuntime } from '@volter/editor-core/packaged-runtime';
 
 type R3FEntryResolver = typeof resolveR3FEntryAdapter;
@@ -22,24 +25,26 @@ interface PackagedR3FRuntime {
 let cachedPackagedRuntime: Promise<PackagedR3FRuntime> | null = null;
 
 async function packagedRuntime(): Promise<PackagedR3FRuntime> {
-  const mod = (await import(/* @vite-ignore */ R3F_RUNTIME_PATH)) as {
-    resolveR3FEntryAdapter?: unknown;
-    projectThree?: unknown;
-  };
-  if (typeof mod.resolveR3FEntryAdapter !== 'function') {
+  const [entry, mod] = await Promise.all([
+    import(/* @vite-ignore */ R3F_ENTRY_RUNTIME_PATH) as Promise<{
+      resolveR3FEntryAdapter?: unknown;
+    }>,
+    import(/* @vite-ignore */ R3F_RUNTIME_PATH) as Promise<{ projectThree?: unknown }>,
+  ]);
+  if (typeof entry.resolveR3FEntryAdapter !== 'function') {
     throw new Error(
-      "The packaged runtime's synthetic R3F module did not export " +
-        '`resolveR3FEntryAdapter` — see vite-plugin-module-doorways.ts.',
+      "The packaged runtime's synthetic R3F entry module did not export " +
+        '`resolveR3FEntryAdapter` — see R3F_ENTRY_DOORWAY in vite-plugin-module-doorways.ts.',
     );
   }
   if (typeof mod.projectThree !== 'object' || mod.projectThree === null) {
     throw new Error(
       "The packaged runtime's synthetic R3F module did not export " +
-        '`projectThree` — see vite-plugin-module-doorways.ts.',
+        '`projectThree` — see R3F_DOORWAY in vite-plugin-module-doorways.ts.',
     );
   }
   return {
-    resolve: mod.resolveR3FEntryAdapter as R3FEntryResolver,
+    resolve: entry.resolveR3FEntryAdapter as R3FEntryResolver,
     projectThree: mod.projectThree as typeof THREE,
   };
 }

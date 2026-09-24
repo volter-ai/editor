@@ -826,7 +826,7 @@ const threeBoardPreview = {
     const listing = await listProjectComponents();
     const board = await buildThreeBoard(modules, listing.ok ? listing.entries : []);
     try {
-      const { captureAuthoredThreeScenePreview } = await import('@volter/editor-core/document-preview-three');
+      const { captureAuthoredThreeScenePreview } = await import('../../host/document-preview-three');
       const { createStandardEnvironment } = await import('@volter/editor-threejs/viewport/environment');
       const { applyStandardViewportDressing } = await import(
         '@volter/editor-core/components/standard-viewport-dressing'
