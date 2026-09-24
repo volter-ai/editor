@@ -13,45 +13,52 @@ game packages remain excluded.
 ## Game editor (branch `game-editor`)
 
 Game editing is built on the `game-editor` branch and does not join
-[release/modeling.json](release/modeling.json). The working reference is
-`volter-ai/vgai-engine` at `09c2749ce`: the product `@vgai/game-editor`
-(one `product()` entry composing `@vgai/dom`, `@vgai/threejs`,
-`@vgai/blender` and `@vgai/game`, the `game` workspace, `presets.mjs`),
-over its own copy of the kit. Its architecture is vgai-engine's
-`docs/ARCHITECTURE-CORE.md` §The target shape: kit, integrations,
-products, shipped twins; dependencies point down; a package imports only
-other packages' exports.
+[release/modeling.json](release/modeling.json). Source: `volter-ai/vgai-engine`
+at `09c2749ce`. Architecture: vgai-engine's `docs/ARCHITECTURE-CORE.md`
+§The target shape — kit, integrations, products, shipped twins; dependencies
+point down.
 
-Measured against this branch's `editor-core` (copies diverged 2026-09-22;
-nothing is synced):
+| Package | What it is |
+| --- | --- |
+| `@volter/game-editor` | The second product: `product()` entry composing `@volter/editor-game` and `@volter/editor-blender`, `volter-game-editor` CLI, `create` with the game/prototype/full/website/empty presets, the game template and copied capabilities, its workbench half |
+| `@volter/editor-game` | The game side: vgai's `@vgai/game` (`src/`), `@vgai/dom` (`src/react/`), `@vgai/threejs` authoring (`src/three/`), and the kit modules only the game reaches (`src/host/`), including the world-root stage and the Scene document |
+| `@volter/game-runtime`, `@volter/threejs-runtime` | The Apache twins a shipped game carries |
 
-- The game packages import 229 kit-internal modules (`@editor/*`); 62 no
-  longer exist here: game realm and reclaim, gameplay recording, Play
-  control, the root presenter (`viewport-root-presentation`), coverage,
-  ingest registry and source persistence, Pixi/Phaser/Babylon/React
-  authoring, DOM projection, story fixtures.
-- Of the 704 kit files both copies share, 170 differ (3,592 lines), after
-  package renames. The Game and Scene documents were cut from
-  `CenterDocuments.tsx` (493 lines to 22) and `scene-documents.tsx`.
-- Play remnants the modeling closure reached are still in `editor-core`
-  (`play-boot-phase`, `gameplay-sessions`, `reported-play-state`,
-  `tool-contribution-play`, `workspace-play-utilities`,
-  `GameplaySessionTimeline`, server `gameplay-sessions` and `play-stall`),
-  as is the R3F source vocabulary (`ui-source/oid-transform.ts`, 1,845 lines).
-  The live-session, viewport and shell-store doors are present.
-- `editor-threejs` holds 21 files copied from `@vgai/threejs-runtime` (object
-  marks, scene capture, loaders, animation), which a shipped game carries
-  as its own twin.
-- Not transferred: `@vgai/game` (154 files, 85 of them import the kit),
-  `@vgai/dom` (19), `@vgai/threejs`'s authoring, component verbs, story
-  documents and three board, `@vgai/game-runtime` (95), `@vgai/threejs-runtime`
-  (72), the game template and copied capabilities (`template/`,
-  `catalog/project-source/`), and the scaffolder `create-vgai-project`.
+The kit gained product-neutral doors only: the launcher (`editor-core/server/launcher`)
+takes the launching product; the stage host takes a package's world-root
+binding; project roots are served through the globals shadow and mount
+isolation; the game runtimes are known runtime packages, reported missing only
+when a project declares them; doorway addresses live on `@volter/editor-sdk/host`.
 
-Closed when a game project created by the installed product opens in the
-Game workspace, reaches `playing` with a silent console, and is edited and
-saved through the product's own doors, while `npm run check:release` passes
-and the modeling packages reach no game module.
+Measured on a `volter-game-editor create --template game` project over a
+sources workbench (`scripts/workbench/dev.mjs --product game-editor`): the
+session opens in the Game workspace with a silent console; Play reaches
+`playing` and the Game document draws the starter world; the Scene document
+mounts the world in Edit, and Inspector edits of the Hero Box's position and
+colour are written to `src/scenes/MainScene.tsx` and drawn.
+
+Remaining, each closed by the same live walk:
+
+1. `editor.screenshot()` during Play returns a blank white frame; the active
+   document capture is correct.
+2. No document is open at boot or after Stop; vgai returned to the Scene
+   document. Opening a scene by id works.
+3. The CLI lacks verbs the template's guides teach: `screenshot`, `restart`,
+   `sessions`, `project`/`projects`, `open`, `blender-mcp` (the MCP server is
+   the modeling product's; it belongs with `@volter/editor-blender` for both
+   products), `add`, `examples`, `doctor`.
+4. The product's default workspace was verified only after a recorded
+   switch; a fresh project's first boot is unmeasured.
+5. 156 of `editor-game`'s 297 modules import kit internals
+   (`@volter/editor-core/*`); each becomes an SDK door or moves.
+6. `editor-threejs` carries 19 files identical to `@volter/threejs-runtime`'s
+   (the twin's `user-data.ts` also has the game keys): one owner is decided
+   with the modeling release's dependency boundary.
+7. The served-bundle table keys `@editor/game-module-access` (now
+   `editor-game`'s) and `@volter/editor-sdk/tools` (no such export) resolve
+   nothing; ingest is unwalked.
+8. Packed archives, installation without checkout links, and a released game
+   workbench are not yet built.
 
 ## Supported-editing work
 
