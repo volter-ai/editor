@@ -30,7 +30,6 @@ import type { SourceDocumentAuthoringFactory } from '@volter/editor-core/compone
 import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
 import { STANDARD_COMPONENT_CAMERA_DIRECTION } from '@volter/editor-core/components/standard-viewport-dressing';
 import { registerDocumentOpener } from '@volter/editor-core/document-open-registry';
-import type { ViewportTab } from '@volter/editor-core/editor-shell-store';
 import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
 import {
   CONTRIBUTED_SECTION_ORDER,
@@ -84,10 +83,6 @@ const THREE_STORY_ARG_PATH_PREFIX = 'threeStory.arg.';
 
 /** The narrow store surface a three-story document needs — the T6.3 input-gate
  *  hand-off, identical to `story-documents.tsx`'s `StoryDocumentStore`. */
-export interface ThreeStoryDocumentStore {
-  setActiveViewportTab(tab: ViewportTab): void;
-}
-
 interface ThreeStoryDocumentState {
   readonly modulePath: string;
   readonly storyName: string;
@@ -149,7 +144,6 @@ export function setThreeStoryArgOverride(id: string, key: string, value: unknown
  * exhibit click-through target.
  */
 export function openThreeStoryDocument(
-  store: ThreeStoryDocumentStore,
   modulePath: string,
   storyName: string,
   title = storyName,
@@ -187,7 +181,6 @@ export function openThreeStoryDocument(
       // a board-scoped rule (`board-scene.ts`) that one story cannot
       // re-derive.
       persist: ({ title: liveTitle }) => ({ modulePath, storyName, title: liveTitle }),
-      onActivate: () => store.setActiveViewportTab('edit'),
       onDispose: (documentId) => {
         if (_states.delete(documentId)) notifyChanged();
       },
@@ -217,7 +210,6 @@ export function threeStoryDocumentState(
  * story registry (`refreshProjectStories`) first — this reads it synchronously.
  */
 export function restoreThreeStoryDocument(
-  store: ThreeStoryDocumentStore,
   modulePath: string,
   storyName: string,
   title?: string,
@@ -233,7 +225,7 @@ export function restoreThreeStoryDocument(
   // which no single story can re-derive — so the tab is restored with the text
   // it had, falling back to the registry's own label for a record that
   // predates this or came from another opener.
-  openThreeStoryDocument(store, modulePath, storyName, title ?? story.label);
+  openThreeStoryDocument(modulePath, storyName, title ?? story.label);
   return true;
 }
 
@@ -242,10 +234,8 @@ export function restoreThreeStoryDocument(
 registerDocumentOpener<StoryDocumentOpenRequest>({
   id: THREE_STORY_DOCUMENT_OPENER,
   owner: 'three-story-documents',
-  open: (store, request) =>
-    openThreeStoryDocument(
-      store,
-      request.modulePath,
+  open: (_store, request) =>
+    openThreeStoryDocument(request.modulePath,
       request.storyName,
       request.title ?? request.storyName,
       request.activate === undefined ? {} : { activate: request.activate },
@@ -259,7 +249,7 @@ registerWorkspaceDocumentRestorer({
   kind: 'world',
   owner: 'three-story-documents',
   prepare: prepareStoryDocumentRestore,
-  restore: ({ state, store }) => {
+  restore: ({ state }) => {
     const record = state as
       | { modulePath?: unknown; storyName?: unknown; title?: unknown }
       | null
@@ -268,7 +258,7 @@ registerWorkspaceDocumentRestorer({
     const storyName = typeof record?.storyName === 'string' ? record.storyName : null;
     if (!modulePath || !storyName) return false;
     const title = typeof record?.title === 'string' ? record.title : undefined;
-    return restoreThreeStoryDocument(store, modulePath, storyName, title);
+    return restoreThreeStoryDocument(modulePath, storyName, title);
   },
 });
 

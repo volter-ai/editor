@@ -77,7 +77,6 @@ import type {
   AssetKind,
   EditorShellStore,
   HelperVisibility,
-  ViewportTab,
 } from './editor-shell-store';
 import { collectEditorStateFacets, reusableFacetKeys } from '@volter/editor-sdk/kit/editor-state-facets';
 import { entityObject3D } from './entity-object';
@@ -1475,24 +1474,26 @@ export async function handleCommand(
 
     // Panels
     case 'viewport-tab': {
-      // The tabs are Edit · Play. `'scene'`/`'game'` are REMOVED, and
-      // a removed value rejects loudly naming the replacement rather than
-      // silently doing nothing (this command is driven by the CLI/SDK, where a
-      // no-op reads as "the editor ignored me").
+      // The tab is which document has focus: `play` is the Game document, `edit` any other.
+      // Asking for one activates that document; the workspace owns focus.
       const tab = cmd['tab'];
-      const removed: Record<string, ViewportTab> = { scene: 'edit', game: 'play' };
-      if (typeof tab === 'string' && removed[tab]) {
-        return {
-          ok: false,
-          error:
-            `viewport-tab: "${tab}" was REMOVED — the viewport tabs are ` +
-            `Edit · Play. Fix: use "${removed[tab]}".`,
-        };
-      }
       if (tab !== 'edit' && tab !== 'play') {
         return { ok: false, error: `viewport-tab requires "edit" or "play", got ${String(tab)}.` };
       }
-      store.setActiveViewportTab(tab);
+      const open = openWorkspaceDocuments().map((document) => document.descriptor.id);
+      const target =
+        tab === 'play'
+          ? open.find((id) => id === GAME_DOCUMENT_ID)
+          : (open.find((id) => id === 'workspace:scene') ?? open.find((id) => id !== GAME_DOCUMENT_ID));
+      if (!target || !activateWorkspaceDocument(target)) {
+        return {
+          ok: false,
+          error:
+            tab === 'play'
+              ? 'viewport-tab play: no Game document is open. Start Play first.'
+              : 'viewport-tab edit: no document other than Game is open.',
+        };
+      }
       break;
     }
     // FOCUS A PANEL. The vocabulary is the static-panel REGISTRY, resolved by
@@ -1568,7 +1569,7 @@ export async function handleCommand(
     }
     case 'open-asset-tab': {
       const kind = cmd['kind'] as AssetKind;
-      const documentId = openAssetDocument(store, cmd['path'] as string, kind);
+      const documentId = openAssetDocument(cmd['path'] as string, kind);
       if (!(await waitForAssetDocumentInspector(documentId, kind))) {
         return {
           ok: false,
@@ -2238,7 +2239,7 @@ export async function handleCommand(
             ...(remountSelection ? { remountSelection } : {}),
           })
         : null;
-      const opened = live ?? (await openSceneTableEntryWhenListed(store, id));
+      const opened = live ?? (await openSceneTableEntryWhenListed(id));
       return opened.ok
         ? {
             ok: true,

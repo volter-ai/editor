@@ -2055,7 +2055,7 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
     (item: BrowserEntry) => {
       if (item.source === 'component') {
         if (item.authoringAsset) {
-          openAuthoringAssetDocument(store, item.authoringAsset.id, item.authoringAsset.subject);
+          openAuthoringAssetDocument(item.authoringAsset.id, item.authoringAsset.subject);
           return;
         }
         // Double-click OPENS — the same promise every other row in this panel
@@ -2071,14 +2071,14 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
       }
       if (item.source === 'document') {
         if (item.document.kind === 'scene') {
-          const result = openSceneTableEntry(store, item.document.id);
+          const result = openSceneTableEntry(item.document.id);
           if (!result.ok) editorConsole.error(result.error, 'scene');
           return;
         }
         // The document opens in the editor registered for its KIND (a model
         // in the mesh editor); only a kind nothing edits opens as its source.
-        if (!openKindDocument(store, item.document)) {
-          openAssetDocument(store, `/${item.path}`, uneditedKindAssetKind(item.document));
+        if (!openKindDocument(item.document)) {
+          openAssetDocument(`/${item.path}`, uneditedKindAssetKind(item.document));
         }
         return;
       }
@@ -2086,7 +2086,7 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
         currentRoot,
         currentPath: item.source === 'asset' ? parentAssetPath(item.path) : '',
         navigate,
-        openAsset: (url, kind) => openAssetDocument(store, url, kind),
+        openAsset: (url, kind) => openAssetDocument(url, kind),
       });
     },
     [currentRoot, navigate, store],
@@ -2133,7 +2133,7 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
       const capability = assetCapabilities(path);
       const kind = assetDocumentKind(capability);
       if (!kind) return;
-      openAssetDocument(store, path, kind);
+      openAssetDocument(path, kind);
     };
     window.addEventListener('editor:open-project-asset', handler);
     return () => window.removeEventListener('editor:open-project-asset', handler);

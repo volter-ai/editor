@@ -30,6 +30,7 @@
  * ingest keeps its own lifecycle).
  */
 
+import { activateLiveDocument } from '@volter/editor-sdk/kit/live-document';
 import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import { queueEditModeRebuild } from '@volter/editor-core/authoring/edit-mode-authoring';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
@@ -188,8 +189,9 @@ export async function mountDeferredIngestForPlay(store: EditorShellStore): Promi
   // the Scene tab because, until now, that mount WAS edit mode; a play-time
   // mount belongs on the play surface — which is also what opens the input
   // gate (`mount-three-ingest-root.ts`'s `ingestInputActive` requires the play
-  // tab), so the game is drivable rather than merely visible.
-  store.setActiveViewportTab('play');
+  // tab, which is the Game document having focus), so the game is drivable rather than
+  // merely visible.
+  activateLiveDocument();
   getIngestPlayControl()?.play();
   return true;
 }
@@ -207,7 +209,6 @@ export function exitDeferredIngestPlay(store: EditorShellStore): boolean {
   // the adopted scene, and resets the play surface.
   exitActiveIngest();
   store.setPlayState('stopped');
-  store.setActiveViewportTab('edit');
   // Edit mode is rebuilt through the ONE authoritative reinstall path
   // (`the world root's stage`'s `installAll`), which is what recreates the R3F design
   // session over the world component.

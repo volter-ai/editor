@@ -173,5 +173,5 @@ export function installIngestCanvasScene(store: EditorShellStore): () => void {
   const Content = (props: WorkspaceDocumentContentProps) => (
     <IngestCanvasSceneContent {...props} adapter={adapter} store={store} worldId={worldId} />
   );
-  return installIngestCanvasSceneDocument(store, Content);
+  return installIngestCanvasSceneDocument(Content);
 }

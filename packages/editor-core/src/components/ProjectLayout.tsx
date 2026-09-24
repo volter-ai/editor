@@ -106,7 +106,7 @@ export function DocumentView({
       // either already open or is not coming.
       const opened =
         requested.kind === 'asset'
-          ? openAssetDocument(store, requested.path, requested.assetKind ?? 'source', {
+          ? openAssetDocument(requested.path, requested.assetKind ?? 'source', {
               activate: active,
             })
           : requested.kind === 'workspace'

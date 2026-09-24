@@ -31,13 +31,11 @@
  * this project has never recorded anything" rule.
  */
 
-import type { ViewportTab } from './editor-shell-store';
 
 /** The narrow store surface every document open function declares (the T6.3
  *  input-gate hand-off). Defined here, beside the restore seam, so a document
  *  module can accept it without importing the persistence host. */
 export interface WorkspaceStateStore {
-  setActiveViewportTab(tab: ViewportTab): void;
   /** Live play state — the write-through gate reads it so no layout write can
    *  land while a game is playing/paused, even if the play-transition
    *  suppression flag is momentarily out of phase during a chaotic teardown

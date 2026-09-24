@@ -288,7 +288,7 @@ export function installEditorHostDoor(): void {
       // The session store, so activating the document moves the store's viewport tab off
       // `play`: without it the Scene/Game mirror re-activates the Game tab during Play and a
       // package's document can never take focus there.
-      openContributedDocument: (id) => openToolDocument(shellStoreForHost(), id),
+      openContributedDocument: (id) => openToolDocument(id),
       // Without a store (no project session) the document still opens; the
       // tab hand-off is the store's nicety. The kind's own `settle` is what
       // the removed `openStory` did by hand before it addressed anything
@@ -297,7 +297,7 @@ export function installEditorHostDoor(): void {
       open: async (address) =>
         (await openRegisteredDocumentAsync(
           address.kind,
-          shellStoreForHost() ?? { setActiveViewportTab: () => {} },
+          shellStoreForHost() ?? {},
           address,
         )) !== null,
       liveDocument: {

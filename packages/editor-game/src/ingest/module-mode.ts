@@ -146,7 +146,6 @@ export async function enterModuleModeFromManifestRoot(
   }
   setActiveAuthoring(activeAuthoring);
   setActiveSystems(mounted.systems ?? {});
-  store.setActiveViewportTab('play');
   store.notifyIngestEdit();
   clearMountFailureReports(); // D-W3: mount succeeded
 

@@ -58,8 +58,8 @@ export function DefaultEditorLayout() {
   useEffect(() => ensureCoreUtilitiesRegistered(), []);
   useEffect(() => installUtilityAutoOpen(history), [history]);
   useEffect(() => installAuxiliaryEvents(), []);
-  useEffect(() => installStandingToolDocuments(store), [store]);
-  useEffect(() => installKindDocumentRefresh(store), [store]);
+  useEffect(() => installStandingToolDocuments(), [store]);
+  useEffect(() => installKindDocumentRefresh(), [store]);
   useEffect(() => setWorkspaceHistoryService(history), [history]);
   // Undo/redo/save/delete live here, not on the world root's stage: a canvas-only
   // project never mounts that panel, and Ctrl+Z was a silent no-op there.

@@ -74,7 +74,7 @@ let _override: AuthoringAdapter | null = null;
  *
  * The slot is module state the shared panels READ every render, so it must
  * tell them when it changes. Relying on a side effect instead is the trap:
- * every ingest entry path also calls `store.setActiveViewportTab(…)`, which
+ * every ingest entry path also moves workspace focus, which
  * in a project WITH a Three root activates a different center document and
  * the workspace-document registry's own `notifyChanged()` re-renders the
  * panels for free. In a project with NO Three root there is exactly one

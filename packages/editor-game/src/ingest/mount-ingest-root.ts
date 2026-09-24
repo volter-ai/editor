@@ -677,7 +677,7 @@ async function autoLaunchIngestInner(store: EditorShellStore): Promise<void> {
     // never let an old bootstrap override it.
     if (deferredIngestPlayActive()) return;
     const { landIngestBootInEdit } = await import('./ingest-boot-viewport');
-    landIngestBootInEdit(store);
+    landIngestBootInEdit();
     return;
   }
   await launchIngestRoutes(store);

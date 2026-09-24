@@ -14,7 +14,6 @@ import {
 import { setAuthoringSelection } from '@volter/editor-core/authoring/consumer-actions';
 import { SourceObject3DAuthoringAdapter } from '@volter/editor-core/authoring/source-object3d-authoring-adapter';
 import { openToolDocument } from '@volter/editor-core/components/tool-documents';
-import { useEditorStore } from '@volter/editor-core/editor-runtime';
 import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
 import {
   CONTRIBUTED_SECTION_ORDER,
@@ -372,7 +371,6 @@ function SourceBody({
   readonly provenance: ProjectOutputProvenance | null;
   readonly provenanceLoaded: boolean;
 }) {
-  const store = useEditorStore();
   useSyncExternalStore(subscribeToolContributions, getGlobalToolContributions);
   const sourceContribution = provenance
     ? getDocumentToolContributions().find(
@@ -387,7 +385,7 @@ function SourceBody({
             type="button"
             variant="ghost"
             size="compact"
-            onClick={() => openToolDocument(store, sourceContribution.id)}
+            onClick={() => openToolDocument(sourceContribution.id)}
           >
             Open Source
           </Button>

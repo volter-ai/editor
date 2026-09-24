@@ -164,7 +164,7 @@ function activateCapturedThreeIngest(args: {
   // level-streaming game captures on its first drawn frame and then parses its
   // world in for several seconds afterwards.
   store.focusOnScene(() => pickGameCamera(mount.capture.captured?.camera, liveScene));
-  landIngestBootInEdit(store);
+  landIngestBootInEdit();
   store.notifyIngestEdit(); // ensure panels re-render against the override
   clearMountFailureReports(); // D-W3: mount succeeded
 

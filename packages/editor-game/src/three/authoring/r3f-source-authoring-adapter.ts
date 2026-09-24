@@ -1771,7 +1771,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
           id: `definition:project-tool:${reference.name}`,
           title: reference.title,
           open: () => {
-            openProjectToolDocument(this.store, reference.name);
+            openProjectToolDocument(reference.name);
           },
         },
       ];

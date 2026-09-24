@@ -9,7 +9,7 @@ import { closeAllWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-doc
 
 export function useCenterDocuments(store: EditorShellStore): void {
   useEffect(() => {
-    const unbind = bindLiveDocument({ onActivate: () => store.setActiveViewportTab('play') });
+    const unbind = bindLiveDocument();
     const sync = () => syncLiveDocumentPlayState(store.playState !== 'stopped');
     sync();
     const unsubscribe = store.subscribe(sync);

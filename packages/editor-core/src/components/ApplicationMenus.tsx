@@ -286,7 +286,7 @@ export function ApplicationMenus() {
     debug: <>{contributed('debug')}</>,
     tools: (
       <>
-        <MenuItem onSelect={choose(() => openProjectToolsDocument(store))}>
+        <MenuItem onSelect={choose(() => openProjectToolsDocument())}>
           Project Tools…
           {commands.tools.length > 0 ? ` (${commands.tools.length})` : ''}
         </MenuItem>
@@ -297,7 +297,7 @@ export function ApplicationMenus() {
               <MenuItem
                 key={tool.id}
                 onSelect={choose(() => {
-                  if (tool.point === 'workspace.document') openToolDocument(store, tool.id);
+                  if (tool.point === 'workspace.document') openToolDocument(tool.id);
                   else showWorkspaceUtility(`tool:${tool.id}`);
                 })}
               >

@@ -121,7 +121,7 @@ function runOpenPass(): void {
     // `openToolDocument` is self-verifying: a contribution that has not loaded
     // yet opens nothing and answers false, and the subscription above runs
     // this pass again when it arrives. No queue, no retry timer.
-    openToolDocument(null, area.document, { activate: false }, area.id);
+    openToolDocument(area.document, { activate: false }, area.id);
   }
 }
 

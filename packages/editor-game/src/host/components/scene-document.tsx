@@ -8,17 +8,13 @@
  * `useCenterDocuments`): it binds the Game document's tab, reports the
  * live/stopped edge and closes every document on session teardown. What moved
  * here is only what the kit no longer does — synthesize the Scene document
- * the kit still routes every three root's edit document to, and mirror the
- * store's `activeViewportTab` into registry activation for the Scene/Game pair.
+ * the kit still routes every three root's edit document to.
  *
- * THE INPUT-GATE CONTRACT (CLAUDE.md T6.3): `store.activeViewportTab`
- * remains the single source of truth that `play-mode.ts`/`ingest/mount-ingest-root.ts`
- * read (`playState === 'playing' && activeViewportTab === 'play'`) — this
- * module NEVER replaces that predicate, it mirrors registry activation into
- * it (descriptor `onActivate` → `setActiveViewportTab`) and store changes
- * back into registry activation (`syncSceneDocument`, run on every store
- * notify).
- */
+ * THE INPUT-GATE CONTRACT (CLAUDE.md T6.3): `play-mode.ts` and the ingest
+ * lanes gate game input on `playState === 'playing' && activeViewportTab ===
+ * 'play'`. The tab is derived from workspace focus (the Game document is
+ * active), so this module never writes it and never mirrors it back into
+ * activation. */
 
 import {
   activeDocumentSourcePath,
@@ -36,11 +32,10 @@ import {
   registerAvailableWorkspaceDocument,
   unregisterAvailableWorkspaceDocument,
 } from '@volter/editor-core/workspace-available-documents';
-import { GAME_DOCUMENT_ID, SCENE_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
+import { SCENE_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activateWorkspaceDocument,
   activeWorkspaceDocumentId,
-  openWorkspaceDocuments,
   setWorkspaceDocumentDirty,
   type WorkspaceDocumentContentProps,
   type WorkspaceDocumentDescriptor,
@@ -74,7 +69,6 @@ export interface CenterDocumentsStore {
   readonly sourcePath?: string | null;
   /** Whether the active authoring adapter has unsaved edits. */
   readonly isDirty: boolean;
-  setActiveViewportTab(tab: ViewportTab): void;
 }
 
 /** The root Scene's preview stays available after its tab closes. Its source
@@ -322,35 +316,24 @@ export function createCenterDocumentDescriptors(store: CenterDocumentsStore): {
       store.savePath
         ? { kind: 'scene', path: store.savePath }
         : { kind: 'workspace', id: SCENE_DOCUMENT_ID },
-    onActivate: () => store.setActiveViewportTab('edit'),
   };
   return { scene };
 }
 
 /**
- * The store→registry half of the bridge for the Scene/Game pair. Idempotent —
- * safe (and designed) to run on EVERY store notify; re-entrant calls triggered
- * by its own `onActivate` → `setActiveViewportTab` → notify chain settle as
- * no-ops. The Game document's live/stopped edge is the kit's
- * (`useCenterDocuments`), not repeated here.
+ * Keeps the Scene document in step with the session. Idempotent — safe (and
+ * designed) to run on EVERY store notify. The Game document's live/stopped edge
+ * is the kit's (`useCenterDocuments`), not repeated here.
  *
  *  1. the scene document is available when the manifest has a Three root;
  *  2. its tab's dirty dot tracks `isDirty` live (the title is fixed);
- *  3. the active document mirrors `activeViewportTab` (auto-switch on
- *     play/stop, `set-viewport-tab` control commands, the ingest mount lane's
- *     direct writes). A `play` tab value with no Game document open (stopped,
- *     or a transient store state) activates the scene if its tab is open.
+ *  3. with no document active at all (a first run), the scene document is.
  */
 export function syncCenterDocuments(
   store: CenterDocumentsStore,
   docs: { scene: WorkspaceDocumentDescriptor },
   hasThreeRoot = true,
 ): void {
-  const isOpen = (id: string) => openWorkspaceDocuments().some((d) => d.descriptor.id === id);
-  // Opening a registry document activates it. Capture the caller's requested
-  // viewport before touching the open set, then restore that intent below.
-  const requestedViewportTab = store.activeViewportTab;
-
   const table = projectAdapterFacet()?.scenes;
   if (hasThreeRoot && !(table && isolationTabsReplaceGenericScene(table))) {
     const row = table
@@ -377,21 +360,7 @@ export function syncCenterDocuments(
     unregisterAvailableWorkspaceDocument(SCENE_DOCUMENT_ID);
   }
 
-  // Mirror the store tab into registry activation. A THIRD-party document
-  // being active is a legitimate state (its own onActivate already asserted
-  // the store's tab, so the T6.3 gate is off). The mirror therefore only
-  // corrects genuine disagreements about the SCENE/GAME pair:
-  //   - tab says 'play' (play auto-switch, `set-viewport-tab play`) → the
-  //     Game document must be active;
-  //   - tab says 'edit' while the GAME document is active (external
-  //     `set-viewport-tab edit` during play) → back to the scene document;
-  //   - no active document at all (first run) → the scene document.
-  // An 'edit' tab with an asset/story document active is CONSISTENT and must
-  // not be "corrected".
-  const activeId = activeWorkspaceDocumentId();
-  if (requestedViewportTab === 'play' && isOpen(GAME_DOCUMENT_ID)) {
-    if (activeId !== GAME_DOCUMENT_ID) activateWorkspaceDocument(GAME_DOCUMENT_ID);
-  } else if (hasThreeRoot && (activeId === GAME_DOCUMENT_ID || activeId === null)) {
+  if (hasThreeRoot && activeWorkspaceDocumentId() === null) {
     activateWorkspaceDocument(SCENE_DOCUMENT_ID);
   }
 }
@@ -427,7 +396,6 @@ export function bindSceneDocument(store: EditorShellStore): () => void {
     get isDirty() {
       return activeSaveState(store) === 'unsaved';
     },
-    setActiveViewportTab: (tab) => store.setActiveViewportTab(tab),
   };
   const docs = createCenterDocumentDescriptors(view);
   // Missing is the legacy-safe default: manifests read by current editor

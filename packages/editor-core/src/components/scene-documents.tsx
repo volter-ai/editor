@@ -1,6 +1,6 @@
 /** Scene-table navigation delegates rendering to installed document owners. */
 import { openRegisteredDocument } from '../document-open-registry';
-import type { ViewportTab } from '../editor-shell-store';
+import { shellStoreForHost } from '../shell-store-door';
 import { projectAdapterFacet, type ResolvedDocumentTable, subscribeProjectAdapter } from '../project-adapter';
 import { planSceneDocument, sceneTabRow } from '../scene-document-plan';
 import { openAvailableWorkspaceDocument } from '../workspace-available-documents';
@@ -8,8 +8,7 @@ import { activateWorkspaceDocument, setWorkspaceDocumentTitle } from '@volter/ed
 import { rootDocumentId } from '../world-document-routing';
 import { kindDocumentId, openKindDocument } from './kind-documents';
 
-export interface SceneDocumentStore { setActiveViewportTab(tab: ViewportTab): void; }
-export function reconcileSceneDocuments(_store: SceneDocumentStore, table: ResolvedDocumentTable | null): void {
+export function reconcileSceneDocuments(table: ResolvedDocumentTable | null): void {
   if (!table) return;
   for (const row of sceneTabRow(table)) {
     if (row.plan.kind !== 'root-document') continue;
@@ -17,8 +16,8 @@ export function reconcileSceneDocuments(_store: SceneDocumentStore, table: Resol
     if (id) setWorkspaceDocumentTitle(id, row.plan.title);
   }
 }
-export function startSceneDocuments(store: SceneDocumentStore): () => void {
-  const run = () => reconcileSceneDocuments(store, projectAdapterFacet()?.scenes ?? null);
+export function startSceneDocuments(): () => void {
+  const run = () => reconcileSceneDocuments(projectAdapterFacet()?.scenes ?? null);
   run();
   return subscribeProjectAdapter(run);
 }
@@ -95,7 +94,6 @@ const SCENE_TABLE_WAIT_MS = 15_000;
  * exist.
  */
 export async function openSceneTableEntryWhenListed(
-  store: SceneDocumentStore,
   id: string,
 ): Promise<SceneOpenResult> {
   const listed = (): boolean =>
@@ -118,10 +116,10 @@ export async function openSceneTableEntryWhenListed(
       if (listed()) finish();
     });
   }
-  return openSceneTableEntry(store, id);
+  return openSceneTableEntry(id);
 }
 
-export function openSceneTableEntry(store: SceneDocumentStore, id: string): SceneOpenResult {
+export function openSceneTableEntry(id: string): SceneOpenResult {
   const facet = projectAdapterFacet();
   if (!facet) {
     return {
@@ -150,7 +148,7 @@ export function openSceneTableEntry(store: SceneDocumentStore, id: string): Scen
   if (
     entry.kind !== 'scene' &&
     entry.kind !== 'prefab' &&
-    openKindDocument(store, entry, { activate: true })
+    openKindDocument(entry, { activate: true })
   ) {
     return { ok: true, documentId: kindDocumentId(entry.id), title: entry.label };
   }
@@ -191,7 +189,7 @@ export function openSceneTableEntry(store: SceneDocumentStore, id: string): Scen
       return { ok: true, documentId, title: plan.title };
     }
     case 'isolation-document': {
-      const documentId = openRegisteredDocument('scene', store, { entry, activate: true });
+      const documentId = openRegisteredDocument('scene', shellStoreForHost() ?? {}, { entry, activate: true });
       return documentId
         ? { ok: true, documentId, title: plan.title }
         : { ok: false, code: 'SCENE_NOT_OPENABLE', error: `No installed scene editor can open "${id}".` };
@@ -202,7 +200,7 @@ export function openSceneTableEntry(store: SceneDocumentStore, id: string): Scen
       // reason (an id no composed story answers to, or a module whose medium
       // is undeclared) to the session console, and this verb refuses with the
       // one code the caller can act on.
-      const documentId = openRegisteredDocument('story', store, {
+      const documentId = openRegisteredDocument('story', shellStoreForHost() ?? {}, {
         storyId: plan.storyId,
         title: plan.title,
       });

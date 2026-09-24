@@ -47,7 +47,7 @@ import { authoringAssetDataUrl } from '../authoring/authoring-asset-url';
 import { awaitAnnouncedObject3DDocumentSession } from '../document-context-registry';
 import { registerDocumentOpener } from '../document-open-registry';
 import { projectFileExists } from '../editor-api';
-import type { AssetKind, OnlineAssetInfo, ViewportTab } from '../editor-shell-store';
+import type { AssetKind, OnlineAssetInfo } from '../editor-shell-store';
 import { type InspectionSection, PROPERTIES_SECTION_ORDER } from '@volter/editor-sdk/kit/inspection-model';
 import { shellStoreForHost } from '../shell-store-door';
 import { DOCUMENT_REGISTRATION_TIMEOUT_MS, waitUntil } from '../wait-until';
@@ -177,7 +177,6 @@ export function isAssetDocumentId(id: string): boolean {
 
 /** The narrow store surface asset documents need (T6.3 gate hand-off). */
 export interface AssetDocumentStore {
-  setActiveViewportTab(tab: ViewportTab): void;
 }
 
 /** The Asset Editor additionally needs the live object map for its §8 title. */
@@ -200,7 +199,6 @@ function sameSpec(a: AssetDocumentSpec, b: AssetDocumentSpec): boolean {
 }
 
 function openSpecDocument(
-  store: AssetDocumentStore,
   id: string,
   title: string,
   spec: AssetDocumentSpec,
@@ -270,7 +268,6 @@ function openSpecDocument(
       return { path: current.assetPath, assetKind: current.kind };
     },
     onActivate: () => {
-      store.setActiveViewportTab('edit');
       if (spec.kind === 'image' || spec.kind === 'video' || spec.kind === 'audio')
         clearSelectedAsset();
     },
@@ -292,7 +289,6 @@ function openSpecDocument(
  * rather than silently keeping the first one (see `openSpecDocument`).
  */
 export function openAssetDocument(
-  store: AssetDocumentStore,
   assetPath: string,
   kind: AssetKind,
   options: { activate?: boolean } = {},
@@ -300,9 +296,7 @@ export function openAssetDocument(
   const title = spritesheetFrameTitle(assetPath);
   const { frameName } = splitSpritesheetAssetPath(assetPath);
   const id = _pathAliases.get(normalizeAssetPath(assetPath)) ?? assetPath;
-  return openSpecDocument(
-    store,
-    id,
+  return openSpecDocument(id,
     title,
     frameName ? { assetPath, kind, displayName: title } : { assetPath, kind },
     { sourcePath: assetPath },
@@ -320,13 +314,13 @@ export function openAssetDocument(
 registerWorkspaceDocumentRestorer({
   kind: 'asset',
   owner: 'asset-documents',
-  restore: async ({ state, store }) => {
+  restore: async ({ state }) => {
     const record = state as { path?: unknown; assetKind?: unknown } | null | undefined;
     const path = typeof record?.path === 'string' ? record.path : null;
     const assetKind = typeof record?.assetKind === 'string' ? record.assetKind : null;
     if (!path || !assetKind) return false;
     if (!(await projectFileExists(path))) return false;
-    openAssetDocument(store, path, assetKind as AssetKind);
+    openAssetDocument(path, assetKind as AssetKind);
     return true;
   },
 });
@@ -378,7 +372,7 @@ registerDocumentOpener<{
 }>({
   id: 'asset',
   owner: 'asset-documents',
-  open: (store, request) => {
+  open: (_store, request) => {
     if (request.entityId) {
       // The Asset Editor's §8 title comes from the LIVE object map, which the
       // address seam's narrow store (`WorkspaceStateStore`) does not carry and
@@ -392,7 +386,7 @@ registerDocumentOpener<{
     }
     const path = request.path;
     if (path === undefined) return null;
-    return openAssetDocument(store, path, requestedAssetKind(request.assetKind, path));
+    return openAssetDocument(path, requestedAssetKind(request.assetKind, path));
   },
   ready: async (documentId, request) => {
     const kind: AssetKind = request.entityId
@@ -445,9 +439,7 @@ export function openEntityAssetDocument(
   if (!object) return null;
   // The live `Object3D.name` is the only name there is.
   const title = object.name || entityId;
-  return openSpecDocument(
-    store,
-    `asset-editor:entity:${entityId}`,
+  return openSpecDocument(`asset-editor:entity:${entityId}`,
     title,
     { assetPath: '', kind: 'model', entityId },
     { origin: `entity:${entityId}` },
@@ -456,14 +448,11 @@ export function openEntityAssetDocument(
 
 /** Open an adapter-owned atomic asset that is embedded in a source document. */
 export function openAuthoringAssetDocument(
-  store: AssetDocumentStore,
   entityId: string,
   subject: AuthoringAssetSubject,
 ): string {
   const assetPath = authoringAssetDataUrl(subject);
-  return openSpecDocument(
-    store,
-    `asset-editor:subject:${entityId}`,
+  return openSpecDocument(`asset-editor:subject:${entityId}`,
     subject.name,
     {
       assetPath,
@@ -476,16 +465,14 @@ export function openAuthoringAssetDocument(
 }
 
 /** Open an online-library asset's detail/download document. */
-export function openOnlineAssetDocument(store: AssetDocumentStore, online: OnlineAssetInfo): void {
+export function openOnlineAssetDocument(online: OnlineAssetInfo): void {
   const kind: AssetKind =
     online.type === 'model'
       ? 'model'
       : online.type === 'animation' || online.type === 'source'
         ? 'source'
         : 'image';
-  openSpecDocument(
-    store,
-    `online:${online.source}:${online.id}`,
+  openSpecDocument(`online:${online.source}:${online.id}`,
     online.name,
     { assetPath: '', kind, online },
     { origin: `online:${online.source}:${online.id}` },

@@ -2,7 +2,6 @@ import { Button, bg, border, danger, radius, TextArea, text } from '@volter/edit
 import { useState, useSyncExternalStore } from 'react';
 import type { EditorAction } from '../action-registry';
 import { registerDocumentOpener } from '../document-open-registry';
-import type { ViewportTab } from '../editor-shell-store';
 import {
   getProjectTools,
   projectToolsVersion,
@@ -29,15 +28,11 @@ import { defaultValueForSchema, ToolSchemaForm } from './tool-schema-form';
 export const PROJECT_TOOLS_DOCUMENT_ID = 'project-tools';
 export const PROJECT_TOOL_DOCUMENT_PREFIX = 'project-tool:';
 
-export interface ProjectToolDocumentStore {
-  setActiveViewportTab(tab: ViewportTab): void;
-}
-
 function projectToolDocumentId(name: string): string {
   return `${PROJECT_TOOL_DOCUMENT_PREFIX}${name}`;
 }
 
-export function openProjectToolsDocument(store: ProjectToolDocumentStore): void {
+export function openProjectToolsDocument(): void {
   openWorkspaceDocument({
     id: PROJECT_TOOLS_DOCUMENT_ID,
     title: 'Project Tools',
@@ -49,18 +44,16 @@ export function openProjectToolsDocument(store: ProjectToolDocumentStore): void 
     // The catalog is always truthfully reopenable — it lists whatever the
     // project declares now — so it persists with no state of its own.
     persist: () => ({ catalog: true }),
-    onActivate: () => store.setActiveViewportTab('edit'),
   });
 }
 
 export function openProjectToolDocument(
-  store: ProjectToolDocumentStore | null,
   name: string,
 ): boolean {
   const tool = getProjectTools().tools.find((entry) => entry.name === name);
   if (!tool) return false;
   const contributions = getDocumentToolContributions().filter((item) => item.tool?.name === name);
-  if (contributions.length === 1) return openToolDocument(store, contributions[0]!.id);
+  if (contributions.length === 1) return openToolDocument(contributions[0]!.id);
   openWorkspaceDocument({
     id: projectToolDocumentId(name),
     title: tool.summary || tool.name,
@@ -71,7 +64,6 @@ export function openProjectToolDocument(
     closeable: true,
     presentation: () => ({ kind: 'project-tool', name }),
     persist: () => ({ name }),
-    ...(store ? { onActivate: () => store.setActiveViewportTab('edit') } : {}),
   });
   return true;
 }
@@ -89,9 +81,9 @@ registerDocumentOpener<{ readonly id: string }>({
   owner: 'project-tool-documents',
   // Every other workspace id belongs to the host's own workspace-document
   // registry, or to the account document's opener.
-  open: (store, request) => {
+  open: (_store, request) => {
     if (request.id !== PROJECT_TOOLS_DOCUMENT_ID) return null;
-    openProjectToolsDocument(store);
+    openProjectToolsDocument();
     return PROJECT_TOOLS_DOCUMENT_ID;
   },
 });
@@ -103,8 +95,8 @@ registerDocumentOpener<{ readonly name: string }>({
   // documents — a single matching contribution's own tool document, or the
   // generic runner — and the active id is which one it chose. That is exactly
   // what the presenter read here before this was an address.
-  open: (store, request) =>
-    openProjectToolDocument(store, request.name) ? activeWorkspaceDocumentId() : null,
+  open: (_store, request) =>
+    openProjectToolDocument(request.name) ? activeWorkspaceDocumentId() : null,
   // The catalog is discovered asynchronously, so a durable address routinely
   // names a tool before the project's tools have been read. Settling is the
   // same refresh this kind's RESTORER prepares with (below), then the wait the
@@ -128,29 +120,29 @@ registerWorkspaceDocumentRestorer({
       () => {},
       () => {},
     ),
-  restore: ({ state, store }) => {
+  restore: ({ state }) => {
     const record = state as { catalog?: unknown; name?: unknown } | null | undefined;
     if (record?.catalog === true) {
-      openProjectToolsDocument(store);
+      openProjectToolsDocument();
       return true;
     }
-    return typeof record?.name === 'string' && openProjectToolDocument(store, record.name);
+    return typeof record?.name === 'string' && openProjectToolDocument(record.name);
   },
 });
 
-export function buildProjectToolActions(store: ProjectToolDocumentStore): EditorAction[] {
+export function buildProjectToolActions(): EditorAction[] {
   return [
     {
       id: 'project-tools:open',
       label: 'Open Project Tools',
       category: 'action',
-      execute: () => openProjectToolsDocument(store),
+      execute: () => openProjectToolsDocument(),
     },
     ...getProjectTools().tools.map((tool) => ({
       id: `project-tool:${tool.name}`,
       label: `Run: ${tool.summary || tool.name}`,
       category: 'action' as const,
-      execute: () => void openProjectToolDocument(store, tool.name),
+      execute: () => void openProjectToolDocument(tool.name),
     })),
   ];
 }
@@ -181,7 +173,7 @@ export function ProjectToolDocumentContent({ documentId }: WorkspaceDocumentCont
               key={entry.name}
               variant="ghost"
               className="vgai-project-tool-card"
-              onClick={() => openProjectToolDocument(null, entry.name)}
+              onClick={() => openProjectToolDocument(entry.name)}
               data-testid={`project-command-card:${entry.name}`}
             >
               <span style={cardTitleRowStyle}>
@@ -277,7 +269,7 @@ function ProjectToolRunner({
                 key={presentation.id}
                 variant="ghost"
                 className="vgai-project-tool-card"
-                onClick={() => openToolDocument(null, presentation.id)}
+                onClick={() => openToolDocument(presentation.id)}
               >
                 <span style={cardTitleRowStyle}>
                   <strong style={{ color: text[1], fontWeight: 600 }}>{presentation.title}</strong>

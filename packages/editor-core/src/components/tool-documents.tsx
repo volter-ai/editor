@@ -27,7 +27,6 @@ import {
   waitForContributedDocumentMount,
 } from '../document-context-registry';
 import { registerDocumentOpener } from '../document-open-registry';
-import type { ViewportTab } from '../editor-shell-store';
 import {
   contributionFailureHint,
   getDocumentToolContributions,
@@ -46,10 +45,6 @@ import { registerWorkspaceDocumentRestorer } from '../workspace-document-restore
 import { ToolHost } from './ToolHost';
 
 /** The narrow store surface tool documents need (T6.3 tab hand-off). */
-export interface ToolDocumentStore {
-  setActiveViewportTab(tab: ViewportTab): void;
-}
-
 /** Stable §7.1 identity for one project tool's document. */
 export function toolDocumentId(toolId: string): string {
   return `tool:${toolId}`;
@@ -71,7 +66,6 @@ export function resolveToolDocumentContributionId(id: string): string | null {
  * carries that id — no fabricated documents for deleted/renamed tools.
  */
 export function openToolDocument(
-  store: ToolDocumentStore | null,
   toolId: string,
   options: OpenWorkspaceDocumentOptions = {},
   /** THE WORKSPACE AREA this document fills, when a workspace's own `areas`
@@ -115,7 +109,6 @@ export function openToolDocument(
       // the descriptor's own documented opt-out for "something else
       // re-derives this at boot", which is exactly the case here.
       ...(area === undefined ? { persist: () => ({ contributionId: contribution.id }) } : {}),
-      ...(store ? { onActivate: () => store.setActiveViewportTab('edit') } : {}),
     },
     options,
   );
@@ -133,11 +126,11 @@ export function openToolDocument(
 registerWorkspaceDocumentRestorer({
   kind: 'tool-contribution',
   owner: 'tool-documents',
-  restore: ({ state, store }) => {
+  restore: ({ state }) => {
     const record = state as { contributionId?: unknown } | null | undefined;
     const contributionId =
       typeof record?.contributionId === 'string' ? record.contributionId : null;
-    return contributionId !== null && openToolDocument(store, contributionId);
+    return contributionId !== null && openToolDocument(contributionId);
   },
 });
 
@@ -160,12 +153,12 @@ registerWorkspaceDocumentRestorer({
 registerDocumentOpener<{ readonly id: string }>({
   id: 'tool',
   owner: 'tool-documents',
-  open: (store, request) => {
+  open: (_store, request) => {
     // Resolve FIRST: `openToolDocument` resolves the same way and the document
     // id is built from what it found, so the resolution is the answer.
     const resolvedId = resolveToolDocumentContributionId(request.id);
     if (resolvedId === null) return null;
-    return openToolDocument(store, resolvedId) ? toolDocumentId(resolvedId) : null;
+    return openToolDocument(resolvedId) ? toolDocumentId(resolvedId) : null;
   },
   settle: async (request) => {
     await refreshProjectToolContributions();
@@ -197,7 +190,7 @@ registerDocumentOpener<{ readonly id: string }>({
  * Returns the teardown for the subscription (it does not close the documents —
  * the project-open path owns that, the same way it owns the boards).
  */
-export function installStandingToolDocuments(store: ToolDocumentStore): () => void {
+export function installStandingToolDocuments(): () => void {
   const opened = new Set<string>();
   const reconcile = () => {
     const standing = getDocumentToolContributions().filter((item) => item.standing);
@@ -209,7 +202,7 @@ export function installStandingToolDocuments(store: ToolDocumentStore): () => vo
     }
     for (const item of standing) {
       if (opened.has(item.id)) continue;
-      if (openToolDocument(store, item.id, { activate: false })) opened.add(item.id);
+      if (openToolDocument(item.id, { activate: false })) opened.add(item.id);
     }
     // EVERY open tool document takes its slots afresh on discovery change,
     // standing or not: a module re-evaluated on save may have gained or lost
@@ -218,7 +211,7 @@ export function installStandingToolDocuments(store: ToolDocumentStore): () => vo
     const open = new Set(openWorkspaceDocuments().map((d) => d.descriptor.id));
     for (const item of getDocumentToolContributions()) {
       if (!open.has(toolDocumentId(item.id))) continue;
-      openToolDocument(store, item.id, { activate: false });
+      openToolDocument(item.id, { activate: false });
     }
   };
   reconcile();
@@ -228,12 +221,12 @@ export function installStandingToolDocuments(store: ToolDocumentStore): () => vo
 /** `Open Tool: <title>` palette actions — one per discovered document tool
  *  (the B12 discovery gesture). A standing document is always open, so its
  *  action ACTIVATES the tab rather than teaching a way to summon it. */
-export function buildToolActions(store: ToolDocumentStore): EditorAction[] {
+export function buildToolActions(): EditorAction[] {
   return getDocumentToolContributions().map((t) => ({
     id: `tool-doc:${t.id}`,
     label: t.standing ? `Show ${t.title}` : `Open Tool: ${t.title}`,
     category: 'action' as const,
-    execute: () => void openToolDocument(store, t.id),
+    execute: () => void openToolDocument(t.id),
   }));
 }
 
