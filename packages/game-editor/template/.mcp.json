@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "vgai": {
+      "command": "npm",
+      "args": ["run", "--silent", "vgai", "--", "mcp", "."]
+    },
+    "blender": {
+      "command": "npm",
+      "args": ["run", "--silent", "vgai", "--", "blender-mcp"]
+    }
+  }
+}

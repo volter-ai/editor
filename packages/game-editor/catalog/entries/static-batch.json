@@ -1,0 +1,25 @@
+{
+  "description": "Static batching for a three/TSX world, as one wrapper. `<Frozen name=\"Terminal\">…</Frozen>` declares mount-static scenery; on mount it walks that subtree, groups meshes by structural material identity plus shadow flags and layers, turns identical geometries into one `InstancedMesh`, merges the rest, hides the originals, and restores everything exactly on unmount. Multi-material geometry keeps its authored submesh assignment: every validated geometry group becomes a material-specific contribution, including singleton replacements, so hiding the original never drops pixels. Malformed ranges, missing slots, and transparent arrays refuse the whole source loudly before anything is hidden. Structural grouping, never `material.uuid`, collapses inline JSX materials that construct one object per mesh. Instanced, batched, skinned, morph-target and transparent meshes degrade loudly to their original draws; `userData={{ staticBatch: false }}` excludes a subtree silently. In dev, hidden originals are sampled at ~1 Hz for matrix, every material-slot version, and visibility drift. Reactive scenery belongs outside the wrapper. Render vitals report the measured payoff and exact edit when draw calls warrant it.",
+  "files": [
+    "src/lib/static-batch/Frozen.tsx",
+    "src/lib/static-batch/freeze.ts",
+    "src/lib/static-batch/index.ts",
+    "src/lib/static-batch/mutation-watch.ts",
+    "src/lib/static-batch/shadow-cache.ts"
+  ],
+  "id": "static-batch",
+  "packageJson": {
+    "dependencies": {
+      "@react-three/fiber": "^9.6.1",
+      "react": "^19.2.4",
+      "three": "^0.180.0"
+    }
+  },
+  "regions": {
+    "three": ["src/lib/static-batch/**/*.tsx"]
+  },
+  "requires": [],
+  "skills": [],
+  "title": "Static batching (<Frozen> mount-static scenery)",
+  "version": "0.2.3"
+}

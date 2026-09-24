@@ -1,0 +1,22 @@
+{
+  // The editor's lane (src/contributions/**, src/tools/**) — their own program, WITHOUT
+  // src/world.tsx: see the base tsconfig's "exclude" note (fiber's JSX
+  // augmentation must not mix with the editor design-system's polymorphic
+  // primitives these tools import via @editor/*).
+  //
+  // `exclude` MUST be reset here. `extends` inherits the base config's
+  // `exclude: ["src/tools", "src/contributions"]`, and exclude beats include — inheriting it makes
+  // this program compile ZERO files while still exiting 0, so every tool file
+  // is silently untypechecked. `npm run typecheck` cannot tell you: a program
+  // with no files is a PASSING program.
+  //
+  // Tools are NODE code (see src/contributions/module-source.ts's header) — the base
+  // config's browser-only `types: ["vite/client"]` is why they had to be
+  // excluded from it in the first place, so add node here.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["vite/client", "node"]
+  },
+  "include": ["src/tools", "src/contributions"],
+  "exclude": []
+}

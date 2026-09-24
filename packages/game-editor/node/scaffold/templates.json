@@ -1,0 +1,79 @@
+{
+  "$comment": "The empty project and the named presets of additions. NO EXAMPLES SHIP IN THE FIRST LAUNCH (2026-09-19, docs/WORK.md §The examples are ARCHIVED): the three promoted `source: \"example:<id>\"` rows went with them to the tag archive/examples-2026-09-19. The `example:` source form is still parsed and scaffoldable — restoring the tag restores the rows without a code change.",
+  "registryVersion": 1,
+  "templates": [
+    {
+      "id": "empty",
+      "title": "Empty project",
+      "description": "A project that declares nothing yet — add a 3D world, a UI, a server or models from here.",
+      "source": "template:empty",
+      "whatsInside": [
+        "No roots, no configurations",
+        "The four settings layers",
+        "Add what the project needs"
+      ]
+    },
+    {
+      "id": "prototype",
+      "title": "Game prototype",
+      "description": "A 3D world with modeling tools for a playable prototype, without required Data, Game Inspector or Analytics panels.",
+      "source": "template:prototype",
+      "whatsInside": [
+        "Three.js world root",
+        "Blender modeling tools",
+        "Neutral daylight scene + focal cube prefab",
+        "No required development panels",
+        "No preselected genre"
+      ]
+    },
+    {
+      "id": "game",
+      "title": "Game development",
+      "description": "A 3D world with modeling tools and multiplayer configuration. Nothing preselected errors; add the Data / Game Inspector / Analytics panels with --with studio when the game wants them.",
+      "source": "template:game",
+      "whatsInside": [
+        "Three.js world root",
+        "Blender modeling tools",
+        "Neutral daylight scene + focal cube prefab",
+        "server + multiplayer configurations",
+        "No required development panels",
+        "No preselected genre"
+      ]
+    },
+    {
+      "id": "website",
+      "title": "Website / UI",
+      "description": "A React root mounted as a DOM layer — JSX as the authored truth.",
+      "source": "template:website",
+      "whatsInside": [
+        "React DOM root",
+        "Styled shell page",
+        "react-root capability"
+      ]
+    },
+    {
+      "id": "models",
+      "title": "Models",
+      "description": "The blender capability alone: Blender in the tab — .blend models under src/models/ with the bpy that authored them, the Model document and the model finder. No world to run.",
+      "source": "template:models",
+      "whatsInside": [
+        "blender capability (@vgai/blender + @vgai/blender-engine)",
+        "src/models/ + the model finder",
+        "Opens in the Model workspace"
+      ]
+    },
+    {
+      "id": "full",
+      "title": "Everything",
+      "description": "Every addition in one project — a 3D world, a UI root, a multiplayer server, development panels and models. The composition acceptance: nothing here special-cases the presence of anything else.",
+      "source": "template:full",
+      "whatsInside": [
+        "Three.js world + React DOM root",
+        "server + multiplayer configurations",
+        "Data, Game Inspector and Analytics stubs",
+        "blender capability",
+        "Game, Model and every other workspace"
+      ]
+    }
+  ]
+}

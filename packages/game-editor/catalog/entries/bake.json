@@ -1,0 +1,36 @@
+{
+  "description": "Deterministic Object3D baking to GLB, the read-only module look, the seam that turns a model builder into an HMR-correct instance-sharing prefab, the builder document/inspector factories, and the params-schema reader every generator shares.",
+  "files": [
+    "src/lib/bake/asset-seed.ts",
+    "src/lib/bake/bake-schema.ts",
+    "src/lib/bake/clip-layering.ts",
+    "src/lib/bake/gltf-bake.ts",
+    "src/lib/bake/mesh-slice.ts",
+    "src/lib/bake/node-image.ts",
+    "src/lib/bake/object3d-bake.ts",
+    "src/lib/bake/object3d-lifecycle.ts",
+    "src/lib/bake/object3d-source.ts",
+    "src/lib/bake/use-model.ts",
+    "src/lib/bake/params.ts",
+    "src/lib/bake/rest-relative-animation.ts",
+    "src/tools/bake-module.tool.ts",
+    "src/tools/bake-preview.tool.ts",
+    "src/contributions/builder-document.tsx",
+    "src/contributions/builder-state.ts",
+    "src/contributions/builder-ui.tsx",
+    "src/contributions/module-source.ts",
+    "src/contributions/bake.kind.ts"
+  ],
+  "id": "bake",
+  "packageJson": {
+    "dependencies": {
+      "three-bvh-csg": "^0.0.18",
+      "three-mesh-bvh": "^0.9.12"
+    },
+    "vgaiTools": ["./src/tools/bake-module.tool.ts", "./src/tools/bake-preview.tool.ts"]
+  },
+  "requires": [],
+  "skills": [],
+  "title": "Bake",
+  "version": "0.32.0"
+}

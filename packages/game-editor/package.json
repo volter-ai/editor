@@ -1,0 +1,57 @@
+{
+  "name": "@volter/game-editor",
+  "author": "Volter AI, Inc.",
+  "version": "0.5.64",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "license": "AGPL-3.0-only AND GPL-3.0-or-later",
+  "description": "Volter Game Editor: the game packages and Blender stitched onto the editor kit.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/volter-ai/editor.git",
+    "directory": "packages/game-editor"
+  },
+  "files": [
+    "dist",
+    "src",
+    "LICENSE",
+    "LICENSE-BLENDER",
+    "NOTICE",
+    "dist-node",
+    "presets.mjs",
+    "workbench",
+    "template",
+    "template-dotfiles",
+    "catalog",
+    "starter"
+  ],
+  "scripts": {
+    "build": "vite build --config vite.config.ts",
+    "build:node": "node scripts/build-node.mjs",
+    "typecheck": "tsc -p tsconfig.node.json"
+  },
+  "vgai": {
+    "product": {
+      "entry": "./src/index.ts",
+      "colorTheme": "dark"
+    }
+  },
+  "dependencies": {
+    "@volter/editor-core": "0.5.64",
+    "@volter/editor-game": "0.5.64",
+    "@volter/editor-blender": "0.1.7",
+    "@volter/blender-engine": "0.1.7",
+    "@volter/editor-project": "0.5.64",
+    "@volter/editor-sdk": "0.5.64",
+    "@volter/editor-live": "0.5.64",
+    "@volter/game-runtime": "0.5.64",
+    "@volter/threejs-runtime": "0.5.64",
+    "undici": "7.29.1"
+  },
+  "bin": {
+    "volter-game-editor": "./dist-node/cli.js"
+  }
+}

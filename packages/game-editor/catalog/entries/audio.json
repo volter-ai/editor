@@ -1,0 +1,14 @@
+{
+  "description": "Game-owned Web Audio graph with a lazy AudioAdapter for editor mute, pause and graph inspection. Expose sfxAudioSystem() as systems.audio from the root entry; gameTone() supplies optional synthesized effects. No sound plays until the game asks for it.",
+  "files": [
+    "src/lib/audio/sfx.ts"
+  ],
+  "id": "audio",
+  "packageJson": {
+    "dependencies": {}
+  },
+  "requires": [],
+  "skills": [],
+  "title": "Game audio (Web Audio)",
+  "version": "0.1.1"
+}

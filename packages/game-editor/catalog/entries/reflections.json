@@ -1,0 +1,29 @@
+{
+  "description": "Local reflection capture using Three CubeCamera and PMREMGenerator. ReflectionProbe publishes { envMap, envMapIntensity } through its render prop for explicit binding to native materials. Optional createVolumeReflectionMaterial and createVolumeReflectionPhysicalMaterial factories provide volume blending, priority and box-projected parallax across mixed-resolution probes. The editor shows probe volumes, typed settings, capture status and Recapture; authored settings remain in JSX.",
+  "files": [
+    "src/lib/reflections/ReflectionProbe.tsx",
+    "src/lib/reflections/index.ts",
+    "src/lib/reflections/probe-controller.ts",
+    "src/lib/reflections/reflection-probe-registry.ts",
+    "src/lib/reflections/volume-reflection-material.ts"
+  ],
+  "id": "reflections",
+  "packageJson": {
+    "dependencies": {
+      "@react-three/fiber": "^9.6.1",
+      "react": "^19.2.4",
+      "three": "^0.180.0"
+    }
+  },
+  "regions": {
+    "three": [
+      "src/lib/reflections/**/*.tsx"
+    ]
+  },
+  "requires": [],
+  "skills": [
+    "vgai-environment-art"
+  ],
+  "title": "Reflection probes",
+  "version": "0.2.1"
+}

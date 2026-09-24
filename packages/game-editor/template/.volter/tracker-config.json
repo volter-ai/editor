@@ -1,0 +1,17 @@
+{
+  "backend": "markdown",
+  "local": {
+    "teamKey": "LOCAL"
+  },
+  "board": "shared",
+  "validation": {
+    "entrypoint": ".volter/tracker/validation/preset.mts",
+    "installedFrom": "spec"
+  },
+  "sources": [
+    {
+      "path": "ROADMAP.md",
+      "format": "document"
+    }
+  ]
+}

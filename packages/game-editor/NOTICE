@@ -1,0 +1,16 @@
+Copyright 2026 Volter AI, Inc.
+
+The game editor product is AGPL-3.0-only. It mounts the Blender integration,
+which contains Blender-derived icon artwork under GPL-3.0-or-later;
+LICENSE-BLENDER preserves the integration license and attribution. The
+separately installed Blender engine has its own GPL license and
+corresponding-source requirements.
+
+Transferred from the AGPL-3.0-only vgai-engine repository at revision
+09c2749ce:
+  - packages/game-editor (the product entry and its create presets)
+  - packages/create-vgai-project (the project scaffolder, in node/scaffold)
+  - packages/editor/template (template/)
+  - packages/editor/template-dotfiles (template-dotfiles/)
+  - packages/editor/catalog/project-source and catalog/entries (catalog/)
+  - packages/editor/starter (starter/)

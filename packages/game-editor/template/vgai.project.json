@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/@volter/editor-project/schemas/vgai-project.schema.json",
+  "manifestVersion": 2,
+  "name": "My Game",
+  "appId": "com.example.mygame",
+  "version": "0.1.0",
+  "engine": {
+    "version": "0.5.57"
+  },
+  "resolution": {
+    "width": 1280,
+    "height": 720
+  },
+  "configurations": [
+    { "id": "web", "kind": "bundle", "script": "build", "args": ["--base", "./"] }
+  ],
+  "roots": [
+    {
+      "id": "world",
+      "adapter": "three",
+      "entry": "src/world.tsx"
+    }
+  ]
+}

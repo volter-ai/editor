@@ -1,0 +1,24 @@
+{
+  "description": "Mount this project's `dom` roots with React. A dom root is just an HTMLElement the host hands you; this registers React as what fills it (createRoot + WorldProvider + unmount). Replace it with Vue, Svelte or plain DOM by registering your own factory for 'dom'.",
+  "files": [
+    "src/lib/react-root/index.ts",
+    "src/lib/react-root/react-root-adapter.tsx",
+    "src/contributions/pages.finder.ts"
+  ],
+  "id": "react-root",
+  "packageJson": {
+    "dependencies": {
+      "react": "^19.2.4",
+      "react-dom": "^19.2.4"
+    }
+  },
+  "regions": {
+    "dom": [
+      "src/lib/react-root/**/*.tsx"
+    ]
+  },
+  "requires": [],
+  "skills": [],
+  "title": "React dom-root adapter",
+  "version": "0.2.5"
+}

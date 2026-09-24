@@ -1,0 +1,32 @@
+{
+  // This project's BUILD-TIME Node program — `vite.config.ts` and the
+  // config-relative modules it imports (`manifest-entry-modules-plugin.ts`).
+  //
+  // Why it is its own program rather than an entry in the base config's
+  // `include`: the base config types the BROWSER (`types: ["vite/client"]`,
+  // no node), which is the same reason `src/tools` needed
+  // `tsconfig.tools.json`. `vite.config.ts` reads `process.env` and
+  // `__dirname`, so it needs `node` in `types` — and it must not be able to
+  // reach browser-only globals by accident either way round.
+  //
+  // What it closes: before this, NO program in this project's `typecheck`
+  // script (nor in the engine repo's `npm run typecheck` graph) included
+  // `vite.config.ts`. It was compiled only by Vite's own esbuild, which
+  // strips types without checking them — so the file could and did drift
+  // out of `ServerOptions`, and the strictness this project sets everywhere
+  // else (`noPropertyAccessFromIndexSignature`,
+  // `exactOptionalPropertyTypes`) never applied to the one file that
+  // decides how the project builds and serves.
+  //
+  // `exclude` MUST be reset here for the same reason `tsconfig.tools.json`
+  // documents: `extends` inherits the base `exclude: ["src/tools"]`, and
+  // while that particular pattern cannot match anything in this `include`,
+  // leaving inherited excludes in place is how a program silently compiles
+  // ZERO files and still exits 0.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["vite/client", "node"]
+  },
+  "include": ["vite.config.ts", "manifest-entry-modules-plugin.ts"],
+  "exclude": []
+}

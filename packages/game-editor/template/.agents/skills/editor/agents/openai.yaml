@@ -1,0 +1,4 @@
+interface:
+  display_name: "Control the VGAI Editor"
+  short_description: "Operate and inspect the live VGAI editor"
+  default_prompt: "Use $editor to open, control, inspect, and verify this game in the VGAI editor."

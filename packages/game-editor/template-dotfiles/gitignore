@@ -1,0 +1,81 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-server/
+*.local
+
+# Vite cache
+.vite/
+
+# Editor autosaved UI state (panel layout etc.) — local-machine ephemeral.
+# NOT the rest of .vgai/: .vgai/scaffold-baseline.json is committed project
+# state `vgai upgrade` diffs against (packages/create-vgai-project/src/baseline.ts),
+# and .vgai/overlays/*.json + .vgai/thumbnail.png + .vgai/provenance.json +
+# .vgai/generations.json are real project data too.
+.vgai/editor-state.json
+# #146 — more local-machine ephemera: the live session's discovery file
+# (written by the dev server at boot, removed on shutdown) and agent
+# screenshot captures (GET /__vgai/screenshot).
+.vgai/session.json
+.vgai/collaboration.json
+.vgai/captures/
+.vgai/tmp/
+.vgai/last-run/
+# `vgai screenshot`'s default output directory — looking at the game is the
+# documented way to verify it, so an ordinary session leaves dozens of PNGs here.
+.vgai/screenshots/
+# Run artifacts a driving script writes (screenshots a failure block points at,
+# the last run's scratch). Overwritten every run — nothing here is worth
+# committing.
+.vgai/prev-run/
+# The idiom scanner's last findings (check-idioms.ts writes it every run, and
+# `vgai status` reads it so open ERROR findings surface from the first status
+# call instead of at handoff). A cache of a fact recomputable in under a
+# second — machine-local, never project state.
+.vgai/check-idioms.json
+# The build-discipline tripwires' announce gate (which step each tripwire has
+# already announced, keyed on what makes it go quiet). Persisted so a dev-server
+# restart cannot re-arm a long dirty batch at "nothing announced" — machine-local
+# by nature, and it MUST stay untracked: a tracked gate file would add itself to
+# the very dirty-file count the commit-cadence tripwire reports.
+.vgai/tripwire-gate.json
+
+# `vgai play`'s run logs (logs/play-*.jsonl — see packages/vgai-cli/src/index.ts)
+logs/
+*.jsonl
+
+# Playwright / test output
+test-results/
+playwright-report/
+.playwright-mcp/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Local env files
+.env
+.env.local
+.env.*.local
+
+# ztrack (added by ztrack init)
+.volter/tracker/tracker.sqlite
+.volter/tracker/tracker.sqlite-*
+.volter/tracker/tracker.sqlite.lock
+.volter/tracker/local-store.json
+.volter/agent-dispatch/
+.volter/github/
+.volter/sync/
+.volter/.ztrack-loop.json
+.volter/.ztrack-loop-iter-*
+.volter/.ztrack-loop-exempt-*
+.volter/.ztrack-loop-capped.json
+# ztrack also writes .volter/tracker/.gitignore covering the audit files below.
+# Restated here because npm strips every nested .gitignore from a package
+# tarball (the same fact `restorePackagedTemplateDotfiles` exists for), so a
+# project scaffolded from the PACKAGED editor never receives that file.
+.volter/tracker/.audit.jsonl
+.volter/tracker/.audit-state.json
+.volter/tracker/.audit.lock

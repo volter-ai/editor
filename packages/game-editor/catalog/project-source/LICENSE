@@ -1,0 +1,37 @@
+MIT License
+
+Copyright (c) 2026 Volter AI, Inc.
+
+THIS SUBTREE IS NOT AGPL. It sits inside `packages/editor`, which is
+AGPL-3.0-only, and it is deliberately excluded from that grant and licensed MIT
+instead — because every file here is COPIED, byte for byte, into projects that
+are not ours. `vgai add <id>` copies a capability's declared files into a user's
+game; `npm run capabilities:sync` copies the same bytes into the MIT starter
+template (`packages/editor/template/`). The copy becomes the project's, editing
+it is the entire point (the shadcn model), and the person who edits it must be
+able to relicense their game under any terms they choose. Source that lands in
+someone's game under the editor's copyleft would be a trap, so it is MIT at the
+source: the licence of the file does not change on the way in.
+
+The AGPL continues to govern the rest of `packages/editor` — the editor
+application that does the copying. See LICENSE.md at the repository root for
+the per-package map, and `packages/editor/template/LICENSE` for the template's
+own copy of this grant.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
