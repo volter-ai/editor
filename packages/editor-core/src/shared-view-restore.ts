@@ -12,7 +12,7 @@
 
 import { editorViewFromUrl } from '@volter/editor-sdk';
 import { useEffect } from 'react';
-import { activeProjectKey } from './active-project';
+import { activeProjectKey } from '@volter/editor-sdk/kit/active-project';
 import { editorConsole } from './editor-console';
 import type { EditorShellStore } from './editor-shell-store';
 import { presentEditorView } from './editor-view-presentation';

@@ -13,7 +13,7 @@
  */
 
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
-import { inspectAuthoringAdapterSeams } from '../coverage/authoring-seam-evidence';
+import { inspectAuthoringAdapterSeams } from '@volter/editor-sdk/kit/authoring-seam-evidence';
 import type { EditorShellStore } from '../editor-shell-store';
 import { makeNoAuthoringAdapter } from './no-authoring-adapter';
 

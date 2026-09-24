@@ -37,7 +37,7 @@ import type {
   WriteAck,
 } from '@volter/editor-project/adapter';
 import type * as THREE from 'three';
-import { recordAuthoringConsumerUse } from '../coverage/authoring-seam-evidence';
+import { recordAuthoringConsumerUse } from '@volter/editor-sdk/kit/authoring-seam-evidence';
 import { NO_OBJECT_REASON } from '@volter/editor-sdk/kit/creation-site-registry';
 import { editorConsole } from '../editor-console';
 import type { HierarchyProjection, HierarchyProjectionGroup } from '@volter/editor-sdk/kit/hierarchy-projection';

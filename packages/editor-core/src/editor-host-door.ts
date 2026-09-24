@@ -8,7 +8,7 @@
  */
 import { type EditorHostOutput, registerEditorHost } from '@volter/editor-sdk/host';
 import type * as THREE from 'three';
-import { onProjectChange } from './active-project';
+import { onProjectChange } from '@volter/editor-sdk/kit/active-project';
 import { stageTransport, subscribeStageTransports } from './animation/stage-transport';
 import {
   activeAudioVersion,
@@ -69,7 +69,7 @@ import {
   releaseLiveDocument,
   releaseLiveDocumentContainer,
   setLiveDocumentContainer,
-} from './live-document';
+} from '@volter/editor-sdk/kit/live-document';
 import {
   anyLiveSessionMounted,
   anyLiveSessionPlaying,

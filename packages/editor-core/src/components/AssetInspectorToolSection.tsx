@@ -5,7 +5,7 @@ import type {
 } from '@volter/editor-sdk/contributions';
 import { EditorIcon, editorIcons, groupLabelStyle } from '@volter/editor-sdk/widgets';
 import { type ComponentType, useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
-import { accountVersion, contributionAccount, subscribeAccount } from '../account';
+import { accountVersion, contributionAccount, subscribeAccount } from '@volter/editor-sdk/kit/account-client';
 import { clearAssetInspectorActions, setAssetInspectorActions } from '../asset-inspector-actions';
 import {
   assetSelectionVersion,

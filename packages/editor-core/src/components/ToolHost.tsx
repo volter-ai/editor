@@ -29,7 +29,7 @@ import {
   useSyncExternalStore,
 } from 'react';
 import { createRoot as createEditorRoot } from 'react-dom/client';
-import { accountVersion, contributionAccount, subscribeAccount } from '../account';
+import { accountVersion, contributionAccount, subscribeAccount } from '@volter/editor-sdk/kit/account-client';
 import {
   markContributedDocumentMounted,
   publishDocumentContext,

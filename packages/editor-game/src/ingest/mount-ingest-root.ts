@@ -38,7 +38,7 @@ import {
 import { editorConsole } from '@volter/editor-core/editor-console';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { registerEditorStateFacet } from '@volter/editor-sdk/kit/editor-state-facets';
-import { liveDocumentContainer } from '@volter/editor-core/live-document';
+import { liveDocumentContainer } from '@volter/editor-sdk/kit/live-document';
 import { fetchGameManifest, isManifestAbsence } from '@volter/editor-core/manifest-project';
 import { getCurrentProject } from '@volter/editor-core/project-manager';
 import { onShellStore } from '@volter/editor-core/shell-store-door';

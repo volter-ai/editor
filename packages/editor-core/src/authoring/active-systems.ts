@@ -17,7 +17,7 @@
 
 import type { SystemAdapters } from '@volter/editor-project/adapter';
 import { nodeKeyedPhysics, type PhysicsAdapter } from '@volter/editor-project/adapter/system-adapter';
-import { inspectSystemAdapterSeam } from '../coverage/system-seam-evidence';
+import { inspectSystemAdapterSeam } from '@volter/editor-sdk/kit/system-seam-evidence';
 
 let _systems: SystemAdapters = {};
 let _editModeAudio: SystemAdapters['audio'] | null = null;

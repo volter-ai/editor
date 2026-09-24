@@ -36,7 +36,7 @@
 import { getAuthoringOverride } from '../authoring/active-adapter';
 import { mountedRootSubjects } from '../authoring/mounted-root-subjects';
 import { editorConsole } from '../editor-console';
-import { editorIsPlaying } from '../editor-session-mode';
+import { editorIsPlaying } from '@volter/editor-sdk/kit/editor-session-mode';
 import { liveSessions } from '@volter/editor-sdk/kit/live-session-registry';
 import { allPerformanceSources } from '../performance-sources';
 import {

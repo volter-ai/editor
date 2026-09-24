@@ -37,7 +37,7 @@ import { sha256Hex } from '@volter/editor-sdk/kit/bytes-codec';
 import { assertEditorServerAnswered } from '@volter/editor-sdk/kit/editor-server-response';
 import { setCollaborationRevision, sourceMutationAttribution } from '@volter/editor-sdk/kit/editor-session-attribution';
 import { projectFiles } from '../files/project-files';
-import { handleProjectMutationFailure } from '../source-conflict';
+import { handleProjectMutationFailure } from '@volter/editor-sdk/kit/source-conflict';
 import type {
   ComponentPropSpec,
   DuplicateRewrite,

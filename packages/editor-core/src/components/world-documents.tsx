@@ -55,7 +55,7 @@ import {
 import type { EditorShellStore } from '../editor-shell-store';
 import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';
-import { explainSurface } from '../surface-state';
+import { explainSurface } from '@volter/editor-sdk/kit/surface-state';
 import { recordViewportFirstFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import {
   CANVAS_SCENE_DOCUMENT_ID,

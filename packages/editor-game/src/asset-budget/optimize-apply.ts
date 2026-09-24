@@ -23,7 +23,7 @@
 import { sha256Hex } from '@volter/editor-sdk/kit/bytes-codec';
 import { assertEditorServerAnswered } from '@volter/editor-sdk/kit/editor-server-response';
 import { sourceMutationAttribution } from '@volter/editor-sdk/kit/editor-session-attribution';
-import { handleProjectMutationFailure } from '@volter/editor-core/source-conflict';
+import { handleProjectMutationFailure } from '@volter/editor-sdk/kit/source-conflict';
 import type { StorageBackend } from '@volter/editor-sdk/kit/storage-types';
 import { invalidateCachedAsset } from '@volter/threejs-runtime/asset-loaders';
 

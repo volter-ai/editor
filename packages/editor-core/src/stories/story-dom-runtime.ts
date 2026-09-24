@@ -16,7 +16,7 @@ import {
 import { STORY_RUNTIME_PATH } from '@volter/editor-sdk/host';
 import { flushSync as staticFlushSync } from 'react-dom';
 import { createRoot as staticCreateRoot } from 'react-dom/client';
-import { isPackagedRuntime } from '../packaged-runtime';
+import { isPackagedRuntime } from '@volter/editor-sdk/kit/packaged-runtime';
 
 export interface StoryDomRuntime {
   readonly packaged: boolean;

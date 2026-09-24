@@ -20,7 +20,7 @@ import { useEditorStore } from '@volter/editor-core/editor-runtime';
 import { getCurrentProject, onProjectChange } from '@volter/editor-core/project-manager';
 import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import { domHasRenderableContent } from '../host/surface-content';
-import { explainSurface } from '@volter/editor-core/surface-state';
+import { explainSurface } from '@volter/editor-sdk/kit/surface-state';
 import { editorHost } from '@volter/editor-sdk/host';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import {

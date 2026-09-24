@@ -26,7 +26,7 @@ import { clearMountFailureReports } from '@volter/editor-sdk/kit/mount-failure-r
 import { editorConsole } from '@volter/editor-core/editor-console';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { gameLoopGate, setGameInputGate } from '../host/gated-globals';
-import { acquireLiveDocument, liveDocumentContainer } from '@volter/editor-core/live-document';
+import { acquireLiveDocument, liveDocumentContainer } from '@volter/editor-sdk/kit/live-document';
 import { pickGameCamera } from '@volter/editor-core/scene-framing';
 import type { ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';
 import type { CaptureMechanism } from '@volter/threejs-runtime/adapter/ingest/scene-capture';

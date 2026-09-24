@@ -30,7 +30,7 @@ import {
   type StartupRecovery,
 } from '@volter/editor-sdk/session/editor-compatibility';
 import { Component, type ErrorInfo, type ReactNode, useEffect, useState } from 'react';
-import { startAccountActivity } from '../account';
+import { startAccountActivity } from '@volter/editor-sdk/kit/account-client';
 import {
   decideProjectDetectionRecovery,
   ProjectDetectionTimeoutError,

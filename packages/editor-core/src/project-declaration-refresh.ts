@@ -1,4 +1,4 @@
-import { assignActiveProject, getCurrentProject, type ProjectConfig } from './active-project';
+import { assignActiveProject, getCurrentProject, type ProjectConfig } from '@volter/editor-sdk/kit/active-project';
 import { connectProjectDeclarationEvents } from './asset-events';
 import { probeCurrentServerProject } from './editor-api';
 

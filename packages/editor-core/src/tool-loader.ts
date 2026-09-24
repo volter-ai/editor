@@ -35,7 +35,7 @@ import {
 import type { AuthoringAdapter, EditorNode } from '@volter/editor-project/adapter';
 import type { ToolContributionPoint } from '@volter/editor-sdk/project-tool-catalog';
 import { type ComponentType, createElement } from 'react';
-import { getCurrentProject } from './active-project';
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import {
   isContributableMenu,
   registerContributedActions,

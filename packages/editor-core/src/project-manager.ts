@@ -28,7 +28,7 @@
 import { assertProjectCompatibility } from '@volter/editor-sdk/session/editor-compatibility';
 import { hasRootOnSurface } from '@volter/editor-project/adapter/manifest-interpreter';
 import { loadGameManifest } from '@volter/editor-project/manifest/load';
-import { type ActiveProject, assignActiveProject, type ProjectConfig } from './active-project';
+import { type ActiveProject, assignActiveProject, type ProjectConfig } from '@volter/editor-sdk/kit/active-project';
 import {
   assertNoRemovedBootParams,
   decideServerProjectBoot,
@@ -240,4 +240,4 @@ export {
   onProjectSessionEnd,
   type ProjectConfig,
   setActiveProject,
-} from './active-project';
+} from '@volter/editor-sdk/kit/active-project';

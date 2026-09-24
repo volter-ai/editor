@@ -16,7 +16,7 @@
 
 import { sortStoriesV7 } from 'storybook/internal/preview-api';
 import type { Addon_StorySortParameterV7, IndexEntry } from 'storybook/internal/types';
-import { activeProjectKey } from '../active-project';
+import { activeProjectKey } from '@volter/editor-sdk/kit/active-project';
 import {
   recordStoryDiscoveryTiming,
   waitForFirstViewportFrame,

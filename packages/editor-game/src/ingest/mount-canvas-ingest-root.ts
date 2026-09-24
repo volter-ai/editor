@@ -54,7 +54,7 @@ import {
   setGameSurface,
 } from '../host/gated-globals';
 import { authoringJournal } from '../host/history/json-history-resource';
-import { acquireLiveDocument, liveDocumentContainer } from '@volter/editor-core/live-document';
+import { acquireLiveDocument, liveDocumentContainer } from '@volter/editor-sdk/kit/live-document';
 import { getCurrentProject } from '@volter/editor-core/project-manager';
 import { recordRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import type { MeasuredLoop } from '../host/same-realm-loop-gate';

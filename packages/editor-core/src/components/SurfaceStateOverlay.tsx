@@ -1,6 +1,6 @@
 import { StateSurface } from '@volter/editor-sdk/widgets';
 import type { CSSProperties } from 'react';
-import type { SurfaceExplanation } from '../surface-state';
+import type { SurfaceExplanation } from '@volter/editor-sdk/kit/surface-state';
 
 export function SurfaceStateOverlay({
   explanation,

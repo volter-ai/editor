@@ -115,7 +115,16 @@
     "./kit/storage-types": "./src/kit/storage-types.ts",
     "./kit/surface-keyboard": "./src/kit/surface-keyboard.ts",
     "./kit/viewport-surface-status": "./src/kit/viewport-surface-status.tsx",
-    "./kit/workspace-document-registry": "./src/kit/workspace-document-registry.ts"
+    "./kit/workspace-document-registry": "./src/kit/workspace-document-registry.ts",
+    "./kit/account-client": "./src/kit/account-client.ts",
+    "./kit/active-project": "./src/kit/active-project.ts",
+    "./kit/authoring-seam-evidence": "./src/kit/authoring-seam-evidence.ts",
+    "./kit/editor-session-mode": "./src/kit/editor-session-mode.ts",
+    "./kit/live-document": "./src/kit/live-document.ts",
+    "./kit/packaged-runtime": "./src/kit/packaged-runtime.ts",
+    "./kit/source-conflict": "./src/kit/source-conflict.ts",
+    "./kit/surface-state": "./src/kit/surface-state.ts",
+    "./kit/system-seam-evidence": "./src/kit/system-seam-evidence.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",

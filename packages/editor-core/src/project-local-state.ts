@@ -17,7 +17,7 @@
  * three moves (measured 2026-09-04).
  */
 
-import { activeProjectKey, getCurrentProject, onProjectChange } from './active-project';
+import { activeProjectKey, getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/active-project';
 import { loadEditorState, saveEditorState } from './editor-api';
 import { preloadSettings } from './settings-store';
 

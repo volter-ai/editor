@@ -7,7 +7,7 @@ import {
   Workspace as HostWorkspace,
 } from '@volter/editor-sdk/layouts';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { activeProjectKey } from '../active-project';
+import { activeProjectKey } from '@volter/editor-sdk/kit/active-project';
 import {
   adapterEditorConfiguration,
   subscribeAdapterEditorConfiguration,

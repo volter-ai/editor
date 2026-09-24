@@ -14,7 +14,7 @@ import type {
 import {
   recordAuthoringConsumerUse,
   recordAuthoringWriteConsumerUse,
-} from '../coverage/authoring-seam-evidence';
+} from '@volter/editor-sdk/kit/authoring-seam-evidence';
 
 export function setAuthoringSelection(
   adapter: AuthoringAdapter,

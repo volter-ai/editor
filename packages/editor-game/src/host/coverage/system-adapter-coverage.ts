@@ -53,7 +53,7 @@ import {
   type SystemAdapterMeasurement,
   type SystemAdapterSlot,
 } from './capability-coverage';
-import { inspectSystemAdapterSeam } from '@volter/editor-core/coverage/system-seam-evidence';
+import { inspectSystemAdapterSeam } from '@volter/editor-sdk/kit/system-seam-evidence';
 
 /** What the native derivation needs to know that the live registry cannot tell
  *  it. Both facts are read off things that already exist; neither is a guess. */

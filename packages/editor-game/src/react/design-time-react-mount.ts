@@ -71,7 +71,7 @@ import {
   getRootCanvasViewport,
   setRootCanvasViewport,
 } from '@volter/editor-sdk/kit/world-canvas-viewport-state';
-import { recordAuthoringConsumerUse } from '@volter/editor-core/coverage/authoring-seam-evidence';
+import { recordAuthoringConsumerUse } from '@volter/editor-sdk/kit/authoring-seam-evidence';
 import { CrashNullBoundary } from '@volter/editor-sdk/kit/crash-null-boundary';
 import { readProjectTextFile } from '@volter/editor-core/editor-api';
 import { editorConsole } from '@volter/editor-core/editor-console';

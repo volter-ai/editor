@@ -1,6 +1,6 @@
 /** Presentation chosen by mounted layout code. No game or website names live here. */
 import type { WorkspaceArrangement } from '@volter/editor-sdk/layout-arrangements';
-import { activeProjectKey } from './active-project';
+import { activeProjectKey } from '@volter/editor-sdk/kit/active-project';
 export interface LayoutPolicy {
   readonly immersivePlay?: boolean;
   readonly playUtilities?: readonly string[];

@@ -55,7 +55,7 @@ import { probeAuthoringReads } from './coverage/authoring-read-probe';
 import {
   authoringAdapterEpoch,
   inspectAuthoringAdapterSeams,
-} from '@volter/editor-core/coverage/authoring-seam-evidence';
+} from '@volter/editor-sdk/kit/authoring-seam-evidence';
 
 /** Re-exported so consumers of a coverage row need one import, not two. */
 export type { AuthoringProviderKey };

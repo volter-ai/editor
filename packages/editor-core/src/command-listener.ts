@@ -59,7 +59,7 @@ import {
   waitForAssetDocumentInspector,
 } from './components/asset-documents';
 import { openSceneTableEntryWhenListed } from './components/scene-documents';
-import { systemAdapterEpoch } from './coverage/system-seam-evidence';
+import { systemAdapterEpoch } from '@volter/editor-sdk/kit/system-seam-evidence';
 import {
   connectEvents,
   reportCommandListener,
@@ -72,7 +72,7 @@ import { captureEditorChrome } from './editor-chrome-capture';
 import type { ConsoleEntry } from './editor-console';
 import { editorConsole } from './editor-console';
 import { currentEditorView } from './editor-current-view';
-import { editorIsPlaying } from './editor-session-mode';
+import { editorIsPlaying } from '@volter/editor-sdk/kit/editor-session-mode';
 import type {
   AssetKind,
   EditorShellStore,

@@ -21,7 +21,7 @@
 import { bytesToBase64 } from '@volter/editor-sdk/kit/bytes-codec';
 import { assertEditorServerAnswered, editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
 import { sourceMutationAttribution } from '@volter/editor-sdk/kit/editor-session-attribution';
-import { handleProjectMutationFailure } from '../source-conflict';
+import { handleProjectMutationFailure } from '@volter/editor-sdk/kit/source-conflict';
 import { dirAndBase, normalize } from './paths';
 import type { DirEntry, Stat, StorageBackend, WatchCallback, WatchEvent } from '@volter/editor-sdk/kit/storage-types';
 

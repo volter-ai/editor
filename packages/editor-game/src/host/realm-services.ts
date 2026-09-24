@@ -50,7 +50,7 @@ import {
 } from '@volter/editor-sdk/session/project-module-url';
 import type { AdapterSurface } from '@volter/editor-project/adapter/adapter-surface';
 import { resolveCanvasEntryAdapterForEditor } from './canvas-entry-runtime';
-import { isPackagedRuntime } from '@volter/editor-core/packaged-runtime';
+import { isPackagedRuntime } from '@volter/editor-sdk/kit/packaged-runtime';
 import { type ReactRootMountRuntime, resolveReactRootMountRuntime } from './react-mount-runtime';
 import {
   resolveThreeIngestRuntimeForEditor,

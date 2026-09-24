@@ -14,7 +14,7 @@ import { editorConsole } from '@volter/editor-core/editor-console';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { setGameInputGate } from '../host/gated-globals';
 import { authoringJournal } from '../host/history/json-history-resource';
-import { acquireLiveDocument, liveDocumentContainer } from '@volter/editor-core/live-document';
+import { acquireLiveDocument, liveDocumentContainer } from '@volter/editor-sdk/kit/live-document';
 import { DomAuthoringAdapter } from '../react/dom-authoring-adapter';
 import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@volter/editor-project/manifest/load';
 import { serializeEntry, setActiveIngest } from './active-ingest';

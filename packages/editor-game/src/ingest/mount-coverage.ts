@@ -26,7 +26,7 @@ import {
   type SystemAdapterMeasurement,
   type WriteReachFacts,
 } from '../host/coverage/capability-coverage';
-import { inspectSystemAdapterSeam } from '@volter/editor-core/coverage/system-seam-evidence';
+import { inspectSystemAdapterSeam } from '@volter/editor-sdk/kit/system-seam-evidence';
 import { editorConsole } from '@volter/editor-core/editor-console';
 import {
   type MeasuredLoop,

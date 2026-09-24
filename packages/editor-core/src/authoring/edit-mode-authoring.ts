@@ -31,7 +31,7 @@ import { getProjectFileHistory, type ProjectFileHistory } from '../history/proje
 import { getManifestHistoryBackend } from '../history/project-root-history-backends';
 import { fetchRawGameManifest } from '../manifest-project';
 import { getCurrentProject } from '../project-manager';
-import { handleProjectMutationFailure } from '../source-conflict';
+import { handleProjectMutationFailure } from '@volter/editor-sdk/kit/source-conflict';
 import {
   activeOverrideIsEditMode,
   baseAuthoringFactory,

@@ -29,7 +29,7 @@ import type {
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import { documentStageContext, threeSelectionToolsApply } from '@volter/editor-core/stage-context';
-import { explainSurface } from '@volter/editor-core/surface-state';
+import { explainSurface } from '@volter/editor-sdk/kit/surface-state';
 import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,

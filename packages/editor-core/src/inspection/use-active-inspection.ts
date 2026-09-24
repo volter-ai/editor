@@ -36,7 +36,7 @@ import {
 import { assetSelectionVersion, subscribeAssetSelection } from '../asset-selection';
 import { activeAuthoringVersion, subscribeActiveAuthoring } from '../authoring/active-adapter';
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
-import { recordAuthoringConsumerUse } from '../coverage/authoring-seam-evidence';
+import { recordAuthoringConsumerUse } from '@volter/editor-sdk/kit/authoring-seam-evidence';
 import { documentContextVersion, subscribeDocumentContexts } from '../document-context-registry';
 import type { EditorShellStore } from '../editor-shell-store';
 import {

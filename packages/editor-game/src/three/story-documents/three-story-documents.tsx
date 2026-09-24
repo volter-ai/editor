@@ -60,7 +60,7 @@ import {
   type StoryPreviewComponent,
 } from '@volter/editor-core/stories/story-three-preview';
 import { mountedStoryHasThreeContent } from '@volter/editor-core/stories/three-story-model';
-import { explainSurface } from '@volter/editor-core/surface-state';
+import { explainSurface } from '@volter/editor-sdk/kit/surface-state';
 import { sourceWriteBackendIfPrimed } from '@volter/editor-core/ui-source/tier-source-write-backend';
 import {
   activeWorkspaceDocument,

@@ -7,7 +7,7 @@
  */
 
 import { useSyncExternalStore } from 'react';
-import { getCurrentProject, onProjectChange } from './active-project';
+import { getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/active-project';
 
 /** True when the active project declares at least one root — something the
  *  host mounts, plays and instances. A project config from before

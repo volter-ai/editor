@@ -40,7 +40,7 @@ import { Checkbox, TextInput, themeVars } from '@volter/editor-sdk/widgets';
 // `@editor/active-project` and not `@editor/project-manager`: the same
 // function, re-exported, without dragging the whole project-open/storage
 // estate into this package's program.
-import { getCurrentProject } from '@volter/editor-core/active-project';
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import { type Resolution, ResolutionPicker } from '../../host/components/ResolutionPicker';
 import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
 import { registerDocumentOpener } from '@volter/editor-core/document-open-registry';
@@ -68,7 +68,7 @@ import {
   whenProjectStoriesReady,
 } from '@volter/editor-core/stories/story-registry';
 import { domHasRenderableContent } from '../../host/surface-content';
-import { explainSurface, type SurfaceContentState } from '@volter/editor-core/surface-state';
+import { explainSurface, type SurfaceContentState } from '@volter/editor-sdk/kit/surface-state';
 import { CONTRIBUTED_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-utilities';
 import {
   activeWorkspaceDocument,

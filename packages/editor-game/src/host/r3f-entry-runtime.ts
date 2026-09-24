@@ -13,7 +13,7 @@ import {
   R3F_ENTRY_RUNTIME_PATH,
   R3F_RUNTIME_PATH,
 } from '@volter/editor-sdk/host';
-import { isPackagedRuntime } from '@volter/editor-core/packaged-runtime';
+import { isPackagedRuntime } from '@volter/editor-sdk/kit/packaged-runtime';
 
 type R3FEntryResolver = typeof resolveR3FEntryAdapter;
 

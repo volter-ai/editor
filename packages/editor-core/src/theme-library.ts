@@ -5,7 +5,7 @@ import {
   graphiteDarkEditorTheme,
   isEditorThemeId,
 } from '@volter/editor-sdk/widgets';
-import { activeProjectKey, getCurrentProject, onProjectChange } from './active-project';
+import { activeProjectKey, getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/active-project';
 import type { SettingsLayer } from './api/settings';
 import {
   deleteThemeDocument,

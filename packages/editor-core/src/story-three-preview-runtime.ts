@@ -4,7 +4,7 @@ import { createRoot as staticCreateR3FRoot, extend as staticExtendThree } from '
 import { createElement as staticCreateElement } from 'react';
 import * as staticThree from 'three';
 import { R3F_RUNTIME_PATH } from '@volter/editor-sdk/host';
-import { isPackagedRuntime } from './packaged-runtime';
+import { isPackagedRuntime } from '@volter/editor-sdk/kit/packaged-runtime';
 
 export interface StoryThreePreviewRuntime {
   readonly packaged: boolean;

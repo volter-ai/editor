@@ -97,7 +97,7 @@ import {
 } from '@volter/editor-project/adapter/adapter-module';
 import { declaredRoots, ingestRoots } from '@volter/editor-project/adapter/manifest-interpreter';
 import type { ResolvedGameManifest } from '@volter/editor-project/manifest/load';
-import { activeProjectKey } from './active-project';
+import { activeProjectKey } from '@volter/editor-sdk/kit/active-project';
 import { setAdapterEditorConfiguration } from './adapter-editor-config';
 import { setAdapterInputBinding, setAdapterObservations } from '@volter/editor-sdk/kit/adapter-observation';
 import { connectSourceFileEvents } from './asset-events';

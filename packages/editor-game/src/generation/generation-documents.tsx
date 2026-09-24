@@ -6,7 +6,7 @@ import {
   accountVersion,
   contributionAccount,
   subscribeAccount,
-} from '@volter/editor-core/account';
+} from '@volter/editor-sdk/kit/account-client';
 import { toolContributionSurfaces } from '@volter/editor-core/components/ToolContributionSurfaces';
 import { ToolErrorBoundary } from '@volter/editor-core/components/ToolHost';
 import { openToolDocument } from '@volter/editor-core/components/tool-documents';

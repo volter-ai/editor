@@ -28,10 +28,10 @@ import {
 import { RootSelectionOverlay } from '@volter/editor-core/components/RootSelectionOverlay';
 import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
-import { liveDocumentContainer } from '@volter/editor-core/live-document';
+import { liveDocumentContainer } from '@volter/editor-sdk/kit/live-document';
 import { projectAdapterFacet } from '@volter/editor-core/project-adapter';
 import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';
-import { explainSurface } from '@volter/editor-core/surface-state';
+import { explainSurface } from '@volter/editor-sdk/kit/surface-state';
 import {
   registerWorkspaceDocumentSelection,
   type WorkspaceDocumentContentProps,

@@ -52,7 +52,7 @@
 import type { EditorHostSettingsInspection, EditorHostSettingsTarget } from '@volter/editor-sdk/host';
 import { flattenSettings, settingsFromEntries, settingsKeys } from '@volter/editor-project/settings/keys';
 import { type EditorSettings, mergeEditorSettings } from '@volter/editor-project/settings/schema';
-import { activeProjectKey, getCurrentProject, onProjectChange } from './active-project';
+import { activeProjectKey, getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/active-project';
 import {
   adapterEditorConfiguration,
   subscribeAdapterEditorConfiguration,
