@@ -1,0 +1,41 @@
+/* A section's own verb (Open Editor, Open Source). Section headers carry no
+   action slot — every projection heads a section the same way — so a block's
+   verb sits at the top of its BODY, where it reads identically in the card
+   and the column. */
+.vgai-model-inspector-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--vgai-space-2) var(--vgai-space-3) 0;
+}
+
+.vgai-model-inspector-row > div {
+  display: grid;
+  min-width: 0;
+}
+
+.vgai-model-inspector-list {
+  display: grid;
+  max-height: 360px;
+  gap: var(--vgai-space-2);
+  overflow: auto;
+}
+
+.vgai-model-inspector-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--vgai-space-3);
+  padding: var(--vgai-space-3);
+}
+
+.vgai-model-inspector-row:has(.vgai-model-material-swatch) {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.vgai-model-material-swatch {
+  width: var(--vgai-control-default-height);
+  height: var(--vgai-control-default-height);
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-strong);
+  border-radius: var(--vgai-radius-sm);
+  background-color: var(--vgai-surface-inset);
+}
