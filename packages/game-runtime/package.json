@@ -1,0 +1,93 @@
+{
+  "name": "@volter/game-runtime",
+  "author": "Volter AI, Inc.",
+  "license": "Apache-2.0",
+  "version": "0.5.64",
+  "private": true,
+  "description": "THE GAME SHIPPED TWIN: what a shipped game carries because it is a GAME — the host game loop and phase runner, the mount and its adapter registry, input, audio, the dev instruments, data assets and their Vite plugin, the React bindings, the Pixi canvas substrate, and the R3F mount that puts a three.js world inside that host.",
+  "keywords": [
+    "vgai",
+    "game-engine",
+    "game-loop"
+  ],
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/volter-ai/editor.git",
+    "directory": "packages/game-runtime"
+  },
+  "exports": {
+    "./canvas-react": "./src/canvas-react/index.ts",
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "default": "./dist-config/config.js"
+    },
+    "./package.json": "./package.json",
+    "./react/world-state": "./src/react/world-state.tsx",
+    "./world3d-react": "./src/world3d-react/index.ts",
+    "./*": {
+      "types": [
+        "./src/*.ts",
+        "./src/*.tsx",
+        "./src/*/index.ts",
+        "./src/*/index.tsx"
+      ],
+      "default": "./src/*"
+    }
+  },
+  "files": [
+    "src",
+    "dist",
+    "dist-config",
+    "headless",
+    "schemas",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node build-config.mjs",
+    "dev": "node watch.mjs",
+    "prepack": "npm run build",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@dimforge/rapier2d-compat": "^0.14.0",
+    "@dimforge/rapier3d-compat": "^0.14.0",
+    "@pixi/react": "8.0.5",
+    "@volter/editor-project": "0.5.64",
+    "@volter/threejs-runtime": "0.5.64",
+    "loglayer": "^9.1.0",
+    "pixi.js": "^8.6.0",
+    "three": "^0.180.0",
+    "xstate": "^5.32.4",
+    "zod": "^4.3.6"
+  },
+  "peerDependencies": {
+    "@react-three/fiber": ">=9",
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "@react-three/fiber": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@react-three/fiber": "^9.7.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "esbuild": "^0.25.12",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "typescript": "^5.6.0"
+  }
+}

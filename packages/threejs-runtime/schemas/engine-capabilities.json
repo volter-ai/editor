@@ -1,0 +1,112 @@
+{
+  "$comment": "Curated by human/agent review, NOT auto-generated (unlike engine-api.json beside it). Every claim was verified against code — see each entry's `evidence`. Staleness is machine-checked at two granularities: `schemaDirHash` (sha256 over packages/threejs-runtime/src/asset-formats/) and per-entry `evidenceHashes` (sha256 of each cited evidence FILE — catches drift in files outside the schema dir, which is where most entries' evidence lives; T5.5/§7.2).",
+  "_readme": "Read this before authoring scene JSON or engine code, to avoid the negatives below. Refresh flow after a schema-dir OR evidence-file change: `npx tsx scripts/capabilities-hash.ts --check` (fails naming the stale entry) -> re-review affected entries against current code -> `--write` to record fresh hashes. The pre-commit hook runs --check automatically. Each entry's `evidenceHashes` maps the repo-relative file path parsed off the front of each `evidence[]` citation (before any `:line-range` suffix) to a sha256 of that file's current content.",
+  "schemaDirPath": "packages/threejs-runtime/src/asset-formats/",
+  "schemaDirHash": "cc141166e16e49380581a0a80f014057b3cf31030df741ce41480a1e8dc8d3f6",
+  "reviewedAt": "2026-07-01",
+  "entries": [
+    {
+      "id": "physics-no-ccd",
+      "area": "physics",
+      "status": "unsupported",
+      "claim": "No Continuous Collision Detection (CCD). Fast/small dynamic bodies can tunnel through thin colliders in one step.",
+      "evidence": [
+        "packages/game-runtime/src/world3d-react/rapier-physics-bridge.tsx (the engine's one physics-facing module: observation/debug bridge only — it constructs no world, no bodies, and sets no ccd flag)"
+      ],
+      "notes": "Grepped packages/engine/src for ccd/CCD/setCcdEnabled: zero matches. The engine constructs no Rapier world or rigid bodies at all — physics lives in the game's own tree via @react-three/rapier (<Physics>/<RigidBody>), so CCD is a game choice: @react-three/rapier's `ccd` prop (or setCcdEnabled on a body ref) enables it per body with no engine involvement.",
+      "evidenceHashes": {
+        "packages/game-runtime/src/world3d-react/rapier-physics-bridge.tsx": "8e330688628c393f44cb38578b070fb60e6174439ad762ce759b1005ecebdea6"
+      }
+    },
+    {
+      "id": "physics-no-enforced-envelope",
+      "area": "physics",
+      "status": "unsupported",
+      "claim": "No enforced limit on entity or physics-body count; practical envelope is untested.",
+      "evidence": [
+        "packages/threejs-runtime/src/setup/setup-physics.ts (RAPIER.World construction: no capacity/count config)"
+      ],
+      "notes": "Grepped for maxBodies/MAX_ENTITIES/entity limit/body limit/entityCount: no matches. No invented numbers — nothing caps entity/body count and no perf test here establishes a safe ceiling. Treat large counts (hundreds+ dynamic bodies) as unvalidated, not 'supported at scale'.",
+      "evidenceHashes": {
+        "packages/threejs-runtime/src/setup/setup-physics.ts": "0540c502f420018b24dac8b77c486f30f905f0a05b02ead7ed3899e5aa612ee5"
+      }
+    },
+    {
+      "id": "input-value-model",
+      "area": "input",
+      "status": "supported-with-caveats",
+      "claim": "F1 (spec §12) added a typed action-value model (digital/scalar/vector2/pointerDelta/pointerPosition, default digital) with real deadzone/combine rules and a valueType-mismatch throw. F2 ('Complete Device Backends') un-rejects mouse_move/gamepad_axis_pair, giving both real readers (mouse_move -> pointerDelta/vector2 off the real mouse-delta accumulator; gamepad_axis_pair -> vector2 off a coupled xAxis/yAxis stick, deadzone-rescaled like gamepad_axis), and adds touch_button/touch_stick (digital/vector2) via setTouchButton/setTouchStick. Real window focus (blur/focus) and pointer-lock state are tracked (requestPointerLock / exitPointerLock) and flush held REAL-device input on loss (#144: virtual/scheduled machine input gates on enabled only and survives blur); gamepad device identity (id/mapping) is exposed via getGamepadInfo/ActionValueSource.gamepadId. F4 adds getLastActiveDevice() + an optional getPrompt device param. Device-poll getters (isDeviceKeyPressed / isDeviceMouseButtonPressed / getDeviceMouseDelta / getDeviceMousePosition / hasDeviceGamepad / isDeviceGamepadButtonPressed / getDeviceGamepadAxis) read the same keysDown/mouseButtons/gamepads stores without inventing implicit actions, and return inert at READ time when inputActive is false. getDeviceGamepadAxis is deliberately RAW — no deadzone: the engine's own stick deadzone is on the action path (gamepad_axis / gamepad_axis_pair, where a game declares and can override it), and a device-door caller that wants a stick applies its own engine's processor (unity-compat reproduces Unity's StickDeadzone at 0.125/0.925). The DOM edge those touch setters were written for now ships beside the manager as `input/host-pointer.ts` (`createHostPointer`): the host pointer stream resolved against a render surface, mapped into the game's own design space, with DENSE finger indices and a bounded queue, gated on the manager's own `isInputActive()` (published for exactly that, so a caller never recomposes `isEnabled() && isFocused()` into a looser gate). Caveat on that half: it reports fingers and does not press anything — the control layer (which rect owns which finger, how a knob becomes a stick vector) is the UI's, and no first-party game ships one. Caveat: pointerPosition still has no real-device backend (test_pointer_position injection only); scalar isn't fed by mouse_move (no axis-select field).",
+      "evidence": [
+        "packages/game-runtime/src/input/input-types.ts:2-40 (InputBinding union incl. mouse_move/gamepad_axis_pair/touch_button/touch_stick/test_*)",
+        "packages/game-runtime/src/input/input-manager.ts (digital/gating/typed getters/device-poll/inject*/setTouch*/getGamepadInfo/F4 getLastActiveDevice+getPrompt/requestPointerLock/exitPointerLock)",
+        "packages/game-runtime/src/input/host-pointer.ts (createHostPointer: surface/design-space mapping, dense finger indices, isInputActive gate)"
+      ],
+      "notes": "gamepad disconnect/reconnect needs no special-cased code: poll() re-reads navigator.getGamepads() and every read skips a null slot, so a disconnected gamepad's actions go neutral with a correct isJustReleased edge for free — see input-device-backends-f2.test.ts.",
+      "evidenceHashes": {
+        "packages/game-runtime/src/input/input-types.ts": "b21ab448fc16d4881c900c57076ca1269241e1b23f8746fb8daa09c628f00f2b",
+        "packages/game-runtime/src/input/input-manager.ts": "204a575a3aae6aa9984a8572910a34d6d3658e9f1bb505a602534facae496e77",
+        "packages/game-runtime/src/input/host-pointer.ts": "9b619d81deec1a1b77b512f77f530ff658130458e1ef40f346b17a4d623ee6fc"
+      }
+    },
+    {
+      "id": "animation-masked-layers",
+      "area": "animation",
+      "status": "supported",
+      "claim": "The optional XState-to-Three integration can drive multiple simultaneous named AnimationMixer layers through parallel regions. Layers support 0..1 weights, normal or additive Three.js blending, and include/exclude masks over named bone/Object3D subtrees.",
+      "evidence": [
+        "packages/threejs-runtime/src/animation/xstate-animation-meta.ts (strict layer, weight, blendMode, and boneMask metadata schemas)",
+        "packages/threejs-runtime/src/animation/xstate-animation-binding.ts (parallel-region reconciliation, subtree track filtering, and native additive composition)"
+      ],
+      "notes": "This is a compatibility integration, not the canonical animation model: project-owned native controllers may drive AnimationMixer directly. When XState is deliberately used, parallel regions use distinct layer names; the binding filters native clip tracks, uses AnimationUtils.makeClipAdditive, can register with ctx.systems, and publishes format-neutral native runtime inspection until disposal.",
+      "evidenceHashes": {
+        "packages/threejs-runtime/src/animation/xstate-animation-meta.ts": "bc8cbc2f129a283626358dd33587dd362f5fa29ca5fdd867ccc9fd8acfde2411",
+        "packages/threejs-runtime/src/animation/xstate-animation-binding.ts": "08fc42cff70c0a7e69e406d082897fee2b12428bc24da6cea7582d453ec953df"
+      }
+    },
+    {
+      "id": "ingestion-pixi",
+      "area": "ingestion",
+      "status": "supported-with-caveats",
+      "claim": "Unmodified OSS PixiJS games run via the canvas ingest seam: the game's own entry module is served in the editor's realm with pixi.js deduped to the host instance — in-realm capture, editor edits, overlay persistence. A game whose pixi the trap cannot reach fails to mount by name.",
+      "evidence": [
+        "vendor/games/verify-unaltered.mjs (vendored-bytes gate: zero UNRECORDED diff — byte-identical files, plus any recorded per-file patch that must reverse-apply to the pinned upstream)",
+        "packages/project/src/manifest/schema.ts"
+      ],
+      "notes": "Limits: ARCHITECTURE-CORE.md. Any editor capability a mount does not reach stands warned per capability until it works.",
+      "evidenceHashes": {
+        "vendor/games/verify-unaltered.mjs": "257a362030a10f4d72a3280815069fbd83f436e1619391635b6f8df2ddd6c339",
+        "packages/project/src/manifest/schema.ts": "2bcd38baf52f99ecb6160870bd009b12890cc93b579ed67b3a3d500b6301357d"
+      }
+    },
+    {
+      "id": "ingestion-react-dom",
+      "area": "ingestion",
+      "status": "supported-with-caveats",
+      "claim": "Unmodified native-React DOM games run via the manifest `ingest-react` identity: vendored byte-for-byte (vendor/games/, zero-diff CI), mounted through the react world stack under the host React 19 (deduped). NO authoring in v1 (the editor never writes JSX back into an unmodified game, D-N4).",
+      "evidence": [
+        "vendor/games/verify-unaltered.mjs (vendored-bytes gate: zero UNRECORDED diff — byte-identical files, plus any recorded per-file patch that must reverse-apply to the pinned upstream)",
+        "packages/editor/src/roots/react-root.ts"
+      ],
+      "notes": "Scope is native-DOM React ONLY (D-N1): R3F/@pixi/react games are canvas games and ride the three.js/pixi seams instead. Generality limit: ONE proven game (react-rpg — menu-to-dungeon e2e under React 19; both game-2 candidates rejected on evidence, R-N7). Game deps must be host-installed root deps (D-N6). Open R-N6: vendored react games' raw window listeners bypass the play-mode input gate.",
+      "evidenceHashes": {
+        "vendor/games/verify-unaltered.mjs": "257a362030a10f4d72a3280815069fbd83f436e1619391635b6f8df2ddd6c339",
+        "packages/editor/src/roots/react-root.ts": "93fe8d4a363a2323ab2b6d60aa1cc9f5438004543952761afb59404960457569"
+      }
+    },
+    {
+      "id": "engine-supports-summary",
+      "area": "summary",
+      "status": "supported",
+      "claim": "For contrast, the engine DOES support: discrete Rapier bodies (fixed/kinematic/dynamic) with triggers; phase-ordered systems; Zod-validated fetched asset formats; native Three animation controllers plus an optional XState integration with masked, weighted, additive layers and 1D/2D blend trees; boolean+thresholded-analog input actions; direct (unwrapped) Colyseus multiplayer.",
+      "evidence": [
+        "packages/project/schemas/engine-api.json (auto-generated positive/imperative-surface manifest beside this file)",
+        "packages/threejs-runtime/src/animation/xstate-animation-binding.ts"
+      ],
+      "notes": "This file exists for negatives engine-api.json can't express (e.g. 'parses but does nothing'). For the full positive surface, read engine-api.json/.md — regenerated by `npm run generate-engine-manifest`, can't drift.",
+      "evidenceHashes": {
+        "packages/project/schemas/engine-api.json": "cdfd395fab88575a13c74451051e6c86f8b07980152120f00caa62098ecf7917",
+        "packages/threejs-runtime/src/animation/xstate-animation-binding.ts": "08fc42cff70c0a7e69e406d082897fee2b12428bc24da6cea7582d453ec953df"
+      }
+    }
+  ]
+}

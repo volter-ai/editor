@@ -1,0 +1,12 @@
+Copyright 2026 Volter AI, Inc.
+
+The files in this package were imported from volter-ai/vgai-engine at
+commit 09c2749ce (packages/threejs-runtime), where they were published as the
+Apache-2.0 @vgai/threejs-runtime package. They retain that license; LICENSE
+contains its text.
+
+vendor/realism-effects is a fork of realism-effects 1.1.2
+(https://github.com/0beqz/realism-effects), Copyright (c) 2023 0beqz, carrying
+only a mechanical Three r180 render-target migration. It retains the MIT
+license in vendor/realism-effects/LICENSE.md; vendor/realism-effects/UPSTREAM.md
+records the fork.

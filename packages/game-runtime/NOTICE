@@ -1,0 +1,6 @@
+Copyright 2026 Volter AI, Inc.
+
+The files in this package were imported from volter-ai/vgai-engine at
+commit 09c2749ce (packages/game-runtime), where they were published as the
+Apache-2.0 @vgai/game-runtime package. They retain that license; LICENSE
+contains its text.
