@@ -29,7 +29,9 @@ import { readFileSync } from 'node:fs';
 import type { Plugin, PluginOption } from 'vite';
 import { creationSitePlugin } from '../vite-plugin-creation-site';
 import { creationSiteWritePlugin } from '../vite-plugin-creation-site-write';
+import { gameGlobalsShadowPlugin } from '../vite-plugin-game-globals';
 import { type ModuleDoorway, moduleDoorwaysPlugin } from '../vite-plugin-module-doorways';
+import { mountIsolationPlugin } from '../vite-plugin-mount-isolation';
 import { projectGameStaticPlugin } from '../vite-plugin-project-game-static';
 import { projectJsxInJsPlugin } from '../vite-plugin-project-jsx-js';
 import { projectRootAbsoluteAssetsPlugin } from '../vite-plugin-project-root-absolute-assets';
@@ -218,6 +220,18 @@ export function createProjectServingPlugins(options: ProjectServingPluginOptions
     // plugin's own header holds the measured story. Ahead of the transforms
     // below, which assume a valid-JS module body.
     projectJsxInJsPlugin(projectRoots),
+    // Pipe gated `window`/`document` into game code: prepend a lexical shadow
+    // to every project `/src/` module so its globals resolve to the editor's
+    // gated proxies. Engine/editor code is untouched (it keeps the real
+    // window; its input is gated separately via `InputManager.setEnabled`).
+    // A project with no roots serves no module this touches.
+    gameGlobalsShadowPlugin(projectRoots),
+    // Multi-instance isolation: propagate a root entry's `?vgai-mount=<id>`
+    // through its project-owned import subtree, so two mounts of one project
+    // hold separate module instances while still sharing every package. A
+    // module served without a mount id is untouched, so single-instance play
+    // is unchanged.
+    mountIsolationPlugin(projectRoots),
     // The creation-site INDEX — what gives an authored edit an
     // ADDRESS, without which every object a project's own code constructs
     // answers "constructed outside project source". `enforce: 'pre'` puts it
