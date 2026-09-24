@@ -20,7 +20,7 @@
  *
  * WITHOUT AN ENTRY it is still the document `blender-start` presents into: a
  * project that lists no `.blend` of its own gets one Model document at the
- * standing `blender:runtime` address (`project-adapter.ts` injects it), and
+ * standing `blender:runtime` address (`models.finder.ts` lists it), and
  * the session opens its default `models/model.blend`.
  */
 

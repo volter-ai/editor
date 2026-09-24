@@ -16,6 +16,12 @@
  *
  *   documents: { find: [{ finder: 'modelsFromBlendFiles', include: ['src/models/**\/*.blend'] }] }
  *
+ * THE SESSION'S OWN MODEL. A project that holds no `.blend` of its own still
+ * needs ONE model — it is what `blender-start` presents into and what a first
+ * bpy call models in, saved to the session's default `models/model.blend` — so
+ * when the selection finds no file, the finder lists the standing
+ * `blender:runtime` entry instead. Never beside a real model.
+ *
  * This module is a plain object the HOST registers; it mounts no UI. It reads
  * the project only through `input.files` — the PATHS matching those globs.
  * Deliberately not `input.sources`: a `.blend` is binary, there is nothing in
@@ -52,6 +58,16 @@ export const finder = {
         authorable: true,
         reach: { kind: 'root-mount' as const },
         source: { path },
+      });
+    }
+    if (entries.length === 0) {
+      entries.push({
+        id: 'blender:runtime',
+        label: 'Model',
+        kind: 'model',
+        region: null,
+        authorable: true,
+        reach: { kind: 'root-mount' as const },
       });
     }
     return { entries, notes };

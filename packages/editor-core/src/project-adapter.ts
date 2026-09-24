@@ -117,7 +117,6 @@ import { resolveRelativeSpecifier } from './resolve-relative-specifier';
 import { storyPrefabsFinder } from './stories/prefabs-finder';
 import {
   contributedFinderModules,
-  documentContributionForKind,
   refreshProjectToolContributions,
   subscribeToolContributions,
 } from './tool-loader';
@@ -520,29 +519,6 @@ export function resolveDocumentTable(
     entries.push(...result.entries);
     notes.push(...result.notes);
     if (result.default !== undefined) settled.push(result.default);
-  }
-  // THE SESSION'S OWN MODEL DOCUMENT (ARCHITECTURE-CORE §The project model,
-  // "A model is Blender data"): `@volter/editor-blender`'s Model document opens a
-  // project's `.blend` files, which its `modelsFromBlendFiles` finder lists
-  // above. A project that declares the package but holds no `.blend` of its
-  // own still needs ONE — it is what `blender-start` presents into and what a
-  // first bpy call models in, saved to the session's default
-  // `models/model.blend` — so the standing `blender:runtime` entry stands
-  // exactly there: where that package's document is registered AND the table
-  // found no model of the project's own. Never as an entry no editor can
-  // open, and never as a second Model beside a real one.
-  if (
-    documentContributionForKind('model') !== undefined &&
-    !entries.some((entry) => entry.kind === 'model')
-  ) {
-    entries.push({
-      id: 'blender:runtime',
-      label: 'Model',
-      kind: 'model',
-      region: null,
-      authorable: true,
-      reach: { kind: 'root-mount' },
-    });
   }
   // The adapter's own declaration wins; otherwise a default stands only when
   // exactly one finder settled one. Two candidates is a CHOICE, and the host
