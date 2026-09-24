@@ -1,4 +1,5 @@
-/** Product launcher. The core server owns the workbench, proxy and browser tab. */
+/** The launcher every product's CLI runs. The core server owns the workbench,
+ * proxy and browser tab; the product only says who it is. */
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { mkdirSync, openSync, closeSync, realpathSync } from 'node:fs';
@@ -12,10 +13,19 @@ import { classifyProjectSession } from './session-resolution';
 import { loopbackPortFree } from './loopback-port';
 import { waitForOwnEditorServer, describeEditorBootFailure, DEFAULT_EDITOR_BOOT_TIMEOUT_MS, type ChildExitStatus } from './editor-boot';
 
-export async function launch(folder: string, options: { workbench?: string; noOpen?: boolean; port?: number } = {}): Promise<void> {
+/** Who is launching: the package a project declares, the id its workbench
+ * build carries, and the names a person sees and types. */
+export interface LaunchingProduct {
+  readonly packageName: string;
+  readonly id: string;
+  readonly displayName: string;
+  readonly command: string;
+}
+
+export async function launch(folder: string, launching: LaunchingProduct, options: { workbench?: string; noOpen?: boolean; port?: number } = {}): Promise<void> {
   const project = realpathSync(resolve(folder));
   const product = resolveProductForProject(project);
-  if (product.name !== '@volter/editor') throw new Error(`${project} declares ${product.name}, not Volter Editor.`);
+  if (product.name !== launching.packageName) throw new Error(`${project} declares ${product.name}, not ${launching.displayName}.`);
   const port = resolveEditorPortPreference(project, options.port, process.env['VGAI_EDITOR_PORT']);
   await waitForPendingEditorLaunch(project);
   const sessions = await verifiedSessions(port);
@@ -23,7 +33,7 @@ export async function launch(folder: string, options: { workbench?: string; noOp
   if (verdict.kind === 'attach') {
     const serverUrl = `http://127.0.0.1:${verdict.session.port}`;
     const running = await waitForSessionWorkbench(serverUrl);
-    if (running.product !== 'editor') throw new Error(`This project is open in ${running.product}; close that session before opening Volter Editor.`);
+    if (running.product !== launching.id) throw new Error(`This project is open in ${running.product}; close that session before opening ${launching.displayName}.`);
     const state = await fetch(`${serverUrl}/__editor/state`, { signal: AbortSignal.timeout(5000) }).then(r => r.json());
     if (typeof state.workbenchUrl !== 'string') {
       // The proxy port is reserved by project identity, just like the server.
@@ -67,10 +77,10 @@ export async function launch(folder: string, options: { workbench?: string; noOp
   const serverUrl = `http://127.0.0.1:${port}`;
   try {
     const outcome = await waitForOwnEditorServer({ serverUrl, isOurs: p => p === project, childExit: () => exit,
-      onProgress: ms => console.log(`Starting Volter Editor (${Math.round(ms / 1000)}s); logs: ${logPath}`) });
-    if (outcome.status !== 'ready') throw new Error(describeEditorBootFailure(outcome, { serverUrl, project, port, timeoutMs: DEFAULT_EDITOR_BOOT_TIMEOUT_MS, logPath }));
+      onProgress: ms => console.log(`Starting ${launching.displayName} (${Math.round(ms / 1000)}s); logs: ${logPath}`) });
+    if (outcome.status !== 'ready') throw new Error(describeEditorBootFailure(outcome, { serverUrl, project, port, timeoutMs: DEFAULT_EDITOR_BOOT_TIMEOUT_MS, logPath, command: launching.command }));
     await waitForSessionWorkbench(serverUrl);
-    console.log(`Volter Editor: ${workbenchUrl(proxyPort, project)}`);
+    console.log(`${launching.displayName}: ${workbenchUrl(proxyPort, project)}`);
     console.log(`Logs: ${logPath}`);
     await ensureTab(serverUrl, !!options.noOpen);
   } finally { clearLaunch(); }

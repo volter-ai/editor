@@ -157,6 +157,8 @@ export interface EditorBootFailureContext {
   timeoutMs: number;
   /** Detach mode's per-port log file, when there is one. */
   logPath?: string | null;
+  /** The product's executable, named in the recovery commands. */
+  command: string;
 }
 
 /**
@@ -174,7 +176,7 @@ export function describeEditorBootFailure(
     outcome.occupant === null
       ? ''
       : ` Port ${ctx.port} is being served by an editor for ${outcome.occupant} — close it ` +
-        `(run \`volter-editor close\` from that project's directory), or launch on another port.`;
+        `(run \`${ctx.command} close\` from that project's directory), or launch on another port.`;
 
   if (outcome.status === 'exited') {
     const how =
@@ -192,7 +194,7 @@ export function describeEditorBootFailure(
     `${Math.round(ctx.timeoutMs / 1000)}s, and its process is still running.${occupied}` +
     " A project's FIRST editor boot is the slow one — it pays Vite's cold dependency " +
     `optimization into ${ctx.project}/node_modules/.vite-editor, and later boots reuse it. ` +
-    `Re-run \`volter-editor edit ${ctx.project}\`: the retry starts from whatever that first boot ` +
+    `Re-run \`${ctx.command} edit ${ctx.project}\`: the retry starts from whatever that first boot ` +
     `already cached.${logs}`
   );
 }

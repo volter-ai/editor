@@ -88,6 +88,7 @@
     "@volter/editor-project": "0.5.64",
     "@volter/editor-sdk": "0.5.64",
     "@volter/editor-threejs": "0.5.64",
+    "@volter/editor-live": "0.5.64",
     "vite": "^6.4.3",
     "express": "^5.2.1",
     "chokidar": "^5.0.0",
@@ -106,7 +107,8 @@
     "tinyglobby": "0.2.17",
     "postcss": "8.5.28",
     "esbuild": "0.25.12",
-    "picomatch": "4.0.7"
+    "picomatch": "4.0.7",
+    "undici": "7.29.1"
   },
   "devDependencies": {
     "@types/express": "5.0.6",

@@ -35,7 +35,7 @@ test('close waits for save barriers, coalesces requests and permits retry after 
 });
 
 const cli = await build({
-  entryPoints: [fileURLToPath(new URL('../../editor/node/control.ts', import.meta.url))],
+  entryPoints: [fileURLToPath(new URL('../server/launcher/control.ts', import.meta.url))],
   bundle: true, platform: 'node', format: 'cjs', write: false,
   plugins: [{ name: 'session-fixture', setup(builder) {
     builder.onResolve({ filter: /^@volter\/editor-live$|^@volter\/editor-sdk\/client$|^\.\/editor-sessions$/ }, args => ({ path: args.path, namespace: 'fixture' }));
@@ -64,12 +64,12 @@ test('CLI never signals the process before saves, refuses failed saves, and clos
   };
   runInNewContext(cli.outputFiles[0].text, context);
   const { control } = context.module.exports;
-  await control('close');
+  await control('volter-editor', 'close');
   assert.deepEqual(events.splice(0), ['save', 'terminate']);
   fail = true;
-  await assert.rejects(control('close'), /disk full/);
+  await assert.rejects(control('volter-editor', 'close'), /disk full/);
   assert.deepEqual(events.splice(0), ['save']);
   headless = true;
-  await control('close');
+  await control('volter-editor', 'close');
   assert.deepEqual(events, ['terminate']);
 });

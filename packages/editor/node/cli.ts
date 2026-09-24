@@ -6,9 +6,11 @@ import { fileURLToPath } from 'node:url';
 import { hasManifest } from '@volter/editor-project/manifest/locate';
 import productPackage from '../package.json';
 import { declaration } from './create';
-import { launch } from './launch';
-import { control } from './control';
+import { launch, type LaunchingProduct } from '@volter/editor-core/server/launcher/launch';
+import { control } from '@volter/editor-core/server/launcher/control';
 import { resolveWorkbench, writeWorkbenchDeclaration } from '@volter/editor-sdk/session/workbench-locator';
+
+const PRODUCT: LaunchingProduct = { packageName: '@volter/editor', id: 'editor', displayName: 'Volter Editor', command: 'volter-editor' };
 
 try {
   const { values, positionals } = parseArgs({ allowPositionals: true, options: {
@@ -44,10 +46,10 @@ try {
     });
   } else if (verb === 'console' && positionals[1] === 'ack') {
     if (positionals.length !== 3 || !values.reason?.trim()) throw new Error('Usage: volter-editor console ack <id> --reason <text>');
-    await control('console-ack', positionals[2], values.reason);
+    await control(PRODUCT.command, 'console-ack', positionals[2], values.reason);
   } else if (['status', 'console', 'eval', 'close'].includes(verb)) {
     if (positionals.length > (verb === 'eval' ? 2 : 1)) throw new Error('Unexpected arguments.');
-    await control(verb, positionals[1]);
+    await control(PRODUCT.command, verb, positionals[1]);
   } else {
     if (positionals.length > 2) throw new Error('Unexpected positional arguments.');
     if (verb !== 'create' && verb !== 'edit') throw new Error(`Unknown command: ${verb}`);
@@ -58,7 +60,7 @@ try {
       if (values.workbench) writeWorkbenchDeclaration(resolve(folder), resolve(values.workbench));
 
     }
-    await launch(folder, {
+    await launch(folder, PRODUCT, {
       ...(values.workbench ? { workbench: values.workbench } : {}),
       ...(values['no-open'] ? { noOpen: true } : {}),
       ...(values.port ? { port: Number(values.port) } : {}),

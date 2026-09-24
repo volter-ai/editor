@@ -2,7 +2,7 @@ import { connect } from '@volter/editor-live';
 import { EditorClient } from '@volter/editor-sdk/client';
 import { verifiedSessions, terminateEditorSession } from './editor-sessions';
 
-export async function control(verb: string, argument?: string, reason?: string): Promise<void> {
+export async function control(command: string, verb: string, argument?: string, reason?: string): Promise<void> {
   const live = await connect();
   const client = new EditorClient({ url: `http://127.0.0.1:${live.session.port}` });
   if (verb === 'close') {
@@ -17,7 +17,7 @@ export async function control(verb: string, argument?: string, reason?: string):
   }
   if (verb === 'console-ack') {
     if (!argument || !reason?.trim()) throw new Error('Acknowledgment requires a console entry id and a reason.');
-    const result = await client.acknowledgeConsole({id: argument, reason, by: 'volter-editor CLI'}) as {ok?: boolean; error?: string};
+    const result = await client.acknowledgeConsole({id: argument, reason, by: `${command} CLI`}) as {ok?: boolean; error?: string};
     if (result.ok !== true) throw new Error(result.error ?? 'Console acknowledgment failed.');
     console.log(JSON.stringify(result, null, 2));
   } else if (verb === 'status') console.log(JSON.stringify(await live.editor.status(), null, 2));

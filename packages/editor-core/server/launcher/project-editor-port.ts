@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, renameSync, rmdirSync, statSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { resolveWorktreeIdentity } from '@volter/editor-core/server/worktree-identity';
+import { resolveWorktreeIdentity } from '../worktree-identity';
 import type { EditorPortSource } from './session-resolution';
 
 const MIN_PORT = 1_024;
@@ -165,7 +165,7 @@ export function allocateWorktreeEditorPort(
       return port;
     }
     throw new Error(
-      `No free Volter Editor port remains in ${WORKTREE_EDITOR_PORT_MIN}-${WORKTREE_EDITOR_PORT_MAX}.`,
+      `No free editor port remains in ${WORKTREE_EDITOR_PORT_MIN}-${WORKTREE_EDITOR_PORT_MAX}.`,
     );
   });
 }

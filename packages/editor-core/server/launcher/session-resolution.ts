@@ -112,13 +112,13 @@ export function describeUnreachableProjectSession(
     verdict.reason === 'ephemeral'
       ? `it is a throwaway probe server, which never joins the session ` +
         'registry and exits on its own in seconds'
-      : 'it has no session-registry entry, so `volter-editor status` / `volter-editor eval` cannot ' +
+      : 'it has no session-registry entry, so the product `status` and `eval` commands cannot ' +
         'find it — attaching to it would report success and then leave every control command ' +
         'answering "No live editor session matches this project"';
   return (
     `A server on port ${port} (${who}) answers for this project, but ${cause}. ` +
     `Not claiming it — starting this project's own editor on port ${freshPort} instead. ` +
-    `If port ${port} is a real editor you want back, stop that process and re-run \`volter-editor edit\`.`
+    `If port ${port} is a real editor you want back, stop that process and edit the project again.`
   );
 }
 
