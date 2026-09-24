@@ -5,6 +5,7 @@ These notices accompany code incorporated into this package. Separate npm depend
 
 @babel/runtime@7.29.7
 Declared license: MIT
+Source: the unmodified npm package @babel/runtime@7.29.7, from https://github.com/babel/babel.git
 
 --- node_modules/@babel/runtime/LICENSE ---
 
@@ -34,6 +35,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 @codemirror/autocomplete@6.20.3
 Declared license: MIT
+Source: the unmodified npm package @codemirror/autocomplete@6.20.3, from https://code.haverbeke.berlin/codemirror/autocomplete.git
 
 --- node_modules/@codemirror/autocomplete/LICENSE ---
 
@@ -62,6 +64,7 @@ THE SOFTWARE.
 
 @codemirror/commands@6.10.4
 Declared license: MIT
+Source: the unmodified npm package @codemirror/commands@6.10.4, from https://code.haverbeke.berlin/codemirror/commands.git
 
 --- node_modules/@codemirror/commands/LICENSE ---
 
@@ -90,6 +93,7 @@ THE SOFTWARE.
 
 @codemirror/lang-javascript@6.2.5
 Declared license: MIT
+Source: the unmodified npm package @codemirror/lang-javascript@6.2.5, from https://github.com/codemirror/lang-javascript.git
 
 --- node_modules/@codemirror/lang-javascript/LICENSE ---
 
@@ -118,6 +122,7 @@ THE SOFTWARE.
 
 @codemirror/lang-json@6.0.2
 Declared license: MIT
+Source: the unmodified npm package @codemirror/lang-json@6.0.2, from https://github.com/codemirror/lang-json.git
 
 --- node_modules/@codemirror/lang-json/LICENSE ---
 
@@ -146,6 +151,7 @@ THE SOFTWARE.
 
 @codemirror/language@6.12.4
 Declared license: MIT
+Source: the unmodified npm package @codemirror/language@6.12.4, from https://code.haverbeke.berlin/codemirror/language.git
 
 --- node_modules/@codemirror/language/LICENSE ---
 
@@ -174,6 +180,7 @@ THE SOFTWARE.
 
 @codemirror/search@6.7.1
 Declared license: MIT
+Source: the unmodified npm package @codemirror/search@6.7.1, from https://code.haverbeke.berlin/codemirror/search.git
 
 --- node_modules/@codemirror/search/LICENSE ---
 
@@ -202,6 +209,7 @@ THE SOFTWARE.
 
 @codemirror/state@6.7.0
 Declared license: MIT
+Source: the unmodified npm package @codemirror/state@6.7.0, from https://code.haverbeke.berlin/codemirror/state.git
 
 --- node_modules/@codemirror/state/LICENSE ---
 
@@ -230,6 +238,7 @@ THE SOFTWARE.
 
 @codemirror/theme-one-dark@6.1.3
 Declared license: MIT
+Source: the unmodified npm package @codemirror/theme-one-dark@6.1.3, from https://github.com/codemirror/theme-one-dark.git
 
 --- node_modules/@codemirror/theme-one-dark/LICENSE ---
 
@@ -258,6 +267,7 @@ THE SOFTWARE.
 
 @codemirror/view@6.43.4
 Declared license: MIT
+Source: the unmodified npm package @codemirror/view@6.43.4, from https://code.haverbeke.berlin/codemirror/view.git
 
 --- node_modules/@codemirror/view/LICENSE ---
 
@@ -286,6 +296,7 @@ THE SOFTWARE.
 
 @dimforge/rapier3d-compat@0.19.2
 Declared license: Apache-2.0
+Source: the unmodified npm package @dimforge/rapier3d-compat@0.19.2, from https://github.com/dimforge/rapier.js
 
 --- https://github.com/dimforge/rapier.js/blob/f072e6efa75f4f61a290bd0b58b61c443685ec01/LICENSE ---
 
@@ -494,6 +505,7 @@ Declared license: Apache-2.0
 
 @fortawesome/fontawesome-svg-core@7.2.0
 Declared license: MIT
+Source: the unmodified npm package @fortawesome/fontawesome-svg-core@7.2.0, from https://github.com/FortAwesome/Font-Awesome
 
 --- node_modules/@fortawesome/fontawesome-svg-core/LICENSE.txt ---
 
@@ -666,6 +678,7 @@ to represent the company, product, or service to which they refer.**
 
 @fortawesome/free-solid-svg-icons@7.2.0
 Declared license: (CC-BY-4.0 AND MIT)
+Source: the unmodified npm package @fortawesome/free-solid-svg-icons@7.2.0, from https://github.com/FortAwesome/Font-Awesome
 
 --- node_modules/@fortawesome/free-solid-svg-icons/LICENSE.txt ---
 
@@ -838,6 +851,7 @@ to represent the company, product, or service to which they refer.**
 
 @fortawesome/react-fontawesome@3.5.0
 Declared license: MIT
+Source: the unmodified npm package @fortawesome/react-fontawesome@3.5.0, from https://github.com/FortAwesome/react-fontawesome.git
 
 --- node_modules/@fortawesome/react-fontawesome/LICENSE.txt ---
 
@@ -864,6 +878,7 @@ SOFTWARE.
 
 @lezer/common@1.5.2
 Declared license: MIT
+Source: the unmodified npm package @lezer/common@1.5.2, from https://github.com/lezer-parser/common.git
 
 --- node_modules/@lezer/common/LICENSE ---
 
@@ -892,6 +907,7 @@ THE SOFTWARE.
 
 @lezer/highlight@1.2.3
 Declared license: MIT
+Source: the unmodified npm package @lezer/highlight@1.2.3, from https://github.com/lezer-parser/highlight.git
 
 --- node_modules/@lezer/highlight/LICENSE ---
 
@@ -920,6 +936,7 @@ THE SOFTWARE.
 
 @lezer/javascript@1.5.5
 Declared license: MIT
+Source: the unmodified npm package @lezer/javascript@1.5.5, from https://code.haverbeke.berlin/lezer/javascript.git
 
 --- node_modules/@lezer/javascript/LICENSE ---
 
@@ -948,6 +965,7 @@ THE SOFTWARE.
 
 @lezer/json@1.0.3
 Declared license: MIT
+Source: the unmodified npm package @lezer/json@1.0.3, from https://github.com/lezer-parser/json.git
 
 --- node_modules/@lezer/json/LICENSE ---
 
@@ -975,6 +993,7 @@ THE SOFTWARE.
 
 @lezer/lr@1.4.10
 Declared license: MIT
+Source: the unmodified npm package @lezer/lr@1.4.10, from https://code.haverbeke.berlin/lezer/lr.git
 
 --- node_modules/@lezer/lr/LICENSE ---
 
@@ -1003,6 +1022,7 @@ THE SOFTWARE.
 
 @marijn/find-cluster-break@1.0.4
 Declared license: MIT
+Source: the unmodified npm package @marijn/find-cluster-break@1.0.4, from https://code.haverbeke.berlin/marijn/find-cluster-break.git
 
 --- node_modules/@marijn/find-cluster-break/LICENSE ---
 
@@ -1031,6 +1051,7 @@ THE SOFTWARE.
 
 @pixi/colord@2.9.6
 Declared license: MIT
+Source: the unmodified npm package @pixi/colord@2.9.6, from omgovich/colord
 
 --- https://github.com/pixijs/colord/blob/5344fbf77b736f81cd33c21050021bc09bc9dd1d/LICENSE.md ---
 
@@ -1059,6 +1080,7 @@ SOFTWARE.
 
 @react-three/drei@10.7.8
 Declared license: MIT
+Source: the unmodified npm package @react-three/drei@10.7.8, from https://github.com/pmndrs/drei.git
 
 --- node_modules/@react-three/drei/LICENSE ---
 
@@ -1087,6 +1109,7 @@ SOFTWARE.
 
 @react-three/fiber@9.7.0
 Declared license: MIT
+Source: the unmodified npm package @react-three/fiber@9.7.0, from https://github.com/pmndrs/react-three-fiber.git
 
 --- https://github.com/pmndrs/react-three-fiber/blob/0a107412ac64667b1908422e859447952f57feef/LICENSE ---
 
@@ -1115,6 +1138,7 @@ SOFTWARE.
 
 @react-three/rapier@2.2.0
 Declared license: See the upstream license text below.
+Source: the unmodified npm package @react-three/rapier@2.2.0, from https://github.com/pmndrs/react-three-rapier/tree/master/packages/react-three-rapier
 
 --- https://github.com/pmndrs/react-three-rapier/blob/ae5c3fede5ca489fd7eaa8271e9d9c5eabc88e98/LICENSE ---
 
@@ -1143,6 +1167,7 @@ SOFTWARE.
 
 @sparkjsdev/spark@2.1.0
 Declared license: MIT
+Source: the unmodified npm package @sparkjsdev/spark@2.1.0, from sparkjs-dev/spark
 
 --- node_modules/@sparkjsdev/spark/LICENSE ---
 
@@ -1170,6 +1195,7 @@ THE SOFTWARE.
 
 @storybook/global@5.0.0
 Declared license: MIT
+Source: the unmodified npm package @storybook/global@5.0.0, from git://github.com/storybookjs/global.git
 
 --- node_modules/@storybook/global/LICENSE ---
 
@@ -1196,6 +1222,7 @@ THE SOFTWARE.
 
 @storybook/react-dom-shim@10.6.0
 Declared license: MIT
+Source: the unmodified npm package @storybook/react-dom-shim@10.6.0, from https://github.com/storybookjs/storybook.git
 
 --- https://github.com/storybookjs/storybook/blob/a77777356be2aeaff89d7a2b25254db7b2318392/LICENSE ---
 
@@ -1224,6 +1251,7 @@ THE SOFTWARE.
 
 @storybook/react@10.6.0
 Declared license: MIT
+Source: the unmodified npm package @storybook/react@10.6.0, from https://github.com/storybookjs/storybook.git
 
 --- https://github.com/storybookjs/storybook/blob/a77777356be2aeaff89d7a2b25254db7b2318392/LICENSE ---
 
@@ -1252,6 +1280,7 @@ THE SOFTWARE.
 
 @testing-library/dom@10.4.2
 Declared license: MIT
+Source: the unmodified npm package @testing-library/dom@10.4.2, from https://github.com/testing-library/dom-testing-library
 
 --- node_modules/@testing-library/dom/LICENSE ---
 
@@ -1279,6 +1308,7 @@ SOFTWARE.
 
 @volter/blender-engine@0.1.7
 Declared license: GPL-3.0-or-later
+Source: the unmodified npm package @volter/blender-engine@0.1.7, from https://github.com/volter-ai/editor.git
 
 --- packages/blender-engine/LICENSE ---
 
@@ -2008,8 +2038,9 @@ Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
 
 
-@volter/editor-blender@0.1.7
+@volter/editor-blender@0.1.8
 Declared license: AGPL-3.0-only AND GPL-3.0-or-later
+Source: the unmodified npm package @volter/editor-blender@0.1.8, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-blender/LICENSE ---
 
@@ -3448,8 +3479,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-@volter/editor-core@0.5.64
+@volter/editor-core@0.5.65
 Declared license: AGPL-3.0-only AND Apache-2.0
+Source: the unmodified npm package @volter/editor-core@0.5.65, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-core/LICENSE ---
 
@@ -4369,8 +4401,9 @@ server/support/ modules transferred from @vgai/sdk are Apache-2.0.
 Their source paths and hashes are recorded in provenance/editor-server.json.
 
 
-@volter/editor-project@0.5.64
+@volter/editor-project@0.5.65
 Declared license: Apache-2.0
+Source: the unmodified npm package @volter/editor-project@0.5.65, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-project/LICENSE ---
 
@@ -4578,8 +4611,9 @@ Declared license: Apache-2.0
    limitations under the License.
 
 
-@volter/editor-sdk@0.5.64
+@volter/editor-sdk@0.5.65
 Declared license: Apache-2.0
+Source: the unmodified npm package @volter/editor-sdk@0.5.65, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-sdk/LICENSE ---
 
@@ -4799,8 +4833,9 @@ The project output-root policy is Apache-2.0, transferred from the original
 SDK; its exact source is recorded in provenance/editor-server.json.
 
 
-@volter/editor-threejs@0.5.64
+@volter/editor-threejs@0.5.65
 Declared license: AGPL-3.0-only AND Apache-2.0
+Source: the unmodified npm package @volter/editor-threejs@0.5.65, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-threejs/LICENSE ---
 
@@ -5691,6 +5726,7 @@ provenance/blender-integration.json and provenance/editor-host.json.
 
 ansi-regex@5.0.1
 Declared license: MIT
+Source: the unmodified npm package ansi-regex@5.0.1, from chalk/ansi-regex
 
 --- node_modules/ansi-regex/license ---
 
@@ -5707,6 +5743,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ansi-styles@5.2.0
 Declared license: MIT
+Source: the unmodified npm package ansi-styles@5.2.0, from chalk/ansi-styles
 
 --- node_modules/ansi-styles/license ---
 
@@ -5723,6 +5760,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 aria-query@5.3.0
 Declared license: Apache-2.0
+Source: the unmodified npm package aria-query@5.3.0, from https://github.com/A11yance/aria-query.git
 
 --- node_modules/aria-query/LICENSE ---
 
@@ -5931,6 +5969,7 @@ limitations under the License.
 
 crelt@1.0.7
 Declared license: MIT
+Source: the unmodified npm package crelt@1.0.7, from https://code.haverbeke.berlin/marijn/crelt.git
 
 --- node_modules/crelt/LICENSE ---
 
@@ -5957,6 +5996,7 @@ THE SOFTWARE.
 
 dequal@2.0.3
 Declared license: MIT
+Source: the unmodified npm package dequal@2.0.3, from lukeed/dequal
 
 --- node_modules/dequal/license ---
 
@@ -5985,6 +6025,7 @@ THE SOFTWARE.
 
 dom-accessibility-api@0.5.16
 Declared license: MIT
+Source: the unmodified npm package dom-accessibility-api@0.5.16, from https://github.com/eps1lon/dom-accessibility-api.git
 
 --- node_modules/dom-accessibility-api/LICENSE.md ---
 
@@ -6013,6 +6054,7 @@ SOFTWARE.
 
 eventemitter3@5.0.4
 Declared license: MIT
+Source: the unmodified npm package eventemitter3@5.0.4, from git://github.com/primus/eventemitter3.git
 
 --- node_modules/eventemitter3/LICENSE ---
 
@@ -6041,6 +6083,7 @@ SOFTWARE.
 
 ismobilejs@1.1.1
 Declared license: MIT
+Source: the unmodified npm package ismobilejs@1.1.1, from https://github.com/kaimallea/isMobile.git
 
 --- node_modules/ismobilejs/LICENSE ---
 
@@ -6069,6 +6112,7 @@ SOFTWARE.
 
 lz-string@1.5.0
 Declared license: MIT
+Source: the unmodified npm package lz-string@1.5.0, from https://github.com/pieroxy/lz-string.git
 
 --- node_modules/lz-string/LICENSE ---
 
@@ -6097,6 +6141,7 @@ SOFTWARE.
 
 pixi.js@8.19.0
 Declared license: MIT
+Source: the unmodified npm package pixi.js@8.19.0, from https://github.com/pixijs/pixijs.git
 
 --- node_modules/pixi.js/LICENSE ---
 
@@ -6125,6 +6170,7 @@ THE SOFTWARE.
 
 postprocessing@6.38.3
 Declared license: Zlib
+Source: the unmodified npm package postprocessing@6.38.3, from https://github.com/pmndrs/postprocessing.git
 
 --- node_modules/postprocessing/LICENSE.md ---
 
@@ -6151,6 +6197,7 @@ the following restrictions:
 
 pretty-format@27.5.1
 Declared license: MIT
+Source: the unmodified npm package pretty-format@27.5.1, from https://github.com/facebook/jest.git
 
 --- node_modules/pretty-format/LICENSE ---
 
@@ -6179,6 +6226,7 @@ SOFTWARE.
 
 quarks.core@0.16.0
 Declared license: MIT
+Source: the unmodified npm package quarks.core@0.16.0, from https://github.com/Alchemist0823/three.quarks.git
 
 --- node_modules/quarks.core/LICENSE ---
 
@@ -6207,6 +6255,7 @@ SOFTWARE.
 
 react-dom@19.2.7
 Declared license: MIT
+Source: the unmodified npm package react-dom@19.2.7, from https://github.com/facebook/react.git
 
 --- node_modules/react-dom/LICENSE ---
 
@@ -6235,6 +6284,7 @@ SOFTWARE.
 
 react-is@17.0.2
 Declared license: MIT
+Source: the unmodified npm package react-is@17.0.2, from https://github.com/facebook/react.git
 
 --- node_modules/react-is/LICENSE ---
 
@@ -6263,6 +6313,7 @@ SOFTWARE.
 
 react@19.2.7
 Declared license: MIT
+Source: the unmodified npm package react@19.2.7, from https://github.com/facebook/react.git
 
 --- node_modules/react/LICENSE ---
 
@@ -6291,6 +6342,7 @@ SOFTWARE.
 
 rrweb@2.1.6
 Declared license: MIT
+Source: the unmodified npm package rrweb@2.1.6, from ssh://git@github.com/rrweb-io/rrweb.git
 
 --- https://github.com/rrweb-io/rrweb/blob/5b08843faf9cb21c836613489ffd93d455f38181/LICENSE ---
 
@@ -6319,6 +6371,7 @@ SOFTWARE.
 
 scheduler@0.27.0
 Declared license: MIT
+Source: the unmodified npm package scheduler@0.27.0, from https://github.com/facebook/react.git
 
 --- node_modules/scheduler/LICENSE ---
 
@@ -6347,6 +6400,7 @@ SOFTWARE.
 
 storybook@10.6.0
 Declared license: MIT
+Source: the unmodified npm package storybook@10.6.0, from https://github.com/storybookjs/storybook.git
 
 --- https://github.com/storybookjs/storybook/blob/a77777356be2aeaff89d7a2b25254db7b2318392/LICENSE ---
 
@@ -6375,6 +6429,7 @@ THE SOFTWARE.
 
 style-mod@4.1.4
 Declared license: MIT
+Source: the unmodified npm package style-mod@4.1.4, from https://code.haverbeke.berlin/marijn/style-mod.git
 
 --- node_modules/style-mod/LICENSE ---
 
@@ -6401,6 +6456,7 @@ THE SOFTWARE.
 
 suspend-react@0.1.3
 Declared license: MIT
+Source: the unmodified npm package suspend-react@0.1.3, from pmndrs/suspend-react
 
 --- node_modules/suspend-react/LICENSE ---
 
@@ -6429,6 +6485,7 @@ SOFTWARE.
 
 three-stdlib@2.36.1
 Declared license: MIT
+Source: the unmodified npm package three-stdlib@2.36.1, from https://github.com/pmndrs/three-stdlib
 
 --- node_modules/three-stdlib/LICENSE ---
 
@@ -6457,6 +6514,7 @@ SOFTWARE.
 
 three.quarks@0.16.0
 Declared license: MIT
+Source: the unmodified npm package three.quarks@0.16.0, from https://github.com/Alchemist0823/three.quarks.git
 
 --- node_modules/three.quarks/LICENSE ---
 
@@ -6485,6 +6543,7 @@ SOFTWARE.
 
 three@0.180.0
 Declared license: MIT
+Source: the unmodified npm package three@0.180.0, from https://github.com/mrdoob/three.js
 
 --- node_modules/three/LICENSE ---
 
@@ -6513,6 +6572,7 @@ THE SOFTWARE.
 
 typescript@5.9.3
 Declared license: Apache-2.0
+Source: the unmodified npm package typescript@5.9.3, from https://github.com/microsoft/TypeScript.git
 
 --- node_modules/typescript/LICENSE.txt ---
 
@@ -6575,6 +6635,7 @@ END OF TERMS AND CONDITIONS
 
 use-sync-external-store@1.7.0
 Declared license: MIT
+Source: the unmodified npm package use-sync-external-store@1.7.0, from https://github.com/react/react.git
 
 --- node_modules/use-sync-external-store/LICENSE ---
 
@@ -6603,6 +6664,7 @@ SOFTWARE.
 
 w3c-keyname@2.2.8
 Declared license: MIT
+Source: the unmodified npm package w3c-keyname@2.2.8, from https://github.com/marijnh/w3c-keyname.git
 
 --- node_modules/w3c-keyname/LICENSE ---
 
@@ -6629,6 +6691,7 @@ THE SOFTWARE.
 
 zod@4.3.6
 Declared license: MIT
+Source: the unmodified npm package zod@4.3.6, from https://github.com/colinhacks/zod.git
 
 --- node_modules/zod/LICENSE ---
 
@@ -6657,6 +6720,7 @@ SOFTWARE.
 
 zustand@5.0.15
 Declared license: MIT
+Source: the unmodified npm package zustand@5.0.15, from https://github.com/pmndrs/zustand.git
 
 --- node_modules/zustand/LICENSE ---
 

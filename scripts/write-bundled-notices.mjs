@@ -13,10 +13,8 @@ const fallbacks={
   '@dimforge/rapier3d-compat@0.19.2':'rapier3d', '@pixi/colord@2.9.6':'colord',
   '@react-three/fiber@9.7.0':'fiber', '@react-three/rapier@2.2.0':'react-three-rapier',
   '@storybook/react@10.6.0':'storybook', '@storybook/react-dom-shim@10.6.0':'storybook', 'storybook@10.6.0':'storybook',
-  '@storybook/react@9.1.20':'storybook-9', '@storybook/react-dom-shim@9.1.20':'storybook-9', 'storybook@9.1.20':'storybook-9',
   'rrweb@2.1.6':'rrweb', '@volter-ai-dev/supercode-ui@0.1.83':'supercode',
-  '@mediapipe/tasks-vision@0.10.17':'mediapipe', 'clipper2-js@1.2.4':'clipper2', 'draco3d@1.5.7':'draco',
-  'fastnoise-lite@1.1.1':'fastnoise-lite', 'maath@0.10.8':'maath', 'stats-gl@2.4.2':'stats-gl', 'gsap@3.15.0':'gsap',
+  'draco3d@1.5.7':'draco', 'maath@0.10.8':'maath', 'stats-gl@2.4.2':'stats-gl',
 };
 const fallbackSources=new Map(read('release/licenses/sources.json').map(s=>[s.name,s]));
 // `node scripts/write-bundled-notices.mjs [list]`, default release/modeling.json:

@@ -5,6 +5,7 @@ These notices accompany code incorporated into this package. Separate npm depend
 
 @babel/runtime@7.29.7
 Declared license: MIT
+Source: the unmodified npm package @babel/runtime@7.29.7, from https://github.com/babel/babel.git
 
 --- node_modules/@babel/runtime/LICENSE ---
 
@@ -32,114 +33,9 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-@babylonjs/core@9.22.1
-Declared license: Apache-2.0
-
---- node_modules/@babylonjs/core/NOTICE.md ---
-
-Babylon.js
-Copyright 2023 The Babylon.js team
-
-The following components are included in this package:
-
-Draco Compression [v1.5.6](https://github.com/google/draco/tree/1.5.6)
-https://github.com/google/draco
-Licensed under the Apache 2.0 License
-
-Basis transcoder
-Copyright 2024 The Khronos Group (https://www.khronos.org/),
-Licensed under the Apache 2.0 license.
-
-GLSLang [v11.8.0](https://github.com/KhronosGroup/glslang/releases/tag/11.8.0)
-Copyright 2024 The Khronos Group (https://www.khronos.org/),
-Licensed under the Apache 2.0 license.
-
-TWGSL (https://github.com/BabylonJS/twgsl)
-Copyright 20221-2024 The Babylon.js team
-Licensed under the Apache 2.0 License
-
-meshoptimizer (https://github.com/zeux/meshoptimizer)
-Copyright (c) 2016-2026 Arseny Kapoulkine
-Licensed under the MIT License
-
-
---- node_modules/@babylonjs/core/license.md ---
-
-# Apache License 2.0 (Apache)
-
-Apache License
-Version 2.0, January 2004
-<http://www.apache.org/licenses/>
-
-TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
-
-## Definitions
-
-"License" shall mean the terms and conditions for use, reproduction, and distribution as defined by Sections 1 through 9 of this document.
-
-"Licensor" shall mean the copyright owner or entity authorized by the copyright owner that is granting the License.
-
-"Legal Entity" shall mean the union of the acting entity and all other entities that control, are controlled by, or are under common control with that entity. For the purposes of this definition, "control" means (i) the power, direct or indirect, to cause the direction or management of such entity, whether by contract or otherwise, or (ii) ownership of fifty percent (50%) or more of the outstanding shares, or (iii) beneficial ownership of such entity.
-
-"You" (or "Your") shall mean an individual or Legal Entity exercising permissions granted by this License.
-
-"Source" form shall mean the preferred form for making modifications, including but not limited to software source code, documentation source, and configuration files.
-
-"Object" form shall mean any form resulting from mechanical transformation or translation of a Source form, including but not limited to compiled object code, generated documentation, and conversions to other media types.
-
-"Work" shall mean the work of authorship, whether in Source or Object form, made available under the License, as indicated by a copyright notice that is included in or attached to the work (an example is provided in the Appendix below).
-
-"Derivative Works" shall mean any work, whether in Source or Object form, that is based on (or derived from) the Work and for which the editorial revisions, annotations, elaborations, or other modifications represent, as a whole, an original work of authorship. For the purposes of this License, Derivative Works shall not include works that remain separable from, or merely link (or bind by name) to the interfaces of, the Work and Derivative Works thereof.
-
-"Contribution" shall mean any work of authorship, including the original version of the Work and any modifications or additions to that Work or Derivative Works thereof, that is intentionally submitted to Licensor for inclusion in the Work by the copyright owner or by an individual or Legal Entity authorized to submit on behalf of the copyright owner. For the purposes of this definition, "submitted" means any form of electronic, verbal, or written communication sent to the Licensor or its representatives, including but not limited to communication on electronic mailing lists, source code control systems, and issue tracking systems that are managed by, or on behalf of, the Licensor for the purpose of discussing and improving the Work, but excluding communication that is conspicuously marked or otherwise designated in writing by the copyright owner as "Not a Contribution."
-
-"Contributor" shall mean Licensor and any individual or Legal Entity on behalf of whom a Contribution has been received by Licensor and subsequently incorporated within the Work.
-
-## Grant of Copyright License
-
-Subject to the terms and conditions of this License, each Contributor hereby grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable copyright license to reproduce, prepare Derivative Works of, publicly display, publicly perform, sublicense, and distribute the Work and such Derivative Works in Source or Object form.
-
-## Grant of Patent License
-
-Subject to the terms and conditions of this License, each Contributor hereby grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable (except as stated in this section) patent license to make, have made, use, offer to sell, sell, import, and otherwise transfer the Work, where such license applies only to those patent claims licensable by such Contributor that are necessarily infringed by their Contribution(s) alone or by combination of their Contribution(s) with the Work to which such Contribution(s) was submitted. If You institute patent litigation against any entity (including a cross-claim or counterclaim in a lawsuit) alleging that the Work or a Contribution incorporated within the Work constitutes direct or contributory patent infringement, then any patent licenses granted to You under this License for that Work shall terminate as of the date such litigation is filed.
-
-## Redistribution
-
-You may reproduce and distribute copies of the Work or Derivative Works thereof in any medium, with or without modifications, and in Source or Object form, provided that You meet the following conditions:
-
-1. You must give any other recipients of the Work or Derivative Works a copy of this License; and
-
-2. You must cause any modified files to carry prominent notices stating that You changed the files; and
-
-3. You must retain, in the Source form of any Derivative Works that You distribute, all copyright, patent, trademark, and attribution notices from the Source form of the Work, excluding those notices that do not pertain to any part of the Derivative Works; and
-
-4. If the Work includes a "NOTICE" text file as part of its distribution, then any Derivative Works that You distribute must include a readable copy of the attribution notices contained within such NOTICE file, excluding those notices that do not pertain to any part of the Derivative Works, in at least one of the following places: within a NOTICE text file distributed as part of the Derivative Works; within the Source form or documentation, if provided along with the Derivative Works; or, within a display generated by the Derivative Works, if and wherever such third-party notices normally appear. The contents of the NOTICE file are for informational purposes only and do not modify the License. You may add Your own attribution notices within Derivative Works that You distribute, alongside or as an addendum to the NOTICE text from the Work, provided that such additional attribution notices cannot be construed as modifying the License.
-
-You may add Your own copyright statement to Your modifications and may provide additional or different license terms and conditions for use, reproduction, or distribution of Your modifications, or for any such Derivative Works as a whole, provided Your use, reproduction, and distribution of the Work otherwise complies with the conditions stated in this License.
-
-## Submission of Contributions
-
-Unless You explicitly state otherwise, any Contribution intentionally submitted for inclusion in the Work by You to the Licensor shall be under the terms and conditions of this License, without any additional terms or conditions. Notwithstanding the above, nothing herein shall supersede or modify the terms of any separate license agreement you may have executed with Licensor regarding such Contributions.
-
-## Trademarks
-
-This License does not grant permission to use the trade names, trademarks, service marks, or product names of the Licensor, except as required for reasonable and customary use in describing the origin of the Work and reproducing the content of the NOTICE file.
-
-## Disclaimer of Warranty
-
-Unless required by applicable law or agreed to in writing, Licensor provides the Work (and each Contributor provides its Contributions) on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied, including, without limitation, any warranties or conditions of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE. You are solely responsible for determining the appropriateness of using or redistributing the Work and assume any risks associated with Your exercise of permissions under this License.
-
-## Limitation of Liability
-
-In no event and under no legal theory, whether in tort (including negligence), contract, or otherwise, unless required by applicable law (such as deliberate and grossly negligent acts) or agreed to in writing, shall any Contributor be liable to You for damages, including any direct, indirect, special, incidental, or consequential damages of any character arising as a result of this License or out of the use or inability to use the Work (including but not limited to damages for loss of goodwill, work stoppage, computer failure or malfunction, or any and all other commercial damages or losses), even if such Contributor has been advised of the possibility of such damages.
-
-## Accepting Warranty or Additional Liability
-
-While redistributing the Work or Derivative Works thereof, You may choose to offer, and charge a fee for, acceptance of support, warranty, indemnity, or other liability obligations and/or rights consistent with this License. However, in accepting such obligations, You may act only on Your own behalf and on Your sole responsibility, not on behalf of any other Contributor, and only if You agree to indemnify, defend, and hold each Contributor harmless for any liability incurred by, or claims asserted against, such Contributor by reason of your accepting any such warranty or additional liability.
-
-
 @codemirror/autocomplete@6.20.3
 Declared license: MIT
+Source: the unmodified npm package @codemirror/autocomplete@6.20.3, from https://code.haverbeke.berlin/codemirror/autocomplete.git
 
 --- node_modules/@codemirror/autocomplete/LICENSE ---
 
@@ -168,6 +64,7 @@ THE SOFTWARE.
 
 @codemirror/commands@6.10.4
 Declared license: MIT
+Source: the unmodified npm package @codemirror/commands@6.10.4, from https://code.haverbeke.berlin/codemirror/commands.git
 
 --- node_modules/@codemirror/commands/LICENSE ---
 
@@ -196,6 +93,7 @@ THE SOFTWARE.
 
 @codemirror/lang-javascript@6.2.5
 Declared license: MIT
+Source: the unmodified npm package @codemirror/lang-javascript@6.2.5, from https://github.com/codemirror/lang-javascript.git
 
 --- node_modules/@codemirror/lang-javascript/LICENSE ---
 
@@ -224,6 +122,7 @@ THE SOFTWARE.
 
 @codemirror/lang-json@6.0.2
 Declared license: MIT
+Source: the unmodified npm package @codemirror/lang-json@6.0.2, from https://github.com/codemirror/lang-json.git
 
 --- node_modules/@codemirror/lang-json/LICENSE ---
 
@@ -252,6 +151,7 @@ THE SOFTWARE.
 
 @codemirror/language@6.12.4
 Declared license: MIT
+Source: the unmodified npm package @codemirror/language@6.12.4, from https://code.haverbeke.berlin/codemirror/language.git
 
 --- node_modules/@codemirror/language/LICENSE ---
 
@@ -280,6 +180,7 @@ THE SOFTWARE.
 
 @codemirror/search@6.7.1
 Declared license: MIT
+Source: the unmodified npm package @codemirror/search@6.7.1, from https://code.haverbeke.berlin/codemirror/search.git
 
 --- node_modules/@codemirror/search/LICENSE ---
 
@@ -308,6 +209,7 @@ THE SOFTWARE.
 
 @codemirror/state@6.7.0
 Declared license: MIT
+Source: the unmodified npm package @codemirror/state@6.7.0, from https://code.haverbeke.berlin/codemirror/state.git
 
 --- node_modules/@codemirror/state/LICENSE ---
 
@@ -336,6 +238,7 @@ THE SOFTWARE.
 
 @codemirror/theme-one-dark@6.1.3
 Declared license: MIT
+Source: the unmodified npm package @codemirror/theme-one-dark@6.1.3, from https://github.com/codemirror/theme-one-dark.git
 
 --- node_modules/@codemirror/theme-one-dark/LICENSE ---
 
@@ -364,6 +267,7 @@ THE SOFTWARE.
 
 @codemirror/view@6.43.4
 Declared license: MIT
+Source: the unmodified npm package @codemirror/view@6.43.4, from https://code.haverbeke.berlin/codemirror/view.git
 
 --- node_modules/@codemirror/view/LICENSE ---
 
@@ -392,6 +296,7 @@ THE SOFTWARE.
 
 @colyseus/msgpackr@1.11.3
 Declared license: MIT
+Source: the unmodified npm package @colyseus/msgpackr@1.11.3, from http://github.com/kriszyp/msgpackr
 
 --- node_modules/@colyseus/msgpackr/LICENSE ---
 
@@ -420,6 +325,7 @@ SOFTWARE.
 
 @colyseus/schema@4.0.31
 Declared license: MIT
+Source: the unmodified npm package @colyseus/schema@4.0.31, from git://github.com/colyseus/schema.git
 
 --- node_modules/@colyseus/schema/LICENSE ---
 
@@ -448,6 +354,7 @@ THE SOFTWARE.
 
 @colyseus/sdk@0.17.43
 Declared license: MIT
+Source: the unmodified npm package @colyseus/sdk@0.17.43, from git://github.com/colyseus/colyseus.git
 
 --- node_modules/@colyseus/sdk/LICENSE ---
 
@@ -476,6 +383,7 @@ THE SOFTWARE.
 
 @colyseus/shared-types@0.17.6
 Declared license: MIT
+Source: the unmodified npm package @colyseus/shared-types@0.17.6, from git://github.com/colyseus/colyseus.git
 
 --- node_modules/@colyseus/shared-types/LICENSE ---
 
@@ -502,424 +410,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@dimforge/rapier2d-compat@0.14.0
-Declared license: Apache-2.0
-
---- node_modules/@dimforge/rapier2d-compat/LICENSE ---
-
-                                 Apache License
-                           Version 2.0, January 2004
-                        http://www.apache.org/licenses/
-
-   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
-
-   1. Definitions.
-
-      "License" shall mean the terms and conditions for use, reproduction,
-      and distribution as defined by Sections 1 through 9 of this document.
-
-      "Licensor" shall mean the copyright owner or entity authorized by
-      the copyright owner that is granting the License.
-
-      "Legal Entity" shall mean the union of the acting entity and all
-      other entities that control, are controlled by, or are under common
-      control with that entity. For the purposes of this definition,
-      "control" means (i) the power, direct or indirect, to cause the
-      direction or management of such entity, whether by contract or
-      otherwise, or (ii) ownership of fifty percent (50%) or more of the
-      outstanding shares, or (iii) beneficial ownership of such entity.
-
-      "You" (or "Your") shall mean an individual or Legal Entity
-      exercising permissions granted by this License.
-
-      "Source" form shall mean the preferred form for making modifications,
-      including but not limited to software source code, documentation
-      source, and configuration files.
-
-      "Object" form shall mean any form resulting from mechanical
-      transformation or translation of a Source form, including but
-      not limited to compiled object code, generated documentation,
-      and conversions to other media types.
-
-      "Work" shall mean the work of authorship, whether in Source or
-      Object form, made available under the License, as indicated by a
-      copyright notice that is included in or attached to the work
-      (an example is provided in the Appendix below).
-
-      "Derivative Works" shall mean any work, whether in Source or Object
-      form, that is based on (or derived from) the Work and for which the
-      editorial revisions, annotations, elaborations, or other modifications
-      represent, as a whole, an original work of authorship. For the purposes
-      of this License, Derivative Works shall not include works that remain
-      separable from, or merely link (or bind by name) to the interfaces of,
-      the Work and Derivative Works thereof.
-
-      "Contribution" shall mean any work of authorship, including
-      the original version of the Work and any modifications or additions
-      to that Work or Derivative Works thereof, that is intentionally
-      submitted to Licensor for inclusion in the Work by the copyright owner
-      or by an individual or Legal Entity authorized to submit on behalf of
-      the copyright owner. For the purposes of this definition, "submitted"
-      means any form of electronic, verbal, or written communication sent
-      to the Licensor or its representatives, including but not limited to
-      communication on electronic mailing lists, source code control systems,
-      and issue tracking systems that are managed by, or on behalf of, the
-      Licensor for the purpose of discussing and improving the Work, but
-      excluding communication that is conspicuously marked or otherwise
-      designated in writing by the copyright owner as "Not a Contribution."
-
-      "Contributor" shall mean Licensor and any individual or Legal Entity
-      on behalf of whom a Contribution has been received by Licensor and
-      subsequently incorporated within the Work.
-
-   2. Grant of Copyright License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      copyright license to reproduce, prepare Derivative Works of,
-      publicly display, publicly perform, sublicense, and distribute the
-      Work and such Derivative Works in Source or Object form.
-
-   3. Grant of Patent License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      (except as stated in this section) patent license to make, have made,
-      use, offer to sell, sell, import, and otherwise transfer the Work,
-      where such license applies only to those patent claims licensable
-      by such Contributor that are necessarily infringed by their
-      Contribution(s) alone or by combination of their Contribution(s)
-      with the Work to which such Contribution(s) was submitted. If You
-      institute patent litigation against any entity (including a
-      cross-claim or counterclaim in a lawsuit) alleging that the Work
-      or a Contribution incorporated within the Work constitutes direct
-      or contributory patent infringement, then any patent licenses
-      granted to You under this License for that Work shall terminate
-      as of the date such litigation is filed.
-
-   4. Redistribution. You may reproduce and distribute copies of the
-      Work or Derivative Works thereof in any medium, with or without
-      modifications, and in Source or Object form, provided that You
-      meet the following conditions:
-
-      (a) You must give any other recipients of the Work or
-          Derivative Works a copy of this License; and
-
-      (b) You must cause any modified files to carry prominent notices
-          stating that You changed the files; and
-
-      (c) You must retain, in the Source form of any Derivative Works
-          that You distribute, all copyright, patent, trademark, and
-          attribution notices from the Source form of the Work,
-          excluding those notices that do not pertain to any part of
-          the Derivative Works; and
-
-      (d) If the Work includes a "NOTICE" text file as part of its
-          distribution, then any Derivative Works that You distribute must
-          include a readable copy of the attribution notices contained
-          within such NOTICE file, excluding those notices that do not
-          pertain to any part of the Derivative Works, in at least one
-          of the following places: within a NOTICE text file distributed
-          as part of the Derivative Works; within the Source form or
-          documentation, if provided along with the Derivative Works; or,
-          within a display generated by the Derivative Works, if and
-          wherever such third-party notices normally appear. The contents
-          of the NOTICE file are for informational purposes only and
-          do not modify the License. You may add Your own attribution
-          notices within Derivative Works that You distribute, alongside
-          or as an addendum to the NOTICE text from the Work, provided
-          that such additional attribution notices cannot be construed
-          as modifying the License.
-
-      You may add Your own copyright statement to Your modifications and
-      may provide additional or different license terms and conditions
-      for use, reproduction, or distribution of Your modifications, or
-      for any such Derivative Works as a whole, provided Your use,
-      reproduction, and distribution of the Work otherwise complies with
-      the conditions stated in this License.
-
-   5. Submission of Contributions. Unless You explicitly state otherwise,
-      any Contribution intentionally submitted for inclusion in the Work
-      by You to the Licensor shall be under the terms and conditions of
-      this License, without any additional terms or conditions.
-      Notwithstanding the above, nothing herein shall supersede or modify
-      the terms of any separate license agreement you may have executed
-      with Licensor regarding such Contributions.
-
-   6. Trademarks. This License does not grant permission to use the trade
-      names, trademarks, service marks, or product names of the Licensor,
-      except as required for reasonable and customary use in describing the
-      origin of the Work and reproducing the content of the NOTICE file.
-
-   7. Disclaimer of Warranty. Unless required by applicable law or
-      agreed to in writing, Licensor provides the Work (and each
-      Contributor provides its Contributions) on an "AS IS" BASIS,
-      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-      implied, including, without limitation, any warranties or conditions
-      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
-      PARTICULAR PURPOSE. You are solely responsible for determining the
-      appropriateness of using or redistributing the Work and assume any
-      risks associated with Your exercise of permissions under this License.
-
-   8. Limitation of Liability. In no event and under no legal theory,
-      whether in tort (including negligence), contract, or otherwise,
-      unless required by applicable law (such as deliberate and grossly
-      negligent acts) or agreed to in writing, shall any Contributor be
-      liable to You for damages, including any direct, indirect, special,
-      incidental, or consequential damages of any character arising as a
-      result of this License or out of the use or inability to use the
-      Work (including but not limited to damages for loss of goodwill,
-      work stoppage, computer failure or malfunction, or any and all
-      other commercial damages or losses), even if such Contributor
-      has been advised of the possibility of such damages.
-
-   9. Accepting Warranty or Additional Liability. While redistributing
-      the Work or Derivative Works thereof, You may choose to offer,
-      and charge a fee for, acceptance of support, warranty, indemnity,
-      or other liability obligations and/or rights consistent with this
-      License. However, in accepting such obligations, You may act only
-      on Your own behalf and on Your sole responsibility, not on behalf
-      of any other Contributor, and only if You agree to indemnify,
-      defend, and hold each Contributor harmless for any liability
-      incurred by, or claims asserted against, such Contributor by reason
-      of your accepting any such warranty or additional liability.
-
-   END OF TERMS AND CONDITIONS
-
-   APPENDIX: How to apply the Apache License to your work.
-
-      To apply the Apache License to your work, attach the following
-      boilerplate notice, with the fields enclosed by brackets "[]"
-      replaced with your own identifying information. (Don't include
-      the brackets!)  The text should be enclosed in the appropriate
-      comment syntax for the file format. We also recommend that a
-      file or class name and description of purpose be included on the
-      same "printed page" as the copyright notice for easier
-      identification within third-party archives.
-
-   Copyright 2020 Dimforge EURL
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-
-
-@dimforge/rapier3d-compat@0.14.0
-Declared license: Apache-2.0
-
---- packages/editor-game/node_modules/@dimforge/rapier3d-compat/LICENSE ---
-
-                                 Apache License
-                           Version 2.0, January 2004
-                        http://www.apache.org/licenses/
-
-   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
-
-   1. Definitions.
-
-      "License" shall mean the terms and conditions for use, reproduction,
-      and distribution as defined by Sections 1 through 9 of this document.
-
-      "Licensor" shall mean the copyright owner or entity authorized by
-      the copyright owner that is granting the License.
-
-      "Legal Entity" shall mean the union of the acting entity and all
-      other entities that control, are controlled by, or are under common
-      control with that entity. For the purposes of this definition,
-      "control" means (i) the power, direct or indirect, to cause the
-      direction or management of such entity, whether by contract or
-      otherwise, or (ii) ownership of fifty percent (50%) or more of the
-      outstanding shares, or (iii) beneficial ownership of such entity.
-
-      "You" (or "Your") shall mean an individual or Legal Entity
-      exercising permissions granted by this License.
-
-      "Source" form shall mean the preferred form for making modifications,
-      including but not limited to software source code, documentation
-      source, and configuration files.
-
-      "Object" form shall mean any form resulting from mechanical
-      transformation or translation of a Source form, including but
-      not limited to compiled object code, generated documentation,
-      and conversions to other media types.
-
-      "Work" shall mean the work of authorship, whether in Source or
-      Object form, made available under the License, as indicated by a
-      copyright notice that is included in or attached to the work
-      (an example is provided in the Appendix below).
-
-      "Derivative Works" shall mean any work, whether in Source or Object
-      form, that is based on (or derived from) the Work and for which the
-      editorial revisions, annotations, elaborations, or other modifications
-      represent, as a whole, an original work of authorship. For the purposes
-      of this License, Derivative Works shall not include works that remain
-      separable from, or merely link (or bind by name) to the interfaces of,
-      the Work and Derivative Works thereof.
-
-      "Contribution" shall mean any work of authorship, including
-      the original version of the Work and any modifications or additions
-      to that Work or Derivative Works thereof, that is intentionally
-      submitted to Licensor for inclusion in the Work by the copyright owner
-      or by an individual or Legal Entity authorized to submit on behalf of
-      the copyright owner. For the purposes of this definition, "submitted"
-      means any form of electronic, verbal, or written communication sent
-      to the Licensor or its representatives, including but not limited to
-      communication on electronic mailing lists, source code control systems,
-      and issue tracking systems that are managed by, or on behalf of, the
-      Licensor for the purpose of discussing and improving the Work, but
-      excluding communication that is conspicuously marked or otherwise
-      designated in writing by the copyright owner as "Not a Contribution."
-
-      "Contributor" shall mean Licensor and any individual or Legal Entity
-      on behalf of whom a Contribution has been received by Licensor and
-      subsequently incorporated within the Work.
-
-   2. Grant of Copyright License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      copyright license to reproduce, prepare Derivative Works of,
-      publicly display, publicly perform, sublicense, and distribute the
-      Work and such Derivative Works in Source or Object form.
-
-   3. Grant of Patent License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      (except as stated in this section) patent license to make, have made,
-      use, offer to sell, sell, import, and otherwise transfer the Work,
-      where such license applies only to those patent claims licensable
-      by such Contributor that are necessarily infringed by their
-      Contribution(s) alone or by combination of their Contribution(s)
-      with the Work to which such Contribution(s) was submitted. If You
-      institute patent litigation against any entity (including a
-      cross-claim or counterclaim in a lawsuit) alleging that the Work
-      or a Contribution incorporated within the Work constitutes direct
-      or contributory patent infringement, then any patent licenses
-      granted to You under this License for that Work shall terminate
-      as of the date such litigation is filed.
-
-   4. Redistribution. You may reproduce and distribute copies of the
-      Work or Derivative Works thereof in any medium, with or without
-      modifications, and in Source or Object form, provided that You
-      meet the following conditions:
-
-      (a) You must give any other recipients of the Work or
-          Derivative Works a copy of this License; and
-
-      (b) You must cause any modified files to carry prominent notices
-          stating that You changed the files; and
-
-      (c) You must retain, in the Source form of any Derivative Works
-          that You distribute, all copyright, patent, trademark, and
-          attribution notices from the Source form of the Work,
-          excluding those notices that do not pertain to any part of
-          the Derivative Works; and
-
-      (d) If the Work includes a "NOTICE" text file as part of its
-          distribution, then any Derivative Works that You distribute must
-          include a readable copy of the attribution notices contained
-          within such NOTICE file, excluding those notices that do not
-          pertain to any part of the Derivative Works, in at least one
-          of the following places: within a NOTICE text file distributed
-          as part of the Derivative Works; within the Source form or
-          documentation, if provided along with the Derivative Works; or,
-          within a display generated by the Derivative Works, if and
-          wherever such third-party notices normally appear. The contents
-          of the NOTICE file are for informational purposes only and
-          do not modify the License. You may add Your own attribution
-          notices within Derivative Works that You distribute, alongside
-          or as an addendum to the NOTICE text from the Work, provided
-          that such additional attribution notices cannot be construed
-          as modifying the License.
-
-      You may add Your own copyright statement to Your modifications and
-      may provide additional or different license terms and conditions
-      for use, reproduction, or distribution of Your modifications, or
-      for any such Derivative Works as a whole, provided Your use,
-      reproduction, and distribution of the Work otherwise complies with
-      the conditions stated in this License.
-
-   5. Submission of Contributions. Unless You explicitly state otherwise,
-      any Contribution intentionally submitted for inclusion in the Work
-      by You to the Licensor shall be under the terms and conditions of
-      this License, without any additional terms or conditions.
-      Notwithstanding the above, nothing herein shall supersede or modify
-      the terms of any separate license agreement you may have executed
-      with Licensor regarding such Contributions.
-
-   6. Trademarks. This License does not grant permission to use the trade
-      names, trademarks, service marks, or product names of the Licensor,
-      except as required for reasonable and customary use in describing the
-      origin of the Work and reproducing the content of the NOTICE file.
-
-   7. Disclaimer of Warranty. Unless required by applicable law or
-      agreed to in writing, Licensor provides the Work (and each
-      Contributor provides its Contributions) on an "AS IS" BASIS,
-      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-      implied, including, without limitation, any warranties or conditions
-      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
-      PARTICULAR PURPOSE. You are solely responsible for determining the
-      appropriateness of using or redistributing the Work and assume any
-      risks associated with Your exercise of permissions under this License.
-
-   8. Limitation of Liability. In no event and under no legal theory,
-      whether in tort (including negligence), contract, or otherwise,
-      unless required by applicable law (such as deliberate and grossly
-      negligent acts) or agreed to in writing, shall any Contributor be
-      liable to You for damages, including any direct, indirect, special,
-      incidental, or consequential damages of any character arising as a
-      result of this License or out of the use or inability to use the
-      Work (including but not limited to damages for loss of goodwill,
-      work stoppage, computer failure or malfunction, or any and all
-      other commercial damages or losses), even if such Contributor
-      has been advised of the possibility of such damages.
-
-   9. Accepting Warranty or Additional Liability. While redistributing
-      the Work or Derivative Works thereof, You may choose to offer,
-      and charge a fee for, acceptance of support, warranty, indemnity,
-      or other liability obligations and/or rights consistent with this
-      License. However, in accepting such obligations, You may act only
-      on Your own behalf and on Your sole responsibility, not on behalf
-      of any other Contributor, and only if You agree to indemnify,
-      defend, and hold each Contributor harmless for any liability
-      incurred by, or claims asserted against, such Contributor by reason
-      of your accepting any such warranty or additional liability.
-
-   END OF TERMS AND CONDITIONS
-
-   APPENDIX: How to apply the Apache License to your work.
-
-      To apply the Apache License to your work, attach the following
-      boilerplate notice, with the fields enclosed by brackets "[]"
-      replaced with your own identifying information. (Don't include
-      the brackets!)  The text should be enclosed in the appropriate
-      comment syntax for the file format. We also recommend that a
-      file or class name and description of purpose be included on the
-      same "printed page" as the copyright notice for easier
-      identification within third-party archives.
-
-   Copyright 2020 Dimforge EURL
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-
-
 @dimforge/rapier3d-compat@0.19.2
 Declared license: Apache-2.0
+Source: the unmodified npm package @dimforge/rapier3d-compat@0.19.2, from https://github.com/dimforge/rapier.js
 
 --- https://github.com/dimforge/rapier.js/blob/f072e6efa75f4f61a290bd0b58b61c443685ec01/LICENSE ---
 
@@ -1128,6 +621,7 @@ Declared license: Apache-2.0
 
 @fortawesome/fontawesome-svg-core@7.2.0
 Declared license: MIT
+Source: the unmodified npm package @fortawesome/fontawesome-svg-core@7.2.0, from https://github.com/FortAwesome/Font-Awesome
 
 --- node_modules/@fortawesome/fontawesome-svg-core/LICENSE.txt ---
 
@@ -1300,6 +794,7 @@ to represent the company, product, or service to which they refer.**
 
 @fortawesome/free-solid-svg-icons@7.2.0
 Declared license: (CC-BY-4.0 AND MIT)
+Source: the unmodified npm package @fortawesome/free-solid-svg-icons@7.2.0, from https://github.com/FortAwesome/Font-Awesome
 
 --- node_modules/@fortawesome/free-solid-svg-icons/LICENSE.txt ---
 
@@ -1472,6 +967,7 @@ to represent the company, product, or service to which they refer.**
 
 @fortawesome/react-fontawesome@3.5.0
 Declared license: MIT
+Source: the unmodified npm package @fortawesome/react-fontawesome@3.5.0, from https://github.com/FortAwesome/react-fontawesome.git
 
 --- node_modules/@fortawesome/react-fontawesome/LICENSE.txt ---
 
@@ -1498,6 +994,7 @@ SOFTWARE.
 
 @gltf-transform/core@4.5.0
 Declared license: MIT
+Source: the unmodified npm package @gltf-transform/core@4.5.0, from github:donmccurdy/glTF-Transform
 
 --- node_modules/@gltf-transform/core/LICENSE.md ---
 
@@ -1526,6 +1023,7 @@ SOFTWARE.
 
 @gltf-transform/extensions@4.5.0
 Declared license: MIT
+Source: the unmodified npm package @gltf-transform/extensions@4.5.0, from github:donmccurdy/glTF-Transform
 
 --- node_modules/@gltf-transform/extensions/LICENSE.md ---
 
@@ -1554,6 +1052,7 @@ SOFTWARE.
 
 @gltf-transform/functions@4.5.0
 Declared license: MIT
+Source: the unmodified npm package @gltf-transform/functions@4.5.0, from github:donmccurdy/glTF-Transform
 
 --- node_modules/@gltf-transform/functions/LICENSE.md ---
 
@@ -1582,6 +1081,7 @@ SOFTWARE.
 
 @lezer/common@1.5.2
 Declared license: MIT
+Source: the unmodified npm package @lezer/common@1.5.2, from https://github.com/lezer-parser/common.git
 
 --- node_modules/@lezer/common/LICENSE ---
 
@@ -1610,6 +1110,7 @@ THE SOFTWARE.
 
 @lezer/highlight@1.2.3
 Declared license: MIT
+Source: the unmodified npm package @lezer/highlight@1.2.3, from https://github.com/lezer-parser/highlight.git
 
 --- node_modules/@lezer/highlight/LICENSE ---
 
@@ -1638,6 +1139,7 @@ THE SOFTWARE.
 
 @lezer/javascript@1.5.5
 Declared license: MIT
+Source: the unmodified npm package @lezer/javascript@1.5.5, from https://code.haverbeke.berlin/lezer/javascript.git
 
 --- node_modules/@lezer/javascript/LICENSE ---
 
@@ -1666,6 +1168,7 @@ THE SOFTWARE.
 
 @lezer/json@1.0.3
 Declared license: MIT
+Source: the unmodified npm package @lezer/json@1.0.3, from https://github.com/lezer-parser/json.git
 
 --- node_modules/@lezer/json/LICENSE ---
 
@@ -1693,6 +1196,7 @@ THE SOFTWARE.
 
 @lezer/lr@1.4.10
 Declared license: MIT
+Source: the unmodified npm package @lezer/lr@1.4.10, from https://code.haverbeke.berlin/lezer/lr.git
 
 --- node_modules/@lezer/lr/LICENSE ---
 
@@ -1721,6 +1225,7 @@ THE SOFTWARE.
 
 @loglayer/context-manager@2.3.0
 Declared license: MIT
+Source: the unmodified npm package @loglayer/context-manager@2.3.0, from https://github.com/loglayer/loglayer.git
 
 --- node_modules/@loglayer/context-manager/LICENSE ---
 
@@ -1749,6 +1254,7 @@ SOFTWARE.
 
 @loglayer/log-level-manager@2.3.0
 Declared license: MIT
+Source: the unmodified npm package @loglayer/log-level-manager@2.3.0, from https://github.com/loglayer/loglayer.git
 
 --- node_modules/@loglayer/log-level-manager/LICENSE ---
 
@@ -1777,6 +1283,7 @@ SOFTWARE.
 
 @loglayer/plugin@3.3.0
 Declared license: MIT
+Source: the unmodified npm package @loglayer/plugin@3.3.0, from https://github.com/loglayer/loglayer.git
 
 --- node_modules/@loglayer/plugin/LICENSE ---
 
@@ -1805,6 +1312,7 @@ SOFTWARE.
 
 @loglayer/shared@4.4.0
 Declared license: MIT
+Source: the unmodified npm package @loglayer/shared@4.4.0, from https://github.com/loglayer/loglayer.git
 
 --- node_modules/@loglayer/shared/LICENSE ---
 
@@ -1833,6 +1341,7 @@ SOFTWARE.
 
 @loglayer/transport@3.3.0
 Declared license: MIT
+Source: the unmodified npm package @loglayer/transport@3.3.0, from https://github.com/loglayer/loglayer.git
 
 --- node_modules/@loglayer/transport/LICENSE ---
 
@@ -1861,6 +1370,7 @@ SOFTWARE.
 
 @marijn/find-cluster-break@1.0.4
 Declared license: MIT
+Source: the unmodified npm package @marijn/find-cluster-break@1.0.4, from https://code.haverbeke.berlin/marijn/find-cluster-break.git
 
 --- node_modules/@marijn/find-cluster-break/LICENSE ---
 
@@ -1889,6 +1399,7 @@ THE SOFTWARE.
 
 @mediapipe/tasks-vision@0.10.17
 Declared license: Apache-2.0
+Source: the unmodified npm package @mediapipe/tasks-vision@0.10.17
 
 --- https://github.com/google-ai-edge/mediapipe/blob/3fa8974c47cd0297c74ed6c424e0406f5054796f/LICENSE ---
 
@@ -2114,6 +1625,7 @@ For files under tasks/cc/text/language_detector/custom_ops/utils/utf/
 
 @monogrid/gainmap-js@3.4.0
 Declared license: MIT
+Source: the unmodified npm package @monogrid/gainmap-js@3.4.0, from ssh://git@github.com/MONOGRID/gainmap-js.git
 
 --- node_modules/@monogrid/gainmap-js/LICENSE ---
 
@@ -2142,6 +1654,7 @@ SOFTWARE.
 
 @pixi/colord@2.9.6
 Declared license: MIT
+Source: the unmodified npm package @pixi/colord@2.9.6, from omgovich/colord
 
 --- https://github.com/pixijs/colord/blob/5344fbf77b736f81cd33c21050021bc09bc9dd1d/LICENSE.md ---
 
@@ -2170,6 +1683,7 @@ SOFTWARE.
 
 @pixi/react@8.0.5
 Declared license: MIT
+Source: the unmodified npm package @pixi/react@8.0.5, from https://github.com/pixijs/pixi-react.git
 
 --- node_modules/@pixi/react/LICENSE ---
 
@@ -2196,66 +1710,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@pixi/tilemap@5.0.2
-Declared license: MIT
-
---- node_modules/@pixi/tilemap/LICENSE ---
-
-The MIT License (MIT)
-
-Copyright (c) 2015 Ivan Popelyshev
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
-
-@pixiv/three-vrm-springbone@3.5.5
-Declared license: MIT
-
---- node_modules/@pixiv/three-vrm-springbone/LICENSE ---
-
-Copyright (c) 2019-2026 pixiv Inc.
-
-MIT License
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
 @react-three/drei@10.7.8
 Declared license: MIT
+Source: the unmodified npm package @react-three/drei@10.7.8, from https://github.com/pmndrs/drei.git
 
 --- node_modules/@react-three/drei/LICENSE ---
 
@@ -2284,6 +1741,7 @@ SOFTWARE.
 
 @react-three/fiber@9.7.0
 Declared license: MIT
+Source: the unmodified npm package @react-three/fiber@9.7.0, from https://github.com/pmndrs/react-three-fiber.git
 
 --- https://github.com/pmndrs/react-three-fiber/blob/0a107412ac64667b1908422e859447952f57feef/LICENSE ---
 
@@ -2312,6 +1770,7 @@ SOFTWARE.
 
 @react-three/rapier@2.2.0
 Declared license: See the upstream license text below.
+Source: the unmodified npm package @react-three/rapier@2.2.0, from https://github.com/pmndrs/react-three-rapier/tree/master/packages/react-three-rapier
 
 --- https://github.com/pmndrs/react-three-rapier/blob/ae5c3fede5ca489fd7eaa8271e9d9c5eabc88e98/LICENSE ---
 
@@ -2340,6 +1799,7 @@ SOFTWARE.
 
 @recast-navigation/core@0.43.1
 Declared license: MIT
+Source: the unmodified npm package @recast-navigation/core@0.43.1
 
 --- node_modules/@recast-navigation/core/LICENSE ---
 
@@ -2368,6 +1828,7 @@ THE SOFTWARE.
 
 @recast-navigation/generators@0.43.1
 Declared license: MIT
+Source: the unmodified npm package @recast-navigation/generators@0.43.1
 
 --- node_modules/@recast-navigation/generators/LICENSE ---
 
@@ -2396,6 +1857,7 @@ THE SOFTWARE.
 
 @recast-navigation/three@0.43.1
 Declared license: MIT
+Source: the unmodified npm package @recast-navigation/three@0.43.1
 
 --- node_modules/@recast-navigation/three/LICENSE ---
 
@@ -2424,6 +1886,7 @@ THE SOFTWARE.
 
 @recast-navigation/wasm@0.43.1
 Declared license: MIT
+Source: the unmodified npm package @recast-navigation/wasm@0.43.1
 
 --- node_modules/@recast-navigation/wasm/LICENSE ---
 
@@ -2452,6 +1915,7 @@ THE SOFTWARE.
 
 @sparkjsdev/spark@2.1.0
 Declared license: MIT
+Source: the unmodified npm package @sparkjsdev/spark@2.1.0, from sparkjs-dev/spark
 
 --- node_modules/@sparkjsdev/spark/LICENSE ---
 
@@ -2479,6 +1943,7 @@ THE SOFTWARE.
 
 @storybook/global@5.0.0
 Declared license: MIT
+Source: the unmodified npm package @storybook/global@5.0.0, from git://github.com/storybookjs/global.git
 
 --- node_modules/@storybook/global/LICENSE ---
 
@@ -2505,36 +1970,9 @@ THE SOFTWARE.
 
 @storybook/react-dom-shim@10.6.0
 Declared license: MIT
+Source: the unmodified npm package @storybook/react-dom-shim@10.6.0, from https://github.com/storybookjs/storybook.git
 
 --- https://github.com/storybookjs/storybook/blob/a77777356be2aeaff89d7a2b25254db7b2318392/LICENSE ---
-
-The MIT License (MIT)
-
-Copyright (c) 2024 Storybook
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
-
-@storybook/react-dom-shim@9.1.20
-Declared license: MIT
-
---- https://github.com/storybookjs/storybook/blob/f4eff4835ee6076bddf2fa2c8af680afebfaba0e/LICENSE ---
 
 The MIT License (MIT)
 
@@ -2561,6 +1999,7 @@ THE SOFTWARE.
 
 @storybook/react@10.6.0
 Declared license: MIT
+Source: the unmodified npm package @storybook/react@10.6.0, from https://github.com/storybookjs/storybook.git
 
 --- https://github.com/storybookjs/storybook/blob/a77777356be2aeaff89d7a2b25254db7b2318392/LICENSE ---
 
@@ -2587,233 +2026,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-@storybook/react@9.1.20
-Declared license: MIT
-
---- https://github.com/storybookjs/storybook/blob/f4eff4835ee6076bddf2fa2c8af680afebfaba0e/LICENSE ---
-
-The MIT License (MIT)
-
-Copyright (c) 2024 Storybook
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
-
-@supabase/auth-js@2.117.1
-Declared license: MIT
-
---- node_modules/@supabase/auth-js/LICENSE ---
-
-MIT License
-
-Copyright (c) 2020 Supabase
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
-@supabase/functions-js@2.117.1
-Declared license: MIT
-
---- node_modules/@supabase/functions-js/LICENSE ---
-
-MIT License
-
-Copyright (c) 2020 Supabase
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
-@supabase/phoenix@0.4.5
-Declared license: MIT
-
---- node_modules/@supabase/phoenix/LICENSE.md ---
-
-# MIT License
-
-Copyright (c) 2014 Chris McCord
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-@supabase/postgrest-js@2.117.1
-Declared license: MIT
-
---- node_modules/@supabase/postgrest-js/LICENSE ---
-
-MIT License
-
-Copyright (c) 2020 Supabase
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
-@supabase/realtime-js@2.117.1
-Declared license: MIT
-
---- node_modules/@supabase/realtime-js/LICENSE ---
-
-MIT License
-
-Copyright (c) 2020 Supabase
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
-@supabase/storage-js@2.117.1
-Declared license: MIT
-
---- node_modules/@supabase/storage-js/LICENSE ---
-
-MIT License
-
-Copyright (c) 2020 Supabase
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
-@supabase/supabase-js@2.117.1
-Declared license: MIT
-
---- node_modules/@supabase/supabase-js/LICENSE ---
-
-MIT License
-
-Copyright (c) 2020 Supabase
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
 @testing-library/dom@10.4.2
 Declared license: MIT
+Source: the unmodified npm package @testing-library/dom@10.4.2, from https://github.com/testing-library/dom-testing-library
 
 --- node_modules/@testing-library/dom/LICENSE ---
 
@@ -2841,6 +2056,7 @@ SOFTWARE.
 
 @use-gesture/core@10.3.1
 Declared license: MIT
+Source: the unmodified npm package @use-gesture/core@10.3.1, from https://github.com/pmndrs/use-gesture.git
 
 --- node_modules/@use-gesture/core/LICENSE ---
 
@@ -2866,6 +2082,7 @@ SOFTWARE.
 
 @use-gesture/react@10.3.1
 Declared license: MIT
+Source: the unmodified npm package @use-gesture/react@10.3.1, from https://github.com/pmndrs/use-gesture.git
 
 --- node_modules/@use-gesture/react/LICENSE ---
 
@@ -2891,6 +2108,7 @@ SOFTWARE.
 
 @volter/blender-engine@0.1.7
 Declared license: GPL-3.0-or-later
+Source: the unmodified npm package @volter/blender-engine@0.1.7, from https://github.com/volter-ai/editor.git
 
 --- packages/blender-engine/LICENSE ---
 
@@ -3620,8 +2838,9 @@ Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
 
 
-@volter/editor-blender@0.1.7
+@volter/editor-blender@0.1.8
 Declared license: AGPL-3.0-only AND GPL-3.0-or-later
+Source: the unmodified npm package @volter/editor-blender@0.1.8, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-blender/LICENSE ---
 
@@ -5060,8 +4279,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-@volter/editor-core@0.5.64
+@volter/editor-core@0.5.65
 Declared license: AGPL-3.0-only AND Apache-2.0
+Source: the unmodified npm package @volter/editor-core@0.5.65, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-core/LICENSE ---
 
@@ -5981,8 +5201,9 @@ server/support/ modules transferred from @vgai/sdk are Apache-2.0.
 Their source paths and hashes are recorded in provenance/editor-server.json.
 
 
-@volter/editor-game@0.5.64
+@volter/editor-game@0.5.65
 Declared license: AGPL-3.0-only
+Source: the unmodified npm package @volter/editor-game@0.5.65, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-game/LICENSE ---
 
@@ -6676,8 +5897,9 @@ the Apache-2.0 @vgai/sdk package, and retains that license. It re-exports the
 Apache-2.0 tool contract of @volter/editor-sdk.
 
 
-@volter/editor-project@0.5.64
+@volter/editor-project@0.5.65
 Declared license: Apache-2.0
+Source: the unmodified npm package @volter/editor-project@0.5.65, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-project/LICENSE ---
 
@@ -6885,8 +6107,9 @@ Declared license: Apache-2.0
    limitations under the License.
 
 
-@volter/editor-sdk@0.5.64
+@volter/editor-sdk@0.5.65
 Declared license: Apache-2.0
+Source: the unmodified npm package @volter/editor-sdk@0.5.65, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-sdk/LICENSE ---
 
@@ -7106,8 +6329,9 @@ The project output-root policy is Apache-2.0, transferred from the original
 SDK; its exact source is recorded in provenance/editor-server.json.
 
 
-@volter/editor-threejs@0.5.64
+@volter/editor-threejs@0.5.65
 Declared license: AGPL-3.0-only AND Apache-2.0
+Source: the unmodified npm package @volter/editor-threejs@0.5.65, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-threejs/LICENSE ---
 
@@ -7996,8 +7220,9 @@ Source revisions and original file hashes are recorded in the repository's
 provenance/blender-integration.json and provenance/editor-host.json.
 
 
-@volter/game-runtime@0.5.64
+@volter/game-runtime@0.5.65
 Declared license: Apache-2.0
+Source: the unmodified npm package @volter/game-runtime@0.5.65, from https://github.com/volter-ai/editor.git
 
 --- packages/game-runtime/LICENSE ---
 
@@ -8215,8 +7440,9 @@ Apache-2.0 @vgai/game-runtime package. They retain that license; LICENSE
 contains its text.
 
 
-@volter/threejs-runtime@0.5.64
+@volter/threejs-runtime@0.5.65
 Declared license: Apache-2.0
+Source: the unmodified npm package @volter/threejs-runtime@0.5.65, from https://github.com/volter-ai/editor.git
 
 --- packages/threejs-runtime/LICENSE ---
 
@@ -8442,6 +7668,7 @@ records the fork.
 
 @xmldom/xmldom@0.8.15
 Declared license: MIT
+Source: the unmodified npm package @xmldom/xmldom@0.8.15, from git://github.com/xmldom/xmldom.git
 
 --- node_modules/@xmldom/xmldom/LICENSE ---
 
@@ -8457,6 +7684,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ansi-regex@5.0.1
 Declared license: MIT
+Source: the unmodified npm package ansi-regex@5.0.1, from chalk/ansi-regex
 
 --- node_modules/ansi-regex/license ---
 
@@ -8473,6 +7701,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ansi-styles@5.2.0
 Declared license: MIT
+Source: the unmodified npm package ansi-styles@5.2.0, from chalk/ansi-styles
 
 --- node_modules/ansi-styles/license ---
 
@@ -8489,6 +7718,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 aria-query@5.3.0
 Declared license: Apache-2.0
+Source: the unmodified npm package aria-query@5.3.0, from https://github.com/A11yance/aria-query.git
 
 --- node_modules/aria-query/LICENSE ---
 
@@ -8695,36 +7925,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 
-automation-events@7.1.19
-Declared license: MIT
-
---- node_modules/automation-events/LICENSE ---
-
-MIT License
-
-Copyright (c) 2026 Christoph Guttandin
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
 axe-core@4.13.0
 Declared license: MPL-2.0
+Source: the unmodified npm package axe-core@4.13.0, from https://github.com/dequelabs/axe-core.git
 
 --- node_modules/axe-core/LICENSE ---
 
@@ -9164,6 +8367,7 @@ PERFORMANCE OF THIS SOFTWARE.
 
 bidi-js@1.1.0
 Declared license: MIT
+Source: the unmodified npm package bidi-js@1.1.0, from https://github.com/lojjic/bidi-js.git
 
 --- node_modules/bidi-js/LICENSE.txt ---
 
@@ -9193,6 +8397,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 camera-controls@3.1.2
 Declared license: MIT
+Source: the unmodified npm package camera-controls@3.1.2, from yomotsu/camera-controls
 
 --- node_modules/camera-controls/LICENSE ---
 
@@ -9219,38 +8424,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-clipper2-js@1.2.4
-Declared license: Boost Software License
-
---- https://github.com/IRobot1/clipper2-ts/blob/88652da0fe2bfb0c89da74299e477065be6f8c6a/projects/clipper2-js/LICENSE.txt ---
-
-Boost Software License - Version 1.0 - August 17th, 2003
-
-Permission is hereby granted, free of charge, to any person or organization
-obtaining a copy of the software and accompanying documentation covered by
-this license (the "Software") to use, reproduce, display, distribute,
-execute, and transmit the Software, and to prepare derivative works of the
-Software, and to permit third-parties to whom the Software is furnished to
-do so, all subject to the following:
-
-The copyright notices in the Software and this entire statement, including
-the above license grant, this restriction and the following disclaimer,
-must be included in all copies of the Software, in whole or in part, and
-all derivative works of the Software, unless such copies or derivative
-works are solely in the form of machine-executable object code generated by
-a source language processor.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
-SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
-FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
-ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-DEALINGS IN THE SOFTWARE.
-
-
 crelt@1.0.7
 Declared license: MIT
+Source: the unmodified npm package crelt@1.0.7, from https://code.haverbeke.berlin/marijn/crelt.git
 
 --- node_modules/crelt/LICENSE ---
 
@@ -9277,6 +8453,7 @@ THE SOFTWARE.
 
 cwise-compiler@1.1.3
 Declared license: MIT
+Source: the unmodified npm package cwise-compiler@1.1.3, from git://github.com/scijs/cwise-compiler.git
 
 --- node_modules/cwise-compiler/LICENSE ---
 
@@ -9306,6 +8483,7 @@ THE SOFTWARE.
 
 dequal@2.0.3
 Declared license: MIT
+Source: the unmodified npm package dequal@2.0.3, from lukeed/dequal
 
 --- node_modules/dequal/license ---
 
@@ -9334,6 +8512,7 @@ THE SOFTWARE.
 
 detect-gpu@5.0.70
 Declared license: MIT
+Source: the unmodified npm package detect-gpu@5.0.70, from https://github.com/pmndrs/detect-gpu.git
 
 --- node_modules/detect-gpu/LICENSE ---
 
@@ -9362,6 +8541,7 @@ SOFTWARE.
 
 dom-accessibility-api@0.5.16
 Declared license: MIT
+Source: the unmodified npm package dom-accessibility-api@0.5.16, from https://github.com/eps1lon/dom-accessibility-api.git
 
 --- node_modules/dom-accessibility-api/LICENSE.md ---
 
@@ -9390,6 +8570,7 @@ SOFTWARE.
 
 draco3d@1.5.7
 Declared license: Apache-2.0
+Source: the unmodified npm package draco3d@1.5.7, from https://github.com/google/draco.git
 
 --- https://github.com/google/draco/blob/8786740086a9f4d83f44aa83badfbea4dce7a1b5/LICENSE ---
 
@@ -9649,6 +8830,7 @@ For more information, please refer to <http://unlicense.org>
 
 earcut@3.2.3
 Declared license: ISC
+Source: the unmodified npm package earcut@3.2.3, from git://github.com/mapbox/earcut.git
 
 --- node_modules/earcut/LICENSE ---
 
@@ -9671,6 +8853,7 @@ THIS SOFTWARE.
 
 es-module-lexer@1.7.0
 Declared license: MIT
+Source: the unmodified npm package es-module-lexer@1.7.0, from https://github.com/guybedford/es-module-lexer.git
 
 --- node_modules/es-module-lexer/LICENSE ---
 
@@ -9688,6 +8871,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 esbuild-wasm@0.25.12
 Declared license: MIT
+Source: the unmodified npm package esbuild-wasm@0.25.12, from https://github.com/evanw/esbuild.git
 
 --- node_modules/esbuild-wasm/LICENSE.md ---
 
@@ -9716,6 +8900,7 @@ SOFTWARE.
 
 eventemitter3@5.0.4
 Declared license: MIT
+Source: the unmodified npm package eventemitter3@5.0.4, from git://github.com/primus/eventemitter3.git
 
 --- node_modules/eventemitter3/LICENSE ---
 
@@ -9742,36 +8927,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-fastnoise-lite@1.1.1
-Declared license: MIT
-
---- https://github.com/Auburn/FastNoiseLite/blob/7ccfbc16eb1c932568f177d63a9ba51d89bbe516/LICENSE ---
-
-MIT License
-
-Copyright(c) 2020 Jordan Peck (jordan.me2@gmail.com)
-Copyright(c) 2020 Contributors
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
 fflate@0.6.11
 Declared license: MIT
+Source: the unmodified npm package fflate@0.6.11, from https://github.com/101arrowz/fflate
 
 --- node_modules/three-stdlib/node_modules/fflate/LICENSE ---
 
@@ -9797,72 +8955,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-gsap@3.15.0
-Declared license: Standard 'no charge' license: https://gsap.com/standard-license.
-
---- https://github.com/greensock/GSAP/blob/13e2b790546426a1a2e0e9b409f3f8dc6d6611f2/README.md ; https://gsap.com/standard-license ---
-
-### License
-GreenSock's standard "no charge" license can be viewed at <a href="https://gsap.com/standard-license">https://gsap.com/standard-license</a>.
-
-Copyright (c) 2008-2026, GreenSock. All rights reserved.
-
-The license the statement above names, as published at https://gsap.com/standard-license
-(text extracted from that page on 2026-09-24; the page, not this copy, is authoritative):
-
-Standard "No Charge" GSAP License
-
-I. DEFINITIONS
-
-- “GSAP License” means the terms and conditions of this GSAP Software License Agreement.
-
-- "GSAP Products" means any Software made available at gsap.com or any successor sites, including but not limited to the GSAP animation library and related plugins, tools, or extensions.
-
-- "Permitted Uses" means the implementation and/or use of GSAP Products on any website, web application, or digital interface by any person or entity (which may include, for clarity, those of companies that compete with Webflow in other areas of business).
-
-- "Prohibited Uses" means any implementation and/or use of GSAP Products in tools that allow users to build visual animations without code that encourages, induces, or materially assists in creating a solution that competes with Webflow’s visual animation building capabilities.
-
-- "Competitive Products" means any software, tool, or service that enables users to create, edit, or manage animations through a visual interface or builder similar to Webflow.
-
-II. GRANT OF LICENSE
-
-Subject to the terms and conditions of this GSAP License, Webflow grants you a non-exclusive, worldwide license to use, reproduce, display, and implement GSAP Products solely for Permitted Uses.
-
-III. RESTRICTIONS
-
-You may not:
-
-- Use any GSAP Products for any Prohibited Uses without prior written consent;
-
-- Reverse engineer any GSAP Products for the purpose of creating Competitive Products;
-
-- Remove or alter any proprietary notices or branding from GSAP Products.
-
-IV. OWNERSHIP AND INTELLECTUAL PROPERTY
-
-All intellectual property rights in GSAP Products, including but not limited to copyright, patents, trademarks, and trade secrets, remain the exclusive property of Webflow. This GSAP License does not transfer any ownership rights in GSAP Products to you.
-
-V. TERMINATION
-
-Webflow may terminate this GSAP License and revoke your access in its discretion if you fail to comply with any of these terms and conditions. Upon termination, you must cease all use of GSAP Products and destroy all copies in your possession.
-
-VI. MISCELLANEOUS PROVISIONS
-
-- General: This GSAP License is incorporated into and subject to Webflow’s Terms of Service available here ("Terms of Service"). In the event of any conflict or inconsistency between this GSAP License and the Terms of Service, the terms of this GSAP License shall govern in relation to your use of any GSAP Products.
-
-- Amendments: Webflow reserves the right to update or modify this GSAP License at any time by posting the revised terms on this website, provided that any such updates or modifications shall not result in any material degradation to the security, integrity, or functionality of any GSAP Products. You understand and agree that your continued use of any GSAP Products after such revisions to this GSAP License constitutes your acceptance of this GSAP License as revised. If you do not accept the revised GSAP License, you are prohibited from using versions of the GSAP Products released after the effective date of the revised GSAP License (as well as any updates made to previous versions). Notwithstanding, you may continue using previous versions of GSAP Products under the applicable terms licensed to you prior to the effective date of the revised GSAP License (for clarity, excluding any updates made thereto).
-
-- No Waiver: Failure of Webflow to enforce any provision of this GSAP License shall not constitute a waiver of future enforcement of that or any other provision.
-
-Effective date: April 30, 2025
-
-Last modified date: May 30, 2025
-
-Copyright (©) 2025, Webflow
-
-
 hls.js@1.7.3
 Declared license: Apache-2.0
+Source: the unmodified npm package hls.js@1.7.3, from https://github.com/video-dev/hls.js
 
 --- node_modules/hls.js/LICENSE ---
 
@@ -9896,36 +8991,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-iceberg-js@0.8.1
-Declared license: MIT
-
---- node_modules/iceberg-js/LICENSE ---
-
-MIT License
-
-Copyright (c) 2025 Supabase
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
 iota-array@1.0.0
 Declared license: MIT
+Source: the unmodified npm package iota-array@1.0.0, from git://github.com/mikolalysenko/iota-array.git
 
 --- node_modules/iota-array/LICENSE ---
 
@@ -9955,6 +9023,7 @@ THE SOFTWARE.
 
 is-buffer@1.1.6
 Declared license: MIT
+Source: the unmodified npm package is-buffer@1.1.6, from git://github.com/feross/is-buffer.git
 
 --- node_modules/is-buffer/LICENSE ---
 
@@ -9983,6 +9052,7 @@ THE SOFTWARE.
 
 ismobilejs@1.1.1
 Declared license: MIT
+Source: the unmodified npm package ismobilejs@1.1.1, from https://github.com/kaimallea/isMobile.git
 
 --- node_modules/ismobilejs/LICENSE ---
 
@@ -10011,6 +9081,7 @@ SOFTWARE.
 
 its-fine@2.0.0
 Declared license: MIT
+Source: the unmodified npm package its-fine@2.0.0, from https://github.com/pmndrs/its-fine
 
 --- node_modules/its-fine/LICENSE ---
 
@@ -10037,36 +9108,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-jolt-physics@1.1.0
-Declared license: MIT
-
---- node_modules/jolt-physics/LICENSE ---
-
-MIT License
-
-Copyright (c) 2022-2024 Jorrit Rouwe
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
 jsonc-parser@3.3.1
 Declared license: MIT
+Source: the unmodified npm package jsonc-parser@3.3.1, from https://github.com/microsoft/node-jsonc-parser
 
 --- node_modules/jsonc-parser/LICENSE.md ---
 
@@ -10095,6 +9139,7 @@ SOFTWARE.
 
 ktx-parse@1.1.0
 Declared license: MIT
+Source: the unmodified npm package ktx-parse@1.1.0, from github:donmccurdy/ktx-parse
 
 --- node_modules/ktx-parse/LICENSE ---
 
@@ -10123,6 +9168,7 @@ SOFTWARE.
 
 loglayer@9.4.0
 Declared license: MIT
+Source: the unmodified npm package loglayer@9.4.0, from https://github.com/loglayer/loglayer.git
 
 --- node_modules/loglayer/LICENSE ---
 
@@ -10151,6 +9197,7 @@ SOFTWARE.
 
 lz-string@1.5.0
 Declared license: MIT
+Source: the unmodified npm package lz-string@1.5.0, from https://github.com/pieroxy/lz-string.git
 
 --- node_modules/lz-string/LICENSE ---
 
@@ -10179,6 +9226,7 @@ SOFTWARE.
 
 maath@0.10.8
 Declared license: MIT
+Source: the unmodified npm package maath@0.10.8
 
 --- https://github.com/pmndrs/maath/blob/a03a7a41941ca4423d504bb1898e2f2a3593b1b4/LICENSE ---
 
@@ -10205,36 +9253,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-maxrects-packer@2.7.3
-Declared license: MIT
-
---- node_modules/maxrects-packer/LICENSE ---
-
-MIT License
-
-Copyright (c) 2017 Shen Yiming
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
 mediabunny@1.56.2
 Declared license: MPL-2.0
+Source: the unmodified npm package mediabunny@1.56.2, from https://github.com/Vanilagy/mediabunny.git
 
 --- node_modules/mediabunny/LICENSE ---
 
@@ -10615,6 +9636,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
 meshline@3.3.1
 Declared license: MIT
+Source: the unmodified npm package meshline@3.3.1
 
 --- node_modules/meshline/LICENSE ---
 
@@ -10643,6 +9665,7 @@ SOFTWARE.
 
 meshoptimizer@1.2.0
 Declared license: MIT
+Source: the unmodified npm package meshoptimizer@1.2.0, from https://github.com/zeux/meshoptimizer
 
 --- packages/editor-game/node_modules/meshoptimizer/LICENSE.md ---
 
@@ -10671,6 +9694,7 @@ SOFTWARE.
 
 n8ao@1.10.3
 Declared license: ISC
+Source: the unmodified npm package n8ao@1.10.3, from https://github.com/N8python/n8ao.git
 
 --- node_modules/n8ao/LICENSE ---
 
@@ -10798,6 +9822,7 @@ express Statement of Purpose.
 
 nanoid@3.3.19
 Declared license: MIT
+Source: the unmodified npm package nanoid@3.3.19, from ai/nanoid
 
 --- node_modules/nanoid/LICENSE ---
 
@@ -10825,6 +9850,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ndarray-ops@1.2.2
 Declared license: MIT
+Source: the unmodified npm package ndarray-ops@1.2.2, from git://github.com/mikolalysenko/ndarray-ops.git
 
 --- node_modules/ndarray-ops/LICENSE ---
 
@@ -10854,6 +9880,7 @@ THE SOFTWARE.
 
 ndarray-pixels@5.2.0
 Declared license: MIT
+Source: the unmodified npm package ndarray-pixels@5.2.0, from github:donmccurdy/ndarray-pixels
 
 --- node_modules/ndarray-pixels/LICENSE ---
 
@@ -10882,6 +9909,7 @@ SOFTWARE.
 
 ndarray@1.1.1
 Declared license: MIT
+Source: the unmodified npm package ndarray@1.1.1, from git://github.com/mikolalysenko/ndarray.git
 
 --- node_modules/ndarray/LICENSE ---
 
@@ -10911,6 +9939,7 @@ THE SOFTWARE.
 
 parse-svg-path@0.2.0
 Declared license: MIT
+Source: the unmodified npm package parse-svg-path@0.2.0, from git://github.com/jkroso/parse-svg-path.git
 
 --- node_modules/parse-svg-path/LICENSE ---
 
@@ -10941,6 +9970,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 picocolors@1.1.1
 Declared license: ISC
+Source: the unmodified npm package picocolors@1.1.1, from alexeyraspopov/picocolors
 
 --- node_modules/picocolors/LICENSE ---
 
@@ -10963,6 +9993,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 pixi.js@8.19.0
 Declared license: MIT
+Source: the unmodified npm package pixi.js@8.19.0, from https://github.com/pixijs/pixijs.git
 
 --- node_modules/pixi.js/LICENSE ---
 
@@ -10991,6 +10022,7 @@ THE SOFTWARE.
 
 postcss@8.5.28
 Declared license: MIT
+Source: the unmodified npm package postcss@8.5.28, from postcss/postcss
 
 --- node_modules/postcss/LICENSE ---
 
@@ -11018,6 +10050,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 postprocessing@6.38.3
 Declared license: Zlib
+Source: the unmodified npm package postprocessing@6.38.3, from https://github.com/pmndrs/postprocessing.git
 
 --- node_modules/postprocessing/LICENSE.md ---
 
@@ -11044,6 +10077,7 @@ the following restrictions:
 
 pretty-format@27.5.1
 Declared license: MIT
+Source: the unmodified npm package pretty-format@27.5.1, from https://github.com/facebook/jest.git
 
 --- node_modules/pretty-format/LICENSE ---
 
@@ -11072,6 +10106,7 @@ SOFTWARE.
 
 property-graph@4.1.0
 Declared license: MIT
+Source: the unmodified npm package property-graph@4.1.0, from github:donmccurdy/property-graph
 
 --- node_modules/property-graph/LICENSE ---
 
@@ -11100,6 +10135,7 @@ SOFTWARE.
 
 quarks.core@0.16.0
 Declared license: MIT
+Source: the unmodified npm package quarks.core@0.16.0, from https://github.com/Alchemist0823/three.quarks.git
 
 --- node_modules/quarks.core/LICENSE ---
 
@@ -11126,39 +10162,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-react-data-grid@7.0.0-beta.61
-Declared license: MIT
-
---- node_modules/react-data-grid/LICENSE ---
-
-The MIT License (MIT)
-
-Original work Copyright (c) 2014 Prometheus Research
-Modified work Copyright 2015 Comcast
-
-For the original source code please see https://github.com/prometheusresearch-archive/react-grid
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
-
 react-dom@19.2.7
 Declared license: MIT
+Source: the unmodified npm package react-dom@19.2.7, from https://github.com/facebook/react.git
 
 --- node_modules/react-dom/LICENSE ---
 
@@ -11187,6 +10193,7 @@ SOFTWARE.
 
 react-is@17.0.2
 Declared license: MIT
+Source: the unmodified npm package react-is@17.0.2, from https://github.com/facebook/react.git
 
 --- node_modules/react-is/LICENSE ---
 
@@ -11215,6 +10222,7 @@ SOFTWARE.
 
 react-reconciler@0.31.0
 Declared license: MIT
+Source: the unmodified npm package react-reconciler@0.31.0, from https://github.com/facebook/react.git
 
 --- node_modules/react-reconciler/LICENSE ---
 
@@ -11243,6 +10251,7 @@ SOFTWARE.
 
 react-use-measure@2.1.7
 Declared license: MIT
+Source: the unmodified npm package react-use-measure@2.1.7, from https://github.com/pmndrs/react-use-measure
 
 --- node_modules/react-use-measure/LICENSE ---
 
@@ -11271,6 +10280,7 @@ SOFTWARE.
 
 react@19.2.7
 Declared license: MIT
+Source: the unmodified npm package react@19.2.7, from https://github.com/facebook/react.git
 
 --- node_modules/react/LICENSE ---
 
@@ -11299,6 +10309,7 @@ SOFTWARE.
 
 realism-effects@1.1.2-vgai.1
 Declared license: MIT
+Source: the unmodified npm package realism-effects@1.1.2-vgai.1, from https://github.com/0beqz/realism-effects.git
 
 --- packages/threejs-runtime/vendor/realism-effects/LICENSE.md ---
 
@@ -11327,6 +10338,7 @@ SOFTWARE.
 
 rrweb@2.1.6
 Declared license: MIT
+Source: the unmodified npm package rrweb@2.1.6, from ssh://git@github.com/rrweb-io/rrweb.git
 
 --- https://github.com/rrweb-io/rrweb/blob/5b08843faf9cb21c836613489ffd93d455f38181/LICENSE ---
 
@@ -11355,6 +10367,7 @@ SOFTWARE.
 
 scheduler@0.25.0
 Declared license: MIT
+Source: the unmodified npm package scheduler@0.25.0, from https://github.com/facebook/react.git
 
 --- node_modules/react-reconciler/node_modules/scheduler/LICENSE ---
 
@@ -11383,6 +10396,7 @@ SOFTWARE.
 
 scheduler@0.27.0
 Declared license: MIT
+Source: the unmodified npm package scheduler@0.27.0, from https://github.com/facebook/react.git
 
 --- node_modules/scheduler/LICENSE ---
 
@@ -11409,36 +10423,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-standardized-audio-context@25.3.77
-Declared license: MIT
-
---- node_modules/standardized-audio-context/LICENSE ---
-
-MIT License
-
-Copyright (c) 2024 Christoph Guttandin
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
 stats-gl@2.4.2
 Declared license: MIT
+Source: the unmodified npm package stats-gl@2.4.2, from https://github.com/RenaudRohlinger/stats-gl
 
 --- https://github.com/RenaudRohlinger/stats-gl/blob/c12b2e391d5a88616e0b30f3c7f0577966426239/README.md ---
 
@@ -11476,6 +10463,7 @@ SOFTWARE.
 
 stats.js@0.17.0
 Declared license: MIT
+Source: the unmodified npm package stats.js@0.17.0, from https://github.com/mrdoob/stats.js.git
 
 --- node_modules/stats.js/LICENSE ---
 
@@ -11504,6 +10492,7 @@ THE SOFTWARE.
 
 storybook@10.6.0
 Declared license: MIT
+Source: the unmodified npm package storybook@10.6.0, from https://github.com/storybookjs/storybook.git
 
 --- https://github.com/storybookjs/storybook/blob/a77777356be2aeaff89d7a2b25254db7b2318392/LICENSE ---
 
@@ -11530,36 +10519,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-storybook@9.1.20
-Declared license: MIT
-
---- https://github.com/storybookjs/storybook/blob/f4eff4835ee6076bddf2fa2c8af680afebfaba0e/LICENSE ---
-
-The MIT License (MIT)
-
-Copyright (c) 2024 Storybook
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
-
 style-mod@4.1.4
 Declared license: MIT
+Source: the unmodified npm package style-mod@4.1.4, from https://code.haverbeke.berlin/marijn/style-mod.git
 
 --- node_modules/style-mod/LICENSE ---
 
@@ -11586,6 +10548,7 @@ THE SOFTWARE.
 
 suspend-react@0.1.3
 Declared license: MIT
+Source: the unmodified npm package suspend-react@0.1.3, from pmndrs/suspend-react
 
 --- node_modules/suspend-react/LICENSE ---
 
@@ -11614,6 +10577,7 @@ SOFTWARE.
 
 three-bvh-csg@0.0.18
 Declared license: MIT
+Source: the unmodified npm package three-bvh-csg@0.0.18, from https://github.com/gkjohnson/three-bvh-csg.git
 
 --- node_modules/three-bvh-csg/LICENSE ---
 
@@ -11642,6 +10606,7 @@ SOFTWARE.
 
 three-mesh-bvh@0.8.3
 Declared license: MIT
+Source: the unmodified npm package three-mesh-bvh@0.8.3, from https://github.com/gkjohnson/three-mesh-bvh.git
 
 --- node_modules/@react-three/drei/node_modules/three-mesh-bvh/LICENSE ---
 
@@ -11670,6 +10635,7 @@ SOFTWARE.
 
 three-mesh-bvh@0.9.15
 Declared license: MIT
+Source: the unmodified npm package three-mesh-bvh@0.9.15, from https://github.com/gkjohnson/three-mesh-bvh.git
 
 --- node_modules/three-mesh-bvh/LICENSE ---
 
@@ -11698,6 +10664,7 @@ SOFTWARE.
 
 three-stdlib@2.36.1
 Declared license: MIT
+Source: the unmodified npm package three-stdlib@2.36.1, from https://github.com/pmndrs/three-stdlib
 
 --- node_modules/three-stdlib/LICENSE ---
 
@@ -11726,6 +10693,7 @@ SOFTWARE.
 
 three.quarks@0.16.0
 Declared license: MIT
+Source: the unmodified npm package three.quarks@0.16.0, from https://github.com/Alchemist0823/three.quarks.git
 
 --- node_modules/three.quarks/LICENSE ---
 
@@ -11754,6 +10722,7 @@ SOFTWARE.
 
 three@0.180.0
 Declared license: MIT
+Source: the unmodified npm package three@0.180.0, from https://github.com/mrdoob/three.js
 
 --- node_modules/three/LICENSE ---
 
@@ -11782,6 +10751,7 @@ THE SOFTWARE.
 
 tiny-lru@11.4.7
 Declared license: BSD-3-Clause
+Source: the unmodified npm package tiny-lru@11.4.7, from git://github.com/avoidwork/tiny-lru.git
 
 --- node_modules/tiny-lru/LICENSE ---
 
@@ -11814,36 +10784,9 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-tone@15.1.22
-Declared license: MIT
-
---- node_modules/tone/LICENSE.md ---
-
-MIT License
-
-Copyright (c) 2014-2020 Yotam Mann
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
 troika-three-text@0.52.5
 Declared license: MIT
+Source: the unmodified npm package troika-three-text@0.52.5, from https://github.com/protectwise/troika.git
 
 --- node_modules/troika-three-text/LICENSE ---
 
@@ -11873,6 +10816,7 @@ SOFTWARE.
 
 troika-three-utils@0.52.5
 Declared license: MIT
+Source: the unmodified npm package troika-three-utils@0.52.5, from https://github.com/protectwise/troika.git
 
 --- node_modules/troika-three-utils/LICENSE ---
 
@@ -11902,6 +10846,7 @@ SOFTWARE.
 
 troika-worker-utils@0.52.0
 Declared license: MIT
+Source: the unmodified npm package troika-worker-utils@0.52.0, from https://github.com/protectwise/troika.git
 
 --- node_modules/troika-worker-utils/LICENSE ---
 
@@ -11929,26 +10874,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-tslib@2.8.1
-Declared license: 0BSD
-
---- node_modules/tslib/LICENSE.txt ---
-
-Copyright (c) Microsoft Corporation.
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THIS SOFTWARE.
-
 tunnel-rat@0.1.2
 Declared license: MIT
+Source: the unmodified npm package tunnel-rat@0.1.2, from https://github.com/pmndrs/tunnel-rat.git
 
 --- node_modules/tunnel-rat/LICENSE ---
 
@@ -11977,6 +10905,7 @@ SOFTWARE.
 
 typescript@5.9.3
 Declared license: Apache-2.0
+Source: the unmodified npm package typescript@5.9.3, from https://github.com/microsoft/TypeScript.git
 
 --- node_modules/typescript/LICENSE.txt ---
 
@@ -12039,6 +10968,7 @@ END OF TERMS AND CONDITIONS
 
 uniq@1.0.1
 Declared license: MIT
+Source: the unmodified npm package uniq@1.0.1, from git://github.com/mikolalysenko/uniq.git
 
 --- node_modules/uniq/LICENSE ---
 
@@ -12068,6 +10998,7 @@ THE SOFTWARE.
 
 use-sync-external-store@1.7.0
 Declared license: MIT
+Source: the unmodified npm package use-sync-external-store@1.7.0, from https://github.com/react/react.git
 
 --- node_modules/use-sync-external-store/LICENSE ---
 
@@ -12096,6 +11027,7 @@ SOFTWARE.
 
 w3c-keyname@2.2.8
 Declared license: MIT
+Source: the unmodified npm package w3c-keyname@2.2.8, from https://github.com/marijnh/w3c-keyname.git
 
 --- node_modules/w3c-keyname/LICENSE ---
 
@@ -12122,6 +11054,7 @@ THE SOFTWARE.
 
 webgl-sdf-generator@1.1.1
 Declared license: MIT
+Source: the unmodified npm package webgl-sdf-generator@1.1.1, from https://github.com/lojjic/webgl-sdf-generator.git
 
 --- node_modules/webgl-sdf-generator/LICENSE.txt ---
 
@@ -12151,6 +11084,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ws@8.21.3
 Declared license: MIT
+Source: the unmodified npm package ws@8.21.3, from https://github.com/websockets/ws.git
 
 --- node_modules/ws/LICENSE ---
 
@@ -12178,6 +11112,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 xstate@5.33.2
 Declared license: MIT
+Source: the unmodified npm package xstate@5.33.2, from https://github.com/statelyai/xstate.git
 
 --- node_modules/xstate/LICENSE ---
 
@@ -12207,6 +11142,7 @@ SOFTWARE.
 
 zod@4.3.6
 Declared license: MIT
+Source: the unmodified npm package zod@4.3.6, from https://github.com/colinhacks/zod.git
 
 --- node_modules/zod/LICENSE ---
 
@@ -12235,6 +11171,7 @@ SOFTWARE.
 
 zustand@4.5.7
 Declared license: MIT
+Source: the unmodified npm package zustand@4.5.7, from https://github.com/pmndrs/zustand.git
 
 --- node_modules/tunnel-rat/node_modules/zustand/LICENSE ---
 
@@ -12263,6 +11200,7 @@ SOFTWARE.
 
 zustand@5.0.15
 Declared license: MIT
+Source: the unmodified npm package zustand@5.0.15, from https://github.com/pmndrs/zustand.git
 
 --- node_modules/zustand/LICENSE ---
 

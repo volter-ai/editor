@@ -49,39 +49,11 @@
     "sha256": "7613d4594ee8b6163926af3435dae61c9e3d5a27cd137bd76a543ba40002d8fc"
   },
   {
-    "name": "storybook-9",
-    "repository": "storybookjs/storybook",
-    "revision": "f4eff4835ee6076bddf2fa2c8af680afebfaba0e",
-    "path": "LICENSE",
-    "sha256": "bc90586179d44dcb313a9a289d687a2f26226303b2066bd21dbefd2378e894e5"
-  },
-  {
-    "name": "mediapipe",
-    "repository": "google-ai-edge/mediapipe",
-    "revision": "3fa8974c47cd0297c74ed6c424e0406f5054796f",
-    "path": "LICENSE",
-    "sha256": "8707eef0533987efc5b155d64761eeb6e20793f50b9bd1a68dad1cf4719d0ed8"
-  },
-  {
-    "name": "clipper2",
-    "repository": "IRobot1/clipper2-ts",
-    "revision": "88652da0fe2bfb0c89da74299e477065be6f8c6a",
-    "path": "projects/clipper2-js/LICENSE.txt",
-    "sha256": "c9bff75738922193e67fa726fa225535870d2aa1059f91452c411736284ad566"
-  },
-  {
     "name": "draco",
     "repository": "google/draco",
     "revision": "8786740086a9f4d83f44aa83badfbea4dce7a1b5",
     "path": "LICENSE",
     "sha256": "d3709b0fb4b8a94bbb1d02b8a2e484f258b0d9c5c5a01f940391f3fe662cd1a4"
-  },
-  {
-    "name": "fastnoise-lite",
-    "repository": "Auburn/FastNoiseLite",
-    "revision": "7ccfbc16eb1c932568f177d63a9ba51d89bbe516",
-    "path": "LICENSE",
-    "sha256": "c08da3239b919c12f4ec616b457a8dd0fc923c8102c8a742c4006fcb5de28fb0"
   },
   {
     "name": "maath",
@@ -96,13 +68,5 @@
     "revision": "c12b2e391d5a88616e0b30f3c7f0577966426239",
     "path": "README.md",
     "sha256": "9281bde063bbf20ea4a6a24eb893a9a10f70673ab041afc4d1167358e8f3dd2f"
-  },
-  {
-    "name": "gsap",
-    "repository": "greensock/GSAP",
-    "revision": "13e2b790546426a1a2e0e9b409f3f8dc6d6611f2",
-    "path": "README.md",
-    "url": "https://gsap.com/standard-license",
-    "sha256": "84cfb29893c735d7a583ec5630d8a7fee0d22f0efbec7e06d4013042cee24786"
   }
 ]
