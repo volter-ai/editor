@@ -10,6 +10,31 @@ The new install reports zero npm vulnerabilities. Only the
 eight packages in [release/modeling.json](release/modeling.json) are published;
 game packages remain excluded.
 
+## Game editor (branch `game-editor`)
+
+Game editing is built on the `game-editor` branch; it does not join the
+modeling release list ([release/modeling.json](release/modeling.json)).
+Source: `volter-ai/vgai-engine` at `09c2749ce`, where the product is
+`@vgai/game-editor` (`packages/game-editor`: one `product()` entry mounting
+`@vgai/dom`, `@vgai/threejs`, `@vgai/blender` and `@vgai/game`, the `game`
+workspace, `presets.mjs` for `create`, and its workbench contribution).
+
+Its workspace dependency closure, against what this repository already owns:
+
+| vgai-engine package | Here |
+| --- | --- |
+| `@vgai/editor`, `@vgai/editor-sdk`, `@vgai/project`, `@vgai/live`, `@vgai/cli` | `editor-core`, `editor-sdk`, `editor-project`, `editor-live`, `editor` |
+| `@vgai/blender`, `@vgai/blender-engine` | `editor-blender`, `blender-engine` |
+| `@vgai/threejs` | `editor-threejs` holds bounds, rendering and capture only; authoring, component verbs, story documents and the three board are not transferred |
+| `@vgai/game` (154 files), `@vgai/dom` (19) | not transferred |
+| `@vgai/game-runtime` (95), `@vgai/threejs-runtime` (72) | not transferred |
+| `@vgai/sdk` | not transferred; its required code goes to its actual owners |
+| `@vgai/game-editor` (9) | not transferred |
+
+Closed when a game project created by the installed Volter Editor opens in the
+game workspace, plays, and is edited and saved through the product's own doors,
+with the modeling release boundary (`npm run check:release`) still passing.
+
 ## Supported-editing work
 
 1. **Native undo/redo:** Code-OSS owns resource ordering and commands; Blender
