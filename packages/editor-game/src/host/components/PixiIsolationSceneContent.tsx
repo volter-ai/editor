@@ -20,7 +20,7 @@ import { installCanvasSceneNavigation } from '@volter/editor-core/authoring/reac
 import { createRootViewController } from '@volter/editor-sdk/kit/world-pan-state';
 import { capturePixiDisplayObjectThumbnail } from '@volter/editor-core/canvas-preview-frames';
 import type { DocumentPreviewCaptureRequest } from '@volter/editor-sdk/kit/document-preview-source';
-import { useEditorStore } from '@volter/editor-core/editor-runtime';
+import { useThreeEditorStore } from '@volter/editor-core/editor-runtime';
 import { authoringJournal } from '../history/json-history-resource';
 import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { getCurrentProject } from '@volter/editor-core/project-manager';
@@ -69,7 +69,7 @@ export function PixiIsolationSceneContent({
   exportName,
   isolationSetup: isolationSetupSpec,
 }: PixiIsolationSceneContentProps) {
-  const store = useEditorStore();
+  const store = useThreeEditorStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef(createRootViewController());
   const view = viewRef.current;

@@ -1,6 +1,6 @@
 import { instanceStampOf } from '@volter/editor-core/authoring/component-instance-root';
 import { setAuthoringSelection } from '@volter/editor-core/authoring/consumer-actions';
-import { useEditorStore } from '@volter/editor-core/editor-runtime';
+import { useThreeEditorStore } from '@volter/editor-core/editor-runtime';
 import type { InspectorSectionProps } from '@volter/editor-sdk/kit/inspector-section-registry';
 import type { AuthoringAdapter, EditorNode } from '@volter/editor-project/adapter';
 import {
@@ -65,7 +65,7 @@ function typeLabel(type: ConstraintMark['config']['type']): string {
 }
 
 export function ConstraintStackSection({ adapter, nodeId }: InspectorSectionProps) {
-  const store = useEditorStore();
+  const store = useThreeEditorStore();
   const object = nodeId
     ? (store.objectMap.get(nodeId) ?? objectFor(adapter, nodeId) ?? null)
     : null;

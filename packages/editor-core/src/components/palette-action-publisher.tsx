@@ -15,6 +15,7 @@
  * emits on every shell change and re-registering three dozen VS Code menu
  * items for an unchanged list would be churn the frame can see.
  */
+import { threeStateOf } from '../editor-shell-store';
 import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { buildEntityActions, buildStaticActions, type EditorAction } from '../action-registry';
 import { buildBoardOpenActions } from '../board-open-actions';
@@ -70,7 +71,7 @@ function signatureOf(actions: readonly EditorAction[]): string {
 /** Renders nothing: it publishes the action table ⌘⇧P lists. Mounted by
  *  `DefaultEditorLayout`. */
 export function PaletteActionPublisher() {
-  const store = useEditorStore();
+  const store = threeStateOf(useEditorStore());
   const history = useHistoryCommands();
   const historySnapshot = useHistoryCommandSnapshot();
   const chromeVersion = useSyncExternalStore(

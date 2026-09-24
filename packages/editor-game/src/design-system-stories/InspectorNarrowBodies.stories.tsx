@@ -40,7 +40,7 @@ import { InspectionProjectionView } from '@volter/editor-core/components/Inspect
 import { AuthoringInspectorSurface } from '@volter/editor-core/components/Inspector';
 import { deriveCapabilityCoverage } from '../host/coverage/capability-coverage';
 import { createAuthoringFixture } from '../host/design-system-stories/fixtures/authoring';
-import { StoryEditorRuntime } from '../host/design-system-stories/fixtures/editor-runtime';
+import { StoryEditorRuntime, storyThreeStore } from '../host/design-system-stories/fixtures/editor-runtime';
 import type { InspectionSection, InspectionSubject } from '@volter/editor-sdk/kit/inspection-model';
 import {
   AlignmentGrid,
@@ -329,7 +329,7 @@ export const TypedThreeGroupsColumn: Story = {
         {(runtime) => (
           <RailColumn>
             <AuthoringInspectorSurface
-              store={runtime.store}
+              store={storyThreeStore(runtime)}
               adapter={adapter}
               documentSelection={{ adapter, nodeId: 'player' }}
               presentation="column"
@@ -348,11 +348,11 @@ export const ModelAssetColumn: Story = {
   render: () => (
     <StoryEditorRuntime>
       {(runtime) => {
-        const adapter = buildModelAdapter(runtime.store);
+        const adapter = buildModelAdapter(storyThreeStore(runtime));
         return (
           <RailColumn>
             <AuthoringInspectorSurface
-              store={runtime.store}
+              store={storyThreeStore(runtime)}
               adapter={adapter}
               documentSelection={{ adapter, nodeId: adapter.documentId }}
               presentation="column"

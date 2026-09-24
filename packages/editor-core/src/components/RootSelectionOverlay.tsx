@@ -56,6 +56,7 @@
  * pure, in `world-overlay-gestures.ts`, same split as B2/B3.
  */
 
+import { threeStateOf } from '../editor-shell-store';
 import { Menu, MenuItem, ThemeRootPortal, themeVars, zIndex } from '@volter/editor-sdk/widgets';
 import type {
   AssetDropContext,
@@ -1189,7 +1190,7 @@ export function RootSelectionOverlay({
    * boards retain their Figma-style all-handles-at-once interaction. */
   transformModeAware?: boolean;
 } = {}): React.ReactNode {
-  const store = useEditorStore();
+  const store = threeStateOf(useEditorStore());
   const storeVersion = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const adapter = scopedAdapter ?? getActiveAuthoring(store);
   const pickAt = useCallback(

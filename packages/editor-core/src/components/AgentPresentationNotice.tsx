@@ -7,6 +7,7 @@
  * presentation-notice store and mirrors it into a card.
  */
 
+import { threeStateOf } from '../editor-shell-store';
 import { useEffect, useSyncExternalStore } from 'react';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { dismissNotification, notify } from '../editor-notifications';
@@ -22,7 +23,7 @@ import { presentEditorView } from '../editor-view-presentation';
 const NOTIFICATION_ID = 'agent-presented-view';
 
 export function AgentPresentationNotice() {
-  const store = useEditorStore();
+  const store = threeStateOf(useEditorStore());
   useSyncExternalStore(
     subscribeEditorPresentationNotice,
     editorPresentationNoticeVersion,

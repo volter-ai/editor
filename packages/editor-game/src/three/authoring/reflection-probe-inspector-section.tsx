@@ -1,4 +1,4 @@
-import { useEditorStore } from '@volter/editor-core/editor-runtime';
+import { useThreeEditorStore } from '@volter/editor-core/editor-runtime';
 import type { InspectorSectionProps } from '@volter/editor-sdk/kit/inspector-section-registry';
 import type { AuthoringAdapter, EditorNode } from '@volter/editor-project/adapter';
 import { type ReflectionProbeSnapshot, reflectionProbeOf } from '@volter/threejs-runtime/adapter/reflection-probe';
@@ -20,7 +20,7 @@ const STATUS_LABEL: Record<ReflectionProbeSnapshot['status'], string> = {
 const EMPTY_SNAPSHOT: ReflectionProbeSnapshot = { status: 'idle', lastCapturedAt: null };
 
 export function ReflectionProbeCaptureSection({ adapter, nodeId }: InspectorSectionProps) {
-  const store = useEditorStore();
+  const store = useThreeEditorStore();
   const object = nodeId
     ? (store.objectMap.get(nodeId) ?? adapter.hierarchy.object3D?.(nodeId))
     : null;

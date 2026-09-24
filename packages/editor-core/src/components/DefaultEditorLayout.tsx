@@ -1,3 +1,4 @@
+import { threeStateOf } from '../editor-shell-store';
 import { lazy, Suspense, use, useEffect, useSyncExternalStore } from 'react';
 import { connectAssetEvents } from '../asset-events';
 import { installAssetSelectionAutoClear } from '../asset-selection';
@@ -27,7 +28,7 @@ const ProjectAuthoringBootstrap = lazy(async () => {
 });
 
 export function DefaultEditorLayout() {
-  const store = useEditorStore();
+  const store = threeStateOf(useEditorStore());
   const history = useHistoryService();
   const historyCommands = useHistoryCommands();
   use(useEditorInit()); // suspends until project is detected

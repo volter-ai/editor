@@ -30,6 +30,7 @@
  * half of every host door, and each handle's own comment names the contribution
  * that consumes it.
  */
+import { threeStateOf } from '../editor-shell-store';
 import { loadProductNames, productDisplayName } from '@volter/editor-sdk/kit/product-command';
 import '../editor-styles.css';
 import '../authoring/instance-source-menu-register';
@@ -727,7 +728,7 @@ function NativeDocumentPortal({
 let inspectorColumn = true;
 
 function Workspace({ arrangement, immersivePlay }: WorkspaceProps) {
-  const store = useEditorStore();
+  const store = threeStateOf(useEditorStore());
   useSharedViewRestore(store);
   const inspection = useActiveInspection(store);
   useLayoutEffect(() => {

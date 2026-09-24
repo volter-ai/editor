@@ -165,7 +165,33 @@ export type ViewportAction =
       fov?: number;
     };
 
+/** Each shell store's Three half, by the shell store it belongs to (`threeStateOf`). */
+const threeStates = new WeakMap<ShellStore, EditorShellStore>();
+
+/**
+ * The Three half of a shell store: the scene, object map, camera and viewport tools that
+ * belong to it. Kit modules hand out the media-neutral `ShellStore`; Three code asks here for
+ * its own half. Today the session's store is its own Three half; once the half is a companion
+ * owned by `@volter/editor-threejs`, this returns that companion. Throws for a shell store no
+ * Three stage was made for.
+ */
+export function threeStateOf(store: ShellStore): EditorShellStore {
+  const three = threeStates.get(store);
+  if (!three) throw new Error('This shell store has no Three state: no Three stage was created for it.');
+  return three;
+}
+
+/** {@link threeStateOf} for a store that may be absent (outside a session). */
+export function optionalThreeStateOf(store: ShellStore | null): EditorShellStore | null {
+  return store === null ? null : threeStateOf(store);
+}
+
 export class EditorShellStore extends ShellStore {
+  constructor(options: { readonly followsWorkspaceFocus?: boolean } = {}) {
+    super(options);
+    threeStates.set(this, this);
+  }
+
   // --- Scene graph references (set via bindScene) ---
   protected _scene: THREE.Scene | null = null;
   /** Adoption stack (see enterPlayScene): each frame is the scene state that

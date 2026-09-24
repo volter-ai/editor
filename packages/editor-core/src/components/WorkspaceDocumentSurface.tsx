@@ -1,3 +1,4 @@
+import { threeStateOf } from '../editor-shell-store';
 import {
   stageTransformDoor,
   stageTransformsVersion,
@@ -126,7 +127,7 @@ export function WorkspaceDocumentSurface({
   // is `stageTransformDriver`'s one answer below: the wells configure the
   // editor viewport's gizmo, so they follow the GIZMO arm and never appear
   // over a stage that transforms through its own modal door.
-  const store = useEditorStore();
+  const store = threeStateOf(useEditorStore());
   useSyncExternalStore(store.subscribe, store.getShellSnapshot ?? store.getSnapshot);
   useSyncExternalStore(subscribeActiveAuthoring, activeAuthoringVersion, activeAuthoringVersion);
   useSyncExternalStore(

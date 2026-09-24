@@ -20,6 +20,7 @@
  * is never visible here.
  */
 
+import { threeStateOf } from '../editor-shell-store';
 import { faUpRightAndDownLeftFromCenter } from '@fortawesome/free-solid-svg-icons';
 import { EditorIcon, IconButton, Panel, themeVars } from '@volter/editor-sdk/widgets';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
@@ -194,7 +195,7 @@ export function AuthoringInspectorSurface({
  * same box rides over it as rides over the scene.
  */
 export function Inspector() {
-  const store = useEditorStore();
+  const store = threeStateOf(useEditorStore());
   // A camera controller may register after Play's first React commit. Keep the
   // contribution match live without making the inspection model own runtime
   // system state; availability-tick is the existing late-capability seam used
