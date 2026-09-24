@@ -90,6 +90,7 @@ import {
 } from '../workspace-document-registry';
 import { AssetEditorShell } from './AssetEditorShell';
 import { StageOverlays } from './StageOverlays';
+import type { WorldRootStageBinding } from './world-root-binding';
 import { TransportStrip } from './TransportStrip';
 
 // The stage's own keyboard actions, behind the same lazy boundary as the
@@ -171,10 +172,22 @@ export type SourceDocumentAuthoringFactory = (
   context: SourceDocumentAuthoringContext,
 ) => ToolObject3DDocumentAuthoring;
 
-/** A document owns the Object3D returned by its build callback. Its kind
- * supplies authoring behavior and chrome; this host owns renderer lifetime,
- * capture and disposal. Runtime world mounting belongs to its contributing
- * product and is not installed by the modeling host. */
+/** WHAT THE STAGE IS SHOWING. `build` is one Object3D the caller's `build()`
+ * constructs, in isolation; its kind supplies authoring behavior and chrome,
+ * and this host owns renderer lifetime, capture and disposal. `world-root` is
+ * the project's world: the contributing package's binding mounts the
+ * manifest's roots and presents the live roots Play adopts, and this host
+ * gives it the same surface place, frame session, per-stage door and
+ * overlays. A modeling host never loads a world binding. */
+export type Object3DDocumentContent =
+  | { readonly kind: 'build' }
+  | { readonly kind: 'world-root'; load(): Promise<WorldRootStageBinding> };
+
+/** Throttle for the world-root stage's clip rescan. A traverse per store
+ *  notification would run on every selection change; 500 ms is fast enough
+ *  that a streamed-in character becomes scrubbable while a person is still
+ *  looking at it. */
+const CLIP_RESCAN_INTERVAL_MS = 500;
 
 /** Module-level so its identity is stable across renders, which
  *  `useSyncExternalStore` requires; the theme root is global, so no stage's
@@ -183,7 +196,15 @@ function subscribeThemeViewportGroup(onChange: () => void): () => void {
   return subscribeNativeSelectionTheme(null, onChange);
 }
 
-export interface Object3DDocumentViewportProps extends ToolObject3DAuthoringProps {
+export interface Object3DDocumentViewportProps
+  extends Omit<ToolObject3DAuthoringProps, 'build' | 'sourcePath'> {
+  /** Required by `build` content (and by the SDK door, where both stay
+   *  mandatory); a `world-root` stage constructs nothing of its own and has no
+   *  single source file — its content is the manifest's roots. */
+  readonly build?: ToolObject3DAuthoringProps['build'];
+  readonly sourcePath?: string;
+  /** See {@link Object3DDocumentContent}. Default `{ kind: 'build' }`. */
+  readonly content?: Object3DDocumentContent;
   /** See `@volter/editor-sdk`'s `ToolObject3DAuthoringProps.audit`. */
   readonly audit?: boolean;
   /** Reuse the canonical Asset Lab viewport with NONE of the document chrome —
@@ -501,6 +522,7 @@ export function Object3DDocumentViewport({
   openingFrameBounds,
   openingFit,
   statistics,
+  content,
 }: Object3DDocumentViewportProps) {
   // ANNOUNCE THE STAGE (`authoring/object3d-document-session-registry.ts`).
   // The lazy boundary announces for the documents that go through it; the
@@ -611,9 +633,14 @@ export function Object3DDocumentViewport({
     return () => retainedObject3DStages.release(retained, generation);
   }, [documentId]);
   const retainedState = retainedRef.current;
+  // WHAT THIS STAGE SHOWS. A world root stays attached while hidden: Play
+  // adopts into it, and the play-entry flight rides its frame clock.
+  const worldRoot = content?.kind === 'world-root';
   // Only a visible pane owns an interactive attachment. Hidden documents
   // retain their state and return their renderer to the bounded pool.
-  const wantsSurface = active;
+  const wantsSurface = active || worldRoot;
+  const worldRootLoadRef = useRef(content?.kind === 'world-root' ? content.load : null);
+  worldRootLoadRef.current = content?.kind === 'world-root' ? content.load : null;
   const [surfaceAttached, setSurfaceAttached] = useState(wantsSurface);
   useEffect(() => setSurfaceAttached(wantsSurface), [wantsSurface]);
   // The selection silhouette is a LIVE prop: a modeling document turns it off
@@ -636,7 +663,7 @@ export function Object3DDocumentViewport({
     setSurfaceStatus('building');
     return () => {
       const host = documentHostRef.current;
-      if (host) {
+      if (host && !worldRoot) {
         // Inactive tabs stay open in the workspace. Their source remains
         // mounted in retained CPU state while the expensive attachment goes
         // back to the pool. A source revision or final close still disposes it.
@@ -656,7 +683,7 @@ export function Object3DDocumentViewport({
       host?.close();
       documentHostRef.current = null;
     };
-  }, [documentId, rendererLane, retainedState, surfaceAttached]);
+  }, [documentId, rendererLane, retainedState, surfaceAttached, worldRoot]);
   // Read through a ref: the one big lifetime effect below owns the canvas
   // listener, and re-running it on a new handler identity would tear the whole
   // renderer down and rebuild it.
@@ -696,6 +723,11 @@ export function Object3DDocumentViewport({
   const persistenceSessionRef = useRef<Promise<Object3DDocumentPersistenceSession> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [surfaceStatus, setSurfaceStatus] = useState<'building' | 'ready'>('building');
+  // A world root's own mount state and the binding that draws its overlays.
+  const [worldRootBinding, setWorldRootBinding] = useState<WorldRootStageBinding | null>(null);
+  const [designMountStatus, setDesignMountStatus] = useState<'mounting' | 'ready'>('mounting');
+  const [designRootIds, setDesignRootIds] = useState<readonly string[]>([]);
+  const cameraPreviewRef = useRef<HTMLDivElement | null>(null);
   const [projection, setProjection] = useState<ThreeViewportProjection>('perspective');
   // The live authoring adapter this document's inspection composes from. It
   // only exists once the graph is built, so it is state rather than a ref:
@@ -722,10 +754,103 @@ export function Object3DDocumentViewport({
   useEffect(() => {
     let cancelled = false;
     if (!surfaceAttached) return;
+    /**
+     * THE WORLD ROOT'S CONTENT BINDING. It shows the project's world rather
+     * than one constructed Object3D, so it brings its own surface, scene,
+     * composer and the presenter Play adopts through; everything else about
+     * the stage is the host's, exactly as it is for a prefab or a model.
+     */
+    const installWorldRoot = async (
+      load: () => Promise<WorldRootStageBinding>,
+    ): Promise<void> => {
+      const container = containerRef.current;
+      const canvasHost = canvasHostRef.current;
+      if (!container || !canvasHost || documentHostRef.current) return;
+      const stats = shellStatsRef.current;
+      if (!stats) {
+        // The world root IS the shell's own subject — its readout, its
+        // adoption stack, its transport. A bounded host has none of that.
+        setError('The world root needs the editor shell above it; this host has none.');
+        return;
+      }
+      const binding = await load();
+      if (cancelled || documentHostRef.current) return;
+      setWorldRootBinding(() => binding);
+      markViewportConstructStarted();
+      const host = new Object3DDocumentHost(
+        'own',
+        binding.mountWorldRootSurface(canvasHost, container, displayName),
+        // The world is the session's own subject: Play adoption, ingest, the
+        // project history and the host door's hierarchy facet all address the
+        // SESSION store, so this stage runs on it rather than a private one.
+        shellStoreForHost() ?? undefined,
+      );
+      documentHostRef.current = host;
+      host.cleanups.push(registerStageStore(documentId, host.store));
+      host.cleanups.push(registerStageTransport(documentId, host.transport));
+      const stage = binding.installWorldRootStage({
+        store: host.store,
+        documentId,
+        container,
+        canvas: host.surface.canvas,
+        renderer: host.surface.renderer,
+        stats,
+        cameraPreview: () => cameraPreviewRef.current,
+        onMountStatus: setDesignMountStatus,
+        onRootIds: setDesignRootIds,
+        runFrame: (delta) => runViewportFrame(documentId, delta),
+      });
+      host.viewport = stage.viewport;
+      host.frame = stage.frame;
+      host.content = {
+        scene: stage.scene,
+        settle: () => Promise.resolve(),
+        dispose: async () => stage.dispose(),
+      };
+      // The world's tree arrives asynchronously and keeps changing, so its
+      // clip subjects are rescanned on the store's change notification,
+      // throttled, and not while Play drives time.
+      const clipScan = scanClipSubjects(stage.scene, host.transport);
+      let lastClipScan = 0;
+      host.cleanups.push(() => clipScan.dispose());
+      host.cleanups.push(
+        host.store.subscribe(() => {
+          if (host.store.playState !== 'stopped') return;
+          const now = performance.now();
+          if (now - lastClipScan < CLIP_RESCAN_INTERVAL_MS) return;
+          lastClipScan = now;
+          clipScan.refresh();
+        }),
+      );
+      // This stage's presenter is the real one: Play adoption is a condition
+      // on the world-root binding, and a `build` stage declines every root.
+      host.cleanups.push(
+        bindViewportRig(
+          {
+            camera: stage.viewport.camera,
+            orbit: stage.viewport.orbitControls,
+            scene: stage.scene,
+          },
+          stage.present,
+          stage.setHelper,
+          { documentId },
+        ),
+      );
+      rendererSessionRef.current = host.rendererSession;
+      host.initialized = true;
+      markViewportConstructReady();
+      // The binding's own overlay reports mount progress.
+      setSurfaceStatus('ready');
+      // Always active: the play-entry flight rides this clock while the Game
+      // document holds focus; the stage skips frames by its own visibility.
+      host.rendererSession.setActive(true);
+    };
     const install = async () => {
       await documentHostRef.current?.content?.settle();
       while (liveGestureActive()) await whenLiveGestureIdle();
       if (cancelled) return;
+      const loadWorldRoot = worldRootLoadRef.current;
+      if (loadWorldRoot) return installWorldRoot(loadWorldRoot);
       const container = containerRef.current;
       const canvasHost = canvasHostRef.current;
       if (!container || !canvasHost) return;
@@ -1816,6 +1941,7 @@ export function Object3DDocumentViewport({
     surfaceAttached,
     sourceAuthoring,
     sourcePath,
+    worldRoot,
   ]);
 
   useEffect(() => {
@@ -1827,8 +1953,9 @@ export function Object3DDocumentViewport({
       firstFrameGateRef.current = false;
       markViewportRafResume(documentId);
     }
-    session.setActive(active);
-  }, [active, documentId]);
+    // A world root keeps its clock while another document holds focus.
+    session.setActive(active || worldRoot);
+  }, [active, documentId, worldRoot]);
 
   // The stage's own handle for the capabilities that drive it directly (the
   // viewport hotkeys). `surfaceStatus` is what re-renders once the stage has
@@ -1900,6 +2027,14 @@ export function Object3DDocumentViewport({
             stage={stageHandle}
             active={active}
             chrome="document"
+          />
+        ) : null}
+        {shellStore && worldRootBinding ? (
+          <worldRootBinding.Overlays
+            store={shellStore}
+            cameraPreviewRef={cameraPreviewRef}
+            mountStatus={designMountStatus}
+            rootIds={designRootIds}
           />
         ) : null}
         {/* A ROLLED-BACK operation (an animation write, a capture, a source
