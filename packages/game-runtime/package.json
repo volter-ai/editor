@@ -3,7 +3,9 @@
   "author": "Volter AI, Inc.",
   "license": "Apache-2.0",
   "version": "0.5.64",
-  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "THE GAME SHIPPED TWIN: what a shipped game carries because it is a GAME — the host game loop and phase runner, the mount and its adapter registry, input, audio, the dev instruments, data assets and their Vite plugin, the React bindings, the Pixi canvas substrate, and the R3F mount that puts a three.js world inside that host.",
   "keywords": [
     "vgai",
@@ -19,7 +21,7 @@
   "exports": {
     "./canvas-react": "./src/canvas-react/index.ts",
     "./config": {
-      "types": "./dist/config.d.ts",
+      "types": "./src/config.ts",
       "default": "./dist-config/config.js"
     },
     "./package.json": "./package.json",
@@ -37,9 +39,7 @@
   },
   "files": [
     "src",
-    "dist",
     "dist-config",
-    "headless",
     "schemas",
     "LICENSE",
     "NOTICE"
@@ -48,7 +48,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && node build-config.mjs",
+    "build": "node build-config.mjs",
     "dev": "node watch.mjs",
     "prepack": "npm run build",
     "typecheck": "tsc -p tsconfig.json"
@@ -62,22 +62,29 @@
     "loglayer": "^9.1.0",
     "pixi.js": "^8.6.0",
     "three": "^0.180.0",
-    "xstate": "^5.32.4",
     "zod": "^4.3.6"
   },
   "peerDependencies": {
     "@react-three/fiber": ">=9",
+    "@react-three/rapier": ">=2",
     "react": ">=18",
-    "react-dom": ">=18"
+    "react-dom": ">=18",
+    "vite": ">=6"
   },
   "peerDependenciesMeta": {
     "@react-three/fiber": {
+      "optional": true
+    },
+    "@react-three/rapier": {
       "optional": true
     },
     "react": {
       "optional": true
     },
     "react-dom": {
+      "optional": true
+    },
+    "vite": {
       "optional": true
     }
   },

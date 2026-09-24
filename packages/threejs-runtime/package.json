@@ -3,7 +3,9 @@
   "author": "Volter AI, Inc.",
   "license": "Apache-2.0",
   "version": "0.5.64",
-  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "THE THREE.JS SHIPPED TWIN: what a shipped game carries because its world is three.js — the renderer setup and render features, the asset loaders and asset-format descriptors, the Object3D marks the editor reads, Rapier-over-three physics, recast navigation, the three animation mixer and its xstate binding, and the scene-capture the ingest seam mounts through.",
   "keywords": [
     "vgai",
@@ -44,6 +46,7 @@
     "@volter/editor-project": "0.5.64",
     "n8ao": "^1.10.1",
     "postprocessing": "^6.38.0",
+    "quarks.core": "0.16.0",
     "recast-navigation": "^0.43.0",
     "three": "^0.180.0",
     "three.quarks": "^0.16.0",

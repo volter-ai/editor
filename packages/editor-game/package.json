@@ -3,7 +3,9 @@
   "author": "Volter AI, Inc.",
   "license": "AGPL-3.0-only",
   "version": "0.5.64",
-  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "The game side of Volter Editor: play, the game document, build, ingest, instruments over a running game, and the three.js and React/DOM authoring surfaces.",
   "type": "module",
   "repository": {
@@ -120,17 +122,35 @@
     "three-mesh-bvh": "^0.9.12",
     "three.quarks": "^0.16.0",
     "tone": "^15.1.22",
-    "troika-three-text": "^0.52.4"
+    "troika-three-text": "^0.52.4",
+    "pixi.js": "^8.6.0",
+    "es-module-lexer": "^1.7.0",
+    "postprocessing": "6.38.3",
+    "@dimforge/rapier2d-compat": "^0.14.0",
+    "@dimforge/rapier3d-compat": "^0.14.0",
+    "@pixi/react": "8.0.5",
+    "@react-three/rapier": "2.2.0",
+    "quarks.core": "0.16.0",
+    "recast-navigation": "^0.43.0",
+    "xstate": "^5.32.4",
+    "zod": "^4.3.6",
+    "@fortawesome/fontawesome-svg-core": "^7.2.0"
   },
   "peerDependencies": {
     "@sparkjsdev/spark": "^2.1.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "@playwright/test": ">=1.58"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json"
+  },
+  "peerDependenciesMeta": {
+    "@playwright/test": {
+      "optional": true
+    }
   }
 }

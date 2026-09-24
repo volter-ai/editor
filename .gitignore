@@ -7,3 +7,4 @@ dist/
 .artifacts/
 dist-node/
 dist-server/
+dist-config/

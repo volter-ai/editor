@@ -3,7 +3,7 @@ import { context } from 'esbuild';
 
 const typecheck = spawn(
   process.platform === 'win32' ? 'npx.cmd' : 'npx',
-  ['tsc', '-p', 'tsconfig.build.json', '--watch', '--preserveWatchOutput'],
+  ['tsc', '-p', 'tsconfig.json', '--watch', '--preserveWatchOutput'],
   { cwd: import.meta.dirname, stdio: 'inherit' },
 );
 

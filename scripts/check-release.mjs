@@ -1,5 +1,6 @@
-// Validate the public modeling package boundary. Corresponding source, packed
-// assets and installed acceptance remain separate release gates.
+// Validate a release's public package boundary: `node scripts/check-release.mjs
+// [list]`, default release/modeling.json. Corresponding source, packed assets
+// and installed acceptance remain separate release gates.
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -7,7 +8,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const read = path => JSON.parse(readFileSync(join(root, path), 'utf8'));
-const { packages } = read('release/modeling.json');
+const list = process.argv[2] ?? 'release/modeling.json';
+const { packages } = read(list);
 assert.equal(new Set(packages).size, packages.length, 'Duplicate release package');
 const manifests = new Map(readdirSync(join(root, 'packages')).map(folder => {
   const manifest = read(`packages/${folder}/package.json`);
@@ -36,4 +38,4 @@ for (const name of packages) {
     }
   }
 }
-console.log(`Modeling manifest boundary: ${packages.length} packages. Packed-code and release acceptance remain separate checks.`);
+console.log(`Manifest boundary of ${list}: ${packages.length} packages. Packed-code and release acceptance remain separate checks.`);
