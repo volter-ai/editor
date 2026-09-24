@@ -1,6 +1,6 @@
 # Architecture
 
-The editor is a Code-OSS distribution built per product: a media-neutral **kit**,
+Volter Editor is this whole stack. It is a Code-OSS distribution built per product: a media-neutral **kit**,
 **integrations** that each make one tool a document kind, and thin **products** that
 compose integrations for a purpose. Games stay their own code; the editor reaches them
 through adapters and contributions. The rulings this follows were made on
@@ -13,8 +13,8 @@ through adapters and contributions. The rulings this follows were made on
 | --- | --- | --- |
 | Kit | `@volter/editor-core` (host, session server, workbench tier), `@volter/editor-sdk` (the one API integrations import), `@volter/editor-project` (the project contract) | documents, views, selection, history, source writing, stories as portable CSF, the session. No tool, no product, no purpose. |
 | Integration | `@volter/editor-blender`, `@volter/editor-threejs`, `@volter/editor-react`, `@volter/editor-xstate`; a canvas lane is due | one tool made a document kind: its adapters, inspectors, instruments, looks, template fragment. No purpose. |
-| Product | `@volter/editor` (modeling), `@volter/game-editor` | purpose code only: for the game editor, Play, the transport, input gating, the game layout, ingest of foreign games, the HUD template. |
-| Shipped twin | `@volter/threejs-runtime`, `@volter/game-runtime` | what a project's own code ships with. Apache. |
+| Product | `@volter/model-editor`, `@volter/game-editor` | purpose code only: for the game editor, Play, the transport, input gating, the game layout, ingest of foreign games, the HUD template. The model editor is the Blender integration on the kit. |
+| Shipped twin | `@volter/threejs-runtime`, `@volter/game-runtime` | helpers a project's own code may call that return the library's own objects. Apache. |
 
 Rules:
 
@@ -29,6 +29,13 @@ Rules:
    `createActor`, React Three Fiber components); the editor and its adapters make it the
    engine (owner ruling, 2026-09-24). A game never calls a registration API so the editor can
    see it: what the editor needs, it observes from the served module graph or the adapter.
+   The ruling reaches the shipped runtimes: a runtime framework a game is written against
+   (mounting, physics bridges, input, world state, system adapters) is a second programming
+   model, and the adapter contract is editor-side.
+5. **The kit knows no medium.** Neither core runtime nor core and SDK contracts name Three,
+   React Three Fiber, Pixi or Blender types (owner ruling 2026-09-24: editor-core is the library
+   other editors use; Blender is one editor that uses it). `@volter/editor-threejs` owns the
+   assembled viewport; Blender and the game's Three integration extend it; core hosts views.
 
 ## Doors
 
@@ -73,30 +80,31 @@ Rules:
   byte. That is the modeling release boundary's cost (modeling depends on no game-runtime
   package), not drift.
 
-## Target map
+## The plan (owner decision, 2026-09-24)
 
-*Everything below this line is a design derived from the rulings above and the
-measurements, not yet an owner ruling.*
+The extraction deferred on 2026-09-22 proceeds. [docs/DOCUMENT-VIEW-OWNERSHIP.md](docs/DOCUMENT-VIEW-OWNERSHIP.md)
+is the specification (ownership, identity, lifecycle, the A1–A18 acceptance matrix) with
+this repository's measured corrections at its head. Units, in order:
 
-| From | To | Door that replaces the direct import |
-| --- | --- | --- |
-| `editor-game/src/react/`, `contributions/react/`, kit `ui-source/inspect.ts` (React fiber reads) | `@volter/editor-react` (its server half moved 2026-09-24) | `vgai.contributions`; a fiber-inspection door for the kit's selection overlay |
-| the `r3f-*` bindings (in `@volter/editor-react` since the React move), `editor-game/src/three/`, `contributions/three/`, kit three-viewport, Object3D document sessions, three projection | `@volter/editor-threejs` (in the modeling release already) | SDK doors for stage, selection and picking; the React Three Fiber bindings ride `@volter/editor-react`'s source-writing export |
-| kit Pixi story preview and model, spritesheets; `editor-game`'s canvas authoring | the canvas lane, inside the game product until a Pixi integration exists | a story-renderer registry keyed by medium, so the kit's CSF knows no renderer |
-| kit Play (`gameplay-*`, `play-boot-phase`, `reported-play-state`, scoped game CSS, game globals, `play-stall`, `support/play`); `editor-game`'s play, bridge, play bar, ingest, State Watch, network, navmesh, profiler, asset budget, build | `@volter/game-editor` | the product composes; the kit keeps only media-neutral lifecycle doors |
-| `src/main.ts`, `sfx.ts`'s adapter type, entry-module `systems`/`debug` | `vgai.adapter.ts` declares them; the game's modules stay plain | structural types in the adapter contract |
+1. `@volter/editor` becomes `@volter/model-editor` (package, directory, command, product id,
+   workbench).
+2. Every current reverse edge is frozen by exact importer and imported module as a baseline
+   that may only shrink, checked before each commit.
+3. **The viewport unit:** the assembled Three viewport, its SDK contracts, its callers and the
+   three-way split of `EditorShellStore` move together into `@volter/editor-threejs`; Blender's
+   defaults become `@volter/editor-blender`'s specialization; the Three-typed adapter contract
+   leaves `@volter/editor-project`; the kit's Blender server pieces (the WASM route, the verb
+   relay, tab metrics) and the injected model document leave the kit. Acceptance: the kit
+   constructs no viewport; the model editor's closure carries no game or React Three Fiber
+   code; a composition without Three carries none.
+4. Blender as the first consumer of document-owned evaluation and native views, walked on the
+   product: open, edit, save, undo, hide/reveal, capture, disposal. The game editor's Scene edit
+   and Play keep working.
+5. Games become idiomatic: the template and `arena` are written in plain libraries and the
+   runtime framework retires into the ingest-style adapter. Then the matrix's Play (A11–A13),
+   preview (A14–A17) and split-view (A1–A10) rows.
 
-**The next seam is the store.** Of `EditorShellStore`'s members integrations touch (about 45),
-one half is neutral shell state (selection, play state, the active viewport tab, dirty/save,
-project history, change notification) and the other is three.js scene state (the Object3D
-map, the scene, play-scene adoption, camera pose, framing, LOD, ECS transforms, environment).
-Splitting it into a kit shell store and an `@volter/editor-threejs` scene store is the "full
-viewport extraction" `README.md`'s release boundary defers, so it waits on that decision; the
-registries (component boards, design-time mounts, workspace restore) move to the SDK once their
-signatures can name the shell store's interface instead of the concrete class.
-
-Order: `@volter/editor-react` first, end to end, as the reference (its server half and
-contract have moved); then
-`@volter/editor-threejs`; then the product half of `@volter/editor-game`, after which that
-package no longer exists; then the code-side items. Each move ends with the package's
-kit-internal import count at zero.
+`@volter/editor-game` dissolves along the same lines: its three.js authoring into
+`@volter/editor-threejs`, its React authoring into `@volter/editor-react`, its Play, ingest and
+instruments into `@volter/game-editor`. Each move ends with the package importing no kit
+internals.

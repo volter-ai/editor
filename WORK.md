@@ -68,29 +68,28 @@ Acceptance from the archives found three defects the checkout could not show
 making the empty preset, and machine-local files a new game showed as
 changes); all three are fixed in the release.
 
-Remaining, each closed by the same live walk:
+Remaining:
 
-1. First boot logs "No default agent registered" (the Supercode chat
-   extension), and under machine load the workbench's GitHub sign-in lookups
-   time out; both are the shared workbench's, the modeling product's too.
-2. `editor.screenshot()` during Play draws the adopted scene white; the CLI
-   `screenshot` (the game's own capture) and document captures are correct.
-3. `editor.captureEditorChrome()` rasterizes a React root's text over itself
-   (measured DOM geometry is correct).
-4. State Watch shows in `arena`'s status bar but was not opened; Network
-   (needs networking), XState behaviour and navmesh are unwalked on real
-   content.
-5. The design skew (`website`): the DOM root is read-only and the Pages
-   list is empty — unfinished upstream too.
-6. `empty` opens in Game with no world; the Hierarchy reads "No authoring
-   adapter" instead of naming how to add a root.
-7. Worktree isolation runs a product `create` form no CLI supports; messages
-   suggest `deploy`, `add deploy-cloudflare` and `add pasteboard`, which the
-   catalog does not carry.
-8. The game product bundle builds in about 32 s at a 3.2 GB peak, over the
-   owner's 30-second rule; it needs a source-serving development host.
-9. 156 of `editor-game`'s modules import kit internals; `editor-threejs`
-   duplicates 19 twin files.
+1. **Workbench rebuilds.** First boot logs "No default agent registered" and, under load, the
+   workbench's GitHub sign-in lookups time out. The native Chat patches that address both are
+   in `scripts/workbench/overlay.mjs`; both products' workbenches need a rebuild carrying them
+   (the model editor's also carries its new product id) and a new pin. Closed by a first boot
+   of each rebuilt workbench with neither message.
+2. **The architecture plan** ([ARCHITECTURE.md](ARCHITECTURE.md) §The plan): the model editor
+   rename, the frozen reverse-edge baseline, the viewport unit, Blender as its first consumer,
+   then idiomatic games. `@volter/editor-game` imports kit internals from 122 files.
+3. **Animation seen from outside.** The editor's animation instruments find a game's mixer only
+   through the `_animationRuntime` mark `bindXStateAnimation` sets. A served stamp on the
+   project's own `new AnimationMixer(...)` and `useAnimations(...)` call sites replaces it
+   (in progress in `@volter/editor-threejs/serving`). Closed when a mixer made in plain game
+   code is driven by the timeline and the mark is gone.
+4. **Machine documents.** Authored edits and the live overlay are walked on `arena`; the fit on
+   first size is unobserved, and an initial arrow can enter its state from below.
+5. **The design skew** (`website`): the DOM root is read-only, the Pages list is empty, and a
+   `page` has no document editor.
+6. **Unwalked instruments:** navmesh on real content; Network needs a networking adapter.
+7. **Build time.** The game product bundle builds in 25–100 s, over the 30-second rule; it needs
+   a source-serving development host.
 
 ## Supported-editing work
 

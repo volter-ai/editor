@@ -146,9 +146,11 @@ bundling or making those dependencies optional does not establish separation.
 Actual packed files, declarations, lazy imports, generated bundles and assets
 must satisfy the boundary as well as package manifests.
 
-Three-aware core is permitted for this release. Full viewport extraction is
-deferred; this migration must not restart that refactor or duplicate Code-OSS
-workbench responsibilities.
+The kit is being made media-neutral (owner decision 2026-09-24): the assembled
+Three viewport moves to `@volter/editor-threejs`, and the kit hosts views without
+duplicating Code-OSS workbench responsibilities. The plan is in
+[ARCHITECTURE.md](ARCHITECTURE.md) and the specification in
+[docs/DOCUMENT-VIEW-OWNERSHIP.md](docs/DOCUMENT-VIEW-OWNERSHIP.md).
 
 This repository is authoritative for the released modeling product. The previous
 repositories are archived and private.

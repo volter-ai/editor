@@ -15,5 +15,6 @@ This repository is where the modeling and game editors are developed. Their
 packages began as renamed copies of the private `vgai-engine` packages; nothing
 is synced between the two, so a fix lands here.
 
-Public names and visible branding use Volter Editor. Existing project filenames
-and internal protocol identifiers remain for the first release.
+Volter Editor names this whole stack. Its products are named for their purpose:
+`@volter/model-editor` and `@volter/game-editor` (owner ruling 2026-09-24).
+[ARCHITECTURE.md](ARCHITECTURE.md) states the rows and rules every package follows.
