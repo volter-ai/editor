@@ -73,33 +73,62 @@ export function registerProjectSourceRoutes(router: EditorServerRouter, ctx: Rou
     trustedShareIdentity,
   } = ctx;
 
-  router.get('/__editor/source-conflict', async (req: Request, res: Response) => {
+  /** One project text file as the author wrote it, or `missing` when absent. */
+  async function readProjectText(
+    req: Request,
+    res: Response,
+    label: string,
+    missing: (path: string) => void,
+    found: (path: string, content: string) => void,
+  ): Promise<void> {
     const path =
       typeof req.query['path'] === 'string' ? req.query['path'].split('\\').join('/') : '';
     const absolute = resolve(ctx.projectRoot, path);
     if (!isContainedRelativePath(path) || !isPathInside(ctx.projectRoot, absolute)) {
-      res.status(400).json({ error: 'Conflict path is outside the project.' });
+      res.status(400).json({ error: `${label} path is outside the project.` });
       return;
     }
     try {
       if (trustedShareIdentity(req) && !(await isCanonicalPathInside(ctx.projectRoot, absolute))) {
-        res.status(403).json({ error: 'Shared conflict path leaves the project root.' });
+        res.status(403).json({ error: `Shared ${label.toLowerCase()} path leaves the project root.` });
         return;
       }
       const info = await stat(absolute);
       if (!info.isFile() || info.size > 2 * 1024 * 1024) {
-        res.status(413).json({ error: 'Conflict inspection is limited to 2 MiB text files.' });
+        res.status(413).json({ error: `${label} reads are limited to 2 MiB text files.` });
         return;
       }
-      res.json({ path, content: await readFile(absolute, 'utf8') });
+      found(path, await readFile(absolute, 'utf8'));
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        res.json({ path, content: null });
+        missing(path);
         return;
       }
       shareControlError(res, error);
     }
-  });
+  }
+
+  router.get('/__editor/source-conflict', (req: Request, res: Response) =>
+    readProjectText(
+      req,
+      res,
+      'Conflict',
+      (path) => res.json({ path, content: null }),
+      (path, content) => res.json({ path, content }),
+    ),
+  );
+
+  // The reading half of `save-file`: a source document shows the file as
+  // written, never the dev server's transformed module.
+  router.get('/__editor/source-file', (req: Request, res: Response) =>
+    readProjectText(
+      req,
+      res,
+      'Source',
+      () => res.status(404).json({ error: 'Not found.' }),
+      (_path, content) => res.type('text/plain').send(content),
+    ),
+  );
 
   router.post('/__editor/source-conflict/resolve', async (req: Request, res: Response) => {
     const body = (req.body ?? {}) as Record<string, unknown>;

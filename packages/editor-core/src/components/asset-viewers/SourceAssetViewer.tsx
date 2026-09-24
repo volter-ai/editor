@@ -1,5 +1,4 @@
 import { themeVars } from '@volter/editor-sdk/widgets';
-import { resolveUrl } from '@volter/editor-threejs/loader';
 import { useEffect, useState } from 'react';
 import { assetCapabilities } from '../../asset-workflow/asset-capabilities';
 import { getCurrentProject } from '../../project-manager';
@@ -99,7 +98,11 @@ function TextSourcePreview({
     async function read() {
       const request = ++revision;
       try {
-        const value = await fetch(resolveUrl(assetPath), { cache: 'no-store' }).then((response) => {
+        // The author's file as written — the project's dev server would answer
+        // a module path with its TRANSFORMED output (the globals prelude, the
+        // compiled JSX), which is not the source this document shows.
+        const url = `/__editor/source-file?path=${encodeURIComponent(path)}`;
+        const value = await fetch(url, { cache: 'no-store' }).then((response) => {
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           return response.text();
         });
