@@ -296,6 +296,14 @@ export function workspaceApplies(id: EditorWorkspaceId): boolean {
  * made the default a race. The product naming one is what settles it.
  */
 export function defaultEditorWorkspace(): EditorWorkspaceId {
+  // The workspace this checkout was left in outranks every default, once the
+  // package that contributes it has registered and the project's shape meets it.
+  if (
+    _restoredCandidate !== null &&
+    isEditorWorkspaceId(_restoredCandidate) &&
+    workspaceApplies(_restoredCandidate)
+  )
+    return _restoredCandidate;
   const declared = layoutPolicy()?.arrangement?.id ?? adapterEditorConfiguration().workspace;
   if (isEditorWorkspaceId(declared) && workspaceApplies(declared)) return declared;
   const product = activeProduct()?.workspace;
@@ -307,6 +315,15 @@ export function defaultEditorWorkspace(): EditorWorkspaceId {
 }
 
 let _workspace: EditorWorkspaceId = DEFAULT_EDITOR_WORKSPACE;
+/** The workspace this checkout's record names, while its contribution or the
+ *  project shape it needs has not arrived yet. */
+let _restoredCandidate: string | null = null;
+
+/** Offer the recorded workspace a restore could not apply yet; the provisional
+ *  default takes it as soon as it registers and applies. */
+export function offerRestoredEditorWorkspace(id: string): void {
+  _restoredCandidate = id;
+}
 /** Whether the active workspace was a FALLBACK (nothing recorded for this
  *  checkout, nothing declared by the adapter) rather than a choice — a
  *  contribution registering later may improve on a fallback, never on a
@@ -353,6 +370,7 @@ export function setEditorWorkspace(
   options: { readonly provisional?: boolean } = {},
 ): void {
   _provisional = options.provisional === true;
+  if (!_provisional) _restoredCandidate = null;
   if (_workspace === id) return;
   _workspace = id;
   for (const listener of _listeners) listener();
@@ -398,6 +416,7 @@ export function whenEditorWorkspaceApplied(): Promise<void> {
 
 export function __resetEditorWorkspaceForTest(): void {
   _workspace = DEFAULT_EDITOR_WORKSPACE;
+  _restoredCandidate = null;
   _listeners.clear();
   _appliedWaiters.clear();
 }
@@ -410,7 +429,10 @@ publishWorkspaceRegions();
 // moves to the first workspace its shape meets — one of the explicit acts the
 // module header allows, and the one that lets chrome follow declarations.
 subscribeProjectShape(() => {
-  if (!workspaceApplies(_workspace)) setEditorWorkspace(defaultEditorWorkspace());
+  // A fallback improves when the shape arrives, as it does for a late
+  // contribution; a choice moves only when the shape no longer meets it.
+  if (_provisional) setEditorWorkspace(defaultEditorWorkspace(), { provisional: true });
+  else if (!workspaceApplies(_workspace)) setEditorWorkspace(defaultEditorWorkspace());
 });
 
 // An imported layout may change its region choices without remounting.

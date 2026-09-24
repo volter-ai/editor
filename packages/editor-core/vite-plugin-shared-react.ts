@@ -73,6 +73,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { EDITOR_LANE_DIRS } from '@volter/editor-sdk/session/tool-contribution-convention';
 import type { Plugin } from 'vite';
 
@@ -140,6 +141,18 @@ export interface SharedReactManifest {
 }
 
 const VIRTUAL_PREFIX = '\0vgai-shared-react:';
+/** This package's own root — the plugin runs from source here and from
+ *  `dist/build/` in an install, so the shim is found from the root. */
+function editorCoreRoot(): string {
+  let dir = path.dirname(fileURLToPath(import.meta.url));
+  while (!existsSync(path.join(dir, 'src/jsx-dev-runtime-prod-shim.ts'))) {
+    const parent = path.dirname(dir);
+    if (parent === dir) throw new Error('The editor kit ships src/jsx-dev-runtime-prod-shim.ts; it is missing.');
+    dir = parent;
+  }
+  return dir;
+}
+const JSX_DEV_RUNTIME_SHIM = path.join(editorCoreRoot(), 'src/jsx-dev-runtime-prod-shim.ts');
 
 /**
  * The body of one entry: every export the installed package actually has, read
@@ -147,9 +160,9 @@ const VIRTUAL_PREFIX = '\0vgai-shared-react:';
  *
  * `__ns.default ?? __ns` covers both shapes this has to handle — a CommonJS
  * package (rollup's interop puts `module.exports` on `default`) and a real ES
- * module (the root Vite config aliases `react/jsx-dev-runtime` to
- * `src/jsx-dev-runtime-prod-shim.ts` for builds, because production React
- * stubs `jsxDEV` to `undefined`).
+ * module (the build publishes `react/jsx-dev-runtime` from
+ * `src/jsx-dev-runtime-prod-shim.ts`, because production React stubs `jsxDEV`
+ * to `undefined`).
  */
 export function sharedReactEntryModule(specifier: string, exportNames: readonly string[]): string {
   const named = exportNames
@@ -213,7 +226,10 @@ export function sharedReactBuildPlugin(fromDir: string): Plugin {
     load(id) {
       if (!id.startsWith(VIRTUAL_PREFIX)) return undefined;
       const specifier = id.slice(VIRTUAL_PREFIX.length);
-      return sharedReactEntryModule(specifier, installedExportNames(fromDir, specifier));
+      // Production React stubs `jsxDEV`; the dev runtime is published from the
+      // shim that spells it with the same React's `jsx`/`jsxs`.
+      const source = specifier === 'react/jsx-dev-runtime' ? JSX_DEV_RUNTIME_SHIM : specifier;
+      return sharedReactEntryModule(source, installedExportNames(fromDir, specifier));
     },
     generateBundle() {
       const files: Record<string, string> = {};

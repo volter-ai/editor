@@ -98,6 +98,7 @@ import { isWorkspacePersistenceSuppressed } from './workspace-persistence-gate';
 import {
   activeEditorWorkspace,
   defaultEditorWorkspace,
+  offerRestoredEditorWorkspace,
   type EditorWorkspaceId,
   isEditorWorkspaceId,
   setEditorWorkspace,
@@ -442,9 +443,11 @@ export function installWorkspaceStatePersistence(store: WorkspaceStateStore): ()
   ) {
     setEditorWorkspace(persisted.workspace);
   } else {
-    // Nothing recorded for THIS checkout (or a record its shape no longer
-    // meets): the project's `editor.workspace` in `vgai.adapter.ts`,
-    // else the first workspace its shape meets.
+    // Nothing recorded for THIS checkout, or a record whose contribution or
+    // shape has not arrived yet: the record stays a candidate the provisional
+    // default takes when it can; until then the project's declaration, the
+    // product's workspace, else the first workspace its shape meets.
+    if (persisted?.workspace) offerRestoredEditorWorkspace(persisted.workspace);
     setEditorWorkspace(defaultEditorWorkspace(), { provisional: true });
   }
 
