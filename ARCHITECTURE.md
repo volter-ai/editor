@@ -45,8 +45,11 @@ Rules:
   `@volter/editor-blender` is the reference integration.
 - `@volter/editor-react` (React source authoring, moved out of the kit) imports **zero** kit
   internals.
-- `@volter/editor-game` imports kit internals from **153** files (156 before the React move) (`authoring`,
-  `stories`, `components` and `editor-shell-store` lead). It is the
+- `@volter/editor-game` imports kit internals from **122** files (156 before this work). 70
+  self-contained kit modules integrations share now live in `@volter/editor-sdk/kit/*`
+  (registries, ids, types, codecs, the console, the session's HTTP clients); the kit imports
+  them from there too. What remains is the store, the composite authoring adapter, the story
+  system and the registries whose signatures name them. It is the
   three.js integration, React authoring and the game product's purpose code fused into one
   package; `@volter/editor-core` exports `./*`, so nothing stops it.
 - The kit is not media-neutral. Of its 671 modules: 78 import three.js or
@@ -74,6 +77,15 @@ measurements, not yet an owner ruling.*
 | kit Pixi story preview and model, spritesheets; `editor-game`'s canvas authoring | the canvas lane, inside the game product until a Pixi integration exists | a story-renderer registry keyed by medium, so the kit's CSF knows no renderer |
 | kit Play (`gameplay-*`, `play-boot-phase`, `reported-play-state`, scoped game CSS, game globals, `play-stall`, `support/play`); `editor-game`'s play, bridge, play bar, ingest, State Watch, network, navmesh, XState, profiler, asset budget, build | `@volter/game-editor` | the product composes; the kit keeps only media-neutral lifecycle doors |
 | `src/main.ts`, `sfx.ts`'s adapter type, entry-module `systems`/`debug` | `vgai.adapter.ts` declares them; the game's modules stay plain | structural types in the adapter contract |
+
+**The next seam is the store.** Of `EditorShellStore`'s members integrations touch (about 45),
+one half is neutral shell state (selection, play state, the active viewport tab, dirty/save,
+project history, change notification) and the other is three.js scene state (the Object3D
+map, the scene, play-scene adoption, camera pose, framing, LOD, ECS transforms, environment).
+Splitting it into a kit shell store and an `@volter/editor-threejs` scene store is the "full
+viewport extraction" `README.md`'s release boundary defers, so it waits on that decision; the
+registries (component boards, design-time mounts, workspace restore) move to the SDK once their
+signatures can name the shell store's interface instead of the concrete class.
 
 Order: `@volter/editor-react` first, end to end, as the reference (its server half and
 contract have moved); then
