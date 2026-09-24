@@ -26,6 +26,7 @@
  * which is exactly what the message says.
  */
 
+import { commandLine } from '@volter/editor-core/product-command';
 import { editorConsole } from '@volter/editor-core/editor-console';
 
 const undrawable = new WeakMap<object, string>();
@@ -58,7 +59,7 @@ export function drawSceneUnlessRefused(
         '(a vendored bundle pins its own revision), and the editor draws it with ITS three — ' +
         'across a wide enough revision gap the two disagree about the renderer/material ' +
         'contract. The game itself is unaffected and still drawing: its own canvas is what the ' +
-        'Game tab and `vgai screenshot` show, and hierarchy, selection and inspection all still ' +
+        `Game tab and ${commandLine('screenshot')} show, and hierarchy, selection and inspection all still ` +
         "read the live world. It closes when the game resolves `three` to the host's instance " +
         "— a bare, un-rewritten `import 'three'` in its own source.",
       'ingest',

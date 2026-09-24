@@ -611,7 +611,7 @@ export interface EditorState {
    * this is a REPORT and never a thing to branch on. Absent against an older
    * server that predates the field.
    */
-  product?: { id: string; dir: string; version: string } | null;
+  product?: { id: string; dir: string; version: string; command: string; displayName: string } | null;
   playState: 'stopped' | 'playing' | 'paused';
   /**
    * Issue #175 — the REAL engine `GameLoop.liveness` behind the current play

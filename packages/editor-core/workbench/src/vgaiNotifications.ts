@@ -37,6 +37,8 @@ export interface VgaiNotification {
 	readonly detail?: string;
 	readonly actions?: readonly { readonly label: string; readonly run: () => void; readonly primary?: boolean; readonly keeps?: boolean }[];
 	readonly sticky?: boolean;
+	/** The toast's "Source:" line — the served product's display name. */
+	readonly source?: string;
 }
 
 export interface VgaiNotificationsBridge {
@@ -76,7 +78,7 @@ export class VgaiNotifications extends Disposable {
 				id: `vgai.${notification.id}`,
 				severity: severityOf(notification.tone),
 				message: notification.detail ? `${notification.title} — ${notification.detail}` : notification.title,
-				source: localize('vgaiNotificationSource', "vgai"),
+				source: notification.source ?? localize('vgaiNotificationSource', "Editor"),
 				sticky: notification.sticky,
 				...(primary.length || secondary.length ? { actions: { primary, secondary } } : {}),
 			});

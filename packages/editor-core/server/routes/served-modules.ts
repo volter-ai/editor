@@ -35,6 +35,7 @@
  * THE QUERY KEY MAY NEVER BE `v` — see {@link ServedModuleAnswer.url}.
  */
 
+import { commandLine } from '../../src/product-command';
 import { PRODUCT_INSTALL_LINES } from '@volter/editor-sdk/session/product-locator';
 import type { Request, Response } from 'express';
 import type { EditorServerRouter } from '../editor-server';
@@ -94,7 +95,7 @@ export function registerServedModuleRoutes(router: EditorServerRouter, ctx: Rout
             id: FRAME_BRIDGE_MODULE_ID,
             message:
               'This session serves no module graph, so it cannot serve the editor to the Code-OSS ' +
-              'frame (no bundler behind it). `volter-editor edit` sessions — the dev checkout and the ' +
+              `frame (no bundler behind it). ${commandLine('edit')} sessions — the dev checkout and the ` +
               "project's own installed @vgai/editor — both can.",
           },
         ],
@@ -126,7 +127,7 @@ export function registerServedModuleRoutes(router: EditorServerRouter, ctx: Rout
               'This session is serving no vgai product, so there is no editor for the Code-OSS ' +
               'frame to import. A product is the running program — the editor IS ' +
               '@vgai/game-editor or @vgai/model-editor — and which one runs is what the project ' +
-              'installed. Install one and run `volter-editor edit` again:\n' +
+              `installed. Install one and run ${commandLine('edit')} again:\n` +
               `${PRODUCT_INSTALL_LINES.join('\n')}`,
           },
         ],

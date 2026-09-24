@@ -1,3 +1,4 @@
+import { commandLine } from '../src/product-command';
 /**
  * Idle self-shutdown — the editor dev server's own lifetime bound.
  *
@@ -152,7 +153,7 @@ export function createIdleShutdown(options: IdleShutdownOptions): IdleShutdown {
     stop();
     onIdle(
       `idle ${formatIdleWindow(idleMs)} — no editor tab connected and no request served ` +
-        `(${IDLE_SHUTDOWN_MINUTES_ENV}=0 disables; \`volter-editor edit\` restarts the session)`,
+        `(${IDLE_SHUTDOWN_MINUTES_ENV}=0 disables; ${commandLine('edit')} restarts the session)`,
     );
   };
 

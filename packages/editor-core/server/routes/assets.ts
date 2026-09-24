@@ -11,11 +11,10 @@
 
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
-import { WEB_BUILD_ARTIFACT } from '@volter/editor-sdk/session/build-report';
 import { isContainedRelativePath } from '@volter/editor-sdk/session/relative-path-guard';
 import type { Request, Response } from 'express';
 import type { EditorServerRouter } from '../editor-server';
-import { projectBuildArtifactPath } from '../project-build-artifact';
+import { projectBuildArtifactName, projectBuildArtifactPath } from '../project-build-artifact';
 import {
   assetListingErrorResponse,
   isCanonicalPathInside,
@@ -118,11 +117,11 @@ export function registerAssetRoutes(router: EditorServerRouter, ctx: RouteContex
       return;
     }
 
-    if (file !== WEB_BUILD_ARTIFACT) {
+    if (file !== (await projectBuildArtifactName(ctx.projectRoot))) {
       res.status(404).json({ error: 'Unknown build artifact.' });
       return;
     }
-    const absPath = projectBuildArtifactPath(ctx.projectRoot);
+    const absPath = await projectBuildArtifactPath(ctx.projectRoot);
 
     try {
       const data = await readFile(absPath);

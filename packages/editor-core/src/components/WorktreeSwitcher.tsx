@@ -1,3 +1,4 @@
+import { productCommand } from '../product-command';
 import {
   faBoxArchive,
   faCheck,
@@ -569,7 +570,7 @@ export function WorktreeSwitcher() {
                       disabled={busy !== null}
                       onClick={() => {
                         void navigator.clipboard?.writeText(
-                          `vgai isolate agent ${worktree.id} codex`,
+                          `${productCommand() ?? '<editor command>'} isolate agent ${worktree.id} codex`,
                         );
                         setNotice(
                           'Attach command copied. Authentication stays inside the container.',

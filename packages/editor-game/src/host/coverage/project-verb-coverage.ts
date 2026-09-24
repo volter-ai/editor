@@ -34,6 +34,7 @@
  * `coverage/system-adapter-coverage.ts`.
  */
 
+import { commandLine } from '@volter/editor-core/product-command';
 import {
   PROJECT_VERB_SLOTS,
   type ProjectVerbMeasurement,
@@ -111,15 +112,15 @@ function exportVerb(facts: ProjectVerbFacts): ProjectVerbMeasurement {
   );
   const wallLeg =
     refused.length > 0
-      ? `; note that the legacy \`vgai deploy\` verb additionally refuses ${refused
+      ? `; note that the legacy ${commandLine('deploy')} verb additionally refuses ${refused
           .map((root) => `root "${root.id}" (${root.identity})`)
           .join(
             ', ',
-          )} — use the project-owned deploy scripts (\`vgai add deploy-cloudflare\`/\`deploy-vercel\`, then \`npm run deploy\`)`
+          )} — use the project-owned deploy scripts (${commandLine('add deploy-cloudflare')}/\`deploy-vercel\`, then \`npm run deploy\`)`
       : '';
   const deployLeg = scripts.includes('deploy')
     ? ', and a `deploy` script to ship it'
-    : ' (no `deploy` script yet — `vgai add deploy-cloudflare`/`deploy-vercel` adds one)';
+    : ` (no \`deploy\` script yet — ${commandLine('add deploy-cloudflare')}/\`deploy-vercel\` adds one)`;
   const ingestLeg = ingestOnly(roots)
     ? '; this ingest project ships the standalone bundle produced by its own build unchanged'
     : '';

@@ -43,6 +43,7 @@
  * already handles.
  */
 
+import { commandLine } from '../../../src/product-command';
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -427,8 +428,8 @@ export function staleEvidenceBanner(
     '  invisible mesh, camera inside the geometry) are invisible to every one',
     '  of them.',
     '',
-    '  Play before claiming it works: `vgai play`, then look, and playtest',
-    '  live through `volter-editor eval`.',
+    `  Play before claiming it works: ${commandLine('play')}, then look, and playtest`,
+    `  live through ${commandLine('eval')}.`,
     '================================================================',
   ].join('\n');
 }
@@ -495,7 +496,7 @@ export function unplayedSessionBanner(
   if (tier === 'notice') {
     return (
       `unplayed for ${elapsed} — this editor session has never run the game; ` +
-      'start it now (`vgai play`) rather than at the end'
+      `start it now (${commandLine('play')}) rather than at the end`
     );
   }
   return [
@@ -511,8 +512,8 @@ export function unplayedSessionBanner(
     '  nothing — are invisible to all of them, and the longer the first play',
     '  is deferred the more work is stacked on top of an unverified base.',
     '',
-    '  Play it now: `vgai play`, then look — and direct the resident tester',
-    '  from the live session (`volter-editor eval`).',
+    `  Play it now: ${commandLine('play')}, then look — and direct the resident tester`,
+    `  from the live session (${commandLine('eval')}).`,
     '================================================================',
   ].join('\n');
 }

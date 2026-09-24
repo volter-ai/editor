@@ -13,7 +13,9 @@ import { hasManifest } from '@volter/editor-project/manifest/locate';
 import { CAPABILITY_OPTIONS, runCapabilityCommand } from './capabilities';
 import { resolveWorkbench, writeWorkbenchDeclaration } from '@volter/editor-sdk/session/workbench-locator';
 
-const PRODUCT: LaunchingProduct = { packageName: '@volter/game-editor', id: 'game-editor', displayName: 'Volter Game Editor', command: 'volter-game-editor' };
+// The command and the name a person sees are the package's own declarations
+// (`bin`, `vgai.product.displayName`), the same ones the session reads.
+const PRODUCT: LaunchingProduct = { packageName: productPackage.name, id: 'game-editor', displayName: productPackage.vgai.product.displayName, command: Object.keys(productPackage.bin)[0]! };
 
 /** `play` and `stop` are `@volter/editor-game`'s contributed session verbs
  *  (`contributions/play.command.ts`), relayed over the session's command wire. */

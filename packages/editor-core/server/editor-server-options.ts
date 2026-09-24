@@ -7,6 +7,7 @@
  * inside it so the differences can be read in one place.
  */
 
+import { commandLine } from '../src/product-command';
 import type { EditorState } from '@volter/editor-sdk/index';
 import type { CollaborationAccountSession } from './account-service';
 import type { EditorBootTimings } from './boot-timings';
@@ -180,11 +181,11 @@ export function noEditorConnectedMessage(
   const url = tabBijection?.editorUrl;
   const open = url ? `Open ${url} in a browser` : 'Open this editor in a browser tab';
   if (tabBijection?.enabled === true) {
-    return `No editor connected — this session has no browser tab attached. ${open} (or run \`volter-editor edit\` for this project, which converges on its one tab), then retry.`;
+    return `No editor connected — this session has no browser tab attached. ${open} (or run ${commandLine('edit')} for this project, which converges on its one tab), then retry.`;
   }
   return (
     'No editor connected — this session runs headless (--no-open / VGAI_NO_OPEN), so it never ' +
     `opens or maintains a browser tab, and a relayed command needs one. ${open}, or restart ` +
-    'the session with `volter-editor edit` (no --no-open), then retry.'
+    `the session with ${commandLine('edit')} (no --no-open), then retry.`
   );
 }

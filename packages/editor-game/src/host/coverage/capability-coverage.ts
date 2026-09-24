@@ -44,6 +44,7 @@
  * `ingest/mount-coverage.ts` assembles the facts from the live singletons.
  */
 
+import { commandLine } from '@volter/editor-core/product-command';
 import type {
   AuthoringProviderKey,
   SeamEvidenceVerdict,
@@ -1009,7 +1010,7 @@ function systemsRow(facts: ResolvedCoverageFacts): CapabilityCoverageRow {
     missing:
       'this game exposes no verbs and no state to drive or read it with: `game.commands()` and ' +
       '`game.providers()` enumerate nothing, so there is no `game.command(...)` to play it from ' +
-      '`vgai eval` and no `game.state(...)` for `vgai status` to see anything of what it is doing',
+      `${commandLine('eval')} and no \`game.state(...)\` for ${commandLine('status')} to see anything of what it is doing`,
     fix: CONTRACT_FIX('window.vgaiGame.systems (commands + state)'),
   };
 }
@@ -1032,9 +1033,14 @@ const SYSTEM_SLOT_COSTS: Record<SystemAdapterSlot, string> = {
     'or events to show',
   camera:
     'the selected-camera Inspector cannot report which native camera/controller is active or whether a blend is in progress',
-  debug:
-    '`game.commands()` and `game.providers()` enumerate nothing, so there is no verb to drive ' +
-    'this game with and no state read for `vgai status` to see',
+  // A getter: the product's command is known only once the page has asked
+  // for it, well after this module loaded.
+  get debug() {
+    return (
+      '`game.commands()` and `game.providers()` enumerate nothing, so there is no verb to drive ' +
+      `this game with and no state read for ${commandLine('status')} to see`
+    );
+  },
   renderDebug:
     'the Frame debugger cannot capture a frame and the Profiler has no render-memory snapshot',
 };

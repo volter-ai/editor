@@ -37,6 +37,7 @@
   "vgai": {
     "product": {
       "entry": "./src/index.ts",
+      "displayName": "Volter Game Editor",
       "colorTheme": "dark"
     }
   },

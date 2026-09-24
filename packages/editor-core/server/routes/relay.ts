@@ -12,6 +12,7 @@
  * the control plane, which is the point.
  */
 
+import { commandLine } from '../../src/product-command';
 import { randomUUID } from 'node:crypto';
 import { createReadStream, existsSync } from 'node:fs';
 import { appendFile, mkdir, readFile, rm, stat, unlink, writeFile } from 'node:fs/promises';
@@ -1050,7 +1051,7 @@ export function registerRelayRoutes(
     if (acked === null) {
       res.status(404).json({
         ok: false,
-        error: `No unresolved console entry with id "${id}". Run \`volter-editor status\` for the current set.`,
+        error: `No unresolved console entry with id "${id}". Run ${commandLine('status')} for the current set.`,
       });
       return;
     }

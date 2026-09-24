@@ -24,6 +24,7 @@
  * serves them.
  */
 
+import { commandLine } from '@volter/editor-core/product-command';
 import type { ImportSpecifier as EsModuleImport } from 'es-module-lexer';
 import { init as esModuleLexerInit, parse as parseEsModule } from 'es-module-lexer';
 import * as esbuild from 'esbuild-wasm';
@@ -210,7 +211,7 @@ function unregisteredRuntimeModules(specifiers: readonly string[]): Error {
     `${list} ${verb} not in the browser editor's dependency list, so this project cannot run ` +
       'here. The browser editor bundles project source itself and resolves every package ' +
       'import to a dependency it ships; a package outside that list needs a dev server. Open ' +
-      'the project locally with `vgai edit` (which resolves the project’s own node_modules), ' +
+      `the project locally with ${commandLine('edit')} (which resolves the project’s own node_modules), ` +
       'or add the package to a capability so it joins the list ' +
       '(packages/editor/src/served-bundle-runtime-modules.ts, gated by ' +
       '`npm run validate-browser-runtime-modules`).',

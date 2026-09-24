@@ -6,6 +6,7 @@
  * `@editor/*` alias until those modules move too. Nothing here is host API.
  */
 
+import { commandLine } from '@volter/editor-core/product-command';
 import {
   type CaptureFlatness,
   CaptureLayerError,
@@ -130,7 +131,7 @@ function screenshotRecordingNotice(): GameCaptureRecordingNote | null {
       'A still cannot answer a question about a moving game (did the jump land, did the shot',
       'register). If that is the question, read the clip:',
       '',
-      `  recording: ${live.path}${live.rotates ? '   (the next `volter-game-editor play` replaces this file)' : '   (named — never rotated)'}`,
+      `  recording: ${live.path}${live.rotates ? `   (the next ${commandLine('play')} replaces this file)` : '   (named — never rotated)'}`,
       ...(live.format === 'canvas-dom'
         ? [
             `  HUD replay: ${live.replayPath}`,
@@ -145,7 +146,7 @@ function screenshotRecordingNotice(): GameCaptureRecordingNote | null {
       'seconds around the moment. One frame, or ten frames spread across the run, is the same',
       'guess a single screenshot was.',
       '',
-      'The clip is finalized and readable when play stops — `volter-game-editor stop`, or the idle',
+      `The clip is finalized and readable when play stops — ${commandLine('stop')}, or the idle`,
       `auto-stop after ${Math.round(live.idleAutoStopMs / 1000)}s with no session command and no player input.`,
     ].join('\n'),
   };

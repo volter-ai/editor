@@ -1,3 +1,4 @@
+import { commandLine, productCommand } from '../src/product-command';
 import { execFile, execFileSync } from 'node:child_process';
 import { existsSync, realpathSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
@@ -113,7 +114,7 @@ export function vgaiCliLaunchCommand(input: {
     };
   }
   throw new Error(
-    'This editor was not launched by volter-editor and cannot manage another worktree. Restart it with `volter-editor edit`.',
+    `This editor was not launched by ${productCommand() ?? "the editor's command"} and cannot manage another worktree. Restart it with ${commandLine('edit')}.`,
   );
 }
 

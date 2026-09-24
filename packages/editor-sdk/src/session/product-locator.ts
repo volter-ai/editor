@@ -76,6 +76,14 @@ export interface ProductIdentity {
   readonly name: string;
   /** Its version, reported beside the workbench by `vgai status`. */
   readonly version: string;
+  /**
+   * The command a person types to run it — the ONE key of its package.json
+   * `bin` (`volter-game-editor`). Every message the kit writes about a verb
+   * names this, because the kit itself has no command of its own.
+   */
+  readonly command: string;
+  /** The name a person sees — `vgai.product.displayName` (`Volter Game Editor`). */
+  readonly displayName: string;
   /** Its package root, absolute. */
   readonly dir: string;
   /**
@@ -130,7 +138,8 @@ interface ProductManifestShape {
   private?: unknown;
   name?: unknown;
   version?: unknown;
-  vgai?: { product?: { entry?: unknown; colorTheme?: unknown; workbench?: unknown } };
+  bin?: unknown;
+  vgai?: { product?: { entry?: unknown; colorTheme?: unknown; workbench?: unknown; displayName?: unknown } };
 }
 
 const PRODUCT_COLOR_THEMES: readonly ProductColorTheme[] = ['dark', 'light'];
@@ -177,9 +186,27 @@ export function readProductManifest(packageDir: string): ProductIdentity | null 
         ).join(' or ')} — which way round this product paints, read before any of its code ` +
         "runs so the workbench's first frame is already the product's own background.",
     );
+  // REQUIRED, for the same reason as `entry`: the kit names verbs in every
+  // message it writes, and there is no command to name but the product's own.
+  const bin = manifest.bin;
+  const commands = bin !== null && typeof bin === 'object' ? Object.keys(bin) : [];
+  if (commands.length !== 1)
+    throw new Error(
+      `${manifestPath} declares ${PRODUCT_DECLARATION_KEY} but its "bin" names ` +
+        `${commands.length === 0 ? 'no command' : `${commands.length} commands`}. A product has ` +
+        'exactly one command — the one every session message tells a person to run.',
+    );
+  const displayName = declared.displayName;
+  if (typeof displayName !== 'string' || displayName.trim() === '')
+    throw new Error(
+      `${manifestPath} declares ${PRODUCT_DECLARATION_KEY} but its "displayName" is ` +
+        `${JSON.stringify(displayName)}. It must be the name a person sees (e.g. "Volter Editor").`,
+    );
   return {
     name: typeof manifest.name === 'string' ? manifest.name : packageDir,
     version: typeof manifest.version === 'string' ? manifest.version : 'unknown',
+    command: commands[0]!,
+    displayName,
     dir: packageDir,
     entry,
     colorTheme: colorTheme as ProductColorTheme,

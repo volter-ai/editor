@@ -23,6 +23,7 @@
  * is readable.
  */
 
+import { commandLine } from '../product-command';
 import { editorDocumentTitle } from '@volter/editor-sdk/session/editor-brand';
 import {
   ProjectCompatibilityError,
@@ -358,8 +359,8 @@ export function AppRoot() {
         <StartupErrorScreen
           error={{
             message:
-              'This window has no vgai project open. A session serves one project: open a folder ' +
-              'that carries a vgai.project.json, or start one from a terminal — `volter-editor edit <folder>`.',
+              'This window has no project open. A session serves one project: open a folder ' +
+              `that carries a vgai.project.json, or start one from a terminal — ${commandLine('edit <folder>')}.`,
           }}
           onRetry={() => setDetectionAttempt((attempt) => attempt + 1)}
         />

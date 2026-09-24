@@ -3,7 +3,10 @@
  * editor server's existing export SSE response; it is not persisted as a
  * project document or sidecar. Paths are relative to the project's `dist/`.
  */
-export const WEB_BUILD_ARTIFACT = 'vgai-web.zip';
+/** The web build's download name: `<project-slug>-web.zip`. */
+export function webBuildArtifactName(projectSlug: string): string {
+  return `${projectSlug}-web.zip`;
+}
 
 export interface BuildReportFile {
   readonly path: string;

@@ -176,9 +176,12 @@ export function registerProjectIdentityRoutes(router: EditorServerRouter, ctx: R
     // can serve one and not the other, and the client must not infer either
     // from the other.
     const ingestSourceWrite = options.ingestSourceWriteRoutes === true;
+    // Which product this port serves — its command and display name are what
+    // the page's messages name (`src/product-command.ts`). On every branch.
+    const product = options.product?.() ?? null;
     if (ctx.projectRoot === engineRoot) {
       // No project open
-      res.json({ project: null, session, engine, sourceWrite, ingestSourceWrite });
+      res.json({ project: null, session, engine, sourceWrite, ingestSourceWrite, product });
       return;
     }
     const configResult = await readProjectViewResult(ctx.projectRoot);
@@ -196,6 +199,7 @@ export function registerProjectIdentityRoutes(router: EditorServerRouter, ctx: R
         engine,
         sourceWrite,
         ingestSourceWrite,
+        product,
       });
       return;
     }
@@ -230,6 +234,7 @@ export function registerProjectIdentityRoutes(router: EditorServerRouter, ctx: R
       engine,
       sourceWrite,
       ingestSourceWrite,
+      product,
     });
   });
 

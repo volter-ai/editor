@@ -1,3 +1,4 @@
+import { commandLine } from './product-command';
 /**
  * THE PAGE'S OWN DEATH CERTIFICATE — one latch, read by everything that would
  * otherwise let a dead page keep impersonating a live editor.
@@ -114,7 +115,7 @@ export function sessionEndedRefusal(
   return (
     `refused "${commandType}": this editor page is a TOMBSTONE — ${what}. ` +
     'Nothing it reports is live state and nothing it does is saved. ' +
-    'Run `volter-editor edit <project>` to open the session again; that reuses the live ' +
+    `Run ${commandLine('edit <project>')} to open the session again; that reuses the live ` +
     'server and its one tab.'
   );
 }

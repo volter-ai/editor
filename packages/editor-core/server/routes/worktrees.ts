@@ -8,6 +8,7 @@
  * participants never reach it.
  */
 
+import { productCommand } from '../../src/product-command';
 import { execFile, execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import type { Request, Response } from 'express';
@@ -460,7 +461,7 @@ export function registerWorktreeRoutes(router: EditorServerRouter, ctx: RouteCon
           isolated,
           task,
           requiresAuthentication: true,
-          command: `vgai isolate agent ${isolated.id} ${harness}`,
+          command: `${productCommand() ?? '<editor command>'} isolate agent ${isolated.id} ${harness}`,
           message:
             'The credential-empty container is ready. Attach the harness and authenticate inside its temporary home, then send the task shown here.',
         });

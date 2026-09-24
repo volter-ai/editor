@@ -30,6 +30,7 @@
  * pillars-only policy.
  */
 
+import { commandLine } from './product-command';
 import { ProjectCompatibilityError } from '@volter/editor-sdk/session/editor-compatibility';
 
 /** The minimum a recents entry must carry for routing. The real
@@ -358,7 +359,7 @@ export function assertNoRemovedBootParams(search: string): void {
         'docs/ARCHITECTURE-CORE.md §Vocabulary "how content opens"). The local editor server ' +
         'holds which project is open as server-side state, which is why this URL is bare and a ' +
         'refresh reopens the same project — like a VS Code window.\n' +
-        'Fix: open the project THROUGH the session — run `volter-editor edit <path>`, or use the ' +
+        `Fix: open the project THROUGH the session — run ${commandLine('edit <path>')}, or use the ` +
         "editor's own project browser; both re-root this server via POST /__editor/open-project. " +
         'There is no surface where the URL names the project instead.',
     );
@@ -372,7 +373,7 @@ export function assertNoRemovedBootParams(search: string): void {
         'project. A param naming the MECHANISM rather than the thing being opened is what the ' +
         'legacy-removal doctrine forbids (docs/ARCHITECTURE-CORE.md §Vocabulary "how content ' +
         'opens").\n' +
-        `Fix: open the game folder through the SESSION — \`volter-editor edit <path-to-the-game-folder>\`, ` +
+        `Fix: open the game folder through the SESSION — ${commandLine('edit <path-to-the-game-folder>')}, ` +
         "or the New Project screen's IMPORTED group, which re-roots this server via " +
         'POST /__editor/open-project at that folder; the manifest ingest route then mounts it.',
     );
@@ -384,7 +385,7 @@ export function assertNoRemovedBootParams(search: string): void {
       `Editor boot: \`?scene=${scene}\` — the flat scene pool it names was REMOVED, and so ` +
         'was the redirect that rewrote these links (the legacy-removal ' +
         'doctrine, docs/ARCHITECTURE-CORE.md §Vocabulary).\n' +
-        'Fix: open the project through the session (`volter-editor edit <path>`) and open the document ' +
+        `Fix: open the project through the session (${commandLine('edit <path>')}) and open the document ` +
         'inside it.',
     );
   }

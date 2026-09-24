@@ -11,7 +11,9 @@ import { control } from '@volter/editor-core/server/launcher/control';
 import { listRecentProjects, listSessions, openProject, screenshot, showProject, SCREENSHOT_OPTIONS, SCREENSHOT_USAGE } from '@volter/editor-core/server/launcher/session-verbs';
 import { resolveWorkbench, writeWorkbenchDeclaration } from '@volter/editor-sdk/session/workbench-locator';
 
-const PRODUCT: LaunchingProduct = { packageName: '@volter/editor', id: 'editor', displayName: 'Volter Editor', command: 'volter-editor' };
+// The command and the name a person sees are the package's own declarations
+// (`bin`, `vgai.product.displayName`), the same ones the session reads.
+const PRODUCT: LaunchingProduct = { packageName: productPackage.name, id: 'editor', displayName: productPackage.vgai.product.displayName, command: Object.keys(productPackage.bin)[0]! };
 
 try {
   const { values, positionals } = parseArgs({ allowPositionals: true, options: {

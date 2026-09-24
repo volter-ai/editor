@@ -1,3 +1,4 @@
+import { commandLine } from '../src/product-command';
 /**
  * THE ANSWER A STUCK PLAY OWES ITS CALLER.
  *
@@ -100,7 +101,7 @@ export function playStallDiagnosis(args: {
         `${base} The last announced unfinished work is "${phase.phase}" ` +
         `(reported ${(ageMs / 1000).toFixed(1)}s ago). This is an operation label, not a stack trace ` +
         'or proof of the cause. The heartbeat runs separately from the page. ' +
-        '`volter-editor status` and the session journal carry the same observation.',
+        `${commandLine('status')} and the session journal carry the same observation.`,
     };
   }
 

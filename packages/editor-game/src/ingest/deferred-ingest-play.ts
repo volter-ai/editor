@@ -30,6 +30,7 @@
  * ingest keeps its own lifecycle).
  */
 
+import { commandLine } from '@volter/editor-core/product-command';
 import { queueEditModeRebuild } from '@volter/editor-core/authoring/edit-mode-authoring';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { fetchGameManifest } from '@volter/editor-core/manifest-project';
@@ -178,7 +179,7 @@ export async function mountDeferredIngestForPlay(store: EditorShellStore): Promi
     // than leaving the caller to infer it from a quiet return.
     throw new Error(
       "Play could not start: this project's ingest root failed to mount — see the mount " +
-        'failure reported above (and in `vgai status`).',
+        `failure reported above (and in ${commandLine('status')}).`,
     );
   }
   beginDeferredIngestPlaySession();

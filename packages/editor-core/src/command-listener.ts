@@ -1,3 +1,4 @@
+import { commandLine } from './product-command';
 import { isGameplayExportActive } from './gameplay-export-state';
 
 /**
@@ -2117,7 +2118,7 @@ export async function handleCommand(
             '(no renderer/scene/camera). A canvas-surface world (a first-party canvas root, or a ' +
             'PixiJS/Phaser/Babylon ingest) never binds it — it draws on its own canvas in the Game ' +
             'document. Capture that through `capture-active-document` (`editor.captureActiveDocument()`) ' +
-            'or the running game through `bridge-screenshot` (`vgai screenshot`).',
+            `or the running game through \`bridge-screenshot\` (${commandLine('screenshot')}).`,
         };
       }
       const comma = dataUrl.indexOf(',');

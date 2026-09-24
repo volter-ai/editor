@@ -1,3 +1,4 @@
+import { commandLine } from '@volter/editor-core/product-command';
 /**
  * THE MODULE LANE of `vgai eval` — reach the RUNNING mount's own module
  * instances, by served path, using URLs retained by their owning realm.
@@ -155,7 +156,7 @@ export async function importGameModule(
   const clean = normalizeGameModulePath(path);
   const id = instanceId ?? focusedInstanceProvider?.();
   if (!id) {
-    throw new Error('modules(): no play instance is mounted — enter Play first (`vgai play`).');
+    throw new Error(`modules(): no play instance is mounted — enter Play first (${commandLine('play')}).`);
   }
   // Resolve the served base from what the browser ACTUALLY LOADED for this
   // mount, never from a rebuilt path: Vite rewrites a mount's imports to its

@@ -265,6 +265,7 @@ import {
   resolveInstalledPackageSrcDir,
 } from './server-utils';
 import { resolveProductForProject, sessionProduct } from './session-product';
+import { setProductNames } from '../src/product-command';
 import { registerSession, unregisterSession } from './session-registry';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -293,7 +294,7 @@ const EDITOR_ORIGIN = editorOrigin(PORT, HOST);
 if (!process.env['VGAI_PROJECT']) {
   console.error(
     '\n  \x1b[31mVGAI_PROJECT is required — the packaged editor has no monorepo checkout to fall ' +
-      'back to. Set VGAI_PROJECT=<absolute path to your vgai project>.\x1b[0m\n',
+      'back to. Set VGAI_PROJECT=<absolute path to your project>.\x1b[0m\n',
   );
   process.exit(1);
 }
@@ -327,6 +328,8 @@ if (resolvedProduct === null) {
 // Re-bound with the non-null type rather than leaning on the narrowing above:
 // every reader below is inside a closure, and a narrowing is not a type.
 const sessionProductIdentity: ProductIdentity = resolvedProduct;
+// Every message this server writes about a verb names the product's command.
+setProductNames(sessionProductIdentity);
 const distPath = path.join(sessionProductIdentity.dir, 'dist');
 
 // WHAT THIS SESSION WAS TOLD TO FRAME — the workbench directory `vgai edit`
@@ -989,6 +992,8 @@ async function main(): Promise<void> {
       id: sessionProductIdentity.name,
       dir: sessionProductIdentity.dir,
       version: sessionProductIdentity.version,
+      command: sessionProductIdentity.command,
+      displayName: sessionProductIdentity.displayName,
     }),
     loadProjectModule: freshProjectModuleLoader(vite, () => projectPath),
     // Same contract as dev.ts: a dependency installed under a live session

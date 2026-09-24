@@ -44,6 +44,7 @@
  * wires this to sockets, the opener and a tick lives in `tab-lifecycle.ts`.
  */
 
+import { commandLine } from '../src/product-command';
 import type { SessionJournalEvent } from './support/project/session-journal';
 import type { TabCensus } from '@volter/editor-sdk/project/tab-census';
 
@@ -1470,7 +1471,7 @@ export function tabAbsenceMessage(state: TabPresenceState, now: number): string 
   const absentMs = state.absentSince === null ? 0 : now - state.absentSince;
   return (
     `No tab has been present for ${(absentMs / 1000).toFixed(1)}s` +
-    ` (nothing reopens it: run \`volter-editor edit\` to open one)`
+    ` (nothing reopens it: run ${commandLine('edit')} to open one)`
   );
 }
 
@@ -1488,8 +1489,8 @@ export function tabUnresponsiveMessage(tab: TabRecord, now: number): string {
         `command sent there queues with nothing to run it`;
   return (
     `The one tab present is ${beat} but its PAGE ${stuck}. The tab is open and its ` +
-    `document is not running. Reload it, or re-run \`volter-editor edit\` (which reuses this session ` +
-    `and opens a fresh tab). \`volter-editor status\` prints any page errors that tab reported.`
+    `document is not running. Reload it, or re-run ${commandLine('edit')} (which reuses this session ` +
+    `and opens a fresh tab). ${commandLine('status')} prints any page errors that tab reported.`
   );
 }
 

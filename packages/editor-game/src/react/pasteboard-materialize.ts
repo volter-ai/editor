@@ -27,6 +27,7 @@
  * in `scripts/validate-editor-closure.mjs`).
  */
 
+import { commandLine } from '@volter/editor-core/product-command';
 import { listProjectComponents } from '@volter/editor-core/api/assets';
 import type { ProjectComponentEntry } from '@volter/editor-core/asset-workflow/project-content';
 import { reactStoryBoardFramePlacements } from '@volter/editor-core/authoring/react-story-board';
@@ -69,7 +70,7 @@ export async function materializePasteboard(): Promise<string> {
   if (!helpers.ok) {
     throw new Error(
       `Materialize pasteboard needs the pasteboard helpers at ${PASTEBOARD_HELPERS_PATH} — ` +
-        'run `vgai add pasteboard` first.',
+        `run ${commandLine('add pasteboard')} first.`,
     );
   }
   const layer = document.querySelector<HTMLElement>('[data-vgai-react-story-board="true"]');

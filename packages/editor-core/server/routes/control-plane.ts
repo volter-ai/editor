@@ -22,6 +22,7 @@
  * here, so the two transports cannot answer differently.
  */
 
+import { commandLine } from '../../src/product-command';
 import { randomUUID } from 'node:crypto';
 import type { Server as HttpServer } from 'node:http';
 import {
@@ -235,7 +236,7 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
         message:
           'This editor page is not reporting its console. Its errors and warnings reach the ' +
           "page's own console and the editor's bottom-bar counter and STOP THERE, so an empty " +
-          '`volter-editor console` says nothing about this session. The host that booted this page must ' +
+          `${commandLine('console')} says nothing about this session. The host that booted this page must ` +
           'call `installEditorConsoleReporting()` (src/console-sync.ts), never ' +
           '`installEditorConsoleCapture()` alone.',
         loadId: clientId,

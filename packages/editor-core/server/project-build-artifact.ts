@@ -6,11 +6,11 @@
 
 import type { Dirent } from 'node:fs';
 import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
-import { dirname, join, relative, resolve, sep } from 'node:path';
+import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import {
   type BuildReport,
   type BuildReportFile,
-  WEB_BUILD_ARTIFACT,
+  webBuildArtifactName,
 } from '@volter/editor-sdk/session/build-report';
 import { zipSync } from 'fflate';
 import { resolveManifestPath } from '@volter/editor-project/manifest/locate';
@@ -54,9 +54,27 @@ async function collectFiles(root: string, directory = root): Promise<OutputFile[
   return files;
 }
 
+/** The project's slug: its manifest `name` (else its folder), lower-case,
+ *  runs of anything but letters and digits collapsed to one dash. */
+async function projectSlug(projectRoot: string): Promise<string> {
+  let name = basename(projectRoot);
+  try {
+    const manifest = JSON.parse(await readFile(resolveManifestPath(projectRoot), 'utf8')) as { name?: unknown };
+    if (typeof manifest.name === 'string' && manifest.name.trim() !== '') name = manifest.name;
+  } catch {
+    // An unreadable manifest fails the build itself; the folder names it here.
+  }
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'project';
+}
+
+/** The web build's file name — `<project-slug>-web.zip`. */
+export async function projectBuildArtifactName(projectRoot: string): Promise<string> {
+  return webBuildArtifactName(await projectSlug(projectRoot));
+}
+
 /** The ignored, machine-local artifact used by the editor's Download action. */
-export function projectBuildArtifactPath(projectRoot: string): string {
-  return resolve(projectRoot, '.vgai', 'tmp', 'build', WEB_BUILD_ARTIFACT);
+export async function projectBuildArtifactPath(projectRoot: string): Promise<string> {
+  return resolve(projectRoot, '.vgai', 'tmp', 'build', await projectBuildArtifactName(projectRoot));
 }
 
 export async function packageProjectWebBuild(projectRoot: string): Promise<BuildReport> {
@@ -75,7 +93,8 @@ export async function packageProjectWebBuild(projectRoot: string): Promise<Build
   archive['vgai.project.json'] = await readFile(resolveManifestPath(projectRoot));
 
   const bytes = zipSync(archive, { level: 6 });
-  const artifactPath = projectBuildArtifactPath(projectRoot);
+  const artifact = await projectBuildArtifactName(projectRoot);
+  const artifactPath = resolve(projectRoot, '.vgai', 'tmp', 'build', artifact);
   await mkdir(dirname(artifactPath), { recursive: true });
   await writeFile(artifactPath, bytes);
 
@@ -86,7 +105,7 @@ export async function packageProjectWebBuild(projectRoot: string): Promise<Build
     .slice(0, 12);
 
   return {
-    artifact: WEB_BUILD_ARTIFACT,
+    artifact,
     artifactBytes: bytes.byteLength,
     outputBytes,
     fileCount: files.length,

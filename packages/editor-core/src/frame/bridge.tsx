@@ -30,6 +30,7 @@
  * half of every host door, and each handle's own comment names the contribution
  * that consumes it.
  */
+import { loadProductNames, productDisplayName } from '../product-command';
 import '../editor-styles.css';
 import '../authoring/instance-source-menu-register';
 import { activeProduct } from '../active-product';
@@ -917,7 +918,7 @@ export interface VgaiViewsHandle {
  * `VgaiNotificationsBridge`.
  */
 export interface VgaiNotificationsHandle {
-  setDelegate(show: ((notification: EditorNotification) => () => void) | null): void;
+  setDelegate(show: ((notification: EditorNotification & { readonly source: string }) => () => void) | null): void;
 }
 
 /**
@@ -989,6 +990,10 @@ export async function mountEditor(next: VscodeParts): Promise<{
   offerPart(id: keyof VscodeParts, element: HTMLElement | null): void;
 }> {
   parts = next;
+  // Which product this page belongs to — the command its messages name
+  // (`product-command.ts`). Asked first; messages built before it lands say
+  // "the editor's command" rather than guess.
+  void loadProductNames();
   // The parts the mount was handed get the same stamp a re-offered one gets
   // ({@link stampPart}) — one rule, both arrival paths.
   for (const [id, element] of Object.entries(next)) {
@@ -1276,7 +1281,12 @@ export async function mountEditor(next: VscodeParts): Promise<{
     // `ServicesAccessor` is valid only for a command's synchronous part.
     // Anything `notify()`-ed in that window is queued and shown on arrival
     // (`editor-notifications.ts`).
-    setDelegate: (show) => setNotificationDelegate(show ? { show } : null),
+    // `source` is the toast's "Source:" line — the product's display name
+    // (`product-command.ts`), never a kit name.
+    setDelegate: (show) =>
+      setNotificationDelegate(
+        show ? { show: (notification) => show({ ...notification, source: productDisplayName() }) } : null,
+      ),
   };
   const views: VgaiViewsHandle = {
     list: () =>

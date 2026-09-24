@@ -12,6 +12,7 @@
  * whose verdict is `'present'`.
  */
 
+import { commandLine } from '@volter/editor-core/product-command';
 import type { ComponentBoard, ComponentBoardContext } from '@volter/editor-core/component-board-registry';
 import { editorConsole } from '@volter/editor-core/editor-console';
 import {
@@ -66,6 +67,6 @@ export const uiComponentBoard: ComponentBoard = {
     `This project has no ${UI_COMPONENTS_TITLE} board (${UI_COMPONENTS_DOCUMENT_ID}): board ` +
     "presence keys on STORIES, not on roots, and none of this project's stories declares the " +
     '"dom" medium. Declare it — a manifest root entry naming the story\'s module, or a ' +
-    '`vgai.adapter.ts` regionInclude that covers it — and the board appears. `vgai console` ' +
+    `\`vgai.adapter.ts\` regionInclude that covers it — and the board appears. ${commandLine('console')} ` +
     'names every story it could not place.',
 };

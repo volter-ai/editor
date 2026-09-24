@@ -54,6 +54,7 @@
  * no game-side flag is involved.
  */
 
+import { commandLine } from '../product-command';
 import { useEffect, useRef, useState } from 'react';
 import { pollEditorLeaseIdentity } from '../editor-api';
 import {
@@ -352,7 +353,7 @@ export function EditorLeaseGuard() {
       detail:
         view.reason === 'taken-over'
           ? `${name ? `${name}'s` : "This project's"} editor is now running in another window. This one has yielded.`
-          : `This window's editor server has stopped — nothing here is saved, and a running game has left its room. Reopen with \`volter-editor edit ${name ?? '<project>'}\`${name ? `, or leave this window open: it reloads by itself when ${name}'s editor is served here again.` : '.'}`,
+          : `This window's editor server has stopped — nothing here is saved, and a running game has left its room. Reopen with ${commandLine(`edit ${name ?? '<project>'}`)}${name ? `, or leave this window open: it reloads by itself when ${name}'s editor is served here again.` : '.'}`,
       onDismiss: () => {
         if (!dismissedRef.current) dismiss();
       },

@@ -8,6 +8,7 @@
  * isolation.
  */
 
+import { commandLine } from '../src/product-command';
 import { existsSync } from 'node:fs';
 import { realpath } from 'node:fs/promises';
 import { createRequire } from 'node:module';
@@ -981,7 +982,7 @@ export function unacknowledgedCommandMessage(context: UnacknowledgedCommandConte
       `${opening} — but its main thread ANSWERED a liveness echo, so the thread is not blocked ` +
       `and the tab simply is not running a command listener. The command stays queued there and ` +
       `will not run by itself, so do NOT resend it blindly: reload the tab, or re-run ` +
-      `\`volter-editor edit\` (which reuses the session and self-heals the tab).`
+      `${commandLine('edit')} (which reuses the session and self-heals the tab).`
     );
   }
   const evidence =
@@ -990,8 +991,8 @@ export function unacknowledgedCommandMessage(context: UnacknowledgedCommandConte
       : ` — main-thread liveness was not measured`;
   return (
     `${opening}${evidence}. The command is queued in that tab and may still run when it ` +
-    `unblocks, so do NOT resend it blindly. Watch \`volter-editor status\` for fresh state; if the tab ` +
-    `stays silent, reload it or re-run \`volter-editor edit\` (which reuses the session and self-heals ` +
+    `unblocks, so do NOT resend it blindly. Watch ${commandLine('status')} for fresh state; if the tab ` +
+    `stays silent, reload it or re-run ${commandLine('edit')} (which reuses the session and self-heals ` +
     `the tab).`
   );
 }
