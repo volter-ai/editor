@@ -458,6 +458,9 @@ async function handle(request: WorkerRequest): Promise<unknown> {
   const ask = engine.request.bind(engine);
   switch (request.op) {
     case 'flush-document':
+      // A flush lands what is pending; a document nothing changed stays the
+      // file it was opened from.
+      if (!documentDirty) return { saved: false };
       await saveDocument();
       return { saved: true };
     case 'history-begin':

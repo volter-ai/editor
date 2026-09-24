@@ -1343,16 +1343,15 @@ class Session:
             # its value also depends on native undo initialization/checkpoints.
             "dirty": bool(bpy.data.is_dirty),
         }
-        # A PRESENT IS WHAT LEAVES THE DOCUMENT STALE, and the predicate is the
-        # present itself rather than what the frame shipped. `columns`/`images`
-        # above count BYTES THAT CROSSED, which is a different question: a MOVE
-        # ships zero columns (the comment above says so) and a DELETION ships
-        # nothing at all, yet both are changes a document that loses them is
-        # wrong. The cost this predicate could waste is bounded by the tab's
-        # one-save-per-idle-second debounce, and `save_document` still asks
-        # Blender whether anything actually changed before it writes.
-        if self.document is not None:
-            self.save_due = True
+        # A PRESENT DOES NOT MAKE THE DOCUMENT STALE; a request that can change
+        # the model does (`mark_changed`, from `dispatch`). The predicate was the
+        # present itself, and a present also runs with no change behind it --
+        # opening the document, rebinding its view. MEASURED 2026-09-24 on
+        # `arena`: opening a Model document and doing nothing rewrote its
+        # `.blend` with 556 bytes changed, so a file a person only looked at read
+        # as modified. `columns`/`images` above stay the wrong question for the
+        # same reason as before: a MOVE ships zero columns and a DELETION ships
+        # nothing, and both come from a request `mark_changed` sees.
         for key, mesh in frame["meshes"].items():
             self._known["mesh:" + key] = mesh["revision"]
         for name, image in frame["images"].items():
@@ -1540,6 +1539,12 @@ class Session:
                 "objects": len(bpy.data.objects),
                 "size": os.path.getsize(self.document)}
 
+    def mark_changed(self):
+        """A request that can change the model ran: the next present carries
+        `saveDue`, and the tab saves after an idle second."""
+        if self.document is not None:
+            self.save_due = True
+
     def save_document(self):
         """Write the document -- Blender's own format, by Blender's own operator.
 
@@ -1625,11 +1630,11 @@ class Session:
         #
         # It was briefly used to skip a redundant write, and it froze the
         # document after its first save -- a reopened session could model all
-        # day and never write again. The predicate is `_present`'s instead: a
-        # present is what leaves the document stale. Coarser (a read-only
-        # script rewrites the file once), bounded by the tab's idle-second
-        # debounce, and it cannot miss a change. The reading still rides in the
-        # answer, as an instrument.
+        # day and never write again. The predicate is `mark_changed`'s instead:
+        # a request that can change the model ran. Coarser than a diff (a
+        # read-only script rewrites the file once), bounded by the tab's
+        # idle-second debounce, and it cannot miss a change. The reading still
+        # rides in the answer, as an instrument.
         dirty = bool(bpy.data.is_dirty)
         existed = os.path.exists(self.document)
         directory = os.path.dirname(self.document)
@@ -4640,6 +4645,7 @@ def dispatch(request):
     if op == "history-step":
         if request["direction"] not in ("undo", "redo"):
             raise ValueError("Unknown history direction")
+        SESSION.mark_changed()
         return HISTORY.move(request["token"], request["direction"])
     mutation = op in ("execute", "rna-set", "outliner-set") and request.get("history", True)
     if not mutation:
@@ -4675,6 +4681,7 @@ def _dispatch(request):
         # Arbitrary Python can partially mutate before throwing. Once execution
         # starts it needs a checkpoint; capability refusals above do not.
         HISTORY.changed()
+        SESSION.mark_changed()
         answer = execute(request["code"])
         # Every mutation is presented, the rule: the Model
         # document is what the agent is looking at.
@@ -4723,6 +4730,7 @@ def _dispatch(request):
     if op == "outliner":
         return rna_outliner(request.get("selected"))
     if op == "outliner-set":
+        SESSION.mark_changed()
         answer = outliner_set(request["path"], request["column"], request["value"])
         # A COLUMN IS A WRITE, and a write presents -- the same rule `rna-set`
         # follows: hiding an object in the Outliner must change what the
@@ -4743,6 +4751,7 @@ def _dispatch(request):
                  "showing the state before it: " + repr(thrown))
         return answer
     if op == "rna-set":
+        SESSION.mark_changed()
         answer = rna_set(request["path"], request["property"], request["value"],
                          request.get("index"))
         # A WRITE IS PRESENTED, exactly as `execute` presents: the Model
