@@ -1,16 +1,11 @@
 /**
- * EditorShellStore — the format-NEUTRAL half of the editor's central store.
- *
- * It holds exactly the format-neutral state: selection, the
- * scene-adoption stack, the project-history handle, tool/viewport/play state, and the
- * viewport action bus. It knows about `THREE.Object3D`s and ids — never about
- * any document model or its persistence: an adapter's document is that
- * adapter's private business, and the store names no document type at all
- * (`authoring-inversion-guard.test.ts` is the tripwire).
- *
- * MEASURED: every authoring adapter touches exactly eight store members —
- * `selectedEntityIds`, `selectMultiple`, `subscribe`, `notifyIngestEdit`,
- * `objectMap`, `projectHistory`, `scene`, and `playState`. All eight are here.
+ * EditorShellStore — the shell store's THREE half: the adopted scene and its object map, the
+ * renderer and camera, viewport tools (transform, snapping, pivot, gizmo), helper and shading
+ * state, LOD pins, capture and the periodic editor-state save. It extends `ShellStore`
+ * (`shell-store.ts`), the media-neutral half the kit's other modules type against, and leaves
+ * the kit for `@volter/editor-threejs` with the viewport (ARCHITECTURE.md §The plan, unit 3).
+ * It knows `THREE.Object3D`s and ids, never a document model: an adapter's document is that
+ * adapter's private business (`authoring-inversion-guard.test.ts` is the tripwire).
  */
 
 import type { ViewportTab } from '@volter/editor-sdk';
@@ -23,13 +18,8 @@ import * as THREE from 'three';
 import type { BatchedRenderer } from 'three.quarks';
 import { findEntityLod } from './entity-lod';
 import { entityIdOf } from './entity-object';
-import type { HistoryService } from './history/history-service';
-import type { ShellDocumentState } from './shell-document-state';
-import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
-import {
-  activeWorkspaceDocumentId,
-  subscribeWorkspaceDocuments,
-} from '@volter/editor-sdk/kit/workspace-document-registry';
+import { ShellStore } from './shell-store';
+export type { NotifyScope, PlayEditRegime } from './shell-store';
 import { withSceneFogNeutralized } from './scene-view-fog';
 
 /** The store's persistence collaborator — installed by the shell, never
@@ -89,8 +79,6 @@ export type ShadingMode = ViewportShadingMode;
  * stale panel, so the burden of proof sits on the narrow value.
  * See {@link EditorShellStore.contentVersion}.
  */
-export type NotifyScope = 'content' | 'selection';
-type NotifyConcern = 'shell' | 'object-map';
 
 /** Exact structural delta supplied by a live Three projection mutation. */
 export interface IngestObjectMapStructureDelta {
@@ -116,19 +104,7 @@ export interface IngestObjectMapMembershipChanges {
 /** Enough exact structural epochs to span deferred React consumers; older readers rebuild. */
 const OBJECT_MAP_MEMBERSHIP_HISTORY = 256;
 
-/** The scope a coalesced pair of notifications must fire with: `'content'`
- *  unless BOTH were selection-only. */
-function widenNotifyScope(current: NotifyScope, incoming: NotifyScope): NotifyScope {
-  return current === 'selection' && incoming === 'selection' ? 'selection' : 'content';
-}
 
-/**
- * Which persistence regime the current play session exposes. D19 makes play
- * edits ephemeral for every world count, and since the `.vgai/` overlay
- * sidecar was deleted outright (2026-08-02) `ephemeral` is the ONLY regime
- * there is. `null` while not playing.
- */
-export type PlayEditRegime = 'ephemeral' | null;
 
 /** The two viewport tabs, Edit · Play. Defined ONCE, in the SDK's shared
  *  vocabulary (`@volter/editor-sdk`), because the control API speaks it too;
@@ -189,7 +165,7 @@ export type ViewportAction =
       fov?: number;
     };
 
-export class EditorShellStore implements ShellDocumentState {
+export class EditorShellStore extends ShellStore {
   // --- Scene graph references (set via bindScene) ---
   protected _scene: THREE.Scene | null = null;
   /** Adoption stack (see enterPlayScene): each frame is the scene state that
@@ -221,13 +197,6 @@ export class EditorShellStore implements ShellDocumentState {
   protected _orbitTarget: THREE.Vector3 | null = null;
 
   // --- UI state (not stored in scene graph) ---
-  /** Selection is viewport-local. The public selection accessors always expose
-   *  the ACTIVE viewport's set, so Edit and Play never leak subjects into one
-   *  another while existing authoring adapters keep the same store contract. */
-  protected _viewportSelections: Record<ViewportTab, Set<string>> = {
-    edit: new Set<string>(),
-    play: new Set<string>(),
-  };
   protected _transformMode: TransformMode = 'combined';
   protected _transformSpace: TransformSpace = 'world';
   protected _snapEnabled = false;
@@ -277,45 +246,9 @@ export class EditorShellStore implements ShellDocumentState {
   protected _objectMapMembershipHistoryFloor = 0;
   protected _showStats = false;
   protected _shadingMode: ShadingMode = 'solid';
-  protected _history: HistoryService | null = null;
   protected _statePersistence: EditorStatePersistence | null = null;
-  protected _playState: 'stopped' | 'playing' | 'paused' = 'stopped';
-  /** See {@link PlayEditRegime} — set by play-mode.ts on play-enter, cleared on play-exit. */
-  protected _playEditRegime: PlayEditRegime = null;
-  /** Only the session store follows workspace focus; a stage's own store is always `edit`. */
-  protected readonly _followsWorkspaceFocus: boolean;
-
-  constructor(options: { readonly followsWorkspaceFocus?: boolean } = {}) {
-    this._followsWorkspaceFocus = options.followsWorkspaceFocus === true;
-    if (!this._followsWorkspaceFocus) return;
-    // Focus is the workspace's; a flip of the derived tab is a change every reader must see.
-    let tab = this.activeViewportTab;
-    subscribeWorkspaceDocuments(() => {
-      const next = this.activeViewportTab;
-      if (next === tab) return;
-      tab = next;
-      this._notify();
-    });
-  }
   protected _vertexSnapActive = false;
-  protected _listeners = new Set<() => void>();
   protected _viewportActionListeners = new Set<(action: ViewportAction) => void>();
-  /** A relayed selection command applies its value synchronously but lets the
-   *  hierarchy/Inspector render on the next task, after the control ack has
-   *  left the page. Ordinary UI writes never use this timer. */
-  protected _deferredNotifyTimer: ReturnType<typeof setTimeout> | null = null;
-  /** The scope the pending deferred notify will fire with. A coalescing window
-   *  that swallowed even one `'content'` write must fire as `'content'` — see
-   *  {@link widenNotifyScope}. */
-  protected _deferredNotifyScope: NotifyScope = 'content';
-  protected _version = 0;
-  /**
-   * Stable across live object-map churn that cannot change shell presentation.
-   * Hierarchy/viewport consumers keep using {@link getSnapshot}; chrome that
-   * reads play state, selection, tools, or document state uses this narrower
-   * snapshot and therefore does not rerender for every runtime projectile.
-   */
-  protected _shellVersion = 0;
   /**
    * Bumped only when post-processing-relevant state changes (environment / scene
    * structure / play-stop scene swap). The viewport rebuilds its EffectComposer
@@ -323,18 +256,6 @@ export class EditorShellStore implements ShellDocumentState {
    * notifies per frame but never touches these) no longer recompiles shaders 60×/s.
    */
   protected _composerVersion = 0;
-  /**
-   * Bumped on every notify EXCEPT one whose only change was WHICH NODES ARE
-   * SELECTED — see {@link contentVersion}.
-   */
-  protected _contentVersion = 0;
-  /**
-   * Bumped when existing hierarchy-row presentation facets may have changed.
-   * Exact object-map membership deltas do not move it: newly admitted rows
-   * compute their facets on first render, while surviving rows keep the same
-   * source editability, warnings, and reflected property values.
-   */
-  protected _hierarchyRowFacetVersion = 0;
   bindScene(
     scene: THREE.Scene,
     renderer?: THREE.WebGLRenderer,
@@ -362,86 +283,6 @@ export class EditorShellStore implements ShellDocumentState {
     this._camera = camera;
   }
 
-  // --- React useSyncExternalStore integration ---
-  subscribe = (listener: () => void): (() => void) => {
-    this._listeners.add(listener);
-    return () => this._listeners.delete(listener);
-  };
-
-  getSnapshot = (): number => this._version;
-
-  getShellSnapshot = (): number => this._shellVersion;
-
-  /**
-   * The version a TREE-SCALE derivation caches against.
-   *
-   * `_version` moves on every notify, selection included, so a panel that keys
-   * a whole-tree walk on it re-walks the tree every time a human clicks a node
-   * — measured on the scale harness as 100-430ms of main-thread block per
-   * `select` on a 20 000-node world, in a verb whose reply came back in 3ms.
-   * The tree the walk reads did not change; only the highlight did.
-   *
-   * This counter therefore advances on every notify EXCEPT one whose sole
-   * change was the contents of `_viewportSelections` — the five selection
-   * writers below, and nothing else, notify with `'selection'`. Every other
-   * mutation (including `notifyIngestEdit`, history restores, play-state
-   * changes and viewport-tab switches) advances it, so a cache keyed on it can
-   * only ever be stale for a change that never happened. Subscribers still
-   * receive a selection notify and still re-render — this decides only what
-   * they are allowed to REUSE while doing so.
-   */
-  get contentVersion(): number {
-    return this._contentVersion;
-  }
-
-  /** See {@link _hierarchyRowFacetVersion}. */
-  get hierarchyRowFacetVersion(): number {
-    return this._hierarchyRowFacetVersion;
-  }
-
-  get projectHistory(): HistoryService | null {
-    return this._history;
-  }
-
-  protected _notify(
-    scope: NotifyScope = 'content',
-    concern: NotifyConcern = 'shell',
-    affectsHierarchyRowFacets = scope !== 'selection',
-  ): void {
-    if (this._deferredNotifyTimer !== null) {
-      clearTimeout(this._deferredNotifyTimer);
-      this._deferredNotifyTimer = null;
-    }
-    this._beforeNotify();
-    this._version++;
-    if (concern === 'shell') this._shellVersion++;
-    if (scope !== 'selection') this._contentVersion++;
-    if (affectsHierarchyRowFacets) this._hierarchyRowFacetVersion++;
-    for (const fn of this._listeners) fn();
-  }
-
-  /** Coalesce control-plane presentation behind the command-result microtask.
-   *  The state mutation has already landed when this is called. */
-  protected _notifyDeferred(scope: NotifyScope = 'content'): void {
-    if (this._deferredNotifyTimer !== null) {
-      this._deferredNotifyScope = widenNotifyScope(this._deferredNotifyScope, scope);
-      return;
-    }
-    this._deferredNotifyScope = scope;
-    this._deferredNotifyTimer = setTimeout(() => {
-      this._deferredNotifyTimer = null;
-      const pending = this._deferredNotifyScope;
-      this._deferredNotifyScope = 'content';
-      this._notify(pending);
-    }, 0);
-  }
-
-  attachHistory(history: HistoryService): void {
-    if (this._history === history) return;
-    if (this._history) throw new Error('EditorStore is already attached to project history.');
-    this._history = history;
-    this._onHistoryAttached();
-  }
 
   /**
    * Where view/tool state and the autosave thumbnail go. The shell installs
@@ -548,15 +389,6 @@ export class EditorShellStore implements ShellDocumentState {
     return this._composerVersion;
   }
 
-  // --- Selection ---
-  get selectedEntityId(): string | null {
-    const selection = this._viewportSelections[this.activeViewportTab];
-    if (selection.size === 0) return null;
-    return [...selection].at(-1)!;
-  }
-  get selectedEntityIds(): ReadonlySet<string> {
-    return this._viewportSelections[this.activeViewportTab];
-  }
   get transformMode(): TransformMode {
     return this._transformMode;
   }
@@ -580,12 +412,6 @@ export class EditorShellStore implements ShellDocumentState {
   }
   get gizmoAnchor(): GizmoAnchor {
     return this._gizmoAnchor;
-  }
-  get canUndo(): boolean {
-    return this._history?.getSnapshot().canUndo ?? false;
-  }
-  get canRedo(): boolean {
-    return this._history?.getSnapshot().canRedo ?? false;
   }
   get showGrid(): boolean {
     return this._showGrid;
@@ -659,9 +485,6 @@ export class EditorShellStore implements ShellDocumentState {
   /** Notify subscribers after an ingest adapter mutated a live foreign object
    *  (material/visibility). Runtime-only — no dirty/autosave, because the edit
    *  lives on the live `Object3D` and nothing here owns a document. */
-  notifyIngestEdit(): void {
-    this._notify();
-  }
 
   /** Notify after a live adapter changed `objectMap` membership.
    *
@@ -857,79 +680,6 @@ export class EditorShellStore implements ShellDocumentState {
     return this._adoptionStack.length > 0;
   }
 
-  // --- Play mode state ---
-  /**
-   * WHICH MODE THE EDITOR IS IN — the shell's own intent, not a claim that a
-   * game is running. Read it for anything whose answer must be true from the
-   * MOMENT play is entered: the structural-edit block, the design session's
-   * suspend, the Play bar, the viewport tab, the tool `when` predicates.
-   *
-   * It is NOT the answer to "is something actually running", and it must never
-   * be reported as one. `'playing'` is written by three subsystems — play mode,
-   * ingest and module mode — and every one of them writes it BEFORE its session
-   * exists: `enterPlayMode` sets it ~130 lines and three awaits before
-   * `_instance.session` is assigned, and an ingest mount sets it before the
-   * mount is even attempted. That is deliberate (it is what swaps the viewport
-   * onto the game surface and freezes edit-mode work while the boot runs), and
-   * it is exactly why reporting the flag verbatim once printed
-   * `playState: "playing"` for a mount that had already thrown.
-   *
-   * The other question has its own door and only one caller may use it:
-   * `reported-play-state.ts`'s `deriveReportedPlayState`, which resolves the
-   * live session slots and is what `collectState` (`vgai status`) reports. If
-   * you are about to send this value outside the editor, you want that instead.
-   */
-  get playState(): 'stopped' | 'playing' | 'paused' {
-    return this._playState;
-  }
-
-  /**
-   * Guard structural/history mutations while a game is running. During play the
-   * store's `_scene` is the LIVE game scene (see enterPlayScene), so undo/redo
-   * (which call clearPreview + buildPreview and rebuild the whole scene) or
-   * delete/duplicate (which splice the scene graph and objectMap) would tear the
-   * scene out from under the running GameSession. Returns true (and warns) when
-   * the named op must be blocked. The intended live-edit path during play is the
-   * incremental ECS-sync transform path, not these full-scene mutations.
-   */
-  protected _blockedDuringPlay(op: string): boolean {
-    if (this._playState === 'stopped') return false;
-    console.warn(`EditorStore: "${op}" is disabled during play mode — stop the game first.`);
-    return true;
-  }
-  setPlayState(state: 'stopped' | 'playing' | 'paused'): void {
-    const wasActive = this._playState !== 'stopped';
-    this._playState = state;
-    if (state === 'stopped') {
-      // Apply anything deferred while play/ingest was active. play-mode.ts /
-      // ingest/mount-ingest-root.ts call exitPlayScene() (restoring the editor scene) BEFORE
-      // this — so by the time we get here `_scene` is already the editor scene,
-      // never the just-torn-down game scene (see applyExternalUpdate/applyAssetMove).
-      if (wasActive) this._onPlayStopped();
-    }
-    this._notify();
-  }
-
-  /** See {@link PlayEditRegime}. Null while not playing. */
-  get playEditRegime(): PlayEditRegime {
-    return this._playEditRegime;
-  }
-
-  /** Set by play-mode.ts's enterPlayMode/exitPlayMode — see {@link PlayEditRegime}. */
-  setPlayEditRegime(regime: PlayEditRegime): void {
-    this._playEditRegime = regime;
-    this._notify();
-  }
-
-  // --- Viewport tab ---
-  /**
-   * `play` exactly while the Game document is the active workspace document, else `edit`:
-   * derived from workspace focus, which Code-OSS owns, never set beside it. A surface that
-   * wants the other tab activates the document instead.
-   */
-  get activeViewportTab(): ViewportTab {
-    return this._followsWorkspaceFocus && activeWorkspaceDocumentId() === GAME_DOCUMENT_ID ? 'play' : 'edit';
-  }
   // --- Vertex snap ---
   get vertexSnapActive(): boolean {
     return this._vertexSnapActive;
@@ -937,59 +687,6 @@ export class EditorShellStore implements ShellDocumentState {
   setVertexSnapActive(active: boolean): void {
     this._vertexSnapActive = active;
     this._notify();
-  }
-
-  // --- Selection ---
-  // Every writer below notifies with `'selection'` because every writer below
-  // mutates `_viewportSelections` and NOTHING ELSE. That is the whole warrant
-  // for the scope — see `contentVersion`.
-  select(id: string | null, notification: 'immediate' | 'deferred' = 'immediate'): void {
-    const selection = this._viewportSelections[this.activeViewportTab];
-    selection.clear();
-    if (id) selection.add(id);
-    if (notification === 'deferred') this._notifyDeferred('selection');
-    else this._notify('selection');
-  }
-
-  selectMultiple(ids: string[], notification: 'immediate' | 'deferred' = 'immediate'): void {
-    this._viewportSelections[this.activeViewportTab] = new Set(ids);
-    if (notification === 'deferred') this._notifyDeferred('selection');
-    else this._notify('selection');
-  }
-
-  /**
-   * Apply a control-API selection NOW and return the notification that lets presentation catch up.
-   *
-   * The normal UI methods above remain synchronous. A relayed selection is different: its caller
-   * is waiting for an acknowledgement, while notifying React can synchronously reveal hundreds of
-   * hierarchy rows and build an inspector preview before `select()` returns. The command listener
-   * uses this method so `selectedEntityIds` already answers the new truth when it acks, then runs
-   * the returned notification only after the result POST has settled. No selection is optimistic:
-   * the set is mutated before this method returns; only presentation is deferred.
-   */
-  applySelectionBeforePresentation(ids: readonly string[]): () => void {
-    this._viewportSelections[this.activeViewportTab] = new Set(ids);
-    let presented = false;
-    return () => {
-      if (presented) return;
-      presented = true;
-      this._notify('selection');
-    };
-  }
-
-  addToSelection(id: string): void {
-    this._viewportSelections[this.activeViewportTab].add(id);
-    this._notify('selection');
-  }
-
-  toggleSelection(id: string): void {
-    const selection = this._viewportSelections[this.activeViewportTab];
-    if (selection.has(id)) {
-      selection.delete(id);
-    } else {
-      selection.add(id);
-    }
-    this._notify('selection');
   }
 
   protected static readonly THUMBNAIL_INTERVAL_MS = 60_000;
@@ -1299,13 +996,7 @@ export class EditorShellStore implements ShellDocumentState {
   // so the shell runs standalone; a subclass that owns a document overrides the
   // ones it needs (`store-notify-scope.test.ts` exercises the deferral hooks).
 
-  /** Runs at the top of every `_notify()`. A document half uses it to close a
-   *  pending history edit. */
-  protected _beforeNotify(): void {}
 
-  /** Runs after `attachHistory` binds the project `HistoryService`. A document
-   *  half uses it to register its document resource driver. */
-  protected _onHistoryAttached(): void {}
 
   /** Captured into the adoption frame by `enterPlayScene`, handed back by
    *  `exitPlayScene`. A document half snapshots its metadata here so
@@ -1317,9 +1008,6 @@ export class EditorShellStore implements ShellDocumentState {
   /** Restore counterpart of {@link _captureAdoptionExtras}. */
   protected _restoreAdoptionExtras(_extras: unknown): void {}
 
-  /** Runs when `setPlayState('stopped')` ends an active play/ingest session.
-   *  A document half applies mutations it deferred while play was running. */
-  protected _onPlayStopped(): void {}
 
   /** Extra keys folded into the periodic editor-state save. A document half
    *  contributes whatever it needs restored on the next boot. */

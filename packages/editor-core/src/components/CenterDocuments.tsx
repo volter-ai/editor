@@ -3,11 +3,11 @@
  * does not synthesize a Scene tab or own a game's root evaluator.
  */
 import { useEffect } from 'react';
-import type { EditorShellStore } from '../editor-shell-store';
+import type { ShellStore } from '../shell-store';
 import { bindLiveDocument, syncLiveDocumentPlayState } from '@volter/editor-sdk/kit/live-document';
 import { closeAllWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-document-registry';
 
-export function useCenterDocuments(store: EditorShellStore): void {
+export function useCenterDocuments(store: ShellStore): void {
   useEffect(() => {
     const unbind = bindLiveDocument();
     const sync = () => syncLiveDocumentPlayState(store.playState !== 'stopped');

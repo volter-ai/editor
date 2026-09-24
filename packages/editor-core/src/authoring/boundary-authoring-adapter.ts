@@ -29,7 +29,7 @@ import type {
   PropertyDescriptor,
   SelectionProvider,
 } from '@volter/editor-project/adapter';
-import type { EditorShellStore } from '../editor-shell-store';
+import type { ShellStore } from '../shell-store';
 
 /** The display-relevant slice of a manifest world entry — deliberately loose
  *  (plain strings, not the engine's validated `AdapterRoot['kind']` union) so
@@ -65,7 +65,7 @@ export class BoundaryAuthoringAdapter implements AuthoringAdapter {
   private readonly world: BoundaryRootInfo;
   /** Non-null ⇒ error-node mode (#18) — set by the caller, never computed here. */
   private readonly reason: string | null;
-  private readonly store: EditorShellStore;
+  private readonly store: ShellStore;
   /**
    * D12 (B4) — a design-time layer's own stage hit-test, wired in by
    * `design-time-layers.ts`'s layer-mount success handler: when a mount
@@ -84,7 +84,7 @@ export class BoundaryAuthoringAdapter implements AuthoringAdapter {
   readonly pickable?: PickProvider;
 
   constructor(
-    store: EditorShellStore,
+    store: ShellStore,
     world: BoundaryRootInfo,
     reason?: string,
     pick?: PickProvider['pick'],
@@ -118,7 +118,7 @@ export class BoundaryAuthoringAdapter implements AuthoringAdapter {
   };
 
   /**
-   * Selection delegates to the editor-global {@link EditorShellStore} selection set
+   * Selection delegates to the editor-global {@link ShellStore} selection set
    * — the SAME seam `ThreeAuthoringAdapter`/`ReactRootAuthoringAdapter` use
    * (selection is editor UI state, not a per-adapter document concern). Without
    * this, clicking a Boundary/error node in `IngestHierarchy` (the panel the

@@ -31,7 +31,7 @@ import { Fragment, type PointerEvent as ReactPointerEvent, useSyncExternalStore 
 import * as THREE from 'three';
 import { axisViewName } from '../asset-workflow/model-inspection';
 import type { Object3DDocumentSession } from '../authoring/object3d-document-session';
-import type { EditorShellStore } from '../editor-shell-store';
+import type { ShellStore } from '../shell-store';
 import { COMPASS_CLUSTER_TOP_PX, type EditorViewport } from '../editor-viewport';
 import {
   lookDeclaresViewportColors,
@@ -85,7 +85,7 @@ const STATISTICS_LABEL_COLUMN_PX = 58;
 export interface ViewportFurnitureProps {
   readonly viewport: EditorViewport | null;
   readonly session: Object3DDocumentSession | null;
-  readonly store: EditorShellStore;
+  readonly store: ShellStore;
   readonly projection: ThreeViewportProjection;
   readonly displayName: string;
   readonly objectName: (id: string) => string | null;

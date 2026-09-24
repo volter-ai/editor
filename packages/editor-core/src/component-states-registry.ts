@@ -59,7 +59,7 @@
 
 import type { AdapterSurface, StoriesProvider, StoryRef } from '@volter/editor-project/adapter';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import type { EditorShellStore } from './editor-shell-store';
+import type { ShellStore } from './shell-store';
 
 /**
  * A component as a STATES source sees it — the exact shape all three adapter
@@ -80,7 +80,7 @@ export interface ComponentStatesContext {
   readonly surface: AdapterSurface;
   /** The ONE format-neutral shell store, for a state whose application opens a
    *  document or moves the session. */
-  readonly store: EditorShellStore;
+  readonly store: ShellStore;
 }
 
 export interface ComponentStatesSource {
@@ -138,7 +138,7 @@ export function componentStatesSources(): readonly ComponentStatesSource[] {
  */
 export function componentStatesProvider(
   surface: AdapterSurface,
-  store: EditorShellStore,
+  store: ShellStore,
   componentForNode: (nodeId: string) => ComponentStatesRef | null,
 ): StoriesProvider {
   const activeByNode = new Map<string, string>();
