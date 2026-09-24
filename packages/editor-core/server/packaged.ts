@@ -889,9 +889,11 @@ async function main(): Promise<void> {
         { find: /^@editor\//, replacement: `${path.join(editorPackageRoot, 'src')}/` },
         // Each runtime package resolves to THIS project's installed copy.
         // Keeping one source root per package is what preserves React/Fiber
-        // singleton identity in Play mode.
+        // singleton identity in Play mode. A package's `contributions/` and its
+        // `package.json` sit beside its `src/`, not in it, so they resolve
+        // through its own exports.
         ...[...runtimeSources].map(([name, src]) => ({
-          find: new RegExp(`^${name.replace('/', '\\/')}(?=\\/|$)`),
+          find: new RegExp(`^${name.replace('/', '\\/')}(?=\\/(?!contributions\\/|package\\.json$)|$)`),
           replacement: src,
         })),
       ],
