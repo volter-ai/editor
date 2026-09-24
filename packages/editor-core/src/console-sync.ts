@@ -1,4 +1,4 @@
-import { type ConsoleEntry, editorConsole, installEditorConsoleCapture } from './editor-console';
+import { type ConsoleEntry, editorConsole, installEditorConsoleCapture } from '@volter/editor-sdk/kit/editor-console';
 import { EDITOR_CLIENT_ID, sendControl } from './editor-presence';
 
 /**

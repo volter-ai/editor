@@ -36,7 +36,7 @@
 
 import type { AuthoringAdapter, PickProvider } from '@volter/editor-project/adapter';
 import { stackOrder } from '@volter/editor-project/adapter/root-stacking';
-import { editorConsole } from '../editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '../editor-shell-store';
 import { getCurrentProject } from '../project-manager';
 import { subscribeToolContributions } from '../tool-loader';

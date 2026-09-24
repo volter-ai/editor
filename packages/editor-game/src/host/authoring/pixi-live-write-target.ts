@@ -50,7 +50,7 @@ import type {
 import type { Container } from 'pixi.js';
 import type { ChannelValue, CreationSiteLiteralReport } from '@volter/editor-core/creation-site-edit';
 import { creationSiteAnchor, instancesAtSite } from '@volter/editor-sdk/kit/creation-site-registry';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { JsonHistoryResource } from '../history/json-history-resource';
 import { createEphemeralPersistence } from './ephemeral-persistence';
 import { multiChannelRefusal, persistChannelWrite } from './gesture-persist';

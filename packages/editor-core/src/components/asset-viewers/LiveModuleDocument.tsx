@@ -60,7 +60,7 @@ import {
   object3DDocumentSession,
   registerObject3DDocumentPreparation,
 } from '../../authoring/object3d-document-session-registry';
-import { editorConsole } from '../../editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import {
   buildLiveModuleObject3D,
   LiveModuleError,

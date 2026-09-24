@@ -44,7 +44,7 @@ import { setViewportPickContext } from './authoring/viewport-pick-context';
 import { isRootHidden } from './authoring/world-session-state';
 import type { CameraViewMode } from './camera-authoring';
 import { type ConstraintControl, ConstraintHelper } from './constraint-helper';
-import { editorConsole } from './editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from './editor-shell-store';
 import { findEntityLod } from './entity-lod';
 import { entityIdOf, entityObject3D } from './entity-object';

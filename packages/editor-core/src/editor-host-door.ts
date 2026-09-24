@@ -32,7 +32,7 @@ import {
   waitForDocumentContext,
 } from './document-context-registry';
 import { openRegisteredDocumentAsync } from './document-open-registry';
-import { editorConsole } from './editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { resolvedProjectDocumentTable } from './project-adapter';
 import { notify } from './editor-notifications';
 import { registerEditorStateFacet } from '@volter/editor-sdk/kit/editor-state-facets';

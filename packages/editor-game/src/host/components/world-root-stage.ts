@@ -69,7 +69,7 @@ import {
 import { registerPresentedCanvasFrame } from '@volter/editor-core/canvas-preview-frames';
 import { collectState } from '@volter/editor-core/command-listener';
 import { getDownloadedAssetPath, getOnlineAssetFiles, reportEditorState } from '@volter/editor-core/editor-api';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { isEditorPresentationActive } from '@volter/editor-sdk/kit/editor-presentation-activity';
 import type { EditorStats } from '@volter/editor-core/editor-runtime';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';

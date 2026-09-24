@@ -15,9 +15,9 @@
 
 import { assertEditorServerAnswered, editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
 
-export type { GitWorkflowStatus as EditorGitStatus } from './api/git-wire';
+export type { GitWorkflowStatus as EditorGitStatus } from '@volter/editor-sdk/kit/api-git-wire';
 
-import type { GitWorkflowStatus as EditorGitStatus } from './api/git-wire';
+import type { GitWorkflowStatus as EditorGitStatus } from '@volter/editor-sdk/kit/api-git-wire';
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`/__editor/share-control${path}`, {

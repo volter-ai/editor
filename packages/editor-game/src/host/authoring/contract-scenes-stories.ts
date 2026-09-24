@@ -31,7 +31,7 @@ import type {
 import type { StoriesProvider, StoryRef } from '@volter/editor-project/adapter';
 import type { VgaiGameContract, VgaiGameScene } from '@volter/editor-project/adapter/ingest/game-contract';
 import { readGameScenes } from '@volter/editor-project/adapter/ingest/game-contract';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 
 function assertScenes(value: unknown): VgaiGameScene[] {
   if (!Array.isArray(value)) throw new Error('scenes.list() did not return an array');

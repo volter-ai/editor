@@ -34,7 +34,7 @@
  * `../authoring/mount-failure-report.ts`.
  */
 
-import { editorConsole } from '../editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { StorageBackend } from '@volter/editor-sdk/kit/storage-types';
 import type { AssetPackMaterializationResult } from './hosted-asset-materialization';
 

@@ -11,7 +11,7 @@ import {
 import type { EffectComposer, EffectPass, RenderPass } from 'postprocessing';
 import * as THREE from 'three';
 import { cameraPresetDirection, type ModelCameraPreset } from '../asset-workflow/model-inspection';
-import { editorConsole } from '../editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { type EditorViewport } from '../editor-viewport';
 import { nativeSelectionColors, subscribeNativeSelectionTheme } from '@volter/editor-sdk/kit/native-selection-style';
 import { BoneSelectionHighlight } from '../three-viewport/bone-selection-highlight';

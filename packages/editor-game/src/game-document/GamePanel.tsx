@@ -15,7 +15,7 @@ import {
   subscribeToMountFailures,
 } from '@volter/editor-sdk/kit/mount-failure-report';
 import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { useEditorStore } from '@volter/editor-core/editor-runtime';
 import { getCurrentProject, onProjectChange } from '@volter/editor-core/project-manager';
 import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';

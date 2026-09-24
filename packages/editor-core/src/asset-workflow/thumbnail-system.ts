@@ -134,7 +134,7 @@ export function loadProjectThumbnailManifest(): Promise<ThumbnailManifestRead> {
       // through the editor console because a file the editor refuses to
       // rewrite is remaining work, not log noise.
       if (read.status === 'unreadable') {
-        const { editorConsole } = await import('../editor-console');
+        const { editorConsole } = await import('@volter/editor-sdk/kit/editor-console');
         editorConsole.error(
           `${THUMBNAIL_MANIFEST_PATH} is present but could not be read (${read.reason}). ` +
             'Thumbnail framing will not be saved until it is fixed or deleted; previews ' +

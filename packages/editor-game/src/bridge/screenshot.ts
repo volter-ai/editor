@@ -13,7 +13,7 @@ import {
   capturePlayComposite,
   sampleFlatness,
 } from '@volter/editor-core/composite-screenshot';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { presentationSurface } from '@volter/editor-sdk/kit/presentation-surface';
 import type { EditorCommandMessage, EditorCommandResult } from '@volter/editor-sdk/commands';
 import { notPlayingResult, structuredErrorResult } from '../command-results';

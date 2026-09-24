@@ -33,7 +33,7 @@
  * `ensureBuildContributionsRegistered`.
  */
 
-import { editorConsole } from '../editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
 import { CORE_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-utilities';
 import {

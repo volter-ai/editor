@@ -35,7 +35,7 @@ import {
   formatCapabilityCoverageBlocks,
   unionCoverageReport,
 } from '../host/coverage/capability-coverage';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { editorIsPlaying } from '@volter/editor-sdk/kit/editor-session-mode';
 import { projectAdapterFacet } from '@volter/editor-core/project-adapter';
 import { getCurrentProject } from '@volter/editor-core/project-manager';

@@ -27,7 +27,7 @@ import {
   rectForId,
 } from './components/world-overlay-gestures';
 import { openCommandPalette } from './editor-commands';
-import { editorConsole } from './editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from './editor-shell-store';
 import type { EditorViewport } from './editor-viewport';
 import type { HistoryCommands } from './history/history-commands';

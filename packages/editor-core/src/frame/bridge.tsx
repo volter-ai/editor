@@ -73,7 +73,7 @@ import {
   setPaletteOpener,
   subscribePaletteActions,
 } from '../editor-commands';
-import { editorConsole } from '../editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { installEditorHostDoor, setOutputProvider } from '../editor-host-door';
 import { getProjectDefinePath } from '../editor-mode';
 import { type EditorNotification, setNotificationDelegate } from '../editor-notifications';

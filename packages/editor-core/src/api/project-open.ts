@@ -21,7 +21,7 @@ import {
   editorServerJson,
 } from '@volter/editor-sdk/kit/editor-server-response';
 import { BASE } from '@volter/editor-sdk/kit/api-base';
-import { requireEditorCompatibility } from './project-identity';
+import { requireEditorCompatibility } from '@volter/editor-sdk/kit/api-project-identity';
 
 /** One row of the launcher's recent-projects list. */
 export interface RecentProject {

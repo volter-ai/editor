@@ -27,7 +27,7 @@
  */
 
 import { commandLine } from '@volter/editor-sdk/kit/product-command';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 
 const undrawable = new WeakMap<object, string>();
 

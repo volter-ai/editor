@@ -36,11 +36,11 @@ export { connectEvents, connectTabPresence, reportTabRoute } from './editor-pres
 // The rule is unit 13's, found on the view presenter: a door every package
 // calls must not carry every lane's implementation.
 export * from './api/assets';
-export * from './api/build';
-export * from './api/logs';
-export * from './api/project-identity';
+export * from '@volter/editor-sdk/kit/api-build';
+export * from '@volter/editor-sdk/kit/api-logs';
+export * from '@volter/editor-sdk/kit/api-project-identity';
 export * from './api/project-open';
 export * from './api/project-source';
 export * from './api/project-state';
 export * from './api/relay';
-export * from './api/worktrees';
+export * from '@volter/editor-sdk/kit/api-worktrees';

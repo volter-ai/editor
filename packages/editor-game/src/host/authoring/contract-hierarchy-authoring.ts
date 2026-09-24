@@ -11,7 +11,7 @@ import type {
   VgaiGameHierarchyGroup,
   VgaiGameHierarchyProvider,
 } from '@volter/editor-project/adapter/ingest/game-contract';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 
 const GROUP_PREFIX = 'contract-hierarchy:group:';
 const RENDER_TREE_ID = 'contract-hierarchy:render-tree';

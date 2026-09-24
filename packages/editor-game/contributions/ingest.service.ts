@@ -40,7 +40,7 @@
  * `mount-ingest-root.ts` binds itself on — read at launch time rather than
  * captured, so neither ordering can leave the launch holding `null`.
  */
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { importIngestAdapterModule, ingestAdapterModulePath } from '../src/host/ingest/registry';
 import { registerAdapterDefinitionSource } from '@volter/editor-core/project-adapter';
 import { shellStoreForHost } from '@volter/editor-core/shell-store-door';

@@ -3,7 +3,7 @@
  * anything.
  */
 
-import { editorConsole } from './editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { detectServerProject, getCurrentProject } from './project-manager';
 
 /**

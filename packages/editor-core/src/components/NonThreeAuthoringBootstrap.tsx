@@ -1,7 +1,7 @@
 /** Project authoring outlives its open viewport tabs, including an empty tab set. */
 import { useEffect } from 'react';
 import { retainProjectAuthoringSession } from '../authoring/project-authoring-session';
-import { editorConsole } from '../editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '../editor-shell-store';
 
 export function ProjectAuthoringBootstrap({ store }: { store: EditorShellStore }) {

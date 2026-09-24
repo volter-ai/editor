@@ -81,7 +81,7 @@ import {
 } from '../content-entry-source-registry';
 import { openRegisteredDocument } from '../document-open-registry';
 import { type AssetEntry, listAssets, listProjectComponents, revealInFinder } from '../editor-api';
-import { editorConsole } from '../editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { useEditorStore, useHistoryService } from '../editor-runtime';
 import type { AssetKind as DocumentAssetKind } from '../editor-shell-store';
 import { hierarchyNodesBreadthFirst } from '../hierarchy-walk';

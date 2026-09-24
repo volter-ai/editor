@@ -71,7 +71,7 @@ import {
   collaborationSnapshot,
   subscribeCollaborationRevision,
 } from '@volter/editor-core/collaboration-client';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { adjudicateThreeEntry } from '../../host/entry-adjudication';
 import { onPlayTransitionSettled } from '@volter/editor-core/live-transition';

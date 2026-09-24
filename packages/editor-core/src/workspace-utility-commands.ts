@@ -1,7 +1,7 @@
 /** Semantic commands and failure auto-open policy for workspace utilities. */
 
 import { getMountFailureReports, subscribeToMountFailures } from '@volter/editor-sdk/kit/mount-failure-report';
-import { editorConsole } from './editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { HistoryService } from './history/history-service';
 import { showWorkspaceUtility, toggleWorkspaceUtility } from './workspace-host-commands';
 import { activeChromeRegions } from './workspace-regions';

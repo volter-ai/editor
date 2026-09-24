@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useSyncExternalStore } from 'react';
-import { editorConsole } from '../editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { dismissNotification, notify } from '../editor-notifications';
 import {
   clearEditorPresentationNotice,

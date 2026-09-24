@@ -1,5 +1,5 @@
 import type { EditorKeyActionId, KeyChord, KeymapContribution } from '@volter/editor-sdk/looks';
-import { editorConsole } from './editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import {
   adapterSettings,
   projectSettings,

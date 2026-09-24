@@ -42,7 +42,7 @@
 
 import { object3DDocumentSession } from '../authoring/object3d-document-session-registry';
 import { openRegisteredDocument, registerDocumentOpener } from '../document-open-registry';
-import { editorConsole } from '../editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { getCurrentProject } from '../project-manager';
 import { tierSourceWriteBackend } from '../ui-source/tier-source-write-backend';
 import { DOCUMENT_REGISTRATION_TIMEOUT_MS, waitUntil } from '../wait-until';

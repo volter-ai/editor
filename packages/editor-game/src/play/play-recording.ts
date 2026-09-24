@@ -38,7 +38,7 @@
  */
 
 import { isRootCanvas } from '@volter/editor-core/composite-screenshot';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import {
   type GameplayRecordingCapture,
   type GameplayRecordingStarted,

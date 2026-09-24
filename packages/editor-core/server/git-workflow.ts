@@ -9,7 +9,7 @@ import type {
   GitDiffHunk,
   GitHistoryCommit,
   GitWorkflowStatus,
-} from '../src/api/git-wire';
+} from '@volter/editor-sdk/kit/api-git-wire';
 import { resolveWorktreeIdentity } from './worktree-identity';
 export type { GitChangedPath, GitDiffHunk, GitHistoryCommit, GitWorkflowStatus };
 

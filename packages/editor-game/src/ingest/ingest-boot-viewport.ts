@@ -15,7 +15,7 @@
  * while it constructs, then explicitly releases the hold and flips to Game.
  */
 
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { projectAdapterFacet } from '@volter/editor-core/project-adapter';
 import { sceneDocumentId } from '@volter/editor-core/scene-document-plan';

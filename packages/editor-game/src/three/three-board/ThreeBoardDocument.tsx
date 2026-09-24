@@ -58,7 +58,7 @@ import { STANDARD_COMPONENT_CAMERA_DIRECTION } from '@volter/editor-core/compone
 import { threeBoardBuildingCopy } from '@volter/editor-sdk/kit/viewport-surface-status';
 import { openRegisteredDocument } from '@volter/editor-core/document-open-registry';
 import { listProjectComponents } from '@volter/editor-core/editor-api';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
 import { CONTRIBUTED_SECTION_ORDER } from '@volter/editor-sdk/kit/inspection-model';
 import {

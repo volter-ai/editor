@@ -124,7 +124,16 @@
     "./kit/packaged-runtime": "./src/kit/packaged-runtime.ts",
     "./kit/source-conflict": "./src/kit/source-conflict.ts",
     "./kit/surface-state": "./src/kit/surface-state.ts",
-    "./kit/system-seam-evidence": "./src/kit/system-seam-evidence.ts"
+    "./kit/system-seam-evidence": "./src/kit/system-seam-evidence.ts",
+    "./kit/api-asset-library-wire": "./src/kit/api-asset-library-wire.ts",
+    "./kit/api-build": "./src/kit/api-build.ts",
+    "./kit/api-git-wire": "./src/kit/api-git-wire.ts",
+    "./kit/api-logs": "./src/kit/api-logs.ts",
+    "./kit/api-project-identity": "./src/kit/api-project-identity.ts",
+    "./kit/api-settings": "./src/kit/api-settings.ts",
+    "./kit/api-worktrees": "./src/kit/api-worktrees.ts",
+    "./kit/cancellation-reason": "./src/kit/cancellation-reason.ts",
+    "./kit/editor-console": "./src/kit/editor-console.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",

@@ -30,7 +30,7 @@
  */
 
 import type { Container } from 'pixi.js';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { type JournalSubject, JsonHistoryResource } from '../history/json-history-resource';
 

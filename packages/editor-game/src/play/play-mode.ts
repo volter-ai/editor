@@ -37,13 +37,13 @@ import {
 import { resolveAllRootEntries } from '../host/binding-resolver';
 import type { LogEntry } from '@volter/editor-core/editor-api';
 import { endLogSession, flushLogEntries, startLogSession } from '@volter/editor-core/editor-api';
-import type { ConsoleEntry } from '@volter/editor-core/editor-console';
+import type { ConsoleEntry } from '@volter/editor-sdk/kit/editor-console';
 import {
   editorConsole,
   formatConsoleArgs,
   resumeEditorConsoleCapture,
   suspendEditorConsoleCapture,
-} from '@volter/editor-core/editor-console';
+} from '@volter/editor-sdk/kit/editor-console';
 import { EDITOR_PARTICIPANT_ID, sendControl } from '@volter/editor-core/editor-presence';
 import {
   isEditorPresentationActive,

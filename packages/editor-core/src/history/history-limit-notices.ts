@@ -16,7 +16,7 @@
  * consecutive-duplicate folding collapses the repeats into one counted entry.
  */
 
-import { editorConsole } from '../editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import type { HistoryService } from './history-service';
 import type { HistoryEviction, HistoryLimitWarning } from '@volter/editor-sdk/kit/history-types';

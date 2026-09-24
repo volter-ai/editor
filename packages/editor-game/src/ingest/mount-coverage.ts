@@ -27,7 +27,7 @@ import {
   type WriteReachFacts,
 } from '../host/coverage/capability-coverage';
 import { inspectSystemAdapterSeam } from '@volter/editor-sdk/kit/system-seam-evidence';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import {
   type MeasuredLoop,
   measuredLoop,

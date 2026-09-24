@@ -1,6 +1,6 @@
 import type { EditorControlLifecycle } from '@volter/editor-sdk/session/editor-control-lifecycle';
 import { COMMAND_RESULT_RECEIPT_EVENT } from '@volter/editor-sdk/session/editor-control-protocol';
-import { isCancellationReason } from './cancellation-reason';
+import { isCancellationReason } from '@volter/editor-sdk/kit/cancellation-reason';
 // Type-only: erased at compile, so the pre-React bootstrap module stays
 // dependency-light while the channel vocabulary keeps ONE owner.
 import type { LeaseChannelState } from './editor-lease';

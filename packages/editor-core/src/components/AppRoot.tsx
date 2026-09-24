@@ -38,7 +38,7 @@ import {
   type ServerProjectFailureReport,
 } from '../boot-routing';
 import { EditorProvider } from '../EditorContext';
-import { editorConsole } from '../editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { connectTabPresence, reportTabRoute } from '../editor-presence';
 import { type ActiveProject, detectProject } from '../project-manager';
 import { onTabAdopt } from '../tab-lifecycle-client';

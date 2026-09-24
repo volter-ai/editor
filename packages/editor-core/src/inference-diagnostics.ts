@@ -21,7 +21,7 @@
  * would be noise rather than a signal.
  */
 
-import { editorConsole } from './editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 
 const warned = new Set<string>();
 

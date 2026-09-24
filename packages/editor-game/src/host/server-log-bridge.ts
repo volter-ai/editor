@@ -7,7 +7,7 @@
  * session's viewport panel.
  */
 import { getServerValidationLog } from '@volter/editor-core/api/project-state';
-import { emitServerLogEntry } from '@volter/editor-core/editor-console';
+import { emitServerLogEntry } from '@volter/editor-sdk/kit/editor-console';
 import { connectEvents } from '@volter/editor-core/editor-presence';
 
 /**

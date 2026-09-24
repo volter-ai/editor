@@ -29,7 +29,7 @@
 export { GAME_GLOBALS_PRELUDE } from '@volter/editor-core/game-globals-prelude';
 
 import { installCreationSiteRecorder } from '@volter/editor-sdk/kit/creation-site-registry';
-import { setConsoleRealmAttribution } from '@volter/editor-core/editor-console';
+import { setConsoleRealmAttribution } from '@volter/editor-sdk/kit/editor-console';
 import { guardedGameLocation, refusedNavigationMessage } from './game-location-guard';
 import { GameRealmPage } from './game-realm-page';
 import {

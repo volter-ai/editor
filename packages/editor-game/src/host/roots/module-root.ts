@@ -131,7 +131,7 @@ function withCapabilityWarning<K extends AdapterSurface>(
         mounted.kind,
       );
       if (warning) {
-        const { editorConsole } = await import('@volter/editor-core/editor-console');
+        const { editorConsole } = await import('@volter/editor-sdk/kit/editor-console');
         editorConsole.warn(warning, 'adapter');
       }
       return mounted;

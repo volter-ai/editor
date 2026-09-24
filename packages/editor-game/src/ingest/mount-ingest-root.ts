@@ -35,7 +35,7 @@ import {
   getMountFailureReports,
   type MountFailureReport,
 } from '@volter/editor-sdk/kit/mount-failure-report';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { registerEditorStateFacet } from '@volter/editor-sdk/kit/editor-state-facets';
 import { liveDocumentContainer } from '@volter/editor-sdk/kit/live-document';

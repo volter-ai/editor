@@ -58,7 +58,7 @@
  */
 
 import type { AdapterSurface, StoriesProvider, StoryRef } from '@volter/editor-project/adapter';
-import { editorConsole } from './editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from './editor-shell-store';
 
 /**

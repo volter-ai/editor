@@ -112,9 +112,9 @@ export function getDownloadUrl(file: string): string {
 // local disk to read.
 // ---------------------------------------------------------------------------
 
-import type { AssetFileOption, OnlineAsset } from './asset-library-wire';
+import type { AssetFileOption, OnlineAsset } from '@volter/editor-sdk/kit/api-asset-library-wire';
 
-export type { AssetFileOption, OnlineAsset } from './asset-library-wire';
+export type { AssetFileOption, OnlineAsset } from '@volter/editor-sdk/kit/api-asset-library-wire';
 
 export type AssetDeliveryIssueCode =
   | 'offline'

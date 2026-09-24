@@ -21,7 +21,7 @@
  */
 
 import { declaredRoots } from '@volter/editor-project/adapter/manifest-interpreter';
-import { editorConsole } from '../editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { assertEditorServerAnswered } from '@volter/editor-sdk/kit/editor-server-response';
 import { sourceMutationAttribution } from '@volter/editor-sdk/kit/editor-session-attribution';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';

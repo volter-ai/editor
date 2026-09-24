@@ -5,7 +5,7 @@
  */
 import { assertEditorServerResponse, editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
 import { BASE } from '@volter/editor-sdk/kit/api-base';
-import type { SettingsLayer } from './settings';
+import type { SettingsLayer } from '@volter/editor-sdk/kit/api-settings';
 
 export interface ThemeDocumentRead {
   readonly id: string;

@@ -55,7 +55,7 @@ import {
   type MountFailureReport,
   subscribeToMountFailures,
 } from '@volter/editor-sdk/kit/mount-failure-report';
-import { editorConsole } from '../editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import {
   editorLeaseView,
   editorLeaseViewVersion,

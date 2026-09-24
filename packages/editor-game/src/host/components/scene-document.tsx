@@ -27,7 +27,7 @@ import {
 } from '@volter/editor-core/authoring/shell-document-ops';
 import { Object3DDocumentViewport } from '@volter/editor-core/components/Object3DDocumentViewport';
 import type { DocumentPreviewSource } from '@volter/editor-sdk/kit/document-preview-source';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore, ViewportTab } from '@volter/editor-core/editor-shell-store';
 import { projectAdapterFacet, subscribeProjectAdapter } from '@volter/editor-core/project-adapter';
 import { getCurrentProject } from '@volter/editor-core/project-manager';

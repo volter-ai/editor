@@ -43,7 +43,7 @@ import {
   type WriteResolution,
 } from '@volter/editor-sdk/kit/write-pipe';
 import { guideClientEdges } from '@volter/editor-core/components/board-guides';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { withProjectSourceHistory } from '@volter/editor-core/history/source-history-backend';
 import { DomProjector, oidDomIdentity, projectOidDom } from '../host/projection/dom';

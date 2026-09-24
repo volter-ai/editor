@@ -6,14 +6,14 @@ import {
   isEditorThemeId,
 } from '@volter/editor-sdk/widgets';
 import { activeProjectKey, getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/active-project';
-import type { SettingsLayer } from './api/settings';
+import type { SettingsLayer } from '@volter/editor-sdk/kit/api-settings';
 import {
   deleteThemeDocument,
   listThemeDocuments,
   saveThemeDocument,
   type ThemeLayerRead,
 } from './api/themes';
-import { editorConsole } from './editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import mayaPalette from './palettes/maya.palette.json';
 import substancePalette from './palettes/substance.palette.json';
 

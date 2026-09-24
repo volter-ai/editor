@@ -44,7 +44,7 @@ import {
   capturePixiDisplayObjectThumbnail,
   registerPresentedPixiApps,
 } from '@volter/editor-core/canvas-preview-frames';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { GAME_SURFACE_CONTAINMENT_CSS } from '../host/game-realm-page';
 import {

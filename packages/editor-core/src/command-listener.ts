@@ -69,8 +69,8 @@ import {
   reportPlayBootPhase,
 } from './editor-api';
 import { captureEditorChrome } from './editor-chrome-capture';
-import type { ConsoleEntry } from './editor-console';
-import { editorConsole } from './editor-console';
+import type { ConsoleEntry } from '@volter/editor-sdk/kit/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { currentEditorView } from './editor-current-view';
 import { editorIsPlaying } from '@volter/editor-sdk/kit/editor-session-mode';
 import type {

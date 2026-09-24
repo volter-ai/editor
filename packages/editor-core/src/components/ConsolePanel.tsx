@@ -19,7 +19,7 @@ import {
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { getActiveAuthoring } from '../authoring/active-adapter';
 import { setAuthoringSelection } from '../authoring/consumer-actions';
-import { type ConsoleLevel, editorConsole } from '../editor-console';
+import { type ConsoleLevel, editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { useEditorStore } from '../editor-runtime';
 
 const LEVEL_COLORS: Record<ConsoleLevel, string> = {

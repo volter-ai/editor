@@ -73,7 +73,7 @@ import { isAllowedAssetHost, isAllowedAssetSource, isPathInside } from './server
 // The asset-library wire is declared ONCE, on the CLIENT side of its own
 // route (`../src/api/assets.ts`) — this producer imports the contract it
 // must satisfy, so the two sides of `/__editor/assets/*` cannot drift.
-import type { AssetFileOption, OnlineAsset } from '../src/api/asset-library-wire';
+import type { AssetFileOption, OnlineAsset } from '@volter/editor-sdk/kit/api-asset-library-wire';
 
 const LOCAL_ASSET_LAB_FORMATS = new Set([
   'glb',

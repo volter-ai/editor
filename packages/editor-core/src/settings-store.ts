@@ -57,8 +57,8 @@ import {
   adapterEditorConfiguration,
   subscribeAdapterEditorConfiguration,
 } from './adapter-editor-config';
-import { loadSettingsLayer, type SettingsLayer, saveSettingsLayer } from './api/settings';
-import { editorConsole } from './editor-console';
+import { loadSettingsLayer, type SettingsLayer, saveSettingsLayer } from '@volter/editor-sdk/kit/api-settings';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { settingsProvider, subscribeSettingsProvider } from './settings/settings-provider';
 
 type Listener = () => void;

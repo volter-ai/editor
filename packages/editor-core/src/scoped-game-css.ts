@@ -27,7 +27,7 @@
  * failure the whole feature exists to prevent.
  */
 
-import { editorConsole } from './editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
 
 /** What the open project's game CSS turned out to be. */

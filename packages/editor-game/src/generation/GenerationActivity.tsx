@@ -15,7 +15,7 @@ import './GenerationGallery.css';
 import { assetCapabilities, assetDocumentKind } from '@volter/editor-sdk/kit/asset-capabilities';
 import { openAssetDocument } from '@volter/editor-core/components/asset-documents';
 import { AudioAssetThumb, ModelThumbnail } from '@volter/editor-core/components/asset-thumbnails';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { useEditorStore } from '@volter/editor-core/editor-runtime';
 import { modelThumbnailFormat } from '@volter/editor-core/model-thumbnail';
 import {

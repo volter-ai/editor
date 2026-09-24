@@ -30,7 +30,7 @@ import type {
   ComponentStatesSource,
 } from '../component-states-registry';
 import { openRegisteredDocument } from '../document-open-registry';
-import { editorConsole } from '../editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import {
   ISOLATED_STORY_DOCUMENT_OPENER,
   THREE_STORY_DOCUMENT_OPENER,

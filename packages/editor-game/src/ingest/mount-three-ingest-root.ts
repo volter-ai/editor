@@ -23,7 +23,7 @@ import { setActiveAuthoring } from '@volter/editor-core/authoring/active-adapter
 import { setActiveSystems } from '@volter/editor-core/authoring/active-systems';
 import { withContractHierarchy } from '../host/authoring/contract-hierarchy-authoring';
 import { clearMountFailureReports } from '@volter/editor-sdk/kit/mount-failure-report';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { gameLoopGate, setGameInputGate } from '../host/gated-globals';
 import { acquireLiveDocument, liveDocumentContainer } from '@volter/editor-sdk/kit/live-document';

@@ -1,7 +1,7 @@
 import type { EditorRegionName, WorkspacePanelGlyphName } from '@volter/editor-sdk/widgets';
 import { Button } from '@volter/editor-sdk/widgets';
 import { Component, type ComponentType, type ErrorInfo, type ReactNode } from 'react';
-import { editorConsole } from '../editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { WORKSPACE_STATIC_PANELS, type WorkspaceStaticPanelKind } from '../workspace-static-panels';
 import { AssetBrowser, type AssetBrowserServices } from './AssetBrowser';
 import { ChromeSlot } from './ChromeSlot';

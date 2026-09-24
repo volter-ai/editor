@@ -17,7 +17,7 @@ import {
   subscribeContributedChrome,
 } from '../chrome-registry';
 import { openCommandPalette } from '../editor-commands';
-import { editorConsole } from '../editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { currentEditorViewUrl } from '../editor-current-view';
 import {
   copySelection,

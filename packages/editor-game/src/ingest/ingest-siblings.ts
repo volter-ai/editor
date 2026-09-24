@@ -53,7 +53,7 @@ import { PixiAuthoringAdapter } from '../host/authoring/pixi-authoring-adapter';
 import { createLiveCanvasWriteTarget } from '../host/authoring/pixi-live-write-target';
 import { resolveCanvasPixiForEditor } from '../host/canvas-entry-runtime';
 import { CrashNullBoundary } from '@volter/editor-sdk/kit/crash-null-boundary';
-import { editorConsole } from '@volter/editor-core/editor-console';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { authoringJournal } from '../host/history/json-history-resource';
 import { activeRealmServices } from '../host/realm-services';
