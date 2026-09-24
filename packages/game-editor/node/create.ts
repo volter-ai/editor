@@ -50,7 +50,8 @@ export const presets: ScaffoldPresets = {
     empty: { additions: [] },
   },
 
-  defaultTemplate: 'empty',
+  // A bare `create` makes a game that plays; `empty` is asked for by name.
+  defaultTemplate: 'game',
 
   examples: true,
 
