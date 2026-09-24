@@ -13,11 +13,11 @@
  * The failure class is agent-native: an agent authors lush effects with zero
  * cost feedback, because the quality loop grades looks and never cost.
  *
- * IT ALSO CARRIES THE BLENDER BLOCK. The Blender worker's call times and this
- * thread's long-task stalls (`blender-tab-metrics.ts`) ride the same sample,
- * because the beat is the one channel that still moves while the page or the
- * worker is blocked — which is exactly when those numbers are the whole story.
- * Absent, not zeroed, in a tab with no Blender session.
+ * IT ALSO CARRIES THE LANES' WORKER CALLS. Each lane's worker call times and
+ * this thread's long-task stalls (`worker-call-metrics.ts`) ride the same
+ * sample, because the beat is the one channel that still moves while the page
+ * or a worker is blocked — which is exactly when those numbers are the whole
+ * story. Absent, not zeroed, in a tab where no lane published a meter.
  *
  * MEASUREMENT ONLY — nothing here enforces a budget. Budgets are a later
  * decision, made from real profiles rather than from a guess about them.
@@ -38,9 +38,9 @@
  */
 
 import { PROJECT_MOUNT_QUERY } from '@volter/editor-sdk/session/project-module-url';
-import type { BlenderTabMetrics, TabCensus } from '@volter/editor-sdk/tab-census';
+import type { TabCensus, TabStallMetrics, WorkerCallTabMetrics } from '@volter/editor-sdk/tab-census';
 import { getActiveRenderDebug } from './authoring/active-systems';
-import { blenderTabMetrics } from './blender-tab-metrics';
+import { tabStallMetrics, workerCallTabMetrics } from './worker-call-metrics';
 import { isJsHeapReading, type JsHeapReading, readJsHeap } from '@volter/editor-sdk/kit/js-heap';
 
 /** How often the page samples itself. Slow on purpose — see the header. */
@@ -73,11 +73,12 @@ export interface TabCensusSources {
     readonly textures: number;
     readonly programs: number | null;
   } | null;
-  /** The Blender worker's call times and the main thread's stalls, or null when
-   *  this tab has no Blender session (`blender-tab-metrics.ts`). Optional so a
-   *  caller measuring only the resource half omits it and gets no block, rather
-   *  than having to fabricate one. */
-  blender?(): BlenderTabMetrics | null;
+  /** Each lane's worker call times, or null when no lane has published a meter
+   *  (`worker-call-metrics.ts`). Optional so a caller measuring only the
+   *  resource half omits it and gets no block, rather than fabricating one. */
+  workerCalls?(): Readonly<Record<string, WorkerCallTabMetrics>> | null;
+  /** The main thread's stalls, or null while nobody is watching them. */
+  stalls?(): TabStallMetrics | null;
 }
 
 /** Two decimals of an MB — enough to see a 4K framebuffer, short enough to read. */
@@ -94,7 +95,8 @@ export function sampleTabCensus(sources: TabCensusSources): TabCensus {
   const heap = sources.heap();
   const canvases = sources.canvases();
   const counts = sources.rendererCounts();
-  const blender = sources.blender?.() ?? null;
+  const workerCalls = sources.workerCalls?.() ?? null;
+  const stalls = sources.stalls?.() ?? null;
   let canvasBytes = 0;
   for (const canvas of canvases) {
     canvasBytes += canvas.width * canvas.height * CANVAS_BYTES_PER_PIXEL;
@@ -105,7 +107,8 @@ export function sampleTabCensus(sources: TabCensusSources): TabCensus {
     mountEpochs: sources.mountEpochs(),
     canvases: canvases.length,
     canvasMB: mb(canvasBytes),
-    ...(blender === null ? {} : { blender }),
+    ...(workerCalls === null ? {} : { workerCalls }),
+    ...(stalls === null ? {} : { stalls }),
     ...(counts === null
       ? {}
       : {
@@ -150,7 +153,8 @@ export function documentCensusSources(): TabCensusSources {
     mountEpochs: () => countProjectMountEpochs(performance.getEntriesByType('resource')),
     canvases: () => [...document.querySelectorAll('canvas')],
     rendererCounts: () => getActiveRenderDebug()?.memorySnapshot?.().counts ?? null,
-    blender: () => blenderTabMetrics(),
+    workerCalls: () => workerCallTabMetrics(),
+    stalls: () => tabStallMetrics(),
   };
 }
 

@@ -470,7 +470,7 @@ export class BlenderRuntime {
    * A `present` is not counted separately — the worker only presents from
    * inside a call this meter is already holding open, and the page-side cost of
    * displaying the frame is main-thread time, which is the long-task observer's
-   * subject (`packages/editor/src/blender-tab-metrics.ts`).
+   * subject (the host's `worker-call-metrics.ts`).
    */
   metrics(now: number = performance.now()): BlenderCallMetrics {
     let oldest: number | null = null;

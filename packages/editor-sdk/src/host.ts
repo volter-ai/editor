@@ -593,13 +593,14 @@ export interface EditorHostSession {
    * the call still knows when it did).
    *
    * The HOST owns the rest of the measurement — the main thread's own long
-   * tasks, and which of them overlapped the call — and starts measuring when a
-   * meter arrives. That half was `@editor/blender-tab-metrics`, a host module
-   * the package used to start and publish into; the page's stalls were never
-   * the package's to observe. ONE meter rides the census, so a second lane
-   * publishing here replaces the first.
+   * tasks, and which of them overlapped the call — and starts measuring when
+   * the first meter arrives; the page's stalls are never a lane's to observe.
+   *
+   * `lane` is the name the census carries the meter under and `vgai status`
+   * prints (`Blender`). One meter per name: publishing again under the same
+   * name replaces it.
    */
-  reportWorkerCallMeter(read: (() => EditorHostWorkerCallMetrics) | null): void;
+  reportWorkerCallMeter(lane: string, read: (() => EditorHostWorkerCallMetrics) | null): void;
 }
 
 /**

@@ -35,7 +35,11 @@
 import { appendFileSync, mkdirSync, readdirSync, readFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import type { TripwireTier } from './build-discipline';
-import type { BlenderTabMetrics, RecordedTabCensus } from '@volter/editor-sdk/project/tab-census';
+import type {
+  RecordedTabCensus,
+  TabStallMetrics,
+  WorkerCallTabMetrics,
+} from '@volter/editor-sdk/project/tab-census';
 
 /** `editor-` + an ISO instant with `:`/`.` flattened + `.jsonl` — the same
  *  lexicographic-order-is-chronological-order shape `play-*.jsonl` uses. */
@@ -762,38 +766,39 @@ function tabDeathProfileBody(line: SessionJournalEvent & { kind: 'tab-death-prof
  *  phrasings of the same numbers is how a reader ends up believing there are
  *  two measurements. Renderer counts appear only when the page could read them
  *  (no mounted render-debug adapter = the words are absent, never a zero). */
+const secondsText = (ms: number): string => `${Math.round(ms / 100) / 10}s`;
+
 /**
- * The Blender block's words: what the Blender worker and this tab's main thread
- * have been doing. Absent entirely in a tab with no Blender session.
+ * One lane's words: what its worker has been doing, under the lane's own name.
  *
  * `in flight` is the field that speaks during a wedge — the 2026-09-16 call
- * that held the worker 1,800s produced no other number anywhere in the product.
- * A field the page could not measure is OMITTED rather than printed as 0: no
- * call yet, or no Long Tasks API (Safari/Firefox), is not "never stalled".
+ * that held a worker 1,800s produced no other number anywhere in the product.
+ * A field the page could not measure is OMITTED rather than printed as 0.
  */
-function formatBlenderMetrics(blender: BlenderTabMetrics): string {
-  const s = (ms: number): string => `${Math.round(ms / 100) / 10}s`;
+function formatWorkerCalls(lane: string, calls: WorkerCallTabMetrics): string {
+  const s = secondsText;
   const parts = [
-    blender.inFlightMs === null ? 'idle' : `IN FLIGHT ${s(blender.inFlightMs)}`,
+    calls.inFlightMs === null ? 'idle' : `IN FLIGHT ${s(calls.inFlightMs)}`,
     // First after the wedge field, because it is the tab's LARGEST number and
     // the one the heap line above is routinely mistaken for.
-    ...(blender.wasmMemoryMB === null || blender.wasmMemoryMB === undefined
+    ...(calls.wasmMemoryMB === null ? [] : [`engine memory ${calls.wasmMemoryMB}MB`]),
+    ...(calls.lastCallMs === null ? [] : [`last call ${s(calls.lastCallMs)}`]),
+    ...(calls.maxCallMs === null ? [] : [`max ${s(calls.maxCallMs)}`]),
+    `over 5s ${calls.callsOver5s}`,
+    `over 30s ${calls.callsOver30s}`,
+    ...(calls.lastCallLongestTaskMs === null
       ? []
-      : [`engine memory ${blender.wasmMemoryMB}MB`]),
-    ...(blender.lastCallMs === null ? [] : [`last call ${s(blender.lastCallMs)}`]),
-    ...(blender.maxCallMs === null ? [] : [`max ${s(blender.maxCallMs)}`]),
-    `over 5s ${blender.callsOver5s}`,
-    `over 30s ${blender.callsOver30s}`,
-    ...(blender.longestTaskMs === null
-      ? []
-      : [
-          `longest main-thread task ${s(blender.longestTaskMs)} (${blender.tasksOver100ms} over 100ms)`,
-        ]),
-    ...(blender.lastCallLongestTaskMs === null
-      ? []
-      : [`${s(blender.lastCallLongestTaskMs)} of that during the last call`]),
+      : [`main thread stalled ${s(calls.lastCallLongestTaskMs)} during the last call`]),
   ];
-  return `blender: ${parts.join(', ')}`;
+  return `${lane}: ${parts.join(', ')}`;
+}
+
+/** The main thread's words. No Long Tasks API (Safari/Firefox) is not "never
+ *  stalled", so a null longest task omits the line. */
+function formatStalls(stalls: TabStallMetrics): string | null {
+  return stalls.longestTaskMs === null
+    ? null
+    : `main thread: longest task ${secondsText(stalls.longestTaskMs)} (${stalls.tasksOver100ms} over 100ms)`;
 }
 
 export function formatTabCensus(census: RecordedTabCensus | null): string {
@@ -809,12 +814,14 @@ export function formatTabCensus(census: RecordedTabCensus | null): string {
   if (census.geometries !== undefined) parts.push(`geo ${census.geometries}`);
   if (census.programs !== undefined) parts.push(`prog ${census.programs}`);
   const line = parts.join(', ');
-  // On its own line: the Blender block answers a different question from the
-  // resource profile (is the tab ANSWERING, not what is it holding), and
-  // running the two together is how a reader stops seeing either.
-  return census.blender === undefined
-    ? line
-    : `${line}\n            ${formatBlenderMetrics(census.blender)}`;
+  // On their own lines: the worker and stall blocks answer a different question
+  // from the resource profile (is the tab ANSWERING, not what is it holding),
+  // and running them together is how a reader stops seeing either.
+  const answering = [
+    ...Object.entries(census.workerCalls ?? {}).map(([lane, calls]) => formatWorkerCalls(lane, calls)),
+    ...(census.stalls === undefined ? [] : [formatStalls(census.stalls)]),
+  ].filter((entry): entry is string => entry !== null);
+  return [line, ...answering].join('\n            ');
 }
 
 /**

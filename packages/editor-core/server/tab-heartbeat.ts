@@ -33,7 +33,7 @@
 
 import type { IncomingMessage } from 'node:http';
 import type { WebSocket } from 'ws';
-import type { BlenderTabMetrics } from '@volter/editor-sdk/project/tab-census';
+import type { TabStallMetrics, WorkerCallTabMetrics } from '@volter/editor-sdk/project/tab-census';
 import type { RawSocketRoute } from './editor-control-socket';
 import type { TabBeat, TabCensus, TabCloseBeacon, TabVisibility } from './tab-presence';
 
@@ -247,33 +247,56 @@ function finite(raw: unknown): number | null {
   return typeof raw === 'number' && Number.isFinite(raw) ? raw : null;
 }
 
+/** A plain object, or null for anything else (arrays included). */
+function objectRecord(raw: unknown): Record<string, unknown> | null {
+  return raw === null || typeof raw !== 'object' || Array.isArray(raw)
+    ? null
+    : (raw as Record<string, unknown>);
+}
+
 /**
- * The Blender block on a census, or undefined when the beat carried none (the
- * usual case — a tab with no Blender session).
- *
- * Parsed with the same posture as the rest of this file: a field the page could
- * not measure stays NULL (no call yet, no Long Tasks API), and the block as a
- * whole is dropped rather than half-filed if the counters are not numbers. A
+ * One lane's worker calls on a census. Parsed with the same posture as the rest
+ * of this file: a field the page could not measure stays NULL (no call yet), and
+ * the lane is dropped rather than half-filed if its counters are not numbers. A
  * malformed block must never cost the census it rode in on.
  */
-function parseBlender(raw: unknown): BlenderTabMetrics | undefined {
-  if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) return undefined;
-  const record = raw as Record<string, unknown>;
+function parseWorkerCallLane(raw: unknown): WorkerCallTabMetrics | undefined {
+  const record = objectRecord(raw);
+  if (record === null) return undefined;
   const callsOver5s = finite(record['callsOver5s']);
   const callsOver30s = finite(record['callsOver30s']);
-  const tasksOver100ms = finite(record['tasksOver100ms']);
-  if (callsOver5s === null || callsOver30s === null || tasksOver100ms === null) return undefined;
+  if (callsOver5s === null || callsOver30s === null) return undefined;
   return {
     inFlightMs: finite(record['inFlightMs']),
     lastCallMs: finite(record['lastCallMs']),
     maxCallMs: finite(record['maxCallMs']),
     callsOver5s,
     callsOver30s,
-    longestTaskMs: finite(record['longestTaskMs']),
-    tasksOver100ms,
     lastCallLongestTaskMs: finite(record['lastCallLongestTaskMs']),
     wasmMemoryMB: finite(record['wasmMemoryMB']),
   };
+}
+
+/** Every well-formed lane on a census, or undefined when the beat carried none
+ *  (the usual case: no lane published a meter). */
+function parseWorkerCalls(raw: unknown): Record<string, WorkerCallTabMetrics> | undefined {
+  const record = objectRecord(raw);
+  if (record === null) return undefined;
+  const lanes: Record<string, WorkerCallTabMetrics> = {};
+  for (const [lane, value] of Object.entries(record)) {
+    const parsed = parseWorkerCallLane(value);
+    if (parsed !== undefined) lanes[lane] = parsed;
+  }
+  return Object.keys(lanes).length === 0 ? undefined : lanes;
+}
+
+/** The main thread's stalls on a census, or undefined when nobody watched. */
+function parseStalls(raw: unknown): TabStallMetrics | undefined {
+  const record = objectRecord(raw);
+  if (record === null) return undefined;
+  const tasksOver100ms = finite(record['tasksOver100ms']);
+  if (tasksOver100ms === null) return undefined;
+  return { longestTaskMs: finite(record['longestTaskMs']), tasksOver100ms };
 }
 
 /**
@@ -295,7 +318,8 @@ export function parseCensus(raw: unknown): TabCensus | null {
   const textures = finite(record['textures']);
   const geometries = finite(record['geometries']);
   const programs = finite(record['programs']);
-  const blender = parseBlender(record['blender']);
+  const workerCalls = parseWorkerCalls(record['workerCalls']);
+  const stalls = parseStalls(record['stalls']);
   return {
     heapUsedMB: finite(record['heapUsedMB']),
     heapLimitMB: finite(record['heapLimitMB']),
@@ -305,7 +329,8 @@ export function parseCensus(raw: unknown): TabCensus | null {
     ...(textures === null ? {} : { textures }),
     ...(geometries === null ? {} : { geometries }),
     ...(programs === null ? {} : { programs }),
-    ...(blender === undefined ? {} : { blender }),
+    ...(workerCalls === undefined ? {} : { workerCalls }),
+    ...(stalls === undefined ? {} : { stalls }),
   };
 }
 

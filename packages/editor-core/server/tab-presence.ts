@@ -1234,7 +1234,7 @@ export function tabState(
         ms: sinceClose,
         because:
           `its page acknowledged the session's end ${seconds(sinceClose)} ago — every ` +
-          'terminator it holds (the Blender engine worker among them) had already run when ' +
+          "terminator it holds (every lane's worker among them) had already run when " +
           'it said so',
       };
     }
@@ -1324,13 +1324,19 @@ export function tabState(
           `(it samples every 5s while visible) — the MAIN THREAD is not running`,
       };
     }
-    const inFlight = newest.blender?.inFlightMs ?? null;
-    if (censusAge < config.hungAfterMs && inFlight !== null && inFlight > 0) {
+    let oldest: { lane: string; ms: number } | null = null;
+    for (const [lane, calls] of Object.entries(newest.workerCalls ?? {})) {
+      const inFlight = calls.inFlightMs;
+      if (inFlight !== null && inFlight > 0 && (oldest === null || inFlight > oldest.ms)) {
+        oldest = { lane, ms: inFlight };
+      }
+    }
+    if (censusAge < config.hungAfterMs && oldest !== null) {
       return {
         state: 'busy',
-        ms: inFlight,
+        ms: oldest.ms,
         because:
-          `a Blender call has been outstanding for ${seconds(inFlight)}; the page is still ` +
+          `a ${oldest.lane} call has been outstanding for ${seconds(oldest.ms)}; the page is still ` +
           'sampling, so it is running — whether that call is stuck is what the number is for',
       };
     }

@@ -21,7 +21,7 @@ import {
 } from './authoring/active-systems';
 import { activeDocumentSourcePath, activeSaveDestination } from './authoring/shell-document-ops';
 import { availabilityTickVersion, subscribeAvailabilityTick } from '@volter/editor-sdk/kit/availability-tick';
-import { setBlenderCallMeter } from './blender-tab-metrics';
+import { setWorkerCallMeter } from './worker-call-metrics';
 import { beginPageWork } from './play-boot-phase';
 import { onCommandDispatched } from './command-dispatch';
 import { openToolDocument } from './components/tool-documents';
@@ -259,7 +259,7 @@ export function installEditorHostDoor(): void {
           if (state !== null) fn();
         }),
       onBeforeClose: onBeforeSessionClose,
-      reportWorkerCallMeter: setBlenderCallMeter,
+      reportWorkerCallMeter: setWorkerCallMeter,
     },
     project: {
       documentTable: resolvedProjectDocumentTable,

@@ -79,11 +79,11 @@ Remaining:
    rename, the frozen reverse-edge baseline, the viewport unit, Blender as its first consumer,
    then idiomatic games. `@volter/editor-game` imports kit internals from 122 files.
    The kit's Blender server routes are `@volter/editor-blender`'s serving half (walked: Blender
-   boots and saves through them). The kit's server still names Blender in 25 code lines: the
-   Blender tab-metrics pipeline (`tab-heartbeat.ts`, `tab-presence.ts`,
-   `support/project/session-journal.ts`, with its browser half `src/blender-tab-metrics.ts` and
-   the SDK's `BlenderTabMetrics`), which becomes a contributed facet, and `packaged.ts`'s
-   `@volter/blender-engine` prebundle exclusion, whose regression shows only in a registry
+   boots and saves through them). A lane's worker-call meter rides the tab census under the name
+   the lane publishes (`host.session.reportWorkerCallMeter('Blender', …)`), and the kit prints
+   that name; it typechecks, and its `vgai status` reading waits on a product build. The kit
+   server's one remaining Blender name is `packaged.ts`'s `@volter/blender-engine` prebundle
+   exclusion, whose regression shows only in a registry
    install, so it moves with a packed-install walk. The Edit/Play tab is derived from workspace
    focus, and the shell store is split: `ShellStore` is its neutral half, and Three code asks for
    its half through `threeStateOf`. Walked on `arena` on a product build: Play focuses Game and a

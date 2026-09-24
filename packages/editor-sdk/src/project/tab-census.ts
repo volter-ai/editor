@@ -26,10 +26,11 @@
  * `@vgai/sdk` home, `project/session-journal.ts`, reads `node:fs`.
  *
  * WHAT ELSE RIDES IT. The beat is the one channel that still moves when the
- * page's main thread or the Blender worker is blocked, so `blender` — how long
- * the worker's calls are taking and how long the main thread has been stalled —
- * is carried here too (absent unless a Blender session exists in the tab). Same
- * rule as the rest of this file: measurement only, no budget anywhere.
+ * page's main thread or a lane's worker is blocked, so `workerCalls` — how long
+ * each lane's worker calls are taking, keyed by the lane's own name — and
+ * `stalls` — how long the main thread has been stalled — are carried here too
+ * (absent until a lane publishes a meter). Same rule as the rest of this file:
+ * measurement only, no budget anywhere.
  *
  * ABSENT IS NOT ZERO. `heapUsedMB`/`heapLimitMB` are null off Chromium
  * (`performance.memory` is non-standard). The renderer counts are ABSENT rather
@@ -39,24 +40,23 @@
  */
 
 /**
- * THE BLENDER WORKER'S STALLS, as numbers.
+ * ONE LANE'S WORKER CALLS, as numbers.
  *
- * WHY (measured 2026-09-16): one `blender-execute` held the Blender worker for
- * over 1,800s and wedged the tab, and a 0.86s-per-call scene stretched into
- * heartbeat timeouts that read as "tab present, did not respond". The product
- * had no number for either. Owner ruling: a tab that stops answering is the
- * product's defect regardless of what the machine is doing, and the product has
- * to surface it — so these ride the census to `vgai status`.
+ * WHY (measured 2026-09-16): one Blender call held its worker for over 1,800s
+ * and wedged the tab, and a 0.86s-per-call scene stretched into heartbeat
+ * timeouts that read as "tab present, did not respond". The product had no
+ * number for either. Owner ruling: a tab that stops answering is the product's
+ * defect regardless of what the machine is doing, and the product has to
+ * surface it — so these ride the census to `vgai status`.
  *
  * MEASURED BY THE PAGE, because neither blocked party can report on itself: the
  * worker's own loop is what is stuck, and a stalled main thread cannot send.
- * The call half comes from `BlenderRuntime.metrics()`
- * (`packages/blender-engine/browser/runtime.ts`), the stall half from a `longtask`
- * PerformanceObserver (`packages/editor/src/blender-tab-metrics.ts`).
+ * The call half is the lane's meter (`host.session.reportWorkerCallMeter`), and
+ * the stall half is the host's `longtask` observer.
  *
  * MEASUREMENT ONLY. No threshold here cancels, kills or budgets a call.
  */
-export interface BlenderTabMetrics {
+export interface WorkerCallTabMetrics {
   /** Age of the oldest OUTSTANDING worker call, or null when the worker is idle.
    *  The only field with a number during a wedge. */
   readonly inFlightMs: number | null;
@@ -67,33 +67,33 @@ export interface BlenderTabMetrics {
   /** Calls past 5s, and past 30s, since this page loaded. */
   readonly callsOver5s: number;
   readonly callsOver30s: number;
-  /** Longest `longtask` entry since page load, in ms; null off Chromium (the
-   *  Long Tasks API is not implemented everywhere) — never 0, which would read
-   *  as "the main thread never stalled". */
-  readonly longestTaskMs: number | null;
-  /** How many long tasks ran past 100ms since page load. */
-  readonly tasksOver100ms: number;
   /** The longest long task that overlapped the newest call's window — what the
    *  MAIN thread was doing while the worker was busy. Null when there has been
    *  no call yet, or no long task during it. */
   readonly lastCallLongestTaskMs: number | null;
   /**
-   * THE ENGINE'S OWN MEMORY: the Blender module's linear memory in MB, read in
-   * the worker (`packages/blender-engine/browser/worker.ts`) and posted after every
-   * call. Null before the session's first call, and absent against a page that
-   * predates the field.
+   * THE ENGINE'S OWN MEMORY: the lane's wasm module's linear memory in MB, read
+   * in its worker and posted after every call; null when the lane has none.
    *
    * It is here because no other number on this census answers the question.
-   * `heapUsedMB` is the PAGE's JS heap — a few tens of MB — while the engine's
-   * memory is the larger half of the tab by far, and a reader looking at the
-   * heap line alone concludes the tab is cheap. wasm32 memory never shrinks, so
-   * this is simultaneously the current size and the session's high-water mark.
-   *
-   * MEASURED 2026-09-18 on this bundle: 512 MB reserved at boot of which ~166
-   * MB is ever touched, reaching 1036 MB across `17-workshop-interior`. The
-   * reservation costs no resident pages; the growth does, permanently.
+   * `heapUsedMB` is the PAGE's JS heap — a few tens of MB — while an engine's
+   * memory can be the larger half of the tab by far, and a reader looking at
+   * the heap line alone concludes the tab is cheap. wasm32 memory never
+   * shrinks, so this is simultaneously the current size and the session's
+   * high-water mark.
    */
-  readonly wasmMemoryMB?: number | null;
+  readonly wasmMemoryMB: number | null;
+}
+
+/** THE MAIN THREAD'S STALLS since page load, from the host's `longtask`
+ *  observer, which starts when the first lane publishes a meter. */
+export interface TabStallMetrics {
+  /** Longest `longtask` entry, in ms; null off Chromium (the Long Tasks API is
+   *  not implemented everywhere) — never 0, which would read as "the main
+   *  thread never stalled". */
+  readonly longestTaskMs: number | null;
+  /** How many long tasks ran past 100ms. */
+  readonly tasksOver100ms: number;
 }
 
 /**
@@ -121,8 +121,11 @@ export interface TabCensus {
   readonly geometries?: number;
   /** Compiled programs — absent with no adapter, or before the first render. */
   readonly programs?: number;
-  /** {@link BlenderTabMetrics} — absent unless this tab has a Blender session. */
-  readonly blender?: BlenderTabMetrics;
+  /** Each lane's {@link WorkerCallTabMetrics}, keyed by the name the lane
+   *  published under — absent until a lane publishes a meter. */
+  readonly workerCalls?: Readonly<Record<string, WorkerCallTabMetrics>>;
+  /** {@link TabStallMetrics} — absent until the host is watching its stalls. */
+  readonly stalls?: TabStallMetrics;
 }
 
 /**

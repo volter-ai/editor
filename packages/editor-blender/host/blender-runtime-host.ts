@@ -1034,7 +1034,7 @@ export function blenderRuntime(): BlenderRuntime {
   // meter rather than a snapshot, so the host always asks the running session:
   // an in-flight call's age has to be computed at the moment it is reported.
   // The page's own long-task half is the HOST's, behind this same door.
-  editorHost().session.reportWorkerCallMeter(() => session.metrics());
+  editorHost().session.reportWorkerCallMeter('Blender', () => session.metrics());
   return runtime;
 }
 
