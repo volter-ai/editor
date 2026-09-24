@@ -1,14 +1,42 @@
-import gsap from 'gsap';
 import type { Container, TickerCallback } from 'pixi.js';
 import * as shellPixi from 'pixi.js';
 import type { CanvasPixiNamespace } from '../canvas-entry-runtime';
+import { currentGameRealmMountId, gameRealmForMountId } from '../gated-globals';
 
-type GsapAnimation = ReturnType<typeof gsap.globalTimeline.getChildren>[number];
+/** The part of a GSAP instance this reads: its global timeline's live work. */
+interface GsapAnimation {
+  kill(): unknown;
+}
+interface GameGsap {
+  readonly globalTimeline: {
+    getChildren(nested: boolean, tweens: boolean, timelines: boolean): GsapAnimation[];
+  };
+}
 
-function newGsapAnimations(before: ReadonlySet<GsapAnimation>): GsapAnimation[] {
-  return gsap.globalTimeline
-    .getChildren(true, true, true)
-    .filter((animation) => !before.has(animation));
+/**
+ * THE GAME'S OWN GSAP, when it has one. GSAP installs itself as `gsap` on the
+ * global its code runs against — the game realm's, or the page's — so the
+ * animations a game's widgets start are read from the instance the GAME
+ * loaded. The editor carries no GSAP of its own.
+ */
+function gameGsap(): GameGsap | null {
+  const mountId = currentGameRealmMountId();
+  const realmGlobal = mountId === null ? null : gameRealmForMountId(mountId).globalThis;
+  const candidate =
+    (realmGlobal as { gsap?: unknown } | null)?.gsap ?? (globalThis as { gsap?: unknown }).gsap;
+  const timeline = (candidate as Partial<GameGsap> | undefined)?.globalTimeline;
+  return typeof timeline?.getChildren === 'function' ? (candidate as GameGsap) : null;
+}
+
+function liveGsapAnimations(gsap: GameGsap | null): GsapAnimation[] {
+  return gsap ? gsap.globalTimeline.getChildren(true, true, true) : [];
+}
+
+function newGsapAnimations(
+  gsap: GameGsap | null,
+  before: ReadonlySet<GsapAnimation>,
+): GsapAnimation[] {
+  return liveGsapAnimations(gsap).filter((animation) => !before.has(animation));
 }
 
 /**
@@ -41,7 +69,8 @@ export function createWithOwnedPixiTickerListeners<T extends Container>(
 } {
   const ticker = pixi.Ticker.shared;
   const originalAdd = ticker.add;
-  const animationsBefore = new Set(gsap.globalTimeline.getChildren(true, true, true));
+  const gsap = gameGsap();
+  const animationsBefore = new Set(liveGsapAnimations(gsap));
   ticker.add = ((_fn: TickerCallback<unknown>, _context?: unknown, _priority?: number) =>
     ticker) as typeof ticker.add;
 
@@ -52,14 +81,14 @@ export function createWithOwnedPixiTickerListeners<T extends Container>(
     // from enqueueing tweedle animations that would survive React teardown in
     // the package-global group and crash when Play later advances it.
     value.eventMode = 'none';
-    const ownedAnimations = newGsapAnimations(animationsBefore);
+    const ownedAnimations = newGsapAnimations(gsap, animationsBefore);
     // A delayed GSAP call is already live once construction returns. Waiting
     // until disposal lets it mutate the supposedly held document for its whole
     // visible lifetime, so remove construction-owned work immediately.
     for (const animation of ownedAnimations) animation.kill();
     return { value, dispose: () => {} };
   } catch (error) {
-    for (const animation of newGsapAnimations(animationsBefore)) animation.kill();
+    for (const animation of newGsapAnimations(gsap, animationsBefore)) animation.kill();
     throw error;
   } finally {
     ticker.add = originalAdd;

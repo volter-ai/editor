@@ -89,13 +89,6 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
     import('three/examples/jsm/utils/SkeletonUtils.js'),
   'three/examples/jsm/animation/CCDIKSolver.js': () =>
     import('three/examples/jsm/animation/CCDIKSolver.js'),
-  'three.quarks': () => import('three.quarks'),
-  'troika-three-text': () => import('troika-three-text'),
-  'quarks.core': () => import('quarks.core'),
-  postprocessing: () => import('postprocessing'),
-  'recast-navigation': () => import('recast-navigation'),
-  'recast-navigation/generators': () => import('recast-navigation/generators'),
-  gsap: () => import('gsap'),
   zod: () => import('zod'),
   react: () => import('react'),
   'react/jsx-runtime': () => import('react/jsx-runtime'),
@@ -106,14 +99,6 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   // template and every example import: fiber (23 sites), drei (15), rapier (11).
   '@react-three/fiber': () => import('@react-three/fiber'),
   '@react-three/drei': () => import('@react-three/drei'),
-  '@react-three/rapier': () => import('@react-three/rapier'),
-  // Native Canvas TSX uses the editor's existing Pixi renderer and display
-  // classes. A bundled second copy would create a second reconciler/runtime
-  // around objects mounted into the same canvas tree.
-  '@pixi/react': () => import('@pixi/react'),
-  '@pixi/tilemap': () => import('@pixi/tilemap'),
-  'fastnoise-lite': () => import('fastnoise-lite'),
-  'pixi.js': () => import('pixi.js'),
   // Project source spells a runtime import by its published package name, and
   // the loader resolves it through the editor's own source, so the project and
   // the editor share one live module namespace.
@@ -166,12 +151,6 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   // a second copy carrying its own THREE would break `instanceof`.
   'three-bvh-csg': () => import('three-bvh-csg'),
   'three-mesh-bvh': () => import('three-mesh-bvh'),
-  // The mesh kit's third library-backed op, `decimate` (DECIMATE Collapse).
-  // Its import is DYNAMIC — the wasm simplifier instantiates on first use, so
-  // a project that never decimates never pays for it — but a dynamic
-  // specifier goes through this table exactly like a static one, and an
-  // unregistered one throws only in the deployed build.
-  'meshoptimizer/simplifier': () => import('meshoptimizer/simplifier'),
   // `@volter/editor-project/adapter` is TYPE-ONLY since P-6, so a project importing it emits
   // nothing and never reaches this table; the entry stays as a harmless
   // backstop. The seam's IMPLEMENTERS now live at their own paths, and a
@@ -180,7 +159,6 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   // `browser-bundle-runtime-modules.test.ts`, which regenerates the real
   // bundle; without this, hosted Play throws "not a registered runtime module".
   '@volter/editor-project/adapter': () => import('@volter/editor-project/adapter'),
-  '@dimforge/rapier3d-compat': () => import('@dimforge/rapier3d-compat'),
   // feature-scenes' WaterSurface loads its detail normal map via the shared cache:
   '@volter/threejs-runtime/asset-loaders': () => import('@volter/threejs-runtime/asset-loaders'),
   '@volter/threejs-runtime/ecs/scene-query': () => import('@volter/threejs-runtime/ecs/scene-query'),
@@ -195,8 +173,6 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   // cannot mount hosted without it registered.
   '@volter/threejs-runtime/asset-parse-error': () =>
     import('@volter/threejs-runtime/asset-parse-error'),
-  // E5 — XState-driven character animation (third-person/rts/third-person-arena):
-  xstate: () => import('xstate'),
   // rendering-scale's render lab drives the engine's batch renderer + scoped
   // render settings directly:
   '@volter/threejs-runtime/render/render-batch-system': () =>
@@ -210,24 +186,11 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   // safe answer either way: if the specifier ever becomes a true external,
   // hosted Play resolves it instead of throwing.
   '@colyseus/schema': () => import('@colyseus/schema'),
-  // The rest of the estate's runtime closure, measured 2026-08-27 across the
-  // template, every example and every catalog capability (the gate script
-  // prints the same sweep). Each entry names its importer so a future removal
-  // can be checked against the same sweep.
-  '@colyseus/sdk': () => import('@colyseus/sdk'), // template main.ts, colyseus capability
-  'react-data-grid': () => import('react-data-grid'), // data-tables capability
-  // A stylesheet import in project source: Vite's `?inline` answers with the
-  // CSS text as the default export, which is the shape the sheet expects.
-  'react-data-grid/lib/styles.css?inline': () => import('react-data-grid/lib/styles.css?inline'),
-  tone: () => import('tone'), // music capability
-  'clipper2-js': () => import('clipper2-js'), // sprite capability verbs
-  'maxrects-packer': () => import('maxrects-packer'), // sprite capability atlas
-  '@dimforge/rapier2d-compat': () => import('@dimforge/rapier2d-compat'), // the Pixi surface's physics
-  'jolt-physics/wasm-compat': () => import('jolt-physics/wasm-compat'), // motion cloth-sim
-  '@pixiv/three-vrm-springbone': () => import('@pixiv/three-vrm-springbone'), // motion spring-chain
-  '@supabase/supabase-js': () => import('@supabase/supabase-js'), // first-person player-services
-  'react-dom': () => import('react-dom'), // react-root adapter's flushSync
-  '@babylonjs/core': () => import('@babylonjs/core'), // babylon-first-party example
+  // The rest of the runtime closure of the template and the catalog's
+  // capabilities. Each entry names its importer, so a removal is checked
+  // against the same sweep.
+  '@colyseus/sdk': () => import('@colyseus/sdk'), // template main.ts
+  'react-dom': () => import('react-dom'), // react-root capability's flushSync
   // ---- Editor-citizen modules PROJECT TOOL CONTRIBUTIONS import. A
   // contribution is project source rendered inside the editor's own panels,
   // so these must resolve to the editor's LIVE modules — a second copy of the
