@@ -194,17 +194,8 @@
 
 .vgai-worktree-empty,
 .vgai-worktree-error,
-.vgai-worktree-more,
-.vgai-worktree-notice {
+.vgai-worktree-more {
   padding: var(--vgai-space-3) var(--vgai-space-4);
-}
-
-.vgai-worktree-notice {
-  max-height: 140px;
-  overflow: auto;
-  border-top: 1px solid var(--vgai-boundary-default);
-  color: var(--vgai-content-muted);
-  white-space: pre-wrap;
 }
 
 .vgai-worktree-delegate {

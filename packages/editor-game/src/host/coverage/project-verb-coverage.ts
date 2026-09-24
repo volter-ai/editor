@@ -34,7 +34,6 @@
  * `coverage/system-adapter-coverage.ts`.
  */
 
-import { commandLine } from '@volter/editor-core/product-command';
 import {
   PROJECT_VERB_SLOTS,
   type ProjectVerbMeasurement,
@@ -104,30 +103,16 @@ function exportVerb(facts: ProjectVerbFacts): ProjectVerbMeasurement {
       missing:
         'this project cannot produce a standalone build, so it runs NOWHERE but the editor — the ' +
         'dev-served standalone page refuses an unexported game outright',
-      fix: "add the scaffold's `build` script (`build: tsc && vite build`), which is what every deploy path runs",
+      fix: "add the scaffold's `build` script (`build: tsc && vite build`), which is what the export path runs",
     };
   }
-  const refused = roots.filter(
-    (root) => root.type !== 'ingest' && (root.type !== 'builtin' || root.identity !== 'three'),
-  );
-  const wallLeg =
-    refused.length > 0
-      ? `; note that the legacy ${commandLine('deploy')} verb additionally refuses ${refused
-          .map((root) => `root "${root.id}" (${root.identity})`)
-          .join(
-            ', ',
-          )} — use the project-owned deploy scripts (${commandLine('add deploy-cloudflare')}/\`deploy-vercel\`, then \`npm run deploy\`)`
-      : '';
-  const deployLeg = scripts.includes('deploy')
-    ? ', and a `deploy` script to ship it'
-    : ` (no \`deploy\` script yet — ${commandLine('add deploy-cloudflare')}/\`deploy-vercel\` adds one)`;
   const ingestLeg = ingestOnly(roots)
     ? '; this ingest project ships the standalone bundle produced by its own build unchanged'
     : '';
   return {
     slot: 'export',
     state: 'present',
-    evidence: `this project declares a \`build\` script, which is what the export path runs to emit the \`dist/\` it stages${deployLeg}${ingestLeg}${wallLeg}`,
+    evidence: `this project declares a \`build\` script, which is what the export path runs to emit the \`dist/\` it stages${ingestLeg}`,
   };
 }
 

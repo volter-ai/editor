@@ -14,15 +14,15 @@
  * editor's eager import closure (WORK.md §The open-source launch, the four
  * that remained of the harness bucket): it called `getHarnessChatSnapshot()`
  * to list which harnesses are installed, and it named two of them by hand
- * (`claude`, `codex`) for its container isolation. A base library for making
- * IDEs should not know the name of a coding agent.
+ * (`claude`, `codex`). A base library for making IDEs should not know the
+ * name of a coding agent.
  *
  * THE DOOR THE RECORD NAMED WAS A BIGGER ONE, AND THE CODE DID NOT WANT IT.
  * Unit 21 specified "a chrome slot that can hand its filler a dismiss/refresh
  * callback", i.e. the whole form becoming `@vgai/agents`' surface. Measured
  * against the form: of its ~120 lines, everything but the harness `<Select>`
- * is the worktree board's own vocabulary — the branch slug, the three
- * isolations, the copy about sibling checkouts and bounded containers, and
+ * is the worktree board's own vocabulary — the branch slug, the two
+ * isolations, the copy about sibling checkouts, and
  * `delegateEditorTask` (`api/worktrees.ts`, a `keep`-bucket module whose wire
  * already takes a `harness` string). Moving it would have put the board's
  * delegation UI inside the agents package AND changed `ChromeSlotFiller` —
@@ -30,25 +30,16 @@
  * with no props — for every existing filler. What the host actually cannot
  * answer is one question, so one question is what it asks.
  *
- * ASKED PER ISOLATION, because the answer differs and only the source knows
- * how: a worktree or in-place delegation needs a harness that is INSTALLED and
- * can start, while a bounded container authenticates the harness inside its
- * own temporary home, so "installed here" is not the question. The host passes
- * the isolation and reads a list; which of its harnesses satisfies which is
- * the package's to decide.
+ * ASKED PER ISOLATION, so a source whose answer depends on where the task runs
+ * can say so; the host passes the isolation and reads a list.
  *
- * NOTHING REGISTERED IS A REAL ANSWER. With no source, the picker says "No
- * harness ready" and Delegate stays disabled — the same honest emptiness a
- * document kind with no registered opener gives. That is not a regression
- * risk for any shipped build: `WorktreeSwitcher` renders only in `server`
- * editor mode, and every dev session loads `@vgai/agents` through
- * `SESSION_PACKAGES` (`server/project-tools.ts`), while a build with no
- * session has no board at all.
+ * THE KIT ANSWERS FIRST. `WorktreeSwitcher.tsx` registers the harnesses supercode
+ * reports able to start (`/__editor/worktrees/harnesses`); a package may add more.
  */
 
 /** How a delegated task is isolated from the caller's checkout — the board's
  *  own vocabulary, passed to a source as the question's context. */
-export type DelegateIsolation = 'worktree' | 'current' | 'container';
+export type DelegateIsolation = 'worktree' | 'current';
 
 export interface DelegateHarness {
   /** The value `delegateEditorTask({ harness })` takes. */

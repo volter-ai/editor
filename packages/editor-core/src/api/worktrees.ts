@@ -82,40 +82,9 @@ export interface EditorBranch {
   current: boolean;
 }
 
-export interface EditorIsolatedWorktree {
-  id: string;
-  repositoryId: string;
-  branch: string;
-  from: string;
-  editorPort: number;
-  createdAt: string;
-  exportedAt?: string;
-  exportedHead?: string;
-  state: string;
-  /** The container's `StartedAt`, or `null` when Docker could not inspect it. */
-  startedAt?: string | null;
-  egressPolicy: 'allowlist';
-  egressHosts: string[];
-  /**
-   * `docker-unavailable` is NOT `stopped`: the daemon could not be reached, so
-   * nothing is known about the container and no destructive gesture may act on
-   * the record. `unhealthy` is NOT `starting`: the container is running and its
-   * editor has been unreachable for longer than a boot takes.
-   */
-  health: 'healthy' | 'starting' | 'unhealthy' | 'stopped' | 'docker-unavailable';
-  limits: {
-    cpus: number;
-    memory: string;
-    pids: number;
-    workspace: string;
-    assetCache: string;
-  };
-}
-
 export interface EditorWorktreeState {
   worktrees: EditorWorktree[];
   branches: EditorBranch[];
-  isolatedWorktrees: EditorIsolatedWorktree[];
 }
 
 export interface EditorSessionWorktreeIdentity {
@@ -164,10 +133,15 @@ function parseEditorWorktreeState(payload: Record<string, unknown>): EditorWorkt
       ? (payload['worktrees'] as EditorWorktree[])
       : [],
     branches: Array.isArray(payload['branches']) ? (payload['branches'] as EditorBranch[]) : [],
-    isolatedWorktrees: Array.isArray(payload['isolatedWorktrees'])
-      ? (payload['isolatedWorktrees'] as EditorIsolatedWorktree[])
-      : [],
   };
+}
+
+/** The harnesses supercode reports able to start a delegated task here. */
+export async function listDelegateHarnesses(): Promise<Array<{ id: string; label: string }>> {
+  const payload = await worktreeRequest('/harnesses');
+  return Array.isArray(payload['harnesses'])
+    ? (payload['harnesses'] as Array<{ id: string; label: string }>)
+    : [];
 }
 
 export async function listEditorWorktrees(): Promise<EditorWorktreeState> {
@@ -199,7 +173,7 @@ export async function createEditorWorktree(
 export async function delegateEditorTask(input: {
   task: string;
   harness: string;
-  isolation: 'worktree' | 'current' | 'container';
+  isolation: 'worktree' | 'current';
   branch?: string;
   from?: string;
 }): Promise<Record<string, unknown>> {
@@ -208,32 +182,6 @@ export async function delegateEditorTask(input: {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
-}
-
-export async function isolatedEditorWorktreeLogs(id: string): Promise<string> {
-  const payload = await worktreeRequest(`/isolated/${encodeURIComponent(id)}/logs`);
-  return typeof payload['logs'] === 'string' ? payload['logs'] : '';
-}
-
-export async function exportIsolatedEditorWorktree(id: string): Promise<EditorWorktreeState> {
-  const payload = await worktreeRequest('/isolated/export', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id }),
-  });
-  return parseEditorWorktreeState(payload);
-}
-
-export async function stopIsolatedEditorWorktree(
-  id: string,
-  discard: boolean,
-): Promise<EditorWorktreeState> {
-  const payload = await worktreeRequest('/isolated/stop', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, discard }),
-  });
-  return parseEditorWorktreeState(payload);
 }
 
 export async function archiveEditorWorktree(worktreeId: string): Promise<EditorWorktree[]> {

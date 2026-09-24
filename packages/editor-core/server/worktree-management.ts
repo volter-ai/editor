@@ -91,20 +91,12 @@ export interface WorktreeEditorLaunch {
   cwd: string;
 }
 
-export function vgaiCliLaunchCommand(input: {
-  engineRoot: string;
+/** The product CLI that launched this editor, run again with `args`. */
+export function productCliLaunchCommand(input: {
   cwd: string;
   args: readonly string[];
   inheritedCliEntry?: string | undefined;
 }): WorktreeEditorLaunch {
-  const devCli = join(input.engineRoot, 'packages', 'vgai-cli', 'src', 'index.ts');
-  if (existsSync(devCli)) {
-    return {
-      command: process.execPath,
-      args: ['--import', 'tsx', devCli, ...input.args],
-      cwd: input.cwd,
-    };
-  }
   const inheritedCliEntry = input.inheritedCliEntry ? resolve(input.inheritedCliEntry) : null;
   if (inheritedCliEntry && existsSync(inheritedCliEntry)) {
     return {
@@ -123,11 +115,8 @@ export function worktreeEditorLaunchCommand(input: {
   targetWorktreeRoot: string;
   inheritedCliEntry?: string | undefined;
 }): WorktreeEditorLaunch {
-  return vgaiCliLaunchCommand({
-    engineRoot: input.targetWorktreeRoot,
-    cwd: existsSync(join(input.targetWorktreeRoot, 'packages', 'vgai-cli', 'src', 'index.ts'))
-      ? input.targetWorktreeRoot
-      : input.targetProject,
+  return productCliLaunchCommand({
+    cwd: input.targetProject,
     args: ['edit', input.targetProject],
     ...(input.inheritedCliEntry ? { inheritedCliEntry: input.inheritedCliEntry } : {}),
   });

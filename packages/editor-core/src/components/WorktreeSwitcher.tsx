@@ -1,15 +1,9 @@
-import { productCommand } from '../product-command';
 import {
   faBoxArchive,
   faCheck,
   faCodeBranch,
-  faCopy,
-  faFileExport,
   faRotate,
-  faShieldHalved,
   faStop,
-  faTerminal,
-  faTrash,
 } from '@fortawesome/free-solid-svg-icons';
 import {
   AnchoredMenu,
@@ -36,28 +30,33 @@ import {
   type DelegateIsolation,
   delegateHarnesses,
   delegateHarnessRegistryVersion,
+  registerDelegateHarnessSource,
   subscribeDelegateHarnessSources,
 } from '../delegate-harness-registry';
 import {
   archiveEditorWorktree,
   createEditorWorktree,
   delegateEditorTask,
-  type EditorIsolatedWorktree,
   type EditorRepositoryParticipant,
   type EditorWorktree,
   type EditorWorktreeState,
-  exportIsolatedEditorWorktree,
   getEditorSessionWorktreeIdentity,
-  isolatedEditorWorktreeLogs,
+  listDelegateHarnesses,
   listEditorWorktrees,
   openEditorWorktree,
   stopEditorWorktreeSession,
-  stopIsolatedEditorWorktree,
 } from '../editor-api';
 import { COLLABORATION_REMOTE_SHARE } from '../editor-session-attribution';
 import { VersionControlSection } from './VersionControlSection';
 
-const EMPTY_STATE: EditorWorktreeState = { worktrees: [], branches: [], isolatedWorktrees: [] };
+// The kit's own answer to which agents a task can be delegated to: every harness supercode
+// reports able to start. A package may register more (`delegate-harness-registry.ts`).
+registerDelegateHarnessSource({
+  owner: 'editor-core:supercode',
+  harnesses: async () => listDelegateHarnesses(),
+});
+
+const EMPTY_STATE: EditorWorktreeState = { worktrees: [], branches: [] };
 
 function branchSlug(task: string): string {
   const value = task
@@ -85,9 +84,6 @@ function DelegateTaskForm({
   const [harness, setHarness] = useState('');
   const [delegating, setDelegating] = useState(false);
   // WHICH AGENTS EXIST IS A REGISTERED ANSWER (`delegate-harness-registry.ts`).
-  // This form used to call the harness lane's own HTTP client and name two
-  // harnesses by hand for the container case — the one edge that held
-  // `api/agents.ts` and its three wire modules in the editor's eager closure.
   // The registry version is a dependency because a contribution pass lands
   // ~9s into a cold boot, after this dropdown can already be open.
   const sourceVersion = useSyncExternalStore(
@@ -151,7 +147,6 @@ function DelegateTaskForm({
           }}
         >
           <option value="worktree">New worktree (recommended)</option>
-          <option value="container">Bounded container (untrusted code)</option>
           <option value="current">Current worktree (shared files)</option>
         </Select>
       </label>
@@ -171,9 +166,7 @@ function DelegateTaskForm({
       <Text as="div" variant="caption" tone="dim">
         {isolation === 'worktree'
           ? `Creates a sibling checkout from ${currentLabel}, opens its editor, and starts the agent there.`
-          : isolation === 'container'
-            ? 'Creates a credential-empty, resource-bounded Docker worktree. You authenticate the harness inside its temporary home.'
-            : 'The agent edits the files in this live worktree alongside you.'}
+          : 'The agent edits the files in this live worktree alongside you.'}
       </Text>
       <Button
         type="button"
@@ -291,23 +284,6 @@ function WorktreePresence({ worktree }: { worktree: EditorWorktree }) {
   );
 }
 
-/** Health, in words a reader can act on. `docker-unavailable` deliberately
- *  says nothing about the container: the daemon could not be reached, so its
- *  state is UNKNOWN rather than stopped. */
-const ISOLATED_HEALTH_LABEL: Record<EditorIsolatedWorktree['health'], string> = {
-  healthy: 'ready',
-  starting: 'starting',
-  unhealthy: 'running, editor not responding',
-  stopped: 'stopped',
-  'docker-unavailable': 'unknown — Docker not reachable',
-};
-
-function isolatedWorktreeDetail(worktree: EditorIsolatedWorktree): string {
-  const state = ISOLATED_HEALTH_LABEL[worktree.health] ?? worktree.health;
-  const limits = `${worktree.limits.cpus} CPU · ${worktree.limits.memory} RAM · ${worktree.limits.workspace} workspace`;
-  return `${state} · ${limits} · allowlisted egress${worktree.exportedAt ? ' · exported' : ' · not exported'}`;
-}
-
 function matchesQuery(query: string, ...values: Array<string | null>): boolean {
   const needle = query.trim().toLocaleLowerCase();
   return !needle || values.some((value) => value?.toLocaleLowerCase().includes(needle));
@@ -405,7 +381,6 @@ export function WorktreeSwitcher() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [delegateOpen, setDelegateOpen] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
   const { state, sessionIdentity, loading, busy, error, setError, refresh, run } =
     useWorktreePickerState();
 
@@ -432,9 +407,6 @@ export function WorktreeSwitcher() {
   const matchingBranches = state.branches.filter(
     (branch) => !branch.worktreeId && matchesQuery(query, branch.name),
   );
-  const matchingIsolated = state.isolatedWorktrees.filter((worktree) =>
-    matchesQuery(query, worktree.branch, worktree.id),
-  );
   const visibleWorktrees = matchingWorktrees.slice(0, query.trim() ? 30 : 10);
   const visibleBranches = matchingBranches.slice(0, query.trim() ? 50 : 20);
   const hiddenWorktrees = matchingWorktrees.length - visibleWorktrees.length;
@@ -442,7 +414,7 @@ export function WorktreeSwitcher() {
   const candidate = query.trim();
   const exactBranch = state.branches.some((branch) => branch.name === candidate);
   const hasMatches =
-    matchingWorktrees.length > 0 || matchingBranches.length > 0 || matchingIsolated.length > 0;
+    matchingWorktrees.length > 0 || matchingBranches.length > 0;
 
   return (
     <div className="vgai-worktree-switcher">
@@ -531,135 +503,6 @@ export function WorktreeSwitcher() {
               <Text as="div" variant="caption" tone="dim" className="vgai-worktree-empty">
                 Loading branches…
               </Text>
-            )}
-            {matchingIsolated.length > 0 && (
-              <section aria-label="Isolated worktrees">
-                <Text as="div" variant="caption" tone="dim" className="vgai-worktree-section-label">
-                  Isolated
-                </Text>
-                {matchingIsolated.map((worktree) => (
-                  <div key={worktree.id} className="vgai-worktree-row-shell">
-                    <MenuItem
-                      className="vgai-worktree-menu-item"
-                      disabled={worktree.health !== 'healthy' || busy !== null}
-                      title={`Open isolated editor on port ${worktree.editorPort}. Egress: ${worktree.egressHosts.join(', ')}`}
-                      onSelect={() => {
-                        window.open(
-                          `http://127.0.0.1:${worktree.editorPort}/`,
-                          '_blank',
-                          'noopener,noreferrer',
-                        );
-                      }}
-                    >
-                      <span className="vgai-worktree-row-icon">
-                        <EditorIcon icon={faShieldHalved} />
-                      </span>
-                      <span className="vgai-worktree-row-copy">
-                        <span className="vgai-worktree-row-title">{worktree.branch}</span>
-                        <span className="vgai-worktree-row-detail">
-                          {isolatedWorktreeDetail(worktree)}
-                        </span>
-                      </span>
-                    </MenuItem>
-                    <Button
-                      type="button"
-                      size="compact"
-                      variant="ghost"
-                      aria-label={`Copy agent attach command for ${worktree.branch}`}
-                      title="Copy agent attach command"
-                      disabled={busy !== null}
-                      onClick={() => {
-                        void navigator.clipboard?.writeText(
-                          `${productCommand() ?? '<editor command>'} isolate agent ${worktree.id} codex`,
-                        );
-                        setNotice(
-                          'Attach command copied. Authentication stays inside the container.',
-                        );
-                      }}
-                    >
-                      <EditorIcon icon={faTerminal} />
-                    </Button>
-                    <Button
-                      type="button"
-                      size="compact"
-                      variant="ghost"
-                      aria-label={`Show logs for ${worktree.branch}`}
-                      title="Show startup logs"
-                      disabled={busy !== null}
-                      onClick={() => {
-                        void isolatedEditorWorktreeLogs(worktree.id)
-                          .then((logs) => setNotice(logs || 'No container logs yet.'))
-                          .catch((cause) =>
-                            setError(cause instanceof Error ? cause.message : String(cause)),
-                          );
-                      }}
-                    >
-                      <EditorIcon icon={faCopy} />
-                    </Button>
-                    <Button
-                      type="button"
-                      size="compact"
-                      variant="ghost"
-                      aria-label={`Export ${worktree.branch}`}
-                      title="Export committed branch before teardown"
-                      disabled={busy !== null}
-                      onClick={() =>
-                        void run(
-                          `export:${worktree.id}`,
-                          () => exportIsolatedEditorWorktree(worktree.id),
-                          () => {
-                            setNotice('Isolated branch exported as a Git bundle.');
-                            void refresh(true);
-                          },
-                        )
-                      }
-                    >
-                      <EditorIcon icon={faFileExport} />
-                    </Button>
-                    <Button
-                      type="button"
-                      size="compact"
-                      variant="ghost"
-                      aria-label={`Stop ${worktree.branch}`}
-                      title="Stop after a current export"
-                      disabled={busy !== null}
-                      onClick={() =>
-                        void run(
-                          `stop-isolated:${worktree.id}`,
-                          () => stopIsolatedEditorWorktree(worktree.id, false),
-                          () => setOpen(false),
-                        )
-                      }
-                    >
-                      <EditorIcon icon={faStop} />
-                    </Button>
-                    <Button
-                      type="button"
-                      size="compact"
-                      variant="ghost"
-                      aria-label={`Discard ${worktree.branch}`}
-                      title="Discard container and all unexported work"
-                      disabled={busy !== null}
-                      onClick={() => {
-                        if (
-                          !window.confirm(
-                            `Discard ${worktree.branch}? Unexported commits and files cannot be recovered.`,
-                          )
-                        ) {
-                          return;
-                        }
-                        void run(
-                          `discard-isolated:${worktree.id}`,
-                          () => stopIsolatedEditorWorktree(worktree.id, true),
-                          () => setOpen(false),
-                        );
-                      }}
-                    >
-                      <EditorIcon icon={faTrash} />
-                    </Button>
-                  </div>
-                ))}
-              </section>
             )}
             {visibleWorktrees.length > 0 && (
               <section aria-label="Worktrees">
@@ -828,24 +671,7 @@ export function WorktreeSwitcher() {
               {delegateOpen ? (
                 <DelegateTaskForm
                   currentLabel={currentLabel}
-                  onDone={(result) => {
-                    if (result['isolation'] === 'container') {
-                      const command =
-                        typeof result['command'] === 'string' ? result['command'] : null;
-                      const task = typeof result['task'] === 'string' ? result['task'] : null;
-                      setNotice(
-                        [
-                          typeof result['message'] === 'string' ? result['message'] : null,
-                          command ? `Attach: ${command}` : null,
-                          task ? `Task: ${task}` : null,
-                        ]
-                          .filter(Boolean)
-                          .join('\n'),
-                      );
-                      setDelegateOpen(false);
-                      void refresh(true);
-                      return;
-                    }
+                  onDone={() => {
                     setDelegateOpen(false);
                     setOpen(false);
                     void refresh(true);
@@ -877,11 +703,6 @@ export function WorktreeSwitcher() {
               className="vgai-worktree-error"
             >
               {error}
-            </Text>
-          )}
-          {notice && (
-            <Text as="div" variant="caption" role="status" className="vgai-worktree-notice">
-              {notice}
             </Text>
           )}
         </AnchoredMenu>

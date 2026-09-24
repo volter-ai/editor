@@ -8,13 +8,12 @@
  * participants never reach it.
  */
 
-import { productCommand } from '../../src/product-command';
-import { execFile, execFileSync } from 'node:child_process';
-import { randomUUID } from 'node:crypto';
+import { execFile } from 'node:child_process';
+import { randomUUID, timingSafeEqual } from 'node:crypto';
 import type { Request, Response } from 'express';
 import type { EditorServerRouter } from '../editor-server';
 import { createRepositoryPresenceReader } from '../repository-presence';
-import { liveSessions } from '../session-registry';
+import { liveSessions, processControlSecret } from '../session-registry';
 import {
   archiveRepositoryWorktree,
   attachRepositoryPresence,
@@ -23,7 +22,6 @@ import {
   listRepositoryWorktrees,
   prepareRepositoryWorktree,
   publicWorktreeSessionRefs,
-  vgaiCliLaunchCommand,
   type WorktreeView,
   worktreeEditorLaunchCommand,
 } from '../worktree-management';
@@ -34,174 +32,15 @@ export function registerWorktreeRoutes(router: EditorServerRouter, ctx: RouteCon
   /** Owned here: `/__editor/repository-presence` is its only reader. */
   const readRepositoryPresence = createRepositoryPresenceReader();
 
+  const validControlSecret = (req: Request): boolean => {
+    const supplied = Buffer.from(req.header('x-vgai-editor-control') ?? '');
+    const expected = Buffer.from(processControlSecret());
+    return supplied.length === expected.length && timingSafeEqual(supplied, expected);
+  };
+
   const currentWorktrees = async (): Promise<WorktreeView[]> => {
     if (ctx.projectRoot === engineRoot) throw new Error('Open a Git-backed project first.');
     return listRepositoryWorktrees(ctx.projectRoot, publicWorktreeSessionRefs(liveSessions()));
-  };
-
-  /**
-   * What the editor knows about one isolated worktree's editor.
-   *
-   * `unknown` and `stopped` used to be the same answer, and so did `starting`
-   * and `crashed`:
-   *
-   * - a stopped Docker daemon made every record's state read `missing`, which
-   *   `!== 'running'` mapped to `stopped` — a container the user must be told
-   *   is UNINSPECTABLE was reported as a container we had looked at and found
-   *   halted, which is exactly the reading a cleanup gesture must not act on.
-   *   `docker-unavailable` is now its own health and every destructive
-   *   affordance refuses on it.
-   * - a running container whose editor never answered the compatibility probe
-   *   read `starting` for as long as it existed. A boot has a duration; past
-   *   {@link ISOLATED_EDITOR_BOOT_BUDGET_MS} of an unanswered probe against a
-   *   container Docker says is RUNNING, the honest word is `unhealthy`.
-   */
-  type IsolatedWorktreeHealth =
-    | 'healthy'
-    | 'starting'
-    | 'unhealthy'
-    | 'stopped'
-    | 'docker-unavailable';
-
-  /** How long a running container's editor may go unprobeable before
-   *  `starting` becomes `unhealthy`. A cold isolated editor installs and boots
-   *  its own graph, so this is generous; what it must not be is unbounded. */
-  const ISOLATED_EDITOR_BOOT_BUDGET_MS = 5 * 60_000;
-
-  interface IsolatedWorktreeView {
-    id: string;
-    repositoryId: string;
-    branch: string;
-    from: string;
-    editorPort: number;
-    createdAt: string;
-    exportedAt?: string;
-    exportedHead?: string;
-    state: string;
-    /** `{{.State.StartedAt}}` from the same inspect, or `null` when the
-     *  container could not be inspected. What BOUNDS `starting`. */
-    startedAt: string | null;
-    egressPolicy: 'allowlist';
-    egressHosts: string[];
-    health: IsolatedWorktreeHealth;
-    limits: { cpus: number; memory: string; pids: number; workspace: string; assetCache: string };
-  }
-
-  const isolatedCli = (args: readonly string[]) =>
-    vgaiCliLaunchCommand({
-      engineRoot,
-      cwd: ctx.projectRoot,
-      args: ['isolate', ...args],
-      inheritedCliEntry: process.env['VGAI_CLI_ENTRY'],
-    });
-
-  const runIsolatedCli = async (args: readonly string[]): Promise<string> => {
-    const command = isolatedCli(args);
-    return await new Promise<string>((resolveOutput, rejectOutput) => {
-      execFile(
-        command.command,
-        command.args,
-        { cwd: command.cwd, maxBuffer: 8 * 1024 * 1024 },
-        (error, stdout, stderr) => {
-          if (error) {
-            rejectOutput(new Error(stderr.trim() || stdout.trim() || error.message));
-            return;
-          }
-          resolveOutput(stdout.trim());
-        },
-      );
-    });
-  };
-
-  const currentIsolatedWorktrees = async (): Promise<IsolatedWorktreeView[]> => {
-    const identity = currentSessionIdentity();
-    if (!identity?.repositoryId) return [];
-    const command = isolatedCli(['list', '--json']);
-    const output = execFileSync(command.command, command.args, {
-      cwd: command.cwd,
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-      maxBuffer: 8 * 1024 * 1024,
-    });
-    const rows = JSON.parse(output) as unknown;
-    if (!Array.isArray(rows)) throw new Error('The isolated-worktree registry is malformed.');
-    const safeRows = rows.flatMap((raw): Omit<IsolatedWorktreeView, 'health'>[] => {
-      if (!raw || typeof raw !== 'object') return [];
-      const row = raw as Record<string, unknown>;
-      const limits = row['limits'];
-      if (
-        row['repositoryId'] !== identity.repositoryId ||
-        typeof row['id'] !== 'string' ||
-        typeof row['branch'] !== 'string' ||
-        typeof row['from'] !== 'string' ||
-        typeof row['editorPort'] !== 'number' ||
-        typeof row['createdAt'] !== 'string' ||
-        typeof row['state'] !== 'string' ||
-        !Array.isArray(row['egressHosts']) ||
-        !row['egressHosts'].every((host) => typeof host === 'string') ||
-        !limits ||
-        typeof limits !== 'object'
-      ) {
-        return [];
-      }
-      const limitRecord = limits as Record<string, unknown>;
-      if (
-        typeof limitRecord['cpus'] !== 'number' ||
-        typeof limitRecord['memory'] !== 'string' ||
-        typeof limitRecord['pids'] !== 'number' ||
-        typeof limitRecord['workspace'] !== 'string' ||
-        typeof limitRecord['assetCache'] !== 'string'
-      ) {
-        return [];
-      }
-      return [
-        {
-          id: row['id'],
-          repositoryId: row['repositoryId'],
-          branch: row['branch'],
-          from: row['from'],
-          editorPort: row['editorPort'],
-          createdAt: row['createdAt'],
-          state: row['state'],
-          startedAt: typeof row['startedAt'] === 'string' ? row['startedAt'] : null,
-          egressPolicy: 'allowlist',
-          egressHosts: [...row['egressHosts']],
-          ...(typeof row['exportedAt'] === 'string' ? { exportedAt: row['exportedAt'] } : {}),
-          ...(typeof row['exportedHead'] === 'string' ? { exportedHead: row['exportedHead'] } : {}),
-          limits: {
-            cpus: limitRecord['cpus'],
-            memory: limitRecord['memory'],
-            pids: limitRecord['pids'],
-            workspace: limitRecord['workspace'],
-            assetCache: limitRecord['assetCache'],
-          },
-        },
-      ];
-    });
-    return await Promise.all(
-      safeRows.map(async (row): Promise<IsolatedWorktreeView> => {
-        if (row.state === 'docker-unavailable') return { ...row, health: 'docker-unavailable' };
-        if (row.state !== 'running') return { ...row, health: 'stopped' };
-        // A running container whose editor does not answer is BOOTING until
-        // its boot budget is spent, and broken after — never `starting`
-        // forever. An unparseable/absent `startedAt` keeps the old benefit of
-        // the doubt rather than inventing an age.
-        const startedAtMs = row.startedAt ? Date.parse(row.startedAt) : Number.NaN;
-        const unanswered: IsolatedWorktreeHealth =
-          Number.isFinite(startedAtMs) && Date.now() - startedAtMs > ISOLATED_EDITOR_BOOT_BUDGET_MS
-            ? 'unhealthy'
-            : 'starting';
-        try {
-          const response = await fetch(
-            `http://127.0.0.1:${row.editorPort}/__editor/compatibility`,
-            { signal: AbortSignal.timeout(1_000) },
-          );
-          return { ...row, health: response.ok ? 'healthy' : unanswered };
-        } catch {
-          return { ...row, health: unanswered };
-        }
-      }),
-    );
   };
 
   const currentWorktreeState = async () => {
@@ -218,7 +57,6 @@ export function registerWorktreeRoutes(router: EditorServerRouter, ctx: RouteCon
     return {
       worktrees: worktreesWithPresence,
       branches: listRepositoryBranches(ctx.projectRoot, worktreesWithPresence),
-      isolatedWorktrees: await currentIsolatedWorktrees(),
     };
   };
 
@@ -335,6 +173,39 @@ export function registerWorktreeRoutes(router: EditorServerRouter, ctx: RouteCon
     return payload ?? {};
   };
 
+  /** The harnesses a delegated task can start with: supercode's own report, never a name here. */
+  router.get('/__editor/worktrees/harnesses', async (req: Request, res: Response) => {
+    if (!requireLocalOwner(req, res)) return;
+    try {
+      const snapshot = await harnessChat.load(false);
+      res.json({
+        harnesses: snapshot.harnesses
+          .filter((harness) => harness.availableActions.start)
+          .map((harness) => ({ id: harness.id, label: harness.label })),
+      });
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  /**
+   * A delegated task, arriving from the editor that created this worktree
+   * (`remoteHarnessIntent`). Owner-local, and gated on this session's control secret: the
+   * delegating editor read it from the session registry, which only the owner's processes see.
+   */
+  router.post('/__editor/harness-chat/intent', async (req: Request, res: Response) => {
+    if (!requireLocalOwner(req, res)) return;
+    if (!validControlSecret(req)) {
+      res.status(403).json({ error: 'Editor session control authorization required.' });
+      return;
+    }
+    try {
+      res.json(await harnessChat.actIntent(req.body as Parameters<typeof harnessChat.actIntent>[0]));
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
   router.get('/__editor/worktrees', async (req: Request, res: Response) => {
     if (!requireLocalOwner(req, res)) return;
     try {
@@ -418,7 +289,7 @@ export function registerWorktreeRoutes(router: EditorServerRouter, ctx: RouteCon
       body['task'].length > 20_000 ||
       typeof body['harness'] !== 'string' ||
       !body['harness'].trim() ||
-      !['worktree', 'current', 'container'].includes(String(body['isolation']))
+      !['worktree', 'current'].includes(String(body['isolation']))
     ) {
       res.status(400).json({ error: 'Expected task, harness, and isolation.' });
       return;
@@ -446,27 +317,6 @@ export function registerWorktreeRoutes(router: EditorServerRouter, ctx: RouteCon
       if (typeof body['branch'] !== 'string' || !body['branch'].trim()) {
         throw new Error('A delegated worktree needs a branch name.');
       }
-      if (isolation === 'container') {
-        if (harness !== 'claude' && harness !== 'codex') {
-          throw new Error('Isolated delegation supports the Claude and Codex harnesses.');
-        }
-        const branch = body['branch'].trim();
-        const from =
-          typeof body['from'] === 'string' && body['from'].trim() ? body['from'] : 'HEAD';
-        await runIsolatedCli(['create', branch, '--from', from]);
-        const isolated = (await currentIsolatedWorktrees()).find((row) => row.branch === branch);
-        if (!isolated) throw new Error('The isolated worktree started but was not registered.');
-        res.json({
-          isolation,
-          isolated,
-          task,
-          requiresAuthentication: true,
-          command: `${productCommand() ?? '<editor command>'} isolate agent ${isolated.id} ${harness}`,
-          message:
-            'The credential-empty container is ready. Attach the harness and authenticate inside its temporary home, then send the task shown here.',
-        });
-        return;
-      }
       const opened = await createAndOpenWorktree({
         branch: body['branch'],
         from: typeof body['from'] === 'string' ? body['from'] : 'HEAD',
@@ -488,49 +338,6 @@ export function registerWorktreeRoutes(router: EditorServerRouter, ctx: RouteCon
         ],
       });
       res.json({ isolation, ...opened, snapshot });
-    } catch (error) {
-      res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-
-  router.get('/__editor/worktrees/isolated/:id/logs', async (req: Request, res: Response) => {
-    if (!requireLocalOwner(req, res)) return;
-    try {
-      const parameter = req.params['id'];
-      const id = Array.isArray(parameter) ? parameter[0] : parameter;
-      const target = (await currentIsolatedWorktrees()).find((row) => row.id === id);
-      if (!target) throw new Error('That isolated worktree does not exist in this repository.');
-      res.json({ logs: await runIsolatedCli(['logs', target.id, '--lines', '120']) });
-    } catch (error) {
-      res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-
-  router.post('/__editor/worktrees/isolated/export', async (req: Request, res: Response) => {
-    if (!requireLocalOwner(req, res)) return;
-    try {
-      const id = (req.body as { id?: unknown })?.id;
-      if (typeof id !== 'string') throw new Error('Expected an isolated worktree identity.');
-      const target = (await currentIsolatedWorktrees()).find((row) => row.id === id);
-      if (!target) throw new Error('That isolated worktree does not exist in this repository.');
-      const output = await runIsolatedCli(['export', target.id]);
-      res.json({ ok: true, output, ...(await currentWorktreeState()) });
-    } catch (error) {
-      res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-
-  router.post('/__editor/worktrees/isolated/stop', async (req: Request, res: Response) => {
-    if (!requireLocalOwner(req, res)) return;
-    try {
-      const body = (req.body ?? {}) as Record<string, unknown>;
-      if (typeof body['id'] !== 'string' || typeof body['discard'] !== 'boolean') {
-        throw new Error('Expected an isolated worktree identity and explicit discard choice.');
-      }
-      const target = (await currentIsolatedWorktrees()).find((row) => row.id === body['id']);
-      if (!target) throw new Error('That isolated worktree does not exist in this repository.');
-      await runIsolatedCli(['stop', target.id, ...(body['discard'] ? ['--discard'] : [])]);
-      res.json({ ok: true, ...(await currentWorktreeState()) });
     } catch (error) {
       res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
     }
