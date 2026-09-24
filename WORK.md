@@ -79,7 +79,12 @@ Remaining:
    rename, the frozen reverse-edge baseline, the viewport unit, Blender as its first consumer,
    then idiomatic games. `@volter/editor-game` imports kit internals from 122 files.
    The kit's Blender server routes are `@volter/editor-blender`'s serving half (walked: Blender
-   boots and saves through them). The Edit/Play tab derived from workspace focus is on branch
+   boots and saves through them). The kit's server still names Blender in 25 code lines: the
+   Blender tab-metrics pipeline (`tab-heartbeat.ts`, `tab-presence.ts`,
+   `support/project/session-journal.ts`, with its browser half `src/blender-tab-metrics.ts` and
+   the SDK's `BlenderTabMetrics`), which becomes a contributed facet, and `packaged.ts`'s
+   `@volter/blender-engine` prebundle exclusion, whose regression shows only in a registry
+   install, so it moves with a packed-install walk. The Edit/Play tab derived from workspace focus is on branch
    `viewport-tab-from-focus`, typechecked and unwalked: it changes Play focus and the game's input
    gate, so it merges after an arena walk (Play focuses Game and takes input; another document
    closes the gate; Stop restores focus). Product builds need 3–5 GB and thrash this box while
