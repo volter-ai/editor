@@ -1,3 +1,4 @@
+import { threeStateOf } from '../../editor-shell-store';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { liveMixerFor } from '@volter/editor-threejs/animation/live-mixers';
 import { useCallback, useSyncExternalStore } from 'react';
@@ -96,7 +97,7 @@ export function EntityModelDocument({
   readonly displayName: string;
   readonly active: boolean;
 }) {
-  const store = useEditorStore();
+  const store = threeStateOf(useEditorStore());
   const storeVersion = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const source = store.objectMap.get(entityId);
 

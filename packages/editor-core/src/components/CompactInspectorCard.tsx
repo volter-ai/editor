@@ -24,6 +24,7 @@
  * described the asset browser's selection while the box described a scene node.
  */
 
+import { threeStateOf } from '../editor-shell-store';
 import { zIndex } from '@volter/editor-sdk/widgets';
 import { useCallback, useState, useSyncExternalStore } from 'react';
 import {
@@ -96,7 +97,7 @@ function cardPlacement(viewport: WorkspaceViewportRect, anchor: CardAnchor, mini
 }
 
 export function CompactInspectorCard() {
-  const store = useEditorStore();
+  const store = threeStateOf(useEditorStore());
   useSyncExternalStore(store.subscribe, store.getShellSnapshot);
   useSyncExternalStore(
     subscribeWorkspaceDocuments,

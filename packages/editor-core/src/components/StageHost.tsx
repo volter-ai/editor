@@ -1,3 +1,4 @@
+import { optionalThreeStateOf } from '../editor-shell-store';
 import type {
   ToolObject3DAuthoringProps,
   ToolObject3DDocumentAuthoring,
@@ -540,12 +541,12 @@ export function Object3DDocumentViewport({
   // mounts it with no `EditorProvider` above it, and the throwing hook took
   // that document off the screen with "useEditorStore must be used within
   // <EditorProvider>" (measured live, 2026-09-18). No shell, no shell frame.
-  const shellStore = useOptionalEditorStore();
+  const shellStore = optionalThreeStateOf(optionalThreeStateOf(optionalThreeStateOf(optionalThreeStateOf(optionalThreeStateOf(optionalThreeStateOf(optionalThreeStateOf(optionalThreeStateOf(optionalThreeStateOf(optionalThreeStateOf(useOptionalEditorStore()))))))))));
   /**
    * THE STORE THE STAGE CONTEXT IS ASKED AGAINST — the session's own, reached
    * without a React provider.
    *
-   * `useOptionalEditorStore()` above answers a NARROWER question than the
+   * `optionalThreeStateOf(optionalThreeStateOf(optionalThreeStateOf(optionalThreeStateOf(optionalThreeStateOf(optionalThreeStateOf(optionalThreeStateOf(optionalThreeStateOf(optionalThreeStateOf(optionalThreeStateOf(useOptionalEditorStore()))))))))))` above answers a NARROWER question than the
    * context needs: it is whether the shell's own React tree is above this
    * host, and for every package-contributed document it is not.
    * `@volter/editor-blender`'s Model document mounts this host through `ToolHost`, so the

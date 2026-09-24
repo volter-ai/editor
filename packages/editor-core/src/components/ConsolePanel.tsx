@@ -1,3 +1,4 @@
+import { threeStateOf } from '../editor-shell-store';
 import {
   faCircleInfo,
   faCube,
@@ -46,7 +47,7 @@ const LEVEL_ICONS = {
 };
 
 export function ConsolePanel() {
-  const store = useEditorStore();
+  const store = threeStateOf(useEditorStore());
   useSyncExternalStore(editorConsole.subscribe, editorConsole.getSnapshot);
 
   const [filter, setFilter] = useState('');

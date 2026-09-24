@@ -1,3 +1,4 @@
+import { threeStateOf } from '../editor-shell-store';
 import {
   faArrowDown,
   type faArrowsUpDownLeftRight,
@@ -431,7 +432,7 @@ export function TransformHeaderControls({ store: stage }: { store?: EditorShellS
   // drawing the default COMBINED gizmo, and two captures a mode apart were
   // byte-identical. The world root's stage runs on the shell store itself, so
   // the Scene document is unchanged either way.
-  const shell = useEditorStore();
+  const shell = threeStateOf(useEditorStore());
   const store = stage ?? shell;
   useSyncExternalStore(store.subscribe, store.getShellSnapshot ?? store.getSnapshot);
   useSyncExternalStore(subscribeEditorKeymap, activeEditorKeymap, activeEditorKeymap);
@@ -516,7 +517,7 @@ export function ToolStrip({
   door?: StageTransformDoor;
   store?: EditorShellStore;
 } = {}) {
-  const shell = useEditorStore();
+  const shell = threeStateOf(useEditorStore());
   const store = stage ?? shell;
   useSyncExternalStore(store.subscribe, store.getShellSnapshot ?? store.getSnapshot);
   // Every hint below is rendered from the active keymap; a live switch must

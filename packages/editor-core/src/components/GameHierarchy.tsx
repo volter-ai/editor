@@ -1,3 +1,4 @@
+import { threeStateOf } from '../editor-shell-store';
 import {
   Button,
   chromeSize,
@@ -3820,7 +3821,7 @@ export function GameHierarchySurface({ store, adapter }: GameHierarchySurfacePro
 
 /** Every authorable center document uses the same adapter-backed hierarchy. */
 export function GameHierarchy() {
-  const store = useEditorStore();
+  const store = threeStateOf(useEditorStore());
   const [, refreshBinding] = useReducer((value: number) => value + 1, 0);
   useSyncExternalStore(subscribeWorkspaceDocuments, workspaceDocumentRegistryVersion);
   // A1: the override slot is module state — subscribe to it, or this panel

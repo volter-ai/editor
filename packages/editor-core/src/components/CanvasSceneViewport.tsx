@@ -1,3 +1,4 @@
+import { threeStateOf } from '../editor-shell-store';
 import {
   faBorderAll,
   faExpand,
@@ -94,7 +95,7 @@ function frameBounds(
  * It sits above source-owned backgrounds (which otherwise erase any useful
  * drafting reference) and below selection/transform chrome. */
 export function CanvasSceneBackdrop({ view }: { view: RootViewController }) {
-  const store = useEditorStore();
+  const store = threeStateOf(useEditorStore());
   useSyncExternalStore(store.subscribe, store.getSnapshot);
   const pose = useSyncExternalStore(view.subscribe, view.get, view.get);
   useSyncExternalStore(
@@ -420,7 +421,7 @@ export function CanvasSceneControls({
   containerRef: RefObject<HTMLDivElement | null>;
   view: RootViewController;
 }) {
-  const store = useEditorStore();
+  const store = threeStateOf(useEditorStore());
   useSyncExternalStore(store.subscribe, store.getSnapshot);
   const pose = useSyncExternalStore(view.subscribe, view.get, view.get);
 

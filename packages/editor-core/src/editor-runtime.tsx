@@ -19,7 +19,8 @@
 
 import { type InteractiveEditScope, InteractiveEditScopeContext } from '@volter/editor-sdk/widgets';
 import { type ReactNode, Suspense, useContext, useMemo, useSyncExternalStore } from 'react';
-import type { EditorShellStore } from './editor-shell-store';
+import type { ShellStore } from './shell-store';
+import { type EditorShellStore, optionalThreeStateOf, threeStateOf } from './editor-shell-store';
 import type { EditorSession } from './history/editor-session';
 import type { HistoryCommandSnapshot, HistoryCommands } from './history/history-commands';
 import type { HistoryService, HistorySnapshot } from './history/history-service';
@@ -35,7 +36,7 @@ export interface EditorStats {
 }
 
 export interface EditorRuntime {
-  store: EditorShellStore;
+  store: ShellStore;
   stats: EditorStats;
   initPromise: Promise<void>;
   session: EditorSession;
@@ -77,7 +78,7 @@ export function EditorRuntimeProvider({
   );
 }
 
-export function useEditorStore(): EditorShellStore {
+export function useEditorStore(): ShellStore {
   const ctx = useContext(EditorContext);
   if (!ctx) throw new Error('useEditorStore must be used within <EditorProvider>');
   return ctx.store;
@@ -116,7 +117,7 @@ export function useOptionalHistoryService(): HistoryService | null {
  * A stage asking what the WORKSPACE is showing must be able to hear "there is
  * no workspace" instead of throwing the host's own document off the screen.
  */
-export function useOptionalEditorStore(): EditorShellStore | null {
+export function useOptionalEditorStore(): ShellStore | null {
   return useContext(EditorContext)?.store ?? null;
 }
 
@@ -142,4 +143,15 @@ export function useHistoryCommandSnapshot(): HistoryCommandSnapshot {
 export function useHistorySnapshot(): HistorySnapshot {
   const history = useHistoryService();
   return useSyncExternalStore(history.subscribe, history.getSnapshot, history.getSnapshot);
+}
+
+/** The session store's Three half (`threeStateOf`), for a component that reads the scene,
+ *  object map, camera or viewport tools. */
+export function useThreeEditorStore(): EditorShellStore {
+  return threeStateOf(useEditorStore());
+}
+
+/** {@link useThreeEditorStore} outside a session answers `null`. */
+export function useOptionalThreeEditorStore(): EditorShellStore | null {
+  return optionalThreeStateOf(useOptionalEditorStore());
 }
