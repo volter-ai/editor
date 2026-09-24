@@ -24,6 +24,7 @@ import { declaredRoots } from '@volter/editor-project/adapter/manifest-interpret
 import { editorConsole } from '../editor-console';
 import { assertEditorServerAnswered } from '../editor-server-response';
 import { sourceMutationAttribution } from '../editor-session-attribution';
+import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import type { EditorShellStore } from '../editor-shell-store';
 import { hierarchyProjectionFromProjectConfig } from '../hierarchy-projection';
 import { getProjectFileHistory, type ProjectFileHistory } from '../history/project-file-history';
@@ -40,6 +41,7 @@ import {
   setActiveAuthoring,
 } from './active-adapter';
 import { beginAuthoringBootstrap } from './bootstrap-state';
+import { makeNoAuthoringAdapter } from './no-authoring-adapter';
 import { BoundaryAuthoringAdapter, type BoundaryRootInfo } from './boundary-authoring-adapter';
 import {
   CompositeAuthoringAdapter,
@@ -460,6 +462,8 @@ export class ManifestAuthoring implements RootManifestProvider {
 }
 
 let _manifestAuthoring: ManifestAuthoring | null = null;
+/** The message a project with no roots shows, while it is installed. */
+let _emptyProjectAuthoring: AuthoringAdapter | null = null;
 
 /**
  * Build the composite over every declared world and install it as the active
@@ -557,6 +561,16 @@ export function installEditModeAuthoring(
     markEditModeOverride(composite);
     setActiveAuthoring(composite);
     store.notifyIngestEdit();
+  } else if (!hasAuthoringOverride()) {
+    // A project that declares no roots has nothing to author yet, and the panels say
+    // what would change that rather than the generic floor's "no authoring adapter".
+    _emptyProjectAuthoring = makeNoAuthoringAdapter(
+      store,
+      'No world yet',
+      'Declare a root in vgai.project.json',
+    );
+    setActiveAuthoring(_emptyProjectAuthoring);
+    store.notifyIngestEdit();
   }
 
   return composite;
@@ -570,6 +584,10 @@ export function exitEditModeAuthoring(installed?: CompositeAuthoringAdapter): vo
   if (installed && getAuthoringOverride() === installed) {
     setActiveAuthoring(null);
   }
+  if (_emptyProjectAuthoring && getAuthoringOverride() === _emptyProjectAuthoring) {
+    setActiveAuthoring(null);
+  }
+  _emptyProjectAuthoring = null;
   _manifestAuthoring?.dispose();
   _manifestAuthoring = null;
 }

@@ -23,11 +23,15 @@ import type { EditorShellStore } from '../editor-shell-store';
  *  has to be able to tell it apart from a thing a person can select. */
 export const NO_AUTHORING_ID = 'no-authoring:root';
 
-export function makeNoAuthoringAdapter(store: EditorShellStore, label: string): AuthoringAdapter {
+export function makeNoAuthoringAdapter(
+  store: EditorShellStore,
+  label: string,
+  secondaryLabel = 'No authoring surface',
+): AuthoringAdapter {
   const node: EditorNode = {
     id: NO_AUTHORING_ID,
     label,
-    secondaryLabel: 'No authoring surface',
+    secondaryLabel,
     role: 'boundary',
     kind: 'object',
     parentId: null,
