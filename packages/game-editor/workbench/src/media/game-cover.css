@@ -1,0 +1,83 @@
+/* THE GAME EDITOR'S OWN SPLASH — what this product draws into the kit's opening cover
+   (`VgaiProduct.cover`, `packages/editor/workbench/src/vgaiCover.ts`).
+
+   IT SPELLS CLASSIC'S PALETTE, for the same reason the model editor's spells Blender's: the
+   cover paints BEFORE any theme extension is registered — the web workbench's first frame is
+   the page config's `initialColorTheme` — so a splash written against `--vscode-*` would wear
+   the workbench's default dark for exactly the seconds it exists instead of this product's
+   look. Classic is the editor's own Graphite and it ships no theme extension at all, so these
+   values come from `@vgai/editor-sdk`'s `widgets/theme.ts`, named beside them:
+
+     #1a1a1a  GRAPHITE_BG[0]        surface.shell — the window's outermost band
+     #242424  GRAPHITE_BG[1]        surface.panel
+     #c5c8ce  GRAPHITE_TEXT[1]      content.primary
+     #9aa0a6  GRAPHITE_TEXT[2]      content.muted
+     #333333  GRAPHITE_BORDER[1]    boundary.default
+     #579eff  GRAPHITE_ACCENT       accent.default
+
+   Nothing here names a font: Classic is the workbench's own UI font, which is what this
+   product wearing no look extension means. */
+
+.vgai-game-cover {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	background: #1a1a1a;
+	color: #c5c8ce;
+}
+
+/* THE MARK: a play triangle inside the panel surface — the one glyph this product's whole
+   transport is built around. Inline SVG in the product's own markup, so there is no image to
+   fetch and the first frame is the first frame. */
+.vgai-game-cover-mark {
+	width: 56px;
+	height: 56px;
+	opacity: 0.92;
+}
+
+.vgai-game-cover-title {
+	font-size: 26px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+}
+
+.vgai-game-cover-folder {
+	font-size: 12px;
+	color: #9aa0a6;
+}
+
+/* Indeterminate ON PURPOSE: this product knows WHAT it is waiting for and not how far along it
+   is, and a bar that invented a percentage would be a lie a person can see. */
+.vgai-game-cover-rail {
+	position: relative;
+	width: 220px;
+	height: 2px;
+	margin-top: 6px;
+	overflow: hidden;
+	background: #333333;
+}
+
+.vgai-game-cover-rail::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 40%;
+	background: #579eff;
+	animation: vgai-game-cover-travel 1.25s ease-in-out infinite;
+}
+
+@keyframes vgai-game-cover-travel {
+	0% { left: -40%; }
+	100% { left: 100%; }
+}
+
+.vgai-game-cover-state {
+	font-size: 11px;
+	min-height: 14px;
+	color: #9aa0a6;
+}

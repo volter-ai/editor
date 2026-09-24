@@ -2,11 +2,10 @@
  *  THE MODEL EDITOR'S WORKBENCH HALF — everything about this build that is Blender's rather
  *  than the editor kit's.
  *
- *  THIS FILE LIVES IN THE vgai-engine REPOSITORY (`packages/model-editor/workbench/src/`) and
- *  is OVERLAID on a Code-OSS checkout at a pin by `scripts/workbench/overlay.mjs --product
- *  model-editor` (ARCHITECTURE-CORE §The target shape, rule 6). Edit it there.
+ *  THIS FILE LIVES IN THIS REPOSITORY (`packages/editor/workbench/src/`) and is OVERLAID on a
+ *  Code-OSS checkout at a pin by `scripts/workbench/overlay.mjs --product editor`. Edit it here.
  *
- *  It is the counterpart of `packages/model-editor/src/index.ts`, which composes the SAME
+ *  It is the counterpart of `packages/editor/src/index.ts`, which composes the SAME
  *  product in the editor's own realm: that file says which packages this editor is, what it
  *  looks like and what workspace it opens; this one says what the WORKBENCH around them is
  *  called, what it says when it asks for trust, and which of this build's theme artifacts the
