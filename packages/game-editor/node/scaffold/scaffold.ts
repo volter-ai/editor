@@ -321,7 +321,11 @@ export function pinSharedDependencyVersions(
     const deps = pkg[field];
     if (!deps) continue;
     for (const name of Object.keys(deps)) {
-      if (!engineDeps.has(name)) continue;
+      // The runtime packages' own `@volter/*` dependencies are specified by
+      // `engineDependencySpec`, one rule for every `@volter/*` package: an
+      // exact pin here beside a caret there installs two copies of
+      // `@volter/editor-project` the day a newer release exists.
+      if (!engineDeps.has(name) || name.startsWith('@volter/')) continue;
       const installedVersion = readInstalledVersionWithFallback(monoRoot, fallbackDir, name);
       if (!installedVersion) continue;
       // deps[name] is still the un-touched, freshly-copied template's
