@@ -8,3 +8,4 @@ dist/
 dist-node/
 dist-server/
 dist-config/
+.vgai/
