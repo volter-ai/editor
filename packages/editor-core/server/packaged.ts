@@ -200,6 +200,7 @@
  *   packaged template, examples, and registry dependency mode.
  */
 
+import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -375,6 +376,21 @@ function projectHasPackage(fromDir: string, packageName: string): boolean {
   }
 }
 
+/** Every dependency the project's own `package.json` declares, of any kind. */
+function projectDeclaredDependencies(projectRoot: string): Set<string> {
+  try {
+    const manifest = JSON.parse(readFileSync(path.join(projectRoot, 'package.json'), 'utf8')) as Record<string, unknown>;
+    const names = new Set<string>();
+    for (const field of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies']) {
+      const table = manifest[field];
+      if (table && typeof table === 'object') for (const name of Object.keys(table)) names.add(name);
+    }
+    return names;
+  } catch {
+    return new Set();
+  }
+}
+
 async function main(): Promise<void> {
   configureManagedAccountDefaults();
   const app = express();
@@ -429,8 +445,11 @@ async function main(): Promise<void> {
     const dir = resolveInstalledPackageSrcDir(projectPath, name);
     if (dir) runtimeSources.set(name, dir);
   }
+  // Only a package the project DECLARES is owed an install: a modeling
+  // project carries no game runtime, and its absence is not a fault.
+  const declaredDependencies = projectDeclaredDependencies(projectPath);
   const unresolvedRuntimePackages = RUNTIME_PACKAGE_NAMES.filter(
-    (name) => !runtimeSources.has(name),
+    (name) => declaredDependencies.has(name) && !runtimeSources.has(name),
   );
   if (unresolvedRuntimePackages.length > 0) {
     console.warn(

@@ -230,6 +230,7 @@ export interface ModuleDoorway {
  */
 export const REACT_WORLD_RUNTIME_PATH = '/__vgai-react-world-runtime';
 export const R3F_RUNTIME_PATH = '/__vgai-r3f-runtime';
+export const R3F_ENTRY_RUNTIME_PATH = '/__vgai-r3f-entry-runtime';
 export const CANVAS_RUNTIME_PATH = '/__vgai-canvas-runtime';
 export const THREE_INGEST_RUNTIME_PATH = '/__vgai-three-ingest-runtime';
 /** The dynamic-import-facing URL `stories/story-dom-runtime.ts` imports. Its
@@ -237,6 +238,23 @@ export const THREE_INGEST_RUNTIME_PATH = '/__vgai-three-ingest-runtime';
  *  fact through the published door and never through this build tier; this
  *  plugin still owns WHAT is served at that address, below. */
 export { STORY_RUNTIME_PATH };
+
+export const REACT_WORLD_DOORWAY: ModuleDoorway = {
+  path: REACT_WORLD_RUNTIME_PATH,
+  rows: [
+    { from: 'react', names: ['createElement', 'useEffect', 'useRef'] },
+    { from: 'react-dom/client', names: ['createRoot'] },
+    // `flushSync` — needed by the react-world layer mount (its synchronous
+    // initial render), from the SAME react-dom peer as `createRoot` above
+    // (react-dom/client and react-dom are the same installed package's two
+    // entry points).
+    { from: 'react-dom', names: ['flushSync'] },
+    {
+      from: '@volter/game-runtime/react/world-state',
+      names: ['WorldProvider as EngineWorldProvider'],
+    },
+  ],
+};
 
 export const R3F_DOORWAY: ModuleDoorway = {
   path: R3F_RUNTIME_PATH,
@@ -247,6 +265,22 @@ export const R3F_DOORWAY: ModuleDoorway = {
       from: '@react-three/fiber',
       names: ['createRoot as createR3FRoot', 'extend as extendThree'],
     },
+  ],
+};
+
+/** The game runtime's R3F entry resolver, apart from {@link R3F_DOORWAY}: a
+ *  story preview reaches that one in a project with no game runtime, and a
+ *  doorway re-exports only what every project that asks for it has installed. */
+export const R3F_ENTRY_DOORWAY: ModuleDoorway = {
+  path: R3F_ENTRY_RUNTIME_PATH,
+  rows: [{ from: '@volter/game-runtime/world3d-react', names: ['resolveR3FEntryAdapter'] }],
+};
+
+export const CANVAS_DOORWAY: ModuleDoorway = {
+  path: CANVAS_RUNTIME_PATH,
+  rows: [
+    { from: 'pixi.js', namespace: 'projectPixi' },
+    { from: '@volter/game-runtime/canvas-react', names: ['resolveCanvasEntryAdapter'] },
   ],
 };
 
@@ -282,7 +316,10 @@ export const STORY_DOORWAY: ModuleDoorway = {
  * served to a lane that asked for it.
  */
 export const PACKAGED_MODULE_DOORWAYS: readonly ModuleDoorway[] = [
+  REACT_WORLD_DOORWAY,
   R3F_DOORWAY,
+  R3F_ENTRY_DOORWAY,
+  CANVAS_DOORWAY,
   THREE_INGEST_DOORWAY,
   STORY_DOORWAY,
 ];

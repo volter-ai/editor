@@ -8,7 +8,7 @@ import { dirname, join, resolve } from 'node:path';
  * `WorldProvider` contexts and `useGame` cannot see the one wrapping the tree.
  * The contract and the three.js twin carry no React context of their own.
  */
-export const REPORTED_RUNTIME_PACKAGE = '@vgai/game-runtime';
+export const REPORTED_RUNTIME_PACKAGE = '@volter/game-runtime';
 
 export interface ProjectPackageOrigin {
   name: typeof REPORTED_RUNTIME_PACKAGE;
@@ -37,7 +37,7 @@ export function projectEnginePackageOrigin(projectRoot: string): ProjectPackageO
     const searchPaths = projectRequire.resolve.paths(REPORTED_RUNTIME_PACKAGE) ?? [];
     const installPath =
       searchPaths
-        .map((base) => join(base, '@vgai', 'game-runtime'))
+        .map((base) => join(base, ...REPORTED_RUNTIME_PACKAGE.split('/')))
         .find(
           (candidate) =>
             existsSync(candidate) && canonical(candidate) === canonical(resolvedPackageDir),

@@ -465,7 +465,12 @@ export const EDITOR_RUNTIME_MODULE_SPECIFIERS: readonly string[] = [
  * shipped twins. All three are source-served whole (never prebundled), for the
  * one-singleton reason the crawl-entry doc below states.
  */
-export const RUNTIME_PACKAGE_NAMES = ['@volter/editor-project', '@volter/editor-threejs'] as const;
+export const RUNTIME_PACKAGE_NAMES = [
+  '@volter/editor-project',
+  '@volter/editor-threejs',
+  '@volter/threejs-runtime',
+  '@volter/game-runtime',
+] as const;
 
 /** name -> that package's installed `src` directory, for the ones that resolve. */
 export type RuntimePackageSources = ReadonlyMap<string, string>;
@@ -586,7 +591,18 @@ function packageSubpathFile(srcDir: string, subpath: string): string | null {
  * discovered in the BOOT pass instead of one mid-session optimizer wave and
  * tab reload at a time — while the engine itself stays source-served.
  */
-const LAZY_RUNTIME_CRAWL_SPECIFIERS: readonly string[] = ['@volter/editor-threejs/asset-parse-error', '@volter/editor-threejs/loader'];
+const LAZY_RUNTIME_CRAWL_SPECIFIERS: readonly string[] = [
+  '@volter/editor-threejs/asset-parse-error',
+  '@volter/editor-threejs/loader',
+  '@volter/threejs-runtime/asset-parse-error',
+  '@volter/threejs-runtime/loader',
+  '@volter/game-runtime/data/data-asset',
+  '@volter/game-runtime/input/input-manager',
+  '@volter/game-runtime/input/rebind-controller',
+  '@volter/game-runtime/react/use-data',
+  '@volter/game-runtime/runtime/mount-game',
+  '@volter/game-runtime/world3d-react',
+];
 
 /**
  * Crawl entries for the engine source the browser reaches: the document-side
