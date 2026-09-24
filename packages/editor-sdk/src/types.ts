@@ -675,6 +675,9 @@ export interface EditorState {
   };
   /** Every center document the editor currently has open, by stable registry id. */
   openDocumentIds?: string[];
+  /** Every document a package has made available to open, and which one the
+   *  session opens by default when nothing is restored. */
+  availableDocuments?: { id: string; category: string; default: boolean }[];
   /** Live editor-owned WebGL renderers, split by resource owner. */
   rendererResources?: {
     hostLive: number;

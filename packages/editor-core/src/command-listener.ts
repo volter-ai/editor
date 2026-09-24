@@ -180,6 +180,7 @@ import {
   closeWorkspaceDocument,
   openWorkspaceDocuments,
 } from './workspace-document-registry';
+import { availableWorkspaceDocuments } from './workspace-available-documents';
 import { activeWorkspaceUtility } from './workspace-host-commands';
 import {
   activeEditorWorkspace,
@@ -589,6 +590,11 @@ export function collectState(
     // uses this to photograph the project's actual component boards instead
     // of spending long activation windows guessing every medium-specific id.
     openDocumentIds: openWorkspaceDocuments().map((document) => document.descriptor.id),
+    availableDocuments: availableWorkspaceDocuments().map((entry) => ({
+      id: entry.descriptor.id,
+      category: entry.category,
+      default: entry.default,
+    })),
     // W2: asset viewers are center workspace documents now; this facet keeps
     // its legacy key vocabulary for control-API consumers — the active ASSET
     // document's key, or the '__inspector__' sentinel. The sentinel does NOT
