@@ -20,43 +20,52 @@ point down.
 
 | Package | What it is |
 | --- | --- |
-| `@volter/game-editor` | The second product: `product()` entry composing `@volter/editor-game` and `@volter/editor-blender`, `volter-game-editor` CLI, `create` with the game/prototype/full/website/empty presets, the game template and copied capabilities, its workbench half |
+| `@volter/game-editor` | The second product: entry composing `@volter/editor-game` and `@volter/editor-blender`, the `volter-game-editor` CLI (kit session verbs plus `play`, `stop`, `restart`, `add`/`remove`/`outdated`, `blender-mcp`), `create` with the game/prototype/full/website/empty presets, the template and capability catalog, its workbench half |
 | `@volter/editor-game` | The game side: vgai's `@vgai/game` (`src/`), `@vgai/dom` (`src/react/`), `@vgai/threejs` authoring (`src/three/`), and the kit modules only the game reaches (`src/host/`), including the world-root stage and the Scene document |
+| `@volter/game-live` | The game client over a session: `game`, `page`, recording; `eval` scope and tester scripts |
 | `@volter/game-runtime`, `@volter/threejs-runtime` | The Apache twins a shipped game carries |
 
-The kit gained product-neutral doors only: the launcher (`editor-core/server/launcher`)
-takes the launching product; the stage host takes a package's world-root
-binding; project roots are served through the globals shadow and mount
-isolation; the game runtimes are known runtime packages, reported missing only
-when a project declares them; doorway addresses live on `@volter/editor-sdk/host`.
+The kit gained product-neutral doors only: the launcher takes the launching
+product; the served product's command and display name come from its own
+`package.json` and name every message; the stage host takes a package's
+world-root binding; project roots are served through the globals shadow and
+mount isolation; the game runtimes are known runtime packages; doorway
+addresses live on `@volter/editor-sdk/host`; the eval scope takes product
+additions.
 
-Measured on fresh `volter-game-editor create --template game` projects over a
-sources workbench (`scripts/workbench/dev.mjs --product game-editor`): the
-first boot opens the Game workspace with the Scene document open by default;
-Play reaches `playing`, the Game document draws the starter world, and Stop
-returns to the Scene; Inspector edits of the Hero Box's position and colour
-are written to `src/scenes/MainScene.tsx` and drawn.
+Walked live over a sources workbench on fresh projects of every preset:
+`game` and `prototype` open in Game with the Scene document; Play reaches
+`playing` and Stop returns to the Scene; Inspector edits write source, and
+undo/redo round-trip it; `full` plays its three.js and React roots, runs two
+named instances side by side, opens the UI and 3D component boards, and the
+web build packages `<project>-web.zip`; Profiler, Asset Budget and Build
+Profiles work; `website` opens its page source in Design.
 
 Remaining, each closed by the same live walk:
 
-1. `editor.screenshot()` returns a blank white frame during Play (correct in
-   Edit); the active document capture is correct in both.
-2. First boot logs one console error, "No default agent registered", from
-   the workbench's chat.
-3. The CLI lacks verbs the template's guides teach: `screenshot`, `restart`,
-   `sessions`, `project`/`projects`, `open`, `blender-mcp` (the MCP server is
-   the modeling product's; it belongs with `@volter/editor-blender` for both
-   products), `add`, `examples`, `doctor`.
-4. 156 of `editor-game`'s 297 modules import kit internals
-   (`@volter/editor-core/*`); each becomes an SDK door or moves.
-5. `editor-threejs` carries 19 files identical to `@volter/threejs-runtime`'s
-   (the twin's `user-data.ts` also has the game keys): one owner is decided
-   with the modeling release's dependency boundary.
-6. The served-bundle table keys `@editor/game-module-access` (now
-   `editor-game`'s) and `@volter/editor-sdk/tools` (no such export) resolve
-   nothing; ingest is unwalked.
-7. Packed archives, installation without checkout links, and a released game
-   workbench are not yet built.
+1. The release gates: `release/game.json`, packed-import and notice checks
+   for the game packages, registry-mode `create`, a released game
+   workbench, and installation from archives outside the checkout.
+2. First boot logs "No default agent registered" (the Supercode chat
+   extension), and under machine load the workbench's GitHub sign-in lookups
+   time out; both are the shared workbench's, the modeling product's too.
+3. `editor.screenshot()` during Play draws the adopted scene white; the CLI
+   `screenshot` (the game's own capture) and document captures are correct.
+4. `editor.captureEditorChrome()` rasterizes a React root's text over itself
+   (measured DOM geometry is correct).
+5. State Watch opens only with a debug adapter, Network only with networking;
+   the starter game has neither, so both, XState behaviour and navmesh are
+   unwalked on real content.
+6. The design skew (`website`): the DOM root is read-only and the Pages
+   list is empty — unfinished upstream too.
+7. `empty` opens in Blender's Model workspace (Game requires mounts).
+8. Worktree isolation runs a product `create` form no CLI supports; messages
+   suggest `deploy`, `add deploy-cloudflare` and `add pasteboard`, which the
+   catalog does not carry.
+9. A product bundle build takes about a minute and several GB; the owner's
+   30-second rule needs it faster or a source-serving development host.
+10. 156 of `editor-game`'s modules import kit internals; `editor-threejs`
+    duplicates 19 twin files.
 
 ## Supported-editing work
 
