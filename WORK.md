@@ -78,6 +78,12 @@ Remaining:
 2. **The architecture plan** ([ARCHITECTURE.md](ARCHITECTURE.md) §The plan): the model editor
    rename, the frozen reverse-edge baseline, the viewport unit, Blender as its first consumer,
    then idiomatic games. `@volter/editor-game` imports kit internals from 122 files.
+   The kit's Blender server routes are `@volter/editor-blender`'s serving half (walked: Blender
+   boots and saves through them). The Edit/Play tab derived from workspace focus is on branch
+   `viewport-tab-from-focus`, typechecked and unwalked: it changes Play focus and the game's input
+   gate, so it merges after an arena walk (Play focuses Game and takes input; another document
+   closes the gate; Stop restores focus). Product builds need 3–5 GB and thrash this box while
+   other workloads hold its memory.
    Units 1–2 are done (`@volter/model-editor`; `release/boundary-baseline.json`, 696 edges). The
    model editor's workbench still needs its rebuild for the new product id: the compile wants a
    9 GB heap and was killed at 17 GB compressed memory, so it runs on a box with headroom.
