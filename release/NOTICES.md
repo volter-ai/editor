@@ -1,23 +1,37 @@
 # Bundled notices
 
-Read this when building or updating dependencies for a modeling release.
+Read this when building or updating dependencies for a release.
 
-Run `npm run build` inside the repository's World. The release build records
-retained Rollup modules and esbuild inputs, then writes `BUNDLED_NOTICES` for
-`editor`, `editor-core` and `editor-live`. It includes other Volter packages
-when their code is incorporated into a bundle. Their licenses do not disappear
-when the bundler removes the import boundary.
+`npm run build` builds the modeling release and `npm run build:game` the game
+release. Each records retained Rollup modules and esbuild inputs, then writes
+`BUNDLED_NOTICES` for the packages that ship bundles: `editor`, `editor-core`
+and `editor-live`, and for the game release also `game-editor`. It includes
+other Volter packages when their code is incorporated into a bundle. Their
+licenses do not disappear when the bundler removes the import boundary. Every
+entry names its source: the unmodified npm package and its repository, which
+MPL-2.0 packages (axe-core, mediabunny) require.
 
-`provenance/bundled-notices.json` records dependency versions and hashes of the
-license texts. Review and commit it together with the generated notice files.
-`npm run check:packed-imports` separately checks literal import declarations;
-it is not a license audit.
+`provenance/bundled-notices.json` and `provenance/game-bundled-notices.json`
+record dependency versions and hashes of the license texts. Review and commit
+them together with the generated notice files. `npm run check:packed-imports`
+and `npm run check:packed-imports:game` separately check literal import
+declarations; they are not a license audit.
+
+The game editor serves a vendored game only the packages the template and the
+catalog's capabilities import (`scripts/check-served-bundle-modules.mjs`, run
+by the pre-commit hook); a package added there adds its notice to the bundle.
 
 If an npm package omits its notice, the generator refuses unless its exact
 version has a reviewed fallback in `scripts/write-bundled-notices.mjs`.
 The fallback text lives in `release/licenses/`; `sources.json` records the
 upstream repository, revision, path and SHA-256. Check the upstream source
 before adding or updating a fallback. Do not synthesize copyright notices.
+
+Two game-release fallbacks differ from the rest. stats-gl publishes no license
+text anywhere: its fallback quotes the README's MIT statement at the recorded
+revision and appends the standard MIT permission text, labelled as supplied by
+this repository, with no copyright line. maath's LICENSE was added upstream
+after the bundled version; the fallback is that file at the recorded revision.
 
 For Supercode UI 0.1.83, npm provides no git revision or license file. The
 fallback preserves the Supercode repository's MIT text at the v0.4.38 source
