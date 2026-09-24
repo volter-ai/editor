@@ -141,6 +141,32 @@ Freeze existing reverse edges by exact importer and imported module, including
 types and lazy imports. The baseline is debt to remove, not an allowed export
 catalog to expand. Smaller file counts cannot establish any acceptance above.
 
+#### Measured consumer inventory (2026-09-24)
+
+Measured from `editor-viewport.ts`, `StageHost.tsx`, `viewport-door.ts` and
+`projection/three.ts`: their closure in `editor-core` holds 44 modules that import
+three, R3F, quarks or `@volter/editor-threejs`. Those 44 import 35 neutral kit
+modules, and 54 other kit modules import them.
+
+- **Licensing.** `editor-core` code is AGPL-3.0-only, imported from `@vgai/editor`
+  (`provenance/editor-host.json`), and `@volter/editor-sdk` is Apache-2.0. Kit
+  modules therefore do not move into the SDK. The SDK gains contracts (new
+  interfaces and host doors), and core implements them.
+- **The hub is `StageHost.tsx`.** It takes 20 of the 35 neutral doors: stage store and
+  stage context registration, performance and design-time surface registration,
+  retained document states, workspace history, `AssetEditorShell`, `StageOverlays`,
+  `TransportStrip`, stage transport and keyboard. These are occurrence-hosting
+  duties. `Object3DDocumentViewport` (about 1,650 lines) holds them together with
+  the Three renderer, gesture controller, dressing and document session.
+- **The other doors** are few and narrow: `ShellStore`, stage invalidation, six
+  authoring consumer actions, the root-hidden eye, selection scope, the orbit-gesture
+  hint, the no-authoring adapter, the active and composite adapters, the performance
+  profiler, preview resource lifetime, compare math and bitmap labels.
+
+Extrapolation, not yet measured: the first cut is `StageHost.tsx`. A core occurrence
+host keeps the host duties and hosts a contributed Three document view through an
+SDK view contract. The Three view then needs only the narrow doors above.
+
 ## 3. Identity and state
 
 Use distinct types for DocumentId, ViewId, and ExecutionId. No fallback that
