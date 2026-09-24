@@ -321,6 +321,9 @@ export type SessionJournalEvent =
     }
   /** An extra tab was told to yield. */
   | { readonly kind: 'tab-yielded'; readonly tabId8: string }
+  /** `vgai edit` asked for this session's tab: what the session answered, and
+   *  whether it was allowed to open one. */
+  | { readonly kind: 'tab-ensure'; readonly open: boolean; readonly outcome: string }
   /**
    * PRESENCE, IN TAB VOCABULARY. These five say what the tab table saw, and
    * they deliberately do NOT use socket words: a socket closing is not a tab
@@ -715,6 +718,8 @@ export function formatJournalLine(line: SessionJournalLine): string {
       return `journal: ${at} tab-blessed ${line.tabId8} (${line.reason})`;
     case 'tab-yielded':
       return `journal: ${at} tab-yielded ${line.tabId8}`;
+    case 'tab-ensure':
+      return `journal: ${at} tab-ensure ${line.outcome}${line.open ? '' : ' (no-open)'}`;
     case 'tab-appeared':
       return `journal: ${at} tab-appeared ${line.tabId8} (${line.visibility})`;
     case 'tab-heartbeat-gap':

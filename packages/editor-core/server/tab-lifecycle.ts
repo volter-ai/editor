@@ -305,6 +305,9 @@ export function createTabLifecycle(options: TabLifecycleOptions): TabLifecycleCo
       run();
     },
     ensure(open) {
+      // Every answer is journaled: "the page did not arrive" has to say whether
+      // this session opened one at all.
+      const outcome = ((): TabEnsureOutcome => {
       run();
       const at = now();
       const blessed = state.blessedTabId;
@@ -436,6 +439,9 @@ export function createTabLifecycle(options: TabLifecycleOptions): TabLifecycleCo
       // the reconcile loop opens one: a tab you closed stays closed.
       options.openUrl(options.editorUrl);
       return 'opening';
+      })();
+      journal({ kind: 'tab-ensure', open, outcome });
+      return outcome;
     },
     expectRestart() {
       restartExpected = true;
