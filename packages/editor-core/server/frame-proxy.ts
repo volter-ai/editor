@@ -292,6 +292,13 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
         delete headers['cross-origin-opener-policy'];
         delete headers['cross-origin-embedder-policy'];
         delete headers['cross-origin-resource-policy'];
+        // Hop-by-hop headers describe the upstream's connection, not this
+        // one: this response is framed by this server. Copied, the upstream's
+        // `transfer-encoding: chunked` sat beside the `content-length` the
+        // buffered branch sets, which a client must refuse; a browser that
+        // asks for compression never took that branch, a client that asks
+        // for none (a service worker's) always did.
+        for (const name of ['connection', 'keep-alive', 'transfer-encoding', 'upgrade', 'proxy-connection']) delete headers[name];
         // The webview's second origin, onto the REH's own `frame-src`.
         const csp = headers['content-security-policy'];
         if (typeof csp === 'string' && csp.includes('frame-src')) {

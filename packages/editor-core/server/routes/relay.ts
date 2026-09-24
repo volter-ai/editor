@@ -17,6 +17,7 @@ import { createReadStream, existsSync } from 'node:fs';
 import { appendFile, mkdir, readFile, rm, stat, unlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, dirname, extname, join, resolve } from 'node:path';
+import { createBrotliDecompress } from 'node:zlib';
 import { isContainedRelativePath } from '@volter/editor-sdk/session/relative-path-guard';
 import type { NextFunction, Request, Response } from 'express';
 import { projectOutputRootOf } from '@volter/editor-sdk/project/output-roots';
@@ -176,20 +177,34 @@ function registerBlenderFileRoutes(router: EditorServerRouter, ctx: RouteContext
     // `no-cache` still asks this server every time, which answers 304 while
     // the file on disk is the same one.
     const info = await stat(found.path);
-    const etag = `"${found.encoding ?? 'identity'}-${info.size}-${Math.floor(info.mtimeMs)}"`;
+    // A pre-compressed file goes out as stored, declared as brotli, to a
+    // client that accepts brotli: the browser inflates it before
+    // `instantiateStreaming` / the `.data` preload read a byte, so
+    // `content-type` stays what the runtime requires. A client that does not
+    // (a service worker answering a page from a server it runs in the tab
+    // asks with no Accept-Encoding) gets the file inflated here; sent as
+    // brotli regardless, it handed Blender compressed bytes as its wasm.
+    const accepted = String(req.headers['accept-encoding'] ?? '').toLowerCase();
+    const sendEncoded = found.encoding !== null && accepted.includes(found.encoding);
+    const etag = `"${sendEncoded ? found.encoding : 'identity'}-${info.size}-${Math.floor(info.mtimeMs)}"`;
     res.setHeader('cache-control', 'no-cache');
     res.setHeader('etag', etag);
+    res.setHeader('vary', 'accept-encoding');
     if (req.headers['if-none-match'] === etag) {
       res.status(304).end();
       return;
     }
-    // A pre-compressed file goes out as stored, declared as brotli: the
-    // browser inflates it before `instantiateStreaming` / the `.data` preload
-    // read a byte, so `content-type` stays what the runtime requires.
     res.type(file.endsWith('.wasm') ? 'application/wasm' : 'application/octet-stream');
-    if (found.encoding) res.setHeader('content-encoding', found.encoding);
-    res.setHeader('content-length', String(found.size));
-    blenderWasmReadStream(found).pipe(res);
+    if (sendEncoded) {
+      res.setHeader('content-encoding', found.encoding!);
+      res.setHeader('content-length', String(found.size));
+      blenderWasmReadStream(found).pipe(res);
+      return;
+    }
+    const stream = blenderWasmReadStream(found);
+    // A stored file that does not inflate ends this response, not the server.
+    const body = found.encoding ? stream.pipe(createBrotliDecompress()).on('error', () => res.destroy()) : stream;
+    body.pipe(res);
   });
 
   router.post('/__editor/blender-file', async (req: Request, res: Response) => {
