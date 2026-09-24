@@ -399,10 +399,11 @@ export class RelayTransport implements BridgeTransport {
    *  2. A `list-instances` command completing. That is the whole relay path
    *     — server → SSE channel → the NEW document's command listener — so it
    *     is the difference between "a document loaded" and "the session can
-   *     be driven again". It is the one command with no play gate and no
-   *     side effects (`command-listener.ts`), and it is held-and-retried by
-   *     the relay while a tab is mid-boot, so a refusal here means the page
-   *     genuinely is not answering yet.
+   *     be driven again". It has no play gate and no side effects
+   *     (`@volter/editor-game`'s `instances.command.ts`). It is sent only
+   *     once the server reports the reloaded tab's command listener
+   *     attached: the relay does not hold a command for a listener that is
+   *     not there yet, and a timeout would be filed as a stall.
    *
    * Neither witness is inferred from the send. A reload that never completes
    * REJECTS with what was and was not observed, rather than resolving into a
@@ -421,13 +422,15 @@ export class RelayTransport implements BridgeTransport {
     // exists; the next leg must measure the new one.
     this.hiddenCache = null;
     const deadline = orderedAt + RELOAD_READY_TIMEOUT_MS;
+    let reloaded: string[] = [];
     const loaded = await this.pollUntil(deadline, async () => {
       const now = await this.readTabEpochs();
       // Any present tab whose epoch count has RISEN, or a tab that was not
       // in the table before (the reload arrived as a fresh row). An unknown
       // table — an unreachable server, an older one — never witnesses a
       // reload by default; `undefined` compares false here on purpose.
-      return [...now].some(([tabId, epochs]) => epochs > (before.get(tabId) ?? 0));
+      reloaded = [...now].filter(([tabId, tab]) => tab.epochs > (before.get(tabId)?.epochs ?? 0)).map(([tabId]) => tabId);
+      return reloaded.length > 0;
     });
     if (!loaded) {
       throw new Error(
@@ -436,6 +439,19 @@ export class RelayTransport implements BridgeTransport {
           '`volter-game-editor edit` reopens it.',
       );
     }
+    // The new document loads seconds before its command listener attaches
+    // (measured: epoch at ~5s, listener at ~13s). A witness command sent in
+    // that window is not held — it times out against a beating tab and is
+    // filed as a stall in the session's console ledger. So wait for the
+    // server to report the reloaded tab's listener attached first; a server
+    // that reports no listener state skips straight to the command.
+    await this.pollUntil(deadline, async () => {
+      const now = await this.readTabEpochs();
+      return reloaded.some((tabId) => {
+        const listener = now.get(tabId)?.listener;
+        return listener === undefined || listener === 'ready';
+      });
+    });
     const answering = await this.pollUntil(deadline, async () => {
       const ready = await this.postCommand({ type: 'list-instances' }, this.timeoutMs).catch(
         () => ({ ok: false }) as RelayCommandBody,
@@ -466,18 +482,21 @@ export class RelayTransport implements BridgeTransport {
   /** Page-loads per present tab, from `/__editor/state`'s tab table — the
    *  server's own count of the documents it has seen a tab run. Empty when
    *  the server cannot answer, which witnesses nothing. */
-  private async readTabEpochs(): Promise<Map<string, number>> {
+  private async readTabEpochs(): Promise<Map<string, { epochs: number; listener?: string }>> {
     try {
       const res = await fetch(`${this.baseUrl}/__editor/state`, {
         signal: AbortSignal.timeout(this.timeoutMs),
       });
       const state = (await res.json()) as {
-        tabs?: { tabId8?: string; epochCount?: number }[];
+        tabs?: { tabId8?: string; epochCount?: number; commandListener?: unknown }[];
       };
-      const epochs = new Map<string, number>();
+      const epochs = new Map<string, { epochs: number; listener?: string }>();
       for (const tab of state.tabs ?? []) {
         if (typeof tab.tabId8 === 'string' && typeof tab.epochCount === 'number') {
-          epochs.set(tab.tabId8, tab.epochCount);
+          epochs.set(tab.tabId8, {
+            epochs: tab.epochCount,
+            ...(typeof tab.commandListener === 'string' ? { listener: tab.commandListener } : {}),
+          });
         }
       }
       return epochs;
