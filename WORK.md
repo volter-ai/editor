@@ -81,9 +81,9 @@ Remaining:
    The kit's Blender server routes are `@volter/editor-blender`'s serving half (walked: Blender
    boots and saves through them). A lane's worker-call meter rides the tab census under the name
    the lane publishes (`host.session.reportWorkerCallMeter('Blender', …)`), and the kit prints
-   that name; it typechecks, and its `vgai status` reading waits on a product build. The standing
-   `blender:runtime` Model is listed by `modelsFromBlendFiles` when it finds no `.blend`, not
-   injected by the kit (typechecked, unwalked). The kit
+   that name (walked on `arena`: `workerCalls.Blender` reports 512 MB engine memory beside the
+   page's `stalls`). The standing `blender:runtime` Model is listed by `modelsFromBlendFiles` when
+   it finds no `.blend`, not injected by the kit (walked: a project with none opens it). The kit
    server's one remaining Blender name is `packaged.ts`'s `@volter/blender-engine` prebundle
    exclusion, whose regression shows only in a registry
    install, so it moves with a packed-install walk. The Edit/Play tab is derived from workspace
