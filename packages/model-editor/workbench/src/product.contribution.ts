@@ -2,10 +2,10 @@
  *  THE MODEL EDITOR'S WORKBENCH HALF — everything about this build that is Blender's rather
  *  than the editor kit's.
  *
- *  THIS FILE LIVES IN THIS REPOSITORY (`packages/editor/workbench/src/`) and is OVERLAID on a
+ *  THIS FILE LIVES IN THIS REPOSITORY (`packages/model-editor/workbench/src/`) and is OVERLAID on a
  *  Code-OSS checkout at a pin by `scripts/workbench/overlay.mjs --product editor`. Edit it here.
  *
- *  It is the counterpart of `packages/editor/src/index.ts`, which composes the SAME
+ *  It is the counterpart of `packages/model-editor/src/index.ts`, which composes the SAME
  *  product in the editor's own realm: that file says which packages this editor is, what it
  *  looks like and what workspace it opens; this one says what the WORKBENCH around them is
  *  called, what it says when it asks for trust, and which of this build's theme artifacts the
@@ -126,7 +126,7 @@ const MODEL_OPEN_BUDGET_MS = 90_000;
 let splash: { say(text: string): void } | undefined;
 
 registerVgaiProduct({
-	id: 'editor',
+	id: 'model-editor',
 	layout: {
 		sidebarWidth: 255,
 		containers: [
@@ -141,12 +141,12 @@ registerVgaiProduct({
 			},
 		],
 	},
-	title: localize('vgaiModelTitle', "Volter Editor"),
+	title: localize('vgaiModelTitle', "Volter Model Editor"),
 	// The workbench's own trust prompt, in this product's words: what actually runs when the
 	// folder is trusted is this project's contributions, its dev server and Blender itself in
 	// the tab's worker. A model editor has no game, which is what the one shared sentence used
 	// to claim for both products.
-	trustSentence: localize('vgaiModelTrustRequest', "Volter Editor runs this project's own code — its editor contributions, its dev server, and Blender itself in this tab. Trust this folder to open it."),
+	trustSentence: localize('vgaiModelTrustRequest', "Volter Model Editor runs this project's own code — its editor contributions, its dev server, and Blender itself in this tab. Trust this folder to open it."),
 	// THE LOOK'S THEME ARTIFACTS, and they are named here because this product SHIPS them
 	// (`packages/model-editor/workbench/extensions/theme-blender`). A look with no row wears the
 	// workbench's own themes; the bridge hands over the look's id and never a theme name.

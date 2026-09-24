@@ -9,7 +9,7 @@ import type { ProductCreateDeclaration } from '@volter/editor-sdk/session/produc
 
 const productRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const declaration: ProductCreateDeclaration = {
-  product: '@volter/editor',
+  product: '@volter/model-editor',
   templates: [{ id: 'models', name: 'Models', description: 'Blender modeling with a starter cube.' }],
   async create(request) {
     const result = await writeProject(request);
@@ -23,7 +23,7 @@ export const declaration: ProductCreateDeclaration = {
 };
 
 export async function writeProject({ name, targetDir, template }: Parameters<ProductCreateDeclaration['create']>[0]) {
-    if (template !== undefined && template !== 'models') throw new Error('Volter Editor currently creates modeling projects only.');
+    if (template !== undefined && template !== 'models') throw new Error('The model editor creates modeling projects.');
     if (!name.trim()) throw new Error('A project name is required.');
     const target = resolve(targetDir);
     const product = JSON.parse(await readFile(join(productRoot, 'package.json'), 'utf8'));
@@ -41,9 +41,9 @@ export async function writeProject({ name, targetDir, template }: Parameters<Pro
     await write('package.json', JSON.stringify({
       name: name.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-|-$/g, '') || 'models',
       private: true, version: '0.1.0', type: 'module',
-      scripts: { dev: 'volter-editor edit .', 'volter-editor': 'volter-editor' },
+      scripts: { dev: 'volter-model-editor edit .', 'volter-model-editor': 'volter-model-editor' },
       devDependencies: {
-        '@volter/editor': product.version,
+        '@volter/model-editor': product.version,
         '@volter/editor-project': product.version,
         '@volter/editor-blender': product.dependencies['@volter/editor-blender'],
       },
@@ -62,7 +62,7 @@ export default defineAdapter({
     // and a person's own Claude Code reads it by hand). Through the package script,
     // as the game template does, so the command is the project's own install.
     await write('.mcp.json', JSON.stringify({
-      mcpServers: { blender: { command: 'npm', args: ['run', '--silent', 'volter-editor', '--', 'blender-mcp'] } },
+      mcpServers: { blender: { command: 'npm', args: ['run', '--silent', 'volter-model-editor', '--', 'blender-mcp'] } },
     }, null, 2) + '\n');
     await write('.gitignore', 'node_modules/\n.vgai/\nlogs/\n');
     for (const file of ['cube.blend', 'cube.py']) {

@@ -120,7 +120,10 @@ export interface ProductIdentity {
 /** The install line a refusal quotes, for a project that already EXISTS. Both
  *  products, because a person choosing between them is choosing what they are
  *  building, not a flag. */
-export const PRODUCT_INSTALL_LINES = ['  npm install --save-dev @volter/editor'] as const;
+export const PRODUCT_INSTALL_LINES = [
+  '  npm install --save-dev @volter/model-editor',
+  '  npm install --save-dev @volter/game-editor',
+] as const;
 
 /**
  * The create line a refusal or a help screen quotes, for a project that does

@@ -67,7 +67,7 @@ import svgpath from 'svgpath';
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 // The product's OWN extension: the font is traced from `@vgai/blender`'s glyphs and only the
 // model editor ships a theme that selects it (P3, 2026-09-21).
-const OUT_DIR = join(REPO_ROOT, 'packages/editor/workbench/extensions/theme-blender/producticons');
+const OUT_DIR = join(REPO_ROOT, 'packages/model-editor/workbench/extensions/theme-blender/producticons');
 const FONT_PATH = join(OUT_DIR, 'blender-icons.otf');
 const THEME_PATH = join(OUT_DIR, 'blender-product-icon-theme.json');
 const ICONS_REL = 'packages/editor-blender/contributions/blender.icons.json';

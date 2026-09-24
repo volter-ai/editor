@@ -1,5 +1,5 @@
 /* THE GAME EDITOR'S OWN SPLASH — what this product draws into the kit's opening cover
-   (`VgaiProduct.cover`, `packages/editor/workbench/src/vgaiCover.ts`).
+   (`VgaiProduct.cover`, `packages/editor-core/workbench/src/vgaiCover.ts`).
 
    IT SPELLS CLASSIC'S PALETTE, for the same reason the model editor's spells Blender's: the
    cover paints BEFORE any theme extension is registered — the web workbench's first frame is

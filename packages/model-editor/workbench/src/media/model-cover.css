@@ -1,5 +1,5 @@
 /* THE MODEL EDITOR'S OWN SPLASH — what this product draws into the kit's opening cover
-   (`VgaiProduct.cover`, `packages/editor/workbench/src/vgaiCover.ts`).
+   (`VgaiProduct.cover`, `packages/editor-core/workbench/src/vgaiCover.ts`).
 
    IT SPELLS BLENDER'S PALETTE, and that is the one place in this estate where a product's
    stylesheet may: the cover paints BEFORE `theme-blender` is registered — the web workbench's

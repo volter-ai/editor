@@ -99,7 +99,7 @@ export function inferAssetKind(path: string): AssetKind {
 }
 
 export class LiveEditor {
-  /** `#`-private, not `private`: `volter-editor eval --list` enumerates this object's
+  /** `#`-private, not `private`: `volter-model-editor eval --list` enumerates this object's
    *  real runtime members, and TypeScript's erased `private` would leave the
    *  raw `EditorClient` advertised beside them. */
   readonly #client: EditorClient;
@@ -120,7 +120,7 @@ export class LiveEditor {
   }
 
   /**
-   * THE BLENDER LANE'S VERBS, from `volter-editor eval`.
+   * THE BLENDER LANE'S VERBS, from `volter-model-editor eval`.
    *
    * Blender runs headless in the editor tab's worker (ARCHITECTURE-CORE, "THE
    * BLENDER IN THE TAB IS BLENDER") and answers `blender-start`,
@@ -132,7 +132,7 @@ export class LiveEditor {
    * per question — the same discovery failure `eval-surface.ts`'s header
    * records, in a lane that had not noticed it yet.
    *
-   *   volter-editor eval "await editor.blender('blender-execute', { code: 'import bpy; print(len(bpy.data.objects))' })"
+   *   volter-model-editor eval "await editor.blender('blender-execute', { code: 'import bpy; print(len(bpy.data.objects))' })"
    *
    * `blender-status` is the only verb that creates nothing: it answers whether
    * this tab already has a session without starting one.

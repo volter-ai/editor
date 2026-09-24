@@ -4,7 +4,7 @@
    one stylesheet. Values from `@vgai/blender`'s `blender.style.ts` (4px corners, 11-12px type)
    and `blender.palette.json`'s typography.
 
-   The KIT's part-hosting rules are NOT here — they are `packages/editor/workbench/src/media/
+   The KIT's part-hosting rules are NOT here — they are `packages/editor-core/workbench/src/media/
    vgai-parts.css`, because every product needs them whatever it looks like. */
 .monaco-workbench, .monaco-workbench.mac, .monaco-workbench.windows, .monaco-workbench.linux, .monaco-workbench.web {
 	font-family: 'Inter', 'DejaVu Sans', system-ui, sans-serif;

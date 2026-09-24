@@ -3,3 +3,7 @@
 if git diff --cached --name-only | grep -qE '^packages/(game-editor/(template|catalog|package\.json)|editor-game/src/host/served-bundle-runtime-modules\.ts)'; then
   node scripts/check-served-bundle-modules.mjs || exit 1
 fi
+# The reverse edges ARCHITECTURE.md §The plan removes: the baseline only shrinks.
+if git diff --cached --name-only | grep -qE '^packages/[^/]+/.*\.(ts|tsx|mts|mjs)$'; then
+  node scripts/check-boundaries.mjs || exit 1
+fi

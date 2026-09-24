@@ -1,8 +1,9 @@
 # Volter Editor
 
-Volter Editor is an extensible editor. It ships two products from this
-repository: Blender-based modeling (`@volter/editor`) and game editing
-(`@volter/game-editor`).
+Volter Editor is this stack: a media-neutral editor kit built on Code-OSS, the
+integrations that make each tool a document kind, and the products built on
+them. Two products ship from this repository: the model editor
+(`@volter/model-editor`, Blender) and the game editor (`@volter/game-editor`).
 
 The public source repositories begin with reviewed snapshots and no inherited
 private git history. The previous repositories and their legacy releases remain
@@ -21,11 +22,11 @@ The packaged workbench currently supports **macOS on Apple Silicon**
 (`darwin-arm64`). Installation and startup were verified with Node.js 24.
 
 ```bash
-npx @volter/editor@0.5.65 create my-models
+npx @volter/model-editor create my-models
 ```
 
 The command creates a modeling project, installs the pinned public workbench on
-first use, and opens Volter Editor.
+first use, and opens the model editor.
 
 The Chat pane runs whichever coding agent Supercode finds installed and signed in
 (Claude Code, Codex, Grok, Gemini and the others it supports), resuming the
@@ -40,9 +41,9 @@ cd my-models
 npm run dev
 ```
 
-From that project directory, `npx volter-editor status` reports the session,
-`npx volter-editor console` reports unresolved diagnostics, and
-`npx volter-editor close` stops the session. Release 0.5.58 adds native Blender
+From that project directory, `npx volter-model-editor status` reports the session,
+`npx volter-model-editor console` reports unresolved diagnostics, and
+`npx volter-model-editor close` stops the session. Release 0.5.58 adds native Blender
 undo/redo for supported model edits through VS Code's history, bundled Blender
 Essentials, coherent duplicate/delete operations, and World mapping/strength
 rendering fixes. Release 0.5.62 additionally makes edit acknowledgment wait for
@@ -108,7 +109,7 @@ The npm scope is `@volter`.
 
 | Package | Responsibility |
 | --- | --- |
-| `@volter/editor` | Installable product and `volter-editor` executable |
+| `@volter/model-editor` | The model editor: installable product and `volter-model-editor` executable |
 | `@volter/editor-core` | Shared editor host and Code-OSS integration |
 | `@volter/editor-sdk` | Extension and contribution APIs |
 | `@volter/editor-live` | Independently installable session automation client |
@@ -124,7 +125,7 @@ The npm scope is `@volter`.
 | `@volter/threejs-runtime` | Three.js runtime a game ships with |
 
 Users install one product; required supporting packages install transitively.
-The modeling CLI ships in `@volter/editor`, the game CLI in
+The model editor's CLI ships in `@volter/model-editor`, the game CLI in
 `@volter/game-editor`. Subpath exports represent modules within
 packages, not separately installable packages.
 
@@ -164,9 +165,9 @@ release and its SHA-256.
 Licenses vary by component; see [LICENSE.md](LICENSE.md) and each package’s
 license and notice files.
 
-The installed product owns the command line: `volter-editor edit` opens the
-project, `volter-editor eval` drives its automation API, and
-`volter-editor blender-mcp` serves the Blender MCP interface over stdio from
+The installed product owns the command line: `volter-model-editor edit` opens the
+project, `volter-model-editor eval` drives its automation API, and
+`volter-model-editor blender-mcp` serves the Blender MCP interface over stdio from
 inside a project. MCP initialization does not start Blender; its first scene
 request attaches to or opens that project's editor.
 
@@ -200,8 +201,9 @@ The build generates modules needed by the typechecks and packaging checks.
 Building the separate Code-OSS workbench is described in
 [`scripts/workbench/build-release.mjs`](scripts/workbench/build-release.mjs).
 
-Public product names and commands use Volter Editor. This first release retains
-`vgai.project.json`, `vgai.adapter.ts`, `.vgai/` and existing internal protocol
-identifiers. Their filenames are not aliases: keep the existing names. A full
+Products are named for their purpose: `@volter/model-editor` and
+`@volter/game-editor`, run as `volter-model-editor` and `volter-game-editor`.
+Projects keep `vgai.project.json`, `vgai.adapter.ts`, `.vgai/` and the existing
+internal protocol identifiers. Their filenames are not aliases: keep the existing names. A full
 format/protocol rename is a separate coordinated migration; existing games are
 not automatically converted into modeling projects.

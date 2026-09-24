@@ -49,9 +49,9 @@ const steps=[
   ['@volter/editor-threejs',()=>run('@volter/editor-threejs','build')],
   ['@volter/editor-react',()=>run('@volter/editor-react','build')],
   ['@volter/editor-xstate',()=>run('@volter/editor-xstate','build')],
-  ['@volter/editor',()=>{
-    run('@volter/editor','build:node','node-bundle-meta.json');
-    product('editor','product-bundle-inputs.json');
+  ['@volter/model-editor',()=>{
+    run('@volter/model-editor','build:node','node-bundle-meta.json');
+    product('model-editor','product-bundle-inputs.json');
   }],
   ['@volter/game-editor',()=>{
     run('@volter/game-editor','build:node','game-editor-node-bundle-meta.json');

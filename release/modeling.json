@@ -7,6 +7,6 @@
     "@volter/editor-blender",
     "@volter/editor-core",
     "@volter/editor-live",
-    "@volter/editor"
+    "@volter/model-editor"
   ]
 }

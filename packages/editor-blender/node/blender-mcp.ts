@@ -296,8 +296,8 @@ const text = (value: string) => ({ content: [{ type: 'text' as const, text: valu
 
 export async function serveBlenderMcp(
   project: string,
-  ensureEditor: () => Promise<void> = async () => {},
-  command = 'volter-editor',
+  ensureEditor: () => Promise<void>,
+  command: string,
 ): Promise<void> {
   const runtimeIdentity = `Blender ${blenderBundle.blender} (source ${blenderBundle.source}), compiled to WebAssembly and running headless in the editor tab; three.js takes its photographs. Factory bpy.context.scene.render.engine: '${blenderBundle.factoryEngine}'. Documents are .blend. save_as_mainfile records the actual saved path in bpy.data.filepath; open_mainfile reopens it.`;
   const tools = (blenderTools as ToolShape[]).map((tool) =>

@@ -1,5 +1,5 @@
 {
-  "name": "@volter/editor",
+  "name": "@volter/model-editor",
   "author": "Volter AI, Inc.",
   "version": "0.5.65",
   "publishConfig": {
@@ -10,11 +10,11 @@
     "node": ">=24"
   },
   "license": "AGPL-3.0-only AND GPL-3.0-or-later AND MIT",
-  "description": "Volter Editor, initially shipping Blender-based modeling.",
+  "description": "The Volter Model Editor: Blender modeling on the Volter Editor kit.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/volter-ai/editor.git",
-    "directory": "packages/editor"
+    "directory": "packages/model-editor"
   },
   "files": [
     "dist",
@@ -36,7 +36,7 @@
   "vgai": {
     "product": {
       "entry": "./src/index.ts",
-      "displayName": "Volter Editor",
+      "displayName": "Volter Model Editor",
       "colorTheme": "dark",
       "workbench": {
         "release": "editor-f8664703ab59-2896a2901bb6-darwin-arm64",
@@ -55,6 +55,6 @@
     "undici": "7.29.1"
   },
   "bin": {
-    "volter-editor": "./dist-node/cli.js"
+    "volter-model-editor": "./dist-node/cli.js"
   }
 }

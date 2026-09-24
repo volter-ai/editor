@@ -64,12 +64,12 @@ test('CLI never signals the process before saves, refuses failed saves, and clos
   };
   runInNewContext(cli.outputFiles[0].text, context);
   const { control } = context.module.exports;
-  await control('volter-editor', 'close');
+  await control('volter-model-editor', 'close');
   assert.deepEqual(events.splice(0), ['save', 'terminate']);
   fail = true;
-  await assert.rejects(control('volter-editor', 'close'), /disk full/);
+  await assert.rejects(control('volter-model-editor', 'close'), /disk full/);
   assert.deepEqual(events.splice(0), ['save']);
   headless = true;
-  await control('volter-editor', 'close');
+  await control('volter-model-editor', 'close');
   assert.deepEqual(events, ['terminate']);
 });

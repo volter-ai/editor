@@ -278,7 +278,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // `resolve(__dirname, '..')` lands on the package root in either shape.
 const editorPackageRoot = path.resolve(__dirname, '..');
 const checkoutRoot = path.resolve(editorPackageRoot, '..', '..');
-// The CLI's reservation wins over an inherited `PORT`: `volter-editor edit`
+// The CLI's reservation wins over an inherited `PORT`: a product's `edit`
 // allocates this project's port, hands it over as VGAI_EDITOR_PORT and waits
 // on it, so a shell or platform that sets PORT for its own reasons (a
 // container's convention of 8080) left the server on 8080 and the CLI waiting

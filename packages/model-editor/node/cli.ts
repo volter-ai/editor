@@ -13,7 +13,7 @@ import { resolveWorkbench, writeWorkbenchDeclaration } from '@volter/editor-sdk/
 
 // The command and the name a person sees are the package's own declarations
 // (`bin`, `vgai.product.displayName`), the same ones the session reads.
-const PRODUCT: LaunchingProduct = { packageName: productPackage.name, id: 'editor', displayName: productPackage.vgai.product.displayName, command: Object.keys(productPackage.bin)[0]! };
+const PRODUCT: LaunchingProduct = { packageName: productPackage.name, id: 'model-editor', displayName: productPackage.vgai.product.displayName, command: Object.keys(productPackage.bin)[0]! };
 
 try {
   const { values, positionals } = parseArgs({ allowPositionals: true, options: {
@@ -27,13 +27,13 @@ try {
   if (values.version) {
     console.log(verb === 'blender-mcp' ? `BlenderMCP ${(await import('@volter/editor-blender/mcp')).BLENDER_MCP_VERSION}` : productPackage.version);
   } else if (values.help) {
-    console.log(`Volter Editor\n  volter-editor create <folder> [--workbench <dir>]\n  volter-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  volter-editor status | console | close\n  volter-editor console ack <id> --reason <text>\n  volter-editor eval <JavaScript body>\n  volter-editor ${SCREENSHOT_USAGE}\n  volter-editor sessions | project | projects\n  volter-editor open <path>\n  volter-editor blender-mcp    # stdio MCP transport to Blender in the editor`);
+    console.log(`Volter Model Editor\n  volter-model-editor create <folder> [--workbench <dir>]\n  volter-model-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  volter-model-editor status | console | close\n  volter-model-editor console ack <id> --reason <text>\n  volter-model-editor eval <JavaScript body>\n  volter-model-editor ${SCREENSHOT_USAGE}\n  volter-model-editor sessions | project | projects\n  volter-model-editor open <path>\n  volter-model-editor blender-mcp    # stdio MCP transport to Blender in the editor`);
   } else if (verb === 'blender-mcp') {
-    if (positionals.length !== 1) throw new Error('Usage: volter-editor blender-mcp');
+    if (positionals.length !== 1) throw new Error('Usage: volter-model-editor blender-mcp');
     let project = resolve(process.cwd());
     while (!hasManifest(project)) {
       const parent = dirname(project);
-      if (parent === project) throw new Error('Run volter-editor blender-mcp inside a modeling project.');
+      if (parent === project) throw new Error('Run volter-model-editor blender-mcp inside a modeling project.');
       project = parent;
     }
     const { serveBlenderMcp } = await import('@volter/editor-blender/mcp');
@@ -49,18 +49,18 @@ try {
         child.once('error', fail);
         child.once('close', code => code === 0 ? done() : fail(new Error(`Blender editor startup exited with code ${code}`)));
       });
-    });
+    }, PRODUCT.command);
   } else if (verb === 'screenshot') {
-    if (positionals.length > 2) throw new Error(`Usage: volter-editor ${SCREENSHOT_USAGE}`);
+    if (positionals.length > 2) throw new Error(`Usage: volter-model-editor ${SCREENSHOT_USAGE}`);
     await screenshot(positionals[1], values);
   } else if (verb === 'sessions' || verb === 'project' || verb === 'projects') {
-    if (positionals.length > 1) throw new Error(`Usage: volter-editor ${verb}`);
+    if (positionals.length > 1) throw new Error(`Usage: volter-model-editor ${verb}`);
     await (verb === 'sessions' ? listSessions() : verb === 'project' ? showProject() : listRecentProjects());
   } else if (verb === 'open') {
-    if (positionals.length !== 2) throw new Error('Usage: volter-editor open <path>');
+    if (positionals.length !== 2) throw new Error('Usage: volter-model-editor open <path>');
     await openProject(positionals[1]!);
   } else if (verb === 'console' && positionals[1] === 'ack') {
-    if (positionals.length !== 3 || !values.reason?.trim()) throw new Error('Usage: volter-editor console ack <id> --reason <text>');
+    if (positionals.length !== 3 || !values.reason?.trim()) throw new Error('Usage: volter-model-editor console ack <id> --reason <text>');
     await control(PRODUCT.command, 'console-ack', positionals[2], values.reason);
   } else if (['status', 'console', 'eval', 'close'].includes(verb)) {
     if (positionals.length > (verb === 'eval' ? 2 : 1)) throw new Error('Unexpected arguments.');
