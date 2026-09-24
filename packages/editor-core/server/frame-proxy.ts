@@ -193,7 +193,8 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
    *    the management websocket, the `vscode-remote://` file system, every
    *    `vscode-remote-resource` url AND the page's own CSP address this origin.
    *  - `webviewEndpoint` is set (see the header).
-   *  - `initialColorTheme` is set (see below). */
+   *  - `initialColorTheme` is set (see below).
+   *  - `configurationDefaults` turns the editor's local chat agent off (see below). */
   const patchWorkbenchConfig = (html: string): string => {
     const webBaseUrl =
       html.match(/id="vscode-workbench-web-base-url" data-settings="([^"]*)"/)?.[1] ?? '/static';
@@ -224,6 +225,19 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
         // in storage, and `ColorThemeData.fromStorageData` is preferred over
         // this on every open after the first.
         if (colorTheme !== null) config['initialColorTheme'] = { themeType: colorTheme };
+        // THE CHAT OPENS ON SUPERCODE, NOT ON "LOCAL". Local is Code-OSS's own agent
+        // loop, and its request goes to the core setup agent, which waits for a
+        // language model that is default for Chat (`chatSetupProviders.ts`
+        // `whenLanguageModelReady`). This release ships none (the overlay removes
+        // Copilot and names the Supercode extension the chat agent), so a Local turn
+        // said "Getting chat ready" until it timed out. With the editor's local agent
+        // off, `getComputedDefaultSessionType` (`chat/common/constants.ts`) takes the
+        // first visible non-local session type, which is the extension's `supercode`.
+        // A default, not a policy: a person who adds a model provider can turn it on.
+        config['configurationDefaults'] = {
+          ...(config['configurationDefaults'] as Record<string, unknown> | undefined),
+          'chat.editor.localAgent.enabled': false,
+        };
         return head + encodeAttr(JSON.stringify(config)) + tail;
       },
     );
