@@ -2103,6 +2103,17 @@ export async function handleCommand(
       // to the store's standard thumbnail size.
       const requested = captureSizeFromCommand(cmd);
       if ('error' in requested) return { ok: false, error: requested.error };
+      // AN ADOPTED SCENE IS PRESENTED BY ITS ADOPTER. The store's renderer and camera
+      // are its own viewport's; re-rendering a scene another document adopted through
+      // them came back white. What the person sees is that document's own frame.
+      if (store.hasAdoptedScene) {
+        try {
+          const capture = await captureActiveEditorDocument(store, requested.size);
+          return { ok: true, data: { base64: capture.base64, mimeType: capture.mimeType } };
+        } catch (error) {
+          return { ok: false, error: error instanceof Error ? error.message : String(error) };
+        }
+      }
       const dataUrl = store.captureViewportImage(requested.size);
       if (!dataUrl) {
         // The refusal names the MECHANISM and the door that does answer.

@@ -751,6 +751,11 @@ export class EditorShellStore {
     this._notify();
   }
 
+  /** Whether the active scene is one another document adopted (`enterPlayScene`). */
+  get hasAdoptedScene(): boolean {
+    return this._adoptionStack.length > 0;
+  }
+
   /** Restore the previously-adopted scene (LIFO — see enterPlayScene). */
   exitPlayScene(): void {
     const frame = this._adoptionStack.pop();

@@ -886,6 +886,9 @@ export class HarnessChatService {
     const workspace = resolve(options.getProjectRoot());
     try { this.chatSelection = validateChatSelection(JSON.parse(readFileSync(join(workspace, '.vgai', 'chat-selection.json'), 'utf8'))); } catch { /* no saved selection */ }
     this.chatCatalog = new ChatSessionCatalog(join(workspace, '.vgai', 'chat-sessions.json'));
+    if (this.chatCatalog.invalid) {
+      console.warn(`[chat] Saved conversations were not loaded and are left as they are: ${this.chatCatalog.invalid}`);
+    }
     const active = this.chatCatalog.active && this.chatCatalog.sessions.get(this.chatCatalog.active);
     if (active) this.chatSelection = {...active.selection};
     for (const caller of options.callerSessions ?? []) this.rememberCaller(workspace, caller);
@@ -1221,17 +1224,21 @@ export class HarnessChatService {
           .filter((harness) => harness.availableActions.start)
           .sort((left, right) => Number(signedIn(right)) - Number(signedIn(left)))[0];
         if (resumable === null && !startable) throw new Error(harnessRefusal(this.lastSnapshot.harnesses));
+        // With no choice made, the conversation's selection is the harness this dispatch
+        // runs: the resumed session's, or the one started. Decided before dispatching,
+        // so it never depends on reading the result back.
+        const harness =
+          resumable === null
+            ? this.chatSelection.harness || startable!.id
+            : this.lastSnapshot.sessions.find((s) => s.id === resumable)?.harness;
+        if (!harness) throw new Error('The session to resume names no harness.');
+        this.chatSelection = { ...this.chatSelection, harness };
         await controller.dispatch(
           resumable === null
-            ? { type: 'start', harness: this.chatSelection.harness || startable!.id }
+            ? { type: 'start', harness }
             : { type: 'resume', sessionKey: resumable },
         );
         this.capture();
-        // With no choice made, the conversation's selection is the harness supercode ran.
-        if (!this.chatSelection.harness) {
-          const session = this.lastSnapshot.sessions.find((s) => s.id === this.lastSnapshot.activeSessionId);
-          if (session) this.chatSelection = { ...this.chatSelection, harness: session.harness };
-        }
       }
       const runtimeId = this.managedRuntime?.handle?.runtime_id;
       if (!runtimeId) {
