@@ -32,16 +32,26 @@ Unreal is not installed on this box, and its documentation does not state these 
 | Tone mapping and exposure | no | ACES Filmic unless a document states its own |
 | Gizmo size, shelf tool | yes (`density.viewport`) | |
 
-## Proposal: the stage group a look declares
+## The ruling: look, presentation and starting values (owner, 2026-09-25)
 
-This section is a proposal drawn from the table above, not a ruling.
+The owner's question was how to handle backdrop and light, since they are "more functionality than look". The answer below was reviewed against the engines' sources before the owner approved it. Every target draws the same line: its theme holds colours, and light and environment are per-view settings a person toggles.
 
-A look declares a `stage` group. Each field below is needed by at least one measured target, and the union covers all three:
-- **backdrop**: `flat` (Blender, Unity with the skybox off), `gradient` linear or radial (Blender's other options, the kit's original), or `sky` with top, horizon and ground colours (Godot, Unity's default skybox); plus an optional per-mode backdrop (Unity's Prefab Mode);
-- **light**: the fallback light used when the scene has none, as `studio` (Blender), `sun` with colour, energy, altitude, azimuth and shadow distance (Godot), or `none` (Unity, whose scenes carry their own); and an environment strength;
-- **tone**: tone mapper (`none`, `filmic`, `aces`), exposure, and glow;
-- **grid**: minor and major colours with alpha, major step (Blender 10, Godot 8), reach and fade, and which planes are on;
-- **axes**: X, Y and Z colours with alpha, and the centre colour;
-- **selection**: style (`outline` or `box`), selected, active and children colours, and width.
+**1. The look holds colours only.** A style declares grid colours and alpha, the X, Y and Z axis colours, selection, active and hover colours and line widths, gizmo colours, overlay text, and the fill behind the scene, meaning its colour and its form (flat, linear or radial gradient). This is exactly Blender's theme (`space_view3d.back`, `back_grad`) and Unity's and Godot's colour preferences. A look holds no light, no sky and no switch.
 
-The kit's defaults become the kit's own original stage, the blue-slate gradient from before the Blender fitting. Blender's measured values move into `@volter/editor-blender`'s style. The group is accepted when a Blender, a Godot and a Unity look, each built only from values, are judged side by side against frames of the real editors. Unreal's look is added the same way once its column is measured.
+**2. Presentation is four independent settings, one model for every 3D viewport.**
+- *Draw mode*: the existing modes (solid, clay, unlit, wireframe, matcap, normals, overdraw).
+- *Lighting*: a camera-locked studio preset (Blender's studio lights as data; Unity's headlight), a preview sun and environment (Godot's preview sun and sky; Blender's Material Preview HDRI, with colour, strength and rotation), or the scene's own lights. The source is `preview`, `scene` or `auto`; `auto` names what in the scene takes over (Godot: a DirectionalLight3D or a WorldEnvironment) and whether the person may override it. Blender and Unity never switch on their own.
+- *Backdrop*: the look's fill, a per-view colour, the environment drawn behind the scene at an opacity and blur, the scene's own background, or transparent. The backdrop is separate from lighting: Blender's Material Preview lights by its HDRI and shows the fill behind (World Opacity defaults to 0), and Unity turns the skybox off without touching the light.
+- *Overlays*: the grid (on or off, its step and planes) and selection shown as any set of outline, wire and box (Unity can show outline and wire together; Godot draws a box).
+
+Presentation is saved per view and per draw mode, with an optional per-document override (Godot saves its preview per scene). `@volter/editor-threejs` owns it and applies it. It replaces three current homes: the Model document session's lighting, background and exposure (held in memory only), the kit's `three-viewport-presentation.ts`, and the game world stage's fixed fill. It is saved through the kit's view-state door.
+
+**3. Starting values come from whoever builds the viewport.** The integration or product that builds a stage declares its starting presentation (the Blender integration: studio lighting on the look's fill). Starting values sit under the person's choices and never count toward which style is active. So a style switch never wipes a toggle, and a toggle never turns the style into a custom mix: `applyWorkspaceStyle` writes every axis of a bundle, and `activeWorkspaceStyleId` compares every axis.
+
+**Where Blender's fitted values go.** The white key light and the environment strength become the Blender integration's default studio preset: Blender's own studio lights, up to four camera-locked lights with colour, specular and wrap plus an ambient (`release/datafiles/studiolights/studio/*.sl`, `SolidLight` in `DNA_userdef_types.h`). The material level fitted in engine `9134441` goes back to its source value and is measured again under those lights, because it was fitted to make up for a world-fixed key light that cannot reproduce Blender's studio light. Classic's look gets its own stage back, the blue-slate gradient.
+
+**How acceptance is judged.** Rule 6, twice:
+- the look passes when Blender, Godot and Unity looks, made only of values, each match frames of the real editor side by side;
+- presentation passes when each target's default viewport and its toggles can be expressed without new code.
+
+Neither is accepted until Unreal's column is measured.
