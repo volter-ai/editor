@@ -144,19 +144,20 @@ export function resolveInspectionDisplay(input: {
   /** The active workspace's docked-layout choice (`workspace-regions.ts`),
    *  beneath the user's override and above the affinity. */
   readonly workspaceDefault?: 'column' | 'properties' | 'card' | null;
+  /** Whether a column could be seen: under the Code-OSS frame the column is the Properties view,
+   *  which a person or the workbench's restored layout may have closed. Default `true`. */
+  readonly columnShown?: boolean;
 }): InspectionDisplay {
-  const { subject, surface, available, override, workspaceDefault = null } = input;
+  const { subject, surface, available, override, workspaceDefault = null, columnShown = true } = input;
   // The subject carries the affinity the composer stamped on it. A surface
   // whose subject somehow did not compose still resolves the same way its
   // subject would have, so the two can never name different affinities.
   const affinity = subject.presentation.preferred ?? inspectionAffinityFor(surface);
   // ONE resolver, shared with every other caller of the preference
   // (`inspector-presentation.ts`).
-  const presentation: InspectionPresentation = resolveInspectorPresentation(
-    affinity,
-    override,
-    workspaceDefault,
-  );
+  const resolved: InspectionPresentation = resolveInspectorPresentation(affinity, override, workspaceDefault);
+  // A column no one can see shows the inspector nowhere: with its view closed it is a card.
+  const presentation: InspectionPresentation = resolved === 'column' && !columnShown ? 'card' : resolved;
   return {
     subject,
     surface,

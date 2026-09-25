@@ -30,6 +30,7 @@
  * half of every host door, and each handle's own comment names the contribution
  * that consumes it.
  */
+import { setFramePartShown } from './frame-parts';
 import { preloadUserLocalState } from '@volter/editor-sdk/kit/user-local-state';
 import { threeStateOf } from '../three-state';
 import { loadProductNames, productDisplayName } from '@volter/editor-sdk/kit/product-command';
@@ -401,6 +402,25 @@ function partsSnapshot(): number {
 }
 
 /**
+ * WHETHER A PART IS ON SCREEN, which an offer alone does not say: the workbench offers a view's
+ * part when it first renders and withdraws it only when the view is disposed, while hiding the
+ * view (another tab in front of it, its side bar closed) detaches the element without a word.
+ * A ResizeObserver reports that detach, and the return, as a size change.
+ */
+const partWatchers = new Map<string, ResizeObserver>();
+function watchPartShown(id: string, element: HTMLElement | null): void {
+  partWatchers.get(id)?.disconnect();
+  partWatchers.delete(id);
+  const report = () =>
+    setFramePartShown(id, element !== null && element.isConnected && element.getBoundingClientRect().width > 0);
+  report();
+  if (element === null || typeof ResizeObserver === 'undefined') return;
+  const watcher = new ResizeObserver(report);
+  watcher.observe(element);
+  partWatchers.set(id, watcher);
+}
+
+/**
  * RE-OFFER OR WITHDRAW ONE HANDED-OVER PART, after the mount.
  *
  * The mount's parts used to be captured once, which was true for exactly as
@@ -431,6 +451,7 @@ export function offerVgaiPart(id: keyof VscodeParts, element: HTMLElement | null
     parts = { ...parts, [id]: element };
   }
   if (element !== null) stampPart(id, element);
+  watchPartShown(id, element);
   partsVersion += 1;
   for (const listener of partsListeners) listener();
 }
@@ -1042,6 +1063,7 @@ export async function mountEditor(next: VscodeParts): Promise<{
   // ({@link stampPart}) — one rule, both arrival paths.
   for (const [id, element] of Object.entries(next)) {
     if (element) stampPart(id as keyof VscodeParts, element);
+    watchPartShown(id, element ?? null);
   }
   // EVERY HOST DOOR'S FRAME HALF ARRIVES FROM THE CONTRIBUTION, which is the
   // only side that has the services — and it arrives AFTER this, because a

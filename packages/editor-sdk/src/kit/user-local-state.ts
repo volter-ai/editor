@@ -49,6 +49,11 @@ export function preloadUserLocalState(): Promise<void> {
   return loading;
 }
 
+/** Whether the person's document has loaded (or there is none to load, for a guest). */
+export function userLocalStateLoaded(): boolean {
+  return loaded || COLLABORATION_REMOTE_SHARE;
+}
+
 /** One section, or `undefined` before the load or when never written. */
 export function userLocalSection<T>(name: string): T | undefined {
   return doc[name] as T | undefined;

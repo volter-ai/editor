@@ -39,7 +39,13 @@ import type {
   InspectionSection,
   InspectionSurfaceKind,
 } from '@volter/editor-sdk/kit/inspection-model';
-import { userLocalSection, writeUserLocalSection } from '@volter/editor-sdk/kit/user-local-state';
+import {
+  userLocalSection,
+  userLocalStateLoaded,
+  writeUserLocalSection,
+} from '@volter/editor-sdk/kit/user-local-state';
+import { revealWorkbenchView } from './editor-commands';
+import { subscribeFrameParts } from './frame/frame-parts';
 
 /** What a user can ASK for — both projections, on any surface. */
 export type InspectorPresentationOverride = InspectionPresentation;
@@ -65,9 +71,18 @@ function readPersisted(): OverrideMap {
 let _overrides: OverrideMap | null = null;
 let _version = 0;
 const _listeners = new Set<() => void>();
+let stopFrameParts: (() => void) | null = null;
+function notifyFramePartChange(): void {
+  _version++;
+  for (const listener of _listeners) listener();
+}
 
 function overrides(): OverrideMap {
-  if (_overrides === null) _overrides = readPersisted();
+  // Not cached before the person's state has loaded: a read that early would pin an empty map.
+  if (_overrides === null) {
+    if (!userLocalStateLoaded()) return readPersisted();
+    _overrides = readPersisted();
+  }
   return _overrides;
 }
 
@@ -83,6 +98,10 @@ export function setInspectorPresentationOverride(
   surface: InspectionSurfaceKind,
   value: InspectorPresentationOverride,
 ): void {
+  // THE COLUMN LIVES IN A WORKBENCH VIEW. Under the Code-OSS frame the inspector column is the
+  // Properties view, which may be closed or behind another tab; asking for the column reveals it,
+  // also when the preference already says column (the card showed because the view was hidden).
+  if (value === 'column') revealWorkbenchView('vgai.properties');
   if (inspectorPresentationOverride(surface) === value) return;
   _overrides = { ...overrides(), [surface]: value };
   _version++;
@@ -91,9 +110,15 @@ export function setInspectorPresentationOverride(
 }
 
 export function subscribeInspectorPresentation(listener: () => void): () => void {
+  // Whether the column's view is showing decides card or column too (`inspection/display.ts`).
+  if (_listeners.size === 0) stopFrameParts = subscribeFrameParts(notifyFramePartChange);
   _listeners.add(listener);
   return () => {
     _listeners.delete(listener);
+    if (_listeners.size === 0) {
+      stopFrameParts?.();
+      stopFrameParts = null;
+    }
   };
 }
 

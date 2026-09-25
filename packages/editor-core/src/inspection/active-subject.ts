@@ -26,6 +26,7 @@
  * is asked for.
  */
 
+import { framePartShown } from '../frame/frame-parts';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { CompositeAuthoringAdapter } from '../authoring/composite-authoring-adapter';
 import { documentViewport } from '@volter/editor-sdk/kit/document-viewports';
@@ -323,6 +324,7 @@ export function describeActiveInspectionSubject(store: EditorShellStore): Inspec
       available: true,
       override: inspectorPresentationOverride(surface),
       workspaceDefault: activeChromeRegions().inspector ?? null,
+      columnShown: framePartShown('properties') !== false,
     });
   }
   return resolveInspectionDisplay({
@@ -331,6 +333,7 @@ export function describeActiveInspectionSubject(store: EditorShellStore): Inspec
     available,
     override: inspectorPresentationOverride(surface),
     workspaceDefault: activeChromeRegions().inspector ?? null,
+    columnShown: framePartShown('properties') !== false,
   });
 }
 

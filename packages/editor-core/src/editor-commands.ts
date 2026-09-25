@@ -128,6 +128,16 @@ export function setCommandExecutor(run: ((id: string, args?: unknown) => unknown
   commandExecutor = run;
 }
 
+/**
+ * Reveal a workbench view by id (`vgai.properties`, `vgai.outliner`) through its `.focus`
+ * command, which the workbench registers for every view. Without the Code-OSS frame there is
+ * no workbench and the editor's own panels are in the page, so there is nothing to reveal.
+ */
+export function revealWorkbenchView(viewId: string): void {
+  if (!commandExecutor) return;
+  void Promise.resolve(commandExecutor(`${viewId}.focus`)).catch(() => {});
+}
+
 /** The `vgai.<view>.<verb>` shape the views registry keys, and the ONLY id
  *  shape standalone can answer. */
 const VIEW_VERB_COMMAND = /^vgai\.([^.]+)\.(.+)$/;
