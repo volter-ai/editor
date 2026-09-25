@@ -57,7 +57,7 @@ Completion:
 - The game bundle builds in 30 s or less, or `VOLTER_EDITOR_FROM_SOURCE=1` resolves `virtual:vgai-manifest-entries` and `@editor/game-module-access` and keeps undo across an Inspector source write.
 - Input a game owns (its own `InputManager`, and machine input through the native door) is gated while the tab is on Edit.
 
-## project-model-program: The project model, eight nouns, every kind open and registered
+## project-model-program: The project shape and settings layers on Code-OSS
 
 Status: active
 Source: vgai-engine `docs/WORK.md` §Project shape and the four settings layers, as re-cut for Code-OSS (U6, U7).
