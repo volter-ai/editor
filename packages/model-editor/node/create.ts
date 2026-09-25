@@ -1,5 +1,6 @@
 /** The modeling composition belongs to this product, including its starter files. */
 import { spawn } from 'node:child_process';
+import { existsSync, symlinkSync } from 'node:fs';
 import { mkdir, writeFile, copyFile, readFile } from 'node:fs/promises';
 import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -13,6 +14,14 @@ export const declaration: ProductCreateDeclaration = {
   templates: [{ id: 'models', name: 'Models', description: 'Blender modeling with a starter cube.' }],
   async create(request) {
     const result = await writeProject(request);
+    // A CHECKOUT'S PROJECT LINKS THE CHECKOUT'S OWN INSTALL, as a game links
+    // its runtime image (`@volter/game-editor`'s runtime-image.ts): these
+    // packages are not in any registry a checkout could install from.
+    const checkout = checkoutNodeModules();
+    if (checkout) {
+      symlinkSync(checkout, join(result.targetDir, 'node_modules'), 'dir');
+      return result;
+    }
     await new Promise<void>((done, fail) => {
       const child = spawn(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['install'], { cwd: result.targetDir, stdio: 'inherit' });
       child.once('error', fail);
@@ -21,6 +30,17 @@ export const declaration: ProductCreateDeclaration = {
     return result;
   },
 };
+
+/** The checkout root's `node_modules` when this product runs from a checkout. */
+function checkoutNodeModules(): string | null {
+  for (let dir = productRoot; dirname(dir) !== dir; dir = dirname(dir)) {
+    if (existsSync(join(dir, 'packages', 'model-editor', 'package.json'))) {
+      const nodeModules = join(dir, 'node_modules');
+      return existsSync(join(nodeModules, '@volter', 'editor-project', 'package.json')) ? nodeModules : null;
+    }
+  }
+  return null;
+}
 
 export async function writeProject({ name, targetDir, template }: Parameters<ProductCreateDeclaration['create']>[0]) {
     if (template !== undefined && template !== 'models') throw new Error('The model editor creates modeling projects.');
@@ -64,7 +84,7 @@ export default defineAdapter({
     await write('.mcp.json', JSON.stringify({
       mcpServers: { blender: { command: 'npm', args: ['run', '--silent', 'volter-model-editor', '--', 'blender-mcp'] } },
     }, null, 2) + '\n');
-    await write('.gitignore', 'node_modules/\n.vgai/\nlogs/\n');
+    await write('.gitignore', 'node_modules\n.vgai/\nlogs/\n');
     for (const file of ['cube.blend', 'cube.py']) {
       await copyFile(join(productRoot, 'starter', file), join(target, 'src/models', file));
     }
