@@ -31,6 +31,7 @@ import {
   isFinderContribution,
   isServiceContribution,
   lookContributionKind,
+  type LookContributionKind,
   TOOL_CONTRIBUTION_SUFFIXES,
 } from '@volter/editor-sdk/session/tool-contribution-convention';
 import type { AuthoringAdapter, EditorNode } from '@volter/editor-project/adapter';
@@ -1091,9 +1092,39 @@ let unregisterStatusContributions: Array<() => void> = [];
 /** A look contribution as loaded: which point, and the module's one export. */
 interface LookModule {
   readonly entryPath: string;
-  readonly kind: 'layout' | 'keymap' | 'style' | 'view' | 'environment';
+  readonly kind: LookContributionKind;
   readonly module: unknown;
 }
+
+/**
+ * Each look kind's registry and the contract its export is checked against, keyed by the
+ * convention's own kinds (`LookContributionKind`), so a kind the convention names cannot be
+ * scanned without being registered.
+ */
+const LOOK_REGISTRARS: {
+  readonly [K in LookContributionKind]: { readonly contract: string; readonly register: (value: unknown) => () => void };
+} = {
+  layout: {
+    contract: 'WorkspaceLayoutContribution (@volter/editor-sdk/looks)',
+    register: (value) => registerContributedWorkspace(value as Parameters<typeof registerContributedWorkspace>[0]),
+  },
+  keymap: {
+    contract: 'KeymapContribution (@volter/editor-sdk/looks)',
+    register: (value) => registerContributedKeymap(value as Parameters<typeof registerContributedKeymap>[0]),
+  },
+  style: {
+    contract: 'StyleContribution (@volter/editor-sdk/looks)',
+    register: (value) => registerContributedStyle(value as Parameters<typeof registerContributedStyle>[0]),
+  },
+  view: {
+    contract: 'ViewPreset (@volter/editor-sdk/kit/viewport-presentation)',
+    register: (value) => registerViewPreset(value as ViewPreset),
+  },
+  environment: {
+    contract: 'EnvironmentImageSet (@volter/editor-sdk/kit/environment-images)',
+    register: (value) => registerEnvironmentImages(value as EnvironmentImageSet),
+  },
+};
 let unregisterLookContributions: Array<() => void> = [];
 
 interface CommandModule {
@@ -1334,24 +1365,12 @@ function applyLookContributions(items: readonly LookModule[]): void {
     ) {
       teachingError(
         `[tool contributions] ${item.entryPath} must \`export const ${item.kind}\` — an object with a ` +
-          `string \`id\` (see \`${item.kind === 'layout' ? 'WorkspaceLayoutContribution' : item.kind === 'keymap' ? 'KeymapContribution' : item.kind === 'view' ? 'ViewPreset (@volter/editor-sdk/kit/viewport-presentation)' : item.kind === 'environment' ? 'EnvironmentImageSet (@volter/editor-sdk/kit/environment-images)' : 'StyleContribution'}\` in @volter/editor-sdk/looks). Skipped.`,
+          `string \`id\` (see \`${LOOK_REGISTRARS[item.kind].contract}\`). Skipped.`,
       );
       continue;
     }
     try {
-      unregisterLookContributions.push(
-        item.kind === 'layout'
-          ? registerContributedWorkspace(
-              value as Parameters<typeof registerContributedWorkspace>[0],
-            )
-          : item.kind === 'keymap'
-            ? registerContributedKeymap(value as Parameters<typeof registerContributedKeymap>[0])
-            : item.kind === 'view'
-              ? registerViewPreset(value as ViewPreset)
-              : item.kind === 'environment'
-                ? registerEnvironmentImages(value as EnvironmentImageSet)
-                : registerContributedStyle(value as Parameters<typeof registerContributedStyle>[0]),
-      );
+      unregisterLookContributions.push(LOOK_REGISTRARS[item.kind].register(value));
     } catch (error) {
       teachingError(`[tool contributions] ${item.entryPath} could not register.\n${String(error)}`);
     }
