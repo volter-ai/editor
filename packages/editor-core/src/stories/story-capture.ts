@@ -72,12 +72,10 @@ import {
 } from './story-discovery';
 import { storyBoardPresentation } from './story-presentation';
 import { getProjectPreviewStories, whenProjectStoriesReady } from './story-registry';
-import {
-  captureStoryComponentThumbnail,
-  isStoryThreeClassificationRefusal,
-  type StoryPreviewComponent,
-  supportsThreeStoryCapture,
-} from './story-three-preview';
+import { isStoryMediumMismatch, storyThumbnailCapture } from '@volter/editor-sdk/kit/story-thumbnails';
+import type { ProjectPreviewStory } from './story-registry';
+
+type StoryPreviewComponent = ProjectPreviewStory['Component'];
 
 /** One CSF export, rendered and photographed. */
 export interface StoryVariantImage {
@@ -115,10 +113,10 @@ export interface StoryCaptureOptions {
    */
   capture?: (container: HTMLElement, options?: CaptureOptions) => Promise<{ base64: string }>;
   /**
-   * The `three` leg (see the module doc comment). Defaults to
-   * `captureStoryComponentThumbnail`, gated on `supportsThreeStoryCapture()`
-   * (jsdom has no WebGL, so under tests the default leg is simply absent
-   * unless a stub is injected). Returns a `data:` URL; ANY rejection routes
+   * The `three` leg (see the module doc comment). Defaults to the registered
+   * three.js story capture (`@volter/editor-sdk/kit/story-thumbnails`), which a
+   * page without WebGL does not register, so under tests the default leg is
+   * simply absent unless a stub is injected. Returns a `data:` URL; ANY rejection routes
    * the story to the DOM leg.
    */
   captureThree?: (
@@ -254,11 +252,12 @@ export async function captureProjectStoryVariants(
 
   const selected = selectStories(modulePath, composed.stories, options.story);
   const capture = options.capture ?? capturePlayComposite;
+  const threeCapture = storyThumbnailCapture('three');
   const captureThree =
     options.captureThree ??
-    (supportsThreeStoryCapture()
+    (threeCapture
       ? (component: StoryPreviewComponent, size: { width: number; height: number }) =>
-          captureStoryComponentThumbnail(component, {
+          threeCapture(component, {
             ...size,
             ...(options.camera === undefined ? {} : { camera: options.camera }),
             ...(options.pose === undefined ? {} : { pose: options.pose }),
@@ -365,7 +364,7 @@ export async function renderStoryVariants(
           // The DOM-story classification refusal falls through silently by design; a THREE
           // story that genuinely failed must be named here, or a broken prefab photographs
           // as a blank cell with no trace (the whole-project-blank-sheet defect).
-          if (!isStoryThreeClassificationRefusal(error)) {
+          if (!isStoryMediumMismatch(error)) {
             // biome-ignore lint/suspicious/noConsole: the loud half of the fall-through contract — this refusal used to be swallowed whole.
             console.warn(
               `[story-capture] three mount for '${story.name}' failed — falling back to the DOM leg:`,

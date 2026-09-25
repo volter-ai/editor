@@ -11,16 +11,36 @@ import {
   registerCanvasFrameSource,
   registerCanvasMountObserver,
 } from '@volter/editor-sdk/kit/canvas-frames';
-import { registerStoryThumbnailCapture } from '@volter/editor-sdk/kit/story-thumbnails';
+import { registerStoryThumbnailCapture, StoryMediumMismatch } from '@volter/editor-sdk/kit/story-thumbnails';
+
+/** The three.js leg needs WebGL; jsdom (the component tests) has none. */
+function supportsThreeCapture(): boolean {
+  return (
+    typeof WebGLRenderingContext !== 'undefined' &&
+    typeof navigator !== 'undefined' &&
+    !navigator.userAgent.toLowerCase().includes('jsdom')
+  );
+}
 
 export function registerStoryMediaCaptures(): () => void {
-  const stopThree = registerStoryThumbnailCapture('three', async (component, options) => {
-    const { captureStoryComponentThumbnail } = await import('./story-three-preview');
-    return captureStoryComponentThumbnail(
-      component as Parameters<typeof captureStoryComponentThumbnail>[0],
-      options,
-    );
-  });
+  const stopThree = supportsThreeCapture()
+    ? registerStoryThumbnailCapture('three', async (component, options) => {
+        const preview = await import('./story-three-preview');
+        try {
+          return await preview.captureStoryComponentThumbnail(
+            component as Parameters<typeof preview.captureStoryComponentThumbnail>[0],
+            options,
+          );
+        } catch (error) {
+          // The reconciler's qualification rejection of a DOM story is a
+          // classification, not a failure: the caller tries its next leg.
+          if (preview.isStoryThreeClassificationRefusal(error)) {
+            throw new StoryMediumMismatch('This story is not a three.js story.');
+          }
+          throw error;
+        }
+      })
+    : () => {};
   const stopCanvas = registerStoryThumbnailCapture('canvas', async (component, options) => {
     const { capturePixiStoryThumbnail } = await import('./story-pixi-preview');
     return capturePixiStoryThumbnail(component as Parameters<typeof capturePixiStoryThumbnail>[0], options);
