@@ -1224,7 +1224,12 @@ export function Object3DDocumentViewport({
             applyPresentation();
             host.cleanups.push(subscribeViewportPresentation(applyPresentation));
             // A view may name an environment image its integration registers later.
-            host.cleanups.push(subscribeEnvironmentImages(applyPresentation));
+            host.cleanups.push(
+              subscribeEnvironmentImages(() => {
+                rig.forgetFailedImages();
+                applyPresentation();
+              }),
+            );
             host.cleanups.push(() => {
               rig.dispose();
               if (host.presentationRig === rig) host.presentationRig = null;
@@ -1666,7 +1671,11 @@ export function Object3DDocumentViewport({
             // down for modelling and up for a render).
             // A studio lights alone; a preview ADDS to the scene's other lights (Godot's preview
             // sun gives way only to a directional light, which `auto` weighs).
-            const darkened = drawSource === 'studio' && !documentStudio ? host.darkenContentLights() : 0;
+            // A preview without the scene's lights (Blender's Material Preview) darkens them too.
+            const darkened =
+              (drawSource === 'studio' && !documentStudio) || (drawSource === 'preview' && !rig.sceneLightsShown())
+                ? host.darkenContentLights()
+                : 0;
             rig.update(documentSession.camera());
             reportViewDraw(documentId, {
               source: drawSource,

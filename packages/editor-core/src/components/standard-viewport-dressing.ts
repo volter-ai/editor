@@ -433,6 +433,43 @@ function imageKey(image: NonNullable<ReturnType<typeof environmentImage>>): stri
   return `image|${image.id}|${image.url}`;
 }
 
+/** Value noise in three dimensions, 0 to 1, smoothly interpolated between lattice points. */
+function valueNoise(x: number, y: number, z: number): number {
+  const xi = Math.floor(x);
+  const yi = Math.floor(y);
+  const zi = Math.floor(z);
+  const fade = (t: number) => t * t * (3 - 2 * t);
+  const u = fade(x - xi);
+  const v = fade(y - yi);
+  const w = fade(z - zi);
+  const hash = (i: number, j: number, k: number): number => {
+    let h = Math.imul(i, 374761393) ^ Math.imul(j, 668265263) ^ Math.imul(k, 2147483647);
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+  };
+  const lerp = THREE.MathUtils.lerp;
+  const x00 = lerp(hash(xi, yi, zi), hash(xi + 1, yi, zi), u);
+  const x10 = lerp(hash(xi, yi + 1, zi), hash(xi + 1, yi + 1, zi), u);
+  const x01 = lerp(hash(xi, yi, zi + 1), hash(xi + 1, yi, zi + 1), u);
+  const x11 = lerp(hash(xi, yi + 1, zi + 1), hash(xi + 1, yi + 1, zi + 1), u);
+  return lerp(lerp(x00, x10, v), lerp(x01, x11, v), w);
+}
+
+/** Five octaves of value noise, 0 to 1: the cloud layer's shapes. */
+function fractalNoise(x: number, y: number, z: number): number {
+  let sum = 0;
+  let amplitude = 0.5;
+  let frequency = 1;
+  let total = 0;
+  for (let octave = 0; octave < 5; octave++) {
+    sum += amplitude * valueNoise(x * frequency, y * frequency, z * frequency);
+    total += amplitude;
+    amplitude *= 0.5;
+    frequency *= 2;
+  }
+  return sum / total;
+}
+
 export class StagePresentationRig {
   private readonly group = new THREE.Group();
   private readonly ambient = new THREE.AmbientLight(0xffffff, 0);
@@ -458,8 +495,10 @@ export class StagePresentationRig {
   private loadingImage: string | null = null;
   /** The image the view names while it loads or after it failed, for the draw report. */
   private pendingImage: { id: string; state: 'unregistered' | 'loading' | 'failed' } | null = null;
-  /** Images that failed to load, by sky key: not fetched again for this rig. */
+  /** Images that failed to load, by sky key: not fetched again until the registry changes. */
   private readonly failedImages = new Set<string>();
+  /** The procedural sky as the latest apply states it: what a failed image falls back to. */
+  private latestSky: (() => void) | null = null;
   /** The environment's turn about the vertical axis, radians. */
   private rotation = 0;
   private disposed = false;
@@ -531,10 +570,11 @@ export class StagePresentationRig {
     const image = environment.image === null ? null : environmentImage(environment.image);
     const sky = () =>
       this.buildSky(environment.sky, renderer, sun.enabled ? { direction: this.sun.position.clone().normalize(), color: sun.color, energy: sun.energy } : null);
+    this.latestSky = sky;
     if (image && !this.failedImages.has(imageKey(image))) {
       // Nothing drawn yet: the procedural sky stands while the image loads.
       if (!this.sky) sky();
-      this.buildImage(image, renderer, sky);
+      this.buildImage(image, renderer);
       return;
     }
     this.loadingImage = null;
@@ -552,7 +592,6 @@ export class StagePresentationRig {
   private buildImage(
     image: NonNullable<ReturnType<typeof environmentImage>>,
     renderer: THREE.WebGLRenderer,
-    fallback: () => void,
   ): void {
     const key = imageKey(image);
     if (this.sky?.key === key) {
@@ -568,11 +607,18 @@ export class StagePresentationRig {
           texture.dispose();
           return;
         }
+        let environment: THREE.WebGLRenderTarget;
+        try {
+          this.pmrem ??= new THREE.PMREMGenerator(renderer);
+          environment = this.pmrem.fromEquirectangular(texture);
+        } catch (error) {
+          texture.dispose();
+          throw error;
+        }
         this.loadingImage = null;
         this.pendingImage = null;
         this.disposeSky();
-        this.pmrem ??= new THREE.PMREMGenerator(renderer);
-        this.sky = { key, image: image.id, background: texture, environment: this.pmrem.fromEquirectangular(texture) };
+        this.sky = { key, image: image.id, background: texture, environment };
         this.onReady?.();
       })
       .catch((error: unknown) => {
@@ -582,9 +628,20 @@ export class StagePresentationRig {
         this.pendingImage = { id: image.id, state: 'failed' };
         editorConsole.error(`Environment image "${image.id}" (${image.url}) did not load: ${String(error)}`, 'viewport');
         // The view still names it, so what stands is the procedural sky, never the last image.
-        fallback();
+        this.latestSky?.();
         this.onReady?.();
       });
+  }
+
+  /** The image registry changed: an image that failed may load now. */
+  forgetFailedImages(): void {
+    this.failedImages.clear();
+  }
+
+  /** Whether this draw also lights by the scene's own lights: a preview may leave them out
+   *  (Blender's Material Preview); a studio never adds them (the stage darkens them itself). */
+  sceneLightsShown(): boolean {
+    return this.source !== 'preview' || this.presentation?.lighting.preview.sceneLights !== false;
   }
 
   /** The environment image the last draw showed and the one still loading or failed. */
@@ -622,7 +679,9 @@ export class StagePresentationRig {
     const sunKey = sun
       ? `${sun.direction.toArray().map((value) => value.toFixed(4)).join(',')}|${sun.color}|${sun.energy}`
       : 'none';
-    const key = `${colours.top}|${colours.horizon}|${colours.ground}|${colours.topCurve}|${colours.groundCurve}|${sunKey}`;
+    const clouds = colours.clouds;
+    const cloudKey = clouds ? `${clouds.cover}|${clouds.opacity}|${clouds.scale}` : 'clear';
+    const key = `${colours.top}|${colours.horizon}|${colours.ground}|${colours.topCurve}|${colours.groundCurve}|${cloudKey}|${sunKey}`;
     if (this.sky?.key === key) return;
     this.disposeSky();
     const width = 1024;
@@ -642,6 +701,8 @@ export class StagePresentationRig {
     const groundCurve = Math.max(colours.groundCurve, 0.001);
     const band = new THREE.Color();
     const pixel = new THREE.Color();
+    // A cloud is lit white, taking a little of the horizon's colour.
+    const cloudColour = new THREE.Color(0.92, 0.93, 0.95).lerp(horizon, 0.2);
     const direction = new THREE.Vector3();
     for (let row = 0; row < height; row++) {
       const elevation = ((row + 0.5) / height - 0.5) * Math.PI;
@@ -653,8 +714,24 @@ export class StagePresentationRig {
         const c = (angle - Math.PI / 2) / (Math.PI / 2);
         band.copy(horizon).lerp(ground, THREE.MathUtils.clamp(1 - Math.pow(1 - c, 1 / groundCurve), 0, 1));
       }
+      // Clouds thin into the horizon: none at it, full a quarter of the way up.
+      const cloudRise = clouds && elevation > 0 ? THREE.MathUtils.smoothstep(Math.sin(elevation), 0, 0.25) : 0;
       for (let column = 0; column < width; column++) {
         pixel.copy(band);
+        if (clouds && cloudRise > 0) {
+          const longitude = ((column + 0.5) / width - 0.5) * Math.PI * 2;
+          // Sampled on the direction, so the strip's two edges meet without a seam.
+          const density = THREE.MathUtils.smoothstep(
+            fractalNoise(
+              Math.cos(longitude) * Math.cos(elevation) * clouds.scale,
+              Math.sin(elevation) * clouds.scale,
+              Math.sin(longitude) * Math.cos(elevation) * clouds.scale,
+            ),
+            1 - clouds.cover - 0.12,
+            1 - clouds.cover + 0.12,
+          );
+          pixel.lerp(cloudColour, density * clouds.opacity * cloudRise);
+        }
         if (light && sun && elevation > -Math.PI / 2) {
           const longitude = ((column + 0.5) / width - 0.5) * Math.PI * 2;
           direction.set(

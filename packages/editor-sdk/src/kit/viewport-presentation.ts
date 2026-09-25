@@ -61,6 +61,9 @@ export interface StudioPreset {
 export type SceneTakeover = 'light' | 'directional-light' | 'environment';
 
 export interface PreviewLighting {
+  /** Whether the scene's own lights also light the view (Godot's preview adds its sun to them;
+   *  Blender's Material Preview draws without them: Scene Lights is off by default). */
+  readonly sceneLights: boolean;
   readonly sun: {
     readonly enabled: boolean;
     readonly color: PresentationColor;
@@ -84,6 +87,10 @@ export interface PreviewLighting {
        *  narrower band). */
       readonly topCurve: number;
       readonly groundCurve: number;
+      /** A cloud layer over the sky above the horizon (Unreal's `BP_Sky_Sphere`), or `null` for
+       *  a clear sky (Godot, Unity). `cover` is the share of the sky clouded (0 to 1),
+       *  `opacity` how much they hide the sky, `scale` how many cloud features span the sky. */
+      readonly clouds: { readonly cover: number; readonly opacity: number; readonly scale: number } | null;
     };
     /** A registered environment image (`kit/environment-images`) in place of the sky: the
      *  panorama drawn behind the scene and lit by (Blender's Material Preview HDRI; Unreal's
@@ -228,12 +235,13 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
     // Godot's preview defaults (`node_3d_editor_plugin.cpp` `_load_default_preview_settings`),
     // the one target that ships a preview sun and sky, so `preview` means something out of the box.
     preview: {
+      sceneLights: true,
       sun: { enabled: true, color: '#ffffff', energy: 1, altitude: 60, azimuth: 150, shadowDistance: 100 },
       environment: {
         enabled: true,
         // Top (0.385, 0.454, 0.55) and ground (0.2, 0.169, 0.133); the horizon is Godot's own
         // derivation from them (their mix, pulled halfway to its luminance x 3.333).
-        sky: { top: '#62748c', horizon: '#a9abaf', ground: '#332b22', topCurve: 0.15, groundCurve: 0.02 },
+        sky: { top: '#62748c', horizon: '#a9abaf', ground: '#332b22', topCurve: 0.15, groundCurve: 0.02, clouds: null },
         image: null,
         energy: 1,
         rotation: 0,
