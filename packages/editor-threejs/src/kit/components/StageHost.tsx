@@ -1624,8 +1624,17 @@ export function Object3DDocumentViewport({
         // A selected id survives the swap when the new adapter still answers for it, not only when
         // it keys the object map: an adapter can answer in two id spaces (Blender's Outliner keys
         // its rows and resolves the presentation's ids too), and the map holds only its own.
+        // One id per object: a selection that gathered an object under both of its ids keeps one.
+        const kept = new Set<THREE.Object3D | string>();
         store.shell.selectMultiple(
-          selected.filter((id) => store.objectMap.has(id) || adapter.hierarchy.object3D?.(id) != null),
+          selected.filter((id) => {
+            const object = store.objectMap.get(id) ?? adapter.hierarchy.object3D?.(id) ?? null;
+            if (object === null && !store.objectMap.has(id)) return false;
+            const key = object ?? id;
+            if (kept.has(key)) return false;
+            kept.add(key);
+            return true;
+          }),
         );
         store.notifyIngestObjectMapEdit();
         documentSession.syncSelectionPresentation();
