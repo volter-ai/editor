@@ -866,6 +866,8 @@ export class EditorViewport {
   /** The world's axis lines: WHICH show is the view's (`overlays.axes`, {@link setAxisLines}),
    *  their colours and width the look's (`color.viewport.axisX/Y/Z`, `axisLineWidth`). */
   private _axisLines: LineSegments2 | null = null;
+  /** The world's vertical axis line, a child of {@link _axisLines} (see `_rebuildAxisLines`). */
+  private _verticalAxisLine: LineSegments2 | null = null;
   private _axesWanted = false;
   private _stageAxes: ViewportOverlays['axes'] = 'floor';
   /** The look's axis colours by WORLD axis (X, Y, Z), each `null` for the gizmo's own. */
@@ -1192,11 +1194,12 @@ export class EditorViewport {
       for (const helper of this._boxHelpers.values()) {
         if (helper instanceof SelectionBrackets) helper.setColor(color);
       }
+      // The gizmo look FIRST: an axis line the look gives no colour takes the gizmo's.
+      this._gizmoLook = nativeGizmoLook(canvas);
       this._applyViewportLook(nativeViewportLook(canvas));
       this._applyGridLines(nativeViewportGrid(canvas));
       this._lookGizmoSizePx = nativeViewportGizmoSize(canvas);
       this._applyGizmoSize();
-      this._gizmoLook = nativeGizmoLook(canvas);
       this._applyGizmoArrows();
       // WHAT FRAME THIS STAGE IS PRESENTING, and what a box select means in
       // it. Like the size above, the first synchronous call runs before the
@@ -1470,6 +1473,7 @@ export class EditorViewport {
 
     // Patch gizmo: recolour handles to the look's axis colours and fix plane geometry.
     this._gizmoLook = nativeGizmoLook(canvas);
+    this._rebuildAxisLines();
     for (const controls of this._allGizmos()) this._installGizmoHighlight(controls);
     this._patchGizmo(this._gizmoHelper);
     this._patchGizmo(this._auxRotateControls.getHelper());
@@ -3624,15 +3628,18 @@ export class EditorViewport {
     // THE FLOOR'S DEPTH IS DECLARED, and by the predicate that already says a
     // look paints the viewport at all. `color.viewport` is all-or-nothing
     // (`native-selection-style.ts`), so a palette either hands over the
-    // stage — background, grid, both axes — or keeps none of it: Classic
-    // Graphite declares no group, draws no axis line, and keeps its floor
-    // exactly as it is, with no palette member minted to say so.
+    // stage's colours or keeps none of them: Classic Graphite declares no
+    // group and keeps its floor without the grazing fade. Which axis lines
+    // show is the view's (`overlays.axes`), whatever the look.
     const grazing = this.grid.material.uniforms['uGrazingFade'];
     if (grazing) grazing.value = look.background !== null ? 1 : 0;
     this._paintLookGrid();
     this._lookAxisHexes = [look.axisX, look.axisY, look.axisZ];
     if (this._axisLines) {
       (this._axisLines.material as LineMaterial).linewidth = look.axisLineWidth ?? 2;
+    }
+    if (this._verticalAxisLine) {
+      (this._verticalAxisLine.material as LineMaterial).linewidth = look.axisLineWidth ?? 2;
     }
     this._rebuildAxisLines();
     if (look.background !== null) {
@@ -3767,23 +3774,54 @@ export class EditorViewport {
     this._axesWanted = shown.length > 0;
     lines.visible = this.grid.visible && this._axesWanted;
     if (!this._axesWanted) return;
-    const positions: number[] = [];
-    const colors: number[] = [];
-    for (const threeAxis of shown) {
-      const world = frame[threeAxis]![0];
-      const hex = this._lookAxisHexes[world];
-      const color = hex === null || hex === undefined ? this._gizmoAxisColor(world) : new THREE.Color(hex);
-      positions.push(...axisSegmentPositions(threeAxis));
-      for (let i = 0; i < AXIS_SEGMENTS_PER_AXIS * 2; i++) colors.push(color.r, color.g, color.b);
-    }
     // A FRESH GEOMETRY per rebuild: three caches an instanced geometry's instance count at
-    // its first draw (`_maxInstanceCount`), so growing this one from two lines to three drew
-    // only the first two.
-    const geometry = new LineSegmentsGeometry();
-    geometry.setPositions(positions);
-    geometry.setColors(colors);
-    lines.geometry.dispose();
-    lines.geometry = geometry;
+    // its first draw (`_maxInstanceCount`), so growing one from two lines to three drew only
+    // the first two.
+    const build = (threeAxes: readonly number[]): LineSegmentsGeometry => {
+      const positions: number[] = [];
+      const colors: number[] = [];
+      for (const threeAxis of threeAxes) {
+        const world = frame[threeAxis]![0];
+        const hex = this._lookAxisHexes[world];
+        const color = hex === null || hex === undefined ? this._gizmoAxisColor(world) : new THREE.Color(hex);
+        positions.push(...axisSegmentPositions(threeAxis));
+        for (let i = 0; i < AXIS_SEGMENTS_PER_AXIS * 2; i++) colors.push(color.r, color.g, color.b);
+      }
+      const geometry = new LineSegmentsGeometry();
+      geometry.setPositions(positions);
+      geometry.setColors(colors);
+      return geometry;
+    };
+    // The floor's lines take the floor's grazing fade; the VERTICAL one stands out of the floor,
+    // always grazes it from a level view and would fade away (Godot's Y line does not), so it is
+    // its own child line without the fade — carried wherever the floor lines are.
+    const floor = shown.filter((threeAxis) => threeAxis !== 1);
+    const vertical = shown.includes(1);
+    (lines.material as LineMaterial).visible = floor.length > 0;
+    if (floor.length > 0) {
+      lines.geometry.dispose();
+      lines.geometry = build(floor);
+    }
+    if (vertical && !this._verticalAxisLine) {
+      const floorMaterial = lines.material as LineMaterial;
+      this._verticalAxisLine = new LineSegments2(
+        build([1]),
+        new LineMaterial({
+          vertexColors: true,
+          linewidth: floorMaterial.linewidth,
+          transparent: true,
+          opacity: 1,
+          depthWrite: false,
+          toneMapped: false,
+        }),
+      );
+      this._verticalAxisLine.layers.set(EDITOR_LAYER);
+      lines.add(this._verticalAxisLine);
+    } else if (vertical && this._verticalAxisLine) {
+      this._verticalAxisLine.geometry.dispose();
+      this._verticalAxisLine.geometry = build([1]);
+    }
+    if (this._verticalAxisLine) this._verticalAxisLine.visible = vertical;
   }
 
   /** The view's axis lines (`overlays.axes`). */
@@ -3829,6 +3867,11 @@ export class EditorViewport {
   dispose(): void {
     this._disposed = true;
     this._unsubscribeSelectionTheme();
+    if (this._verticalAxisLine) {
+      this._verticalAxisLine.geometry.dispose();
+      (this._verticalAxisLine.material as THREE.Material).dispose();
+      this._verticalAxisLine = null;
+    }
     if (this._axisLines) {
       this._scene.remove(this._axisLines);
       this._axisLines.geometry.dispose();
@@ -4822,8 +4865,12 @@ export class EditorViewport {
       threeUpdate(force);
       // THE HANDLES THE VIEW TURNS OFF, drawn and picked by neither family: three sets every
       // handle's visibility on each update, and its pointer tests skip invisible pickers.
-      const hidden =
-        node.mode === 'rotate' && !this._transformHandles.viewRotate
+      // The COMBINED tool's handles only: the single Rotate and Move tools keep theirs (Godot's
+      // Rotate tool draws its view ring).
+      const combined = this._store.transformMode === 'combined';
+      const hidden = !combined
+        ? null
+        : node.mode === 'rotate' && !this._transformHandles.viewRotate
           ? 'E'
           : node.mode === 'translate' && !this._transformHandles.freeMove
             ? 'XYZ'
@@ -4886,6 +4933,9 @@ export class EditorViewport {
     const RING = 0.5;
     const HEAD = 0.1;
     const shaftEnd = (shape: { length: number; head: number }) => RING * shape.length - HEAD * shape.head;
+    // A shape whose head would swallow its shaft is refused: the shaft is scaled by a ratio of
+    // shaft ends, and a zero end would make every later shape NaN.
+    if (shaftEnd(want) <= 0.05) return;
     const stretch = shaftEnd(want) / shaftEnd(was);
     const headScale = want.head / was.head;
     const tipScale = want.length / was.length;

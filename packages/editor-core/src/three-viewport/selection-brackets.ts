@@ -196,6 +196,10 @@ export class SelectionBrackets extends LineSegments2 {
   private readonly _objectFrame: boolean;
   private readonly _toObject = new THREE.Matrix4();
   private readonly _point = new THREE.Vector3();
+  private readonly _axisX = new THREE.Vector3();
+  private readonly _axisY = new THREE.Vector3();
+  private readonly _axisZ = new THREE.Vector3();
+  private readonly _scale = new THREE.Vector3();
   private readonly _positions = new Float32Array(BRACKET_SEGMENT_COUNT * FLOATS_PER_SEGMENT);
   private readonly _box = new THREE.Box3();
   private readonly _worldPos = new THREE.Vector3();
@@ -286,6 +290,15 @@ export class SelectionBrackets extends LineSegments2 {
   /** Recompute the AABB and reposition the arms. Safe to call every frame. */
   update(): void {
     this.entityObject.updateWorldMatrix(true, false);
+    // A frame with a zero axis cannot be inverted: such an object is boxed along the world's.
+    const objectFrame =
+      this._objectFrame &&
+      this._fixedSize === undefined &&
+      Math.abs(this.entityObject.matrixWorld.determinant()) > 1e-12;
+    this.entityObject.matrixWorld.extractBasis(this._axisX, this._axisY, this._axisZ);
+    const scale = objectFrame
+      ? this._scale.set(this._axisX.length(), this._axisY.length(), this._axisZ.length())
+      : this._scale.set(1, 1, 1);
     if (this._fixedSize !== undefined) {
       this.entityObject.getWorldPosition(this._worldPos);
       this._fixedExtent.setScalar(this._fixedSize);
@@ -294,7 +307,7 @@ export class SelectionBrackets extends LineSegments2 {
       // Content only — a built-internal child (a world-space particle renderer
       // at identity, a pooled batch) would otherwise drag the cage off to
       // wherever its machinery lives. See `content-bounds.ts`.
-      if (this._objectFrame) {
+      if (objectFrame) {
         this._toObject.copy(this.entityObject.matrixWorld).invert();
         contentBoundsInFrame(this.entityObject, this._toObject, this._box);
       } else {
@@ -305,16 +318,18 @@ export class SelectionBrackets extends LineSegments2 {
     // Stand the cage off the silhouette. Per-axis, so a flat object (a ground
     // plane, a wall panel) gains real clearance on the axis it has no extent
     // in rather than staying welded to its own face.
-    this._box.getSize(this._standoff);
+    // The stand-off is a WORLD distance; a box in the object's frame is measured in the object's
+    // units, so it is taken through the object's scale on each axis and back.
+    this._box.getSize(this._standoff).multiply(scale);
     this._standoff.set(
       bracketStandoff(this._standoff.x),
       bracketStandoff(this._standoff.y),
       bracketStandoff(this._standoff.z),
-    );
+    ).divide(scale);
     this._box.expandByVector(this._standoff);
     writeBracketSegments(this._box, this._positions, this._edges);
     // A box in the object's frame is written there and carried out to the world by the object.
-    if (this._objectFrame && this._fixedSize === undefined) {
+    if (objectFrame) {
       const matrix = this.entityObject.matrixWorld;
       for (let index = 0; index < this._positions.length; index += 3) {
         this._point

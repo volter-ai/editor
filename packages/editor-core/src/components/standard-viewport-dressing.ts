@@ -391,12 +391,39 @@ export function applyStandardViewportDressing(
  */
 const LIGHT_DISTANCE = 12;
 
+/**
+ * GODOT'S FILMIC CURVE as three's one custom tone mapper: John Hable's curve with Godot's
+ * exposure bias of 2, divided by the curve at the white point so white stays white
+ * (`servers/rendering/renderer_rd/shaders/effects/tonemap.glsl`, `tonemap_filmic`, at
+ * Godot's default `tonemap_white` of 1.0). three's own curves map white to about 0.8, which
+ * drew Godot's sun grey. Installed once, into three's `CustomToneMapping` slot, which nothing
+ * else on the page fills.
+ */
+const GODOT_FILMIC = /* glsl */ `
+vec3 vgaiHable( vec3 x ) {
+	const float A = 0.22 * 4.0;
+	const float B = 0.30 * 2.0;
+	const float C = 0.10;
+	const float D = 0.20;
+	const float E = 0.01;
+	const float F = 0.30;
+	return ( ( x * ( A * x + C * B ) + D * E ) / ( x * ( A * x + B ) + D * F ) ) - E / F;
+}
+vec3 CustomToneMapping( vec3 color ) {
+	color *= toneMappingExposure;
+	return clamp( vgaiHable( max( vec3( 0.0 ), color ) ) / vgaiHable( vec3( 1.0 ) ), 0.0, 1.0 );
+}`;
+{
+  const chunk = THREE.ShaderChunk.tonemapping_pars_fragment;
+  const stock = 'vec3 CustomToneMapping( vec3 color ) { return color; }';
+  if (chunk.includes(stock)) THREE.ShaderChunk.tonemapping_pars_fragment = chunk.replace(stock, GODOT_FILMIC);
+}
+
 const TONE_MAPPERS: Record<ViewportPresentation['lighting']['tone']['mapper'], THREE.ToneMapping> = {
   none: THREE.NoToneMapping,
   aces: THREE.ACESFilmicToneMapping,
   agx: THREE.AgXToneMapping,
-  // Godot's Filmic has no three counterpart; AgX is three's filmic curve.
-  filmic: THREE.AgXToneMapping,
+  filmic: THREE.CustomToneMapping,
 };
 
 export class StagePresentationRig {
@@ -481,9 +508,11 @@ export class StagePresentationRig {
    * energy, and out to `sun_angle_max` (30°) it returns to the sky on a curve of `sun_curve`
    * (0.15). A light with no angular size draws a half-degree disc.
    *
-   * Drawn into a FLOAT equirectangular strip, because the sun is brighter than white: an 8-bit
+   * Drawn into a HALF-FLOAT equirectangular strip, because the sun is brighter than white: an 8-bit
    * strip clipped it to 1.0, which the tone curve draws as grey 202 (measured) where Godot's
-   * sun blows out. The strip is both the backdrop and, prefiltered, the light; 1024 across,
+   * sun blows out. Half, not full, float: a full-float strip cannot be linearly filtered where
+   * `OES_texture_float_linear` is missing (common on phones) and would draw black. The strip is
+   * both the backdrop and, prefiltered, the light; 1024 across,
    * because the sun's bright core is about 3° wide and drew as two pixels at 256. Placed by
    * three's equirectangular mapping (`atan(z, x)`, `asin(y)`); row 0 is straight down.
    */
@@ -507,7 +536,8 @@ export class StagePresentationRig {
     const horizon = new THREE.Color(colours.horizon);
     const ground = new THREE.Color(colours.ground);
     const light = sun ? new THREE.Color(sun.color).multiplyScalar(sun.energy) : null;
-    const data = new Float32Array(width * height * 4);
+    const data = new Uint16Array(width * height * 4);
+    const half = THREE.DataUtils.toHalfFloat;
     const band = new THREE.Color();
     const pixel = new THREE.Color();
     const direction = new THREE.Vector3();
@@ -538,13 +568,13 @@ export class StagePresentationRig {
           }
         }
         const at = (row * width + column) * 4;
-        data[at] = pixel.r;
-        data[at + 1] = pixel.g;
-        data[at + 2] = pixel.b;
-        data[at + 3] = 1;
+        data[at] = half(pixel.r);
+        data[at + 1] = half(pixel.g);
+        data[at + 2] = half(pixel.b);
+        data[at + 3] = half(1);
       }
     }
-    const background = new THREE.DataTexture(data, width, height, THREE.RGBAFormat, THREE.FloatType);
+    const background = new THREE.DataTexture(data, width, height, THREE.RGBAFormat, THREE.HalfFloatType);
     background.mapping = THREE.EquirectangularReflectionMapping;
     background.colorSpace = THREE.LinearSRGBColorSpace;
     background.magFilter = THREE.LinearFilter;
