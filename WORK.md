@@ -142,6 +142,23 @@ Remaining:
    focused). Play gates only `session.game.input`, and the listener shadow skips dependency code.
    Machine input through the native door (`native-debug-module.ts`) is not gated either.
 
+## Both products in the browser substrate
+
+Both products run as images of `browser-substrate`'s `examples/volter-editor`
+(branch `examples/volter-editor-products`: `/model-editor`, `/game-editor`). The image's
+build step is the product's own `prepare` (the session's dependency optimizer), so its
+packs cover what the session pre-bundles and the tab builds none. Measured on a warm
+origin, navigation to the Model Editor's model read in Blender: 19.5–25 s, from 80 s to
+the workbench alone before the image carried its pre-bundle (load 12–35, so single
+runs vary by seconds). Where it goes (ms): runtime and image link 0–3,600; `edit` to the
+session listening 4,300; Code-OSS server 2,500; workbench and product bundle 3,300; the
+product mounting its model document 5,700; Blender 2,800 (its wasm, `.data` and
+Essentials come from Cache Storage after the first open). Open: the Game Editor walk on
+its rebuilt image (408 packs); the image's 1,138 prepared module bodies (241 MB), which
+each open still writes into memory outside the tab's store (moved under `/opt`, not
+walked); the pack archives, unpublished while the editor is private. Under 10 s needs
+the substrate to resume processes (its W74), not only prebaked files.
+
 ## Supported-editing work
 
 1. **Native undo/redo:** Code-OSS owns resource ordering and commands; Blender
