@@ -62,6 +62,7 @@ import {
   nativeViewportGizmoSize,
   nativeViewportLook,
   nativeViewportGrid,
+  nativeViewportSelectionBox,
   nativeViewportUpAxis,
   subscribeNativeSelectionTheme,
 } from '@volter/editor-sdk/kit/native-selection-style';
@@ -1866,9 +1867,14 @@ export class EditorViewport {
       }
       if (geometric && !this._selectionMarks.box) continue;
       if (geometric) {
+        const box = nativeViewportSelectionBox(this._canvas);
         add(
           `selection:${id}`,
-          new SelectionBrackets(obj, { color: nativeSelectionColors(this._canvas).visible }),
+          new SelectionBrackets(obj, {
+            color: nativeSelectionColors(this._canvas).visible,
+            edges: box.edges,
+            ...(box.lineWidth === null ? {} : { lineWidth: box.lineWidth }),
+          }),
         );
         continue;
       }

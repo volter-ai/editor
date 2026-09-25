@@ -113,11 +113,14 @@ export function bracketStandoff(extent: number): number {
  * `BRACKET_SEGMENT_COUNT * 6`). Positions are world-space; the holder object
  * stays at the identity transform.
  */
-export function writeBracketSegments(box: THREE.Box3, out: Float32Array): void {
+export function writeBracketSegments(box: THREE.Box3, out: Float32Array, edges = false): void {
   const { min, max } = box;
-  const ax = bracketArmLength(max.x - min.x);
-  const ay = bracketArmLength(max.y - min.y);
-  const az = bracketArmLength(max.z - min.z);
+  // `edges`: every arm runs half its edge, so the arms from opposite corners meet and the cage is
+  // the full twelve-edge box (Godot's selection box, `editors/3d/selection_box_color`).
+  const arm = (extent: number) => (edges ? Math.max(extent / 2, BRACKET_ARM_EPSILON) : bracketArmLength(extent));
+  const ax = arm(max.x - min.x);
+  const ay = arm(max.y - min.y);
+  const az = arm(max.z - min.z);
 
   let i = 0;
   for (const [cx, cy, cz] of BOX_CORNERS) {
@@ -156,6 +159,10 @@ export function writeBracketSegments(box: THREE.Box3, out: Float32Array): void {
 export interface SelectionBracketsOptions {
   /** Renderer-ready current palette accent. */
   readonly color: number;
+  /** Draw the full box instead of corner brackets (the look's `density.viewport.selectionBox`). */
+  readonly edges?: boolean;
+  /** Stroke width in CSS px; the editor's own is {@link SELECTION_BRACKET_LINEWIDTH}. */
+  readonly lineWidth?: number;
   /**
    * Edge length of a fixed-size cube centered on the entity's world position,
    * used instead of a computed AABB. This is the degenerate-geometry path —
@@ -179,6 +186,7 @@ export class SelectionBrackets extends LineSegments2 {
   readonly entityObject: THREE.Object3D;
 
   private readonly _fixedSize: number | undefined;
+  private readonly _edges: boolean;
   private readonly _positions = new Float32Array(BRACKET_SEGMENT_COUNT * FLOATS_PER_SEGMENT);
   private readonly _box = new THREE.Box3();
   private readonly _worldPos = new THREE.Vector3();
@@ -191,7 +199,7 @@ export class SelectionBrackets extends LineSegments2 {
     const geometry = new LineSegmentsGeometry();
     const material = new LineMaterial({
       color: options.color,
-      linewidth: SELECTION_BRACKET_LINEWIDTH,
+      linewidth: options.lineWidth ?? SELECTION_BRACKET_LINEWIDTH,
       // Screen-space width: a bracket must read the same on a 0.2m prop and a
       // 200m terrain chunk.
       worldUnits: false,
@@ -209,6 +217,7 @@ export class SelectionBrackets extends LineSegments2 {
     super(geometry, material);
     this.entityObject = entityObject;
     this._fixedSize = options.fixedSize;
+    this._edges = options.edges === true;
     // A static hierarchy's world bounds do not change because the camera did.
     // Detect the cases whose vertices can move without an editor transform
     // notification; those keep the old every-frame bounds refresh. Ordinary
@@ -288,7 +297,7 @@ export class SelectionBrackets extends LineSegments2 {
       bracketStandoff(this._standoff.z),
     );
     this._box.expandByVector(this._standoff);
-    writeBracketSegments(this._box, this._positions);
+    writeBracketSegments(this._box, this._positions, this._edges);
     const start = this.geometry.getAttribute('instanceStart');
     // Both instanceStart and instanceEnd are views onto the one interleaved
     // buffer that owns `_positions`; flagging either one uploads all of it.

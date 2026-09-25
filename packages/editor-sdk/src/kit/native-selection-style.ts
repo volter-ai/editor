@@ -216,6 +216,20 @@ export function nativeViewportGrid(element?: Element | null): {
   };
 }
 
+/** HOW THE LOOK DRAWS THE SELECTION BOX MARK (`density.viewport.selectionBox` and its width),
+ *  with the editor's own corner brackets at 3 CSS px for what it leaves out. */
+export function nativeViewportSelectionBox(element?: Element | null): {
+  readonly edges: boolean;
+  readonly lineWidth: number | null;
+} {
+  const root = themeRoot(element);
+  const width = Number.parseFloat(themeToken(root, '--vgai-viewport-selection-box-width'));
+  return {
+    edges: themeToken(root, '--vgai-viewport-selection-box') === 'edges',
+    lineWidth: Number.isFinite(width) && width > 0 ? width : null,
+  };
+}
+
 /**
  * Observe the one theme root's inline token update. This includes saved theme
  * changes and unsaved Theme Manager previews; neither renderer has to poll

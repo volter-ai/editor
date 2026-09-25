@@ -302,6 +302,13 @@ export interface DensityContribution {
     readonly gridLineWidth?: number;
     readonly gridMajorWidth?: number;
     readonly gridMajorContrast?: number;
+    /**
+     * HOW THE SELECTION BOX MARK IS DRAWN (the view's `overlays.selection.box`): `corners`, the
+     * editor's own brackets, or `edges`, the full box (Godot's selection box); and its stroke in
+     * CSS px (the editor's own is 3; Godot's box is a hairline).
+     */
+    readonly selectionBox?: 'corners' | 'edges';
+    readonly selectionBoxWidth?: number;
   };
 }
 

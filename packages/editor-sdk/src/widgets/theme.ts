@@ -229,6 +229,8 @@ export interface EditorDensity {
     readonly gridLineWidth?: number;
     readonly gridMajorWidth?: number;
     readonly gridMajorContrast?: number;
+    readonly selectionBox?: 'corners' | 'edges';
+    readonly selectionBoxWidth?: number;
   };
 }
 function numberToken(value: number | undefined): string {
@@ -2564,6 +2566,8 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     '--vgai-viewport-grid-line-width': numberToken(theme.density?.viewport?.gridLineWidth),
     '--vgai-viewport-grid-major-width': numberToken(theme.density?.viewport?.gridMajorWidth),
     '--vgai-viewport-grid-major-contrast': numberToken(theme.density?.viewport?.gridMajorContrast),
+    '--vgai-viewport-selection-box': theme.density?.viewport?.selectionBox ?? '',
+    '--vgai-viewport-selection-box-width': numberToken(theme.density?.viewport?.selectionBoxWidth),
     // The widget classes. Unlike `viewport`, these are never emitted empty:
     // every one paints a control that must stay painted, so an absent group
     // resolves to the surface that call site already read.

@@ -485,8 +485,10 @@ export class StagePresentationRig {
     if (this.sky?.key === key) return;
     this.disposeSky();
     if (typeof document === 'undefined') return;
-    const width = 4;
-    const height = 256;
+    // A full equirectangular aspect: the prefilter samples the strip across its width, and a
+    // few-pixel strip prefiltered to black (measured: the preview lit nothing).
+    const width = 256;
+    const height = 128;
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
@@ -512,6 +514,7 @@ export class StagePresentationRig {
     const background = new THREE.CanvasTexture(canvas);
     background.mapping = THREE.EquirectangularReflectionMapping;
     background.colorSpace = THREE.SRGBColorSpace;
+    background.needsUpdate = true;
     this.pmrem ??= new THREE.PMREMGenerator(renderer);
     const environment = this.pmrem.fromEquirectangular(background).texture;
     this.sky = { key, background, environment };
