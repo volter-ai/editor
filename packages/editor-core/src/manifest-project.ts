@@ -11,7 +11,7 @@
 
 import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
 import { loadGameManifest, type ResolvedGameManifest } from '@volter/editor-project/manifest/load';
-import { resolveUrl } from '@volter/editor-threejs/loader';
+import { servedUrl } from './served-url';
 
 /**
  * "This project has no manifest" — a DIFFERENT answer from "this project's
@@ -49,7 +49,7 @@ function manifestAbsent(where: string): Error {
  * classifiable ({@link isManifestAbsence}).
  */
 export async function fetchGameManifest(): Promise<ResolvedGameManifest> {
-  const url = resolveUrl('/vgai.project.json');
+  const url = servedUrl('/vgai.project.json');
   const res = await fetch(url);
   if (res.status === 404) throw manifestAbsent(url);
   if (!res.ok) throw new Error(`Failed to load ${url}: ${res.status} ${res.statusText}`);
@@ -81,7 +81,7 @@ export async function fetchGameManifest(): Promise<ResolvedGameManifest> {
  * `null`) is the only case that synthesizes a single-world game.
  */
 export async function fetchRawGameManifest(): Promise<unknown | null> {
-  const url = resolveUrl('/vgai.project.json');
+  const url = servedUrl('/vgai.project.json');
   const res = await fetch(url);
   if (!res.ok) return null;
   // A 404 is not the only way this route says "no manifest". A dev server with

@@ -26,8 +26,10 @@ const walk = (dir, out = []) => {
   }
   return out;
 };
+// Comments are not imports: a doc comment quoting `from 'three'` is not an edge.
+const withoutComments = (code) => code.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 const specifiers = (code) =>
-  [...code.matchAll(/(?:\bfrom\s*|\bimport\s*\(\s*|^\s*import\s+)['"]([^'"]+)['"]/gm)].map((m) => m[1]);
+  [...withoutComments(code).matchAll(/(?:\bfrom\s*|\bimport\s*\(\s*|^\s*import\s+)['"]([^'"]+)['"]/gm)].map((m) => m[1]);
 
 const edges = new Set();
 for (const pkg of readdirSync(join(root, 'packages'))) {

@@ -11,13 +11,8 @@
  */
 
 import { base64ToBytes } from '@volter/editor-sdk/kit/bytes-codec';
+import { servedUrl } from '../served-url';
 import { getStorageBackend } from '../storage';
-
-/** A project path as the session serves it: rooted at `/`, while an absolute,
- *  `data:` or `blob:` address is already one. */
-function servedUrl(path: string): string {
-  return /^(\/|https?:|data:|blob:)/.test(path) ? path : `/${path}`;
-}
 
 /**
  * Read a project text file from the session that owns the project namespace.

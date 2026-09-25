@@ -19,7 +19,6 @@
 import { readFile } from 'node:fs/promises';
 import { transform } from 'esbuild';
 import { ZodError } from 'zod';
-import { AssetParseError } from '@volter/editor-threejs/asset-parse-error';
 import { loadGameManifest } from '@volter/editor-project/manifest/load';
 import { sourceAuthoringDiagnostics } from './source-analysis';
 import { oidSurfaceSourceConflicts, resolveProjectFileRegion } from './project-root-surface';
@@ -89,9 +88,15 @@ function parseByKind(json: unknown): void {
  *  JSON array of issue objects — the failing key is in it, buried twelve lines
  *  deep, which is not a diagnosis anyone reads. */
 export function errorsFor(err: unknown): string[] {
-  if (err instanceof AssetParseError) return formatIssues(err.issues);
+  if (isAssetParseError(err)) return formatIssues(err.issues);
   if (err instanceof ZodError) return formatIssues(err.issues);
   return [err instanceof Error ? err.message : String(err)];
+}
+
+/** A fetched-asset parse failure, by its own name and shape: the runtime packages
+ *  each carry a copy of the class, so identity would miss all but one of them. */
+function isAssetParseError(err: unknown): err is Error & { issues: ZodError['issues'] } {
+  return err instanceof Error && err.name === 'AssetParseError' && Array.isArray((err as { issues?: unknown }).issues);
 }
 
 /** The esbuild loader for a project source file, chosen exactly the way the

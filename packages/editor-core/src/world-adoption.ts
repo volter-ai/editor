@@ -21,7 +21,7 @@
  * wrong scene" has one place that already knows there was a choice.
  */
 
-import type { WorldAdoptionEvent } from '@volter/editor-threejs/adapter/ingest/scene-capture';
+import type { WorldAdoptionEvent } from '@volter/editor-sdk/kit/world-adoption-event';
 
 export interface WorldAdoptionAlternate {
   readonly sceneId: string;

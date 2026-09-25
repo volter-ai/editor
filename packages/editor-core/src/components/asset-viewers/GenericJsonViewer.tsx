@@ -1,5 +1,5 @@
 import { SectionHeader, themeVars } from '@volter/editor-sdk/widgets';
-import { resolveUrl } from '@volter/editor-threejs/loader';
+import { servedUrl } from '../../served-url';
 import { useEffect, useState } from 'react';
 import { CodeView, type CodeViewLanguage } from '../CodeView';
 
@@ -21,7 +21,7 @@ export function GenericJsonViewer({ assetPath }: { assetPath: string }) {
     let cancelled = false;
     setContent(null);
     setError(false);
-    fetch(resolveUrl(assetPath))
+    fetch(servedUrl(assetPath))
       .then((r) => r.text())
       .then((text) => {
         // Pretty-print if valid JSON
