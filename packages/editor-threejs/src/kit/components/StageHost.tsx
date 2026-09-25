@@ -117,8 +117,12 @@ import {
   bindViewPresentation,
   DOCUMENT_STUDIO_PRESET,
   reportViewDraw,
+  setViewPresentation,
+  stageLightsPerMode,
+  startingPresentation,
   subscribeViewportPresentation,
   viewPresentation,
+  type ViewportDrawMode,
 } from '@volter/editor-sdk/kit/viewport-presentation';
 import { subscribeEnvironmentImages } from '@volter/editor-sdk/kit/environment-images';
 import { StagePresentationRig } from './standard-viewport-dressing';
@@ -298,6 +302,19 @@ export interface Object3DDocumentViewportProps
  * that document's viewport, so each publishes its own design-time surface
  * instead of overwriting a sibling's (see the registration below).
  */
+/** The draw modes a view's presentation carries (`ViewportDrawMode`). */
+const VIEW_DRAW_MODES: readonly ViewportDrawMode[] = [
+  'solid',
+  'preview',
+  'rendered',
+  'clay',
+  'unlit',
+  'wireframe',
+  'matcap',
+  'normals',
+  'overdraw',
+];
+
 let chromelessSurfaceSequence = 0;
 
 interface RetainedObject3DStageState {
@@ -1598,15 +1615,45 @@ export function Object3DDocumentViewport({
         // the `document` preset, never giving way to the scene, as Blender's Solid never does. A
         // document that turned the key off without one has said it lights itself: the `scene`
         // source. Lights the CONTENT carries are the view's `auto` rule's to weigh, per draw.
+        // A stage whose builder already stated its lighting (Blender's, per shading mode) has said
+        // it; the document's layer would override every mode's with one.
+        const startingLights =
+          startingPresentation(viewStageKind)?.all?.lighting !== undefined || stageLightsPerMode(viewStageKind);
         bindViewPresentation(
           documentId,
           viewStageKind,
-          dressingViewLocked
-            ? { all: { lighting: { source: 'studio', studioPreset: DOCUMENT_STUDIO_PRESET.id, auto: null } } }
-            : dressingKeyLight === false
-              ? { all: { lighting: { source: 'scene' } } }
-              : null,
+          startingLights
+            ? null
+            : dressingViewLocked
+              ? { all: { lighting: { source: 'studio', studioPreset: DOCUMENT_STUDIO_PRESET.id, auto: null } } }
+              : dressingKeyLight === false
+                ? { all: { lighting: { source: 'scene' } } }
+                : null,
         );
+        // THE DRAW MODE IS ONE FACT IN TWO PLACES, kept equal: the session draws it and keeps it,
+        // and the view's presentation resolves its per-mode lighting by it. The session's is written
+        // first, so binding never changes what is drawn; a shading cell changes the session and the
+        // view follows; a named view changes the view and the session follows. Modes the view does
+        // not carry (UV, vertex colours) change only the session.
+        const viewModes = new Set<string>(VIEW_DRAW_MODES);
+        const sessionToView = (): void => {
+          const mode = host.session?.presentation().mode;
+          if (mode === undefined || !viewModes.has(mode)) return;
+          if (viewPresentation(documentId).drawMode !== mode)
+            setViewPresentation(documentId, { drawMode: mode as ViewportDrawMode });
+        };
+        sessionToView();
+        const stopSessionMode = host.session?.subscribe(sessionToView);
+        const stopViewMode = subscribeViewportPresentation(() => {
+          const session = host.session;
+          const mode = viewPresentation(documentId).drawMode;
+          if (session && session.presentation().mode !== mode && viewModes.has(session.presentation().mode))
+            session.setMode(mode);
+        });
+        host.cleanups.push(() => {
+          stopSessionMode?.();
+          stopViewMode();
+        });
         const contentLights: THREE.Light[] = [];
         source.root.traverse((object) => {
           if ((object as THREE.Light).isLight) contentLights.push(object as THREE.Light);

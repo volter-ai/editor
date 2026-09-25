@@ -3,7 +3,7 @@
  * viewport-presentation`): this package builds the `model` stage, so it states the stage's
  * function there, beneath every person's choice and never in the look (ARCHITECTURE.md rule 7).
  */
-import { registerStartingPresentation } from '@volter/editor-sdk/kit/viewport-presentation';
+import { DOCUMENT_STUDIO_PRESET, registerStartingPresentation } from '@volter/editor-sdk/kit/viewport-presentation';
 
 const release = registerStartingPresentation('model', {
   interaction: {
@@ -17,6 +17,42 @@ const release = registerStartingPresentation('model', {
     // BLENDER'S SELECT BOX IS A TOUCH TEST: its object-mode box select reads the object-id buffer
     // under the rectangle, so any drawn part of an object inside it selects that object.
     boxSelect: 'touch',
+  },
+  // BLENDER'S SHADING TYPES EACH KEEP THEIR OWN LIGHTING, and switching the header's shading cell
+  // switches to that type's (`View3DShading` keeps `studio_light` for Solid, `studio_light` /
+  // `studiolight_*` for Material Preview, and Rendered lights by the scene). So they are stated per
+  // draw mode, and a person's Lighting choice is the current mode's (`stageLightsPerMode`).
+  // SOLID (`clay`, and Wireframe with it) is lit by Blender's four studio lights, the document's
+  // view-locked studio.
+  all: { lighting: { source: 'studio', studioPreset: DOCUMENT_STUDIO_PRESET.id, auto: null } },
+  modes: {
+    // MATERIAL PREVIEW: the scene lit by a world studio light alone, Forest at strength 1 and
+    // rotation 0, fixed in the world, drawn over the viewport's own colour, in AgX. Read from
+    // Blender 5.2's factory View3DShading: `studio_light` Default (forest.exr),
+    // `studiolight_intensity` 1, `studiolight_rotate_z` 0, `studiolight_background_alpha` 0,
+    // `use_studiolight_view_rotation` (World Space Lighting) on, `use_scene_lights` off
+    // (`docs/reference-probes/blender-view3d-shading.py`). The images are `blender.environment.ts`'s.
+    // Blender's viewport never changes its shading on its own: a lamp does not take it over.
+    preview: {
+      lighting: {
+        source: 'preview',
+        auto: null,
+        preview: {
+          sceneLights: false,
+          sun: { enabled: false },
+          environment: { enabled: true, image: 'blender:forest', energy: 1, rotation: 0 },
+        },
+        tone: { mapper: 'agx', exposure: 1 },
+      },
+      backdrop: { source: 'fill' },
+    },
+    // RENDERED: the scene's own lights and World, drawn behind the model, in AgX — the lighting the
+    // document's render photographs with (`BlenderRuntimeView.holdRendered`). Not a path tracer:
+    // the viewport and a render agree because they are one drawing.
+    rendered: {
+      lighting: { source: 'scene', auto: null, tone: { mapper: 'agx', exposure: 1 } },
+      backdrop: { source: 'scene' },
+    },
   },
   overlays: {
     // BLENDER DRAWS THE SELECTED OBJECTS' ORIGINS (Overlays › Origins, on by default): the dot at

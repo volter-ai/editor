@@ -407,6 +407,19 @@ interface ViewRecord {
 
 const views = new Map<string, ViewRecord>();
 
+/** What the builder of a kind of stage declared as its starting presentation, or null. */
+export function startingPresentation(stageKind: string): PresentationLayer | null {
+  return starting.get(stageKind) ?? null;
+}
+
+/** Whether a kind of stage keeps its lighting per draw mode, as Blender's shading types each keep
+ *  theirs: its builder stated lighting for a draw mode. Then a person's lighting choice is the
+ *  current mode's, not every mode's. */
+export function stageLightsPerMode(stageKind: string): boolean {
+  const modes = starting.get(stageKind)?.modes;
+  return modes !== undefined && Object.values(modes).some((mode) => mode?.lighting !== undefined);
+}
+
 /** Bind a view to its kind of stage and its document's override. Idempotent; a person's
  *  choices already recorded for the view are kept. */
 export function bindViewPresentation(

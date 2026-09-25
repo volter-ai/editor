@@ -45,11 +45,14 @@ import { object3DDocumentWritePolicy } from '@volter/editor-sdk/kit/object3d-doc
 import { stageStore, stageStoresVersion, subscribeStageStores } from '@volter/editor-sdk/kit/stage-store-registry';
 import { viewportStageHelperKinds } from '@volter/editor-sdk/kit/viewport-door';
 import {
+  type PresentationLayer,
   applyViewPreset,
   DOCUMENT_STUDIO_PRESET,
   setViewGridVisible,
   viewGridVisible,
   setViewPresentation,
+  stageLightsPerMode,
+  startingPresentation,
   studioPresets,
   viewPresets,
   viewPresentationBinding,
@@ -61,6 +64,7 @@ import { ViewportOverlaysGlyph, ViewportOverlaysMenu } from '@volter/editor-sdk/
 import {
   type ViewportDisplayModeChoice,
   ViewportDisplayModeMenu,
+  perModeShadingSegments,
   viewportShadingModes,
   viewportShadingSegments,
 } from './ViewportShadingMenu';
@@ -137,15 +141,45 @@ export function Object3DDocumentToolbar({
   if (!session) return null;
   const presentation = session.presentation();
   const { lighting } = viewPresentation(documentId);
+  const binding = viewPresentationBinding(documentId);
+  const starting = binding ? startingPresentation(binding.stageKind) : null;
   const documentStudioOffered =
-    viewPresentationBinding(documentId)?.documentLayer?.all?.lighting?.studioPreset === DOCUMENT_STUDIO_PRESET.id;
+    binding?.documentLayer?.all?.lighting?.studioPreset === DOCUMENT_STUDIO_PRESET.id ||
+    starting?.all?.lighting?.studioPreset === DOCUMENT_STUDIO_PRESET.id;
+  // WHERE A LIGHTING CHOICE GOES: the current draw mode's, on a stage that keeps lighting per
+  // mode (Blender's Solid, Material Preview and Rendered each keep theirs), else every mode's.
+  const perMode = binding ? stageLightsPerMode(binding.stageKind) : false;
+  const lightingChoice = (choice: NonNullable<NonNullable<PresentationLayer['all']>['lighting']>): PresentationLayer =>
+    perMode ? { modes: { [presentation.mode]: { lighting: choice } } } : { all: { lighting: choice } };
+  // THE MODES THE STAGE LIGHTS ITS OWN WAY, which are the cells it draws (`perModeShadingSegments`).
+  const declaredModes = new Set(
+    Object.entries(starting?.modes ?? {})
+      .filter(([, mode]) => mode?.lighting !== undefined)
+      .map(([mode]) => mode),
+  );
   const availableModes = new Set(
     supportedModelDiagnosticModes(session.root)
       .filter((item) => item.available)
       .map((item) => item.mode),
   );
   const modes: Array<ViewportDisplayModeChoice<Object3DDocumentViewMode>> = [
-    ...viewportShadingModes,
+    // On a per-mode stage `solid` IS Blender's Solid (materials' colours under its studio), so the
+    // neutral override is named for what it is.
+    ...(perMode
+      ? viewportShadingModes.map((choice) =>
+          choice.mode === 'solid'
+            ? { ...choice, label: 'Solid', description: "Materials' colours under the studio lights" }
+            : choice.mode === 'clay'
+              ? { ...choice, label: 'Clay' }
+              : choice,
+        )
+      : viewportShadingModes),
+    ...(declaredModes.has('preview')
+      ? [{ mode: 'preview' as const, label: 'Material Preview', description: 'Materials lit by a preview environment' }]
+      : []),
+    ...(declaredModes.has('rendered')
+      ? [{ mode: 'rendered' as const, label: 'Rendered', description: "Lit as a render is, by the scene's own lights" }]
+      : []),
     ...(availableModes.has('uv')
       ? [{ mode: 'uv' as const, label: 'UV', description: 'UV coordinates as surface color' }]
       : []),
@@ -318,7 +352,7 @@ export function Object3DDocumentToolbar({
           mode={presentation.mode}
           onChange={(mode) => session.setMode(mode)}
           choices={modes}
-          segments={viewportShadingSegments}
+          segments={perMode ? perModeShadingSegments(declaredModes) : viewportShadingSegments}
         >
           {/* A NAMED VIEW, first: a whole presentation (a target engine's default viewport —
               its light, backdrop, overlays and tool) that the packages here contribute
@@ -354,9 +388,11 @@ export function Object3DDocumentToolbar({
                 const value = event.target.value;
                 setViewPresentation(
                   documentId,
-                  value.startsWith('studio:')
-                    ? { all: { lighting: { source: 'studio', studioPreset: value.slice('studio:'.length) } } }
-                    : { all: { lighting: { source: value as 'scene' } } },
+                  lightingChoice(
+                    value.startsWith('studio:')
+                      ? { source: 'studio', studioPreset: value.slice('studio:'.length) }
+                      : { source: value as 'scene' },
+                  ),
                 );
               }}
             >
@@ -381,9 +417,7 @@ export function Object3DDocumentToolbar({
               step="0.1"
               value={lighting.tone.exposure}
               onChange={(event) =>
-                setViewPresentation(documentId, {
-                  all: { lighting: { tone: { exposure: Number(event.target.value) } } },
-                })
+                setViewPresentation(documentId, lightingChoice({ tone: { exposure: Number(event.target.value) } }))
               }
             />
             <Text as="span" variant="caption">

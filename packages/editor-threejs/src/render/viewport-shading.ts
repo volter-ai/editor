@@ -4,6 +4,10 @@ import { createNeutralMatcapTexture } from './matcap-texture';
 /** Temporary developer-facing shading modes. These never become scene data. */
 export type ViewportShadingMode =
   | 'solid'
+  /** Authored materials, as `solid`; a stage lights it by a preview (Blender's Material Preview). */
+  | 'preview'
+  /** Authored materials, as `solid`; a stage lights it by the scene (Blender's Rendered). */
+  | 'rendered'
   | 'clay'
   | 'unlit'
   | 'wireframe'
@@ -65,7 +69,7 @@ export class ViewportShadingRenderer {
     draw: () => void,
     include: (mesh: THREE.Mesh) => boolean = () => true,
   ): void {
-    if (mode === 'solid') {
+    if (mode === 'solid' || mode === 'preview' || mode === 'rendered') {
       draw();
       return;
     }
@@ -107,7 +111,7 @@ export class ViewportShadingRenderer {
 
   private _materialFor(
     material: THREE.Material,
-    mode: Exclude<ViewportShadingMode, 'solid'>,
+    mode: Exclude<ViewportShadingMode, 'solid' | 'preview' | 'rendered'>,
   ): THREE.Material {
     if (mode === 'normals') return this._normals;
     if (mode === 'overdraw') return this._overdraw;

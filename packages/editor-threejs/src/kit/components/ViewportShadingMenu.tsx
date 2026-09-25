@@ -40,18 +40,18 @@ export interface ViewportDisplayModeChoice<T extends string> {
  */
 export interface ViewportShadingSegment<T extends string> {
   readonly mode: T;
-  readonly glyph: 'wireframe' | 'sphere' | 'preview';
+  readonly glyph: 'wireframe' | 'sphere' | 'preview' | 'rendered';
   readonly label: string;
 }
 
 /**
- * THREE OF BLENDER'S FOUR, and the missing one is missing on purpose.
+ * THREE OF BLENDER'S FOUR, and the fourth stands only where it has a mode.
  * Blender's group is Wireframe / Solid / Material Preview / Rendered; this
  * viewport implements the first three (`viewportShadingModes` above:
  * `wireframe`, `clay` — its own label is "Solid" — and `solid`, labelled
- * "Material"). There is no path-traced or offline-rendered mode behind a
- * fourth cell, so no fourth cell is drawn: a segment whose mode does not
- * exist is a shim that promises a render this viewport cannot produce.
+ * "Material"). A stage that keeps its lighting per draw mode draws Blender's
+ * own four instead ({@link perModeShadingSegments}); elsewhere a Rendered cell
+ * would be a shim promising a render the stage does not produce.
  * Every other mode this viewport HAS (Unlit, Matcap, Normals, Overdraw, and
  * the document's UV / Vertex-colors when the asset carries them) stays in the
  * popover behind the chevron, which is also where Blender keeps the rest of
@@ -62,6 +62,23 @@ export const viewportShadingSegments: ReadonlyArray<ViewportShadingSegment<Viewp
   { mode: 'clay', glyph: 'sphere', label: 'Solid' },
   { mode: 'solid', glyph: 'preview', label: 'Material' },
 ];
+
+/**
+ * BLENDER'S OWN FOUR CELLS, for a stage that keeps lighting per draw mode as Blender's shading
+ * types do: Wireframe, Solid (`solid` — materials' colours under its studio lights), Material
+ * Preview (`preview`) and Rendered (`rendered`). A cell stands only where the stage says how its
+ * mode is lit, so none is a shim; Solid and Wireframe are lit by the stage's own default.
+ */
+export function perModeShadingSegments(
+  declared: ReadonlySet<string>,
+): ReadonlyArray<ViewportShadingSegment<ViewportShadingMode>> {
+  return [
+    { mode: 'wireframe', glyph: 'wireframe', label: 'Wireframe' },
+    { mode: 'solid', glyph: 'sphere', label: 'Solid' },
+    ...(declared.has('preview') ? [{ mode: 'preview' as const, glyph: 'preview' as const, label: 'Material Preview' }] : []),
+    ...(declared.has('rendered') ? [{ mode: 'rendered' as const, glyph: 'rendered' as const, label: 'Rendered' }] : []),
+  ];
+}
 
 /**
  * The three marks, transcribed from `modeling-edit-none.png` at its native 2x
@@ -109,7 +126,7 @@ function ViewportShadingGlyph({
       aria-hidden="true"
       focusable="false"
     >
-      {glyph === 'sphere' ? (
+      {glyph === 'sphere' || glyph === 'rendered' ? (
         <circle cx="8" cy="8" r="7.3" fill="currentColor" />
       ) : (
         <circle cx="8" cy="8" r="7.3" fill="none" stroke="currentColor" strokeWidth="1.05" />
@@ -120,6 +137,10 @@ function ViewportShadingGlyph({
           <line x1="1.7" y1="10.6" x2="14.3" y2="10.6" />
           <line x1="5.4" y1="1.7" x2="5.4" y2="14.3" />
         </g>
+      ) : null}
+      {glyph === 'rendered' ? (
+        // Blender's Rendered mark is a lit ball: the filled disc with a highlight up and left.
+        <circle cx="5.6" cy="5.6" r="2.3" fill="var(--vgai-surface-overlay, #ffffff)" fillOpacity="0.7" />
       ) : null}
       {glyph === 'preview' ? (
         <path

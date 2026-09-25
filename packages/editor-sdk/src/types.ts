@@ -1015,6 +1015,10 @@ export interface EditorState {
 export type ViewPreset = 'top' | 'front' | 'right' | 'perspective';
 export type ShadingMode =
   | 'solid'
+  /** Authored materials, lit by a preview environment (Blender's Material Preview). */
+  | 'preview'
+  /** Authored materials, lit as a render is: the scene's own lights (Blender's Rendered). */
+  | 'rendered'
   | 'clay'
   | 'unlit'
   | 'wireframe'

@@ -23,6 +23,8 @@ const CAMERAS = new Set<ViewPreset | 'isometric'>([
 type EditorViewDiagnostic = NonNullable<NonNullable<EditorView['viewport']>['diagnostic']>;
 const DIAGNOSTICS = new Set<EditorViewDiagnostic>([
   'solid',
+  'preview',
+  'rendered',
   'unlit',
   'wireframe',
   'normals',
