@@ -1885,6 +1885,31 @@ function isOpaqueColor(value: string): boolean {
 }
 
 /**
+ * Whether a surface colour is an opaque LIGHT paint (relative luminance above
+ * one half) — the fact a derivation that sinks toward black has to know before
+ * it can be right. A translucent surface (every Glass material's panel is a
+ * low-alpha white over whatever lies beneath) is not a paint and answers
+ * `false`, as does any form this does not read: the dark case every palette
+ * before Plotter was.
+ */
+function isBrightSurface(value: string): boolean {
+  if (!isOpaqueColor(value)) return false;
+  const v = value.trim().toLowerCase();
+  let rgb: number[] | null = null;
+  const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})(?:f|ff)?$/.exec(v);
+  if (hex) {
+    const h = hex[1]!.length === 3 ? [...hex[1]!].map((c) => c + c).join('') : hex[1]!;
+    rgb = [0, 2, 4].map((i) => Number.parseInt(h.slice(i, i + 2), 16));
+  } else {
+    const fn = /^rgba?\(([^)]*)\)$/.exec(v);
+    if (fn) rgb = (fn[1] ?? '').split(/[,\s/]+/).filter(Boolean).slice(0, 3).map((n) => (n.endsWith('%') ? Number.parseFloat(n) * 2.55 : Number.parseFloat(n)));
+  }
+  if (!rgb || rgb.some((n) => !Number.isFinite(n))) return false;
+  const [r, g, b] = rgb as [number, number, number];
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.5;
+}
+
+/**
  * The ink that reads ON `--vgai-selection-bg` — and it is DERIVED, because
  * the fill it has to read on is different per skin.
  *
@@ -1898,28 +1923,6 @@ function isOpaqueColor(value: string): boolean {
  * is how a pressed eye toggle became an unreadable black smudge while the
  * same control read white in Blender.
  */
-/**
- * Whether an opaque surface colour is LIGHT (relative luminance above one
- * half) — the fact a derivation that sinks toward black has to know before it
- * can be right. Surfaces are opaque by contract (`theme-library.ts`), written
- * as hex or `rgb()`; anything else answers `false`, the dark case every
- * palette before Plotter was.
- */
-function isBrightSurface(value: string): boolean {
-  const v = value.trim().toLowerCase();
-  let rgb: number[] | null = null;
-  const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/.exec(v);
-  if (hex) {
-    const h = hex[1]!.length === 3 ? [...hex[1]!].map((c) => c + c).join('') : hex[1]!;
-    rgb = [0, 2, 4].map((i) => Number.parseInt(h.slice(i, i + 2), 16));
-  } else {
-    const fn = /^rgba?\(([^)]*)\)$/.exec(v);
-    if (fn) rgb = (fn[1] ?? '').split(/[,\s/]+/).slice(0, 3).map((n) => Number.parseFloat(n));
-  }
-  if (!rgb || rgb.some((n) => !Number.isFinite(n))) return false;
-  const [r, g, b] = rgb as [number, number, number];
-  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.5;
-}
 
 function selectionInkValue(theme: EditorTheme): string {
   if (usesNeutralSelection(theme)) return 'var(--vgai-content-primary)';

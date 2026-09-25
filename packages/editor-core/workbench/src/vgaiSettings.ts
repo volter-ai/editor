@@ -140,16 +140,17 @@ const WORKBENCH_ADAPTER_VALUES: readonly (readonly [string, unknown])[] = [
  * colour theme that is always on is precisely what defeats a null default.
  *
  * So the extension declares the themes and the LOOK chooses one: Blender wears `theme-blender`,
- * every other look wears the workbench's own defaults, which is what "Classic's reference frame
+ * Plotter wears the kit's `theme-plotter`, every other look wears the workbench's own defaults, which is what "Classic's reference frame
  * is our panels with no look declared" means. The mapping is the WORKBENCH side's, not the
  * editor's, and that is deliberate — `Blender` and `blender-icons` are names of artifacts in a
  * built workbench, and an editor package naming them would be the panel-knows-the-frame
  * inversion rule 2 forbids. The bridge hands over the LOOK's own id and nothing else.
  *
- * THE ROWS ARE THE PRODUCT'S (P3, 2026-09-21): the artifacts they name are shipped by the
- * product's own extension (`packages/model-editor/workbench/extensions/theme-blender`), so the
- * product declares them through `registerVgaiProduct({ looks })`. A product that ships no theme
- * declares none and every look wears the workbench's own.
+ * THE ROWS ARE THE PRODUCT'S (P3, 2026-09-21): a product declares, through
+ * `registerVgaiProduct({ looks })`, the theme artifacts its build carries: its own extension's
+ * (`packages/model-editor/workbench/extensions/theme-blender`) and the kit's, which every
+ * product's build carries (`packages/editor-core/workbench/extensions/theme-plotter`). A look a
+ * product declares no row for wears the workbench's own.
  */
 const COLOR_THEME_KEY = 'workbench.colorTheme';
 const PRODUCT_ICON_THEME_KEY = 'workbench.productIconTheme';

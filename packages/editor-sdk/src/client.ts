@@ -899,7 +899,7 @@ export class EditorClient {
   }
 
   /** Apply a STYLE BUNDLE — palette, material, icon set and region defaults
-   *  in one gesture (`classic`/`glass`/`maya`/`substance`, or one a package
+   *  in one gesture (`classic`/`glass`/`maya`/`substance`/`plotter`, or one a package
    *  the project declares carries, `blender`). */
   async setStyle(style: string): Promise<void> {
     await this.command({ type: 'set-style', style });
