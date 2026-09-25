@@ -19,6 +19,9 @@ export const view: ViewPreset = {
     all: {
       lighting: {
         source: 'preview',
+        // Blender's viewport never changes its shading on its own: a lamp in the scene does not
+        // take Material Preview over.
+        auto: null,
         preview: {
           sceneLights: false,
           sun: { enabled: false },

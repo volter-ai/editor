@@ -1610,6 +1610,8 @@ export function Object3DDocumentViewport({
         host.contentHas = contentHas;
         host.dressing.frameContent(source.root);
         host.presentationRig?.placeFloor(source.root);
+        // An edit can move the content's lowest point; the floor follows it.
+        host.cleanups.push(store.subscribe(() => host.presentationRig?.placeFloor(source.root)));
         store.selectMultiple(selected.filter((id) => store.objectMap.has(id)));
         store.notifyIngestObjectMapEdit();
         documentSession.syncSelectionPresentation();

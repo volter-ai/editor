@@ -433,25 +433,30 @@ function imageKey(image: NonNullable<ReturnType<typeof environmentImage>>): stri
   return `image|${image.id}|${image.url}`;
 }
 
+function fade(t: number): number {
+  return t * t * (3 - 2 * t);
+}
+
+/** A lattice point's value, 0 to 1. */
+function latticeHash(i: number, j: number, k: number): number {
+  let h = Math.imul(i, 374761393) ^ Math.imul(j, 668265263) ^ Math.imul(k, 1440662683);
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+
 /** Value noise in three dimensions, 0 to 1, smoothly interpolated between lattice points. */
 function valueNoise(x: number, y: number, z: number): number {
   const xi = Math.floor(x);
   const yi = Math.floor(y);
   const zi = Math.floor(z);
-  const fade = (t: number) => t * t * (3 - 2 * t);
   const u = fade(x - xi);
   const v = fade(y - yi);
   const w = fade(z - zi);
-  const hash = (i: number, j: number, k: number): number => {
-    let h = Math.imul(i, 374761393) ^ Math.imul(j, 668265263) ^ Math.imul(k, 2147483647);
-    h = Math.imul(h ^ (h >>> 13), 1274126177);
-    return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
-  };
   const lerp = THREE.MathUtils.lerp;
-  const x00 = lerp(hash(xi, yi, zi), hash(xi + 1, yi, zi), u);
-  const x10 = lerp(hash(xi, yi + 1, zi), hash(xi + 1, yi + 1, zi), u);
-  const x01 = lerp(hash(xi, yi, zi + 1), hash(xi + 1, yi, zi + 1), u);
-  const x11 = lerp(hash(xi, yi + 1, zi + 1), hash(xi + 1, yi + 1, zi + 1), u);
+  const x00 = lerp(latticeHash(xi, yi, zi), latticeHash(xi + 1, yi, zi), u);
+  const x10 = lerp(latticeHash(xi, yi + 1, zi), latticeHash(xi + 1, yi + 1, zi), u);
+  const x01 = lerp(latticeHash(xi, yi, zi + 1), latticeHash(xi + 1, yi, zi + 1), u);
+  const x11 = lerp(latticeHash(xi, yi + 1, zi + 1), latticeHash(xi + 1, yi + 1, zi + 1), u);
   return lerp(lerp(x00, x10, v), lerp(x01, x11, v), w);
 }
 
@@ -470,6 +475,46 @@ function fractalNoise(x: number, y: number, z: number): number {
   return sum / total;
 }
 
+/** The fractal noise's values over the sphere, sorted: its quantiles turn a cloud `cover` into
+ *  the threshold that clouds that share of the sky (the noise clusters near 0.5, so a raw
+ *  threshold would cloud almost none or almost all of it). */
+let noiseQuantiles: Float32Array | null = null;
+function cloudThreshold(cover: number): number {
+  if (!noiseQuantiles) {
+    const samples = new Float32Array(4096);
+    for (let index = 0; index < samples.length; index++) {
+      // Evenly spread directions (a Fibonacci sphere), at the scale the layer is drawn around.
+      const y = 1 - (2 * (index + 0.5)) / samples.length;
+      const radius = Math.sqrt(1 - y * y);
+      const theta = index * 2.399963229728653;
+      samples[index] = fractalNoise(Math.cos(theta) * radius * 4, y * 4, Math.sin(theta) * radius * 4);
+    }
+    noiseQuantiles = samples.sort();
+  }
+  const at = THREE.MathUtils.clamp(Math.round((1 - cover) * (noiseQuantiles.length - 1)), 0, noiseQuantiles.length - 1);
+  return noiseQuantiles[at]!;
+}
+
+/** A cloud layer as the sky states it, a partial one completed (a restored or commanded layer
+ *  is not validated field by field), or `null` for a clear sky. */
+function cloudLayer(
+  clouds: ViewportPresentation['lighting']['preview']['environment']['sky']['clouds'],
+): { cover: number; opacity: number; scale: number } | null {
+  if (!clouds) return null;
+  const finite = (value: unknown, fallback: number) =>
+    typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+  const layer = {
+    cover: THREE.MathUtils.clamp(finite(clouds.cover, 0.5), 0, 1),
+    opacity: THREE.MathUtils.clamp(finite(clouds.opacity, 1), 0, 1),
+    scale: Math.max(finite(clouds.scale, 4), 0.1),
+  };
+  return layer.cover > 0 && layer.opacity > 0 ? layer : null;
+}
+
+/** Noise is drawn on a grid this many texels apart and interpolated between: clouds are soft,
+ *  and a full-resolution strip costs a second of main thread per rebuild. */
+const CLOUD_STEP = 4;
+
 /** The floor's width in scene units: past any preview sun's shadow reach and fading into the
  *  sky's ground at the horizon well before the camera's far plane. */
 const FLOOR_EXTENT = 400;
@@ -486,9 +531,12 @@ export class StagePresentationRig {
   private readonly sun = new THREE.DirectionalLight(0xffffff, 1);
   /** The view's floor (`overlays.floor`): a wide plane under the content taking shadows. */
   private readonly floorBounds = new THREE.Box3();
+  /** What the floor stands under, kept so a view that shows the floor later can place it. */
+  private floorContent: THREE.Object3D | null = null;
   private readonly floor = new THREE.Mesh(
     new THREE.PlaneGeometry(FLOOR_EXTENT, FLOOR_EXTENT).rotateX(-Math.PI / 2),
-    new THREE.MeshStandardMaterial({ roughness: 0.9, metalness: 0 }),
+    // Drawn just behind anything on its plane, so a grid lying there stays on top.
+    new THREE.MeshStandardMaterial({ roughness: 0.9, metalness: 0, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }),
   );
   /** The preview sky, built from its three colours: the background drawn behind the scene and
    *  the environment that lights it, rebuilt only when the colours change. */
@@ -540,11 +588,15 @@ export class StagePresentationRig {
     presentation: ViewportPresentation,
     renderer: THREE.WebGLRenderer,
     documentToneMapping?: THREE.ToneMapping,
-    options: { readonly tone?: boolean; readonly sky?: boolean } = {},
+    options: { readonly tone?: boolean; readonly sky?: boolean; readonly floor?: boolean } = {},
   ): void {
     this.presentation = presentation;
     const { lighting } = presentation;
-    this.floor.visible = presentation.overlays.floor.visible;
+    // A stage with no content to stand it under (the game world's) shows no floor.
+    const floorShown = options.floor !== false && presentation.overlays.floor.visible;
+    const floorAppears = floorShown && !this.floor.visible;
+    this.floor.visible = floorShown;
+    if (floorAppears && this.floorContent) this.placeFloor(this.floorContent);
     this.floor.material.color.set(presentation.overlays.floor.color);
     const preset = studioPreset(lighting.studioPreset);
     if (preset !== this.preset) this.build(preset);
@@ -654,6 +706,8 @@ export class StagePresentationRig {
    *  preview floor at the bottom of the mesh's bounds; empty content leaves it on the world's
    *  floor. */
   placeFloor(content: THREE.Object3D): void {
+    this.floorContent = content;
+    if (!this.floor.visible) return;
     const bounds = contentWorldBounds(content, this.floorBounds);
     this.floor.position.y = bounds.isEmpty() ? 0 : bounds.min.y;
     this.floor.updateMatrixWorld();
@@ -705,7 +759,7 @@ export class StagePresentationRig {
     const sunKey = sun
       ? `${sun.direction.toArray().map((value) => value.toFixed(4)).join(',')}|${sun.color}|${sun.energy}`
       : 'none';
-    const clouds = colours.clouds;
+    const clouds = cloudLayer(colours.clouds);
     const cloudKey = clouds ? `${clouds.cover}|${clouds.opacity}|${clouds.scale}` : 'clear';
     const key = `${colours.top}|${colours.horizon}|${colours.ground}|${colours.topCurve}|${colours.groundCurve}|${cloudKey}|${sunKey}`;
     if (this.sky?.key === key) return;
@@ -729,6 +783,27 @@ export class StagePresentationRig {
     const pixel = new THREE.Color();
     // A cloud is lit white, taking a little of the horizon's colour.
     const cloudColour = new THREE.Color(0.92, 0.93, 0.95).lerp(horizon, 0.2);
+    // The cloud layer's noise over the upper half, on a coarse grid sampled on each direction
+    // (so the strip's two edges meet without a seam), and the value that clouds `cover` of it.
+    const cloudColumns = width / CLOUD_STEP;
+    const cloudRows = height / 2 / CLOUD_STEP + 1;
+    const cloudEdge = clouds ? cloudThreshold(clouds.cover) : 1;
+    let cloudField: Float32Array | null = null;
+    if (clouds) {
+      cloudField = new Float32Array(cloudColumns * cloudRows);
+      for (let gridRow = 0; gridRow < cloudRows; gridRow++) {
+        const row = Math.min(height / 2 + gridRow * CLOUD_STEP, height - 1);
+        const elevation = ((row + 0.5) / height - 0.5) * Math.PI;
+        for (let gridColumn = 0; gridColumn < cloudColumns; gridColumn++) {
+          const longitude = ((gridColumn * CLOUD_STEP + 0.5) / width - 0.5) * Math.PI * 2;
+          cloudField[gridRow * cloudColumns + gridColumn] = fractalNoise(
+            Math.cos(longitude) * Math.cos(elevation) * clouds.scale,
+            Math.sin(elevation) * clouds.scale,
+            Math.sin(longitude) * Math.cos(elevation) * clouds.scale,
+          );
+        }
+      }
+    }
     const direction = new THREE.Vector3();
     for (let row = 0; row < height; row++) {
       const elevation = ((row + 0.5) / height - 0.5) * Math.PI;
@@ -744,18 +819,22 @@ export class StagePresentationRig {
       const cloudRise = clouds && elevation > 0 ? THREE.MathUtils.smoothstep(Math.sin(elevation), 0, 0.25) : 0;
       for (let column = 0; column < width; column++) {
         pixel.copy(band);
-        if (clouds && cloudRise > 0) {
-          const longitude = ((column + 0.5) / width - 0.5) * Math.PI * 2;
-          // Sampled on the direction, so the strip's two edges meet without a seam.
-          const density = THREE.MathUtils.smoothstep(
-            fractalNoise(
-              Math.cos(longitude) * Math.cos(elevation) * clouds.scale,
-              Math.sin(elevation) * clouds.scale,
-              Math.sin(longitude) * Math.cos(elevation) * clouds.scale,
-            ),
-            1 - clouds.cover - 0.12,
-            1 - clouds.cover + 0.12,
+        if (clouds && cloudField && cloudRise > 0) {
+          // Bilinear between the grid's four nearest samples; the grid wraps in longitude.
+          const gx = column / CLOUD_STEP;
+          const gy = (row - height / 2) / CLOUD_STEP;
+          const x0 = Math.floor(gx);
+          const y0 = Math.max(0, Math.floor(gy));
+          const fx = gx - x0;
+          const fy = gy - Math.floor(gy);
+          const at = (x: number, y: number) =>
+            cloudField[Math.min(y, cloudRows - 1) * cloudColumns + (x % cloudColumns)]!;
+          const noise = THREE.MathUtils.lerp(
+            THREE.MathUtils.lerp(at(x0, y0), at(x0 + 1, y0), fx),
+            THREE.MathUtils.lerp(at(x0, y0 + 1), at(x0 + 1, y0 + 1), fx),
+            fy,
           );
+          const density = THREE.MathUtils.smoothstep(noise, cloudEdge - 0.04, cloudEdge + 0.04);
           pixel.lerp(cloudColour, density * clouds.opacity * cloudRise);
         }
         if (light && sun && elevation > -Math.PI / 2) {
