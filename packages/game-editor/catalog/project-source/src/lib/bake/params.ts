@@ -1,8 +1,7 @@
 /**
  * Reading a declared params schema as tuning controls.
  *
- * The parameterization contract (the `vgai-3d-assets` skill,
- * "Parametric asset libs") says a
+ * The parameterization contract says a
  * parametric asset lib exports a PAIR — a declared parameter object and the
  * function that takes it — and that any tuning UI is DERIVED from that
  * declaration, never hand-mirrored. A hand-kept control table is a second

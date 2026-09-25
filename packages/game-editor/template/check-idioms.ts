@@ -63,8 +63,7 @@ import { fileURLToPath } from 'node:url';
 //         logs read on an interval, redirected live until satisfied — and
 //         the play log (`logs/play-*.jsonl`) is the playtest's receipt.
 //   SHIP-TIER (E9) — the required naming floor for shipped 3D source (owner
-//   decision 2026-08-10; `.agents/skills/vgai-3d-assets/SKILL.md`, "The
-//   REQUIRED floor"). E9 reports as a WARNING with a standing count the
+//   decision 2026-08-10; `.agents/references/project-manual.md`). E9 reports as a WARNING with a standing count the
 //   operator reads. An unnamed primitive is normal mid-build;
 //   declaring a prefab folder entry without its registration is not.
 //   WARN (exit 0 unless --strict) — heuristics, more prone to false
@@ -1201,7 +1200,7 @@ function checkAuthoringWarnings(): void {
   if (found.length === 0) return;
 
   const fix =
-    'Fix each one at its callsite — the R3F00x codes are the named-nodes half of the required floor: a named prefab with a story (.agents/skills/vgai-3d-assets/SKILL.md). R3F004 wants an ordinary `name` prop, R3F002 wants the ThreeElements transform props forwarded to the one native root, R3F003 wants a single wrapping group, R3F005 wants runtime motion on an inner child. `idioms-ignore E9 <reason>` is the escape when a code is genuinely wrong about your source.';
+    'Fix each one at its callsite — the R3F00x codes are the named-nodes half of the required floor: a named prefab with a story (.agents/references/project-manual.md). R3F004 wants an ordinary `name` prop, R3F002 wants the ThreeElements transform props forwarded to the one native root, R3F003 wants a single wrapping group, R3F005 wants runtime motion on an inner child. `idioms-ignore E9 <reason>` is the escape when a code is genuinely wrong about your source.';
 
   if (floorSeverity() === 'warn') {
     const codes = [...new Set(found.map((f) => f.diagnostic.code))].sort();
@@ -1229,7 +1228,7 @@ function checkAuthoringWarnings(): void {
       'E9',
       'error',
       'authoring-warnings-zero',
-      `${diagnostic.code}: ${diagnostic.message} Authoring warnings are ZERO at handoff — the required floor: a named prefab with a story (.agents/skills/vgai-3d-assets).`,
+      `${diagnostic.code}: ${diagnostic.message} Authoring warnings are ZERO at handoff — the required floor: a named prefab with a story (.agents/references/project-manual.md).`,
       fix,
     );
   }
@@ -1322,7 +1321,7 @@ function checkPrefabStories(): void {
         'E10',
         'error',
         'prefab-ships-a-story',
-        `${name} is a shipped prefab with no colocated story — the required floor: a named prefab with a story (.agents/skills/vgai-3d-assets). Without one it is invisible to the editor's Content tab, which is where a designer finds, previews and places it.`,
+        `${name} is a shipped prefab with no colocated story — the required floor: a named prefab with a story (.agents/references/project-manual.md). Without one it is invisible to the editor's Content tab, which is where a designer finds, previews and places it.`,
         `Add ${relPath(file).replace(/\.[jt]sx$/, '.stories.tsx')} with \`component: ${name}\` in its \`meta\` — copy src/prefabs/HeroBox.stories.tsx and rename. If this module is not a shipped prefab, it does not belong in ${PREFAB_DIR}.`,
       );
       continue;

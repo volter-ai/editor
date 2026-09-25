@@ -1,6 +1,6 @@
 ---
 name: vgai-threejs-authoring
-description: Build, rig, animate, diagnose, and visually refine polished native Three.js scenes and procedural assets with direct Object3D code, reusable construction helpers, geometry libraries, and an inspect-render-critique loop. Use for procedural models, rigid mechanical armatures, environments, static props, stylized materials, lighting, cameras, scene composition, or an agent-focused Blender-like workflow. Use vgai-3d-assets alongside this skill when the result should become a source document and a baked GLB. Do not use for Blender bpy work or imported skeletal retargeting.
+description: Build, rig, animate, diagnose, and visually refine polished native Three.js scenes and procedural assets with direct Object3D code, reusable construction helpers, geometry libraries, and an inspect-render-critique loop. Use for procedural models, rigid mechanical armatures, environments, static props, stylized materials, lighting, cameras, scene composition, or an agent-focused Blender-like workflow. Use vgai-3d-models when the result should be a Blender source document with an exported GLB. Do not use for Blender bpy work or imported skeletal retargeting.
 ---
 
 # VGAI Three.js Authoring
@@ -23,9 +23,8 @@ Never introduce a parallel entity tree, semantic operation log, generated
 scene JSON, or wrapper around ordinary Three.js access for agent control. Give
 important objects stable `Object3D.name` values or project metadata.
 
-Also use `vgai-3d-assets` for reusable source-backed assets,
-`vgai-animation-assets` for imported skeletons or clips, and
-`vgai-environment-art` for whole-scene art direction.
+Use `vgai-3d-models` for Blender-sourced assets; prefab placement, stories and the
+naming floor are in `.agents/references/project-manual.md`.
 
 ## Choose the lowest sufficient layer
 
@@ -44,11 +43,7 @@ Keep alternate library representations temporary. Return a normal
 `BufferGeometry`, `Mesh`, `Group`, or other native `Object3D`.
 
 Read [references/helper-catalog.md](references/helper-catalog.md) before adding
-modeling capabilities or dependencies. That catalog answers *which op* — for
-*which surfacing mode* (palette, shader look, tiling projection, card, decal,
-provider retexture, procedural mask) and whether the asset needs UVs at all,
-walk the eight modes cheapest-first in the `vgai-3d-assets` skill's
-`references/surfacing.md`.
+modeling capabilities or dependencies; it answers *which op*.
 
 ## Author raw code
 

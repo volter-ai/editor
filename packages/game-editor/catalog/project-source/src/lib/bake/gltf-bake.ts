@@ -94,7 +94,7 @@ export function installNodeThreePolyfills(): () => void {
  * SNAPSHOT of world bone positions, so it also skews the bounds validation
  * below the moment a param moves the rig after the helper was built. Baked
  * output is the model; presentation chrome stays outside the baked root
- * (the `vgai-3d-assets` skill, "Parametric asset libs").
+ * (the parametric asset contract).
  */
 function detachRigHelpers(root: THREE.Object3D): () => void {
   const detached: Array<{ object: THREE.Object3D; parent: THREE.Object3D }> = [];

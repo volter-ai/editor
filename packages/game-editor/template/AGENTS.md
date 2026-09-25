@@ -10,7 +10,7 @@ The editor is the authoring and verification surface.
 | Build or change this game | This file + the relevant `.agents/references/project-manual.md` section |
 | Open, play, or verify it | `.agents/skills/editor/SKILL.md` |
 | Model or revise a game prop with Blender | `.agents/skills/vgai-3d-models/SKILL.md` |
-| The game needs a 3D asset placed, rigged, or baked | `.agents/skills/vgai-3d-assets/SKILL.md` |
+| The game needs a 3D asset placed, rigged, or baked | `.agents/skills/vgai-3d-models/SKILL.md` (model and export); placement, stories and baking in `.agents/references/project-manual.md` |
 | Other craft (2D/3D art, animation, humanoids, generated assets) | The matching `.agents/skills/vgai-*/SKILL.md` |
 | Import an existing web game | Read-only compatibility report; never rewrite its source |
 | Browse or modify an example | Read-only, or scaffold a copy; user games never go in `examples/` |

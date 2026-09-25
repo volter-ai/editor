@@ -1,6 +1,6 @@
 ---
 name: vgai-3d-models
-description: Model and revise game props with ordinary Blender Python through the Blender MCP and export the asset for a reusable Three.js prefab. Use when asked to model a prop, shape, machine, or other game object. For placement, stories and gameplay use vgai-3d-assets; for procedural geometry generated during gameplay use ordinary Three.js.
+description: Model and revise game props with ordinary Blender Python through the Blender MCP and export the asset for a reusable Three.js prefab. Use when asked to model a prop, shape, machine, or other game object. For placement, stories and gameplay follow .agents/references/project-manual.md; for procedural geometry generated during gameplay use ordinary Three.js.
 ---
 
 # Model a game asset
@@ -45,8 +45,8 @@ verification requirements. Before handoff, run the game's build and inspect the
 exported game. Keep input assets and runtime exports in version control;
 keep scratch files in `.vgai/tmp/`.
 
-For animation and skinning, also read `vgai-animation-assets`; a static mesh
-export is not proof that an animated character is game-ready.
+For animation and skinning, a static mesh export is not proof that an animated
+character is game-ready.
 
 ## Where the model lives
 
