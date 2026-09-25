@@ -38,11 +38,14 @@ export const style: StyleContribution = {
         // The axis triad in the viewport's bottom-left corner (`level-editor.png`).
         navigationGizmo: 'triad',
         navigationCorner: 'bottom-left',
-        // Straight shafts with short, fat cone heads.
-        gizmoArrowLength: 1,
-        gizmoArrowHead: 1.3,
+        // Unreal's arrows end in slim cones about 14 px long on ~85 px shafts (`level-editor.png`),
+        // fitted side by side at 1x.
+        gizmoArrowLength: 0.85,
+        gizmoArrowHead: 0.8,
         // A hard yellow-orange line about three pixels wide around the whole silhouette; the
-        // parts other objects hide are drawn too (dotted in Unreal, behind the table).
+        // parts other objects hide are drawn too (dotted in Unreal, behind the table). Widths
+        // over 4 widen the blur kernel and the band goes pale and soft (measured: 5 peaks at
+        // #dfad6b over the sky), so 3 is the widest solid band the crisp form draws.
         outlineStyle: 'crisp',
         outlineWidth: 3,
         outlineHidden: true,
