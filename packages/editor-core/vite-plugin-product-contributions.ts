@@ -49,6 +49,12 @@
  * importing — through Node resolution of `<name>/package.json`, so the product
  * reads the package its own install resolves. `resolveId` is the only hook with
  * an importer, so it resolves the manifest and remembers it for `load`.
+ *
+ * AN OPTIONAL PACKAGE THE INSTALL LACKS COMPOSES NOTHING. A product lists a package it offers
+ * only when it is installed in its `optionalDependencies` (the Volter brand's Plotter style,
+ * `@volter-ai/brand`, which is private: an install without access to it skips it). Such a
+ * package's module is the empty list, so the build is the same product without that package.
+ * A package in `dependencies` that does not resolve is still a throw.
  */
 
 import { readFileSync } from 'node:fs';
@@ -157,6 +163,37 @@ function locateManifest(packageName: string, importer: string | undefined): stri
   }
 }
 
+/** The manifest marker for an optional package the install lacks. */
+const ABSENT = '';
+
+/** Whether the nearest `package.json` above the importer lists the package as OPTIONAL. */
+function optionalForImporter(packageName: string, importer: string | undefined): boolean {
+  if (!importer || !isAbsolute(importer)) return false;
+  let dir = dirname(importer);
+  for (;;) {
+    try {
+      const manifest = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as {
+        optionalDependencies?: Record<string, string>;
+      };
+      return Object.hasOwn(manifest.optionalDependencies ?? {}, packageName);
+    } catch {
+      /* no manifest here: keep walking */
+    }
+    const parent = dirname(dir);
+    if (parent === dir) return false;
+    dir = parent;
+  }
+}
+
+function resolvable(packageName: string, importer: string | undefined): boolean {
+  try {
+    locateManifest(packageName, importer);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * The ONE plugin serving every `vgai:contributions/<package>` a product names.
  *
@@ -178,13 +215,19 @@ export function productContributionsPlugin(): Plugin {
           `"${id}" names no package — the form is \`${PRODUCT_CONTRIBUTIONS_PREFIX}<package>\`.`,
         );
       const virtual = `\0${id}`;
-      manifests.set(virtual, locateManifest(packageName, importer));
+      manifests.set(
+        virtual,
+        optionalForImporter(packageName, importer) && !resolvable(packageName, importer)
+          ? ABSENT
+          : locateManifest(packageName, importer),
+      );
       return virtual;
     },
     load(id) {
       const manifestPath = manifests.get(id);
       if (manifestPath === undefined) return null;
       const packageName = id.slice(`\0${PRODUCT_CONTRIBUTIONS_PREFIX}`.length);
+      if (manifestPath === ABSENT) return productContributionsModuleSource(packageName, []);
       // Watched, so a package that grows a contribution refreshes the product
       // in a live session instead of waiting for a restart.
       this.addWatchFile(manifestPath);

@@ -24,6 +24,9 @@ export interface ProjectToolContribution {
   /** The dependency that declared it (`package.json#vgai.contributions`),
    *  absent for the project's own `src/contributions/` modules. */
   package?: string;
+  /** The product lists that dependency as OPTIONAL: its contribution is in the page only when the
+   *  product's build had the package installed, and a build without it loads none of it. */
+  optional?: boolean;
 }
 
 export interface ProjectToolErrorSummary {

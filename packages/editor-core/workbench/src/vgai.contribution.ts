@@ -21,7 +21,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/vgai-parts.css';
-import './vgaiPlotterLook.js';
 import './vgaiSidebarRestore.js';
 import './vgaiChat.js';
 import { attachDocumentView, installDocumentViewSink, VgaiDocumentViews } from './vgaiDocumentViews.js';

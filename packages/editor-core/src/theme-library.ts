@@ -16,7 +16,6 @@ import {
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import mayaPalette from './palettes/maya.palette.json';
 import substancePalette from './palettes/substance.palette.json';
-import plotterPalette from './palettes/plotter.palette.json';
 
 // Custom themes are PALETTE DOCUMENTS, one file per theme, named by id:
 // `~/.vgai/themes/<id>.json` (the user layer, where the Theme Manager
@@ -68,7 +67,7 @@ const BUILT_IN_NAMES: Record<(typeof BUILT_IN_EDITOR_PALETTE_IDS)[number], strin
  * composition and region set. They list as built-in: not editable in place,
  * duplicable like any other.
  */
-const SHIPPED_PALETTE_DOCUMENTS: readonly unknown[] = [mayaPalette, substancePalette, plotterPalette];
+const SHIPPED_PALETTE_DOCUMENTS: readonly unknown[] = [mayaPalette, substancePalette];
 let cachedShipped: readonly CustomEditorThemeDocument[] | null = null;
 /** Palettes a package's `workspace.style` contribution carries (Blender's
  *  ships with `@volter/editor-blender`): parsed through the same v3 reader as a person's

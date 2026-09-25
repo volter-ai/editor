@@ -139,7 +139,7 @@ export function ViewportFurniture({
     subscribeThemeViewportGroup,
     lookDeclaresViewportColors,
   );
-  // A LIGHT declared viewport (Plotter's paper) is the one case the on-accent ink cannot serve:
+  // A LIGHT declared viewport (a paper ground) is the one case the on-accent ink cannot serve:
   // there it is the ground's own colour, so the ordinary ink reads instead.
   const lookPaintsLight = useSyncExternalStore(subscribeThemeViewportGroup, lookPaintsLightViewport);
   const overlayInk = lookPaintsViewport && !lookPaintsLight ? themeVars.content.onAccent : themeVars.content.primary;

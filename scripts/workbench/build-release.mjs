@@ -293,6 +293,7 @@ const assetVersion = overlay ? createHash('sha1').update(JSON.stringify({
 	product: args.product,
 	codeOss: pin.commit,
 	editor: overlay.editorSource,
+	lookTiers: overlay.lookTiers,
 	...(overlay.editorSource.dirty ? { overlaidAt: overlay.overlaidAt } : {}),
 })).digest('hex') : 'dry-run-composition-fingerprint';
 CHILD_ENV.BUILD_SOURCEVERSION = assetVersion;

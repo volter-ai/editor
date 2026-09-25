@@ -1889,8 +1889,8 @@ function isOpaqueColor(value: string): boolean {
  * one half) — the fact a derivation that sinks toward black has to know before
  * it can be right. A translucent surface (every Glass material's panel is a
  * low-alpha white over whatever lies beneath) is not a paint and answers
- * `false`, as does any form this does not read: the dark case every palette
- * before Plotter was.
+ * `false`, as does any form this does not read: the dark case most palettes
+ * are.
  */
 function isBrightSurface(value: string): boolean {
   if (!isOpaqueColor(value)) return false;
@@ -2488,7 +2488,7 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     //
     // Both derivations sink the accent toward BLACK, which is a statement about
     // a DARK palette: the band has to sit darker than the stripe it replaces.
-    // On a LIGHT panel (the Plotter palette, paper) the same arithmetic paints a
+    // On a LIGHT panel (a paper palette) the same arithmetic paints a
     // near-black band under dark ink. There the selected band is the palette's
     // own selection wash (`accent.muted`, what a pressed control already wears);
     // the active row is that colour at full strength, with no ink ring. Every dark palette

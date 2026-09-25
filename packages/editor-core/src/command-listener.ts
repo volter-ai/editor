@@ -166,7 +166,12 @@ import {
   setEditorWorkspace,
   whenEditorWorkspaceApplied,
 } from './workspace-presets';
-import { activeWorkspaceStyleId, applyWorkspaceStyle, workspaceStyles } from './workspace-style';
+import {
+  activeWorkspaceStyleId,
+  applyWorkspaceStyle,
+  workspaceStyleDifferences,
+  workspaceStyles,
+} from './workspace-style';
 import { documentContributionForKind } from './tool-loader';
 import { toggleConsoleUtility } from './workspace-utility-commands';
 import { worldAdoptionFacet } from './world-adoption';
@@ -1100,8 +1105,8 @@ export async function handleCommand(
       if (applied !== id) {
         return {
           ok: false,
-          error: `set-style applied "${id}" but the editor is wearing ${applied === null ? 'a custom mix of axes' : `"${applied}"`}.`,
-          data: { style: applied },
+          error: `set-style applied "${id}" but the editor is wearing ${applied === null ? 'a custom mix of axes' : `"${applied}"`} (${workspaceStyleDifferences(id).join('; ')}).`,
+          data: { style: applied, differences: workspaceStyleDifferences(id) },
         };
       }
       return { ok: true, data: { style: id } };

@@ -65,31 +65,6 @@ export interface WorkspaceStyleBundle {
   readonly regions: ChromeRegions;
 }
 
-/**
- * THE PLOTTER MATERIAL — the Volter brand's shape, as the Plotter style wears it. Plotter is the
- * brand's EXPLORATION style (where the standard brand style is worked out), not a default, so
- * every value is a brand token (brand.volter.ai/tokens.json): 3 px control and 4 px panel
- * corners, no shadow on a resting surface and the brand's `floating` and `dialog` shadows above
- * it, and the type one step up the editor's scale toward the brand's (12.5 / 14 px) so Geist
- * reads at its intended sizes. Registered here, with the built-in rows, because a built-in
- * style can only name a material that exists.
- */
-const PLOTTER_MATERIAL = Object.freeze({
-  id: 'plotter',
-  title: 'Plotter',
-  description: 'The Volter brand: near-square corners, hairlines, shadows only above the page.',
-  shape: { small: '3px', medium: '4px', large: '4px', full: '9999px' },
-  elevation: {
-    small: 'none',
-    medium: '0 12px 32px rgba(21,23,22,0.14), 0 2px 8px rgba(21,23,22,0.08)',
-    large: '0 2px 6px rgba(27,30,28,0.06), 0 12px 32px rgba(27,30,28,0.1)',
-  },
-  density: {
-    font: { xs: 10, sm: 11, base: 12, md: 12.5, lg: 14, xl: 14, '2xl': 16 },
-  },
-});
-registerContributedMaterial(PLOTTER_MATERIAL);
-
 /** Frozen built-in list — the switch surface (command palette / View menu)
  *  enumerates this directly. */
 const BUILT_IN_STYLES: readonly WorkspaceStyleBundle[] = Object.freeze([
@@ -124,14 +99,6 @@ const BUILT_IN_STYLES: readonly WorkspaceStyleBundle[] = Object.freeze([
     materialId: 'classic',
     iconSetId: DEFAULT_ICON_SET_ID,
     regions: { header: 'hidden', shelf: 'hidden', inspector: 'column' },
-  },
-  {
-    id: 'plotter',
-    title: 'Plotter',
-    paletteId: 'plotter',
-    materialId: PLOTTER_MATERIAL.id,
-    iconSetId: DEFAULT_ICON_SET_ID,
-    regions: {},
   },
 ]);
 
@@ -251,6 +218,22 @@ export function applyWorkspaceStyle(id: string): void {
   setEditorMaterialPreference(bundle.materialId);
   setEditorIconSetPreference(bundle.iconSetId);
   setPresetRegions(bundle.regions);
+}
+
+/** Each axis on which the chrome's current value differs from the bundle `id`'s, as
+ *  `axis: wearing <value>, bundle <value>` — what a caller told "custom mix" needs to act on. */
+export function workspaceStyleDifferences(id: string): string[] {
+  const bundle = workspaceStyles().find((entry) => entry.id === id);
+  if (!bundle) return [`no style bundle "${id}"`];
+  const rows: Array<[string, string, string]> = [
+    ['palette', editorPaletteSnapshot(), bundle.paletteId],
+    ['material', editorMaterialSnapshot(), bundle.materialId],
+    ['icons', editorIconSetSnapshot(), bundle.iconSetId],
+    ['regions', regionsKey(presetChromeRegions()), regionsKey(bundle.regions)],
+  ];
+  return rows
+    .filter(([, wearing, wanted]) => wearing !== wanted)
+    .map(([axis, wearing, wanted]) => `${axis}: wearing ${wearing}, bundle ${wanted}`);
 }
 
 /** The bundle id whose palette, material, icon set and regions all match the

@@ -335,8 +335,10 @@ function locatePackage(projectRoot: string, name: string): string | null {
 }
 
 /**
- * THE PACKAGES A PRODUCT COMPOSES — its `dependencies` that declare
- * `package.json#vgai.contributions`, resolved from the product's own install.
+ * THE PACKAGES A PRODUCT COMPOSES — its `dependencies` and `optionalDependencies` that declare
+ * `package.json#vgai.contributions`, resolved from the product's own install. An optional one
+ * the install lacks is not composed, which is what the product's build does with it too
+ * (`vite-plugin-product-contributions.ts`).
  *
  * COMPOSITIONS ARE CODE (ARCHITECTURE-CORE §The target shape, rule 8): the
  * product's entry names each of them as `vgai:contributions/<name>`, and that
@@ -354,7 +356,10 @@ function locatePackage(projectRoot: string, name: string): string | null {
  * source scan in the session would be a second implementation of the gate's.
  */
 export function productComposedPackages(product: ProductIdentity): string[] {
-  let manifest: { dependencies?: Record<string, string> };
+  let manifest: {
+    dependencies?: Record<string, string>;
+    optionalDependencies?: Record<string, string>;
+  };
   try {
     manifest = JSON.parse(
       readFileSync(join(product.dir, 'package.json'), 'utf8'),
@@ -363,7 +368,11 @@ export function productComposedPackages(product: ProductIdentity): string[] {
     return [];
   }
   const found: string[] = [];
-  for (const name of Object.keys(manifest.dependencies ?? {}).sort()) {
+  const names = [
+    ...Object.keys(manifest.dependencies ?? {}),
+    ...Object.keys(manifest.optionalDependencies ?? {}),
+  ];
+  for (const name of [...new Set(names)].sort()) {
     const dir = locatePackage(product.dir, name);
     if (dir === null) continue;
     let dependency: { vgai?: { contributions?: unknown } };

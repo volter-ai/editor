@@ -21,6 +21,17 @@
  *
  *  and what the fork carries is upstream plus patches.
  *
+ *  A THIRD, OPTIONAL HOME: LOOK TIERS. A package the product depends on (usually OPTIONALLY)
+ *  may carry the frame half of a look it offers, declared as `package.json#vgai.workbench`:
+ *
+ *    { "contrib": "vgaiBrand", "root": "./editor/workbench", "media": { "fonts": "./fonts" } }
+ *
+ *  `<root>/src` → `contrib/<contrib>/browser/` (its `look.contribution.ts` is imported after the
+ *  product's and before the kit's), `<root>/extensions/*` → `extensions/`, and each `media` entry
+ *  → `contrib/<contrib>/browser/media/<name>/`. The Volter brand's Plotter style is the one
+ *  today: `@volter-ai/brand` is private, so a build whose install lacks it has no Plotter frame
+ *  and the same product otherwise. No code here names a look package.
+ *
  *  WHY THE PRODUCT'S DIRECTORY IS ONE FIXED NAME. `vgaiProduct` rather than `vgaiModelEditor`:
  *  the registration import line, the build's resource glob and the product's own
  *  `FileAccess.asBrowserUri('vs/workbench/contrib/vgaiProduct/browser/media/Inter.woff2')` are
@@ -49,6 +60,7 @@
  *  against.
  *--------------------------------------------------------------------------------------------*/
 
+import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -181,7 +193,7 @@ function replaceTree(from, to) {
  * command shadowing (the auxiliary-window refusal) is registered after the commands it shadows,
  * which `CommandsRegistry`'s most-recent-wins list is what makes work.
  */
-function patchRegistrationImports(checkout) {
+function patchRegistrationImports(checkout, tiers) {
 	const path = join(checkout, MAIN_FILE);
 	const lines = readFileSync(path, 'utf8').split('\n').filter((line) => !/^import '\.\/contrib\/vgai[^']*';$/.test(line));
 	let last = -1;
@@ -189,7 +201,8 @@ function patchRegistrationImports(checkout) {
 		if (/^import '\.\/contrib\/.*\.js';$/.test(lines[i])) { last = i; }
 	}
 	if (last === -1) { fail(`${path} carries no \`import './contrib/….js';\` line to register beside.`); }
-	lines.splice(last + 1, 0, '', '// VGAI (overlaid tier — scripts/workbench/overlay.mjs; the product registers, then the kit reads it)', PRODUCT_IMPORT, KIT_IMPORT);
+	const tierImports = tiers.map((tier) => `import './contrib/${tier.contrib}/browser/look.contribution.js';`);
+	lines.splice(last + 1, 0, '', '// VGAI (overlaid tier — scripts/workbench/overlay.mjs; the product and its look tiers register, then the kit reads them)', PRODUCT_IMPORT, ...tierImports, KIT_IMPORT);
 	writeFileSync(path, lines.join('\n'));
 }
 
@@ -200,7 +213,7 @@ function patchRegistrationImports(checkout) {
  * package and `vscode-web` both. Without it the packaged workbench 404s on `Inter.woff2` —
  * measured cutting U3's first release.
  */
-function patchWebResources(checkout) {
+function patchWebResources(checkout, tiers) {
 	const path = join(checkout, WEB_GULPFILE);
 	const source = readFileSync(path, 'utf8');
 	const startMarker = 'export const vscodeWebResourceIncludes = [';
@@ -225,8 +238,8 @@ function patchWebResources(checkout) {
 		'',
 		'',
 		'\t// VGAI (overlaid tier — scripts/workbench/overlay.mjs)',
-		`\t'${outBuild(KIT_TARGET)}/media/**',`,
-		`\t'${outBuild(PRODUCT_TARGET)}/media/**'`,
+		...[KIT_TARGET, PRODUCT_TARGET, ...tiers.map((tier) => `src/vs/workbench/contrib/${tier.contrib}/browser`)]
+			.map((target, index, all) => `\t'${outBuild(target)}/media/**'${index === all.length - 1 ? '' : ','}`),
 	].join('\n');
 	writeFileSync(path, `${head}${body}${ours}${tail}`);
 }
@@ -449,6 +462,59 @@ function patchNpmDirs(checkout) {
 	writeFileSync(path, source.replace(entry, marker));
 }
 
+/**
+ * The product's look tiers: every package in its `dependencies` or `optionalDependencies` that
+ * is INSTALLED (found in a `node_modules` above the product, as Node would) and declares
+ * `package.json#vgai.workbench`. An optional package the install lacks is simply not a tier.
+ */
+function lookTiers(productPackageDir) {
+	const manifest = JSON.parse(readFileSync(join(productPackageDir, 'package.json'), 'utf8'));
+	const names = [...new Set([...Object.keys(manifest.dependencies ?? {}), ...Object.keys(manifest.optionalDependencies ?? {})])].sort();
+	const tiers = [];
+	for (const name of names) {
+		const dir = installedPackageDir(productPackageDir, name);
+		if (dir === null) { continue; }
+		const declared = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')).vgai?.workbench;
+		if (declared === undefined) { continue; }
+		const where = `${name}'s package.json#vgai.workbench`;
+		if (typeof declared?.contrib !== 'string' || !/^vgai[A-Z][A-Za-z0-9]*$/.test(declared.contrib) || declared.contrib === 'vgaiProduct') {
+			fail(`${where} must name its "contrib" directory as vgai<Name> (not vgaiProduct), e.g. "vgaiBrand".`);
+		}
+		if (typeof declared.root !== 'string') { fail(`${where} must name its "root", the directory holding src/ and extensions/.`); }
+		const root = join(dir, declared.root);
+		if (!existsSync(join(root, 'src/look.contribution.ts'))) { fail(`${where}: ${join(root, 'src/look.contribution.ts')} does not exist; a look tier registers itself there.`); }
+		const media = Object.entries(declared.media ?? {}).map(([as, from]) => {
+			if (!/^[a-z][a-z0-9-]*$/.test(as) || typeof from !== 'string' || !existsSync(join(dir, from))) {
+				fail(`${where}.media maps a media directory name to a directory in the package; "${as}" → "${from}" is not one.`);
+			}
+			return { as, from: join(dir, from) };
+		});
+		tiers.push({ name, version: JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')).version, contrib: declared.contrib, root, media });
+	}
+	return tiers;
+}
+
+function installedPackageDir(from, name) {
+	for (let dir = from; ; dir = dirname(dir)) {
+		const candidate = join(dir, 'node_modules', name);
+		if (existsSync(join(candidate, 'package.json'))) { return candidate; }
+		if (dirname(dir) === dir) { return null; }
+	}
+}
+
+/** A tier's bytes, hashed: its package version alone does not change when a git dependency moves. */
+function treeHash(dirs) {
+	const hash = createHash('sha1');
+	const walk = (dir) => {
+		for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+			const path = join(dir, entry.name);
+			if (entry.isDirectory()) { walk(path); } else { hash.update(path.slice(dir.length)).update(readFileSync(path)); }
+		}
+	};
+	for (const dir of dirs) { if (existsSync(dir)) { walk(dir); } }
+	return hash.digest('hex');
+}
+
 function main() {
 	const { checkout, product } = parseArgs(process.argv);
 	const productDir = join(REPO_ROOT, 'packages', product, 'workbench');
@@ -456,6 +522,7 @@ function main() {
 		fail(`${product} has no workbench half: ${join(productDir, 'src/product.contribution.ts')} does not exist. Products with one: ${knownProducts().join(', ')}.`);
 	}
 	const pin = assertAtPin(checkout);
+	const tiers = lookTiers(dirname(productDir));
 	// Resolved BEFORE anything is written, so a stale or missing install refuses on a clean tree.
 	const extension = chatExtension();
 
@@ -467,6 +534,11 @@ function main() {
 		if (!existsSync(dir)) { continue; }
 		for (const name of readdirSync(dir)) { rmSync(join(extensionsDir, name), { recursive: true, force: true }); }
 	}
+	// And everything the LAST overlay recorded copying, by its own record: an extension or look
+	// tier whose owner has since left the tree or the install leaves nothing behind.
+	const previous = existsSync(join(checkout, MARKER)) ? JSON.parse(readFileSync(join(checkout, MARKER), 'utf8')) : {};
+	for (const name of previous.extensions ?? []) { rmSync(join(extensionsDir, name), { recursive: true, force: true }); }
+	for (const tier of previous.lookTiers ?? []) { rmSync(join(checkout, 'src/vs/workbench/contrib', tier.contrib), { recursive: true, force: true }); }
 	rmSync(join(extensionsDir, CHAT_EXTENSION.directory), { recursive: true, force: true });
 	// THE ONE DELETION THIS MAKES IN THE CLONE. `build/lib/extensions.ts` already lists `copilot`
 	// in `excludedExtensions`, so `compile-non-native-extensions-build` skips it either way; what
@@ -487,12 +559,30 @@ function main() {
 		}
 	}
 
+	const tierRecords = tiers.map((tier) => {
+		const target = join(checkout, 'src/vs/workbench/contrib', tier.contrib, 'browser');
+		replaceTree(join(tier.root, 'src'), target);
+		for (const { as, from } of tier.media) { replaceTree(from, join(target, 'media', as)); }
+		const extensions = existsSync(join(tier.root, 'extensions')) ? readdirSync(join(tier.root, 'extensions')) : [];
+		for (const name of extensions) {
+			replaceTree(join(tier.root, 'extensions', name), join(extensionsDir, name));
+			copiedExtensions.push(name);
+		}
+		return {
+			package: tier.name,
+			version: tier.version,
+			contrib: tier.contrib,
+			extensions,
+			sha1: treeHash([join(tier.root, 'src'), join(tier.root, 'extensions'), ...tier.media.map(({ from }) => from)]),
+		};
+	});
+
 	const chatExtensionVersion = writeChatExtension(checkout, extension);
 	copiedExtensions.push(CHAT_EXTENSION.directory);
 
 	patchNativeChat(checkout);
-	patchRegistrationImports(checkout);
-	patchWebResources(checkout);
+	patchRegistrationImports(checkout, tiers);
+	patchWebResources(checkout, tiers);
 	patchRehCopilotShim(checkout);
 	patchNpmDirs(checkout);
 	patchProduct(checkout);
@@ -512,6 +602,7 @@ function main() {
 		kit: 'packages/editor-core/workbench',
 		productHalf: `packages/${product}/workbench`,
 		extensions: copiedExtensions,
+		lookTiers: tierRecords,
 		chatExtension: { id: CHAT_EXTENSION.id, version: chatExtensionVersion },
 		overlaidAt: new Date().toISOString(),
 	}, null, 2)}\n`);
@@ -519,6 +610,7 @@ function main() {
 	console.log(`overlay: ${product} + the editor kit onto ${checkout} at ${pin.commit.slice(0, 12)}`);
 	console.log(`  ${KIT_TARGET}`);
 	console.log(`  ${PRODUCT_TARGET}`);
+	for (const tier of tierRecords) { console.log(`  src/vs/workbench/contrib/${tier.contrib}/browser   (look tier: ${tier.package}@${tier.version})`); }
 	console.log(`  extensions/{${copiedExtensions.join(', ')}}   (${CHAT_EXTENSION.id}@${chatExtensionVersion})`);
 	console.log(`  removed extensions/${COPILOT_EXTENSION}; ${PRODUCT_FILE}#defaultChatAgent names ${CHAT_EXTENSION.id}`);
 	console.log(`  patched ${MAIN_FILE}, ${WEB_GULPFILE}, ${REH_GULPFILE} and ${NPM_DIRS_FILE}`);

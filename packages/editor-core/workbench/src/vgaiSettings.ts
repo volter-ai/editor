@@ -70,7 +70,7 @@ import { Extensions as ConfigurationExtensions, IConfigurationDefaults, IConfigu
 import { VGAI_CONFIGURATION_NODE, VGAI_SETTING_KEYS } from './vgaiGeneratedSettings.js';
 import { ThemeSettingDefaults } from '../../../services/themes/common/workbenchThemeService.js';
 import { TITLE_BAR_HEIGHT_KEY } from './vgaiTitleBar.js';
-import { type VgaiLookThemes, vgaiProduct } from './vgaiProduct.js';
+import { type VgaiLookThemes, vgaiLooks } from './vgaiProduct.js';
 
 // EVERY vgai SETTING, DECLARED AT LOAD. This is the `configuration` contribution point — the
 // same door every core contribution under `src/vs/workbench/contrib/**` declares its own
@@ -140,17 +140,17 @@ const WORKBENCH_ADAPTER_VALUES: readonly (readonly [string, unknown])[] = [
  * colour theme that is always on is precisely what defeats a null default.
  *
  * So the extension declares the themes and the LOOK chooses one: Blender wears `theme-blender`,
- * Plotter wears the kit's `theme-plotter`, every other look wears the workbench's own defaults, which is what "Classic's reference frame
+ * a look tier's look wears its tier's theme, every other look wears the workbench's own defaults, which is what "Classic's reference frame
  * is our panels with no look declared" means. The mapping is the WORKBENCH side's, not the
  * editor's, and that is deliberate — `Blender` and `blender-icons` are names of artifacts in a
  * built workbench, and an editor package naming them would be the panel-knows-the-frame
  * inversion rule 2 forbids. The bridge hands over the LOOK's own id and nothing else.
  *
  * THE ROWS ARE THE PRODUCT'S (P3, 2026-09-21): a product declares, through
- * `registerVgaiProduct({ looks })`, the theme artifacts its build carries: its own extension's
- * (`packages/model-editor/workbench/extensions/theme-blender`) and the kit's, which every
- * product's build carries (`packages/editor-core/workbench/extensions/theme-plotter`). A look a
- * product declares no row for wears the workbench's own.
+ * `registerVgaiProduct({ looks })`, the theme artifacts its build carries
+ * (`packages/model-editor/workbench/extensions/theme-blender`). An optional look package's
+ * workbench tier adds its own row (`registerVgaiLook`) when the build carries it. A look with no
+ * row wears the workbench's own.
  */
 const COLOR_THEME_KEY = 'workbench.colorTheme';
 const PRODUCT_ICON_THEME_KEY = 'workbench.productIconTheme';
@@ -158,7 +158,7 @@ const PRODUCT_ICON_THEME_KEY = 'workbench.productIconTheme';
 /** Look id (the editor's palette id) → the product's theme artifacts. A row is a reviewable
  *  claim that this build SHIPS a theme for that look; a look with no row wears the workbench's
  *  own, which is the honest answer rather than a half-applied Blender. */
-const LOOK_THEMES: ReadonlyMap<string, VgaiLookThemes> = vgaiProduct()?.looks ?? new Map();
+const LOOK_THEMES: ReadonlyMap<string, VgaiLookThemes> = vgaiLooks();
 
 const WORKBENCH_LOOK_THEME = {
 	color: ThemeSettingDefaults.COLOR_THEME_DARK,
