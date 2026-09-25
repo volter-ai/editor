@@ -304,6 +304,7 @@ async function packageContributionModules(
       found.push({
         entryPath: inBundle ? `${name}/${entry.replace(/^\.\//, '')}` : absolutePath,
         package: name,
+        ...(inBundle ? { filePath: absolutePath } : {}),
       });
     }
   }

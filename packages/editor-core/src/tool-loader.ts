@@ -1541,10 +1541,17 @@ async function runContributionRefresh(): Promise<void> {
   const nextAssetInspector: AssetInspectorToolContribution[] = [];
   const nextGenerationResult: GenerationResultToolContribution[] = [];
   const nextFailures: ToolContributionLoadFailure[] = [];
+  // A bundled package's entry is listed by specifier; the page loads it through the
+  // loader its bundle registered, or, when the bundle predates the entry (a checkout's
+  // source moved past its build), from the file the host names. Joined to the project
+  // root it named `<project>/@volter/…`, which exists nowhere.
+  const bundledFiles = new Map(
+    (catalog.contributions ?? []).flatMap((item) => (item.filePath ? [[item.entryPath, item.filePath] as const] : [])),
+  );
   const absolute = (entryPath: string) =>
     entryPath.startsWith('/') || bundledPackageLoaders.has(entryPath)
       ? entryPath
-      : `${project.rootPath}/${entryPath}`;
+      : (bundledFiles.get(entryPath) ?? `${project.rootPath}/${entryPath}`);
   // The host serves a contribution through its own Vite (`/@fs/`,
   // cache-busted per refresh); a package this build bundles is already in the
   // page and loads through its own registered loader.

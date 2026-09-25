@@ -24,6 +24,10 @@ export interface ProjectToolContribution {
   /** The dependency that declared it (`package.json#vgai.contributions`),
    *  absent for the project's own `src/contributions/` modules. */
   package?: string;
+  /** The module's file, for a bundled package's entry (listed by specifier): what the
+   *  page loads when its bundle carries no loader for it, as a checkout's bundle does
+   *  not for a contribution added after it was built. */
+  filePath?: string;
 }
 
 export interface ProjectToolErrorSummary {
