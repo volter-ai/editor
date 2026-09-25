@@ -156,6 +156,7 @@ const SCOPE_NAMES: readonly DocumentProbeScope[] = [
   'rail',
   'outliner',
   'content',
+  'utility',
 ];
 
 /** The two scopes that are VS Code views: the part id the contribution hands
@@ -218,7 +219,25 @@ function viewPart(part: string): HTMLElement | null {
   return document.querySelector<HTMLElement>(`[data-vgai-part="${part}"]`);
 }
 
+/** The utility view showing in the panel: its body is the one of the stamped
+ *  bodies (`frame/bridge.tsx`'s `setUtilityBody`) that has a box on screen. */
+function resolveUtilityScope(): Scope {
+  const showing = [...document.querySelectorAll<HTMLElement>('[data-vgai-utility]')].find((body) => {
+    const box = body.getBoundingClientRect();
+    return box.width > 0 && box.height > 0;
+  });
+  if (!showing) {
+    throw new Error(
+      "No utility view is showing, so scope 'utility' has nothing to reach. Show one in the " +
+        'panel (View: Open View…) and retry.',
+    );
+  }
+  const id = showing.dataset['vgaiUtility'] ?? '';
+  return { container: showing, name: 'utility', id, title: id };
+}
+
 function resolveScope(name: DocumentProbeScope): Scope {
+  if (name === 'utility') return resolveUtilityScope();
   const view =
     name === 'rail' || name === 'outliner' || name === 'content' ? VIEW_SCOPES[name] : null;
   if (view) {

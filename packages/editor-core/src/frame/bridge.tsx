@@ -632,6 +632,8 @@ let utilityBodyVersion = 0;
 function setUtilityBody(id: string, element: HTMLElement | null): void {
   if (element) {
     if (utilityBodies.get(id) === element) return;
+    // The document door's `utility` scope finds the showing body by this stamp.
+    element.dataset['vgaiUtility'] = id;
     utilityBodies.set(id, element);
   } else if (!utilityBodies.delete(id)) {
     return;

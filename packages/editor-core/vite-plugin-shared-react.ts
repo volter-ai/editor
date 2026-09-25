@@ -70,7 +70,7 @@
  * {@link sharedReactPlugin} is registered ONLY by `server/packaged.ts`.
  * `dev.ts` is untouched — it has one React already.
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -283,10 +283,10 @@ export function sharedReactUrls(manifest: SharedReactManifest, base = '/'): Reco
  */
 export const EDITOR_TREE_QUERY = 'vgai-editor-react';
 
-/** A file inside a `@vgai/*` package's `contributions/` directory under any
+/** A file inside a `@volter/*` package's `contributions/` directory under any
  *  `node_modules` (a real install; in a checkout the package is a symlink
  *  whose realpath is its workspace directory, already `isOwnSource`). */
-const PACKAGE_CONTRIBUTION_PATH = /[\\/]node_modules[\\/]@vgai[\\/][^\\/]+[\\/]contributions[\\/]/;
+const PACKAGE_CONTRIBUTION_PATH = /[\\/]node_modules[\\/]@volter[\\/][^\\/]+[\\/]contributions[\\/]/;
 
 function markEditorTree(id: string): string {
   return id.includes(`?${EDITOR_TREE_QUERY}`) || id.includes(`&${EDITOR_TREE_QUERY}`)
@@ -302,6 +302,116 @@ function stripQuery(id: string): string {
 function isUnder(file: string, directory: string): boolean {
   return file === directory || file.startsWith(`${directory}${path.sep}`);
 }
+
+/**
+ * A THIRD-PARTY DEPENDENCY IMPORTED FROM THE EDITOR TREE — a contribution's
+ * chart or grid library. Prebundled, it is bound to the PROJECT's React at
+ * prebundle time, and every hook it calls inside the editor's tree throws
+ * "Invalid hook call" (measured: a `zustand` store hook in a project utility).
+ * So the editor tree takes the package's own ES module file, marked like any
+ * editor-tree module: its `react` imports then reach the shell's, and the
+ * game's prebundled copy is untouched (a different URL is a different module).
+ * A package with no ES module entry cannot be served unbundled; it keeps its
+ * prebundled copy and the editor says so once.
+ */
+const ESM_CONDITIONS = ['browser', 'import', 'module', 'default'] as const;
+
+interface DependencyFile {
+  readonly file: string;
+  readonly esm: boolean;
+}
+
+function splitBareSpecifier(source: string): { name: string; subpath: string } | null {
+  if (source.startsWith('.') || source.startsWith('/') || source.includes(':') || source.startsWith('\0')) return null;
+  const parts = source.split('/');
+  const nameParts = source.startsWith('@') ? parts.slice(0, 2) : parts.slice(0, 1);
+  if (nameParts.some((part) => !part)) return null;
+  const rest = parts.slice(nameParts.length).join('/');
+  return { name: nameParts.join('/'), subpath: rest ? `./${rest}` : '.' };
+}
+
+/** The target an `exports` entry names under ES module conditions, and whether an
+ *  ES module condition chose it. */
+function conditionalTarget(entry: unknown, viaEsm = false): { target: string; esm: boolean } | null {
+  if (typeof entry === 'string') return { target: entry, esm: viaEsm };
+  if (Array.isArray(entry)) {
+    for (const item of entry) {
+      const found = conditionalTarget(item, viaEsm);
+      if (found) return found;
+    }
+    return null;
+  }
+  if (!entry || typeof entry !== 'object') return null;
+  const record = entry as Record<string, unknown>;
+  for (const condition of ESM_CONDITIONS) {
+    if (!(condition in record)) continue;
+    const found = conditionalTarget(record[condition], viaEsm || condition === 'import' || condition === 'module');
+    if (found) return found;
+  }
+  return null;
+}
+
+function exportsTarget(exportsField: unknown, subpath: string): { target: string; esm: boolean } | null {
+  const map =
+    typeof exportsField === 'string' || Array.isArray(exportsField)
+      ? { '.': exportsField }
+      : exportsField && typeof exportsField === 'object' && !Object.keys(exportsField).some((key) => key.startsWith('.'))
+        ? { '.': exportsField }
+        : (exportsField as Record<string, unknown> | undefined);
+  if (!map) return null;
+  if (subpath in map) return conditionalTarget(map[subpath]);
+  for (const [key, value] of Object.entries(map)) {
+    const star = key.indexOf('*');
+    if (star === -1) continue;
+    const head = key.slice(0, star);
+    const tail = key.slice(star + 1);
+    if (!subpath.startsWith(head) || !subpath.endsWith(tail) || subpath.length < key.length - 1) continue;
+    const found = conditionalTarget(value);
+    if (found) return { ...found, target: found.target.replaceAll('*', subpath.slice(head.length, subpath.length - tail.length)) };
+  }
+  return null;
+}
+
+function dependencyFile(source: string, importerFile: string): DependencyFile | null {
+  const bare = splitBareSpecifier(source);
+  if (!bare) return null;
+  for (let dir = path.dirname(importerFile); ; dir = path.dirname(dir)) {
+    const packageDir = path.join(dir, 'node_modules', bare.name);
+    const manifestPath = path.join(packageDir, 'package.json');
+    if (existsSync(manifestPath)) {
+      const realDir = realpathSync(packageDir);
+      // The kit's own workspace packages resolve to their source elsewhere.
+      if (!realDir.includes(`${path.sep}node_modules${path.sep}`)) return null;
+      const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
+        exports?: unknown;
+        module?: string;
+        type?: string;
+        main?: string;
+      };
+      const typeModule = manifest.type === 'module';
+      let chosen: { target: string; esm: boolean } | null = null;
+      if (manifest.exports !== undefined) chosen = exportsTarget(manifest.exports, bare.subpath);
+      else if (bare.subpath === '.') {
+        chosen = manifest.module
+          ? { target: manifest.module, esm: true }
+          : { target: manifest.main ?? './index.js', esm: typeModule };
+      } else chosen = { target: bare.subpath, esm: typeModule };
+      if (!chosen) return null;
+      const file = path.join(realDir, chosen.target);
+      if (!existsSync(file)) return null;
+      const esm = chosen.esm || file.endsWith('.mjs') || (typeModule && !file.endsWith('.cjs')) || /\.(css|json)$/.test(file);
+      return { file, esm };
+    }
+    if (path.dirname(dir) === dir) return null;
+  }
+}
+
+/** Bare specifiers the editor tree reaches through their own doorways, never unbundled. */
+function hasOwnDoorway(source: string): boolean {
+  return source.startsWith('@volter/') || source === 'three' || source.startsWith('three/');
+}
+
+const reportedCommonJs = new Set<string>();
 
 export interface SharedReactScope {
   /** Specifier → built chunk URL (see {@link sharedReactUrls}). */
@@ -425,9 +535,26 @@ export function sharedReactPlugin({
       if (!inEditorTree(importer)) return undefined;
       const url = urls[source];
       if (url) return url;
+      if (!hasOwnDoorway(source)) {
+        const dependency = dependencyFile(source, stripQuery(importer!));
+        if (dependency?.esm) return markEditorTree(dependency.file);
+        if (dependency && !reportedCommonJs.has(source)) {
+          reportedCommonJs.add(source);
+          this.warn(
+            `${source} has no ES module entry, so the editor's own panels take its prebundled copy, ` +
+              "bound to the project's React; a hook it calls there fails as an invalid hook call.",
+          );
+        }
+      }
       const resolved = await this.resolve(source, importer, { ...options, skipSelf: true });
       if (!resolved || resolved.external) return resolved ?? undefined;
-      return isOwnSource(stripQuery(resolved.id))
+      const file = stripQuery(resolved.id);
+      // A marked dependency's own files stay in the editor tree with it.
+      const insideDependency =
+        stripQuery(importer!).includes(`${path.sep}node_modules${path.sep}`) &&
+        file.includes(`${path.sep}node_modules${path.sep}`) &&
+        !file.includes(`${path.sep}.vite`);
+      return isOwnSource(file) || insideDependency
         ? { ...resolved, id: markEditorTree(resolved.id) }
         : resolved;
     },

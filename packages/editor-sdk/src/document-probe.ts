@@ -35,12 +35,15 @@
  *  - `content` — the Content view (`vgai.content`): its categories and asset
  *    rows.
  *
- * `rail`, `outliner`, and `content` are EDITOR CHROME and do not belong to the active
+ *  - `utility` — the utility view showing in the panel (a contribution's
+ *    `*.utility.tsx`, the Profiler, State Watch…).
+ *
+ * `rail`, `outliner`, `content` and `utility` are EDITOR CHROME and do not belong to the active
  * document, so they stay reachable while the Game document is active — the
  * Game refusal is about driving a game through synthetic gestures, and reading
  * the panel that reports its selection is not that.
  */
-export type DocumentProbeScope = 'document' | 'header' | 'shelf' | 'rail' | 'outliner' | 'content';
+export type DocumentProbeScope = 'document' | 'header' | 'shelf' | 'rail' | 'outliner' | 'content' | 'utility';
 
 /** One element as the probe reports it — everything a caller needs to assert
  *  on, and nothing that requires a second round trip. */
