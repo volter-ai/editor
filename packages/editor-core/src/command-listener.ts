@@ -1,4 +1,6 @@
 import { captureSizeFromCommand } from './capture-size';
+import { documentViewport } from '@volter/editor-sdk/kit/document-viewports';
+import { inspectionNodeMedia } from '@volter/editor-sdk/kit/inspection-node-media';
 import { isGameplayExportActive } from './gameplay-export-state';
 
 /**
@@ -38,7 +40,6 @@ import { type AssetKind, setSelectedAsset } from './asset-selection';
 import { assetCapabilities, assetDocumentKind } from '@volter/editor-sdk/kit/asset-capabilities';
 import { systemsForInstance } from './authoring/active-systems';
 import { getMountFailureReports } from '@volter/editor-sdk/kit/mount-failure-report';
-import { object3DDocumentSession } from './authoring/object3d-document-session-registry';
 import {
   activeDocumentAuthoring,
   activeHierarchyRows,
@@ -94,7 +95,6 @@ import { projectAdapterFacet, subscribeProjectAdapter } from './project-adapter'
 import { getProjectModuleSplitReports } from '@volter/editor-sdk/kit/project-module-split';
 import { onSessionEndedChange, sessionEndedRefusal, sessionEndedState } from './session-tombstone';
 import { prepareSessionClose } from './session-close';
-import { focusedStageStore } from './stage-context';
 import { scheduleDeferredFullReport } from './state-report-deferral';
 import { interactiveViewportRendererCounts } from './three-viewport/interactive-renderer';
 import {
@@ -322,7 +322,9 @@ function unresolvedSelectionRefusal(store: EditorShellStore, id: string): string
   // ids editor.hierarchy() just reported for the open asset/story.
   const adapter = activeDocumentAuthoring(store);
   if (adapter.hierarchy.node(id) !== null) return null;
-  if (entityObject3D(adapter, store.objectMap, id) !== null) return null;
+  // A live object the adapter's tree does not list (a runtime-built child) is
+  // still a subject when the medium that draws it answers for it.
+  if (inspectionNodeMedia(adapter, id) !== null) return null;
   return (
     `select: no entity with id "${id}" — neither the active authoring adapter's ` +
     `hierarchy nor the live object index owns it, so there is nothing to select. ` +
@@ -340,36 +342,14 @@ function applyControlSelection(
   // the route used by human hierarchy clicks and present-view, and is what
   // lets semantic Asset Lab subjects (bones, physics bodies, joints) update
   // their native highlight and Inspector state.
-  const documentSession = activeObject3DDocumentSession();
-  if (documentSession) {
-    documentSession.select(ids);
+  const ownSelection = documentViewport(activeWorkspaceDocumentId())?.selection;
+  if (ownSelection) {
+    ownSelection.apply(ids);
     return;
   }
   const present = store.applySelectionBeforePresentation(ids);
   if (options?.deferPresentation) options.deferPresentation(present);
   else setTimeout(present, 0);
-}
-
-/** Live viewport camera pose of the FOCUSED stage — undefined when nothing has
- *  bound a camera yet (see `EditorShellStore.cameraPose`'s doc comment).
- *  A camera is a per-stage fact, so the reader follows focus the way the
- *  panels do (`focusedStageStore`, ARCHITECTURE-CORE §One stage unit 4):
- *  before this, `vgai status` reported the world's camera while the person
- *  was looking through a model document's. */
-function collectCamera(store: EditorShellStore):
-  | {
-      position: { x: number; y: number; z: number };
-      target: { x: number; y: number; z: number };
-      fov: number;
-    }
-  | undefined {
-  const pose = focusedStageStore(store).cameraPose;
-  if (!pose) return undefined;
-  return {
-    position: { x: pose.position.x, y: pose.position.y, z: pose.position.z },
-    target: { x: pose.target.x, y: pose.target.y, z: pose.target.z },
-    fov: pose.fov,
-  };
 }
 
 /** #145 — what the human's tab is actually showing right now: page
@@ -464,9 +444,6 @@ export function collectState(
   // threw still reported itself alive. Derive it from what is actually running.
   const mountFailures = getMountFailureReports();
   const activeDocumentId = activeWorkspaceDocumentId();
-  const documentPresentation = activeDocumentId
-    ? object3DDocumentSession(activeDocumentId)?.presentation()
-    : undefined;
   const selectedIds = activeSelectionIds(store);
   const gameplaySessions = toolGameplaySessions.getSnapshot();
   // ONE walk, read by both `entityCount` and `entities` below. It used to be
@@ -598,43 +575,15 @@ export function collectState(
       const activeId = activeWorkspaceDocumentId();
       return activeId && isAssetDocumentId(activeId) ? activeId : '__inspector__';
     })(),
-    showGrid: documentPresentation?.grid ?? store.showGrid,
-    // Per-STAGE view options, reported for the stage the person is looking at
-    // — the same store the `set-helpers`/`set-stats` verbs write and the
-    // focused stage's own viewport reads (ARCHITECTURE-CORE §One stage unit 4).
-    showHelpers: focusedStageStore(store).showHelpers,
-    showStats: focusedStageStore(store).showStats,
-    shadingMode: documentPresentation?.mode ?? store.shadingMode,
-    helperVisibility: {
-      ...focusedStageStore(store).helperVisibility,
-      ...(documentPresentation
-        ? {
-            bounds: documentPresentation.bounds,
-            skeletons: documentPresentation.skeleton,
-          }
-        : {}),
-    },
-    // THE ARMED TOOL IS THE ACTIVE DOCUMENT'S STAGE'S, the same door
-    // `showHelpers`/`showStats` above already read. Every stage owns an
-    // `EditorShellStore` (`stage-store-registry.ts`) and the shelf's four
-    // tools write the one the person is looking at; reading the SHELL's here
-    // reported `combined` for every tool on any document with a stage of its
-    // own — measured on the Model document at WALK 5 row 4b, where the shelf
-    // was lit on Select Box and this line said `combined`. The world root's
-    // stage runs on the shell store itself, so the Scene document's answer is
-    // unchanged.
-    transformMode: focusedStageStore(store).transformMode,
-    transformSpace: store.transformSpace,
-    snapEnabled: store.snapEnabled,
+    // The viewport's keys (grid, helpers, stats, shading, helper visibility, the
+    // transform tool, space and snap, the camera) are the Three set's status
+    // facet (`viewport-status-facet.ts`), spread in above.
     entityCount: hierarchyRows.length,
     // Persistence truth comes from the ACTIVE adapter's PersistenceProvider —
     // never a per-format store field.
     savePath: activeSaveDestination(store),
     // SDK clients need the same persistence truth the editor UI exposes.
     saveState: activeSaveState(store),
-    // Camera facet (B3-followup): real pose when a viewport is bound, absent
-    // otherwise — never a fabricated value (see EditorShellStore.cameraPose).
-    camera: collectCamera(store),
     // Hierarchy facet (B3-followup): the real node tree, flattened to
     // id/name/childIds rows (same shape editor.hierarchy.inspect declares),
     // read from the ACTIVE authoring adapter.
@@ -664,11 +613,6 @@ export function commandThrewResult(cmd: EditorCommand, error: unknown): CommandR
   return { ok: false, error: text };
 }
 
-
-function activeObject3DDocumentSession() {
-  const documentId = activeWorkspaceDocumentId();
-  return documentId ? object3DDocumentSession(documentId) : null;
-}
 
 /** THE ONE PLAY-RUN FENCE all four error facets below split on: `true` when a
  *  console entry logged at `timestamp` belongs to the most recent play run.
