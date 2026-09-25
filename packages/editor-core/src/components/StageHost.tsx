@@ -1490,7 +1490,10 @@ export function Object3DDocumentViewport({
           host.dressing?.lights.forEach((light, index) => {
             light.visible = previousLights[index] ?? true;
           });
-          if (previousRoot) host.dressing?.frameContent(previousRoot);
+          if (previousRoot) {
+            host.dressing?.frameContent(previousRoot);
+            host.presentationRig?.placeFloor(previousRoot);
+          }
           store.selectMultiple(selected);
           store.notifyIngestObjectMapEdit();
         };
@@ -1606,6 +1609,7 @@ export function Object3DDocumentViewport({
         host.contentLights = contentLights;
         host.contentHas = contentHas;
         host.dressing.frameContent(source.root);
+        host.presentationRig?.placeFloor(source.root);
         store.selectMultiple(selected.filter((id) => store.objectMap.has(id)));
         store.notifyIngestObjectMapEdit();
         documentSession.syncSelectionPresentation();

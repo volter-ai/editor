@@ -149,6 +149,10 @@ export interface ViewportOverlays {
   /** The navigation gizmo: `interactive` (a click turns the view to that axis — Blender's,
    *  Godot's, Unity's), `indicator` (drawn, not clicked — Unreal's axis triad) or `hidden`. */
   readonly navigation: 'interactive' | 'indicator' | 'hidden';
+  /** A floor under what the view shows, taking the preview sun's shadow (Unreal's preview
+   *  floor, a Show toggle; the others show none). It lies at the content's lowest point, as
+   *  Unreal's asset editors place theirs at the bottom of the mesh's bounds. */
+  readonly floor: { readonly visible: boolean; readonly color: PresentationColor };
 }
 
 /** How the stage's tools behave (function, ARCHITECTURE.md rule 7): the tool its shelf opens
@@ -255,6 +259,7 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
     selection: { outline: true, wire: false, box: false },
     axes: 'floor',
     navigation: 'interactive',
+    floor: { visible: false, color: '#2b3038' },
   },
   interaction: {
     bootTool: 'transform',

@@ -470,6 +470,10 @@ function fractalNoise(x: number, y: number, z: number): number {
   return sum / total;
 }
 
+/** The floor's width in scene units: past any preview sun's shadow reach and fading into the
+ *  sky's ground at the horizon well before the camera's far plane. */
+const FLOOR_EXTENT = 400;
+
 export class StagePresentationRig {
   private readonly group = new THREE.Group();
   private readonly ambient = new THREE.AmbientLight(0xffffff, 0);
@@ -480,6 +484,12 @@ export class StagePresentationRig {
   /** The `preview` source's sun (Godot's preview sun). */
   private readonly previewGroup = new THREE.Group();
   private readonly sun = new THREE.DirectionalLight(0xffffff, 1);
+  /** The view's floor (`overlays.floor`): a wide plane under the content taking shadows. */
+  private readonly floorBounds = new THREE.Box3();
+  private readonly floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(FLOOR_EXTENT, FLOOR_EXTENT).rotateX(-Math.PI / 2),
+    new THREE.MeshStandardMaterial({ roughness: 0.9, metalness: 0 }),
+  );
   /** The preview sky, built from its three colours: the background drawn behind the scene and
    *  the environment that lights it, rebuilt only when the colours change. */
   private sky: {
@@ -517,6 +527,11 @@ export class StagePresentationRig {
     this.previewGroup.add(this.sun, this.sun.target);
     this.previewGroup.visible = false;
     scene.add(this.previewGroup);
+    this.floor.name = 'vgai:preview-floor';
+    this.floor.userData['editorHelper'] = true;
+    this.floor.receiveShadow = true;
+    this.floor.visible = false;
+    scene.add(this.floor);
   }
 
   /** Apply a view's presentation. `toneMapping` is the document's own mapper when it states one
@@ -529,6 +544,8 @@ export class StagePresentationRig {
   ): void {
     this.presentation = presentation;
     const { lighting } = presentation;
+    this.floor.visible = presentation.overlays.floor.visible;
+    this.floor.material.color.set(presentation.overlays.floor.color);
     const preset = studioPreset(lighting.studioPreset);
     if (preset !== this.preset) this.build(preset);
     this.source = lighting.source;
@@ -631,6 +648,15 @@ export class StagePresentationRig {
         this.latestSky?.();
         this.onReady?.();
       });
+  }
+
+  /** Put the floor under `content`, at its lowest point, as Unreal's asset editors place their
+   *  preview floor at the bottom of the mesh's bounds; empty content leaves it on the world's
+   *  floor. */
+  placeFloor(content: THREE.Object3D): void {
+    const bounds = contentWorldBounds(content, this.floorBounds);
+    this.floor.position.y = bounds.isEmpty() ? 0 : bounds.min.y;
+    this.floor.updateMatrixWorld();
   }
 
   /** The image registry changed: an image that failed may load now. */
@@ -826,7 +852,7 @@ export class StagePresentationRig {
 
   /** The rig's objects in its scene, for a stage that moves its editor objects between scenes. */
   roots(): readonly THREE.Object3D[] {
-    return [this.group, this.previewGroup];
+    return [this.group, this.previewGroup, this.floor];
   }
 
   /** Whether the preset's own lights are showing. */
@@ -858,6 +884,9 @@ export class StagePresentationRig {
     this.clearLights();
     this.group.removeFromParent();
     this.previewGroup.removeFromParent();
+    this.floor.removeFromParent();
+    this.floor.geometry.dispose();
+    this.floor.material.dispose();
     this.sun.dispose();
     this.disposeSky();
     this.pmrem?.dispose();
