@@ -18,13 +18,15 @@ hard recordings of the original fifteen.
 Completion:
 - The original fifteen and the five new real-Blender references are scored through browser-only execution on the same scoreboard, with no local modeling fallback, measured through the tab's `blender-*` doors.
 
-## workbench-rebuilds: Both workbenches boot clean
+## viewport-stage: The viewport stage themes into Blender, Unity, Godot and Unreal
 
 Status: active
-Both products' workbenches are rebuilt with the Chat patches and pinned at `2a8d872b50d0`; the later sign-in patch
-(`507e47d`, no Copilot sign-in in a workbench whose product names no provider) is not in that pin yet.
+Design and measurements: [docs/VIEWPORT-STAGE.md](docs/VIEWPORT-STAGE.md) (ARCHITECTURE.md rule 6: a component is themable only when it can be themed into each of several real targets). An independent judge passes Godot, Unity and Unreal and not Blender; the judged frames left out the viewport's overlay pass, so the navigation gizmos went unseen.
 Completion:
-- A release carrying `507e47d` is pinned, and each product's first boot logs neither "No default agent registered" nor a GitHub sign-in timeout.
+- Blender passes the independent judgement: the 3D cursor and the origin dot are drawn.
+- Unreal's remaining differences (a faint floor shadow, a hard floor-sky line, short thin Move arrows) and Unity's short Move arrows are closed or named as limits.
+- Every target is judged again from the page capture cropped to its viewport, with the overlay pass in it.
+- Blender's Rendered mode and Unreal's capability row are accepted, and the world stage is seen on a project with a world.
 
 ## model-editor-publish: The model editor installs as its README says
 
