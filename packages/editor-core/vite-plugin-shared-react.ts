@@ -284,9 +284,51 @@ export function sharedReactUrls(manifest: SharedReactManifest, base = '/'): Reco
 export const EDITOR_TREE_QUERY = 'vgai-editor-react';
 
 /** A file inside a `@volter/*` package's `contributions/` directory under any
- *  `node_modules` (a real install; in a checkout the package is a symlink
- *  whose realpath is its workspace directory, already `isOwnSource`). */
+ *  `node_modules` (a real install). A checkout-linked package resolves to its
+ *  realpath instead, which no `node_modules` segment names; that case is
+ *  {@link contributionPackageRoot}'s. */
 const PACKAGE_CONTRIBUTION_PATH = /[\\/]node_modules[\\/]@volter[\\/][^\\/]+[\\/]contributions[\\/]/;
+
+const contributionRoots = new Map<string, string | null>();
+
+/**
+ * The root of the package that owns `file`, when that package declares editor
+ * contributions (`package.json#vgai.contributions`), else `null`. This is how a
+ * DECLARED package served from a checkout — a project's `node_modules/@volter/x`
+ * symlinked to `packages/x`, resolved by Vite to its realpath — is recognized as
+ * the same thing an installed one is: its `contributions/` render in the editor's
+ * tree, and the files they reach inside the package inherit that scope. Cached per
+ * directory; a package that declares nothing (a library a piece or a game imports)
+ * answers `null` and keeps the project's React.
+ */
+function contributionPackageRoot(file: string): string | null {
+  let directory = path.dirname(file);
+  const visited: string[] = [];
+  let found: string | null = null;
+  for (;;) {
+    const cached = contributionRoots.get(directory);
+    if (cached !== undefined) {
+      found = cached;
+      break;
+    }
+    visited.push(directory);
+    const manifest = path.join(directory, 'package.json');
+    if (existsSync(manifest)) {
+      try {
+        const declares = (JSON.parse(readFileSync(manifest, 'utf8')) as { vgai?: { contributions?: unknown } }).vgai?.contributions;
+        found = Array.isArray(declares) ? directory : null;
+      } catch {
+        found = null;
+      }
+      break;
+    }
+    const parent = path.dirname(directory);
+    if (parent === directory) break;
+    directory = parent;
+  }
+  for (const entry of visited) contributionRoots.set(entry, found);
+  return found;
+}
 
 function markEditorTree(id: string): string {
   return id.includes(`?${EDITOR_TREE_QUERY}`) || id.includes(`&${EDITOR_TREE_QUERY}`)
@@ -492,6 +534,8 @@ export function sharedReactPlugin({
     // directory: the same package's `src/` is also game runtime (a mesh
     // component in a world), and a game keeps its own React.
     if (PACKAGE_CONTRIBUTION_PATH.test(file)) return true;
+    const packageRoot = contributionPackageRoot(file);
+    if (packageRoot !== null && isUnder(file, path.join(packageRoot, 'contributions'))) return true;
     for (const root of projectRoots()) {
       if (file === path.join(root, 'vgai.adapter.ts')) return true;
       if (EDITOR_LANE_DIRS.some((dir) => isUnder(file, path.join(root, dir)))) return true;
@@ -554,7 +598,10 @@ export function sharedReactPlugin({
         stripQuery(importer!).includes(`${path.sep}node_modules${path.sep}`) &&
         file.includes(`${path.sep}node_modules${path.sep}`) &&
         !file.includes(`${path.sep}.vite`);
-      return isOwnSource(file) || insideDependency
+      // The same rule for a checkout-linked contribution package: its own files stay in the tree.
+      const importerPackage = contributionPackageRoot(stripQuery(importer!));
+      const insideContributionPackage = importerPackage !== null && isUnder(file, importerPackage);
+      return isOwnSource(file) || insideDependency || insideContributionPackage
         ? { ...resolved, id: markEditorTree(resolved.id) }
         : resolved;
     },

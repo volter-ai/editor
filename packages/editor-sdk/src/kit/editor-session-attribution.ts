@@ -61,15 +61,25 @@ export const COLLABORATION_REMOTE_SHARE = (() => {
 })();
 export const COLLABORATION_PARTICIPANT_NAME = bootstrap?.displayName || 'Local editor';
 
-let revision = 0;
+/**
+ * The source revision this page has seen, held on the PAGE, not in this module: the shell's
+ * bundled copy of this file and a declared package's source-served copy are two module instances
+ * on one page, and only the shell's collaboration client hears the revision stream. A module-local
+ * `let` left every other copy at 0, so a declared package's first write after anyone else's edit
+ * was refused as stale.
+ */
+const REVISION_SLOT = Symbol.for('volter.collaboration.revision');
+const revisionSlot = ((globalThis as unknown as Record<symbol, { value: number } | undefined>)[REVISION_SLOT] ??= {
+  value: 0,
+});
 
 export function setCollaborationRevision(value: number): void {
-  if (Number.isInteger(value) && value >= revision) revision = value;
+  if (Number.isInteger(value) && value >= revisionSlot.value) revisionSlot.value = value;
 }
 
 export function sourceMutationAttribution(): {
   participantId: string;
   expectedRevision: number;
 } {
-  return { participantId: COLLABORATION_PARTICIPANT_ID, expectedRevision: revision };
+  return { participantId: COLLABORATION_PARTICIPANT_ID, expectedRevision: revisionSlot.value };
 }

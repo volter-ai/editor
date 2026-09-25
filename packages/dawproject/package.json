@@ -1,0 +1,33 @@
+{
+  "name": "@volter/dawproject",
+  "author": "Volter AI, Inc.",
+  "license": "Apache-2.0",
+  "version": "0.5.66",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "A piece of music as React elements named for DAWproject's own model (Project, Transport, Track, Channel, Device, Clip, Note, Marker), and the renderer that mounts one into a plain graph.",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/volter-ai/editor.git",
+    "directory": "packages/dawproject"
+  },
+  "files": [
+    "src",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "react-reconciler": "0.31.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "name": "@volter/editor-dawproject",
+  "author": "Volter AI, Inc.",
+  "license": "AGPL-3.0-only",
+  "version": "0.5.66",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "DAWproject for Volter Editor: a piece of music is a React component of DAWproject elements, shown as an arrangement, played, and edited in its own source.",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/volter-ai/editor.git",
+    "directory": "packages/editor-dawproject"
+  },
+  "files": [
+    "src",
+    "contributions",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "exports": {
+    "./contributions/*": "./contributions/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "vgai": {
+    "contributions": [
+      "./contributions/pieces.finder.ts",
+      "./contributions/piece.document.tsx"
+    ]
+  },
+  "dependencies": {
+    "@volter/dawproject": "0.5.66",
+    "@volter/editor-sdk": "0.5.66",
+    "spessasynth_lib": "4.3.14",
+    "zod": "^4.3.6"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  }
+}
