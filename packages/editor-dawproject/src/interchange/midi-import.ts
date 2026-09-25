@@ -61,11 +61,15 @@ function round(value: number, places: number): number {
   return Math.round(value * scale) / scale;
 }
 
-/** A tempo's microseconds per quarter as BPM: the fewest decimals that still name the same microseconds. */
+/**
+ * A tempo's microseconds per quarter as BPM, with the fewest decimals that land within a
+ * microsecond of it: writers truncate (92 BPM is written 652173 µs), so the exact quotient would
+ * read `92.0001`, and a microsecond per quarter is far below anything a tempo map resolves.
+ */
 function bpmOf(microseconds: number): number {
   for (let places = 0; places < 9; places++) {
     const bpm = round(60_000_000 / microseconds, places);
-    if (Math.round(60_000_000 / bpm) === microseconds) return bpm;
+    if (Math.abs(60_000_000 / bpm - microseconds) <= 1) return bpm;
   }
   return 60_000_000 / microseconds;
 }
