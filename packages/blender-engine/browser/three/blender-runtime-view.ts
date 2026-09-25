@@ -32,6 +32,7 @@ import { type CompiledGraph, compileMaterialGraph, graphSeeThrough, materialGrap
 import {worldMedium, WorldVolumePass} from './blender-world-volume';
 import { BlenderTextureSamplers } from './blender-texture-samplers';
 import { WeightOverlay, weightsSchema } from './blender-runtime-weights';
+import { CursorOverlay, type CursorPlacement, cursorSchema } from './blender-runtime-cursor';
 
 const scalar = z.number().finite();
 const point = z.tuple([scalar, scalar, scalar]);
@@ -503,6 +504,9 @@ export const frameSchema = z
     /** The active object's active vertex group, per vertex
      *  (`blender-runtime-weights.ts`); null when nothing is painted. */
     weights: weightsSchema.nullable().default(null),
+    /** `Scene.cursor.matrix` (`blender-runtime-cursor.ts`); absent from an
+     *  engine that does not report it. */
+    cursor: cursorSchema.optional(),
   })
   .strict();
 type Frame = z.infer<typeof frameSchema>;
@@ -550,13 +554,20 @@ export class BlenderRuntimeView {
    */
   private readonly armatureOverlay = new ArmatureOverlay();
   private readonly weightOverlay = new WeightOverlay();
+  private readonly cursorOverlay = new CursorOverlay();
   /** The two groups the stage is handed: the Helpers menu owns THEIR
    *  `visible`, and the inner group is what a RENDER stands down (an overlay
    *  is modeling chrome and never appears in a photograph — the same
    *  distinction `applyVisibility` draws for the scene's own objects). */
   private readonly armatureRoot = new THREE.Group();
   private readonly weightRoot = new THREE.Group();
+  private readonly cursorRoot = new THREE.Group();
   private rendered = false;
+  /** The camera the VIEWPORT is held in render lighting through (Blender's Rendered shading),
+   *  or null when the viewport shows modeling lighting. See {@link holdRendered}. */
+  private heldRendered: THREE.Camera | null = null;
+  /** A render photograph is being taken: the one state in which overlays stand down. */
+  private capturing = false;
   private readonly fallback = new THREE.MeshPhysicalMaterial({ color: 0xb9bec6, roughness: 0.72 });
   /** Base Color images, by image name -- ONE texture per image however many
    *  materials read it, and the cache OWNS it: a material points at one and
@@ -767,6 +778,7 @@ export class BlenderRuntimeView {
     for (const [group, overlay] of [
       [this.armatureRoot, this.armatureOverlay.group],
       [this.weightRoot, this.weightOverlay.group],
+      [this.cursorRoot, this.cursorOverlay.group],
     ] as const) {
       group.matrixAutoUpdate = false;
       group.matrix.copy(this.root.matrix);
@@ -775,6 +787,7 @@ export class BlenderRuntimeView {
     }
     this.armatureRoot.name = 'BlenderBones';
     this.weightRoot.name = 'BlenderWeights';
+    this.cursorRoot.name = 'Blender3DCursor';
   }
 
   /**
@@ -806,7 +819,42 @@ export class BlenderRuntimeView {
     return [
       { kind: 'skeletons', object: this.armatureRoot },
       { kind: 'weights', object: this.weightRoot },
+      // Blender's overlay popover's "3D Cursor" (`View3DOverlay.show_cursor`).
+      { kind: 'cursor', object: this.cursorRoot },
     ];
+  }
+
+  /**
+   * WHERE SHIFT+RIGHT-CLICK PUTS THE 3D CURSOR, in Blender's frame, or null
+   * when the click is not on the view the cursor was drawn in. The drawn
+   * cursor moves at once; the engine's next frame confirms it.
+   */
+  placeCursor(clientX: number, clientY: number, target: EventTarget | null): CursorPlacement | null {
+    const placement = this.cursorOverlay.placementAt(clientX, clientY, target, this.root);
+    if (placement !== null) {
+      this.cursorOverlay.show(placement);
+      presenterChanged();
+    }
+    return placement;
+  }
+
+  /**
+   * BLENDER'S RENDERED SHADING: the viewport held in the lighting a render photographs with
+   * ({@link setRendered}) — the scene's own lights, its World behind and around the model,
+   * `hide_render` visibility and shadows — seen through `camera`. `null` returns the viewport to
+   * modeling. A render taken meanwhile ends back in this state rather than in modeling.
+   */
+  async holdRendered(camera: THREE.Camera | null): Promise<void> {
+    if (camera === this.heldRendered) return;
+    this.heldRendered = camera;
+    // A photograph in progress keeps its own state; it returns to this one when it ends.
+    if (!this.capturing) await this.applyRendered(camera !== null, camera ?? undefined);
+    presenterChanged();
+  }
+
+  /** Whether the viewport is held in render lighting (Blender's Rendered shading). */
+  renderedHeld(): boolean {
+    return this.heldRendered !== null;
   }
 
   /**
@@ -816,6 +864,14 @@ export class BlenderRuntimeView {
    * distinction Blender draws between its solid viewport and a render.
    */
   async setRendered(rendered: boolean, camera?: THREE.Camera): Promise<void> {
+    this.capturing = rendered;
+    // A render ends by returning to what the viewport holds, which in Rendered shading is the
+    // same render lighting, seen through the viewport's own camera again.
+    if (!rendered && this.heldRendered !== null) return this.applyRendered(true, this.heldRendered);
+    return this.applyRendered(rendered, camera);
+  }
+
+  private async applyRendered(rendered: boolean, camera?: THREE.Camera): Promise<void> {
     const extinction = (rendered ? worldMedium(this.frame?.world)?.extinction : null) ?? new THREE.Vector3();
     for (const material of [...this.materials.values(), this.fallback]) applyWorldExtinction(material, extinction);
     // An area light cannot be DRAWN until its lookup tables are uploaded, and a
@@ -925,6 +981,7 @@ export class BlenderRuntimeView {
       next.weights ? blenderMatrix(next.weights.object) : null,
     );
     if (weightWarning !== null) warnings.push(weightWarning);
+    this.cursorOverlay.apply(next.cursor);
     return warnings;
   }
 
@@ -942,8 +999,10 @@ export class BlenderRuntimeView {
     // is being looked at and stand down for the one capture. It is the INNER
     // group that yields, never the group the Helpers menu owns — the two facts
     // are separate and must not overwrite each other.
-    this.armatureOverlay.group.visible = !this.rendered;
-    this.weightOverlay.group.visible = !this.rendered;
+    // Rendered SHADING keeps them, as Blender's viewport does; only the photograph drops them.
+    this.armatureOverlay.group.visible = !this.capturing;
+    this.weightOverlay.group.visible = !this.capturing;
+    this.cursorOverlay.group.visible = !this.capturing;
   }
 
   applyFrame(input: unknown) {
@@ -1421,6 +1480,9 @@ export class BlenderRuntimeView {
       this.frame = { ...this.frame, warnings: [...this.frame.warnings, ...overlayWarnings] };
     // Visibility is read off the frame, so it is applied once the frame stands.
     this.applyVisibility();
+    // Rendered shading follows the scene as it changes: its World, and the shadows of meshes
+    // this frame added.
+    if (this.heldRendered !== null && !this.capturing) void this.applyRendered(true, this.heldRendered);
     // The model moved: whoever is READING the engine (the Properties sections
     // through the RNA door) re-reads now, with the new graph already standing.
     for (const listener of [...this.frameListeners]) listener();
@@ -1647,6 +1709,7 @@ export class BlenderRuntimeView {
     this.world.dispose();
     this.armatureOverlay.dispose();
     this.weightOverlay.dispose();
+    this.cursorOverlay.dispose();
     this.frame = null;
     this.retiredSessions.clear();
     this.submittedMeshes.clear();

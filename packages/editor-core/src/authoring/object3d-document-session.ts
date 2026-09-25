@@ -856,6 +856,7 @@ export class Object3DDocumentSession {
     const camera = this.camera();
     const mode = this.state.mode;
     this.boundsHelper?.update();
+    this.selectionOrigins?.place();
     if (mode === 'uv' || mode === 'vertex-colors') {
       renderSolid(camera);
       return;
@@ -1393,7 +1394,6 @@ class SelectionOrigins extends THREE.Points<THREE.BufferGeometry, THREE.PointsMa
     this.renderOrder = 1000;
     this.frustumCulled = false;
     this.raycast = () => {};
-    this.onBeforeRender = () => this.place();
   }
 
   /** The selected objects and the colours their dots take (`active` for a lone selection). */
@@ -1403,16 +1403,26 @@ class SelectionOrigins extends THREE.Points<THREE.BufferGeometry, THREE.PointsMa
     this.visible = objects.length > 0;
   }
 
-  /** Before each draw: the dots where their objects are now. */
-  private place(): void {
+  /**
+   * Before each draw: the dots where their objects are now. Called by the session's `render`
+   * BEFORE the renderer starts, never from `onBeforeRender`: three uploads a geometry's
+   * attributes while it builds the render list, so an attribute replaced in `onBeforeRender` is
+   * drawn un-uploaded, and every dot falls to the Points object's own origin.
+   */
+  place(): void {
     // The point size is in drawing-buffer pixels; the look states CSS pixels.
     this.material.size = ORIGIN_SIZE_PX * this.renderer.getPixelRatio();
-    const positions = new Float32Array(this.objects.length * 3);
+    const count = this.objects.length;
+    let attribute = this.geometry.getAttribute('position') as THREE.BufferAttribute | undefined;
+    if (attribute?.count !== count) {
+      attribute = new THREE.BufferAttribute(new Float32Array(count * 3), 3);
+      this.geometry.setAttribute('position', attribute);
+    }
     this.objects.forEach((object, index) => {
       object.getWorldPosition(this.origin);
-      positions.set([this.origin.x, this.origin.y, this.origin.z], index * 3);
+      attribute.setXYZ(index, this.origin.x, this.origin.y, this.origin.z);
     });
-    this.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    attribute.needsUpdate = true;
   }
 
   dispose(): void {

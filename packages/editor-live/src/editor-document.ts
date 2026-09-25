@@ -165,6 +165,8 @@ export class LiveEditorDocument {
       ctrlKey?: boolean;
       metaKey?: boolean;
       shiftKey?: boolean;
+      /** 0 primary (default), 1 middle, 2 secondary. */
+      button?: 0 | 1 | 2;
     },
   ): Promise<DocumentProbeResult> {
     return this.#probe({
@@ -180,6 +182,7 @@ export class LiveEditorDocument {
       ...(options.ctrlKey === undefined ? {} : { ctrlKey: options.ctrlKey }),
       ...(options.metaKey === undefined ? {} : { metaKey: options.metaKey }),
       ...(options.shiftKey === undefined ? {} : { shiftKey: options.shiftKey }),
+      ...(options.button === undefined ? {} : { button: options.button }),
     });
   }
 

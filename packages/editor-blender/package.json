@@ -61,6 +61,7 @@
       "./contributions/properties-texture.inspector.tsx",
       "./contributions/properties-view-layer.inspector.tsx",
       "./contributions/properties-world.inspector.tsx",
+      "./contributions/rendered.view.ts",
       "./contributions/sculpt.layout.ts",
       "./contributions/shading.layout.ts",
       "./contributions/uv-editing.layout.ts",

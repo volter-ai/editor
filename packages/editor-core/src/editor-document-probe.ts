@@ -666,8 +666,12 @@ function dispatchDrag(
   steps: number,
   modifiers: { altKey?: boolean; ctrlKey?: boolean; metaKey?: boolean; shiftKey?: boolean } = {},
   via: readonly (readonly [number, number])[] = [],
+  button: 0 | 1 | 2 = 0,
 ): void {
   const rect = element.getBoundingClientRect();
+  // `buttons` is a bitmask in a different order from `button`: primary 1,
+  // secondary 2, middle 4.
+  const held = button === 0 ? 1 : button === 2 ? 2 : 4;
   const at = (fx: number, fy: number): MouseEventInit => ({
     bubbles: true,
     cancelable: true,
@@ -675,8 +679,8 @@ function dispatchDrag(
     view: window,
     clientX: rect.x + rect.width * fx,
     clientY: rect.y + rect.height * fy,
-    button: 0,
-    buttons: 1,
+    button,
+    buttons: held,
     altKey: modifiers.altKey ?? false,
     ctrlKey: modifiers.ctrlKey ?? false,
     metaKey: modifiers.metaKey ?? false,
@@ -736,7 +740,10 @@ function dispatchDrag(
     const end = { ...at(to[0], to[1]), buttons: 0 };
     element.dispatchEvent(new PointerEvent('pointerup', { ...end, pointerType: 'mouse' }));
     element.dispatchEvent(new MouseEvent('mouseup', end));
-    if (from[0] === to[0] && from[1] === to[1]) {
+    // A released primary button clicks; a released secondary one asks for the
+    // context menu, as the platform does.
+    if (button === 2) element.dispatchEvent(new MouseEvent('contextmenu', end));
+    else if (button === 0 && from[0] === to[0] && from[1] === to[1]) {
       element.dispatchEvent(new MouseEvent('click', end));
     }
   });
@@ -887,6 +894,8 @@ export async function runDocumentProbe(step: DocumentProbeStep): Promise<Documen
       return drove(target);
     }
     case 'drag': {
+      if (step.button !== undefined && ![0, 1, 2].includes(step.button))
+        throw new Error(`Unknown button ${JSON.stringify(step.button)}: 0 primary, 1 middle, 2 secondary.`);
       const element = resolveTarget(scope, step.selector, step.index ?? 0);
       dispatchDrag(
         element,
@@ -900,6 +909,7 @@ export async function runDocumentProbe(step: DocumentProbeStep): Promise<Documen
           ...(step.shiftKey === undefined ? {} : { shiftKey: step.shiftKey }),
         },
         step.via ?? [],
+        step.button ?? 0,
       );
       return drove(element);
     }

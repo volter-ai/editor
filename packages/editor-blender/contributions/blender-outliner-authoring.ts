@@ -302,13 +302,10 @@ function blenderWorldMatrixRows(object: THREE.Object3D, root: THREE.Object3D): n
  * implementation of a primitive's defaults, its vertex count or its shading
  * here; the kind names the operator and the engine does the rest.
  *
- * `location=(0, 0, 0)` IS STATED RATHER THAN DEFAULTED, because Blender's own
- * answer is different: `VIEW3D_MT_add` runs every one of these with
- * `operator_context = 'EXEC_REGION_WIN'` and each `*_add` operator's `invoke`
- * places the new object at the 3D CURSOR. There is no 3D cursor in this editor
- * yet — it is not this unit's (WORK.md §B6) — so the origin is what the rows
- * below ask for explicitly instead of inheriting whatever `scene.cursor`
- * happens to hold. When a cursor arrives, these lose the argument.
+ * A NEW OBJECT LANDS AT THE 3D CURSOR, as in Blender: no row states a
+ * `location`, and an unset one is `scene->cursor.location`
+ * (`editors/object/object_add.cc`, `location_from_view`). The cursor is drawn
+ * and placed on the Model document (`blender-runtime-cursor.ts`).
  *
  * A ROW THAT NEEDS A FILE IS DRAWN DISABLED WITH THE REASON, never as a
  * gesture that cannot complete (the shape B6 set for Set Origin ▸ Origin to 3D
@@ -343,12 +340,6 @@ export interface BlenderCreatableKind {
   readonly group: string | null;
   /** The call, complete. */
   readonly call: string;
-  /** `false` where Blender's operator has NO `location` property to place with:
-   *  the generic add options come from `add_generic_props`
-   *  (`editors/object/object_add.cc:431`), and the two rows here whose operator
-   *  never calls it are `object.quick_fur` and `image.import_as_mesh_planes`.
-   *  Passing one anyway is a `TypeError` from Blender, not a placement. */
-  readonly placesAtOrigin?: boolean;
   /** This editor cannot run the row, and this is the sentence saying why — the
    *  row is drawn DISABLED with it as its reason and the operator is never
    *  called. */
@@ -444,7 +435,6 @@ export const CREATABLE_KINDS: readonly BlenderCreatableKind[] = [
     label: 'Fur',
     group: 'Curve',
     call: 'object.quick_fur',
-    placesAtOrigin: false,
   },
   // `VIEW3D_MT_surface_add`, `space_view3d.py:2484-2492`.
   {
@@ -656,7 +646,6 @@ export const CREATABLE_KINDS: readonly BlenderCreatableKind[] = [
     label: 'Mesh Plane...',
     group: 'Image',
     call: 'image.import_as_mesh_planes',
-    placesAtOrigin: false,
     refusal: needsAFilePicker('An image as a mesh plane', 'CANCELLED, with nothing created'),
   },
   {
@@ -825,11 +814,10 @@ export function blenderCreatableKinds(): readonly BlenderCreatableKind[] {
   return [...CREATABLE_KINDS, ...liveCollectionKinds()];
 }
 
-/** The complete `bpy.ops` expression a kind runs, origin included. */
+/** The complete `bpy.ops` expression a kind runs. */
 function addCall(kind: BlenderCreatableKind): string {
   const [call, ...args] = kind.call.split(', ');
-  const all = kind.placesAtOrigin === false ? args : [...args, 'location=(0, 0, 0)'];
-  return `bpy.ops.${call}(${all.join(', ')})`;
+  return `bpy.ops.${call}(${args.join(', ')})`;
 }
 
 /** A Python string literal for one Blender name. JSON's own escaping is a

@@ -481,9 +481,12 @@ export function TransformHeaderControls({ store: stage }: { store?: ShellStore }
  * Select Box has something behind it NOW — `TransformMode`'s `'select'`, the
  * state in which no transform gizmo is drawn at all, which is what Blender's
  * viewport opens in (`gizmo-select-box.png`; the Blender stage's starting presentation states
- * it, `interaction.bootTool`). The 3D cursor still has nothing
- * behind it and is still not drawn; adding the button before the cursor exists
- * would be exactly the inert control the paragraph below removes.
+ * it, `interaction.bootTool`). The 3D cursor now exists — `Scene.cursor`, drawn
+ * and placed with Blender's Shift+Right-click on the Model document
+ * (`@volter/blender-engine`'s `blender-runtime-cursor.ts`) — but its toolbar
+ * tool, which places it with the LEFT button, is a transform mode this kit does
+ * not have, and a button without one would be the inert control the paragraph
+ * below removes.
  *
  * WHAT THEY DRIVE IS THE STAGE'S ANSWER, in two parts.
  *

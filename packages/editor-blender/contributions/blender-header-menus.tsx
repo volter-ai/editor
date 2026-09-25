@@ -26,8 +26,7 @@
  * WHAT IS DRAWN IS WHAT ACTS. A row Blender draws that this unit does not act
  * on is simply not here — never a row that opens a dialog we do not have, and
  * never one that no-ops. Where a row exists in Blender and is REFUSED here it
- * is drawn disabled with the refusal as its reason: Set Origin ▸ Origin to 3D
- * Cursor (there is no 3D cursor yet) and the four Add rows that want a FILE
+ * is drawn disabled with the refusal as its reason: the four Add rows that want a FILE
  * (Image ▸ Reference…/Background…/Mesh Plane…, Volume ▸ Import OpenVDB… —
  * `BlenderCreatableKind.refusal` carries each sentence). Add is the whole of
  * `VIEW3D_MT_add` now, so "not here" means Blender's menu-search row and
@@ -95,13 +94,9 @@ const ORIGIN_ROWS: readonly {
   // `type` enum's own UI names.
   { label: 'Geometry to Origin', type: 'GEOMETRY_ORIGIN' },
   { label: 'Origin to Geometry', type: 'ORIGIN_GEOMETRY' },
-  {
-    label: 'Origin to 3D Cursor',
-    type: 'ORIGIN_CURSOR',
-    refusal:
-      'There is no 3D cursor in this editor yet, so there is no point to move the origin to. ' +
-      'Blender places it with Shift+Right-click; that gesture is not built here.',
-  },
+  // The cursor is `Scene.cursor`, placed with Shift+Right-click on the model
+  // (`blender-runtime.document.tsx`).
+  { label: 'Origin to 3D Cursor', type: 'ORIGIN_CURSOR' },
 ];
 
 /**

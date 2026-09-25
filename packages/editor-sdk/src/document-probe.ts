@@ -184,6 +184,9 @@ export interface DocumentDragStep extends ScopedStep {
   ctrlKey?: boolean;
   metaKey?: boolean;
   shiftKey?: boolean;
+  /** The button held: 0 primary (default), 1 middle, 2 secondary. A right
+   *  press is what orbits a viewport or, with Shift, places Blender's 3D cursor. */
+  button?: 0 | 1 | 2;
 }
 
 /** A real key on the explicit target, else whatever inside the document has focus. */

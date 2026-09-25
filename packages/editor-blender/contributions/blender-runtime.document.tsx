@@ -29,9 +29,17 @@ import '../src/presentation';
 import { blenderModelView } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import type { ToolContributionProps, ToolDocumentToolbar } from '@volter/editor-sdk/contributions';
 import { editorHost } from '@volter/editor-sdk/host';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { subscribeViewportPresentation, viewPresentation } from '@volter/editor-sdk/kit/viewport-presentation';
+import {
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import * as THREE from 'three';
-import { bindModelDocument, openModelDocumentBlend } from '../host/blender-runtime-host';
+import { bindModelDocument, blenderExecute, openModelDocumentBlend } from '../host/blender-runtime-host';
 import { BlenderObjectModeHeader } from './blender-header-menus';
 import { createBlenderOutlinerAuthoring } from './blender-outliner-authoring';
 import { blenderSkin } from './blender-runtime-skin';
@@ -212,9 +220,82 @@ function BlenderModelViewport({
       detach?.();
     };
   }, [documentId]);
+  /**
+   * BLENDER'S RENDERED SHADING IS THE SCENE'S OWN LIGHT. When this stage's view lights by the
+   * `scene` (the Lighting row's Scene, or the Rendered view), the presenter holds the viewport
+   * in the lighting its render photographs with (`BlenderRuntimeView.holdRendered`): the
+   * scene's lights, its World, `hide_render` and shadows, through this stage's camera. Any
+   * other source returns it to modeling. The stage itself draws a `scene` source unlit
+   * (`standard-viewport-dressing.ts`), because Blender's lights live in the presenter.
+   */
+  useEffect(() => {
+    if (!documentId) return;
+    const { viewport } = editorHost();
+    const apply = (): void => {
+      const stage = viewport.stages().find((one) => one.documentId === documentId);
+      const lit = viewPresentation(documentId).lighting.source === 'scene';
+      void view.holdRendered(lit && stage ? stage.rig().camera : null);
+    };
+    apply();
+    const stopPresentation = subscribeViewportPresentation(apply);
+    const stopStages = viewport.onStages(apply);
+    return () => {
+      stopPresentation();
+      stopStages();
+      void view.holdRendered(null);
+    };
+  }, [documentId]);
+  /**
+   * SHIFT+RIGHT-CLICK PLACES THE 3D CURSOR, Blender's own chord for
+   * `view3d.cursor3d` (`blender_default.py`, `params.cursor_set_event`). The
+   * press is taken before the stage's orbit sees it, and a press that moves
+   * is not a click. The drawn cursor moves at once (`placeCursor`); Blender
+   * then writes `Scene.cursor` with no history step, as its operator pushes
+   * no undo.
+   */
+  const cursorPress = useRef<{ id: number; x: number; y: number } | null>(null);
+  const cursorChord = (event: ReactPointerEvent | ReactMouseEvent): boolean =>
+    event.button === 2 && event.shiftKey && event.target instanceof HTMLCanvasElement;
+  const onPointerDownCapture = (event: ReactPointerEvent): void => {
+    if (!cursorChord(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    cursorPress.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
+  };
+  const onPointerUpCapture = (event: ReactPointerEvent): void => {
+    const press = cursorPress.current;
+    if (press === null || event.pointerId !== press.id || event.button !== 2) return;
+    cursorPress.current = null;
+    event.preventDefault();
+    event.stopPropagation();
+    if (Math.hypot(event.clientX - press.x, event.clientY - press.y) > 3) return;
+    const placed = view.placeCursor(event.clientX, event.clientY, event.target);
+    if (placed === null) return;
+    const [x, y, z] = placed.location;
+    const [qw, qx, qy, qz] = placed.rotation;
+    void blenderExecute(
+      'from mathutils import Matrix, Quaternion, Vector\n' +
+        `bpy.context.scene.cursor.matrix = Matrix.LocRotScale(Vector((${x}, ${y}, ${z})), ` +
+        `Quaternion((${qw}, ${qx}, ${qy}, ${qz})), None)`,
+      false,
+      'Set 3D Cursor',
+    ).then((answer) => {
+      if (answer.error !== null)
+        editorHost().console.error(`Blender refused the 3D cursor: ${answer.error}`, 'blender-cursor');
+    });
+  };
+  const onContextMenuCapture = (event: ReactMouseEvent): void => {
+    if (cursorChord(event)) event.preventDefault();
+  };
   if (!documentId) return null;
   const Surface = surfaces.Object3DAuthoring;
   return (
+    <div
+      style={{ display: 'contents' }}
+      onPointerDownCapture={onPointerDownCapture}
+      onPointerUpCapture={onPointerUpCapture}
+      onContextMenuCapture={onContextMenuCapture}
+    >
     <Surface
       active={active ?? true}
       documentId={documentId}
@@ -271,5 +352,6 @@ function BlenderModelViewport({
         viewLocked: view.studioLights(),
       }}
     />
+    </div>
   );
 }

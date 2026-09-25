@@ -1293,6 +1293,11 @@ class Session:
             obj.name: draw_camera(obj) for obj in scene.objects if obj.type == "CAMERA"
         }
         frame["volumes"] = {}
+        # THE 3D CURSOR, `Scene.cursor`: where Blender's own "to 3D Cursor"
+        # operators place and snap, drawn by the tab as Blender's overlay does
+        # (`overlay_cursor.hh`). Its MATRIX, because the overlay's axis lines
+        # turn with the cursor's rotation in whichever `rotation_mode` it has.
+        frame["cursor"] = [[float(v) for v in row] for row in scene.cursor.matrix]
         # THE OVERLAYS, after the door's frame stands: `_weights` reads the
         # mesh's own revision out of it (see there), so it cannot run before.
         view_layer = bpy.context.view_layer

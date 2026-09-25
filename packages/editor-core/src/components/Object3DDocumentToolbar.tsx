@@ -90,6 +90,7 @@ const noSessionVersion = () => 0;
 const DOCUMENT_HELPER_ROWS: readonly { key: keyof HelperVisibility; label: string }[] = [
   { key: 'skeletons', label: 'Bones' },
   { key: 'weights', label: 'Weights' },
+  { key: 'cursor', label: '3D Cursor' },
 ];
 export function Object3DDocumentToolbar({
   documentId,

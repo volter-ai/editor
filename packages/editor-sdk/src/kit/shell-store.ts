@@ -76,6 +76,12 @@ export interface HelperVisibility {
    * you ask for them.
    */
   weights: boolean;
+  /**
+   * Blender's 3D CURSOR (`View3DOverlay.show_cursor`, the overlay popover's
+   * "3D Cursor" checkbox): the point `Scene.cursor` names, where the "to 3D
+   * Cursor" operators place and snap. ON by default, as Blender draws it.
+   */
+  cursor: boolean;
 }
 
 /**
@@ -243,6 +249,7 @@ export class ShellStore implements ShellDocumentState {
     triggerVolumes: true,
     skeletons: false,
     weights: false,
+    cursor: true,
   };
 
   get transformMode(): TransformMode {
