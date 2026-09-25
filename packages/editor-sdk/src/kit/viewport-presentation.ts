@@ -1,0 +1,352 @@
+/**
+ * VIEWPORT PRESENTATION — what a 3D viewport DOES, as data: its draw mode, where the light on
+ * the model comes from, what is drawn behind the scene, and which overlays show. The ruling is
+ * `docs/VIEWPORT-STAGE.md` §The ruling (owner, 2026-09-25): the LOOK holds colours only (the
+ * palette's `color.viewport`), and light and environment are per-view settings a person toggles,
+ * as they are in every target — Blender's shading popover, Godot's Preview Sun and Environment,
+ * Unity's Scene-view lighting and skybox toggles.
+ *
+ * THIS MODULE IS MEDIUM-NEUTRAL (ARCHITECTURE.md rule 5). It names no Three type: a studio
+ * light is a colour, an intensity and a direction, and the viewport that draws in a medium
+ * applies it. It holds four things:
+ *  - the TYPES of the four settings;
+ *  - STUDIO PRESETS, the light rigs a `studio` lighting names by id (Blender's studio lights are
+ *    data, `release/datafiles/studiolights/studio/*.sl`; so are ours);
+ *  - STARTING VALUES, declared by whoever builds a kind of stage (an integration or a product),
+ *    beneath the person's choices and outside the look (`workspace-style.ts` never sees them,
+ *    so a style switch cannot wipe a toggle and a toggle cannot make a style read as custom);
+ *  - the PER-VIEW choices a person made, which the document that owns the view persists in its
+ *    own blob (`workspace-document-restore.ts`), through {@link viewPresentationSnapshot} and
+ *    {@link restoreViewPresentation}.
+ *
+ * Resolution, lowest first: the kit's defaults, the stage kind's starting values, the
+ * document's override, the person's per-view choices. Lighting and backdrop are kept PER DRAW
+ * MODE (Blender keeps its lighting per shading type), so switching to wireframe and back finds
+ * the lighting where it was left.
+ */
+import type { ShadingMode } from '../types';
+
+/** The draw modes a viewport already has (`ShadingMode`), unchanged. */
+export type ViewportDrawMode = ShadingMode;
+
+/** An sRGB hex colour, `#rrggbb`. */
+export type PresentationColor = string;
+
+/** A light in a studio preset. `camera` lights move with the view (Blender's studio lights,
+ *  Unity's headlight); `world` lights stay put. The direction points FROM the light. */
+export interface StudioLight {
+  readonly color: PresentationColor;
+  readonly intensity: number;
+  readonly direction: readonly [number, number, number];
+  readonly space: 'camera' | 'world';
+  /** Blender's per-light specular colour and wrap (0..1), when the preset carries them. */
+  readonly specular?: PresentationColor;
+  readonly wrap?: number;
+}
+
+export interface StudioPreset {
+  readonly id: string;
+  readonly title: string;
+  readonly lights: readonly StudioLight[];
+  readonly ambient: { readonly color: PresentationColor; readonly intensity: number };
+  /** Image-based light strength under this preset (0 turns it off). */
+  readonly environmentIntensity: number;
+}
+
+/** What in the scene takes over from the preview, for `auto` lighting (Godot: a directional
+ *  light or a world environment; an omni or spot light does not count). */
+export type SceneTakeover = 'directional-light' | 'environment';
+
+export interface PreviewLighting {
+  readonly sun: {
+    readonly enabled: boolean;
+    readonly color: PresentationColor;
+    readonly energy: number;
+    /** Degrees above the horizon and clockwise from north (Godot: 60 and 150). */
+    readonly altitude: number;
+    readonly azimuth: number;
+    /** Shadow distance in scene units; 0 casts none. */
+    readonly shadowDistance: number;
+  };
+  readonly environment: {
+    readonly enabled: boolean;
+    /** A procedural sky (Godot's preview sky; Unity's default skybox). The horizon is the
+     *  target's own derivation, so it is stated rather than computed here. */
+    readonly sky: {
+      readonly top: PresentationColor;
+      readonly horizon: PresentationColor;
+      readonly ground: PresentationColor;
+    };
+    readonly energy: number;
+    /** Rotation about the vertical axis, degrees (Blender's Material Preview HDRI). */
+    readonly rotation: number;
+  };
+}
+
+export interface ViewportLighting {
+  /** `studio`: the named preset, ignoring the scene's lights (Blender's Solid).
+   *  `preview`: the preview sun and environment (Godot; Blender's Material Preview).
+   *  `scene`: the scene's own lights and environment only (Blender's Rendered; Unity with
+   *  scene lighting on). */
+  readonly source: 'studio' | 'preview' | 'scene';
+  /** When set, the preview gives way to the scene's own for each part the scene has, and
+   *  `overridable` says whether the person may turn the preview back on (Godot: false). Absent:
+   *  the source never changes on its own (Blender, Unity). */
+  readonly auto?: { readonly takeover: readonly SceneTakeover[]; readonly overridable: boolean };
+  readonly studioPreset: string;
+  readonly preview: PreviewLighting;
+  readonly tone: { readonly mapper: 'none' | 'filmic' | 'aces'; readonly exposure: number };
+}
+
+export interface ViewportBackdrop {
+  /** `fill`: the look's fill (its colour and form, `color.viewport`).
+   *  `color`: this view's own colour (Blender's "Viewport" background).
+   *  `environment`: the lighting environment drawn behind the scene.
+   *  `scene`: the scene's own background (Unity's skybox toggle; Blender's "World").
+   *  `transparent`: nothing (a capture over a page). */
+  readonly source: 'fill' | 'color' | 'environment' | 'scene' | 'transparent';
+  readonly color: PresentationColor;
+  /** For `environment`: how much of it shows over the fill, and how blurred (Blender's World
+   *  Opacity and Blur, both defaulting to 0 in Material Preview). */
+  readonly opacity: number;
+  readonly blur: number;
+}
+
+export interface ViewportOverlays {
+  readonly grid: {
+    readonly visible: boolean;
+    /** Minor cells per major line (Blender 10, Godot 8). */
+    readonly majorEvery: number;
+    readonly planes: { readonly xz: boolean; readonly xy: boolean; readonly yz: boolean };
+  };
+  /** Any set of selection marks (Unity can show outline and wire together; Godot a box). */
+  readonly selection: { readonly outline: boolean; readonly wire: boolean; readonly box: boolean };
+}
+
+/** One draw mode's lighting and backdrop. */
+export interface ViewportModePresentation {
+  readonly lighting: ViewportLighting;
+  readonly backdrop: ViewportBackdrop;
+}
+
+/** A view's whole presentation, resolved. */
+export interface ViewportPresentation extends ViewportModePresentation {
+  readonly drawMode: ViewportDrawMode;
+  readonly overlays: ViewportOverlays;
+}
+
+type DeepPartial<T> = { readonly [K in keyof T]?: T[K] extends readonly unknown[] ? T[K] : T[K] extends object ? DeepPartial<T[K]> : T[K] };
+
+/** A partial presentation: starting values, a document override, a person's choices. Lighting
+ *  and backdrop may be given for every mode (`all`) and per draw mode (`modes`). */
+export interface PresentationLayer {
+  readonly drawMode?: ViewportDrawMode;
+  readonly overlays?: DeepPartial<ViewportOverlays>;
+  readonly all?: DeepPartial<ViewportModePresentation>;
+  readonly modes?: { readonly [M in ViewportDrawMode]?: DeepPartial<ViewportModePresentation> };
+}
+
+// ---- The kit's own defaults ------------------------------------------------------------------
+
+/** The kit's studio rig: the stage the kit drew before it was fitted to Blender — one warm key
+ *  fixed in the world with an image-based fill (engine `913444142` changed the key to white). */
+export const KIT_STUDIO_PRESET: StudioPreset = Object.freeze<StudioPreset>({
+  id: 'kit',
+  title: 'Studio',
+  lights: [{ color: '#fff3dd', intensity: 1.9, direction: [-6, -10, 4], space: 'world' }],
+  ambient: { color: '#ffffff', intensity: 0 },
+  environmentIntensity: 1,
+});
+
+export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPresentation>({
+  drawMode: 'solid',
+  lighting: {
+    source: 'studio',
+    studioPreset: KIT_STUDIO_PRESET.id,
+    // Godot's preview defaults (`node_3d_editor_plugin.cpp` `_load_default_preview_settings`),
+    // the one target that ships a preview sun and sky, so `preview` means something out of the box.
+    preview: {
+      sun: { enabled: true, color: '#ffffff', energy: 1, altitude: 60, azimuth: 150, shadowDistance: 100 },
+      environment: {
+        enabled: true,
+        // Top (0.385, 0.454, 0.55) and ground (0.2, 0.169, 0.133); the horizon is Godot's own
+        // derivation from them (their mix, pulled halfway to its luminance x 3.333).
+        sky: { top: '#62748c', horizon: '#a9abaf', ground: '#332b22' },
+        energy: 1,
+        rotation: 0,
+      },
+    },
+    tone: { mapper: 'aces', exposure: 1 },
+  },
+  backdrop: { source: 'fill', color: '#3d3d3d', opacity: 0, blur: 0 },
+  overlays: {
+    grid: { visible: true, majorEvery: 10, planes: { xz: true, xy: false, yz: false } },
+    selection: { outline: true, wire: false, box: false },
+  },
+});
+
+// ---- Studio presets ----------------------------------------------------------------------------
+
+const presets = new Map<string, StudioPreset>([[KIT_STUDIO_PRESET.id, KIT_STUDIO_PRESET]]);
+
+/** Register a studio preset (an integration's own studio lights). A duplicate id throws. */
+export function registerStudioPreset(preset: StudioPreset): () => void {
+  if (presets.has(preset.id)) throw new Error(`registerStudioPreset: "${preset.id}" is already registered.`);
+  presets.set(preset.id, preset);
+  bump();
+  return () => {
+    if (presets.get(preset.id) !== preset) return;
+    presets.delete(preset.id);
+    bump();
+  };
+}
+
+/** The preset for an id, or the kit's when the id is not (or no longer) registered. */
+export function studioPreset(id: string): StudioPreset {
+  return presets.get(id) ?? KIT_STUDIO_PRESET;
+}
+
+export function studioPresets(): readonly StudioPreset[] {
+  return [...presets.values()];
+}
+
+// ---- Starting values, per kind of stage ---------------------------------------------------------
+
+const starting = new Map<string, PresentationLayer>();
+
+/**
+ * Declare the starting presentation of a kind of stage (`'model'`, `'scene'`, …): the builder's
+ * say, beneath every person's choice. One declaration per kind; a second throws, as two builders
+ * of one stage would be a composition defect.
+ */
+export function registerStartingPresentation(stageKind: string, layer: PresentationLayer): () => void {
+  if (starting.has(stageKind)) {
+    throw new Error(`registerStartingPresentation: the "${stageKind}" stage already has starting values.`);
+  }
+  starting.set(stageKind, layer);
+  bump();
+  return () => {
+    if (starting.get(stageKind) !== layer) return;
+    starting.delete(stageKind);
+    bump();
+  };
+}
+
+// ---- Per-view choices ---------------------------------------------------------------------------
+
+interface ViewRecord {
+  readonly stageKind: string;
+  readonly documentLayer: PresentationLayer | null;
+  readonly chosen: PresentationLayer;
+}
+
+const views = new Map<string, ViewRecord>();
+
+/** Bind a view to its kind of stage and its document's override. Idempotent; a person's
+ *  choices already recorded for the view are kept. */
+export function bindViewPresentation(
+  viewId: string,
+  stageKind: string,
+  documentLayer: PresentationLayer | null = null,
+): void {
+  const current = views.get(viewId);
+  if (current && current.stageKind === stageKind && current.documentLayer === documentLayer) return;
+  views.set(viewId, { stageKind, documentLayer, chosen: current?.chosen ?? {} });
+  bump();
+}
+
+/** Record a person's choice for a view (a toggle, a menu pick), merged over earlier ones. */
+export function setViewPresentation(viewId: string, choice: PresentationLayer): void {
+  const current = views.get(viewId) ?? { stageKind: '', documentLayer: null, chosen: {} };
+  views.set(viewId, { ...current, chosen: mergeLayers(current.chosen, choice) });
+  bump();
+}
+
+/** Forget a person's choices for a view: it falls back to its document and starting values. */
+export function resetViewPresentation(viewId: string): void {
+  const current = views.get(viewId);
+  if (!current) return;
+  views.set(viewId, { ...current, chosen: {} });
+  bump();
+}
+
+/** The person's choices for a view, as the document persists them. */
+export function viewPresentationSnapshot(viewId: string): PresentationLayer {
+  return views.get(viewId)?.chosen ?? {};
+}
+
+/** Put back the choices a document persisted (`restore` of its blob). */
+export function restoreViewPresentation(viewId: string, chosen: PresentationLayer): void {
+  const current = views.get(viewId) ?? { stageKind: '', documentLayer: null, chosen: {} };
+  views.set(viewId, { ...current, chosen });
+  bump();
+}
+
+export function unbindViewPresentation(viewId: string): void {
+  if (views.delete(viewId)) bump();
+}
+
+/** A view's presentation, resolved: kit, starting values, document, person — lighting and
+ *  backdrop for the view's current draw mode. */
+export function viewPresentation(viewId: string): ViewportPresentation {
+  const record = views.get(viewId);
+  const layers = [starting.get(record?.stageKind ?? ''), record?.documentLayer ?? undefined, record?.chosen].filter(
+    (layer): layer is PresentationLayer => layer !== undefined,
+  );
+  return resolvePresentation(layers);
+}
+
+/** Resolve layers (lowest first) over the kit's defaults. Pure; exported for a stage that
+ *  resolves without a bound view (a capture, a preview). */
+export function resolvePresentation(layers: readonly PresentationLayer[]): ViewportPresentation {
+  const drawMode = layers.reduce<ViewportDrawMode>((mode, layer) => layer.drawMode ?? mode, KIT_PRESENTATION.drawMode);
+  let mode: ViewportModePresentation = { lighting: KIT_PRESENTATION.lighting, backdrop: KIT_PRESENTATION.backdrop };
+  let overlays: ViewportOverlays = KIT_PRESENTATION.overlays;
+  for (const layer of layers) {
+    if (layer.all) mode = deepMerge(mode, layer.all);
+    const forMode = layer.modes?.[drawMode];
+    if (forMode) mode = deepMerge(mode, forMode);
+    if (layer.overlays) overlays = deepMerge(overlays, layer.overlays);
+  }
+  return { drawMode, lighting: mode.lighting, backdrop: mode.backdrop, overlays };
+}
+
+// ---- Change notification ------------------------------------------------------------------------
+
+let version = 0;
+const listeners = new Set<() => void>();
+
+function bump(): void {
+  version += 1;
+  for (const listener of listeners) listener();
+}
+
+export function subscribeViewportPresentation(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+export function viewportPresentationVersion(): number {
+  return version;
+}
+
+// ---- Merging -----------------------------------------------------------------------------------
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function deepMerge<T>(base: T, patch: unknown): T {
+  if (!isPlainObject(base) || !isPlainObject(patch)) return (patch === undefined ? base : patch) as T;
+  const out: Record<string, unknown> = { ...base };
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === undefined) continue;
+    out[key] = isPlainObject(value) && isPlainObject(out[key]) ? deepMerge(out[key], value) : value;
+  }
+  return out as T;
+}
+
+/** Merge two layers: `later` wins, per field, including per draw mode. */
+export function mergeLayers(earlier: PresentationLayer, later: PresentationLayer): PresentationLayer {
+  return deepMerge(earlier, later);
+}
