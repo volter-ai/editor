@@ -124,6 +124,12 @@ export interface ViewportOverlays {
   };
   /** Any set of selection marks (Unity can show outline and wire together; Godot a box). */
   readonly selection: { readonly outline: boolean; readonly wire: boolean; readonly box: boolean };
+  /**
+   * Which of the world's axis lines are drawn, named by the WORLD's axes: `floor` is the two
+   * that lie on the floor (Blender's X and Y), an object states each (Blender's X/Y/Z overlay
+   * toggles; Godot draws all three, Y vertical; Unity and Unreal none).
+   */
+  readonly axes: 'floor' | { readonly x: boolean; readonly y: boolean; readonly z: boolean };
 }
 
 /** How the stage's tools behave (function, ARCHITECTURE.md rule 7): the tool its shelf opens
@@ -210,6 +216,7 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
   overlays: {
     grid: { visible: true, majorEvery: 10, planes: { xz: true, xy: false, yz: false } },
     selection: { outline: true, wire: false, box: false },
+    axes: 'floor',
   },
   interaction: { bootTool: 'transform', boxSelect: 'contain' },
   world: { upAxis: 'y' },

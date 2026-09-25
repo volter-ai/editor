@@ -49,7 +49,8 @@
         "background": "#4d4d4d",
         "grid": "#6e6964",
         "axisX": "#f53352",
-        "axisY": "#298cf5",
+        "axisY": "#87d603",
+        "axisZ": "#298cf5",
         "selection": "#ff8000",
         "active": "#ff8000"
       },

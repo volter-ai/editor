@@ -248,6 +248,10 @@ export interface DensityContribution {
     readonly gridLineWidth?: number;
     readonly gridMajorWidth?: number;
     readonly gridMajorContrast?: number;
+    /** THE AXIS LINES' WIDTH in device pixels (the editor's own and Blender's are 2, measured
+     *  on `modeling-object-none.png`). Which axis lines show is the view's
+     *  (`overlays.axes`), never the look's. */
+    readonly axisLineWidth?: number;
     /**
      * HOW THE SELECTION BOX MARK IS DRAWN (the view's `overlays.selection.box`): `corners`, the
      * editor's own brackets, or `edges`, the full box (Godot's selection box); and its stroke in

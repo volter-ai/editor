@@ -229,6 +229,7 @@ export interface EditorDensity {
     readonly gridLineWidth?: number;
     readonly gridMajorWidth?: number;
     readonly gridMajorContrast?: number;
+    readonly axisLineWidth?: number;
     readonly selectionBox?: 'corners' | 'edges';
     readonly selectionBoxWidth?: number;
   };
@@ -713,6 +714,10 @@ export interface EditorTheme {
       readonly grid: string;
       readonly axisX: string;
       readonly axisY: string;
+      /** The Z axis line, where a view draws one (optional: the group's X and Y are the floor's
+       *  pair in a Z-up world; without it the line takes the gizmo's Z). The axis colours are
+       *  named by the WORLD's axes, whatever the world's up axis. */
+      readonly axisZ?: string;
       readonly selection: string;
       readonly active: string;
     };
@@ -2557,6 +2562,8 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     '--vgai-viewport-grid': theme.color.viewport?.grid ?? '',
     '--vgai-viewport-axis-x': theme.color.viewport?.axisX ?? '',
     '--vgai-viewport-axis-y': theme.color.viewport?.axisY ?? '',
+    '--vgai-viewport-axis-z': theme.color.viewport?.axisZ ?? '',
+    '--vgai-viewport-axis-line-width': numberToken(theme.density?.viewport?.axisLineWidth),
     '--vgai-viewport-selection': theme.color.viewport?.selection ?? '',
     '--vgai-viewport-active': theme.color.viewport?.active ?? '',
     '--vgai-gizmo-x': theme.color.gizmo?.x ?? '',

@@ -2,8 +2,8 @@
  * THE GODOT LOOK — Godot 4.4's default editor theme and its 3D viewport's
  * colours, made only of values (`docs/VIEWPORT-STAGE.md`, the Godot column).
  *
- * The viewport group transcribes `editor_settings.cpp`: axis X (0.96, 0.20,
- * 0.32), Z (0.16, 0.55, 0.96) — our floor's second axis — and the selection
+ * The viewport group transcribes Godot's axis colours (`theme_modern.cpp`): X (0.96, 0.20,
+ * 0.32), Y (0.53, 0.84, 0.01) and Z (0.16, 0.55, 0.96), named by the world's axes; and the selection
  * box (1.0, 0.5, 0). The fill is Godot's `default_clear_color` (0.3, 0.3, 0.3),
  * what shows with the preview environment off. The grid's minor and major
  * levels are the primary/secondary grid colours at alpha 0.5, fitted against

@@ -93,6 +93,9 @@ export interface NativeViewportLook {
   readonly grid: number | null;
   readonly axisX: number | null;
   readonly axisY: number | null;
+  readonly axisZ: number | null;
+  /** `density.viewport.axisLineWidth`, device px, or `null` for the editor's own. */
+  readonly axisLineWidth: number | null;
   readonly active: number | null;
 }
 
@@ -136,6 +139,12 @@ export function nativeViewportLook(element?: Element | null): NativeViewportLook
     grid: read('--vgai-viewport-grid'),
     axisX: read('--vgai-viewport-axis-x'),
     axisY: read('--vgai-viewport-axis-y'),
+    axisZ: read('--vgai-viewport-axis-z'),
+    axisLineWidth: (() => {
+      const raw = themeToken(root, '--vgai-viewport-axis-line-width');
+      const value = raw ? Number.parseFloat(raw) : Number.NaN;
+      return Number.isFinite(value) ? value : null;
+    })(),
     active: read('--vgai-viewport-active'),
   };
 }

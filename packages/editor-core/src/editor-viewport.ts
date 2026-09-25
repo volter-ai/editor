@@ -4,6 +4,7 @@ import { StagePresentationRig } from './components/standard-viewport-dressing';
 import {
   bindViewPresentation,
   subscribeViewportPresentation,
+  type ViewportOverlays,
   viewPresentation,
 } from '@volter/editor-sdk/kit/viewport-presentation';
 import { themeVars, zIndex } from '@volter/editor-sdk/widgets';
@@ -635,17 +636,15 @@ const AXIS_SEGMENTS_PER_AXIS = (AXIS_HALF_LENGTH * 2) / AXIS_SEGMENT_METRES;
  * solves for the fragment — but that path also makes `linewidth` a world
  * measure, and this line's 2 device px is measured.)
  */
-function axisSegmentPositions(): number[] {
+function axisSegmentPositions(threeAxis: number): number[] {
   const positions: number[] = [];
   for (let i = 0; i < AXIS_SEGMENTS_PER_AXIS; i++) {
     const from = -AXIS_HALF_LENGTH + i * AXIS_SEGMENT_METRES;
     const to = from + AXIS_SEGMENT_METRES;
-    positions.push(from, 0.001, 0, to, 0.001, 0);
-  }
-  for (let i = 0; i < AXIS_SEGMENTS_PER_AXIS; i++) {
-    const from = -AXIS_HALF_LENGTH + i * AXIS_SEGMENT_METRES;
-    const to = from + AXIS_SEGMENT_METRES;
-    positions.push(0, 0.001, from, 0, 0.001, to);
+    // A floor line sits a millimetre above the floor; the vertical one stands on the origin.
+    if (threeAxis === 0) positions.push(from, 0.001, 0, to, 0.001, 0);
+    else if (threeAxis === 2) positions.push(0, 0.001, from, 0, 0.001, to);
+    else positions.push(0, from, 0, 0, to, 0);
   }
   return positions;
 }
@@ -864,13 +863,13 @@ export class EditorViewport {
   private _editorObjects: THREE.Object3D[] = [];
   /** The view presentation this stage is lit by, when bound (`bindPresentation`). */
   private _presentation: { readonly rig: StagePresentationRig; readonly stop: () => void } | null = null;
-  /** Blender's X (red) and Y (green) axis lines on the floor — drawn only when
-   *  the palette's viewport group names them (`native-selection-style.ts`). */
+  /** The world's axis lines: WHICH show is the view's (`overlays.axes`, {@link setAxisLines}),
+   *  their colours and width the look's (`color.viewport.axisX/Y/Z`, `axisLineWidth`). */
   private _axisLines: LineSegments2 | null = null;
   private _axesWanted = false;
-  /** The palette's axis hexes, kept so they can be re-derived when the
-   *  renderer's tone mapping changes — exactly as the background is. */
-  private _lookAxisHexes: { readonly x: number; readonly y: number } | null = null;
+  private _stageAxes: ViewportOverlays['axes'] = 'floor';
+  /** The look's axis colours by WORLD axis (X, Y, Z), each `null` for the gizmo's own. */
+  private _lookAxisHexes: readonly [number | null, number | null, number | null] = [null, null, null];
   /** The palette's grid hex, kept for the same reason the axis hexes are. */
   private _lookGridHex: number | null = null;
   /** The palette background this viewport paints (the palette's sRGB hex) and
@@ -1132,12 +1131,12 @@ export class EditorViewport {
     this.grid = createFloorGrid(400);
     this.grid.layers.set(EDITOR_LAYER);
     scene.add(this.grid);
-    // Axis lines — Blender's X (red) and Y (along our Z, +Z forward) — as
+    // Axis lines — the world's, which ones the view says (`_rebuildAxisLines`) — as
     // screen-space two-pixel lines: a one-pixel line halves into the floor
     // when a frame is downsampled (measured), Blender's are two.
     const axisGeometry = new LineSegmentsGeometry();
-    axisGeometry.setPositions(axisSegmentPositions());
-    axisGeometry.setColors(new Array(AXIS_SEGMENTS_PER_AXIS * 2 * 2 * 3).fill(1));
+    axisGeometry.setPositions(axisSegmentPositions(0));
+    axisGeometry.setColors(new Array(AXIS_SEGMENTS_PER_AXIS * 2 * 3).fill(1));
     this._axisLines = new LineSegments2(
       axisGeometry,
       new LineMaterial({
@@ -3613,13 +3612,11 @@ export class EditorViewport {
     const grazing = this.grid.material.uniforms['uGrazingFade'];
     if (grazing) grazing.value = look.background !== null ? 1 : 0;
     this._paintLookGrid();
-    this._axesWanted = look.axisX !== null && look.axisY !== null;
-    this._lookAxisHexes =
-      look.axisX !== null && look.axisY !== null ? { x: look.axisX, y: look.axisY } : null;
-    this._paintLookAxes();
-    // Applied here as well as per store sync: a palette flip must drop the
-    // lines the moment its group goes (measured lingering otherwise).
-    if (this._axisLines) this._axisLines.visible = this.grid.visible && this._axesWanted;
+    this._lookAxisHexes = [look.axisX, look.axisY, look.axisZ];
+    if (this._axisLines) {
+      (this._axisLines.material as LineMaterial).linewidth = look.axisLineWidth ?? 2;
+    }
+    this._rebuildAxisLines();
     if (look.background !== null) {
       const current = this._scene.background;
       const ours =
@@ -3668,6 +3665,7 @@ export class EditorViewport {
       this.setStageFunction(presentation.world, presentation.interaction);
       this.setSelectionMarks(presentation.overlays.selection);
       this.setGridMajorEvery(presentation.overlays.grid.majorEvery);
+      this.setAxisLines(presentation.overlays.axes);
       invalidateStages();
     };
     const stopListening = subscribeViewportPresentation(apply);
@@ -3731,23 +3729,57 @@ export class EditorViewport {
   }
 
   /**
-   * The floor axes carry the palette's axis hexes RAW: their `LineMaterial`
-   * is `toneMapped: false` and opaque, so what is set is what the screen
-   * shows. Measured against `modeling-object-none.png`, whose X axis plateaus
-   * at `#cb293f` and Y at `#69aa15` — which is what the palette now names.
+   * THE WORLD'S AXIS LINES, rebuilt from the view's `overlays.axes`, the stage's axis frame and
+   * the look's colours. `floor` is the two world axes three's X and Z carry; each shown world
+   * axis is drawn along the three axis that carries it. The colours are RAW (`toneMapped: false`,
+   * opaque): what is set is what the screen shows — Blender's X plateaus at `#cb293f` and Y at
+   * `#69aa15` in `modeling-object-none.png`, which is what its palette names. An axis the look
+   * gives no colour takes the gizmo's.
    */
-  private _paintLookAxes(): void {
-    const hexes = this._lookAxisHexes;
-    if (!this._axisLines || hexes === null) return;
-    const x = new THREE.Color(hexes.x);
-    const y = new THREE.Color(hexes.y);
-    // One colour per endpoint of every segment in the chain
-    // (`axisSegmentPositions`): the X half first, then the Z half.
+  private _rebuildAxisLines(): void {
+    const lines = this._axisLines;
+    if (!lines) return;
+    const frame = this._stageAxisFrame;
+    const axes = this._stageAxes;
+    const shown = [0, 1, 2].filter((threeAxis) => {
+      const world = frame[threeAxis]![0];
+      if (axes === 'floor') return threeAxis !== 1;
+      return (['x', 'y', 'z'] as const).some((name, index) => index === world && axes[name]);
+    });
+    this._axesWanted = shown.length > 0;
+    lines.visible = this.grid.visible && this._axesWanted;
+    if (!this._axesWanted) return;
+    const positions: number[] = [];
     const colors: number[] = [];
-    for (const color of [x, y]) {
+    for (const threeAxis of shown) {
+      const world = frame[threeAxis]![0];
+      const hex = this._lookAxisHexes[world];
+      const color = hex === null || hex === undefined ? this._gizmoAxisColor(world) : new THREE.Color(hex);
+      positions.push(...axisSegmentPositions(threeAxis));
       for (let i = 0; i < AXIS_SEGMENTS_PER_AXIS * 2; i++) colors.push(color.r, color.g, color.b);
     }
-    this._axisLines.geometry.setColors(colors);
+    // A FRESH GEOMETRY per rebuild: three caches an instanced geometry's instance count at
+    // its first draw (`_maxInstanceCount`), so growing this one from two lines to three drew
+    // only the first two.
+    const geometry = new LineSegmentsGeometry();
+    geometry.setPositions(positions);
+    geometry.setColors(colors);
+    lines.geometry.dispose();
+    lines.geometry = geometry;
+  }
+
+  /** The view's axis lines (`overlays.axes`). */
+  setAxisLines(axes: ViewportOverlays['axes']): void {
+    const same =
+      axes === this._stageAxes ||
+      (typeof axes === 'object' &&
+        typeof this._stageAxes === 'object' &&
+        axes.x === this._stageAxes.x &&
+        axes.y === this._stageAxes.y &&
+        axes.z === this._stageAxes.z);
+    if (same) return;
+    this._stageAxes = typeof axes === 'object' ? { x: axes.x, y: axes.y, z: axes.z } : axes;
+    this._rebuildAxisLines();
   }
 
   /** Set the palette background AS IT IS: three clears to a `THREE.Color`
@@ -4580,6 +4612,7 @@ export class EditorViewport {
     this._stageAxisFrame = frame;
     this._applyGizmoAxisFrame();
     this._buildOrientationGizmo();
+    this._rebuildAxisLines();
   }
 
   /**
