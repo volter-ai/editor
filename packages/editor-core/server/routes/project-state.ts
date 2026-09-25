@@ -26,6 +26,7 @@ import { clientCount } from '../editor-sse';
 import { readProjectView } from '../project-view';
 import { commandResponseFor } from '../server-utils';
 import type { RouteContext } from './context';
+import { writeJsonFile } from './settings';
 import type { ControlPlane } from './control-plane';
 
 export function registerProjectStateRoutes(
@@ -383,6 +384,62 @@ export function registerProjectStateRoutes(
       res.json({ ok: true });
     } catch {
       res.status(500).json({ error: 'Failed to save editor state.' });
+    }
+  });
+
+  // ---- The workbench's WORKSPACE storage (`IWorkbenchConstructionOptions.workspaceStorageUrl`) ----
+  // Code-OSS's own workspace-scoped state (its layout, open editors, views) and the editor's, in
+  // the project's own folder: IndexedDB keyed by the workspace id lost it to a folder rename,
+  // another browser and another checkout (measured 2026-09-04), and this file survives all three.
+  // Its own file, because `.vgai/editor-state.json` has one whole-document writer.
+  const workbenchStoragePath = (): string => join(ctx.projectRoot, '.vgai', 'workbench-storage.json');
+  const readWorkbenchStorage = async (): Promise<Record<string, string>> => {
+    try {
+      const parsed: unknown = JSON.parse(await readFile(workbenchStoragePath(), 'utf-8'));
+      const items = (parsed as { items?: unknown } | null)?.items;
+      if (!items || typeof items !== 'object' || Array.isArray(items)) return {};
+      return Object.fromEntries(Object.entries(items).filter(([, value]) => typeof value === 'string')) as Record<
+        string,
+        string
+      >;
+    } catch {
+      return {};
+    }
+  };
+  router.get('/__editor/workbench-storage', async (_req: Request, res: Response) => {
+    if (ctx.projectRoot === engineRoot) {
+      res.json({ items: {} });
+      return;
+    }
+    res.json({ items: await readWorkbenchStorage() });
+  });
+  router.post('/__editor/workbench-storage', async (req: Request, res: Response) => {
+    if (ctx.projectRoot === engineRoot) {
+      res.status(400).json({ error: 'No project open.' });
+      return;
+    }
+    const body = req.body as { insert?: unknown; delete?: unknown } | null;
+    const insert = body?.insert;
+    const remove = body?.delete;
+    if (
+      (insert !== undefined && (!insert || typeof insert !== 'object' || Array.isArray(insert))) ||
+      (remove !== undefined && !Array.isArray(remove))
+    ) {
+      res.status(400).json({ error: 'A workbench storage write is { insert: { key: value }, delete: [key] }.' });
+      return;
+    }
+    try {
+      await writeJsonFile(workbenchStoragePath(), async () => {
+        const items = await readWorkbenchStorage();
+        for (const [key, value] of Object.entries((insert ?? {}) as Record<string, unknown>)) {
+          if (typeof value === 'string') items[key] = value;
+        }
+        for (const key of (remove ?? []) as unknown[]) if (typeof key === 'string') delete items[key];
+        return { items };
+      });
+      res.json({ ok: true });
+    } catch (cause) {
+      res.status(500).json({ error: `Could not write ${workbenchStoragePath()}: ${(cause as Error).message}` });
     }
   });
 }

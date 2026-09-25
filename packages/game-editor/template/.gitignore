@@ -15,6 +15,7 @@ dist-server/
 # and .vgai/overlays/*.json + .vgai/thumbnail.png + .vgai/provenance.json +
 # .vgai/generations.json are real project data too.
 .vgai/editor-state.json
+.vgai/workbench-storage.json
 # Which Code-OSS workbench THIS machine opens the project in — an absolute path
 # to an extracted release or a fork checkout, so it is a fact about this box and
 # never about the project. The product's `create --workbench <dir>` writes it;

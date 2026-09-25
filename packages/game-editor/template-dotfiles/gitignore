@@ -12,6 +12,7 @@ dist-server/
 # The editor's machine-local state. The rest of .vgai/ (overlays, thumbnail,
 # provenance, generations, assets) is project data and is committed.
 .vgai/editor-state.json
+.vgai/workbench-storage.json
 .vgai/session.json
 .vgai/collaboration.json
 .vgai/workbench.json

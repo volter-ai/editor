@@ -97,7 +97,7 @@ export async function writeSettingsFile(path: string, settings: EditorSettings):
 
 /** Write a JSON document atomically, ordered after this server's earlier writes to it. `value`
  *  may be computed from what the file holds at the moment of writing. */
-async function writeJsonFile(path: string, value: unknown | (() => Promise<unknown>)): Promise<void> {
+export async function writeJsonFile(path: string, value: unknown | (() => Promise<unknown>)): Promise<void> {
   // Applying a style sets several axes in one turn. Concurrent truncating
   // writes used to interleave, leaving a JSON document with another's tail.
   // Order this server's writes and publish atomically for other sessions.

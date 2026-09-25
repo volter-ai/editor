@@ -205,6 +205,8 @@ const NEVER_SHARE_PATHS = new Set([
   '/__editor/recording/start',
   '/__editor/scoped-game-css',
   '/__editor/editor-state',
+  // The host's workbench layout and open editors, in the project's own folder.
+  '/__editor/workbench-storage',
   // The USER settings layer is the host's own ~/.vgai/settings.json.
   '/__editor/settings/user',
   // So is the host's own UI state, ~/.vgai/editor-state.json.

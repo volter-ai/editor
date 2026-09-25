@@ -194,6 +194,7 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
    *    `vscode-remote-resource` url AND the page's own CSP address this origin.
    *  - `webviewEndpoint` is set (see the header).
    *  - `initialColorTheme` is set (see below).
+   *  - `workspaceStorageUrl` is set (see below).
    *  - `configurationDefaults` turns the editor's local chat agent off (see below). */
   const patchWorkbenchConfig = (html: string): string => {
     const webBaseUrl =
@@ -225,6 +226,14 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
         // in storage, and `ColorThemeData.fromStorageData` is preferred over
         // this on every open after the first.
         if (colorTheme !== null) config['initialColorTheme'] = { themeType: colorTheme };
+        // THE WORKSPACE'S STATE LIVES IN THE PROJECT'S FOLDER. The web workbench keeps its
+        // workspace-scoped storage (its layout, open editors and views, and the editor's) in
+        // IndexedDB keyed by the workspace id, which lost state to a folder rename, another browser
+        // and another checkout (measured 2026-09-04). The fork's
+        // `IWorkbenchConstructionOptions.workspaceStorageUrl` moves that scope to this server,
+        // which keeps it in `.vgai/workbench-storage.json` (`routes/project-state.ts`). A release
+        // cut before the option reads nothing from it and keeps IndexedDB.
+        config['workspaceStorageUrl'] = '/__editor/workbench-storage';
         // THE CHAT OPENS ON SUPERCODE, NOT ON "LOCAL". Local is Code-OSS's own agent
         // loop, and its request goes to the core setup agent, which waits for a
         // language model that is default for Chat (`chatSetupProviders.ts`
