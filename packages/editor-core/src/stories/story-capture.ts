@@ -52,10 +52,9 @@
  * documented warning case.
  */
 
-import type { Application } from 'pixi.js';
 import { reactStoryBoardLayout } from '../authoring/react-story-board';
 import { drawBitmapLabel } from '../bitmap-label';
-import { pixiCanvasFrame, withApplicationCollector } from '../canvas-preview-frames';
+import { observeCanvasMount } from '@volter/editor-sdk/kit/canvas-frames';
 import { type CaptureOptions, capturePlayComposite } from '../composite-screenshot';
 import { getCurrentProject } from '../project-manager';
 import {
@@ -71,7 +70,6 @@ import {
   loadProjectPreviewAnnotations,
   type StoryDiscoveryProject,
 } from './story-discovery';
-import { awaitPixiStoryFrame } from './story-pixi-preview';
 import { storyBoardPresentation } from './story-presentation';
 import { getProjectPreviewStories, whenProjectStoriesReady } from './story-registry';
 import {
@@ -410,26 +408,24 @@ export async function renderStoryVariants(
       }
       container.style.boxSizing = 'border-box';
       host.replaceChildren(container);
-      // Every `Application` this story's mount creates is collected, so the two
-      // things a Pixi story's capture needs — a settled first frame, and a
-      // readback the compositor cannot clear — can both be keyed on the MOUNT
-      // rather than guessed from the story's source
-      // (`canvas-preview-frames.ts` owns both, with the measurement).
-      let storyApps: readonly Application[] = [];
-      const mounted = await withApplicationCollector(async (apps) => {
-        storyApps = apps;
+      // The medium that draws the story's canvases observes its mount, so the
+      // two things such a capture needs — a settled first frame, and a readback
+      // the compositor cannot clear — are keyed on the MOUNT rather than
+      // guessed from the story's source (`@volter/editor-sdk/kit/canvas-frames`).
+      const observed = await observeCanvasMount(async () => {
         const handle = await mountIsolatedStory(container, modulePath, story.name, story.Component);
         await awaitStoryCommit(container);
-        await awaitPixiStoryFrame(apps);
         return handle;
       });
+      await observed.settled();
+      const mounted = observed.result;
       try {
         // Mount in the truth, frame the subject: the host is the full mount
         // box (the screen the story's anchors resolve against), the photograph
         // crops to what painted. A widget crops to the widget; a full screen's
         // painted union spans the frame and stays effectively full-frame.
         const shot = await capture(host, {
-          canvasFrame: pixiCanvasFrame(storyApps),
+          canvasFrame: observed.frame,
           cropToContent,
           ...(options.transparent ? { allowTransparent: true } : {}),
         });

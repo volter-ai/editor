@@ -569,7 +569,6 @@
  "kit-media  packages/editor-core/src/spatial-handle-visuals.ts -> @volter/editor-threejs/viewport/editor-layers",
  "kit-media  packages/editor-core/src/spatial-handle-visuals.ts -> three",
  "kit-media  packages/editor-core/src/stories/pixi-story-model.ts -> pixi.js",
- "kit-media  packages/editor-core/src/stories/story-capture.ts -> pixi.js",
  "kit-media  packages/editor-core/src/stories/story-pixi-preview.ts -> pixi.js",
  "kit-media  packages/editor-core/src/stories/story-three-preview.ts -> @react-three/fiber",
  "kit-media  packages/editor-core/src/stories/story-three-preview.ts -> @react-three/rapier",

@@ -26,7 +26,7 @@
  * first-party runtime canvas still takes the ordinary path.
  */
 
-import { presentedPixiFrame } from './canvas-preview-frames';
+import { presentedCanvasFrame } from '@volter/editor-sdk/kit/canvas-frames';
 import { snapshotLiveFrame } from '@volter/editor-sdk/kit/live-session-registry';
 
 /**
@@ -42,7 +42,7 @@ export async function liveCanvasFrame(
 ): Promise<CanvasImageSource | null> {
   const live = snapshotLiveFrame(canvas);
   if (live) return live;
-  return presentedPixiFrame(canvas);
+  return presentedCanvasFrame(canvas);
 }
 
 /** A `CanvasImageSource` that can be read back as a PNG on its own — what the
