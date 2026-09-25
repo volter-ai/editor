@@ -1,12 +1,19 @@
-import { connect, type LiveSession } from '@volter/editor-live';
+import { connect, unconnectedBindings, type LiveSession } from '@volter/editor-live';
 import { EditorClient } from '@volter/editor-sdk/client';
 import { verifiedSessions, terminateEditorSession } from './editor-sessions';
+import { formatSurface } from './eval-surface';
 
 /** Extra `eval` bindings a product adds on the same session (the game
  *  product's `game` and `page`); a returned name replaces the kit's own. */
 export type EvalScope = (live: LiveSession) => Record<string, unknown>;
 
 export async function control(command: string, verb: string, argument?: string, reason?: string, scope?: EvalScope): Promise<void> {
+  if (verb === 'eval' && argument === '--list') {
+    // No session needed: the same bindings, built on port 0 and never contacted.
+    const unconnected = { ...unconnectedBindings(), session: { port: 0, projectRoot: process.cwd() } };
+    console.log(formatSurface(command, { ...unconnected, ...scope?.(unconnected) }));
+    return;
+  }
   const live = await connect();
   const client = new EditorClient({ url: `http://127.0.0.1:${live.session.port}` });
   if (verb === 'close') {
@@ -26,10 +33,15 @@ export async function control(command: string, verb: string, argument?: string, 
     console.log(JSON.stringify(result, null, 2));
   } else if (verb === 'status') console.log(JSON.stringify(await live.editor.status(), null, 2));
   else if (verb === 'eval') {
-    if (!argument) throw new Error('eval requires a JavaScript function body; use return to print a result.');
+    if (!argument) throw new Error(`eval requires JavaScript; \`${command} eval --list\` shows what is in scope.`);
     const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
     const bindings: Record<string, unknown> = { editor: live.editor, tools: live.tools, session: live.session, ...scope?.(live) };
-    const result: unknown = await new AsyncFunction(...Object.keys(bindings), argument)(...Object.values(bindings));
+    // Expression first, statements as the fallback (the Node REPL's rule), so
+    // `eval 'editor.status()'` prints without the caller writing `return`.
+    let body: (...values: unknown[]) => Promise<unknown>;
+    try { body = new AsyncFunction(...Object.keys(bindings), `return (${argument}\n);`); }
+    catch { body = new AsyncFunction(...Object.keys(bindings), argument); }
+    const result: unknown = await body(...Object.values(bindings));
     if (result !== undefined) console.log(JSON.stringify(result, null, 2));
   } else if (verb !== 'console') throw new Error(`Unknown command: ${verb}`);
   const consoleState = await client.getUnresolvedConsole() as { entries?: unknown[] };
