@@ -254,6 +254,9 @@ export interface DensityContribution {
      */
     readonly navigationGizmo?: 'balls' | 'cones' | 'triad';
     readonly navigationCorner?: 'top-right' | 'bottom-left';
+    /** The triad's size, a multiple of its own 24 px; line and letter stay inside the gizmo's
+     *  90 px box up to about 1.3 (Unreal's triad, letters included, is about 40 px). */
+    readonly navigationSize?: number;
     readonly gizmoHighlightSaturation?: number;
     readonly gizmoHighlightValue?: number;
     /**

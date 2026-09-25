@@ -179,6 +179,7 @@ export interface NativeGizmoLook {
   readonly arrowHead: number | null;
   readonly ringWidth: number | null;
   readonly navigationForm: 'balls' | 'cones' | 'triad';
+  readonly navigationSize: number | null;
   readonly navigationCorner: 'top-right' | 'bottom-left';
   readonly highlightSaturation: number | null;
   readonly highlightValue: number | null;
@@ -211,6 +212,7 @@ export function nativeGizmoLook(element?: Element | null): NativeGizmoLook {
     arrowLength: number('--vgai-viewport-gizmo-arrow-length'),
     arrowHead: number('--vgai-viewport-gizmo-arrow-head'),
     ringWidth: number('--vgai-viewport-gizmo-ring-width'),
+    navigationSize: number('--vgai-viewport-navigation-size'),
     navigationForm: ((form) => (form === 'cones' || form === 'triad' ? form : 'balls'))(
       themeToken(root, '--vgai-viewport-navigation-gizmo'),
     ),

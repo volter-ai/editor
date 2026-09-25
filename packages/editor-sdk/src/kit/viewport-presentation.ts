@@ -165,6 +165,9 @@ export interface ViewportInteraction {
  *  gizmos name their axes by (Blender's world is Z-up, presented through three's Y-up). */
 export interface ViewportWorld {
   readonly upAxis: 'y' | 'z';
+  /** Unreal's world is LEFT-handed (Z up, Y to the right of X), so its Y points the other
+   *  way from Blender's; the gizmos name and draw their axes by it. */
+  readonly handedness: 'right' | 'left';
 }
 
 /** One draw mode's lighting and backdrop. */
@@ -245,7 +248,7 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
     boxSelect: 'contain',
     transformHandles: { scale: true, viewRotate: true, freeMove: true },
   },
-  world: { upAxis: 'y' },
+  world: { upAxis: 'y', handedness: 'right' },
 });
 
 // ---- Studio presets ----------------------------------------------------------------------------

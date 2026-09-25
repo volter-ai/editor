@@ -38,6 +38,7 @@ export const style: StyleContribution = {
         // The axis triad in the viewport's bottom-left corner (`level-editor.png`).
         navigationGizmo: 'triad',
         navigationCorner: 'bottom-left',
+        navigationSize: 1.3,
         // Unreal's arrows end in slim cones about 14 px long on ~85 px shafts (`level-editor.png`),
         // fitted side by side at 1x.
         gizmoArrowLength: 0.85,

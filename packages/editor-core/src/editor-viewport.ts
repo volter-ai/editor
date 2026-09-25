@@ -244,6 +244,13 @@ const AXIS_FRAME_Z_UP: StageAxisFrame = [
   [2, 1],
   [1, -1],
 ];
+/** A LEFT-handed Z-up world (Unreal's): three's Z carries the source's +Y, the mirror that
+ *  presents a left-handed frame in three's right-handed one. */
+const AXIS_FRAME_Z_UP_LEFT: StageAxisFrame = [
+  [0, 1],
+  [2, 1],
+  [1, 1],
+];
 /** The label a source axis index carries on the navigation gizmo. */
 const AXIS_LETTER = ['X', 'Y', 'Z'] as const;
 
@@ -928,6 +935,7 @@ export class EditorViewport {
     arrowLength: null,
     arrowHead: null,
     ringWidth: null,
+    navigationSize: null,
     navigationForm: 'balls',
     navigationCorner: 'top-right',
     highlightSaturation: null,
@@ -4137,8 +4145,11 @@ export class EditorViewport {
       const letter = AXIS_LETTER[sourceAxis]!;
       const axis = axes[i]!.clone().multiplyScalar(positive);
       if (form === 'triad') {
-        const length = 24 / perUnit;
-        const radius = COMPASS_STALK_WIDTH_PX / perUnit / 2;
+        // Unreal's triad is about 40 px, opaque and undimmed by facing (`level-editor.png`); its
+        // size is the look's (`navigationSize`, a multiple of this 24 px).
+        const scale = this._gizmoLook.navigationSize ?? 1;
+        const length = (24 * scale) / perUnit;
+        const radius = (COMPASS_STALK_WIDTH_PX * Math.sqrt(scale)) / perUnit / 2;
         const line = new THREE.Mesh(
           new THREE.CylinderGeometry(radius, radius, length, 6),
           new THREE.MeshBasicMaterial({ color, transparent: true, depthTest: false }),
@@ -4146,8 +4157,8 @@ export class EditorViewport {
         line.position.copy(axis).multiplyScalar(length / 2);
         line.quaternion.setFromUnitVectors(up, axis);
         this._vcScene.add(line);
-        this._vcStalks.push({ mesh: line, direction: axis.clone() });
-        letterSprite(color, letter, axis.clone().multiplyScalar(length + 7 / perUnit), 12);
+        this._vcSolids.push({ mesh: line, direction: axis.clone() });
+        letterSprite(color, letter, axis.clone().multiplyScalar(length + (7 * scale) / perUnit), 12 * scale);
         continue;
       }
       for (const sign of [1, -1] as const) {
@@ -4854,7 +4865,7 @@ export class EditorViewport {
    * drag selects. Never from the look: a Blender look over a Y-up game world named its axes Z-up.
    */
   setStageFunction(
-    world: { readonly upAxis: 'y' | 'z' },
+    world: { readonly upAxis: 'y' | 'z'; readonly handedness: 'right' | 'left' },
     interaction: {
       readonly boxSelect: 'contain' | 'touch';
       readonly transformHandles: { readonly scale: boolean; readonly viewRotate: boolean; readonly freeMove: boolean };
@@ -4871,7 +4882,12 @@ export class EditorViewport {
       this._syncCombinedGizmoHalves();
       invalidateStages();
     }
-    const frame = world.upAxis === 'z' ? AXIS_FRAME_Z_UP : AXIS_FRAME_Y_UP;
+    const frame =
+      world.upAxis === 'z'
+        ? world.handedness === 'left'
+          ? AXIS_FRAME_Z_UP_LEFT
+          : AXIS_FRAME_Z_UP
+        : AXIS_FRAME_Y_UP;
     if (frame === this._stageAxisFrame) return;
     this._stageAxisFrame = frame;
     this._applyGizmoAxisFrame();
