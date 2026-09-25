@@ -703,7 +703,7 @@ export class Object3DDocumentSession {
   setGrid(grid: boolean): void {
     invalidateStages();
     if (this.state.grid === grid) return;
-    this.viewport.grid.visible = grid;
+    this.viewport.setPersonGrid(grid);
     this.state = { ...this.state, grid };
     this.notify();
   }
@@ -745,7 +745,7 @@ export class Object3DDocumentSession {
     this.state = INITIAL_PRESENTATION;
     this.refreshSkeletonHelper();
     this.clearBoundsHelper();
-    this.viewport.grid.visible = true;
+    this.viewport.setPersonGrid(true);
     this.scene.background = this.neutralBackground;
     this.viewport.camera.up.set(0, 1, 0);
     this.frame();

@@ -30,7 +30,9 @@ const shelfOpened = new WeakMap<EditorShellStore, Set<string>>();
  * draws. Blender's tool shelf opens on Select Box, so a selected object carries no transform
  * gizmo until one is armed (the Blender stage's starting values); this editor's opens on the
  * combined gizmo. A BOOT default and never a standing switch: once a view's shelf has opened,
- * the map above keeps this from ever second-guessing the person in that view.
+ * the map above keeps this from ever second-guessing the person in that view. Views that share
+ * one store share its tool, so a view opening for the first time sets the tool it opens on for
+ * them all — which is the stage the person just opened.
  */
 function armShelfBootTool(store: EditorShellStore | null, documentId: string): void {
   if (store === null) return;
@@ -40,13 +42,12 @@ function armShelfBootTool(store: EditorShellStore | null, documentId: string): v
   opened.add(documentId);
   const mode = {
     select: 'select',
-    transform: null,
+    transform: 'combined',
     move: 'translate',
     rotate: 'rotate',
     scale: 'scale',
-  } as const satisfies Record<ViewportInteraction['bootTool'], string | null>;
-  const boot = mode[viewPresentation(documentId).interaction.bootTool];
-  if (boot !== null) store.setTransformMode(boot);
+  } as const satisfies Record<ViewportInteraction['bootTool'], string>;
+  store.setTransformMode(mode[viewPresentation(documentId).interaction.bootTool]);
 }
 
 export function ThreeStageTransformTools({ documentId }: { readonly documentId: string }) {
@@ -59,7 +60,7 @@ export function ThreeStageTransformTools({ documentId }: { readonly documentId: 
   // "cannot update while rendering" case.
   useEffect(() => {
     if (driver === 'gizmo') armShelfBootTool(own, documentId);
-  }, [driver, own]);
+  }, [driver, own, documentId]);
   if (driver === 'none') return null;
   const door = driver === 'modal' ? stageTransformDoor(documentId) : null;
   return <ToolStrip store={own ?? shell} {...(door ? { door } : {})} />;

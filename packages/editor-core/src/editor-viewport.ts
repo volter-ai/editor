@@ -998,6 +998,8 @@ export class EditorViewport {
   private _marksLook = '';
   /** The view's grid switch (`overlays.grid.visible`); the person's toggle is the store's. */
   private _presentationGrid = true;
+  /** A document session's own grid toggle ({@link setPersonGrid}). */
+  private _personGrid = true;
   private _vcMarginRight = COMPASS_MARGIN_RIGHT_PX;
   private _vcMarginTop = COMPASS_MARGIN_TOP_PX;
   /** See {@link EditorViewportOptions.chromeInsetPx}. */
@@ -2754,7 +2756,7 @@ export class EditorViewport {
     const threeSurface =
       this._standaloneAuthoring || policy.threeSurfaceShowing(this._store, authoring);
     this._threeSurfaceShowing = threeSurface;
-    this.grid.visible = this._store.showGrid && this._presentationGrid && threeSurface;
+    this.grid.visible = this._store.showGrid && this._personGrid && this._presentationGrid && threeSurface;
     if (this._axisLines) this._axisLines.visible = this.grid.visible && this._axesWanted;
 
     // The two passes below (apply gizmos + per-type helper/icon visibility) are
@@ -4020,7 +4022,16 @@ export class EditorViewport {
    */
   private _buildOrientationGizmo(): void {
     if (this._vcScene === undefined) return;
-    for (const held of [...this._vcScene.children]) this._vcScene.remove(held);
+    // Rebuilt on every look change, so what it held is released, textures included.
+    for (const held of [...this._vcScene.children]) {
+      this._vcScene.remove(held);
+      const drawn = held as THREE.Mesh | THREE.Sprite;
+      // A sprite's geometry is three's one shared quad: left alone.
+      if (!(drawn as THREE.Sprite).isSprite) drawn.geometry?.dispose();
+      const material = drawn.material as (THREE.Material & { map?: THREE.Texture | null }) | undefined;
+      material?.map?.dispose();
+      material?.dispose();
+    }
     this._vcBalls.length = 0;
     this._vcStalks.length = 0;
     this._vcSolids.length = 0;
@@ -4218,12 +4229,12 @@ export class EditorViewport {
    * pointer found BEHIND it.
    */
   private _isOverViewCube(clientX: number, clientY: number): boolean {
-    // An indicator (Unreal's triad) is only drawn: clicks pass through to the stage.
-    if (this._navigation !== 'interactive') return false;
+    // An indicator is only drawn, and a triad has nothing to click: clicks pass to the stage.
+    if (this._navigation !== 'interactive' || this._gizmoLook.navigationForm === 'triad') return false;
     const rect = this._canvas.getBoundingClientRect();
     const x = clientX - rect.left;
     const y = clientY - rect.top;
-    const { left: vcLeft, top: vcTop } = this._vcOrigin(rect.width, rect.height, 0);
+    const { left: vcLeft, top: vcTop } = this._vcOrigin(rect.width, rect.height, this._chromeInsetPx);
     return x >= vcLeft && x <= vcLeft + this._vcSize && y >= vcTop && y <= vcTop + this._vcSize;
   }
 
@@ -4247,7 +4258,22 @@ export class EditorViewport {
   setGridVisible(visible: boolean): void {
     if (visible === this._presentationGrid) return;
     this._presentationGrid = visible;
-    this.grid.visible = this._store.showGrid && visible && this._threeSurfaceShowing;
+    this._applyGridVisibility();
+  }
+
+  /** A document session's own grid toggle (`object3d-document-session.ts` `setGrid`), the
+   *  person's choice beside the store's, joined with the view's switch like it. */
+  setPersonGrid(visible: boolean): void {
+    if (visible === this._personGrid) return;
+    this._personGrid = visible;
+    this._applyGridVisibility();
+  }
+
+  /** THE GRID SHOWS when the person's toggles, the view's switch and a showing stage all say
+   *  so; the axis lines follow it. */
+  private _applyGridVisibility(): void {
+    this.grid.visible =
+      this._store.showGrid && this._personGrid && this._presentationGrid && this._threeSurfaceShowing;
     if (this._axisLines) this._axisLines.visible = this.grid.visible && this._axesWanted;
     invalidateStages();
   }
@@ -4266,8 +4292,8 @@ export class EditorViewport {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // Screen-space gizmo rect
-    const { left: vcLeft, top: vcTop } = this._vcOrigin(rect.width, rect.height, 0);
+    // Screen-space gizmo rect, where it is drawn (the canvas's bleed inset included).
+    const { left: vcLeft, top: vcTop } = this._vcOrigin(rect.width, rect.height, this._chromeInsetPx);
 
     // Convert to NDC for the gizmo camera
     const ndcX = ((x - vcLeft) / this._vcSize) * 2 - 1;
