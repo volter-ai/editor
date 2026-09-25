@@ -178,6 +178,9 @@ export class LiveEditor {
    * `@volter/editor-sdk`'s `CaptureDimensions`.
    * Supply a view to present and photograph it in one editor request.
    */
+  /** The active document's RENDER alone, at the size asked for: what the document draws,
+   *  without what the viewport draws over it (its navigation gizmo, its readouts). To see a
+   *  stage as the person does, use `captureEditorChrome({ region: 'document' })`. */
   async captureActiveDocument(
     size?: CaptureDimensions,
     view?: EditorView,

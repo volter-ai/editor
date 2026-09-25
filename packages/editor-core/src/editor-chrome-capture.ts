@@ -36,6 +36,8 @@ import { type CompositeCapture, capturePlayComposite } from './composite-screens
 import { currentEditorView } from './editor-current-view';
 import type { ShellStore } from './shell-store';
 import { liveCanvasFrame } from './live-canvas-frame';
+import { activeDocumentContainer } from './editor-document-probe';
+import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
 
 export const EDITOR_CHROME_ROOT_ID = 'editor-chrome-root';
 
@@ -62,6 +64,9 @@ export interface EditorChromeCaptureOptions {
    * are upscaled past it.
    */
   scale?: number;
+  /** `page`, the default: the whole editor. `document`: the active document's own box, as
+   *  the person sees it, overlays included. */
+  region?: 'page' | 'document';
 }
 
 /** A data URL as something `drawImage` accepts. */
@@ -88,12 +93,22 @@ export async function captureEditorChrome(
   store: ShellStore,
   options?: EditorChromeCaptureOptions,
 ): Promise<EditorChromeCapture> {
-  const root = document.getElementById(EDITOR_CHROME_ROOT_ID);
-  if (!root) {
+  const page = document.getElementById(EDITOR_CHROME_ROOT_ID);
+  if (!page) {
     throw new Error(
       `The editor chrome root (#${EDITOR_CHROME_ROOT_ID}) is not mounted, so there is no editor ` +
         'page to photograph.',
     );
+  }
+  // THE DOCUMENT REGION: the same compositor over the active document's own box, so a stage is
+  // photographed with what the person sees over it (its navigation gizmo, its readouts), not
+  // as the document's render alone.
+  let root: HTMLElement = page;
+  if (options?.region === 'document') {
+    const documentId = activeWorkspaceDocumentId();
+    const box = documentId ? activeDocumentContainer(documentId) : null;
+    if (!box) throw new Error('No active document is showing, so there is no document region to photograph.');
+    root = box;
   }
   const scale = options?.scale ?? window.devicePixelRatio ?? 1;
   const rect = root.getBoundingClientRect();

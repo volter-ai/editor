@@ -1279,6 +1279,10 @@ export interface EditorChromeCapture extends ViewportCapture {
  *  to the page's own `devicePixelRatio`, at most 4. */
 export interface EditorChromeCaptureOptions {
   readonly scale?: number;
+  /** `page` (the default): the whole editor. `document`: the active document's own box as the
+   *  person sees it, overlays included (a viewport's navigation gizmo, its readouts). The door
+   *  a stage is judged through; `captureActiveDocument` is the document's render alone. */
+  readonly region?: 'page' | 'document';
 }
 
 export interface ActiveDocumentCapture extends ViewportCapture {

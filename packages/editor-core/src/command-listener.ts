@@ -1574,11 +1574,15 @@ export async function handleCommand(
             "It defaults to the page's own devicePixelRatio.",
         };
       }
+      const region = cmd['region'];
+      if (region !== undefined && region !== 'page' && region !== 'document') {
+        return { ok: false, error: 'capture-editor-chrome: "region" is "page" or "document".' };
+      }
       try {
-        const capture = await captureEditorChrome(
-          store,
-          scale === undefined ? undefined : { scale },
-        );
+        const capture = await captureEditorChrome(store, {
+          ...(scale === undefined ? {} : { scale: scale as number }),
+          ...(region === undefined ? {} : { region }),
+        });
         return { ok: true, data: { ...capture } };
       } catch (error) {
         return { ok: false, error: error instanceof Error ? error.message : String(error) };

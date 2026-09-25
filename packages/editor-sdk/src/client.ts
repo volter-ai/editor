@@ -1160,6 +1160,7 @@ export class EditorClient {
     return this.command<EditorChromeCapture>({
       type: 'capture-editor-chrome',
       ...(options?.scale === undefined ? {} : { scale: options.scale }),
+      ...(options?.region === undefined ? {} : { region: options.region }),
     });
   }
 
