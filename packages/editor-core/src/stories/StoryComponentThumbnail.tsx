@@ -15,14 +15,44 @@ import { useEffect, useState } from 'react';
 import type { ProjectComponentEntry } from '../asset-workflow/project-content';
 import { TypedAssetThumbnail } from '../components/asset-thumbnails';
 import { waitForFirstViewportFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
-import type { PixiStoryThumbnailOptions } from './story-pixi-preview';
 import type { ProjectPreviewStory } from './story-registry';
-import type { StoryPreviewComponent } from './story-three-preview';
-import { threeStoryThumbnailKey } from './three-story-model';
+import { type StoryThumbnailOptions, storyThumbnailCapture } from '@volter/editor-sdk/kit/story-thumbnails';
+
+/**
+ * The in-memory thumbnail cache key: the story's identity plus the identity of
+ * the args it was captured with, so an arg edit re-captures rather than showing
+ * a stale picture of the previous value. Args are ordered by key so two equal
+ * arg sets never key differently.
+ *
+ * Non-serializable arg values (functions, symbols, cycles) are represented by
+ * their type rather than dropped — an arg that cannot be stringified must still
+ * take part in identity, and it must never make the key THROW.
+ */
+function storyThumbnailKey(storyId: string, args: Record<string, unknown>): string {
+  const parts: string[] = [];
+  for (const name of Object.keys(args).sort()) {
+    parts.push(`${name}=${stableArgValue(args[name])}`);
+  }
+  return `${storyId}|${parts.join('&')}`;
+}
+
+function stableArgValue(value: unknown): string {
+  if (typeof value === 'function') return 'fn';
+  if (typeof value === 'symbol') return 'symbol';
+  if (value === undefined) return 'undefined';
+  try {
+    return JSON.stringify(value) ?? 'undefined';
+  } catch {
+    // A cyclic or otherwise unserializable object: identity by type, which is
+    // stable for the lifetime of one composed story.
+    return `[${typeof value}]`;
+  }
+}
 
 const previewCache = new Map<string, string>();
 const previewPending = new Map<string, Promise<string>>();
-const storyComponentIdentities = new WeakMap<StoryPreviewComponent, number>();
+type StoryComponent = ProjectPreviewStory['Component'];
+const storyComponentIdentities = new WeakMap<StoryComponent, number>();
 let previewTail = Promise.resolve();
 let initialPreviewTurn: Promise<void> | null = null;
 let nextStoryComponentIdentity = 1;
@@ -75,7 +105,7 @@ function waitForInitialPreviewTurn(): Promise<void> {
   return initialPreviewTurn;
 }
 
-function storyComponentIdentity(component: StoryPreviewComponent): number {
+function storyComponentIdentity(component: StoryComponent): number {
   const existing = storyComponentIdentities.get(component);
   if (existing !== undefined) return existing;
   const identity = nextStoryComponentIdentity++;
@@ -100,19 +130,18 @@ function requestPreview(
     // every 750ms even after Scene is settled.
     await waitForInitialPreviewTurn();
     const declaredLayout = story.parameters['layout'];
-    const layout: PixiStoryThumbnailOptions['layout'] =
+    const layout: StoryThumbnailOptions['layout'] =
       declaredLayout === 'fullscreen' ||
       declaredLayout === 'padded' ||
       declaredLayout === 'centered'
         ? declaredLayout
         : 'padded';
     const options = { ...size, props: story.args, layout };
-    if (surface === 'canvas') {
-      const { capturePixiStoryThumbnail } = await import('./story-pixi-preview');
-      return capturePixiStoryThumbnail(story.Component as StoryPreviewComponent, options);
-    }
-    const { captureStoryComponentThumbnail } = await import('./story-three-preview');
-    return captureStoryComponentThumbnail(story.Component as StoryPreviewComponent, options);
+    // The medium the component renders in captures it
+    // (`@volter/editor-sdk/kit/story-thumbnails`).
+    const capture = storyThumbnailCapture(surface === 'canvas' ? 'canvas' : 'three');
+    if (!capture) throw new Error(`No ${surface} story capture is registered.`);
+    return capture(story.Component, options);
   });
   previewTail = request.then(
     () => undefined,
@@ -145,11 +174,11 @@ export function StoryComponentThumbnail({
   width?: number;
   height?: number;
 }) {
-  const StoryComponent = story.Component as StoryPreviewComponent;
+  const StoryComponent = story.Component;
   // HMR replaces the composed component even when the story id/args stay the
   // same. Include that native function identity so the Inspector cannot keep
   // displaying the old capture after the source changed.
-  const key = `${component.surface}:${component.path}:${threeStoryThumbnailKey(story.id, story.args)}:${storyComponentIdentity(StoryComponent)}:${previewRevision}:${width}x${height}`;
+  const key = `${component.surface}:${component.path}:${storyThumbnailKey(story.id, story.args)}:${storyComponentIdentity(StoryComponent)}:${previewRevision}:${width}x${height}`;
   const [url, setUrl] = useState(() => previewCache.get(key));
   const [captureFailed, setCaptureFailed] = useState(false);
 

@@ -64,33 +64,3 @@ export function domStoryBoardMembers<
   return members;
 }
 
-/**
- * The in-memory thumbnail cache key: the story's identity plus the identity of
- * the args it was captured with, so an arg edit re-captures rather than showing
- * a stale picture of the previous value. Args are ordered by key so two equal
- * arg sets never key differently.
- *
- * Non-serializable arg values (functions, symbols, cycles) are represented by
- * their type rather than dropped — an arg that cannot be stringified must still
- * take part in identity, and it must never make the key THROW.
- */
-export function threeStoryThumbnailKey(storyId: string, args: Record<string, unknown>): string {
-  const parts: string[] = [];
-  for (const name of Object.keys(args).sort()) {
-    parts.push(`${name}=${stableArgValue(args[name])}`);
-  }
-  return `${storyId}|${parts.join('&')}`;
-}
-
-function stableArgValue(value: unknown): string {
-  if (typeof value === 'function') return 'fn';
-  if (typeof value === 'symbol') return 'symbol';
-  if (value === undefined) return 'undefined';
-  try {
-    return JSON.stringify(value) ?? 'undefined';
-  } catch {
-    // A cyclic or otherwise unserializable object: identity by type, which is
-    // stable for the lifetime of one composed story.
-    return `[${typeof value}]`;
-  }
-}

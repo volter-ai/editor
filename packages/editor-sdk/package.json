@@ -138,7 +138,8 @@
     "./kit/asset-viewers": "./src/kit/asset-viewers.ts",
     "./kit/document-viewports": "./src/kit/document-viewports.ts",
     "./kit/inspection-node-media": "./src/kit/inspection-node-media.ts",
-    "./kit/asset-thumbnails": "./src/kit/asset-thumbnails.ts"
+    "./kit/asset-thumbnails": "./src/kit/asset-thumbnails.ts",
+    "./kit/story-thumbnails": "./src/kit/story-thumbnails.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",
