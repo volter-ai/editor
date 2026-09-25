@@ -1645,6 +1645,9 @@ export function Object3DDocumentViewport({
         // leave behind. The session runs this before it renders; nothing else may
         // hold a second copy of this field list.
         const syncHostScene = () => {
+          // A document draws through its session's camera, which the viewport's own frame
+          // does not know is orthographic.
+          host.viewport?.alignGridToView(documentSession.camera(), renderer.domElement.width);
           host.scene.environment = scene.environment ?? host.defaultEnvironment;
           host.scene.fog = scene.fog;
           host.scene.environmentIntensity = scene.environmentIntensity;
@@ -1692,9 +1695,6 @@ export function Object3DDocumentViewport({
                 ? host.darkenContentLights()
                 : 0;
             rig.update(documentSession.camera());
-            // A document draws through its session's camera, which the viewport's own frame
-            // does not know is orthographic.
-            host.viewport?.alignGridToView(documentSession.camera(), renderer.domElement.width);
             reportViewDraw(documentId, {
               source: drawSource,
               presetId: rig.presetId(),

@@ -879,7 +879,8 @@ export class BlenderRuntimeView {
    */
   private worldKeyFor(camera: THREE.Camera): string {
     const ortho = (camera as THREE.OrthographicCamera).isOrthographicCamera;
-    const turn = ortho ? camera.getWorldDirection(new THREE.Vector3()).toArray().map((v) => v.toFixed(3)).join(',') : '';
+    // Coarse, so an orbit recomposes a handful of times rather than every frame.
+    const turn = ortho ? camera.getWorldDirection(new THREE.Vector3()).toArray().map((v) => v.toFixed(1)).join(',') : '';
     return `${camera.uuid}:${turn}:${this.worldKey}`;
   }
 

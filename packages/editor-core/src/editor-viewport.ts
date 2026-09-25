@@ -740,6 +740,11 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
       // (`EditorViewport.alignGridToView`).
       uUnit: { value: 1 },
       uMinorFade: { value: 1 },
+      // Where the grid's distance fade is centred, in the plane's own coordinates, and how far
+      // it reaches: the origin and 1 on the floor; the view's centre and the view's size in an
+      // axis-aligned orthographic view, which Blender's grid covers edge to edge.
+      uCenter: { value: new THREE.Vector2() },
+      uReach: { value: 1 },
     },
     vertexShader: `
       varying vec3 vWorld;
@@ -761,6 +766,8 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
       uniform vec3 uPlaneNormal;
       uniform float uUnit;
       uniform float uMinorFade;
+      uniform vec2 uCenter;
+      uniform float uReach;
       varying vec3 vWorld;
       ${GRAZING_FADE_GLSL}
       // Coverage of a line WIDTH device pixels across, with a one-pixel
@@ -793,7 +800,7 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
         // never exceeded 0.75 coverage and so measured 91, not 102.
         float major = gridLine(p / uMajorEvery, uMajorWidth);
         float line = max(minor, major);
-        float fade = 1.0 - smoothstep(uFadeStart, uFadeEnd, length(world));
+        float fade = 1.0 - smoothstep(uFadeStart * uReach, uFadeEnd * uReach, length(world - uCenter));
         // The floor's DEPTH, beside the band that ends its finite extent:
         // Blender's own grazing-angle profile, transcribed from its frames
         // (see GRAZING_FADE_GLSL above). Without it this lattice reads the
@@ -3810,14 +3817,32 @@ export class EditorViewport {
     normal.set(axis === 0 ? 1 : 0, axis === -1 || axis === 1 ? 1 : 0, axis === 2 ? 1 : 0);
     this.grid.quaternion.setFromUnitVectors(_gridUp, normal);
     this.grid.position.set(0, 0, 0);
+    this.grid.scale.setScalar(1);
+    const center = uniforms['uCenter']!.value as THREE.Vector2;
+    center.set(0, 0);
+    uniforms['uReach']!.value = 1;
+    this._axisLines?.position.set(0, 0, 0);
+    this._axisLines?.scale.setScalar(1);
     if (axis !== -1) {
       const ortho = camera as THREE.OrthographicCamera;
       camera.getWorldPosition(_gridEye);
+      // The view's centre, in the plane: the grid is drawn around it (`grid_ubo_.offset`), with
+      // its lines still anchored to the world, and reaches past the view's corners.
+      const eye = _gridEye.clone().addScaledVector(normal, -_gridEye.dot(normal));
+      center.set(axis === 1 ? eye.x : axis === 2 ? eye.x : eye.z, axis === 1 ? eye.z : eye.y);
+      const halfDiagonal =
+        Math.hypot(ortho.right - ortho.left, ortho.top - ortho.bottom) / (2 * ortho.zoom);
+      const reach = Math.max(1, halfDiagonal / (this.grid.geometry.parameters.width * 0.5 * 0.55));
+      uniforms['uReach']!.value = reach;
+      this.grid.scale.setScalar(reach);
       // Just short of the far plane, along the view, then kept only along the plane's normal.
       _gridEye.addScaledVector(_gridView, ortho.far * 0.98);
-      this.grid.position.copy(normal).multiplyScalar(_gridEye.dot(normal));
+      const behind = normal.clone().multiplyScalar(_gridEye.dot(normal));
+      this.grid.position.copy(eye).add(behind);
+      this._axisLines?.position.copy(behind);
+      // The axes run through the origin, so they reach from there past the view's far corner.
+      this._axisLines?.scale.setScalar(Math.max(1, (center.length() + halfDiagonal) / AXIS_HALF_LENGTH));
     }
-    this._axisLines?.position.copy(this.grid.position);
     // THE LEVEL, transcribed from `overlay_grid.hh`: an axis-aligned orthographic view measures
     // `dist = 10 * 12 / (sizex * winmat[0][0])` — sixty device pixels of world — and draws the
     // power of ten below it as the minor line, faded by how far `dist` has climbed toward the
