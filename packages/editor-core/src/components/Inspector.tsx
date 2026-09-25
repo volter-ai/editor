@@ -20,7 +20,6 @@
  * is never visible here.
  */
 
-import { threeStateOf } from '../three-state';
 import { faUpRightAndDownLeftFromCenter } from '@fortawesome/free-solid-svg-icons';
 import { Button, EditorIcon, IconButton, Panel, themeVars } from '@volter/editor-sdk/widgets';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
@@ -195,14 +194,14 @@ export function AuthoringInspectorSurface({
  * same box rides over it as rides over the scene.
  */
 export function Inspector() {
-  const store = threeStateOf(useEditorStore());
+  const store = useEditorStore();
   // A camera controller may register after Play's first React commit. Keep the
   // contribution match live without making the inspection model own runtime
   // system state; availability-tick is the existing late-capability seam used
   // by the Profiler and Frame debugger for the same reason.
   useAvailabilitySelector(() => getActiveCamera());
-  const display = useActiveInspection(store.shell);
-  const { adapter } = resolvePanelAuthoring(store.shell);
+  const display = useActiveInspection(store);
+  const { adapter } = resolvePanelAuthoring(store);
   if (!display.available) return null;
   if (!adapter.capabilities.inspectorFields) {
     // A subject the shared resolver composed WITHOUT the adapter's fields —

@@ -24,7 +24,6 @@
  * described the asset browser's selection while the box described a scene node.
  */
 
-import { threeStateOf } from '../three-state';
 import { zIndex } from '@volter/editor-sdk/widgets';
 import { useCallback, useState, useSyncExternalStore } from 'react';
 import {
@@ -97,8 +96,8 @@ function cardPlacement(viewport: WorkspaceViewportRect, anchor: CardAnchor, mini
 }
 
 export function CompactInspectorCard() {
-  const store = threeStateOf(useEditorStore());
-  useSyncExternalStore(store.shell.subscribe, store.shell.getShellSnapshot);
+  const store = useEditorStore();
+  useSyncExternalStore(store.subscribe, store.getShellSnapshot);
   useSyncExternalStore(
     subscribeWorkspaceDocuments,
     workspaceDocumentRegistryVersion,
@@ -114,7 +113,7 @@ export function CompactInspectorCard() {
   const [minimized, setMinimized] = useState(false);
   // THE subject — the same one `<Inspector/>` below renders. The pill is a
   // miniature of it, so there is nothing here to derive.
-  const { subject } = useActiveInspection(store.shell);
+  const { subject } = useActiveInspection(store);
 
   // The PILL's clear, and the only one left: the title bar's X is gone (owner,
   // 2026-08-07 — "the x does deselect? may not be necessary either"), because
@@ -125,8 +124,8 @@ export function CompactInspectorCard() {
     // its own producer (`inspection/active-subject.ts`), so clearing it is
     // what "no selection" means while it is showing.
     clearSelectedAsset();
-    const { adapter } = resolvePanelAuthoring(store.shell);
-    if (!setAuthoringSelection(adapter, [])) store.shell.select(null);
+    const { adapter } = resolvePanelAuthoring(store);
+    if (!setAuthoringSelection(adapter, [])) store.select(null);
   }, [store]);
 
   const placement = viewport ? cardPlacement(viewport, DEFAULT_ANCHOR, minimized) : null;

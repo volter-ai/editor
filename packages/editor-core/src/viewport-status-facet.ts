@@ -26,18 +26,18 @@ export function reportViewportStatus(): () => void {
     const pose = stage.cameraPose;
     return {
       showGrid: activeDocumentId ? viewGridVisible(activeDocumentId) : true,
-      showHelpers: stage.showHelpers,
+      showHelpers: stage.shell.showHelpers,
       showStats: stage.showStats,
       shadingMode: presentation?.mode ?? store.shadingMode,
       helperVisibility: {
-        ...stage.helperVisibility,
+        ...stage.shell.helperVisibility,
         ...(presentation ? { bounds: presentation.bounds, skeletons: presentation.skeleton } : {}),
       },
       // The armed tool is the ACTIVE document's stage's: every stage owns a store
       // and the shelf's tools write the one the person is looking at.
-      transformMode: stage.transformMode,
-      transformSpace: store.transformSpace,
-      snapEnabled: store.snapEnabled,
+      transformMode: stage.shell.transformMode,
+      transformSpace: store.shell.transformSpace,
+      snapEnabled: store.shell.snapEnabled,
       ...(pose
         ? {
             camera: {

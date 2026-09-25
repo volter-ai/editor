@@ -1,4 +1,3 @@
-import { threeStateOf } from '../three-state';
 import {
   faArrowDown,
   type faArrowsUpDownLeftRight,
@@ -33,7 +32,8 @@ import {
 } from '@volter/editor-sdk/widgets';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useEditorStore } from '../editor-runtime';
-import type { EditorShellStore, GizmoAnchor, PivotMode } from '../editor-shell-store';
+import type { GizmoAnchor, PivotMode } from '../editor-shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import {
   activeEditorKeymap,
   type EditorKeyActionId,
@@ -80,7 +80,7 @@ function SnapButton({
   size = 'comfortable',
   variant = 'ghost',
 }: {
-  store: EditorShellStore;
+  store: ShellStore;
   dimensions?: '2d' | '3d';
   size?: 'compact' | 'default' | 'comfortable';
   variant?: 'ghost' | 'secondary';
@@ -200,7 +200,7 @@ const pivotLabels: Record<PivotMode, string> = {
   'individual-origins': 'Individual Origins',
 };
 
-function PivotButton({ store }: { store: EditorShellStore }) {
+function PivotButton({ store }: { store: ShellStore }) {
   const modes: PivotMode[] = ['active-element', 'median-point', 'individual-origins'];
   const label = `Pivot: ${pivotLabels[store.pivotMode]}`;
   return (
@@ -236,7 +236,7 @@ const anchorLabels: Record<GizmoAnchor, string> = {
  * somewhere else (`instanced-presentation.ts`). The two explicit states are the
  * override, in both directions.
  */
-function AnchorButton({ store }: { store: EditorShellStore }) {
+function AnchorButton({ store }: { store: ShellStore }) {
   const modes: GizmoAnchor[] = ['auto', 'pivot', 'center'];
   const label = `Anchor: ${anchorLabels[store.gizmoAnchor]}`;
   return (
@@ -256,7 +256,7 @@ function AnchorButton({ store }: { store: EditorShellStore }) {
   );
 }
 
-function TransformOptionsButton({ store }: { store: EditorShellStore }) {
+function TransformOptionsButton({ store }: { store: ShellStore }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -330,7 +330,7 @@ function TransformOptionsButton({ store }: { store: EditorShellStore }) {
  * only the printed word is the reference's, because `Global` is what this
  * control is called in the frame this skew is transcribing.
  */
-function TransformOrientationButton({ store }: { store: EditorShellStore }) {
+function TransformOrientationButton({ store }: { store: ShellStore }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const label = store.transformSpace === 'world' ? 'Global' : 'Local';
@@ -423,7 +423,7 @@ function TransformOrientationButton({ store }: { store: EditorShellStore }) {
  * how Blender groups them; and our toggles are 20x20 against the frame's 31
  * for pivot, because a cycling toggle carries no caret.
  */
-export function TransformHeaderControls({ store: stage }: { store?: EditorShellStore } = {}) {
+export function TransformHeaderControls({ store: stage }: { store?: ShellStore } = {}) {
   // THE STAGE'S OWN STORE, when the caller knows it. Every stage owns an
   // `EditorShellStore` (`stage-store-registry.ts`) and these four configure
   // the gizmo in THAT stage's viewport, so writing the shell's from over a
@@ -432,9 +432,9 @@ export function TransformHeaderControls({ store: stage }: { store?: EditorShellS
   // drawing the default COMBINED gizmo, and two captures a mode apart were
   // byte-identical. The world root's stage runs on the shell store itself, so
   // the Scene document is unchanged either way.
-  const shell = threeStateOf(useEditorStore());
+  const shell = useEditorStore();
   const store = stage ?? shell;
-  useSyncExternalStore(store.shell.subscribe, store.shell.getShellSnapshot ?? store.shell.getSnapshot);
+  useSyncExternalStore(store.subscribe, store.getShellSnapshot ?? store.getSnapshot);
   useSyncExternalStore(subscribeEditorKeymap, activeEditorKeymap, activeEditorKeymap);
   return (
     <EditorToolbar
@@ -515,11 +515,11 @@ export function ToolStrip({
 }: {
   dimensions?: '2d' | '3d';
   door?: StageTransformDoor;
-  store?: EditorShellStore;
+  store?: ShellStore;
 } = {}) {
-  const shell = threeStateOf(useEditorStore());
+  const shell = useEditorStore();
   const store = stage ?? shell;
-  useSyncExternalStore(store.shell.subscribe, store.shell.getShellSnapshot ?? store.shell.getSnapshot);
+  useSyncExternalStore(store.subscribe, store.getShellSnapshot ?? store.getSnapshot);
   // Every hint below is rendered from the active keymap; a live switch must
   // repaint the strip rather than leave it advertising the other table.
   useSyncExternalStore(subscribeEditorKeymap, activeEditorKeymap, activeEditorKeymap);

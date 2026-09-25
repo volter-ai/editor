@@ -42,7 +42,7 @@ export function ViewportViewMenu({ store }: { readonly store: EditorShellStore }
 
   const preset = (view: 'top' | 'front' | 'right'): void => {
     setThreeViewportProjection('orthographic');
-    store.setViewPreset(view);
+    store.shell.setViewPreset(view);
   };
 
   return (

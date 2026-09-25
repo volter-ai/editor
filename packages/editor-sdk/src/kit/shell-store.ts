@@ -32,6 +32,69 @@ function widenNotifyScope(current: NotifyScope, incoming: NotifyScope): NotifySc
  */
 export type PlayEditRegime = 'ephemeral' | null;
 
+/** The authoring tool a view's gizmo arms. */
+export type TransformMode = 'select' | 'combined' | 'translate' | 'rotate' | 'scale';
+export type TransformSpace = 'world' | 'local';
+export type PivotMode = 'active-element' | 'median-point' | 'individual-origins';
+
+/**
+ * WHERE the transform gizmo is drawn for a single selection — the standard DCC
+ * affordance, and PRESENTATION ONLY: an edit made about the bounds centre writes
+ * the same source values it would about the pivot (`editor-viewport.ts`).
+ *
+ * `auto` is the default because the right answer is a property of the SUBJECT,
+ * not a standing preference: an ordinary node's pivot is where its content is,
+ * and a world-anchored instanced system's is not (`instanced-presentation.ts`) —
+ * that one draws its gizmo at (0,0,0) with every unit the reader can see
+ * somewhere else. Both explicit values remain reachable, because "put the gizmo
+ * back on the actual origin" is a legitimate thing to want on exactly that node.
+ */
+export type GizmoAnchor = 'auto' | 'pivot' | 'center';
+
+export interface HelperVisibility {
+  bounds: boolean;
+  lights: boolean;
+  cameras: boolean;
+  colliders: boolean;
+  joints: boolean;
+  particles: boolean;
+  lod: boolean;
+  audio: boolean;
+  splines: boolean;
+  navmesh: boolean;
+  constraints: boolean;
+  reflectionProbes: boolean;
+  triggerVolumes: boolean;
+  skeletons: boolean;
+  /**
+   * The WEIGHT display — a mesh coloured by its active vertex group
+   * (`@volter/editor-blender`'s `blender-runtime-weights.ts`). Added 2026-09-19 (I4)
+   * because nothing in this set stood for it: `skeletons` is the bones, and
+   * Blender's own viewport overlay has a Bones checkbox but reaches weight
+   * colours through Weight Paint MODE, which an inspection surface has no
+   * brushes to enter. OFF by default, the way Blender shows no weights until
+   * you ask for them.
+   */
+  weights: boolean;
+}
+
+/**
+ * A request for whichever viewport shows this store: frame something, take a named view, move
+ * the camera. Neutral: a Three stage, a canvas scene and a board each answer the kinds they can.
+ */
+export type ViewportAction =
+  | { type: 'focus-entity'; id: string }
+  | { type: 'focus-selection' }
+  | { type: 'focus-scene' }
+  | { type: 'snap-selection-to-floor' }
+  | { type: 'set-view-preset'; preset: 'top' | 'front' | 'right' | 'perspective' }
+  | {
+      type: 'set-camera-pose';
+      position: { x: number; y: number; z: number };
+      target: { x: number; y: number; z: number };
+      fov?: number;
+    };
+
 export class ShellStore implements ShellDocumentState {
   /** Selection is viewport-local. The public selection accessors always expose
    *  the ACTIVE viewport's set, so Edit and Play never leak subjects into one
@@ -153,6 +216,170 @@ export class ShellStore implements ShellDocumentState {
     if (scope !== 'selection') this._contentVersion++;
     if (affectsHierarchyRowFacets) this._hierarchyRowFacetVersion++;
     for (const fn of this._listeners) fn();
+  }
+
+  protected _transformMode: TransformMode = 'combined';
+  protected _transformSpace: TransformSpace = 'world';
+  protected _snapEnabled = false;
+  protected _snapValues = { translate: 1, rotate: 15, scale: 0.25 };
+  protected _snapToSurface = false;
+  protected _preserveChildrenTransform = false;
+  protected _pivotMode: PivotMode = 'active-element';
+  protected _gizmoAnchor: GizmoAnchor = 'auto';
+  protected _showHelpers = true;
+  protected _helperVisibility: HelperVisibility = {
+    bounds: false,
+    lights: true,
+    cameras: true,
+    colliders: true,
+    joints: true,
+    particles: true,
+    lod: true,
+    audio: true,
+    splines: true,
+    navmesh: true,
+    constraints: true,
+    reflectionProbes: true,
+    triggerVolumes: true,
+    skeletons: false,
+    weights: false,
+  };
+
+  get transformMode(): TransformMode {
+    return this._transformMode;
+  }
+  get transformSpace(): TransformSpace {
+    return this._transformSpace;
+  }
+  get snapEnabled(): boolean {
+    return this._snapEnabled;
+  }
+  get snapValues() {
+    return this._snapValues;
+  }
+  get snapToSurface(): boolean {
+    return this._snapToSurface;
+  }
+  get preserveChildrenTransform(): boolean {
+    return this._preserveChildrenTransform;
+  }
+  get pivotMode(): PivotMode {
+    return this._pivotMode;
+  }
+  get gizmoAnchor(): GizmoAnchor {
+    return this._gizmoAnchor;
+  }
+  get showHelpers(): boolean {
+    return this._showHelpers;
+  }
+  get helperVisibility(): Readonly<HelperVisibility> {
+    return this._helperVisibility;
+  }
+
+  // --- Authoring tools (per view: every stage owns its store) ---
+  setTransformMode(mode: TransformMode): void {
+    this._transformMode = mode;
+    this._notify();
+  }
+
+  setTransformSpace(space: TransformSpace): void {
+    this._transformSpace = space;
+    this._notify();
+  }
+
+  toggleSnap(): void {
+    this._snapEnabled = !this._snapEnabled;
+    this._notify();
+  }
+
+  setSnapValues(values: Partial<{ translate: number; rotate: number; scale: number }>): void {
+    this._snapValues = { ...this._snapValues, ...values };
+    this._notify();
+  }
+
+  toggleSnapToSurface(): void {
+    this._snapToSurface = !this._snapToSurface;
+    this._notify();
+  }
+
+  togglePreserveChildrenTransform(): void {
+    this._preserveChildrenTransform = !this._preserveChildrenTransform;
+    this._notify();
+  }
+
+  setPivotMode(mode: PivotMode): void {
+    this._pivotMode = mode;
+    this._notify();
+  }
+
+  setGizmoAnchor(anchor: GizmoAnchor): void {
+    this._gizmoAnchor = anchor;
+    this._notify();
+  }
+
+  toggleHelpers(): void {
+    // The eye is a visibility gate, not a reset of the category checkboxes.
+    this._showHelpers = !this._showHelpers;
+    this._notify();
+  }
+
+  toggleHelperType(type: keyof HelperVisibility): void {
+    this._helperVisibility[type] = !this._helperVisibility[type];
+    if (this._helperVisibility[type]) this._showHelpers = true;
+    this._notify();
+  }
+
+  // --- Viewport requests ---
+  protected _viewportActionListeners = new Set<(action: ViewportAction) => void>();
+
+  onViewportAction = (fn: (action: ViewportAction) => void): (() => void) => {
+    this._viewportActionListeners.add(fn);
+    return () => this._viewportActionListeners.delete(fn);
+  };
+
+  /** Ask the viewport showing this store to act. */
+  requestViewportAction(action: ViewportAction): void {
+    for (const fn of this._viewportActionListeners) fn(action);
+  }
+
+  /** Focus the viewport camera on a specific entity. */
+  focusOnEntity(id: string): void {
+    this.requestViewportAction({ type: 'focus-entity', id });
+  }
+
+  /** Focus the viewport camera on the current selection. */
+  focusOnSelection(): void {
+    this.requestViewportAction({ type: 'focus-selection' });
+  }
+
+  /** Frame the whole active scene. A medium may carry more with it (the Three half's game
+   *  camera lookup, `EditorShellStore.focusOnScene`). */
+  focusOnScene(): void {
+    this.requestViewportAction({ type: 'focus-scene' });
+  }
+
+  /** Drop the selection onto whatever is under it. */
+  snapSelectionToFloor(): void {
+    this.requestViewportAction({ type: 'snap-selection-to-floor' });
+  }
+
+  /** Switch the viewport camera to a preset view (top, front, right, perspective). */
+  setViewPreset(preset: 'top' | 'front' | 'right' | 'perspective'): void {
+    this.requestViewportAction({ type: 'set-view-preset', preset });
+  }
+
+  /** Move the viewport camera to an arbitrary position/target/fov pose. */
+  setCameraPose(
+    position: { x: number; y: number; z: number },
+    target: { x: number; y: number; z: number },
+    fov?: number,
+  ): void {
+    this.requestViewportAction({
+      type: 'set-camera-pose',
+      position,
+      target,
+      ...(fov !== undefined ? { fov } : {}),
+    });
   }
 
   /** A companion half's change (the Three half's scene, tools and view options): the same

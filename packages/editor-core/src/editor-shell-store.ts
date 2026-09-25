@@ -47,23 +47,7 @@ export interface EditorStatePersistence {
  * Which member a STAGE is born with is its presentation's (`interaction.bootTool`,
  * `kit/viewport-presentation`); arming one is always a click in the shelf.
  */
-export type TransformMode = 'select' | 'combined' | 'translate' | 'rotate' | 'scale';
-export type TransformSpace = 'world' | 'local';
-export type PivotMode = 'active-element' | 'median-point' | 'individual-origins';
-
-/**
- * WHERE the transform gizmo is drawn for a single selection — the standard DCC
- * affordance, and PRESENTATION ONLY: an edit made about the bounds centre writes
- * the same source values it would about the pivot (`editor-viewport.ts`).
- *
- * `auto` is the default because the right answer is a property of the SUBJECT,
- * not a standing preference: an ordinary node's pivot is where its content is,
- * and a world-anchored instanced system's is not (`instanced-presentation.ts`) —
- * that one draws its gizmo at (0,0,0) with every unit the reader can see
- * somewhere else. Both explicit values remain reachable, because "put the gizmo
- * back on the actual origin" is a legitimate thing to want on exactly that node.
- */
-export type GizmoAnchor = 'auto' | 'pivot' | 'center';
+export type { GizmoAnchor, PivotMode, TransformMode, TransformSpace } from '@volter/editor-sdk/kit/shell-store';
 
 export type ShadingMode = ViewportShadingMode;
 
@@ -111,45 +95,9 @@ const OBJECT_MAP_MEMBERSHIP_HISTORY = 256;
  *  re-exported here so editor modules keep one import site. */
 export type { ViewportTab };
 
-export interface HelperVisibility {
-  bounds: boolean;
-  lights: boolean;
-  cameras: boolean;
-  colliders: boolean;
-  joints: boolean;
-  particles: boolean;
-  lod: boolean;
-  audio: boolean;
-  splines: boolean;
-  navmesh: boolean;
-  constraints: boolean;
-  reflectionProbes: boolean;
-  triggerVolumes: boolean;
-  skeletons: boolean;
-  /**
-   * The WEIGHT display — a mesh coloured by its active vertex group
-   * (`@volter/editor-blender`'s `blender-runtime-weights.ts`). Added 2026-09-19 (I4)
-   * because nothing in this set stood for it: `skeletons` is the bones, and
-   * Blender's own viewport overlay has a Bones checkbox but reaches weight
-   * colours through Weight Paint MODE, which an inspection surface has no
-   * brushes to enter. OFF by default, the way Blender shows no weights until
-   * you ask for them.
-   */
-  weights: boolean;
-}
+export type { HelperVisibility } from '@volter/editor-sdk/kit/shell-store';
 
-export type ViewportAction =
-  | { type: 'focus-entity'; id: string }
-  | { type: 'focus-selection' }
-  | { type: 'focus-scene'; gameCamera?: () => THREE.Camera | null }
-  | { type: 'snap-selection-to-floor' }
-  | { type: 'set-view-preset'; preset: 'top' | 'front' | 'right' | 'perspective' }
-  | {
-      type: 'set-camera-pose';
-      position: { x: number; y: number; z: number };
-      target: { x: number; y: number; z: number };
-      fov?: number;
-    };
+export type { ViewportAction } from '@volter/editor-sdk/kit/shell-store';
 
 export class EditorShellStore {
   /** Made by `threeStateOf`, once per shell store. */
@@ -186,32 +134,6 @@ export class EditorShellStore {
   protected _orbitTarget: THREE.Vector3 | null = null;
 
   // --- UI state (not stored in scene graph) ---
-  protected _transformMode: TransformMode = 'combined';
-  protected _transformSpace: TransformSpace = 'world';
-  protected _snapEnabled = false;
-  protected _snapValues = { translate: 1, rotate: 15, scale: 0.25 };
-  protected _snapToSurface = false;
-  protected _preserveChildrenTransform = false;
-  protected _pivotMode: PivotMode = 'active-element';
-  protected _gizmoAnchor: GizmoAnchor = 'auto';
-  protected _showHelpers = true;
-  protected _helperVisibility: HelperVisibility = {
-    bounds: false,
-    lights: true,
-    cameras: true,
-    colliders: true,
-    joints: true,
-    particles: true,
-    lod: true,
-    audio: true,
-    splines: true,
-    navmesh: true,
-    constraints: true,
-    reflectionProbes: true,
-    triggerVolumes: true,
-    skeletons: false,
-    weights: false,
-  };
   /**
    * Bumped whenever gizmos must be re-applied without a structural signature
    * change (W3a B1): a single-entity rebuild (`_rebuildEntity` →
@@ -236,7 +158,6 @@ export class EditorShellStore {
   protected _shadingMode: ShadingMode = 'solid';
   protected _statePersistence: EditorStatePersistence | null = null;
   protected _vertexSnapActive = false;
-  protected _viewportActionListeners = new Set<(action: ViewportAction) => void>();
   /**
    * Bumped only when post-processing-relevant state changes (environment / scene
    * structure / play-stop scene swap). The viewport rebuilds its EffectComposer
@@ -287,24 +208,12 @@ export class EditorShellStore {
     this._statePersistence = persistence;
   }
 
-  onViewportAction = (fn: (action: ViewportAction) => void): (() => void) => {
-    this._viewportActionListeners.add(fn);
-    return () => this._viewportActionListeners.delete(fn);
-  };
-
-  protected _emitViewportAction(action: ViewportAction): void {
-    for (const fn of this._viewportActionListeners) fn(action);
+  /** The game camera lookup the last `focusOnScene` carried, read by the world stage while its
+   *  auto-frame window is open. */
+  get sceneCameraLookup(): (() => THREE.Camera | null) | null {
+    return this._sceneCameraLookup;
   }
-
-  /** Focus the viewport camera on a specific entity. */
-  focusOnEntity(id: string): void {
-    this._emitViewportAction({ type: 'focus-entity', id });
-  }
-
-  /** Focus the viewport camera on the current selection. */
-  focusOnSelection(): void {
-    this._emitViewportAction({ type: 'focus-selection' });
-  }
+  protected _sceneCameraLookup: (() => THREE.Camera | null) | null = null;
 
   /**
    * Frame the whole active scene — the first thing a reader should see when a
@@ -319,30 +228,10 @@ export class EditorShellStore {
    * instead of any measurement — see `scene-framing.ts`.
    */
   focusOnScene(gameCamera?: () => THREE.Camera | null): void {
-    this._emitViewportAction({
-      type: 'focus-scene',
-      ...(gameCamera ? { gameCamera } : {}),
-    });
+    this._sceneCameraLookup = gameCamera ?? null;
+    this.shell.focusOnScene();
   }
 
-  /** Switch the viewport camera to a preset view (top, front, right, perspective). */
-  setViewPreset(preset: 'top' | 'front' | 'right' | 'perspective'): void {
-    this._emitViewportAction({ type: 'set-view-preset', preset });
-  }
-
-  /** Move the viewport camera to an arbitrary position/target/fov pose. */
-  setCameraPose(
-    position: { x: number; y: number; z: number },
-    target: { x: number; y: number; z: number },
-    fov?: number,
-  ): void {
-    this._emitViewportAction({
-      type: 'set-camera-pose',
-      position,
-      target,
-      ...(fov !== undefined ? { fov } : {}),
-    });
-  }
 
   /**
    * Live viewport camera pose, read straight from the bound Three.js camera +
@@ -377,36 +266,6 @@ export class EditorShellStore {
     return this._composerVersion;
   }
 
-  get transformMode(): TransformMode {
-    return this._transformMode;
-  }
-  get transformSpace(): TransformSpace {
-    return this._transformSpace;
-  }
-  get snapEnabled(): boolean {
-    return this._snapEnabled;
-  }
-  get snapValues() {
-    return this._snapValues;
-  }
-  get snapToSurface(): boolean {
-    return this._snapToSurface;
-  }
-  get preserveChildrenTransform(): boolean {
-    return this._preserveChildrenTransform;
-  }
-  get pivotMode(): PivotMode {
-    return this._pivotMode;
-  }
-  get gizmoAnchor(): GizmoAnchor {
-    return this._gizmoAnchor;
-  }
-  get showHelpers(): boolean {
-    return this._showHelpers;
-  }
-  get helperVisibility(): Readonly<HelperVisibility> {
-    return this._helperVisibility;
-  }
   /** See {@link _gizmoEpoch} — folded into the viewport's gizmo signature. */
   get gizmoEpoch(): number {
     return this._gizmoEpoch;
@@ -457,7 +316,7 @@ export class EditorShellStore {
     object.traverse((child) => {
       if (getUserData(child, 'editorHelperType') !== 'skeletons') return;
       setUserData(child, 'skeletonEnabled', visible);
-      child.visible = visible || this._helperVisibility.skeletons;
+      child.visible = visible || this.shell.helperVisibility.skeletons;
     });
     this.shell.notifyChange();
   }
@@ -839,15 +698,15 @@ export class EditorShellStore {
     this._lastEditorStateSaveTime = now;
 
     const state: Record<string, unknown> = {
-      transformMode: this._transformMode,
-      transformSpace: this._transformSpace,
-      snapEnabled: this._snapEnabled,
-      snapValues: this._snapValues,
-      preserveChildrenTransform: this._preserveChildrenTransform,
-      pivotMode: this._pivotMode,
-      gizmoAnchor: this._gizmoAnchor,
-      showHelpers: this._showHelpers,
-      helperVisibility: { ...this._helperVisibility },
+      transformMode: this.shell.transformMode,
+      transformSpace: this.shell.transformSpace,
+      snapEnabled: this.shell.snapEnabled,
+      snapValues: this.shell.snapValues,
+      preserveChildrenTransform: this.shell.preserveChildrenTransform,
+      pivotMode: this.shell.pivotMode,
+      gizmoAnchor: this.shell.gizmoAnchor,
+      showHelpers: this.shell.showHelpers,
+      helperVisibility: { ...this.shell.helperVisibility },
       showStats: this._showStats,
       shadingMode: this._shadingMode,
     };
@@ -898,63 +757,6 @@ export class EditorShellStore {
     } else {
       this._lodForcedLevels.set(id, level);
     }
-    this.shell.notifyChange();
-  }
-
-  // --- Transform mode ---
-  setTransformMode(mode: TransformMode): void {
-    this._transformMode = mode;
-    this.shell.notifyChange();
-  }
-
-  setTransformSpace(space: TransformSpace): void {
-    this._transformSpace = space;
-    this.shell.notifyChange();
-  }
-
-  toggleSnap(): void {
-    this._snapEnabled = !this._snapEnabled;
-    this.shell.notifyChange();
-  }
-
-  setSnapValues(values: Partial<{ translate: number; rotate: number; scale: number }>): void {
-    this._snapValues = { ...this._snapValues, ...values };
-    this.shell.notifyChange();
-  }
-
-  toggleSnapToSurface(): void {
-    this._snapToSurface = !this._snapToSurface;
-    this.shell.notifyChange();
-  }
-
-  togglePreserveChildrenTransform(): void {
-    this._preserveChildrenTransform = !this._preserveChildrenTransform;
-    this.shell.notifyChange();
-  }
-
-  snapSelectionToFloor(): void {
-    this._emitViewportAction({ type: 'snap-selection-to-floor' });
-  }
-
-  setPivotMode(mode: PivotMode): void {
-    this._pivotMode = mode;
-    this.shell.notifyChange();
-  }
-
-  setGizmoAnchor(anchor: GizmoAnchor): void {
-    this._gizmoAnchor = anchor;
-    this.shell.notifyChange();
-  }
-
-  toggleHelpers(): void {
-    // The eye is a visibility gate, not a reset of the category checkboxes.
-    this._showHelpers = !this._showHelpers;
-    this.shell.notifyChange();
-  }
-
-  toggleHelperType(type: keyof HelperVisibility): void {
-    this._helperVisibility[type] = !this._helperVisibility[type];
-    if (this._helperVisibility[type]) this._showHelpers = true;
     this.shell.notifyChange();
   }
 

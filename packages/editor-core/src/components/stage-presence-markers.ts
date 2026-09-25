@@ -413,7 +413,7 @@ export function bindStagePresenceMarkers(options: StagePresenceOptions): StagePr
       (participant) => participant.participantId === participantId,
     )?.presence.camera;
     if (!camera) return;
-    store.setCameraPose(
+    store.shell.setCameraPose(
       { x: camera.x, y: camera.y, z: camera.z },
       { x: camera.targetX, y: camera.targetY, z: camera.targetZ },
       camera.fov,

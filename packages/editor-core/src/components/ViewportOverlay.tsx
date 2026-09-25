@@ -137,12 +137,12 @@ function HelpersButton({ store }: { store: EditorShellStore }) {
   return (
     <ViewportOverlaysMenu
       label="Helpers"
-      master={{ enabled: store.showHelpers, onToggle: () => store.toggleHelpers() }}
+      master={{ enabled: store.shell.showHelpers, onToggle: () => store.shell.toggleHelpers() }}
       choices={helperTypes.map((helper) => ({
         id: helper.key,
         label: helper.label,
-        enabled: store.helperVisibility[helper.key],
-        onToggle: () => store.toggleHelperType(helper.key),
+        enabled: store.shell.helperVisibility[helper.key],
+        onToggle: () => store.shell.toggleHelperType(helper.key),
       }))}
     />
   );

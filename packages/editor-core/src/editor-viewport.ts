@@ -806,7 +806,7 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
 
 export class EditorViewport {
   setTransformMode(mode: 'combined' | 'translate' | 'rotate' | 'scale'): void {
-    this._store.setTransformMode(mode);
+    this._store.shell.setTransformMode(mode);
   }
 
   readonly camera: THREE.PerspectiveCamera;
@@ -1408,7 +1408,7 @@ export class EditorViewport {
         // about, so a rotate must spin the object on its own origin and write the
         // same numbers a pivot-anchored rotate would (`_centreAnchorFor`).
         const isIndividual =
-          this._store.pivotMode === 'individual-origins' || this._dummyIsPresentationAnchor;
+          this._store.shell.pivotMode === 'individual-origins' || this._dummyIsPresentationAnchor;
         const isMedian = this._allDragObjects.length > 0;
         const targets = isMedian ? this._allDragObjects : this._otherDragObjects;
         if (targets.length > 0) {
@@ -1464,7 +1464,7 @@ export class EditorViewport {
           this._vertexSnapTargets.length > 0
         ) {
           this._applyVertexSnap(gizmoObj, targets);
-        } else if (mode === 'translate' && this._store.snapToSurface) {
+        } else if (mode === 'translate' && this._store.shell.snapToSurface) {
           this._applySurfaceSnap(gizmoObj, targets);
         }
         this._restorePreservedChildren();
@@ -1931,7 +1931,7 @@ export class EditorViewport {
       this._boxHelpers.set(key, helper);
     };
 
-    if (this._store.showHelpers && this._store.helperVisibility.bounds) {
+    if (this._store.shell.showHelpers && this._store.shell.helperVisibility.bounds) {
       for (const id of this._objectMap.keys()) {
         const obj = this._objectForAuthoringId(id);
         if (obj) add(`bounds:${id}`, this._makeDiagnosticBounds(obj));
@@ -2046,8 +2046,8 @@ export class EditorViewport {
       helper.setSelected(this._store.shell.selectedEntityIds.has(id));
       helper.visible =
         this._threejsToolContextActive &&
-        this._store.showHelpers &&
-        this._store.helperVisibility.reflectionProbes;
+        this._store.shell.showHelpers &&
+        this._store.shell.helperVisibility.reflectionProbes;
       helper.update();
     }
   }
@@ -2106,8 +2106,8 @@ export class EditorViewport {
     }
     const visible =
       this._threeSurfaceShowing &&
-      this._store.showHelpers &&
-      this._store.helperVisibility.triggerVolumes;
+      this._store.shell.showHelpers &&
+      this._store.shell.helperVisibility.triggerVolumes;
     for (const [id, helper] of this._triggerVolumeHelpers) {
       helper.setSelected(this._store.shell.selectedEntityIds.has(id));
       helper.visible = visible;
@@ -2178,8 +2178,8 @@ export class EditorViewport {
       helper.setSelectedObjects(selectedObjects);
       helper.visible =
         this._threejsToolContextActive &&
-        this._store.showHelpers &&
-        this._store.helperVisibility.constraints;
+        this._store.shell.showHelpers &&
+        this._store.shell.helperVisibility.constraints;
       helper.update(this.camera);
     }
   }
@@ -2322,7 +2322,7 @@ export class EditorViewport {
     // floor is persistent; only the gizmos need an owner"); a camera icon is
     // furniture, not a gizmo.
     const visible =
-      this._threeSurfaceShowing && this._store.showHelpers && this._store.helperVisibility.cameras;
+      this._threeSurfaceShowing && this._store.shell.showHelpers && this._store.shell.helperVisibility.cameras;
     for (const entry of this._cameraHelpers.values()) {
       entry.helper.visible = visible;
       entry.helper.update();
@@ -2375,7 +2375,7 @@ export class EditorViewport {
     // Persistent for the same reason as the camera frustum above: a light you
     // have not selected is exactly the light you are looking for.
     const visible =
-      this._threeSurfaceShowing && this._store.showHelpers && this._store.helperVisibility.lights;
+      this._threeSurfaceShowing && this._store.shell.showHelpers && this._store.shell.helperVisibility.lights;
     for (const entry of this._lightHelpers.values()) {
       entry.helper.visible = visible;
       entry.helper.update?.();
@@ -2467,7 +2467,7 @@ export class EditorViewport {
       }
     }
     const visible =
-      this._threeSurfaceShowing && this._store.showHelpers && this._store.helperVisibility.audio;
+      this._threeSurfaceShowing && this._store.shell.showHelpers && this._store.shell.helperVisibility.audio;
     for (const entry of this._audioHelpers.values()) entry.helper.visible = visible;
   }
 
@@ -2575,8 +2575,8 @@ export class EditorViewport {
     this._hoveredSpatialHandle = null;
 
     const provider = spatialHandlesForAdapter(this._authoring());
-    if (!provider || !this._threejsToolContextActive || !this._store.showHelpers) return;
-    const visibility = this._store.helperVisibility;
+    if (!provider || !this._threejsToolContextActive || !this._store.shell.showHelpers) return;
+    const visibility = this._store.shell.helperVisibility;
     for (const id of this._store.shell.selectedEntityIds) {
       const layers = provider.layers(id).filter((layer) => {
         if (!(layer.category in visibility)) return true;
@@ -2720,7 +2720,7 @@ export class EditorViewport {
     // Ensure all gizmo children stay on EDITOR_LAYER (TransformControls rebuilds internally)
     this._gizmoHelper.traverse((child) => child.layers.set(EDITOR_LAYER));
 
-    const mode = this._store.transformMode;
+    const mode = this._store.shell.transformMode;
     const combined = mode === 'combined';
     // `'select'` draws NO gizmo (Blender's Select Box — `TransformMode`'s own
     // note), so there is no handle family to put the primary controls in; it
@@ -2730,7 +2730,7 @@ export class EditorViewport {
       this.transformControls.setMode(primaryMode);
     }
     this._applySnapToGizmos();
-    for (const controls of this._allGizmos()) controls.setSpace(this._store.transformSpace);
+    for (const controls of this._allGizmos()) controls.setSpace(this._store.shell.transformSpace);
 
     // Spec 28 step 2 — visibility says a Three.js surface is painted;
     // selection ownership says it is the native world the user is editing.
@@ -2759,7 +2759,7 @@ export class EditorViewport {
     // membership and the visibility toggles — none of which change during a
     // transform drag/scrub (which still fires syncFromStore every frame). Gate
     // them on a cheap signature so a drag doesn't re-walk the whole graph 60×/s.
-    const vis = this._store.helperVisibility;
+    const vis = this._store.shell.helperVisibility;
     // World-hidden eye (D9) folded into the SAME cheap signature/gate as the
     // gizmo/helper passes below — see `world-hidden-viewport.ts`'s doc
     // comment for why this must be recomputed from scratch on every rebuild
@@ -2785,7 +2785,7 @@ export class EditorViewport {
     // same rationale as the per-notify `applyRootHiddenVisibility` above.
     if (hidden) policy.suppressRootEnvironment(this._scene);
     const gizmoEpoch = this._store.gizmoEpoch;
-    const gizmoSig = `${this._store.showHelpers}|${JSON.stringify(vis)}|${hiddenRootId ?? ''}|${hidden}|${this._threejsToolContextActive}`;
+    const gizmoSig = `${this._store.shell.showHelpers}|${JSON.stringify(vis)}|${hiddenRootId ?? ''}|${hidden}|${this._threejsToolContextActive}`;
     const mapChanged = this._objectMap !== this._lastGizmoObjectMap;
     const settingsChanged = gizmoSig !== this._lastGizmoSig;
     const membershipChanges = mapChanged
@@ -2816,21 +2816,21 @@ export class EditorViewport {
         obj.traverse((child) => {
           if (getUserData(child, 'editorIcon')) {
             // Icon billboards follow the global helpers toggle
-            child.visible = this._store.showHelpers;
+            child.visible = this._store.shell.showHelpers;
             return;
           }
           if (!getUserData(child, 'editorHelper')) return;
           const type = getUserData(child, 'editorHelperType') as string | undefined;
           if (type === 'skeletons') {
             child.visible =
-              this._store.showHelpers &&
+              this._store.shell.showHelpers &&
               (vis.skeletons || Boolean(getUserData(child, 'skeletonEnabled')));
             return;
           }
           if (type && type in vis) {
-            child.visible = this._store.showHelpers && vis[type as keyof typeof vis];
+            child.visible = this._store.shell.showHelpers && vis[type as keyof typeof vis];
           } else {
-            child.visible = this._store.showHelpers;
+            child.visible = this._store.shell.showHelpers;
           }
         });
       }
@@ -2839,7 +2839,7 @@ export class EditorViewport {
       // master toggle.
       for (const [kind, helper] of this._helpers) {
         helper.visible =
-          this._store.showHelpers && (!(kind in vis) || (vis as Record<string, boolean>)[kind]!);
+          this._store.shell.showHelpers && (!(kind in vis) || (vis as Record<string, boolean>)[kind]!);
       }
       this._syncCameraHelpers(changedIds);
       this._syncLightHelpers(changedIds);
@@ -2883,7 +2883,7 @@ export class EditorViewport {
       : false;
     if (selectedId && selectedTransformWritable) {
       if (!this._anyGizmoDragging()) {
-        if (this._store.pivotMode === 'median-point' && this._store.shell.selectedEntityIds.size > 1) {
+        if (this._store.shell.pivotMode === 'median-point' && this._store.shell.selectedEntityIds.size > 1) {
           const median = new THREE.Vector3();
           let count = 0;
           for (const id of this._store.shell.selectedEntityIds) {
@@ -2971,8 +2971,8 @@ export class EditorViewport {
    *  Ctrl/⌘ (the Unity/Blender hold-to-snap convention) — three's controls
    *  read the snap on every pointer move, so a mid-drag hold takes effect. */
   private _applySnapToGizmos(): void {
-    const snap = this._store.snapEnabled || this._snapHold;
-    const vals = this._store.snapValues;
+    const snap = this._store.shell.snapEnabled || this._snapHold;
+    const vals = this._store.shell.snapValues;
     for (const controls of this._allGizmos()) {
       controls.setTranslationSnap(snap ? vals.translate : null);
       controls.setRotationSnap(snap ? THREE.MathUtils.degToRad(vals.rotate) : null);
@@ -3002,15 +3002,15 @@ export class EditorViewport {
     this._applySnapToGizmos();
     // Stepping reads as "slower/laggier" to someone who doesn't know it is
     // snapping (human pass 10 said exactly that) — name it while it happens.
-    if (hold && this._anyGizmoDragging() && !this._store.snapEnabled) {
-      const { translate, rotate, scale } = this._store.snapValues;
+    if (hold && this._anyGizmoDragging() && !this._store.shell.snapEnabled) {
+      const { translate, rotate, scale } = this._store.shell.snapValues;
       showTransientHint(`Snapping while held: ${translate} units · ${rotate}° · ×${scale}`);
     }
   };
 
   private _syncCombinedGizmoHalves(): void {
     if (this._anyGizmoDragging()) return;
-    const combined = this._store.transformMode === 'combined';
+    const combined = this._store.shell.transformMode === 'combined';
     const attachedId = this._attachedAuthoringId;
     const editability = this._authoring().transforms?.editability;
     const writable = (channel: 'rotation' | 'scale'): boolean =>
@@ -3276,7 +3276,7 @@ export class EditorViewport {
    * moves. Either explicit value overrides the derivation in its own direction.
    */
   private _centreAnchorFor(object: THREE.Object3D | null): THREE.Vector3 | null {
-    const preference = this._store.gizmoAnchor;
+    const preference = this._store.shell.gizmoAnchor;
     if (!object || preference === 'pivot') return null;
     // The cheap half of the `auto` question FIRST: this runs on every notify,
     // and nearly every selection is a node that is not an instanced draw at
@@ -3331,9 +3331,9 @@ export class EditorViewport {
     if (!object) return;
     setUserData(object, 'editorHelper', true);
     setUserData(object, 'editorHelperType', kind);
-    const vis = this._store.helperVisibility;
+    const vis = this._store.shell.helperVisibility;
     object.visible =
-      this._store.showHelpers && (!(kind in vis) || (vis as Record<string, boolean>)[kind]!);
+      this._store.shell.showHelpers && (!(kind in vis) || (vis as Record<string, boolean>)[kind]!);
     this._scene.add(object);
     this._helpers.set(kind, object);
   }
@@ -4338,7 +4338,7 @@ export class EditorViewport {
    * affected child cannot persist all three native transform channels, none
    * are compensated and the user sees why. */
   private _preparePreservedChildren(movedIds: readonly string[]): PreservedChildTransform[] {
-    if (!this._store.preserveChildrenTransform) return [];
+    if (!this._store.shell.preserveChildrenTransform) return [];
     const authoring = this._authoring();
     const moved = new Set(movedIds);
     const preserved = new Map<string, PreservedChildTransform>();
@@ -5047,7 +5047,7 @@ export class EditorViewport {
       // The free-move centre goes wherever move handles are drawn (Unity's Move tool has none,
       // Blender's and Unreal's do); the view ring only from the COMBINED tool — the single
       // Rotate tool keeps its own (Godot's Select gizmo has none, its Rotate tool does).
-      const combined = this._store.transformMode === 'combined';
+      const combined = this._store.shell.transformMode === 'combined';
       const hidden =
         node.mode === 'translate' && !this._transformHandles.freeMove
           ? 'XYZ'

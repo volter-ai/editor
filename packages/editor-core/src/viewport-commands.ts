@@ -56,7 +56,7 @@ type ShadingMode = Parameters<EditorShellStore['setShadingMode']>[0];
 export const viewportCommands: CommandContribution['commands'] = {
   'focus-entity': verb((store, cmd) => {
     if (!activeObject3DDocumentSession()?.frameIds([cmd['id'] as string])) {
-      store.focusOnEntity(cmd['id'] as string);
+      store.shell.focusOnEntity(cmd['id'] as string);
     }
     return OK;
   }),
@@ -84,7 +84,7 @@ export const viewportCommands: CommandContribution['commands'] = {
     // against the active document just like Hierarchy/Inspector do.
     const activeAdapter = activeDocumentAuthoring(store.shell);
     if (activeAdapter.hierarchy.node(id) !== null && activeAdapter.rects) {
-      store.focusOnEntity(id);
+      store.shell.focusOnEntity(id);
       return OK;
     }
     // The SAME resolver the framing itself uses (`entity-object.ts`): an
@@ -92,11 +92,11 @@ export const viewportCommands: CommandContribution['commands'] = {
     if (!entityObject3D(activeAdapter, store.objectMap, id)) {
       return { ok: false, error: `Entity not found: ${id}`, data: { code: 'ENTITY_NOT_FOUND' } };
     }
-    store.focusOnEntity(id);
+    store.shell.focusOnEntity(id);
     return OK;
   }),
   'focus-selection': verb((store) => {
-    if (!activeObject3DDocumentSession()?.frameSelection()) store.focusOnSelection();
+    if (!activeObject3DDocumentSession()?.frameSelection()) store.shell.focusOnSelection();
     return OK;
   }),
   'view-preset': verb((store, cmd) => {
@@ -117,7 +117,7 @@ export const viewportCommands: CommandContribution['commands'] = {
     const documentSession = activeObject3DDocumentSession();
     if (documentSession) {
       documentSession.setViewPreset(preset === 'perspective' ? 'isometric' : preset);
-    } else store.setViewPreset(preset);
+    } else store.shell.setViewPreset(preset);
     return OK;
   }),
   'set-camera': verb((store, cmd) => {
@@ -138,7 +138,7 @@ export const viewportCommands: CommandContribution['commands'] = {
     }
     const documentSession = activeObject3DDocumentSession();
     if (documentSession) documentSession.setCameraPose(position, target, fov);
-    else store.setCameraPose(position, target, fov);
+    else store.shell.setCameraPose(position, target, fov);
     return OK;
   }),
   // THE AGENT'S LOOKING, AS A WATCHABLE ACT. These drive the OPEN Object3D
@@ -224,7 +224,7 @@ export const viewportCommands: CommandContribution['commands'] = {
   // copy while the person looked at a model document would toggle nothing.
   'set-helpers': verb((store, cmd) => {
     const stage = focusedStageStore(store);
-    if (stage.showHelpers !== (cmd['enabled'] as boolean)) stage.toggleHelpers();
+    if (stage.shell.showHelpers !== (cmd['enabled'] as boolean)) stage.shell.toggleHelpers();
     return OK;
   }),
   'set-stats': verb((store, cmd) => {
@@ -250,22 +250,22 @@ export const viewportCommands: CommandContribution['commands'] = {
       documentSession.setSkeleton(cmd['enabled'] as boolean);
       return OK;
     }
-    if (stage.helperVisibility[helperType] !== (cmd['enabled'] as boolean)) {
-      stage.toggleHelperType(helperType);
+    if (stage.shell.helperVisibility[helperType] !== (cmd['enabled'] as boolean)) {
+      stage.shell.toggleHelperType(helperType);
     }
     return OK;
   }),
   // Transform tools — set semantics.
   'set-transform-mode': verb((store, cmd) => {
-    store.setTransformMode(cmd['mode'] as 'combined' | 'translate' | 'rotate' | 'scale');
+    store.shell.setTransformMode(cmd['mode'] as 'combined' | 'translate' | 'rotate' | 'scale');
     return OK;
   }),
   'set-transform-space': verb((store, cmd) => {
-    store.setTransformSpace(cmd['space'] as 'world' | 'local');
+    store.shell.setTransformSpace(cmd['space'] as 'world' | 'local');
     return OK;
   }),
   'set-snap': verb((store, cmd) => {
-    if (store.snapEnabled !== (cmd['enabled'] as boolean)) store.toggleSnap();
+    if (store.shell.snapEnabled !== (cmd['enabled'] as boolean)) store.shell.toggleSnap();
     return OK;
   }),
 };

@@ -32,7 +32,6 @@
  */
 import { setFramePartShown } from './frame-parts';
 import { preloadUserLocalState } from '@volter/editor-sdk/kit/user-local-state';
-import { threeStateOf } from '../three-state';
 import { loadProductNames, productDisplayName } from '@volter/editor-sdk/kit/product-command';
 import '../editor-styles.css';
 import '../authoring/instance-source-menu-register';
@@ -790,9 +789,9 @@ function NativeDocumentPortal({
 let inspectorColumn = true;
 
 function Workspace({ arrangement, immersivePlay }: WorkspaceProps) {
-  const store = threeStateOf(useEditorStore());
-  useSharedViewRestore(store.shell);
-  const inspection = useActiveInspection(store.shell);
+  const store = useEditorStore();
+  useSharedViewRestore(store);
+  const inspection = useActiveInspection(store);
   useLayoutEffect(() => {
     inspectorColumn = inspection.column;
   }, [inspection.column]);
@@ -815,7 +814,7 @@ function Workspace({ arrangement, immersivePlay }: WorkspaceProps) {
       setWorkspaceViewportRect(null);
     };
   }, [centerPart]);
-  useSyncExternalStore(store.shell.subscribe, store.shell.getShellSnapshot ?? store.shell.getSnapshot);
+  useSyncExternalStore(store.subscribe, store.getShellSnapshot ?? store.getSnapshot);
   useSyncExternalStore(
     subscribeWorkspaceDocuments,
     workspaceDocumentRegistryVersion,
@@ -846,7 +845,7 @@ function Workspace({ arrangement, immersivePlay }: WorkspaceProps) {
   // puts the chrome back, and it must run when play stops AND when a layout that is not
   // immersive starts something — the dock calls this from the same place for the same reason.
   // It is here rather than in the game handle because only a component sees the store's edges.
-  const playing = store.shell.playState !== 'stopped';
+  const playing = store.playState !== 'stopped';
   const keepPanelsVisible = useSyncExternalStore(subscribeSettings, effectiveSettings).play
     ?.keepPanelsVisible;
   useEffect(() => {
@@ -858,7 +857,7 @@ function Workspace({ arrangement, immersivePlay }: WorkspaceProps) {
   // dock used to install it from, for the same reason: the restore must not
   // run before a workspace exists to restore into, and the write-through must
   // stop when it goes.
-  useEffect(() => installWorkspaceStatePersistence(store.shell), [store]);
+  useEffect(() => installWorkspaceStatePersistence(store), [store]);
   if (!parts) return null;
   const parking = parts.center;
   const docs = openWorkspaceDocuments();

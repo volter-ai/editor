@@ -2008,7 +2008,7 @@ export function Object3DDocumentViewport({
           // store and nothing was listening (ARCHITECTURE-CORE §One stage:
           // the capability is present wherever its condition holds).
           host.cleanups.push(
-            store.onViewportAction((action) => {
+            store.shell.onViewportAction((action) => {
               switch (action.type) {
                 case 'focus-selection':
                 case 'focus-scene':

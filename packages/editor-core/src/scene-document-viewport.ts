@@ -35,16 +35,16 @@ export function sceneDocumentViewport(store: EditorShellStore, documentId: strin
     },
     setCamera: (camera) => {
       if (typeof camera !== 'string') {
-        store.setCameraPose(camera.position, camera.target, camera.fov);
+        store.shell.setCameraPose(camera.position, camera.target, camera.fov);
         return true;
       }
       if (camera === 'isometric') return false;
-      store.setViewPreset(camera);
+      store.shell.setViewPreset(camera);
       return true;
     },
     frame: (target) => {
       if (target === 'document') return false;
-      store.focusOnSelection();
+      store.shell.focusOnSelection();
       return true;
     },
   };

@@ -418,8 +418,8 @@ export function Object3DDocumentToolbar({
               : DOCUMENT_HELPER_ROWS.filter((row) => helperKinds.includes(row.key)).map((row) => ({
                   id: row.key,
                   label: row.label,
-                  enabled: stage.helperVisibility[row.key],
-                  onToggle: () => stage.toggleHelperType(row.key),
+                  enabled: stage.shell.helperVisibility[row.key],
+                  onToggle: () => stage.shell.toggleHelperType(row.key),
                 }))),
           ]}
         />

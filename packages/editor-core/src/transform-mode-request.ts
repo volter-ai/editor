@@ -28,22 +28,23 @@
  */
 
 import { getActiveAuthoring } from './authoring/active-adapter';
-import type { EditorShellStore, TransformMode } from './editor-shell-store';
+import type { TransformMode } from './editor-shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { transformLockSummary } from '@volter/editor-sdk/kit/hierarchy-row-model';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 
 /** Set the transform mode, and NAME the refusal if the live selection is one
  *  the active adapter will not write. */
-export function requestTransformMode(store: EditorShellStore, mode: TransformMode): void {
+export function requestTransformMode(store: ShellStore, mode: TransformMode): void {
   store.setTransformMode(mode);
   // Arming SELECT is not an attempt to transform anything — it is the tool
   // that transforms nothing (`TransformMode`'s own note) — so the refusal
   // below, whose whole trigger is "a real, unambiguous attempt to transform",
   // has nothing to report about it.
   if (mode === 'select') return;
-  const ids = [...store.shell.selectedEntityIds];
+  const ids = [...store.selectedEntityIds];
   if (ids.length === 0) return;
-  const editability = getActiveAuthoring(store.shell).transforms?.editability;
+  const editability = getActiveAuthoring(store).transforms?.editability;
   if (!editability) return;
   let reason: string | undefined;
   for (const id of ids) {

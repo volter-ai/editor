@@ -20,7 +20,7 @@ export function registerViewportHotkeys(
 ): () => void {
   const { keyboard } = editorHost();
   const transformMode = (mode: TransformMode) => () => {
-    if (!viewport.isFlying) requestTransformMode(store, mode);
+    if (!viewport.isFlying) requestTransformMode(store.shell, mode);
   };
   const unbind = keyboard.bindActions([
     { id: 'transform.select', scope: 'stage', run: transformMode('select') },
@@ -36,24 +36,24 @@ export function registerViewportHotkeys(
       id: 'viewport.toggleSnap',
       scope: 'stage',
       run: () => {
-        store.toggleSnap();
-        const { translate, rotate, scale } = store.snapValues;
+        store.shell.toggleSnap();
+        const { translate, rotate, scale } = store.shell.snapValues;
         const toggles = `${keyboard.shortcutFor('viewport.toggleSnap') ?? ''} toggles; hold Ctrl while dragging to snap once`;
         showTransientHint(
-          store.snapEnabled
+          store.shell.snapEnabled
             ? `Snap on — ${translate} units, ${rotate}°, ×${scale} (${toggles})`
             : `Snap off (${toggles})`,
         );
       },
     },
-    { id: 'viewport.frameSelection', scope: 'stage', run: () => store.focusOnSelection() },
+    { id: 'viewport.frameSelection', scope: 'stage', run: () => store.shell.focusOnSelection() },
     {
       id: 'viewport.cyclePivot',
       scope: 'stage',
       run: () => {
         const pivotModes = ['active-element', 'median-point', 'individual-origins'] as const;
-        const idx = pivotModes.indexOf(store.pivotMode);
-        store.setPivotMode(pivotModes[(idx + 1) % pivotModes.length]!);
+        const idx = pivotModes.indexOf(store.shell.pivotMode);
+        store.shell.setPivotMode(pivotModes[(idx + 1) % pivotModes.length]!);
       },
     },
     { id: 'view.top', scope: 'stage', run: () => viewport.setViewPreset('top') },

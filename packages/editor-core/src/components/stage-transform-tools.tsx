@@ -47,7 +47,7 @@ function armShelfBootTool(store: EditorShellStore | null, documentId: string): v
     rotate: 'rotate',
     scale: 'scale',
   } as const satisfies Record<ViewportInteraction['bootTool'], string>;
-  store.setTransformMode(mode[viewPresentation(documentId).interaction.bootTool]);
+  store.shell.setTransformMode(mode[viewPresentation(documentId).interaction.bootTool]);
 }
 
 export function ThreeStageTransformTools({ documentId }: { readonly documentId: string }) {
@@ -63,11 +63,11 @@ export function ThreeStageTransformTools({ documentId }: { readonly documentId: 
   }, [driver, own, documentId]);
   if (driver === 'none') return null;
   const door = driver === 'modal' ? stageTransformDoor(documentId) : null;
-  return <ToolStrip store={own ?? shell} {...(door ? { door } : {})} />;
+  return <ToolStrip store={(own ?? shell).shell} {...(door ? { door } : {})} />;
 }
 
 export function ThreeStageTransformControls({ documentId }: { readonly documentId: string }) {
   useSyncExternalStore(subscribeStageStores, stageStoresVersion, stageStoresVersion);
   const shell = threeStateOf(useEditorStore());
-  return <TransformHeaderControls store={stageStore(documentId) ?? shell} />;
+  return <TransformHeaderControls store={(stageStore(documentId) ?? shell).shell} />;
 }

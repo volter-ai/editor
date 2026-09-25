@@ -767,7 +767,7 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
   viewport.orbitControls.addEventListener('end', rememberPose);
 
   // --- Viewport action subscription ---
-  const unsubActions = store.onViewportAction((action) => {
+  const unsubActions = store.shell.onViewportAction((action) => {
     switch (action.type) {
       // Resolved through the ACTIVE ADAPTER first, same as selection and the
       // gizmo — an adopted play scene's nodes live in the adapter's walk and
@@ -798,7 +798,7 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
             break;
           }
         }
-        gameCameraLookup = action.gameCamera ?? null;
+        gameCameraLookup = store.sceneCameraLookup;
         autoFrame.begin(performance.now(), gameCameraLookup !== null);
         break;
       }
