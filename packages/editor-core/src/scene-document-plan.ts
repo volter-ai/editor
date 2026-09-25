@@ -18,6 +18,7 @@
  * unreachable stays unreachable with the game's own reason attached.
  */
 
+import { getProjectStoryModules } from './stories/story-registry';
 import type { DocumentEntry, SceneSource } from '@volter/editor-project/adapter/adapter-module';
 import type { ResolvedDocumentTable } from './project-adapter';
 
@@ -273,6 +274,9 @@ export function authoringSurfaceFromTable(
   /** Entries of kind `scene` — the surface prefabs are placed on; a table
    *  with none (a models or website project) has no prefabs by design. */
   readonly sceneEntries: number;
+  /** Project story modules that did not load or compose: each one's prefab is missing from
+   *  the table with no entry of its own to say so. */
+  readonly storyFailures: number;
 } {
   const tabs = sceneTabRow(table);
   const isolationIds = tabs.flatMap((row) =>
@@ -296,6 +300,7 @@ export function authoringSurfaceFromTable(
     availableIsolationDocuments: isolationIds.filter((id) => available.has(id)).length,
     pieces: table.entries.filter((entry) => entry.kind === 'prefab').length,
     sceneEntries: table.entries.filter((entry) => entry.kind === 'scene').length,
+    storyFailures: getProjectStoryModules().filter((module_) => !module_.ok).length,
   };
 }
 

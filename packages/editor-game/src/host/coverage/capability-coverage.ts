@@ -461,6 +461,8 @@ export interface AuthoringSurfaceFacts {
   readonly availableIsolationDocuments: number;
   readonly pieces: number;
   readonly sceneEntries: number;
+  /** Project story modules that did not load or compose (`editor.status().storyFailures`). */
+  readonly storyFailures?: number;
 }
 
 /** Required only inside the row rules. Public callers never manufacture this
@@ -1237,6 +1239,16 @@ function authoringSurfaceRows(facts: ResolvedCoverageFacts): readonly Capability
             'the scene table declares no scenes, so there is no surface to place prefabs on ' +
             '(a models or website project)',
         }
+      : (surface.storyFailures ?? 0) > 0
+        ? {
+            seam: 'authoring.pieces',
+            status: 'gap',
+            detail:
+              `${surface.storyFailures} project story module(s) failed to load, so their prefabs are missing ` +
+              `from the scene table (${surface.pieces} resolved)`,
+            missing: 'the prefabs those stories register are absent from Content and the component board',
+            fix: 'read `editor.status().storyFailures` for each module and its error, and the console line naming the module the load failed on',
+          }
       : surface.pieces === 0
         ? {
             seam: 'authoring.pieces',

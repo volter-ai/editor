@@ -1,4 +1,5 @@
 import { captureSizeFromCommand } from './capture-size';
+import { getProjectStoryModules } from './stories/story-registry';
 import {
   applyViewPreset,
   setViewPresentation,
@@ -465,6 +466,12 @@ export function collectState(
     // like from the control API, instead of a silent "playing". (`ingest` and
     // `ingestCaptureWait` are the ingest lane's own facets, registered by it.)
     mountFailures: mountFailures.map((r) => ({ ...r })),
+    // Every project story module that did not load or compose, with its error. A story that
+    // fails drops its prefab from the scene table with nothing else to show for it: `[]` on a
+    // healthy project; the console carries the module the failure was traced to.
+    storyFailures: getProjectStoryModules().flatMap((module_) =>
+      module_.ok ? [] : [{ modulePath: module_.modulePath, error: module_.error }],
+    ),
     // PD-3 — every project module that was evaluated more than once during
     // the current mount, i.e. every module whose module-level state the roots
     // no longer share. `[]` on a healthy mount. A split does not fail the
