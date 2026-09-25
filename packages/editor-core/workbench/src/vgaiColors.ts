@@ -63,3 +63,32 @@ export function viewBackgroundFor(theme: IColorTheme, utilityId: string): Color 
 	const own = VIEW_COLORS.get(utilityId);
 	return (own ? theme.getColor(own) : undefined) ?? theme.getColor(vgaiViewBackground) ?? undefined;
 }
+
+/*---------------------------------------------------------------------------------------------
+ *  THE 3D VIEWPORT'S COLOURS ARE THEME COLOURS TOO — U8's ruling (2) carried to the stage.
+ *
+ *  A look's palette names them (`color.viewport`, `color.gizmo`, `@volter/editor-sdk`'s
+ *  `EditorTheme`), and the editor hands them to the frame as colour customizations
+ *  (`vgaiSettings.ts`, the look's own layer); the workbench emits each as `--vscode-<id>` and
+ *  the stage reads that first (`native-selection-style.ts`). So a person's own
+ *  `workbench.colorCustomizations` reach the viewport the way they reach any canvas Code-OSS
+ *  draws (the terminal's ANSI colours are the precedent), and a colour theme a build ships can
+ *  set them. NULL defaults, as above: an unthemed workbench sets nothing and the stage keeps
+ *  its own. The ids are the palette's own names, one to one.
+ *--------------------------------------------------------------------------------------------*/
+registerColor('vgai.viewport.background', { dark: null, light: null, hcDark: null, hcLight: null }, localize('vgaiViewportBackground', "The 3D viewport's backdrop."));
+registerColor('vgai.viewport.grid', { dark: null, light: null, hcDark: null, hcLight: null }, localize('vgaiViewportGrid', "The 3D viewport's floor grid."));
+registerColor('vgai.viewport.axisX', { dark: null, light: null, hcDark: null, hcLight: null }, localize('vgaiViewportAxisX', "The world's X axis line."));
+registerColor('vgai.viewport.axisY', { dark: null, light: null, hcDark: null, hcLight: null }, localize('vgaiViewportAxisY', "The world's Y axis line."));
+registerColor('vgai.viewport.axisZ', { dark: null, light: null, hcDark: null, hcLight: null }, localize('vgaiViewportAxisZ', "The world's Z axis line."));
+registerColor('vgai.viewport.selection', { dark: null, light: null, hcDark: null, hcLight: null }, localize('vgaiViewportSelection', "A selected object's outline and marks."));
+registerColor('vgai.viewport.active', { dark: null, light: null, hcDark: null, hcLight: null }, localize('vgaiViewportActive', "The active object's outline."));
+registerColor('vgai.viewport.wire', { dark: null, light: null, hcDark: null, hcLight: null }, localize('vgaiViewportWire', "A selected object's wire."));
+registerColor('vgai.gizmo.x', { dark: null, light: null, hcDark: null, hcLight: null }, localize('vgaiGizmoX', "The gizmos' X axis."));
+registerColor('vgai.gizmo.y', { dark: null, light: null, hcDark: null, hcLight: null }, localize('vgaiGizmoY', "The gizmos' Y axis."));
+registerColor('vgai.gizmo.z', { dark: null, light: null, hcDark: null, hcLight: null }, localize('vgaiGizmoZ', "The gizmos' Z axis."));
+registerColor('vgai.gizmo.navigationX', { dark: null, light: null, hcDark: null, hcLight: null }, localize('vgaiGizmoNavigationX', "The navigation gizmo's X, where it differs from the gizmos'."));
+registerColor('vgai.gizmo.navigationY', { dark: null, light: null, hcDark: null, hcLight: null }, localize('vgaiGizmoNavigationY', "The navigation gizmo's Y, where it differs from the gizmos'."));
+registerColor('vgai.gizmo.navigationZ', { dark: null, light: null, hcDark: null, hcLight: null }, localize('vgaiGizmoNavigationZ', "The navigation gizmo's Z, where it differs from the gizmos'."));
+registerColor('vgai.gizmo.hover', { dark: null, light: null, hcDark: null, hcLight: null }, localize('vgaiGizmoHover', "A gizmo handle under the pointer, where the look names a fixed colour."));
+registerColor('vgai.gizmo.drag', { dark: null, light: null, hcDark: null, hcLight: null }, localize('vgaiGizmoDrag', "A gizmo handle being dragged, where the look names a fixed colour."));

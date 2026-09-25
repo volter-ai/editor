@@ -155,6 +155,19 @@ const WORKBENCH_ADAPTER_VALUES: readonly (readonly [string, unknown])[] = [
  */
 const COLOR_THEME_KEY = 'workbench.colorTheme';
 const PRODUCT_ICON_THEME_KEY = 'workbench.productIconTheme';
+/**
+ * AND THE LOOK'S COLOURS, as colour customizations on the same layer: the editor derives them
+ * from the look's palette (`workbenchValues()`), so a look with no theme this build ships
+ * still colours the whole window — its chrome through the workbench's own colour ids, and the
+ * 3D viewport through `vgai.viewport.*` (`vgaiColors.ts`), both read back as `--vscode-*`.
+ *
+ * TWO RULES make it a layer rather than an override. A look this build ships a THEME for
+ * keeps that theme's chrome and takes only the `vgai.*` ids from the palette (Blender's
+ * traced chrome is better than a derivation). And the PERSON's own customizations, user or
+ * workspace, are merged over the look's, id by id, so a colour a person set still wins —
+ * the memory layer is the top one, and writing the look's map alone would hide theirs.
+ */
+const COLOR_CUSTOMIZATIONS_KEY = 'workbench.colorCustomizations';
 
 /** Look id (the editor's palette id) → the product's theme artifacts. A row is a reviewable
  *  claim that this build SHIPS a theme for that look; a look with no row wears the workbench's
@@ -166,7 +179,7 @@ const WORKBENCH_LOOK_THEME = {
 	productIcon: ThemeSettingDefaults.PRODUCT_ICON_THEME,
 } as const;
 
-const LOOK_KEYS: readonly string[] = [TITLE_BAR_HEIGHT_KEY, COLOR_THEME_KEY, PRODUCT_ICON_THEME_KEY];
+const LOOK_KEYS: readonly string[] = [TITLE_BAR_HEIGHT_KEY, COLOR_THEME_KEY, PRODUCT_ICON_THEME_KEY, COLOR_CUSTOMIZATIONS_KEY];
 
 /**
  * WHAT THE FRAME HANDS THE EDITOR — the counterpart of the bridge's `VgaiSettingsHandle`,
@@ -375,9 +388,14 @@ export class VgaiSettings extends Disposable {
 			// person last picked, which is not "Classic" — it is "whatever was there".
 			const look = this.bridge.lookId?.();
 			if (look !== undefined) {
-				const themes = LOOK_THEMES.get(look) ?? WORKBENCH_LOOK_THEME;
+				const row = LOOK_THEMES.get(look);
+				const themes = row ?? WORKBENCH_LOOK_THEME;
 				declared.set(COLOR_THEME_KEY, themes.color);
 				declared.set(PRODUCT_ICON_THEME_KEY, themes.productIcon);
+				const colors = declared.get(COLOR_CUSTOMIZATIONS_KEY) as Record<string, string> | undefined;
+				if (row && colors) {
+					declared.set(COLOR_CUSTOMIZATIONS_KEY, Object.fromEntries(Object.entries(colors).filter(([id]) => id.startsWith('vgai.'))));
+				}
 			}
 			for (const [key, value] of this.bridge.adapterValues()) {
 				if (!this.keys.has(key)) {
@@ -397,6 +415,20 @@ export class VgaiSettings extends Disposable {
 				// THE INSPECT GATE. A project value — `.vscode/settings.json`, or a folder's —
 				// outranks the adapter, so the adapter's value is not written at all and one
 				// written earlier is cleared.
+				if (key === COLOR_CUSTOMIZATIONS_KEY) {
+					// Merged, never shadowed: the person's own ids win over the look's, and the
+					// comparison is by value, because a fresh object is never `===` the one in
+					// memory and this pass would wake its own listener forever.
+					const look = declared.get(key) as Record<string, unknown> | undefined;
+					const person = {
+						...(layered.userValue ?? layered.userLocalValue ?? {}) as Record<string, unknown>,
+						...(layered.workspaceFolderValue ?? layered.workspaceValue ?? {}) as Record<string, unknown>,
+					};
+					const merged = look === undefined ? undefined : { ...look, ...person };
+					if (JSON.stringify(layered.memoryValue) === JSON.stringify(merged)) { continue; }
+					await this.configurationService.updateValue(key, merged, ConfigurationTarget.MEMORY);
+					continue;
+				}
 				const projectSpeaks = layered.workspaceValue !== undefined || layered.workspaceFolderValue !== undefined;
 				const wanted = projectSpeaks ? undefined : declared.get(key);
 				this.reportIneffectiveUserValue(key, layered.userValue ?? layered.userLocalValue, wanted, projectSpeaks);
