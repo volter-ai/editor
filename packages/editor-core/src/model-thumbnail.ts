@@ -12,6 +12,7 @@
  * - Self-cleaning: each loaded object is disposed after the thumbnail is captured.
  */
 
+import { registerAssetThumbnailRenderer } from '@volter/editor-sdk/kit/asset-thumbnails';
 import type { SparkRenderer, SplatMesh } from '@sparkjsdev/spark';
 import { markHostRenderer } from '@volter/editor-threejs/viewport/renderer-ownership';
 import { loadSplat } from '@volter/editor-threejs/asset-loaders';
@@ -520,4 +521,19 @@ export function getModelThumbnailRenderer(): ModelThumbnailRenderer {
 // one context per AssetBrowser edit.
 if (import.meta.hot) {
   import.meta.hot.dispose(() => instance?.dispose());
+}
+
+/** This renderer, as the asset browser's thumbnail for every model format it
+ *  loads (`@volter/editor-sdk/kit/asset-thumbnails`). */
+export function registerModelThumbnails(): () => void {
+  return registerAssetThumbnailRenderer({
+    accepts: (url) => modelThumbnailFormat(url) !== undefined,
+    render: (url) =>
+      getModelThumbnailRenderer().render({
+        url,
+        format: modelThumbnailFormat(url)!,
+        background: 'neutral',
+        output: 'webp',
+      }),
+  });
 }

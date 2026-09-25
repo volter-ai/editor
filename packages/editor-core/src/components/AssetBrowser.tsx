@@ -86,7 +86,7 @@ import { useEditorStore, useHistoryService } from '../editor-runtime';
 import type { AssetKind as DocumentAssetKind } from '../asset-selection';
 import { hierarchyNodesBreadthFirst } from '../hierarchy-walk';
 import { isEditableTarget, setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
-import { modelThumbnailFormat } from '../model-thumbnail';
+import { assetThumbnailRenderer } from '@volter/editor-sdk/kit/asset-thumbnails';
 import { object3DDocumentWritePolicy } from '../object3d-document-write-policy';
 import { projectAdapterFacet, subscribeProjectAdapter } from '../project-adapter';
 import { getCurrentProject } from '../project-manager';
@@ -735,7 +735,7 @@ function BrowserEntryVisual({
       />
     );
   }
-  if (kind === 'model' || modelThumbnailFormat(assetUrl)) {
+  if (kind === 'model' || assetThumbnailRenderer(assetUrl)) {
     return <ModelThumbnail url={assetUrl} />;
   }
   if (['prefab', 'json'].includes(kind)) {

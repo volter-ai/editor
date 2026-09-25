@@ -32,7 +32,7 @@ import {
   loadProjectThumbnailManifest,
   ThumbnailJobQueue,
 } from '../asset-workflow/thumbnail-system';
-import { getModelThumbnailRenderer, modelThumbnailFormat } from '../model-thumbnail';
+import { assetThumbnailRenderer } from '@volter/editor-sdk/kit/asset-thumbnails';
 
 /** Every kind a browser entry can carry: capability kinds plus directories. */
 export type AssetGlyphKind = AssetCapabilityKind | 'component' | 'folder';
@@ -86,14 +86,9 @@ export const FOLDER_CELL_THUMBNAIL_PRIORITY = 50;
 
 /** Renders an offscreen 3D preview thumbnail for supported model assets. */
 export const projectThumbnailQueue = new ThumbnailJobQueue<string>((url) => {
-  const format = modelThumbnailFormat(url);
-  if (!format) return Promise.reject(new Error(`No model preview loader for ${url}.`));
-  return getModelThumbnailRenderer().render({
-    url,
-    format,
-    background: 'neutral',
-    output: 'webp',
-  });
+  const renderer = assetThumbnailRenderer(url);
+  if (!renderer) return Promise.reject(new Error(`No model preview loader for ${url}.`));
+  return renderer.render(url);
 }, 2);
 
 export interface ModelThumbnailSource {
