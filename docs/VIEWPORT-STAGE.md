@@ -99,11 +99,11 @@ Unreal's default viewport is its style (`@volter/editor-game` `unreal.style.ts`)
 
 The layer is the named view `unreal` (`@volter/editor-game` `contributions/unreal.view.ts`), which a person puts on a view from the shading popover's View row or `editor.presentation(id, 'unreal')`.
 
-Independent judgement (an opus judge, frames captured through `captureActiveDocument` on a selected object, against `engine-reference` and Blender's `gizmo-*.png`): **Godot passes**; Unity, Unreal and Blender do not.
+Independent judgement (an opus judge, frames captured through `captureActiveDocument` on a selected object, against `engine-reference` and Blender's `gizmo-*.png`): **Godot and Unity pass**; Unreal and Blender do not. Each target is captured with its document opened under its own view, so the stage arms that view's boot tool; a view put on a document already open keeps the tool that was armed.
 
-- Unity and Unreal show the Godot-shaped gizmo (arrows, rotation rings, outer circle) where each opens on its Move tool: arrows with large cones and plane squares, no rings. That is the identity-breaking difference for both.
-- Unreal has no floor and no clouded sky, so the object floats; its bottom-left triad is missing.
+- Unreal has no floor and no clouded sky, so the object floats; its bottom-left triad is missing. Its Move gizmo is right in form, with arrows short and thin beside the reference.
+- Unity's arrows are short with small cones next to its Move tool's.
 - Blender draws the grid and the X axis line through the solid cube, and lacks the 3D cursor and the origin dot.
 - Every target lacks its navigation gizmo in the frame (Godot's axis balls, Unity's cone gizmo with "Persp", Blender's navigation buttons); the capture did not show them.
 
-Neither half is accepted: the three failing targets above, Unreal's capability row, and Blender's Material Preview and Rendered modes. The reference frames are in `/Volumes/PeakSSD/volter-work/engine-reference`; the world stage is compiled but not yet seen on a project with a world.
+Neither half is accepted: Unreal and Blender above, Unreal's capability row, and Blender's Material Preview and Rendered modes. The reference frames are in `/Volumes/PeakSSD/volter-work/engine-reference`; the world stage is compiled but not yet seen on a project with a world.
