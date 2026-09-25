@@ -114,3 +114,14 @@ export interface HostCapabilities {
   /** Reveal a path in the OS file manager. Absent in the browser. */
   reveal?(path: string): Promise<void>;
 }
+
+/**
+ * Is `backend` rooted at the project's `public/` folder rather than the project
+ * root? The session's HTTP tier (`http`) is, and so is the Code-OSS frame's
+ * file door (`frame:<tier>`), which is always the `public/` view. A reader of
+ * project-root files (`vgai.project.json`, `.vgai/`) reaches them through the
+ * dev server's own routes when this is true.
+ */
+export function isPublicRootedBackend(backend: StorageBackend): boolean {
+  return backend.id === 'http' || backend.id.startsWith('frame:');
+}

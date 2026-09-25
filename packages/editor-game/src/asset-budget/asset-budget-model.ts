@@ -22,7 +22,7 @@
  */
 
 import { sha256Hex } from '@volter/editor-sdk/kit/bytes-codec';
-import type { StorageBackend } from '@volter/editor-sdk/kit/storage-types';
+import { isPublicRootedBackend, type StorageBackend } from '@volter/editor-sdk/kit/storage-types';
 import type { Document } from '@gltf-transform/core';
 import { inspect } from '@gltf-transform/functions';
 import { getGltfIO } from './gltf-io';
@@ -482,7 +482,7 @@ export async function collectProjectBudgetSource(
   // `/vgai.project.json` (`manifest-project.ts`) and the `.vgai/`-scoped
   // `/__editor/vgai-file` route (`project-provenance.ts`). Anything
   // unavailable stays honestly absent — no fabricated owners or stamps.
-  if (backend.id === 'http') {
+  if (isPublicRootedBackend(backend)) {
     const ownerFiles: AssetBudgetFile[] = [];
     const virtualTexts = new Map<string, string>();
     try {

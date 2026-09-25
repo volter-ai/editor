@@ -24,7 +24,7 @@ import { sha256Hex } from '@volter/editor-sdk/kit/bytes-codec';
 import { assertEditorServerAnswered } from '@volter/editor-sdk/kit/editor-server-response';
 import { sourceMutationAttribution } from '@volter/editor-sdk/kit/editor-session-attribution';
 import { handleProjectMutationFailure } from '@volter/editor-sdk/kit/source-conflict';
-import type { StorageBackend } from '@volter/editor-sdk/kit/storage-types';
+import { isPublicRootedBackend, type StorageBackend } from '@volter/editor-sdk/kit/storage-types';
 import { invalidateCachedAsset } from '@volter/threejs-runtime/asset-loaders';
 
 const PROVENANCE_PATH = '.vgai/provenance.json';
@@ -82,7 +82,7 @@ function ledgerAssetPath(storagePath: string): string {
  * backend reaches the project root directly.
  */
 async function readLedgerText(backend: StorageBackend): Promise<string | null> {
-  if (backend.id === 'http') {
+  if (isPublicRootedBackend(backend)) {
     // NOT read through `editor-server-response.ts`: the GET half of this route
     // answers `text/plain` (routes/project-source.ts) because it serves raw
     // file bytes, and that reader's whole rule is "the editor server answers
@@ -99,7 +99,7 @@ async function readLedgerText(backend: StorageBackend): Promise<string | null> {
 }
 
 async function writeLedgerText(backend: StorageBackend, content: string): Promise<void> {
-  if (backend.id === 'http') {
+  if (isPublicRootedBackend(backend)) {
     const write = async () => {
       const res = await fetch('/__editor/vgai-file', {
         method: 'POST',
