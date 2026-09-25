@@ -2106,9 +2106,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-@volter/blender-engine@0.1.7
+@volter/blender-engine@0.1.8
 Declared license: GPL-3.0-or-later
-Source: the unmodified npm package @volter/blender-engine@0.1.7, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/blender-engine@0.1.8, from https://github.com/volter-ai/editor.git
 
 --- packages/blender-engine/LICENSE ---
 
@@ -2838,9 +2838,9 @@ Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
 
 
-@volter/editor-blender@0.1.8
+@volter/editor-blender@0.1.9
 Declared license: AGPL-3.0-only AND GPL-3.0-or-later
-Source: the unmodified npm package @volter/editor-blender@0.1.8, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/editor-blender@0.1.9, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-blender/LICENSE ---
 
@@ -4279,9 +4279,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-@volter/editor-core@0.5.65
+@volter/editor-core@0.5.66
 Declared license: AGPL-3.0-only AND Apache-2.0
-Source: the unmodified npm package @volter/editor-core@0.5.65, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/editor-core@0.5.66, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-core/LICENSE ---
 
@@ -5203,9 +5203,9 @@ server/support/ modules transferred from @vgai/sdk are Apache-2.0.
 Their source paths and hashes are recorded in provenance/editor-server.json.
 
 
-@volter/editor-game@0.5.65
+@volter/editor-game@0.5.66
 Declared license: AGPL-3.0-only
-Source: the unmodified npm package @volter/editor-game@0.5.65, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/editor-game@0.5.66, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-game/LICENSE ---
 
@@ -5899,9 +5899,9 @@ the Apache-2.0 @vgai/sdk package, and retains that license. It re-exports the
 Apache-2.0 tool contract of @volter/editor-sdk.
 
 
-@volter/editor-project@0.5.65
+@volter/editor-project@0.5.66
 Declared license: Apache-2.0
-Source: the unmodified npm package @volter/editor-project@0.5.65, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/editor-project@0.5.66, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-project/LICENSE ---
 
@@ -6109,9 +6109,9 @@ Source: the unmodified npm package @volter/editor-project@0.5.65, from https://g
    limitations under the License.
 
 
-@volter/editor-react@0.5.65
+@volter/editor-react@0.5.66
 Declared license: AGPL-3.0-only
-Source: the unmodified npm package @volter/editor-react@0.5.65, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/editor-react@0.5.66, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-react/LICENSE ---
 
@@ -6786,9 +6786,9 @@ The files in this package were imported from volter-ai/vgai-engine at commit
 09c2749ce. LICENSE contains the AGPL-3.0-only license they retain.
 
 
-@volter/editor-sdk@0.5.65
+@volter/editor-sdk@0.5.66
 Declared license: Apache-2.0
-Source: the unmodified npm package @volter/editor-sdk@0.5.65, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/editor-sdk@0.5.66, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-sdk/LICENSE ---
 
@@ -7008,9 +7008,9 @@ The project output-root policy is Apache-2.0, transferred from the original
 SDK; its exact source is recorded in provenance/editor-server.json.
 
 
-@volter/editor-threejs@0.5.65
+@volter/editor-threejs@0.5.66
 Declared license: AGPL-3.0-only AND Apache-2.0
-Source: the unmodified npm package @volter/editor-threejs@0.5.65, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/editor-threejs@0.5.66, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-threejs/LICENSE ---
 
@@ -7901,9 +7901,9 @@ Source revisions and original file hashes are recorded in the repository's
 provenance/blender-integration.json and provenance/editor-host.json.
 
 
-@volter/editor-xstate@0.5.65
+@volter/editor-xstate@0.5.66
 Declared license: AGPL-3.0-only
-Source: the unmodified npm package @volter/editor-xstate@0.5.65, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/editor-xstate@0.5.66, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-xstate/LICENSE ---
 
@@ -8578,9 +8578,9 @@ Copyright 2026 Volter AI, Inc.
 LICENSE contains the AGPL-3.0-only license this package is distributed under.
 
 
-@volter/game-runtime@0.5.65
+@volter/game-runtime@0.5.66
 Declared license: Apache-2.0
-Source: the unmodified npm package @volter/game-runtime@0.5.65, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/game-runtime@0.5.66, from https://github.com/volter-ai/editor.git
 
 --- packages/game-runtime/LICENSE ---
 
@@ -8798,9 +8798,9 @@ Apache-2.0 @vgai/game-runtime package. They retain that license; LICENSE
 contains its text.
 
 
-@volter/threejs-runtime@0.5.65
+@volter/threejs-runtime@0.5.66
 Declared license: Apache-2.0
-Source: the unmodified npm package @volter/threejs-runtime@0.5.65, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/threejs-runtime@0.5.66, from https://github.com/volter-ai/editor.git
 
 --- packages/threejs-runtime/LICENSE ---
 

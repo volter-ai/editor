@@ -2,7 +2,7 @@
   "name": "@volter/editor-react",
   "author": "Volter AI, Inc.",
   "license": "AGPL-3.0-only",
-  "version": "0.5.65",
+  "version": "0.5.66",
   "publishConfig": {
     "access": "public"
   },
@@ -38,8 +38,8 @@
     "serving": "./dist-node/serving.mjs"
   },
   "dependencies": {
-    "@volter/editor-sdk": "0.5.65",
-    "@volter/editor-project": "0.5.65",
+    "@volter/editor-sdk": "0.5.66",
+    "@volter/editor-project": "0.5.66",
     "typescript": "5.9.3"
   },
   "peerDependencies": {

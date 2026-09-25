@@ -2,7 +2,7 @@
   "name": "@volter/editor-blender",
   "author": "Volter AI, Inc.",
   "license": "AGPL-3.0-only AND GPL-3.0-or-later",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "publishConfig": {
     "access": "public"
   },
@@ -70,14 +70,14 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.30.0",
-    "@volter/blender-engine": "0.1.7",
-    "@volter/editor-threejs": "0.5.65",
+    "@volter/blender-engine": "0.1.8",
+    "@volter/editor-threejs": "0.5.66",
     "zod": "^4.3.6"
   },
   "peerDependencies": {
-    "@volter/editor-sdk": "0.5.65",
-    "@volter/editor-live": "0.5.65",
-    "@volter/editor-project": "0.5.65",
+    "@volter/editor-sdk": "0.5.66",
+    "@volter/editor-live": "0.5.66",
+    "@volter/editor-project": "0.5.66",
     "react": "^19.0.0",
     "three": "^0.180.0",
     "vite": "^6.4.3"
