@@ -93,8 +93,9 @@ Remaining:
    document; an Inspector edit and its undo round-trip source byte for byte. Product builds need
    3–5 GB and thrash this box while other workloads hold its memory.
    Units 1–2 are done (`@volter/model-editor`; `release/boundary-baseline.json`, 696 edges). The
-   model editor's workbench still needs its rebuild for the new product id: the compile wants a
-   9 GB heap and was killed at 17 GB compressed memory, so it runs on a box with headroom.
+   model editor's workbench is released for its own product id
+   (`model-editor-f8664703ab59-245d6987b9be-darwin-arm64`, private, chat extension 0.1.5); the
+   `editor-…-2896a2901bb6` release it pinned before is refused by the product-id check.
    The Three viewport binds its keys through `host.keyboard.bindActions` and publishes its
    palette entries from the active three stage (walked on `arena`: the transform keys set the
    mode, `tool:` palette entries toggle grid and shading, an entity entry selects and frames, and
