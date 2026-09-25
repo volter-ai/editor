@@ -8,7 +8,10 @@
  *  compiled there, and our tier is only in it if the overlay has been applied since the last
  *  edit to a workbench half in this repository.
  *
- *    node scripts/workbench/dev.mjs --checkout <fork dir> --product <editor>
+ *    node scripts/workbench/dev.mjs --checkout <fork dir> --product <editor> [--look <package dir>]…
+ *
+ *  `--look` overlays a look package's frame tier (`overlay.mjs`), e.g. `--look ../brand` for
+ *  the Volter brand's Plotter look from a checkout of the private `volter-ai/brand`.
  *
  *  IT IS THE WHOLE INNER LOOP. Stop sessions serving this checkout with `vgai close`, edit
  *  `packages/editor-core/workbench/src/…` here, run this, then reopen with `vgai edit`. Compilation
@@ -44,15 +47,16 @@ function fail(message) {
 }
 
 function parseArgs(argv) {
-	const args = { checkout: null, product: null };
+	const args = { checkout: null, product: null, looks: [] };
 	for (let i = 2; i < argv.length; i++) {
 		if (argv[i] === '--checkout') { args.checkout = argv[++i]; }
 		else if (argv[i] === '--product') { args.product = argv[++i]; }
-		else { fail(`unknown argument "${argv[i]}". Usage: node scripts/workbench/dev.mjs --checkout <fork dir> --product <id>`); }
+		else if (argv[i] === '--look') { args.looks.push(resolve(argv[++i])); }
+		else { fail(`unknown argument "${argv[i]}". Usage: node scripts/workbench/dev.mjs --checkout <fork dir> --product <id> [--look <package dir>]…`); }
 	}
 	if (!args.checkout) { fail('--checkout <fork dir> is required.'); }
 	if (!args.product) { fail('--product <id> is required.'); }
-	return { checkout: resolve(args.checkout), product: args.product };
+	return { checkout: resolve(args.checkout), product: args.product, looks: args.looks };
 }
 
 function assertNodeMajor(checkout) {
@@ -74,9 +78,9 @@ function run(command, args, cwd) {
 	if (result.status !== 0) { fail(`${command} ${args.join(' ')} exited ${result.status}`); }
 }
 
-const { checkout, product } = parseArgs(process.argv);
+const { checkout, product, looks } = parseArgs(process.argv);
 assertNodeMajor(checkout);
-run(process.execPath, [join(REPO_ROOT, 'scripts/workbench/overlay.mjs'), '--checkout', checkout, '--product', product], REPO_ROOT);
+run(process.execPath, [join(REPO_ROOT, 'scripts/workbench/overlay.mjs'), '--checkout', checkout, '--product', product, ...looks.flatMap((dir) => ['--look', dir])], REPO_ROOT);
 run('npm', ['run', 'compile-client'], checkout);
 // The web workbench loads each built-in extension's BROWSER entry, which only
 // `compile-web` builds; without it an extension a release carries (GitHub

@@ -4,7 +4,7 @@
  *
  *    node scripts/workbench/build-release.mjs --product <editor> \
  *         --platform <darwin-arm64|linux-x64> --checkout <fork dir> [--out <dir>] [--work <dir>] \
- *         [--publish] [--dry-run]
+ *         [--look <package dir>]… [--publish] [--dry-run]
  *    node scripts/workbench/build-release.mjs --publish --out <dir>     # publish a release cut earlier
  *
  *  A CUT RELEASE IS NOT A PRODUCT'S WORKBENCH UNTIL IT IS PUBLISHED. `--publish` uploads the
@@ -14,6 +14,11 @@
  *  product declares in `package.json#vgai.product.workbench`, and what `npx @volter/editor
  *  create <name>` fetches when the machine has no workbench at all. The publish step prints the
  *  declaration to paste.
+ *
+ *  A RELEASE WITH A LOOK PACKAGE IS NEVER PUBLISHED. `--look` overlays a look package's frame
+ *  tier (`overlay.mjs`), such as the Volter brand's private Plotter look, and `BUILD.json`
+ *  records every tier it carries; `--publish` refuses such a release, because the fork's GitHub
+ *  Releases are public and the tier is the package's own code.
  *
  *  TRIGGER: you are cutting the bytes a project's `.vgai/workbench.json` will name. This is not
  *  a script you run on a laptop that is also doing something else — it is the heaviest thing in
@@ -101,7 +106,7 @@ function releaseTag(record) {
 }
 
 function parseArgs(argv) {
-	const args = { product: null, platform: null, checkout: null, out: null, work: null, dryRun: false, publish: false };
+	const args = { product: null, platform: null, checkout: null, out: null, work: null, dryRun: false, publish: false, looks: [] };
 	for (let i = 2; i < argv.length; i++) {
 		const flag = argv[i];
 		if (flag === '--dry-run') { args.dryRun = true; }
@@ -111,6 +116,7 @@ function parseArgs(argv) {
 		else if (flag === '--checkout') { args.checkout = argv[++i]; }
 		else if (flag === '--out') { args.out = argv[++i]; }
 		else if (flag === '--work') { args.work = argv[++i]; }
+		else if (flag === '--look') { args.looks.push(resolve(argv[++i])); }
 		else { fail(`unknown argument "${flag}"`); }
 	}
 	// PUBLISH WITHOUT BUILDING is the whole of `--publish --out <dir>`: the release in that
@@ -170,6 +176,9 @@ function publishRelease(dir, dryRun) {
 	const record = JSON.parse(readFileSync(recordPath, 'utf8'));
 	for (const key of ['product', 'platform', 'commit', 'tarball', 'tarballBytes', 'tarballSha256']) {
 		if (record[key] === undefined) { fail(`${recordPath} names no ${key}; it is not a release record this can publish.`); }
+	}
+	if ((record.lookTiers ?? []).length > 0) {
+		fail(`This release carries look tiers (${record.lookTiers.map((tier) => tier.package).join(', ')}), built with --look. The fork's Releases are public and a look tier is its package's own code, so it is not published; cut the release without --look.`);
 	}
 	if (!record.editorSource?.revision || record.editorSource.dirty !== false) {
 		fail('This workbench has no clean editor-source revision. Rebuild from a committed editor checkout before publishing.');
@@ -282,7 +291,7 @@ step('git', ['-C', clone, 'checkout', '--quiet', '--detach', pin.commit]);
 // ---- 2. the overlay — BEFORE `npm ci`, so the bundle's every input exists before anything
 //         reads the tree. The clone carries none of it: `git clone` takes committed files only,
 //         which is exactly why the overlay is re-applied here rather than assumed.
-step(process.execPath, [join(REPO_ROOT, 'scripts/workbench/overlay.mjs'), '--checkout', clone, '--product', args.product]);
+step(process.execPath, [join(REPO_ROOT, 'scripts/workbench/overlay.mjs'), '--checkout', clone, '--product', args.product, ...args.looks.flatMap((dir) => ['--look', dir])]);
 
 // Code-OSS serves assets with a one-year cache under product.commit. The fork
 // commit alone is NOT the build identity: a new editor overlay otherwise loads
@@ -341,6 +350,7 @@ if (!args.dryRun) {
 		commit: pin.commit,
 		assetVersion,
 		editorSource: JSON.parse(readFileSync(join(clone, '.vgai-overlay.json'), 'utf8')).editorSource,
+		lookTiers: JSON.parse(readFileSync(join(clone, '.vgai-overlay.json'), 'utf8')).lookTiers,
 		codeOssVersion: JSON.parse(readFileSync(join(clone, 'package.json'), 'utf8')).version,
 		node: process.version,
 		builtAt: new Date().toISOString(),

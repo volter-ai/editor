@@ -2,13 +2,7 @@ import {
   adapterEditorConfiguration,
   subscribeAdapterEditorConfiguration,
 } from './adapter-editor-config';
-import {
-  effectiveSettings,
-  projectSettings,
-  subscribeSettings,
-  updatePreferenceSettings,
-  userSettings,
-} from './settings-store';
+import { effectiveSettings, subscribeSettings, updatePreferenceSettings } from './settings-store';
 /**
  * WHICH CHROME REGIONS ARE SHOWN right now — the one store the two document
  * regions (`DocumentHeaderStrip`, `DocumentShelfRail`), the title bar's own
@@ -269,32 +263,31 @@ export function setPresetRegions(regions: ChromeRegions): void {
     const value = regions[key];
     if (value !== undefined) (absolute as Record<string, string>)[key] = value;
   }
-  pendingPreset = regionsKey(absolute);
-  updatePreferenceSettings({ appearance: { regions: absolute } });
+  const write = Symbol('preset write');
+  pendingPreset = write;
+  void updatePreferenceSettings({ appearance: { regions: absolute } }).then(() => {
+    if (pendingPreset !== write) return; // a later bundle owns the preset now
+    pendingPreset = null;
+    syncPreset();
+  });
   publish();
 }
 
-/** The preset a bundle just wrote, until a settings layer carries it: the same in-flight rule as
- *  the palette's (`theme-preference.ts`), since a settings change that arrives before the write
- *  lands still reports the previous bundle's regions. */
-let pendingPreset: string | null = null;
-
-function presetWriteLanded(): boolean {
-  if (pendingPreset === null) return true;
-  const layered = [userSettings().appearance?.regions, projectSettings().appearance?.regions];
-  if (!layered.some((stored) => isRegions(stored) && regionsKey(stored) === pendingPreset)) return false;
-  pendingPreset = null;
-  return true;
-}
+/** A bundle's preset write IN FLIGHT, until it settles: the same rule as the palette's
+ *  (`theme-preference.ts`), since a settings change that arrives before the write lands still
+ *  reports the previous bundle's regions. */
+let pendingPreset: symbol | null = null;
 
 // A settings load or a project's own override changes the preset underneath.
-subscribeSettings(() => {
-  if (!presetWriteLanded()) return;
+function syncPreset(): void {
+  if (pendingPreset !== null) return;
   const next = readPersistedPreset();
   if (regionsKey(next) === regionsKey(_preset)) return;
   _preset = next;
   publish();
-});
+}
+
+subscribeSettings(syncPreset);
 
 subscribeAdapterEditorConfiguration(publish);
 

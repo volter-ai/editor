@@ -88,9 +88,6 @@
     "three-bvh-csg": "^0.0.18",
     "three-mesh-bvh": "^0.9.12"
   },
-  "optionalDependencies": {
-    "@volter-ai/brand": "github:volter-ai/brand"
-  },
   "bin": {
     "volter-game-editor": "./dist-node/cli.js"
   }

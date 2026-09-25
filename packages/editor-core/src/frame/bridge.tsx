@@ -279,7 +279,7 @@ export interface VgaiSettingsHandle {
       project: unknown;
       effective: unknown;
     };
-    set(key: string, value: unknown, target: 'user' | 'project'): void;
+    set(key: string, value: unknown, target: 'user' | 'project'): Promise<void>;
     subscribe(listener: () => void): () => void;
   }): void;
   adapterValues(): readonly (readonly [string, unknown])[];

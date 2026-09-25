@@ -270,7 +270,7 @@ function targetFor(key: string): EditorHostSettingsTarget {
 function applySettings(
   entries: Iterable<readonly [string, unknown]>,
   forced?: EditorHostSettingsTarget,
-): void {
+): Promise<void> {
   const toUser: (readonly [string, unknown])[] = [];
   const toProject: (readonly [string, unknown])[] = [];
   for (const entry of entries) {
@@ -279,18 +279,20 @@ function applySettings(
   }
   const provider = settingsProvider();
   if (provider) {
-    for (const [key, value] of toUser) provider.set(key, value, 'user');
-    for (const [key, value] of toProject) provider.set(key, value, 'project');
-    return;
+    return Promise.allSettled([
+      ...toUser.map(([key, value]) => provider.set(key, value, 'user')),
+      ...toProject.map(([key, value]) => provider.set(key, value, 'project')),
+    ]).then(() => undefined);
   }
   if (toUser.length > 0) writeUserLayer(settingsFromEntries(toUser));
   if (toProject.length > 0) writeProjectLayer(settingsFromEntries(toProject));
+  return Promise.resolve();
 }
 
 /** Write one `vgai.*` key. With no target, {@link targetFor} picks the layer
  *  that wins. */
 export function setSetting(key: string, value: unknown, target?: EditorHostSettingsTarget): void {
-  applySettings([[key, value]], target);
+  void applySettings([[key, value]], target);
 }
 
 /** Merge `patch` into the USER layer and write `~/.vgai/settings.json`. */
@@ -308,14 +310,16 @@ function writeUserLayer(patch: EditorSettings): void {
  * every caller already holds; it is flattened to keys here, which is the one
  * place the two spellings meet.
  */
-export function updatePreferenceSettings(patch: EditorSettings): void {
-  applySettings(flattenSettings(patch));
+/** Settles when every write has landed or failed: at once standalone, after the configuration
+ *  service's round trip under the frame. */
+export function updatePreferenceSettings(patch: EditorSettings): Promise<void> {
+  return applySettings(flattenSettings(patch));
 }
 
 /** Merge `patch` into the PROJECT layer. */
 export function updateProjectSettings(patch: EditorSettings): void {
   if (!getCurrentProject()) return;
-  applySettings(flattenSettings(patch), 'project');
+  void applySettings(flattenSettings(patch), 'project');
 }
 
 function writeProjectLayer(patch: EditorSettings): void {

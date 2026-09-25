@@ -784,7 +784,9 @@ export interface EditorHostSettingsInspection {
 export interface EditorHostSettingsProvider {
   get(key: string): unknown;
   inspect(key: string): EditorHostSettingsInspection;
-  set(key: string, value: unknown, target: EditorHostSettingsTarget): void;
+  /** Settles when the write has landed or failed — a configuration service's write is
+   *  asynchronous, and a reader that must not see the previous value until then waits on it. */
+  set(key: string, value: unknown, target: EditorHostSettingsTarget): Promise<void>;
   /** Fires when any `vgai.*` value changes in any layer. Returns the
    *  unsubscribe. */
   subscribe(listener: () => void): () => void;

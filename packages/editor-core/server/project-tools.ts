@@ -69,7 +69,6 @@ interface PackageJsonShape {
   name?: string;
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
-  optionalDependencies?: Record<string, string>;
   vgai?: { tools?: ToolRegistration[]; contributions?: unknown };
 }
 
@@ -247,13 +246,6 @@ async function packageContributionModules(
   }).sort();
   const composed = product === null ? [] : productComposedPackages(product);
   const bundled = new Set(composed);
-  const optional = new Set(
-    Object.keys(
-      product === null
-        ? {}
-        : ((await readPackageJson(resolve(product.dir, 'package.json')))?.optionalDependencies ?? {}),
-    ),
-  );
   const sources: Array<{ name: string; from: string; bundled: boolean }> = [
     ...composed.map((name) => ({ name, from: (product as ProductIdentity).dir, bundled: true })),
     ...[...declared, ...SESSION_PACKAGES.filter((name) => !declared.includes(name))]
@@ -308,7 +300,6 @@ async function packageContributionModules(
       found.push({
         entryPath: inBundle ? `${name}/${entry.replace(/^\.\//, '')}` : absolutePath,
         package: name,
-        ...(inBundle && optional.has(name) ? { optional: true } : {}),
       });
     }
   }

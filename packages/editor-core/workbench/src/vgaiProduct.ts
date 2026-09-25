@@ -193,9 +193,9 @@ export function vgaiProduct(): VgaiProduct | undefined {
 const tierLooks = new Map<string, VgaiLookThemes>();
 
 /**
- * A LOOK TIER'S ROW — the theme artifacts an optional look package's workbench tier ships
- * (`package.json#vgai.workbench`, which the overlay copies only when the product's install has
- * the package). Called at module scope by that tier's contribution, which the overlay imports
+ * A LOOK TIER'S ROW — the theme artifacts a look package's workbench tier ships
+ * (`package.json#vgai.workbench`, which the overlay copies only when the build names the package
+ * with `--look`). Called at module scope by that tier's contribution, which the overlay imports
  * after the product's and before the kit's. A look id registered twice is a throw, for the same
  * reason a second product is.
  */

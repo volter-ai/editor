@@ -13,14 +13,7 @@ import {
   subscribeEditorMaterials,
   subscribeIconSets,
 } from '@volter/editor-sdk/widgets';
-import {
-  adapterSettings,
-  effectiveSettings,
-  projectSettings,
-  subscribeSettings,
-  updatePreferenceSettings,
-  userSettings,
-} from './settings-store';
+import { effectiveSettings, subscribeSettings, updatePreferenceSettings } from './settings-store';
 import { resolveEditorTheme, subscribeEditorThemeLibrary } from './theme-library';
 
 // The palette and material are `appearance.palette` / `appearance.material`
@@ -70,9 +63,11 @@ export function setDefaultEditorAppearance(
   // a package's contribution, so it registers a moment into the session) has to
   // dislodge the cached fallback, or the page wears the host's Graphite for the
   // rest of its life with nothing saying why.
-  if (effectiveSettings().appearance?.palette === undefined) cachedPaletteId = null;
-  if (effectiveSettings().appearance?.material === undefined) cachedMaterialId = null;
-  if (effectiveSettings().appearance?.icons === undefined) cachedIconSetId = null;
+  // A value a setter holds in flight is not a fallback, whatever the settings say yet.
+  const stored = effectiveSettings().appearance;
+  if (stored?.palette === undefined && !pendingWrites.has('palette')) cachedPaletteId = null;
+  if (stored?.material === undefined && !pendingWrites.has('material')) cachedMaterialId = null;
+  if (stored?.icons === undefined && !pendingWrites.has('icons')) cachedIconSetId = null;
   fallBackFromMissingTheme();
   applyCurrentTheme();
   emit();
@@ -106,24 +101,45 @@ let cachedMaterialId: EditorMaterialId | null = null;
 let cachedIconSetId: string | null = null;
 
 /**
- * A SETTER'S WRITE IS IN FLIGHT until the layer it was written to carries it. Under the Code-OSS
- * frame a write is the configuration service's asynchronous `updateValue`, and other settings
- * changes arrive meanwhile, each still reporting the previous value: re-read then, a style
- * bundle's palette, material and icon set fell back to the previous bundle's and the chrome wore
- * a mix of the two until the writes landed (measured through `set-style`, which answered "custom
- * mix" for every contributed style). So each axis keeps its setter's value while its write is in
- * flight, and the stored value wins again once a layer carries the write — which is also how a
- * project's own override of the axis still takes precedence.
+ * A SETTER'S WRITE IS IN FLIGHT until it settles. Under the Code-OSS frame a write is the
+ * configuration service's asynchronous `updateValue`, and other settings changes arrive
+ * meanwhile, each still reporting the previous value: re-read then, a style bundle's palette,
+ * material and icon set fell back to the previous bundle's and the chrome wore a mix of the two
+ * until the writes landed (measured through `set-style`, which answered "custom mix" for every
+ * switch between two bundles). So an axis keeps its setter's value until that write settles,
+ * landed or failed, and then takes the stored value again — which is also how a project's own
+ * override of the axis still wins.
  */
-const pendingWrites = new Map<'palette' | 'material' | 'icons', string>();
+const pendingWrites = new Map<'palette' | 'material' | 'icons', symbol>();
 
-function writeLanded(axis: 'palette' | 'material' | 'icons'): boolean {
-  const pending = pendingWrites.get(axis);
-  if (pending === undefined) return true;
-  if (userSettings().appearance?.[axis] !== pending && projectSettings().appearance?.[axis] !== pending)
-    return false;
-  pendingWrites.delete(axis);
-  return true;
+function writeAxis(axis: 'palette' | 'material' | 'icons', value: string): void {
+  const write = Symbol(`${axis} write`);
+  pendingWrites.set(axis, write);
+  const appearance =
+    axis === 'palette'
+      ? { palette: value }
+      : axis === 'material'
+        ? { material: value as EditorMaterialId }
+        : { icons: value };
+  void updatePreferenceSettings({ appearance }).then(() => {
+    if (pendingWrites.get(axis) !== write) return; // a later setter owns the axis now
+    pendingWrites.delete(axis);
+    syncFromSettings();
+  });
+}
+
+/** Re-read every axis no write holds, and repaint when one moved. */
+function syncFromSettings(): void {
+  if (!pendingWrites.has('icons')) cachedIconSetId = readStoredIconSetId();
+  setActiveIconSet(editorIconSetSnapshot());
+  const palette = pendingWrites.has('palette') ? editorPaletteSnapshot() : readStoredPaletteId();
+  const material = pendingWrites.has('material') ? editorMaterialSnapshot() : readStoredMaterialId();
+  if (palette === cachedPaletteId && material === cachedMaterialId) return;
+  cachedPaletteId = palette;
+  cachedMaterialId = material;
+  previewTheme = null;
+  applyCurrentTheme();
+  emit();
 }
 let installedRoot: HTMLElement | null = null;
 let previewTheme: EditorPalette | null = null;
@@ -171,28 +187,19 @@ export function editorIconSetSnapshot(): string {
 export function setEditorIconSetPreference(id: string): void {
   if (!isEditorIconSetId(id)) throw new Error(`Unknown editor icon set “${id}”.`);
   cachedIconSetId = id;
-  pendingWrites.set('icons', id);
-  updatePreferenceSettings({ appearance: { icons: id } });
+  writeAxis('icons', id);
   setActiveIconSet(id);
   emit();
 }
 
 function fallBackFromMissingTheme(): void {
-  const requested = editorPaletteSnapshot();
-  if (resolveEditorTheme(requested)) return;
+  if (resolveEditorTheme(editorPaletteSnapshot())) return;
+  // A stored palette that does not resolve is WORN as the default and never repaired on disk. A
+  // contributed palette is absent until its package registers (the Blender look's, the brand's
+  // Plotter), and absent altogether in a build or project without that package; writing the
+  // default would erase the choice in every other product and project that shares the settings
+  // file. The stored choice wins again the moment it resolves (`subscribeEditorThemeLibrary`).
   cachedPaletteId = defaultPaletteId();
-  // Repair a settings FILE naming a palette that no longer exists — never the
-  // adapter's own declaration. A models project's `blender` is unresolvable
-  // for as long as it takes `@volter/editor-blender`'s style contribution to register, and
-  // persisting Graphite in that window would write a project-layer override
-  // that permanently defeats the look the project declares in code.
-  if (adapterSettings().appearance?.palette === requested) return;
-  // The PRODUCT's declared look is unresolvable in exactly the same window and
-  // for exactly the same reason — its bundle is a package's contribution — so
-  // it gets the same protection. Nothing is repaired here anyway: what would be
-  // written is the default this code just fell back to.
-  if (productAppearance?.palette === requested) return;
-  updatePreferenceSettings({ appearance: { palette: defaultPaletteId() } });
 }
 
 export function editorPaletteSnapshot(): string {
@@ -291,8 +298,7 @@ export function setEditorPalettePreference(paletteId: string): void {
     return;
   }
   cachedPaletteId = paletteId;
-  pendingWrites.set('palette', paletteId);
-  updatePreferenceSettings({ appearance: { palette: paletteId } });
+  writeAxis('palette', paletteId);
   applyCurrentTheme();
   emit();
 }
@@ -304,8 +310,7 @@ export function setEditorMaterialPreference(materialId: EditorMaterialId): void 
     return;
   }
   cachedMaterialId = materialId;
-  pendingWrites.set('material', materialId);
-  updatePreferenceSettings({ appearance: { material: materialId } });
+  writeAxis('material', materialId);
   applyCurrentTheme();
   emit();
 }
@@ -327,35 +332,26 @@ export function installEditorTheme(root: HTMLElement): () => void {
   installedRoot = root;
   applyCurrentTheme();
 
-  // The settings layers changed (a load finished, a project with its own
-  // appearance override became active, a setter wrote): re-read both axes.
+  // Re-read: a snapshot taken before the settings loaded cached the default.
+  if (!pendingWrites.has('icons')) cachedIconSetId = readStoredIconSetId();
   setActiveIconSet(editorIconSetSnapshot());
   removeIconSetsListener?.();
   // A stored set a package carries is unknown until that package's style registers.
   removeIconSetsListener = subscribeIconSets(() => {
-    if (writeLanded('icons')) cachedIconSetId = readStoredIconSetId();
+    if (!pendingWrites.has('icons')) cachedIconSetId = readStoredIconSetId();
     setActiveIconSet(editorIconSetSnapshot());
   });
 
+  // The settings layers changed (a load finished, a project with its own
+  // appearance override became active, a setter's write settled): re-read the axes.
   removeSettingsListener?.();
-  removeSettingsListener = subscribeSettings(() => {
-    if (writeLanded('icons')) cachedIconSetId = readStoredIconSetId();
-    setActiveIconSet(editorIconSetSnapshot());
-    const palette = writeLanded('palette') ? readStoredPaletteId() : editorPaletteSnapshot();
-    const material = writeLanded('material') ? readStoredMaterialId() : editorMaterialSnapshot();
-    if (palette === cachedPaletteId && material === cachedMaterialId) return;
-    cachedPaletteId = palette;
-    cachedMaterialId = material;
-    previewTheme = null;
-    applyCurrentTheme();
-    emit();
-  });
+  removeSettingsListener = subscribeSettings(syncFromSettings);
 
   // A stored material a package carries is unknown until that package's style
   // registers; Classic paints meanwhile and the stored choice wins on arrival.
   removeMaterialsListener?.();
   removeMaterialsListener = subscribeEditorMaterials(() => {
-    if (!writeLanded('material')) return;
+    if (pendingWrites.has('material')) return;
     const material = readStoredMaterialId();
     if (material === cachedMaterialId) return;
     cachedMaterialId = material;
@@ -415,7 +411,7 @@ subscribeEditorThemeLibrary(() => {
   // already does in `installEditorTheme`. Without this, a project whose
   // `.vgai/settings.json` names a contributed palette painted Graphite
   // forever and nothing said why.
-  if (writeLanded('palette')) {
+  if (!pendingWrites.has('palette')) {
     const stored = readStoredPaletteId();
     if (stored !== cachedPaletteId) cachedPaletteId = stored;
   }

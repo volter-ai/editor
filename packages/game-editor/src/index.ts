@@ -22,7 +22,6 @@
  * `/__editor/served-modules` hands it this file's URL.
  */
 
-import brand from 'vgai:contributions/@volter-ai/brand';
 import blender from 'vgai:contributions/@volter/editor-blender';
 import game from 'vgai:contributions/@volter/editor-game';
 import react from 'vgai:contributions/@volter/editor-react';
@@ -38,9 +37,6 @@ export const { mountVgai } = product({
     '@volter/editor-threejs': threejs,
     '@volter/editor-xstate': xstate,
     '@volter/editor-blender': blender,
-    // OPTIONAL (package.json#optionalDependencies): the Volter brand's Plotter style, composed
-    // only when this build's install has the private package.
-    '@volter-ai/brand': brand,
   },
   look: 'classic',
   workspace: 'game',

@@ -148,8 +148,8 @@ const WORKBENCH_ADAPTER_VALUES: readonly (readonly [string, unknown])[] = [
  *
  * THE ROWS ARE THE PRODUCT'S (P3, 2026-09-21): a product declares, through
  * `registerVgaiProduct({ looks })`, the theme artifacts its build carries
- * (`packages/model-editor/workbench/extensions/theme-blender`). An optional look package's
- * workbench tier adds its own row (`registerVgaiLook`) when the build carries it. A look with no
+ * (`packages/model-editor/workbench/extensions/theme-blender`). A look package's
+ * workbench tier adds its own row (`registerVgaiLook`) when the build names it (`--look`). A look with no
  * row wears the workbench's own.
  */
 const COLOR_THEME_KEY = 'workbench.colorTheme';
@@ -220,7 +220,7 @@ export interface VgaiSettingsInspection {
 export interface VgaiSettingsProvider {
 	get(key: string): unknown;
 	inspect(key: string): VgaiSettingsInspection;
-	set(key: string, value: unknown, target: 'user' | 'project'): void;
+	set(key: string, value: unknown, target: 'user' | 'project'): Promise<void>;
 	subscribe(listener: () => void): () => void;
 }
 
@@ -458,14 +458,17 @@ export class VgaiSettings extends Disposable {
 	 * project layer IS — and it is where a gesture on an adapter-declared key lands, because
 	 * the memory value above the user layer would swallow a user write whole. `'user'` is the
 	 * ordinary user settings file.
+	 *
+	 * It settles when the write has landed (and `apply()` has run) or failed and been reported,
+	 * never rejecting: the editor holds a value it just wrote until then.
 	 */
-	private write(key: string, value: unknown, target: 'user' | 'project'): void {
+	private write(key: string, value: unknown, target: 'user' | 'project'): Promise<void> {
 		if (!this.keys.has(key)) {
 			this.bridge.report('error', localize('vgaiSettingsWriteUnknownKey', "“{0}” is not a vgai setting, so it was not written.", key));
-			return;
+			return Promise.resolve();
 		}
 		const configurationTarget = target === 'project' ? ConfigurationTarget.WORKSPACE : ConfigurationTarget.USER;
-		this.configurationService.updateValue(key, value, configurationTarget).then(
+		return this.configurationService.updateValue(key, value, configurationTarget).then(
 			// A write to the workspace that the project also declares through its adapter needs
 			// the memory value gone, or the effective value does not move and the gesture looks
 			// like it did nothing. The change event runs `apply()` too; this makes the ordering

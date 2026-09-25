@@ -1592,14 +1592,8 @@ async function runContributionRefresh(): Promise<void> {
         return raw.default;
       }),
   });
-  // A contribution of a package the product composes OPTIONALLY is in the page only when the
-  // product's build had it installed; a build without it (a product published with no access to
-  // the package) loads none of it, whatever this machine's install carries.
-  const contributions = (catalog.contributions ?? []).filter(
-    (row) => !row.optional || bundledPackageLoaders.has(row.entryPath),
-  );
   const moduleImports = new Map<string, Promise<unknown>>();
-  for (const { entryPath } of contributions) {
+  for (const { entryPath } of catalog.contributions ?? []) {
     // Kind contributions are the manifest hosts' (server, validate script);
     // the page mounts nothing from them.
     if (isConfigurationKindContribution(entryPath)) continue;
@@ -1612,7 +1606,7 @@ async function runContributionRefresh(): Promise<void> {
   const nextChrome: ChromeModule[] = [];
   const nextServices: ServiceModule[] = [];
   const claimedIds = new Set<string>();
-  for (const { entryPath } of contributions) {
+  for (const { entryPath } of catalog.contributions ?? []) {
     if (isConfigurationKindContribution(entryPath)) continue; // a kind is the manifest hosts'
     if (isServiceContribution(entryPath)) {
       try {

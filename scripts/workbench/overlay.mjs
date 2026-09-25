@@ -21,16 +21,17 @@
  *
  *  and what the fork carries is upstream plus patches.
  *
- *  A THIRD, OPTIONAL HOME: LOOK TIERS. A package the product depends on (usually OPTIONALLY)
- *  may carry the frame half of a look it offers, declared as `package.json#vgai.workbench`:
+ *  A THIRD HOME, ONLY WHEN NAMED: LOOK TIERS. A package outside this repository may carry the
+ *  frame half of a look, declared as `package.json#vgai.workbench`:
  *
  *    { "contrib": "vgaiBrand", "root": "./editor/workbench", "media": { "fonts": "./fonts" } }
  *
+ *  and a build carries it only when its directory is passed, `--look <package dir>` (repeatable):
  *  `<root>/src` → `contrib/<contrib>/browser/` (its `look.contribution.ts` is imported after the
  *  product's and before the kit's), `<root>/extensions/*` → `extensions/`, and each `media` entry
- *  → `contrib/<contrib>/browser/media/<name>/`. The Volter brand's Plotter style is the one
- *  today: `@volter-ai/brand` is private, so a build whose install lacks it has no Plotter frame
- *  and the same product otherwise. No code here names a look package.
+ *  → `contrib/<contrib>/browser/media/<name>/`. Nothing in the install brings one in by itself,
+ *  so a build of this repository never carries a look package's code unless its builder named
+ *  it — the Volter brand's private package (`volter-ai/brand`, its Plotter look) in particular.
  *
  *  WHY THE PRODUCT'S DIRECTORY IS ONE FIXED NAME. `vgaiProduct` rather than `vgaiModelEditor`:
  *  the registration import line, the build's resource glob and the product's own
@@ -125,15 +126,16 @@ function fail(message) {
 }
 
 function parseArgs(argv) {
-	const args = { checkout: null, product: null };
+	const args = { checkout: null, product: null, looks: [] };
 	for (let i = 2; i < argv.length; i++) {
 		if (argv[i] === '--checkout') { args.checkout = argv[++i]; }
 		else if (argv[i] === '--product') { args.product = argv[++i]; }
-		else { fail(`unknown argument "${argv[i]}". Usage: node scripts/workbench/overlay.mjs --checkout <fork dir> --product <editor>`); }
+		else if (argv[i] === '--look') { args.looks.push(resolve(argv[++i])); }
+		else { fail(`unknown argument "${argv[i]}". Usage: node scripts/workbench/overlay.mjs --checkout <fork dir> --product <editor> [--look <package dir>]…`); }
 	}
 	if (!args.checkout) { fail('--checkout <fork dir> is required — the Code-OSS checkout to overlay.'); }
 	if (!args.product) { fail(`--product <id> is required. Products with a workbench half here: ${knownProducts().join(', ')}.`); }
-	return { checkout: resolve(args.checkout), product: args.product };
+	return { checkout: resolve(args.checkout), product: args.product, looks: args.looks };
 }
 
 /** Every package that carries a workbench half, by its directory name under `packages/`. */
@@ -195,7 +197,10 @@ function replaceTree(from, to) {
  */
 function patchRegistrationImports(checkout, tiers) {
 	const path = join(checkout, MAIN_FILE);
-	const lines = readFileSync(path, 'utf8').split('\n').filter((line) => !/^import '\.\/contrib\/vgai[^']*';$/.test(line));
+	const lines = readFileSync(path, 'utf8')
+		.split('\n')
+		.filter((line) => !/^import '\.\/contrib\/vgai[^']*';$/.test(line))
+		.filter((line, index, all) => !line.startsWith('// VGAI (overlaid tier') && !(line === '' && all[index + 1]?.startsWith('// VGAI (overlaid tier')));
 	let last = -1;
 	for (let i = 0; i < lines.length; i++) {
 		if (/^import '\.\/contrib\/.*\.js';$/.test(lines[i])) { last = i; }
@@ -462,24 +467,20 @@ function patchNpmDirs(checkout) {
 	writeFileSync(path, source.replace(entry, marker));
 }
 
-/**
- * The product's look tiers: every package in its `dependencies` or `optionalDependencies` that
- * is INSTALLED (found in a `node_modules` above the product, as Node would) and declares
- * `package.json#vgai.workbench`. An optional package the install lacks is simply not a tier.
- */
-function lookTiers(productPackageDir) {
-	const manifest = JSON.parse(readFileSync(join(productPackageDir, 'package.json'), 'utf8'));
-	const names = [...new Set([...Object.keys(manifest.dependencies ?? {}), ...Object.keys(manifest.optionalDependencies ?? {})])].sort();
+/** The look tiers the builder named (`--look <package dir>`), read from each package's own
+ *  `package.json#vgai.workbench`. */
+function lookTiers(dirs) {
 	const tiers = [];
-	for (const name of names) {
-		const dir = installedPackageDir(productPackageDir, name);
-		if (dir === null) { continue; }
-		const declared = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')).vgai?.workbench;
-		if (declared === undefined) { continue; }
-		const where = `${name}'s package.json#vgai.workbench`;
+	for (const dir of dirs) {
+		if (!existsSync(join(dir, 'package.json'))) { fail(`--look ${dir} is not a package directory.`); }
+		const manifest = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
+		const where = `${manifest.name ?? dir}'s package.json#vgai.workbench`;
+		const declared = manifest.vgai?.workbench;
+		if (declared === undefined) { fail(`--look ${dir}: ${where} is not declared, so it carries no look tier.`); }
 		if (typeof declared?.contrib !== 'string' || !/^vgai[A-Z][A-Za-z0-9]*$/.test(declared.contrib) || declared.contrib === 'vgaiProduct') {
 			fail(`${where} must name its "contrib" directory as vgai<Name> (not vgaiProduct), e.g. "vgaiBrand".`);
 		}
+		if (tiers.some((tier) => tier.contrib === declared.contrib)) { fail(`two --look packages name the contrib directory ${declared.contrib}.`); }
 		if (typeof declared.root !== 'string') { fail(`${where} must name its "root", the directory holding src/ and extensions/.`); }
 		const root = join(dir, declared.root);
 		if (!existsSync(join(root, 'src/look.contribution.ts'))) { fail(`${where}: ${join(root, 'src/look.contribution.ts')} does not exist; a look tier registers itself there.`); }
@@ -489,40 +490,32 @@ function lookTiers(productPackageDir) {
 			}
 			return { as, from: join(dir, from) };
 		});
-		tiers.push({ name, version: JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')).version, contrib: declared.contrib, root, media });
+		tiers.push({ name: manifest.name ?? dir, version: manifest.version, contrib: declared.contrib, root, media });
 	}
 	return tiers;
-}
-
-function installedPackageDir(from, name) {
-	for (let dir = from; ; dir = dirname(dir)) {
-		const candidate = join(dir, 'node_modules', name);
-		if (existsSync(join(candidate, 'package.json'))) { return candidate; }
-		if (dirname(dir) === dir) { return null; }
-	}
 }
 
 /** A tier's bytes, hashed: its package version alone does not change when a git dependency moves. */
 function treeHash(dirs) {
 	const hash = createHash('sha1');
-	const walk = (dir) => {
+	const walk = (root, dir) => {
 		for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
 			const path = join(dir, entry.name);
-			if (entry.isDirectory()) { walk(path); } else { hash.update(path.slice(dir.length)).update(readFileSync(path)); }
+			if (entry.isDirectory()) { walk(root, path); } else { hash.update(path.slice(root.length)).update(readFileSync(path)); }
 		}
 	};
-	for (const dir of dirs) { if (existsSync(dir)) { walk(dir); } }
+	for (const dir of dirs) { if (existsSync(dir)) { hash.update(`\0${dir.split('/').pop()}`); walk(dir, dir); } }
 	return hash.digest('hex');
 }
 
 function main() {
-	const { checkout, product } = parseArgs(process.argv);
+	const { checkout, product, looks } = parseArgs(process.argv);
 	const productDir = join(REPO_ROOT, 'packages', product, 'workbench');
 	if (!existsSync(join(productDir, 'src/product.contribution.ts'))) {
 		fail(`${product} has no workbench half: ${join(productDir, 'src/product.contribution.ts')} does not exist. Products with one: ${knownProducts().join(', ')}.`);
 	}
 	const pin = assertAtPin(checkout);
-	const tiers = lookTiers(dirname(productDir));
+	const tiers = lookTiers(looks);
 	// Resolved BEFORE anything is written, so a stale or missing install refuses on a clean tree.
 	const extension = chatExtension();
 
@@ -565,6 +558,9 @@ function main() {
 		for (const { as, from } of tier.media) { replaceTree(from, join(target, 'media', as)); }
 		const extensions = existsSync(join(tier.root, 'extensions')) ? readdirSync(join(tier.root, 'extensions')) : [];
 		for (const name of extensions) {
+			// Everything ours was removed above, so a directory still here is upstream's or another
+			// tier's: a look tier adds extensions and never replaces one.
+			if (existsSync(join(extensionsDir, name))) { fail(`${tier.name}'s extension ${name} would replace extensions/${name}, which is not a look tier's.`); }
 			replaceTree(join(tier.root, 'extensions', name), join(extensionsDir, name));
 			copiedExtensions.push(name);
 		}

@@ -55,9 +55,6 @@
     "@modelcontextprotocol/sdk": "1.30.0",
     "undici": "7.29.1"
   },
-  "optionalDependencies": {
-    "@volter-ai/brand": "github:volter-ai/brand"
-  },
   "bin": {
     "volter-model-editor": "./dist-node/cli.js"
   }
