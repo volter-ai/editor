@@ -70,12 +70,7 @@ changes); all three are fixed in the release.
 
 Remaining:
 
-1. **Workbench rebuilds.** First boot logs "No default agent registered" and, under load, the
-   workbench's GitHub sign-in lookups time out. The native Chat patches that address both are
-   in `scripts/workbench/overlay.mjs`; both products' workbenches need a rebuild carrying them
-   (the model editor's also carries its new product id) and a new pin. Closed by a first boot
-   of each rebuilt workbench with neither message.
-2. **The architecture plan** ([ARCHITECTURE.md](ARCHITECTURE.md) §The plan): the model editor
+1. **The architecture plan** ([ARCHITECTURE.md](ARCHITECTURE.md) §The plan): the model editor
    rename, the frozen reverse-edge baseline, the viewport unit, Blender as its first consumer,
    then idiomatic games. `@volter/editor-game` imports kit internals from 122 files.
    The kit's Blender server routes are `@volter/editor-blender`'s serving half (walked: Blender
@@ -95,7 +90,8 @@ Remaining:
    Units 1–2 are done (`@volter/model-editor`; `release/boundary-baseline.json`, 696 edges). The
    model editor's workbench is released for its own product id; both products pin releases cut
    from Code-OSS `9ef15b1f` (W71: extension-host reconnections reach the host),
-   `model-editor-9ef15b1f345b-2a8d872b50d0` and `game-editor-9ef15b1f345b-2a8d872b50d0`, private.
+   `model-editor-9ef15b1f345b-7b9222405623` and `game-editor-9ef15b1f345b-e22708e88dca`, private,
+   both with the native Chat repairs and `supercode-frontend-vscode` 0.1.7.
    The Three viewport binds its keys through `host.keyboard.bindActions` and publishes its
    palette entries from the active three stage (walked on `arena`: the transform keys set the
    mode, `tool:` palette entries toggle grid and shading, an entity entry selects and frames, and
@@ -117,26 +113,26 @@ Remaining:
    factory into `StageHost` (Blender imports the viewport directly), `TransportStrip` into the
    stage transport, and viewport UI (`ViewportOverlay`, `ViewportViewMenu`, `stage-overlay-set`,
    `transform-mode-request`, `viewport-tool-context`) that moves with the set.
-3. **Animation seen from outside.** The editor finds a game's mixers through a served stamp on
+2. **Animation seen from outside.** The editor finds a game's mixers through a served stamp on
    the project's own `new AnimationMixer(...)` and `useAnimations(...)` call sites
    (`@volter/editor-threejs/serving`); `status` reports them as `liveMixers` (walked on `arena`:
    five mixers, their clips and the characters they animate). The runtime's
    `_animMixer`/`_availableClips` userData keys are declared and read but never set; they leave
    with the runtime framework (§The plan, unit 5). The timeline driving a stamped mixer in Edit
    is unwalked.
-4. **Machine documents.** Authored edits and the live overlay are walked on `arena`; the fit on
+3. **Machine documents.** Authored edits and the live overlay are walked on `arena`; the fit on
    first size is unobserved, and an initial arrow can enter its state from below.
-5. **The design skew** (`website`): the DOM root is read-only, the Pages list is empty, and a
+4. **The design skew** (`website`): the DOM root is read-only, the Pages list is empty, and a
    `page` has no document editor.
-6. **Unwalked instruments:** navmesh on real content; Network needs a networking adapter.
-7. **Build time.** The game product bundle builds in 25–100 s, over the 30-second rule.
+5. **Unwalked instruments:** navmesh on real content; Network needs a networking adapter.
+6. **Build time.** The game product bundle builds in 25–100 s, over the 30-second rule.
    `VOLTER_EDITOR_FROM_SOURCE=1` serves the product's source through the project Vite. Measured on
    `arena`, two ways it differs from the build: the page requests the project's `src/main.ts` and
    `src/contributions/use-game-modules.ts`, whose `virtual:vgai-manifest-entries` and
    `@editor/game-module-access` do not resolve (29 console errors; none in packaged sessions), and
    an Inspector source write reloads the page, which drops undo history and the active document.
    Until both are closed, a walk of editing still needs a build.
-8. **Input a game owns is not gated.** `arena` builds its own `new InputManager()`
+7. **Input a game owns is not gated.** `arena` builds its own `new InputManager()`
    (`src/lib/input`). With a Model document active and the tab on Edit, a key still moves the player
    the full distance (measured: z moved 5.9 in one second, with the same reading when Game is
    focused). Play gates only `session.game.input`, and the listener shadow skips dependency code.
