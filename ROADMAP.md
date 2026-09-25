@@ -32,11 +32,10 @@ Completion:
 
 Status: active
 [ARCHITECTURE.md](ARCHITECTURE.md) §The plan: the model editor rename and the frozen reverse-edge baseline are
-done (`@volter/model-editor`; `release/boundary-baseline.json`); the viewport unit is measured at 186 modules in
-`editor-core`, 47 of them Three-bound, and moves in one step once core stops importing it (`WORK.md` lists the
-cut points).
+done (`@volter/model-editor`; `release/boundary-baseline.json`); the Three viewport has left the kit for
+`@volter/editor-threejs` and no kit module imports three (`WORK.md` lists what remains of the unit).
 Completion:
-- The viewport set leaves `editor-core` for the Three integration, with no core-to-`@volter/editor-threejs` edge.
+- Blender's viewport defaults are `@volter/editor-blender`'s specialization; the adapter contract names no medium; the SDK's Object3D and viewport doors are Three's own exports.
 - Blender is the viewport's first consumer, then idiomatic games.
 - `@volter/editor-game` imports no kit internals.
 

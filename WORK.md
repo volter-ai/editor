@@ -72,7 +72,7 @@ Remaining:
 
 1. **The architecture plan** ([ARCHITECTURE.md](ARCHITECTURE.md) §The plan): the model editor
    rename, the frozen reverse-edge baseline, the viewport unit, Blender as its first consumer,
-   then idiomatic games. `@volter/editor-game` imports kit internals from 122 files.
+   then idiomatic games.
    The kit's Blender server routes are `@volter/editor-blender`'s serving half (walked: Blender
    boots and saves through them). A lane's worker-call meter rides the tab census under the name
    the lane publishes (`host.session.reportWorkerCallMeter('Blender', …)`), and the kit prints
@@ -102,17 +102,25 @@ Remaining:
    (`kit/inspection-node-media`). Walked on `arena`: Scene grid, wireframe and top view set and
    read back, a Model document's view presented and read back, a glTF opened, orbited and
    inspected, a light's Preview section and Asset Editor jump.
-   Unit 3, measured: the viewport's closure in `editor-core` is 186 modules, 47 of them
-   Three-bound (25k lines). The baseline refuses new core-to-`@volter/editor-threejs` edges, so
-   the set moves in one step after core stops importing it. Remaining cut points: the store's
-   Three members read by kit modules (`ShellDocumentState` names the neutral half; selection,
-   history and change), the Edit/Play tab and `playState` read by `active-adapter`,
-   `tool-documents`, `workspace-document-restore` and `stage-context` (the game product's, via
-   Code-OSS focus), the viewport commands inside `editor-hotkeys` and `action-registry` (to the
-   Three integration's contributed actions and keys), the SDK's `surfaces.Object3DAuthoring`
-   factory into `StageHost` (Blender imports the viewport directly), `TransportStrip` into the
-   stage transport, and viewport UI (`ViewportOverlay`, `ViewportViewMenu`, `stage-overlay-set`,
-   `transform-mode-request`, `viewport-tool-context`) that moves with the set.
+   Unit 3: the Three viewport has left the kit. The assembled viewport, its stage host, the
+   Three half of the shell store (a companion `threeStateOf` makes; the kit constructs only
+   `ShellStore`), the Object3D document sessions, the Three asset viewers, thumbnails and Play's
+   camera flight live in `@volter/editor-threejs/kit`; no module in `@volter/editor-core` imports
+   three (kit-to-media edges 190 → 12). The Three integration installs itself
+   (`three-integration.service.ts`, and every viewport ensures it) and answers the kit through SDK
+   registries: Object3D surfaces, hierarchy row media, host hierarchy objects, document-stage
+   sessions, renderer counts, editor controls, the play camera flight. The R3F prefab-story preview
+   is `@volter/editor-game`'s. Walked on `arena` from product builds: select and inspect with
+   preview, the shelf's tools reaching status, a source edit and undo byte for byte, Play with W
+   and Stop restoring the scene, selection and camera pose, a glb and a Blender Model document.
+   `@volter/editor-game` imports kit internals from 80 files. Remaining in unit 3: Blender's lens,
+   opening direction, grid and axis colours become `@volter/editor-blender`'s specialization; the
+   Three- and Pixi-typed adapter contract leaves `@volter/editor-project`; the SDK's
+   `surfaces.Object3D*` and `host.viewport`/`host.hierarchy` doors still forward to what the Three
+   integration registers (project contributions mount the surfaces, so they stay on the contract
+   until those move to Three's exports); `packaged.ts`'s Blender prebundle exclusion. A W held
+   during Play reports "keyboard action transform.translate did not run" from the workbench's own
+   keybinding (`vgaiKeyboard.ts`).
 2. **Animation seen from outside.** The editor finds a game's mixers through a served stamp on
    the project's own `new AnimationMixer(...)` and `useAnimations(...)` call sites
    (`@volter/editor-threejs/serving`); `status` reports them as `liveMixers` (walked on `arena`:
