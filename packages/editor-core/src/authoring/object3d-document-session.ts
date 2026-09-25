@@ -733,7 +733,14 @@ export class Object3DDocumentSession {
    *  gradient, `standard-viewport-dressing.ts`). Repaints when it is showing. */
   setNeutralBackground(background: THREE.Color | THREE.Texture | null): void {
     invalidateStages();
-    const showing = this.scene.background === this.neutralBackground;
+    // A flat colour is showing when the scene wears that colour, whichever
+    // `THREE.Color` instance carries it (the viewport repaints a palette's
+    // flat background as its own instance).
+    const current = this.scene.background;
+    const neutral = this.neutralBackground;
+    const showing =
+      current === neutral ||
+      (current instanceof THREE.Color && neutral instanceof THREE.Color && current.equals(neutral));
     this.neutralBackground = background;
     if (showing) this.scene.background = background;
   }

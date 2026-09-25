@@ -1136,17 +1136,17 @@ export function Object3DDocumentViewport({
               : lease && 'environment' in lease
                 ? lease.environment()
                 : createStandardEnvironment(renderer);
-          // A palette that carries a viewport background (Blender's flat grey)
-          // paints it in place of the dressing's; the viewport follows theme
-          // changes from there (`EditorViewport`'s look subscription).
+          // A palette that carries a viewport background (Blender's flat grey,
+          // Plotter's paper) paints it in place of the dressing's gradient. The
+          // gradient is made either way, so a switch to a palette that names
+          // none has a backdrop to return to (`watchPaletteBackdrop` below).
           const look = nativeViewportLook(canvas);
           host.dressing = applyStandardViewportDressing(host.scene, {
             environment,
             background:
               !studioStage &&
               background === undefined &&
-              dressingBackground !== false &&
-              look.background === null,
+              dressingBackground !== false,
             keyLight: dressingKeyLight !== false,
             grid: dressingGrid === true,
             content: source.root,
@@ -1453,15 +1453,17 @@ export function Object3DDocumentViewport({
             const session = host.session;
             host.cleanups.push(
               watchPaletteBackdrop(() => {
-                // A palette that names a flat viewport background owns the
-                // backdrop; the gradient is for palettes that name none.
+                // THE LOOK'S BACKDROP, in both directions and through the
+                // session's neutral backdrop, which repaints what is showing: a
+                // palette's flat viewport background when it names one, the
+                // dressing's gradient re-derived for the palette otherwise.
+                // Painting the flat colour straight onto the scene left it there
+                // when the next palette named none (Plotter's paper stayed under
+                // Classic).
                 const flat = nativeViewportLook(canvas).background;
-                if (flat !== null) {
-                  host.scene.background = new THREE.Color(flat);
-                  return;
-                }
                 const previous = host.defaultBackground;
-                host.defaultBackground = createGradientBackgroundTexture();
+                host.defaultBackground =
+                  flat !== null ? new THREE.Color(flat) : createGradientBackgroundTexture();
                 if (session.neutralBackgroundTexture() === previous)
                   session.setNeutralBackground(host.defaultBackground);
                 if (

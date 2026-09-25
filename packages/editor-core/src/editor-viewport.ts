@@ -3581,6 +3581,8 @@ export class EditorViewport {
    *  screen shows the palette hex (see {@link toneMappedSourceColor}). */
   private _paintLookBackground(): void {
     if (this._lookBackgroundHex === null) return;
+    const current = this._scene.background;
+    if (current instanceof THREE.Color && current.getHex() === this._lookBackgroundHex) return;
     this._scene.background = new THREE.Color(this._lookBackgroundHex);
   }
 

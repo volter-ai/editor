@@ -339,9 +339,20 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
   // --- Scene ---
   const scene = new THREE.Scene();
   // The palette's viewport background when it carries one; the editor's own
-  // grey otherwise. Theme changes follow through the viewport's look
-  // subscription (`EditorViewport`).
-  scene.background = new THREE.Color(nativeViewportLook(canvas).background ?? 0xaaaaaa);
+  // grey otherwise. The viewport's look subscription (`EditorViewport`) paints
+  // a palette's colour over it; this one gives the grey back when the next
+  // palette names none, as long as the scene still wears what was painted (a
+  // game may set its own background).
+  const WORLD_BACKGROUND = 0xaaaaaa;
+  let paintedBackground = nativeViewportLook(canvas).background ?? WORLD_BACKGROUND;
+  scene.background = new THREE.Color(paintedBackground);
+  const unsubscribeWorldBackground = subscribeNativeSelectionTheme(canvas, () => {
+    const next = nativeViewportLook(canvas).background ?? WORLD_BACKGROUND;
+    const current = scene.background;
+    if (current instanceof THREE.Color && current.getHex() === paintedBackground)
+      scene.background = new THREE.Color(next);
+    paintedBackground = next;
+  });
 
   // --- Bind store to scene ---
   store.bindScene(scene, renderer);
@@ -1038,6 +1049,7 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
       gpuTimer.dispose();
       unsubscribeViewportPresentation();
       unsubscribeSelectionTheme();
+      unsubscribeWorldBackground();
       selectionOutline?.selection.clear();
       softParticleDepth.dispose();
       composer.dispose();
