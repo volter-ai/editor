@@ -388,6 +388,9 @@ export interface ViewportPresentation {
 /** The authored viewport's camera rig, while a viewport is mounted. */
 export interface ViewportRig {
   readonly camera: THREE.PerspectiveCamera;
+  /** The camera the stage draws with NOW: {@link camera}, or the orthographic one in an
+   *  orthographic view. What a document lighting or picking in step with the picture needs. */
+  drawCamera(): THREE.Camera;
   readonly orbit: { readonly target: THREE.Vector3; enabled: boolean; update(): void };
   /** The editor's own scene (helpers live on its editor layer). */
   readonly scene: THREE.Scene;

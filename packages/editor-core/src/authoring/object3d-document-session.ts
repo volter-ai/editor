@@ -1103,7 +1103,7 @@ export class Object3DDocumentSession {
   set selectionOriginsEnabled(value: boolean) {
     if (value === (this.selectionOrigins !== null)) return;
     if (value) {
-      this.selectionOrigins = new SelectionOrigins(this.renderer);
+      this.selectionOrigins = new SelectionOrigins();
       this.scene.add(this.selectionOrigins);
       this.syncSelectionPresentation();
     } else {
@@ -1337,8 +1337,9 @@ export {
 /**
  * OBJECT ORIGINS: a dot at the origin of each selected object, drawn over everything at a fixed
  * pixel size — Blender's "Origins" overlay (`overlays.selection.origins` in
- * `@volter/editor-sdk/kit/viewport-presentation`). Blender draws it 6 px across by default
- * (Preferences › Viewport › Object Origin Size) with a thin dark rim, and in the active object's
+ * `@volter/editor-sdk/kit/viewport-presentation`). Blender draws it one pixel wider than its
+ * Object Origin Size (default 6; `overlay_instance.cc`: `obcenter_dia + 1`) with a one-pixel
+ * dark rim, and in the active object's
  * colour for the active object; the kit's rule for the active colour stands in for that: a lone
  * selected object is shown in the look's active colour, several in its selection colour, the
  * same rule the outline follows.
@@ -1346,8 +1347,9 @@ export {
  * The positions are read from each object's world matrix as the frame is drawn, so a dot follows
  * a drag without the selection having to change.
  */
-/** Blender's default Object Origin Size, in CSS pixels. */
-const ORIGIN_SIZE_PX = 6;
+/** Blender's drawn origin diameter at the default Object Origin Size, in CSS pixels. three
+ *  scales a point's size by the pixel ratio itself (`WebGLMaterials.refreshUniformsPoints`). */
+const ORIGIN_SIZE_PX = 7;
 
 let dotTexture: THREE.Texture | null = null;
 /** A filled disc with a thin dark rim, white where the colour goes. */
@@ -1375,7 +1377,7 @@ class SelectionOrigins extends THREE.Points<THREE.BufferGeometry, THREE.PointsMa
   private objects: readonly THREE.Object3D[] = [];
   private readonly origin = new THREE.Vector3();
 
-  constructor(private readonly renderer: THREE.WebGLRenderer) {
+  constructor() {
     super(
       new THREE.BufferGeometry(),
       new THREE.PointsMaterial({
@@ -1410,14 +1412,15 @@ class SelectionOrigins extends THREE.Points<THREE.BufferGeometry, THREE.PointsMa
    * drawn un-uploaded, and every dot falls to the Points object's own origin.
    */
   place(): void {
-    // The point size is in drawing-buffer pixels; the look states CSS pixels.
-    this.material.size = ORIGIN_SIZE_PX * this.renderer.getPixelRatio();
     const count = this.objects.length;
     let attribute = this.geometry.getAttribute('position') as THREE.BufferAttribute | undefined;
-    if (attribute?.count !== count) {
-      attribute = new THREE.BufferAttribute(new Float32Array(count * 3), 3);
+    // Grown, never shrunk, and drawn to `count`: a replaced attribute's GL buffer is not freed.
+    if (attribute === undefined || attribute.count < count) {
+      this.geometry.dispose();
+      attribute = new THREE.BufferAttribute(new Float32Array(Math.max(count, 8) * 3), 3);
       this.geometry.setAttribute('position', attribute);
     }
+    this.geometry.setDrawRange(0, count);
     this.objects.forEach((object, index) => {
       object.getWorldPosition(this.origin);
       attribute.setXYZ(index, this.origin.x, this.origin.y, this.origin.z);

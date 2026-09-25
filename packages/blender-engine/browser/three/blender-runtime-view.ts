@@ -565,7 +565,13 @@ export class BlenderRuntimeView {
   private rendered = false;
   /** The camera the VIEWPORT is held in render lighting through (Blender's Rendered shading),
    *  or null when the viewport shows modeling lighting. See {@link holdRendered}. */
-  private heldRendered: THREE.Camera | null = null;
+  private heldRendered: (() => THREE.Camera) | null = null;
+  /** What the held state was last applied for (the draw camera and the World), so it is
+   *  re-applied when either changes and not on every frame: applying rebuilds the World's
+   *  textures and refits every shadow. */
+  private heldKey: string | null = null;
+  /** The frame's World, as a key, taken once per frame. */
+  private worldKey = 'null';
   /** A render photograph is being taken: the one state in which overlays stand down. */
   private capturing = false;
   private readonly fallback = new THREE.MeshPhysicalMaterial({ color: 0xb9bec6, roughness: 0.72 });
@@ -841,15 +847,37 @@ export class BlenderRuntimeView {
   /**
    * BLENDER'S RENDERED SHADING: the viewport held in the lighting a render photographs with
    * ({@link setRendered}) — the scene's own lights, its World behind and around the model,
-   * `hide_render` visibility and shadows — seen through `camera`. `null` returns the viewport to
-   * modeling. A render taken meanwhile ends back in this state rather than in modeling.
+   * `hide_render` visibility and shadows — seen through `drawCamera()`, the camera the stage
+   * draws with (orthographic in an orthographic view). `null` returns the viewport to modeling.
+   * A render taken meanwhile ends back in this state rather than in modeling.
    */
-  async holdRendered(camera: THREE.Camera | null): Promise<void> {
-    if (camera === this.heldRendered) return;
-    this.heldRendered = camera;
+  holdRendered(drawCamera: (() => THREE.Camera) | null): void {
+    if (drawCamera === this.heldRendered) return;
+    this.heldRendered = drawCamera;
+    this.heldKey = null;
+    if (drawCamera === null && !this.capturing) this.report(this.applyRendered(false));
+    else this.refreshRendered();
+  }
+
+  /**
+   * Re-apply the held render lighting if the draw camera or the World changed since it was
+   * last applied. Cheap when nothing did; the stage calls it every frame it draws.
+   */
+  refreshRendered(): void {
     // A photograph in progress keeps its own state; it returns to this one when it ends.
-    if (!this.capturing) await this.applyRendered(camera !== null, camera ?? undefined);
-    presenterChanged();
+    if (this.heldRendered === null || this.capturing) return;
+    const camera = this.heldRendered();
+    const key = `${camera.uuid}:${this.worldKey}`;
+    if (key === this.heldKey) return;
+    this.heldKey = key;
+    this.report(this.applyRendered(true, camera));
+  }
+
+  private report(work: Promise<void>): void {
+    void work.then(presenterChanged, (error: unknown) =>
+      // biome-ignore lint/suspicious/noConsole: the editor console captures console.error session-wide; this is the report channel.
+      console.error(`Rendered shading could not be applied: ${error instanceof Error ? error.message : String(error)}`),
+    );
   }
 
   /** Whether the viewport is held in render lighting (Blender's Rendered shading). */
@@ -867,7 +895,11 @@ export class BlenderRuntimeView {
     this.capturing = rendered;
     // A render ends by returning to what the viewport holds, which in Rendered shading is the
     // same render lighting, seen through the viewport's own camera again.
-    if (!rendered && this.heldRendered !== null) return this.applyRendered(true, this.heldRendered);
+    if (!rendered && this.heldRendered !== null) {
+      const camera = this.heldRendered();
+      this.heldKey = `${camera.uuid}:${this.worldKey}`;
+      return this.applyRendered(true, camera);
+    }
     return this.applyRendered(rendered, camera);
   }
 
@@ -1472,6 +1504,7 @@ export class BlenderRuntimeView {
     // last frame held 850 MB of main-thread heap this way, measured
     // 2026-09-13). Reuse checks compare the per-mesh signatures kept above.
     this.frame = { ...next, meshes: {}, volumes: {} };
+    this.worldKey = JSON.stringify(next.world ?? null);
     // THE OVERLAYS, after the graph stands: the weight drawing is laid over
     // the presented mesh's own geometry and the bones over the armature
     // OBJECT's Blender matrix, so both need this frame's objects in place.
@@ -1480,9 +1513,14 @@ export class BlenderRuntimeView {
       this.frame = { ...this.frame, warnings: [...this.frame.warnings, ...overlayWarnings] };
     // Visibility is read off the frame, so it is applied once the frame stands.
     this.applyVisibility();
-    // Rendered shading follows the scene as it changes: its World, and the shadows of meshes
-    // this frame added.
-    if (this.heldRendered !== null && !this.capturing) void this.applyRendered(true, this.heldRendered);
+    // Rendered shading follows the scene: shadows for the meshes this frame added, and its World
+    // when that changed (`refreshRendered`).
+    if (this.heldRendered !== null && !this.capturing) {
+      const camera = this.heldRendered();
+      this.applyShadows(true, camera);
+      this.applyVisibility();
+      this.refreshRendered();
+    }
     // The model moved: whoever is READING the engine (the Properties sections
     // through the RNA door) re-reads now, with the new graph already standing.
     for (const listener of [...this.frameListeners]) listener();

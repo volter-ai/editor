@@ -224,17 +224,28 @@ function BlenderModelViewport({
    * BLENDER'S RENDERED SHADING IS THE SCENE'S OWN LIGHT. When this stage's view lights by the
    * `scene` (the Lighting row's Scene, or the Rendered view), the presenter holds the viewport
    * in the lighting its render photographs with (`BlenderRuntimeView.holdRendered`): the
-   * scene's lights, its World, `hide_render` and shadows, through this stage's camera. Any
+   * scene's lights, its World, `hide_render` and shadows, through the camera the stage draws
+   * with, re-applied from the stage's frame loop when that camera or the World changes. Any
    * other source returns it to modeling. The stage itself draws a `scene` source unlit
    * (`standard-viewport-dressing.ts`), because Blender's lights live in the presenter.
    */
   useEffect(() => {
     if (!documentId) return;
     const { viewport } = editorHost();
+    const stageOf = () => viewport.stages().find((one) => one.documentId === documentId);
+    let framed: ReturnType<typeof stageOf> = undefined;
+    let stopFrame: (() => void) | null = null;
+    // One getter for the life of the effect, so holding again is not a change.
+    const drawCamera = (): THREE.Camera => stageOf()?.rig().drawCamera() ?? new THREE.PerspectiveCamera();
     const apply = (): void => {
-      const stage = viewport.stages().find((one) => one.documentId === documentId);
+      const stage = stageOf();
+      if (stage !== framed) {
+        stopFrame?.();
+        stopFrame = stage ? stage.onFrame(() => view.refreshRendered()) : null;
+        framed = stage;
+      }
       const lit = viewPresentation(documentId).lighting.source === 'scene';
-      void view.holdRendered(lit && stage ? stage.rig().camera : null);
+      view.holdRendered(lit && stage ? drawCamera : null);
     };
     apply();
     const stopPresentation = subscribeViewportPresentation(apply);
@@ -242,14 +253,17 @@ function BlenderModelViewport({
     return () => {
       stopPresentation();
       stopStages();
-      void view.holdRendered(null);
+      stopFrame?.();
+      view.holdRendered(null);
     };
   }, [documentId]);
   /**
    * SHIFT+RIGHT-CLICK PLACES THE 3D CURSOR, Blender's own chord for
    * `view3d.cursor3d` (`blender_default.py`, `params.cursor_set_event`). The
    * press is taken before the stage's orbit sees it, and a press that moves
-   * is not a click. The drawn cursor moves at once (`placeCursor`); Blender
+   * is not a click. A press that never came back (released outside the page,
+   * cancelled) is dropped by the next press or the cancel, so it can never
+   * swallow a later orbit's release. The drawn cursor moves at once (`placeCursor`); Blender
    * then writes `Scene.cursor` with no history step, as its operator pushes
    * no undo.
    */
@@ -257,10 +271,18 @@ function BlenderModelViewport({
   const cursorChord = (event: ReactPointerEvent | ReactMouseEvent): boolean =>
     event.button === 2 && event.shiftKey && event.target instanceof HTMLCanvasElement;
   const onPointerDownCapture = (event: ReactPointerEvent): void => {
-    if (!cursorChord(event)) return;
+    if (!cursorChord(event)) {
+      cursorPress.current = null;
+      return;
+    }
     event.preventDefault();
     event.stopPropagation();
     cursorPress.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    // A real pointer is captured so its release comes back here; a synthetic one cannot be.
+    if (event.isTrusted) (event.target as Element).setPointerCapture(event.pointerId);
+  };
+  const dropCursorPress = (): void => {
+    cursorPress.current = null;
   };
   const onPointerUpCapture = (event: ReactPointerEvent): void => {
     const press = cursorPress.current;
@@ -279,10 +301,14 @@ function BlenderModelViewport({
         `Quaternion((${qw}, ${qx}, ${qy}, ${qz})), None)`,
       false,
       'Set 3D Cursor',
-    ).then((answer) => {
-      if (answer.error !== null)
-        editorHost().console.error(`Blender refused the 3D cursor: ${answer.error}`, 'blender-cursor');
-    });
+    ).then(
+      (answer) => {
+        if (answer.error !== null)
+          editorHost().console.error(`Blender refused the 3D cursor: ${answer.error}`, 'blender-cursor');
+      },
+      (error: unknown) =>
+        editorHost().console.error(`The 3D cursor was not written to Blender: ${String(error)}`, 'blender-cursor'),
+    );
   };
   const onContextMenuCapture = (event: ReactMouseEvent): void => {
     if (cursorChord(event)) event.preventDefault();
@@ -294,6 +320,8 @@ function BlenderModelViewport({
       style={{ display: 'contents' }}
       onPointerDownCapture={onPointerDownCapture}
       onPointerUpCapture={onPointerUpCapture}
+      onPointerCancelCapture={dropCursorPress}
+      onLostPointerCaptureCapture={dropCursorPress}
       onContextMenuCapture={onContextMenuCapture}
     >
     <Surface

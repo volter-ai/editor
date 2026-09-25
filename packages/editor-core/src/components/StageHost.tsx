@@ -899,6 +899,7 @@ export function Object3DDocumentViewport({
         bindViewportRig(
           {
             camera: stage.viewport.camera,
+            drawCamera: () => stage.viewport.renderCamera,
             orbit: stage.viewport.orbitControls,
             scene: stage.scene,
           },
@@ -1918,6 +1919,7 @@ export function Object3DDocumentViewport({
               bindViewportRig(
                 {
                   camera: viewport.camera,
+                  drawCamera: () => host.session?.camera() ?? viewport.camera,
                   orbit: viewport.orbitControls,
                   scene: host.scene,
                 },

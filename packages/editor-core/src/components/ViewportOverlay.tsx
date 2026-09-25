@@ -132,6 +132,7 @@ function HelpersButton({ store }: { store: EditorShellStore }) {
     { key: 'triggerVolumes' as const, label: 'Trigger Volumes' },
     { key: 'skeletons' as const, label: 'Skeletons' },
     { key: 'weights' as const, label: 'Weights' },
+    { key: 'cursor' as const, label: '3D Cursor' },
   ];
 
   return (

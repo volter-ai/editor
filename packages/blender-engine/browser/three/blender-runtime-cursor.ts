@@ -79,8 +79,9 @@ function ring(): THREE.LineSegments {
   const red = new THREE.Color(1, 0, 0);
   const white = new THREE.Color(1, 1, 1);
   for (let i = 0; i < segments; i++) {
-    // Blender's strip is flat-coloured, so each segment wears one vertex's colour.
-    const color = i % 2 === 0 ? white : red;
+    // Blender's strip is flat-coloured with the segment's SECOND vertex as the provoking one
+    // (`gpu_shader_3D_polyline_vert.glsl`, `FLAT`: `geom_in[1]`), so segment i wears vertex i+1's.
+    const color = (i + 1) % 2 === 0 ? white : red;
     for (const k of [i, i + 1]) {
       const angle = (2 * Math.PI * k) / segments;
       positions.push(0.5 * Math.cos(angle), 0.5 * Math.sin(angle), 0);
@@ -206,9 +207,13 @@ export class CursorOverlay {
       .find((one) => (one.object as THREE.Mesh).isMesh && shown(one.object));
     let world: THREE.Vector3 | null = hit ? hit.point.clone() : null;
     if (world === null) {
-      // No surface: the view plane through the current cursor.
+      // No surface: the view plane through the current cursor. A cursor behind the view gives
+      // its depth in front instead, as `ED_view3d_win_to_3d` flips a negative `zfac`.
       const through = new THREE.Vector3().setFromMatrixPosition(this.anchor.matrixWorld);
       const normal = seen.camera.getWorldDirection(new THREE.Vector3());
+      const eye = seen.camera.getWorldPosition(new THREE.Vector3());
+      const depth = through.clone().sub(eye).dot(normal);
+      if (depth <= 0) through.addScaledVector(normal, -2 * depth + (depth === 0 ? 1 : 0));
       world = raycaster.ray.intersectPlane(new THREE.Plane().setFromNormalAndCoplanarPoint(normal, through), new THREE.Vector3());
     }
     if (world === null) return null;
