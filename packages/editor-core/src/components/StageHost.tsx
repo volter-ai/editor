@@ -1203,6 +1203,7 @@ export function Object3DDocumentViewport({
               rig.apply(presentation, renderer, dressingToneMapping);
               // The view's overlays: its selection marks and its grid's major step. The native
               // outline is also the stage's own switch (a shared preview draws none).
+              host.viewport?.setStageFunction(presentation.world, presentation.interaction);
               host.viewport?.setSelectionMarks(presentation.overlays.selection);
               host.viewport?.setGridMajorEvery(presentation.overlays.grid.majorEvery);
               if (host.session) {

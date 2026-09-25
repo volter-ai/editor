@@ -1,6 +1,7 @@
 /**
  * VIEWPORT PRESENTATION — what a 3D viewport DOES, as data: its draw mode, where the light on
- * the model comes from, what is drawn behind the scene, and which overlays show. The ruling is
+ * the model comes from, what is drawn behind the scene, which overlays show, how its tools
+ * behave and how its world is oriented. The ruling is
  * `docs/VIEWPORT-STAGE.md` §The ruling (owner, 2026-09-25): the LOOK holds colours only (the
  * palette's `color.viewport`), and light and environment are per-view settings a person toggles,
  * as they are in every target — Blender's shading popover, Godot's Preview Sun and Environment,
@@ -125,6 +126,20 @@ export interface ViewportOverlays {
   readonly selection: { readonly outline: boolean; readonly wire: boolean; readonly box: boolean };
 }
 
+/** How the stage's tools behave (function, ARCHITECTURE.md rule 7): the tool its shelf opens
+ *  on, and what a box drag selects. Blender opens on Select Box and selects anything a box
+ *  touches; the editor's own opens on the transform gizmo and selects what a box contains. */
+export interface ViewportInteraction {
+  readonly bootTool: 'select' | 'transform';
+  readonly boxSelect: 'contain' | 'touch';
+}
+
+/** How the world the stage presents is oriented: which of its axes is up, which is what the
+ *  gizmos name their axes by (Blender's world is Z-up, presented through three's Y-up). */
+export interface ViewportWorld {
+  readonly upAxis: 'y' | 'z';
+}
+
 /** One draw mode's lighting and backdrop. */
 export interface ViewportModePresentation {
   readonly lighting: ViewportLighting;
@@ -135,6 +150,8 @@ export interface ViewportModePresentation {
 export interface ViewportPresentation extends ViewportModePresentation {
   readonly drawMode: ViewportDrawMode;
   readonly overlays: ViewportOverlays;
+  readonly interaction: ViewportInteraction;
+  readonly world: ViewportWorld;
 }
 
 type DeepPartial<T> = { readonly [K in keyof T]?: T[K] extends readonly unknown[] ? T[K] : T[K] extends object ? DeepPartial<T[K]> : T[K] };
@@ -144,6 +161,8 @@ type DeepPartial<T> = { readonly [K in keyof T]?: T[K] extends readonly unknown[
 export interface PresentationLayer {
   readonly drawMode?: ViewportDrawMode;
   readonly overlays?: DeepPartial<ViewportOverlays>;
+  readonly interaction?: Partial<ViewportInteraction>;
+  readonly world?: Partial<ViewportWorld>;
   readonly all?: DeepPartial<ViewportModePresentation>;
   readonly modes?: { readonly [M in ViewportDrawMode]?: DeepPartial<ViewportModePresentation> };
 }
@@ -192,6 +211,8 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
     grid: { visible: true, majorEvery: 10, planes: { xz: true, xy: false, yz: false } },
     selection: { outline: true, wire: false, box: false },
   },
+  interaction: { bootTool: 'transform', boxSelect: 'contain' },
+  world: { upAxis: 'y' },
 });
 
 // ---- Studio presets ----------------------------------------------------------------------------
@@ -368,13 +389,17 @@ export function resolvePresentation(layers: readonly PresentationLayer[]): Viewp
   const drawMode = layers.reduce<ViewportDrawMode>((mode, layer) => layer.drawMode ?? mode, KIT_PRESENTATION.drawMode);
   let mode: ViewportModePresentation = { lighting: KIT_PRESENTATION.lighting, backdrop: KIT_PRESENTATION.backdrop };
   let overlays: ViewportOverlays = KIT_PRESENTATION.overlays;
+  let interaction: ViewportInteraction = KIT_PRESENTATION.interaction;
+  let world: ViewportWorld = KIT_PRESENTATION.world;
   for (const layer of layers) {
     if (layer.all) mode = deepMerge(mode, layer.all);
     const forMode = layer.modes?.[drawMode];
     if (forMode) mode = deepMerge(mode, forMode);
     if (layer.overlays) overlays = deepMerge(overlays, layer.overlays);
+    if (layer.interaction) interaction = deepMerge(interaction, layer.interaction);
+    if (layer.world) world = deepMerge(world, layer.world);
   }
-  return { drawMode, lighting: mode.lighting, backdrop: mode.backdrop, overlays };
+  return { drawMode, lighting: mode.lighting, backdrop: mode.backdrop, overlays, interaction, world };
 }
 
 // ---- Change notification ------------------------------------------------------------------------

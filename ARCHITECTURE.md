@@ -44,18 +44,19 @@ Rules:
    look, as data. Audit when recorded: the viewport stage fails. Its backdrop, grid fade,
    key light, material level and light-probe strength were fitted to Blender in shared code
    (engine `5d28941`, `1e5add8`, `9134441`, `a254519`), and a look declares only its
-   viewport colours, gizmo size and shelf tool. The targets' measured defaults and the gap are
+   viewport colours and gizmo size. The targets' measured defaults and the gap are
    [docs/VIEWPORT-STAGE.md](docs/VIEWPORT-STAGE.md).
 7. **Look and function are separate, everywhere.** A look (a style, its palette, material and
    icon set) says how things are drawn: colours, sizes, widths, shapes, type. What the editor
    does belongs to function: which tool is armed, what a selection gesture means, how the world
    is oriented, which regions and panels exist, where the light comes from. Function is stated by
    whoever builds the thing (a workspace, a stage's starting values, a document) beneath the
-   person's own choices, and a style switch never changes it (owner ruling, 2026-09-25). Audit
-   when recorded, all function carried by the look: `density.viewport.shelfTool` (the armed
-   tool), `density.viewport.boxSelect` (what a box drag selects), `density.viewport.upAxis` (the
-   world's up axis and so the gizmos' axis naming), and `regions` on style bundles (the Maya,
-   Substance and Blender styles set which chrome regions show, which workspaces already carry).
+   person's own choices, and a style switch never changes it (owner ruling, 2026-09-25). The
+   armed tool, what a box drag selects and the world's up axis (and so the gizmos' axis naming)
+   are a stage's presentation (`interaction`, `world` in `@volter/editor-sdk/kit/viewport-presentation`):
+   `@volter/editor-blender` states select, touch and Z-up as the `model` stage's starting values.
+   Which chrome regions show is a workspace's (`@volter/editor-blender/src/regions.ts`); a style
+   bundle carries none.
 
 ## Doors
 

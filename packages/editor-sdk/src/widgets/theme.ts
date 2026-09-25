@@ -223,9 +223,6 @@ export interface EditorDensity {
    *  both derivations and for why a non-length member sits under `density`. */
   readonly viewport?: {
     readonly gizmoSize?: number;
-    readonly shelfTool?: 'select' | 'transform';
-    readonly upAxis?: 'y' | 'z';
-    readonly boxSelect?: 'contain' | 'touch';
     readonly gridLineWidth?: number;
     readonly gridMajorWidth?: number;
     readonly gridMajorContrast?: number;
@@ -2545,22 +2542,6 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     // `DensityContribution.viewport.gizmoSize` for the derivation.
     '--vgai-viewport-gizmo-size':
       theme.density?.viewport?.gizmoSize === undefined ? '' : `${theme.density.viewport.gizmoSize}`,
-    // WHICH TOOL THE STAGE'S SHELF OPENS ON, emitted the same way and read the
-    // same way. It travels with the MATERIAL rather than through the settings
-    // layers, and that is the point: a chrome REGION crosses the Code-OSS
-    // frame's configuration service, which knows only the key list its
-    // generated contribution carries and drops anything newer — measured
-    // 2026-09-21, sixteen `not a vgai setting, so it was not applied` warnings
-    // on the first boot after this value existed, with the look's tool never
-    // reaching the stage. A theme token is installed on the theme root by the
-    // page itself and crosses nothing.
-    '--vgai-viewport-shelf-tool': theme.density?.viewport?.shelfTool ?? '',
-    // WHICH AXIS IS UP IN THE WORLD THE STAGE PRESENTS, and what a box select
-    // means there — emitted empty by every look that states neither, which is
-    // the whole "an absent member keeps the editor's own" convention this
-    // group runs on. See `DensityContribution.viewport` for both.
-    '--vgai-viewport-up-axis': theme.density?.viewport?.upAxis ?? '',
-    '--vgai-viewport-box-select': theme.density?.viewport?.boxSelect ?? '',
     // THE FLOOR GRID'S LINE WIDTHS AND MAJOR CONTRAST, emitted empty when the look states none,
     // so the stage keeps its own hairline floor (`DensityContribution.viewport.gridLineWidth`).
     '--vgai-viewport-grid-line-width': numberToken(theme.density?.viewport?.gridLineWidth),

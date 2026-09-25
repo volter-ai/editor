@@ -58,12 +58,10 @@ import { describeInstancedPresentation, instancedUnitCount } from './instanced-p
 import {
   type NativeViewportLook,
   nativeSelectionColors,
-  nativeViewportBoxSelect,
   nativeViewportGizmoSize,
   nativeViewportLook,
   nativeViewportGrid,
   nativeViewportSelectionBox,
-  nativeViewportUpAxis,
   subscribeNativeSelectionTheme,
 } from '@volter/editor-sdk/kit/native-selection-style';
 import { presentationRegionBasis } from '@volter/editor-sdk/kit/presentation-surface';
@@ -857,19 +855,19 @@ export class EditorViewport {
    *  rather than read per frame; {@link _applyGizmoSize} is what turns it into
    *  three's `size`. */
   private _lookGizmoSizePx: number | null = null;
-  /** The active look's `density.viewport.upAxis`, as the table every gizmo
-   *  label and colour reads (see {@link StageAxisFrame}). Defaults to three's
-   *  own frame, which is what every look but Blender's leaves it at. */
-  private _lookAxisFrame: StageAxisFrame = AXIS_FRAME_Y_UP;
+  /** The stage's world up axis (its presentation's `world.upAxis`, `setStageFunction`), as
+   *  the table every gizmo label and colour reads (see {@link StageAxisFrame}). Defaults to
+   *  three's own frame. */
+  private _stageAxisFrame: StageAxisFrame = AXIS_FRAME_Y_UP;
   /** The axis frame the gizmo GEOMETRY has already been mirrored into, so
    *  {@link _applyGizmoAxisFrame} can be called again for a look change and
    *  apply only the difference. Mirroring is its own inverse, which is what
    *  makes a delta enough. */
   private _appliedAxisSigns: readonly (1 | -1)[] = [1, 1, 1];
-  /** The active look's `density.viewport.boxSelect` — `'touch'` is Blender's
-   *  Select Box, `'contain'` (and null) the editor's own. Read by the marquee
-   *  at the moment it resolves, never cached into the rectangle. */
-  private _lookBoxSelect: 'contain' | 'touch' | null = null;
+  /** The stage's box-select rule (its presentation's `interaction.boxSelect`) — `'touch'` is
+   *  Blender's Select Box, `'contain'` (and null) the editor's own. Read by the marquee at the
+   *  moment it resolves, never cached into the rectangle. */
+  private _stageBoxSelect: 'contain' | 'touch' | null = null;
   private _store: EditorShellStore;
   private _objectMap = new Map<string, THREE.Object3D>();
   private _canvas: HTMLCanvasElement;
@@ -1433,8 +1431,9 @@ export class EditorViewport {
     // The look's AXIS FRAME, after the three patches above have run: the
     // mirror is a difference over the geometry they produced, so it is the
     // last word on where a handle is drawn.
-    this._lookAxisFrame = nativeViewportUpAxis(canvas) === 'z' ? AXIS_FRAME_Z_UP : AXIS_FRAME_Y_UP;
-    this._lookBoxSelect = nativeViewportBoxSelect(canvas);
+    // The stage's AXIS FRAME (its world's up axis, `setStageFunction`), after the three patches
+    // above have run: the mirror is a difference over the geometry they produced, so it is the
+    // last word on where a handle is drawn.
     this._applyGizmoAxisFrame();
 
     // Orientation gizmo (axis arrows overlay) — built in that same frame.
@@ -3623,6 +3622,7 @@ export class EditorViewport {
     const apply = () => {
       const presentation = viewPresentation(viewId);
       if (this._renderer) rig.apply(presentation, this._renderer, undefined, { tone: false });
+      this.setStageFunction(presentation.world, presentation.interaction);
       this.setSelectionMarks(presentation.overlays.selection);
       this.setGridMajorEvery(presentation.overlays.grid.majorEvery);
       invalidateStages();
@@ -3860,7 +3860,7 @@ export class EditorViewport {
     for (let i = 0; i < 3; i++) {
       // WHICH SOURCE AXIS THIS THREE AXIS CARRIES, and which way round its
       // positive direction runs here (see {@link _buildOrientationGizmo}).
-      const [sourceAxis, positive] = this._lookAxisFrame[i]!;
+      const [sourceAxis, positive] = this._stageAxisFrame[i]!;
       const color = COMPASS_AXIS_COLOR[sourceAxis]!;
       const letter = AXIS_LETTER[sourceAxis]!;
       const axis = axes[i]!.clone().multiplyScalar(positive);
@@ -4497,7 +4497,7 @@ export class EditorViewport {
   private _axisColorMap(): Record<string, THREE.Color> {
     // Godot axis colors (V-13 — see module-level `GODOT_AXIS_COLOR_RGB`)
     const ink = (threeAxis: number): THREE.Color =>
-      new THREE.Color(...GODOT_AXIS_COLOR_RGB[this._lookAxisFrame[threeAxis]![0]]!);
+      new THREE.Color(...GODOT_AXIS_COLOR_RGB[this._stageAxisFrame[threeAxis]![0]]!);
     const axisX = ink(0);
     const axisY = ink(1);
     const axisZ = ink(2);
@@ -4519,9 +4519,21 @@ export class EditorViewport {
    * between the frame the geometry is already in ({@link _appliedAxisSigns})
    * and the one the look now asks for, and a mirror is its own inverse.
    */
-  private _readLookStage(canvas: HTMLElement): void {
-    this._lookAxisFrame = nativeViewportUpAxis(canvas) === 'z' ? AXIS_FRAME_Z_UP : AXIS_FRAME_Y_UP;
-    this._lookBoxSelect = nativeViewportBoxSelect(canvas);
+  private _readLookStage(_canvas: HTMLElement): void {
+    this._applyGizmoAxisFrame();
+    this._buildOrientationGizmo();
+  }
+
+  /**
+   * THE STAGE'S FUNCTION from its view's presentation (ARCHITECTURE.md rule 7): which axis of
+   * the presented world is up — what the gizmos name and orient their axes by — and what a box
+   * drag selects. Never from the look: a Blender look over a Y-up game world named its axes Z-up.
+   */
+  setStageFunction(world: { readonly upAxis: 'y' | 'z' }, interaction: { readonly boxSelect: 'contain' | 'touch' }): void {
+    this._stageBoxSelect = interaction.boxSelect;
+    const frame = world.upAxis === 'z' ? AXIS_FRAME_Z_UP : AXIS_FRAME_Y_UP;
+    if (frame === this._stageAxisFrame) return;
+    this._stageAxisFrame = frame;
     this._applyGizmoAxisFrame();
     this._buildOrientationGizmo();
   }
@@ -4553,7 +4565,7 @@ export class EditorViewport {
    */
   private _applyGizmoAxisFrame(): void {
     if (this.transformControls === undefined) return;
-    const want = this._lookAxisFrame.map(([, sign]) => sign);
+    const want = this._stageAxisFrame.map(([, sign]) => sign);
     const delta = [0, 1, 2].map((i) => (want[i] === this._appliedAxisSigns[i] ? 1 : -1));
     const mirrored = delta.some((value) => value === -1);
     const permuted = this._axisColorMap();
@@ -5097,7 +5109,7 @@ export class EditorViewport {
         // buffer. It is stated rather than hidden: a long thin diagonal object
         // whose box crosses the rectangle while none of its pixels do is the
         // case where the two differ.
-        const touch = this._lookBoxSelect === 'touch';
+        const touch = this._stageBoxSelect === 'touch';
         const rect = this._canvas.getBoundingClientRect();
         let inside = true;
         let minX = Number.POSITIVE_INFINITY;

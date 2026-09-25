@@ -6,6 +6,7 @@
  */
 
 import type { WorkspaceLayoutContribution } from '@volter/editor-sdk/looks';
+import { BLENDER_REGIONS } from '../src/regions';
 
 export const point = 'workspace.layout';
 export const layout: WorkspaceLayoutContribution = {
@@ -16,7 +17,9 @@ export const layout: WorkspaceLayoutContribution = {
   requires: { documentKind: 'model' },
   // `tabs` unstated — see `model.layout.ts`: the workspace layer wins over the
   // style bundle, so restating the host default shadows it.
+  // Blender's areas beneath this workspace's own (`../src/regions.ts`).
   regions: {
+    ...BLENDER_REGIONS,
     header: 'shown',
     shelf: 'shown',
     inspector: 'properties',

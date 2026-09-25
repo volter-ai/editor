@@ -99,7 +99,6 @@ export function declaredAdapterSettings(): EditorSettings {
     };
     const icons = style.iconSetId ?? style.icons?.id;
     if (icons !== undefined) appearance['icons'] = icons;
-    if (style.regions !== undefined) appearance['regions'] = style.regions;
     layer['appearance'] = appearance;
   }
   if (editor.keymap) layer['keymap'] = editor.keymap.id;

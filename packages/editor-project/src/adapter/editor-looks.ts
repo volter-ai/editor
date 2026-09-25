@@ -197,17 +197,11 @@ export interface DensityContribution {
     readonly areaEmboss?: number;
   };
   /**
-   * WHAT A LOOK STATES ABOUT THE 3D STAGE, as opposed to about the chrome
-   * around it. Absent members keep the editor's own.
-   *
-   * It sits under `density` because that is the group a MATERIAL already
-   * carries and the stage's values travel with it — and one of them,
-   * {@link shelfTool}, is not a length, which the group's "all in px"
-   * elsewhere does not cover. That is a deliberate reading rather than an
-   * oversight: what decides a value's home here is WHO STATES IT and WHO
-   * READS IT (the look states both of these, the stage reads both, and both
-   * arrive at the stage through the same emitted token), not whether it
-   * happens to be a number.
+   * WHAT A LOOK STATES ABOUT THE 3D STAGE, as opposed to about the chrome around it: how the
+   * stage's furniture is drawn (sizes, widths, the selection box's form). Absent members keep
+   * the editor's own. What the stage DOES — its boot tool, its box-select rule, its world's up
+   * axis — is its presentation's (`@volter/editor-sdk/kit/viewport-presentation`), never the
+   * look's (ARCHITECTURE.md rule 7).
    */
   readonly viewport?: {
     /**
@@ -229,67 +223,6 @@ export interface DensityContribution {
      * Blender's — is `editor-viewport.ts`'s to know, and it says so there.
      */
     readonly gizmoSize?: number;
-    /**
-     * WHICH TOOL THE STAGE'S SHELF ARMS AT BOOT — the editor's own combined
-     * transform gizmo (`transform`, the default a look that names nothing
-     * keeps), or none (`select`).
-     *
-     * Blender's is `select`: its tool shelf opens on Select Box
-     * (`space_toolsystem_toolbar.py`, `_defs_view3d_generic.select_box` is the
-     * first entry of the Object Mode `_tools_default`), and a selected object
-     * carries NO transform gizmo until Move, Rotate, Scale or Transform is the
-     * active tool — photographed at the engine's pin, `gizmo-select-box.png`
-     * (Select Box lit, the default cube selected and outlined, nothing at its
-     * origin but the 3D cursor) against `gizmo-move.png` (Move lit).
-     *
-     * A BOOT DEFAULT, never a standing switch: every tool stays one click away
-     * in the shelf, and a person who arms one keeps it
-     * (`WorkspaceDocumentSurface`'s `armShelfBootTool`).
-     */
-    readonly shelfTool?: 'select' | 'transform';
-    /**
-     * WHICH AXIS IS UP IN THE WORLD THIS STAGE PRESENTS — and therefore what
-     * three's own X/Y/Z MEAN to the person looking at them.
-     *
-     * `'y'` (absent) is three's own frame: the stage's axes are the source's
-     * axes, and X/Y/Z are drawn and named as three has them.
-     *
-     * `'z'` says the document's world is Z-UP and the stage presents it
-     * through the exact signed permutation `(x, y, z) → (x, z, −y)` — one
-     * spelling, `BlenderRuntimeView`'s root matrix, and the reason it is an
-     * exact permutation rather than a float quarter turn is stated there. So
-     * three's Y is the source's Z and three's Z is the source's NEGATIVE Y,
-     * which is what the transform gizmo's colours, the arms it draws, the
-     * plane squares and the navigation gizmo's six labels must say. Nothing
-     * here changes a MATRIX: the write is still `P⁻¹ · matrixWorld` and the
-     * engine still decomposes it. This is about what the person is told the
-     * handle they are grabbing IS.
-     *
-     * MEASURED 2026-09-21 (WALK 5 rows 3c/5b): with nothing stating this, the
-     * world-up arm was GREEN and its drag wrote Blender's `location.z`, the
-     * up-pointing scale handle wrote `scale.z` under a blue cap the person
-     * reads as three's Z, and the navigation gizmo put Y on top of a Z-up
-     * world. Every channel was already right; every LABEL was wrong.
-     */
-    readonly upAxis?: 'y' | 'z';
-    /**
-     * WHAT A BOX SELECT IN THIS STAGE MEANS — `'contain'` (absent) selects
-     * what fits INSIDE the rectangle, `'touch'` selects everything the
-     * rectangle crosses.
-     *
-     * Both are real editors' answers and neither is a default the other can
-     * carry. Blender's Select Box is `'touch'`: its object-mode box select
-     * reads the object-id buffer under the rectangle, so any drawn part of an
-     * object inside the box selects it. The editor's own is `'contain'`, and
-     * it is there for a measured reason — with `'touch'`, a ground plane and
-     * a sky dome cross every rectangle a person draws in the middle of a
-     * scene, and a human pass gave up on marquee over exactly that
-     * ("I still select more than what is needed", runhuman pass 25).
-     *
-     * A look that presents another program's viewport states that program's
-     * answer; a look that states nothing keeps the editor's.
-     */
-    readonly boxSelect?: 'contain' | 'touch';
     /**
      * THE FLOOR GRID'S LINES, in device pixels: the minor lines' width, the major lines' width,
      * and how far the major lines' colour is carried past the minor's from the backdrop (1 draws
@@ -394,8 +327,6 @@ export interface StyleContribution {
    *  editor knows. Absent: the editor's own glyphs. */
   readonly iconSetId?: string;
   readonly icons?: IconSetContribution;
-  /** Region defaults beneath each workspace's own. */
-  readonly regions?: WorkspaceLayoutRegions;
   /** A v3 palette DOCUMENT (the same shape a person imports), registered into
    *  the editor's theme library with this bundle. */
   readonly palette?: unknown;

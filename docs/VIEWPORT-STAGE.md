@@ -30,7 +30,8 @@ Unreal is not installed on this box and its documentation does not state these d
 | Scene light when the scene has none | no | key `DirectionalLight(0xffffff, 1.9)` in the dressing; editor rig ambient 0.5 and directional 1.0 (`editor-viewport.ts`) |
 | Environment and its strength | no | RoomEnvironment at a fixed strength (`StageHost.tsx`) |
 | Tone mapping and exposure | no | ACES Filmic unless a document states its own |
-| Gizmo size, shelf tool | yes (`density.viewport`) | |
+| Gizmo size | yes (`density.viewport`) | |
+| Armed tool, box-select test, up axis | no: function, not look (ARCHITECTURE rule 7) | the stage's presentation (`interaction`, `world`) |
 
 ## The ruling: look, presentation and starting values (owner, 2026-09-25)
 
@@ -62,6 +63,7 @@ Built (`@volter/editor-sdk/kit/viewport-presentation`, `StagePresentationRig` in
 - document stages (`StageHost`) and the game world's stage (`EditorViewport.bindPresentation`) are lit and dressed by their view's presentation;
 - studio presets are data: the kit's own (the stage before the Blender fit), the reserved `document` preset (a document's own view-locked studio: Blender's four Solid-mode lights, which the Blender engine builds), and the world stage's (its old rig, unchanged);
 - the preview source draws Godot's preview sun and procedural sky; the backdrop sources `color`, `environment` and `transparent` replace the stage's own;
+- the stage's function: the tool it opens on, what a box drag selects and the world's up axis (`interaction`, `world`); the Blender integration starts its `model` stage on select, touch and Z-up, and a style switch leaves them alone;
 - overlays: the selection marks (outline, wire, box, in any combination) and the grid's major step; the look states the grid's line widths and major contrast (`density.viewport`);
 - `editor.presentation(documentId, layer?)` reads and records a view's presentation, and reports what its last draw was lit by.
 

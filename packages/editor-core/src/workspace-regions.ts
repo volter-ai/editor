@@ -2,7 +2,7 @@ import {
   adapterEditorConfiguration,
   subscribeAdapterEditorConfiguration,
 } from './adapter-editor-config';
-import { effectiveSettings, subscribeSettings, updatePreferenceSettings } from './settings-store';
+import { effectiveSettings, subscribeSettings } from './settings-store';
 /**
  * WHICH CHROME REGIONS ARE SHOWN right now — the one store the two document
  * regions (`DocumentHeaderStrip`, `DocumentShelfRail`), the title bar's own
@@ -126,9 +126,8 @@ export interface ChromeRegions {
  * `packages/editor/workbench/src/vgaiGeneratedSettings.ts` from the JSON
  * Schema).
  *
- * Miss the fourth and NOTHING fails to compile: `setPresetRegions` writes the
- * absolute table below into `~/.vgai/settings.json`, the server rejects the
- * unknown key with a 400, and the only report is a `[settings] Could not save
+ * Miss the fourth and NOTHING fails to compile: a region value the person sets is
+ * written into `~/.vgai/settings.json`, the server rejects the unknown key with a 400, and the only report is a `[settings] Could not save
  * user settings` line in the editor console — every appearance preference
  * silently stops persisting. Measured 2026-09-18, found by `vgai console`
  * after nine failed writes.
@@ -187,8 +186,9 @@ function isRegions(value: unknown): value is ChromeRegions {
   return true;
 }
 
-/** The style bundle's choice lives in the settings layers as
- *  `appearance.regions` (`settings-store.ts`). */
+/** The person's own region choices, in the settings layers as `appearance.regions`
+ *  (`settings-store.ts`). A style never writes them: which regions exist is function, a
+ *  workspace's and the person's (ARCHITECTURE.md rule 7). */
 function readPersistedPreset(): ChromeRegions {
   const stored: unknown = effectiveSettings().appearance?.regions;
   return isRegions(stored) ? stored : {};
@@ -224,9 +224,6 @@ export function activeChromeRegions(): ChromeRegions {
 
 /** The preset layer alone — what `workspace-style.ts` derives the active
  *  bundle from. */
-export function presetChromeRegions(): ChromeRegions {
-  return _preset;
-}
 
 /** A stable string, because `useSyncExternalStore` compares snapshots by
  *  identity and a fresh object would loop. */
@@ -252,35 +249,9 @@ export function setWorkspaceRegions(regions: ChromeRegions): void {
   publish();
 }
 
-/** A style bundle's choice (`workspace-style.ts`), persisted. */
-export function setPresetRegions(regions: ChromeRegions): void {
-  _preset = regions;
-  // Stated ABSOLUTELY on disk: the settings layers deep-merge, so a bundle's
-  // `{}` ("whatever the workspace says") could never clear a stored region.
-  // Explicit defaults still yield to the workspace's own (`merged`).
-  const absolute: Required<ChromeRegions> = { ...REGION_DEFAULTS };
-  for (const key of REGION_KEYS) {
-    const value = regions[key];
-    if (value !== undefined) (absolute as Record<string, string>)[key] = value;
-  }
-  const write = Symbol('preset write');
-  pendingPreset = write;
-  void updatePreferenceSettings({ appearance: { regions: absolute } }).then(() => {
-    if (pendingPreset !== write) return; // a later bundle owns the preset now
-    pendingPreset = null;
-    syncPreset();
-  });
-  publish();
-}
-
-/** A bundle's preset write IN FLIGHT, until it settles: the same rule as the palette's
- *  (`theme-preference.ts`), since a settings change that arrives before the write lands still
- *  reports the previous bundle's regions. */
-let pendingPreset: symbol | null = null;
 
 // A settings load or a project's own override changes the preset underneath.
 function syncPreset(): void {
-  if (pendingPreset !== null) return;
   const next = readPersistedPreset();
   if (regionsKey(next) === regionsKey(_preset)) return;
   _preset = next;
@@ -305,5 +276,4 @@ export function __resetChromeRegionsForTest(): void {
   _preset = {};
   _merged = {};
   _version = 0;
-  pendingPreset = null;
 }

@@ -7,7 +7,7 @@
  * the session store, so the Scene document is unchanged either way.
  */
 import { stageTransformDoor } from '@volter/editor-sdk/contributions';
-import { nativeViewportShelfTool } from '@volter/editor-sdk/kit/native-selection-style';
+import { viewPresentation } from '@volter/editor-sdk/kit/viewport-presentation';
 import { useEffect, useSyncExternalStore } from 'react';
 import { useEditorStore } from '../editor-runtime';
 import type { EditorShellStore } from '../editor-shell-store';
@@ -24,18 +24,17 @@ import { ToolStrip, TransformHeaderControls } from './Toolbar';
 const shelfOpened = new WeakSet<EditorShellStore>();
 
 /**
- * THE SHELF'S BOOT TOOL IS THE LOOK'S, applied the first time this stage's
- * shelf draws. Blender's tool shelf opens on Select Box, so a selected object
- * carries no transform gizmo until one is armed
- * (`DensityContribution.viewport.shelfTool` in `@volter/editor-sdk/looks`); this
- * editor's opens on the combined gizmo, which is what every look that names
- * nothing keeps. A BOOT default and never a standing switch: once a person arms
- * a tool the `WeakSet` above keeps this from ever second-guessing them.
+ * THE SHELF'S BOOT TOOL IS THE STAGE'S FUNCTION (its view presentation's
+ * `interaction.bootTool`, ARCHITECTURE.md rule 7), applied the first time this stage's shelf
+ * draws. Blender's tool shelf opens on Select Box, so a selected object carries no transform
+ * gizmo until one is armed (the Blender stage's starting values); this editor's opens on the
+ * combined gizmo. A BOOT default and never a standing switch: once a person arms a tool the
+ * `WeakSet` above keeps this from ever second-guessing them.
  */
-function armShelfBootTool(store: EditorShellStore | null): void {
+function armShelfBootTool(store: EditorShellStore | null, documentId: string): void {
   if (store === null || shelfOpened.has(store)) return;
   shelfOpened.add(store);
-  if (nativeViewportShelfTool() === 'select') store.setTransformMode('select');
+  if (viewPresentation(documentId).interaction.bootTool === 'select') store.setTransformMode('select');
 }
 
 export function ThreeStageTransformTools({ documentId }: { readonly documentId: string }) {
@@ -47,7 +46,7 @@ export function ThreeStageTransformTools({ documentId }: { readonly documentId: 
   // a store notification during another component's render is React's own
   // "cannot update while rendering" case.
   useEffect(() => {
-    if (driver === 'gizmo') armShelfBootTool(own);
+    if (driver === 'gizmo') armShelfBootTool(own, documentId);
   }, [driver, own]);
   if (driver === 'none') return null;
   const door = driver === 'modal' ? stageTransformDoor(documentId) : null;

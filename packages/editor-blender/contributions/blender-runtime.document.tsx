@@ -24,6 +24,8 @@
  * the session opens its default `models/model.blend`.
  */
 
+// How the `model` stage this document builds behaves (its starting presentation).
+import '../src/presentation';
 import { blenderModelView } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import type { ToolContributionProps, ToolDocumentToolbar } from '@volter/editor-sdk/contributions';
 import { editorHost } from '@volter/editor-sdk/host';

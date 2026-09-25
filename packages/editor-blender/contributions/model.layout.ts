@@ -7,6 +7,7 @@
  */
 
 import type { WorkspaceLayoutContribution } from '@volter/editor-sdk/looks';
+import { BLENDER_REGIONS } from '../src/regions';
 
 export const point = 'workspace.layout';
 export const layout: WorkspaceLayoutContribution = {
@@ -20,7 +21,9 @@ export const layout: WorkspaceLayoutContribution = {
   // document still painted a 25px tab row (measured against Blender 5.2, which
   // has none). Leave a region unstated unless this workspace genuinely needs
   // it different from the host default.
+  // Blender's areas beneath this workspace's own (`../src/regions.ts`).
   regions: {
+    ...BLENDER_REGIONS,
     header: 'shown',
     shelf: 'shown',
     inspector: 'properties',

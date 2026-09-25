@@ -2,21 +2,11 @@
  * Workspace STYLE BUNDLES (Glass-UI spike, Unit 3, "New named style using
  * existing axes" row).
  *
- * Named one-shot presets over PALETTE + MATERIAL + ICONS + REGIONS. The axes
- * stay independently selectable; choosing a named style intentionally
- * restores its canonical complete appearance. In particular, Classic must
- * restore the original Graphite contract rather than inheriting a Glass
- * palette.
- *
- * REGIONS is the anatomy axis (`workspace-regions.ts`): which chrome regions
- * the documents show — the workspace tab strip, the document header, the tool
- * shelf, and how the inspector lays its sections out. A bundle's regions are
- * DEFAULTS beneath each workspace's own declaration, so Look stays minimal
- * under every bundle. This is what lets the same host wear Blender's shape
- * (tabs, header, shelf, a tabbed Properties column), Maya's (a header, no
- * shelf, a stacked column) and Substance's (charcoal, no header or shelf)
- * without a line of per-tool code: each is one row here plus one palette
- * document under `palettes/`.
+ * Named one-shot presets over PALETTE + MATERIAL + ICONS: how things are DRAWN, and nothing
+ * else (ARCHITECTURE.md rule 7). The axes stay independently selectable; choosing a named style
+ * intentionally restores its canonical complete appearance. In particular, Classic must restore
+ * the original Graphite contract rather than inheriting a Glass palette. Which chrome regions
+ * exist is function — a workspace's (`workspace-regions.ts`), never a style's.
  *
  * Bundles are ONE-SHOT PRESETS, not a fifth stored axis: applying a bundle
  * just calls the four existing axis setters, and this module keeps no store
@@ -45,12 +35,6 @@ import {
   setEditorMaterialPreference,
   setEditorPalettePreference,
 } from './theme-preference';
-import {
-  type ChromeRegions,
-  presetChromeRegions,
-  regionsKey,
-  setPresetRegions,
-} from './workspace-regions';
 
 export interface WorkspaceStyleBundle {
   readonly id: string;
@@ -59,10 +43,6 @@ export interface WorkspaceStyleBundle {
   readonly materialId: EditorMaterialId;
   /** `icon-set-registry.ts`; `default` is the editor's own glyphs. */
   readonly iconSetId: string;
-  /** Region defaults beneath each workspace's own (`workspace-regions.ts`).
-   *  Empty means "whatever the workspace says", which is what Classic and
-   *  Glass mean. */
-  readonly regions: ChromeRegions;
 }
 
 /** Frozen built-in list — the switch surface (command palette / View menu)
@@ -74,7 +54,6 @@ const BUILT_IN_STYLES: readonly WorkspaceStyleBundle[] = Object.freeze([
     paletteId: 'graphite-dark',
     materialId: 'classic',
     iconSetId: DEFAULT_ICON_SET_ID,
-    regions: {},
   },
   {
     id: 'glass',
@@ -82,7 +61,6 @@ const BUILT_IN_STYLES: readonly WorkspaceStyleBundle[] = Object.freeze([
     paletteId: 'graphite-neutral',
     materialId: 'glass',
     iconSetId: DEFAULT_ICON_SET_ID,
-    regions: {},
   },
   {
     id: 'maya',
@@ -90,7 +68,6 @@ const BUILT_IN_STYLES: readonly WorkspaceStyleBundle[] = Object.freeze([
     paletteId: 'maya',
     materialId: 'classic',
     iconSetId: DEFAULT_ICON_SET_ID,
-    regions: { header: 'shown', shelf: 'hidden', inspector: 'column' },
   },
   {
     id: 'substance',
@@ -98,7 +75,6 @@ const BUILT_IN_STYLES: readonly WorkspaceStyleBundle[] = Object.freeze([
     paletteId: 'substance',
     materialId: 'classic',
     iconSetId: DEFAULT_ICON_SET_ID,
-    regions: { header: 'hidden', shelf: 'hidden', inspector: 'column' },
   },
 ]);
 
@@ -152,7 +128,6 @@ export function registerContributedStyle(contribution: StyleContribution): () =>
       paletteId: contribution.paletteId,
       materialId: contribution.materialId,
       iconSetId: contribution.iconSetId ?? contribution.icons?.id ?? DEFAULT_ICON_SET_ID,
-      regions: contribution.regions ?? {},
     },
     unregisterPalette,
     unregisterMaterial,
@@ -209,7 +184,7 @@ function publishProductLook(): void {
 subscribeActiveProduct(publishProductLook);
 publishProductLook();
 
-/** Apply all four axes for the named bundle. Unknown ids are a silent no-op —
+/** Apply the three axes of the named bundle. Unknown ids are a silent no-op —
  *  callers (menu/command palette) only ever offer ids from {@link workspaceStyles}. */
 export function applyWorkspaceStyle(id: string): void {
   const bundle = workspaceStyles().find((entry) => entry.id === id);
@@ -217,7 +192,6 @@ export function applyWorkspaceStyle(id: string): void {
   setEditorPalettePreference(bundle.paletteId);
   setEditorMaterialPreference(bundle.materialId);
   setEditorIconSetPreference(bundle.iconSetId);
-  setPresetRegions(bundle.regions);
 }
 
 /** Each axis on which the chrome's current value differs from the bundle `id`'s, as
@@ -229,27 +203,24 @@ export function workspaceStyleDifferences(id: string): string[] {
     ['palette', editorPaletteSnapshot(), bundle.paletteId],
     ['material', editorMaterialSnapshot(), bundle.materialId],
     ['icons', editorIconSetSnapshot(), bundle.iconSetId],
-    ['regions', regionsKey(presetChromeRegions()), regionsKey(bundle.regions)],
   ];
   return rows
     .filter(([, wearing, wanted]) => wearing !== wanted)
     .map(([axis, wearing, wanted]) => `${axis}: wearing ${wearing}, bundle ${wanted}`);
 }
 
-/** The bundle id whose palette, material, icon set and regions all match the
+/** The bundle id whose palette, material and icon set all match the
  *  current axis values, or `null` if the current combination isn't any
  *  registered bundle (a "custom" mix — always derived, never a separate
  *  stored state). */
 export function activeWorkspaceStyleId(): string | null {
   const paletteId = editorPaletteSnapshot();
   const materialId = editorMaterialSnapshot();
-  const regions = regionsKey(presetChromeRegions());
   const bundle = workspaceStyles().find(
     (entry) =>
       entry.paletteId === paletteId &&
       entry.materialId === materialId &&
-      entry.iconSetId === editorIconSetSnapshot() &&
-      regionsKey(entry.regions) === regions,
+      entry.iconSetId === editorIconSetSnapshot()
   );
   return bundle?.id ?? null;
 }

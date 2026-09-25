@@ -151,50 +151,6 @@ export function nativeViewportGizmoSize(element?: Element | null): number | null
   return Number.isFinite(value) && value > 0 ? value : null;
 }
 
-/**
- * WHICH TOOL THE LOOK'S SHELF OPENS ON
- * (`EditorTheme.density.viewport.shelfTool`), or `null` when the look names
- * none — which is every look but Blender's, and means the editor's own
- * combined gizmo.
- *
- * It rides the THEME rather than the chrome regions, and that is measured
- * rather than stylistic: a region crosses the Code-OSS frame's configuration
- * service, which knows only the key list its generated contribution carries
- * and drops anything newer until the next release is cut
- * (`workspace-regions.ts`'s own note). A theme token is installed on the theme
- * root by the page, so a look can add a value and use it in the same session.
- */
-export function nativeViewportShelfTool(element?: Element | null): 'select' | 'transform' | null {
-  const raw = themeToken(themeRoot(element), '--vgai-viewport-shelf-tool');
-  return raw === 'select' || raw === 'transform' ? raw : null;
-}
-
-/**
- * WHICH AXIS THE LOOK SAYS IS UP in the world its stage presents
- * (`EditorTheme.density.viewport.upAxis`), or `null` when it names none —
- * which is every look but Blender's, and means three's own frame.
- *
- * Read off the emitted token for the same reason the two above are: WebGL
- * consumes no CSS variable, and a second path from the theme object into the
- * viewport would be a second source for one value. What `'z'` means in three's
- * units — which handle carries which axis's colour, which side its arm is
- * drawn on, and what the six navigation balls are called — is
- * `editor-viewport.ts`'s to know, and it says so there.
- */
-export function nativeViewportUpAxis(element?: Element | null): 'y' | 'z' | null {
-  const raw = themeToken(themeRoot(element), '--vgai-viewport-up-axis');
-  return raw === 'y' || raw === 'z' ? raw : null;
-}
-
-/** WHAT A BOX SELECT MEANS in the look's stage
- *  (`EditorTheme.density.viewport.boxSelect`), or `null` for the editor's own
- *  `contain`. Blender's Select Box is `touch`; see the field's own note for
- *  why neither can be the other's default. */
-export function nativeViewportBoxSelect(element?: Element | null): 'contain' | 'touch' | null {
-  const raw = themeToken(themeRoot(element), '--vgai-viewport-box-select');
-  return raw === 'contain' || raw === 'touch' ? raw : null;
-}
-
 /** THE FLOOR GRID'S LINES the look states (`EditorTheme.density.viewport.gridLineWidth` and
  *  its siblings), in device pixels, with the editor's own hairline floor for any it leaves out:
  *  one level, one pixel, the major lines drawn like the minor. */

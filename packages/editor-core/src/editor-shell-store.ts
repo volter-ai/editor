@@ -45,8 +45,8 @@ export interface EditorStatePersistence {
  * it. `editor-viewport.ts` detaches on it, through the same branch a
  * non-writable selection already took.
  *
- * Which member a STAGE is born with is the look's (`workspace-regions.ts`'s
- * `shelfTool`); arming one is always a click in the shelf.
+ * Which member a STAGE is born with is its presentation's (`interaction.bootTool`,
+ * `kit/viewport-presentation`); arming one is always a click in the shelf.
  */
 export type TransformMode = 'select' | 'combined' | 'translate' | 'rotate' | 'scale';
 export type TransformSpace = 'world' | 'local';

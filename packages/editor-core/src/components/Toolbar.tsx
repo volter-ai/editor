@@ -480,8 +480,8 @@ export function TransformHeaderControls({ store: stage }: { store?: EditorShellS
  * `packages/mesh/contributions/mesh-edit-document.tsx` before 2026-09-19).
  * Select Box has something behind it NOW — `TransformMode`'s `'select'`, the
  * state in which no transform gizmo is drawn at all, which is what Blender's
- * viewport opens in (`gizmo-select-box.png`; the look states it through
- * `workspace-regions.ts`'s `shelfTool`). The 3D cursor still has nothing
+ * viewport opens in (`gizmo-select-box.png`; the Blender stage's starting presentation states
+ * it, `interaction.bootTool`). The 3D cursor still has nothing
  * behind it and is still not drawn; adding the button before the cursor exists
  * would be exactly the inert control the paragraph below removes.
  *
