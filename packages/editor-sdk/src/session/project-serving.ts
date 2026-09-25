@@ -99,6 +99,31 @@ export interface ProjectServingServices {
   isCanonicalPathInside(parent: string, child: string): Promise<boolean>;
   /** Let the editor's cross-origin-isolated frame embed this response. */
   allowCrossOriginFrameEmbedding(response: { setHeader(name: string, value: string): void }): void;
+  /** Offer this medium's conversion of source model formats to runtime GLB for the asset
+   *  library's imports. Returns the removal. */
+  registerModelConverter(converter: ModelConverter): () => void;
+}
+
+/** An asset import's settings, parsed: the units and axes the source was authored in and what
+ *  to keep of it. */
+export interface ModelImportSettings {
+  readonly scale: number;
+  readonly sourceUnits: 'auto' | 'mm' | 'cm' | 'm' | 'in' | 'ft';
+  readonly upAxis: 'auto' | 'x' | 'y' | 'z';
+  readonly forwardAxis: 'auto' | 'x' | '-x' | 'y' | '-y' | 'z' | '-z';
+  readonly normals: 'preserve' | 'generate' | 'recalculate';
+  readonly tangents: 'preserve' | 'generate' | 'discard';
+  readonly materials: 'import' | 'discard';
+  readonly textures: 'copy' | 'embed' | 'discard';
+  readonly animations: readonly string[];
+  readonly meshOptimization: 'none' | 'safe' | 'aggressive';
+  readonly retainSource: boolean;
+}
+
+/** A medium's server-side conversion of staged source models (`fbx`, `obj`, …) to GLB bytes. */
+export interface ModelConverter {
+  readonly formats: readonly string[];
+  convert(primaryPath: string, format: string, settings: ModelImportSettings): Promise<Uint8Array>;
 }
 
 /** What a `vgai.serving` module exports. */

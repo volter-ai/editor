@@ -14,22 +14,21 @@ import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { TDSLoader } from 'three/addons/loaders/TDSLoader.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
-import {
-  type AssetImportSettings,
-  assetImportSettingsSchema,
-} from '../src/asset-workflow/import-contract';
+import type { ModelConverter, ModelImportSettings } from '@volter/editor-sdk/session/project-serving';
 
-export const SERVER_CONVERTIBLE_MODEL_FORMATS = new Set(['fbx', 'obj', 'dae', 'stl', 'ply', '3ds']);
+/** three.js's conversion of the source formats its loaders read, as the asset library's
+ *  model converter (`ProjectServingServices.registerModelConverter`). */
+export const threeModelConverter: ModelConverter = {
+  formats: ['fbx', 'obj', 'dae', 'stl', 'ply', '3ds'],
+  convert: (primaryPath, format, settings) => convertStagedModelToGlb(primaryPath, format, settings),
+};
 
 /** Convert a staged source model to a runtime GLB without requiring Blender. */
 export async function convertStagedModelToGlb(
   primaryPath: string,
   format: string,
-  rawSettings: Partial<AssetImportSettings> | number = {},
+  settings: ModelImportSettings,
 ): Promise<Uint8Array> {
-  const settings = assetImportSettingsSchema.parse(
-    typeof rawSettings === 'number' ? { scale: rawSettings } : rawSettings,
-  );
   installNodeDom();
   const bytes = new Uint8Array(await readFile(primaryPath));
   const object = await parseSourceModel(primaryPath, format.toLowerCase(), bytes);
@@ -74,7 +73,7 @@ const materialTextureSlots = [
 /** Apply the persisted conversion settings before the runtime GLB is exported. */
 export function applyModelImportSettings(
   object: THREE.Object3D,
-  settings: AssetImportSettings,
+  settings: ModelImportSettings,
 ): void {
   object.scale.multiplyScalar(settings.scale * sourceUnitScale(settings.sourceUnits));
   object.quaternion.premultiply(importAxisRotation(settings.upAxis, settings.forwardAxis));
@@ -150,13 +149,13 @@ export function applyModelImportSettings(
   object.updateWorldMatrix(true, true);
 }
 
-function sourceUnitScale(units: AssetImportSettings['sourceUnits']): number {
+function sourceUnitScale(units: ModelImportSettings['sourceUnits']): number {
   return { auto: 1, mm: 0.001, cm: 0.01, m: 1, in: 0.0254, ft: 0.3048 }[units];
 }
 
 function importAxisRotation(
-  upAxis: AssetImportSettings['upAxis'],
-  forwardAxis: AssetImportSettings['forwardAxis'],
+  upAxis: ModelImportSettings['upAxis'],
+  forwardAxis: ModelImportSettings['forwardAxis'],
 ): THREE.Quaternion {
   const up = upAxis === 'auto' ? null : axisVector(upAxis);
   const forward = forwardAxis === 'auto' ? null : axisVector(forwardAxis);
@@ -174,7 +173,7 @@ function importAxisRotation(
   return new THREE.Quaternion();
 }
 
-function axisVector(axis: Exclude<AssetImportSettings['forwardAxis'], 'auto'> | 'x' | 'y' | 'z') {
+function axisVector(axis: Exclude<ModelImportSettings['forwardAxis'], 'auto'> | 'x' | 'y' | 'z') {
   const sign = axis.startsWith('-') ? -1 : 1;
   const name = axis.replace('-', '');
   return new THREE.Vector3(

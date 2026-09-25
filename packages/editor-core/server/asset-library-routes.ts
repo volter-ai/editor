@@ -59,10 +59,8 @@ import {
   requireLocalAssetThumbnail,
   searchLocalCatalog,
 } from './local-asset-catalog';
-import {
-  convertStagedModelToGlb,
-  SERVER_CONVERTIBLE_MODEL_FORMATS,
-} from './model-import-conversion';
+import { assetImportSettingsSchema } from '../src/asset-workflow/import-contract';
+import { modelConverterFor } from './model-converters';
 import { commitStagedProjectDirectory } from './project-output-writer';
 import { isAllowedAssetHost, isAllowedAssetSource, isPathInside } from './server-utils';
 
@@ -1200,10 +1198,13 @@ export function createAssetLibraryRouter(getPublicRoot: () => string): Router {
         let resultFile = primaryRelative;
         let backend: 'native' | 'three' = 'native';
         const format = selectedFile.format.toLowerCase();
-        if (SERVER_CONVERTIBLE_MODEL_FORMATS.has(format)) {
+        // A source model format is converted to runtime GLB by the medium that registered it
+        // (`ProjectServingServices.registerModelConverter`).
+        const converter = format === 'glb' || format === 'gltf' ? null : modelConverterFor(format);
+        if (converter) {
           progress('convert', 0, 1);
           resultFile = `${basename(primaryRelative, extname(primaryRelative))}.glb`;
-          const converted = await convertStagedModelToGlb(stagedPrimary, format);
+          const converted = await converter.convert(stagedPrimary, format, assetImportSettingsSchema.parse({}));
           await writeFile(join(stagingDir, resultFile), converted);
           backend = 'three';
           progress('convert', 1, 1);

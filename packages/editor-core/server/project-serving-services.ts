@@ -5,6 +5,7 @@
  * package's `vgai.serving` module for its plugins.
  */
 
+import { registerModelConverter } from './model-converters';
 import { realpathSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -161,6 +162,7 @@ export function createProjectServingServices(options: {
     isProjectOwnedPath: (path) => isProjectOwnedRelativePath(path),
     isCanonicalPathInside: (parent, child) => isCanonicalPathInside(parent, child),
     allowCrossOriginFrameEmbedding: (response) => allowCrossOriginFrameEmbedding(response),
+    registerModelConverter: (converter) => registerModelConverter(converter),
   };
 }
 
