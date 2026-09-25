@@ -45,10 +45,11 @@ import {
 import { confirmAssetAction } from '../asset-workflow/asset-workflow-quality';
 import { previewAssetAudio, stopAssetAudioPreview } from '../asset-workflow/audio-preview-player';
 import { invalidateFolderPreviews } from '../asset-workflow/folder-preview';
-import {
-  PROJECT_ASSET_COMMANDS,
-  projectContentBrowserStateKey,
-} from '../asset-workflow/project-asset-commands';
+import { PROJECT_ASSET_COMMANDS } from '../asset-workflow/project-asset-commands';
+import { projectLocalSection, writeProjectLocalSection } from '@volter/editor-sdk/kit/project-local-state';
+
+/** The browser's view state is the project's own (`kit/project-local-state`), like its layout. */
+const CONTENT_BROWSER_SECTION = 'contentBrowser';
 import { inspectProjectAssetHealthFromStorage } from '../asset-workflow/project-asset-health';
 import { executeProjectAssetOperation } from '../asset-workflow/project-asset-operations';
 import {
@@ -89,7 +90,6 @@ import { isEditableTarget, setActiveScope } from '@volter/editor-sdk/kit/hotkeys
 import { assetThumbnailRenderer } from '@volter/editor-sdk/kit/asset-thumbnails';
 import { object3DDocumentWritePolicy } from '@volter/editor-sdk/kit/object3d-document-write-policy';
 import { projectAdapterFacet, subscribeProjectAdapter } from '../project-adapter';
-import { getCurrentProject } from '../project-manager';
 import { documentViewport } from '@volter/editor-sdk/kit/document-viewports';
 import { getStorageBackend } from '@volter/editor-sdk/kit/storage/index';
 import { getGlobalToolContributions, subscribeToolContributions } from '../tool-loader';
@@ -188,10 +188,8 @@ const DEFAULT_BROWSER_STATE: PersistedAssetBrowserState = {
 
 function readAssetBrowserState(): PersistedAssetBrowserState {
   try {
-    const projectId = getCurrentProject()?.rootPath ?? '__unscoped__';
-    const parsed = JSON.parse(
-      localStorage.getItem(projectContentBrowserStateKey(projectId)) ?? '{}',
-    ) as Partial<PersistedAssetBrowserState>;
+    const parsed =
+      projectLocalSection<Partial<PersistedAssetBrowserState>>(CONTENT_BROWSER_SECTION) ?? {};
     const persistedViewMode = (parsed as Record<string, unknown>)['viewMode'];
     const persistedTreeVisibility = (parsed as Record<string, unknown>)['treeVisibility'];
     const persistedScope = (parsed as Record<string, unknown>)['scope'];
@@ -1584,10 +1582,9 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
   const listingRequestRef = useRef('');
 
   useEffect(() => {
-    const projectId = getCurrentProject()?.rootPath ?? '__unscoped__';
-    localStorage.setItem(
-      projectContentBrowserStateKey(projectId),
-      JSON.stringify({
+    writeProjectLocalSection(
+      CONTENT_BROWSER_SECTION,
+      {
         scope,
         root: currentRoot,
         facets,
@@ -1598,7 +1595,7 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
         density,
         expanded: [...expanded],
         treeVisibility,
-      } satisfies PersistedAssetBrowserState),
+      } satisfies PersistedAssetBrowserState,
     );
   }, [
     currentPath,

@@ -15,15 +15,25 @@
  * of the same folder finds the same file. Browser storage keyed by an
  * absolute path was the previous home, and it lost a layout to exactly those
  * three moves (measured 2026-09-04).
+ *
+ * UNDER THE CODE-OSS FRAME THE DOCUMENT IS ONE KEY OF THE WORKBENCH'S WORKSPACE
+ * STORAGE (`kit/workspace-storage`): the frame hands that scope over at mount,
+ * and the web workbench keeps it in the same folder
+ * (`.vgai/workbench-storage.json`), beside the workbench's own layout. A host
+ * without the frame keeps the file above.
  */
 
 import { activeProjectKey, getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/active-project';
 import { loadEditorState, saveEditorState } from '@volter/editor-sdk/kit/editor-api';
+import { onWorkspaceStorageProvider, workspaceStorageProvider } from '@volter/editor-sdk/kit/workspace-storage';
 import { preloadSettings } from '@volter/editor-sdk/kit/settings-store';
 
 type Sections = Record<string, unknown>;
 
 const WRITE_DEBOUNCE_MS = 400;
+
+/** The workspace storage key the whole document lives under when the frame provides the scope. */
+const STORAGE_KEY = 'vgai.projectLocalState';
 
 let loadedFor: string | null = null;
 let loading: Promise<void> | null = null;
@@ -48,7 +58,9 @@ export function preloadProjectLocalState(): Promise<void> {
   // project switched away from mid-load) settles for that project; this
   // caller's project loads after it, never joins it.
   if (loading) return loading.then(() => preloadProjectLocalState());
-  loading = Promise.all([loadEditorState(), preloadSettings()])
+  const storage = workspaceStorageProvider();
+  const load = storage ? Promise.resolve(parseStored(storage.get(STORAGE_KEY))) : loadEditorState();
+  loading = Promise.all([load, preloadSettings()])
     .then(([state]) => {
       doc = state && typeof state === 'object' ? { ...state } : {};
       loadedFor = key;
@@ -83,7 +95,19 @@ function flush(leaving = false): void {
   }
   if (!dirty) return;
   dirty = false;
-  void saveEditorState(doc, { leaving });
+  const storage = workspaceStorageProvider();
+  if (storage) storage.store(STORAGE_KEY, JSON.stringify(doc));
+  else void saveEditorState(doc, { leaving });
+}
+
+function parseStored(raw: string | undefined): Sections {
+  if (!raw) return {};
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as Sections) : {};
+  } catch {
+    return {};
+  }
 }
 
 /** Replace one section and schedule the write. A write before the load has
@@ -110,6 +134,15 @@ export function flushProjectLocalState(): void {
 // subscription exist before the first project activates; `active-project.ts`
 // imports nothing of it, so a bounded host's closure stays as it was.
 onProjectChange(() => {
+  if (getCurrentProject()) void preloadProjectLocalState();
+});
+
+// The frame's scope arriving (or leaving) changes where the document lives: what was loaded from
+// the other home is read again from this one, so one session never writes two homes.
+onWorkspaceStorageProvider(() => {
+  if (loadedFor === null) return;
+  flush();
+  loadedFor = null;
   if (getCurrentProject()) void preloadProjectLocalState();
 });
 

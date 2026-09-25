@@ -18,6 +18,3 @@ export function projectAssetCommandIds(): readonly ProjectAssetCommandId[] {
   return Object.values(PROJECT_ASSET_COMMANDS).map((command) => command.id);
 }
 
-export function projectContentBrowserStateKey(projectId: string): string {
-  return `vgai:project-content:v1:${projectId}`;
-}

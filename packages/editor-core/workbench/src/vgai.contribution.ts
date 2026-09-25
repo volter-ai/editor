@@ -441,7 +441,7 @@ if (product) {
 // sides have always been mirrors, because nothing under `src/vs/` can import React TSX.
 interface BridgeMount { output?: VgaiOutputBridge; host: HTMLElement; keyboard: VgaiKeyboardBridge; offerPart?(id: 'center' | 'outliner' | 'properties' | 'content', element: HTMLElement | null): void; documents?: VgaiDocumentsBridge; history?: VgaiHistoryBridge; files?: VgaiFilesBridge; settings?: VgaiSettingsBridge; commands?: VgaiCommandsBridge; notifications?: VgaiNotificationsBridge; views?: VgaiViewsBridge; utilities?: VgaiUtilitiesBridge; status?: VgaiStatusBridge }
 interface BridgeModule {
-	mountVgai(parts: { chromeRoot: HTMLElement; header: HTMLElement; center: HTMLElement; outliner?: HTMLElement; properties?: HTMLElement; content?: HTMLElement }): Promise<BridgeMount>;
+	mountVgai(parts: { chromeRoot: HTMLElement; header: HTMLElement; center: HTMLElement; outliner?: HTMLElement; properties?: HTMLElement; content?: HTMLElement }, frame?: { workspaceStorage?: { get(key: string): string | undefined; store(key: string, value: string | undefined): void } }): Promise<BridgeMount>;
 }
 let mounted: Promise<BridgeMount> | undefined;
 const keyboardStore = new DisposableStore();
@@ -624,7 +624,19 @@ registerAction2(class extends Action2 {
 					// The serving host owns any development preamble. A packaged product
 					// is a normal ESM entry and has no Vite Fast Refresh endpoint.
 					const mod = await import(bridgeUrl) as BridgeModule;
-					const mount = await mod.mountVgai({ chromeRoot, header, center: parts.get('center')!, outliner: parts.get('outliner'), properties: parts.get('properties'), content: parts.get('content') });
+					const mount = await mod.mountVgai(
+						{ chromeRoot, header, center: parts.get('center')!, outliner: parts.get('outliner'), properties: parts.get('properties'), content: parts.get('content') },
+						// The project's state lives in the workbench's WORKSPACE scope, which this
+						// release keeps in the project's folder (the fork's `workspaceStorageUrl`).
+						{
+							workspaceStorage: {
+								get: (key) => storage.get(key, StorageScope.WORKSPACE),
+								store: (key, value) => value === undefined
+									? storage.remove(key, StorageScope.WORKSPACE)
+									: storage.store(key, value, StorageScope.WORKSPACE, StorageTarget.MACHINE),
+							},
+						},
+					);
 					// KEYBOARD OWNERSHIP, installed the moment the editor is there to dispatch
 					// into (vgaiKeyboard.ts, and ARCHITECTURE-CORE §The core is Code-OSS rule 3).
 					// The bridge has already told the editor the frame owns the keyboard — it

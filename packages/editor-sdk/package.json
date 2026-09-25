@@ -268,7 +268,8 @@
     "./kit/transform-mode-request": "./src/kit/transform-mode-request.ts",
     "./kit/viewport-door": "./src/kit/viewport-door.ts",
     "./kit/workspace-document-restore": "./src/kit/workspace-document-restore.ts",
-    "./kit/play-camera-flight": "./src/kit/play-camera-flight.ts"
+    "./kit/play-camera-flight": "./src/kit/play-camera-flight.ts",
+    "./kit/workspace-storage": "./src/kit/workspace-storage.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",

@@ -31,6 +31,7 @@
  * that consumes it.
  */
 import { setFramePartShown } from './frame-parts';
+import { setWorkspaceStorageProvider, type WorkspaceStorageProvider } from '@volter/editor-sdk/kit/workspace-storage';
 import { preloadUserLocalState } from '@volter/editor-sdk/kit/user-local-state';
 import { loadProductNames, productDisplayName } from '@volter/editor-sdk/kit/product-command';
 import '../editor-styles.css';
@@ -1037,7 +1038,13 @@ export interface VgaiGameHandle {
   report(level: 'warn' | 'error', message: string): void;
 }
 
-export async function mountEditor(next: VscodeParts): Promise<{
+/** What the frame hands over besides its parts, before anything of the editor runs. */
+export interface VscodeFrameServices {
+  /** The workbench's workspace storage (`kit/workspace-storage`). */
+  readonly workspaceStorage?: WorkspaceStorageProvider;
+}
+
+export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices = {}): Promise<{
   host: HTMLElement;
   keyboard: VgaiKeyboardHandle;
   documents: VgaiDocumentsHandle;
@@ -1056,6 +1063,9 @@ export async function mountEditor(next: VscodeParts): Promise<{
   offerPart(id: keyof VscodeParts, element: HTMLElement | null): void;
 }> {
   parts = next;
+  // THE WORKSPACE STORAGE FIRST: the project-local layer reads its document from
+  // it when the project activates, which the mount below starts.
+  if (frame.workspaceStorage) setWorkspaceStorageProvider(frame.workspaceStorage);
   // Which product this page belongs to — the command its messages name
   // (`product-command.ts`). Asked first; messages built before it lands say
   // "the editor's command" rather than guess.
