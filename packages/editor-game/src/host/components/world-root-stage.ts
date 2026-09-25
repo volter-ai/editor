@@ -21,6 +21,11 @@
  * LOAD too.
  */
 
+import {
+  registerStartingPresentation,
+  registerStudioPreset,
+  type StudioPreset,
+} from '@volter/editor-sdk/kit/viewport-presentation';
 import type { ViewportPresentation, ViewportRoot } from '@volter/editor-sdk/host';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { createPerformanceProfiler } from '@volter/game-runtime/dev/performance-profiler';
@@ -101,6 +106,29 @@ import { presentThreeRoots } from '../viewport-root-presentation';
 import { isEditorViewportShadingTarget } from '@volter/editor-core/viewport-shading-boundary';
 import { downloadOnlineAssetWithHistory } from '@volter/editor-core/components/asset-editor-persistence';
 import { bindStagePresenceMarkers } from '@volter/editor-core/components/stage-presence-markers';
+
+/**
+ * THE WORLD STAGE'S STARTING PRESENTATION. Its studio is the light the world has always been
+ * shown by — the viewport's own ambient (0.5) and directional (1.0 from (10, 20, 10)), with no
+ * key and no image-based light of its own (the world's environment is the game's) — and it gives
+ * way to the scene's own whenever a live scene is adopted, as that rig always has.
+ */
+const WORLD_STUDIO: StudioPreset = {
+  id: 'world',
+  title: 'World',
+  lights: [{ color: '#ffffff', intensity: 1, direction: [-10, -20, -10], space: 'world' }],
+  ambient: { color: '#ffffff', intensity: 0.5 },
+  environmentIntensity: 0,
+};
+const releaseWorldPresentation = [
+  registerStudioPreset(WORLD_STUDIO),
+  registerStartingPresentation('world', {
+    all: {
+      lighting: { source: 'studio', studioPreset: WORLD_STUDIO.id, auto: { takeover: ['light'], overridable: true } },
+    },
+  }),
+];
+if (import.meta.hot) import.meta.hot.dispose(() => releaseWorldPresentation.forEach((release) => release()));
 
 /**
  * The world root's renderer, built to the ENGINE's own render settings —
@@ -365,6 +393,9 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
     onlineAssetResolver: resolveDroppedOnlineAsset,
     onProjectionChange: setThreeViewportProjection,
   });
+  // The world is lit and dressed by its view's presentation (`kit/viewport-presentation`), as
+  // a `world` stage: this module builds it, so it states how it starts (`WORLD_STUDIO` below).
+  const unbindPresentation = viewport.bindPresentation(documentId, 'world');
   // Bind the REAL viewport camera + orbit target so store.cameraPose (the
   // `editor.viewport.camera.get` facet, see command-listener.ts's
   // collectState) and the thumbnail-capture path read live data instead of
@@ -1050,6 +1081,7 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
       unsubscribeViewportPresentation();
       unsubscribeSelectionTheme();
       unsubscribeWorldBackground();
+      unbindPresentation();
       selectionOutline?.selection.clear();
       softParticleDepth.dispose();
       composer.dispose();

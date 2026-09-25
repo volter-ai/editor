@@ -1,5 +1,11 @@
 import type { SparkRenderer } from '@sparkjsdev/spark';
 import { invalidateStages } from './stage-invalidation';
+import { StagePresentationRig } from './components/standard-viewport-dressing';
+import {
+  bindViewPresentation,
+  subscribeViewportPresentation,
+  viewPresentation,
+} from '@volter/editor-sdk/kit/viewport-presentation';
 import { themeVars, zIndex } from '@volter/editor-sdk/widgets';
 import type { AssetDropContext, AuthoringAdapter } from '@volter/editor-project/adapter';
 import {
@@ -828,6 +834,8 @@ export class EditorViewport {
   private _disposed = false;
   /** Editor infrastructure objects that must move with the active scene. */
   private _editorObjects: THREE.Object3D[] = [];
+  /** The view presentation this stage is lit by, when bound (`bindPresentation`). */
+  private _presentation: { readonly rig: StagePresentationRig; readonly stop: () => void } | null = null;
   /** Blender's X (red) and Y (green) axis lines on the floor — drawn only when
    *  the palette's viewport group names them (`native-selection-style.ts`). */
   private _axisLines: LineSegments2 | null = null;
@@ -1581,7 +1589,8 @@ export class EditorViewport {
     // EDITOR_LAYER lights, so the rig would add a white ambient+directional
     // the game camera never sees, and the mismatch pops as a color/brightness
     // shift the instant play takes over the draw. WYSIWYG for adopted scenes.
-    const rigOn = this._lightRig && !this._store.isAdoptedSceneActive;
+    // A stage bound to a view presentation is lit by it instead (`bindPresentation`).
+    const rigOn = this._lightRig && !this._store.isAdoptedSceneActive && this._presentation === null;
     this._editorAmbient.visible = rigOn;
     this._editorDirLight.visible = rigOn;
   }
@@ -3328,6 +3337,10 @@ export class EditorViewport {
       if (t >= 1) this._snapAnimating = false;
     }
 
+    if (this._presentation) {
+      this._presentation.rig.resolveSource({ light: this._store.isAdoptedSceneActive });
+      this._presentation.rig.update(this.camera);
+    }
     for (const helper of this._boxHelpers.values()) {
       const wireOf = (helper as WireHelper)._wireOf;
       if (wireOf) {
@@ -3587,6 +3600,47 @@ export class EditorViewport {
    * the 84 and the 102 were read in, before the inversion, because ACES is
    * not linear and extrapolating on its far side lands somewhere else.
    */
+  /**
+   * LIGHT AND DRESS THIS STAGE BY A VIEW'S PRESENTATION (`kit/viewport-presentation`): its studio
+   * or preview lighting through a `StagePresentationRig` in this scene (in place of the
+   * viewport's own ambient and directional), its selection marks and its grid's major step.
+   * The stage's render pipeline keeps its tone mapping. The scene's own lighting is what an
+   * ADOPTED live scene brings, so that is what the view's `auto` rule weighs as `light`.
+   * Returns the unbind. A document stage hosted by `StageHost` binds there instead.
+   */
+  bindPresentation(viewId: string, stageKind: string): () => void {
+    this._presentation?.stop();
+    const rig = new StagePresentationRig(this._scene);
+    const roots = rig.roots();
+    this._editorObjects.push(...roots);
+    bindViewPresentation(viewId, stageKind);
+    const apply = () => {
+      const presentation = viewPresentation(viewId);
+      if (this._renderer) rig.apply(presentation, this._renderer, undefined, { tone: false });
+      this.setSelectionMarks(presentation.overlays.selection);
+      this.setGridMajorEvery(presentation.overlays.grid.majorEvery);
+      invalidateStages();
+    };
+    const stopListening = subscribeViewportPresentation(apply);
+    const binding = {
+      rig,
+      stop: () => {
+        stopListening();
+        rig.dispose();
+        this._editorObjects = this._editorObjects.filter((object) => !roots.includes(object));
+        if (this._presentation === binding) this._presentation = null;
+        const rigOn = this._lightRig && !this._store.isAdoptedSceneActive;
+        this._editorAmbient.visible = rigOn;
+        this._editorDirLight.visible = rigOn;
+      },
+    };
+    this._presentation = binding;
+    this._editorAmbient.visible = false;
+    this._editorDirLight.visible = false;
+    apply();
+    return binding.stop;
+  }
+
   /** The view's selection marks; a change rebuilds the marks for the current selection. */
   setSelectionMarks(marks: { readonly outline: boolean; readonly wire: boolean; readonly box: boolean }): void {
     const current = this._selectionMarks;

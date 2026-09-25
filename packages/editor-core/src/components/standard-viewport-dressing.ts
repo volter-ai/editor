@@ -436,6 +436,7 @@ export class StagePresentationRig {
     presentation: ViewportPresentation,
     renderer: THREE.WebGLRenderer,
     documentToneMapping?: THREE.ToneMapping,
+    options: { readonly tone?: boolean } = {},
   ): void {
     this.presentation = presentation;
     const { lighting } = presentation;
@@ -443,8 +444,11 @@ export class StagePresentationRig {
     if (preset !== this.preset) this.build(preset);
     this.source = lighting.source;
     this.group.visible = lighting.source === 'studio';
-    renderer.toneMapping = documentToneMapping ?? TONE_MAPPERS[lighting.tone.mapper];
-    renderer.toneMappingExposure = lighting.tone.exposure;
+    // A stage whose render pipeline owns the tone (the game world's) passes `tone: false`.
+    if (options.tone !== false) {
+      renderer.toneMapping = documentToneMapping ?? TONE_MAPPERS[lighting.tone.mapper];
+      renderer.toneMappingExposure = lighting.tone.exposure;
+    }
     // The preview sun: Godot's, placed by altitude and azimuth (clockwise from north, -Z).
     const { sun, environment } = lighting.preview;
     const altitude = THREE.MathUtils.degToRad(sun.altitude);
@@ -565,6 +569,11 @@ export class StagePresentationRig {
     this.group.visible = source === 'studio';
     this.previewGroup.visible = source === 'preview';
     return source;
+  }
+
+  /** The rig's objects in its scene, for a stage that moves its editor objects between scenes. */
+  roots(): readonly THREE.Object3D[] {
+    return [this.group, this.previewGroup];
   }
 
   /** Whether the preset's own lights are showing. */
