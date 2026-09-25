@@ -40,10 +40,14 @@
 import {
   faArrowUpRightFromSquare,
   faCube,
+  faScrewdriverWrench,
   faWindowMinimize,
   faXmark,
 } from '@fortawesome/free-solid-svg-icons';
+import type { IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import {
+  activeIconGlyph,
+  activeIconSetSnapshot,
   Button,
   DraftTextInput,
   EditorIcon,
@@ -51,6 +55,7 @@ import {
   Panel,
   SectionHeader,
   spaceVar,
+  subscribeIconSets,
   themeVars,
 } from '@volter/editor-sdk/widgets';
 import {
@@ -61,6 +66,7 @@ import {
   useCallback,
   useRef,
   useState,
+  useSyncExternalStore,
 } from 'react';
 import { hierarchyKindIcon } from '../hierarchy-kind-icon';
 import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
@@ -184,6 +190,15 @@ function RelatedSubjects({ subject }: { readonly subject: InspectionSubject }) {
   );
 }
 
+/** What a section icon DRAWS under the active icon set: the set's own glyph
+ *  for its name, or the definition's path when the set carries none. */
+function drawnGlyph(icon: IconDefinition): string {
+  const glyph = activeIconGlyph(icon.iconName);
+  if (glyph) return `${glyph.path}|${glyph.tonedPath ?? ''}`;
+  const path = icon.icon[4];
+  return Array.isArray(path) ? path.join('|') : path;
+}
+
 /**
  * The SECTION-ICON STRIP — one glyph per `subject.sections`, 1:1
  * (`compactInspectorTabs`). It signposts what the subject HAS and jumps to a
@@ -199,13 +214,18 @@ function SectionIconStrip({
   readonly onJump: (sectionId: string) => void;
 }) {
   const tabs = compactInspectorTabs(subject);
+  useSyncExternalStore(subscribeIconSets, activeIconSetSnapshot, activeIconSetSnapshot);
   // The strip is a JUMP AID — a table of contents. It earns its row only
   // when there is real navigation to do (a dense entity subject: preview,
   // transform, property groups, stories…) AND its glyphs can be told
   // apart. Three sections need no navigator, and identical icons signpost
   // nothing — the 1:1 derivation stands (owner, 2026-08-07); an
-  // uninformative row earns no pixels (owner-sighted, 2026-08-23).
-  if (tabs.length < 5 || new Set(tabs.map((tab) => tab.icon)).size < 3) return null;
+  // uninformative row earns no pixels (owner-sighted, 2026-08-23). The glyphs
+  // are told apart by what is DRAWN, not by name: a name the active icon set
+  // does not carry draws its definition's own path, and Blender's section
+  // names all fall back to the one wrench outside the Blender set — thirteen
+  // names, one drawing (owner-sighted on the compact card, 2026-09-25).
+  if (tabs.length < 5 || new Set(tabs.map((tab) => drawnGlyph(tab.icon))).size < 3) return null;
   return (
     <div
       className="vgai-inspector-icon-strip"
@@ -748,8 +768,14 @@ export function PropertiesColumn({ subject }: { readonly subject: InspectionSubj
 }
 
 /** The mini card's preview, or a kind glyph for a no-preview subject. */
+/** The preview's stand-in: the first section's glyph when the active set
+ *  draws one for it, the cube otherwise. A section name the set does not carry
+ *  draws the generic project-tool wrench (`tool-loader.ts`), which says nothing
+ *  about the subject — a Blender object under any set but Blender's. */
 function firstSectionGlyph(subject: InspectionSubject) {
-  return subject.sections[0]?.icon ?? faCube;
+  const first = subject.sections[0]?.icon;
+  if (!first) return faCube;
+  return drawnGlyph(first) === drawnGlyph(faScrewdriverWrench) ? faCube : first;
 }
 
 /**
