@@ -33,7 +33,14 @@
  * project already declares is left exactly as the project has it.
  */
 
-import ts from 'typescript';
+import { createRequire } from 'node:module';
+import type * as ts from 'typescript';
+
+// The compiler is loaded where a merge runs, not where the CLI starts: every
+// `edit` loaded it to launch a session, measured at 4 s of the launcher's
+// 5.3 s in the browser substrate, and the launcher stays alive holding it.
+let loaded: typeof ts | undefined;
+const typescript = (): typeof ts => (loaded ??= createRequire(import.meta.url)('typescript') as typeof ts);
 
 export interface RegionIncludeAddition {
   /** Manifest root id whose derived region owns these files. */
@@ -69,7 +76,7 @@ function quoteLike(source: string, sample: ts.Node | undefined): (value: string)
 }
 
 function stringLiteralOf(node: ts.Node | undefined): string | undefined {
-  return node && ts.isStringLiteralLike(node) ? node.text : undefined;
+  return node && typescript().isStringLiteralLike(node) ? node.text : undefined;
 }
 
 function propertyOf(
@@ -77,8 +84,8 @@ function propertyOf(
   name: string,
 ): ts.PropertyAssignment | undefined {
   for (const member of object.properties) {
-    if (!ts.isPropertyAssignment(member)) continue;
-    const key = ts.isIdentifier(member.name) ? member.name.text : stringLiteralOf(member.name);
+    if (!typescript().isPropertyAssignment(member)) continue;
+    const key = typescript().isIdentifier(member.name) ? member.name.text : stringLiteralOf(member.name);
     if (key === name) return member;
   }
   return undefined;
@@ -89,9 +96,9 @@ function definitionObject(
   source: ts.SourceFile,
 ): { object: ts.ObjectLiteralExpression } | { reason: string } {
   for (const statement of source.statements) {
-    if (!ts.isExportAssignment(statement) || statement.isExportEquals) continue;
+    if (!typescript().isExportAssignment(statement) || statement.isExportEquals) continue;
     const call = statement.expression;
-    if (!ts.isCallExpression(call)) {
+    if (!typescript().isCallExpression(call)) {
       return { reason: 'its default export is not a direct `defineAdapter({…})` call' };
     }
     const arg = call.arguments[0];
@@ -100,7 +107,7 @@ function definitionObject(
       // splice into, and inventing one would rewrite the file's shape.
       return { reason: 'its default export takes no argument object to declare into' };
     }
-    if (!ts.isObjectLiteralExpression(arg)) {
+    if (!typescript().isObjectLiteralExpression(arg)) {
       return { reason: 'its default export is not called with an object literal' };
     }
     return { object: arg };
@@ -176,7 +183,7 @@ export function mergeAdapterRegionIncludes(
   additions: readonly RegionIncludeAddition[],
 ): RegionIncludeMerge {
   if (additions.length === 0) return { kind: 'unchanged' };
-  const parsed = ts.createSourceFile('vgai.adapter.ts', source, ts.ScriptTarget.Latest, true);
+  const parsed = typescript().createSourceFile('vgai.adapter.ts', source, typescript().ScriptTarget.Latest, true);
   const definition = definitionObject(parsed);
   if ('reason' in definition) return { kind: 'unreadable', reason: definition.reason };
 
@@ -184,7 +191,7 @@ export function mergeAdapterRegionIncludes(
   // name), so an explicit `regions` LIST is a different declaration home and
   // this splice declines rather than writing into a table it did not read.
   const listed = propertyOf(definition.object, 'regions');
-  if (listed && !ts.isStringLiteralLike(listed.initializer)) {
+  if (listed && !typescript().isStringLiteralLike(listed.initializer)) {
     return {
       kind: 'unreadable',
       reason: 'it states an explicit `regions` list, whose entries carry their own `include`',
@@ -207,7 +214,7 @@ export function mergeAdapterRegionIncludes(
       }),
     );
   } else {
-    if (!ts.isObjectLiteralExpression(overlay.initializer)) {
+    if (!typescript().isObjectLiteralExpression(overlay.initializer)) {
       return { kind: 'unreadable', reason: '`regionIncludes` is not an object literal' };
     }
     const table = overlay.initializer;
@@ -220,7 +227,7 @@ export function mergeAdapterRegionIncludes(
         );
         continue;
       }
-      if (!ts.isObjectLiteralExpression(entry.initializer)) {
+      if (!typescript().isObjectLiteralExpression(entry.initializer)) {
         return {
           kind: 'unreadable',
           reason: `\`regionIncludes.${addition.rootId}\` is not an object literal`,
@@ -237,7 +244,7 @@ export function mergeAdapterRegionIncludes(
         );
         continue;
       }
-      if (!ts.isArrayLiteralExpression(include.initializer)) {
+      if (!typescript().isArrayLiteralExpression(include.initializer)) {
         return {
           kind: 'unreadable',
           reason: `\`regionIncludes.${addition.rootId}.include\` is not an array literal`,
