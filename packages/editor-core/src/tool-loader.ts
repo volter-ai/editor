@@ -1104,22 +1104,35 @@ interface ServiceModule {
   readonly entryPath: string;
   readonly module: unknown;
 }
-let stopServices: Array<() => void> = [];
+/** The running services by entry path, with the module instance each was
+ *  started from. */
+let runningServices = new Map<string, { module: unknown; stop: (() => void) | null }>();
 
 /** Start the contributed SERVICES (`@volter/editor-sdk/services`) after a
- *  pass; the previous pass's are stopped first. A service that throws on
- *  start teaches and is skipped; one that throws on stop is reported and the
- *  rest still stop. */
+ *  pass. A service whose module is the SAME instance as the one running keeps
+ *  running: a service owns state (the Scene document is one), and stopping an
+ *  unchanged one on every pass closed that state under the person — the Scene
+ *  opened, then a second pass seconds later stopped its service, which
+ *  withdrew the document, and nothing reopened it. A changed, added or removed
+ *  service is stopped and started. A service that throws on start teaches and
+ *  is skipped; one that throws on stop is reported and the rest still stop. */
 function applyServiceContributions(items: readonly ServiceModule[]): void {
-  for (const stop of stopServices) {
+  const next = new Map<string, ServiceModule>(items.map((item) => [item.entryPath, item]));
+  const kept = new Map<string, { module: unknown; stop: (() => void) | null }>();
+  for (const [entryPath, running] of runningServices) {
+    if (next.get(entryPath)?.module === running.module) {
+      kept.set(entryPath, running);
+      continue;
+    }
     try {
-      stop();
+      running.stop?.();
     } catch (error) {
       teachingError(`[tool contributions] a service could not stop.\n${String(error)}`);
     }
   }
-  stopServices = [];
+  runningServices = kept;
   for (const item of items) {
+    if (runningServices.has(item.entryPath)) continue;
     const record = (item.module ?? {}) as Record<string, unknown>;
     if (record['point'] !== 'workspace.service') {
       teachingError(
@@ -1138,7 +1151,10 @@ function applyServiceContributions(items: readonly ServiceModule[]): void {
     }
     try {
       const stop = (start as () => unknown)();
-      if (typeof stop === 'function') stopServices.push(stop as () => void);
+      runningServices.set(item.entryPath, {
+        module: item.module,
+        stop: typeof stop === 'function' ? (stop as () => void) : null,
+      });
     } catch (error) {
       teachingError(`[tool contributions] ${item.entryPath} could not start.\n${String(error)}`);
     }
