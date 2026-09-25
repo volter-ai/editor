@@ -10,20 +10,21 @@ where the game editor came from.
 
 Status: active
 The historical local-backend baseline is 15 of 15 models and 137 of 137 observed APIs (company
-`projects/modeler-launch.md`). A browser replay (vgai-engine `docs/WORK.md` §Blender in the tab is Blender)
+`projects/modeler-launch.md`); the battery and its scoreboard are vgai-engine's
+`packages/blender-engine/bench/battery`. A browser replay (vgai-engine `docs/WORK.md` §Blender in the tab is Blender)
 replayed every recorded call of the ten-model battery and the five scene models through the editor, geometry
 bit-exact apart from named mechanisms; it is not a score on the parity scoreboard, and it does not name the five
 hard recordings of the original fifteen.
 Completion:
 - The original fifteen and the five new real-Blender references are scored through browser-only execution on the same scoreboard, with no local modeling fallback, measured through the tab's `blender-*` doors.
 
-## workbench-rebuilds: Both workbenches rebuilt with the Chat patches
+## workbench-rebuilds: Both workbenches boot clean
 
-Status: planned
-First boot logs "No default agent registered", and under load the workbench's GitHub sign-in lookups time out;
-the native Chat patches for both are in `scripts/workbench/overlay.mjs`.
+Status: active
+Both products' workbenches are rebuilt with the Chat patches and pinned at `2a8d872b50d0`; the later sign-in patch
+(`507e47d`, no Copilot sign-in in a workbench whose product names no provider) is not in that pin yet.
 Completion:
-- Each product's rebuilt workbench (the model editor's with its own product id) is pinned, and its first boot shows neither message.
+- A release carrying `507e47d` is pinned, and each product's first boot logs neither "No default agent registered" nor a GitHub sign-in timeout.
 
 ## architecture-plan: The architecture plan's remaining units
 
@@ -40,6 +41,7 @@ Completion:
 ## game-editor-gaps: The game editor's remaining walks and gates
 
 Status: planned
+What `WORK.md` records as unwalked or ungated in the game editor.
 Completion:
 - The timeline drives a game's stamped mixer in Edit (the runtime's unset `_animMixer`/`_availableClips` keys leave with the runtime framework).
 - A machine document fits on its first size, and an initial arrow cannot enter its state from below.
@@ -50,18 +52,19 @@ Completion:
 ## project-model-program: The project model, eight nouns, every kind open and registered
 
 Status: active
-Source: vgai-engine `docs/WORK.md` §The project model and §Project shape and the four settings layers. One
-unit per commit, each measured on the two probes (a game; a zero-root folder of models) plus the shape it adds.
+Source: vgai-engine `docs/WORK.md` §Project shape and the four settings layers, as re-cut for Code-OSS (U6, U7).
 Chrome derives from declared kinds; nothing enumerates the shapes.
 Completion:
-- Every numbered unit of the locked program is landed and measured on both probes.
-- The four settings layers (defaults, user global, project shared, project local) each hold exactly what the rulings assign them.
+- The project-local sections not yet moved (viewport pose, hierarchy expansion, state-watch pins, chat attention and history, project-work reminders, board guides) live in the storage service's workspace scope.
+- Keybindings are keybinding contributions and the style bundle id is a theme id.
+- The standalone modeler is the no-roots shape, and a project's finders (`src/tools/`) reach the finder registry through a contribution.
 
-## design-skew: Design, the third product skew
+## design-skew: Design, a product skew
 
 Status: planned
 Source: vgai-engine `docs/WORK.md` §Design. An editable page preview and a Figma-shaped canvas tab as the
 `website` preset; today its DOM root is read-only, its Pages list is empty, and a `page` has no document editor.
+The `pasteboard` capability its list needs is archived (`archive/launch-scope-2026-09-20`) and is restored first.
 Completion:
 - A `page` document opens as its editable preview, not its source.
 - Every entry in the section's ordered list is proved on a real website project through the product's own doors.
@@ -69,12 +72,11 @@ Completion:
 ## zero-magic-conversion: Zero-magic conversion, as native as possible
 
 Status: active
-Dispatch: hold
-Source: vgai-engine `docs/WORK.md` §P0. The pattern is proven in one place first, through sighted owner
+Source: vgai-engine `docs/WORK.md` §P0 (propagation waits for the owner). The pattern is proven in one place first, through sighted owner
 passes; until the owner calls it settled, every propagation wave is recorded, not running.
 Completion:
 - Contribution-imported dependencies are served on the editor's React in general, not only the one measured case.
-- The Outline effect no longer exhausts postprocessing's selection layers.
+- One Outline effect per leased renderer, so postprocessing's selection layers are never exhausted (the console warning is only muted today).
 - The owner calls the pattern settled, then each recorded wave runs and is measured.
 
 ## editor-and-contributions: Editor and bundled contributions punchlist
@@ -103,7 +105,9 @@ Completion:
 ## public-game-release: The game editor's public release
 
 Status: planned
-`@volter/game-editor` is on npm, but its packages do not join [release/modeling.json](release/modeling.json).
+The game's packages are on npm under their own [release/game.json](release/game.json), except `@volter/editor-react` and
+`@volter/editor-xstate`, which that release names and npm does not have.
 The canonical games that must satisfy their briefs first are `volter-ai/game-benchmarks`' `original-trials-slate`.
 Completion:
+- `@volter/editor-react` and `@volter/editor-xstate` are published with the next game release.
 - A qualifying public release of the game editor satisfies the company's G2 acceptance (company `projects/game-engine-launch.md`).
