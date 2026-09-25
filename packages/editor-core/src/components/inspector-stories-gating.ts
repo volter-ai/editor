@@ -18,7 +18,7 @@ import { CompositeAuthoringAdapter } from '../authoring/composite-authoring-adap
 import { governingAdapterForNode } from '../authoring/provenance';
 import { WORLD_SCOPE_NODE_ID } from '@volter/editor-sdk/kit/stories-scope';
 import { recordAuthoringConsumerUse } from '@volter/editor-sdk/kit/authoring-seam-evidence';
-import type { ComposeStoriesInput } from '../inspection/compose';
+import type { ComposeStoriesInput } from '../inspection/compose-subject';
 
 /**
  * D4 (B2) — the CHILD adapter owning `nodeId`'s synthetic world-group row

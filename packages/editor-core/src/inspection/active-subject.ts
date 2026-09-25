@@ -28,18 +28,16 @@
 
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { CompositeAuthoringAdapter } from '../authoring/composite-authoring-adapter';
-import type { Object3DDocumentSession } from '../authoring/object3d-document-session';
-import { object3DDocumentSession } from '../authoring/object3d-document-session-registry';
+import { documentViewport } from '@volter/editor-sdk/kit/document-viewports';
+import { inspectionNodeMedia } from '@volter/editor-sdk/kit/inspection-node-media';
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
 import { LIVE_ONLY_ACK, type WriteAck } from '@volter/editor-sdk/kit/write-pipe';
-import { openEntityAssetDocument } from '../components/asset-documents';
 import { describeAssetSelectionSubject } from '../components/asset-selection-section';
 import { ingestCoverageSection } from '@volter/editor-sdk/kit/CapabilityCoverageSection';
 import { resolveInspectionSubjectId } from '../components/inspector-selection';
 import { resolveComposeStoriesInput } from '../components/inspector-stories-gating';
 import { kindDocumentEntry } from '../components/kind-documents';
 import type { EditorShellStore } from '../editor-shell-store';
-import { entityObject3D } from '../entity-object';
 import { inspectorPresentationOverride } from '../inspector-presentation';
 import { matchedInspectorSections } from '@volter/editor-sdk/kit/inspector-section-registry';
 import { liveCoverage } from '@volter/editor-sdk/kit/live-session-registry';
@@ -56,7 +54,7 @@ import {
   composeInspectionSubject,
   composeNullInspectionSubject,
   type OwnedInspectorRail,
-} from './compose';
+} from './compose-subject';
 import {
   type InspectionDisplay,
   inspectorBelongsToAnotherDocument,
@@ -83,22 +81,20 @@ export interface ComposedInspection {
   readonly available: boolean;
 }
 
-/** One capture function per live native document. Inspector composition is a
+/** One capture function per live document viewport. Inspector composition is a
  * pure read and may run for unrelated shell updates; keeping this callback
  * stable prevents those updates from retriggering an expensive GPU readback.
  * `previewKey` still requests a fresh frame when the actual selection changes. */
-const object3DDocumentCaptures = new WeakMap<
-  Object3DDocumentSession,
-  (size: number) => Promise<string | null>
->();
+const viewportCaptures = new WeakMap<object, (size: number) => Promise<string | null>>();
 
-function object3DDocumentCapture(
-  session: Object3DDocumentSession,
-): (size: number) => Promise<string | null> {
-  const existing = object3DDocumentCaptures.get(session);
+function viewportCapture(
+  viewport: { capture?(size?: number): string | null },
+): ((size: number) => Promise<string | null>) | null {
+  if (!viewport.capture) return null;
+  const existing = viewportCaptures.get(viewport);
   if (existing) return existing;
-  const capture = async (size: number) => session.captureImage(size);
-  object3DDocumentCaptures.set(session, capture);
+  const capture = async (size: number) => viewport.capture?.(size) ?? null;
+  viewportCaptures.set(viewport, capture);
   return capture;
 }
 
@@ -125,9 +121,8 @@ function canvasPreviewFor(
   // Capture the existing viewport once instead: honest native pixels, no
   // second continuously-rendered rig, and no fabricated preview hierarchy.
   if (surface === 'asset-lab') {
-    const documentId = activeWorkspaceDocumentId();
-    const session = documentId ? object3DDocumentSession(documentId) : null;
-    return session ? object3DDocumentCapture(session) : null;
+    const viewport = documentViewport(activeWorkspaceDocumentId());
+    return viewport ? viewportCapture(viewport) : null;
   }
   let candidate = adapter;
   if (adapter instanceof CompositeAuthoringAdapter) {
@@ -224,6 +219,7 @@ export function composeInspectionForBinding(input: {
       ? matchedInspectorSections(node, adapter)
       : []
     : matchedInspectorSections(null, adapter, { nullSubjectId: nullSubject?.id ?? null });
+  const media = nodeId ? inspectionNodeMedia(adapter, nodeId) : null;
   const subject = composeInspectionSubject({
     adapter,
     nodeId,
@@ -231,18 +227,12 @@ export function composeInspectionForBinding(input: {
     surface,
     contributions,
     ...(nodeId ? {} : { nullSubject }),
-    // Outside Asset Lab the Inspector mounts an isolated native snapshot.
-    // Asset Lab already owns that native viewport, so `canvasPreviewFor`
-    // supplies a one-shot capture instead of a second live render loop.
-    previewObject:
-      (nodeId === null || surface === 'asset-lab'
-        ? null
-        : entityObject3D(adapter, store.objectMap, nodeId)) ?? null,
+    // Outside Asset Lab the node's medium previews it in isolation. Asset Lab
+    // already owns that native viewport, so `canvasPreviewFor` supplies a
+    // one-shot capture instead of a second live render loop.
+    media: surface === 'asset-lab' ? null : media,
     canvasPreview: canvasPreviewFor(adapter, nodeId, surface),
-    assetDocument:
-      nodeId && store.objectMap.has(nodeId)
-        ? { open: () => openEntityAssetDocument(store, nodeId) }
-        : null,
+    assetDocument: media?.assetDocument ?? null,
     stories: resolveComposeStoriesInput(adapter, node, nodeId),
     // A DOCUMENT WHOSE PACKAGE OWNS ITS PROPERTIES RAIL stands the shell's own
     // sections down (`inspection/compose.ts`, `OwnedInspectorRail`).

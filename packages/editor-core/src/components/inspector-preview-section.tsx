@@ -16,31 +16,25 @@
  */
 
 import { Button } from '@volter/editor-sdk/widgets';
-import { lazy, Suspense } from 'react';
-import type * as THREE from 'three';
+import { lazy, type ReactNode, Suspense } from 'react';
 import type { ContentEntry, ContentEntrySource } from '../content-entry-source-registry';
 import type { InspectionAction, InspectionPreviewMode } from '@volter/editor-sdk/kit/inspection-model';
 import { useAfterPaint } from './use-after-paint';
 
-const InspectorObjectPreview = lazy(() =>
-  import('./InspectorObjectPreview').then((m) => ({ default: m.InspectorObjectPreview })),
-);
 const InspectorCanvasPreview = lazy(() =>
   import('./InspectorCanvasPreview').then((m) => ({ default: m.InspectorCanvasPreview })),
 );
 
 export function InspectorPreviewBody({
-  object,
-  displayName,
+  picture,
   previewKey,
   actions,
   mode = 'section',
 }: {
-  /** The live object to preview. The composer only builds a preview section
-   *  when it HAS one, so this is never a lookup that can come up empty — the
-   *  honest alternative to a fabricated render is no section at all. */
-  readonly object: THREE.Object3D;
-  readonly displayName: string;
+  /** The subject's live picture, drawn by the medium that renders it (a three.js
+   *  object's isolated view). The composer only builds a preview section when
+   *  there IS one, so this never renders a fabricated stand-in. */
+  readonly picture: () => ReactNode;
   /** Stable identity for the isolated preview document (the subject's node
    *  id) — remounts when the subject changes, not on every compose. */
   readonly previewKey: string;
@@ -75,16 +69,7 @@ export function InspectorPreviewBody({
             }
       }
     >
-      {showPicture && (
-        <Suspense fallback={null}>
-          <InspectorObjectPreview
-            previewKey={previewKey}
-            object={object}
-            displayName={displayName}
-            fill
-          />
-        </Suspense>
-      )}
+      {showPicture && <Suspense fallback={null}>{picture()}</Suspense>}
       {!thumbnail &&
         actions.map((action) => (
           <Button
