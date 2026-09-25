@@ -16,6 +16,7 @@ import { forgetGenerationJob, markGenerationJobRead, readGenerationJobs } from '
 import { reconcileGenerationJobs } from '../generation-reconciler';
 import { discoverProjectTools, executeProjectTool } from '../project-tools';
 import type { RouteContext } from './context';
+import { TOOL_CONTRIBUTION_SUFFIXES } from '@volter/editor-sdk/session/tool-contribution-convention';
 
 export function registerToolRoutes(router: EditorServerRouter, ctx: RouteContext): void {
   const { account, engineRoot, loadProjectModule } = ctx;
@@ -33,7 +34,10 @@ export function registerToolRoutes(router: EditorServerRouter, ctx: RouteContext
       res.json({ tools: [], loadErrors: [] });
       return;
     }
-    res.json(await discoverProjectTools(ctx.projectRoot, loadProjectModule));
+    res.json({
+      ...(await discoverProjectTools(ctx.projectRoot, loadProjectModule)),
+      suffixes: TOOL_CONTRIBUTION_SUFFIXES,
+    });
   });
 
   router.post('/__editor/project-tools/run', async (req: Request, res: Response) => {

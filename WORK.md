@@ -578,11 +578,6 @@ proofs, not a reproduction or fix of the older intermittent hang.
   zero high/critical entries. Release 0.5.63 resolves those entries; both its packed
   and anonymous public installations report zero vulnerabilities. This is the
   installed product audit, not a claim about the workbench's build-only toolchain.
-- **A page bundle older than the host's contribution list drops a project's prefabs silently.**
-  With the kit's server rebuilt after a new contribution suffix and the product bundle not,
-  a game project's scene table lost its stories (`HeroBox` gone, no error anywhere); rebuilding
-  in dependency order (kit plugins, the product, its CLI) restored it. Nothing in the product
-  says which half is stale.
 - Existing project filenames and protocol/settings identifiers remain unchanged.
   A full rename is a separate migration. Game publication and full viewport
   extraction remain outside this release. Emscripten is shipped; optional WALI

@@ -97,4 +97,8 @@ export interface ProjectToolCatalog {
   tools: ProjectToolCatalogEntry[];
   contributions: ProjectToolContribution[];
   loadErrors: ProjectToolLoadError[];
+  /** The contribution suffixes the serving host scans for
+   *  (`TOOL_CONTRIBUTION_SUFFIXES`), so a page built from another revision can
+   *  say which half is stale. */
+  suffixes?: readonly string[];
 }

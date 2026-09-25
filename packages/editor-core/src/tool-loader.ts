@@ -31,6 +31,7 @@ import {
   isFinderContribution,
   isServiceContribution,
   lookContributionKind,
+  TOOL_CONTRIBUTION_SUFFIXES,
 } from '@volter/editor-sdk/session/tool-contribution-convention';
 import type { AuthoringAdapter, EditorNode } from '@volter/editor-project/adapter';
 import type { ToolContributionPoint } from '@volter/editor-sdk/project-tool-catalog';
@@ -1536,6 +1537,8 @@ async function runContributionRefresh(): Promise<void> {
     return;
   }
 
+  reportContributionConventionSkew(catalog.suffixes);
+
   const version = Date.now();
   const nextGlobal: GlobalToolContribution[] = [];
   const nextUtility: Array<UtilityToolContribution | AnalyticsToolContribution> = [];
@@ -1784,6 +1787,35 @@ function publishToolContributions(): void {
 export function __publishGlobalToolContributionsForTest(next: GlobalToolContribution[]): void {
   applyGlobalContributions(next);
   publishToolContributions();
+}
+
+/**
+ * A page bundle and a host from different revisions disagree about which files
+ * are contributions, and the page then drops or misloads them with no word on
+ * which half is behind. The host lists the suffixes it scans; this compares.
+ */
+let reportedConventionSkew: string | null = null;
+function reportContributionConventionSkew(hostSuffixes: readonly string[] | undefined): void {
+  if (!hostSuffixes) return;
+  const page = new Set<string>(TOOL_CONTRIBUTION_SUFFIXES);
+  const host = new Set(hostSuffixes);
+  const hostOnly = [...host].filter((suffix) => !page.has(suffix));
+  const pageOnly = [...page].filter((suffix) => !host.has(suffix));
+  if (hostOnly.length === 0 && pageOnly.length === 0) return;
+  const key = `${hostOnly.join(',')}|${pageOnly.join(',')}`;
+  if (reportedConventionSkew === key) return;
+  reportedConventionSkew = key;
+  teachingError(
+    [
+      '[tool contributions] This page and the session server are different builds.',
+      ...(hostOnly.length > 0
+        ? [`The server lists ${hostOnly.map((s) => `*${s}`).join(', ')} contributions this page does not know, so the PAGE BUNDLE is older: rebuild the product's page bundle, then reload.`]
+        : []),
+      ...(pageOnly.length > 0
+        ? [`This page knows ${pageOnly.map((s) => `*${s}`).join(', ')} contributions the server does not scan, so the SERVER is older: rebuild the kit's server, then restart the session.`]
+        : []),
+    ].join(' '),
+  );
 }
 
 function teachingError(message: string): void {
