@@ -1,4 +1,4 @@
-import { commandLine } from '@volter/editor-sdk/kit/product-command';
+import { captureSizeFromCommand } from './capture-size';
 import { isGameplayExportActive } from './gameplay-export-state';
 
 /**
@@ -10,7 +10,6 @@ import { isGameplayExportActive } from './gameplay-export-state';
  */
 
 import type {
-  CaptureDimensions,
   DocumentProbeStep,
   EditorView,
   InspectedHierarchy,
@@ -20,7 +19,6 @@ import type {
 } from '@volter/editor-sdk';
 import { inspectorPreviewRendererCounts } from '@volter/editor-threejs/viewport/preview-renderer';
 import { liveHostRendererCount } from '@volter/editor-threejs/viewport/renderer-ownership';
-import type { ViewportShadingMode } from '@volter/editor-threejs/render/viewport-shading';
 import { captureEntityComparePreview, captureModelComparePreview } from './asset-compare';
 import { parseForwardVector } from './asset-compare-core';
 import {
@@ -666,92 +664,6 @@ export function commandThrewResult(cmd: EditorCommand, error: unknown): CommandR
   return { ok: false, error: text };
 }
 
-/**
- * The dimensions a capture verb was asked for, or the refusal that names the
- * value it was handed.
- *
- * SQUARE IS THE DEFAULT and `size` is how you ask for one. `width`+`height`
- * together ask for a SHAPED frame — a video-aspect look that needs no crop
- * afterwards — and are bounded per side and in TOTAL by the same relay budget
- * the square ceiling comes from. Mixing the two forms is refused rather than
- * silently resolved: a caller who sent both does not know which one they meant.
- *
- * `cmd` is WIRE INPUT — a JSON object from another process — so `cmd['size']`
- * had never been anything but a cast (`as number | undefined`). A caller that
- * sent a non-number got that value multiplied by 2 deep inside
- * `_renderViewportImage` and `createImageData(NaN, NaN)` threw
- * `TypeError: Value is not of type 'long'` from the middle of the render path;
- * because the dispatcher's `.then()` had no rejection leg, the throw answered
- * nobody and the caller waited out its whole budget for
- * "the tab is present … and did not respond" — a message about the TAB for a
- * defect in the argument. Measured on a racing-game ingest mount, 2026-08-15.
- */
-export function captureSizeFromCommand(
-  cmd: EditorCommand,
-): { size?: CaptureDimensions } | { error: string } {
-  const raw = cmd['size'];
-  const rawWidth = cmd['width'];
-  const rawHeight = cmd['height'];
-  const shaped = rawWidth !== undefined || rawHeight !== undefined;
-  if (shaped) {
-    if (raw !== undefined && raw !== null) {
-      return {
-        error:
-          `${String(cmd['type'])}: pass "size" (a square) OR "width"+"height" (a shaped frame), ` +
-          'never both.',
-      };
-    }
-    const dimension = (name: string, value: unknown): number | string => {
-      if (typeof value !== 'number' || !Number.isInteger(value)) {
-        return (
-          `${String(cmd['type'])}: "${name}" must be a whole number — got ` +
-          `${typeof value} ${JSON.stringify(value) ?? String(value)}.`
-        );
-      }
-      if (value < MIN_CAPTURE_DIMENSION || value > MAX_CAPTURE_DIMENSION) {
-        return `${String(cmd['type'])}: "${name}" must be ${MIN_CAPTURE_DIMENSION}-${MAX_CAPTURE_DIMENSION} — ${CAPTURE_BUDGET_REASON}`;
-      }
-      return value;
-    };
-    const width = dimension('width', rawWidth);
-    if (typeof width === 'string') return { error: width };
-    const height = dimension('height', rawHeight);
-    if (typeof height === 'string') return { error: height };
-    if (width * height > MAX_CAPTURE_DIMENSION * MAX_CAPTURE_DIMENSION) {
-      return {
-        error:
-          `${String(cmd['type'])}: ${width}x${height} is ${width * height} pixels, past the ` +
-          `${MAX_CAPTURE_DIMENSION}x${MAX_CAPTURE_DIMENSION} total — ${CAPTURE_BUDGET_REASON}`,
-      };
-    }
-    return { size: { width, height } };
-  }
-  if (raw === undefined || raw === null) return {};
-  if (typeof raw !== 'number' || !Number.isFinite(raw) || raw < 1) {
-    return {
-      error:
-        `${String(cmd['type'])}: "size" must be a finite number >= 1 — got ` +
-        `${typeof raw} ${JSON.stringify(raw) ?? String(raw)}.`,
-    };
-  }
-  return { size: raw };
-}
-
-/**
- * The editor's own capture ceiling, and WHY it is this number.
- *
- * 64..1024 per side is `asset-preview.ts`'s `MIN_SIZE`/`MAX_SIZE`: the pixels
- * cross the editor relay as base64 JSON, and 1024 is where even incompressible
- * RGBA still fits its 50 MB request limit. A shaped frame is held to the same
- * BUDGET rather than a laxer one — its total may not exceed a 1024 square —
- * because the budget is about bytes on the wire, not about shape.
- */
-const MIN_CAPTURE_DIMENSION = 64;
-const MAX_CAPTURE_DIMENSION = 1024;
-const CAPTURE_BUDGET_REASON =
-  "the editor's own ceiling: the pixels cross the relay as base64 JSON, and 1024 is where even " +
-  'incompressible RGBA still fits its 50 MB request limit. For more picture, take more views, ' +
-  'not bigger ones.';
 
 function activeObject3DDocumentSession() {
   const documentId = activeWorkspaceDocumentId();
@@ -1295,177 +1207,6 @@ export async function handleCommand(
         options,
       );
       break;
-    }
-
-    // Viewport
-    case 'focus-entity':
-      if (!activeObject3DDocumentSession()?.frameIds([cmd['id'] as string])) {
-        store.focusOnEntity(cmd['id'] as string);
-      }
-      break;
-    // The STRICT entity-targeted sibling of `focus-entity`: the same edit
-    // viewport framing, but an id nothing in the scene answers to is a named
-    // refusal rather than the silent no-op `focus-entity` keeps (its viewport
-    // action simply finds no object in `objectMap` and does nothing —
-    // world-root-stage.ts). That matters for a scripted flow that frames an
-    // entity and then photographs it: framing that quietly did nothing hands
-    // back a confident picture of whatever the camera happened to be on.
-    case 'frame-entity': {
-      const id = cmd['id'];
-      if (typeof id !== 'string' || id.length === 0) {
-        return { ok: false, error: 'frame-entity requires a string "id" (the entity to frame).' };
-      }
-      const documentSession = activeObject3DDocumentSession();
-      if (documentSession) {
-        if (!documentSession.frameIds([id])) {
-          return {
-            ok: false,
-            error: `Entity not found: ${id}`,
-            data: { code: 'ENTITY_NOT_FOUND' },
-          };
-        }
-        break;
-      }
-      // A Canvas Scene has no Object3D by design. Its native framing answer is
-      // the adapter-owned screen rect consumed by CanvasSceneControls. The
-      // provider may temporarily return null while Pixi is between layouts;
-      // strict existence is therefore the owned hierarchy node + the rect
-      // capability, not one timing-sensitive measurement.
-      // Resolve against the active document just like Hierarchy/Inspector do.
-      // The global edit-mode composite intentionally does not merge 2D rect
-      // providers; the open Canvas Scene publishes its own native adapter.
-      const activeAdapter = activeDocumentAuthoring(store);
-      if (activeAdapter.hierarchy.node(id) !== null && activeAdapter.rects) {
-        store.focusOnEntity(id);
-        break;
-      }
-      // The SAME resolver the framing itself uses (`entity-object.ts`). Gating
-      // on `store.objectMap` alone refused every entity of a running game: an
-      // adopted play scene's nodes are the adapter's, not the shell map's.
-      if (!entityObject3D(activeAdapter, store.objectMap, id)) {
-        return { ok: false, error: `Entity not found: ${id}`, data: { code: 'ENTITY_NOT_FOUND' } };
-      }
-      store.focusOnEntity(id);
-      break;
-    }
-    case 'focus-selection':
-      if (!activeObject3DDocumentSession()?.frameSelection()) store.focusOnSelection();
-      break;
-    case 'view-preset': {
-      // The cast below is the ONLY thing between the relay and a raw table
-      // lookup, so an absent or unknown preset has to be refused BY NAME here.
-      // Unguarded it reached `cameraPresetDirection` and threw
-      // `directions[preset] is not iterable (cannot read property undefined)`
-      // into the session console — a TypeError that names neither the command
-      // nor the vocabulary (measured live, 2026-09-18, driving `editor.view`
-      // through `vgai eval` on a game project). Same shape as `set-camera`
-      // below: state what is required, list what is accepted.
-      const requested = cmd['preset'];
-      const presets = ['top', 'front', 'right', 'perspective'] as const;
-      if (typeof requested !== 'string' || !(presets as readonly string[]).includes(requested)) {
-        return {
-          ok: false,
-          error: `view-preset requires one of ${presets.join(', ')}, got ${
-            requested === undefined ? 'nothing' : JSON.stringify(requested)
-          }.`,
-        };
-      }
-      const preset = requested as (typeof presets)[number];
-      const documentSession = activeObject3DDocumentSession();
-      if (documentSession) {
-        documentSession.setViewPreset(preset === 'perspective' ? 'isometric' : preset);
-      } else store.setViewPreset(preset);
-      break;
-    }
-    case 'set-camera': {
-      const position = cmd['position'] as { x: number; y: number; z: number } | undefined;
-      const target = cmd['target'] as { x: number; y: number; z: number } | undefined;
-      const fov = cmd['fov'] as number | undefined;
-      if (
-        !position ||
-        !target ||
-        typeof position.x !== 'number' ||
-        typeof position.y !== 'number' ||
-        typeof position.z !== 'number' ||
-        typeof target.x !== 'number' ||
-        typeof target.y !== 'number' ||
-        typeof target.z !== 'number'
-      ) {
-        return { ok: false, error: 'set-camera requires numeric {x,y,z} position and target.' };
-      }
-      const documentSession = activeObject3DDocumentSession();
-      if (documentSession) documentSession.setCameraPose(position, target, fov);
-      else store.setCameraPose(position, target, fov);
-      break;
-    }
-
-    // THE AGENT'S LOOKING, AS A WATCHABLE ACT. These three drive the OPEN
-    // Object3D document's own camera — the one the human is looking through —
-    // and orbit/turntable ack only when the animated move ends, so a scripted
-    // "walk around the model" is something a person sees happen rather than a
-    // jump cut between two poses. They are document verbs by construction:
-    // there is no Scene fallback, because the Scene viewport's camera answers
-    // to `view-preset`/`set-camera` and has no framed subject to circle.
-    case 'document-orbit':
-    case 'document-turntable': {
-      const documentSession = activeObject3DDocumentSession();
-      if (!documentSession) {
-        return {
-          ok: false,
-          error:
-            `${cmd['type']} needs an Object3D document open and active (a model, a live ` +
-            'module, an entity model). Open one with `editor.openAsset(<path>)` first.',
-          data: { code: 'NO_ACTIVE_OBJECT3D_DOCUMENT' },
-        };
-      }
-      const seconds = cmd['type'] === 'document-orbit' ? cmd['duration'] : cmd['seconds'];
-      if (
-        seconds !== undefined &&
-        (typeof seconds !== 'number' || !(seconds >= 0 && seconds <= 60))
-      ) {
-        return {
-          ok: false,
-          error: `${cmd['type']}: the move's length must be a number of seconds in 0..60.`,
-        };
-      }
-      const outcome =
-        cmd['type'] === 'document-orbit'
-          ? await documentSession.orbit({
-              ...(typeof cmd['azimuth'] === 'number' ? { azimuth: cmd['azimuth'] } : {}),
-              ...(typeof cmd['elevation'] === 'number' ? { elevation: cmd['elevation'] } : {}),
-              ...(typeof seconds === 'number' ? { duration: seconds } : {}),
-            })
-          : await documentSession.turntable({
-              ...(typeof seconds === 'number' ? { seconds } : {}),
-              ...(typeof cmd['revolutions'] === 'number'
-                ? { revolutions: cmd['revolutions'] }
-                : {}),
-            });
-      return { ok: true, data: { ...outcome } };
-    }
-    case 'document-frame': {
-      const documentSession = activeObject3DDocumentSession();
-      if (!documentSession) {
-        return {
-          ok: false,
-          error:
-            'document-frame needs an Object3D document open and active. For the Scene ' +
-            'viewport use `frame-entity`/`focus-selection`.',
-          data: { code: 'NO_ACTIVE_OBJECT3D_DOCUMENT' },
-        };
-      }
-      const fit = cmd['fit'];
-      if (fit !== undefined && (typeof fit !== 'number' || !(fit >= 0.1 && fit <= 10))) {
-        return { ok: false, error: 'document-frame: "fit" must be a number in 0.1..10.' };
-      }
-      if (!documentSession.frame(typeof fit === 'number' ? fit : 1)) {
-        return {
-          ok: false,
-          error: 'Nothing to frame: the document subject has no measurable bounds.',
-          data: { code: 'EMPTY_FRAME_BOUNDS' },
-        };
-      }
-      return { ok: true, data: { ...documentSession.cameraPose() } };
     }
 
     // Panels
@@ -2094,46 +1835,6 @@ export async function handleCommand(
         return { ok: false, error: error instanceof Error ? error.message : String(error) };
       }
     }
-    case 'capture-viewport': {
-      // Fresh, unthrottled on-demand capture (see EditorShellStore.captureViewportImage's
-      // doc comment) — distinct from the periodic autosave thumbnail the
-      // project-thumbnail snapshot path serves. `size` is optional; defaults
-      // to the store's standard thumbnail size.
-      const requested = captureSizeFromCommand(cmd);
-      if ('error' in requested) return { ok: false, error: requested.error };
-      // AN ADOPTED SCENE IS PRESENTED BY ITS ADOPTER. The store's renderer and camera
-      // are its own viewport's; re-rendering a scene another document adopted through
-      // them came back white. What the person sees is that document's own frame.
-      if (store.hasAdoptedScene) {
-        try {
-          const capture = await captureActiveEditorDocument(store, requested.size);
-          return { ok: true, data: { base64: capture.base64, mimeType: capture.mimeType } };
-        } catch (error) {
-          return { ok: false, error: error instanceof Error ? error.message : String(error) };
-        }
-      }
-      const dataUrl = store.captureViewportImage(requested.size);
-      if (!dataUrl) {
-        // The refusal names the MECHANISM and the door that does answer.
-        // "Viewport is not bound yet" alone was true and useless over a live
-        // canvas or ingest session: this door photographs the editor's own
-        // THREE viewport, which a canvas-surface world never binds — so the
-        // reader waited for a binding that was never coming instead of
-        // reaching for the capture that was already available.
-        return {
-          ok: false,
-          error:
-            "This door photographs the editor's own three.js Scene viewport, and nothing has bound one " +
-            '(no renderer/scene/camera). A canvas-surface world (a first-party canvas root, or a ' +
-            'PixiJS/Phaser/Babylon ingest) never binds it — it draws on its own canvas in the Game ' +
-            'document. Capture that through `capture-active-document` (`editor.captureActiveDocument()`) ' +
-            `or the running game through \`bridge-screenshot\` (${commandLine('screenshot')}).`,
-        };
-      }
-      const comma = dataUrl.indexOf(',');
-      const base64 = comma >= 0 ? dataUrl.slice(comma + 1) : dataUrl;
-      return { ok: true, data: { base64, mimeType: 'image/png' } };
-    }
     case 'capture-asset-preview':
       return handleAssetPreviewCommand(store, cmd);
     /**
@@ -2255,64 +1956,6 @@ export async function handleCommand(
             },
           };
     }
-
-    // Display — set semantics (only toggle when value differs)
-    case 'set-grid': {
-      const documentSession = activeObject3DDocumentSession();
-      if (documentSession) documentSession.setGrid(cmd['enabled'] as boolean);
-      else if (store.showGrid !== (cmd['enabled'] as boolean)) store.toggleGrid();
-      break;
-    }
-    // Helpers and the stats tile are per-STAGE view options, read by the
-    // focused stage's own viewport and its overlay set (ARCHITECTURE-CORE
-    // §One stage unit 4) — the same reason `set-grid` above already asks the
-    // active document's session. A verb that wrote the shell's copy while the
-    // person was looking at a model document would toggle nothing they can see.
-    case 'set-helpers': {
-      const stage = focusedStageStore(store);
-      if (stage.showHelpers !== (cmd['enabled'] as boolean)) stage.toggleHelpers();
-      break;
-    }
-    case 'set-stats': {
-      const stage = focusedStageStore(store);
-      if (stage.showStats !== (cmd['enabled'] as boolean)) stage.toggleStats();
-      break;
-    }
-    case 'set-shading-mode':
-      if (activeObject3DDocumentSession()) {
-        activeObject3DDocumentSession()?.setMode(cmd['mode'] as ViewportShadingMode);
-      } else {
-        store.setShadingMode(cmd['mode'] as ViewportShadingMode);
-      }
-      break;
-    case 'set-helper-type': {
-      const stage = focusedStageStore(store);
-      const helperType = cmd['helperType'] as keyof HelperVisibility;
-      const documentSession = activeObject3DDocumentSession();
-      if (documentSession && helperType === 'bounds') {
-        documentSession.setBounds(cmd['enabled'] as boolean);
-        break;
-      }
-      if (documentSession && helperType === 'skeletons') {
-        documentSession.setSkeleton(cmd['enabled'] as boolean);
-        break;
-      }
-      if (stage.helperVisibility[helperType] !== (cmd['enabled'] as boolean)) {
-        stage.toggleHelperType(helperType);
-      }
-      break;
-    }
-
-    // Transform tools — set semantics
-    case 'set-transform-mode':
-      store.setTransformMode(cmd['mode'] as 'combined' | 'translate' | 'rotate' | 'scale');
-      break;
-    case 'set-transform-space':
-      store.setTransformSpace(cmd['space'] as 'world' | 'local');
-      break;
-    case 'set-snap':
-      if (store.snapEnabled !== (cmd['enabled'] as boolean)) store.toggleSnap();
-      break;
 
     // The REPL door over the ACTIVE document's published context — Edit mode,
     // no play gate (`document-context-registry.ts`).

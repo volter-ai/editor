@@ -115,23 +115,10 @@ const alwaysRefresh = (timeoutMs = DEFAULT_RELAY_COMMAND_TIMEOUT_MS): RelayComma
  */
 export const RELAY_COMMANDS = {
   'session-prepare-close': noDerivedRefresh(120_000),
-  // ---- Selection and framing ---------------------------------------------
+  // ---- Selection ---------------------------------------------------------
   select: noDerivedRefresh(30_000),
   'select-multiple': noDerivedRefresh(),
   'select-all': noDerivedRefresh(),
-  'focus-entity': noDerivedRefresh(),
-  'frame-entity': noDerivedRefresh(),
-  'focus-selection': noDerivedRefresh(),
-  'view-preset': noDerivedRefresh(),
-  'set-camera': noDerivedRefresh(),
-
-  // ---- Looking at the open Object3D document ------------------------------
-  // These ANIMATE the shared camera and ack when the move ends, so their
-  // budget is the move's own wall clock, not an editor edit's. Both refuse a
-  // duration past 60 s themselves; the ceiling here is the relay's backstop.
-  'document-orbit': noDerivedRefresh(120_000),
-  'document-turntable': noDerivedRefresh(120_000),
-  'document-frame': noDerivedRefresh(),
 
   // ---- Editor chrome ------------------------------------------------------
   'viewport-tab': noDerivedRefresh(),
@@ -218,22 +205,16 @@ export const RELAY_COMMANDS = {
   // The whole editor page through the same compositor; the foreignObject leg
   // over a full dock takes seconds, not milliseconds.
   'capture-editor-chrome': refreshIfContentChanged(30_000),
-  'capture-viewport': refreshIfContentChanged(),
   'capture-asset-preview': refreshIfContentChanged(30_000),
 
   // The ONE door onto a view's verbs (`@volter/editor-sdk/views`, U8 ruling 1).
   // A verb either READS the view or moves its own transform; neither touches
   // a document, so nothing derived refreshes.
 
-  // ---- Viewport toggles ---------------------------------------------------
-  'set-grid': noDerivedRefresh(),
-  'set-helpers': noDerivedRefresh(),
-  'set-stats': noDerivedRefresh(),
-  'set-shading-mode': noDerivedRefresh(),
-  'set-helper-type': noDerivedRefresh(),
-  'set-transform-mode': noDerivedRefresh(),
-  'set-transform-space': noDerivedRefresh(),
-  'set-snap': noDerivedRefresh(),
+  // The THREE VIEWPORT'S verbs — framing, the camera, view presets, the open
+  // Object3D document's orbit/turntable/frame, the viewport photograph and the
+  // display and transform toggles — are its own command contribution
+  // (`viewport-commands.ts`), each budget on its contributed row.
 
   // The BLENDER lane's ten verbs are `@vgai/blender`'s
   // `contributions/blender.command.ts` (WORK.md §The workbench, item D) —

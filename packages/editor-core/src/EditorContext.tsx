@@ -3,6 +3,8 @@ import { SHELL_OBJECT3D_DOCUMENT_WRITE_POLICY } from './authoring/shell-object3d
 import { SHELL_VIEWPORT_AUTHORING_POLICY } from './authoring/shell-viewport-policy';
 
 import { connectCommandListener } from './command-listener';
+import { registerContributedCommands } from './command-registry';
+import { viewportCommands } from './viewport-commands';
 import { startSceneDocuments } from './components/scene-documents';
 import { saveThumbnail } from './editor-api';
 import { reportTabCensus } from './editor-presence';
@@ -107,6 +109,8 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     return connectCommandListener(storeRef.current!, sessionRef.current!.historyCommands);
   }, []);
+  // The Three viewport's relay verbs arrive as its own command contribution.
+  useEffect(() => registerContributedCommands('three-viewport', viewportCommands), []);
 
   // Project-tool discovery is EDITOR-INIT lifecycle, not a side effect of any
   // one surface — it runs (and keeps re-running on project change / tool-file

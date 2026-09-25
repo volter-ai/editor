@@ -467,7 +467,6 @@
  "kit-media  packages/editor-core/src/authoring/world-hidden-viewport.ts -> three",
  "kit-media  packages/editor-core/src/camera-authoring.ts -> three",
  "kit-media  packages/editor-core/src/canvas-preview-frames.ts -> pixi.js",
- "kit-media  packages/editor-core/src/command-listener.ts -> @volter/editor-threejs/render/viewport-shading",
  "kit-media  packages/editor-core/src/command-listener.ts -> @volter/editor-threejs/viewport/preview-renderer",
  "kit-media  packages/editor-core/src/command-listener.ts -> @volter/editor-threejs/viewport/renderer-ownership",
  "kit-media  packages/editor-core/src/components/InspectorObjectPreview.tsx -> three",
