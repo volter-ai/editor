@@ -4,7 +4,7 @@
  * that MeshPhysicalMaterial does not expose as properties. */
 import * as THREE from 'three';
 import {z} from 'zod';
-import {applyGraphShader, bindGraphDraw, graphProgramKey, setGraphViewport} from './blender-graph-material';
+import {applyGraphShader, bindGraphDraw, graphProgramKey, graphUvChannels, setGraphViewport} from './blender-graph-material';
 import {bindNamedUvChannels} from './blender-texture-samplers';
 
 const scalar = z.number().finite();
@@ -85,9 +85,16 @@ export function applyPhysicalMaterial(material: THREE.MeshPhysicalMaterial, inpu
       setGraphViewport(renderer);
     };
     material.onBeforeCompile = shader => {
-      // Three declares channels 0..3. Blender has eight named UV maps in
-      // addition to the default channel; only the used attributes survive GLSL.
-      shader.vertexShader = [4, 5, 6, 7, 8, 9].map(i => `attribute vec2 uv${i};`).join('\n') + '\n' + shader.vertexShader;
+      // Three declares channels 1..3 only for its own maps, and none past 3.
+      // Blender has eight named UV maps beside the default channel (9 is the
+      // missing layer's zeros). Declare only the channels this draw reads: a
+      // driver may count every declared attribute against its sixteen, and
+      // six idle ones leave a graph with a few attributes no room.
+      const read = new Set([material.map, material.roughnessMap, material.normalMap]
+        .flatMap(texture => (texture ? [texture.channel] : [])).concat(graphUvChannels(material)));
+      shader.vertexShader = [...read].filter(i => i > 0).sort((a, b) => a - b)
+        .map(i => (i <= 3 ? `#ifndef USE_UV${i}\nattribute vec2 uv${i};\n#endif` : `attribute vec2 uv${i};`))
+        .join('\n') + '\n' + shader.vertexShader;
       Object.assign(shader.uniforms, held);
       shader.fragmentShader = `uniform float blenderCoatIor;
         uniform vec3 blenderWorldExtinction;

@@ -143,6 +143,11 @@ export function graphProgramKey(material: THREE.MeshPhysicalMaterial): string {
   return `${binding.compiled.key}|${JSON.stringify(binding.channels)}`;
 }
 
+/** The UV channels the material's graph reads on the current draw. */
+export function graphUvChannels(material: THREE.MeshPhysicalMaterial): number[] {
+  return Object.values(bindings.get(material)?.channels ?? {});
+}
+
 /** The channel each named UV layer is in on `geometry` (a layer the mesh
  *  lacks reads zeros from channel 9, Blender's missing attribute). */
 function channelsFor(compiled: CompiledGraph, geometry: THREE.BufferGeometry): Record<string, number> {
@@ -305,7 +310,6 @@ export function applyGraphShader(material: THREE.MeshPhysicalMaterial, shader: T
   const {compiled, channels} = binding;
   Object.assign(shader.uniforms, binding.uniforms, {blenderViewport: {value: viewport}});
   const attribute = (channel: number) => (channel === 0 ? 'uv' : `uv${channel}`);
-  const guards = [1, 2, 3].map(i => `#ifndef USE_UV${i}\nattribute vec2 uv${i};\n#endif`).join('\n');
   const varyings = `varying vec3 vBlenderObjectPosition;
 varying vec3 vBlenderObjectNormal;
 varying vec3 vBlenderWorldPosition;
@@ -314,7 +318,7 @@ varying vec3 vBlenderOrco;
 ${compiled.attributes.map(n => `varying vec4 ${attributeVarying(n)};`).join('\n')}
 ${compiled.uvs.map(n => `varying vec2 ${uvVarying(n)};`).join('\n')}`;
   const attributes = compiled.attributes.map(n => `attribute vec4 ${graphAttributeName(n)};`).join('\n');
-  shader.vertexShader = `${guards}\nattribute vec3 blenderOrco;\n${attributes}\n${varyings}\n${shader.vertexShader}`.replace(
+  shader.vertexShader = `attribute vec3 blenderOrco;\n${attributes}\n${varyings}\n${shader.vertexShader}`.replace(
     '#include <project_vertex>',
     `vBlenderObjectPosition = transformed;
 vBlenderObjectNormal = objectNormal;
