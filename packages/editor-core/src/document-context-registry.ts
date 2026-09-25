@@ -1,7 +1,4 @@
-import {
-  object3DDocumentSession,
-  object3DDocumentStageAnnounced,
-} from './authoring/object3d-document-session-registry';
+import { documentStageAnnounced, documentViewport } from '@volter/editor-sdk/kit/document-viewports';
 import { DOCUMENT_REGISTRATION_TIMEOUT_MS, waitUntil } from './wait-until';
 
 /**
@@ -165,10 +162,10 @@ export function waitForContributedDocumentMount(
  * moved to the kinds' own side unchanged.
  */
 export async function awaitAnnouncedObject3DDocumentSession(documentId: string): Promise<void> {
-  if (!object3DDocumentStageAnnounced(documentId)) return;
+  if (!documentStageAnnounced(documentId)) return;
   if (
     await waitUntil(
-      () => object3DDocumentSession(documentId) !== null,
+      () => documentViewport(documentId) !== null,
       DOCUMENT_REGISTRATION_TIMEOUT_MS,
     )
   )

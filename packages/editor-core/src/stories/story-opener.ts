@@ -40,7 +40,7 @@
  * exists — that is the await `ProjectLayout` held.
  */
 
-import { object3DDocumentSession } from '../authoring/object3d-document-session-registry';
+import { documentViewport } from '@volter/editor-sdk/kit/document-viewports';
 import { openRegisteredDocument, registerDocumentOpener } from '../document-open-registry';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { getCurrentProject } from '../project-manager';
@@ -249,7 +249,7 @@ export function registerStoryOpener(): () => void {
       if (declared.medium !== 'three') return;
       if (
         await waitUntil(
-          () => object3DDocumentSession(documentId) !== null,
+          () => documentViewport(documentId) !== null,
           DOCUMENT_REGISTRATION_TIMEOUT_MS,
         )
       )

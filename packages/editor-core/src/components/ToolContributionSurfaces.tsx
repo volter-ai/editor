@@ -5,7 +5,7 @@ import type {
   ToolObject3DPreviewProps,
 } from '@volter/editor-sdk/contributions';
 import { lazy, Suspense, useEffect } from 'react';
-import { announceObject3DDocumentStage } from '../authoring/object3d-document-session-registry';
+import { announceDocumentStage } from '@volter/editor-sdk/kit/document-viewports';
 import { AssetEditorSubject } from './AssetEditorShell';
 
 const LazyToolObject3DPreview = lazy(async () => {
@@ -40,7 +40,7 @@ export function ToolObject3DAuthoringSurface(props: ToolObject3DAuthoringProps) 
   // capability catalog do (`builder-document.tsx:66`) and nine other
   // `workspace.document` contributions do not, and which is which belongs to
   // the PROJECT, never to a list here.
-  useEffect(() => announceObject3DDocumentStage(props.documentId), [props.documentId]);
+  useEffect(() => announceDocumentStage(props.documentId), [props.documentId]);
   return (
     <Suspense fallback={<div style={{ minHeight: 240 }}>Loading 3D authoring surface…</div>}>
       <LazyToolObject3DAuthoring {...props} />

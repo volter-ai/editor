@@ -36,7 +36,6 @@ import {
   Object3DDocumentSession,
 } from '../authoring/object3d-document-session';
 import {
-  announceObject3DDocumentStage,
   registerObject3DDocumentSession,
 } from '../authoring/object3d-document-session-registry';
 import { Object3DGestureController } from '../authoring/object3d-gesture-controller';
@@ -65,7 +64,7 @@ import {
   studioStageApplies,
 } from '../stage-context';
 import { registerStageStore } from '../stage-store-registry';
-import { registerDocumentViewport } from '@volter/editor-sdk/kit/document-viewports';
+import { announceDocumentStage, registerDocumentViewport } from '@volter/editor-sdk/kit/document-viewports';
 import { sceneDocumentViewport } from '../scene-document-viewport';
 import { RetainedDocumentStates } from '../retained-document-states';
 import { perspectiveDistanceToFitBox } from '../three-viewport/camera-fit';
@@ -534,7 +533,7 @@ export function Object3DDocumentViewport({
   // made here too. Announcing is counted, so the two overlap harmlessly.
   useEffect(() => {
     if (chromeless) return;
-    return announceObject3DDocumentStage(documentId);
+    return announceDocumentStage(documentId);
   }, [documentId, chromeless]);
   // The SHELL store, not this host's own: what a stage is showing is a fact
   // about the workspace's document, and `stage-context.ts` is where every

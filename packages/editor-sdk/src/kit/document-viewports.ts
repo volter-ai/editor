@@ -45,3 +45,29 @@ export function registerDocumentViewport(documentId: string, viewport: DocumentV
 export function documentViewport(documentId: string | null | undefined): DocumentViewport | null {
   return documentId ? (viewports.get(documentId) ?? null) : null;
 }
+
+const announced = new Map<string, number>();
+
+/**
+ * A DOCUMENT'S STAGE ANNOUNCES ITSELF AS IT RENDERS, before the viewport it will
+ * register exists — the fact an opener's `ready` needs and cannot get from
+ * anywhere else: whether a document mounts a stage is a fact of its MOUNT,
+ * never of its address. Counted, so overlapping mounts of one document (a
+ * revision swap) release in any order. Returns the release.
+ */
+export function announceDocumentStage(documentId: string): () => void {
+  announced.set(documentId, (announced.get(documentId) ?? 0) + 1);
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    const open = (announced.get(documentId) ?? 0) - 1;
+    if (open > 0) announced.set(documentId, open);
+    else announced.delete(documentId);
+  };
+}
+
+/** Whether a stage for this document has begun mounting. */
+export function documentStageAnnounced(documentId: string): boolean {
+  return (announced.get(documentId) ?? 0) > 0;
+}

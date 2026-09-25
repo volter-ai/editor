@@ -10,7 +10,7 @@
  */
 
 import { lazy, Suspense, useEffect } from 'react';
-import { announceObject3DDocumentStage } from '../authoring/object3d-document-session-registry';
+import { announceDocumentStage } from '@volter/editor-sdk/kit/document-viewports';
 import type { Object3DDocumentViewportProps } from './StageHost';
 import { OBJECT3D_SURFACE_BUILDING, ViewportSurfaceStatus } from '@volter/editor-sdk/kit/viewport-surface-status';
 
@@ -53,6 +53,6 @@ export function Object3DDocumentViewport(props: Object3DDocumentViewportProps) {
 function useAnnouncedObject3DDocumentStage(documentId: string, chromeless = false): void {
   useEffect(() => {
     if (chromeless) return;
-    return announceObject3DDocumentStage(documentId);
+    return announceDocumentStage(documentId);
   }, [documentId, chromeless]);
 }
