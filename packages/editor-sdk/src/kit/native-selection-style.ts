@@ -106,6 +106,17 @@ export function lookDeclaresViewportColors(element?: Element | null): boolean {
   return nativeViewportLook(element).background !== null;
 }
 
+/** Whether the look paints its viewport LIGHT (relative luminance above one half). The ink that
+ *  reads over a declared viewport is the palette's `content.onAccent` on a dark one (Blender's
+ *  white over its grey) and its ordinary `content.primary` on a light one (Plotter's ink over
+ *  paper), where the on-accent ink is the same colour as the ground. */
+export function lookPaintsLightViewport(element?: Element | null): boolean {
+  const background = nativeViewportLook(element).background;
+  if (background === null) return false;
+  const r = (background >> 16) & 0xff, g = (background >> 8) & 0xff, b = background & 0xff;
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.5;
+}
+
 export function nativeViewportLook(element?: Element | null): NativeViewportLook {
   const root = themeRoot(element);
   const read = (name: string): number | null => {

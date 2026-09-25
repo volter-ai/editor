@@ -16,6 +16,12 @@
  *  and emits `out/`; `out/server-main.js` is part of it, so no separate server compile exists),
  *  then `compile-web` for the built-in extensions' browser entries.
  *
+ *  A NEW STYLESHEET NEEDS A NEW SESSION, not just a reload: in a sources workbench every `.css`
+ *  import resolves through an import map the server builds ONCE per process
+ *  (`CSSDevelopmentService.getCssModules`, cached), so a `.css` file added since the session
+ *  started is missing from it, its importer fails to evaluate and the page never boots — a blank
+ *  tab with no failed request. `vgai close`, then `vgai edit`.
+ *
  *  IT RUNS NOTHING ELSE, deliberately: it does not start a session, open a tab or touch the
  *  project. `vgai edit` owns all three and the tab bijection is its invariant, so a second
  *  opener here would be a duplicate tab by construction.

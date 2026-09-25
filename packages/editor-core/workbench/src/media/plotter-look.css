@@ -1,0 +1,39 @@
+/* THE PLOTTER LOOK'S FRAME — what a COLOUR THEME cannot reach: type, corners and the section
+   labels. Plotter is the Volter brand's exploration style, so every value is a brand token
+   (brand.volter.ai/tokens.json): Geist for the interface, Geist Mono for small uppercase labels,
+   3 px control and 4 px panel corners. Scoped to the class the workbench puts on itself while the
+   `Plotter` colour theme (`extensions/theme-plotter`, `themes/plotter-light.json`) is active, so
+   every other look is untouched. The faces are loaded by `vgaiPlotterLook.ts`. */
+.monaco-workbench.vscode-theme-plotter-themes-plotter-light-json,
+.monaco-workbench.mac.vscode-theme-plotter-themes-plotter-light-json,
+.monaco-workbench.windows.vscode-theme-plotter-themes-plotter-light-json,
+.monaco-workbench.linux.vscode-theme-plotter-themes-plotter-light-json,
+.monaco-workbench.web.vscode-theme-plotter-themes-plotter-light-json {
+	font-family: 'Geist', 'Segoe UI', system-ui, sans-serif;
+}
+.monaco-workbench.vscode-theme-plotter-themes-plotter-light-json .monaco-button,
+.monaco-workbench.vscode-theme-plotter-themes-plotter-light-json .monaco-inputbox,
+.monaco-workbench.vscode-theme-plotter-themes-plotter-light-json .monaco-select-box,
+.monaco-workbench.vscode-theme-plotter-themes-plotter-light-json .monaco-text-button,
+.monaco-workbench.vscode-theme-plotter-themes-plotter-light-json .keybinding-key {
+	border-radius: 3px !important;
+}
+.monaco-workbench.vscode-theme-plotter-themes-plotter-light-json .quick-input-widget,
+.monaco-workbench.vscode-theme-plotter-themes-plotter-light-json .notification-toast,
+.monaco-workbench.vscode-theme-plotter-themes-plotter-light-json .monaco-menu .monaco-action-bar.vertical,
+.monaco-workbench.vscode-theme-plotter-themes-plotter-light-json .editor-widget {
+	border-radius: 4px !important;
+}
+/* The brand's label: small, uppercase, letter-spaced Geist Mono — the section titles of every
+   part and the panel's tabs. */
+.monaco-workbench.vscode-theme-plotter-themes-plotter-light-json .part.sidebar .title-label h2,
+.monaco-workbench.vscode-theme-plotter-themes-plotter-light-json .part.auxiliarybar .title-label h2,
+.monaco-workbench.vscode-theme-plotter-themes-plotter-light-json .pane-header .title,
+.monaco-workbench.vscode-theme-plotter-themes-plotter-light-json .part.auxiliarybar .composite-bar .action-label:not(.codicon),
+.monaco-workbench.vscode-theme-plotter-themes-plotter-light-json .part.panel .composite-bar .action-label:not(.codicon) {
+	font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+	font-size: 10.5px;
+	font-weight: 500;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}

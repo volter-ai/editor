@@ -35,6 +35,7 @@ import type { ShellStore } from '../shell-store';
 import { COMPASS_CLUSTER_TOP_PX, type EditorViewport } from '../editor-viewport';
 import {
   lookDeclaresViewportColors,
+  lookPaintsLightViewport,
   subscribeNativeSelectionTheme,
 } from '@volter/editor-sdk/kit/native-selection-style';
 import type { ThreeViewportProjection } from '../three-viewport-presentation';
@@ -138,7 +139,10 @@ export function ViewportFurniture({
     subscribeThemeViewportGroup,
     lookDeclaresViewportColors,
   );
-  const overlayInk = lookPaintsViewport ? themeVars.content.onAccent : themeVars.content.primary;
+  // A LIGHT declared viewport (Plotter's paper) is the one case the on-accent ink cannot serve:
+  // there it is the ground's own colour, so the ordinary ink reads instead.
+  const lookPaintsLight = useSyncExternalStore(subscribeThemeViewportGroup, lookPaintsLightViewport);
+  const overlayInk = lookPaintsViewport && !lookPaintsLight ? themeVars.content.onAccent : themeVars.content.primary;
   if (!viewport) return null;
   // Blender's view text names the DIRECTION as well as the projection —
   // "Front Orthographic" on numpad 1 (`modeling-front-ortho.png`), "User
