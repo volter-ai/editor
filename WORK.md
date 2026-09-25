@@ -575,12 +575,6 @@ proofs, not a reproduction or fix of the older intermittent hang.
   zero high/critical entries. Release 0.5.63 resolves those entries; both its packed
   and anonymous public installations report zero vulnerabilities. This is the
   installed product audit, not a claim about the workbench's build-only toolchain.
-- **A models project with no `.blend` cannot start.** Its finder lists only the
-  standing `blender:runtime` entry, nothing opens it at boot, and the model
-  editor's cover refuses after 90 s ("Blender did not open a model"). Opening
-  the entry by hand through the session binds it as a `model` stage. Measured
-  on a scaffolded project with its `cube.blend` removed; the boot opener that
-  should choose the entry is not yet traced.
 - Existing project filenames and protocol/settings identifiers remain unchanged.
   A full rename is a separate migration. Game publication and full viewport
   extraction remain outside this release. Emscripten is shipped; optional WALI

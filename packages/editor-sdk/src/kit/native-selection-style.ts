@@ -12,6 +12,9 @@ export const DEFAULT_NATIVE_SELECTION_COLOR = 0x579eff;
 export interface NativeSelectionColors {
   readonly visible: number;
   readonly hidden: number;
+  /** The ACTIVE object's outline (`color.viewport.active`, Blender's lighter orange), or the
+   *  selection's own when the palette names none. */
+  readonly active?: { readonly visible: number; readonly hidden: number };
 }
 
 function rgbHex(red: number, green: number, blue: number): number {
@@ -75,7 +78,12 @@ export function nativeSelectionColors(element?: Element | null): NativeSelection
   const visible =
     parseCssColor(raw || graphiteDarkEditorTheme.color.accent.default) ??
     DEFAULT_NATIVE_SELECTION_COLOR;
-  return { visible, hidden: dimColor(visible) };
+  const active = parseCssColor(themeToken(root, '--vgai-viewport-active'));
+  return {
+    visible,
+    hidden: dimColor(visible),
+    ...(active === null ? {} : { active: { visible: active, hidden: dimColor(active) } }),
+  };
 }
 
 /** The palette's VIEWPORT GROUP (`EditorTheme.color.viewport`), each member

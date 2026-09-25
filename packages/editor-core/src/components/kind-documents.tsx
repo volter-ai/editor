@@ -246,12 +246,23 @@ export function installKindDocumentRefresh(): () => void {
  * model document restored on the first resolution found no entry). Stops
  * waiting when the project changes under it.
  */
-function whenDocumentEntry(entryId: string, fn: (entry: DocumentEntry) => void): void {
+function whenDocumentEntry(
+  entryId: string,
+  fn: (entry: DocumentEntry) => void,
+  gone?: () => void,
+): void {
   const attempt = (): boolean => {
     const facet = projectAdapterFacet();
     if (!facet) return false;
     const entry = facet.scenes.entries.find((candidate) => candidate.id === entryId);
-    if (!entry) return false;
+    if (!entry) {
+      // The settled table no longer lists it (its file was deleted between sessions).
+      if (gone && !facet.documentsPending) {
+        gone();
+        return true;
+      }
+      return false;
+    }
     fn(entry);
     return true;
   };
@@ -268,8 +279,14 @@ function whenDocumentEntry(entryId: string, fn: (entry: DocumentEntry) => void):
  *  is the one on screen (Photoshop reopens the last document; a models
  *  project with two models and no record used to open on nothing at all). */
 function defaultTableEntry(table: ResolvedDocumentTable): DocumentEntry | null {
+  // An entry opens by its source file or by its kind's own editor: a models project with no
+  // `.blend` lists only the standing `blender:runtime` entry, which has no file and is still
+  // the thing to open.
   const candidates = table.entries.filter(
-    (entry) => entry.kind !== 'scene' && entry.kind !== 'prefab' && entry.source !== undefined,
+    (entry) =>
+      entry.kind !== 'scene' &&
+      entry.kind !== 'prefab' &&
+      (entry.source !== undefined || documentContributionForKind(entry.kind) !== undefined),
   );
   const declared = candidates.find((entry) => entry.id === table.default);
   if (declared) return declared;
@@ -363,7 +380,15 @@ function openDefaultTableDocument(): void {
     // `model:src/models/cube.blend` while `open` held only the timeline.
     if (openWorkspaceDocuments().some((document) => !document.descriptor.area)) return true;
     const entry = defaultTableEntry(facet.scenes);
-    if (entry?.source) {
+    // A non-scene entry nothing can open YET (its kind's editor registers after the first
+    // table) is waited for: the table resolves again when the contributions land.
+    if (!entry) return !facet.scenes.entries.some((one) => one.kind !== 'scene' && one.kind !== 'prefab');
+    if (!entry.source) {
+      // No file: only its kind's editor opens it.
+      openKindDocument(entry);
+      return true;
+    }
+    {
       const path = `/${entry.source.path}`;
       // The kind's own editor when one is registered (a model opens as a
       // model); the source only for a kind nothing edits.
@@ -405,9 +430,16 @@ registerWorkspaceDocumentRestorer({
     const record = state as { entryId?: unknown } | null | undefined;
     const entryId = typeof record?.entryId === 'string' ? record.entryId : null;
     if (!entryId) return false;
-    whenDocumentEntry(entryId, (entry) => {
-      openKindDocumentWhenReady(entry, { activate: active });
-    });
+    // A document whose file is gone reopens nothing, and the session falls back to the
+    // project's default rather than opening on nothing (a models project whose only `.blend`
+    // was deleted).
+    whenDocumentEntry(
+      entryId,
+      (entry) => {
+        openKindDocumentWhenReady(entry, { activate: active });
+      },
+      openDefaultTableDocument,
+    );
     return true;
   },
   persistKindState: () => (seenTableIds ? { seen: [...seenTableIds] } : undefined),

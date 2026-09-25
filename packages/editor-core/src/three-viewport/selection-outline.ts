@@ -47,7 +47,7 @@ export function createThreeSelectionOutline(
   { BlendFunction, KernelSize, OutlineEffect }: ThreeSelectionOutlineEffects,
   scene: THREE.Scene,
   camera: THREE.Camera,
-  colors: { readonly visible: number; readonly hidden: number },
+  colors: OutlineColors,
 ): OutlineEffect {
   const effect = withoutSelectionLayerWarning(
     () =>
@@ -72,6 +72,7 @@ export function createThreeSelectionOutline(
   // the effect's own layer and both masks cancel to no visible edge.
   effect.selectionLayer = EDITOR_SELECTION_LAYER;
   camera.layers.disable(EDITOR_SELECTION_LAYER);
+  outlineState.set(effect, { colors, roots: 0 });
   return effect;
 }
 
@@ -107,7 +108,7 @@ function withoutSelectionLayerWarning<T>(construct: () => T): T {
 export async function loadThreeSelectionOutline(
   scene: THREE.Scene,
   camera: THREE.Camera,
-  colors: { readonly visible: number; readonly hidden: number },
+  colors: OutlineColors,
 ): Promise<OutlineEffect> {
   const { BlendFunction, KernelSize, OutlineEffect } = await import('postprocessing');
   return createThreeSelectionOutline(
@@ -118,13 +119,34 @@ export async function loadThreeSelectionOutline(
   );
 }
 
-/** Apply supplied renderer-ready colors without rebuilding GPU pass resources. */
-export function setThreeSelectionOutlineColors(
-  effect: OutlineEffect,
-  colors: { readonly visible: number; readonly hidden: number },
-): void {
+type OutlineColors = {
+  readonly visible: number;
+  readonly hidden: number;
+  readonly active?: { readonly visible: number; readonly hidden: number };
+};
+
+/** Each effect's palette colours and how many roots it last outlined, so a selection change
+ *  and a palette change each paint the right one. */
+const outlineState = new WeakMap<OutlineEffect, { colors: OutlineColors; roots: number }>();
+
+/**
+ * THE ACTIVE OBJECT'S OUTLINE: a lone selected object is the active one, and a palette that
+ * names an active colour draws it in that (Blender's light orange over its darker selection
+ * orange, `modeling-object-selected.png`). Several selected objects draw in the selection
+ * colour; which of them is active is not yet told apart.
+ */
+function paintOutline(effect: OutlineEffect): void {
+  const state = outlineState.get(effect);
+  if (!state) return;
+  const colors = state.roots === 1 && state.colors.active ? state.colors.active : state.colors;
   effect.visibleEdgeColor.setHex(colors.visible);
   effect.hiddenEdgeColor.setHex(colors.hidden);
+}
+
+/** Apply supplied renderer-ready colors without rebuilding GPU pass resources. */
+export function setThreeSelectionOutlineColors(effect: OutlineEffect, colors: OutlineColors): void {
+  outlineState.set(effect, { colors, roots: outlineState.get(effect)?.roots ?? 0 });
+  paintOutline(effect);
 }
 
 function isOutlineRenderable(object: THREE.Object3D): boolean {
@@ -172,7 +194,13 @@ export function syncThreeSelectionOutline(
   effect: OutlineEffect,
   selectedRoots: Iterable<THREE.Object3D>,
 ): void {
-  const targets = collectThreeSelectionOutlineTargets(selectedRoots);
+  const roots = [...selectedRoots];
+  const state = outlineState.get(effect);
+  if (state && state.roots !== roots.length) {
+    state.roots = roots.length;
+    paintOutline(effect);
+  }
+  const targets = collectThreeSelectionOutlineTargets(roots);
   if (
     effect.selection.size === targets.length &&
     targets.every((target) => effect.selection.has(target))
