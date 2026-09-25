@@ -46,6 +46,16 @@ Rules:
    (engine `5d28941`, `1e5add8`, `9134441`, `a254519`), and a look declares only its
    viewport colours, gizmo size and shelf tool. The targets' measured defaults and the gap are
    [docs/VIEWPORT-STAGE.md](docs/VIEWPORT-STAGE.md).
+7. **Look and function are separate, everywhere.** A look (a style, its palette, material and
+   icon set) says how things are drawn: colours, sizes, widths, shapes, type. What the editor
+   does belongs to function: which tool is armed, what a selection gesture means, how the world
+   is oriented, which regions and panels exist, where the light comes from. Function is stated by
+   whoever builds the thing (a workspace, a stage's starting values, a document) beneath the
+   person's own choices, and a style switch never changes it (owner ruling, 2026-09-25). Audit
+   when recorded, all function carried by the look: `density.viewport.shelfTool` (the armed
+   tool), `density.viewport.boxSelect` (what a box drag selects), `density.viewport.upAxis` (the
+   world's up axis and so the gizmos' axis naming), and `regions` on style bundles (the Maya,
+   Substance and Blender styles set which chrome regions show, which workspaces already carry).
 
 ## Doors
 
