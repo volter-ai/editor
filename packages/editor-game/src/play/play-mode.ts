@@ -1891,6 +1891,12 @@ async function enterPlayModeInner(
     // baked into their own urls, so the gate has to be registered under it or
     // the modules find the default realm's gate instead of their own.
     setGameInputGate(() => instanceInputActive(mountId), mountId);
+    // THE DEFAULT REALM follows the focused instance too. Module-lifetime code
+    // that no mount id reaches lives there — a game's own `InputManager`
+    // (`@volter/game-runtime`'s input, served through the realm shadow) — and
+    // the stop path leaves it open, so a key aimed at a Model document while
+    // the game played still reached it.
+    setGameInputGate(() => instanceInputActive(focusedInstanceId()));
     // Sync EVERY live instance's first-party InputManager from the play/tab/
     // focus predicate whenever the store changes (a tab switch flips the active
     // viewport for all of them). `resyncInstanceInputs` resolves each

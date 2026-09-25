@@ -607,6 +607,12 @@ async function main(): Promise<void> {
     // prebuilt bundle to this separate, project-rooted graph.
     plugins: createProjectServingPlugins({
       projectRoots: () => projectRoots,
+      // A game's own InputManager (`@volter/game-runtime`'s input) listens on the
+      // window; its listeners take the realm gate like the game's own code.
+      runtimeInputRoots: () => {
+        const src = runtimeSources.get('@volter/game-runtime');
+        return src ? [path.join(src, 'input')] : [];
+      },
       // A THUNK, like every other project-scoped plugin: `onProjectOpened`
       // below moves `currentProjectRoot` when a session switches project, and a
       // boot-time snapshot would keep resolving an INGEST root's

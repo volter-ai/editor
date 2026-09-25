@@ -117,6 +117,11 @@ export interface ScriptHmrServingOptions {
 
 export interface ProjectServingPluginOptions {
   /**
+   * Runtime package directories whose input listeners are game input (see
+   * `gameGlobalsShadowPlugin`'s `getRuntimeRoots`). Omitted: none.
+   */
+  readonly runtimeInputRoots?: () => Iterable<string>;
+  /**
    * "Is this the project's own code?" — the opened project's root plus the
    * fixed in-tree ingest-fixture roots. Deliberately ONE predicate shared by
    * the JSX, globals-shadow, mount-isolation and creation-site transforms.
@@ -232,7 +237,7 @@ export function createProjectServingPlugins(options: ProjectServingPluginOptions
     // gated proxies. Engine/editor code is untouched (it keeps the real
     // window; its input is gated separately via `InputManager.setEnabled`).
     // A project with no roots serves no module this touches.
-    gameGlobalsShadowPlugin(projectRoots),
+    gameGlobalsShadowPlugin(projectRoots, () => options.runtimeInputRoots?.() ?? []),
     // Multi-instance isolation: propagate a root entry's `?vgai-mount=<id>`
     // through its project-owned import subtree, so two mounts of one project
     // hold separate module instances while still sharing every package. A

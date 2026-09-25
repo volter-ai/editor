@@ -197,6 +197,9 @@ export interface DocumentKeyStep extends ScopedStep {
   metaKey?: boolean;
   shiftKey?: boolean;
   altKey?: boolean;
+  /** Hold the key this long before releasing it, as a person holding W does;
+   *  omitted, it is pressed and released at once. */
+  holdMs?: number;
 }
 
 /** A real `ClipboardEvent` carrying `text/plain` — the only way to exercise a

@@ -868,6 +868,7 @@ export async function runDocumentProbe(step: DocumentProbeStep): Promise<Documen
       const target = gestureTarget(scope, step);
       const init = keyInit(step);
       target.dispatchEvent(new KeyboardEvent('keydown', init));
+      if (step.holdMs) await new Promise((settle) => setTimeout(settle, step.holdMs));
       target.dispatchEvent(new KeyboardEvent('keyup', init));
       return drove(target);
     }

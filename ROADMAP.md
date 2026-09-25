@@ -56,7 +56,7 @@ Completion:
 - The timeline drives a game's stamped mixer in Edit (the runtime's unset `_animMixer`/`_availableClips` keys leave with the runtime framework).
 - A machine document fits on its first size, and an initial arrow cannot enter its state from below.
 - Navmesh is walked on real content, and Network through a networking adapter.
-- Input a game owns (its own `InputManager`, and machine input through the native door) is gated while the tab is on Edit.
+- Machine input through the native door (`native-debug-module.ts`) is gated while the tab is on Edit, or ruled an agent's deliberate act that is not (a game's own `InputManager` is gated since "A game's own InputManager takes the realm gate").
 
 ## project-model-program: The project shape and settings layers on Code-OSS
 
