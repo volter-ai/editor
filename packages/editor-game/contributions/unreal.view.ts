@@ -1,7 +1,10 @@
 /**
  * UNREAL'S DEFAULT LEVEL VIEWPORT: a preview sky standing in for the level's own, no grid, the
  * outline, the Move tool with its free-move centre, a Z-up LEFT-handed world, and the axis
- * triad as an indicator. Read from `default-interface.png` (no clouds yet).
+ * triad as an indicator, and a preview floor taking the sun's shadow. The view's behaviour (tool,
+ * handles, axes, world, grid off) is read from `default-interface.png`; the sky, cloud and floor
+ * values are FITTED to `level-editor.png` (sampled pixel colours and a side-by-side), not
+ * transcribed from Unreal's own BP_Sky_Sphere or floor material.
  * A named view (`@volter/editor-sdk/kit/viewport-presentation` `ViewPreset`): what the view does
  * and how it is lit, never its look — pair it with the Unreal style for the whole target.
  */
@@ -27,11 +30,12 @@ export const view: ViewPreset = {
           environment: {
             enabled: true,
             sky: {
-              top: '#7488a3',
-              horizon: '#8ea6c0',
-              ground: '#28313d',
+              top: '#566b8c',
+              horizon: '#8ea6bf',
+              ground: '#2b323b',
               topCurve: 0.1,
               groundCurve: 0.12,
+              clouds: { cover: 0.55, opacity: 0.9, scale: 16 },
             },
             energy: 1,
             rotation: 0,
@@ -52,6 +56,10 @@ export const view: ViewPreset = {
       navigation: 'indicator',
       grid: {
         visible: false,
+      },
+      floor: {
+        visible: true,
+        color: '#0a1428',
       },
       selection: {
         outline: true,
