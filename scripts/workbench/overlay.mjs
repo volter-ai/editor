@@ -356,6 +356,20 @@ function patchNativeChat(checkout) {
 		'const defaultAgent = this.chatAgentService.getDefaultAgent(location) ?? this.chatAgentService.getDefaultAgent(ChatAgentLocation.Chat);',
 		'default-agent activation');
 
+	// A product with no authentication provider — ours: `patchProduct` leaves the provider ids
+	// empty, and Supercode fills Chat — has no setup to run. Upstream still registered
+	// Copilot's setup agents, its status entry ("Sign In"), the title-bar and accounts-menu
+	// Sign In, and their dialog "Sign in to use GitHub Copilot", which a person reached from
+	// the status bar (seen by the owner on the game editor). None of them registers now.
+	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/chatSetup/chatSetupContributions.ts',
+		'\t\tif (!context || !requests) {\n\t\t\treturn; // disabled\n\t\t}',
+		'\t\tif (!context || !requests || !product.defaultChatAgent?.provider?.default?.id) {\n\t\t\treturn; // disabled: no provider to set up\n\t\t}',
+		'setup without a provider');
+	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/chatStatus/chatStatusEntry.ts',
+		'\t\tif (!sentiment.hidden) {',
+		'\t\tif (!sentiment.hidden && product.defaultChatAgent?.provider?.default?.id) {',
+		'status entry without a provider');
+
 	// The editor owns agent runtimes through Supercode: its service choice registers after the
 	// web defaults (packages/editor-core/workbench/src/vgaiChat.services.ts).
 	const webMain = join(checkout, 'src/vs/workbench/workbench.web.main.ts');
