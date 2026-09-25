@@ -132,8 +132,10 @@ export function decideStaticBatchAdvisory(
   const fix = subtree === null ? '<Frozen>' : `<Frozen name="${subtree}">`;
   const where = subtree === null ? 'spread across the scene' : `mostly under "${subtree}"`;
   const message =
-    `[static-batch] ~${grouped(collapsible)} of ${grouped(drawCalls)} draw calls are the same ` +
-    `handful of draws repeated (${grouped(structural.familyCount)} structural families), ` +
+    // `collapsible` counts meshes in the graph (culled ones included) and `drawCalls` this
+    // frame's submissions, so each number is stated in its own unit, never as a share.
+    `[static-batch] ${grouped(drawCalls)} draw calls this frame; ~${grouped(collapsible)} meshes ` +
+    `are repeats of ${grouped(structural.familyCount)} structural families, ` +
     `${where}. If that scenery is mount-static — nothing under it moves, re-colours or ` +
     `unmounts after mount — one wrapper collapses it to a few draws: wrap it in ` +
     `${fix}…</Frozen>  (vgai add static-batch). Reactive scenery goes outside the wrapper, ` +
