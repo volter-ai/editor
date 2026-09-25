@@ -683,9 +683,14 @@ function axisSegmentPositions(threeAxis: number): number[] {
  * same 0..1 amount object. It starts at 0 — today's flat axis — and
  * `_applyViewportLook` raises it for a look that paints the viewport.
  */
-function applyAxisGrazingFade(material: LineMaterial, amount: { value: number }): void {
+function applyAxisGrazingFade(
+  material: LineMaterial,
+  amount: { value: number },
+  planeNormal: { value: THREE.Vector3 },
+): void {
   material.onBeforeCompile = (shader) => {
     shader.uniforms['uGrazingFade'] = amount;
+    shader.uniforms['uPlaneNormal'] = planeNormal;
     shader.vertexShader = shader.vertexShader
       .replace('void main() {', 'varying vec3 vAxisWorld;\nvoid main() {')
       .replace(
@@ -695,15 +700,19 @@ function applyAxisGrazingFade(material: LineMaterial, amount: { value: number })
     shader.fragmentShader = shader.fragmentShader
       .replace(
         'void main() {',
-        `varying vec3 vAxisWorld;\nuniform float uGrazingFade;\n${GRAZING_FADE_GLSL}\nvoid main() {`,
+        `varying vec3 vAxisWorld;\nuniform float uGrazingFade;\nuniform vec3 uPlaneNormal;\n${GRAZING_FADE_GLSL}\nvoid main() {`,
       )
       .replace(
         'gl_FragColor = vec4( diffuseColor.rgb, alpha );',
-        'gl_FragColor = vec4( diffuseColor.rgb, alpha * vgaiGrazingFade( vAxisWorld, cameraPosition, vec3( 0.0, 1.0, 0.0 ), uGrazingFade ) );',
+        'gl_FragColor = vec4( diffuseColor.rgb, alpha * vgaiGrazingFade( vAxisWorld, cameraPosition, uPlaneNormal, uGrazingFade ) );',
       );
   };
   material.customProgramCacheKey = () => 'vgai-axis-grazing-fade';
 }
+
+const _gridView = new THREE.Vector3();
+const _gridEye = new THREE.Vector3();
+const _gridUp = new THREE.Vector3(0, 1, 0);
 
 function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial> {
   const geometry = new THREE.PlaneGeometry(extent, extent);
@@ -723,6 +732,14 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
       // the one predicate that already decides whether a look paints the
       // viewport at all. See {@link GRAZING_FADE_GLSL} for the measurement.
       uGrazingFade: { value: 0 },
+      // The plane the grid lies in: the floor, or an axis-aligned orthographic view's own plane
+      // (`EditorViewport.alignGridToView`). A unit axis.
+      uPlaneNormal: { value: new THREE.Vector3(0, 1, 0) },
+      // The minor line spacing in metres and how much of it shows: 1 m and full on the floor;
+      // in an axis-aligned orthographic view, Blender's zoom-dependent level
+      // (`EditorViewport.alignGridToView`).
+      uUnit: { value: 1 },
+      uMinorFade: { value: 1 },
     },
     vertexShader: `
       varying vec3 vWorld;
@@ -741,6 +758,9 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
       uniform float uFadeStart;
       uniform float uFadeEnd;
       uniform float uGrazingFade;
+      uniform vec3 uPlaneNormal;
+      uniform float uUnit;
+      uniform float uMinorFade;
       varying vec3 vWorld;
       ${GRAZING_FADE_GLSL}
       // Coverage of a line WIDTH device pixels across, with a one-pixel
@@ -756,9 +776,10 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
         return max(cov.x, cov.y);
       }
       void main() {
-        vec2 p = vWorld.xz;
+        vec2 world = abs(uPlaneNormal.y) > 0.5 ? vWorld.xz : abs(uPlaneNormal.z) > 0.5 ? vWorld.xy : vWorld.zy;
+        vec2 p = world / uUnit;
         vec2 pixelsPerMetre = 1.0 / max(fwidth(p), vec2(1e-6));
-        float minorVisible = smoothstep(4.0, 14.0, min(pixelsPerMetre.x, pixelsPerMetre.y));
+        float minorVisible = smoothstep(4.0, 14.0, min(pixelsPerMetre.x, pixelsPerMetre.y)) * uMinorFade;
         // Both levels reach FULL strength in their own colour, as Blender's
         // do: the 1 m line is measured at exactly the palette's grid colour
         // and the 10 m line brighter than it (see uMajorColor). The minor
@@ -772,12 +793,12 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
         // never exceeded 0.75 coverage and so measured 91, not 102.
         float major = gridLine(p / uMajorEvery, uMajorWidth);
         float line = max(minor, major);
-        float fade = 1.0 - smoothstep(uFadeStart, uFadeEnd, length(p));
+        float fade = 1.0 - smoothstep(uFadeStart, uFadeEnd, length(world));
         // The floor's DEPTH, beside the band that ends its finite extent:
         // Blender's own grazing-angle profile, transcribed from its frames
         // (see GRAZING_FADE_GLSL above). Without it this lattice reads the
         // same ink at the front of the frame and at the horizon.
-        fade *= vgaiGrazingFade(vWorld, cameraPosition, vec3(0.0, 1.0, 0.0), uGrazingFade);
+        fade *= vgaiGrazingFade(vWorld, cameraPosition, uPlaneNormal, uGrazingFade);
         float alpha = line * fade * uOpacity;
         if (alpha <= 0.002) discard;
         // WHICH level a fragment belongs to is the major's SHARE of the
@@ -1217,6 +1238,7 @@ export class EditorViewport {
     applyAxisGrazingFade(
       this._axisLines.material as LineMaterial,
       this.grid.material.uniforms['uGrazingFade'] as { value: number },
+      this.grid.material.uniforms['uPlaneNormal'] as { value: THREE.Vector3 },
     );
     this._axisLines.visible = false;
     this._axisLines.layers.set(EDITOR_LAYER);
@@ -3476,6 +3498,7 @@ export class EditorViewport {
     for (const handle of this._spatialHandleMeshes) scaleSpatialHandle(handle, this.renderCamera);
 
     this._enforceLodForcedLevels();
+    this.alignGridToView(this.renderCamera, this._renderer?.domElement.width ?? 1);
     // Last, so it reads the camera pose this frame will actually draw with.
     this._updateClipPlanes();
   }
@@ -3763,6 +3786,54 @@ export class EditorViewport {
     if (current.outline === marks.outline && current.wire === marks.wire && current.box === marks.box) return;
     this._selectionMarks = { outline: marks.outline, wire: marks.wire, box: marks.box };
     this._syncBoxHelpers();
+  }
+
+  /**
+   * THE GRID'S PLANE FOLLOWS THE VIEW, as Blender's does (`overlay_grid.hh`, "Fixed plane
+   * orthographic"): an orthographic view looking straight down an axis (Front, Right, Top and
+   * their opposites) draws the grid in that view's own plane, behind the geometry
+   * (`GRID_BEHIND_GEOMETRY`), where the floor would stand edge-on and fade to nothing; any other
+   * view draws the floor. Moving the grid and the axis lines along an orthographic view's
+   * direction changes their depth and nothing on screen, so "behind" is a push along it.
+   * The axis lines keep their world directions: the one along the view is a point, and the
+   * rest lie in the plane. Called with the camera each draw uses.
+   */
+  alignGridToView(camera: THREE.Camera, bufferWidth: number): void {
+    const uniforms = this.grid.material.uniforms;
+    const normal = uniforms['uPlaneNormal']!.value as THREE.Vector3;
+    let axis = -1;
+    if ((camera as THREE.OrthographicCamera).isOrthographicCamera) {
+      camera.getWorldDirection(_gridView);
+      const components = [Math.abs(_gridView.x), Math.abs(_gridView.y), Math.abs(_gridView.z)];
+      axis = components.findIndex((value) => value > 1 - 1e-4);
+    }
+    normal.set(axis === 0 ? 1 : 0, axis === -1 || axis === 1 ? 1 : 0, axis === 2 ? 1 : 0);
+    this.grid.quaternion.setFromUnitVectors(_gridUp, normal);
+    this.grid.position.set(0, 0, 0);
+    if (axis !== -1) {
+      const ortho = camera as THREE.OrthographicCamera;
+      camera.getWorldPosition(_gridEye);
+      // Just short of the far plane, along the view, then kept only along the plane's normal.
+      _gridEye.addScaledVector(_gridView, ortho.far * 0.98);
+      this.grid.position.copy(normal).multiplyScalar(_gridEye.dot(normal));
+    }
+    this._axisLines?.position.copy(this.grid.position);
+    // THE LEVEL, transcribed from `overlay_grid.hh`: an axis-aligned orthographic view measures
+    // `dist = 10 * 12 / (sizex * winmat[0][0])` — sixty device pixels of world — and draws the
+    // power of ten below it as the minor line, faded by how far `dist` has climbed toward the
+    // next power, under the next as the emphasised one. Blender's grid steps are metric powers
+    // of ten, and the grid's own major step (`uMajorEvery`, 10) is that next power.
+    let unit = 1;
+    let minorFade = 1;
+    if (axis !== -1) {
+      const ortho = camera as THREE.OrthographicCamera;
+      const worldWidth = (ortho.right - ortho.left) / ortho.zoom;
+      const dist = (60 * worldWidth) / Math.max(bufferWidth, 1);
+      unit = 10 ** Math.floor(Math.log10(dist));
+      minorFade = 1 - (dist - unit) / (unit * 10 - unit);
+    }
+    uniforms['uUnit']!.value = unit;
+    uniforms['uMinorFade']!.value = minorFade;
   }
 
   /** Minor cells per major line (`overlays.grid.majorEvery`; Blender 10, Godot 8). */

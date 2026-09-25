@@ -1692,6 +1692,9 @@ export function Object3DDocumentViewport({
                 ? host.darkenContentLights()
                 : 0;
             rig.update(documentSession.camera());
+            // A document draws through its session's camera, which the viewport's own frame
+            // does not know is orthographic.
+            host.viewport?.alignGridToView(documentSession.camera(), renderer.domElement.width);
             reportViewDraw(documentId, {
               source: drawSource,
               presetId: rig.presetId(),

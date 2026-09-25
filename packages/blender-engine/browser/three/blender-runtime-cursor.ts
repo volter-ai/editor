@@ -186,9 +186,16 @@ export class CursorOverlay {
   /**
    * Where Shift+Right-click at `clientX/clientY` puts the cursor, or null when
    * the point is not on the view the cursor was last drawn in. `model` is the
-   * presented model root, whose local frame is Blender's.
+   * presented model root, whose local frame is Blender's; `isSurface` says which of its meshes
+   * are the scene's own geometry, the only thing Blender's depth pick sees.
    */
-  placementAt(clientX: number, clientY: number, target: EventTarget | null, model: THREE.Object3D): CursorPlacement | null {
+  placementAt(
+    clientX: number,
+    clientY: number,
+    target: EventTarget | null,
+    model: THREE.Object3D,
+    isSurface: (object: THREE.Object3D) => boolean,
+  ): CursorPlacement | null {
     const seen = this.seen;
     if (seen === null || target !== seen.canvas) return null;
     const rect = seen.canvas.getBoundingClientRect();
@@ -204,7 +211,7 @@ export class CursorOverlay {
     };
     const hit = raycaster
       .intersectObject(model, true)
-      .find((one) => (one.object as THREE.Mesh).isMesh && shown(one.object));
+      .find((one) => (one.object as THREE.Mesh).isMesh && isSurface(one.object) && shown(one.object));
     let world: THREE.Vector3 | null = hit ? hit.point.clone() : null;
     if (world === null) {
       // No surface: the view plane through the current cursor. A cursor behind the view gives

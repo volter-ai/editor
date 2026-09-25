@@ -566,10 +566,9 @@ export class BlenderRuntimeView {
   /** The camera the VIEWPORT is held in render lighting through (Blender's Rendered shading),
    *  or null when the viewport shows modeling lighting. See {@link holdRendered}. */
   private heldRendered: (() => THREE.Camera) | null = null;
-  /** What the held state was last applied for (the draw camera and the World), so it is
-   *  re-applied when either changes and not on every frame: applying rebuilds the World's
-   *  textures and refits every shadow. */
-  private heldKey: string | null = null;
+  /** What the World was last composed for ({@link worldKeyFor}), or null when it is cleared:
+   *  composing rebuilds its textures, so it happens only when the key changes. */
+  private worldApplied: string | null = null;
   /** The frame's World, as a key, taken once per frame. */
   private worldKey = 'null';
   /** A render photograph is being taken: the one state in which overlays stand down. */
@@ -836,7 +835,10 @@ export class BlenderRuntimeView {
    * cursor moves at once; the engine's next frame confirms it.
    */
   placeCursor(clientX: number, clientY: number, target: EventTarget | null): CursorPlacement | null {
-    const placement = this.cursorOverlay.placementAt(clientX, clientY, target, this.root);
+    const presented = new Set(this.objects.values());
+    const placement = this.cursorOverlay.placementAt(clientX, clientY, target, this.root, (object) =>
+      presented.has(object),
+    );
     if (placement !== null) {
       this.cursorOverlay.show(placement);
       presenterChanged();
@@ -854,9 +856,8 @@ export class BlenderRuntimeView {
   holdRendered(drawCamera: (() => THREE.Camera) | null): void {
     if (drawCamera === this.heldRendered) return;
     this.heldRendered = drawCamera;
-    this.heldKey = null;
-    if (drawCamera === null && !this.capturing) this.report(this.applyRendered(false));
-    else this.refreshRendered();
+    if (this.capturing) return;
+    this.report(drawCamera === null ? this.applyRendered(false) : this.applyRendered(true, drawCamera()));
   }
 
   /**
@@ -867,10 +868,19 @@ export class BlenderRuntimeView {
     // A photograph in progress keeps its own state; it returns to this one when it ends.
     if (this.heldRendered === null || this.capturing) return;
     const camera = this.heldRendered();
-    const key = `${camera.uuid}:${this.worldKey}`;
-    if (key === this.heldKey) return;
-    this.heldKey = key;
+    if (this.worldKeyFor(camera) === this.worldApplied) return;
     this.report(this.applyRendered(true, camera));
+  }
+
+  /**
+   * What the World is composed for: the camera, the frame's World, and for an orthographic
+   * camera its direction too, which an orthographic backdrop is sampled along
+   * (`WorldBackground.compose`).
+   */
+  private worldKeyFor(camera: THREE.Camera): string {
+    const ortho = (camera as THREE.OrthographicCamera).isOrthographicCamera;
+    const turn = ortho ? camera.getWorldDirection(new THREE.Vector3()).toArray().map((v) => v.toFixed(3)).join(',') : '';
+    return `${camera.uuid}:${turn}:${this.worldKey}`;
   }
 
   private report(work: Promise<void>): void {
@@ -895,11 +905,7 @@ export class BlenderRuntimeView {
     this.capturing = rendered;
     // A render ends by returning to what the viewport holds, which in Rendered shading is the
     // same render lighting, seen through the viewport's own camera again.
-    if (!rendered && this.heldRendered !== null) {
-      const camera = this.heldRendered();
-      this.heldKey = `${camera.uuid}:${this.worldKey}`;
-      return this.applyRendered(true, camera);
-    }
+    if (!rendered && this.heldRendered !== null) return this.applyRendered(true, this.heldRendered());
     return this.applyRendered(rendered, camera);
   }
 
@@ -915,8 +921,11 @@ export class BlenderRuntimeView {
     this.lighting.setRendered(rendered);
     // The scene's world is what a render sees past the geometry AND its
     // ambient light; modeling keeps the document's own backdrop and fill.
-    if (rendered) this.world.apply(this.root, this.frame?.world ?? null, camera);
-    else this.world.clear();
+    // A photograph always composes its own; the viewport recomposes only when the key changed.
+    const worldKey = rendered && camera ? this.worldKeyFor(camera) : null;
+    if (!rendered) this.world.clear();
+    else if (this.capturing || worldKey !== this.worldApplied) this.world.apply(this.root, this.frame?.world ?? null, camera);
+    this.worldApplied = this.capturing ? null : worldKey;
     this.applyVisibility();
     this.applyShadows(rendered, camera);
     // AFTER the applies, because they are what REGISTERS the work. Awaiting
@@ -1513,14 +1522,9 @@ export class BlenderRuntimeView {
       this.frame = { ...this.frame, warnings: [...this.frame.warnings, ...overlayWarnings] };
     // Visibility is read off the frame, so it is applied once the frame stands.
     this.applyVisibility();
-    // Rendered shading follows the scene: shadows for the meshes this frame added, and its World
-    // when that changed (`refreshRendered`).
-    if (this.heldRendered !== null && !this.capturing) {
-      const camera = this.heldRendered();
-      this.applyShadows(true, camera);
-      this.applyVisibility();
-      this.refreshRendered();
-    }
+    // Rendered shading follows the scene: the frame's new materials, lights and shadows, and its
+    // World when that changed.
+    if (this.heldRendered !== null && !this.capturing) this.report(this.applyRendered(true, this.heldRendered()));
     // The model moved: whoever is READING the engine (the Properties sections
     // through the RNA door) re-reads now, with the new graph already standing.
     for (const listener of [...this.frameListeners]) listener();

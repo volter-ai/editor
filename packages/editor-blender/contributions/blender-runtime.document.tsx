@@ -235,8 +235,10 @@ function BlenderModelViewport({
     const stageOf = () => viewport.stages().find((one) => one.documentId === documentId);
     let framed: ReturnType<typeof stageOf> = undefined;
     let stopFrame: (() => void) | null = null;
-    // One getter for the life of the effect, so holding again is not a change.
-    const drawCamera = (): THREE.Camera => stageOf()?.rig().drawCamera() ?? new THREE.PerspectiveCamera();
+    // One getter for the life of the effect, so holding again is not a change; the stand-in is
+    // for the moment a stage has left and `onStages` has not yet released the hold.
+    const standIn = new THREE.PerspectiveCamera();
+    const drawCamera = (): THREE.Camera => stageOf()?.rig().drawCamera() ?? standIn;
     const apply = (): void => {
       const stage = stageOf();
       if (stage !== framed) {
