@@ -105,6 +105,16 @@ Completion:
 - Preview usefulness reviewed on representative compositions; AmbientCG in the local catalog; the Sketchfab CC0 acquisition decided by the owner.
 - A dedicated-server lane on a BYOK provider; clock synchronization and production interpolation; room boilerplate reduced without a wrapper; player services only behind a real provider boundary.
 
+## after-launch-lanes: The lines parked for after the first launch
+
+Status: proposed; after the first launch, by the owner's launch rule
+Source: vgai-engine `docs/WORK.md` §The Godot lane is ARCHIVED, §The Roblox, Unity and Minecraft lanes are ARCHIVED (owner, 2026-09-19: "incomplete lines of work that won't go into this first launch") and §The launch-scope sweep (owner, 2026-09-20: "for later"). Each line is whole at a tag in `volter-ai/vgai-engine` and comes back from it, never re-derived:
+- the engine compatibility lanes, each an analyzer and runtime that brings a game from that engine into VGAI: Godot (`archive/godot-lane-2026-09-19`), Roblox (`archive/roblox-lane-2026-09-19`), Unity (`archive/unity-lane-2026-09-19`) and Minecraft (`archive/minecraft-lane-2026-09-19`)
+- the example games (`archive/examples-2026-09-19`); `arena` has already come back
+- everything off the Blender launch path (`archive/launch-scope-2026-09-20`): the services and providers; the editor skews (agents, asset library, collaboration, canvas, p2p-colyseus, and the ingest shelf that proves any game loads unaltered); 29 catalog capabilities, among them audio, music, netcode, IK, terrain, HUD and timeline; and the learn site
+Completion:
+- Each line is restored from its tag when the owner calls its turn, or is retired by the owner's word.
+
 ## public-game-release: The game editor's public release
 
 Status: planned
