@@ -28,11 +28,9 @@
  *
  * The layout host consumes the resolution physically (column present vs
  * overlay card vs neither); `components/Inspector.tsx` consumes it visually
- * (narrow column vs mini card). Overrides are persisted per-user in
- * localStorage (same convenience-not-truth rationale as
- * `workspace-state-persistence.ts`'s storage decision), global across projects
- * like the theme preference — how you like your inspector is not a property of
- * any one game.
+ * (narrow column vs mini card). Overrides are the person's own, kept in their
+ * UI state (`@volter/editor-sdk/kit/user-local-state`, `~/.vgai/editor-state.json`), global
+ * across projects — how you like your inspector is not a property of any one game.
  */
 
 import type { IconDefinition } from '@fortawesome/free-solid-svg-icons';
@@ -41,40 +39,27 @@ import type {
   InspectionSection,
   InspectionSurfaceKind,
 } from '@volter/editor-sdk/kit/inspection-model';
+import { userLocalSection, writeUserLocalSection } from '@volter/editor-sdk/kit/user-local-state';
 
 /** What a user can ASK for — both projections, on any surface. */
 export type InspectorPresentationOverride = InspectionPresentation;
 
-const STORAGE_KEY = 'vgai-inspector-presentation-v2';
+const SECTION = 'inspectorPresentation';
 
 type OverrideMap = Partial<Record<InspectionSurfaceKind, InspectorPresentationOverride>>;
-
-function storage(): Storage | null {
-  try {
-    return typeof window === 'undefined' ? null : window.localStorage;
-  } catch {
-    return null;
-  }
-}
 
 function isOverride(value: unknown): value is InspectorPresentationOverride {
   return value === 'card' || value === 'column' || value === 'properties';
 }
 
 function readPersisted(): OverrideMap {
-  const raw = storage()?.getItem(STORAGE_KEY);
-  if (!raw) return {};
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object') return {};
-    const map: OverrideMap = {};
-    for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
-      if (isOverride(value)) map[key as InspectionSurfaceKind] = value;
-    }
-    return map;
-  } catch {
-    return {};
+  const stored = userLocalSection<unknown>(SECTION);
+  if (!stored || typeof stored !== 'object') return {};
+  const map: OverrideMap = {};
+  for (const [key, value] of Object.entries(stored as Record<string, unknown>)) {
+    if (isOverride(value)) map[key as InspectionSurfaceKind] = value;
   }
+  return map;
 }
 
 let _overrides: OverrideMap | null = null;
@@ -101,11 +86,7 @@ export function setInspectorPresentationOverride(
   if (inspectorPresentationOverride(surface) === value) return;
   _overrides = { ...overrides(), [surface]: value };
   _version++;
-  try {
-    storage()?.setItem(STORAGE_KEY, JSON.stringify(_overrides));
-  } catch {
-    // Persistence is convenience; the in-memory preference is already applied.
-  }
+  writeUserLocalSection(SECTION, _overrides);
   for (const listener of _listeners) listener();
 }
 
@@ -137,17 +118,6 @@ export function resolveInspectorPresentation(
   workspaceDefault: 'column' | 'properties' | 'card' | null = null,
 ): InspectionPresentation {
   return override ?? workspaceDefault ?? affinity;
-}
-
-export function __resetInspectorPresentationForTest(): void {
-  _overrides = null;
-  _version = 0;
-  _listeners.clear();
-  try {
-    storage()?.removeItem(STORAGE_KEY);
-  } catch {
-    // ignore
-  }
 }
 
 // ---- Section-icon-strip derivation (pure — headlessly testable) -----------

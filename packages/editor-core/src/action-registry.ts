@@ -49,24 +49,6 @@ export interface EditorAction {
   execute: () => void | Promise<void>;
 }
 
-const RECENT_KEY = 'editor:recent-actions';
-const MAX_RECENT = 10;
-
-export function getRecentActionIds(): string[] {
-  try {
-    return JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]') as string[];
-  } catch {
-    return [];
-  }
-}
-
-export function pushRecentAction(id: string): void {
-  const recent = getRecentActionIds().filter((r) => r !== id);
-  recent.unshift(id);
-  if (recent.length > MAX_RECENT) recent.length = MAX_RECENT;
-  localStorage.setItem(RECENT_KEY, JSON.stringify(recent));
-}
-
 /** Build the static list of editor command actions. */
 export function buildStaticActions(
   store: ShellStore,

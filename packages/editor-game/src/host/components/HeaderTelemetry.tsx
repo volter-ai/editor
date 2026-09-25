@@ -1,4 +1,5 @@
 import { faVolumeHigh, faVolumeXmark } from '@fortawesome/free-solid-svg-icons';
+import { userLocalSection, writeUserLocalSection } from '@volter/editor-sdk/kit/user-local-state';
 import { AnchoredMenu, Button, EditorIcon, Inline, MenuItem } from '@volter/editor-sdk/widgets';
 import type { PerformanceSnapshot } from '@volter/game-runtime/dev/performance-profiler';
 import type { AudioAdapter, AudioMeterFrame } from '@volter/editor-project/adapter';
@@ -27,7 +28,8 @@ import {
 } from './header-telemetry-model';
 import { profilerView } from './utility-view-state';
 
-const MUTE_KEY = 'editor:muted';
+/** The editor's mute: the person's, in every project (their UI state). */
+const MUTE_SECTION = 'muted';
 const EMPTY_PERFORMANCE: PerformanceSnapshot = {
   enabled: false,
   recording: false,
@@ -50,20 +52,11 @@ const EMPTY_PERFORMANCE: PerformanceSnapshot = {
 };
 
 function storedMutePreference(): boolean {
-  try {
-    return localStorage.getItem(MUTE_KEY) === '1';
-  } catch {
-    return false;
-  }
+  return userLocalSection<unknown>(MUTE_SECTION) === true;
 }
 
 function persistMutePreference(muted: boolean): void {
-  try {
-    localStorage.setItem(MUTE_KEY, muted ? '1' : '0');
-  } catch {
-    // Storage can be unavailable in an embedded/locked-down host. Muting the
-    // live adapters still succeeds; only the next-session preference is lost.
-  }
+  writeUserLocalSection(MUTE_SECTION, muted);
 }
 
 function audioDisplayLevel(adapter: AudioAdapter, frames: readonly AudioMeterFrame[]): number {

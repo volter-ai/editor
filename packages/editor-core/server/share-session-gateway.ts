@@ -207,6 +207,8 @@ const NEVER_SHARE_PATHS = new Set([
   '/__editor/editor-state',
   // The USER settings layer is the host's own ~/.vgai/settings.json.
   '/__editor/settings/user',
+  // So is the host's own UI state, ~/.vgai/editor-state.json.
+  '/__editor/user-state',
   '/__editor/themes/user',
   '/__editor/git/status',
   '/__editor/inspect-project',

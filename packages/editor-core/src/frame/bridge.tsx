@@ -30,6 +30,7 @@
  * half of every host door, and each handle's own comment names the contribution
  * that consumes it.
  */
+import { preloadUserLocalState } from '@volter/editor-sdk/kit/user-local-state';
 import { threeStateOf } from '../three-state';
 import { loadProductNames, productDisplayName } from '@volter/editor-sdk/kit/product-command';
 import '../editor-styles.css';
@@ -1100,7 +1101,7 @@ export async function mountEditor(next: VscodeParts): Promise<{
   // the discovery scan. The kit's own CSF needs no contribution to exist, so
   // the registrations are direct (`stories/story-lane.ts`).
   installStoryLane();
-  await Promise.all([preloadSettings(), preloadEditorThemeLibrary()]);
+  await Promise.all([preloadSettings(), preloadEditorThemeLibrary(), preloadUserLocalState()]);
   installEditorTheme(next.chromeRoot);
   next.chromeRoot.classList.toggle('vgai-native-menus', activeProduct()?.nativeMenus === true);
   // AppRoot's own overlays (startup screens, notifications, the palette) render

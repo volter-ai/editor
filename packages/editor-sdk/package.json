@@ -69,6 +69,7 @@
     "./kit/document-preview-source": "./src/kit/document-preview-source.ts",
     "./kit/environment-images": "./src/kit/environment-images.ts",
     "./kit/eyedropper-session": "./src/kit/eyedropper-session.ts",
+    "./kit/user-local-state": "./src/kit/user-local-state.ts",
     "./kit/hmr-registration-group": "./src/kit/hmr-registration-group.ts",
     "./kit/inspection-model": "./src/kit/inspection-model.ts",
     "./kit/inspector-property-grouping": "./src/kit/inspector-property-grouping.ts",
