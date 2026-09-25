@@ -21,6 +21,8 @@ export interface PieceTransport {
   /** Quarter-note beats per bar (`6/8` → 3). */
   readonly beatsPerBar: number;
   readonly oid: string | null;
+  /** The tempo lane (`<Points target="tempo">`), or `null` for one tempo throughout. */
+  readonly tempoPoints: PiecePoints | null;
 }
 
 export interface PieceNote {
@@ -33,8 +35,27 @@ export interface PieceNote {
   readonly duration: number;
   readonly pitch: number;
   readonly vel: number;
+  /** How it is played (`staccato`, `legato`, …), or `null`. */
+  readonly artic: string | null;
   /** As written: `at`, `pitch` and `dur` exactly as the source spells them. */
   readonly written: { readonly at: string; readonly pitch: string; readonly dur: string };
+}
+
+export interface PiecePoint {
+  readonly id: string;
+  readonly oid: string | null;
+  /** Beats from the piece's start. */
+  readonly time: number;
+  readonly value: number;
+  readonly hold: boolean;
+}
+
+/** An automation lane: a controller (`cc11`), `pitchbend`, or `tempo` on the transport. */
+export interface PiecePoints {
+  readonly id: string;
+  readonly oid: string | null;
+  readonly target: string;
+  readonly points: readonly PiecePoint[];
 }
 
 export interface PieceClip {
@@ -44,6 +65,7 @@ export interface PieceClip {
   readonly time: number;
   readonly duration: number;
   readonly notes: readonly PieceNote[];
+  readonly lanes: readonly PiecePoints[];
 }
 
 export interface PieceDevice {
@@ -122,11 +144,28 @@ export function readPiece(root: DawNode): Piece {
     denominator,
     beatsPerBar,
     oid: transportNode?.oid ?? null,
+    tempoPoints: null,
   };
   const position = (value: unknown, where: string): number => {
     if (typeof value !== 'string' && typeof value !== 'number') throw new Error(`${where} has no \`at\` position.`);
     return beatAt(value, beatsPerBar);
   };
+  const readLane = (node: DawNode, id: string, where: string): PiecePoints => ({
+    id,
+    oid: node.oid,
+    target: str(node.props['target']) ?? '',
+    points: node.children
+      .filter((point) => point.type === 'Point')
+      .map((point, index) => ({
+        id: `${id}:point:${index}`,
+        oid: point.oid,
+        time: position(point.props['at'], `A <Point> in ${where}`),
+        value: num(point.props['value'], 0),
+        hold: bool(point.props['hold']),
+      })),
+  });
+  const tempoNode = transportNode?.children.find((node) => node.type === 'Points' && node.props['target'] === 'tempo');
+  const withTempo: PieceTransport = tempoNode ? { ...transport, tempoPoints: readLane(tempoNode, 'transport:tempo', '<Transport>') } : transport;
   const tracks: PieceTrack[] = [];
   const markers: PieceMarker[] = [];
   let length = 0;
@@ -176,17 +215,21 @@ export function readPiece(root: DawNode): Piece {
                 duration: beatsOf(typeof writtenDur === 'number' ? writtenDur : String(writtenDur ?? '')),
                 pitch: midiOf(writtenPitch),
                 vel: num(note.props['vel'], 0.7),
+                artic: str(note.props['artic']),
                 written: { at: String(note.props['at'] ?? ''), pitch: writtenPitch, dur: String(writtenDur ?? '') },
               };
             });
+          const lanes = child.children
+            .filter((lane) => lane.type === 'Points')
+            .map((lane, laneIndex) => readLane(lane, `${clipId}:lane:${laneIndex}`, where));
           length = Math.max(length, time + duration);
-          clips.push({ id: clipId, oid: child.oid, name: clipName, time, duration, notes });
+          clips.push({ id: clipId, oid: child.oid, name: clipName, time, duration, notes, lanes });
         }
       });
       tracks.push({ id: trackId, oid: node.oid, name: trackName, color: str(node.props['color']), channel, clips });
     }
   });
-  return { transport, tracks, markers, length, oidCounts };
+  return { transport: withTempo, tracks, markers, length, oidCounts };
 }
 
 /** Seconds per beat at the piece's tempo (a constant tempo; tempo automation is not read yet). */

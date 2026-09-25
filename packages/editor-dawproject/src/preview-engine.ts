@@ -14,8 +14,8 @@
  * 40·log10 curve, `pan` to CC10, `mute`/`solo` by leaving notes unscheduled.
  */
 
+import { type Performance, perform } from '@volter/dawproject/perform';
 import type { Piece, PieceTrack } from '@volter/dawproject/piece';
-import { secondsPerBeat } from '@volter/dawproject/piece';
 import { projectModuleUrl } from '@volter/editor-sdk/contributions';
 import { WorkletSynthesizer } from 'spessasynth_lib';
 import processorUrl from 'spessasynth_lib/dist/spessasynth_processor.min.js?url';
@@ -81,13 +81,13 @@ export class PreviewEngine {
   private readonly loadedBanks = new Set<string>();
   private timer: ReturnType<typeof setInterval> | null = null;
   private piece: Piece | null = null;
-  /** Audio time at which beat `originBeat` sounded. */
+  /** The piece's performance (`perform`): what the export renders, scheduled here live. */
+  private performance: Performance | null = null;
+  /** Audio time at which piece-second `originSecond` sounded. */
   private originTime = 0;
-  private originBeat = 0;
-  /** Beat up to which notes have been handed to the synth. */
+  private originSecond = 0;
+  /** Piece-seconds (counting up across loop passes) already handed to the synth. */
   private scheduledTo = 0;
-  private loopStart = 0;
-  private loopEnd = 0;
   private listeners = new Set<(state: EngineState) => void>();
   private state: EngineState = { kind: 'idle' };
 
@@ -110,17 +110,16 @@ export class PreviewEngine {
   /** Hand the engine the latest piece; a playing engine picks it up on its next tick. */
   update(piece: Piece): void {
     this.piece = piece;
-    this.loopEnd = Math.max(this.loopStart + 1, piece.length);
+    this.performance = perform(piece);
     if (this.synth && this.state.kind === 'playing') this.applyMix(piece);
   }
 
   /** The beat under the playhead, or `null` when stopped. */
   playhead(): number | null {
-    if (!this.context || this.state.kind !== 'playing' || !this.piece) return null;
-    const spb = secondsPerBeat(this.piece);
-    const beat = this.originBeat + (this.context.currentTime - this.originTime) / spb;
-    const span = this.loopEnd - this.loopStart;
-    return span > 0 ? this.loopStart + ((((beat - this.loopStart) % span) + span) % span) : beat;
+    const performance = this.performance;
+    if (!this.context || this.state.kind !== 'playing' || !performance || performance.seconds <= 0) return null;
+    const elapsed = this.originSecond + (this.context.currentTime - this.originTime);
+    return performance.beatAt(((elapsed % performance.seconds) + performance.seconds) % performance.seconds);
   }
 
   async play(fromBeat = 0): Promise<void> {
@@ -150,11 +149,10 @@ export class PreviewEngine {
       await this.loadBanks(piece);
       this.stopTimer();
       this.synth?.stopAll(true);
-      this.loopStart = 0;
-      this.loopEnd = Math.max(1, piece.length);
-      this.originBeat = fromBeat;
+      this.performance = perform(piece);
+      this.originSecond = this.performance.secondsAt(fromBeat);
       this.originTime = this.context.currentTime + 0.05;
-      this.scheduledTo = fromBeat;
+      this.scheduledTo = this.originSecond;
       this.applyMix(piece);
       this.setState({ kind: 'playing' });
       this.tick();
@@ -219,37 +217,42 @@ export class PreviewEngine {
     const context = this.context;
     const synth = this.synth;
     const piece = this.piece;
-    if (!context || !synth || !piece) return;
-    const spb = secondsPerBeat(piece);
-    const span = this.loopEnd - this.loopStart;
-    if (span <= 0) return;
-    // Absolute beats count up forever; each is folded into the loop to find its notes.
-    const horizonBeat = this.originBeat + (context.currentTime + LOOKAHEAD_S - this.originTime) / spb;
-    if (horizonBeat <= this.scheduledTo) return;
+    const performance = this.performance;
+    if (!context || !synth || !piece || !performance || performance.seconds <= 0) return;
+    const span = performance.seconds;
+    const horizon = this.originSecond + (context.currentTime + LOOKAHEAD_S - this.originTime);
+    if (horizon <= this.scheduledTo) return;
     const voices = trackVoices(piece);
+    const audibleTracks = new Map(piece.tracks.map((track) => [track.id, audible(piece, track)]));
+    const at = (second: number): number => this.originTime + (second - this.originSecond);
     let from = this.scheduledTo;
-    while (from < horizonBeat) {
-      const passStart = this.loopStart + Math.floor((from - this.loopStart) / span) * span;
-      const to = Math.min(horizonBeat, passStart + span);
-      const localFrom = from - passStart + this.loopStart;
-      const localTo = to - passStart + this.loopStart;
-      for (const track of piece.tracks) {
-        const voice = voices.get(track.id);
-        if (!voice || !audible(piece, track)) continue;
-        for (const clip of track.clips) {
-          for (const note of clip.notes) {
-            if (note.start < localFrom || note.start >= localTo) continue;
-            const absoluteBeat = passStart + (note.start - this.loopStart);
-            const onAt = this.originTime + (absoluteBeat - this.originBeat) * spb;
-            const offAt = onAt + Math.max(0.01, note.duration * spb);
-            const velocity = Math.max(1, Math.min(127, Math.round(note.vel * 127)));
-            synth.noteOn(voice.channel, note.pitch, velocity, { time: onAt });
-            synth.noteOff(voice.channel, note.pitch, { time: offAt });
-          }
+    while (from < horizon) {
+      // Piece-seconds count up across passes; each pass is folded into the loop to find its events.
+      const passStart = Math.floor(from / span) * span;
+      const to = Math.min(horizon, passStart + span);
+      const localFrom = from - passStart;
+      const localTo = to - passStart;
+      for (const control of performance.controls) {
+        if (control.time < localFrom || control.time >= localTo) continue;
+        const voice = voices.get(control.track);
+        if (!voice || !audibleTracks.get(control.track)) continue;
+        const when = { time: at(passStart + control.time) };
+        if (control.controller === 'pitchbend') {
+          synth.pitchWheel(voice.channel, Math.max(0, Math.min(16383, Math.round(8192 + control.value * 8191))), when);
+        } else {
+          synth.controllerChange(voice.channel, control.controller as never, Math.max(0, Math.min(127, Math.round(control.value * 127))), when);
         }
+      }
+      for (const note of performance.notes) {
+        if (note.start < localFrom || note.start >= localTo) continue;
+        const voice = voices.get(note.track);
+        if (!voice || !audibleTracks.get(note.track)) continue;
+        const velocity = Math.max(1, Math.min(127, Math.round(note.velocity * 127)));
+        synth.noteOn(voice.channel, note.pitch, velocity, { time: at(passStart + note.start) });
+        synth.noteOff(voice.channel, note.pitch, { time: at(passStart + note.end) });
       }
       from = to;
     }
-    this.scheduledTo = horizonBeat;
+    this.scheduledTo = horizon;
   }
 }

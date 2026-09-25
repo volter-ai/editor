@@ -47,6 +47,8 @@ export interface ProjectProps {
 export interface TransportProps {
   readonly tempo: number;
   readonly meter?: string;
+  /** A tempo lane: `<Points target="tempo">`. */
+  readonly children?: ReactNode;
 }
 
 /** DAWproject `Track`: a named lane that owns a channel and its clips. */
@@ -81,13 +83,34 @@ export interface ClipProps {
   readonly children?: ReactNode;
 }
 
-/** DAWproject `Note`: a note name at a position for a length. `vel` and `rel` are 0…1. */
+/**
+ * DAWproject `Note`: a note name at a position for a length. `vel` and `rel` are 0…1. `artic` is
+ * how it is played: `staccato`, `staccatissimo`, `tenuto`, `accent`, `marcato` or `legato`.
+ */
 export interface NoteProps {
   readonly at: Position;
   readonly pitch: string;
   readonly dur: Length;
   readonly vel?: number;
   readonly rel?: number;
+  readonly artic?: 'staccato' | 'staccatissimo' | 'tenuto' | 'accent' | 'marcato' | 'legato';
+}
+
+/**
+ * DAWproject `Points`: an automation lane. In a `<Clip>`, `target` is a MIDI controller
+ * (`cc1` modulation, `cc11` expression, `cc64` sustain, …) or `pitchbend`, with values 0–1
+ * (pitch bend −1…1). In `<Transport>`, `target="tempo"` and values are BPM.
+ */
+export interface PointsProps {
+  readonly target: string;
+  readonly children?: ReactNode;
+}
+
+/** A point on a lane. Values move linearly to the next point unless the point `hold`s. */
+export interface PointProps {
+  readonly at: Position;
+  readonly value: number;
+  readonly hold?: boolean;
 }
 
 /** DAWproject `Marker`: a named point on the arrangement's timeline. */
@@ -108,6 +131,8 @@ export const Device = element<DeviceProps>('dawproject.Device');
 export const Clip = element<ClipProps>('dawproject.Clip');
 export const Note = element<NoteProps>('dawproject.Note');
 export const Marker = element<MarkerProps>('dawproject.Marker');
+export const Points = element<PointsProps>('dawproject.Points');
+export const Point = element<PointProps>('dawproject.Point');
 
 /** Every element this package names, keyed by its short name. */
 export const ELEMENT_TYPES = {
@@ -119,6 +144,8 @@ export const ELEMENT_TYPES = {
   Clip: 'dawproject.Clip',
   Note: 'dawproject.Note',
   Marker: 'dawproject.Marker',
+  Points: 'dawproject.Points',
+  Point: 'dawproject.Point',
 } as const;
 
 export type ElementName = keyof typeof ELEMENT_TYPES;
