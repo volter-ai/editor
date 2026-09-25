@@ -1,19 +1,21 @@
 /**
  * A PIECE OF MUSIC IS A REACT COMPONENT whose elements are DAWproject's own model
- * (github.com/bitwig/dawproject, `Project.xsd`): the same nouns, the same attribute names,
- * time in beats. A piece imports these and nothing of the editor:
+ * (github.com/bitwig/dawproject, `Project.xsd`) — the same nouns — written in a composer's
+ * units (`./notation`): positions as `bar:beat`, pitches as note names, lengths as note values.
+ * A piece imports these and nothing of the editor:
  *
  * ```tsx
- * import { Channel, Clip, Note, Project, Track, Transport } from '@volter/dawproject';
+ * import { Channel, Clip, Device, Note, Project, Track, Transport } from '@volter/dawproject';
  *
  * export default function Theme() {
  *   return (
  *     <Project>
- *       <Transport tempo={96} numerator={4} denominator={4} />
+ *       <Transport tempo={96} meter="4/4" />
  *       <Track name="Lead">
  *         <Channel volume={-6} pan={0} />
- *         <Clip time={0} duration={4}>
- *           <Note time={0} duration={1} pitch={64} vel={0.8} />
+ *         <Clip at="1" bars={2}>
+ *           <Note at="1:1" pitch="E4" dur="q" vel={0.8} />
+ *           <Note at="1:2.5" pitch="F#4" dur="8" />
  *         </Clip>
  *       </Track>
  *     </Project>
@@ -21,29 +23,30 @@
  * }
  * ```
  *
+ * Positions are ABSOLUTE bars of the piece; a clip is a region of the arrangement, and every
+ * note inside it states the bar it sounds in.
+ *
  * Each export is the element's TYPE NAME, a string, so the elements carry no identity of
  * this module: the renderer (`./render`) recognizes them by name wherever the piece's copy
- * of this package was resolved from.
- *
- * One name departs from the schema. DAWproject's `Note` spells its MIDI key `key`, which
- * React reserves for list identity, so the prop is `pitch` (a MIDI key number, 0–127).
- * Everything else is the schema's own spelling.
+ * of this package was resolved from. DAWproject's `Note` spells its key `key`, which React
+ * reserves, so the note name is `pitch`.
  */
 
 import type { FC, ReactNode } from 'react';
 
-/** Beats from the start of the enclosing timeline (DAWproject `timeUnit="beats"`). */
-export type Beats = number;
+/** A position in the piece: `bar` or `bar:beat`, both counted from 1 (`9:2.5`). */
+export type Position = string;
+/** A note value: `w h q 8 16 32`, dots, `t` for a triplet; or a number of quarter-note beats. */
+export type Length = string | number;
 
 export interface ProjectProps {
   readonly children?: ReactNode;
 }
 
-/** DAWproject `Transport`: `Tempo` in BPM and `TimeSignature`. */
+/** DAWproject `Transport`: `Tempo` in BPM and `TimeSignature` as `n/d` (default `4/4`). */
 export interface TransportProps {
   readonly tempo: number;
-  readonly numerator?: number;
-  readonly denominator?: number;
+  readonly meter?: string;
 }
 
 /** DAWproject `Track`: a named lane that owns a channel and its clips. */
@@ -70,27 +73,26 @@ export interface DeviceProps {
   readonly params?: Readonly<Record<string, number | string | boolean>>;
 }
 
-/** DAWproject `Clip`: a region of a track's timeline. Its notes' times are relative to it. */
+/** DAWproject `Clip`: a region of a track's timeline, from bar `at` for `bars` bars. */
 export interface ClipProps {
-  readonly time: Beats;
-  readonly duration: Beats;
+  readonly at: Position;
+  readonly bars: number;
   readonly name?: string;
   readonly children?: ReactNode;
 }
 
-/** DAWproject `Note`. `vel` and `rel` are 0…1; `pitch` is the schema's `key`. */
+/** DAWproject `Note`: a note name at a position for a length. `vel` and `rel` are 0…1. */
 export interface NoteProps {
-  readonly time: Beats;
-  readonly duration: Beats;
-  readonly pitch: number;
+  readonly at: Position;
+  readonly pitch: string;
+  readonly dur: Length;
   readonly vel?: number;
   readonly rel?: number;
-  readonly channel?: number;
 }
 
 /** DAWproject `Marker`: a named point on the arrangement's timeline. */
 export interface MarkerProps {
-  readonly time: Beats;
+  readonly at: Position;
   readonly name: string;
 }
 
@@ -120,3 +122,6 @@ export const ELEMENT_TYPES = {
 } as const;
 
 export type ElementName = keyof typeof ELEMENT_TYPES;
+
+/** The written units' spellings, for code that generates notes (`at={formatAt(beat, 4)}`). */
+export { beatAt, beatsOf, formatAt, formatDuration, formatPitch, midiOf } from './notation';

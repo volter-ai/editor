@@ -42,7 +42,7 @@ const piece = readPiece(graph);
 root.unmount();
 
 // Structural checks: the questions a composer answers by eye, answered by count.
-const beatsPerBar = piece.transport.numerator * (4 / piece.transport.denominator);
+const beatsPerBar = piece.transport.beatsPerBar;
 const problems: string[] = [];
 for (const track of piece.tracks) {
   for (const clip of track.clips) {

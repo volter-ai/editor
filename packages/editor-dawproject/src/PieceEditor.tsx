@@ -13,6 +13,7 @@
  * and refuses with the reason and the line that makes it.
  */
 
+import { formatAt, formatPitch, spelledFlat } from '@volter/dawproject/notation';
 import type { Piece, PieceClip, PieceNote, PieceTrack } from '@volter/dawproject/piece';
 import type { ToolNotice } from '@volter/editor-sdk/contributions';
 import { themeVars } from '@volter/editor-sdk/widgets';
@@ -201,7 +202,7 @@ export function PieceEditor({
     );
   }
 
-  const beatsPerBar = piece.transport.numerator;
+  const beatsPerBar = piece.transport.beatsPerBar;
   const totalBeats = Math.max(piece.length, beatsPerBar * 8) + beatsPerBar * 2;
   const voices = trackVoices(piece);
 
@@ -271,7 +272,7 @@ function TransportBar(props: {
       <button type="button" style={button} onClick={props.onToggle} title="Play / Stop (Space)">
         {playing ? '■ Stop' : '▶ Play'}
       </button>
-      <span style={{ ...mono, minWidth: 48 }}>{playhead === null ? '1.1' : barBeat(playhead, piece.transport.numerator)}</span>
+      <span style={{ ...mono, minWidth: 48 }}>{playhead === null ? '1.1' : barBeat(playhead, piece.transport.beatsPerBar)}</span>
       <span style={small}>
         {piece.transport.tempo} BPM · {piece.transport.numerator}/{piece.transport.denominator}
       </span>
@@ -302,7 +303,7 @@ function Arranger(props: {
 }) {
   const { piece, totalBeats, pxPerBeat } = props;
   const width = totalBeats * pxPerBeat;
-  const beatsPerBar = piece.transport.numerator;
+  const beatsPerBar = piece.transport.beatsPerBar;
   const bars = Math.ceil(totalBeats / beatsPerBar);
   return (
     <div style={{ display: 'flex', minWidth: HEADER_W + width }}>
@@ -449,7 +450,7 @@ function PianoRoll(props: {
   const low = Math.max(0, Math.min(...pitches, 48) - 5);
   const rows = high - low + 1;
   const width = Math.max(clip.duration, 4) * pxPerBeat;
-  const beatsPerBar = piece.transport.numerator;
+  const beatsPerBar = piece.transport.beatsPerBar;
 
   // A source write lands as a re-mount; drop optimistic positions once the piece moves on.
   useEffect(() => setPending(new Map()), [clip]);
@@ -458,7 +459,7 @@ function PianoRoll(props: {
     propRefusal(index, note.oid, prop, note.oid ? (piece.oidCounts.get(note.oid) ?? 0) : 0);
 
   const onPointerDown = (note: PieceNote, event: ReactPointerEvent): void => {
-    const refusal = refusalFor(note, 'time') ?? refusalFor(note, 'pitch');
+    const refusal = refusalFor(note, 'at') ?? refusalFor(note, 'pitch');
     if (refusal) {
       props.onMessage(refusal);
       return;
@@ -481,10 +482,12 @@ function PianoRoll(props: {
     if (!drag) return;
     const { note, time, pitch } = drag;
     setDrag(null);
-    if (time === note.time && pitch === note.pitch || !note.oid) return;
-    const props_: Record<string, number> = {};
-    if (time !== note.time) props_['time'] = time;
-    if (pitch !== note.pitch) props_['pitch'] = pitch;
+    if ((time === note.time && pitch === note.pitch) || !note.oid) return;
+    // Written back in the piece's own units: an absolute `bar:beat` and a note name, spelled
+    // with flats when the note was.
+    const props_: Record<string, string> = {};
+    if (time !== note.time) props_['at'] = formatAt(clip.time + time, piece.transport.beatsPerBar);
+    if (pitch !== note.pitch) props_['pitch'] = formatPitch(pitch, spelledFlat(note.written.pitch));
     setPending((prev) => new Map(prev).set(note.id, { time, pitch }));
     writeProps(note.oid, props_).then(
       () => undefined,
@@ -532,12 +535,12 @@ function PianoRoll(props: {
           {clip.notes.map((note) => {
             const moving = drag?.note.id === note.id ? drag : null;
             const shown = moving ?? pending.get(note.id) ?? note;
-            const refusal = refusalFor(note, 'time') ?? refusalFor(note, 'pitch');
+            const refusal = refusalFor(note, 'at') ?? refusalFor(note, 'pitch');
             return (
               <div
                 key={note.id}
                 onPointerDown={(event) => onPointerDown(note, event)}
-                title={refusal ?? `${noteName(note.pitch)} · beat ${note.time} · ${note.duration} beats · vel ${note.vel}`}
+                title={refusal ?? `${note.written.pitch} · ${note.written.at} · ${note.written.dur} · vel ${note.vel}`}
                 style={{
                   position: 'absolute',
                   left: shown.time * pxPerBeat,

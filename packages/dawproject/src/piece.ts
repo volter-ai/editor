@@ -11,25 +11,30 @@
  * them is that element's own.
  */
 
+import { beatAt, beatsOf, beatsPerBarOf, midiOf } from './notation';
 import type { DawNode } from './render';
 
 export interface PieceTransport {
   readonly tempo: number;
   readonly numerator: number;
   readonly denominator: number;
+  /** Quarter-note beats per bar (`6/8` → 3). */
+  readonly beatsPerBar: number;
   readonly oid: string | null;
 }
 
 export interface PieceNote {
   readonly id: string;
   readonly oid: string | null;
-  /** Absolute start in beats (clip time + note time). */
+  /** Start in beats from the piece's start. */
   readonly start: number;
-  /** The note's own `time`, relative to its clip. */
+  /** Start in beats from its clip's start. */
   readonly time: number;
   readonly duration: number;
   readonly pitch: number;
   readonly vel: number;
+  /** As written: `at`, `pitch` and `dur` exactly as the source spells them. */
+  readonly written: { readonly at: string; readonly pitch: string; readonly dur: string };
 }
 
 export interface PieceClip {
@@ -106,22 +111,31 @@ export function readPiece(root: DawNode): Piece {
   if (root.type !== 'Project') throw new Error(`A piece's root is <Project>; this one is <${root.type}>.`);
   const oidCounts = new Map<string, number>();
   countOids(root, oidCounts);
-  let transport: PieceTransport = { tempo: 120, numerator: 4, denominator: 4, oid: null };
+  // The transport first: every position in the piece is read against its meter.
+  const transportNode = root.children.find((node) => node.type === 'Transport');
+  const meter = str(transportNode?.props['meter']) ?? '4/4';
+  const beatsPerBar = beatsPerBarOf(meter);
+  const [numerator = 4, denominator = 4] = meter.split('/').map(Number);
+  const transport: PieceTransport = {
+    tempo: num(transportNode?.props['tempo'], 120),
+    numerator,
+    denominator,
+    beatsPerBar,
+    oid: transportNode?.oid ?? null,
+  };
+  const position = (value: unknown, where: string): number => {
+    if (typeof value !== 'string' && typeof value !== 'number') throw new Error(`${where} has no \`at\` position.`);
+    return beatAt(value, beatsPerBar);
+  };
   const tracks: PieceTrack[] = [];
   const markers: PieceMarker[] = [];
   let length = 0;
   root.children.forEach((node, index) => {
-    if (node.type === 'Transport') {
-      transport = {
-        tempo: num(node.props['tempo'], 120),
-        numerator: num(node.props['numerator'], 4),
-        denominator: num(node.props['denominator'], 4),
-        oid: node.oid,
-      };
-    } else if (node.type === 'Marker') {
-      markers.push({ id: `marker:${index}`, oid: node.oid, time: num(node.props['time'], 0), name: str(node.props['name']) ?? '' });
+    if (node.type === 'Marker') {
+      markers.push({ id: `marker:${index}`, oid: node.oid, time: position(node.props['at'], 'A <Marker>'), name: str(node.props['name']) ?? '' });
     } else if (node.type === 'Track') {
       const trackId = `track:${index}`;
+      const trackName = str(node.props['name']) ?? `Track ${tracks.length + 1}`;
       let channel: PieceChannel | null = null;
       const clips: PieceClip[] = [];
       node.children.forEach((child, childIndex) => {
@@ -144,34 +158,32 @@ export function readPiece(root: DawNode): Piece {
           };
         } else if (child.type === 'Clip') {
           const clipId = `${trackId}:clip:${childIndex}`;
-          const time = num(child.props['time'], 0);
-          const duration = num(child.props['duration'], 0);
+          const clipName = str(child.props['name']);
+          const where = `<Clip${clipName ? ` "${clipName}"` : ''}> on ${trackName}`;
+          const time = position(child.props['at'], where);
+          const duration = num(child.props['bars'], 0) * beatsPerBar;
           const notes: PieceNote[] = child.children
             .filter((note) => note.type === 'Note')
             .map((note, noteIndex) => {
-              const noteTime = num(note.props['time'], 0);
+              const writtenPitch = String(note.props['pitch'] ?? '');
+              const writtenDur = note.props['dur'];
+              const start = position(note.props['at'], `A <Note> in ${where}`);
               return {
                 id: `${clipId}:note:${noteIndex}`,
                 oid: note.oid,
-                start: time + noteTime,
-                time: noteTime,
-                duration: num(note.props['duration'], 0),
-                pitch: num(note.props['pitch'], 60),
-                vel: num(note.props['vel'], 0.8),
+                start,
+                time: start - time,
+                duration: beatsOf(typeof writtenDur === 'number' ? writtenDur : String(writtenDur ?? '')),
+                pitch: midiOf(writtenPitch),
+                vel: num(note.props['vel'], 0.7),
+                written: { at: String(note.props['at'] ?? ''), pitch: writtenPitch, dur: String(writtenDur ?? '') },
               };
             });
           length = Math.max(length, time + duration);
-          clips.push({ id: clipId, oid: child.oid, name: str(child.props['name']), time, duration, notes });
+          clips.push({ id: clipId, oid: child.oid, name: clipName, time, duration, notes });
         }
       });
-      tracks.push({
-        id: trackId,
-        oid: node.oid,
-        name: str(node.props['name']) ?? `Track ${tracks.length + 1}`,
-        color: str(node.props['color']),
-        channel,
-        clips,
-      });
+      tracks.push({ id: trackId, oid: node.oid, name: trackName, color: str(node.props['color']), channel, clips });
     }
   });
   return { transport, tracks, markers, length, oidCounts };
