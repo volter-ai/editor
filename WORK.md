@@ -98,7 +98,13 @@ Remaining:
    The Three viewport binds its keys through `host.keyboard.bindActions` and publishes its
    palette entries from the active three stage (walked on `arena`: the transform keys set the
    mode, `tool:` palette entries toggle grid and shading, an entity entry selects and frames, and
-   the entries leave while a machine document is focused).
+   the entries leave while a machine document is focused). The viewport's relay verbs are its
+   command contribution; a document's viewport is answered by the stage that draws it
+   (`kit/document-viewports`); the Asset Lab's three.js viewers are registered by route
+   (`kit/asset-viewers`); the Inspector's preview is the node's medium's answer
+   (`kit/inspection-node-media`). Walked on `arena`: Scene grid, wireframe and top view set and
+   read back, a Model document's view presented and read back, a glTF opened, orbited and
+   inspected, a light's Preview section and Asset Editor jump.
    Unit 3, measured: the viewport's closure in `editor-core` is 186 modules, 47 of them
    Three-bound (25k lines). The baseline refuses new core-to-`@volter/editor-threejs` edges, so
    the set moves in one step after core stops importing it. Remaining cut points: the store's
