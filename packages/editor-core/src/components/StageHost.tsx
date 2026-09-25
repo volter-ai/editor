@@ -610,9 +610,7 @@ export function Object3DDocumentViewport({
    * which made EVERY condition in `stage-context.ts` unanswerable for that
    * document. That is a capability decided by where a document's React tree
    * happens to mount, which is the origin-deciding reading §One stage
-   * retired. MEASURED 2026-09-18 on the models scaffold: the Model document's
-   * controls hint (the one overlay every three stage carries) is absent, and
-   * with it the whole context — so the studio arm of `studioStageApplies`
+   * retired. Without the context, the studio arm of `studioStageApplies`
    * could never fire for a model no matter what the look declared.
    *
    * `shellStoreForHost()` supplies the session store that

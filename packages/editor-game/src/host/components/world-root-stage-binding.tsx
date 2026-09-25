@@ -5,7 +5,7 @@
  *
  * `Overlays` is the world-root half of vgai's `stage-overlay-set.tsx` — every
  * part it rendered only when `worldRoot` held (the root selection layer, the
- * camera-authoring pin, the controls hint while the world mounts, the scene's
+ * camera-authoring pin, the scene's
  * surface-state card). The rest of that overlay set is the kit's
  * `StageOverlays`, which the host renders beside this.
  */
@@ -21,14 +21,13 @@ import {
 } from '@volter/editor-core/authoring/object3d-document-session-registry';
 import { RootSelectionOverlay } from '@volter/editor-core/components/RootSelectionOverlay';
 import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
-import { ViewportControlsHint } from '@volter/editor-core/components/ViewportControlsHint';
 import type {
   WorldRootOverlayProps,
   WorldRootStageBinding,
 } from '@volter/editor-core/components/world-root-binding';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';
-import { documentStageContext, threeSelectionToolsApply } from '@volter/editor-core/stage-context';
+import { documentStageContext } from '@volter/editor-core/stage-context';
 import { explainSurface } from '@volter/editor-sdk/kit/surface-state';
 import {
   subscribeWorkspaceDocuments,
@@ -101,7 +100,6 @@ function WorldRootOverlays({
   // The world root's stage is the Scene document's: the kit's overlay props
   // carry no document id, and the Scene document is the one world-root stage.
   const ctx = documentStageContext(store, documentId, 'document');
-  const showsSelectionTools = threeSelectionToolsApply(ctx);
   return (
     <>
       {/* Three-scene selection overlay. React/Pixi documents mount their own
@@ -114,13 +112,6 @@ function WorldRootOverlays({
           (`world-root-stage.ts`), so the pin belongs to the stage that
           installed it. */}
       {ctx.surface === 'three' ? <CameraAuthoringOverlay previewRef={cameraPreviewRef} /> : null}
-      {/* The hint also shows WHILE the world is still mounting: a new user
-          reads the screen during those boot seconds and looks for the camera
-          controls exactly then. The kit's overlay set shows it on a three
-          surface; this adds only the mounting case it does not cover. */}
-      {!showsSelectionTools && ctx.surface !== 'three' && mountStatus === 'mounting' ? (
-        <ViewportControlsHint />
-      ) : null}
       <SceneViewportStateOverlay store={store} rootIds={rootIds} mountStatus={mountStatus} />
     </>
   );

@@ -88,7 +88,6 @@ import type { ThreeViewportProjection } from './three-viewport-presentation';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import { TriggerVolumeHelper } from './trigger-volume-helper';
 import { viewportAuthoringPolicy } from './viewport-authoring-policy';
-import { recordOrbitGesture } from './viewport-controls-hint';
 
 /** A bounds box or LineSegments wireframe tagged with its source entity object. */
 /** A selected mesh's wireframe (the view's `selection.wire` overlay, Unity's Selection Wire):
@@ -1125,8 +1124,6 @@ export class EditorViewport {
 
   // -- Fly camera (right-click + WASD) --
   private _flyActive = false;
-  private _orbitGesture = false;
-  private _orbitGestureCounted = false;
   private _snapHold = false;
   private _flyKeys = new Set<string>();
   private _flySpeed = 5;
@@ -1569,14 +1566,6 @@ export class EditorViewport {
     // way. Registered in _onAltOrbitRelease so dispose can remove them.
     window.addEventListener('pointerup', this._onAltOrbitRelease, { capture: true });
     window.addEventListener('pointercancel', this._onAltOrbitRelease, { capture: true });
-    this.orbitControls.addEventListener('change', () => {
-      // Count each pointer-down-to-up orbit ONCE — the hint dismisses only
-      // after several distinct gestures (viewport-controls-hint.ts).
-      if (this._orbitGesture && !this._orbitGestureCounted) {
-        this._orbitGestureCounted = true;
-        recordOrbitGesture();
-      }
-    });
     window.addEventListener('keydown', this._onSnapHoldKey);
     window.addEventListener('keyup', this._onSnapHoldKey);
 
@@ -2996,13 +2985,9 @@ export class EditorViewport {
       this._altDragOrbit = true;
       this.orbitControls.mouseButtons.LEFT = THREE.MOUSE.ROTATE;
     }
-    // Count gestures that actually move the camera, not incidental clicks.
-    if (e.button === 2 || (e.altKey && e.button === 0)) this._orbitGesture = true;
   };
 
   private readonly _onAltOrbitRelease = (): void => {
-    this._orbitGesture = false;
-    this._orbitGestureCounted = false;
     if (this._altDragOrbit) {
       this._altDragOrbit = false;
       this.orbitControls.mouseButtons.LEFT = -1 as THREE.MOUSE;

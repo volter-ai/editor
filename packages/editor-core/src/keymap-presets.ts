@@ -23,7 +23,7 @@ export type { EditorKeyActionId, KeyChord } from '@volter/editor-sdk/looks';
  * key for a keyboard action any more. `editor-hotkeys.ts` builds its
  * `HotkeyBinding`s from {@link keyChordsFor}, and every place that PRINTS a
  * shortcut — the command palette (via `action-registry.ts`), the viewport
- * toolstrip tooltips, the camera-controls hint, the snap transient hint —
+ * toolstrip tooltips, the snap transient hint —
  * renders {@link shortcutFor} over the same table. Switch the keymap and the
  * chrome tells the truth on the next paint, with no reload.
  *

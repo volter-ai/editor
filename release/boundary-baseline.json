@@ -135,7 +135,6 @@
  "kit-internal  packages/editor-game/src/host/components/world-root-stage-binding.tsx -> @volter/editor-core/authoring/object3d-document-session-registry",
  "kit-internal  packages/editor-game/src/host/components/world-root-stage-binding.tsx -> @volter/editor-core/components/RootSelectionOverlay",
  "kit-internal  packages/editor-game/src/host/components/world-root-stage-binding.tsx -> @volter/editor-core/components/SurfaceStateOverlay",
- "kit-internal  packages/editor-game/src/host/components/world-root-stage-binding.tsx -> @volter/editor-core/components/ViewportControlsHint",
  "kit-internal  packages/editor-game/src/host/components/world-root-stage-binding.tsx -> @volter/editor-core/components/world-root-binding",
  "kit-internal  packages/editor-game/src/host/components/world-root-stage-binding.tsx -> @volter/editor-core/editor-shell-store",
  "kit-internal  packages/editor-game/src/host/components/world-root-stage-binding.tsx -> @volter/editor-core/stage-context",

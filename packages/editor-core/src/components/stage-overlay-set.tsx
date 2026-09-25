@@ -17,7 +17,6 @@ import {
 import { CameraInfo } from './CameraInfo';
 import { StatsOverlay } from './StatsOverlay';
 import { TransientHintOverlay } from './TransientHint';
-import { ViewportControlsHint } from './ViewportControlsHint';
 import { ViewportOverlay } from './ViewportOverlay';
 
 /** What the HOST hands over about the stage itself — its own store, the
@@ -66,8 +65,7 @@ export function StageOverlaySet({
    *  they read THIS stage's own store (`stage.store`, the one the shared
    *  panels reach through `focusedStageStore()`), so a prefab's grid button
    *  toggles the prefab's grid and its readout reports the camera its reader
-   *  is looking through. The controls hint is the other half of this one
-   *  decision, not a second reading of the selection. */
+   *  is looking through. */
   const showsSelectionTools = threeSelectionToolsApply(ctx);
   return (
     <>
@@ -82,15 +80,6 @@ export function StageOverlaySet({
           <ViewportOverlay store={stageStore} documentId={documentId} />
           <CameraInfo />
         </>
-      ) : null}
-      {/* The hint also shows WHILE the world is still mounting: a new user
-          reads the screen during those boot seconds, and two human passes in
-          a row looked for the camera controls exactly then and reported them
-          missing (runhuman passes 15 and 17, 2026-08-28/29). It names the
-          KEYMAP's own camera verbs and no store's state, so EVERY stage
-          carries it. */}
-      {!showsSelectionTools && ctx.surface === 'three' ? (
-        <ViewportControlsHint />
       ) : null}
       {ctx.surface === 'three' && stageStore.showStats && <StatsOverlay />}
       {/* H2 — the ONE transient hint channel. Lives here because a refused

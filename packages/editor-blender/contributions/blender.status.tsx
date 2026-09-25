@@ -4,9 +4,7 @@
  * Blender's bottom row opens with three tiny mouse glyphs, each with one
  * button lit and the action it performs beside it — `Select`, `Rotate View`,
  * `Options` in the reference (`modeling.png`). It is the one piece of chrome
- * that tells a newcomer what the three buttons DO without a menu, and the
- * gap a human build session measured here was exactly that question ("how do
- * I move the camera", six times — `viewport-controls-hint.ts`).
+ * that tells a newcomer what the three buttons DO without a menu.
  *
  * THEY ARE HOVER-DRIVEN THERE, AND ALWAYS-ON HERE. Measured across the whole
  * reference set: `modeling.png` is the ONE frame with any ink left of centre
@@ -33,9 +31,7 @@
  *     `editor-viewport.ts:682-686` sets `orbitControls.mouseButtons` to
  *     `{ LEFT: -1, MIDDLE: PAN, RIGHT: ROTATE }`, and the left button is left
  *     free for the selection raycast (`editor-viewport.ts:3782`,
- *     `if (e.button === 0 && !e.altKey)`). The editor's own prose says the
- *     same thing (`ViewportControlsHint.tsx:22`: "Orbit: right-drag · Pan:
- *     middle-drag").
+ *     `if (e.button === 0 && !e.altKey)`).
  *
  * That contract is a constant of the host, not of any document, so the table
  * below is a constant too — with the citations above as its provenance. When

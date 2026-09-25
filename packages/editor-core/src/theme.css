@@ -2029,8 +2029,7 @@ select.vgai-input {
    material must not clobber. The camera pill is a READOUT — it must never
    start intercepting viewport pointers just because it became an island;
    the profiler chip's enabled state keeps its accent border signal. */
-[data-vgai-chrome="islands"] .vgai-camera-info.vgai-chrome-island:not(:empty),
-[data-vgai-chrome="islands"] .vgai-viewport-controls-hint.vgai-chrome-island:not(:empty) {
+[data-vgai-chrome="islands"] .vgai-camera-info.vgai-chrome-island:not(:empty) {
   pointer-events: none;
 }
 [data-vgai-chrome="islands"]
@@ -2232,8 +2231,7 @@ select.vgai-input {
   color: var(--vgai-content-primary);
   background: var(--vgai-selection-bg);
 }
-.vgai-camera-info,
-.vgai-viewport-controls-hint {
+.vgai-camera-info {
   position: absolute;
   /* Bottom-LEFT: the bottom-right corner belongs to the compact inspector
      card (owner, 2026-08-07 — the readout was sitting underneath it). */
