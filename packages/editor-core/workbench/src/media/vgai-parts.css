@@ -5,6 +5,13 @@
    (`packages/model-editor/workbench/src/media/blender-look.css` is the worked one); this file
    is what any product needs whatever it looks like. */
 .monaco-workbench .vgai-host-part { width: 100%; height: 100%; overflow: hidden; position: relative; }
+/* A part takes focus on pointer down (`offerPart`, so the editor's keybindings are gated on it),
+   and the workbench rings every focused [tabindex] element: a click anywhere in the hierarchy drew
+   a box round the whole pane. A part is tabindex -1, never a Tab stop, so its focus is a keybinding
+   scope and not a place a keyboard user lands; the controls inside it keep their own rings. The
+   doubled class outranks the workbench's rule. (`:focus-visible` cannot tell the two apart here:
+   Chrome counts a script focus() as visible.) */
+.monaco-workbench .vgai-host-part.vgai-host-part:focus { outline: none; }
 /* The title bar is the vgai header. THE STATUS BAR IS NOT HOSTED — it is the
    workbench's own, and every vgai status item is a real `IStatusbarService`
    entry in it (U8 step 7, `vgaiStatus.ts`). The two rules that used to live

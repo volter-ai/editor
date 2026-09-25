@@ -575,7 +575,16 @@ function OutlinerPart() {
   }, []);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
-      <div ref={slot} className="vgai-vscode-outliner-header" />
+      {/* THE HEADER BAND the hierarchy's controls portal into. Its insets used to come from
+          the dock's header rules; under the frame nothing else supplies them, so the row
+          sat flush against the pane's corner. The frame's pane has no tab strip beside the
+          row, so the search field takes the band (`GameHierarchy.tsx`'s basis variable) and
+          the view menu and Create sit at its trailing edge. */}
+      <div
+        ref={slot}
+        className="vgai-vscode-outliner-header"
+        style={{ padding: 'var(--vgai-space-2) var(--vgai-space-4)', ['--vgai-hierarchy-search-basis' as string]: '100%' }}
+      />
       <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         <GameHierarchy />
       </div>

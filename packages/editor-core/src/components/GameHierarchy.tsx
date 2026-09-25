@@ -742,9 +742,10 @@ function mergeRevealCounts(
  * Blender's own is 115 because Blender's header spends 32 px on an editor-type
  * WELL where ours spends 203 on a tab STRIP, so the two numbers are the same
  * answer to two different headers. The 64 below is the constant's home and the
- * fallback; the raise is one declaration in `workspace-dock.css`, under the
- * `[data-vgai-tabstrip="hidden"]` attribute the dock already publishes, and it
- * arrives here through {@link SEARCH_FIELD_BASIS_VAR}.
+ * fallback; the raise is the HOST's, made where the header band is rendered —
+ * under the frame that is `frame/bridge.tsx`'s header slot, whose pane has no
+ * strip beside the row, so it gives the field the whole band — and it arrives
+ * here through {@link SEARCH_FIELD_BASIS_VAR}.
  *
  * WHY 64 IS THE BEHIND-A-STRIP NUMBER, and the arithmetic. MEASURED
  * live on the 308 px Model-workspace Outliner under this look: 5 px of area
@@ -852,17 +853,16 @@ function HierarchySearch({ value, onChange }: { value: string; onChange: (next: 
  *  chevron's 20, its 2 px gap and the row's 4 px right padding. Blender's own
  *  field is 115 (`outliner.png`, x 93.5..208.5 at matched scale) in a header
  *  whose editor-type selector spends 32 px where our tab strip spends 203.
- *  This is the value behind a STRIP; `workspace-dock.css` raises it to
- *  Blender's 115 through {@link SEARCH_FIELD_BASIS_VAR} where there is none. */
+ *  This is the value behind a STRIP; the host raises it through
+ *  {@link SEARCH_FIELD_BASIS_VAR} where there is none. */
 const SEARCH_FIELD_WIDTH = 64;
 
 /**
  * The dock's handle on the two numbers above and below — the field's basis and
  * its text inset — because whether a tab strip sits beside this row is a fact
- * only the dock has (`workspace-dock.css`, `[data-vgai-tabstrip="hidden"]`,
- * written by the workspace host's `syncCenterTabHeaderVisibility`). Declared
- * here, where the constants live, so the fallback and the raise are read
- * together; nothing outside `workspace-dock.css` sets either.
+ * only the host has (under the frame, the header slot `frame/bridge.tsx`
+ * renders). Declared here, where the constants live, so the fallback and the
+ * raise are read together; nothing but that slot sets either.
  */
 const SEARCH_FIELD_BASIS_VAR = '--vgai-hierarchy-search-basis';
 
@@ -882,7 +882,7 @@ const SEARCH_GLYPH_INSET = 2;
  *  rendered as "Searc". What is preserved there is the glyph and the text
  *  INSET ORDER; what is spent is the gap between them (3.5 px here against
  *  Blender's 7.5). Where the strip is hidden the field IS Blender's 115 and
- *  nothing is short, so `workspace-dock.css` returns the inset to the one that
+ *  nothing is short, so the host may return the inset to the one that
  *  lands our first INK on Blender's 26.5, through {@link SEARCH_TEXT_INSET_VAR}
  *  — that number lives THERE, in the declaration that also raises the width,
  *  because the two are one decision and a copy here would drift. */
@@ -1026,9 +1026,9 @@ function HierarchyViewMenu({
  * `regions.tabs` is `hidden` (Blender) a lone panel loses the strip and this
  * row takes the whole band, in Blender's own two groups: the search field left
  * at 8 px, the chevron and Create pushed to the trailing edge. Behind a strip
- * it is content-sized with a 4 px trailing gutter. Both live in
- * `workspace-dock.css` beside `.vgai-dock-header-actions`; nothing here sets a
- * padding.
+ * it is content-sized with a 4 px trailing gutter. The band and its insets are
+ * the host's: under the frame, the header slot `frame/bridge.tsx` renders;
+ * nothing here sets a padding.
  *
  * (Until 2026-09-18 that same rule hid the whole header, band and controls
  * together, so the Blender Game workspace's Outliner had NO header at all.
