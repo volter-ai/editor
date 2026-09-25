@@ -72,6 +72,11 @@ import {
   subscribeCollaborationRevision,
 } from '@volter/editor-core/collaboration-client';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import {
+  describeModuleFetch,
+  diagnoseModuleFetch,
+  failedImportEntry,
+} from '@volter/editor-sdk/kit/module-fetch-diagnosis';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
 import { adjudicateThreeEntry } from '../../host/entry-adjudication';
 import { onPlayTransitionSettled } from '@volter/editor-core/live-transition';
@@ -179,6 +184,12 @@ export function unresolvedDesignEntryError(
 export function reportDesignMountFailure(worldId: string, err: unknown): string {
   const message = formatMountFailureMessage(err);
   editorConsole.error(`[r3f-design] world "${worldId}" failed to mount: ${message}`, 'authoring');
+  const entry = failedImportEntry(message);
+  if (entry) {
+    void diagnoseModuleFetch(entry).then((diagnosis) =>
+      editorConsole.error(`[r3f-design] world "${worldId}": ${describeModuleFetch(diagnosis)}`, 'authoring'),
+    );
+  }
   addMountFailureReport({
     worldId,
     kind: 'three',

@@ -17,6 +17,12 @@
 import { sortStoriesV7 } from 'storybook/internal/preview-api';
 import type { Addon_StorySortParameterV7, IndexEntry } from 'storybook/internal/types';
 import { activeProjectKey } from '@volter/editor-sdk/kit/active-project';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import {
+  describeModuleFetch,
+  diagnoseModuleFetch,
+  failedImportEntry,
+} from '@volter/editor-sdk/kit/module-fetch-diagnosis';
 import {
   recordStoryDiscoveryTiming,
   waitForFirstViewportFrame,
@@ -272,6 +278,12 @@ async function loadStoryModule({
   try {
     mod = await load();
   } catch (err) {
+    const entry = failedImportEntry(String(err instanceof Error ? err.message : err));
+    if (entry) {
+      void diagnoseModuleFetch(entry).then((diagnosis) =>
+        editorConsole.error(`[stories] ${modulePath}: ${describeModuleFetch(diagnosis)}`, 'authoring'),
+      );
+    }
     return {
       result: {
         modulePath,

@@ -72,6 +72,7 @@
     "./kit/inspection-model": "./src/kit/inspection-model.ts",
     "./kit/inspector-property-grouping": "./src/kit/inspector-property-grouping.ts",
     "./kit/mount-failure-report": "./src/kit/mount-failure-report.ts",
+    "./kit/module-fetch-diagnosis": "./src/kit/module-fetch-diagnosis.ts",
     "./kit/product-command": "./src/kit/product-command.ts",
     "./kit/stories-scope": "./src/kit/stories-scope.ts",
     "./kit/story-document-openers": "./src/kit/story-document-openers.ts",

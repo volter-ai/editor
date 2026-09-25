@@ -29,10 +29,10 @@
  * entry of the SAME build, rollup hoists the actual module into a chunk both it
  * and the shell import: it is not a copy of three, it is a doorway onto the
  * shell's instance. At serve time {@link sharedThreePlugin} resolves the bare
- * `three` specifier, for the whole PROJECT graph, to that built chunk's URL
- * (`/assets/vgai-shared-three-<hash>.js`) — the SAME absolute URL the shell's
- * own bundle imports, so the browser's module map hands both sides the one
- * instance and three's body evaluates exactly once.
+ * `three` specifier, for the whole PROJECT graph, to a stable doorway module that
+ * re-exports that built chunk's URL (`/assets/vgai-shared-three-<hash>.js`) — the
+ * SAME absolute URL the shell's own bundle imports, so the browser's module map
+ * hands both sides the one instance and three's body evaluates exactly once.
  *
  * ## Why the scope is the WHOLE project graph — unlike shared-React
  *
@@ -178,15 +178,39 @@ export function sharedThreeUrl(manifest: SharedThreeManifest, base = '/'): strin
   return `${prefix}${manifest.file}`;
 }
 
+/** The stable module every project-graph `three` import resolves to; only it imports the hashed
+ *  chunk. */
+const SHARED_THREE_DOORWAY = '\0vgai-shared-three-doorway';
+
 /**
  * SERVE side: point every project-graph `three` import at the shell's built
- * chunk URL. Registered ONLY on the packaged runtime's project-rooted Vite.
+ * chunk, through a DOORWAY whose URL never changes. Registered ONLY on the
+ * packaged runtime's project-rooted Vite.
+ *
+ * WHY A DOORWAY, NOT THE CHUNK URL ITSELF. The chunk's name carries the shell
+ * build's hash, and Vite serves prebundled dependencies under a version
+ * (`.vite/deps/*.js?v=<browserHash>`) computed from the lockfile and config,
+ * not from the shell. The browser keeps those responses, so a dependency chunk
+ * whose `import 'three'` was rewritten to one shell build's chunk kept naming it
+ * after the next build renamed the file: the chunk failed to load, and with it
+ * every module importing it (drei, and through it a project's prefabs and its
+ * world), in silence. Measured: script loads of the dependency chunks came from
+ * the cache with 0 bytes over the wire, importing a chunk the rebuilt shell no
+ * longer served. Rewritten to this doorway, a cached body stays correct across
+ * shell builds, and the doorway itself (an ordinary served module, revalidated
+ * on every load) is the one place the hash appears. It re-exports the chunk, so
+ * the shell and the project still share the one instance at the chunk's URL.
  */
 export function sharedThreePlugin(url: string): Plugin {
   return {
-    name: 'vgai-shared-three',
+    // Vite hashes plugin names into the dependency version, so this name also moves every
+    // prebundled chunk a browser cached before the doorway existed onto a new `?v=`.
+    name: 'vgai-shared-three-doorway',
     enforce: 'pre',
-    resolveId(source, _importer, options) {
+    load(id) {
+      return id === SHARED_THREE_DOORWAY ? `export * from ${JSON.stringify(SHARED_THREE_SPECIFIER)};\n` : undefined;
+    },
+    resolveId(source, importer, options) {
       if (source !== SHARED_THREE_SPECIFIER) return undefined;
       // Never during dependency SCANNING — the scanner records whatever an id
       // resolves to as a file to prebundle, and handing it a `/assets/*` URL
@@ -197,7 +221,7 @@ export function sharedThreePlugin(url: string): Plugin {
       // second copy. `scan` is Vite's own flag on the resolve options, not part
       // of rollup's published type — hence the cast.
       if ((options as { scan?: boolean } | undefined)?.scan) return undefined;
-      return url;
+      return importer === SHARED_THREE_DOORWAY ? url : SHARED_THREE_DOORWAY;
     },
   };
 }
