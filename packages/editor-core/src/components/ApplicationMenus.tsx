@@ -1,4 +1,3 @@
-import { threeStateOf } from '../three-state';
 import {
   AnchoredMenu,
   EditorIcon,
@@ -64,7 +63,7 @@ import { openToolDocument } from './tool-documents';
 type MenuId = 'edit' | 'view' | 'window' | 'debug' | 'tools' | 'help';
 
 export function ApplicationMenus() {
-  const store = threeStateOf(useEditorStore());
+  const store = useEditorStore();
   const activeAuthoring = getActiveAuthoring(store);
   const structure = activeAuthoring.structure;
   const clipboardIds = [...store.selectedEntityIds];
