@@ -68,6 +68,7 @@
       "./contributions/team-playtest.service.ts",
       "./contributions/transport.header.tsx",
       "./contributions/unity.style.ts",
+      "./contributions/unreal.style.ts",
       "./contributions/react/component-board.service.ts",
       "./contributions/react/design-time-mount.service.ts",
       "./contributions/react/react-inspector.service.ts",

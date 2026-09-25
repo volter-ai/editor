@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 3,
+  "name": "Unreal",
+  "theme": {
+    "id": "unreal",
+    "color": {
+      "surface": {
+        "shell": "#151515",
+        "panel": "#242424",
+        "chrome": "#151515",
+        "raised": "#383838",
+        "inset": "#0f0f0f",
+        "overlay": "rgba(36,36,36,0.97)"
+      },
+      "boundary": {
+        "default": "#151515",
+        "strong": "#0f0f0f",
+        "area": "#151515",
+        "indent": "#383838",
+        "divider": "#1a1a1a"
+      },
+      "content": {
+        "primary": "#c0c0c0",
+        "muted": "#b4b4b4",
+        "dim": "#858585",
+        "onAccent": "#ffffff",
+        "menu": "#c0c0c0",
+        "status": "#a7a7a7",
+        "placeholder": "#6d6d6d",
+        "active": "#4d9be9",
+        "selected": "#ffffff",
+        "onBright": {
+          "primary": "#151515",
+          "muted": "rgba(21,21,21,0.82)",
+          "dim": "rgba(21,21,21,0.7)"
+        }
+      },
+      "accent": {
+        "default": "#0f6ece",
+        "muted": "#40576f"
+      },
+      "widget": {
+        "regular": "#383838",
+        "menu": "#242424",
+        "field": "#0f0f0f",
+        "emboss": "rgba(0,0,0,0.2)"
+      },
+      "viewport": {
+        "background": "#000000",
+        "grid": "#5a5a5a",
+        "axisX": "#c02800",
+        "axisY": "#66a600",
+        "axisZ": "#2e75df",
+        "selection": "#eaa112",
+        "wire": "#eaa112",
+        "active": "#eaa112"
+      },
+      "gizmo": {
+        "x": "#c02800",
+        "y": "#66a600",
+        "z": "#2e75df",
+        "navigationX": "#ff0000",
+        "navigationY": "#00ff00",
+        "navigationZ": "#0000ff",
+        "hover": "#ffff00",
+        "drag": "#ffff00"
+      },
+      "region": {
+        "outliner": "#242424",
+        "properties": "#242424"
+      },
+      "category": {
+        "object": "#8fb8f0",
+        "modifier": "#8fb8f0",
+        "material": "#a27f4b",
+        "data": "#9fd88c",
+        "scene": "#c0c0c0",
+        "collection": "#c0c0c0",
+        "tool": "#c0c0c0",
+        "operator": "#9fd88c"
+      },
+      "semantic": {
+        "danger": "#ff6b5b",
+        "dangerMuted": "rgba(255,120,107,0.28)",
+        "dangerFaint": "rgba(255,120,107,0.12)",
+        "warning": "#ffc107",
+        "warningMuted": "rgba(255,221,101,0.28)",
+        "success": "#7cc576",
+        "successMuted": "rgba(69,255,139,0.28)",
+        "dynamic": "#ffdd65",
+        "dynamicMuted": "rgba(255,221,101,0.18)",
+        "instance": "#7bbcff"
+      },
+      "neutralOverlay": {
+        "hover": "rgba(255,255,255,0.1)",
+        "active": "rgba(255,255,255,0.16)"
+      },
+      "scrim": "rgba(0,0,0,0.6)"
+    },
+    "typography": {
+      "sans": "'Inter', 'Segoe UI', system-ui, sans-serif",
+      "mono": "'Roboto Mono', Menlo, monospace"
+    }
+  }
+}
