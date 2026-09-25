@@ -87,12 +87,19 @@ let reportedEditorStateWriteFailure = false;
  *  (`editor-shell-store.savePersistentState`) discards it, so the failure is
  *  ALSO logged: `res.ok` used to read a page fallback as a completed write,
  *  and a silent false would be the same lie one indirection later. */
-export async function saveEditorState(state: Record<string, unknown>): Promise<boolean> {
+export async function saveEditorState(
+  state: Record<string, unknown>,
+  options: { readonly leaving?: boolean } = {},
+): Promise<boolean> {
   try {
+    const body = JSON.stringify(state);
     const res = await fetch(`${BASE}/editor-state`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(state),
+      body,
+      // A page going away cancels its requests unless they are kept alive, and the browser keeps
+      // alive only a body under 64 KB; a larger one goes as an ordinary request.
+      keepalive: options.leaving === true && body.length < 60_000,
     });
     assertEditorServerResponse(res, 'Could not save editor state');
     return true;

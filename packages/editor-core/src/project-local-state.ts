@@ -76,14 +76,14 @@ export function projectLocalSection<T>(name: string): T | undefined {
   return doc[name] as T | undefined;
 }
 
-function flush(): void {
+function flush(leaving = false): void {
   if (timer !== null) {
     clearTimeout(timer);
     timer = null;
   }
   if (!dirty) return;
   dirty = false;
-  void saveEditorState(doc);
+  void saveEditorState(doc, { leaving });
 }
 
 /** Replace one section and schedule the write. A write before the load has
@@ -101,7 +101,7 @@ export function writeProjectLocalSection(name: string, value: unknown): void {
 
 /** Write what is pending NOW — the page is leaving. */
 export function flushProjectLocalState(): void {
-  flush();
+  flush(true);
 }
 
 // The layer loads the moment a project becomes active, so the dock that
