@@ -3,21 +3,18 @@ import { useEffect, useState } from 'react';
 import type { InspectionSection } from '@volter/editor-sdk/kit/inspection-model';
 import { AssetEditorShell } from '../AssetEditorShell';
 import { GenericJsonViewer } from './GenericJsonViewer';
-import {
-  loadNativeQuarksJsonSource,
-  type NativeQuarksJsonSource,
-  QuarksAssetDocument,
-} from './QuarksAssetDocument';
+import { type JsonContentViewer, useJsonContentViewers } from '@volter/editor-sdk/kit/asset-viewers';
 
 type JsonRoute =
   | { readonly kind: 'loading' }
   | { readonly kind: 'generic' }
-  | { readonly kind: 'quarks'; readonly source: NativeQuarksJsonSource }
+  | { readonly kind: 'content'; readonly viewer: JsonContentViewer; readonly content: unknown }
   | { readonly kind: 'error'; readonly message: string };
 
-/** Content-routed JSON document. three.quarks uses ordinary Three Object3D
- * JSON and defines no special extension, so recognizing the native structure
- * is more honest than inventing a vgai filename convention. */
+/** Content-routed JSON document. A format with no extension of its own (a
+ * three.quarks particle system is plain Object3D JSON) is recognized by the
+ * medium that renders it (`@volter/editor-sdk/kit/asset-viewers`), which is more
+ * honest than inventing a vgai filename convention. */
 export function JsonAssetDocument({
   documentId,
   assetPath,
@@ -34,6 +31,7 @@ export function JsonAssetDocument({
   readonly status: string;
 }) {
   const [route, setRoute] = useState<JsonRoute>({ kind: 'loading' });
+  const viewers = useJsonContentViewers();
 
   useEffect(() => {
     if (!active) {
@@ -42,10 +40,16 @@ export function JsonAssetDocument({
     }
     const controller = new AbortController();
     setRoute({ kind: 'loading' });
-    void loadNativeQuarksJsonSource(assetPath, controller.signal).then(
-      (source) => {
-        if (!controller.signal.aborted)
-          setRoute(source ? { kind: 'quarks', source } : { kind: 'generic' });
+    const recognize = async (): Promise<JsonRoute> => {
+      for (const viewer of viewers) {
+        const content = await viewer.recognize(assetPath, controller.signal);
+        if (content !== null) return { kind: 'content', viewer, content };
+      }
+      return { kind: 'generic' };
+    };
+    void recognize().then(
+      (next) => {
+        if (!controller.signal.aborted) setRoute(next);
       },
       (cause) => {
         if (!controller.signal.aborted) {
@@ -57,16 +61,17 @@ export function JsonAssetDocument({
       },
     );
     return () => controller.abort();
-  }, [active, assetPath]);
+  }, [active, assetPath, viewers]);
 
-  if (route.kind === 'quarks') {
+  if (route.kind === 'content') {
+    const { Viewer } = route.viewer;
     return (
-      <QuarksAssetDocument
+      <Viewer
         documentId={documentId}
         assetPath={assetPath}
         displayName={displayName}
         active={active}
-        source={route.source}
+        content={route.content}
       />
     );
   }

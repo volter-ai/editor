@@ -73,3 +73,33 @@ export function AssetViewerSlot({
   const Viewer = useAssetViewer(route);
   return Viewer ? createElement(Viewer, props) : whenUnregistered;
 }
+
+/**
+ * A JSON FORMAT A MEDIUM RECOGNIZES BY ITS CONTENT — three.quarks writes plain
+ * Object3D JSON with no extension of its own, so only the file's structure can
+ * say it is a particle system. The kit's JSON document asks each registered
+ * recognizer in turn and shows the generic JSON viewer when none claims it.
+ */
+export interface JsonContentViewer {
+  /** The parsed content this viewer renders, or null when it is not its format. */
+  recognize(assetPath: string, signal: AbortSignal): Promise<unknown | null>;
+  readonly Viewer: ComponentType<AssetViewerProps & { readonly content: unknown }>;
+}
+
+let jsonViewers: readonly JsonContentViewer[] = [];
+
+export function registerJsonContentViewer(viewer: JsonContentViewer): () => void {
+  jsonViewers = [...jsonViewers, viewer];
+  changed();
+  return () => {
+    if (!jsonViewers.includes(viewer)) return;
+    jsonViewers = jsonViewers.filter((existing) => existing !== viewer);
+    changed();
+  };
+}
+
+/** The registered JSON recognizers, in registration order — a new array only
+ *  when the set changes, so an effect keyed on it re-runs exactly then. */
+export function useJsonContentViewers(): readonly JsonContentViewer[] {
+  return useSyncExternalStore(subscribe, () => jsonViewers, () => jsonViewers);
+}

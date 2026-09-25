@@ -7,7 +7,9 @@
 import {
   type AssetViewerProps,
   type AssetViewerRoute,
+  type JsonContentViewer,
   registerAssetViewer,
+  registerJsonContentViewer,
 } from '@volter/editor-sdk/kit/asset-viewers';
 import { type ComponentType, lazy } from 'react';
 
@@ -84,10 +86,34 @@ const viewers: Readonly<Record<AssetViewerRoute, ComponentType<AssetViewerProps>
   }),
 };
 
+// A three.quarks particle system is plain Object3D JSON: recognized by its
+// structure, shown as the particle editor.
+const quarksJson: JsonContentViewer = {
+  recognize: async (assetPath, signal) =>
+    (await import('./QuarksAssetDocument')).loadNativeQuarksJsonSource(assetPath, signal),
+  Viewer: lazy(async () => {
+    const { QuarksAssetDocument } = await import('./QuarksAssetDocument');
+    return {
+      default: (props: AssetViewerProps & { readonly content: unknown }) => (
+        <QuarksAssetDocument
+          documentId={props.documentId}
+          assetPath={props.assetPath}
+          displayName={props.displayName}
+          active={props.active}
+          source={props.content as Parameters<typeof QuarksAssetDocument>[0]['source']}
+        />
+      ),
+    };
+  }),
+};
+
 export function registerThreeAssetViewers(): () => void {
-  const removals = (Object.keys(viewers) as AssetViewerRoute[]).map((route) =>
-    registerAssetViewer(route, viewers[route]),
-  );
+  const removals = [
+    ...(Object.keys(viewers) as AssetViewerRoute[]).map((route) =>
+      registerAssetViewer(route, viewers[route]),
+    ),
+    registerJsonContentViewer(quarksJson),
+  ];
   return () => {
     for (const remove of removals) remove();
   };
