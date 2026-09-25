@@ -27,6 +27,11 @@ export interface DocumentViewport {
     read(): readonly string[];
     apply(ids: readonly string[]): void;
   };
+  /** The ids of the objects this stage draws under `name` (a layout selecting
+   *  one named native object). */
+  idsNamed?(name: string): readonly string[];
+  /** Arm the stage's own transform gizmo. */
+  setTransformMode?(mode: 'combined' | 'translate' | 'rotate' | 'scale'): void;
   /** A PNG data URL of what it draws, when it can render one on demand. */
   capture?(size?: CaptureDimensions): string | null;
   /** Settles before a view is applied (an asynchronously mounting document). */

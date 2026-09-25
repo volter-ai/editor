@@ -13,10 +13,10 @@ import {
   subscribeAdapterEditorConfiguration,
 } from '../adapter-editor-config';
 import {
-  object3DDocumentSession,
-  object3DDocumentSessionsVersion,
-  subscribeObject3DDocumentSessions,
-} from '../authoring/object3d-document-session-registry';
+  documentViewport,
+  documentViewportsVersion,
+  subscribeDocumentViewports,
+} from '@volter/editor-sdk/kit/document-viewports';
 import { openRegisteredDocumentAsync } from '../document-open-registry';
 import { useEditorStore } from '../editor-runtime';
 import {
@@ -81,10 +81,10 @@ export function DocumentView({
     workspaceDocumentRegistryVersion,
     workspaceDocumentRegistryVersion,
   );
-  const sessionsVersion = useSyncExternalStore(
-    subscribeObject3DDocumentSessions,
-    object3DDocumentSessionsVersion,
-    object3DDocumentSessionsVersion,
+  const viewportsVersion = useSyncExternalStore(
+    subscribeDocumentViewports,
+    documentViewportsVersion,
+    documentViewportsVersion,
   );
   useEffect(() => {
     let disposed = false;
@@ -135,34 +135,29 @@ export function DocumentView({
   }, [id, active]);
   useEffect(() => {
     if (!id) return;
-    const session = object3DDocumentSession(id);
-    if (!session || readySession.current === session) return;
-    readySession.current = session;
+    // The document's stage answers for it (`@volter/editor-sdk/kit/document-viewports`).
+    const stage = documentViewport(id);
+    if (!stage || readySession.current === stage) return;
+    readySession.current = stage;
     try {
       onReadyRef.current?.({
         select(name) {
-          const matches: string[] = [];
-          session.root.traverse((object) => {
-            if (object.name === name) {
-              const objectId = session.idForObject(object);
-              if (objectId) matches.push(objectId);
-            }
-          });
+          const matches = stage.idsNamed?.(name) ?? [];
           if (matches.length !== 1)
             throw new Error(`Expected one object named "${name}"; found ${matches.length}.`);
-          session.select(matches);
+          stage.selection?.apply(matches);
         },
         transform(mode) {
-          session.viewport.setTransformMode(mode);
+          stage.setTransformMode?.(mode);
         },
         frame() {
-          session.frame();
+          stage.frame('document');
         },
       });
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : String(reason));
     }
-  }, [id, sessionsVersion]);
+  }, [id, viewportsVersion]);
   const opened = id
     ? openWorkspaceDocuments().find((item) => item.descriptor.id === id)
     : undefined;

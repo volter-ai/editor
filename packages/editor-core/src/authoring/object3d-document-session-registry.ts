@@ -85,6 +85,16 @@ function object3DDocumentViewport(session: Object3DDocumentSession): DocumentVie
     },
     frame: (target) => (target === 'selection' ? session.frameSelection() : (session.frame(), true)),
     selection: { read: () => session.selection(), apply: (ids) => session.select(ids) },
+    idsNamed: (name) => {
+      const ids: string[] = [];
+      session.root.traverse((object) => {
+        if (object.name !== name) return;
+        const id = session.idForObject(object);
+        if (id) ids.push(id);
+      });
+      return ids;
+    },
+    setTransformMode: (mode) => session.viewport.setTransformMode(mode),
     capture: (size) => session.captureImage(size ?? 512),
     prepare: () => prepareObject3DDocument(session.documentId),
     HeaderControls: Object3DDocumentToolbar,
