@@ -1004,7 +1004,7 @@ export class EditorViewport {
   private _navigation: 'interactive' | 'indicator' | 'hidden' = 'interactive';
   /** The selection marks' look as last built ({@link _syncBoxHelpers}), to rebuild on change. */
   private _marksLook = '';
-  /** The view's grid switch (`overlays.grid.visible`); the person's toggle is the store's. */
+  /** The view's grid switch (`overlays.grid.visible`), which the person's toggle also writes. */
   private _presentationGrid = true;
   private _vcMarginRight = COMPASS_MARGIN_RIGHT_PX;
   private _vcMarginTop = COMPASS_MARGIN_TOP_PX;

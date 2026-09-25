@@ -147,7 +147,7 @@ export function IngestCanvasSceneContent({
         touchAction: 'none',
       }}
     >
-      <CanvasSceneBackdrop view={view} />
+      <CanvasSceneBackdrop view={view} documentId={documentId} />
       <RootSelectionOverlay adapter={adapter} view={view} transformModeAware />
       <SurfaceStateOverlay
         explanation={surfaceExplanation}
@@ -159,6 +159,7 @@ export function IngestCanvasSceneContent({
         adapter={adapter}
         containerRef={containerRef}
         view={view}
+        documentId={documentId}
       />
     </div>
   );

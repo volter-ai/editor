@@ -196,13 +196,14 @@ export function PixiIsolationSceneContent({
         touchAction: 'none',
       }}
     >
-      <CanvasSceneBackdrop view={view} />
+      <CanvasSceneBackdrop view={view} documentId={documentId} />
       {adapter ? <RootSelectionOverlay adapter={adapter} view={view} transformModeAware /> : null}
       <CanvasSceneControls
         active={active}
         {...(adapter ? { adapter } : {})}
         containerRef={containerRef}
         view={view}
+        documentId={documentId}
       />
       {!ready ? (
         <div

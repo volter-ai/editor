@@ -34,13 +34,10 @@ import { ViewportViewMenu } from './ViewportViewMenu';
  * world's. Performance moved to the global header telemetry so Scene and Play
  * expose one source-following instrument.
  *
- * GRID routes through the stage's `Object3DDocumentSession` when it has one.
- * That is not a second source of truth: the session writes the SAME
- * `viewport.grid.visible` the store's toggle reaches through
- * `EditorViewport.syncFromStore`, and it is what the document's own header
- * button and `vgai status`'s `showGrid` already read
- * (`command-listener.ts`'s `documentPresentation?.grid ?? store.showGrid`).
- * Two writers of one flag is how a toggle comes back on by itself.
+ * GRID is the stage's VIEW's switch (`overlays.grid.visible` in
+ * `kit/viewport-presentation`, keyed by `documentId`): the one flag this
+ * button, the document's header, the `toggle.grid` action, `set-grid` and
+ * `vgai status`'s `showGrid` all read and write.
  */
 export function ViewportOverlay({
   store,

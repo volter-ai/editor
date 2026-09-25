@@ -20,7 +20,11 @@ import { registerContributedActions } from './chrome-registry';
 import type { EditorShellStore } from './editor-shell-store';
 import { requestTransformMode } from './transform-mode-request';
 import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { setViewGridVisible, viewGridVisible } from '@volter/editor-sdk/kit/viewport-presentation';
+import {
+  setViewGridVisible,
+  viewGridVisible,
+  viewPresentationBinding,
+} from '@volter/editor-sdk/kit/viewport-presentation';
 
 function cameraActions(): ContributedAction[] {
   const presentation = cameraAuthoringPresentation();
@@ -68,7 +72,7 @@ export function registerViewportActions(store: EditorShellStore): () => void {
       execute: () => {
         // The ACTIVE view's grid switch, one per view (`kit/viewport-presentation`).
         const viewId = activeWorkspaceDocumentId();
-        if (viewId) setViewGridVisible(viewId, !viewGridVisible(viewId));
+        if (viewId && viewPresentationBinding(viewId)) setViewGridVisible(viewId, !viewGridVisible(viewId));
       },
     },
     { id: 'toggle.helpers', label: 'Toggle Helpers', execute: () => store.toggleHelpers() },

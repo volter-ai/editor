@@ -265,7 +265,7 @@ export function RootDocumentContent({
       }}
     >
       {isBabylonScene ? null : isCanvasScene ? (
-        <CanvasSceneBackdrop view={canvasSceneView} />
+        <CanvasSceneBackdrop view={canvasSceneView} documentId={documentId} />
       ) : (
         <ReactDesignCanvasBackdrop />
       )}
@@ -288,6 +288,7 @@ export function RootDocumentContent({
           {...(documentAdapter ? { adapter: documentAdapter } : {})}
           containerRef={containerRef}
           view={canvasSceneView}
+          documentId={documentId}
         />
       ) : (
         <>

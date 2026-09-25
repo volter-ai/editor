@@ -28,12 +28,12 @@ import {
 import type { RootViewController } from '@volter/editor-sdk/kit/world-pan-state';
 import { useEditorStore } from '../editor-runtime';
 import {
+  bindViewPresentation,
   setViewGridVisible,
   subscribeViewportPresentation,
   viewGridVisible,
   viewportPresentationVersion,
 } from '@volter/editor-sdk/kit/viewport-presentation';
-import { CANVAS_SCENE_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import { ToolStrip } from './Toolbar';
 import { TransientHintOverlay } from './TransientHint';
 
@@ -101,12 +101,15 @@ function frameBounds(
  * follow the editor camera; neither exists in the game's source or runtime.
  * It sits above source-owned backgrounds (which otherwise erase any useful
  * drafting reference) and below selection/transform chrome. */
-export function CanvasSceneBackdrop({ view }: { view: RootViewController }) {
+export function CanvasSceneBackdrop({ view, documentId }: { view: RootViewController; documentId: string }) {
   const store = threeStateOf(useEditorStore());
   useSyncExternalStore(store.subscribe, store.getSnapshot);
-  // The 2D scene's grid switch is its VIEW's, like every stage's (`kit/viewport-presentation`).
+  // The 2D scene's grid switch is its VIEW's, like every stage's (`kit/viewport-presentation`):
+  // bound under the host document's own id, so a door that toggles the active view's grid
+  // reaches this one, and two canvases never share a switch.
+  useEffect(() => bindViewPresentation(documentId, 'canvas'), [documentId]);
   useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
-  const showGrid = viewGridVisible(CANVAS_SCENE_DOCUMENT_ID);
+  const showGrid = viewGridVisible(documentId);
   const pose = useSyncExternalStore(view.subscribe, view.get, view.get);
   useSyncExternalStore(
     useCallback((listener) => subscribeCanvasSceneGuides(view, listener), [view]),
@@ -425,16 +428,18 @@ export function CanvasSceneControls({
   adapter,
   containerRef,
   view,
+  documentId,
 }: {
   active: boolean;
   adapter?: AuthoringAdapter;
   containerRef: RefObject<HTMLDivElement | null>;
   view: RootViewController;
+  documentId: string;
 }) {
   const store = threeStateOf(useEditorStore());
   useSyncExternalStore(store.subscribe, store.getSnapshot);
   useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
-  const showGrid = viewGridVisible(CANVAS_SCENE_DOCUMENT_ID);
+  const showGrid = viewGridVisible(documentId);
   const pose = useSyncExternalStore(view.subscribe, view.get, view.get);
 
   const zoomAroundCenter = useCallback(
@@ -515,7 +520,7 @@ export function CanvasSceneControls({
             aria-label="Toggle 2D grid"
             aria-pressed={showGrid}
             size="comfortable"
-            onClick={() => setViewGridVisible(CANVAS_SCENE_DOCUMENT_ID, !showGrid)}
+            onClick={() => setViewGridVisible(documentId, !showGrid)}
           >
             <EditorIcon icon={faBorderAll} size="md" />
           </IconButton>

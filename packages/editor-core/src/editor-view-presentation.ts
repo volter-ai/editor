@@ -12,6 +12,7 @@ import {
 import type { StoryRef } from '@volter/editor-project/adapter';
 import { getActiveAuthoring } from './authoring/active-adapter';
 import { type DocumentViewport, documentViewport } from '@volter/editor-sdk/kit/document-viewports';
+import { setViewGridVisible, viewPresentationBinding } from '@volter/editor-sdk/kit/viewport-presentation';
 import { openRegisteredDocumentAsync, registeredDocumentOpenerIds } from './document-open-registry';
 import { currentEditorView } from './editor-current-view';
 import { activeDocumentContainer } from './editor-document-probe';
@@ -637,7 +638,12 @@ function applyPresentation(
     else store.selectMultiple(view.selection.ids);
   }
   const viewport = view.viewport;
-  if (viewport?.grid !== undefined) stage?.setGrid(viewport.grid);
+  // The grid switch is the DOCUMENT'S OWN view's (`kit/viewport-presentation`), never the
+  // Scene's by fallback: a view that no stage binds draws no grid to switch.
+  if (viewport?.grid !== undefined) {
+    if (documentId && viewPresentationBinding(documentId)) setViewGridVisible(documentId, viewport.grid);
+    else warnings.push('This document draws no grid.');
+  }
   if (viewport?.diagnostic && !stage?.setDiagnostic(viewport.diagnostic)) {
     warnings.push(`Diagnostic ${viewport.diagnostic} is unavailable for this document.`);
   }

@@ -6,7 +6,7 @@
  */
 import type { DocumentViewport } from '@volter/editor-sdk/kit/document-viewports';
 import type { EditorShellStore } from './editor-shell-store';
-import { setViewGridVisible, viewGridVisible } from '@volter/editor-sdk/kit/viewport-presentation';
+import { viewGridVisible } from '@volter/editor-sdk/kit/viewport-presentation';
 
 type ShadingMode = Parameters<EditorShellStore['setShadingMode']>[0];
 
@@ -28,7 +28,6 @@ export function sceneDocumentViewport(store: EditorShellStore, documentId: strin
         grid: viewGridVisible(documentId),
       };
     },
-    setGrid: (on) => setViewGridVisible(documentId, on),
     setDiagnostic: (diagnostic) => {
       if (!SCENE_MODES.has(diagnostic)) return false;
       store.setShadingMode(diagnostic as ShadingMode);

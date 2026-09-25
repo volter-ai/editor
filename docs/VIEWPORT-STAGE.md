@@ -35,7 +35,7 @@ Unreal is not installed on this box and its documentation does not state these d
 | Move arrows' length and head, rotation rings' width | yes (`stage.gizmoArrowLength`, `gizmoArrowHead`, `gizmoRingWidth`) | |
 | Navigation gizmo's form and corner | yes (`stage.navigationGizmo`: balls, cones, triad; `navigationCorner`) | whether it is clicked is the view's (`overlays.navigation`) |
 | Other gizmo form (scale handles' shape, the plane handles' shape) | no | fixed: three's handles as patched |
-| Armed tool, box-select test, up axis, the transform tool's extra handles, which axis lines show, the grid's switch, whether the navigation gizmo is clicked | no: function, not look (ARCHITECTURE rule 7) | the stage's presentation (`interaction`, `world`, `overlays`) |
+| Armed tool, box-select test, up axis, the transform tool's extra handles, which axis lines show, the grid's switch (the person's grid toggle writes the active view's; there is no editor-wide one), whether the navigation gizmo is clicked | no: function, not look (ARCHITECTURE rule 7) | the stage's presentation (`interaction`, `world`, `overlays`) |
 
 ## Where a look's colours live
 

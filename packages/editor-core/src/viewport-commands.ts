@@ -25,7 +25,7 @@ import { captureActiveEditorDocument } from './editor-view-presentation';
 import { entityObject3D } from './entity-object';
 import { threeStoreForHost } from './shell-store-door';
 import { focusedStageStore } from './stage-context';
-import { setViewGridVisible } from '@volter/editor-sdk/kit/viewport-presentation';
+import { setViewGridVisible, viewPresentationBinding } from '@volter/editor-sdk/kit/viewport-presentation';
 
 function activeObject3DDocumentSession() {
   const documentId = activeWorkspaceDocumentId();
@@ -213,7 +213,10 @@ export const viewportCommands: CommandContribution['commands'] = {
   'set-grid': verb((_store, cmd) => {
     // The ACTIVE view's grid switch (`kit/viewport-presentation`), one per view.
     const viewId = activeWorkspaceDocumentId();
-    if (viewId) setViewGridVisible(viewId, cmd['enabled'] as boolean);
+    if (!viewId || !viewPresentationBinding(viewId)) {
+      return { ok: false, error: 'set-grid: the active document draws no grid.' };
+    }
+    setViewGridVisible(viewId, cmd['enabled'] as boolean);
     return OK;
   }),
   // Helpers and the stats tile are per-STAGE view options, read by the focused

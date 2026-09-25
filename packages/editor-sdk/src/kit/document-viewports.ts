@@ -14,7 +14,6 @@ export type EditorViewViewport = NonNullable<EditorView['viewport']>;
 export interface DocumentViewport {
   /** Camera pose, diagnostic and grid now; null while nothing is drawn yet. */
   read(): Pick<EditorViewViewport, 'camera' | 'diagnostic' | 'grid'> | null;
-  setGrid(on: boolean): void;
   /** False when this viewport has no such diagnostic view. */
   setDiagnostic(diagnostic: NonNullable<EditorViewViewport['diagnostic']>): boolean;
   /** False when this viewport has no such camera. */
