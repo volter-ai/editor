@@ -842,14 +842,19 @@ function acceptStep(step: DocumentProbeStep): Scope {
 
 export async function runDocumentProbe(step: DocumentProbeStep): Promise<DocumentProbeResult> {
   const scope = acceptStep(step);
-  // THE GAME'S HEADER TAKES POINTER CLICKS AND READS ONLY. Its strip is the editor's chrome, but
-  // every event this door dispatches bubbles to \`window\`, where a playing game listens: a key,
-  // a typed string, a paste or a drag there would drive the game with synthetic input, which is
-  // what refusing the Game document protects.
-  if (scope.id === GAME_DOCUMENT_ID && step.action !== 'query' && step.action !== 'click' && step.action !== 'select') {
+  // WHILE THE GAME IS THE ACTIVE DOCUMENT, THIS DOOR READS AND CLICKS ONLY. Every event it
+  // dispatches bubbles to \`window\`, where the game listens when its document is active: a key,
+  // a typed string, a paste or a drag in any scope (the game's header, the rail, the outliner)
+  // would drive the game with synthetic input, which is what refusing the Game document protects.
+  if (
+    activeWorkspaceDocumentId() === GAME_DOCUMENT_ID &&
+    step.action !== 'query' &&
+    step.action !== 'click' &&
+    step.action !== 'select'
+  ) {
     throw new Error(
-      `'${step.action}' is refused in the Game document's header strip: its events bubble to the ` +
-        "playing game. Query, click and select are its door; drive the game through the game's own doors.",
+      `'${step.action}' is refused while the Game document is active: its events bubble to the game. ` +
+        "Query, click and select still work; drive the game through the game's own doors.",
     );
   }
   const where = { name: scope.name, id: scope.id, title: scope.title };

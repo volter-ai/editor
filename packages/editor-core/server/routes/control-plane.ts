@@ -973,6 +973,11 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
       _clientId?: string;
       _awaitCallerReceipt?: boolean;
     };
+    // A result, late or on time, answers the tab's last receipt: a command that outlived its
+    // budget but finished no longer holds the tab.
+    for (const last of lastReceipt.values()) {
+      if (last.requestId === body._requestId) last.answered = true;
+    }
     const pending = pendingCommands.get(body._requestId);
     if (pending) {
       // Only when the reporter NAMES itself. Over the socket the server fills
@@ -1771,7 +1776,8 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
           last !== undefined &&
           !last.answered &&
           last.at <= (pending?.relayedAt ?? expiredAt) &&
-          last.epoch === (tab?.epochCount ?? last.epoch)
+          tab !== undefined &&
+          last.epoch === tab.epochCount
             ? last
             : undefined;
         const queuedBehind = holding
