@@ -205,7 +205,6 @@ export const RELAY_COMMANDS = {
   // The whole editor page through the same compositor; the foreignObject leg
   // over a full dock takes seconds, not milliseconds.
   'capture-editor-chrome': refreshIfContentChanged(30_000),
-  'capture-asset-preview': refreshIfContentChanged(30_000),
 
   // The ONE door onto a view's verbs (`@volter/editor-sdk/views`, U8 ruling 1).
   // A verb either READS the view or moves its own transform; neither touches

@@ -18,6 +18,7 @@ import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { object3DDocumentSession } from './authoring/object3d-document-session-registry';
 import { activeDocumentAuthoring } from './authoring/shell-document-ops';
+import { handleAssetPreviewCommand } from './asset-preview-command';
 import { captureSizeFromCommand } from './capture-size';
 import type { EditorShellStore, HelperVisibility } from './editor-shell-store';
 import { captureActiveEditorDocument } from './editor-view-presentation';
@@ -205,6 +206,8 @@ export const viewportCommands: CommandContribution['commands'] = {
     const base64 = comma >= 0 ? dataUrl.slice(comma + 1) : dataUrl;
     return { ok: true, data: { base64, mimeType: 'image/png' } };
   }, undefined, 'if-content-changed'),
+  // The Asset Lab's photographs; the budget covers a multi-shot set's renders.
+  'capture-asset-preview': verb((store, cmd) => handleAssetPreviewCommand(store, cmd), 30_000, 'if-content-changed'),
   // Display — set semantics (only toggle when the value differs).
   'set-grid': verb((store, cmd) => {
     const documentSession = activeObject3DDocumentSession();
