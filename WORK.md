@@ -125,11 +125,10 @@ Remaining:
 4. **The design skew** (`website`): the DOM root is read-only, the Pages list is empty, and a
    `page` has no document editor.
 5. **Unwalked instruments:** navmesh on real content; Network needs a networking adapter.
-6. **Input a game owns is not gated.** `arena` builds its own `new InputManager()`
-   (`src/lib/input`). With a Model document active and the tab on Edit, a key still moves the player
-   the full distance (measured: z moved 5.9 in one second, with the same reading when Game is
-   focused). Play gates only `session.game.input`, and the listener shadow skips dependency code.
-   Machine input through the native door (`native-debug-module.ts`) is not gated either.
+6. **Machine input through the native door is not gated.** A game's own `InputManager` takes the
+   realm gate (measured on `arena`: during Play with a Model document active, a held W no longer
+   reaches `gameInput`; with the Game tab focused it does). Virtual input through the native
+   door (`native-debug-module.ts`) is still delivered while the tab is on Edit.
 
 ## Both products in the browser substrate
 
