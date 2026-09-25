@@ -834,7 +834,8 @@ export class StagePresentationRig {
             THREE.MathUtils.lerp(at(x0, y0 + 1), at(x0 + 1, y0 + 1), fx),
             fy,
           );
-          const density = THREE.MathUtils.smoothstep(noise, cloudEdge - 0.04, cloudEdge + 0.04);
+          // A soft edge a noise decile wide: clouds fade into the sky rather than cut out of it.
+          const density = THREE.MathUtils.smoothstep(noise, cloudEdge - 0.1, cloudEdge + 0.1);
           pixel.lerp(cloudColour, density * clouds.opacity * cloudRise);
         }
         if (light && sun && elevation > -Math.PI / 2) {
