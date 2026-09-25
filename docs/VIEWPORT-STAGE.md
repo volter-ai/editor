@@ -55,3 +55,23 @@ Presentation is saved per view and per draw mode, with an optional per-document 
 - presentation passes when each target's default viewport and its toggles can be expressed without new code.
 
 Neither is accepted until Unreal's column is measured.
+
+## Where it stands (2026-09-25)
+
+Built (`@volter/editor-sdk/kit/viewport-presentation`, `StagePresentationRig` in `standard-viewport-dressing.ts`):
+- document stages (`StageHost`) and the game world's stage (`EditorViewport.bindPresentation`) are lit and dressed by their view's presentation;
+- studio presets are data: the kit's own (the stage before the Blender fit), the reserved `document` preset (a document's own view-locked studio: Blender's four Solid-mode lights, which the Blender engine builds), and the world stage's (its old rig, unchanged);
+- the preview source draws Godot's preview sun and procedural sky; the backdrop sources `color`, `environment` and `transparent` replace the stage's own;
+- overlays: the selection marks (outline, wire, box, in any combination) and the grid's major step; the look states the grid's line widths and major contrast (`density.viewport`);
+- `editor.presentation(documentId, layer?)` reads and records a view's presentation, and reports what its last draw was lit by.
+
+Capability, per target (can its default viewport and its toggles be expressed without new code):
+
+| Target | Expressible now | Not yet |
+|---|---|---|
+| Blender | Solid (its own studio, AgX, no environment), the fill, outline, grid step and widths | Material Preview's HDRI (only a procedural sky exists), Rendered (the engine's render lighting is not a scene light the stage can switch to), box and wire on Blender documents (its selection ids are datablocks, not three objects) |
+| Godot | preview sun and sky, sky as backdrop, box selection, 8-cell major step | per-part takeover (the sun and the environment give way separately; `auto` switches the whole source), its Filmic curve (AgX stands in), the sun's energy unit, XY and YZ grid planes |
+| Unity | scene lighting, outline plus wire, a camera-locked headlight as a preset | the skybox toggle as a backdrop source over a scene without a skybox, Prefab Mode's context fill, per-mode lighting of draw modes |
+| Unreal | — | not measured |
+
+Neither half is accepted. The looks of the three measured targets are still to be authored and judged side by side against frames of the real editors; the world stage is compiled but not yet seen on a project with a world.
