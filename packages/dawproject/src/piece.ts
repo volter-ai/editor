@@ -11,6 +11,7 @@
  * them is that element's own.
  */
 
+import type { DeviceParam } from './index';
 import { beatAt, beatsOf, beatsPerBarOf, midiOf } from './notation';
 import type { DawNode } from './render';
 
@@ -73,16 +74,26 @@ export interface PieceDevice {
   readonly oid: string | null;
   readonly plugin: string;
   readonly name: string | null;
-  readonly params: Readonly<Record<string, number | string | boolean>>;
+  readonly params: Readonly<Record<string, DeviceParam>>;
+}
+
+export interface PieceSend {
+  readonly oid: string | null;
+  /** The name of the track whose `effect` channel this feeds. */
+  readonly to: string;
+  readonly level: number;
+  readonly pre: boolean;
 }
 
 export interface PieceChannel {
   readonly oid: string | null;
+  readonly role: 'regular' | 'effect' | 'master';
   readonly volume: number;
   readonly pan: number;
   readonly mute: boolean;
   readonly solo: boolean;
   readonly devices: readonly PieceDevice[];
+  readonly sends: readonly PieceSend[];
 }
 
 export interface PieceTrack {
@@ -179,8 +190,13 @@ export function readPiece(root: DawNode): Piece {
       const clips: PieceClip[] = [];
       node.children.forEach((child, childIndex) => {
         if (child.type === 'Channel') {
+          const role = str(child.props['role']);
           channel = {
             oid: child.oid,
+            role: role === 'effect' || role === 'master' ? role : 'regular',
+            sends: child.children
+              .filter((send) => send.type === 'Send')
+              .map((send) => ({ oid: send.oid, to: str(send.props['to']) ?? '', level: num(send.props['level'], 0), pre: bool(send.props['pre']) })),
             volume: num(child.props['volume'], 0),
             pan: num(child.props['pan'], 0),
             mute: bool(child.props['mute']),
@@ -192,7 +208,7 @@ export function readPiece(root: DawNode): Piece {
                 oid: device.oid,
                 plugin: str(device.props['plugin']) ?? '',
                 name: str(device.props['name']),
-                params: (device.props['params'] ?? {}) as Record<string, number | string | boolean>,
+                params: (device.props['params'] ?? {}) as Record<string, DeviceParam>,
               })),
           };
         } else if (child.type === 'Clip') {

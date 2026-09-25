@@ -10,14 +10,15 @@
  * asks for it (`params.drums`). A track with no soundfont device is silent and says so in the
  * track header; nothing is substituted for it.
  *
- * The mixer maps onto the channel's own controllers: `volume` (dB) to CC7 on General MIDI's
- * 40·log10 curve, `pan` to CC10, `mute`/`solo` by leaving notes unscheduled.
+ * The mix is `mix/live-mix.ts`: each channel's own output through its strip, buses and master,
+ * the same graph the export renders. `mute`/`solo` also leave notes unscheduled.
  */
 
 import { type Performance, perform } from '@volter/dawproject/perform';
 import type { Piece, PieceTrack } from '@volter/dawproject/piece';
 import { projectModuleUrl } from '@volter/editor-sdk/contributions';
 import { WorkletSynthesizer } from 'spessasynth_lib';
+import { LiveMix, mixSignature } from './mix/live-mix';
 import processorUrl from 'spessasynth_lib/dist/spessasynth_processor.min.js?url';
 
 const LOOKAHEAD_S = 0.2;
@@ -55,13 +56,6 @@ export function trackVoices(piece: Piece): Map<string, TrackVoice | null> {
   return voices;
 }
 
-function volumeCc(db: number): number {
-  return Math.max(0, Math.min(127, Math.round(127 * 10 ** (db / 40))));
-}
-
-function panCc(pan: number): number {
-  return Math.max(0, Math.min(127, Math.round(64 + pan * 63)));
-}
 
 function audible(piece: Piece, track: PieceTrack): boolean {
   const soloed = piece.tracks.some((candidate) => candidate.channel?.solo);
@@ -78,6 +72,9 @@ export type EngineState =
 export class PreviewEngine {
   private context: AudioContext | null = null;
   private synth: WorkletSynthesizer | null = null;
+  /** The mix graph the synth's channel outputs feed (`mix/live-mix.ts`). */
+  private mix: LiveMix | null = null;
+  private mixBuiltFor = '';
   private readonly loadedBanks = new Set<string>();
   private timer: ReturnType<typeof setInterval> | null = null;
   private piece: Piece | null = null;
@@ -111,7 +108,27 @@ export class PreviewEngine {
   update(piece: Piece): void {
     this.piece = piece;
     this.performance = perform(piece);
-    if (this.synth && this.state.kind === 'playing') this.applyMix(piece);
+    if (this.synth && this.state.kind === 'playing') {
+      this.applyMix(piece);
+      void this.rebuildMix(piece).catch((error: unknown) =>
+        this.setState({ kind: 'error', message: error instanceof Error ? error.message : String(error) }),
+      );
+    }
+  }
+
+  /** Rebuild the mix graph when the piece's strips, devices or sends changed. */
+  private async rebuildMix(piece: Piece): Promise<void> {
+    const synth = this.synth;
+    const mix = this.mix;
+    if (!synth || !mix) return;
+    const signature = mixSignature(piece);
+    if (signature === this.mixBuiltFor) return;
+    this.mixBuiltFor = signature;
+    if (mix.channelInputs.length > 0) synth.disconnectIndividualOutputs(mix.channelInputs);
+    const channelOf = new Map<string, number>();
+    for (const [trackId, voice] of trackVoices(piece)) if (voice) channelOf.set(trackId, voice.channel);
+    await mix.build(piece, channelOf);
+    synth.connectIndividualOutputs(mix.channelInputs);
   }
 
   /** The beat under the playhead, or `null` when stopped. */
@@ -143,9 +160,20 @@ export class PreviewEngine {
       if (!this.synth) {
         await this.context.audioWorklet.addModule(processorUrl);
         this.synth = new WorkletSynthesizer(this.context);
-        this.synth.connect(this.context.destination);
         await this.synth.isReady;
+        // The mix owns space and level: the synth's own reverb and chorus are off, and each MIDI
+        // channel comes out separately into its track's strip.
+        this.synth.setSystemParameter('effectsEnabled', false);
+        const context = this.context;
+        this.mix = new LiveMix(context, async (path) => {
+          const url = projectModuleUrl(path);
+          if (!url) throw new Error(`No served address for ${path}.`);
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`${path}: ${response.status} ${response.statusText}`);
+          return context.decodeAudioData(await response.arrayBuffer());
+        });
       }
+      await this.rebuildMix(piece);
       await this.loadBanks(piece);
       this.stopTimer();
       this.synth?.stopAll(true);
@@ -170,6 +198,7 @@ export class PreviewEngine {
 
   dispose(): void {
     this.stop();
+    this.mix?.dispose();
     this.synth?.destroy();
     void this.context?.close();
     this.synth = null;
@@ -208,8 +237,10 @@ export class PreviewEngine {
         synth.controllerChange(voice.channel, 0, voice.bankNumber);
         synth.programChange(voice.channel, voice.program);
       }
-      synth.controllerChange(voice.channel, 7, volumeCc(track.channel?.volume ?? 0));
-      synth.controllerChange(voice.channel, 10, panCc(track.channel?.pan ?? 0));
+      // Level and pan are the mix's faders and panners (`mix/live-mix.ts`), not the synth's
+      // controllers, so they are applied once; the synth channel stays at unity and centre.
+      synth.controllerChange(voice.channel, 7, 127);
+      synth.controllerChange(voice.channel, 10, 64);
     }
   }
 

@@ -30,8 +30,9 @@ import { createPieceRoot } from '@volter/dawproject/render';
 import type { ComponentType } from 'react';
 import { checkPiece } from '../src/checks';
 import { measureLoop, nullResidualDb } from '../src/measure';
-import { assignChannels, audibleTracks, pieceToMidi, type RenderedLoop, renderLoop, seamRatio } from '../src/render-offline';
-import { loopWav24 } from '../src/wav';
+import { assignChannels, audibleTracks, mixLoop, pieceToMidi, type RenderedLoop, renderChannels, seamRatio } from '../src/render-offline';
+import type { ImpulseResponse } from '../src/mix/offline-mix';
+import { loopWav24, readWav } from '../src/wav';
 
 const TARGETS: Record<string, number> = { console: -24, portable: -18 };
 const positional: string[] = [];
@@ -71,11 +72,22 @@ const bankPath = [...assignments.values()][0]?.bank;
 if (!bankPath) throw new Error('No track has a soundfont device; there is nothing to render.');
 const bankBytes = readFileSync(resolve(project, bankPath));
 const bank = bankBytes.buffer.slice(bankBytes.byteOffset, bankBytes.byteOffset + bankBytes.byteLength);
-const loop = await renderLoop(piece, bank);
+// Impulse responses the piece's convolution devices name, read from the project.
+const irs = new Map<string, ImpulseResponse>();
+for (const track of piece.tracks) {
+  for (const device of track.channel?.devices ?? []) {
+    const path = device.plugin === 'convolution' ? device.params['ir'] : undefined;
+    if (typeof path !== 'string' || irs.has(path)) continue;
+    const wav = readWav(new Uint8Array(readFileSync(resolve(project, path))));
+    irs.set(path, { channels: wav.channels, sampleRate: wav.sampleRate });
+  }
+}
+const rendered = await renderChannels(piece, bank, undefined, undefined, irs);
+const loop = mixLoop(rendered);
 // Each audible track alone, through the same render: the same channels, the same performance.
 const stems: { track: string; loop: RenderedLoop }[] = [];
 for (const track of audibleTracks(piece)) {
-  stems.push({ track: track.name, loop: await renderLoop(piece, bank, loop.sampleRate, undefined, new Set([track.id])) });
+  stems.push({ track: track.name, loop: mixLoop(rendered, new Set([track.id])) });
 }
 
 mkdirSync(out, { recursive: true });

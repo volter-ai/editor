@@ -4,7 +4,8 @@
  *
  *   - notes that run outside their clip; a piece that is not whole bars
  *   - notes outside their instrument's practical range (General MIDI program → range)
- *   - parallel perfect fifths / octaves between the TOP line of every pair of pitched tracks,
+ *   - parallel perfect fifths, and short runs of parallel octaves (a long run is a doubling),
+ *     between the TOP line of every pair of pitched tracks,
  *     and between each track and the bass (lowest line of the lowest track), half-beat by
  *     half-beat; against a single-line bass track the pair is already the top-line pair, so it
  *     is not counted twice
@@ -106,13 +107,44 @@ export function checkPiece(piece: Piece): PieceChecks {
     for (let j = i + 1; j < pitched.length; j++) pairs.push([pitched[i]!, 'top', pitched[j]!, 'top']);
     if (bassLine && pitched[i] !== bassLine) pairs.push([pitched[i]!, 'top', bassLine, 'bottom']);
   }
+  // Parallel octaves (or unisons) that go on for DOUBLING_MOVES moves or more are one part doubling
+  // another (a bass doubled at the octave, a melody in octaves): orchestration, not a slip. A run
+  // shorter than that is reported; parallel fifths are always reported.
+  const DOUBLING_MOVES = 3;
+  // A pair where the sparser part mostly sounds the other's pitch class at its own onsets is one
+  // line doubled (contrabass under cello, a melody in octaves), whatever the rhythm between.
+  const DOUBLING_SHARE = 0.7;
+  const doubles = (x: Line, xPick: Pick, y: Line, yPick: Pick): boolean => {
+    // Compared on the LINES being checked (a chord's top voice, the bass's bottom), not any note
+    // of a chord: a pad always contains the bass's root, and that is not a doubling.
+    const [sparse, sparsePick, dense, densePick] = x.notes.length <= y.notes.length ? [x, xPick, y, yPick] : [y, yPick, x, xPick];
+    const onsets = [...new Set(sparse.notes.map((note) => note.start))];
+    if (onsets.length === 0) return false;
+    let shared = 0;
+    for (const onset of onsets) {
+      const a = sounding(sparse, onset, sparsePick);
+      const b = sounding(dense, onset, densePick);
+      if (a !== null && b !== null && a % 12 === b % 12) shared++;
+    }
+    return shared / onsets.length >= DOUBLING_SHARE;
+  };
   let parallels = 0;
   for (const [upper, upperPick, lower, lowerPick] of pairs) {
+    const doubling = doubles(upper, upperPick, lower, lowerPick);
     let previous: [number, number] | null = null;
+    let octaveRun: string[] = [];
+    const endRun = (): void => {
+      if (octaveRun.length > 0 && octaveRun.length < DOUBLING_MOVES) {
+        parallels += octaveRun.length;
+        problems.push(...octaveRun);
+      }
+      octaveRun = [];
+    };
     for (let beat = 0; beat < piece.length; beat += 0.5) {
       const a = sounding(upper, beat, upperPick);
       const b = sounding(lower, beat, lowerPick);
       if (a === null || b === null) {
+        endRun();
         previous = null;
         continue;
       }
@@ -121,18 +153,22 @@ export function checkPiece(piece: Piece): PieceChecks {
         previous = [a, b];
         continue;
       }
+      const interval = (((a - b) % 12) + 12) % 12;
       if (previous) {
         const [pa, pb]: [number, number] = previous;
-        const interval = (((a - b) % 12) + 12) % 12;
         const previousInterval = (((pa - pb) % 12) + 12) % 12;
-        const perfect = interval === 0 || interval === 7;
-        if (perfect && interval === previousInterval && a !== pa && b !== pb && Math.sign(a - pa) === Math.sign(b - pb)) {
+        const moved = a !== pa && b !== pb && Math.sign(a - pa) === Math.sign(b - pb);
+        const where = `${upper.name}/${lower.name}${lowerPick === 'bottom' ? ' (bass)' : ''}`;
+        if (moved && interval === previousInterval && interval === 7) {
           parallels++;
-          problems.push(`${upper.name}/${lower.name}${lowerPick === 'bottom' ? ' (bass)' : ''}: parallel ${interval === 0 ? 'octaves' : 'fifths'} into ${barBeat(beat)}`);
+          problems.push(`${where}: parallel fifths into ${barBeat(beat)}`);
         }
+        if (moved && interval === 0 && previousInterval === 0 && !doubling) octaveRun.push(`${where}: parallel octaves into ${barBeat(beat)}`);
+        else if (interval !== 0) endRun();
       }
       previous = [a, b];
     }
+    endRun();
   }
   return { problems, parallels };
 }

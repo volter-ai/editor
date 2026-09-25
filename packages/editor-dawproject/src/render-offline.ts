@@ -10,6 +10,7 @@
 
 import { perform } from '@volter/dawproject/perform';
 import type { Piece } from '@volter/dawproject/piece';
+import { type ImpulseResponse, mix } from './mix/offline-mix';
 import { MIDIBuilder, SoundBankLoader, SpessaSynthProcessor, SpessaSynthSequencer } from 'spessasynth_core';
 
 const PPQ = 480;
@@ -63,7 +64,7 @@ export function audibleTracks(piece: Piece): Piece['tracks'] {
  * `only` (track ids) writes a subset of the audible tracks, on the channels they have in the
  * full piece: a stem is the same performance with the other tracks left out.
  */
-export function pieceToMidi(piece: Piece, passes = 1, only?: ReadonlySet<string>): MIDIBuilder {
+export function pieceToMidi(piece: Piece, passes = 1, only?: ReadonlySet<string>, forMix = false): MIDIBuilder {
   const performance = perform(piece);
   const midi = new MIDIBuilder({ timeDivision: PPQ, initialTempo: piece.transport.tempo, name: 'piece', format: 1 });
   const assignments = assignChannels(piece);
@@ -93,9 +94,12 @@ export function pieceToMidi(piece: Piece, passes = 1, only?: ReadonlySet<string>
       midi.controllerChange(0, trackIndex, channel, 0, assignment.bankNumber);
       midi.programChange(0, trackIndex, channel, assignment.program);
     }
-    const volume = Math.max(0, Math.min(127, Math.round(127 * 10 ** ((track.channel?.volume ?? 0) / 40))));
+    // A file for another DAW carries the channel's level and pan as CC7/CC10. Rendered through the
+    // mix (`forMix`), the synth channel stays at unity and centre: the mix's faders and panners
+    // apply them, once, exactly as the editor does.
+    const volume = forMix ? 127 : Math.max(0, Math.min(127, Math.round(127 * 10 ** ((track.channel?.volume ?? 0) / 40))));
     midi.controllerChange(0, trackIndex, channel, 7, volume);
-    midi.controllerChange(0, trackIndex, channel, 10, Math.max(0, Math.min(127, Math.round(64 + (track.channel?.pan ?? 0) * 63))));
+    midi.controllerChange(0, trackIndex, channel, 10, forMix ? 64 : Math.max(0, Math.min(127, Math.round(64 + (track.channel?.pan ?? 0) * 63))));
     for (let pass = 0; pass < passes; pass++) {
       for (const control of performance.controls) {
         if (control.track !== track.id) continue;
@@ -124,36 +128,60 @@ export interface RenderedLoop {
   readonly loopSeconds: number;
 }
 
+/** Every MIDI channel of the piece rendered once, dry, for two passes and a tail. */
+export interface RenderedChannels {
+  readonly piece: Piece;
+  readonly sampleRate: number;
+  readonly loopSeconds: number;
+  readonly channels: readonly [Float32Array, Float32Array][];
+  readonly irs: ReadonlyMap<string, ImpulseResponse>;
+}
+
 /**
- * Render one seamless loop of the piece: two passes and a tail, second pass kept. `only` (track
- * ids) renders just those tracks (a stem); by default every audible track sounds.
+ * Run the synth once over the whole piece (two passes and a tail), each MIDI channel into its own
+ * stereo buffer with the synth's own effects off. The mix and every stem are then mixed from these
+ * buffers (`mixLoop`), so a stem is exactly its track's share of the mix.
  */
-export async function renderLoop(
+export async function renderChannels(
   piece: Piece,
   soundBank: ArrayBuffer,
   sampleRate = 48_000,
   tailSeconds = 4,
-  only?: ReadonlySet<string>,
-): Promise<RenderedLoop> {
+  irs: ReadonlyMap<string, ImpulseResponse> = new Map(),
+): Promise<RenderedChannels> {
   const synth = new SpessaSynthProcessor(sampleRate, { eventsEnabled: false });
   synth.soundBankManager.addSoundBank(SoundBankLoader.fromArrayBuffer(soundBank), 'main');
   await synth.processorInitialized;
   synth.setSystemParameter('autoAllocateVoices', true);
+  // The mix owns space and level (`mix/offline-mix.ts`): the synth's own reverb and chorus are off.
+  synth.setSystemParameter('effectsEnabled', false);
   const sequencer = new SpessaSynthSequencer(synth);
   // The sequencer skips leading silence by default, which would slide a stem whose first note is
   // late (and a humanised mix by its first note's drift) off the piece's own clock.
   sequencer.skipToFirstNoteOn = false;
-  sequencer.loadNewSongList([pieceToMidi(piece, 2, only)]);
+  sequencer.loadNewSongList([pieceToMidi(piece, 2, undefined, true)]);
   sequencer.play();
   const loopSeconds = perform(piece).secondsAt(Math.max(1, piece.length));
   const total = Math.ceil(sampleRate * (2 * loopSeconds + tailSeconds));
-  const left = new Float32Array(total);
-  const right = new Float32Array(total);
+  const channels = Array.from({ length: 16 }, () => [new Float32Array(total), new Float32Array(total)] as [Float32Array, Float32Array]);
+  const effectsLeft = new Float32Array(total);
+  const effectsRight = new Float32Array(total);
   const block = 128;
   for (let filled = 0; filled < total; filled += block) {
     sequencer.processTick();
-    synth.process(left, right, filled, Math.min(block, total - filled));
+    synth.processSplit(channels, effectsLeft, effectsRight, filled, Math.min(block, total - filled));
   }
+  return { piece, sampleRate, loopSeconds, channels, irs };
+}
+
+/**
+ * One seamless loop from rendered channels: the mix (strips, sends, buses, master), second pass
+ * kept. `only` (track ids) mixes just those tracks, with their buses (a stem).
+ */
+export function mixLoop(rendered: RenderedChannels, only?: ReadonlySet<string>): RenderedLoop {
+  const { piece, sampleRate, loopSeconds, irs } = rendered;
+  const channelOf = new Map([...assignChannels(piece)].map(([trackId, assignment]) => [trackId, assignment.channel]));
+  const [left, right] = mix(piece, { channels: rendered.channels, channelOf, sampleRate, irs, ...(only ? { only } : {}) });
   const loopSamples = Math.round(loopSeconds * sampleRate);
   const start = loopSamples;
   const outLeft = left.slice(start, start + loopSamples);
@@ -169,6 +197,18 @@ export async function renderLoop(
     outRight[index] = (outRight[index] ?? 0) * Math.cos((t * Math.PI) / 2) + (right[before] ?? 0) * Math.sin((t * Math.PI) / 2);
   }
   return { sampleRate, left: outLeft, right: outRight, loopSeconds };
+}
+
+/** Render one seamless loop of the piece (its channels, then the mix). */
+export async function renderLoop(
+  piece: Piece,
+  soundBank: ArrayBuffer,
+  sampleRate = 48_000,
+  tailSeconds = 4,
+  only?: ReadonlySet<string>,
+  irs: ReadonlyMap<string, ImpulseResponse> = new Map(),
+): Promise<RenderedLoop> {
+  return mixLoop(await renderChannels(piece, soundBank, sampleRate, tailSeconds, irs), only);
 }
 
 /** The loop seam: the step across the wrap against the typical sample-to-sample step. Under 1 means no click. */

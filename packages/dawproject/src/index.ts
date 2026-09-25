@@ -58,8 +58,13 @@ export interface TrackProps {
   readonly children?: ReactNode;
 }
 
-/** DAWproject `Channel`: the mixer strip. `volume` is in decibels, `pan` in −1…1. */
+/**
+ * DAWproject `Channel`: the mixer strip. `volume` is in decibels, `pan` in −1…1. `role` is the
+ * schema's: `regular` (a track's own strip, the default), `effect` (a bus other channels send to,
+ * such as a reverb), or `master` (the one strip everything ends in).
+ */
 export interface ChannelProps {
+  readonly role?: 'regular' | 'effect' | 'master';
   readonly volume?: number;
   readonly pan?: number;
   readonly mute?: boolean;
@@ -67,12 +72,29 @@ export interface ChannelProps {
   readonly children?: ReactNode;
 }
 
-/** DAWproject `Device`: an instrument or effect on a channel, named by its plugin. */
+/** DAWproject `Send`: this channel feeds the `effect` channel of the track named `to`, at `level` dB. */
+export interface SendProps {
+  readonly to: string;
+  readonly level: number;
+  /** Taken before the fader (`pre`) rather than after it (the default). */
+  readonly pre?: boolean;
+}
+
+/** A device parameter: a number, a string, a switch, or a list of them (an equaliser's bands). */
+export type DeviceParam = number | string | boolean | readonly Readonly<Record<string, number | string | boolean>>[];
+
+/**
+ * DAWproject `Device`: an instrument or effect on a channel, named by its plugin. The built-in
+ * effects take the schema's own device types: `equalizer` (`bands`: `{ type: 'highPass' | 'lowPass'
+ * | 'lowShelf' | 'highShelf' | 'bell', freq, gain?, q? }`), `compressor` (`threshold`, `ratio`,
+ * `attack`, `release`, `knee`, `makeup`), `limiter` (`ceiling`, `release`), and `convolution`
+ * (`ir`: a project path to an impulse response WAV, `predelay` ms, `wet` 0–1).
+ */
 export interface DeviceProps {
   readonly plugin: string;
   readonly name?: string;
   /** The plugin's own parameters, by the plugin's own names. */
-  readonly params?: Readonly<Record<string, number | string | boolean>>;
+  readonly params?: Readonly<Record<string, DeviceParam>>;
 }
 
 /** DAWproject `Clip`: a region of a track's timeline, from bar `at` for `bars` bars. */
@@ -127,6 +149,7 @@ export const Project = element<ProjectProps>('dawproject.Project');
 export const Transport = element<TransportProps>('dawproject.Transport');
 export const Track = element<TrackProps>('dawproject.Track');
 export const Channel = element<ChannelProps>('dawproject.Channel');
+export const Send = element<SendProps>('dawproject.Send');
 export const Device = element<DeviceProps>('dawproject.Device');
 export const Clip = element<ClipProps>('dawproject.Clip');
 export const Note = element<NoteProps>('dawproject.Note');
@@ -140,6 +163,7 @@ export const ELEMENT_TYPES = {
   Transport: 'dawproject.Transport',
   Track: 'dawproject.Track',
   Channel: 'dawproject.Channel',
+  Send: 'dawproject.Send',
   Device: 'dawproject.Device',
   Clip: 'dawproject.Clip',
   Note: 'dawproject.Note',

@@ -78,3 +78,46 @@ export function loopWav24(left: Float32Array, right: Float32Array, sampleRate: n
   u32(0); // play count: forever
   return bytes;
 }
+
+/** A PCM WAV (16/24/32-bit integer or 32-bit float) as float channels: what an impulse response is read with. */
+export function readWav(bytes: Uint8Array): { channels: Float32Array[]; sampleRate: number } {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const text = (at: number): string => String.fromCharCode(bytes[at]!, bytes[at + 1]!, bytes[at + 2]!, bytes[at + 3]!);
+  if (text(0) !== 'RIFF' || text(8) !== 'WAVE') throw new Error('Not a RIFF WAVE file.');
+  let format = 0;
+  let channelCount = 0;
+  let sampleRate = 0;
+  let bits = 0;
+  let at = 12;
+  while (at + 8 <= bytes.length) {
+    const id = text(at);
+    const size = view.getUint32(at + 4, true);
+    const body = at + 8;
+    if (id === 'fmt ') {
+      format = view.getUint16(body, true);
+      channelCount = view.getUint16(body + 2, true);
+      sampleRate = view.getUint32(body + 4, true);
+      bits = view.getUint16(body + 14, true);
+      if (format === 0xfffe) format = view.getUint16(body + 24, true); // WAVE_FORMAT_EXTENSIBLE sub-format
+    } else if (id === 'data') {
+      const bytesPerSample = bits / 8;
+      const frames = Math.floor(size / (bytesPerSample * channelCount));
+      const channels = Array.from({ length: channelCount }, () => new Float32Array(frames));
+      for (let frame = 0; frame < frames; frame++) {
+        for (let ch = 0; ch < channelCount; ch++) {
+          const offset = body + (frame * channelCount + ch) * bytesPerSample;
+          let value: number;
+          if (format === 3 && bits === 32) value = view.getFloat32(offset, true);
+          else if (bits === 16) value = view.getInt16(offset, true) / 32768;
+          else if (bits === 24) value = ((bytes[offset]! | (bytes[offset + 1]! << 8) | (bytes[offset + 2]! << 16)) << 8 >> 8) / 8388608;
+          else if (bits === 32) value = view.getInt32(offset, true) / 2147483648;
+          else throw new Error(`Unsupported WAV sample format: ${bits}-bit, format ${format}.`);
+          channels[ch]![frame] = value;
+        }
+      }
+      return { channels, sampleRate };
+    }
+    at = body + size + (size % 2);
+  }
+  throw new Error('WAV has no data chunk.');
+}
