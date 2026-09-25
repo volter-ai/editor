@@ -49,10 +49,11 @@
  *  THE RE-ENTRANCY TRAP, and why the write is guarded. A MEMORY write triggers
  *  `onDidChangeConfiguration` for that key, and this class listens to that event to
  *  re-evaluate — so an unguarded `apply()` writes, wakes itself, writes again, forever. The
- *  guard is two-part and both halves are load-bearing: a re-entrancy flag around the write
- *  pass, and a VALUE COMPARISON that skips a key whose memory value is already what it should
- *  be. The flag alone would still loop across microtask boundaries (`updateValue` is async);
- *  the comparison alone would still churn on the pass that legitimately changes something.
+ *  guard is two-part and both halves are load-bearing: ONE RUN AT A TIME, where a call that
+ *  arrives during a run joins it and asks for one more pass after it, and a VALUE COMPARISON
+ *  that skips a key whose memory value is already what it should be, so that extra pass writes
+ *  nothing and wakes nothing. A call is never dropped: a person's write waits on the run that
+ *  follows it (`write`), and a change that arrived mid-pass is read by the pass after.
  *
  *  WHAT THE EDITOR SEES. The provider handed back through the bridge answers `get`, `inspect`
  *  and `set` per key, in the vgai editor's own four-layer vocabulary — default / user /
@@ -240,8 +241,9 @@ export class VgaiSettings extends Disposable {
 	/** The order `apply()` walks. Same set, as a list. */
 	private readonly appliedKeys: readonly string[] = [...VGAI_SETTING_KEYS, ...WORKBENCH_ADAPTER_VALUES.map(([key]) => key), ...LOOK_KEYS];
 	private readonly listeners = new Set<() => void>();
-	/** See the header: the write pass must not wake itself. */
-	private applying = false;
+	/** See the header: one run at a time, and whether a call arrived during it. */
+	private applyRun: Promise<void> | null = null;
+	private applyAgain = false;
 	/** What is registered as this window's defaults right now, and the signature that decides
 	 *  whether a pass has anything to change. Registering fires the registry's own change
 	 *  event, which wakes `apply()` — so an unconditional re-register is the same loop the
@@ -342,9 +344,21 @@ export class VgaiSettings extends Disposable {
 	 * A key whose memory value is already right is skipped — see the header's re-entrancy
 	 * trap; without that comparison this pass wakes its own listener on every change.
 	 */
-	private async apply(): Promise<void> {
-		if (this.applying) { return; }
-		this.applying = true;
+	private apply(): Promise<void> {
+		if (this.applyRun) {
+			this.applyAgain = true;
+			return this.applyRun;
+		}
+		this.applyRun = (async () => {
+			do {
+				this.applyAgain = false;
+				await this.applyOnce();
+			} while (this.applyAgain);
+		})().finally(() => { this.applyRun = null; });
+		return this.applyRun;
+	}
+
+	private async applyOnce(): Promise<void> {
 		try {
 			// The workbench keys FIRST, so a project's adapter that somehow declares one of them
 			// wins — the project's own code outranks this file's claim about what a vgai project
@@ -391,8 +405,6 @@ export class VgaiSettings extends Disposable {
 			}
 		} catch (error) {
 			this.bridge.report('error', localize('vgaiSettingsApplyFailed', "The project's adapter settings could not be applied: {0}", error instanceof Error ? error.message : String(error)));
-		} finally {
-			this.applying = false;
 		}
 	}
 
@@ -459,8 +471,10 @@ export class VgaiSettings extends Disposable {
 	 * the memory value above the user layer would swallow a user write whole. `'user'` is the
 	 * ordinary user settings file.
 	 *
-	 * It settles when the write has landed (and `apply()` has run) or failed and been reported,
-	 * never rejecting: the editor holds a value it just wrote until then.
+	 * It settles when the write has landed AND the `apply()` run after it has finished (so a
+	 * workspace write on an adapter-declared key has cleared the memory value above it), or when
+	 * it failed and was reported — never rejecting: the editor holds a value it just wrote until
+	 * then, and the effective value is the new one by the time it reads again.
 	 */
 	private write(key: string, value: unknown, target: 'user' | 'project'): Promise<void> {
 		if (!this.keys.has(key)) {
@@ -473,7 +487,7 @@ export class VgaiSettings extends Disposable {
 			// the memory value gone, or the effective value does not move and the gesture looks
 			// like it did nothing. The change event runs `apply()` too; this makes the ordering
 			// explicit rather than incidental.
-			() => void this.apply(),
+			() => this.apply(),
 			error => this.bridge.report('error', localize('vgaiSettingsWriteFailed', "“{0}” could not be written to the {1} settings: {2}", key, target, error instanceof Error ? error.message : String(error))),
 		);
 	}

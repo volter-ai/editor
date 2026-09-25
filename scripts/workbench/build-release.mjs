@@ -123,6 +123,9 @@ function parseArgs(argv) {
 	// directory already names its product, its platform and its commit in BUILD.json, so
 	// demanding them again on the command line would be asking for three facts the bytes
 	// already carry — and getting one of them wrong would publish a mislabelled tag.
+	if (args.publish && args.looks.length > 0) {
+		fail('--publish with --look: a release carrying a look tier is never published (the fork\'s Releases are public and a tier is its package\'s own code). Cut it without --publish, or publish one cut without --look.');
+	}
 	if (args.publish && !args.checkout) {
 		if (args.product || args.platform) {
 			fail('--publish --out <dir> publishes the release already in <dir>, and BUILD.json there names its product, platform and commit. Drop --product/--platform, or pass --checkout to build one first.');

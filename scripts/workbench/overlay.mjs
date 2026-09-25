@@ -490,7 +490,8 @@ function lookTiers(dirs) {
 			}
 			return { as, from: join(dir, from) };
 		});
-		tiers.push({ name: manifest.name ?? dir, version: manifest.version, contrib: declared.contrib, root, media });
+		const extensions = existsSync(join(root, 'extensions')) ? readdirSync(join(root, 'extensions')) : [];
+		tiers.push({ name: manifest.name ?? dir, version: manifest.version, contrib: declared.contrib, root, media, extensions });
 	}
 	return tiers;
 }
@@ -516,6 +517,21 @@ function main() {
 	}
 	const pin = assertAtPin(checkout);
 	const tiers = lookTiers(looks);
+	const previous = existsSync(join(checkout, MARKER)) ? JSON.parse(readFileSync(join(checkout, MARKER), 'utf8')) : {};
+	// A look tier ADDS extensions and never replaces one, checked before anything is written: an
+	// extension directory that is neither the last overlay's nor the kit's or this product's is
+	// upstream's, and a name another half ships is that half's.
+	const shipped = new Set([...[KIT_DIR, productDir].flatMap((owner) => (existsSync(join(owner, 'extensions')) ? readdirSync(join(owner, 'extensions')) : [])), CHAT_EXTENSION.directory]);
+	const ours = new Set([...(previous.extensions ?? []), ...shipped]);
+	const claimed = new Set();
+	for (const tier of tiers) {
+		for (const name of tier.extensions) {
+			if (shipped.has(name) || claimed.has(name) || (!ours.has(name) && existsSync(join(checkout, 'extensions', name)))) {
+				fail(`${tier.name}'s extension ${name} would replace extensions/${name}, which is not its own.`);
+			}
+			claimed.add(name);
+		}
+	}
 	// Resolved BEFORE anything is written, so a stale or missing install refuses on a clean tree.
 	const extension = chatExtension();
 
@@ -529,7 +545,6 @@ function main() {
 	}
 	// And everything the LAST overlay recorded copying, by its own record: an extension or look
 	// tier whose owner has since left the tree or the install leaves nothing behind.
-	const previous = existsSync(join(checkout, MARKER)) ? JSON.parse(readFileSync(join(checkout, MARKER), 'utf8')) : {};
 	for (const name of previous.extensions ?? []) { rmSync(join(extensionsDir, name), { recursive: true, force: true }); }
 	for (const tier of previous.lookTiers ?? []) { rmSync(join(checkout, 'src/vs/workbench/contrib', tier.contrib), { recursive: true, force: true }); }
 	rmSync(join(extensionsDir, CHAT_EXTENSION.directory), { recursive: true, force: true });
@@ -556,11 +571,8 @@ function main() {
 		const target = join(checkout, 'src/vs/workbench/contrib', tier.contrib, 'browser');
 		replaceTree(join(tier.root, 'src'), target);
 		for (const { as, from } of tier.media) { replaceTree(from, join(target, 'media', as)); }
-		const extensions = existsSync(join(tier.root, 'extensions')) ? readdirSync(join(tier.root, 'extensions')) : [];
+		const { extensions } = tier;
 		for (const name of extensions) {
-			// Everything ours was removed above, so a directory still here is upstream's or another
-			// tier's: a look tier adds extensions and never replaces one.
-			if (existsSync(join(extensionsDir, name))) { fail(`${tier.name}'s extension ${name} would replace extensions/${name}, which is not a look tier's.`); }
 			replaceTree(join(tier.root, 'extensions', name), join(extensionsDir, name));
 			copiedExtensions.push(name);
 		}

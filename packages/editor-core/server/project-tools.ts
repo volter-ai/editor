@@ -69,6 +69,7 @@ interface PackageJsonShape {
   name?: string;
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
+  optionalDependencies?: Record<string, string>;
   vgai?: { tools?: ToolRegistration[]; contributions?: unknown };
 }
 
@@ -243,6 +244,9 @@ async function packageContributionModules(
   const declared = Object.keys({
     ...(projectPackage?.dependencies ?? {}),
     ...(projectPackage?.devDependencies ?? {}),
+    // An optional dependency contributes when it is installed (the Volter brand's private
+    // package is the natural one to list this way); one that is not is skipped below.
+    ...(projectPackage?.optionalDependencies ?? {}),
   }).sort();
   const composed = product === null ? [] : productComposedPackages(product);
   const bundled = new Set(composed);
