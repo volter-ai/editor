@@ -16,6 +16,8 @@ const fallbacks={
   'rrweb@2.1.6':'rrweb', '@volter-ai-dev/supercode-ui@0.1.83':'supercode',
   'draco3d@1.5.7':'draco', 'maath@0.10.8':'maath', 'stats-gl@2.4.2':'stats-gl',
   '@volter-ai-dev/supercode-frontend@0.2.3':'supercode-frontend',
+  // No v0.10.17 tag upstream: the LICENSE at v0.10.15 and v0.10.18, the tags either side, is byte-identical.
+  '@mediapipe/tasks-vision@0.10.17':'mediapipe',
 };
 const fallbackSources=new Map(read('release/licenses/sources.json').map(s=>[s.name,s]));
 // `node scripts/write-bundled-notices.mjs [list]`, default release/modeling.json:

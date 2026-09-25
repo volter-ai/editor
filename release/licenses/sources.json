@@ -75,5 +75,12 @@
     "revision": "fc9962d0f88520c5661f299663a298bc17edda40",
     "path": "LICENSE-MIT",
     "sha256": "47650bbb438e759a9398efc9f5f1156dd33a93f8d4a83c1e9e28fc5797d5fca6"
+  },
+  {
+    "name": "mediapipe",
+    "repository": "google-ai-edge/mediapipe",
+    "revision": "76e52c759f87e6e71f531dd785cd892ba163a454",
+    "path": "LICENSE",
+    "sha256": "8707eef0533987efc5b155d64761eeb6e20793f50b9bd1a68dad1cf4719d0ed8"
   }
 ]
