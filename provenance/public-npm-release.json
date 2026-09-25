@@ -7,7 +7,7 @@
     "tag": "release-0.5.66-source",
     "note": "The archives were packed from this tree; main carries it as aca7339 on top of one later commit (d0e8b27)."
   },
-  "publication": "Fourteen new versions are live: every registry shasum matches its tested archive and every tarball downloaded with no credentials is byte-identical to it. @volter/game-editor 0.5.66 was accepted by the registry and is held as a staged version awaiting a proof-of-presence (2FA) approval, so its latest stays 0.5.65 (whose dependencies are pinned to 0.5.65). First publication of @volter/model-editor, @volter/editor-react and @volter/editor-xstate.",
+  "publication": "Fifteen new versions are live from one revision: every registry shasum matches its tested archive and every tarball downloaded with no credentials is byte-identical to it. @volter/game-editor, the largest, was reported by the registry as staged for several minutes while it processed, then went live without any approval. First publication of @volter/model-editor, @volter/editor-react and @volter/editor-xstate.",
   "lists": [
     "release/modeling.json",
     "release/game.json"
@@ -28,12 +28,11 @@
   "installation": {
     "initiallyEmptyCache": true,
     "credentials": "none (env -i with a fresh HOME and npm cache)",
-    "path": "npx -y @volter/model-editor@0.5.66 create my-models installed from the registry, downloaded the pinned model workbench anonymously and started a session."
+    "path": "npx -y @volter/game-editor@0.5.66 create fresh-game installed the runtime image from the registry, linked it, downloaded the pinned game workbench anonymously and started a session; npx -y @volter/model-editor@0.5.66 create my-models did the same for the model editor."
   },
   "audit": "The model editor installs with 0 vulnerabilities. The game runtime image reports 8 (5 low, 3 moderate), all through colyseus -> @colyseus/auth -> grant/request-oauth (uuid, elliptic via jwk-to-pem); no upstream fix exists.",
   "limitations": [
     "macOS Apple Silicon only.",
-    "@volter/game-editor 0.5.66 is staged, not live, until its 2FA approval.",
     "See WORK.md for the game editor's remaining list."
   ],
   "packages": [
@@ -101,7 +100,7 @@
       "name": "@volter/game-editor",
       "version": "0.5.66",
       "shasum": "42fca9b88e335204b8125f03e1d0e9fbe5863270",
-      "state": "staged: awaiting npm proof-of-presence (2FA) approval"
+      "state": "published"
     },
     {
       "name": "@volter/game-live",

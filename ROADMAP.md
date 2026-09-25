@@ -110,10 +110,7 @@ Completion:
 ## public-game-release: The game editor's public release
 
 Status: planned
-The game's packages are on npm at 0.5.66 under their own [release/game.json](release/game.json), except
-`@volter/game-editor` itself, which npm holds as a staged version awaiting a proof-of-presence (2FA) approval; its
-latest stays 0.5.65.
+The game's packages are on npm at 0.5.66 under their own [release/game.json](release/game.json).
 The canonical games that must satisfy their briefs first are `volter-ai/game-benchmarks`' `original-trials-slate`.
 Completion:
-- `@volter/game-editor` 0.5.66 is approved and live, its tarball byte-identical to the tested archive.
 - A qualifying public release of the game editor satisfies the company's G2 acceptance (company `projects/game-engine-launch.md`).
