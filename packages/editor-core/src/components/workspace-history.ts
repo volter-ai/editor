@@ -13,7 +13,7 @@
  * the same degrade the old prop-less mounts had.
  */
 
-import type { HistoryService } from '../history/history-service';
+import type { HistoryService } from '@volter/editor-sdk/kit/history/history-service';
 
 let _history: HistoryService | null = null;
 

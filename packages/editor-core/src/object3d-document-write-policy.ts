@@ -40,7 +40,7 @@ import type {
   Object3DDocumentPersistenceSession,
   OpenObject3DDocumentPersistenceOptions,
 } from './authoring/object3d-document-persistence';
-import type { HistoryService } from './history/history-service';
+import type { HistoryService } from '@volter/editor-sdk/kit/history/history-service';
 
 /** Re-exported from its declaration site so a consumer of this seam does not
  *  import the persistence module (which reaches project file history) for a

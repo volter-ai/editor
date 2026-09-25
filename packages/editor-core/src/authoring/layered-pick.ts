@@ -40,7 +40,7 @@
 
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { stackOrder } from '@volter/editor-project/adapter/root-stacking';
-import type { ShellStore } from '../shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { SCENE_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { getActiveAuthoring } from './active-adapter';

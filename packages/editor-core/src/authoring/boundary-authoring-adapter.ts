@@ -29,7 +29,7 @@ import type {
   PropertyDescriptor,
   SelectionProvider,
 } from '@volter/editor-project/adapter';
-import type { ShellStore } from '../shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 
 /** The display-relevant slice of a manifest world entry — deliberately loose
  *  (plain strings, not the engine's validated `AdapterRoot['kind']` union) so

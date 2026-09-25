@@ -1,4 +1,4 @@
-import type { HistoryService } from '../history/history-service';
+import type { HistoryService } from '@volter/editor-sdk/kit/history/history-service';
 import { getProjectFileHistory } from '../history/project-file-history';
 import type { StorageBackend } from '@volter/editor-sdk/kit/storage-types';
 

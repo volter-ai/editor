@@ -3,7 +3,7 @@
  * does not synthesize a Scene tab or own a game's root evaluator.
  */
 import { useEffect } from 'react';
-import type { ShellStore } from '../shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { bindLiveDocument, syncLiveDocumentPlayState } from '@volter/editor-sdk/kit/live-document';
 import { closeAllWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-document-registry';
 

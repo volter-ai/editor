@@ -42,7 +42,7 @@ import type { ChannelValue } from '@volter/editor-core/creation-site-edit';
 import { channelFor } from '@volter/editor-core/creation-site-edit';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { editorIsAuthoring } from '@volter/editor-sdk/kit/editor-session-mode';
-import type { HistoryService } from '@volter/editor-core/history/history-service';
+import type { HistoryService } from '@volter/editor-sdk/kit/history/history-service';
 import { withProjectSourceHistory } from '@volter/editor-core/history/source-history-backend';
 import { getCurrentProject } from '@volter/editor-core/project-manager';
 import type { OidEntry } from '@volter/editor-react/source/oid-transform';

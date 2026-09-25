@@ -8,7 +8,7 @@ import {
   type AppliedResourceChange,
   HistoryOperationError,
   type HistoryService,
-} from './history-service';
+} from '@volter/editor-sdk/kit/history/history-service';
 import type { ResourceDescriptor, ResourceDriver, ResourceKey } from '@volter/editor-sdk/kit/history-types';
 
 const encoder = new TextEncoder();

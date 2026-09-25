@@ -38,7 +38,7 @@ import { ingestCoverageSection } from '@volter/editor-sdk/kit/CapabilityCoverage
 import { resolveInspectionSubjectId } from '../components/inspector-selection';
 import { resolveComposeStoriesInput } from '../components/inspector-stories-gating';
 import { kindDocumentEntry } from '../components/kind-documents';
-import type { ShellStore } from '../shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { inspectorPresentationOverride } from '../inspector-presentation';
 import { matchedInspectorSections } from '@volter/editor-sdk/kit/inspector-section-registry';
 import { liveCoverage } from '@volter/editor-sdk/kit/live-session-registry';

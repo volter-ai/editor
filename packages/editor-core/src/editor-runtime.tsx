@@ -19,12 +19,12 @@
 
 import { type InteractiveEditScope, InteractiveEditScopeContext } from '@volter/editor-sdk/widgets';
 import { type ReactNode, Suspense, useContext, useMemo, useSyncExternalStore } from 'react';
-import type { ShellStore } from './shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import type { EditorShellStore } from './editor-shell-store';
 import { optionalThreeStateOf, threeStateOf } from './three-state';
 import type { EditorSession } from './history/editor-session';
 import type { HistoryCommandSnapshot, HistoryCommands } from './history/history-commands';
-import type { HistoryService, HistorySnapshot } from './history/history-service';
+import type { HistoryService, HistorySnapshot } from '@volter/editor-sdk/kit/history/history-service';
 import { createHmrStableReactContext } from './hmr-stable-react-context';
 
 export interface EditorStats {

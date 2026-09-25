@@ -15,7 +15,7 @@ import {
   pasteSelection,
 } from './editor-hotkeys';
 import { invokeKeyAction } from './key-actions';
-import type { ShellStore } from './shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import type { HistoryCommandSnapshot, HistoryCommands } from './history/history-commands';
 import { editorKeymaps, setEditorKeymapPreference, shortcutFor } from './keymap-presets';
 import { openUndoHistory } from './workspace-aux-commands';

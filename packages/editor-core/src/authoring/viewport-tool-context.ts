@@ -1,5 +1,5 @@
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
-import type { ShellStore } from '../shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { adapterOnlyToolOwner, type ViewportToolOwner } from '../viewport-authoring-policy';
 import { CompositeAuthoringAdapter } from './composite-authoring-adapter';
 import { resolveThreeViewportRootId } from './world-hidden-viewport';

@@ -49,7 +49,7 @@ import type {
 } from '@volter/editor-core/creation-site-edit';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { editorIsAuthoring } from '@volter/editor-sdk/kit/editor-session-mode';
-import type { HistoryService } from '@volter/editor-core/history/history-service';
+import type { HistoryService } from '@volter/editor-sdk/kit/history/history-service';
 import { ingestSourceWritesRecordedIfPrimed } from '@volter/editor-core/ui-source/tier-source-write-backend';
 import type { IngestInspectRequest } from './ingest-source-persistence';
 import {

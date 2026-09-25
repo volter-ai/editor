@@ -18,9 +18,9 @@ import * as THREE from 'three';
 import type { BatchedRenderer } from 'three.quarks';
 import { findEntityLod } from './entity-lod';
 import { entityIdOf } from './entity-object';
-import { ShellStore } from './shell-store';
+import { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { registerThreeState } from './three-state';
-export type { NotifyScope, PlayEditRegime } from './shell-store';
+export type { NotifyScope, PlayEditRegime } from '@volter/editor-sdk/kit/shell-store';
 import { withSceneFogNeutralized } from './scene-view-fog';
 
 /** The store's persistence collaborator — installed by the shell, never

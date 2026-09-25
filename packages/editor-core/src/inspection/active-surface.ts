@@ -15,7 +15,7 @@
 import { getActiveAssetEditorContext } from '../asset-editor-context';
 import { CompositeAuthoringAdapter } from '../authoring/composite-authoring-adapter';
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
-import type { ShellStore } from '../shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { liveSurface } from '@volter/editor-sdk/kit/live-session-registry';
 import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
 import type { InspectionSurfaceKind } from '@volter/editor-sdk/kit/inspection-model';

@@ -1,5 +1,5 @@
 import { sha256Hex } from '@volter/editor-sdk/kit/bytes-codec';
-import { HistoryOperationError, type HistoryService } from '@volter/editor-core/history/history-service';
+import { HistoryOperationError, type HistoryService } from '@volter/editor-sdk/kit/history/history-service';
 import type { ResourceDescriptor, ResourceDriver, ResourceKind } from '@volter/editor-sdk/kit/history-types';
 
 const encoder = new TextEncoder();

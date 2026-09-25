@@ -1,4 +1,4 @@
-import type { HistoryService } from './history-service';
+import type { HistoryService } from '@volter/editor-sdk/kit/history/history-service';
 
 export interface HistoryCommandSnapshot {
   readonly version: number;

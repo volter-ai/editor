@@ -8,7 +8,7 @@ import type {
   ToolObject3DDocumentPersistence,
   ToolObject3DDocumentState,
 } from '@volter/editor-sdk/contributions';
-import type { HistoryService } from '../history/history-service';
+import type { HistoryService } from '@volter/editor-sdk/kit/history/history-service';
 import {
   getProjectFileHistory,
   type HistoryFileBackend,

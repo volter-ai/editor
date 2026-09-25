@@ -16,7 +16,7 @@ import { setViewGridVisible, viewPresentationBinding } from '@volter/editor-sdk/
 import { openRegisteredDocumentAsync, registeredDocumentOpenerIds } from './document-open-registry';
 import { currentEditorView } from './editor-current-view';
 import { activeDocumentContainer } from './editor-document-probe';
-import type { ShellStore } from './shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { activeEditorKeymap } from './keymap-presets';
 import { liveFrameCanvas, liveInstanceContainer } from '@volter/editor-sdk/kit/live-session-registry';
 import { projectDocumentKinds } from './project-shape';

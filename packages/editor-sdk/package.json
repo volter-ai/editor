@@ -145,7 +145,14 @@
     "./kit/story-thumbnails": "./src/kit/story-thumbnails.ts",
     "./kit/canvas-frames": "./src/kit/canvas-frames.ts",
     "./kit/viewport-presentation": "./src/kit/viewport-presentation.ts",
-    "./kit/transport-strip": "./src/kit/transport-strip.tsx"
+    "./kit/transport-strip": "./src/kit/transport-strip.tsx",
+    "./kit/history/history-delegate": "./src/kit/history/history-delegate.ts",
+    "./kit/history/persistence-coordinator": "./src/kit/history/persistence-coordinator.ts",
+    "./kit/history/resource-registry": "./src/kit/history/resource-registry.ts",
+    "./kit/history/snapshot-store": "./src/kit/history/snapshot-store.ts",
+    "./kit/history/history-service": "./src/kit/history/history-service.ts",
+    "./kit/shell-document-state": "./src/kit/shell-document-state.ts",
+    "./kit/shell-store": "./src/kit/shell-store.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",

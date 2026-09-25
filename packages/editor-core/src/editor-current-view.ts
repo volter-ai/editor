@@ -1,6 +1,6 @@
 import { type EditorView, editorViewUrl, isEditorViewUtility } from '@volter/editor-sdk';
 import { documentViewport } from '@volter/editor-sdk/kit/document-viewports';
-import type { ShellStore } from './shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { activeEditorKeymap } from './keymap-presets';
 import {
   activeWorkspaceDocument,

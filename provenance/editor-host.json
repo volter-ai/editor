@@ -1699,7 +1699,7 @@
     },
     {
       "source": "packages/editor/src/history/history-delegate.ts",
-      "path": "packages/editor-core/src/history/history-delegate.ts",
+      "path": "packages/editor-sdk/src/kit/history/history-delegate.ts",
       "sha256": "e2597c33e3fa2fcb95330bcf8e8330e64bfdd6bd2418d0fed4586222a99991a8"
     },
     {
@@ -1709,12 +1709,12 @@
     },
     {
       "source": "packages/editor/src/history/history-service.ts",
-      "path": "packages/editor-core/src/history/history-service.ts",
+      "path": "packages/editor-sdk/src/kit/history/history-service.ts",
       "sha256": "df2f7520a33ff874916740cf17700aad4ba99f15c131ddcc9eb094ef42f97d4c"
     },
     {
       "source": "packages/editor/src/history/persistence-coordinator.ts",
-      "path": "packages/editor-core/src/history/persistence-coordinator.ts",
+      "path": "packages/editor-sdk/src/kit/history/persistence-coordinator.ts",
       "sha256": "8a3921e1b1a0231a810b47466cd762f1f69039a731265c39e990b82e8159b95d"
     },
     {
@@ -1729,12 +1729,12 @@
     },
     {
       "source": "packages/editor/src/history/resource-registry.ts",
-      "path": "packages/editor-core/src/history/resource-registry.ts",
+      "path": "packages/editor-sdk/src/kit/history/resource-registry.ts",
       "sha256": "ce8296d921e78bb0910370afc4df3b88ad6da0bbdbf3d1cd8d7cc16296b39f21"
     },
     {
       "source": "packages/editor/src/history/snapshot-store.ts",
-      "path": "packages/editor-core/src/history/snapshot-store.ts",
+      "path": "packages/editor-sdk/src/kit/history/snapshot-store.ts",
       "sha256": "497765f9e4f2a465f584fe7ed1908b5b98ded8ca373fb1a87c19c7d0e84ca2f5"
     },
     {

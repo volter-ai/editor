@@ -48,7 +48,7 @@ import {
   setHistoryDelegate,
   setHistoryDocumentResolver,
   subscribeHistoryDelegate,
-} from './history/history-delegate';
+} from '@volter/editor-sdk/kit/history/history-delegate';
 import {
   invokeKeyAction,
   keyActionsVersion,

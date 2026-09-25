@@ -11,7 +11,7 @@
  * and reopening the same project cannot inherit a previous mount's readiness.
  */
 
-import type { ShellStore } from '../shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 
 type BootstrapState = {
   readonly generation: number;

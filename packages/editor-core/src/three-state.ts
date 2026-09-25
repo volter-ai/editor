@@ -7,7 +7,7 @@
  * once the half is a companion owned by `@volter/editor-threejs`, the companion registers here.
  */
 import type { EditorShellStore } from './editor-shell-store';
-import type { ShellStore } from './shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 
 const threeStates = new WeakMap<ShellStore, EditorShellStore>();
 

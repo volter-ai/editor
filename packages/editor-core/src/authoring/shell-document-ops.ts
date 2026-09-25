@@ -10,7 +10,7 @@
  */
 
 import type { AuthoringAdapter, NodeCreationSite, WriteAnchorKind } from '@volter/editor-project/adapter';
-import type { ShellDocumentState } from '../shell-document-state';
+import type { ShellDocumentState } from '@volter/editor-sdk/kit/shell-document-state';
 import { forEachHierarchyNode } from '../hierarchy-walk';
 import { getActiveAuthoring } from './active-adapter';
 import { saveAuthoringDocument, setAuthoringSelection } from './consumer-actions';

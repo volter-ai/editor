@@ -49,7 +49,7 @@
  */
 
 import type { AdapterSurface, AuthoringAdapter } from '@volter/editor-project/adapter';
-import type { ShellDocumentState } from '../shell-document-state';
+import type { ShellDocumentState } from '@volter/editor-sdk/kit/shell-document-state';
 import {
   activeWorkspaceDocument,
   activeWorkspaceDocumentSelection,

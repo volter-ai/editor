@@ -9,7 +9,7 @@
  * at its own module load without an import cycle.
  */
 import type { EditorShellStore } from './editor-shell-store';
-import type { ShellStore } from './shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { optionalThreeStateOf, threeStateOf } from './three-state';
 
 let shellStore: ShellStore | null = null;

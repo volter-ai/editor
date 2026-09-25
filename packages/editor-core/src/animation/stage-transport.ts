@@ -40,7 +40,7 @@ import type {
   TransportSubject,
 } from '@volter/editor-sdk/host';
 import { AnimationClock } from './animation-clock';
-import type { ShellStore } from '../shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 
 /** The range a transport reports with nothing attached — a real, inert
  *  domain, so a look never has to special-case `null` arithmetic. */

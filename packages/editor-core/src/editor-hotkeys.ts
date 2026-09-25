@@ -29,7 +29,7 @@ import {
 import { openCommandPalette } from './editor-commands';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorHostKeyAction } from '@volter/editor-sdk/host';
-import type { ShellStore } from './shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import type { HistoryCommands } from './history/history-commands';
 import {
   allowsAppUndoWhileEditable,

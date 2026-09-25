@@ -31,7 +31,7 @@ import { Fragment, type PointerEvent as ReactPointerEvent, useSyncExternalStore 
 import * as THREE from 'three';
 import { axisViewName } from '../asset-workflow/model-inspection';
 import type { Object3DDocumentSession } from '../authoring/object3d-document-session';
-import type { ShellStore } from '../shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { COMPASS_CLUSTER_TOP_PX, type EditorViewport } from '../editor-viewport';
 import {
   lookDeclaresViewportColors,

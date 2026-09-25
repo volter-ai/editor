@@ -32,7 +32,7 @@ import { isEditorOwnedObject } from '@volter/editor-threejs/viewport/editor-laye
 import { object3DAuthoringSubjectOf } from '@volter/editor-threejs/adapter/object3d-authoring-subject';
 import { getUserData } from '@volter/editor-threejs/ecs/user-data';
 import type * as THREE from 'three';
-import type { ShellStore } from '../shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { nativeKindOf, type ThreeProjector } from '../projection/three';
 import { localTransformOf } from './live-object-transform';
 

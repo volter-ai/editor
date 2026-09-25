@@ -31,7 +31,7 @@
 
 import { getUserData } from '@volter/editor-threejs/ecs/user-data';
 import * as THREE from 'three';
-import type { ShellStore } from '../shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { getActiveAuthoring } from './active-adapter';
 import { CompositeAuthoringAdapter } from './composite-authoring-adapter';
 import { isRootHidden } from './world-session-state';

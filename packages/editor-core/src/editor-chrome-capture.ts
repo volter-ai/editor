@@ -34,7 +34,7 @@ import type { EditorView } from '@volter/editor-sdk';
 import { renderedCanvasFrame } from '@volter/editor-sdk/kit/canvas-frames';
 import { type CompositeCapture, capturePlayComposite } from './composite-screenshot';
 import { currentEditorView } from './editor-current-view';
-import type { ShellStore } from './shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { liveCanvasFrame } from './live-canvas-frame';
 import { activeDocumentContainer } from './editor-document-probe';
 import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';

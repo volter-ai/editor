@@ -43,7 +43,7 @@
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import type * as THREE from 'three';
 import { makeNoAuthoringAdapter } from './authoring/no-authoring-adapter';
-import type { ShellStore } from './shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 
 /**
  * The native root whose viewport tools may claim the current selection, as far

@@ -59,7 +59,7 @@
 
 import type { AdapterSurface, StoriesProvider, StoryRef } from '@volter/editor-project/adapter';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import type { ShellStore } from './shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 
 /**
  * A component as a STATES source sees it — the exact shape all three adapter

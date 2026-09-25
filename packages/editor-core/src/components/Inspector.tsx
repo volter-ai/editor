@@ -30,7 +30,7 @@ import { getActiveCamera } from '../authoring/active-systems';
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
 import { useAvailabilitySelector } from '@volter/editor-sdk/kit/availability-tick';
 import { useEditorStore } from '../editor-runtime';
-import type { ShellStore } from '../shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { composeInspectionForBinding } from '../inspection/active-subject';
 import type { InspectionPresentation, InspectionSurfaceKind } from '@volter/editor-sdk/kit/inspection-model';

@@ -38,7 +38,7 @@ import { activeAuthoringVersion, subscribeActiveAuthoring } from '../authoring/a
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
 import { recordAuthoringConsumerUse } from '@volter/editor-sdk/kit/authoring-seam-evidence';
 import { documentContextVersion, subscribeDocumentContexts } from '../document-context-registry';
-import type { ShellStore } from '../shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import {
   inspectorPresentationVersion,
   subscribeInspectorPresentation,
