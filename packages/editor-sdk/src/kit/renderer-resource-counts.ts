@@ -8,10 +8,13 @@ export interface RendererResourceCount {
   readonly idle: number;
 }
 
-const providers = new Map<string, () => RendererResourceCount>();
+const providers = new Map<string, () => RendererResourceCount | number>();
 
 /** Report counts under `key`. Returns the teardown. */
-export function registerRendererResourceCounts(key: string, read: () => RendererResourceCount): () => void {
+export function registerRendererResourceCounts(
+  key: string,
+  read: () => RendererResourceCount | number,
+): () => void {
   providers.set(key, read);
   return () => {
     if (providers.get(key) === read) providers.delete(key);
@@ -19,6 +22,6 @@ export function registerRendererResourceCounts(key: string, read: () => Renderer
 }
 
 /** Every registered provider's counts, read now. */
-export function rendererResourceCounts(): Record<string, RendererResourceCount> {
+export function rendererResourceCounts(): Record<string, RendererResourceCount | number> {
   return Object.fromEntries([...providers].map(([key, read]) => [key, read()]));
 }

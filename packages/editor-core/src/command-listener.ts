@@ -32,8 +32,6 @@ import type {
   InspectedWriteDestination,
   HelperVisibility as SdkHelperVisibility,
 } from '@volter/editor-sdk';
-import { inspectorPreviewRendererCounts } from '@volter/editor-threejs/viewport/preview-renderer';
-import { liveHostRendererCount } from '@volter/editor-threejs/viewport/renderer-ownership';
 import { type AssetKind, setSelectedAsset } from './asset-selection';
 import { assetCapabilities, assetDocumentKind } from '@volter/editor-sdk/kit/asset-capabilities';
 import { systemsForInstance } from '@volter/editor-sdk/kit/authoring/active-systems';
@@ -530,9 +528,7 @@ export function collectState(
     // These live counters make context-budget regressions observable without
     // waiting for the browser to evict the oldest viewport.
     rendererResources: {
-      hostLive: liveHostRendererCount(),
       ...rendererResourceCounts(),
-      inspectorPreview: inspectorPreviewRendererCounts(),
     },
     // The ontology's LIVE invariants, re-derived on read. Every row is present
     // every time — including the ones this session cannot measure, which say so

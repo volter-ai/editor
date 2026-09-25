@@ -12,6 +12,8 @@ import { registerHostHierarchyObjects } from '@volter/editor-sdk/kit/host-hierar
 import { registerObject3DSurfaces } from '@volter/editor-sdk/kit/object3d-surfaces';
 import { registerRendererResourceCounts } from '@volter/editor-sdk/kit/renderer-resource-counts';
 import { interactiveViewportRendererCounts } from './three-viewport/interactive-renderer';
+import { inspectorPreviewRendererCounts } from '../viewport/preview-renderer';
+import { liveHostRendererCount } from '../viewport/renderer-ownership';
 import { lazy } from 'react';
 import type * as THREE from 'three';
 import { SHELL_VIEWPORT_AUTHORING_POLICY } from './authoring/shell-viewport-policy';
@@ -65,7 +67,9 @@ export function ensureThreeIntegration(): () => void {
       object: (id) => threeStoreForHost()?.objectMap.get(id) ?? null,
       objects: () => threeStoreForHost()?.objectMap ?? NO_OBJECTS,
     }),
+    registerRendererResourceCounts('hostLive', liveHostRendererCount),
     registerRendererResourceCounts('interactive', interactiveViewportRendererCounts),
+    registerRendererResourceCounts('inspectorPreview', inspectorPreviewRendererCounts),
     // The session store's Three half saves its view state; attached once per store.
     onShellStore((store) => threeStateOf(store).attachStatePersistence(VIEW_STATE_PERSISTENCE)),
   ];

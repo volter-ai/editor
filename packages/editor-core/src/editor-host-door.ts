@@ -7,7 +7,6 @@
  * "direction": the host imports no package; a package imports the SDK).
  */
 import { type EditorHostOutput, registerEditorHost } from '@volter/editor-sdk/host';
-import type * as THREE from 'three';
 import { onProjectChange } from '@volter/editor-sdk/kit/active-project';
 import { stageTransport, subscribeStageTransports } from '@volter/editor-sdk/kit/animation/stage-transport';
 import {
@@ -130,6 +129,7 @@ import {
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { showWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-host-commands';
 import { hostHierarchyObjects } from '@volter/editor-sdk/kit/host-hierarchy-objects';
+import type { EditorHostHierarchy } from '@volter/editor-sdk/host';
 
 /**
  * THE ACTIVE DOCUMENT'S OWN INTERACTION MODE, if it has one.
@@ -151,7 +151,7 @@ function activeStageMode(): string | null {
   const mode: unknown = read.call(context);
   return typeof mode === 'string' ? mode : null;
 }
-const EMPTY_OBJECTS: ReadonlyMap<string, THREE.Object3D> = new Map();
+const EMPTY_OBJECTS: ReturnType<EditorHostHierarchy['objects']> = new Map();
 
 let outputProvider: EditorHostOutput | null = null;
 
