@@ -101,7 +101,7 @@ export function PieceEditor({
   const [playhead, setPlayhead] = useState<number | null>(null);
   const [pxPerBeat, setPxPerBeat] = useState(28);
   const engine = useMemo(() => new PreviewEngine(), []);
-  const liveRef = useRef({ live, engineState: { kind: 'idle' } as EngineState });
+  const liveRef = useRef({ live });
 
   useEffect(() => {
     if (!publishContext) return;
@@ -114,7 +114,7 @@ export function PieceEditor({
         return liveRef.current.live.error;
       },
       get engine() {
-        return liveRef.current.engineState;
+        return engine.current;
       },
       get playhead() {
         return engine.playhead();
@@ -125,7 +125,7 @@ export function PieceEditor({
     return publishContext(context);
   }, [publishContext, engine, file]);
 
-  liveRef.current = { live, engineState };
+  liveRef.current = { live };
   useEffect(() => engine.subscribe(setEngineState), [engine]);
   useEffect(() => () => engine.dispose(), [engine]);
   useEffect(() => {

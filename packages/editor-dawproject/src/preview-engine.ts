@@ -91,6 +91,11 @@ export class PreviewEngine {
   private listeners = new Set<(state: EngineState) => void>();
   private state: EngineState = { kind: 'idle' };
 
+  /** The engine's state now (a subscriber hears each change; this answers a read). */
+  get current(): EngineState {
+    return this.state;
+  }
+
   subscribe(listener: (state: EngineState) => void): () => void {
     this.listeners.add(listener);
     listener(this.state);
