@@ -1,6 +1,7 @@
+import { AssetViewerSlot } from '@volter/editor-sdk/kit/asset-viewers';
 import { faCheck, faDownload, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { Button, EditorIcon, SectionHeader, Select, themeVars } from '@volter/editor-sdk/widgets';
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { beginAssetImportJob, updateAssetImportJob } from '../../asset-workflow/asset-import-jobs';
 import {
   AssetDeliveryError,
@@ -14,9 +15,6 @@ import type { OnlineAssetInfo } from '../../asset-selection';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import { downloadOnlineAssetWithHistory } from '../asset-editor-persistence';
 
-const Object3DPreview = lazy(() =>
-  import('./Object3DPreview').then((module) => ({ default: module.Object3DPreview })),
-);
 
 const selectStyle: React.CSSProperties = {
   width: '100%',
@@ -190,6 +188,18 @@ export function OnlineAssetDetail({
     }
   }, [online, selectedFile, onResolved]);
 
+  const thumbnail = (
+    <img
+      src={
+        thumbnailUnavailable
+          ? '/__editor/asset-library/local-placeholder.svg'
+          : online.thumbnailUrl
+      }
+      alt={thumbnailUnavailable ? `${online.name} preview unavailable` : online.name}
+      onError={() => setThumbnailUnavailable(true)}
+      style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+    />
+  );
   return (
     <div style={{ padding: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
       {mode !== 'preview' && (
@@ -229,23 +239,18 @@ export function OnlineAssetDetail({
               <Suspense
                 fallback={<span style={{ color: themeVars.content.muted }}>Loading preview…</span>}
               >
-                <Object3DPreview
+                <AssetViewerSlot
+                  route="model-preview"
+                  documentId=""
                   assetPath={preview.path}
-                  materialPath={preview.materialPath}
+                  {...(preview.materialPath ? { materialPath: preview.materialPath } : {})}
                   displayName={online.name}
+                  active
+                  whenUnregistered={thumbnail}
                 />
               </Suspense>
             ) : (
-              <img
-                src={
-                  thumbnailUnavailable
-                    ? '/__editor/asset-library/local-placeholder.svg'
-                    : online.thumbnailUrl
-                }
-                alt={thumbnailUnavailable ? `${online.name} preview unavailable` : online.name}
-                onError={() => setThumbnailUnavailable(true)}
-                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-              />
+              thumbnail
             )}
           </div>
           {thumbnailUnavailable && (

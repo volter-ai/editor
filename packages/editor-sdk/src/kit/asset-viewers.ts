@@ -10,7 +10,15 @@
  */
 import { type ComponentType, createElement, type ReactNode, useSyncExternalStore } from 'react';
 
-export type AssetViewerRoute = 'model' | 'environment' | 'lut' | 'shader' | 'module' | 'entity-model';
+export type AssetViewerRoute =
+  | 'model'
+  | 'environment'
+  | 'lut'
+  | 'shader'
+  | 'module'
+  | 'entity-model'
+  /** A compact live preview of a model file (an online asset's detail). */
+  | 'model-preview';
 
 export interface AssetViewerProps {
   readonly documentId: string;
@@ -22,6 +30,8 @@ export interface AssetViewerProps {
   readonly entityId?: string;
   /** `module`: the project root the module is served from. */
   readonly projectRoot?: string;
+  /** `model-preview`: a material file applied to the model. */
+  readonly materialPath?: string;
   /** What to show when the viewer finds nothing it renders (a `module` that
    *  builds no Object3D). */
   readonly fallback?: ReactNode;

@@ -64,6 +64,18 @@ const viewers: Readonly<Record<AssetViewerRoute, ComponentType<AssetViewerProps>
       ),
     };
   }),
+  'model-preview': lazy(async () => {
+    const { Object3DPreview } = await import('./Object3DPreview');
+    return {
+      default: (props: AssetViewerProps) => (
+        <Object3DPreview
+          assetPath={props.assetPath}
+          {...(props.materialPath ? { materialPath: props.materialPath } : {})}
+          displayName={props.displayName}
+        />
+      ),
+    };
+  }),
   // A project script that BUILDS an Object3D opens as the live modeling
   // document; anything else keeps the text preview it is handed as `fallback`.
   module: lazy(async () => {
