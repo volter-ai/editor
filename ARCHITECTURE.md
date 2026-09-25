@@ -36,6 +36,15 @@ Rules:
    React Three Fiber, Pixi or Blender types (owner ruling 2026-09-24: editor-core is the library
    other editors use; Blender is one editor that uses it). `@volter/editor-threejs` owns the
    assembled viewport; Blender and the game's Three integration extend it; core hosts views.
+6. **A component is themable when it expresses every target, not one.** Take a few real
+   targets, theme the component to each, and only a component that reaches all of them is
+   themable (owner ruling, 2026-09-25). For the 3D viewport the targets are Blender, Unity,
+   Godot and Unreal. Matching one target by changing the component's shared defaults is
+   tuning: the next target inherits it. A target's measured values belong to that target's
+   look, as data. Audit when recorded: the viewport stage fails. Its backdrop, grid fade,
+   key light, material level and light-probe strength were fitted to Blender in shared code
+   (engine `5d28941`, `1e5add8`, `9134441`, `a254519`), and a look declares only its
+   viewport colours, gizmo size and shelf tool.
 
 ## Doors
 
