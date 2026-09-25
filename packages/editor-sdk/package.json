@@ -134,7 +134,8 @@
     "./kit/api-worktrees": "./src/kit/api-worktrees.ts",
     "./kit/cancellation-reason": "./src/kit/cancellation-reason.ts",
     "./kit/editor-console": "./src/kit/editor-console.ts",
-    "./kit/world-adoption-event": "./src/kit/world-adoption-event.ts"
+    "./kit/world-adoption-event": "./src/kit/world-adoption-event.ts",
+    "./kit/asset-viewers": "./src/kit/asset-viewers.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",

@@ -32,6 +32,7 @@
  * without stopping play, exactly like clicking the scene tab.
  */
 
+import { AssetViewerSlot } from '@volter/editor-sdk/kit/asset-viewers';
 import { faCloudArrowDown, faFileLines } from '@fortawesome/free-solid-svg-icons';
 import { bg, danger, text } from '@volter/editor-sdk/widgets';
 import type { AuthoringAssetSubject } from '@volter/editor-project/adapter';
@@ -70,14 +71,6 @@ const AudioViewer = lazy(async () => {
   const module = await import('./asset-viewers/AudioViewer');
   return { default: module.AudioViewer };
 });
-const EntityModelDocument = lazy(async () => {
-  const module = await import('./asset-viewers/EntityModelDocument');
-  return { default: module.EntityModelDocument };
-});
-const EnvironmentAssetDocument = lazy(async () => {
-  const module = await import('./asset-viewers/EnvironmentAssetDocument');
-  return { default: module.EnvironmentAssetDocument };
-});
 const ImageViewer = lazy(async () => {
   const module = await import('./asset-viewers/ImageViewer');
   return { default: module.ImageViewer };
@@ -89,10 +82,6 @@ const VideoViewer = lazy(async () => {
 const JsonAssetDocument = lazy(async () => {
   const module = await import('./asset-viewers/JsonAssetDocument');
   return { default: module.JsonAssetDocument };
-});
-const ModelAssetDocument = lazy(async () => {
-  const module = await import('./asset-viewers/ModelAssetDocument');
-  return { default: module.ModelAssetDocument };
 });
 const OnlineAssetDetail = lazy(async () => {
   const module = await import('./asset-viewers/OnlineAssetDetail');
@@ -630,35 +619,48 @@ function AssetViewerBody({
   }
   const title = (spec.displayName ?? spec.assetPath.split('/').pop()) || spec.entityId || 'Asset';
   const viewerKey = `${id}:${spec.revision ?? 0}`;
+  // A model and an environment map are shown by the media integration that
+  // renders them (`@volter/editor-sdk/kit/asset-viewers`).
+  const noViewer = (
+    <div style={{ padding: 20, color: danger }}>No editor package in this project renders {title}.</div>
+  );
   if (route === 'model')
     if (spec.assetPath)
       return (
-        <ModelAssetDocument
-          documentId={id}
+        <AssetViewerSlot
+          route="model"
           key={viewerKey}
+          documentId={id}
           assetPath={spec.assetPath}
           displayName={title}
           active={active}
+          whenUnregistered={noViewer}
         />
       );
     else if (spec.entityId)
       return (
-        <EntityModelDocument
-          documentId={id}
+        <AssetViewerSlot
+          route="entity-model"
           key={viewerKey}
+          documentId={id}
+          assetPath=""
           entityId={spec.entityId}
           displayName={title}
           active={active}
+          whenUnregistered={noViewer}
         />
       );
     else return <div style={{ padding: 20, color: danger }}>Model source is unavailable.</div>;
   if (route === 'environment')
     return (
-      <EnvironmentAssetDocument
+      <AssetViewerSlot
+        route="environment"
         key={viewerKey}
         documentId={id}
         assetPath={spec.assetPath}
+        displayName={title}
         active={active}
+        whenUnregistered={noViewer}
       />
     );
   if (route === 'source')

@@ -1,3 +1,4 @@
+import { AssetViewerSlot } from '@volter/editor-sdk/kit/asset-viewers';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { useEffect, useState } from 'react';
 import { assetCapabilities } from '@volter/editor-sdk/kit/asset-capabilities';
@@ -9,13 +10,8 @@ import {
 import { AssetEditorShell } from '../AssetEditorShell';
 import { CodeView, codeViewLanguage } from '../CodeView';
 import { AudioViewer } from './AudioViewer';
-import { EnvironmentAssetDocument } from './EnvironmentAssetDocument';
 import { ImageViewer } from './ImageViewer';
 import { JsonAssetDocument } from './JsonAssetDocument';
-import { LiveModuleDocument } from './LiveModuleDocument';
-import { LutAssetDocument } from './LutAssetDocument';
-import { ModelAssetDocument } from './ModelAssetDocument';
-import { ShaderAssetDocument } from './ShaderAssetDocument';
 
 export type SourceAssetRoute =
   | 'model'
@@ -190,6 +186,35 @@ function TextSourcePreview({
   );
 }
 
+/** A format whose native view no integration in this composition provides: the
+ *  file is still a document with its own identity, like the binary route below. */
+function NoNativeViewer({
+  documentId,
+  assetPath,
+  active,
+}: {
+  readonly documentId: string;
+  readonly assetPath: string;
+  readonly active: boolean;
+}) {
+  const name = assetPath.split('/').pop() ?? assetPath;
+  return (
+    <AssetEditorShell
+      documentId={documentId}
+      active={active}
+      type="source"
+      title={name}
+      sections={[]}
+      status={`no viewer · ${assetPath}`}
+    >
+      <div style={{ padding: 16, color: themeVars.content.muted, fontSize: 12 }}>
+        No editor package in this project renders {name}; the file is available in the project
+        and stays selectable and referenceable.
+      </div>
+    </AssetEditorShell>
+  );
+}
+
 /** Viewer for downloaded catalog source/animation files without a magic fallback. */
 export function SourceAssetViewer({
   documentId,
@@ -202,14 +227,24 @@ export function SourceAssetViewer({
 }) {
   switch (sourceAssetRoute(assetPath)) {
     case 'model':
+    case 'environment':
+    case 'lut':
+    case 'shader': {
+      // The format's native view is the media integration's
+      // (`@volter/editor-sdk/kit/asset-viewers`); without one, the file is
+      // still opened as what it is.
+      const route = sourceAssetRoute(assetPath) as 'model' | 'environment' | 'lut' | 'shader';
       return (
-        <ModelAssetDocument
+        <AssetViewerSlot
+          route={route}
           documentId={documentId}
           assetPath={assetPath}
           displayName={assetPath.split('/').pop() ?? assetPath}
           active={active}
+          whenUnregistered={<NoNativeViewer documentId={documentId} assetPath={assetPath} active={active} />}
         />
       );
+    }
     case 'image':
       return <ImageViewer assetPath={assetPath} />;
     case 'audio':
@@ -227,14 +262,6 @@ export function SourceAssetViewer({
           status={`json · ${assetPath}`}
         />
       );
-    case 'environment':
-      return (
-        <EnvironmentAssetDocument documentId={documentId} assetPath={assetPath} active={active} />
-      );
-    case 'lut':
-      return <LutAssetDocument documentId={documentId} assetPath={assetPath} active={active} />;
-    case 'shader':
-      return <ShaderAssetDocument documentId={documentId} assetPath={assetPath} active={active} />;
     case 'module': {
       // Content-routed, like the quarks JSON above: a project script that
       // BUILDS an Object3D opens as the live modeling document; anything else
@@ -245,13 +272,15 @@ export function SourceAssetViewer({
       );
       if (!projectRoot) return preview;
       return (
-        <LiveModuleDocument
+        <AssetViewerSlot
+          route="module"
           documentId={documentId}
+          assetPath={assetPath}
           projectRoot={projectRoot}
-          modulePath={(assetPath.split(/[?#]/, 1)[0] ?? assetPath).replace(/^\//, '')}
           displayName={assetPath.split('/').pop() ?? assetPath}
           active={active}
           fallback={preview}
+          whenUnregistered={preview}
         />
       );
     }
