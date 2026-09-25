@@ -756,7 +756,15 @@ async function main(): Promise<void> {
       // one alone leaves the others red). `dev.ts` has carried it since the
       // transform landed; this host had neither, so a CRA-era ingested game
       // under a registry install died at its first `.js` file.
-      esbuildOptions: { jsx: 'automatic', loader: { '.js': 'jsx' } },
+      //
+      // `.ts`/`.tsx` name their own loaders because this map is also Vite's
+      // fallback when es-module-lexer cannot read an optimized entry's exports
+      // (`extractExportsData`: `loader[ext] || 'jsx'`). An installed engine
+      // entry is TypeScript source, and parsed as JSX it stops the session:
+      // measured in the browser substrate, where the lexer refused
+      // `@volter/editor-core`'s standard-viewport-dressing.ts and the retry
+      // failed on its `import type` ("Expected \"from\" but found \"{\"").
+      esbuildOptions: { jsx: 'automatic', loader: { '.js': 'jsx', '.ts': 'ts', '.tsx': 'tsx' } },
       // Spelled root-relative wherever the file is under the project, because
       // Vite reads the whole list as ONE decision: one entry that parses as a
       // glob pattern (a project at `~/my (game)`) sends every entry through
