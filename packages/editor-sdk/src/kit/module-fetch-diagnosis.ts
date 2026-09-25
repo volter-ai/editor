@@ -3,107 +3,181 @@
  * failure anywhere in an imported module's graph as the top module alone
  * ("Failed to fetch dynamically imported module: <entry>"), so a world whose
  * entry serves fine but whose graph holds one refused file reads as a broken
- * entry. This walks the entry's static and dynamic import specifiers with the
- * page's own `fetch` and names the first module that does not answer 200 with
- * a script type; when every module answers, it says so, which moves the
- * question from the server to the realm that imported it.
+ * entry. This walks the entry's STATIC import graph with the page's own `fetch`
+ * and names the first module that does not answer 200 with a script type.
+ *
+ * When every file answers, the failure is the loader's memory: a module that
+ * failed once stays failed for the document, whatever the network says now. The
+ * walk then imports the graph in dependency order (a module only after all it
+ * imports) and stops at the first refusal, which is therefore the module that
+ * failed itself rather than one that inherited a dependency's failure; that
+ * module's own network attempts are reported with their bytes over the wire (0
+ * means the browser answered from its cache without asking). The probe only runs
+ * after a failure and imports only the static graph the failed import was
+ * already evaluating; `import()` edges are not followed.
+ *
+ * Walks share one request per URL and at most {@link MAX_DIAGNOSES} run per page,
+ * so a shared dependency failing under many stories costs one walk's requests.
  */
 
-const FAILED_IMPORT = /Failed to fetch dynamically imported module: (\S+)/;
-const SPECIFIER = /(?:\bimport\s*\(\s*|\bimport\s+|\bfrom\s*)["']((?:\/|\.\.?\/)[^"']+)["']/g;
+const FAILED_IMPORT = [
+  /Failed to fetch dynamically imported module: (\S+)/, // Chromium
+  /error loading dynamically imported module: (\S+)/, // Firefox
+];
+/** Static edges only: `import … from`, `import "…"`, `export … from`. */
+const SPECIFIER =
+  /(?:\bimport\s*(?:[\w*{}\s,$]+\s*from\s*)?|\bexport\s*[\w*{}\s,$]+\s*from\s*)["']((?:\/|\.\.?\/)[^"']+)["']/g;
 const LIMIT = 400;
+const MAX_DIAGNOSES = 5;
 
 // The browser keeps 250 resource timings by default and a project boot issues more requests than
 // that, so the first attempt at a module (the one the loader remembers) would already be dropped
 // by the time a failure asks for it.
 if (typeof performance !== 'undefined' && typeof performance.setResourceTimingBufferSize === 'function') {
-  performance.setResourceTimingBufferSize(20_000);
+  performance.setResourceTimingBufferSize(5_000);
 }
 
 export interface ModuleFetchDiagnosis {
   readonly entry: string;
   readonly fetched: number;
-  /** The first module that did not load, or `null` when every one answered. */
-  readonly failed: { readonly url: string; readonly status: number; readonly detail: string } | null;
+  /** The first module that did not load, or `null` when every one loads now. */
+  readonly failed: {
+    readonly url: string;
+    /** The network's answer; `null` when the network answered and the loader refused. */
+    readonly status: number | null;
+    readonly detail: string;
+  } | null;
 }
 
 /** The entry named by a failed dynamic import's message, or `null` for any other error. */
 export function failedImportEntry(message: string): string | null {
-  return FAILED_IMPORT.exec(message)?.[1] ?? null;
+  for (const pattern of FAILED_IMPORT) {
+    const entry = pattern.exec(message)?.[1];
+    if (entry) return entry;
+  }
+  return null;
 }
 
-export async function diagnoseModuleFetch(entry: string): Promise<ModuleFetchDiagnosis> {
-  const seen = new Set<string>();
-  const queue = [entry];
-  while (queue.length > 0 && seen.size < LIMIT) {
+interface FetchedModule {
+  readonly status: number;
+  readonly type: string;
+  readonly imports: readonly string[];
+}
+
+const fetchedModules = new Map<string, Promise<FetchedModule>>();
+const diagnoses = new Map<string, Promise<ModuleFetchDiagnosis>>();
+
+function fetchModule(url: string): Promise<FetchedModule> {
+  let pending = fetchedModules.get(url);
+  if (!pending) {
+    pending = (async () => {
+      const response = await fetch(url, { cache: 'no-store' });
+      const type = response.headers.get('content-type') ?? '';
+      if (!response.ok || !/javascript|ecmascript/.test(type)) return { status: response.status, type, imports: [] };
+      const body = await response.text();
+      const imports = new Set<string>();
+      for (const match of body.matchAll(SPECIFIER)) {
+        const specifier = match[1]!;
+        // A served import carries an extension, a query or Vite's `/@` prefix (`/@id/…` virtual
+        // modules); a bare relative name is text in a string or comment, not an edge.
+        if (!/\.[a-z]+(?:[?#]|$)|\?|^\/@/i.test(specifier)) continue;
+        imports.add(new URL(specifier, url).href);
+      }
+      return { status: response.status, type, imports: [...imports] };
+    })();
+    fetchedModules.set(url, pending);
+  }
+  return pending;
+}
+
+/** Diagnose a failed import of `entry`; never rejects. */
+export function diagnoseModuleFetch(entry: string): Promise<ModuleFetchDiagnosis> {
+  const existing = diagnoses.get(entry);
+  if (existing) return existing;
+  if (diagnoses.size >= MAX_DIAGNOSES) {
+    return Promise.resolve({
+      entry,
+      fetched: 0,
+      failed: { url: entry, status: null, detail: `not walked: ${MAX_DIAGNOSES} imports already diagnosed on this page` },
+    });
+  }
+  const pending = walk(entry).catch(
+    (err): ModuleFetchDiagnosis => ({
+      entry,
+      fetched: 0,
+      failed: { url: entry, status: null, detail: `walk failed: ${String(err)}` },
+    }),
+  );
+  diagnoses.set(entry, pending);
+  return pending;
+}
+
+async function walk(entry: string): Promise<ModuleFetchDiagnosis> {
+  const root = new URL(entry, location.href).href;
+  const edges = new Map<string, readonly string[]>();
+  const queue = [root];
+  while (queue.length > 0 && edges.size < LIMIT) {
     const url = queue.shift()!;
-    if (seen.has(url)) continue;
-    seen.add(url);
-    let response: Response;
+    if (edges.has(url)) continue;
+    let fetched: FetchedModule;
     try {
-      response = await fetch(url, { cache: 'no-store' });
+      fetched = await fetchModule(url);
     } catch (err) {
-      return { entry, fetched: seen.size, failed: { url, status: 0, detail: String(err) } };
+      return { entry, fetched: edges.size + 1, failed: { url, status: 0, detail: String(err) } };
     }
-    const type = response.headers.get('content-type') ?? '';
-    if (!response.ok || !/javascript|ecmascript/.test(type)) {
+    if (fetched.status !== 200 || !/javascript|ecmascript/.test(fetched.type)) {
       return {
         entry,
-        fetched: seen.size,
-        failed: { url, status: response.status, detail: type || '(no content type)' },
+        fetched: edges.size + 1,
+        failed: { url, status: fetched.status, detail: fetched.type || '(no content type)' },
       };
     }
-    const body = await response.text();
-    for (const match of body.matchAll(SPECIFIER)) {
-      // A served import always carries an extension or a query; a bare relative name is text
-      // inside a string or comment (a library's docs), not an edge of the graph.
-      if (!/\.[a-z]+(?:[?#]|$)|\?/i.test(match[1]!)) continue;
-      const next = new URL(match[1]!, url).href;
-      if (!seen.has(next)) queue.push(next);
-    }
+    edges.set(url, fetched.imports);
+    for (const next of fetched.imports) if (!edges.has(next)) queue.push(next);
   }
-  // Every file answered, so ask the module loader: import deepest-first, and the first module it
-  // refuses is the one the entry's import tripped on (the loader keeps a failed module failed).
-  const refused: string[] = [];
-  for (const url of [...seen].reverse()) {
+
+  // Dependency order: a module after everything it imports (post-order from the entry).
+  const order: string[] = [];
+  const visited = new Set<string>();
+  const visit = (url: string): void => {
+    if (visited.has(url) || !edges.has(url)) return;
+    visited.add(url);
+    for (const next of edges.get(url)!) visit(next);
+    order.push(url);
+  };
+  visit(root);
+
+  for (const url of order) {
     try {
       await import(/* @vite-ignore */ url);
-    } catch {
-      refused.push(url);
+    } catch (err) {
+      const attempts = performance
+        .getEntriesByType('resource')
+        .filter((timing): timing is PerformanceResourceTiming => timing.name === url)
+        .map(
+          (timing) =>
+            `${'responseStatus' in timing ? timing.responseStatus : '?'} ` +
+            `(${timing.transferSize}B over the wire, ${timing.initiatorType}) at ${Math.round(timing.startTime)}ms`,
+        );
+      return {
+        entry,
+        fetched: edges.size,
+        failed: {
+          url,
+          status: null,
+          detail:
+            `every module it imports loads and the network serves it, but the loader refused it (${String(err)}); ` +
+            `its attempts on this page: ${attempts.join(' | ') || 'none kept'}`,
+        },
+      };
     }
   }
-  if (refused.length > 0) {
-    // What the network answered the FIRST time, for every module of the graph: the loader keeps a
-    // module that failed once failed, so the attempt that matters is the one before this walk.
-    const earlier = performance
-      .getEntriesByType('resource')
-      .filter((timing): timing is PerformanceResourceTiming => seen.has(timing.name) || refused.includes(timing.name))
-      .filter((timing) => refused.includes(timing.name))
-      .map(
-        (timing) =>
-          `${timing.name} → ${'responseStatus' in timing ? timing.responseStatus : '?'} ` +
-          `(${timing.transferSize}B over the wire, ${timing.decodedBodySize}B body, ${timing.initiatorType}) ` +
-          `at ${Math.round(timing.startTime)}ms`,
-      );
-    return {
-      entry,
-      fetched: seen.size,
-      failed: {
-        url: refused[0]!,
-        status: 200,
-        detail:
-          `the loader refused ${refused.length}: ${refused.join(' ')}; their network attempts ` +
-          `(${performance.getEntriesByType('resource').length} timings kept): ` +
-          (earlier.join(' | ') || 'none'),
-      },
-    };
-  }
-  return { entry, fetched: seen.size, failed: null };
+  return { entry, fetched: edges.size, failed: null };
 }
 
 export function describeModuleFetch(diagnosis: ModuleFetchDiagnosis): string {
-  return diagnosis.failed
-    ? `module ${diagnosis.failed.url} answered ${diagnosis.failed.status} (${diagnosis.failed.detail}), ` +
-        `found walking ${diagnosis.fetched} modules from ${diagnosis.entry}`
-    : `all ${diagnosis.fetched} modules from ${diagnosis.entry} fetch and import from the page now`;
+  const { failed } = diagnosis;
+  if (!failed) return `all ${diagnosis.fetched} modules from ${diagnosis.entry} fetch and import from the page now`;
+  const answer = failed.status === null ? '' : ` answered ${failed.status}`;
+  return `module ${failed.url}${answer}: ${failed.detail} (walking ${diagnosis.fetched} modules from ${diagnosis.entry})`;
 }

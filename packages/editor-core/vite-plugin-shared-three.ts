@@ -179,7 +179,9 @@ export function sharedThreeUrl(manifest: SharedThreeManifest, base = '/'): strin
 }
 
 /** The stable module every project-graph `three` import resolves to; only it imports the hashed
- *  chunk. */
+ *  chunk. Browsers keep prebundled chunks naming this id for as long as their `?v=` stands, so
+ *  renaming it must rename the plugin too (which moves `?v=`), or those chunks import a module
+ *  that no longer answers. */
 const SHARED_THREE_DOORWAY = '\0vgai-shared-three-doorway';
 
 /**
@@ -208,7 +210,11 @@ export function sharedThreePlugin(url: string): Plugin {
     name: 'vgai-shared-three-doorway',
     enforce: 'pre',
     load(id) {
-      return id === SHARED_THREE_DOORWAY ? `export * from ${JSON.stringify(SHARED_THREE_SPECIFIER)};\n` : undefined;
+      // The chunk also has a default export (the namespace, `sharedReactEntryModule`), which
+      // `export *` leaves out; a project's `import THREE from 'three'` read it before the doorway.
+      return id === SHARED_THREE_DOORWAY
+        ? `export * from ${JSON.stringify(SHARED_THREE_SPECIFIER)};\nexport { default } from ${JSON.stringify(SHARED_THREE_SPECIFIER)};\n`
+        : undefined;
     },
     resolveId(source, importer, options) {
       if (source !== SHARED_THREE_SPECIFIER) return undefined;
