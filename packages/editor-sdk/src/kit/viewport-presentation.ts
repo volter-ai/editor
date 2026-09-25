@@ -138,8 +138,14 @@ export interface ViewportOverlays {
     readonly majorEvery: number;
     readonly planes: { readonly xz: boolean; readonly xy: boolean; readonly yz: boolean };
   };
-  /** Any set of selection marks (Unity can show outline and wire together; Godot a box). */
-  readonly selection: { readonly outline: boolean; readonly wire: boolean; readonly box: boolean };
+  /** Any set of selection marks (Unity can show outline and wire together; Godot a box), and
+   *  a dot at each selected object's origin (Blender's Origins overlay). */
+  readonly selection: {
+    readonly outline: boolean;
+    readonly wire: boolean;
+    readonly box: boolean;
+    readonly origins: boolean;
+  };
   /**
    * Which of the world's axis lines are drawn, named by the WORLD's axes: `floor` is the two
    * that lie on the floor (Blender's X and Y), an object states each (Blender's X/Y/Z overlay
@@ -256,7 +262,7 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
   backdrop: { source: 'fill', color: '#3d3d3d', opacity: 0, blur: 0 },
   overlays: {
     grid: { visible: true, majorEvery: 10, planes: { xz: true, xy: false, yz: false } },
-    selection: { outline: true, wire: false, box: false },
+    selection: { outline: true, wire: false, box: false, origins: false },
     axes: 'floor',
     navigation: 'interactive',
     floor: { visible: false, color: '#2b3038' },

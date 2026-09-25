@@ -126,6 +126,8 @@ export class Object3DDocumentSession {
   private selectionOutline: ReturnType<typeof acquireThreeSelectionOutline> | null = null;
   private selectionOutlinePass: EffectPass | null = null;
   private selectedObjects: THREE.Object3D[] = [];
+  /** The view's origin dots (`overlays.selection.origins`), when it shows them. */
+  private selectionOrigins: SelectionOrigins | null = null;
   private renderWidth = 1;
   private renderHeight = 1;
   private readonly orthographicCamera = new THREE.OrthographicCamera();
@@ -468,6 +470,13 @@ export class Object3DDocumentSession {
     if (this.selectionOutline) {
       syncThreeSelectionOutline(this.selectionOutline, this.selectionOutlineWanted ? selected : []);
       this.syncComposerOutput();
+    }
+    if (this.selectionOrigins) {
+      const colors = nativeSelectionColors(this.renderer.domElement);
+      this.selectionOrigins.update(selected, {
+        visible: colors.visible,
+        ...(colors.active ? { active: colors.active.visible } : {}),
+      });
     }
     const bones = selected.filter((object): object is THREE.Bone =>
       Boolean((object as THREE.Bone).isBone),
@@ -1018,6 +1027,8 @@ export class Object3DDocumentSession {
 
   dispose(): void {
     this.disposed = true;
+    this.selectionOrigins?.dispose();
+    this.selectionOrigins = null;
     this.settleFlight('closed');
     this.viewport.orbitControls.removeEventListener('start', this.cancelLookForHuman);
     this.unsubscribeSelectionTheme();
@@ -1086,6 +1097,20 @@ export class Object3DDocumentSession {
     }
   }
   private selectionOutlineWanted = true;
+
+  /** Whether the view draws its selected objects' origins (`overlays.selection.origins`). */
+  set selectionOriginsEnabled(value: boolean) {
+    if (value === (this.selectionOrigins !== null)) return;
+    if (value) {
+      this.selectionOrigins = new SelectionOrigins(this.renderer);
+      this.scene.add(this.selectionOrigins);
+      this.syncSelectionPresentation();
+    } else {
+      this.selectionOrigins?.dispose();
+      this.selectionOrigins = null;
+      invalidateStages();
+    }
+  }
 
   private ensureComposer(): void {
     if (!this.selectionOutlineWanted) return;
@@ -1307,3 +1332,92 @@ export {
   registerObject3DDocumentSession,
   subscribeObject3DDocumentSessions,
 } from './object3d-document-session-registry';
+
+/**
+ * OBJECT ORIGINS: a dot at the origin of each selected object, drawn over everything at a fixed
+ * pixel size — Blender's "Origins" overlay (`overlays.selection.origins` in
+ * `@volter/editor-sdk/kit/viewport-presentation`). Blender draws it 6 px across by default
+ * (Preferences › Viewport › Object Origin Size) with a thin dark rim, and in the active object's
+ * colour for the active object; the kit's rule for the active colour stands in for that: a lone
+ * selected object is shown in the look's active colour, several in its selection colour, the
+ * same rule the outline follows.
+ *
+ * The positions are read from each object's world matrix as the frame is drawn, so a dot follows
+ * a drag without the selection having to change.
+ */
+/** Blender's default Object Origin Size, in CSS pixels. */
+const ORIGIN_SIZE_PX = 6;
+
+let dotTexture: THREE.Texture | null = null;
+/** A filled disc with a thin dark rim, white where the colour goes. */
+function originDotTexture(): THREE.Texture {
+  if (dotTexture) return dotTexture;
+  const size = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext('2d')!;
+  context.beginPath();
+  context.arc(size / 2, size / 2, size / 2 - 1, 0, Math.PI * 2);
+  context.fillStyle = 'rgba(0, 0, 0, 0.75)';
+  context.fill();
+  context.beginPath();
+  context.arc(size / 2, size / 2, size / 2 - 8, 0, Math.PI * 2);
+  context.fillStyle = '#ffffff';
+  context.fill();
+  dotTexture = new THREE.CanvasTexture(canvas);
+  dotTexture.colorSpace = THREE.SRGBColorSpace;
+  return dotTexture;
+}
+
+class SelectionOrigins extends THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial> {
+  private objects: readonly THREE.Object3D[] = [];
+  private readonly origin = new THREE.Vector3();
+
+  constructor(private readonly renderer: THREE.WebGLRenderer) {
+    super(
+      new THREE.BufferGeometry(),
+      new THREE.PointsMaterial({
+        map: originDotTexture(),
+        size: ORIGIN_SIZE_PX,
+        sizeAttenuation: false,
+        transparent: true,
+        alphaTest: 0.05,
+        depthTest: false,
+        depthWrite: false,
+        toneMapped: false,
+      }),
+    );
+    this.name = 'vgai:selection-origins';
+    this.userData['editorHelper'] = true;
+    this.renderOrder = 1000;
+    this.frustumCulled = false;
+    this.raycast = () => {};
+    this.onBeforeRender = () => this.place();
+  }
+
+  /** The selected objects and the colours their dots take (`active` for a lone selection). */
+  update(objects: readonly THREE.Object3D[], colors: { readonly visible: number; readonly active?: number }): void {
+    this.objects = objects;
+    this.material.color.setHex(objects.length === 1 && colors.active !== undefined ? colors.active : colors.visible);
+    this.visible = objects.length > 0;
+  }
+
+  /** Before each draw: the dots where their objects are now. */
+  private place(): void {
+    // The point size is in drawing-buffer pixels; the look states CSS pixels.
+    this.material.size = ORIGIN_SIZE_PX * this.renderer.getPixelRatio();
+    const positions = new Float32Array(this.objects.length * 3);
+    this.objects.forEach((object, index) => {
+      object.getWorldPosition(this.origin);
+      positions.set([this.origin.x, this.origin.y, this.origin.z], index * 3);
+    });
+    this.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  }
+
+  dispose(): void {
+    this.removeFromParent();
+    this.geometry.dispose();
+    this.material.dispose();
+  }
+}

@@ -18,6 +18,11 @@ const release = registerStartingPresentation('model', {
     // under the rectangle, so any drawn part of an object inside it selects that object.
     boxSelect: 'touch',
   },
+  overlays: {
+    // BLENDER DRAWS THE SELECTED OBJECTS' ORIGINS (Overlays › Origins, on by default): the dot at
+    // the default cube's centre in every reference frame (`gizmo-select-box.png`).
+    selection: { origins: true },
+  },
   world: {
     // BLENDER'S WORLD IS Z-UP, and the stage presents it through the signed permutation
     // `(x, y, z) → (x, z, −y)` the presented root carries (`blender-runtime-view.ts`'s
