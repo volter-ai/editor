@@ -100,6 +100,7 @@ import {
   openAvailableWorkspaceDocument,
   subscribeAvailableWorkspaceDocuments,
 } from '../workspace-available-documents';
+import { planSceneDocument } from '../scene-document-plan';
 import {
   activeWorkspaceDocumentId,
   subscribeWorkspaceDocuments,
@@ -1769,14 +1770,20 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
       );
       const documentEntries = (adapterFacet?.scenes.entries ?? []).flatMap((document) => {
         if (document.kind === 'prefab') return [];
+        // A scene entry whose plan is its root's own document, or an isolation
+        // document already offered, is that document's tile, not a second one.
+        // The root's document carries no source path when the entry has none.
+        const plan = document.kind === 'scene' ? planSceneDocument(document) : null;
         if (
-          document.kind === 'scene' &&
+          plan &&
           availableDocuments.some(
             (item) =>
               (item.category === 'scene' || item.category === 'canvas') &&
-              !!document.source?.path &&
-              item.descriptor.provenance?.sourcePath?.replace(/^\.\//, '') ===
-                document.source.path.replace(/^\.\//, ''),
+              ((plan.kind === 'root-document' && item.rootId === plan.regionId) ||
+                (plan.kind === 'isolation-document' && item.descriptor.id === plan.documentId) ||
+                (!!document.source?.path &&
+                  item.descriptor.provenance?.sourcePath?.replace(/^\.\//, '') ===
+                    document.source.path.replace(/^\.\//, ''))),
           )
         )
           return [];
