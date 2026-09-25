@@ -22,7 +22,17 @@ export type { EditorSessionEntry as EditorSession } from '@volter/editor-sdk/ses
 export { pidAlive } from '@volter/editor-sdk/session/registry-format';
 
 import { randomBytes, randomUUID } from 'node:crypto';
-import { chmodSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  closeSync,
+  mkdirSync,
+  openSync,
+  readFileSync,
+  renameSync,
+  statSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { resolveWorktreeIdentity, type WorktreeIdentity } from './worktree-identity';
@@ -168,6 +178,69 @@ function replaceRegistry(sessions: EditorSession[]): void {
   }
 }
 
+const REGISTRY_LOCK = `${REGISTRY_FILE}.lock`;
+const LOCK_WAIT_MS = 2_000;
+
+/**
+ * One writer at a time. The rename keeps READS whole, but register and
+ * unregister read, change and replace the file: two sessions doing that at
+ * once each write the array they read, and the later write drops the other's
+ * entry, which leaves a live session invisible to `edit`, `status` and
+ * `close`. The lock file holds its owner's pid, so a lock left by a dead
+ * process is taken over; after LOCK_WAIT_MS the write goes ahead unlocked,
+ * because bookkeeping must never stall a server.
+ */
+function withRegistryLock(write: () => void): void {
+  const deadline = Date.now() + LOCK_WAIT_MS;
+  const pause = new Int32Array(new SharedArrayBuffer(4));
+  let held = false;
+  while (!held) {
+    try {
+      const fd = openSync(REGISTRY_LOCK, 'wx', 0o600);
+      writeFileSync(fd, String(process.pid));
+      closeSync(fd);
+      held = true;
+    } catch {
+      let recorded: string;
+      let age: number;
+      try {
+        recorded = readFileSync(REGISTRY_LOCK, 'utf8').trim();
+        age = Date.now() - statSync(REGISTRY_LOCK).mtimeMs;
+      } catch {
+        continue; // released between the two calls
+      }
+      // An empty lock is one being taken right now, unless it is older than
+      // any take: then its writer died between creating and filling it.
+      const owner = Number(recorded);
+      const abandoned =
+        recorded === ''
+          ? age > LOCK_WAIT_MS
+          : !Number.isInteger(owner) || owner <= 0 || !pidAlive(owner);
+      if (abandoned) {
+        try {
+          unlinkSync(REGISTRY_LOCK);
+        } catch {
+          /* another writer took it over first */
+        }
+        continue;
+      }
+      if (Date.now() >= deadline) break;
+      Atomics.wait(pause, 0, 0, 25);
+    }
+  }
+  try {
+    write();
+  } finally {
+    if (held) {
+      try {
+        unlinkSync(REGISTRY_LOCK);
+      } catch {
+        /* already gone */
+      }
+    }
+  }
+}
+
 /**
  * A registry record whose pid is not alive is HISTORY, not identity.
  *
@@ -211,7 +284,8 @@ export function registryAfterRegistration(
 export function registerSession(announcement: EditorSessionAnnouncement): void {
   try {
     mkdirSync(REGISTRY_DIR, { recursive: true });
-    replaceRegistry(registryAfterRegistration(readSessions(), materializeSession(announcement)));
+    const incoming = materializeSession(announcement);
+    withRegistryLock(() => replaceRegistry(registryAfterRegistration(readSessions(), incoming)));
   } catch {
     // Registry is best-effort — never let bookkeeping kill the server.
   }
@@ -223,7 +297,9 @@ export function unregisterSession(pid: number): void {
     // record whose server is already gone. Leaving those behind is what lets a
     // dead entry outlive the server it described and keep answering "which
     // project is on port N?" long after nothing is.
-    replaceRegistry(pruneDeadSessions(readSessions().filter((s) => s.pid !== pid)));
+    withRegistryLock(() =>
+      replaceRegistry(pruneDeadSessions(readSessions().filter((s) => s.pid !== pid))),
+    );
   } catch {
     // Best-effort (see registerSession).
   }
