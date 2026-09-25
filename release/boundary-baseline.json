@@ -478,7 +478,6 @@
  "kit-media  packages/editor-core/src/components/StageHost.tsx -> three",
  "kit-media  packages/editor-core/src/components/ViewportFurniture.tsx -> three",
  "kit-media  packages/editor-core/src/components/ViewportShadingMenu.tsx -> @volter/editor-threejs/render/viewport-shading",
- "kit-media  packages/editor-core/src/components/asset-documents.tsx -> three",
  "kit-media  packages/editor-core/src/components/asset-viewers/EntityModelDocument.tsx -> @volter/editor-threejs/animation/live-mixers",
  "kit-media  packages/editor-core/src/components/asset-viewers/EntityModelDocument.tsx -> three",
  "kit-media  packages/editor-core/src/components/asset-viewers/EnvironmentAssetDocument.tsx -> three",

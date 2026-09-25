@@ -36,7 +36,6 @@ import { faCloudArrowDown, faFileLines } from '@fortawesome/free-solid-svg-icons
 import { bg, danger, text } from '@volter/editor-sdk/widgets';
 import type { AuthoringAssetSubject } from '@volter/editor-project/adapter';
 import { lazy, type ReactNode, Suspense, useEffect, useSyncExternalStore } from 'react';
-import type * as THREE from 'three';
 import { clearSelectedAsset } from '../asset-selection';
 import { assetCapabilities } from '@volter/editor-sdk/kit/asset-capabilities';
 import {
@@ -179,9 +178,9 @@ export function isAssetDocumentId(id: string): boolean {
 export interface AssetDocumentStore {
 }
 
-/** The Asset Editor additionally needs the live object map for its §8 title. */
+/** The Asset Editor additionally needs the live object's name for its §8 title. */
 export interface EntityAssetDocumentStore extends AssetDocumentStore {
-  readonly objectMap: Map<string, THREE.Object3D>;
+  readonly objectMap: ReadonlyMap<string, { readonly name: string }>;
 }
 
 /** Shallow equality over the union of both specs' keys — the specs are flat
