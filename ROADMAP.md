@@ -101,9 +101,9 @@ Completion:
 
 Status: proposed; after the first launch, by the owner's launch rule
 Source: vgai-engine `docs/WORK.md` §The Godot lane is ARCHIVED, §The Roblox, Unity and Minecraft lanes are ARCHIVED (owner, 2026-09-19: "incomplete lines of work that won't go into this first launch") and §The launch-scope sweep (owner, 2026-09-20: "for later"). Each line is whole at a tag in `volter-ai/vgai-engine` and comes back from it, never re-derived:
-- the engine compatibility lanes, each an analyzer and runtime that brings a game from that engine into VGAI: Godot (`archive/godot-lane-2026-09-19`), Roblox (`archive/roblox-lane-2026-09-19`), Unity (`archive/unity-lane-2026-09-19`) and Minecraft (`archive/minecraft-lane-2026-09-19`)
+- the engine compatibility lanes, incomplete when archived (the owner's words), each an analyzer and runtime that brings a game from that engine into VGAI: Godot (`archive/godot-lane-2026-09-19`), Roblox (`archive/roblox-lane-2026-09-19`), Unity (`archive/unity-lane-2026-09-19`) and Minecraft (`archive/minecraft-lane-2026-09-19`)
 - the example games (`archive/examples-2026-09-19`); `arena` has already come back
-- everything off the Blender launch path (`archive/launch-scope-2026-09-20`): the services and providers; the editor skews (agents, asset library, collaboration, canvas, p2p-colyseus, and the ingest shelf that proves any game loads unaltered); 29 catalog capabilities, among them audio, music, netcode, IK, terrain, HUD and timeline; and the learn site
+- the built capabilities held out of the first launch's scope (`archive/launch-scope-2026-09-20`), not unfinished work: several are back in this repository (game audio, the ingest door, collaboration, the asset library, the multiplayer template's Colyseus server); still only at the tag are the netcode, IK, ragdoll, terrain, HUD, sprite and stylized capabilities, the AI generation providers (Fal, Tripo, World Labs, OpenRouter) and the learn site
 Completion:
 - Each line is restored from its tag when the owner calls its turn, or is retired by the owner's word.
 
