@@ -11,7 +11,14 @@ import {
   type DocumentViewport,
   registerDocumentViewport,
 } from '@volter/editor-sdk/kit/document-viewports';
+import { lazy } from 'react';
 import type { Object3DDocumentSession } from './object3d-document-session';
+
+// The document header's shading, helpers and capture menus. Behind `lazy()`, so
+// this registry stays the light read it is for every other caller.
+const Object3DDocumentToolbar = lazy(() =>
+  import('../components/Object3DDocumentToolbar').then((m) => ({ default: m.Object3DDocumentToolbar })),
+);
 
 const sessions = new Map<string, Object3DDocumentSession>();
 const preparations = new Map<string, () => Promise<void>>();
@@ -72,6 +79,7 @@ function object3DDocumentViewport(session: Object3DDocumentSession): DocumentVie
     selection: { read: () => session.selection(), apply: (ids) => session.select(ids) },
     capture: (size) => session.captureImage(size ?? 512),
     prepare: () => prepareObject3DDocument(session.documentId),
+    HeaderControls: Object3DDocumentToolbar,
   };
 }
 

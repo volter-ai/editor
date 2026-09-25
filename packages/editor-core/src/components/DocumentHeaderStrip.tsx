@@ -1,11 +1,10 @@
-import { type ReactNode, useSyncExternalStore } from 'react';
 import {
-  object3DDocumentSession,
-  object3DDocumentSessionsVersion,
-  subscribeObject3DDocumentSessions,
-} from '../authoring/object3d-document-session-registry';
+  documentViewport,
+  documentViewportsVersion,
+  subscribeDocumentViewports,
+} from '@volter/editor-sdk/kit/document-viewports';
+import { type ReactNode, Suspense, useSyncExternalStore } from 'react';
 import { chromeRegionsKey, subscribeChromeRegions } from '../workspace-regions';
-import { Object3DDocumentToolbar } from './Object3DDocumentToolbar';
 
 /**
  * THE DOCUMENT HEADER STRIP — the one region every document's header lives
@@ -18,12 +17,12 @@ import { Object3DDocumentToolbar } from './Object3DDocumentToolbar';
  *    snap, transform options), for a document whose stage takes them — they
  *    are HEADER controls in Blender's 3D viewport, not tool-shelf ones, and
  *    the shelf holds tools only;
- *  - the host's 3D controls (`Object3DDocumentToolbar`: frame, camera,
- *    shading, environment, preview capture) for ANY document that has
- *    mounted an Object3D session — asset models, scene isolation, three
- *    stories, the 3D board, a project's mesh document — found through the
- *    session registry, so no descriptor has to declare them. A chromeless
- *    mount (an inspector preview) registers no session and gets no strip.
+ *  - the controls the document's stage adds to its header (a three.js
+ *    stage's frame, camera, shading, environment and preview capture) for
+ *    ANY document whose stage registered a viewport
+ *    (`@volter/editor-sdk/kit/document-viewports`), so no descriptor has to
+ *    declare them. A chromeless mount (an inspector preview) registers none
+ *    and gets no strip.
  *
  * The strip renders when either kind has something to show. Exported so the
  * bounded host, which mounts a document without the dock, draws the
@@ -58,17 +57,17 @@ export function DocumentHeaderStrip({
   readonly children?: ReactNode;
 }) {
   useSyncExternalStore(
-    subscribeObject3DDocumentSessions,
-    object3DDocumentSessionsVersion,
-    object3DDocumentSessionsVersion,
+    subscribeDocumentViewports,
+    documentViewportsVersion,
+    documentViewportsVersion,
   );
   const regionsVersion = useSyncExternalStore(
     subscribeChromeRegions,
     chromeRegionsKey,
     chromeRegionsKey,
   );
-  const session = object3DDocumentSession(documentId);
-  if (!children && !session && !transformControls) return null;
+  const HeaderControls = documentViewport(documentId)?.HeaderControls;
+  if (!children && !HeaderControls && !transformControls) return null;
   // The workspace's knob, not the document's: a skin that hides headers hides
   // them for every document in that workspace (`EditorWorkspaceRegions`).
   if (!runtime && regionsVersion.includes('header:hidden')) return null;
@@ -85,11 +84,13 @@ export function DocumentHeaderStrip({
     >
       {children ? <div className="vgai-dock-document-toolbar-own">{children}</div> : null}
       {transformControls}
-      {session ? (
-        <Object3DDocumentToolbar
-          documentId={documentId}
-          {...(assetPath && !assetPath.startsWith('online:') ? { assetPath } : {})}
-        />
+      {HeaderControls ? (
+        <Suspense fallback={null}>
+          <HeaderControls
+            documentId={documentId}
+            {...(assetPath && !assetPath.startsWith('online:') ? { assetPath } : {})}
+          />
+        </Suspense>
       ) : null}
     </div>
   );

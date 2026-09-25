@@ -6,6 +6,7 @@
  * link reaches whichever medium draws that document. A document no stage
  * registered has no viewport, which is what `EditorView` then says.
  */
+import type { ComponentType } from 'react';
 import type { CaptureDimensions, EditorView } from '../types';
 
 export type EditorViewViewport = NonNullable<EditorView['viewport']>;
@@ -30,16 +31,38 @@ export interface DocumentViewport {
   capture?(size?: CaptureDimensions): string | null;
   /** Settles before a view is applied (an asynchronously mounting document). */
   prepare?(): Promise<void>;
+  /** The controls this stage adds to its document's header (its shading,
+   *  helpers and capture menus). */
+  readonly HeaderControls?: ComponentType<{ readonly documentId: string; readonly assetPath?: string }>;
 }
 
 const viewports = new Map<string, DocumentViewport>();
+const listeners = new Set<() => void>();
+let version = 0;
+
+function changed(): void {
+  version += 1;
+  for (const listener of listeners) listener();
+}
 
 /** Register the viewport of one document. Returns the removal. */
 export function registerDocumentViewport(documentId: string, viewport: DocumentViewport): () => void {
   viewports.set(documentId, viewport);
+  changed();
   return () => {
-    if (viewports.get(documentId) === viewport) viewports.delete(documentId);
+    if (viewports.get(documentId) !== viewport) return;
+    viewports.delete(documentId);
+    changed();
   };
+}
+
+export function subscribeDocumentViewports(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+export function documentViewportsVersion(): number {
+  return version;
 }
 
 export function documentViewport(documentId: string | null | undefined): DocumentViewport | null {
