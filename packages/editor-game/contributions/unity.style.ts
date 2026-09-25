@@ -36,6 +36,8 @@ export const style: StyleContribution = {
         // px per gizmo unit is fitted, not transcribed: at 128 the move arrows reach ~95 px on
         // a 1x capture, as in `engine-reference/unity/PrimitiveCube.png`.
         gizmoSize: 128,
+        // Unity's scene gizmo: cones round a grey cube (`Editor-SceneGizmo.png`).
+        navigationGizmo: 'cones',
         // Unity's move arrow is a thin shaft ending at the rotate ring, with a long cone head
         // (`TransformGizmo35.png`, `game-objects-transform-modes.png`).
         gizmoArrowLength: 1.1,
