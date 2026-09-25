@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 3,
+  "name": "Godot",
+  "theme": {
+    "id": "godot",
+    "color": {
+      "surface": {
+        "shell": "#1d2229",
+        "panel": "#21262e",
+        "chrome": "#252b34",
+        "raised": "#363d4a",
+        "inset": "#1d2229",
+        "overlay": "rgba(33,38,46,0.96)"
+      },
+      "boundary": {
+        "default": "#363d4a",
+        "strong": "#4a5263",
+        "area": "#1d2229",
+        "indent": "#4a5263",
+        "divider": "#2c323c"
+      },
+      "content": {
+        "primary": "#e0e0e0",
+        "muted": "#c0c3c8",
+        "dim": "#8a8e96",
+        "onAccent": "#ffffff",
+        "menu": "#e0e0e0",
+        "status": "#9a9ea6",
+        "placeholder": "#6a6d73",
+        "active": "#70bafa",
+        "selected": "#70bafa",
+        "onBright": {
+          "primary": "#1d2229",
+          "muted": "rgba(29,34,41,0.82)",
+          "dim": "rgba(29,34,41,0.7)"
+        }
+      },
+      "accent": {
+        "default": "#70bafa",
+        "muted": "#374f66"
+      },
+      "widget": {
+        "regular": "#363d4a",
+        "menu": "#21262e",
+        "field": "#1d2229",
+        "emboss": "rgba(0,0,0,0.12)"
+      },
+      "viewport": {
+        "background": "#4d4d4d",
+        "grid": "#7c7b78",
+        "axisX": "#f53352",
+        "axisY": "#298cf5",
+        "selection": "#ff8000",
+        "active": "#ff8000"
+      },
+      "gizmo": {
+        "x": "#f53352",
+        "y": "#87d603",
+        "z": "#298cf5"
+      },
+      "region": {
+        "outliner": "#21262e",
+        "properties": "#21262e"
+      },
+      "category": {
+        "object": "#fc7f7f",
+        "modifier": "#8da5f3",
+        "material": "#ff5d5d",
+        "data": "#8eef97",
+        "scene": "#e0e0e0",
+        "collection": "#e0e0e0",
+        "tool": "#e0e0e0",
+        "operator": "#8eef97"
+      },
+      "semantic": {
+        "danger": "#ff786b",
+        "dangerMuted": "rgba(255,120,107,0.28)",
+        "dangerFaint": "rgba(255,120,107,0.12)",
+        "warning": "#ffdd65",
+        "warningMuted": "rgba(255,221,101,0.28)",
+        "success": "#45ff8b",
+        "successMuted": "rgba(69,255,139,0.28)",
+        "dynamic": "#ffdd65",
+        "dynamicMuted": "rgba(255,221,101,0.18)",
+        "instance": "#70bafa"
+      },
+      "neutralOverlay": {
+        "hover": "rgba(255,255,255,0.07)",
+        "active": "rgba(255,255,255,0.13)"
+      },
+      "scrim": "rgba(0,0,0,0.6)"
+    },
+    "typography": {
+      "sans": "'Noto Sans', 'Inter', system-ui, sans-serif",
+      "mono": "'JetBrains Mono', 'Hack', Menlo, monospace"
+    }
+  }
+}

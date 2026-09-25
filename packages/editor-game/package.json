@@ -51,6 +51,7 @@
       "./contributions/gameplay.command.ts",
       "./contributions/generation.service.ts",
       "./contributions/generations.status.tsx",
+      "./contributions/godot.style.ts",
       "./contributions/ingest.service.ts",
       "./contributions/instances.command.ts",
       "./contributions/navmesh.menu.ts",
