@@ -98,7 +98,7 @@ export function EntityModelDocument({
   readonly active: boolean;
 }) {
   const store = threeStateOf(useEditorStore());
-  const storeVersion = useSyncExternalStore(store.subscribe, store.getSnapshot);
+  const storeVersion = useSyncExternalStore(store.shell.subscribe, store.shell.getSnapshot);
   const source = store.objectMap.get(entityId);
 
   if (!source)

@@ -197,13 +197,13 @@ function reportFailedIngestMount(store: EditorShellStore, report: MountFailureRe
   resetIngestPlaySurface();
   // The prologue's `setPlayState('playing')` must never outlive a failed mount
   // — that flag is what `collectState` reported as a live game (S-1).
-  store.setPlayState('stopped');
+  store.shell.setPlayState('stopped');
   addMountFailureReport(report);
   // `addMountFailureReport` notifies the status item through the slot's own
   // subscribe; this broadcast is for the STORE-subscribed panels (hierarchy,
   // play controls) that must re-render off the teardown above — a failed
   // mount never reaches the success path's `notifyIngestEdit()`.
-  store.notifyIngestEdit();
+  store.shell.notifyIngestEdit();
 }
 
 /**

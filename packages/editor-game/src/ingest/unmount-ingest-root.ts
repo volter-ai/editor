@@ -121,7 +121,7 @@ function disposeThreejsSession(s: IngestSession): void {
       /* scene may not have been swapped if capture failed */
     }
   }
-  s.store.setPlayState('stopped');
+  s.store.shell.setPlayState('stopped');
 
   // Tear down the mounted game (stops its loop, frees renderer, uninstalls trap).
   try {
@@ -153,7 +153,7 @@ function disposePixiSession(s: IngestSession2D): void {
   setActiveAuthoring(null);
   setActiveSystems(null);
   clearMountFailureReports(); // D-W3: no session -> nothing left to report
-  s.store.setPlayState('stopped');
+  s.store.shell.setPlayState('stopped');
   try {
     s.dispose();
   } catch {
@@ -177,7 +177,7 @@ function disposeReactSession(s: IngestSessionReact): void {
   setActiveAuthoring(null);
   setActiveSystems(null);
   clearMountFailureReports(); // D-W3: no session -> nothing left to report (mirrors disposeThreejsSession's identical call)
-  s.store.setPlayState('stopped');
+  s.store.shell.setPlayState('stopped');
   try {
     s.stop();
   } catch {

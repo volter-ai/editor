@@ -41,9 +41,9 @@ export function requestTransformMode(store: EditorShellStore, mode: TransformMod
   // below, whose whole trigger is "a real, unambiguous attempt to transform",
   // has nothing to report about it.
   if (mode === 'select') return;
-  const ids = [...store.selectedEntityIds];
+  const ids = [...store.shell.selectedEntityIds];
   if (ids.length === 0) return;
-  const editability = getActiveAuthoring(store).transforms?.editability;
+  const editability = getActiveAuthoring(store.shell).transforms?.editability;
   if (!editability) return;
   let reason: string | undefined;
   for (const id of ids) {

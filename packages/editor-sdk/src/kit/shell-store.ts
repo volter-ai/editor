@@ -155,6 +155,16 @@ export class ShellStore implements ShellDocumentState {
     for (const fn of this._listeners) fn();
   }
 
+  /** A companion half's change (the Three half's scene, tools and view options): the same
+   *  notification the store's own writers send. */
+  notifyChange(
+    scope: NotifyScope = 'content',
+    concern: NotifyConcern = 'shell',
+    affectsHierarchyRowFacets = scope !== 'selection',
+  ): void {
+    this._notify(scope, concern, affectsHierarchyRowFacets);
+  }
+
   /** Coalesce control-plane presentation behind the command-result microtask.
    *  The state mutation has already landed when this is called. */
   protected _notifyDeferred(scope: NotifyScope = 'content'): void {

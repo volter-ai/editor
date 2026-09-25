@@ -19,7 +19,6 @@ import type { BatchedRenderer } from 'three.quarks';
 import { findEntityLod } from './entity-lod';
 import { entityIdOf } from './entity-object';
 import { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import { registerThreeState } from './three-state';
 export type { NotifyScope, PlayEditRegime } from '@volter/editor-sdk/kit/shell-store';
 import { withSceneFogNeutralized } from './scene-view-fog';
 
@@ -152,11 +151,9 @@ export type ViewportAction =
       fov?: number;
     };
 
-export class EditorShellStore extends ShellStore {
-  constructor(options: { readonly followsWorkspaceFocus?: boolean } = {}) {
-    super(options);
-    registerThreeState(this, this);
-  }
+export class EditorShellStore {
+  /** Made by `threeStateOf`, once per shell store. */
+  constructor(readonly shell: ShellStore) {}
 
   // --- Scene graph references (set via bindScene) ---
   protected _scene: THREE.Scene | null = null;
@@ -462,7 +459,7 @@ export class EditorShellStore extends ShellStore {
       setUserData(child, 'skeletonEnabled', visible);
       child.visible = visible || this._helperVisibility.skeletons;
     });
-    this._notify();
+    this.shell.notifyChange();
   }
   get showStats(): boolean {
     return this._showStats;
@@ -511,9 +508,9 @@ export class EditorShellStore extends ShellStore {
       delta === undefined ||
       delta.rootsChanged ||
       [...(delta.addedIds ?? []), ...(delta.removedIds ?? [])].some((id) =>
-        this.selectedEntityIds.has(id),
+        this.shell.selectedEntityIds.has(id),
       );
-    this._notify('content', affectsShell ? 'shell' : 'object-map', false);
+    this.shell.notifyChange('content', affectsShell ? 'shell' : 'object-map', false);
   }
 
   // --- Play mode scene swap ---
@@ -548,7 +545,7 @@ export class EditorShellStore extends ShellStore {
       scene: this._scene,
       objectMap: this._objectMap,
       extras: this._captureAdoptionExtras(),
-      selection: new Set(this.selectedEntityIds),
+      selection: new Set(this.shell.selectedEntityIds),
       imageConfig: this._adoptedImageConfig,
     });
     this._scene = gameScene;
@@ -573,8 +570,8 @@ export class EditorShellStore extends ShellStore {
         })();
     this._objectMap = gameMap;
 
-    this._viewportSelections[this.activeViewportTab] = new Set(
-      [...this.selectedEntityIds].filter((id) => gameMap.has(id)),
+    this.shell.applySelectionBeforePresentation(
+      [...this.shell.selectedEntityIds].filter((id) => gameMap.has(id)),
     );
     // A viewport LOD pin must not follow the entity id into the adopted game
     // scene — there `WebGLRenderer.projectObject` owns level visibility (it
@@ -583,7 +580,7 @@ export class EditorShellStore extends ShellStore {
     // would fight it.
     this._lodForcedLevels.clear();
     this._composerVersion++; // scene swapped → composer must rebuild against the game scene
-    this._notify();
+    this.shell.notifyChange();
   }
 
   /** Whether the active scene is one another document adopted (`enterPlayScene`). */
@@ -600,9 +597,9 @@ export class EditorShellStore extends ShellStore {
     this._applyAdoptedImageConfig(frame.imageConfig);
     // Discard any play-time env/name/ui edits — restore the pre-play snapshot.
     this._restoreAdoptionExtras(frame.extras);
-    this._viewportSelections[this.activeViewportTab] = new Set(frame.selection);
+    this.shell.applySelectionBeforePresentation([...frame.selection]);
     this._composerVersion++; // scene swapped back → composer must rebuild against the editor scene
-    this._notify();
+    this.shell.notifyChange();
   }
 
   /**
@@ -674,7 +671,7 @@ export class EditorShellStore extends ShellStore {
   }
   setVertexSnapActive(active: boolean): void {
     this._vertexSnapActive = active;
-    this._notify();
+    this.shell.notifyChange();
   }
 
   protected static readonly THUMBNAIL_INTERVAL_MS = 60_000;
@@ -901,38 +898,38 @@ export class EditorShellStore extends ShellStore {
     } else {
       this._lodForcedLevels.set(id, level);
     }
-    this._notify();
+    this.shell.notifyChange();
   }
 
   // --- Transform mode ---
   setTransformMode(mode: TransformMode): void {
     this._transformMode = mode;
-    this._notify();
+    this.shell.notifyChange();
   }
 
   setTransformSpace(space: TransformSpace): void {
     this._transformSpace = space;
-    this._notify();
+    this.shell.notifyChange();
   }
 
   toggleSnap(): void {
     this._snapEnabled = !this._snapEnabled;
-    this._notify();
+    this.shell.notifyChange();
   }
 
   setSnapValues(values: Partial<{ translate: number; rotate: number; scale: number }>): void {
     this._snapValues = { ...this._snapValues, ...values };
-    this._notify();
+    this.shell.notifyChange();
   }
 
   toggleSnapToSurface(): void {
     this._snapToSurface = !this._snapToSurface;
-    this._notify();
+    this.shell.notifyChange();
   }
 
   togglePreserveChildrenTransform(): void {
     this._preserveChildrenTransform = !this._preserveChildrenTransform;
-    this._notify();
+    this.shell.notifyChange();
   }
 
   snapSelectionToFloor(): void {
@@ -941,36 +938,36 @@ export class EditorShellStore extends ShellStore {
 
   setPivotMode(mode: PivotMode): void {
     this._pivotMode = mode;
-    this._notify();
+    this.shell.notifyChange();
   }
 
   setGizmoAnchor(anchor: GizmoAnchor): void {
     this._gizmoAnchor = anchor;
-    this._notify();
+    this.shell.notifyChange();
   }
 
   toggleHelpers(): void {
     // The eye is a visibility gate, not a reset of the category checkboxes.
     this._showHelpers = !this._showHelpers;
-    this._notify();
+    this.shell.notifyChange();
   }
 
   toggleHelperType(type: keyof HelperVisibility): void {
     this._helperVisibility[type] = !this._helperVisibility[type];
     if (this._helperVisibility[type]) this._showHelpers = true;
-    this._notify();
+    this.shell.notifyChange();
   }
 
   toggleStats(): void {
     this._showStats = !this._showStats;
-    this._notify();
+    this.shell.notifyChange();
   }
 
   setShadingMode(mode: ShadingMode): void {
     this._shadingMode = mode;
     // View-only state. The viewport applies it during its own render and
     // restores native materials before returning to editor/game code.
-    this._notify();
+    this.shell.notifyChange();
   }
 
   // --- Subclass hooks -------------------------------------------------------
@@ -996,4 +993,20 @@ export class EditorShellStore extends ShellStore {
   protected _editorStateExtras(): Record<string, unknown> {
     return {};
   }
+}
+
+const threeStates = new WeakMap<ShellStore, EditorShellStore>();
+
+/**
+ * The Three half of a shell store, made the first time it is asked for. Kit modules hand out
+ * the media-neutral `ShellStore`; Three code asks here for its own half, so the kit constructs
+ * only the neutral store and a composition without Three never makes one.
+ */
+export function threeStateOf(store: ShellStore): EditorShellStore {
+  let three = threeStates.get(store);
+  if (!three) {
+    three = new EditorShellStore(store);
+    threeStates.set(store, three);
+  }
+  return three;
 }

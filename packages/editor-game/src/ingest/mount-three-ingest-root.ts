@@ -165,7 +165,7 @@ function activateCapturedThreeIngest(args: {
   // world in for several seconds afterwards.
   store.focusOnScene(() => pickGameCamera(mount.capture.captured?.camera, liveScene));
   landIngestBootInEdit();
-  store.notifyIngestEdit(); // ensure panels re-render against the override
+  store.shell.notifyIngestEdit(); // ensure panels re-render against the override
   clearMountFailureReports(); // D-W3: mount succeeded
 
   // What this editor CANNOT do with this game, said out loud once, right where
@@ -241,7 +241,7 @@ async function mountThreeIngestRootInner(
   // own persistence provider, which is what EditorShellStore's autosave/saveNow
   // now consult (design). Still switch into the guarded "playing" state so the
   // viewport swaps onto the live scene.
-  store.setPlayState('playing');
+  store.shell.setPlayState('playing');
   editorConsole.log(`Ingesting unmodified game: ${game.name}`, 'ingest');
 
   // Drive the SAME input gate play-mode uses (play-mode.ts's
@@ -252,7 +252,7 @@ async function mountThreeIngestRootInner(
   // tab is the active viewport surface, exactly like a first-party play
   // session.
   const ingestInputActive = () =>
-    store.playState === 'playing' && store.activeViewportTab === 'play';
+    store.shell.playState === 'playing' && store.shell.activeViewportTab === 'play';
 
   try {
     const mountOpts: MountIngestOptions = { captureTimeoutMs: game.captureTimeoutMs };
@@ -285,7 +285,7 @@ async function mountThreeIngestRootInner(
     // holds when the gate CLOSES — leaving play, or switching to the Edit tab
     // mid-flight — must be released, or the editor is left with a captured,
     // invisible cursor over a game that is no longer receiving input.
-    session.inputGateUnsubscribe = store.subscribe(() => {
+    session.inputGateUnsubscribe = store.shell.subscribe(() => {
       if (!ingestInputActive()) releaseGamePointerLock();
     });
     // The realm gate only just became reachable, so push the play state we

@@ -38,7 +38,7 @@ export function instanceForkSourceFor(
 }
 
 function forkable(store: EditorShellStore, nodeId: string): boolean {
-  const adapter = getActiveAuthoring(store);
+  const adapter = getActiveAuthoring(store.shell);
   return canForkInstance(
     adapter.hierarchy.node(nodeId),
     instanceForkSourceFor(adapter, nodeId),
@@ -54,7 +54,7 @@ export function ensureInstanceForkMenuRegistered(): void {
   unregister = registerHierarchyMenuItems(
     ({ nodeId, store }) => forkable(store, nodeId),
     ({ nodeId, store }) => {
-      const source = instanceForkSourceFor(getActiveAuthoring(store), nodeId);
+      const source = instanceForkSourceFor(getActiveAuthoring(store.shell), nodeId);
       return [
         {
           label: FORK_COMPONENT_LABEL,

@@ -240,7 +240,7 @@ export class BabylonAuthoringAdapter implements AuthoringAdapter {
     // used to journal NOTHING, so the edit landed on the live node and
     // Ctrl+Z was a correct no-op over an empty stack — "undo is not working"
     // (runhuman pass 149; traced on production build 75).
-    const history = store.projectHistory;
+    const history = store.shell.projectHistory;
     this.historyResource =
       backend && history && options.journal
         ? new JsonHistoryResource<BabylonHistoryState>({
@@ -389,9 +389,9 @@ export class BabylonAuthoringAdapter implements AuthoringAdapter {
   };
 
   readonly selection = {
-    get: (): string[] => [...this.store.selectedEntityIds],
+    get: (): string[] => [...this.store.shell.selectedEntityIds],
     set: (ids: string[]): void => {
-      this.store.selectMultiple(ids);
+      this.store.shell.selectMultiple(ids);
       this.attachGizmos(ids[0] ?? null);
       this.notify();
     },
@@ -698,6 +698,6 @@ export class BabylonAuthoringAdapter implements AuthoringAdapter {
 
   private notify(): void {
     for (const listener of this.listeners) listener();
-    this.store.notifyIngestEdit();
+    this.store.shell.notifyIngestEdit();
   }
 }

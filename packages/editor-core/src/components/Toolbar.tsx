@@ -434,7 +434,7 @@ export function TransformHeaderControls({ store: stage }: { store?: EditorShellS
   // the Scene document is unchanged either way.
   const shell = threeStateOf(useEditorStore());
   const store = stage ?? shell;
-  useSyncExternalStore(store.subscribe, store.getShellSnapshot ?? store.getSnapshot);
+  useSyncExternalStore(store.shell.subscribe, store.shell.getShellSnapshot ?? store.shell.getSnapshot);
   useSyncExternalStore(subscribeEditorKeymap, activeEditorKeymap, activeEditorKeymap);
   return (
     <EditorToolbar
@@ -519,7 +519,7 @@ export function ToolStrip({
 } = {}) {
   const shell = threeStateOf(useEditorStore());
   const store = stage ?? shell;
-  useSyncExternalStore(store.subscribe, store.getShellSnapshot ?? store.getSnapshot);
+  useSyncExternalStore(store.shell.subscribe, store.shell.getShellSnapshot ?? store.shell.getSnapshot);
   // Every hint below is rendered from the active keymap; a live switch must
   // repaint the strip rather than leave it advertising the other table.
   useSyncExternalStore(subscribeEditorKeymap, activeEditorKeymap, activeEditorKeymap);

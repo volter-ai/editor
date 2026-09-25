@@ -314,8 +314,8 @@ function instanceInputActive(id: string): boolean {
   if (!_ctx) return false;
   const { store } = _ctx;
   return (
-    store.playState === 'playing' &&
-    store.activeViewportTab === 'play' &&
+    store.shell.playState === 'playing' &&
+    store.shell.activeViewportTab === 'play' &&
     focusedInstanceId() === id &&
     surfaceHoldsKeyboard()
   );
@@ -658,7 +658,7 @@ async function installPlayRootAuthoring(
       children.push({
         worldId: world.id,
         kind: world.kind,
-        adapter: new BoundaryAuthoringAdapter(store, {
+        adapter: new BoundaryAuthoringAdapter(store.shell, {
           id: world.id,
           kind: world.kind,
           adapter: declaration.adapter.identity,
@@ -734,7 +734,7 @@ async function installPlayRootAuthoring(
       }
       if (mounted.substrate.name !== 'pixi') {
         const adapter = new BoundaryAuthoringAdapter(
-          store,
+          store.shell,
           {
             id: world.id,
             kind: world.kind,
@@ -827,7 +827,7 @@ async function installPlayRootAuthoring(
   // the left hierarchy panel only re-checks `hasAuthoringOverride()` when the
   // store notifies (same reason `ingest/mount-ingest-root.ts` calls this right after
   // installing its own override).
-  store.notifyIngestEdit();
+  store.shell.notifyIngestEdit();
 
   // Dev/e2e diagnostic handle — the SAME pattern `ingest/mount-ingest-root.ts`'s
   // `window.__vgaiIngest`/`window.__vgaiIngest2D` use:
@@ -869,7 +869,7 @@ function exitPlayRootAuthoring(store: EditorShellStore): void {
   // Play edits are session-local by architecture: nothing this run journaled
   // may still be undoable once the run is over.
   if (_instance.journalSession) {
-    store.projectHistory?.expireSession(_instance.journalSession);
+    store.shell.projectHistory?.expireSession(_instance.journalSession);
     _instance.journalSession = '';
   }
   if (import.meta.env.DEV) {
@@ -1651,7 +1651,7 @@ async function enterPlayModeInner(
   editorHost().viewport.transition.begin();
 
   // setPlayState auto-switches to Game tab
-  store.setPlayState('playing');
+  store.shell.setPlayState('playing');
   // THE GAME TAKES THE KEYBOARD AS PLAY STARTS. Until the player clicks the
   // pane, focus stays on the transport button they pressed and the hotkey
   // scope on the workspace — so the next Enter or Space activates that
@@ -1663,7 +1663,7 @@ async function enterPlayModeInner(
   editorConsole.log('Play mode started', 'play-mode');
   // Apply the project's adapter-declared utilities after transient Play chrome settles.
   editorHost().viewport.transition.onSettled(() => {
-    if (epoch === _playEpoch && store.playState === 'playing') revealWorkspacePlayUtilities();
+    if (epoch === _playEpoch && store.shell.playState === 'playing') revealWorkspacePlayUtilities();
   });
 
   // WHAT THIS BOOT CREATED, BEFORE ANYTHING ELSE CAN REACH IT. `_instance.id`
@@ -1818,7 +1818,7 @@ async function enterPlayModeInner(
     }
     notifySessionListeners();
     // D19: play edits are session-local regardless of world count.
-    store.setPlayEditRegime('ephemeral');
+    store.shell.setPlayEditRegime('ephemeral');
 
     // Swap store to game scene so hierarchy/inspector show game entities.
     // liveHierarchy: first-party play mode is the ONLY adoption path that may
@@ -1904,7 +1904,7 @@ async function enterPlayModeInner(
     // first-party InputManager (an ingest mount, a partial double) has only the
     // raw window/document gate above.
     resyncInstanceInputs();
-    _unsubStore = store.subscribe(resyncInstanceInputs);
+    _unsubStore = store.shell.subscribe(resyncInstanceInputs);
 
     // Node-id keyed only: `setEcsSyncTransform` hands this an editor node id
     // and a THREE `Transform`, which a display-keyed carrier has no values for.
@@ -2310,7 +2310,7 @@ export function exitPlayMode(): void {
   exitPlayRootAuthoring(store);
   restorePriorAuthoring();
   // Readout-only — clear the regime the moment play is no longer active.
-  store.setPlayEditRegime(null);
+  store.shell.setPlayEditRegime(null);
 
   // Always null _instance.session even if stop() throws — otherwise enterPlayMode's
   // `if (_instance.session) return` guard would permanently block re-entering play mode.
@@ -2392,7 +2392,7 @@ export function exitPlayMode(): void {
   // that FAILED before ever flipping the store to 'playing' never produces
   // that edge, so release directly too — `releaseGameDocument` is the one
   // idempotent teardown path either way (`game-document.ts`).
-  store.setPlayState('stopped');
+  store.shell.setPlayState('stopped');
   editorHost().workspace.liveDocument.release();
   // LAST — the run's error window closes only once teardown is done, so every
   // error this teardown itself logged still belongs to the run that caused it
@@ -2417,7 +2417,7 @@ export function pausePlayMode(): void {
   // Freeze EVERY seat, not just the primary — a paused split with the extras
   // still ticking is not paused.
   for (const inst of allLiveInstances()) inst.session?.pause();
-  _ctx.store.setPlayState('paused');
+  _ctx.store.shell.setPlayState('paused');
 
   editorConsole.log('Play mode paused', 'play-mode');
 }
@@ -2429,7 +2429,7 @@ export function resumePlayMode(): void {
   if (!_instance.session || !_ctx) return;
 
   for (const inst of allLiveInstances()) inst.session?.resume();
-  _ctx.store.setPlayState('playing');
+  _ctx.store.shell.setPlayState('playing');
 
   editorConsole.log('Play mode resumed', 'play-mode');
 }

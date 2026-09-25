@@ -46,11 +46,11 @@ export function ViewportOverlay({
   readonly store: EditorShellStore;
   readonly documentId: string;
 }) {
-  useSyncExternalStore(store.subscribe, store.getSnapshot);
+  useSyncExternalStore(store.shell.subscribe, store.shell.getSnapshot);
   useSyncExternalStore(subscribeWorkspaceDocuments, workspaceDocumentRegistryVersion);
   useSyncExternalStore(subscribeActiveAuthoring, activeAuthoringVersion);
   useSyncExternalStore(subscribeObject3DDocumentSessions, object3DDocumentSessionsVersion);
-  const { adapter } = resolvePanelAuthoring(store);
+  const { adapter } = resolvePanelAuthoring(store.shell);
   const session = object3DDocumentSession(documentId);
   useSyncExternalStore(session?.subscribe ?? NO_SESSION_SUBSCRIBE, session?.getSnapshot ?? ZERO);
   useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
@@ -100,7 +100,7 @@ const LightExplorerButton = memo(function LightExplorerButton({
   // `memo` above cannot stop this button re-rendering on a bare selection
   // click — and `activeLightCount` walks the WHOLE tree. Key the walk on
   // `contentVersion`, which a selection-only notify leaves alone.
-  const lightCount = useMemo(() => activeLightCount(adapter), [adapter, store.contentVersion]);
+  const lightCount = useMemo(() => activeLightCount(adapter), [adapter, store.shell.contentVersion]);
   if (lightCount === 0) return null;
   return (
     <Tooltip text={`Open Light Explorer · ${lightCount} ${lightCount === 1 ? 'light' : 'lights'}`}>

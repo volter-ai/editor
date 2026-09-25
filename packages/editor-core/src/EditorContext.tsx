@@ -15,7 +15,9 @@ import { startSceneDocuments } from './components/scene-documents';
 import { saveThumbnail } from './editor-api';
 import { reportTabCensus } from './editor-presence';
 import { EditorRuntimeProvider, type EditorStats } from './editor-runtime';
-import { EditorShellStore, type EditorStatePersistence } from './editor-shell-store';
+import type { EditorStatePersistence } from './editor-shell-store';
+import { ShellStore } from '@volter/editor-sdk/kit/shell-store';
+import { threeStateOf } from './three-state';
 import { EditorSession } from './history/editor-session';
 import { bootstrapProject } from './initial-project';
 import { installObject3DDocumentWritePolicy } from './object3d-document-write-policy';
@@ -62,9 +64,9 @@ function hmrStableValue<T>(key: string, create: () => T): T {
 }
 
 export function EditorProvider({ children }: { children: ReactNode }) {
-  const storeRef = useRef<EditorShellStore | null>(null);
+  const storeRef = useRef<ShellStore | null>(null);
   if (!storeRef.current) {
-    storeRef.current = new EditorShellStore({ followsWorkspaceFocus: true });
+    storeRef.current = new ShellStore({ followsWorkspaceFocus: true });
     // The host door (`@volter/editor-sdk/host`, `session`) reads this store.
     registerShellStoreForHost(storeRef.current);
   }
@@ -90,7 +92,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   installObject3DDocumentWritePolicy(SHELL_OBJECT3D_DOCUMENT_WRITE_POLICY);
   // The shell binds the server SDK as the store's persistence; the store
   // itself imports no transport (ARCHITECTURE-CORE §Editor chrome).
-  storeRef.current.attachStatePersistence(SERVER_STATE_PERSISTENCE);
+  threeStateOf(storeRef.current).attachStatePersistence(SERVER_STATE_PERSISTENCE);
 
   const statsRef = useRef<EditorStats | null>(null);
   if (!statsRef.current) {

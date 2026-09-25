@@ -339,7 +339,7 @@ function publishStructuralCanvasRuntime(
   });
   disposeScene = installIngestCanvasScene(store);
 
-  setGameInputGate(() => store.playState === 'playing' && store.activeViewportTab === 'play');
+  setGameInputGate(() => store.shell.playState === 'playing' && store.shell.activeViewportTab === 'play');
   setActiveAuthoring(adapter);
   // No captured Pixi renderer on this branch — the host's pixi drew nothing, so
   // there is no context to instrument, no runner pair to bracket, and no
@@ -347,7 +347,7 @@ function publishStructuralCanvasRuntime(
   // declared is the only physics this route can have.
   publishCanvasIngestSystems(game.name, undefined, declaredCanvasPhysics());
   landIngestBootInEdit();
-  store.notifyIngestEdit();
+  store.shell.notifyIngestEdit();
   clearMountFailureReports();
 
   recordMountCoverage({
@@ -395,7 +395,7 @@ async function mountCanvasIngestRootInner(
     return;
   }
 
-  store.setPlayState('playing');
+  store.shell.setPlayState('playing');
   editorConsole.log(`Ingesting unmodified PixiJS game: ${game.name}`, 'ingest');
 
   // PD-3: READINESS, RECORDED. The three lane's self-booting mount has always
@@ -685,7 +685,7 @@ async function mountCanvasIngestRootInner(
     journal: authoringJournal(sessionId),
     target: createCreationSiteCanvasWriteTarget({
       physics: physicsAdapter,
-      history: store.projectHistory,
+      history: store.shell.projectHistory,
     }),
     ...(stories ? { stories } : {}),
     // The captured game canvas is the screen↔stage mapping `pickable`/`rects`
@@ -755,7 +755,7 @@ async function mountCanvasIngestRootInner(
   // R2c: PixiJS ingest fixtures (`ingest/games/**`) are just as
   // unshadowed-by-default as the three.js ones — drive the same gate as
   // {@link mountThreeIngestRoot} (see that function's doc comment).
-  setGameInputGate(() => store.playState === 'playing' && store.activeViewportTab === 'play');
+  setGameInputGate(() => store.shell.playState === 'playing' && store.shell.activeViewportTab === 'play');
 
   setActiveAuthoring(adapter);
   // The captured game's OWN renderer — the one object that carries both halves
@@ -771,7 +771,7 @@ async function mountCanvasIngestRootInner(
     declaredPhysics ? physicsAdapter : null,
   );
   landIngestBootInEdit();
-  store.notifyIngestEdit();
+  store.shell.notifyIngestEdit();
   clearMountFailureReports(); // D-W3: mount succeeded
   // PD-3: the mount stood — but `contract-ready` may only be recorded when the
   // declared promise actually ANSWERED. The three lane's `awaitWorldReady`

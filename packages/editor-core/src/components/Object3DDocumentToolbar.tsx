@@ -121,9 +121,9 @@ export function Object3DDocumentToolbar({
   useSyncExternalStore(subscribeStageStores, stageStoresVersion, stageStoresVersion);
   const stage = stageStore(documentId);
   useSyncExternalStore(
-    stage?.subscribe ?? subscribeToNothing,
-    stage?.getSnapshot ?? noSessionVersion,
-    stage?.getSnapshot ?? noSessionVersion,
+    stage?.shell.subscribe ?? subscribeToNothing,
+    stage?.shell.getSnapshot ?? noSessionVersion,
+    stage?.shell.getSnapshot ?? noSessionVersion,
   );
   const helperKinds = viewportStageHelperKinds(documentId);
   const [capture, setCapture] = useState<string | null>(null);

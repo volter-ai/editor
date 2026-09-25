@@ -767,7 +767,7 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
     if (!opts.stories && this.target.componentIdentity) {
       this.stories = componentStatesProvider(
         'canvas',
-        store,
+        store.shell,
         (id) => this.target.componentIdentity?.(id) ?? null,
       );
     }
@@ -848,7 +848,7 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
       this.watchStructure(this.root);
       this.target.onReindex();
       this.notify();
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
     });
   };
 
@@ -914,9 +914,9 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
   }
 
   readonly selection: SelectionProvider = {
-    get: () => [...this.store.selectedEntityIds],
+    get: () => [...this.store.shell.selectedEntityIds],
     set: (ids) => {
-      this.store.selectMultiple(ids);
+      this.store.shell.selectMultiple(ids);
       this.notify();
     },
   };
@@ -1012,7 +1012,7 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
     this.watchStructure(this.root);
     this.target.onReindex();
     this.notify();
-    this.store.notifyIngestEdit();
+    this.store.shell.notifyIngestEdit();
   }
 
   private idOf(object: Container): string {

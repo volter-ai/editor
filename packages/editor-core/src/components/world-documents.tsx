@@ -107,7 +107,7 @@ export function RootDocumentContent({
   const [canvasSceneView] = useState(createRootViewController);
   const isCanvasScene = descriptor.kind === 'canvas';
   const documentView = isCanvasScene ? canvasSceneView : sharedRootViewController;
-  useSyncExternalStore(store.subscribe, store.getSnapshot);
+  useSyncExternalStore(store.shell.subscribe, store.shell.getSnapshot);
   const rootReadiness = useSyncExternalStore(subscribeRootReadiness, readinessFacet);
   const mountFailures = useSyncExternalStore(subscribeToMountFailures, getMountFailureReports);
   // The layer's own adapter, for a board that has no composite child to carry
@@ -132,7 +132,7 @@ export function RootDocumentContent({
     // While the game PLAYS, this document's design mount is deliberately
     // suspended — the wait is not progress and says so (surface-state.ts).
     playSuspended:
-      store.playState !== 'stopped' &&
+      store.shell.playState !== 'stopped' &&
       (!documentAdapter || documentAdapter.provenance?.source === 'boundary'),
     phase:
       !documentAdapter || documentAdapter.provenance?.source === 'boundary' ? 'loading' : 'ready',
@@ -155,7 +155,7 @@ export function RootDocumentContent({
     if (!documentAdapter) return;
     return registerWorkspaceDocumentSelection(documentId, () => ({
       adapter: documentAdapter,
-      nodeId: [...store.selectedEntityIds].find((id) => documentAdapter.hierarchy.node(id)) ?? null,
+      nodeId: [...store.shell.selectedEntityIds].find((id) => documentAdapter.hierarchy.node(id)) ?? null,
     }));
   }, [composite, documentAdapter, documentId, store]);
 
@@ -224,8 +224,8 @@ export function RootDocumentContent({
   );
 
   const selectedContext = resolveViewportToolContext(
-    getActiveAuthoring(store),
-    store.selectedEntityIds,
+    getActiveAuthoring(store.shell),
+    store.shell.selectedEntityIds,
   );
   const context =
     selectedContext?.worldId === descriptor.worldId

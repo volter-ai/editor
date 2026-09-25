@@ -502,7 +502,7 @@ export async function mountReactDesignLayer(
           'authoring',
         );
       }
-      store.notifyIngestEdit();
+      store.shell.notifyIngestEdit();
     };
 
     // Each story owns its own React root and failure boundary. One broken

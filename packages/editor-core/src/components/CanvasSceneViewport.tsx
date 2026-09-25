@@ -103,7 +103,7 @@ function frameBounds(
  * drafting reference) and below selection/transform chrome. */
 export function CanvasSceneBackdrop({ view, documentId }: { view: RootViewController; documentId: string }) {
   const store = threeStateOf(useEditorStore());
-  useSyncExternalStore(store.subscribe, store.getSnapshot);
+  useSyncExternalStore(store.shell.subscribe, store.shell.getSnapshot);
   // The 2D scene's grid switch is its VIEW's, like every stage's (`kit/viewport-presentation`):
   // bound under the host document's own id, so a door that toggles the active view's grid
   // reaches this one, and two canvases never share a switch.
@@ -437,7 +437,7 @@ export function CanvasSceneControls({
   documentId: string;
 }) {
   const store = threeStateOf(useEditorStore());
-  useSyncExternalStore(store.subscribe, store.getSnapshot);
+  useSyncExternalStore(store.shell.subscribe, store.shell.getSnapshot);
   useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
   const showGrid = viewGridVisible(documentId);
   const pose = useSyncExternalStore(view.subscribe, view.get, view.get);
@@ -472,7 +472,7 @@ export function CanvasSceneControls({
   const frameSelection = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
-    frameBounds(container, view, unionRects(rectsFor(store.selectedEntityIds)));
+    frameBounds(container, view, unionRects(rectsFor(store.shell.selectedEntityIds)));
   }, [containerRef, rectsFor, store, view]);
 
   const frameScene = useCallback(() => {
@@ -538,7 +538,7 @@ export function CanvasSceneControls({
           aria-label="Frame selection"
           title="Frame selection"
           size="comfortable"
-          disabled={store.selectedEntityIds.size === 0}
+          disabled={store.shell.selectedEntityIds.size === 0}
           onClick={frameSelection}
         >
           <EditorIcon icon={faExpand} size="md" />

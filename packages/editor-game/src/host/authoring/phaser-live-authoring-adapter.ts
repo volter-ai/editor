@@ -172,9 +172,9 @@ export class PhaserLiveAuthoringAdapter implements AuthoringAdapter {
   };
 
   readonly selection = {
-    get: (): string[] => [...this.store.selectedEntityIds],
+    get: (): string[] => [...this.store.shell.selectedEntityIds],
     set: (ids: string[]): void => {
-      this.store.selectMultiple(ids);
+      this.store.shell.selectMultiple(ids);
       this.notify();
     },
   };
@@ -260,6 +260,6 @@ export class PhaserLiveAuthoringAdapter implements AuthoringAdapter {
 
   private notify(): void {
     for (const listener of this.listeners) listener();
-    this.store.notifyIngestEdit();
+    this.store.shell.notifyIngestEdit();
   }
 }

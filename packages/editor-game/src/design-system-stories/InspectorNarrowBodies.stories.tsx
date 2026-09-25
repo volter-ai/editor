@@ -329,7 +329,7 @@ export const TypedThreeGroupsColumn: Story = {
         {(runtime) => (
           <RailColumn>
             <AuthoringInspectorSurface
-              store={storyThreeStore(runtime)}
+              store={runtime.store}
               adapter={adapter}
               documentSelection={{ adapter, nodeId: 'player' }}
               presentation="column"
@@ -352,7 +352,7 @@ export const ModelAssetColumn: Story = {
         return (
           <RailColumn>
             <AuthoringInspectorSurface
-              store={storyThreeStore(runtime)}
+              store={runtime.store}
               adapter={adapter}
               documentSelection={{ adapter, nodeId: adapter.documentId }}
               presentation="column"

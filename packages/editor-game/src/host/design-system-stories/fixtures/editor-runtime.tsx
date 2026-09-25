@@ -1,7 +1,8 @@
 import { type ReactNode, useEffect, useLayoutEffect, useState } from 'react';
 import { resetProjectThumbnailManifestCache } from '@volter/editor-core/asset-workflow/thumbnail-system';
 import { type EditorRuntime, EditorRuntimeProvider, type EditorStats } from '@volter/editor-core/editor-runtime';
-import { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { type EditorShellStore, threeStateOf } from '@volter/editor-core/editor-shell-store';
+import { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { EditorSession } from '@volter/editor-core/history/editor-session';
 import { getStorageBackend, MemStorage, setStorageBackend } from '@volter/editor-core/storage/index';
 import {
@@ -24,15 +25,12 @@ const ZERO_STATS: EditorStats = {
 
 /** A story runtime's Three half, for a production component that reads the scene. */
 export function storyThreeStore(runtime: EditorRuntime): EditorShellStore {
-  if (!(runtime.store instanceof EditorShellStore)) {
-    throw new Error('This runtime was not made by createStoryEditorRuntime: it has no Three store.');
-  }
-  return runtime.store;
+  return threeStateOf(runtime.store);
 }
 
 /** A real, bounded editor runtime for production component stories. */
 export function createStoryEditorRuntime(): EditorRuntime {
-  const store = new EditorShellStore();
+  const store = new ShellStore();
   const session = new EditorSession('storybook-fixture');
   store.attachHistory(session.history);
   return {

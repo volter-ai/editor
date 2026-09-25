@@ -32,7 +32,7 @@ export function instanceExtractSourceFor(
 }
 
 function extractable(store: EditorShellStore, nodeId: string): boolean {
-  const adapter = getActiveAuthoring(store);
+  const adapter = getActiveAuthoring(store.shell);
   return canExtractNode(
     adapter.hierarchy.node(nodeId),
     instanceExtractSourceFor(adapter, nodeId),
@@ -48,7 +48,7 @@ export function ensureInstanceExtractMenuRegistered(): void {
   unregister = registerHierarchyMenuItems(
     ({ nodeId, store }) => extractable(store, nodeId),
     ({ nodeId, store }) => {
-      const source = instanceExtractSourceFor(getActiveAuthoring(store), nodeId);
+      const source = instanceExtractSourceFor(getActiveAuthoring(store.shell), nodeId);
       return [
         {
           label: EXTRACT_COMPONENT_LABEL,

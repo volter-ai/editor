@@ -199,7 +199,7 @@ export async function handleAssetPreviewCommand(
   // preceding door had just accepted.
   const entityObject =
     typeof entityId === 'string'
-      ? entityObject3D(activeDocumentAuthoring(store), store.objectMap, entityId)
+      ? entityObject3D(activeDocumentAuthoring(store.shell), store.objectMap, entityId)
       : null;
   if (typeof entityId === 'string' && !entityObject) {
     return { ok: false, error: `Entity not found: ${entityId}` };

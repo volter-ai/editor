@@ -468,8 +468,8 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
   );
   const syncSelectionOutline = (): void => {
     if (!selectionOutline) return;
-    const adapter = getActiveAuthoring(store);
-    const roots = [...store.selectedEntityIds]
+    const adapter = getActiveAuthoring(store.shell);
+    const roots = [...store.shell.selectedEntityIds]
       // Edit↔Play swaps the active child before its native graph is rebuilt.
       // Do not route a stale outgoing id through the composite during that
       // handoff: it is temporarily absent, not an ownership error.
@@ -495,7 +495,7 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
     // postprocessing). `editor-viewport.ts` bumps `composerVersion` (via
     // `store.reapplyEnvironment()`) on the world hide/show edges, which is
     // what re-runs this rebuild.
-    const hiddenRootId = resolveThreeViewportRootId(store);
+    const hiddenRootId = resolveThreeViewportRootId(store.shell);
     void hiddenRootId;
     // Unwind the previous adoption's config BEFORE re-deriving, so the
     // re-derive below and the (possibly absent) re-apply at the end both
@@ -568,24 +568,24 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
   applyViewportPresentation();
 
   const resolveCameraSubject = (id: string): CameraAuthoringSubject | null =>
-    cameraSubjectFor(getActiveAuthoring(store), store.objectMap, id);
+    cameraSubjectFor(getActiveAuthoring(store.shell), store.objectMap, id);
 
   let pilotGestureId: string | null = null;
   const finishPilotGesture = (): void => {
     if (!pilotGestureId) return;
-    endAuthoringTransformEdit(getActiveAuthoring(store), pilotGestureId);
+    endAuthoringTransformEdit(getActiveAuthoring(store.shell), pilotGestureId);
     pilotGestureId = null;
   };
   const beginPilotGesture = (): void => {
     const view = cameraAuthoringPresentation().view;
     if (view?.mode !== 'pilot' || !view.subject.canAuthorPose) return;
     pilotGestureId = view.subject.id;
-    beginAuthoringTransformEdit(getActiveAuthoring(store), pilotGestureId);
+    beginAuthoringTransformEdit(getActiveAuthoring(store.shell), pilotGestureId);
   };
   const applyPilotGesture = (): void => {
     if (!pilotGestureId || viewport.cameraViewMode !== 'pilot') return;
     const subject = resolveCameraSubject(pilotGestureId);
-    const adapter = getActiveAuthoring(store);
+    const adapter = getActiveAuthoring(store.shell);
     const transforms = adapter.transforms;
     if (!subject || !transforms) return;
     // `transforms.get` REFUSES BY THROWING for a node with no transform truth
@@ -610,16 +610,16 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
       rotation: subject.camera.quaternion.toArray() as [number, number, number, number],
       scale: previous.scale,
     });
-    store.notifyIngestEdit();
+    store.shell.notifyIngestEdit();
   };
   viewport.orbitControls.addEventListener('start', beginPilotGesture);
   viewport.orbitControls.addEventListener('change', applyPilotGesture);
   viewport.orbitControls.addEventListener('end', finishPilotGesture);
 
   const disposeCameraAuthoring = installCameraAuthoringHost({
-    active: () => store.playState === 'stopped' && store.activeViewportTab === 'edit',
+    active: () => store.shell.playState === 'stopped' && store.shell.activeViewportTab === 'edit',
     selected: () => {
-      const id = store.selectedEntityId;
+      const id = store.shell.selectedEntityId;
       return id ? resolveCameraSubject(id) : null;
     },
     resolve: resolveCameraSubject,
@@ -636,7 +636,7 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
       presence.reportCamera();
     },
     alignToViewport: (subject: CameraAuthoringSubject) => {
-      const adapter = getActiveAuthoring(store);
+      const adapter = getActiveAuthoring(store.shell);
       const transforms = adapter.transforms;
       if (!transforms || !subject.canAuthorPose) return;
       const targetObject = store.objectMap.get(subject.id) ?? null;
@@ -671,10 +671,10 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
         rotation: localQuaternion.toArray() as [number, number, number, number],
         scale: previous.scale,
       });
-      store.notifyIngestEdit();
+      store.shell.notifyIngestEdit();
       endAuthoringTransformEdit(adapter, subject.id);
     },
-    subscribe: store.subscribe,
+    subscribe: store.shell.subscribe,
   });
 
   // --- Store subscription → sync viewport ---
@@ -694,7 +694,7 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
   // React never owns it.
   let lastThreejsSurface: boolean | null = null;
   const syncSurfaceVisibility = (): void => {
-    const visible = isThreejsSurfaceVisible(store);
+    const visible = isThreejsSurfaceVisible(store.shell);
     if (visible === lastThreejsSurface) return;
     lastThreejsSurface = visible;
     canvas.style.opacity = visible ? '1' : '0';
@@ -715,7 +715,7 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
   syncSurfaceVisibility();
 
   let lastComposerVersion = store.composerVersion;
-  const unsubStore = store.subscribe(() => {
+  const unsubStore = store.shell.subscribe(() => {
     syncSurfaceVisibility();
     // Swap viewport scene if the store's scene changed (play mode enter/exit)
     const storeScene = store.scene;
@@ -762,7 +762,7 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
       // never reach `objectMap`, so a store-only lookup silently framed
       // nothing for every entity in a running game (`entity-object.ts`).
       case 'focus-entity': {
-        const obj = entityObject3D(getActiveAuthoring(store), store.objectMap, action.id);
+        const obj = entityObject3D(getActiveAuthoring(store.shell), store.objectMap, action.id);
         if (obj) viewport.focusOn(obj);
         break;
       }
@@ -791,8 +791,8 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
         break;
       }
       case 'focus-selection': {
-        const adapter = getActiveAuthoring(store);
-        const objects = [...store.selectedEntityIds]
+        const adapter = getActiveAuthoring(store.shell);
+        const objects = [...store.shell.selectedEntityIds]
           .map((id) => entityObject3D(adapter, store.objectMap, id))
           .filter((o): o is THREE.Object3D => o !== null);
         viewport.focusOnMultiple(objects);
@@ -1036,7 +1036,7 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
 
   const authoringStage = attachProjectAuthoringStage(store, installStage);
   authoringStage.ready
-    .then(() => reportEditorState(collectState(store)))
+    .then(() => reportEditorState(collectState(store.shell)))
     .catch((err) => {
       editorConsole.error(
         `Editor boot failed: ${err instanceof Error ? err.message : String(err)}`,

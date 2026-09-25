@@ -498,7 +498,7 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
           const object = this.objectOf(id);
           const values = this.captureChannelBaseline(id) ?? {};
           const ack = await options.sourceCommit!.commit(authoringOidOf(object), values);
-          if (ack.persisted) this.store.notifyIngestEdit();
+          if (ack.persisted) this.store.shell.notifyIngestEdit();
           return ack;
         },
       };
@@ -509,7 +509,7 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
       // scene object honestly returns none. `typeLabel` is the component name
       // the OID stamp put there (`toEditorNode`), which is exactly what
       // `meta.component` names.
-      this.stories = componentStatesProvider('three', store, (nodeId) => {
+      this.stories = componentStatesProvider('three', store.shell, (nodeId) => {
         const node = this.hierarchy.node(nodeId);
         if (node?.role !== 'component') return null;
         return { name: node.typeLabel ?? node.label };
@@ -522,7 +522,7 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
     // entries; one with a backend needs them, because
     // a running world does not re-derive its scene from source and undoing only
     // a file would leave the world showing the edit it just undid.
-    const history = store.projectHistory;
+    const history = store.shell.projectHistory;
     this.historyResource =
       this.persist && history
         ? new JsonHistoryResource({
@@ -714,9 +714,9 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
         if (object !== null) map.set(id, object);
       }
     }
-    const retainedSelection = [...this.store.selectedEntityIds].filter((id) => map.has(id));
-    if (retainedSelection.length !== this.store.selectedEntityIds.size) {
-      this.store.selectMultiple(retainedSelection);
+    const retainedSelection = [...this.store.shell.selectedEntityIds].filter((id) => map.has(id));
+    if (retainedSelection.length !== this.store.shell.selectedEntityIds.size) {
+      this.store.shell.selectMultiple(retainedSelection);
     }
   }
 
@@ -805,8 +805,8 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
   };
 
   readonly selection: SelectionProvider = {
-    get: () => [...this.store.selectedEntityIds],
-    set: (ids) => this.store.selectMultiple(ids),
+    get: () => [...this.store.shell.selectedEntityIds],
+    set: (ids) => this.store.shell.selectMultiple(ids),
     // Component boundaries are closed by default: a normal pick resolves to the
     // outermost component owner, a scoped pick to the next nested one, and a
     // deep pick advances one further. Deliberately the same contract the source
@@ -916,7 +916,7 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
           ...this.removableFlag(id, channel),
         };
       }
-      if (this.frameControl === 'host' && this.store.playState === 'playing') {
+      if (this.frameControl === 'host' && this.store.shell.playState === 'playing') {
         return { writable: true, reason: LIVE_FRAME_REASON, ...this.removableFlag(id, channel) };
       }
       if (!this.persist) return { writable: true };
@@ -964,7 +964,7 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
       // adapter cannot pause, which is the whole play-mode case.
       this.physicsFor(id)?.commit(id, transform);
       this.markedBodies.commit(id, transform);
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
     },
     endEdit: (id) => {
       this.loop?.resume();
@@ -977,7 +977,7 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
       if (object) {
         this.physicsFor(id)?.unfreeze(id);
         this.markedBodies.unfreeze(id);
-        this.store.notifyIngestEdit();
+        this.store.shell.notifyIngestEdit();
       }
       // The gesture's own ack — awaited by whoever closed it, so a caller that
       // has the ack has the byte. `undefined` when this surface has no backend
@@ -1223,7 +1223,7 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
   };
 
   subscribe(listener: () => void): () => void {
-    return this.store.subscribe(listener);
+    return this.store.shell.subscribe(listener);
   }
 
   dispose(): void {
@@ -1268,7 +1268,7 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
       this.writeProp(id, property, value);
       return;
     }
-    this.store.notifyIngestEdit();
+    this.store.shell.notifyIngestEdit();
   }
 
   /** Write a transform to the live object + record it in the session edit map
@@ -1314,7 +1314,7 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
       }
     } else if (path === 'shadow.cast') object.castShadow = Boolean(value);
     else if (path === 'shadow.receive') object.receiveShadow = Boolean(value);
-    this.store.notifyIngestEdit();
+    this.store.shell.notifyIngestEdit();
   }
 
   // ───────────────────────────────────────────── creation-site anchoring
@@ -1570,7 +1570,7 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
       properties,
     }).then((answer) => {
       this.instanceLiterals.set(key, answer);
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
       return answer;
     });
     this.instanceLiteralRequests.set(key, request);
@@ -1666,7 +1666,7 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
     }
     this.instanceLiterals.delete(key);
     this.instanceLiteralRequests.delete(key);
-    this.store.notifyIngestEdit();
+    this.store.shell.notifyIngestEdit();
     const destination = subject.anchor.anchored ? subject.anchor.display : 'this source site';
     return {
       changed: true,
@@ -1810,7 +1810,7 @@ export class ThreeAuthoringAdapter implements AuthoringAdapter {
       object.receiveShadow = value.receiveShadow;
     }
     this.edits = structuredClone(state.edits);
-    this.store.notifyIngestEdit();
+    this.store.shell.notifyIngestEdit();
   }
 }
 
@@ -1855,7 +1855,7 @@ export function structuralThree(
     identity: structuralIdentity({ camera: options.camera }),
     journal: options.journal,
     persistence: createCreationSitePersistence({
-      history: store.projectHistory,
+      history: store.shell.projectHistory,
       writer: options.sourceWriter,
     }),
     loop: options.loop,
@@ -1896,7 +1896,7 @@ export function oidSourceThree(
     identity: oidIdentity(options.worldId, { camera: options.camera }),
     journal: options.journal,
     persistence: createOidSourcePersistence({
-      history: store.projectHistory,
+      history: store.shell.projectHistory,
       backend: options.backend,
     }),
     loop: options.loop,
@@ -1944,7 +1944,7 @@ export function oidThree(
     ...(options.explicitSourceCommit
       ? {
           sourceCommit: createOidTransformSourceCommitter({
-            history: store.projectHistory,
+            history: store.shell.projectHistory,
             ...(options.backend ? { backend: options.backend } : {}),
           }),
         }

@@ -54,8 +54,8 @@ export function withStoreSelection(
   return {
     ...authoring,
     selection: {
-      get: () => [...store.selectedEntityIds],
-      set: (ids) => store.selectMultiple(ids),
+      get: () => [...store.shell.selectedEntityIds],
+      set: (ids) => store.shell.selectMultiple(ids),
     },
   };
 }
@@ -68,7 +68,7 @@ export function exitModuleMode(): void {
   setActiveAuthoring(null);
   setActiveSystems(null);
   clearMountFailureReports(); // D-W3: no session -> nothing left to report (mirrors ingest/mount-ingest-root.ts's unmountThreeIngestRoot)
-  s.store.setPlayState('stopped');
+  s.store.shell.setPlayState('stopped');
   try {
     s.stop();
   } catch {
@@ -114,7 +114,7 @@ export async function enterModuleModeFromManifestRoot(
     return;
   }
 
-  store.setPlayState('playing');
+  store.shell.setPlayState('playing');
   editorConsole.log(
     `Mounting custom adapter module for world "${world.id}" (kind: ${world.surface})`,
     'adapter',
@@ -142,11 +142,11 @@ export async function enterModuleModeFromManifestRoot(
     activeAuthoring = withStoreSelection(mounted.authoring, store);
   } else {
     // Honest answer for a module adapter that declares no authoring surface.
-    activeAuthoring = makeNoAuthoringAdapter(store, `${adapterId} (no authoring surface)`);
+    activeAuthoring = makeNoAuthoringAdapter(store.shell, `${adapterId} (no authoring surface)`);
   }
   setActiveAuthoring(activeAuthoring);
   setActiveSystems(mounted.systems ?? {});
-  store.notifyIngestEdit();
+  store.shell.notifyIngestEdit();
   clearMountFailureReports(); // D-W3: mount succeeded
 
   // Measured from the mounted adapter rather than declared by the route.

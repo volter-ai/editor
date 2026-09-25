@@ -50,10 +50,10 @@ export function StageOverlaySet({
   /** THIS stage's own store — the shell's until the stage has finished
    *  building, which is the same store every overlay read before unit 4. */
   const stageStore = stage?.store ?? store;
-  useSyncExternalStore(store.subscribe, store.getShellSnapshot ?? store.getSnapshot);
+  useSyncExternalStore(store.shell.subscribe, store.shell.getShellSnapshot ?? store.shell.getSnapshot);
   // The stage's own state (its grid, helpers, stats, tool mode) lives on ITS
   // store, so the overlays that read it subscribe there too.
-  useSyncExternalStore(stageStore.subscribe, stageStore.getShellSnapshot ?? stageStore.getSnapshot);
+  useSyncExternalStore(stageStore.shell.subscribe, stageStore.shell.getShellSnapshot ?? stageStore.shell.getSnapshot);
   useSyncExternalStore(subscribeActiveAuthoring, activeAuthoringVersion);
   useSyncExternalStore(subscribeObject3DDocumentSessions, object3DDocumentSessionsVersion);
   useSyncExternalStore(subscribeWorkspaceDocuments, workspaceDocumentRegistryVersion);

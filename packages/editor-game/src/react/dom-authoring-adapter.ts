@@ -271,7 +271,7 @@ export class DomAuthoringAdapter implements AuthoringAdapter {
     private readonly store: EditorShellStore,
     opts: DomAuthoringOptions,
   ) {
-    const history = store.projectHistory;
+    const history = store.shell.projectHistory;
     this.historyResource = history
       ? new JsonHistoryResource({
           history,
@@ -372,8 +372,8 @@ export class DomAuthoringAdapter implements AuthoringAdapter {
   };
 
   readonly selection: SelectionProvider = {
-    get: () => [...this.store.selectedEntityIds],
-    set: (ids) => this.store.selectMultiple(ids),
+    get: () => [...this.store.shell.selectedEntityIds],
+    set: (ids) => this.store.shell.selectMultiple(ids),
   };
 
   /**
@@ -650,7 +650,7 @@ export class DomAuthoringAdapter implements AuthoringAdapter {
       if (path === 'locked') {
         if (value) this.lockedIds.add(id);
         else this.lockedIds.delete(id);
-        this.store.notifyIngestEdit();
+        this.store.shell.notifyIngestEdit();
         return;
       }
       if (path === 'visible') {
@@ -700,7 +700,7 @@ export class DomAuthoringAdapter implements AuthoringAdapter {
 
     this.applyStyleToElement(n.el, prop, value);
     this.recordStyleEdit(id, prop, value);
-    this.store.notifyIngestEdit();
+    this.store.shell.notifyIngestEdit();
 
     return true;
   }
@@ -747,11 +747,11 @@ export class DomAuthoringAdapter implements AuthoringAdapter {
         this.applyStyleToElement(node.el, prop, values[prop] ?? '');
       }
     }
-    this.store.notifyIngestEdit();
+    this.store.shell.notifyIngestEdit();
   }
 
   subscribe(listener: () => void): () => void {
-    return this.store.subscribe(listener);
+    return this.store.shell.subscribe(listener);
   }
 
   /**

@@ -93,7 +93,7 @@ export function PixiIsolationSceneContent({
     if (!adapter) return;
     return registerWorkspaceDocumentSelection(documentId, () => ({
       adapter,
-      nodeId: [...store.selectedEntityIds].find((id) => adapter.hierarchy.node(id)) ?? null,
+      nodeId: [...store.shell.selectedEntityIds].find((id) => adapter.hierarchy.node(id)) ?? null,
     }));
   }, [adapter, documentId, store]);
 
@@ -133,7 +133,7 @@ export function PixiIsolationSceneContent({
           journal: authoringJournal(`isolation/${documentId.slice('scene:'.length)}`),
           target: createCreationSiteCanvasWriteTarget({
             physics: createPhysicsAdapter2D(createPhysics2DRegistry()),
-            history: store.projectHistory,
+            history: store.shell.projectHistory,
           }),
           surface: () => mounted.canvas,
           capturePreview: (object, size) =>

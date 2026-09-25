@@ -171,7 +171,7 @@ export class SourceObject3DAuthoringAdapter implements AuthoringAdapter {
       rootIds: this.hierarchyRootIds,
     });
     this.selectionState = new StoreSelectionAdoption({
-      store,
+      store: store.shell,
       owns: (id) => this.byId.has(id),
       initial: [this.documentNodeId],
       onChange: (ids) => this.syncMarkedSelection(ids),
@@ -263,11 +263,11 @@ export class SourceObject3DAuthoringAdapter implements AuthoringAdapter {
       for (const [id, object] of this.byId) map.set(id, object);
       // Selection can name an object the swap removed; keep it inside the
       // index the hierarchy, picker and gizmo now consume.
-      const retained = [...this.store.selectedEntityIds].filter(
+      const retained = [...this.store.shell.selectedEntityIds].filter(
         (id) => id === this.documentNodeId || this.byId.has(id),
       );
-      if (retained.length !== this.store.selectedEntityIds.size) {
-        this.store.selectMultiple(retained);
+      if (retained.length !== this.store.shell.selectedEntityIds.size) {
+        this.store.shell.selectMultiple(retained);
       }
       // `subscribe` on this adapter IS the store's subscribe, so notifying the
       // store is this adapter's own change signal.
@@ -494,7 +494,7 @@ export class SourceObject3DAuthoringAdapter implements AuthoringAdapter {
   };
 
   subscribe(listener: () => void): () => void {
-    return this.store.subscribe(listener);
+    return this.store.shell.subscribe(listener);
   }
 
   get documentId(): string {

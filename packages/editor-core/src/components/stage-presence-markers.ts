@@ -276,7 +276,7 @@ export function bindStagePresenceMarkers(options: StagePresenceOptions): StagePr
     transformDragging = dragging;
     if (!publishes()) return;
     reportCollaborationPresence({
-      gesture: dragging ? { type: 'transform', selection: [...store.selectedEntityIds] } : null,
+      gesture: dragging ? { type: 'transform', selection: [...store.shell.selectedEntityIds] } : null,
     });
   };
   viewport.transformControls.addEventListener('dragging-changed', reportTransformGesture);

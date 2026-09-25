@@ -208,7 +208,7 @@ export function exitDeferredIngestPlay(store: EditorShellStore): boolean {
   // ownership note) — it unmounts by kind, clears the authoring override and
   // the adopted scene, and resets the play surface.
   exitActiveIngest();
-  store.setPlayState('stopped');
+  store.shell.setPlayState('stopped');
   // Edit mode is rebuilt through the ONE authoritative reinstall path
   // (`the world root's stage`'s `installAll`), which is what recreates the R3F design
   // session over the world component.

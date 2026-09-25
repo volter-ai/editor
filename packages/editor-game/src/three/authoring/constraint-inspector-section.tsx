@@ -77,7 +77,7 @@ export function ConstraintStackSection({ adapter, nodeId }: InspectorSectionProp
     if (!object) return;
     const id = adapter.hierarchy.idForObject3D?.(object);
     if (!id) return;
-    if (!setAuthoringSelection(adapter, [id], { intent: 'exact' })) store.select(id);
+    if (!setAuthoringSelection(adapter, [id], { intent: 'exact' })) store.shell.select(id);
   };
 
   return (

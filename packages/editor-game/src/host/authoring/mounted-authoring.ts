@@ -14,8 +14,8 @@ export function withStoreSelection(
 ): AuthoringAdapter {
   if (authoring.selection) return authoring;
   const selection = {
-    get: () => [...store.selectedEntityIds],
-    set: (ids: string[]) => store.selectMultiple(ids),
+    get: () => [...store.shell.selectedEntityIds],
+    set: (ids: string[]) => store.shell.selectMultiple(ids),
   };
   return new Proxy(authoring, {
     get(target, property) {

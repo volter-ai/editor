@@ -129,14 +129,14 @@ function worldStageContext(
   subject: StageSubject,
   chrome: StageChrome,
 ): StageContext {
-  const adapter = getActiveAuthoring(store);
+  const adapter = getActiveAuthoring(store.shell);
   const surface: StageSurface | null =
-    isThreejsSurfaceVisible(store) && adapterPaintsThree(adapter) ? 'three' : null;
-  const play = store.playState;
-  const count = store.selectedEntityIds.size;
+    isThreejsSurfaceVisible(store.shell) && adapterPaintsThree(adapter) ? 'three' : null;
+  const play = store.shell.playState;
+  const count = store.shell.selectedEntityIds.size;
   if (count === 0)
     return { documentId, chrome, subject, surface, selection: EMPTY_SELECTION, play };
-  const context = resolveViewportToolContext(adapter, store.selectedEntityIds);
+  const context = resolveViewportToolContext(adapter, store.shell.selectedEntityIds);
   return {
     documentId,
     chrome,
@@ -145,7 +145,7 @@ function worldStageContext(
     selection: {
       count,
       surface: stageSurfaceOf(context?.kind),
-      visible: isViewportToolContextVisible(store, context),
+      visible: isViewportToolContextVisible(store.shell, context),
     },
     play,
   };
@@ -181,7 +181,7 @@ export function documentStageContext(
         subject,
         surface: null,
         selection: EMPTY_SELECTION,
-        play: store.playState,
+        play: store.shell.playState,
       };
     return worldStageContext(store, documentId, subject, chrome);
   }
@@ -195,7 +195,7 @@ export function documentStageContext(
     subject,
     surface: 'three',
     selection: { count, surface: count > 0 ? 'three' : null, visible: true },
-    play: store.playState,
+    play: store.shell.playState,
   };
 }
 

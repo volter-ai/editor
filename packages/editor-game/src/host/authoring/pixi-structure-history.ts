@@ -113,7 +113,7 @@ export class CanvasStructureHistory {
     /** Re-index + notify after a restore put objects back. */
     private readonly onRestored: () => void,
   ) {
-    const history = store.projectHistory;
+    const history = store.shell.projectHistory;
     this.resource = history
       ? new JsonHistoryResource<CanvasStructureState>({
           history,

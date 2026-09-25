@@ -299,11 +299,11 @@ function rebuildWhenPlayStops(store: EditorShellStore): () => void {
   let disposed = false;
   let requested = false;
   const request = () => {
-    if (disposed || requested || store.playState !== 'stopped') return;
+    if (disposed || requested || store.shell.playState !== 'stopped') return;
     requested = true;
     queueEditModeRebuild();
   };
-  const unsubscribe = store.subscribe(request);
+  const unsubscribe = store.shell.subscribe(request);
   request();
   return () => {
     disposed = true;
@@ -340,7 +340,7 @@ export async function mountR3FDesignSession(
 
   // Mirror design-time-layers' entry guard: while play is already running,
   // mount nothing and wait for Stop's rebuild.
-  if (store.playState !== 'stopped') {
+  if (store.shell.playState !== 'stopped') {
     return rebuildWhenPlayStops(store);
   }
 
@@ -403,7 +403,7 @@ export async function mountR3FDesignSession(
    *  design world is mounted, this session is live, and play is stopped. */
   const publishPlane = (): void => {
     if (publishedSystems || !designGame) return;
-    if (torndown || suspended || store.playState !== 'stopped') return;
+    if (torndown || suspended || store.shell.playState !== 'stopped') return;
     publishedSystems = designGame.systemAdapters;
     setActiveSystems(publishedSystems);
   };
@@ -530,7 +530,7 @@ export async function mountR3FDesignSession(
         publishedSystems = systems;
         updateInstanceSystems(systems);
       }
-      store.notifyIngestEdit();
+      store.shell.notifyIngestEdit();
     });
     // The design Game outlives `mount()` (the world holds its ctx) and must go
     // down with the mount, or every HMR remount leaks another window-listener
@@ -580,21 +580,21 @@ export async function mountR3FDesignSession(
     composite.replaceChild(
       worldId,
       new BoundaryAuthoringAdapter(
-        store,
+        store.shell,
         boundaryInfo(world),
         'R3F design session suspended by play mode — Stop restores it.',
       ),
     );
-    store.notifyIngestEdit();
+    store.shell.notifyIngestEdit();
   };
 
   const failToBoundary = (err: unknown): void => {
     const message = reportDesignMountFailure(worldId, err);
     composite.replaceChild(
       worldId,
-      new BoundaryAuthoringAdapter(store, boundaryInfo(world), message),
+      new BoundaryAuthoringAdapter(store.shell, boundaryInfo(world), message),
     );
-    store.notifyIngestEdit();
+    store.shell.notifyIngestEdit();
   };
 
   // ---------------------------------------------------------- initial mount
@@ -629,10 +629,10 @@ export async function mountR3FDesignSession(
     }
     if (torndown) return () => {};
     // Restart can enter Play while this design import is in flight.
-    if (store.playState !== 'stopped') return rebuildWhenPlayStops(store);
+    if (store.shell.playState !== 'stopped') return rebuildWhenPlayStops(store);
     const first = await mountRoot(loaded.adapter, loaded.entryDebug, loaded.entrySystems);
     adoptMount(first);
-    if (torndown || store.playState !== 'stopped') {
+    if (torndown || store.shell.playState !== 'stopped') {
       disposeMounted();
       return torndown ? () => {} : rebuildWhenPlayStops(store);
     }
@@ -648,7 +648,7 @@ export async function mountR3FDesignSession(
     // selection made in that window across enterPlayScene(), which clears the
     // store selection while adopting the mounted scene. OID-signature ids are
     // stable across the boundary, so only restore ids the new composite owns.
-    const selectedIds = selectionRemountHandoff.take(store, store.selectedEntityIds);
+    const selectedIds = selectionRemountHandoff.take(store, store.shell.selectedEntityIds);
     // The world's own colour pipeline travels WITH the adoption: this session
     // mounted it against a renderer that draws nothing, so the declaration has
     // to reach the viewport's renderer through the adoption instead (see
@@ -681,10 +681,10 @@ export async function mountR3FDesignSession(
     // from under them on every save. A first look is opened once.
     store.focusOnScene(() => pickGameCamera(null, first.root.scene));
     const alive = selectedIds.filter((id) => composite.hierarchy.node(id) !== null);
-    if (alive.length > 0) store.selectMultiple(alive);
+    if (alive.length > 0) store.shell.selectMultiple(alive);
     clearMountFailureReport(worldId);
     publishPlane();
-    store.notifyIngestEdit();
+    store.shell.notifyIngestEdit();
     editorConsole.log(
       `[r3f-design] world "${worldId}" mounted for design-time authoring (${entry})`,
       'authoring',
@@ -750,12 +750,12 @@ export async function mountR3FDesignSession(
   // ---------------------------------------------------------------- remount
   const remount = async (): Promise<void> => {
     if (torndown || suspended) return;
-    const selectedIds = [...store.selectedEntityIds];
+    const selectedIds = [...store.shell.selectedEntityIds];
     // Same stall watchdog as the initial mount, per stage: after a crashed
     // mount the NEXT remount was observed to hang silently — no "mounted", no
     // "failed" — leaving the world Unavailable with a clean console.
     const startedAtWriteStamp = writeStamp;
-    const historyBusyAtStart = store.projectHistory?.getSnapshot().busy === true;
+    const historyBusyAtStart = store.shell.projectHistory?.getSnapshot().busy === true;
     let stage: 'importing' | 'mounting' = 'importing';
     const stallTimer = setTimeout(() => {
       editorConsole.warn(
@@ -798,7 +798,7 @@ export async function mountR3FDesignSession(
       for (let settle = 0; settle < 50; settle += 1) {
         await whenLiveGestureIdle();
         await whenProjectHistoryIdle();
-        if (!liveGestureActive() && store.projectHistory?.getSnapshot().busy !== true) break;
+        if (!liveGestureActive() && store.shell.projectHistory?.getSnapshot().busy !== true) break;
       }
       settledAt = performance.now();
       if (!torndown && !suspended && writeStamp !== startedAtWriteStamp) {
@@ -834,7 +834,7 @@ export async function mountR3FDesignSession(
       // selection snapped back to A 255 ms after the adopt (Opus
       // reproduction on preview-b53, 2/2 with a non-reverting control; the
       // human typed their Position X into the wrong tree — runhuman pass 128).
-      const selectionAtSwap = new Set(store.selectedEntityIds);
+      const selectionAtSwap = new Set(store.shell.selectedEntityIds);
       restoreEditorScene();
       // The OUTGOING world goes down first, with its OWN host — then the
       // incoming one is adopted. Reversing these disposes the incoming Game.
@@ -895,7 +895,7 @@ export async function mountR3FDesignSession(
       // objects (exitPlayScene cleared the store selection; restore it).
       const restoreIds = selectionChangedMidRemount ? [...selectionAtSwap] : selectedIds;
       const alive = restoreIds.filter((id) => adapter?.hierarchy.node(id) !== null);
-      if (alive.length > 0) store.selectMultiple(alive);
+      if (alive.length > 0) store.shell.selectMultiple(alive);
       // PD-1: this world is mounted again — retract its failure report so the
       // status item (and `vgai status`) can go back to healthy.
       clearMountFailureReport(worldId);
@@ -903,7 +903,7 @@ export async function mountR3FDesignSession(
       // one's), so a stat added by the edit that triggered this remount is
       // readable without entering play.
       publishPlane();
-      store.notifyIngestEdit();
+      store.shell.notifyIngestEdit();
       reportSlowRemount(worldId, remountStartedAt, importedAt, mountedAt, settledAt);
       refreshRevisions.mounted();
       clearTimeout(revisionFallback);
@@ -950,7 +950,7 @@ export async function mountR3FDesignSession(
    *  in-flight work — bounded, so a wedged pipeline degrades to the stale-drop
    *  guard instead of holding the swap forever. */
   const whenProjectHistoryIdle = async (): Promise<void> => {
-    const history = store.projectHistory;
+    const history = store.shell.projectHistory;
     if (!history) return;
     const deadline = Date.now() + 10_000;
     while (history.getSnapshot().busy && Date.now() < deadline) {
@@ -1000,7 +1000,7 @@ export async function mountR3FDesignSession(
       );
       return;
     }
-    const history = store.projectHistory;
+    const history = store.shell.projectHistory;
     if (!history) return;
     const snapshot = history.getSnapshot();
     const last = snapshot.canUndo ? snapshot.transactions[snapshot.cursor - 1] : undefined;
@@ -1095,7 +1095,7 @@ export async function mountR3FDesignSession(
       if (!refreshRevisions.needsRemount()) clearTimeout(revisionFallback);
       // The native adapter observes child additions/removals. Property-only
       // refreshes still need an inspector/viewport notification.
-      store.notifyIngestEdit();
+      store.shell.notifyIngestEdit();
     };
     hot.on('vgai:r3f-entry-update', onUpdate);
     hot.on('vgai:r3f-refresh-source', onSource);
@@ -1133,16 +1133,16 @@ export async function mountR3FDesignSession(
   // ------------------------------------------------------------ play handoff
   let stopRebuildRequested = false;
   let suspendQueued = false;
-  unsubStore = store.subscribe(() => {
+  unsubStore = store.shell.subscribe(() => {
     if (torndown) return;
     // Seat handover, BEFORE the deferred visual suspend below: play mode
     // registers under its own mount id, so holding both seats would make an
     // unaddressed `vgai eval` ambiguous. This fires at
     // `store.setPlayState('playing')`, which precedes play's own
     // `setActiveSystems` — so the two never overlap in either direction.
-    if (store.playState === 'stopped') publishPlane();
+    if (store.shell.playState === 'stopped') publishPlane();
     else withdrawPlane();
-    if (!suspended && !suspendQueued && store.playState !== 'stopped') {
+    if (!suspended && !suspendQueued && store.shell.playState !== 'stopped') {
       // Keep the adopted design scene alive UNDER the play-entry transition.
       // Suspending at the playState flip swapped the viewport back to the
       // placeholder editor scene mid-flight — the whole screen flashed the
@@ -1154,12 +1154,12 @@ export async function mountR3FDesignSession(
       suspendQueued = true;
       onPlayTransitionSettled(() => {
         suspendQueued = false;
-        if (torndown || suspended || store.playState === 'stopped') return;
+        if (torndown || suspended || store.shell.playState === 'stopped') return;
         suspendForPlay();
       });
       return;
     }
-    if (suspended && !stopRebuildRequested && store.playState === 'stopped') {
+    if (suspended && !stopRebuildRequested && store.shell.playState === 'stopped') {
       stopRebuildRequested = true;
       queueEditModeRebuild();
     }
@@ -1179,8 +1179,8 @@ export async function mountR3FDesignSession(
     // changes) should preserve editor-global selection. Play suspension is a
     // different scene lifecycle and deliberately keeps exitPlayScene's normal
     // clearing semantics.
-    if (!suspended && store.playState === 'stopped' && store.selectedEntityIds.size > 0) {
-      selectionRemountHandoff.remember(store, store.selectedEntityIds);
+    if (!suspended && store.shell.playState === 'stopped' && store.shell.selectedEntityIds.size > 0) {
+      selectionRemountHandoff.remember(store, store.shell.selectedEntityIds);
     }
     restoreEditorScene();
     disposeMounted();

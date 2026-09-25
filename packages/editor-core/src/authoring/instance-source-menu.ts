@@ -105,11 +105,11 @@ let unregister: (() => void) | null = null;
 export function ensureInstanceSourceMenuRegistered(): void {
   if (unregister) return;
   unregister = registerHierarchyMenuItems(
-    ({ nodeId, store }) => targetsFor(store, nodeId).length > 0,
+    ({ nodeId, store }) => targetsFor(store.shell, nodeId).length > 0,
     ({ nodeId, store }) => {
-      const adapter = getActiveAuthoring(store);
+      const adapter = getActiveAuthoring(store.shell);
       const locator = instanceSourceLocatorFor(adapter, nodeId);
-      return targetsFor(store, nodeId).map((target) => ({
+      return targetsFor(store.shell, nodeId).map((target) => ({
         label: INSTANCE_SOURCE_LABELS[target],
         action: () => {
           runAndReport(locator, nodeId, target);

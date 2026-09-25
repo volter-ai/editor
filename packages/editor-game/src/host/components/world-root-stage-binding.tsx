@@ -54,7 +54,7 @@ function SceneViewportStateOverlay({
   rootIds: readonly string[];
   mountStatus: 'mounting' | 'ready';
 }) {
-  useSyncExternalStore(store.subscribe, store.getSnapshot);
+  useSyncExternalStore(store.shell.subscribe, store.shell.getSnapshot);
   const rootReadiness = useSyncExternalStore(subscribeRootReadiness, readinessFacet);
   const mountFailures = useSyncExternalStore(subscribeToMountFailures, getMountFailureReports);
   const sceneBackground = store.scene?.background as THREE.Color | null | undefined;
@@ -70,7 +70,7 @@ function SceneViewportStateOverlay({
             ignoredLayer: EDITOR_LAYER,
           }),
       ),
-    [store.scene, store.contentVersion],
+    [store.scene, store.shell.contentVersion],
   );
   const sceneHasContent = Boolean(
     store.scene && (sceneBackgroundIsAuthored || sceneHasRenderableObjects),
@@ -93,7 +93,7 @@ function WorldRootOverlays({
   mountStatus,
   rootIds,
 }: WorldRootOverlayProps) {
-  useSyncExternalStore(store.subscribe, store.getShellSnapshot ?? store.getSnapshot);
+  useSyncExternalStore(store.shell.subscribe, store.shell.getShellSnapshot ?? store.shell.getSnapshot);
   useSyncExternalStore(subscribeActiveAuthoring, activeAuthoringVersion);
   useSyncExternalStore(subscribeObject3DDocumentSessions, object3DDocumentSessionsVersion);
   useSyncExternalStore(subscribeWorkspaceDocuments, workspaceDocumentRegistryVersion);

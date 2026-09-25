@@ -71,7 +71,7 @@ export function IngestCanvasSceneContent({
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef(createRootViewController());
   const view = viewRef.current;
-  useSyncExternalStore(store.subscribe, store.getSnapshot);
+  useSyncExternalStore(store.shell.subscribe, store.shell.getSnapshot);
   const rootReadiness = useSyncExternalStore(subscribeRootReadiness, readinessFacet);
   const mountFailures = useSyncExternalStore(subscribeToMountFailures, getMountFailureReports);
   const live = activeIngest();
@@ -98,7 +98,7 @@ export function IngestCanvasSceneContent({
   useEffect(() => {
     return registerWorkspaceDocumentSelection(documentId, () => ({
       adapter,
-      nodeId: [...store.selectedEntityIds].find((id) => adapter.hierarchy.node(id)) ?? null,
+      nodeId: [...store.shell.selectedEntityIds].find((id) => adapter.hierarchy.node(id)) ?? null,
     }));
   }, [adapter, documentId, store]);
 

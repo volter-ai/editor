@@ -1,4 +1,5 @@
-import { optionalThreeStateOf } from '../three-state';
+import { optionalThreeStateOf, threeStateOf } from '../three-state';
+import { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import type {
   ToolObject3DAuthoringProps,
   ToolObject3DDocumentAuthoring,
@@ -43,7 +44,7 @@ import { SourceObject3DAuthoringAdapter } from '../authoring/source-object3d-aut
 import { registerDesignTimeSurface } from '../coverage/design-time-surfaces';
 import { DocumentRendererSession } from '../document-renderer-session';
 import { useOptionalEditorStats, useOptionalEditorStore } from '../editor-runtime';
-import { EditorShellStore } from '../editor-shell-store';
+import type { EditorShellStore } from '../editor-shell-store';
 import { EditorViewport } from '../editor-viewport';
 import {
   lookDeclaresViewportColors,
@@ -319,7 +320,7 @@ interface RetainedObject3DStageState {
 const retainedObject3DStages = new RetainedDocumentStates<RetainedObject3DStageState>(
   documentId => ({
     documentId,
-    store: new EditorShellStore(),
+    store: threeStateOf(new ShellStore()),
     inUse: false,
     source: null,
     camera: null,
@@ -471,8 +472,8 @@ class Object3DDocumentHost {
     readonly surface: ReturnType<typeof mountViewportSurface>,
     store?: EditorShellStore,
   ) {
-    this.store = store ?? new EditorShellStore();
-    this.transport = new StageTransport(this.store);
+    this.store = store ?? threeStateOf(new ShellStore());
+    this.transport = new StageTransport(this.store.shell);
   }
 
   borrow(): () => void {
@@ -879,13 +880,13 @@ export function Object3DDocumentViewport({
       // latter found no subject on a world whose enemies each had a mixer.
       const clipScan = scanClipSubjects(() => host.store.scene ?? stage.scene, host.transport, {
         // A game makes its mixers as its world runs, not when the store changes.
-        rescanOnLiveMixers: () => host.store.playState === 'stopped',
+        rescanOnLiveMixers: () => host.store.shell.playState === 'stopped',
       });
       let lastClipScan = 0;
       host.cleanups.push(() => clipScan.dispose());
       host.cleanups.push(
-        host.store.subscribe(() => {
-          if (host.store.playState !== 'stopped') return;
+        host.store.shell.subscribe(() => {
+          if (host.store.shell.playState !== 'stopped') return;
           const now = performance.now();
           if (now - lastClipScan < CLIP_RESCAN_INTERVAL_MS) return;
           lastClipScan = now;
@@ -983,7 +984,7 @@ export function Object3DDocumentViewport({
         host.cleanups.push(registerStageTransport(documentId, host.transport));
       }
       const history = workspaceHistoryService();
-      if (history) store.attachHistory(history);
+      if (history) store.shell.attachHistory(history);
       const shared = rendererLane === 'inspector-preview';
       const studioStage = studioStageRef.current;
       const hasShell = hasShellRef.current;
@@ -1453,7 +1454,7 @@ export function Object3DDocumentViewport({
         // Candidate construction has succeeded. Publish all source references in
         // one synchronous turn; no frame or input event can see a half-swap.
         const previous = host.content;
-        const selected = [...store.selectedEntityIds];
+        const selected = [...store.shell.selectedEntityIds];
         const previousAdapter = host.adapter;
         const previousObjects = new Map(store.objectMap);
         const previousRoot = host.session?.root;
@@ -1500,7 +1501,7 @@ export function Object3DDocumentViewport({
             host.dressing?.frameContent(previousRoot);
             host.presentationRig?.placeFloor(previousRoot);
           }
-          store.selectMultiple(selected);
+          store.shell.selectMultiple(selected);
           store.notifyIngestObjectMapEdit();
         };
         previous?.scene.removeFromParent();
@@ -1617,8 +1618,8 @@ export function Object3DDocumentViewport({
         host.dressing.frameContent(source.root);
         host.presentationRig?.placeFloor(source.root);
         // An edit can move the content's lowest point; the floor follows it.
-        host.cleanups.push(store.subscribe(() => host.presentationRig?.placeFloor(source.root)));
-        store.selectMultiple(selected.filter((id) => store.objectMap.has(id)));
+        host.cleanups.push(store.shell.subscribe(() => host.presentationRig?.placeFloor(source.root)));
+        store.shell.selectMultiple(selected.filter((id) => store.objectMap.has(id)));
         store.notifyIngestObjectMapEdit();
         documentSession.syncSelectionPresentation();
         activateInteraction?.();
@@ -1763,7 +1764,7 @@ export function Object3DDocumentViewport({
         };
         if (drawsOnChange) {
           const stopSource = source.onChange!(markDirty);
-          const stopStore = store.subscribe(markDirty);
+          const stopStore = store.shell.subscribe(markDirty);
           const inputs = ['pointerdown', 'pointermove', 'pointerup', 'pointerleave', 'wheel', 'keydown', 'keyup'] as const;
           for (const type of inputs) container.addEventListener(type, markDirty, { capture: true, passive: true });
           stopDrawSignals = () => {
@@ -2034,7 +2035,7 @@ export function Object3DDocumentViewport({
           );
           let selectionSignature = '';
           host.cleanups.push(
-            store.subscribe(() => {
+            store.shell.subscribe(() => {
               viewport.objectMap = store.objectMap;
               viewport.syncFromStore();
               host.session?.syncSelectionPresentation();
@@ -2289,7 +2290,7 @@ export function Object3DDocumentViewport({
             <ViewportFurniture
               viewport={documentHostRef.current.viewport}
               session={documentHostRef.current.session}
-              store={documentHostRef.current.store}
+              store={documentHostRef.current.store.shell}
               projection={projection}
               displayName={displayName}
               {...(statistics ? { statistics } : {})}

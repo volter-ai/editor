@@ -378,23 +378,23 @@ export function bindSceneDocument(store: EditorShellStore): () => void {
   // tab still represents the same authored TSX document.
   let lastSourcePath: string | null = null;
   const view: CenterDocumentsStore = {
-    subscribe: (listener) => store.subscribe(listener),
+    subscribe: (listener) => store.shell.subscribe(listener),
     get playState() {
-      return store.playState;
+      return store.shell.playState;
     },
     get activeViewportTab() {
-      return store.activeViewportTab;
+      return store.shell.activeViewportTab;
     },
     get savePath() {
-      return activeSaveDestination(store);
+      return activeSaveDestination(store.shell);
     },
     get sourcePath() {
-      const current = activeDocumentSourcePath(store);
+      const current = activeDocumentSourcePath(store.shell);
       if (current) lastSourcePath = current;
       return lastSourcePath;
     },
     get isDirty() {
-      return activeSaveState(store) === 'unsaved';
+      return activeSaveState(store.shell) === 'unsaved';
     },
   };
   const docs = createCenterDocumentDescriptors(view);
@@ -403,7 +403,7 @@ export function bindSceneDocument(store: EditorShellStore): () => void {
   const run = () =>
     syncCenterDocuments(view, docs, getCurrentProject()?.config.hasThreeRoot !== false);
   run();
-  const unsubscribe = store.subscribe(run);
+  const unsubscribe = store.shell.subscribe(run);
   const unsubscribeAdapter = subscribeProjectAdapter(run);
   // Unbinding follows the session's store and leaves the document registered:
   // a store arriving again at boot must not close a restored Scene tab. The

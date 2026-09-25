@@ -750,7 +750,7 @@ export function createLiveCanvasWriteTarget(
     bind(context: CanvasWriteContext): void {
       a2d = context.a2d;
       notify = context.notify;
-      const history = context.store.projectHistory;
+      const history = context.store.shell.projectHistory;
       historyResource = history
         ? new JsonHistoryResource({
             history,

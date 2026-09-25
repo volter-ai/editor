@@ -89,7 +89,7 @@ async function mountDomIngestRootInner(store: EditorShellStore, folderId: string
   // react session — closes the cross-kind leak (F26 residual).
   exitActiveIngest();
 
-  store.setPlayState('playing');
+  store.shell.setPlayState('playing');
   editorConsole.log(`Ingesting unmodified native-React game: ${game.manifest.name}`, 'ingest');
 
   // F26: same cold-mount announcement as the other ingest routes — the react
@@ -144,12 +144,12 @@ async function mountDomIngestRootInner(store: EditorShellStore, folderId: string
   // `game-globals-shadow.ts` roots its shadow at — so a native-React fixture's
   // own listeners are shadowed on the same terms as every other surface's now
   // (this comment used to record the opposite, from the R-N6 residual).
-  setGameInputGate(() => store.playState === 'playing' && store.activeViewportTab === 'play');
+  setGameInputGate(() => store.shell.playState === 'playing' && store.shell.activeViewportTab === 'play');
 
   setActiveAuthoring(adapter);
   setActiveSystems({});
   landIngestBootInEdit();
-  store.notifyIngestEdit();
+  store.shell.notifyIngestEdit();
   clearMountFailureReports(); // D-W3: mount succeeded
 
   const coverage = domMountCoverage(adapter);
@@ -207,7 +207,7 @@ export async function mountDomIngestRootFromManifest(
   // react session — closes the cross-kind leak (F26 residual).
   exitActiveIngest();
 
-  store.setPlayState('playing');
+  store.shell.setPlayState('playing');
   editorConsole.log(
     `Ingesting unmodified native-React game (external folder): ${world.id}`,
     'ingest',
@@ -249,12 +249,12 @@ export async function mountDomIngestRootFromManifest(
     siblings: [],
     worldId: world.id,
   });
-  setGameInputGate(() => store.playState === 'playing' && store.activeViewportTab === 'play');
+  setGameInputGate(() => store.shell.playState === 'playing' && store.shell.activeViewportTab === 'play');
 
   setActiveAuthoring(adapter);
   setActiveSystems({});
   landIngestBootInEdit();
-  store.notifyIngestEdit();
+  store.shell.notifyIngestEdit();
   clearMountFailureReports(); // D-W3: mount succeeded
 
   const coverage = domMountCoverage(adapter);

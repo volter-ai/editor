@@ -201,8 +201,8 @@ export function Inspector() {
   // system state; availability-tick is the existing late-capability seam used
   // by the Profiler and Frame debugger for the same reason.
   useAvailabilitySelector(() => getActiveCamera());
-  const display = useActiveInspection(store);
-  const { adapter } = resolvePanelAuthoring(store);
+  const display = useActiveInspection(store.shell);
+  const { adapter } = resolvePanelAuthoring(store.shell);
   if (!display.available) return null;
   if (!adapter.capabilities.inspectorFields) {
     // A subject the shared resolver composed WITHOUT the adapter's fields —

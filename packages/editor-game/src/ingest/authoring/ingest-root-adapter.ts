@@ -798,7 +798,7 @@ export async function mountIngestGame(
     // `collectState` is push-based — the control API would keep serving a
     // snapshot taken before the measurement existed, reporting `loop: null`
     // forever. Broadcast so `vgai status` sees the verdict it just produced.
-    onVerdict: () => store.notifyIngestEdit(),
+    onVerdict: () => store.shell.notifyIngestEdit(),
   });
   // The game's DECLARED system surface (`window.vgaiGame.systems`), projected
   // onto the host's ordinary `SystemAdapters.debug`. `activateCapturedThreeIngest`

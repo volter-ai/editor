@@ -317,7 +317,7 @@ export class ManifestAuthoring implements RootManifestProvider {
     this.raw = raw;
     this.synthesizedValue = synthesized;
     this.store = store;
-    const history = store.projectHistory;
+    const history = store.shell.projectHistory;
     this.fileHistory = history
       ? getProjectFileHistory(history, getManifestHistoryBackend(), 'project-manifest')
       : null;
@@ -330,7 +330,7 @@ export class ManifestAuthoring implements RootManifestProvider {
             .then((next) => {
               for (const key of Object.keys(this.raw)) delete this.raw[key];
               Object.assign(this.raw, next);
-              this.store.notifyIngestEdit();
+              this.store.shell.notifyIngestEdit();
             })
             .catch(() => {});
         })
@@ -412,7 +412,7 @@ export class ManifestAuthoring implements RootManifestProvider {
           kind: 'manifest',
           contentType: 'application/json',
         });
-        this.store.notifyIngestEdit();
+        this.store.shell.notifyIngestEdit();
         return true;
       }
       // `vgai.project.json` is PROJECT-ROOT-relative, which is why it is
@@ -441,7 +441,7 @@ export class ManifestAuthoring implements RootManifestProvider {
       await write();
       // No SSE for a project-root write (file-watcher only covers `public/`)
       // — notify directly so the hierarchy panel's badges refresh in place.
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
       return true;
     } catch (err) {
       if (this.fileHistory) {
@@ -451,7 +451,7 @@ export class ManifestAuthoring implements RootManifestProvider {
           .then((next) => {
             for (const key of Object.keys(this.raw)) delete this.raw[key];
             Object.assign(this.raw, next);
-            this.store.notifyIngestEdit();
+            this.store.shell.notifyIngestEdit();
           })
           .catch(() => {});
       }
@@ -521,7 +521,7 @@ export function installEditModeAuthoring(
     return {
       worldId: world.id,
       kind: world.surface,
-      adapter: new BoundaryAuthoringAdapter(store, info, reason ?? undefined),
+      adapter: new BoundaryAuthoringAdapter(store.shell, info, reason ?? undefined),
       zOrder,
     };
   });
@@ -560,17 +560,17 @@ export function installEditModeAuthoring(
     // able to Ctrl+S/autosave through the store, unlike a foreign override).
     markEditModeOverride(composite);
     setActiveAuthoring(composite);
-    store.notifyIngestEdit();
+    store.shell.notifyIngestEdit();
   } else if (!hasAuthoringOverride()) {
     // A project that declares no roots has nothing to author yet, and the panels say
     // what would change that rather than the generic floor's "no authoring adapter".
     _emptyProjectAuthoring = makeNoAuthoringAdapter(
-      store,
+      store.shell,
       'No world yet',
       'Declare a root in vgai.project.json',
     );
     setActiveAuthoring(_emptyProjectAuthoring);
-    store.notifyIngestEdit();
+    store.shell.notifyIngestEdit();
   }
 
   return composite;
@@ -607,7 +607,7 @@ export function exitEditModeAuthoring(installed?: CompositeAuthoringAdapter): vo
 export async function installEditModeAuthoringForProject(
   store: EditorShellStore,
 ): Promise<CompositeAuthoringAdapter> {
-  const finishBootstrap = beginAuthoringBootstrap(store);
+  const finishBootstrap = beginAuthoringBootstrap(store.shell);
   let manifest: EditModeManifest;
   // The RAW object backing `ManifestAuthoring` (read-modify-write, never
   // round-tripped through Zod). An omitted roots field is a real manifest

@@ -42,7 +42,7 @@ const NO_STORE = { ok: false as const, error: 'the editor shell has not started 
 function subjectId(cmd: Record<string, unknown>, store: EditorShellStore): string | undefined {
   const given = cmd['id'];
   if (typeof given === 'string' && given.trim() !== '') return given;
-  return [...store.selectedEntityIds][0];
+  return [...store.shell.selectedEntityIds][0];
 }
 
 export const commands: CommandContribution['commands'] = {
@@ -55,7 +55,7 @@ export const commands: CommandContribution['commands'] = {
         if (!store) return NO_STORE;
         const id = subjectId(cmd, store);
         if (!id) return { ok: false, error: 'extract-component needs an id or a selected row.' };
-        const adapter = getActiveAuthoring(store);
+        const adapter = getActiveAuthoring(store.shell);
         const source = instanceExtractSourceFor(adapter, id);
         if (!canExtractNode(adapter.hierarchy.node(id), source, id)) {
           return {
@@ -86,7 +86,7 @@ export const commands: CommandContribution['commands'] = {
         if (!store) return NO_STORE;
         const id = subjectId(cmd, store);
         if (!id) return { ok: false, error: 'fork-component needs an id or a selected row.' };
-        const adapter = getActiveAuthoring(store);
+        const adapter = getActiveAuthoring(store.shell);
         const source = instanceForkSourceFor(adapter, id);
         if (!canForkInstance(adapter.hierarchy.node(id), source, id)) {
           return {

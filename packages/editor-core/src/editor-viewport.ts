@@ -1143,7 +1143,7 @@ export class EditorViewport {
     this._renderer = options.renderer;
     this._store = store;
     this._authoring =
-      options.authoring ?? (() => viewportAuthoringPolicy().activeAuthoring(this._store));
+      options.authoring ?? (() => viewportAuthoringPolicy().activeAuthoring(this._store.shell));
     this._pick = options.pick;
     this._standaloneAuthoring = options.authoring !== undefined;
     this._publishPickContext = options.publishPickContext ?? true;
@@ -1346,7 +1346,7 @@ export class EditorViewport {
               gizmoObj === this._pivotDummy ? null : this._authoringIdForObject(gizmoObj);
             if (!primaryId) {
               // Gizmo on pivot dummy (median-point mode or per-entity pivot)
-              for (const id of this._store.selectedEntityIds) {
+              for (const id of this._store.shell.selectedEntityIds) {
                 if (!writable(id)) continue;
                 const obj = this._objectForAuthoringId(id);
                 if (!obj) continue;
@@ -1359,7 +1359,7 @@ export class EditorViewport {
                 });
               }
             } else {
-              for (const id of this._store.selectedEntityIds) {
+              for (const id of this._store.shell.selectedEntityIds) {
                 if (id === primaryDragId) continue;
                 if (!writable(id)) continue;
                 const obj = this._objectForAuthoringId(id);
@@ -1941,7 +1941,7 @@ export class EditorViewport {
     // A geometry-following outline cannot paint a camera, light, audio source,
     // bone or empty transform. Those nodes retain the screen-space bracket
     // fallback so every hierarchy row can still be found in the viewport.
-    for (const id of this._store.selectedEntityIds) {
+    for (const id of this._store.shell.selectedEntityIds) {
       const obj = this._objectForAuthoringId(id);
       if (!obj) continue;
       const geometric = this._hasBoundableGeometry(obj);
@@ -2043,7 +2043,7 @@ export class EditorViewport {
       }
     }
     for (const [id, helper] of this._reflectionProbeHelpers) {
-      helper.setSelected(this._store.selectedEntityIds.has(id));
+      helper.setSelected(this._store.shell.selectedEntityIds.has(id));
       helper.visible =
         this._threejsToolContextActive &&
         this._store.showHelpers &&
@@ -2109,7 +2109,7 @@ export class EditorViewport {
       this._store.showHelpers &&
       this._store.helperVisibility.triggerVolumes;
     for (const [id, helper] of this._triggerVolumeHelpers) {
-      helper.setSelected(this._store.selectedEntityIds.has(id));
+      helper.setSelected(this._store.shell.selectedEntityIds.has(id));
       helper.visible = visible;
       helper.update();
     }
@@ -2168,13 +2168,13 @@ export class EditorViewport {
     }
 
     const selectedObjects = new Set<THREE.Object3D>();
-    for (const id of this._store.selectedEntityIds) {
+    for (const id of this._store.shell.selectedEntityIds) {
       const object = this._objectForAuthoringId(id);
       if (object) selectedObjects.add(object);
     }
 
     for (const [id, helper] of this._constraintHelpers) {
-      helper.setSelected(this._store.selectedEntityIds.has(id));
+      helper.setSelected(this._store.shell.selectedEntityIds.has(id));
       helper.setSelectedObjects(selectedObjects);
       helper.visible =
         this._threejsToolContextActive &&
@@ -2273,7 +2273,7 @@ export class EditorViewport {
     const id = this._authoringIdForObject(hit.control.object);
     if (id) {
       const adapter = this._authoring();
-      if (!setAuthoringSelection(adapter, [id], { intent: 'exact' })) this._store.select(id);
+      if (!setAuthoringSelection(adapter, [id], { intent: 'exact' })) this._store.shell.select(id);
       showTransientHint(`${hit.control.label} selected — move it with the gizmo.`);
     } else {
       showTransientHint(`${hit.control.label} is a runtime-only constraint control.`);
@@ -2577,7 +2577,7 @@ export class EditorViewport {
     const provider = spatialHandlesForAdapter(this._authoring());
     if (!provider || !this._threejsToolContextActive || !this._store.showHelpers) return;
     const visibility = this._store.helperVisibility;
-    for (const id of this._store.selectedEntityIds) {
+    for (const id of this._store.shell.selectedEntityIds) {
       const layers = provider.layers(id).filter((layer) => {
         if (!(layer.category in visibility)) return true;
         return visibility[layer.category as keyof typeof visibility];
@@ -2740,16 +2740,16 @@ export class EditorViewport {
     // shell chrome rather than advertising an arbitrary coordinate system.
     const policy = viewportAuthoringPolicy();
     const authoring = this._authoring();
-    const toolOwner = policy.toolOwner(authoring, this._store.selectedEntityIds);
+    const toolOwner = policy.toolOwner(authoring, this._store.shell.selectedEntityIds);
     this._threejsToolContextActive =
-      (this._standaloneAuthoring || policy.toolOwnerPainted(this._store, toolOwner)) &&
+      (this._standaloneAuthoring || policy.toolOwnerPainted(this._store.shell, toolOwner)) &&
       toolOwner?.kind === 'three';
 
     // Grid visibility — the user's toggle, AND'd with a three stage showing at
     // all (selection or not: Blender's floor is persistent; the gizmos above
     // still need an owner).
     const threeSurface =
-      this._standaloneAuthoring || policy.threeSurfaceShowing(this._store, authoring);
+      this._standaloneAuthoring || policy.threeSurfaceShowing(this._store.shell, authoring);
     this._threeSurfaceShowing = threeSurface;
     this.grid.visible = this._presentationGrid && threeSurface;
     if (this._axisLines) this._axisLines.visible = this.grid.visible && this._axesWanted;
@@ -2769,7 +2769,7 @@ export class EditorViewport {
     // changes `hiddenRootId`'s hidden state, which changes this signature,
     // so it re-applies on the very next `syncFromStore()` call — exactly the
     // same notify path that already re-triggers this whole method.
-    const hiddenRootId = this._standaloneAuthoring ? null : policy.threeViewportRootId(this._store);
+    const hiddenRootId = this._standaloneAuthoring ? null : policy.threeViewportRootId(this._store.shell);
     const hidden = hiddenRootId !== null && isRootHidden(hiddenRootId);
     // While hidden, re-apply on EVERY notify, not just signature changes: a
     // SINGLE-entity rebuild (scene-sync `updateEntityPreview`) mutates the
@@ -2859,7 +2859,7 @@ export class EditorViewport {
     // selection takes — one detach path, not a second one beside it.
     const selectedId =
       this._threejsToolContextActive && authoring.capabilities.transform && mode !== 'select'
-        ? this._store.selectedEntityId
+        ? this._store.shell.selectedEntityId
         : null;
     // Combined mode filters/attaches on POSITION (its median-filter channel)
     // and attaches when ANY channel is writable — a scale-locked prefab
@@ -2883,10 +2883,10 @@ export class EditorViewport {
       : false;
     if (selectedId && selectedTransformWritable) {
       if (!this._anyGizmoDragging()) {
-        if (this._store.pivotMode === 'median-point' && this._store.selectedEntityIds.size > 1) {
+        if (this._store.pivotMode === 'median-point' && this._store.shell.selectedEntityIds.size > 1) {
           const median = new THREE.Vector3();
           let count = 0;
-          for (const id of this._store.selectedEntityIds) {
+          for (const id of this._store.shell.selectedEntityIds) {
             if (
               !(authoring.transforms?.editability?.(id, activeTransformChannel).writable ?? true)
             ) {
@@ -3233,7 +3233,7 @@ export class EditorViewport {
 
   /** Activate vertex snap: collect target vertices from non-selected entities. */
   activateVertexSnap(): void {
-    this._vertexSnapTargets = this._collectVertices(this._store.selectedEntityIds);
+    this._vertexSnapTargets = this._collectVertices(this._store.shell.selectedEntityIds);
   }
 
   /** Deactivate vertex snap: clear collected vertices and hide indicator. */
@@ -4459,7 +4459,7 @@ export class EditorViewport {
       showTransientHint('This document does not expose writable transforms.');
       return;
     }
-    const writableSelections = [...this._store.selectedEntityIds]
+    const writableSelections = [...this._store.shell.selectedEntityIds]
       .map((id) => ({ id, obj: this._objectForAuthoringId(id) }))
       .filter(
         (entry): entry is { id: string; obj: THREE.Object3D } =>
@@ -5681,7 +5681,7 @@ export class EditorViewport {
       if (e.shiftKey) {
         // Add to existing selection (additive modifier — SelectionProvider
         // extension is Phase-F; first-party store op for now).
-        for (const id of hitIds) this._store.addToSelection(id);
+        for (const id of hitIds) this._store.shell.addToSelection(id);
       } else {
         setAuthoringSelection(this._authoring(), hitIds);
       }
@@ -5733,9 +5733,9 @@ export class EditorViewport {
       // 94, their top finding). The Hierarchy keeps the LIST convention
       // instead — shift extends a RANGE there — because a row list has an
       // order for a range to mean something and a viewport does not.
-      this._store.toggleSelection(entityId);
+      this._store.shell.toggleSelection(entityId);
     } else if ((e.metaKey || e.ctrlKey) && entityId) {
-      this._store.toggleSelection(entityId);
+      this._store.shell.toggleSelection(entityId);
     } else {
       setAuthoringSelection(this._authoring(), entityId ? [entityId] : []);
     }
@@ -5759,7 +5759,7 @@ export class EditorViewport {
   private _scopeAuthoring(): AuthoringAdapter {
     return this._standaloneAuthoring
       ? this._authoring()
-      : viewportAuthoringPolicy().panelAuthoring(this._store);
+      : viewportAuthoringPolicy().panelAuthoring(this._store.shell);
   }
 
   /** ONE pick expression for every viewport gesture: the injected `pick`
@@ -5767,7 +5767,7 @@ export class EditorViewport {
   private _pickAt(clientX: number, clientY: number, intent: 'normal' | 'deep'): string | null {
     return this._pick
       ? this._pick(clientX, clientY)
-      : viewportAuthoringPolicy().pick(this._store, clientX, clientY, intent);
+      : viewportAuthoringPolicy().pick(this._store.shell, clientX, clientY, intent);
   }
 
   /**

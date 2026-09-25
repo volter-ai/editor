@@ -598,7 +598,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     // session adopts this scene and `syncAdoptedObjectMap` keeps that index in
     // step — so picking reads the map the viewport itself draws from.
     this.projector = new ThreeProjector(this.identity, { pickScope: 'store-object-map' });
-    this.writeBackend = withProjectSourceHistory(options.writeBackend, store.projectHistory);
+    this.writeBackend = withProjectSourceHistory(options.writeBackend, store.shell.projectHistory);
     this.capabilities = {
       transform: true,
       inspectorFields: true,
@@ -613,7 +613,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
         save: async () => undefined,
         destination: options.entryPath,
         lastError: () => {
-          const error = store.projectHistory?.getSnapshot().lastError;
+          const error = store.shell.projectHistory?.getSnapshot().lastError;
           if (!error) return null;
           return error.code === 'apply-failed' ||
             error.code === 'compensation-failed' ||
@@ -624,7 +624,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       };
     }
     this.selectionState = new StoreSelectionAdoption({
-      store,
+      store: store.shell,
       owns: (id) => this.byId.has(id),
       initial: [this.documentNodeId],
     });
@@ -638,7 +638,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       documentNodeId: this.documentNodeId,
       rootIds: this.definitionRootIds,
     });
-    this.stories = componentStatesProvider('three', store, (id) => this.storyComponent(id));
+    this.stories = componentStatesProvider('three', store.shell, (id) => this.storyComponent(id));
     void this.refreshSourceState();
   }
 
@@ -772,7 +772,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       // child subscriptions when `replaceChild` swaps this adapter in (it used
       // to bind them once at subscribe time, which is why this line carried a
       // note about not being able to rely on the seam).
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
     });
   }
 
@@ -790,9 +790,9 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     // Keep selection inside the same authoritative index the hierarchy,
     // picker, and gizmo now consume; otherwise TransformControls can remain
     // attached to a ghost id after the object has disappeared from every row.
-    const retainedSelection = [...this.store.selectedEntityIds].filter((id) => map.has(id));
-    if (retainedSelection.length !== this.store.selectedEntityIds.size) {
-      this.store.selectMultiple(retainedSelection);
+    const retainedSelection = [...this.store.shell.selectedEntityIds].filter((id) => map.has(id));
+    if (retainedSelection.length !== this.store.shell.selectedEntityIds.size) {
+      this.store.shell.selectMultiple(retainedSelection);
     }
   }
 
@@ -888,7 +888,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     this.pendingCreatedSelection = {
       parentId,
       before: new Set(this.hierarchy.node(parentId)?.childIds ?? []),
-      selectionAtWrite: new Set(this.store.selectedEntityIds),
+      selectionAtWrite: new Set(this.store.shell.selectedEntityIds),
       ...(afterId ? { afterId } : {}),
     };
   }
@@ -897,7 +897,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     const pending = this.pendingCreatedSelection;
     this.pendingCreatedSelection = null;
     if (!pending) return;
-    const current = this.store.selectedEntityIds;
+    const current = this.store.shell.selectedEntityIds;
     const unchanged =
       current.size === pending.selectionAtWrite.size &&
       [...current].every((id) => pending.selectionAtWrite.has(id));
@@ -905,11 +905,11 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     const children = this.hierarchy.node(pending.parentId)?.childIds ?? [];
     const copy = pending.afterId ? this.childWrittenAfter(children, pending.afterId) : null;
     if (copy) {
-      this.store.selectMultiple([copy]);
+      this.store.shell.selectMultiple([copy]);
       return;
     }
     const fresh = children.filter((id) => !pending.before.has(id));
-    if (fresh.length > 0) this.store.selectMultiple(fresh);
+    if (fresh.length > 0) this.store.shell.selectMultiple(fresh);
   }
 
   /** Among `children`, the one whose callsite is the FIRST after `afterId`'s
@@ -969,7 +969,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       this.oidIndex = nextIndex;
       this.sources = next;
       this.reflectionProbeAvailable = reflectionProbeAvailable;
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
     } catch {
       // Honest degradation: nodes stay live-projected (read-only) if the
       // index/source can't be fetched.
@@ -1107,7 +1107,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     const tag = callsite?.tag ?? 'component';
     if (!oid || !definitionOid || !callsite) return forkUnavailableHint(tag);
     const backend = this.writeBackend;
-    const history = this.store.projectHistory;
+    const history = this.store.shell.projectHistory;
     if (!backend?.forkComponent || !backend.readSource || !backend.applySource || !history) {
       return forkNoBackendHint(tag);
     }
@@ -1169,7 +1169,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     const tag = callsite?.tag ?? 'element';
     if (!oid || !callsite) return extractUnavailableHint(tag);
     const backend = this.writeBackend;
-    const history = this.store.projectHistory;
+    const history = this.store.shell.projectHistory;
     if (!backend?.extractComponent || !backend.readSource || !backend.applySource || !history) {
       return extractNoBackendHint(tag);
     }
@@ -2130,7 +2130,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
   private pipedSourceTokenWrite(write: () => Promise<boolean>): Promise<WriteAck> {
     return runWritePipe({
       resolve: (): WriteResolution =>
-        this.writeBackend && this.store.projectHistory
+        this.writeBackend && this.store.shell.projectHistory
           ? {
               reaches: 'writer',
               anchorKind: 'construction-literal',
@@ -2386,7 +2386,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       if (channel === 'position') object.position.fromArray(edit.position);
       else if (channel === 'rotation') object.quaternion.fromArray(edit.quaternion);
       else object.scale.fromArray(edit.scale);
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
     };
 
     const backend = selectedBackend ?? this.writeBackend;
@@ -2467,7 +2467,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     } else {
       await run(backend);
     }
-    this.store.notifyIngestEdit();
+    this.store.shell.notifyIngestEdit();
     return persisted;
   }
 
@@ -2708,7 +2708,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
    * gesture-rate call keeps going straight at the slot and stays loud.
    */
   private steppingPhysics(): PhysicsAdapter | null {
-    if (this.store.playState === 'stopped') return null;
+    if (this.store.shell.playState === 'stopped') return null;
     return this.options.physics?.() ?? null;
   }
 
@@ -2803,7 +2803,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
           !!source.paramRanges &&
           !!this.writeBackend?.readSource &&
           !!this.writeBackend.applySource &&
-          !!this.store.projectHistory,
+          !!this.store.shell.projectHistory,
       });
     }
     return result;
@@ -2976,7 +2976,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
             () =>
               !!this.writeBackend?.readSource &&
               !!this.writeBackend.applySource &&
-              !!this.store.projectHistory,
+              !!this.store.shell.projectHistory,
           ),
         ),
       });
@@ -3059,7 +3059,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     rawValue: number,
   ): Promise<boolean> {
     const backend = this.writeBackend;
-    const history = this.store.projectHistory;
+    const history = this.store.shell.projectHistory;
     const token = binding.source.fields[field];
     const source = this.sources.get(binding.sourceFile);
     if (
@@ -3077,7 +3077,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     const value = normalizeParticleField(field, rawValue);
     const previous = (binding.shape as unknown as Record<string, unknown>)[field];
     previewParticleEdit({ binding, field, value });
-    this.store.notifyIngestEdit();
+    this.store.shell.notifyIngestEdit();
     const next = `${source.slice(0, token.start)}${fmt(value)}${source.slice(token.end)}`;
     try {
       await replaceProjectSource(backend, history, {
@@ -3090,7 +3090,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       return true;
     } catch (error) {
       (binding.shape as unknown as Record<string, unknown>)[field] = previous;
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
       throw error;
     }
   }
@@ -3108,7 +3108,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     const canWrite =
       !!this.writeBackend?.readSource &&
       !!this.writeBackend.applySource &&
-      !!this.store.projectHistory;
+      !!this.store.shell.projectHistory;
     return lods.map((lod, index) => {
       const sourceOid = ownOidOf(lod) ?? authoringOidOf(lod);
       const entry = sourceOid ? this.oidIndex.get(sourceOid) : undefined;
@@ -3234,7 +3234,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     rollback: () => void,
   ): Promise<boolean> {
     const backend = this.writeBackend;
-    const history = this.store.projectHistory;
+    const history = this.store.shell.projectHistory;
     const file = binding.sourceFile;
     const source = file ? this.sources.get(file) : undefined;
     if (
@@ -3249,7 +3249,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       return false;
     }
     preview();
-    this.store.notifyIngestEdit();
+    this.store.shell.notifyIngestEdit();
     const next = `${source.slice(0, token.start)}${fmt(value)}${source.slice(token.end)}`;
     try {
       await replaceProjectSource(backend, history, { file, source: next, label });
@@ -3258,7 +3258,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       return true;
     } catch (error) {
       rollback();
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
       throw error;
     }
   }
@@ -3311,7 +3311,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     params: readonly R3fJointLiteral[],
   ): Promise<boolean> {
     const backend = this.writeBackend;
-    const history = this.store.projectHistory;
+    const history = this.store.shell.projectHistory;
     const source = this.sources.get(binding.sourceFile);
     const before = binding.source.params;
     const ranges = binding.source.paramRanges;
@@ -3490,7 +3490,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       !token ||
       !this.writeBackend?.readSource ||
       !this.writeBackend.applySource ||
-      !this.store.projectHistory
+      !this.store.shell.projectHistory
     ) {
       return false;
     }
@@ -3797,7 +3797,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     rollback: () => void,
   ): Promise<boolean> {
     const backend = this.writeBackend;
-    const history = this.store.projectHistory;
+    const history = this.store.shell.projectHistory;
     const text = this.sources.get(source.file);
     if (
       !backend ||
@@ -3817,7 +3817,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       replacement = fmt(value);
     }
     preview();
-    this.store.notifyIngestEdit();
+    this.store.shell.notifyIngestEdit();
     const next = `${text.slice(0, token.start)}${replacement}${text.slice(token.end)}`;
     try {
       await replaceProjectSource(backend, history, { file: source.file, source: next, label });
@@ -3826,7 +3826,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       return true;
     } catch (error) {
       rollback();
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
       throw error;
     }
   }
@@ -3900,7 +3900,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     const echoKey = this.echoKey(id, 'visible');
     object.visible = value;
     this.valueEcho.set(echoKey, value);
-    this.store.notifyIngestEdit();
+    this.store.shell.notifyIngestEdit();
     try {
       const result = await backend.writeProp(oid, 'visible', this.serializeValue(value), {
         addIfMissing: true,
@@ -3909,7 +3909,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       if (result.dynamic) this.dynamicPaths.add(echoKey);
       object.visible = previous;
       this.valueEcho.delete(echoKey);
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
       console.warn(
         `[R3fSourceAuthoringAdapter] visibility write refused for oid "${oid}": ` +
           `${result.dynamic ? 'dynamic expression (guarded)' : (result.error ?? 'no change')} — reverting.`,
@@ -3918,7 +3918,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     } catch (error) {
       object.visible = previous;
       this.valueEcho.delete(echoKey);
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
       console.warn(
         `[R3fSourceAuthoringAdapter] visibility write failed for oid "${oid}": ${String(error)} — reverting.`,
       );
@@ -3942,7 +3942,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       );
       if (!field || field.type === 'asset') return;
       applyTypedField(object, firstMaterial(object), field, value);
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
     },
     properties: (id): PropertyDescriptor[] => {
       if (id === this.documentNodeId) {
@@ -4147,7 +4147,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       if (path === 'locked') {
         if (value) this.lockedIds.add(id);
         else this.lockedIds.delete(id);
-        this.store.notifyIngestEdit();
+        this.store.shell.notifyIngestEdit();
         return;
       }
       const typedField = typedFieldForPath(
@@ -4395,7 +4395,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     this.valueEcho.delete(this.echoKey(id, path));
     const res = await this.writeBackend.removeProp(oid, prop);
     if (!res.changed) {
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
       console.warn(
         `[R3fSourceAuthoringAdapter] revert refused/no-op for oid "${oid}" prop "${prop}": ` +
           `${res.dynamic ? 'dynamic expression (guarded)' : (res.error ?? 'no change')}`,
@@ -4427,7 +4427,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     }
     const echoKey = this.echoKey(id, path);
     this.valueEcho.set(echoKey, value);
-    this.store.notifyIngestEdit();
+    this.store.shell.notifyIngestEdit();
     let res: Awaited<ReturnType<NonNullable<SourceWriteBackend['writeProp']>>>;
     try {
       res = await this.writeBackend.writeProp(oid, prop, this.serializeValue(value), {
@@ -4435,7 +4435,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       });
     } catch (error) {
       this.valueEcho.delete(echoKey);
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
       console.warn(
         `[R3fSourceAuthoringAdapter] prop write failed for oid "${oid}" prop "${prop}": ${String(error)}`,
       );
@@ -4444,7 +4444,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     if (!res.changed) {
       this.valueEcho.delete(echoKey);
       if (res.dynamic) this.dynamicPaths.add(echoKey);
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
       console.warn(
         `[R3fSourceAuthoringAdapter] prop write refused/no-op for oid "${oid}" prop "${prop}": ` +
           `${res.dynamic ? 'dynamic expression (guarded)' : (res.error ?? 'no change')}`,
@@ -4470,7 +4470,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     }
     const echoKey = `${id}|${path}`;
     this.valueEcho.set(echoKey, value);
-    this.store.notifyIngestEdit();
+    this.store.shell.notifyIngestEdit();
     let res: Awaited<ReturnType<NonNullable<SourceWriteBackend['writeProp']>>>;
     try {
       res = await this.writeBackend.writeProp(oid, prop, this.serializeValue(value), {
@@ -4488,7 +4488,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       });
     } catch (error) {
       this.valueEcho.delete(echoKey);
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
       console.warn(
         `[R3fSourceAuthoringAdapter] prop write failed for oid "${oid}" prop "${prop}": ${String(error)}`,
       );
@@ -4497,7 +4497,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     if (!res.changed) {
       this.valueEcho.delete(echoKey);
       if (res.dynamic) this.dynamicPaths.add(echoKey);
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
       console.warn(
         `[R3fSourceAuthoringAdapter] prop write refused/no-op for oid "${oid}" prop "${prop}": ` +
           `${res.dynamic ? 'dynamic expression (guarded)' : (res.error ?? 'no change')}`,
@@ -4620,7 +4620,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     const applied = applyTypedField(object, material, field, value);
     if (applied !== null) {
       this.valueEcho.set(`${id}|${field.path}`, readTypedField(object, material, field));
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
     }
     return runWritePipe({
       resolve: (): WriteResolution =>
@@ -4656,7 +4656,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       const before = readTypedField(object, material, field);
       const applied = applyTypedField(object, material, field, value);
       if (applied === null) return false;
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
       const wrote = await this.writeJsxProp(
         id,
         `${JSX_PATH_PREFIX}${routedProp}`,
@@ -4665,7 +4665,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       );
       if (!wrote && before !== null && before !== undefined) {
         applyTypedField(object, material, field, before);
-        this.store.notifyIngestEdit();
+        this.store.shell.notifyIngestEdit();
       }
       return wrote;
     }
@@ -4683,7 +4683,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     if (applied === null) return false;
     const echoKey = `${id}|${field.path}`;
     this.valueEcho.set(echoKey, readTypedField(object, material, field));
-    this.store.notifyIngestEdit();
+    this.store.shell.notifyIngestEdit();
     let res: Awaited<ReturnType<NonNullable<SourceWriteBackend['writeProp']>>>;
     try {
       res = await this.writeBackend.writeProp(oid, field.prop, this.serializeValue(applied), {
@@ -4692,7 +4692,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     } catch (error) {
       this.valueEcho.delete(echoKey);
       await this.refreshSourceState();
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
       console.warn(
         `[R3fSourceAuthoringAdapter] typed "${field.prop}" write failed for oid "${oid}": ${String(error)}`,
       );
@@ -4723,7 +4723,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
       // next remount disagreed — runhuman pass 41). The narration goes to the
       // EDITOR console: a raw console.warn is invisible in the product.
       if (before !== null && before !== undefined) applyTypedField(object, material, field, before);
-      this.store.notifyIngestEdit();
+      this.store.shell.notifyIngestEdit();
       editorConsole.warn(
         `“${field.prop}” on “${this.hierarchy.node(id)?.label ?? id}” is ${
           res.dynamic
@@ -5786,7 +5786,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
           return false;
         }
         if (res.warning) showTransientHint(res.warning);
-        this.store.notifyIngestEdit();
+        this.store.shell.notifyIngestEdit();
         return true;
       },
       'reparent',
@@ -5808,7 +5808,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     report: (message) => console.warn(`[R3fSourceAuthoringAdapter] ${message}`),
     noWriterReason: NO_SOURCE_WRITER_REASON,
     backend: () => this.writeBackend,
-    onChanged: () => this.store.notifyIngestEdit(),
+    onChanged: () => this.store.shell.notifyIngestEdit(),
   });
 
   /**
@@ -5894,8 +5894,8 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
     ack: Promise<WriteAck>,
   ): Promise<WriteAck> {
     const removed = new Set(ids);
-    const wasSelected = [...this.store.selectedEntityIds].some((id) => removed.has(id));
-    if (wasSelected) this.store.selectMultiple([]);
+    const wasSelected = [...this.store.shell.selectedEntityIds].some((id) => removed.has(id));
+    if (wasSelected) this.store.shell.selectMultiple([]);
     return ack;
   }
 
@@ -5923,7 +5923,7 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
   }
 
   subscribe(listener: () => void): () => void {
-    return this.store.subscribe(listener);
+    return this.store.shell.subscribe(listener);
   }
 
   get documentId(): string {

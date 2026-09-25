@@ -35,11 +35,11 @@ export function DefaultEditorLayout() {
 
   // Subscribe to store changes: the reads below are what need it; the version
   // itself is not read.
-  useSyncExternalStore(store.subscribe, store.getShellSnapshot ?? store.getSnapshot);
+  useSyncExternalStore(store.shell.subscribe, store.shell.getShellSnapshot ?? store.shell.getSnapshot);
   // W1 — install the authored document plus the warm runtime host (whose Game
   // tab is rail-visible only while active) and keep registry activation synced
   // with the store's activeViewportTab (T6.3 gate).
-  useCenterDocuments(store);
+  useCenterDocuments(store.shell);
   // W3 (workspace-shell §9/W3) — the shell contributions the new center
   // documents ride on:
   //  - the STANDING tool documents (`installStandingToolDocuments`): every
@@ -64,10 +64,10 @@ export function DefaultEditorLayout() {
   useEffect(() => setWorkspaceHistoryService(history), [history]);
   // Undo/redo/save/delete live here, not on the world root's stage: a canvas-only
   // project never mounts that panel, and Ctrl+Z was a silent no-op there.
-  useEffect(() => registerEditorShellHotkeys(store, historyCommands), [store, historyCommands]);
+  useEffect(() => registerEditorShellHotkeys(store.shell, historyCommands), [store, historyCommands]);
   // W2 (§5.1) — an ENTITY selection change drops the asset selection, so the
   // Inspector goes back to being purely entity-contextual (asset-selection.ts).
-  useEffect(() => installAssetSelectionAutoClear(store), [store]);
+  useEffect(() => installAssetSelectionAutoClear(store.shell), [store]);
 
   // Subscribe to server-sent asset move events (file watcher)
   useEffect(() => {

@@ -1191,13 +1191,13 @@ export function RootSelectionOverlay({
   transformModeAware?: boolean;
 } = {}): React.ReactNode {
   const store = threeStateOf(useEditorStore());
-  const storeVersion = useSyncExternalStore(store.subscribe, store.getSnapshot);
-  const adapter = scopedAdapter ?? getActiveAuthoring(store);
+  const storeVersion = useSyncExternalStore(store.shell.subscribe, store.shell.getSnapshot);
+  const adapter = scopedAdapter ?? getActiveAuthoring(store.shell);
   const pickAt = useCallback(
     (clientX: number, clientY: number): string | null =>
       scopedAdapter
         ? (scopedAdapter.pickable?.pick(clientX, clientY) ?? null)
-        : pickTopmost(store, clientX, clientY),
+        : pickTopmost(store.shell, clientX, clientY),
     [scopedAdapter, store],
   );
 
@@ -1225,7 +1225,7 @@ export function RootSelectionOverlay({
   } | null>(null);
   const openPickMenuAt = useCallback(
     (clientX: number, clientY: number) => {
-      const ids = pickCandidates(store, clientX, clientY, {
+      const ids = pickCandidates(store.shell, clientX, clientY, {
         ...(scopedAdapter ? { adapter: scopedAdapter } : {}),
       });
       if (ids.length === 0) {
@@ -1455,7 +1455,7 @@ export function RootSelectionOverlay({
   // forever the way it did pre-fix (only another double-click cleared it).
   const textEditRefusedSelectionRef = useRef<string>('');
   useEffect(() => {
-    const signature = [...store.selectedEntityIds].sort().join(',');
+    const signature = [...store.shell.selectedEntityIds].sort().join(',');
     if (signature !== textEditRefusedSelectionRef.current) {
       textEditRefusedSelectionRef.current = signature;
       if (textEditRefused) setTextEditRefused(null);
@@ -1567,7 +1567,7 @@ export function RootSelectionOverlay({
     (pos: HandlePos, e: ReactPointerEvent) => {
       e.stopPropagation();
       if (e.button !== 0) return;
-      const selected = store.selectedEntityIds;
+      const selected = store.shell.selectedEntityIds;
       if (selected.size !== 1) return;
       const id = [...selected][0]!;
       const owner = boxEditForId(adapter, id);
@@ -1599,7 +1599,7 @@ export function RootSelectionOverlay({
     (e: ReactPointerEvent) => {
       e.stopPropagation();
       if (e.button !== 0) return;
-      const selected = store.selectedEntityIds;
+      const selected = store.shell.selectedEntityIds;
       if (selected.size !== 1) return;
       const id = [...selected][0]!;
       const owner = boxEditForId(adapter, id);
@@ -1625,7 +1625,7 @@ export function RootSelectionOverlay({
     (axis: 'x' | 'y' | 'both', e: ReactPointerEvent) => {
       e.stopPropagation();
       if (e.button !== 0) return;
-      const selected = store.selectedEntityIds;
+      const selected = store.shell.selectedEntityIds;
       if (selected.size !== 1) return;
       const id = [...selected][0]!;
       const owner = boxEditForId(adapter, id);
@@ -1655,7 +1655,7 @@ export function RootSelectionOverlay({
     (axis: 'x' | 'y' | 'both', e: ReactPointerEvent) => {
       e.stopPropagation();
       if (e.button !== 0) return;
-      const selected = store.selectedEntityIds;
+      const selected = store.shell.selectedEntityIds;
       if (selected.size !== 1) return;
       const id = [...selected][0]!;
       const owner = boxEditForId(adapter, id);
@@ -1685,7 +1685,7 @@ export function RootSelectionOverlay({
     (point: BoxEditReferencePoint, e: ReactPointerEvent) => {
       e.stopPropagation();
       if (e.button !== 0) return;
-      const selected = store.selectedEntityIds;
+      const selected = store.shell.selectedEntityIds;
       if (selected.size !== 1) return;
       const id = [...selected][0]!;
       const owner = boxEditForId(adapter, id);
@@ -1764,7 +1764,7 @@ export function RootSelectionOverlay({
     (band: SpacingBand, e: ReactPointerEvent) => {
       e.stopPropagation();
       if (e.button !== 0) return;
-      const selected = store.selectedEntityIds;
+      const selected = store.shell.selectedEntityIds;
       if (selected.size !== 1) return;
       const id = [...selected][0]!;
       const owner = boxEditForId(adapter, id);
@@ -2068,11 +2068,11 @@ export function RootSelectionOverlay({
       // comment. `hitAtDown` keeps the deep pick for click-select on release.
       const moveSubject =
         hitAtDown !== null
-          ? nearestSelectedAncestor(adapter, hitAtDown, store.selectedEntityIds)
+          ? nearestSelectedAncestor(adapter, hitAtDown, store.shell.selectedEntityIds)
           : null;
       const moveCandidate: DragState['moveCandidate'] =
         (!transformModeAware || store.transformMode === 'translate') && moveSubject !== null
-          ? resolveMoveCandidate(adapter, moveSubject, store.selectedEntityIds)
+          ? resolveMoveCandidate(adapter, moveSubject, store.shell.selectedEntityIds)
           : null;
 
       // D2.b: the SAME "already selected" gate, checked ONLY when there's no
@@ -2290,7 +2290,7 @@ export function RootSelectionOverlay({
       if (!drag) return;
       const nextSelection =
         drag.hitAtDown !== null
-          ? resolveClickSelection(store.selectedEntityIds, drag.hitAtDown, e.shiftKey)
+          ? resolveClickSelection(store.shell.selectedEntityIds, drag.hitAtDown, e.shiftKey)
           : resolveEmptySpaceSelection(adapter, drag.moved, marqueeRef.current, e.shiftKey);
       if (nextSelection !== null) setAuthoringSelection(adapter, nextSelection);
       setMarquee(null);
@@ -2428,7 +2428,7 @@ export function RootSelectionOverlay({
   // merged, non-owner-routed membership check, so filtering here keeps the
   // overlay quiet for that one frame and lets stable ids resume naturally.
   const selectedIds = new Set(
-    [...store.selectedEntityIds].filter((id) => adapter.hierarchy.node(id) !== undefined),
+    [...store.shell.selectedEntityIds].filter((id) => adapter.hierarchy.node(id) !== undefined),
   );
   const hoverRect =
     hoverId !== null && !selectedIds.has(hoverId) ? rectForId(adapter, hoverId) : null;

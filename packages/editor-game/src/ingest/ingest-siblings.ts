@@ -348,7 +348,7 @@ async function mountScopedRuntimeSibling(
           authoring =
             worldInstance.mounted.authoring ??
             makeNoAuthoringAdapter(
-              store,
+              store.shell,
               `${world.id} (${worldInstance.mounted.kind === 'canvas' ? worldInstance.mounted.substrate.name : 'unknown'} authoring unavailable)`,
             );
         } else {
@@ -368,7 +368,7 @@ async function mountScopedRuntimeSibling(
           });
         }
       } else {
-        authoring = makeNoAuthoringAdapter(store, `${world.id} (no authoring surface)`);
+        authoring = makeNoAuthoringAdapter(store.shell, `${world.id} (no authoring surface)`);
       }
     }
     return {

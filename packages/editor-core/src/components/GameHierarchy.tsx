@@ -1198,7 +1198,7 @@ function ContextMenu({
   // The FOCUSED stage's selection (ARCHITECTURE-CORE §One stage unit 4): a
   // context menu opened over a model document's row must copy that stage's
   // selection, not the world's.
-  const selectedIds = [...focusedStageStore(store).selectedEntityIds];
+  const selectedIds = [...focusedStageStore(store).shell.selectedEntityIds];
   const clipboardIds = selectedIds.includes(state.nodeId) ? selectedIds : [state.nodeId];
 
   // Spec 29 §5 disabled-with-reason: when the SUBJECT of an operation is
@@ -1289,7 +1289,7 @@ function ContextMenu({
         // the clicked row alone silently dropped the other members (runhuman
         // pass 68: "select all this, click Delete — just one gets deleted").
         if (selectedIds.length > 1 && selectedIds.includes(state.nodeId)) {
-          void duplicateSelection(store);
+          void duplicateSelection(store.shell);
         } else {
           void duplicateAuthoringNode(adapter, state.nodeId).ack;
         }
@@ -1351,7 +1351,7 @@ function ContextMenu({
       ...(visibleWritable ? {} : { disabledReason: visibleEditability?.reason ?? reason }),
       action: () => {
         adapter.inspector!.set(state.nodeId, 'visible', !visible);
-        store.notifyIngestEdit();
+        store.shell.notifyIngestEdit();
         onClose();
       },
     });
@@ -1360,7 +1360,7 @@ function ContextMenu({
       ...(lockedWritable ? {} : { disabledReason: lockedEditability?.reason ?? reason }),
       action: () => {
         adapter.inspector!.set(state.nodeId, 'locked', !locked);
-        store.notifyIngestEdit();
+        store.shell.notifyIngestEdit();
         onClose();
       },
     });
@@ -1387,7 +1387,7 @@ function ContextMenu({
         // carries the ordering/serialization a multi-delete needs (see
         // `deleteSelection`'s source-corruption note).
         if (selectedIds.length > 1 && selectedIds.includes(state.nodeId)) {
-          void deleteSelection(store);
+          void deleteSelection(store.shell);
         } else {
           adapter.structure!.remove(state.nodeId);
         }
@@ -2066,7 +2066,7 @@ const Row = memo(function Row({
           // A story row's node id IS the composed story id, which is the
           // whole address (`document-open-registry.ts`): resolving it, and
           // choosing the medium's document, is the story kind's own job.
-          openRegisteredDocument('story', store, { storyId: node.id });
+          openRegisteredDocument('story', store.shell, { storyId: node.id });
         } else if (
           node.role === 'component' ||
           node.role === 'instance' ||
@@ -2234,13 +2234,13 @@ const Row = memo(function Row({
           defaultValue={node.label}
           onBlur={(e) => {
             adapter.inspector!.set(node.id, 'name', e.currentTarget.value);
-            store.notifyIngestEdit();
+            store.shell.notifyIngestEdit();
             onStartEditing('');
           }}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               adapter.inspector!.set(node.id, 'name', e.currentTarget.value);
-              store.notifyIngestEdit();
+              store.shell.notifyIngestEdit();
               onStartEditing('');
             }
             if (e.key === 'Escape') onStartEditing('');
@@ -2523,7 +2523,7 @@ const Row = memo(function Row({
           onClick={(e) => {
             e.stopPropagation();
             adapter.inspector!.set(node.id, 'locked', !locked);
-            store.notifyIngestEdit();
+            store.shell.notifyIngestEdit();
           }}
         >
           <EditorIcon icon={locked ? faLock : faLockOpen} aria-hidden="true" />
@@ -2571,7 +2571,7 @@ const Row = memo(function Row({
             onClick={(e) => {
               e.stopPropagation();
               adapter.inspector!.set(node.id, 'exclude', !excluded);
-              store.notifyIngestEdit();
+              store.shell.notifyIngestEdit();
             }}
           >
             <EditorIcon
@@ -2609,10 +2609,10 @@ const Row = memo(function Row({
             e.stopPropagation();
             if (badge) {
               toggleRootHidden(badge.worldId);
-              store.notifyIngestEdit();
+              store.shell.notifyIngestEdit();
             } else {
               adapter.inspector!.set(node.id, 'visible', !visible);
-              store.notifyIngestEdit();
+              store.shell.notifyIngestEdit();
             }
           }}
         >
@@ -2661,7 +2661,7 @@ const Row = memo(function Row({
             onClick={(e) => {
               e.stopPropagation();
               adapter.inspector!.set(node.id, 'renderVisible', !renderVisible);
-              store.notifyIngestEdit();
+              store.shell.notifyIngestEdit();
             }}
           >
             <EditorIcon
@@ -2694,7 +2694,7 @@ const Row = memo(function Row({
           onClick={(e) => {
             e.stopPropagation();
             toggleRootInteractive(badge.worldId);
-            store.notifyIngestEdit();
+            store.shell.notifyIngestEdit();
           }}
         >
           <EditorIcon icon={faHandPointer} aria-hidden="true" />
@@ -2714,7 +2714,7 @@ const Row = memo(function Row({
           onClick={(e) => {
             e.stopPropagation();
             toggleRootPickLock(badge.worldId);
-            store.notifyIngestEdit();
+            store.shell.notifyIngestEdit();
           }}
         >
           <EditorIcon icon={faCrosshairs} aria-hidden="true" />
@@ -2765,8 +2765,8 @@ interface BrowseRowView {
  * as Storybook can supply the same public authoring contract without booting a
  * project session or maintaining a second hierarchy implementation. */
 export function GameHierarchySurface({ store, adapter }: GameHierarchySurfaceProps) {
-  useSyncExternalStore(store.subscribe, store.getSnapshot);
-  const deferredContentVersion = useDeferredValue(store.contentVersion);
+  useSyncExternalStore(store.shell.subscribe, store.shell.getSnapshot);
+  const deferredContentVersion = useDeferredValue(store.shell.contentVersion);
   useSyncExternalStore(subscribeSelectionScope, selectionScopeVersion);
   // THE ROW MARKS THE ACTIVE LOOK ASKS FOR, read ONCE per panel render and
   // handed down as ordinary props — never per row. Same shape as
@@ -2778,8 +2778,8 @@ export function GameHierarchySurface({ store, adapter }: GameHierarchySurfacePro
   const restrictionColumns =
     activeChromeRegions().hierarchyRestrictions ?? ('select+viewport' as const);
   const [adapterVersion, forceAdapterUpdate] = useReducer((value: number) => value + 1, 0);
-  const observedStoreVersion = useRef(store.getSnapshot());
-  observedStoreVersion.current = store.getSnapshot();
+  const observedStoreVersion = useRef(store.shell.getSnapshot());
+  observedStoreVersion.current = store.shell.getSnapshot();
   const [collaboration, setCollaboration] = useState<CollaborationSnapshot | null>(
     collaborationSnapshot(),
   );
@@ -2798,7 +2798,7 @@ export function GameHierarchySurface({ store, adapter }: GameHierarchySurfacePro
   useEffect(
     () =>
       adapter.subscribe?.(() => {
-        observedStoreVersion.current = store.getSnapshot();
+        observedStoreVersion.current = store.shell.getSnapshot();
         forceAdapterUpdate();
       }),
     [adapter, store],
@@ -2839,10 +2839,10 @@ export function GameHierarchySurface({ store, adapter }: GameHierarchySurfacePro
   // the expensive per-row lock/body queries on the store's explicit facet
   // epoch. An exact object-map delta admits/removes rows but cannot change the
   // reflected properties of survivors; new ids miss both caches naturally.
-  const editabilityVersion = store.hierarchyRowFacetVersion;
+  const editabilityVersion = store.shell.hierarchyRowFacetVersion;
   // A4 — recomputed per notify (never cached across notifies): drives the
   // world-group rows' ●/○ focus radio.
-  const threeViewportRootId = resolveThreeViewportRootId(store);
+  const threeViewportRootId = resolveThreeViewportRootId(store.shell);
 
   const [search, setSearch] = useState('');
   // The dock group's header-actions element, when the shell published one —
@@ -3023,7 +3023,7 @@ export function GameHierarchySurface({ store, adapter }: GameHierarchySurfacePro
     const objectMapDelta = previous ? objectMapEpoch - previous.objectMapEpoch : 0;
     const incrementalChanges =
       previous?.adapter === adapter &&
-      deferredContentVersion === store.contentVersion &&
+      deferredContentVersion === store.shell.contentVersion &&
       contentDelta > 0 &&
       contentDelta === objectMapDelta
         ? store.ingestObjectMapChangesSince(previous.objectMapEpoch)
@@ -3121,7 +3121,7 @@ export function GameHierarchySurface({ store, adapter }: GameHierarchySurfacePro
   // playing (a live scene graph can also balloon) — matches the exact
   // capping policy the former SceneHierarchy (play-only) / IngestHierarchy
   // (always, unless searching) components each had on their own.
-  const capEnabled = term.length === 0 && (hasAuthoringOverride() || store.playState !== 'stopped');
+  const capEnabled = term.length === 0 && (hasAuthoringOverride() || store.shell.playState !== 'stopped');
   const temporaryRevealed = mergeRevealCounts(
     revealedRef.current,
     capEnabled ? selectedRevealCounts(structure.index, selectedIds) : EMPTY_REVEAL_COUNTS,
@@ -3830,7 +3830,7 @@ export function GameHierarchy() {
   useSyncExternalStore(subscribeActiveAuthoring, activeAuthoringVersion);
   // Shares ONE resolver with the Inspector — the two panels disagreeing about
   // the active adapter is the bug (`authoring/panel-authoring.ts`).
-  const { adapter } = resolvePanelAuthoring(store);
+  const { adapter } = resolvePanelAuthoring(store.shell);
   // A composite can replace its focused Boundary child with a live R3F child
   // in place while retaining both the composite and active-override identity.
   // The surface's subscription can invalidate rows, but it cannot replace its

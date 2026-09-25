@@ -82,7 +82,7 @@ export const viewportCommands: CommandContribution['commands'] = {
     // the adapter-owned screen rect consumed by CanvasSceneControls, so strict
     // existence is the owned hierarchy node plus the rect capability. Resolved
     // against the active document just like Hierarchy/Inspector do.
-    const activeAdapter = activeDocumentAuthoring(store);
+    const activeAdapter = activeDocumentAuthoring(store.shell);
     if (activeAdapter.hierarchy.node(id) !== null && activeAdapter.rects) {
       store.focusOnEntity(id);
       return OK;
@@ -182,7 +182,7 @@ export const viewportCommands: CommandContribution['commands'] = {
     // adopted through them came back white.
     if (store.hasAdoptedScene) {
       try {
-        const capture = await captureActiveEditorDocument(store, requested.size);
+        const capture = await captureActiveEditorDocument(store.shell, requested.size);
         return { ok: true, data: { base64: capture.base64, mimeType: capture.mimeType } };
       } catch (error) {
         return { ok: false, error: error instanceof Error ? error.message : String(error) };
