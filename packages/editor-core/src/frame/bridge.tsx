@@ -59,7 +59,7 @@ import { subscribeAdapterEditorConfiguration } from '../adapter-editor-config';
 import { AppRoot } from '../components/AppRoot';
 import { CompactInspectorCard } from '../components/CompactInspectorCard';
 import { GameHierarchy } from '../components/GameHierarchy';
-import { Inspector } from '../components/Inspector';
+import { Inspector, InspectorShownAsCard } from '../components/Inspector';
 import { ProjectHeader } from '../components/ProjectHeader';
 import { DocumentView } from '../components/ProjectLayout';
 import { WorkspaceDocumentSurface } from '../components/WorkspaceDocumentSurface';
@@ -855,10 +855,13 @@ function Workspace({ arrangement, immersivePlay }: WorkspaceProps) {
           parts.outliner,
         )}
       {parts.properties &&
-        inspection.column &&
         createPortal(
           <PartShell>
-            <Inspector />
+            {inspection.column ? (
+              <Inspector />
+            ) : (
+              <InspectorShownAsCard surface={inspection.surface} />
+            )}
           </PartShell>,
           parts.properties,
         )}

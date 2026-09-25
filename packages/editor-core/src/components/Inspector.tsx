@@ -22,7 +22,7 @@
 
 import { threeStateOf } from '../three-state';
 import { faUpRightAndDownLeftFromCenter } from '@fortawesome/free-solid-svg-icons';
-import { EditorIcon, IconButton, Panel, themeVars } from '@volter/editor-sdk/widgets';
+import { Button, EditorIcon, IconButton, Panel, themeVars } from '@volter/editor-sdk/widgets';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { useEffect, useReducer, useSyncExternalStore } from 'react';
 import { assetSelectionVersion, subscribeAssetSelection } from '../asset-selection';
@@ -230,5 +230,42 @@ export function Inspector() {
       presentation={display.presentation}
       surface={display.surface}
     />
+  );
+}
+
+/**
+ * WHAT THE INSPECTOR PART SHOWS WHILE THE INSPECTOR IS THE VIEWPORT'S CARD —
+ * the Code-OSS frame's Inspector view, when the person has collapsed this
+ * surface's inspector to the card (a per-surface preference,
+ * `inspector-presentation.ts`). Without it the view stayed blank with the
+ * subject selected, and nothing said where the inspector had gone or how to
+ * bring it back (owner-sighted, "the Inspector pane is empty").
+ */
+export function InspectorShownAsCard({ surface }: { readonly surface: InspectionSurfaceKind }) {
+  return (
+    <Panel name="Inspector" hideHeader data-testid="inspector-shown-as-card">
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          gap: 'var(--vgai-space-3)',
+          padding: 'var(--vgai-space-4)',
+          color: themeVars.content.muted,
+          fontSize: 'var(--vgai-font-md)',
+          lineHeight: 1.5,
+        }}
+      >
+        <span>The inspector for this view is shown as a card in the viewport.</span>
+        <Button
+          variant="secondary"
+          size="compact"
+          data-testid="inspector-dock-here"
+          onClick={() => setInspectorPresentationOverride(surface, 'column')}
+        >
+          Show it here
+        </Button>
+      </div>
+    </Panel>
   );
 }
