@@ -6,16 +6,16 @@ Rule 6 of [ARCHITECTURE.md](../ARCHITECTURE.md) says a component is themable onl
 
 Measured from the engines' own sources, 2026-09-25. Colours are sRGB; a fourth value is alpha.
 
-| Property | Blender 5 (`userdef_default_theme.c`, `space_view3d`) | Godot 4.4 (`editor_settings.cpp`, `node_3d_editor_plugin.cpp`, `editor_theme_manager.cpp`) | Unity 6 (UnityCsReference: `SceneView.cs`, `SceneViewGrid.cs`, `Handles.cs`) | Unreal 5 |
+| Property | Blender 5 (`userdef_default_theme.c`, `space_view3d`) | Godot 4.4 (`editor_settings.cpp`, `node_3d_editor_plugin.cpp`, `editor_theme_manager.cpp`) | Unity 6 (UnityCsReference: `SceneView.cs`, `SceneViewGrid.cs`, `Handles.cs`) | Unreal 5 (read from its documentation's frames, not its source) |
 |---|---|---|---|---|
-| Backdrop | flat `#3d3d3d`; the theme also offers linear and radial gradients to `back_grad` `#303030` | procedural preview sky: top `(0.385, 0.454, 0.55)`, ground `(0.2, 0.169, 0.133)`, horizon derived from the two (their mix, pulled halfway to its own luminance x 3.333) | the scene's skybox (a new scene's procedural sky); flat `(0.278, 0.278, 0.278)` with the skybox off; `(0.132, 0.231, 0.330)` in Prefab Mode | not measured |
-| Light when the scene has none | none; Solid shading lights by studio light (a matcap-like preset), no scene light | preview sun: white, energy 1, altitude 60°, azimuth 150°, shadows to 100 m; sky energy 1 | a new scene's own Directional Light and the skybox's ambient | not measured |
-| Tone and post | Solid mode draws unlit studio shading, no tone mapper | filmic tone mapper on, glow on, SSAO off, SDFGI off | none by default | not measured |
-| Grid | minor `#545454` at alpha 0.5, major `#545454`; axis lines at `grid_axis_brightness` 0.46 | primary `(0.56, 0.56, 0.56, 0.5)`, secondary `(0.38, 0.38, 0.38, 0.5)`, 8 primary steps; XY, XZ and YZ planes toggle separately | `(0.5, 0.5, 0.5, 0.4)` | not measured |
-| Axis colours | X `#ff3352`, Y `#8bdc00`, Z `#2890ff` | X `(0.96, 0.20, 0.32)`, Y `(0.53, 0.84, 0.01)`, Z `(0.16, 0.55, 0.96)` | X `(219, 62, 29)`, Y `(154, 243, 72)`, Z `(58, 122, 248)`, each alpha 0.93; centre `(0.8, 0.8, 0.8)` | not measured |
-| Selection | selected `#ed5700`, active `#ffa028`, outline width 1 | selection BOX (the AABB's corners) `(1.0, 0.5, 0)`; no mesh outline | outline `#ff6600`; selected children `(94, 119, 155)`; wireframe selected `(94, 119, 155, 64)` | not measured |
+| Backdrop | flat `#3d3d3d`; the theme also offers linear and radial gradients to `back_grad` `#303030` | procedural preview sky: top `(0.385, 0.454, 0.55)`, ground `(0.2, 0.169, 0.133)`, horizon derived from the two (their mix, pulled halfway to its own luminance x 3.333) | the scene's skybox (a new scene's procedural sky); flat `(0.278, 0.278, 0.278)` with the skybox off; `(0.132, 0.231, 0.330)` in Prefab Mode | the level's own sky (the Minimal Default level's sky atmosphere) |
+| Light when the scene has none | none; Solid shading lights by studio light (a matcap-like preset), no scene light | preview sun: white, energy 1, altitude 60°, azimuth 150°, shadows to 100 m; sky energy 1 | a new scene's own Directional Light and the skybox's ambient | the level's own lights, in Lit mode |
+| Tone and post | Solid mode draws unlit studio shading, no tone mapper | filmic tone mapper on, glow on, SSAO off, SDFGI off | none by default | not read from a frame |
+| Grid | minor `#545454` at alpha 0.5, major `#545454`; axis lines at `grid_axis_brightness` 0.46 | primary `(0.56, 0.56, 0.56, 0.5)`, secondary `(0.38, 0.38, 0.38, 0.5)`, 8 primary steps; XY, XZ and YZ planes toggle separately | `(0.5, 0.5, 0.5, 0.4)` | none visible in the default frame |
+| Axis colours | X `#ff3352`, Y `#8bdc00`, Z `#2890ff` | X `(0.96, 0.20, 0.32)`, Y `(0.53, 0.84, 0.01)`, Z `(0.16, 0.55, 0.96)` | X `(219, 62, 29)`, Y `(154, 243, 72)`, Z `(58, 122, 248)`, each alpha 0.93; centre `(0.8, 0.8, 0.8)` | an axis triad in the corner, Z up |
+| Selection | selected `#ed5700`, active `#ffa028`, outline width 1 | selection BOX (the AABB's corners) `(1.0, 0.5, 0)`; no mesh outline | outline `#ff6600`; selected children `(94, 119, 155)`; wireframe selected `(94, 119, 155, 64)` | a thick yellow-orange outline |
 
-Unreal is not installed on this box, and its documentation does not state these defaults, so its column is empty until it is measured from the running editor.
+Unreal is not installed on this box and its documentation does not state these defaults, so its column is read from the documentation's own frames (`/Volumes/PeakSSD/volter-work/engine-reference`, with the other engines' frames and their sources); its values are observations, not measured numbers.
 
 ## What a look can declare today
 
@@ -70,8 +70,8 @@ Capability, per target (can its default viewport and its toggles be expressed wi
 | Target | Expressible now | Not yet |
 |---|---|---|
 | Blender | Solid (its own studio, AgX, no environment), the fill, outline, grid step and widths | Material Preview's HDRI (only a procedural sky exists), Rendered (the engine's render lighting is not a scene light the stage can switch to), box and wire on Blender documents (its selection ids are datablocks, not three objects) |
-| Godot | preview sun and sky, sky as backdrop, box selection, 8-cell major step | per-part takeover (the sun and the environment give way separately; `auto` switches the whole source), its Filmic curve (AgX stands in), the sun's energy unit, XY and YZ grid planes |
+| Godot | preview sun and sky, sky as backdrop, 8-cell major step | its selection box as the full AABB (ours draws corner brackets), per-part takeover (the sun and the environment give way separately; `auto` switches the whole source), its Filmic curve (AgX stands in), the sun's energy unit, XY and YZ grid planes |
 | Unity | scene lighting, outline plus wire, a camera-locked headlight as a preset | the skybox toggle as a backdrop source over a scene without a skybox, Prefab Mode's context fill, per-mode lighting of draw modes |
-| Unreal | — | not measured |
+| Unreal | the level's own sky and lights (`scene` sources), an outline | the outline's width and colour as look values; not measured beyond its frames |
 
-Neither half is accepted. The looks of the three measured targets are still to be authored and judged side by side against frames of the real editors; the world stage is compiled but not yet seen on a project with a world.
+Neither half is accepted. The reference frames are downloaded (`/Volumes/PeakSSD/volter-work/engine-reference`); the targets' looks are still to be authored and judged side by side against them; the world stage is compiled but not yet seen on a project with a world.
