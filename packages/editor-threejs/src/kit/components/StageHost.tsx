@@ -1621,7 +1621,12 @@ export function Object3DDocumentViewport({
         host.presentationRig?.placeFloor(source.root);
         // An edit can move the content's lowest point; the floor follows it.
         host.cleanups.push(store.shell.subscribe(() => host.presentationRig?.placeFloor(source.root)));
-        store.shell.selectMultiple(selected.filter((id) => store.objectMap.has(id)));
+        // A selected id survives the swap when the new adapter still answers for it, not only when
+        // it keys the object map: an adapter can answer in two id spaces (Blender's Outliner keys
+        // its rows and resolves the presentation's ids too), and the map holds only its own.
+        store.shell.selectMultiple(
+          selected.filter((id) => store.objectMap.has(id) || adapter.hierarchy.object3D?.(id) != null),
+        );
         store.notifyIngestObjectMapEdit();
         documentSession.syncSelectionPresentation();
         activateInteraction?.();
