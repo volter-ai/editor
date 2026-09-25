@@ -197,6 +197,11 @@ npm run check:packed-imports
 `npm run build:game`, `npm run check:release:game` and
 `npm run check:packed-imports:game` do the same for the game release.
 
+To rebuild after a change, name the packages it touched and let the release table order
+them: `node scripts/build-release-packages.mjs release/game.json @volter/editor-core
+@volter/game-editor`. A hand-kept build order goes stale the moment a package gains a build
+step (`@volter/editor-game`'s server half did, and a session would not start without it).
+
 The build generates modules needed by the typechecks and packaging checks.
 Building the separate Code-OSS workbench is described in
 [`scripts/workbench/build-release.mjs`](scripts/workbench/build-release.mjs).
