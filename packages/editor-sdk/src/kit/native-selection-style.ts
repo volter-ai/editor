@@ -256,6 +256,21 @@ export function nativeViewportGrid(element?: Element | null): {
 
 /** HOW THE LOOK DRAWS THE SELECTION BOX MARK (`density.viewport.selectionBox` and its width),
  *  with the editor's own corner brackets at 3 CSS px for what it leaves out. */
+/** The selection wire's look: the palette's `viewport.wire` and `density.viewport.wireOpacity`,
+ *  each `null` for the editor's own (the selection colour at half opacity). */
+export function nativeViewportWire(element?: Element | null): {
+  readonly color: number | null;
+  readonly opacity: number | null;
+} {
+  const root = themeRoot(element);
+  const raw = themeToken(root, '--vgai-viewport-wire');
+  const opacity = Number.parseFloat(themeToken(root, '--vgai-viewport-wire-opacity'));
+  return {
+    color: raw ? parseCssColor(raw) : null,
+    opacity: Number.isFinite(opacity) ? opacity : null,
+  };
+}
+
 export function nativeViewportSelectionBox(element?: Element | null): {
   readonly edges: boolean;
   readonly lineWidth: number | null;

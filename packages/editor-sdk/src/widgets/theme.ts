@@ -238,6 +238,7 @@ export interface EditorDensity {
     readonly outlineStyle?: 'soft' | 'crisp';
     readonly outlineWidth?: number;
     readonly outlineHidden?: boolean;
+    readonly wireOpacity?: number;
     readonly selectionBoxWidth?: number;
   };
 }
@@ -725,6 +726,9 @@ export interface EditorTheme {
        *  pair in a Z-up world; without it the line takes the gizmo's Z). The axis colours are
        *  named by the WORLD's axes, whatever the world's up axis. */
       readonly axisZ?: string;
+      /** The selection's WIRE (optional; the selection colour otherwise): Unity draws it blue
+       *  under an orange outline. Its opacity is `density.viewport.wireOpacity`. */
+      readonly wire?: string;
       readonly selection: string;
       readonly active: string;
     };
@@ -2570,6 +2574,8 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     '--vgai-viewport-axis-x': theme.color.viewport?.axisX ?? '',
     '--vgai-viewport-axis-y': theme.color.viewport?.axisY ?? '',
     '--vgai-viewport-axis-z': theme.color.viewport?.axisZ ?? '',
+    '--vgai-viewport-wire': theme.color.viewport?.wire ?? '',
+    '--vgai-viewport-wire-opacity': numberToken(theme.density?.viewport?.wireOpacity),
     '--vgai-viewport-axis-line-width': numberToken(theme.density?.viewport?.axisLineWidth),
     '--vgai-viewport-selection': theme.color.viewport?.selection ?? '',
     '--vgai-viewport-active': theme.color.viewport?.active ?? '',

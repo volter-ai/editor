@@ -65,6 +65,7 @@ import {
   nativeViewportLook,
   nativeViewportGrid,
   nativeViewportSelectionBox,
+  nativeViewportWire,
   subscribeNativeSelectionTheme,
 } from '@volter/editor-sdk/kit/native-selection-style';
 import { presentationRegionBasis } from '@volter/editor-sdk/kit/presentation-surface';
@@ -1193,10 +1194,10 @@ export class EditorViewport {
     // "Cannot read properties of undefined (reading 'geometry')".
     this._unsubscribeSelectionTheme = subscribeNativeSelectionTheme(canvas, () => {
       invalidateStages();
-      const color = nativeSelectionColors(canvas).visible;
-      for (const helper of this._boxHelpers.values()) {
-        if (helper instanceof SelectionBrackets) helper.setColor(color);
-      }
+      // The selection marks carry the look whole (colour, box form and frame, wire colour and
+      // opacity), so a look change rebuilds them; they are rebuilt from scratch on every
+      // selection change anyway.
+      if (this._boxHelpers.size > 0) this._syncBoxHelpers();
       // The gizmo look FIRST: an axis line the look gives no colour takes the gizmo's.
       this._gizmoLook = nativeGizmoLook(canvas);
       this._applyViewportLook(nativeViewportLook(canvas));
@@ -1912,12 +1913,13 @@ export class EditorViewport {
         obj.traverse((child) => {
           const mesh = child as THREE.Mesh;
           if (!mesh.isMesh || !mesh.geometry || isInEditorOwnedSubtree(mesh)) return;
+          const look = nativeViewportWire(this._canvas);
           const wire = new THREE.LineSegments(
             new THREE.WireframeGeometry(mesh.geometry),
             new THREE.LineBasicMaterial({
-              color: nativeSelectionColors(this._canvas).visible,
+              color: look.color ?? nativeSelectionColors(this._canvas).visible,
               transparent: true,
-              opacity: 0.5,
+              opacity: look.opacity ?? 0.5,
               depthTest: true,
             }),
           ) as WireHelper;

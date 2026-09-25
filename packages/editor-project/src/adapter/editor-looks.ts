@@ -282,6 +282,9 @@ export interface DensityContribution {
     readonly outlineStyle?: 'soft' | 'crisp';
     readonly outlineWidth?: number;
     readonly outlineHidden?: boolean;
+    /** THE SELECTION WIRE'S OPACITY (the editor's own 0.5; Unity's blue wire is about 0.25,
+     *  `SceneVisExVisible.png`). Its colour is the palette's `color.viewport.wire`. */
+    readonly wireOpacity?: number;
     readonly selectionBoxWidth?: number;
   };
 }

@@ -155,6 +155,7 @@ const THEME_STRING_PATHS = [
   'color.viewport.axisX',
   'color.viewport.axisY',
   'color.viewport.axisZ',
+  'color.viewport.wire',
   'color.viewport.selection',
   'color.viewport.active',
   'color.gizmo.x',
@@ -204,6 +205,7 @@ const POST_V3_OPTIONAL_STRING_PATHS: ReadonlySet<string> = new Set([
   'color.viewport.axisX',
   'color.viewport.axisY',
   'color.viewport.axisZ',
+  'color.viewport.wire',
   'color.viewport.selection',
   'color.viewport.active',
   'color.gizmo.x',
@@ -379,12 +381,14 @@ function reconstructEditorPalette(value: unknown): EditorPalette {
   }
   // `axisZ` is optional beside the all-or-nothing group: a Z-up world's floor pair is X and Y.
   const viewportAxisZ = valueAtPath(value, 'color.viewport.axisZ') as string | undefined;
+  const viewportWire = valueAtPath(value, 'color.viewport.wire') as string | undefined;
   const viewport =
     viewportPresent === viewportKeys.length
       ? (Object.fromEntries(
           [
             ...viewportKeys.map((key, index) => [key, viewportValues[index] as string] as const),
             ...(viewportAxisZ === undefined ? [] : [['axisZ', viewportAxisZ] as const]),
+            ...(viewportWire === undefined ? [] : [['wire', viewportWire] as const]),
           ],
         ) as unknown as NonNullable<EditorPalette['color']['viewport']>)
       : undefined;
