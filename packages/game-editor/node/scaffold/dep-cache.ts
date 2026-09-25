@@ -49,6 +49,7 @@ const PROJECT_LOCAL_DEPENDENCY_CACHES = [
   '.vite-editor',
   '.vite-editor-no-project',
   '.vite-temp',
+  '.vite-source',
 ] as const;
 
 export function stripProjectLocalDependencyCaches(nodeModules: string): void {

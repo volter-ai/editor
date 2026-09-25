@@ -15,7 +15,9 @@
   },
   "files": [
     "src",
+    "serving",
     "contributions",
+    "dist-node",
     "LICENSE",
     "NOTICE"
   ],
@@ -85,7 +87,8 @@
       "./contributions/three/reflection-probe-capture.inspector.tsx",
       "./contributions/three/story-documents.service.ts",
       "./contributions/three/three-authoring.service.ts"
-    ]
+    ],
+    "serving": "./dist-node/serving.mjs"
   },
   "dependencies": {
     "@volter/editor-core": "0.5.65",
@@ -136,6 +139,8 @@
     "@playwright/test": "^1.58.2"
   },
   "scripts": {
+    "build": "node scripts/build-serving.mjs",
+    "prepack": "npm run build",
     "typecheck": "tsc -p tsconfig.json"
   },
   "peerDependenciesMeta": {

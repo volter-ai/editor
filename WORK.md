@@ -125,14 +125,7 @@ Remaining:
 4. **The design skew** (`website`): the DOM root is read-only, the Pages list is empty, and a
    `page` has no document editor.
 5. **Unwalked instruments:** navmesh on real content; Network needs a networking adapter.
-6. **Build time.** The game product bundle builds in 25–100 s, over the 30-second rule.
-   `VOLTER_EDITOR_FROM_SOURCE=1` serves the product's source through the project Vite. Measured on
-   `arena`, two ways it differs from the build: the page requests the project's `src/main.ts` and
-   `src/contributions/use-game-modules.ts`, whose `virtual:vgai-manifest-entries` and
-   `@editor/game-module-access` do not resolve (29 console errors; none in packaged sessions), and
-   an Inspector source write reloads the page, which drops undo history and the active document.
-   Until both are closed, a walk of editing still needs a build.
-7. **Input a game owns is not gated.** `arena` builds its own `new InputManager()`
+6. **Input a game owns is not gated.** `arena` builds its own `new InputManager()`
    (`src/lib/input`). With a Model document active and the tab on Edit, a key still moves the player
    the full distance (measured: z moved 5.9 in one second, with the same reading when Game is
    focused). Play gates only `session.game.input`, and the listener shadow skips dependency code.

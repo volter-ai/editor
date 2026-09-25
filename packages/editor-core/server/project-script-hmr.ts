@@ -316,6 +316,9 @@ export interface ProjectScriptHotUpdateArgs {
   readonly timestamp?: number | undefined;
   /** Defaults to `console.warn`; injected in tests. */
   readonly warn?: ((message: string) => void) | undefined;
+  /** Whether the host installs React Fast Refresh (`ScriptHmrServingOptions.fastRefresh`).
+   *  Without it a React module restarts and an R3F one remounts in place. */
+  readonly fastRefresh?: boolean | undefined;
 }
 
 /**
@@ -543,11 +546,20 @@ export function handleProjectScriptHotUpdate(
     classified === 'restart' && /\.[cm]?[jt]s$/.test(file)
       ? r3fDependencyBoundaries(server.moduleGraph, file, projectRoot)
       : null;
-  const kind = boundaries
+  const refreshed = boundaries
     ? 'r3f-refresh'
     : isClient
       ? trackReactBoundary(classified, file, source)
       : classified;
+  // No Fast Refresh, no module to accept the update: an R3F module remounts
+  // its design world in place and anything else restarts, as a non-boundary
+  // module always has.
+  const kind =
+    args.fastRefresh === false && refreshed === 'r3f-refresh'
+      ? 'r3f-entry'
+      : args.fastRefresh === false && refreshed === 'react'
+        ? 'restart'
+        : refreshed;
   // `outside` / `stock-data` / `react` ride stock Vite HMR (a data handle's
   // owning module live-tunes it through its own `import.meta.hot.accept`;
   // a react module takes Fast Refresh) — and stock HMR does the module-graph

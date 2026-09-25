@@ -566,6 +566,11 @@ async function main(): Promise<void> {
   const viteInlineConfig: InlineConfig = {
     configFile: false,
     root: projectPath,
+    // Source mode optimizes a different graph (the product's own source), so it
+    // keeps its own dependency cache: sharing `.vite` with packaged sessions made
+    // each switch re-optimize from scratch and rediscover the product's
+    // dependencies page by page, one reload per wave (measured: three waves).
+    ...(fromSource ? { cacheDir: path.join(projectPath, 'node_modules', '.vite-source') } : {}),
     appType: 'custom', // no HTML serving/SPA-fallback — this instance only serves project modules
     // Same reasoning as `dev.ts`: a transform failure in the project's own
     // source must not erase this terminal's scrollback (Vite's error
@@ -623,7 +628,8 @@ async function main(): Promise<void> {
       // Always registered here — a project is ALWAYS open in packaged mode,
       // unlike dev.ts's conditional-on-boot-time-projectPath gate. No
       // `watchDir`: this instance's Vite root IS the project.
-      scriptHmr: { projectRoot: () => currentProjectRoot },
+      // No `@vitejs/plugin-react` here (see this file's header), so no Fast Refresh.
+      scriptHmr: { projectRoot: () => currentProjectRoot, fastRefresh: false },
       contributed: contributedServing,
     }),
     optimizeDeps: {
@@ -774,6 +780,10 @@ async function main(): Promise<void> {
         ...projectOptimizeDepsEntries,
         ...runtimeSourceCrawlEntries,
         ...packageContributionCrawl.entries,
+        // Source mode serves the product's own graph through this Vite, so its
+        // dependencies are scanned up front with the project's, not discovered
+        // page by page (measured: three optimizer waves, each reloading the page).
+        ...(fromSource ? [productSourceEntry] : []),
       ]),
       // C3 hardening: belt to the entries-scoping suspenders. Entries-scoping
       // ALREADY keeps the crawl out of `server/` for a well-formed project

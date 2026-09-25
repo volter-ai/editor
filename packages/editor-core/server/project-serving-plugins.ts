@@ -107,6 +107,12 @@ export interface ScriptHmrServingOptions {
    * project and needs nothing.
    */
   readonly watchDir?: string | undefined;
+  /**
+   * Whether the host installs React Fast Refresh. Without it nothing can accept
+   * a React or R3F module's update, and handing one to Vite makes it order a
+   * full page reload wherever its client runs (a source-mode page).
+   */
+  readonly fastRefresh: boolean;
 }
 
 export interface ProjectServingPluginOptions {
@@ -176,6 +182,7 @@ function scriptHmrPlugin(options: ScriptHmrServingOptions): Plugin {
             ? readFileSync(hot.file, 'utf-8')
             : '',
         server: hot.server,
+        fastRefresh: options.fastRefresh,
       });
     },
   };

@@ -1,7 +1,7 @@
 import { fontSizeVar, text } from '@volter/editor-sdk/widgets';
 import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
 import { useEffect, useRef, useState } from 'react';
-import { listProjectSourceFiles, readProjectTextFile } from '../api/project-source';
+import { listProjectSourceFiles, readProjectSourceText } from '../api/project-source';
 import {
   loadProjectThumbnailManifest,
   resetProjectThumbnailManifestCache,
@@ -76,7 +76,9 @@ async function projectDependencyFingerprint(): Promise<string> {
       'src/**/*.json',
       'src/**/*.css',
     ]).then(async (paths) =>
-      Promise.all(paths.map(async (path) => `${path}:${(await readProjectTextFile(path)) ?? ''}`)),
+      // The files as written: the dev server's transform of each one would build the
+      // project's own page entry and fingerprint output, not source.
+      Promise.all(paths.map(async (path) => `${path}:${(await readProjectSourceText(path)) ?? ''}`)),
     ),
     listPublicDependencyFacts(''),
   ]).then(([source, assets]) => digest([...source, ...assets].sort().join('\n')));
