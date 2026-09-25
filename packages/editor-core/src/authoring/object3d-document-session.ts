@@ -18,7 +18,8 @@ import { nativeSelectionColors, subscribeNativeSelectionTheme } from '@volter/ed
 import { BoneSelectionHighlight } from '../three-viewport/bone-selection-highlight';
 import { perspectiveDistanceToFitBox } from '../three-viewport/camera-fit';
 import {
-  createThreeSelectionOutline,
+  acquireThreeSelectionOutline,
+  releaseThreeSelectionOutline,
   setThreeSelectionOutlineColors,
   syncThreeSelectionOutline,
 } from '../three-viewport/selection-outline';
@@ -122,7 +123,7 @@ export class Object3DDocumentSession {
   private composerLoading = false;
   private disposed = false;
   private sceneRenderPass: RenderPass | null = null;
-  private selectionOutline: ReturnType<typeof createThreeSelectionOutline> | null = null;
+  private selectionOutline: ReturnType<typeof acquireThreeSelectionOutline> | null = null;
   private selectionOutlinePass: EffectPass | null = null;
   private selectedObjects: THREE.Object3D[] = [];
   private renderWidth = 1;
@@ -1024,9 +1025,10 @@ export class Object3DDocumentSession {
     this.clearBoneSelectionHighlight();
     this.clearBoundsHelper();
     this.clearSkeletonHelper();
-    // OutlineEffect's Selection owns temporary render-layer bits on every
-    // target, so clear it before disposing the pass resources.
-    this.selectionOutline?.selection.clear();
+    // The outline goes back to this renderer's pool before the composer
+    // disposes its pass (`releaseThreeSelectionOutline` clears its selection).
+    if (this.selectionOutline)
+      releaseThreeSelectionOutline(this.renderer, this.selectionOutline, this.selectionOutlinePass);
     this.composer?.dispose();
     this.sceneRenderPass = null;
     this.selectionOutline = null;
@@ -1097,8 +1099,9 @@ export class Object3DDocumentSession {
         const composer = new postprocessing.EffectComposer(this.renderer);
         this.sceneRenderPass = new postprocessing.RenderPass(this.scene, camera);
         composer.addPass(this.sceneRenderPass);
-        this.selectionOutline = createThreeSelectionOutline(
+        this.selectionOutline = acquireThreeSelectionOutline(
           postprocessing,
+          this.renderer,
           this.scene,
           camera,
           nativeSelectionColors(this.renderer.domElement),

@@ -16,7 +16,7 @@ import {
   EDITOR_SELECTION_LAYER,
   isInEditorOwnedSubtree,
 } from '@volter/editor-threejs/viewport/editor-layers';
-import type { OutlineEffect } from 'postprocessing';
+import type { EffectPass, OutlineEffect } from 'postprocessing';
 import type * as THREE from 'three';
 
 /**
@@ -50,22 +50,19 @@ export function createThreeSelectionOutline(
   camera: THREE.Camera,
   colors: OutlineColors,
 ): OutlineEffect {
-  const effect = withoutSelectionLayerWarning(
-    () =>
-      new OutlineEffect(scene, camera, {
-        // Alpha keeps the selection color legible over both black and white
-        // materials. The effect's default screen blend washes out on pale assets.
-        blendFunction: BlendFunction.ALPHA,
-        visibleEdgeColor: colors.visible,
-        hiddenEdgeColor: colors.hidden,
-        edgeStrength: 5,
-        pulseSpeed: 0,
-        blur: true,
-        kernelSize: KernelSize.MEDIUM,
-        resolutionScale: 0.5,
-        xRay: true,
-      }),
-  );
+  const effect = new OutlineEffect(scene, camera, {
+    // Alpha keeps the selection color legible over both black and white
+    // materials. The effect's default screen blend washes out on pale assets.
+    blendFunction: BlendFunction.ALPHA,
+    visibleEdgeColor: colors.visible,
+    hiddenEdgeColor: colors.hidden,
+    edgeStrength: 5,
+    pulseSpeed: 0,
+    blur: true,
+    kernelSize: KernelSize.MEDIUM,
+    resolutionScale: 0.5,
+    xRay: true,
+  });
   // OutlineEffect temporarily removes layer 0 from selected meshes, renders
   // scene depth, then renders only its selection layer for the mask. The
   // editor camera normally enables ALL layers so it can draw layer-31 gizmos;
@@ -115,28 +112,52 @@ export function createThreeSelectionOutline(
 }
 
 /**
- * `OutlineEffect` constructs its `Selection` with a render layer taken from
- * a module-wide counter, which the editor then overrides
- * (`EDITOR_SELECTION_LAYER`, below). The counter still moves, and after 30
- * constructions in one page — every Object3D document session builds its
- * own effect — the library warns "Layer out of range, resetting to 2" and
- * carries on. For this editor that line is noise: the layer it worries
- * about is replaced before the effect ever renders. The console gate treats
- * every warning as unresolved work, so the one message is held back for
- * exactly the synchronous construction that provokes it; anything else the
- * constructor says still reaches the console.
+ * ONE EFFECT PER RENDERER, REUSED. `OutlineEffect` constructs its `Selection`
+ * with a render layer from a module-wide counter that warns "Layer out of
+ * range, resetting to 2" on its 30th construction in a page; the editor
+ * overrides that layer, but built one effect per document session and per
+ * world pipeline rebuild, the warning sat on every session's console as
+ * unresolved work. A released effect goes back to its renderer's pool — its
+ * render targets belong to that renderer's context — and the next surface on
+ * that renderer re-points it at its own scene and camera. Constructions are
+ * bounded by the surfaces open at once.
  */
-function withoutSelectionLayerWarning<T>(construct: () => T): T {
-  const warn = console.warn;
-  console.warn = (...args: unknown[]) => {
-    if (args[0] === 'Layer out of range, resetting to 2') return;
-    warn.apply(console, args);
-  };
-  try {
-    return construct();
-  } finally {
-    console.warn = warn;
-  }
+const pooled = new WeakMap<object, OutlineEffect[]>();
+
+/** An outline for `renderer`: a released one re-pointed at `scene` and `camera`, or a new one. */
+export function acquireThreeSelectionOutline(
+  effects: ThreeSelectionOutlineEffects,
+  renderer: object,
+  scene: THREE.Scene,
+  camera: THREE.Camera,
+  colors: OutlineColors,
+): OutlineEffect {
+  const effect = pooled.get(renderer)?.pop();
+  if (!effect) return createThreeSelectionOutline(effects, scene, camera, colors);
+  effect.mainScene = scene;
+  effect.mainCamera = camera;
+  camera.layers.disable(EDITOR_SELECTION_LAYER);
+  outlineState.set(effect, { colors, roots: 0 });
+  paintOutline(effect);
+  return effect;
+}
+
+/**
+ * Give `effect` back to `renderer`'s pool, detached from `pass` so the pass's
+ * disposal leaves it intact. Its selection is cleared first: a `Selection`
+ * owns temporary render-layer bits on every object in it.
+ */
+export function releaseThreeSelectionOutline(
+  renderer: object,
+  effect: OutlineEffect,
+  pass: EffectPass | null,
+): void {
+  effect.selection.clear();
+  // `setEffects` is the pass's own (protected) way to let go of its effects.
+  (pass as unknown as { setEffects(effects: never[]): void } | null)?.setEffects([]);
+  const free = pooled.get(renderer) ?? [];
+  if (!free.includes(effect)) free.push(effect);
+  pooled.set(renderer, free);
 }
 
 /** THE LAZY DOOR: load `postprocessing` on demand and build the effect. For a

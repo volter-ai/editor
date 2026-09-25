@@ -84,7 +84,6 @@ Status: active
 Source: vgai-engine `docs/WORK.md` §P0 (propagation waits for the owner). The pattern is proven in one place first, through sighted owner
 passes; until the owner calls it settled, every propagation wave is recorded, not running.
 Completion:
-- One Outline effect per leased renderer, so postprocessing's selection layers are never exhausted (the console warning is only muted today).
 - The owner calls the pattern settled, then each recorded wave runs and is measured.
 
 ## editor-and-contributions: Editor and bundled contributions punchlist

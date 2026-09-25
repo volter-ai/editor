@@ -91,7 +91,8 @@ import { withSceneFogNeutralized } from '@volter/editor-core/scene-view-fog';
 import { connectServerLogs } from '../server-log-bridge';
 import { focusedStageStore } from '@volter/editor-core/stage-context';
 import {
-  createThreeSelectionOutline,
+  acquireThreeSelectionOutline,
+  releaseThreeSelectionOutline,
   setThreeSelectionOutlineColors,
   syncThreeSelectionOutline,
 } from '@volter/editor-core/three-viewport/selection-outline';
@@ -454,7 +455,7 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
   // declaration) would leave the previous world's colour space on the
   // editor's renderer until page reload.
   let restoreAdoptedImage: (() => void) | null = null;
-  let selectionOutline: ReturnType<typeof createThreeSelectionOutline> | null = null;
+  let selectionOutline: ReturnType<typeof acquireThreeSelectionOutline> | null = null;
   let selectionOutlinePass: EffectPass | null = null;
   let selectionOutlineUnderlayPass: Pass | null = null;
   const syncSelectionTheme = (): void => {
@@ -501,10 +502,10 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
     // start from the editor's own values — see `restoreAdoptedImage`'s decl.
     restoreAdoptedImage?.();
     restoreAdoptedImage = null;
-    // `applySceneRenderPipeline` disposes the previous pass but an
-    // OutlineEffect's Selection owns temporary render-layer bits on the
-    // selected objects. Clear those explicitly before dropping the effect.
-    selectionOutline?.selection.clear();
+    // `applySceneRenderPipeline` disposes the previous passes; the outline
+    // returns to this renderer's pool first, detached from its pass and its
+    // selection cleared, and the rebuilt pipeline takes it back below.
+    if (selectionOutline) releaseThreeSelectionOutline(renderer, selectionOutline, selectionOutlinePass);
     selectionOutline = null;
     selectionOutlinePass = null;
     selectionOutlineUnderlayPass = null;
@@ -527,8 +528,9 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
     // This stage already loaded `postprocessing` for its own composer, so it
     // hands the factory its own bindings — no second module load, and the
     // outline is attached synchronously exactly as before.
-    selectionOutline = createThreeSelectionOutline(
+    selectionOutline = acquireThreeSelectionOutline(
       { BlendFunction, KernelSize, OutlineEffect },
+      renderer,
       store.scene ?? scene,
       viewport.renderCamera,
       nativeSelectionColors(renderer.domElement),
