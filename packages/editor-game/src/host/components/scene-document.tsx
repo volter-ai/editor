@@ -20,11 +20,11 @@ import {
   activeDocumentSourcePath,
   activeSaveDestination,
   activeSaveState,
-} from '@volter/editor-core/authoring/shell-document-ops';
-import { Object3DDocumentViewport } from '@volter/editor-core/components/Object3DDocumentViewport';
+} from '@volter/editor-sdk/kit/authoring/shell-document-ops';
+import { Object3DDocumentViewport } from '@volter/editor-threejs/kit/components/Object3DDocumentViewport';
 import type { DocumentPreviewSource } from '@volter/editor-sdk/kit/document-preview-source';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import type { EditorShellStore, ViewportTab } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore, ViewportTab } from '@volter/editor-threejs/kit/editor-shell-store';
 import { projectAdapterFacet, subscribeProjectAdapter } from '@volter/editor-core/project-adapter';
 import { getCurrentProject } from '@volter/editor-core/project-manager';
 import { isolationTabsReplaceGenericScene, sceneTabRow } from '@volter/editor-core/scene-document-plan';

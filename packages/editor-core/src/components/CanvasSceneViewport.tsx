@@ -15,7 +15,7 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
-import { collectAllNodeIds } from '../authoring/active-adapter';
+import { collectAllNodeIds } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import {
   addCanvasSceneGuide,
   canvasSceneGuideRevision,
@@ -25,7 +25,7 @@ import {
   subscribeCanvasSceneGuides,
 } from '../authoring/canvas-scene-guides';
 import type { RootViewController } from '@volter/editor-sdk/kit/world-pan-state';
-import { useEditorStore } from '../editor-runtime';
+import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import {
   bindViewPresentation,
   setViewGridVisible,
@@ -33,7 +33,7 @@ import {
   viewGridVisible,
   viewportPresentationVersion,
 } from '@volter/editor-sdk/kit/viewport-presentation';
-import { ToolStrip } from './Toolbar';
+import { ToolStrip } from '@volter/editor-sdk/kit/components/Toolbar';
 import { TransientHintOverlay } from '@volter/editor-sdk/kit/components/TransientHint';
 
 interface Bounds {

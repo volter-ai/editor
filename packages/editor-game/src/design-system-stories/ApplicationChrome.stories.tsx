@@ -6,7 +6,7 @@ import {
   StoryEditorRuntime,
 } from '../host/design-system-stories/fixtures/editor-runtime';
 import { DesignSystemPage, StorySection } from '../host/design-system-stories/StoryLayout';
-import { useEditorStore } from '@volter/editor-core/editor-runtime';
+import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import { getCurrentProject, setActiveProject } from '@volter/editor-core/project-manager';
 import type { Meta, StoryObj } from '@storybook/react';
 import { useLayoutEffect, useState } from 'react';

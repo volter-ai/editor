@@ -12,7 +12,7 @@ import { PlayBar } from '../play-bar/PlayBar';
  */
 
 import { ResolutionPicker } from '../host/components/ResolutionPicker';
-import { useEditorStore } from '@volter/editor-core/editor-runtime';
+import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import { getCurrentProject, onProjectChange } from '@volter/editor-core/project-manager';
 import type { LiveDocumentContentProps } from '@volter/editor-sdk/host';
 import {

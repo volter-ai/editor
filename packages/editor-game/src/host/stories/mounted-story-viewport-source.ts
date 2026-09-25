@@ -16,7 +16,7 @@
  * the owner has retired AND no borrow is outstanding.
  */
 
-import { disposeStoryObject3D, type MountedStoryObject3D } from '@volter/editor-core/stories/story-three-preview';
+import { disposeStoryObject3D, type MountedStoryObject3D } from './story-three-preview';
 
 export interface MountedStoryViewportSource {
   readonly build: () => {

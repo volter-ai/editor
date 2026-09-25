@@ -26,7 +26,7 @@ import {
   awaitAnnouncedObject3DDocumentSession,
   waitForContributedDocumentMount,
 } from '../document-context-registry';
-import { registerDocumentOpener } from '../document-open-registry';
+import { registerDocumentOpener } from '@volter/editor-sdk/kit/document-open-registry';
 import {
   contributionFailureHint,
   getDocumentToolContributions,
@@ -41,7 +41,7 @@ import {
   openWorkspaceDocuments,
   type WorkspaceDocumentContentProps,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { registerWorkspaceDocumentRestorer } from '../workspace-document-restore';
+import { registerWorkspaceDocumentRestorer } from '@volter/editor-sdk/kit/workspace-document-restore';
 import { ToolHost } from './ToolHost';
 
 /** The narrow store surface tool documents need (T6.3 tab hand-off). */

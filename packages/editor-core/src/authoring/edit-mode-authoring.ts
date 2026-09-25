@@ -25,7 +25,6 @@ import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { assertEditorServerAnswered } from '@volter/editor-sdk/kit/editor-server-response';
 import { sourceMutationAttribution } from '@volter/editor-sdk/kit/editor-session-attribution';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
-import type { EditorShellStore } from '../editor-shell-store';
 import { hierarchyProjectionFromProjectConfig } from '@volter/editor-sdk/kit/hierarchy-projection';
 import { getProjectFileHistory, type ProjectFileHistory } from '@volter/editor-sdk/kit/history/project-file-history';
 import { getManifestHistoryBackend } from '@volter/editor-sdk/kit/history/project-root-history-backends';
@@ -39,7 +38,7 @@ import {
   hasAuthoringOverride,
   markEditModeOverride,
   setActiveAuthoring,
-} from './active-adapter';
+} from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { beginAuthoringBootstrap } from './bootstrap-state';
 import { makeNoAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/no-authoring-adapter';
 import { BoundaryAuthoringAdapter, type BoundaryRootInfo } from './boundary-authoring-adapter';
@@ -48,6 +47,7 @@ import {
   type CompositeChild,
   type RootManifestProvider,
 } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 
 /**
  * The mounted Scene document's acknowledged edit-mode reinstall owner.
@@ -309,15 +309,15 @@ function ensureRawRoot(raw: Record<string, unknown>, worldId: string): RawAdapte
 export class ManifestAuthoring implements RootManifestProvider {
   private readonly raw: Record<string, unknown>;
   private synthesizedValue: boolean;
-  private readonly store: EditorShellStore;
+  private readonly store: ShellStore;
   private readonly fileHistory: ProjectFileHistory | null;
   private readonly unsubscribeHistory: (() => void) | null;
 
-  constructor(raw: Record<string, unknown>, synthesized: boolean, store: EditorShellStore) {
+  constructor(raw: Record<string, unknown>, synthesized: boolean, store: ShellStore) {
     this.raw = raw;
     this.synthesizedValue = synthesized;
     this.store = store;
-    const history = store.shell.projectHistory;
+    const history = store.projectHistory;
     this.fileHistory = history
       ? getProjectFileHistory(history, getManifestHistoryBackend(), 'project-manifest')
       : null;
@@ -330,7 +330,7 @@ export class ManifestAuthoring implements RootManifestProvider {
             .then((next) => {
               for (const key of Object.keys(this.raw)) delete this.raw[key];
               Object.assign(this.raw, next);
-              this.store.shell.notifyIngestEdit();
+              this.store.notifyIngestEdit();
             })
             .catch(() => {});
         })
@@ -412,7 +412,7 @@ export class ManifestAuthoring implements RootManifestProvider {
           kind: 'manifest',
           contentType: 'application/json',
         });
-        this.store.shell.notifyIngestEdit();
+        this.store.notifyIngestEdit();
         return true;
       }
       // `vgai.project.json` is PROJECT-ROOT-relative, which is why it is
@@ -441,7 +441,7 @@ export class ManifestAuthoring implements RootManifestProvider {
       await write();
       // No SSE for a project-root write (file-watcher only covers `public/`)
       // — notify directly so the hierarchy panel's badges refresh in place.
-      this.store.shell.notifyIngestEdit();
+      this.store.notifyIngestEdit();
       return true;
     } catch (err) {
       if (this.fileHistory) {
@@ -451,7 +451,7 @@ export class ManifestAuthoring implements RootManifestProvider {
           .then((next) => {
             for (const key of Object.keys(this.raw)) delete this.raw[key];
             Object.assign(this.raw, next);
-            this.store.shell.notifyIngestEdit();
+            this.store.notifyIngestEdit();
           })
           .catch(() => {});
       }
@@ -482,7 +482,7 @@ let _emptyProjectAuthoring: AuthoringAdapter | null = null;
  * surface. When omitted, composition properties are read-only.
  */
 export function installEditModeAuthoring(
-  store: EditorShellStore,
+  store: ShellStore,
   manifest: EditModeManifest,
   rawManifestInfo?: { raw: Record<string, unknown>; synthesized: boolean },
 ): CompositeAuthoringAdapter {
@@ -521,7 +521,7 @@ export function installEditModeAuthoring(
     return {
       worldId: world.id,
       kind: world.surface,
-      adapter: new BoundaryAuthoringAdapter(store.shell, info, reason ?? undefined),
+      adapter: new BoundaryAuthoringAdapter(store, info, reason ?? undefined),
       zOrder,
     };
   });
@@ -560,17 +560,17 @@ export function installEditModeAuthoring(
     // able to Ctrl+S/autosave through the store, unlike a foreign override).
     markEditModeOverride(composite);
     setActiveAuthoring(composite);
-    store.shell.notifyIngestEdit();
+    store.notifyIngestEdit();
   } else if (!hasAuthoringOverride()) {
     // A project that declares no roots has nothing to author yet, and the panels say
     // what would change that rather than the generic floor's "no authoring adapter".
     _emptyProjectAuthoring = makeNoAuthoringAdapter(
-      store.shell,
+      store,
       'No world yet',
       'Declare a root in vgai.project.json',
     );
     setActiveAuthoring(_emptyProjectAuthoring);
-    store.shell.notifyIngestEdit();
+    store.notifyIngestEdit();
   }
 
   return composite;
@@ -605,9 +605,9 @@ export function exitEditModeAuthoring(installed?: CompositeAuthoringAdapter): vo
  * `project-authoring-session.ts` installs it independently of open viewport tabs.
  */
 export async function installEditModeAuthoringForProject(
-  store: EditorShellStore,
+  store: ShellStore,
 ): Promise<CompositeAuthoringAdapter> {
-  const finishBootstrap = beginAuthoringBootstrap(store.shell);
+  const finishBootstrap = beginAuthoringBootstrap(store);
   let manifest: EditModeManifest;
   // The RAW object backing `ManifestAuthoring` (read-modify-write, never
   // round-tripped through Zod). An omitted roots field is a real manifest

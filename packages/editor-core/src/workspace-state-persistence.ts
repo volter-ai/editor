@@ -99,7 +99,7 @@ import {
   type WorkspaceStateStore,
   workspaceDocumentRestorerEntries,
   workspaceDocumentRestorers,
-} from './workspace-document-restore';
+} from '@volter/editor-sdk/kit/workspace-document-restore';
 import { isWorkspacePersistenceSuppressed } from './workspace-persistence-gate';
 import {
   activeEditorWorkspace,

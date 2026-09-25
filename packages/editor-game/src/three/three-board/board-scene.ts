@@ -90,8 +90,8 @@ import {
   type StoryMountInTurn,
   type StoryPreviewComponent,
   withStoryMountTurn,
-} from '@volter/editor-core/stories/story-three-preview';
-import { mountedStoryHasThreeContent } from '@volter/editor-core/stories/three-story-model';
+} from '../../host/stories/story-three-preview';
+import { mountedStoryHasThreeContent } from '@volter/editor-threejs/kit/stories/three-story-model';
 import {
   markViewportSegment,
   noteViewportBreakdownCounts,

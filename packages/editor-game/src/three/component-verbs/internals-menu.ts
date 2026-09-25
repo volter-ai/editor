@@ -18,7 +18,7 @@
  * probing the active adapter is already asking the right one.
  */
 
-import { getActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
+import { getActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import {
   type InternalsSource,
   internalsProjection,
@@ -64,9 +64,9 @@ let unregister: (() => void) | null = null;
 export function ensureInstanceInternalsMenuRegistered(): void {
   if (unregister) return;
   unregister = registerHierarchyMenuItems(
-    ({ nodeId, store }) => internalsToggleFor(getActiveAuthoring(store.shell), nodeId) !== null,
+    ({ nodeId, store }) => internalsToggleFor(getActiveAuthoring(store), nodeId) !== null,
     ({ nodeId, store }) => {
-      const entry = internalsToggleFor(getActiveAuthoring(store.shell), nodeId);
+      const entry = internalsToggleFor(getActiveAuthoring(store), nodeId);
       if (!entry) return [];
       return [
         {
@@ -76,7 +76,7 @@ export function ensureInstanceInternalsMenuRegistered(): void {
             // The revealed set is module state the panel reads while rendering;
             // this is the notify every source-write path already uses to make
             // the hierarchy re-read its world.
-            store.shell.notifyIngestEdit();
+            store.notifyIngestEdit();
           },
         },
       ];

@@ -23,7 +23,7 @@
  * path is therefore its catch block.
  */
 
-import { getAuthoringOverride, setActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
+import { getAuthoringOverride, setActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import {
   CompositeAuthoringAdapter,
   type CompositeChild,
@@ -36,12 +36,11 @@ import {
   type MountFailureReport,
 } from '@volter/editor-sdk/kit/mount-failure-report';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { registerEditorStateFacet } from '@volter/editor-sdk/kit/editor-state-facets';
 import { liveDocumentContainer } from '@volter/editor-sdk/kit/live-document';
 import { fetchGameManifest, isManifestAbsence } from '@volter/editor-core/manifest-project';
 import { getCurrentProject } from '@volter/editor-core/project-manager';
-import { onThreeStore } from '@volter/editor-core/shell-store-door';
 import { ingestRoots, rootById } from '@volter/editor-project/adapter/manifest-interpreter';
 import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
 import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@volter/editor-project/manifest/load';
@@ -76,6 +75,7 @@ export {
   unmountDomIngestRoot,
   unmountThreeIngestRoot,
 } from './unmount-ingest-root';
+import { onThreeStore } from '@volter/editor-threejs/kit/three-state';
 
 type CanvasMounts = typeof import('./mount-canvas-ingest-root');
 type DomMounts = typeof import('./mount-dom-ingest-root');

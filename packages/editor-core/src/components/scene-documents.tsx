@@ -1,6 +1,6 @@
 /** Scene-table navigation delegates rendering to installed document owners. */
-import { openRegisteredDocument } from '../document-open-registry';
-import { shellStoreForHost } from '../shell-store-door';
+import { openRegisteredDocument } from '@volter/editor-sdk/kit/document-open-registry';
+import { shellStoreForHost } from '@volter/editor-sdk/kit/shell-store-door';
 import { projectAdapterFacet, type ResolvedDocumentTable, subscribeProjectAdapter } from '../project-adapter';
 import { planSceneDocument, sceneTabRow } from '../scene-document-plan';
 import { openAvailableWorkspaceDocument } from '../workspace-available-documents';

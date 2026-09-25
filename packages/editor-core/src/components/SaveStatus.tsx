@@ -5,8 +5,8 @@ import {
   activeSaveFailure,
   activeSaveState,
   saveActiveAuthoring,
-} from '../authoring/shell-document-ops';
-import { useEditorStore, useOptionalHistoryService } from '../editor-runtime';
+} from '@volter/editor-sdk/kit/authoring/shell-document-ops';
+import { useEditorStore, useOptionalHistoryService } from '@volter/editor-sdk/kit/editor-runtime';
 import { showConsoleUtility } from '../workspace-utility-commands';
 
 const subscribeToNothing = () => () => undefined;

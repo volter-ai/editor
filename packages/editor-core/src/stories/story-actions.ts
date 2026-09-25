@@ -14,7 +14,7 @@
 
 import type { ActionContribution } from '@volter/editor-sdk/chrome';
 import { editorHost } from '@volter/editor-sdk/host';
-import { hasDocumentOpener } from '../document-open-registry';
+import { hasDocumentOpener } from '@volter/editor-sdk/kit/document-open-registry';
 import {
   ISOLATED_STORY_DOCUMENT_OPENER,
   THREE_STORY_DOCUMENT_OPENER,

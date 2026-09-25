@@ -10,9 +10,9 @@ import {
   type ModelRigInspection,
   modelSelectionObjects,
   type Object3DNodeInspection,
-} from '@volter/editor-core/asset-workflow/model-inspection';
+} from '@volter/editor-threejs/kit/asset-workflow/model-inspection';
 import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
-import { SourceObject3DAuthoringAdapter } from '@volter/editor-core/authoring/source-object3d-authoring-adapter';
+import { SourceObject3DAuthoringAdapter } from '@volter/editor-threejs/kit/authoring/source-object3d-authoring-adapter';
 import { openToolDocument } from '@volter/editor-core/components/tool-documents';
 import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
 import {

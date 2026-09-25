@@ -19,7 +19,7 @@ import {
   subscribeActiveNavigation,
   subscribeActiveNetworking,
 } from '@volter/editor-sdk/kit/authoring/active-systems';
-import { activeDocumentSourcePath, activeSaveDestination } from './authoring/shell-document-ops';
+import { activeDocumentSourcePath, activeSaveDestination } from '@volter/editor-sdk/kit/authoring/shell-document-ops';
 import { availabilityTickVersion, subscribeAvailabilityTick } from '@volter/editor-sdk/kit/availability-tick';
 import { setWorkerCallMeter } from '@volter/editor-sdk/kit/worker-call-metrics';
 import { beginPageWork } from './play-boot-phase';
@@ -31,7 +31,7 @@ import {
   notifyDocumentContextChanged,
   waitForDocumentContext,
 } from './document-context-registry';
-import { openRegisteredDocumentAsync } from './document-open-registry';
+import { openRegisteredDocumentAsync } from '@volter/editor-sdk/kit/document-open-registry';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { resolvedProjectDocumentTable } from './project-adapter';
 import { notify } from './editor-notifications';
@@ -110,9 +110,9 @@ import { onSessionEndedChange } from '@volter/editor-sdk/kit/session-tombstone';
 import { onBeforeSessionClose } from './session-close';
 import { setSettingsProvider, subscribeSettingsProvider } from '@volter/editor-sdk/kit/settings/settings-provider';
 import { getSetting, inspectSetting, setSetting, subscribeSettings } from '@volter/editor-sdk/kit/settings-store';
-import { onShellStoreChange, shellStoreForHost, threeStoreForHost } from './shell-store-door';
+import { onShellStoreChange, shellStoreForHost } from '@volter/editor-sdk/kit/shell-store-door';
 import { captureActiveEditorDocument } from './editor-view-presentation';
-import { focusedStageContext } from './stage-context';
+import { focusedStageContext } from '@volter/editor-sdk/kit/stage-context';
 import {
   onViewportFrame,
   onViewportStages,
@@ -120,7 +120,7 @@ import {
   setViewportHelper,
   viewportRig,
   viewportStages,
-} from './viewport-door';
+} from '@volter/editor-sdk/kit/viewport-door';
 import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activeWorkspaceDocument,
@@ -129,6 +129,7 @@ import {
   workspaceDocumentRegistryVersion,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { showWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-host-commands';
+import { hostHierarchyObjects } from '@volter/editor-sdk/kit/host-hierarchy-objects';
 
 /**
  * THE ACTIVE DOCUMENT'S OWN INTERACTION MODE, if it has one.
@@ -218,8 +219,8 @@ export function installEditorHostDoor(): void {
       },
     },
     hierarchy: {
-      object: (id) => threeStoreForHost()?.objectMap.get(id) ?? null,
-      objects: () => threeStoreForHost()?.objectMap ?? EMPTY_OBJECTS,
+      object: (id) => hostHierarchyObjects()?.object(id) ?? null,
+      objects: () => hostHierarchyObjects()?.objects() ?? EMPTY_OBJECTS,
       subscribe: (listener) => {
         const stopArrival = onShellStoreChange(listener);
         const stop = shellStoreForHost()?.subscribe(listener);
@@ -467,7 +468,7 @@ export function installEditorHostDoor(): void {
       },
       version: () => keyActionsVersion() + workspaceDocumentRegistryVersion(),
       stage: () => {
-        const store = threeStoreForHost();
+        const store = shellStoreForHost();
         // No shell yet: nothing is focused and nothing is showing, which is
         // the honest answer rather than a guessed surface.
         if (!store) return { surface: null, mode: null };

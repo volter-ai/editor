@@ -29,7 +29,7 @@ import type {
   ComponentStatesRef,
   ComponentStatesSource,
 } from '../component-states-registry';
-import { openRegisteredDocument } from '../document-open-registry';
+import { openRegisteredDocument } from '@volter/editor-sdk/kit/document-open-registry';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import {
   ISOLATED_STORY_DOCUMENT_OPENER,

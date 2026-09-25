@@ -5,7 +5,7 @@ import {
   setInspectedInstance,
   subscribeInspectedInstance,
 } from '@volter/editor-sdk/kit/authoring/active-systems';
-import { useEditorStore } from '@volter/editor-core/editor-runtime';
+import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import { gameRealmDiagnostics } from '../host/gated-globals';
 import { faEye } from '@fortawesome/free-solid-svg-icons';
 import {

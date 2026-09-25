@@ -57,7 +57,7 @@ import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/comp
 import { numericStyleValue, UNITLESS_NUMBER_PROPS } from '@volter/editor-sdk/css-numeric-style';
 import { beginEyedropperSession } from '@volter/editor-sdk/kit/eyedropper-session';
 import { groupProperties } from '@volter/editor-sdk/kit/inspector-property-grouping';
-import { useEditorStore } from '@volter/editor-core/editor-runtime';
+import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
 import { groupIcon } from '@volter/editor-core/inspection/compose';
 import {

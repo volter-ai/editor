@@ -1,4 +1,4 @@
-import { collectAllNodeIds } from './authoring/active-adapter';
+import { collectAllNodeIds } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import {
   copyAuthoringNodes,
   cutAuthoringNodes,
@@ -12,13 +12,13 @@ import {
   unwrapAuthoringNode,
   wrapAuthoringNode,
 } from '@volter/editor-sdk/kit/authoring/consumer-actions';
-import { resolvePanelAuthoring } from './authoring/panel-authoring';
+import { resolvePanelAuthoring } from '@volter/editor-sdk/kit/authoring/panel-authoring';
 import {
   currentSelectionScopeId,
   enterSelectedScope,
   exitSelectionScope,
 } from '@volter/editor-sdk/kit/authoring/selection-scope';
-import { activeSelectionIds, saveActiveAuthoring } from './authoring/shell-document-ops';
+import { activeSelectionIds, saveActiveAuthoring } from '@volter/editor-sdk/kit/authoring/shell-document-ops';
 import { resetRootPan } from '@volter/editor-sdk/kit/world-pan-state';
 import {
   boxEditForId,

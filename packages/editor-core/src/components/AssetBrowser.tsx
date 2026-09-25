@@ -69,8 +69,8 @@ import {
   projectContentAssetFacet,
   projectContentAssetPriority,
 } from '@volter/editor-sdk/kit/asset-workflow/project-content';
-import { activeAuthoringVersion, subscribeActiveAuthoring } from '../authoring/active-adapter';
-import { resolvePanelAuthoring } from '../authoring/panel-authoring';
+import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
+import { resolvePanelAuthoring } from '@volter/editor-sdk/kit/authoring/panel-authoring';
 import { contributedMenuItems } from '@volter/editor-sdk/kit/chrome-registry';
 import {
   type ContentEntry,
@@ -78,11 +78,11 @@ import {
   contentEntrySourceRegistryVersion,
   contentEntrySources,
   subscribeContentEntrySources,
-} from '../content-entry-source-registry';
-import { openRegisteredDocument } from '../document-open-registry';
+} from '@volter/editor-sdk/kit/content-entry-source-registry';
+import { openRegisteredDocument } from '@volter/editor-sdk/kit/document-open-registry';
 import { type AssetEntry, listAssets, listProjectComponents, revealInFinder } from '@volter/editor-sdk/kit/editor-api';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { useEditorStore, useHistoryService } from '../editor-runtime';
+import { useEditorStore, useHistoryService } from '@volter/editor-sdk/kit/editor-runtime';
 import type { AssetKind as DocumentAssetKind } from '../asset-selection';
 import { hierarchyNodesBreadthFirst } from '@volter/editor-sdk/kit/hierarchy-walk';
 import { isEditableTarget, setActiveScope } from '@volter/editor-sdk/kit/hotkeys';

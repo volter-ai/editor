@@ -19,7 +19,7 @@ import type {
 import type { ChannelValue } from '@volter/editor-core/creation-site-edit';
 import { creationSiteAnchor, instancesAtSite } from '@volter/editor-sdk/kit/creation-site-registry';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { type JournalSubject, JsonHistoryResource } from '../history/json-history-resource';
 import { createEphemeralPersistence } from './ephemeral-persistence';
 import { persistChannelWrite } from './gesture-persist';

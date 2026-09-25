@@ -17,9 +17,9 @@
  * asking the composite directly would ask the wrong object.
  */
 
-import { getActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
+import { getActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { instanceSourceLocatorFor } from '@volter/editor-core/authoring/instance-source-menu';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { registerHierarchyMenuItems } from '@volter/editor-core/hierarchy-menu-registry';
 import {
   canForkInstance,
@@ -28,6 +28,7 @@ import {
 } from '../../host/instance-fork-actions';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
+import { threeStateOf } from '@volter/editor-threejs/kit/three-state';
 
 /** The fork surface for `nodeId`, or `null` — the host's own owner walk. */
 export function instanceForkSourceFor(
@@ -52,9 +53,9 @@ let unregister: (() => void) | null = null;
 export function ensureInstanceForkMenuRegistered(): void {
   if (unregister) return;
   unregister = registerHierarchyMenuItems(
-    ({ nodeId, store }) => forkable(store, nodeId),
+    ({ nodeId, store }) => forkable(threeStateOf(store), nodeId),
     ({ nodeId, store }) => {
-      const source = instanceForkSourceFor(getActiveAuthoring(store.shell), nodeId);
+      const source = instanceForkSourceFor(getActiveAuthoring(store), nodeId);
       return [
         {
           label: FORK_COMPONENT_LABEL,

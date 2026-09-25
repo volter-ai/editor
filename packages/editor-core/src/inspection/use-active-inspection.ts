@@ -34,8 +34,8 @@ import {
   subscribeAssetInspectorActions,
 } from '../asset-inspector-actions';
 import { assetSelectionVersion, subscribeAssetSelection } from '../asset-selection';
-import { activeAuthoringVersion, subscribeActiveAuthoring } from '../authoring/active-adapter';
-import { resolvePanelAuthoring } from '../authoring/panel-authoring';
+import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
+import { resolvePanelAuthoring } from '@volter/editor-sdk/kit/authoring/panel-authoring';
 import { recordAuthoringConsumerUse } from '@volter/editor-sdk/kit/authoring-seam-evidence';
 import { documentContextVersion, subscribeDocumentContexts } from '../document-context-registry';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';

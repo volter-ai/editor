@@ -34,14 +34,14 @@ import {
   isOccurrenceId,
   ownOidOf,
   rendersSameSourceElement,
-} from '@volter/editor-core/authoring/component-instance-root';
+} from '@volter/editor-threejs/kit/authoring/component-instance-root';
 import { beginLiveGesture, endLiveGesture } from '@volter/editor-sdk/kit/live-gesture-lock';
 import { createStructWritePipe, type StructOpOptions } from '../../host/authoring/struct-write-pipe';
 import {
   CollapsedHierarchyView,
   readLocalTransform,
   StoreSelectionAdoption,
-} from '@volter/editor-core/authoring/three-projection-core';
+} from '@volter/editor-threejs/kit/authoring/three-projection-core';
 import {
   clipboardOutcome,
   LIVE_ONLY_ACK,
@@ -54,7 +54,7 @@ import {
 import { componentStatesProvider } from '@volter/editor-core/component-states-registry';
 import { openProjectToolDocument } from '@volter/editor-core/components/project-tool-documents';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import {
   replaceProjectSource,
   withProjectSourceHistory,
@@ -79,7 +79,7 @@ import {
   type SourceOidIdentity,
   sourceOidIdentity,
   ThreeProjector,
-} from '@volter/editor-core/projection/three';
+} from '@volter/editor-threejs/kit/projection/three';
 import { getStorageBackend } from '@volter/editor-sdk/kit/storage/index';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import {

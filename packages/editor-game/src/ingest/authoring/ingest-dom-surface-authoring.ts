@@ -10,7 +10,7 @@ import {
   findPrimaryCanvas,
   type OverlayElement,
 } from '../../host/coverage/capability-coverage';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { authoringJournal } from '../../host/history/json-history-resource';
 import { sourceWriteBackendIfPrimed } from '@volter/editor-core/ui-source/tier-source-write-backend';
 import { DomAuthoringAdapter, type DomElementLike } from '../../react/dom-authoring-adapter';

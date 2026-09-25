@@ -56,7 +56,7 @@ import {
   authoringOidOf,
   isComponentInstanceRoot,
   ownOidOf,
-} from '@volter/editor-core/authoring/component-instance-root';
+} from '@volter/editor-threejs/kit/authoring/component-instance-root';
 import { creationSiteRelated } from '../../host/authoring/creation-site-related';
 import { createEphemeralPersistence } from '../../host/authoring/ephemeral-persistence';
 import { multiChannelRefusal, persistChannelWrite } from '../../host/authoring/gesture-persist';
@@ -67,7 +67,7 @@ import {
   type SourcePersistenceBackend,
   type SourceWriteSubject,
 } from '../../host/authoring/source-persistence-backend';
-import { readLocalTransform } from '@volter/editor-core/authoring/three-projection-core';
+import { readLocalTransform } from '@volter/editor-threejs/kit/authoring/three-projection-core';
 import {
   LIVE_ONLY_ACK,
   LIVE_ONLY_DESTINATION,
@@ -89,7 +89,7 @@ import {
   NO_OBJECT_REASON,
 } from '@volter/editor-sdk/kit/creation-site-registry';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { type JournalSubject, JsonHistoryResource } from '../../host/history/json-history-resource';
 import {
   nativeKindOf,
@@ -100,7 +100,7 @@ import {
   type ThreeProjectionDelta,
   ThreeProjector,
   type ThreeWalkStats,
-} from '@volter/editor-core/projection/three';
+} from '@volter/editor-threejs/kit/projection/three';
 import type { SourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
 import type {
   AuthoringAdapter,

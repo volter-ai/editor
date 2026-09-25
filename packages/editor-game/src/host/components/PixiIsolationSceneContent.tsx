@@ -20,7 +20,6 @@ import { installCanvasSceneNavigation } from '@volter/editor-core/authoring/reac
 import { createRootViewController } from '@volter/editor-sdk/kit/world-pan-state';
 import { capturePixiDisplayObjectThumbnail } from '@volter/editor-core/canvas-preview-frames';
 import type { DocumentPreviewCaptureRequest } from '@volter/editor-sdk/kit/document-preview-source';
-import { useThreeEditorStore } from '@volter/editor-core/editor-runtime';
 import { authoringJournal } from '../history/json-history-resource';
 import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { getCurrentProject } from '@volter/editor-core/project-manager';
@@ -32,6 +31,7 @@ import {
   CanvasSceneControls,
 } from '@volter/editor-core/components/CanvasSceneViewport';
 import { RootSelectionOverlay } from '@volter/editor-core/components/RootSelectionOverlay';
+import { useThreeEditorStore } from '@volter/editor-threejs/kit/three-state';
 
 export interface PixiIsolationSceneContentProps {
   readonly active: boolean;

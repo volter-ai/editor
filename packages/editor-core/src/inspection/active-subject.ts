@@ -31,7 +31,7 @@ import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import { documentViewport } from '@volter/editor-sdk/kit/document-viewports';
 import { inspectionNodeMedia } from '@volter/editor-sdk/kit/inspection-node-media';
-import { resolvePanelAuthoring } from '../authoring/panel-authoring';
+import { resolvePanelAuthoring } from '@volter/editor-sdk/kit/authoring/panel-authoring';
 import { LIVE_ONLY_ACK, type WriteAck } from '@volter/editor-sdk/kit/write-pipe';
 import { describeAssetSelectionSubject } from '../components/asset-selection-section';
 import { ingestCoverageSection } from '@volter/editor-sdk/kit/CapabilityCoverageSection';

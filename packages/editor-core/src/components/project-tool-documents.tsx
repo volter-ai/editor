@@ -1,7 +1,7 @@
 import { Button, bg, border, danger, radius, TextArea, text } from '@volter/editor-sdk/widgets';
 import { useState, useSyncExternalStore } from 'react';
 import type { EditorAction } from '../action-registry';
-import { registerDocumentOpener } from '../document-open-registry';
+import { registerDocumentOpener } from '@volter/editor-sdk/kit/document-open-registry';
 import {
   getProjectTools,
   projectToolsVersion,
@@ -21,7 +21,7 @@ import {
   openWorkspaceDocument,
   type WorkspaceDocumentContentProps,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { registerWorkspaceDocumentRestorer } from '../workspace-document-restore';
+import { registerWorkspaceDocumentRestorer } from '@volter/editor-sdk/kit/workspace-document-restore';
 import { openToolDocument } from './tool-documents';
 import { defaultValueForSchema, ToolSchemaForm } from './tool-schema-form';
 

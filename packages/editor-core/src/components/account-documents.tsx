@@ -37,7 +37,7 @@ import {
   updateCodingInference,
   updatePreferredGenerationRoute,
 } from '@volter/editor-sdk/kit/account-client';
-import { registerDocumentOpener } from '../document-open-registry';
+import { registerDocumentOpener } from '@volter/editor-sdk/kit/document-open-registry';
 import { openWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { VgaiLogo } from './VgaiLogo';
 

@@ -72,7 +72,7 @@ import { InspectorTransformSection } from '../components/InspectorTransformSecti
 import {
   InspectorCanvasPreviewBody,
   InspectorComponentPreviewBody,
-} from '../components/inspector-preview-section';
+} from '@volter/editor-sdk/kit/components/inspector-preview-section';
 import type { InspectionNodeMedia } from '@volter/editor-sdk/kit/inspection-node-media';
 import { groupProperties } from '@volter/editor-sdk/kit/inspector-property-grouping';
 import { rotationDegrees, withTransformChannel } from '../components/inspector-transform';
@@ -81,7 +81,7 @@ import {
   type ContentEntry,
   type ContentEntrySource,
   contentEntryForComponent,
-} from '../content-entry-source-registry';
+} from '@volter/editor-sdk/kit/content-entry-source-registry';
 import {
   type InspectorSectionContribution,
   isSectionsProducer,

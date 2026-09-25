@@ -10,7 +10,7 @@ import {
   getInspectedAudio,
   subscribeActiveAudio,
 } from '@volter/editor-sdk/kit/authoring/active-systems';
-import { useEditorStore } from '@volter/editor-core/editor-runtime';
+import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import { useActivePerformanceSource } from '../use-active-performance-source';
 import {
   activeChromeRegions,

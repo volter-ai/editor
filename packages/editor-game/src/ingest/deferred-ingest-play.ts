@@ -33,7 +33,7 @@
 import { activateLiveDocument } from '@volter/editor-sdk/kit/live-document';
 import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import { queueEditModeRebuild } from '@volter/editor-core/authoring/edit-mode-authoring';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { fetchGameManifest } from '@volter/editor-core/manifest-project';
 import {
   type ProjectAdapterFacet,

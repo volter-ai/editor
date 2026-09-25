@@ -14,7 +14,7 @@ import {
   subscribeReactStoryBoardViewport,
   toggleActiveReactStoryBoardViewportRotation,
 } from '../authoring/react-story-board';
-import type { ViewportToolContext } from '../authoring/viewport-tool-context';
+import type { ViewportToolContext } from '@volter/editor-sdk/kit/authoring/viewport-tool-context';
 import {
   getRootCanvasViewport,
   setRootCanvasViewport,
@@ -26,7 +26,7 @@ import {
   setRootView,
   subscribeRootPan,
 } from '@volter/editor-sdk/kit/world-pan-state';
-import { useEditorStore } from '../editor-runtime';
+import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 
 const VIEWPORT_PRESETS = {
   fill: null,

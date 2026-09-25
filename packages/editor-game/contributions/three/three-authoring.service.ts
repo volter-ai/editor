@@ -25,12 +25,13 @@
  * product that composes this package pays for it.
  */
 
-import { setBaseAuthoringFactory } from '@volter/editor-core/authoring/active-adapter';
+import { setBaseAuthoringFactory } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { registerDesignTimeMount } from '@volter/editor-core/authoring/design-time-mount-registry';
 import { queueEditModeRebuild } from '@volter/editor-core/authoring/edit-mode-authoring';
 import { authoringJournal } from '../../src/host/history/json-history-resource';
 import { oidThree } from '../../src/three/authoring/three-authoring-adapter';
 import type { WorldRootSessionContext } from '../../src/host/components/world-root-stage';
+import { threeStateOf } from '@volter/editor-threejs/kit/three-state';
 
 export const point = 'workspace.service';
 
@@ -46,7 +47,7 @@ export function start(): () => void {
     // R3F design session's fiber scene, once it adopts) is what the hierarchy
     // shows, and an unmounted world honestly shows nothing rather than a
     // fabricated document.
-    oidThree(store, () => store.scene, worldId, authoringJournal(worldId)),
+    oidThree(threeStateOf(store), () => threeStateOf(store).scene, worldId, authoringJournal(worldId)),
   );
   const stopMount = registerDesignTimeMount({
     kind: 'three',

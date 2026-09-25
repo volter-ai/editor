@@ -25,11 +25,11 @@
  * it.
  */
 
-import { Object3DDocumentViewport } from '@volter/editor-core/components/Object3DDocumentViewport';
-import type { SourceDocumentAuthoringFactory } from '@volter/editor-core/components/StageHost';
+import { Object3DDocumentViewport } from '@volter/editor-threejs/kit/components/Object3DDocumentViewport';
+import type { SourceDocumentAuthoringFactory } from '@volter/editor-threejs/kit/components/StageHost';
 import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
-import { STANDARD_COMPONENT_CAMERA_DIRECTION } from '@volter/editor-core/components/standard-viewport-dressing';
-import { registerDocumentOpener } from '@volter/editor-core/document-open-registry';
+import { STANDARD_COMPONENT_CAMERA_DIRECTION } from '@volter/editor-threejs/kit/components/standard-viewport-dressing';
+import { registerDocumentOpener } from '@volter/editor-sdk/kit/document-open-registry';
 import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
 import {
   CONTRIBUTED_SECTION_ORDER,
@@ -57,8 +57,8 @@ import {
   disposeStoryObject3D,
   mountStoryObject3D,
   type StoryPreviewComponent,
-} from '@volter/editor-core/stories/story-three-preview';
-import { mountedStoryHasThreeContent } from '@volter/editor-core/stories/three-story-model';
+} from '../../host/stories/story-three-preview';
+import { mountedStoryHasThreeContent } from '@volter/editor-threejs/kit/stories/three-story-model';
 import { explainSurface } from '@volter/editor-sdk/kit/surface-state';
 import { sourceWriteBackendIfPrimed } from '@volter/editor-core/ui-source/tier-source-write-backend';
 import {
@@ -67,7 +67,7 @@ import {
   openWorkspaceDocument,
   type WorkspaceDocumentContentProps,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { registerWorkspaceDocumentRestorer } from '@volter/editor-core/workspace-document-restore';
+import { registerWorkspaceDocumentRestorer } from '@volter/editor-sdk/kit/workspace-document-restore';
 import { STORY_ARGS_SECTION_ICON } from '../../react/story-documents/story-args-section';
 import {
   prepareStoryDocumentRestore,

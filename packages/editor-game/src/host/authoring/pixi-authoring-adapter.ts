@@ -72,7 +72,7 @@ import * as shellPixi from 'pixi.js';
 import type { CanvasPixiNamespace } from '../canvas-entry-runtime';
 import { componentStatesProvider } from '@volter/editor-core/component-states-registry';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import type { JournalSubject } from '../history/json-history-resource';
 import { PixiProjector } from '../projection/pixi';
 import { creationSiteRelated } from './creation-site-related';

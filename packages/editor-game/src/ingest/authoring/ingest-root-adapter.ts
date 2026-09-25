@@ -17,10 +17,10 @@
  * content uses — no separate editor data model.
  */
 
-import { authoringOidOf } from '@volter/editor-core/authoring/component-instance-root';
+import { authoringOidOf } from '@volter/editor-threejs/kit/authoring/component-instance-root';
 import { setIngestDataWriter } from '../../host/authoring/ingest-data-writer';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { GAME_SURFACE_CONTAINMENT_CSS } from '../../host/game-realm-page';
 import { clearGameSurface, gameLoopGate, setGameSurface } from '../../host/gated-globals';
 import { authoringJournal } from '../../host/history/json-history-resource';

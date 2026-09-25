@@ -44,7 +44,7 @@
     },
     {
       "source": "packages/editor/src/animation/three-clips-subject.ts",
-      "path": "packages/editor-core/src/animation/three-clips-subject.ts",
+      "path": "packages/editor-threejs/src/kit/animation/three-clips-subject.ts",
       "sha256": "bca2641cb52a0bdefdca5af0bfd6feedb2e8c55cd5302ac4e2688aee5766cd72"
     },
     {
@@ -124,7 +124,7 @@
     },
     {
       "source": "packages/editor/src/asset-compare.ts",
-      "path": "packages/editor-core/src/asset-compare.ts",
+      "path": "packages/editor-threejs/src/kit/asset-compare.ts",
       "sha256": "cc0e8266ffc4242221a4bb1ee6c8e24ce756e68cb1eead1618615e4aa9f41476"
     },
     {
@@ -144,12 +144,12 @@
     },
     {
       "source": "packages/editor/src/asset-preview-framing.ts",
-      "path": "packages/editor-core/src/asset-preview-framing.ts",
+      "path": "packages/editor-threejs/src/kit/asset-preview-framing.ts",
       "sha256": "f440c1e2c2f73a453254a8e4042f5948830cc1bb4a66817061cbaece8680c0af"
     },
     {
       "source": "packages/editor/src/asset-preview.ts",
-      "path": "packages/editor-core/src/asset-preview.ts",
+      "path": "packages/editor-threejs/src/kit/asset-preview.ts",
       "sha256": "fec13e8a42db5b9b4248958ea7d9e6ceff0877d9cedadc2c8332966de21837e0"
     },
     {
@@ -244,7 +244,7 @@
     },
     {
       "source": "packages/editor/src/asset-workflow/model-inspection.ts",
-      "path": "packages/editor-core/src/asset-workflow/model-inspection.ts",
+      "path": "packages/editor-threejs/src/kit/asset-workflow/model-inspection.ts",
       "sha256": "4475d9a31483285400a38fe9b2be0bc8fc7e0ab0069c600574f17579200650d3"
     },
     {
@@ -294,7 +294,7 @@
     },
     {
       "source": "packages/editor/src/authoring/active-adapter.ts",
-      "path": "packages/editor-core/src/authoring/active-adapter.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/active-adapter.ts",
       "sha256": "e355d71df006ffac48cccdfc72cf1e7a8cc2a720c1b61ada6001eb669d996dd4"
     },
     {
@@ -334,7 +334,7 @@
     },
     {
       "source": "packages/editor/src/authoring/component-instance-root.ts",
-      "path": "packages/editor-core/src/authoring/component-instance-root.ts",
+      "path": "packages/editor-threejs/src/kit/authoring/component-instance-root.ts",
       "sha256": "9dc0e05e32370d4e62cef9c958b53f818f16de1dc42b0e3c9c4a8874a848b565"
     },
     {
@@ -364,7 +364,7 @@
     },
     {
       "source": "packages/editor/src/authoring/design-time-settle.ts",
-      "path": "packages/editor-core/src/authoring/design-time-settle.ts",
+      "path": "packages/editor-threejs/src/kit/authoring/design-time-settle.ts",
       "sha256": "c5e105fee8a7441ab67719334293f56a03482ef6aadbbbab89127651a63187e2"
     },
     {
@@ -389,7 +389,7 @@
     },
     {
       "source": "packages/editor/src/authoring/layered-pick.ts",
-      "path": "packages/editor-core/src/authoring/layered-pick.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/layered-pick.ts",
       "sha256": "2daa912ea4ee94396089170fa085b11f09e2c3f75bbe00cd1622a16ab6e41c2e"
     },
     {
@@ -399,7 +399,7 @@
     },
     {
       "source": "packages/editor/src/authoring/live-object-transform.ts",
-      "path": "packages/editor-core/src/authoring/live-object-transform.ts",
+      "path": "packages/editor-threejs/src/kit/authoring/live-object-transform.ts",
       "sha256": "7a83641229affd72039ad62138bb1ae245a03988807e422bb7d4f43807846fc7"
     },
     {
@@ -429,12 +429,12 @@
     },
     {
       "source": "packages/editor/src/authoring/object3d-document-session-registry.ts",
-      "path": "packages/editor-core/src/authoring/object3d-document-session-registry.ts",
+      "path": "packages/editor-threejs/src/kit/authoring/object3d-document-session-registry.ts",
       "sha256": "cd00a2d64cbd054655f7309285550dfbb58338552aed30cc4056e88885638d96"
     },
     {
       "source": "packages/editor/src/authoring/object3d-document-session.ts",
-      "path": "packages/editor-core/src/authoring/object3d-document-session.ts",
+      "path": "packages/editor-threejs/src/kit/authoring/object3d-document-session.ts",
       "sha256": "73bf7a72e4451a4aed220ba5fefd3773a7d94574f1527b39e781fab794f5566f"
     },
     {
@@ -444,7 +444,7 @@
     },
     {
       "source": "packages/editor/src/authoring/panel-authoring.ts",
-      "path": "packages/editor-core/src/authoring/panel-authoring.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/panel-authoring.ts",
       "sha256": "a622a8f7d67d14cd49b7231b392d2aa0949902f0baca7f98b645b96bc65be147"
     },
     {
@@ -469,7 +469,7 @@
     },
     {
       "source": "packages/editor/src/authoring/quarks-particle-systems.ts",
-      "path": "packages/editor-core/src/authoring/quarks-particle-systems.ts",
+      "path": "packages/editor-threejs/src/kit/authoring/quarks-particle-systems.ts",
       "sha256": "0f9dfd890cd441c36950d496d6a5844a30aae683618438c4b82cee651b5fbe7f"
     },
     {
@@ -494,7 +494,7 @@
     },
     {
       "source": "packages/editor/src/authoring/shell-document-ops.ts",
-      "path": "packages/editor-core/src/authoring/shell-document-ops.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/shell-document-ops.ts",
       "sha256": "417bfff32c0157b4a4ed6717bf6cc34152213f38970459bbf0e688d1ca7babf8"
     },
     {
@@ -504,12 +504,12 @@
     },
     {
       "source": "packages/editor/src/authoring/shell-viewport-policy.ts",
-      "path": "packages/editor-core/src/authoring/shell-viewport-policy.ts",
+      "path": "packages/editor-threejs/src/kit/authoring/shell-viewport-policy.ts",
       "sha256": "e5a9f03f5062cea6da8ba3965d39450e82ab80f7c99700dae0fc11032d5c6bda"
     },
     {
       "source": "packages/editor/src/authoring/source-object3d-authoring-adapter.ts",
-      "path": "packages/editor-core/src/authoring/source-object3d-authoring-adapter.ts",
+      "path": "packages/editor-threejs/src/kit/authoring/source-object3d-authoring-adapter.ts",
       "sha256": "927a5162bf081a80646b2d82eef6e487cf910a0237acf5ca80e8874ba83e2199"
     },
     {
@@ -529,22 +529,22 @@
     },
     {
       "source": "packages/editor/src/authoring/three-projection-core.ts",
-      "path": "packages/editor-core/src/authoring/three-projection-core.ts",
+      "path": "packages/editor-threejs/src/kit/authoring/three-projection-core.ts",
       "sha256": "66fe3e471c148b6591652c5e0bbec4cd3f16e31a056c80cbeb6f2997a8a6fa78"
     },
     {
       "source": "packages/editor/src/authoring/viewport-pick-context.ts",
-      "path": "packages/editor-core/src/authoring/viewport-pick-context.ts",
+      "path": "packages/editor-threejs/src/kit/authoring/viewport-pick-context.ts",
       "sha256": "a5268f2dbba94b5df3ea611306b55d78c230550b214e33d5a5d65a361d3df4c0"
     },
     {
       "source": "packages/editor/src/authoring/viewport-raycast.ts",
-      "path": "packages/editor-core/src/authoring/viewport-raycast.ts",
+      "path": "packages/editor-threejs/src/kit/authoring/viewport-raycast.ts",
       "sha256": "0979304bda135e4152ae08f66805eb22f7c345af93b09e6616b8ad20bfb8e2ef"
     },
     {
       "source": "packages/editor/src/authoring/viewport-tool-context.ts",
-      "path": "packages/editor-core/src/authoring/viewport-tool-context.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/viewport-tool-context.ts",
       "sha256": "6c8cc9a0b6fa939ebb36a6585e433a2b03bf71726c937ec17f39db7e87502857"
     },
     {
@@ -554,7 +554,7 @@
     },
     {
       "source": "packages/editor/src/authoring/world-hidden-viewport.ts",
-      "path": "packages/editor-core/src/authoring/world-hidden-viewport.ts",
+      "path": "packages/editor-threejs/src/kit/authoring/world-hidden-viewport.ts",
       "sha256": "d3990da372105d55054f6efb20e46de1c6388e60a3553523000b20084e36ad10"
     },
     {
@@ -609,7 +609,7 @@
     },
     {
       "source": "packages/editor/src/camera-authoring.ts",
-      "path": "packages/editor-core/src/camera-authoring.ts",
+      "path": "packages/editor-threejs/src/kit/camera-authoring.ts",
       "sha256": "b4f425f084d9c1903f776d8ec1965fd9a0b3b62adb54eb117fad5d78df980011"
     },
     {
@@ -714,7 +714,7 @@
     },
     {
       "source": "packages/editor/src/components/CameraInfo.tsx",
-      "path": "packages/editor-core/src/components/CameraInfo.tsx",
+      "path": "packages/editor-threejs/src/kit/components/CameraInfo.tsx",
       "sha256": "ab0dc56a191b8527a8acf0d3cadfc3bd95f210d46b2b21f2f7b89583ec2f4211"
     },
     {
@@ -824,7 +824,7 @@
     },
     {
       "source": "packages/editor/src/components/InspectorCanvasPreview.tsx",
-      "path": "packages/editor-core/src/components/InspectorCanvasPreview.tsx",
+      "path": "packages/editor-sdk/src/kit/components/InspectorCanvasPreview.tsx",
       "sha256": "e85e56bba39408d7dfb1005ae427134a33ae87e8e1d6a7c7624b2bd7719cc432"
     },
     {
@@ -834,7 +834,7 @@
     },
     {
       "source": "packages/editor/src/components/InspectorObjectPreview.tsx",
-      "path": "packages/editor-core/src/components/InspectorObjectPreview.tsx",
+      "path": "packages/editor-threejs/src/kit/components/InspectorObjectPreview.tsx",
       "sha256": "e9dd1d212c8f6acced57bb8176bcc3898d16320d69bfd3fc41c65178bb9711e4"
     },
     {
@@ -874,12 +874,12 @@
     },
     {
       "source": "packages/editor/src/components/Object3DDocumentToolbar.tsx",
-      "path": "packages/editor-core/src/components/Object3DDocumentToolbar.tsx",
+      "path": "packages/editor-threejs/src/kit/components/Object3DDocumentToolbar.tsx",
       "sha256": "c0f2a2a266f8a8d15814a7cb1f077d9c365b5539275a7b4c930cbd974c73a55d"
     },
     {
       "source": "packages/editor/src/components/Object3DDocumentViewport.tsx",
-      "path": "packages/editor-core/src/components/Object3DDocumentViewport.tsx",
+      "path": "packages/editor-threejs/src/kit/components/Object3DDocumentViewport.tsx",
       "sha256": "c33637885acaf556bfc50dddf554d30ab3c0e16b06c0b9257f832cf425f2e3fd"
     },
     {
@@ -919,12 +919,12 @@
     },
     {
       "source": "packages/editor/src/components/StageHost.tsx",
-      "path": "packages/editor-core/src/components/StageHost.tsx",
+      "path": "packages/editor-threejs/src/kit/components/StageHost.tsx",
       "sha256": "7de1dae375ba2b89163ac9f4a64c05cb14d3cd4aca092bde9467bab5ec241d5f"
     },
     {
       "source": "packages/editor/src/components/StageOverlays.tsx",
-      "path": "packages/editor-core/src/components/StageOverlays.tsx",
+      "path": "packages/editor-threejs/src/kit/components/StageOverlays.tsx",
       "sha256": "74144304fde20a970b2de30131ba4d563f2b8f293ac34b028a5a3f04bdacb032"
     },
     {
@@ -939,7 +939,7 @@
     },
     {
       "source": "packages/editor/src/components/StatsOverlay.tsx",
-      "path": "packages/editor-core/src/components/StatsOverlay.tsx",
+      "path": "packages/editor-threejs/src/kit/components/StatsOverlay.tsx",
       "sha256": "9bb42a22660fa50100366a2617b50fa57670acaf23cee168a83b8421899854e6"
     },
     {
@@ -959,12 +959,12 @@
     },
     {
       "source": "packages/editor/src/components/ToolObject3DPreview.tsx",
-      "path": "packages/editor-core/src/components/ToolObject3DPreview.tsx",
+      "path": "packages/editor-threejs/src/kit/components/ToolObject3DPreview.tsx",
       "sha256": "6eea1660806c31493ac8a35fe204e6660964fe140c59c584c0821ef86b1c6dbf"
     },
     {
       "source": "packages/editor/src/components/Toolbar.tsx",
-      "path": "packages/editor-core/src/components/Toolbar.tsx",
+      "path": "packages/editor-sdk/src/kit/components/Toolbar.tsx",
       "sha256": "8e0a5166cfb06e30630c70e8f6a89cf8da286084e25ac38f229a158d0eb843c9"
     },
     {
@@ -999,12 +999,12 @@
     },
     {
       "source": "packages/editor/src/components/ViewportFurniture.tsx",
-      "path": "packages/editor-core/src/components/ViewportFurniture.tsx",
+      "path": "packages/editor-threejs/src/kit/components/ViewportFurniture.tsx",
       "sha256": "b78405e0ebfa785f5052cbd91bfdf26c67d2f634619c2d8ed8b4403cb709983b"
     },
     {
       "source": "packages/editor/src/components/ViewportOverlay.tsx",
-      "path": "packages/editor-core/src/components/ViewportOverlay.tsx",
+      "path": "packages/editor-threejs/src/kit/components/ViewportOverlay.tsx",
       "sha256": "19ddb966c7e73964003403c879347e91b5f4e81b781de6372267bd7b56c4ffe3"
     },
     {
@@ -1014,12 +1014,12 @@
     },
     {
       "source": "packages/editor/src/components/ViewportShadingMenu.tsx",
-      "path": "packages/editor-core/src/components/ViewportShadingMenu.tsx",
+      "path": "packages/editor-threejs/src/kit/components/ViewportShadingMenu.tsx",
       "sha256": "7b139d88937fe73c42996113d8841b4dc7f51b9c3cf9479ea8be6c872aed06a6"
     },
     {
       "source": "packages/editor/src/components/ViewportViewMenu.tsx",
-      "path": "packages/editor-core/src/components/ViewportViewMenu.tsx",
+      "path": "packages/editor-threejs/src/kit/components/ViewportViewMenu.tsx",
       "sha256": "623a7ff5f75f3e7d6f73f8d996f6081d8b625e60d6ad64464b8694159d0e4132"
     },
     {
@@ -1074,12 +1074,12 @@
     },
     {
       "source": "packages/editor/src/components/asset-viewers/EntityModelDocument.tsx",
-      "path": "packages/editor-core/src/components/asset-viewers/EntityModelDocument.tsx",
+      "path": "packages/editor-threejs/src/kit/components/asset-viewers/EntityModelDocument.tsx",
       "sha256": "0c01b01df43fefdce32720c856a4cf564d30a36fbbdae34e371548a27bae7388"
     },
     {
       "source": "packages/editor/src/components/asset-viewers/EnvironmentAssetDocument.tsx",
-      "path": "packages/editor-core/src/components/asset-viewers/EnvironmentAssetDocument.tsx",
+      "path": "packages/editor-threejs/src/kit/components/asset-viewers/EnvironmentAssetDocument.tsx",
       "sha256": "fb891260fde6df3636c85e274e39f2cc4a312ea8d75bdae4f5dd0dbadc4a7299"
     },
     {
@@ -1099,22 +1099,22 @@
     },
     {
       "source": "packages/editor/src/components/asset-viewers/LiveModuleDocument.tsx",
-      "path": "packages/editor-core/src/components/asset-viewers/LiveModuleDocument.tsx",
+      "path": "packages/editor-threejs/src/kit/components/asset-viewers/LiveModuleDocument.tsx",
       "sha256": "7e0289267ee188cffcbb8ee704d80d5ecb78d4b38a96ecb947b524e2e4b22501"
     },
     {
       "source": "packages/editor/src/components/asset-viewers/LutAssetDocument.tsx",
-      "path": "packages/editor-core/src/components/asset-viewers/LutAssetDocument.tsx",
+      "path": "packages/editor-threejs/src/kit/components/asset-viewers/LutAssetDocument.tsx",
       "sha256": "c9325161e750024f79f99da20163e35fba3cbf6ae4aa0a2c6df2f8467ab797f9"
     },
     {
       "source": "packages/editor/src/components/asset-viewers/ModelAssetDocument.tsx",
-      "path": "packages/editor-core/src/components/asset-viewers/ModelAssetDocument.tsx",
+      "path": "packages/editor-threejs/src/kit/components/asset-viewers/ModelAssetDocument.tsx",
       "sha256": "f584fc8fbe5a011d8057ebe9f97e4b4caa88d3208273a0afb27285dbf444cc26"
     },
     {
       "source": "packages/editor/src/components/asset-viewers/Object3DPreview.tsx",
-      "path": "packages/editor-core/src/components/asset-viewers/Object3DPreview.tsx",
+      "path": "packages/editor-threejs/src/kit/components/asset-viewers/Object3DPreview.tsx",
       "sha256": "6abec635e4eab50aa50b5e00fcdb4b3cfce4e81fbaa2ce3917676e11e60bc71e"
     },
     {
@@ -1129,12 +1129,12 @@
     },
     {
       "source": "packages/editor/src/components/asset-viewers/QuarksAssetDocument.tsx",
-      "path": "packages/editor-core/src/components/asset-viewers/QuarksAssetDocument.tsx",
+      "path": "packages/editor-threejs/src/kit/components/asset-viewers/QuarksAssetDocument.tsx",
       "sha256": "77e070525702a837b2022137a3f8b8757366bf84c4ae872571c683315b07a8ca"
     },
     {
       "source": "packages/editor/src/components/asset-viewers/ShaderAssetDocument.tsx",
-      "path": "packages/editor-core/src/components/asset-viewers/ShaderAssetDocument.tsx",
+      "path": "packages/editor-threejs/src/kit/components/asset-viewers/ShaderAssetDocument.tsx",
       "sha256": "483f0bb66a1050e0e0a0e23818d52948b269d9e674743f19016d359886fb7783"
     },
     {
@@ -1189,7 +1189,7 @@
     },
     {
       "source": "packages/editor/src/components/inspector-preview-section.tsx",
-      "path": "packages/editor-core/src/components/inspector-preview-section.tsx",
+      "path": "packages/editor-sdk/src/kit/components/inspector-preview-section.tsx",
       "sha256": "50d24e92eb2591796ecf7e6623e954b892723e69ee0583f31a56f76e3c70cf2a"
     },
     {
@@ -1254,22 +1254,22 @@
     },
     {
       "source": "packages/editor/src/components/stage-keyboard.tsx",
-      "path": "packages/editor-core/src/components/stage-keyboard.tsx",
+      "path": "packages/editor-threejs/src/kit/components/stage-keyboard.tsx",
       "sha256": "04e70e9f0977baae2a37996fad4f35226981f8000306423510f8c13e201c49bb"
     },
     {
       "source": "packages/editor/src/components/stage-overlay-set.tsx",
-      "path": "packages/editor-core/src/components/stage-overlay-set.tsx",
+      "path": "packages/editor-threejs/src/kit/components/stage-overlay-set.tsx",
       "sha256": "01dddc455fc655fd1ee30ef6932df53ddcd47a48ec89d9743f8556b7944e9b1d"
     },
     {
       "source": "packages/editor/src/components/stage-presence-markers.ts",
-      "path": "packages/editor-core/src/components/stage-presence-markers.ts",
+      "path": "packages/editor-threejs/src/kit/components/stage-presence-markers.ts",
       "sha256": "372bcb8414649e16003d0d235df059e4696be8ec59f25db6b3fadab31f4c4dae"
     },
     {
       "source": "packages/editor/src/components/standard-viewport-dressing.ts",
-      "path": "packages/editor-core/src/components/standard-viewport-dressing.ts",
+      "path": "packages/editor-threejs/src/kit/components/standard-viewport-dressing.ts",
       "sha256": "df1b23586863a5423d714a75d95bd1a707d213b131154bc77e04e6ef4152507b"
     },
     {
@@ -1289,7 +1289,7 @@
     },
     {
       "source": "packages/editor/src/components/use-after-paint.ts",
-      "path": "packages/editor-core/src/components/use-after-paint.ts",
+      "path": "packages/editor-sdk/src/kit/components/use-after-paint.ts",
       "sha256": "cb9e8ba604f42ebc9a795b4a76eaf037c8713cfd187ef4e6d0dbeaa633bdc0c2"
     },
     {
@@ -1344,12 +1344,12 @@
     },
     {
       "source": "packages/editor/src/constraint-helper.ts",
-      "path": "packages/editor-core/src/constraint-helper.ts",
+      "path": "packages/editor-threejs/src/kit/constraint-helper.ts",
       "sha256": "1e9396e94b6d95a73d6a839e4accc600508f9a7b90ad7df880da9b3b8266ab12"
     },
     {
       "source": "packages/editor/src/content-entry-source-registry.ts",
-      "path": "packages/editor-core/src/content-entry-source-registry.ts",
+      "path": "packages/editor-sdk/src/kit/content-entry-source-registry.ts",
       "sha256": "451bc2332db1a4476be117dd82f0a47ad98ee60876b06afd32a012b2ae9a42da"
     },
     {
@@ -1409,7 +1409,7 @@
     },
     {
       "source": "packages/editor/src/document-open-registry.ts",
-      "path": "packages/editor-core/src/document-open-registry.ts",
+      "path": "packages/editor-sdk/src/kit/document-open-registry.ts",
       "sha256": "c8368cac302b40b50f68d2d78dd6399c1cd29e61559f29b5bf610014ed73378b"
     },
     {
@@ -1504,7 +1504,7 @@
     },
     {
       "source": "packages/editor/src/editor-runtime.tsx",
-      "path": "packages/editor-core/src/editor-runtime.tsx",
+      "path": "packages/editor-sdk/src/kit/editor-runtime.tsx",
       "sha256": "df9c7fb1b03c08d26efd5a77be162e18420dd1954587ba06fe98cf0802bfbd28"
     },
     {
@@ -1524,7 +1524,7 @@
     },
     {
       "source": "packages/editor/src/editor-shell-store.ts",
-      "path": "packages/editor-core/src/editor-shell-store.ts",
+      "path": "packages/editor-threejs/src/kit/editor-shell-store.ts",
       "sha256": "e9e440990612fd085f0695e9eeeb6385fe32b36007b1243302106f2ef11100a6"
     },
     {
@@ -1544,17 +1544,17 @@
     },
     {
       "source": "packages/editor/src/editor-viewport.ts",
-      "path": "packages/editor-core/src/editor-viewport.ts",
+      "path": "packages/editor-threejs/src/kit/editor-viewport.ts",
       "sha256": "ad8c55a5a323696b8763303ad33108f6e948d5850c1aedd150329ba590ab487d"
     },
     {
       "source": "packages/editor/src/entity-lod.ts",
-      "path": "packages/editor-core/src/entity-lod.ts",
+      "path": "packages/editor-threejs/src/kit/entity-lod.ts",
       "sha256": "9641ab64a98df29a22598940962e227a45db3db85ba8c4d551f34bf428ec1c9e"
     },
     {
       "source": "packages/editor/src/entity-object.ts",
-      "path": "packages/editor-core/src/entity-object.ts",
+      "path": "packages/editor-threejs/src/kit/entity-object.ts",
       "sha256": "7972630b4b5b34034f89cb13b1009d043984de2005ac0f97cde8ef53fde9b63b"
     },
     {
@@ -1644,7 +1644,7 @@
     },
     {
       "source": "packages/editor/src/hierarchy-mark-reader.ts",
-      "path": "packages/editor-core/src/hierarchy-mark-reader.ts",
+      "path": "packages/editor-threejs/src/kit/hierarchy-mark-reader.ts",
       "sha256": "a13523e04d63da28ec538d12b36b9bbfaf583c5c78cad87fdec4966e7209db22"
     },
     {
@@ -1839,7 +1839,7 @@
     },
     {
       "source": "packages/editor/src/instanced-presentation.ts",
-      "path": "packages/editor-core/src/instanced-presentation.ts",
+      "path": "packages/editor-threejs/src/kit/instanced-presentation.ts",
       "sha256": "6b8b447683b64ff950a4af8c457c3080c9ac35ace8da9dc2fef78be396224db9"
     },
     {
@@ -1884,7 +1884,7 @@
     },
     {
       "source": "packages/editor/src/live-module-source.ts",
-      "path": "packages/editor-core/src/live-module-source.ts",
+      "path": "packages/editor-threejs/src/kit/live-module-source.ts",
       "sha256": "b4f4f850b88c191777590f91ec302f122b71957a93bbf0aed337dc8a8803371e"
     },
     {
@@ -1904,7 +1904,7 @@
     },
     {
       "source": "packages/editor/src/model-thumbnail.ts",
-      "path": "packages/editor-core/src/model-thumbnail.ts",
+      "path": "packages/editor-threejs/src/kit/model-thumbnail.ts",
       "sha256": "4b1874965938880d477874dcd8c5da60a585e8ea39567c9fff2b37bf141d6497"
     },
     {
@@ -2019,7 +2019,7 @@
     },
     {
       "source": "packages/editor/src/projection/three.ts",
-      "path": "packages/editor-core/src/projection/three.ts",
+      "path": "packages/editor-threejs/src/kit/projection/three.ts",
       "sha256": "994ccb2a5db4e4bfebbf59a7365ebf4021638b4d26d426d4d332da10f179468a"
     },
     {
@@ -2034,7 +2034,7 @@
     },
     {
       "source": "packages/editor/src/reflection-probe-helper.ts",
-      "path": "packages/editor-core/src/reflection-probe-helper.ts",
+      "path": "packages/editor-threejs/src/kit/reflection-probe-helper.ts",
       "sha256": "fa7350b46d242f7e471ca8079cbaf4e0a858bc597f9485b20c58540ff1339500"
     },
     {
@@ -2054,7 +2054,7 @@
     },
     {
       "source": "packages/editor/src/scene-framing.ts",
-      "path": "packages/editor-core/src/scene-framing.ts",
+      "path": "packages/editor-threejs/src/kit/scene-framing.ts",
       "sha256": "b1e440a33fb7779ef3b66197a59a0dff9b3c741e159e3188637a17cd0770b7a9"
     },
     {
@@ -2064,7 +2064,7 @@
     },
     {
       "source": "packages/editor/src/scene-view-fog.ts",
-      "path": "packages/editor-core/src/scene-view-fog.ts",
+      "path": "packages/editor-threejs/src/kit/scene-view-fog.ts",
       "sha256": "9b23f2159e838347ffb5c6d658d9f6022aa1ff922283bf2853604a4345f702ae"
     },
     {
@@ -2099,7 +2099,7 @@
     },
     {
       "source": "packages/editor/src/shell-store-door.ts",
-      "path": "packages/editor-core/src/shell-store-door.ts",
+      "path": "packages/editor-sdk/src/kit/shell-store-door.ts",
       "sha256": "592b4b97fbed7d3fb1b656bdcb2afba96433e384a3769f33012e92071abe14c9"
     },
     {
@@ -2109,17 +2109,17 @@
     },
     {
       "source": "packages/editor/src/spatial-handle-visuals.ts",
-      "path": "packages/editor-core/src/spatial-handle-visuals.ts",
+      "path": "packages/editor-threejs/src/kit/spatial-handle-visuals.ts",
       "sha256": "8e33634f0f2c473fc62a45c70afa3573ded35e6095221140b0bbc219cd1caa57"
     },
     {
       "source": "packages/editor/src/stage-context.ts",
-      "path": "packages/editor-core/src/stage-context.ts",
+      "path": "packages/editor-sdk/src/kit/stage-context.ts",
       "sha256": "a90dac40e8213634dd8b485cdd82f9f1304ea4051e420737bdeb9e5880662b92"
     },
     {
       "source": "packages/editor/src/stage-store-registry.ts",
-      "path": "packages/editor-core/src/stage-store-registry.ts",
+      "path": "packages/editor-sdk/src/kit/stage-store-registry.ts",
       "sha256": "ed20f7103c7b2b3318881518100d53f3d5ee0176676b730834e5c435268cc786"
     },
     {
@@ -2289,17 +2289,17 @@
     },
     {
       "source": "packages/editor/src/stories/story-three-preview.ts",
-      "path": "packages/editor-core/src/stories/story-three-preview.ts",
+      "path": "packages/editor-game/src/host/stories/story-three-preview.ts",
       "sha256": "3cd88cdbe7e94ad7afb8fcb285f6b46593f5c529fb114b0a5446699ff7838d74"
     },
     {
       "source": "packages/editor/src/stories/three-story-model.ts",
-      "path": "packages/editor-core/src/stories/three-story-model.ts",
+      "path": "packages/editor-threejs/src/kit/stories/three-story-model.ts",
       "sha256": "2acc3dbbb108094719f2049764fb4f50b5813a392d6da711d023263a2322dede"
     },
     {
       "source": "packages/editor/src/story-three-preview-runtime.ts",
-      "path": "packages/editor-core/src/story-three-preview-runtime.ts",
+      "path": "packages/editor-game/src/host/story-three-preview-runtime.ts",
       "sha256": "b04d0e2d412e2162b23769befa19fb15b443310e1a7f2ea2cd87cfb76d28b932"
     },
     {
@@ -2344,42 +2344,42 @@
     },
     {
       "source": "packages/editor/src/three-viewport/bone-selection-highlight.ts",
-      "path": "packages/editor-core/src/three-viewport/bone-selection-highlight.ts",
+      "path": "packages/editor-threejs/src/kit/three-viewport/bone-selection-highlight.ts",
       "sha256": "440221e18338d659d9fc919a1a8dbea8e56e1e7f1bc9b9cd3ef5cf945709f8ad"
     },
     {
       "source": "packages/editor/src/three-viewport/camera-fit.ts",
-      "path": "packages/editor-core/src/three-viewport/camera-fit.ts",
+      "path": "packages/editor-threejs/src/kit/three-viewport/camera-fit.ts",
       "sha256": "76ced1de36fc087ebc0b8bb3d17978a25556dd31debd3e5de29d183daa7cca85"
     },
     {
       "source": "packages/editor/src/three-viewport/interactive-renderer.ts",
-      "path": "packages/editor-core/src/three-viewport/interactive-renderer.ts",
+      "path": "packages/editor-threejs/src/kit/three-viewport/interactive-renderer.ts",
       "sha256": "e656c51c8d9cbd8ef0710189502d8e6d790457463f38a721c62ddb9e8255a4ae"
     },
     {
       "source": "packages/editor/src/three-viewport/selection-brackets.ts",
-      "path": "packages/editor-core/src/three-viewport/selection-brackets.ts",
+      "path": "packages/editor-threejs/src/kit/three-viewport/selection-brackets.ts",
       "sha256": "f27c532b62d99aa2b871a36305dc29c53063aaabd464625657ba9352e11dd81f"
     },
     {
       "source": "packages/editor/src/three-viewport/selection-outline.ts",
-      "path": "packages/editor-core/src/three-viewport/selection-outline.ts",
+      "path": "packages/editor-threejs/src/kit/three-viewport/selection-outline.ts",
       "sha256": "137937d673343c3972e7a85bfe064a50a77d2e52585e9b38940208c057758203"
     },
     {
       "source": "packages/editor/src/three-viewport/skeleton-helper.ts",
-      "path": "packages/editor-core/src/three-viewport/skeleton-helper.ts",
+      "path": "packages/editor-threejs/src/kit/three-viewport/skeleton-helper.ts",
       "sha256": "4390e2e33c3f3d018f6c6c460aa359accbe36ca5fd7abe9a465ae9db77142be9"
     },
     {
       "source": "packages/editor/src/three-viewport/source-color.ts",
-      "path": "packages/editor-core/src/three-viewport/source-color.ts",
+      "path": "packages/editor-threejs/src/kit/three-viewport/source-color.ts",
       "sha256": "9e7a55ba6c9f145b5ff5f43f78566124d99145a62662d5c49d5478775f0b3201"
     },
     {
       "source": "packages/editor/src/three-viewport/studio-environment.ts",
-      "path": "packages/editor-core/src/three-viewport/studio-environment.ts",
+      "path": "packages/editor-threejs/src/kit/three-viewport/studio-environment.ts",
       "sha256": "06e075ffb1a978864ed169690cb53667fba56c6a8ca1bcf81d13b1089af16b0e"
     },
     {
@@ -2394,7 +2394,7 @@
     },
     {
       "source": "packages/editor/src/transform-mode-request.ts",
-      "path": "packages/editor-core/src/transform-mode-request.ts",
+      "path": "packages/editor-sdk/src/kit/transform-mode-request.ts",
       "sha256": "dc425f18782f7fc304b7d769fb84005dd39b5896073bb99a778ea4c126beac42"
     },
     {
@@ -2404,7 +2404,7 @@
     },
     {
       "source": "packages/editor/src/trigger-volume-helper.ts",
-      "path": "packages/editor-core/src/trigger-volume-helper.ts",
+      "path": "packages/editor-threejs/src/kit/trigger-volume-helper.ts",
       "sha256": "8880428d2e51bbf0fac8db3eedc48b5676322c8146b87dd1d46efc35cdbf7046"
     },
     {
@@ -2494,7 +2494,7 @@
     },
     {
       "source": "packages/editor/src/viewport-authoring-policy.ts",
-      "path": "packages/editor-core/src/viewport-authoring-policy.ts",
+      "path": "packages/editor-threejs/src/kit/viewport-authoring-policy.ts",
       "sha256": "f1cd726581d2484d56b25a458c5cb94d24df898842c3bb8ebfa5a03f0d9c0cb9"
     },
     {
@@ -2504,12 +2504,12 @@
     },
     {
       "source": "packages/editor/src/viewport-door.ts",
-      "path": "packages/editor-core/src/viewport-door.ts",
+      "path": "packages/editor-sdk/src/kit/viewport-door.ts",
       "sha256": "ae105d21677af82617a905950ef3bbbb982eac16006fdb0c6ab595d0c07fc028"
     },
     {
       "source": "packages/editor/src/viewport-shading-boundary.ts",
-      "path": "packages/editor-core/src/viewport-shading-boundary.ts",
+      "path": "packages/editor-threejs/src/kit/viewport-shading-boundary.ts",
       "sha256": "db09b272b588458ef03772ed7b565474e374d5967864938625947a77fe37492f"
     },
     {
@@ -2554,7 +2554,7 @@
     },
     {
       "source": "packages/editor/src/workspace-document-restore.ts",
-      "path": "packages/editor-core/src/workspace-document-restore.ts",
+      "path": "packages/editor-sdk/src/kit/workspace-document-restore.ts",
       "sha256": "70682c097a5a31ffbe57a6773e7615fdda3e3257b8daa5f2fd89b45dc87671ba"
     },
     {

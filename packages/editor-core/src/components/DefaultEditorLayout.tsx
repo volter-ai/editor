@@ -1,4 +1,3 @@
-import { threeStateOf } from '../three-state';
 import { lazy, Suspense, use, useEffect, useSyncExternalStore } from 'react';
 import { connectAssetEvents } from '../asset-events';
 import { installAssetSelectionAutoClear } from '../asset-selection';
@@ -8,7 +7,7 @@ import {
   useEditorStore,
   useHistoryCommands,
   useHistoryService,
-} from '../editor-runtime';
+} from '@volter/editor-sdk/kit/editor-runtime';
 import { installAuxiliaryEvents } from '../workspace-aux-commands';
 import { installUtilityAutoOpen } from '../workspace-utility-commands';
 import { AgentPresentationNotice } from './AgentPresentationNotice';
@@ -93,7 +92,7 @@ export function DefaultEditorLayout() {
       {/* Edit-time networking config (declared server + authored identity) for a
           multiplayer project, with no game running. No-op for single-player. */}
       <Suspense fallback={null}>
-        <ProjectAuthoringBootstrap store={threeStateOf(store)} />
+        <ProjectAuthoringBootstrap store={store} />
       </Suspense>
       <ProjectLayout />
       <AgentPresentationNotice />

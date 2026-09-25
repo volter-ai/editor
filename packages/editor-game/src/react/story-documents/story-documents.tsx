@@ -43,7 +43,7 @@ import { Checkbox, TextInput, themeVars } from '@volter/editor-sdk/widgets';
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import { type Resolution, ResolutionPicker } from '../../host/components/ResolutionPicker';
 import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
-import { registerDocumentOpener } from '@volter/editor-core/document-open-registry';
+import { registerDocumentOpener } from '@volter/editor-sdk/kit/document-open-registry';
 import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
 import {
   CONTRIBUTED_SECTION_ORDER,
@@ -74,7 +74,7 @@ import {
   openWorkspaceDocument,
   type WorkspaceDocumentContentProps,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { registerWorkspaceDocumentRestorer } from '@volter/editor-core/workspace-document-restore';
+import { registerWorkspaceDocumentRestorer } from '@volter/editor-sdk/kit/workspace-document-restore';
 import { registerWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-utility-registry';
 import { fitPresentation } from '@volter/game-runtime/runtime/presentation';
 import { Button, fontMono, fontSizeVar, spaceVar } from '@volter/editor-sdk/widgets';

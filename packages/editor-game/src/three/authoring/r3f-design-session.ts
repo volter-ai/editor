@@ -77,13 +77,13 @@ import {
   diagnoseModuleFetch,
   failedImportEntry,
 } from '@volter/editor-sdk/kit/module-fetch-diagnosis';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { adjudicateThreeEntry } from '../../host/entry-adjudication';
 import { onPlayTransitionSettled } from '@volter/editor-core/live-transition';
 import { fetchRawGameManifest } from '@volter/editor-core/manifest-project';
 import { getCurrentProject } from '@volter/editor-core/project-manager';
 import { activeRealmServices } from '../../host/realm-services';
-import { pickGameCamera } from '@volter/editor-core/scene-framing';
+import { pickGameCamera } from '@volter/editor-threejs/kit/scene-framing';
 import { tierSourceWriteBackend } from '@volter/editor-core/ui-source/tier-source-write-backend';
 import type {
   MountedThreeRoot,

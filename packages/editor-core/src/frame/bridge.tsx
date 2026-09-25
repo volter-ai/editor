@@ -79,7 +79,7 @@ import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { installEditorHostDoor, setOutputProvider } from '../editor-host-door';
 import { getProjectDefinePath } from '@volter/editor-sdk/kit/editor-mode';
 import { type EditorNotification, setNotificationDelegate } from '../editor-notifications';
-import { useEditorStore } from '../editor-runtime';
+import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import { clearHierarchyHeaderSlot, setHierarchyHeaderSlot } from '../hierarchy-header-slot';
 import { useActiveInspection } from '../inspection/use-active-inspection';
 import { installLayoutPolicy } from '../layout-policy';

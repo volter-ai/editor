@@ -33,9 +33,9 @@
 import * as THREE from 'three';
 import { layoutPolicy } from './layout-policy';
 import { effectiveSettings } from '@volter/editor-sdk/kit/settings-store';
-import { threeStoreForHost } from './shell-store-door';
-import { onViewportFrame, viewportRig } from './viewport-door';
+import { onViewportFrame, viewportRig } from '@volter/editor-sdk/kit/viewport-door';
 import { setWorkspacePersistenceSuppressed } from './workspace-persistence-gate';
+import { hostHierarchyObjects } from '@volter/editor-sdk/kit/host-hierarchy-objects';
 
 /** Full-bleed play is the MOUNTED LAYOUT's own declaration
  *  (`WorkspaceLayoutPolicy.immersivePlay` — `GameLayout` is the shipped
@@ -230,7 +230,7 @@ export interface PlayTransitionDockHooks {
  *  real EditorViewport; unit tests pass a fake). */
 /** The narrow store surface `resolveAuthoredCameraTarget` reads. */
 export interface PlayCameraSourceStore {
-  readonly objectMap: Map<string, THREE.Object3D>;
+  readonly objectMap: ReadonlyMap<string, THREE.Object3D>;
 }
 
 export interface AuthoredCameraTarget {
@@ -447,8 +447,8 @@ export interface PlayEntryTransitionOptions {
  */
 export function beginLiveTransition(): void {
   const immersive = usesImmersivePlayPresentation();
-  const store = threeStoreForHost();
-  beginPlayEntryTransition(immersive && store ? resolveAuthoredCameraTarget(store) : null, {
+  const objects = hostHierarchyObjects()?.objects();
+  beginPlayEntryTransition(immersive && objects ? resolveAuthoredCameraTarget({ objectMap: objects }) : null, {
     immersive,
   });
 }

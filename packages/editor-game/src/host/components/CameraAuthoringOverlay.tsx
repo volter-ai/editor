@@ -28,7 +28,7 @@ import {
   toggleCameraCompositionGuides,
   toggleCameraPreviewPin,
   viewThroughCamera,
-} from '@volter/editor-core/camera-authoring';
+} from '@volter/editor-threejs/kit/camera-authoring';
 
 export interface CameraAuthoringOverlayProps {
   readonly previewRef: RefObject<HTMLDivElement | null>;

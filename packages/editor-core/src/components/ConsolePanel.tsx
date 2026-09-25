@@ -18,10 +18,10 @@ import {
   themeVars,
 } from '@volter/editor-sdk/widgets';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { getActiveAuthoring } from '../authoring/active-adapter';
+import { getActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import { type ConsoleLevel, editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { useEditorStore } from '../editor-runtime';
+import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 
 const LEVEL_COLORS: Record<ConsoleLevel, string> = {
   info: themeVars.content.primary,

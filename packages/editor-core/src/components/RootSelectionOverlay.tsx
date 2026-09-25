@@ -76,7 +76,7 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
-import { collectAllNodeIds, getActiveAuthoring } from '../authoring/active-adapter';
+import { collectAllNodeIds, getActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import {
   canvasSceneGuideRevision,
   canvasSceneGuides,
@@ -93,7 +93,7 @@ import {
   resolveEyedropperSession,
   subscribeEyedropperSession,
 } from '@volter/editor-sdk/kit/eyedropper-session';
-import { pickCandidates, pickTopmost } from '../authoring/layered-pick';
+import { pickCandidates, pickTopmost } from '@volter/editor-sdk/kit/authoring/layered-pick';
 import {
   selectReactStoryFrameAtPoint,
   zoomReactStoryFrameAtPoint,
@@ -105,7 +105,7 @@ import {
   sharedRootViewController,
 } from '@volter/editor-sdk/kit/world-pan-state';
 import { isRootHidden } from '@volter/editor-sdk/kit/authoring/world-session-state';
-import { useEditorStore } from '../editor-runtime';
+import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import { anyLiveSessionMounted } from '@volter/editor-sdk/kit/live-session-registry';
 import { effectiveColorFromChain } from '../ui-source/inspect';
 import { AlignToolbar } from './AlignToolbar';

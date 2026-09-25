@@ -29,7 +29,7 @@ import { resetAvailableWorkspaceDocuments } from './workspace-available-document
  */
 
 import { clearSelectedAsset } from './asset-selection';
-import { setActiveAuthoring } from './authoring/active-adapter';
+import { setActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { resetActiveSystemsForNewProject } from '@volter/editor-sdk/kit/authoring/active-systems';
 import { resetSessionVitalsForNewProject } from './coverage/session-vitals';
 import { stopAllLiveSessions } from '@volter/editor-sdk/kit/live-session-registry';

@@ -44,7 +44,7 @@ export const threeComponentBoard: ComponentBoard = {
   install: async ({ store }: ComponentBoardContext) => {
     try {
       const { installThreeBoardDocument } = await import('./ThreeBoardDocument');
-      installThreeBoardDocument(store.shell);
+      installThreeBoardDocument(store);
     } catch (error: unknown) {
       editorConsole.error(
         `Failed to load the ${THREE_COMPONENTS_TITLE} board: ${String(error)}`,

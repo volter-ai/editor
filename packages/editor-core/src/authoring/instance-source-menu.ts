@@ -26,7 +26,7 @@ import {
   runInstanceSourceAction,
 } from '@volter/editor-sdk/kit/instance-source-actions';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
-import { getActiveAuthoring } from './active-adapter';
+import { getActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import { enterSelectionScope } from '@volter/editor-sdk/kit/authoring/selection-scope';
 
@@ -105,11 +105,11 @@ let unregister: (() => void) | null = null;
 export function ensureInstanceSourceMenuRegistered(): void {
   if (unregister) return;
   unregister = registerHierarchyMenuItems(
-    ({ nodeId, store }) => targetsFor(store.shell, nodeId).length > 0,
+    ({ nodeId, store }) => targetsFor(store, nodeId).length > 0,
     ({ nodeId, store }) => {
-      const adapter = getActiveAuthoring(store.shell);
+      const adapter = getActiveAuthoring(store);
       const locator = instanceSourceLocatorFor(adapter, nodeId);
-      return targetsFor(store.shell, nodeId).map((target) => ({
+      return targetsFor(store, nodeId).map((target) => ({
         label: INSTANCE_SOURCE_LABELS[target],
         action: () => {
           runAndReport(locator, nodeId, target);

@@ -32,8 +32,8 @@ import {
   subscribeAssetSelection,
 } from '../asset-selection';
 import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
-import { resolvePanelAuthoring } from '../authoring/panel-authoring';
-import { useEditorStore } from '../editor-runtime';
+import { resolvePanelAuthoring } from '@volter/editor-sdk/kit/authoring/panel-authoring';
+import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import { useActiveInspection } from '../inspection/use-active-inspection';
 import {
   subscribeWorkspaceDocuments,

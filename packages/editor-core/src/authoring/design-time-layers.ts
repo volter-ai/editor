@@ -37,7 +37,6 @@
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { stackOrder } from '@volter/editor-project/adapter/root-stacking';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import type { EditorShellStore } from '../editor-shell-store';
 import { getCurrentProject } from '../project-manager';
 import { subscribeToolContributions } from '../tool-loader';
 import { BoundaryAuthoringAdapter, type BoundaryRootInfo } from './boundary-authoring-adapter';
@@ -73,6 +72,7 @@ import {
   subscribeRootPan,
 } from '@volter/editor-sdk/kit/world-pan-state';
 import { isRootHidden, isRootInteractive } from '@volter/editor-sdk/kit/authoring/world-session-state';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 
 /** D20: Play tears the design-time adapter down, so the selected CSF state
  * must live one level above that adapter to survive Stop's rebuild. Keyed by
@@ -318,7 +318,7 @@ function applyPanTransform(layer: HTMLElement): void {
 export function mountDesignTimeLayers(
   container: HTMLElement,
   composite: CompositeAuthoringAdapter,
-  store: EditorShellStore,
+  store: ShellStore,
   descriptors?: readonly DesignTimeRootDescriptor[],
   /**
    * Reports the adapter a descriptor's layer minted, or `null` when its layer
@@ -384,11 +384,11 @@ export function mountDesignTimeLayers(
   // is already up is the same one `suspendForPlay()` produces: mount NOTHING.
   // Stop requests a clean edit-mode rebuild below; this entry guard therefore
   // needs to listen for Stop even though it mounted no layers itself.
-  if (store.shell.playState !== 'stopped') {
+  if (store.playState !== 'stopped') {
     let disposed = false;
     let rebuildRequested = false;
-    const unsubscribe = store.shell.subscribe(() => {
-      if (disposed || rebuildRequested || store.shell.playState !== 'stopped') return;
+    const unsubscribe = store.subscribe(() => {
+      if (disposed || rebuildRequested || store.playState !== 'stopped') return;
       rebuildRequested = true;
       if (!disposed) queueEditModeRebuild();
     });
@@ -482,14 +482,14 @@ export function mountDesignTimeLayers(
       composite.replaceChild(
         worldId,
         new BoundaryAuthoringAdapter(
-          store.shell,
+          store,
           info,
           'Design-time layer suspended by play mode — Stop restores it.',
         ),
       );
     }
     upgraded.clear();
-    store.shell.notifyIngestEdit();
+    store.notifyIngestEdit();
   }
 
   function mountCandidate(
@@ -521,7 +521,7 @@ export function mountDesignTimeLayers(
 
     const context: DesignTimeMountContext = {
       projectRootPath,
-      store: store.shell,
+      store: store,
       ...(presentation ? { view: presentation.canvasSceneView } : {}),
       ...(activationDocumentId ? { activationDocumentId } : {}),
     };
@@ -567,7 +567,7 @@ export function mountDesignTimeLayers(
           };
           composite.replaceChild(
             candidate.worldId,
-            new BoundaryAuthoringAdapter(store.shell, info, undefined, result.pick),
+            new BoundaryAuthoringAdapter(store, info, undefined, result.pick),
           );
           upgraded.add(candidate.worldId);
         }
@@ -576,7 +576,7 @@ export function mountDesignTimeLayers(
         // an earlier attempt (per-world, never the whole list: a sibling root
         // that is still down keeps its own report).
         clearMountFailureReport(candidate.worldId);
-        store.shell.notifyIngestEdit();
+        store.notifyIngestEdit();
         onSettled?.();
       })
       .catch((err: unknown) => {
@@ -602,7 +602,7 @@ export function mountDesignTimeLayers(
         if (isCompositeChild(composite, candidate.worldId)) {
           composite.replaceChild(
             candidate.worldId,
-            new BoundaryAuthoringAdapter(store.shell, info, message),
+            new BoundaryAuthoringAdapter(store, info, message),
           );
         }
         addMountFailureReport({
@@ -611,7 +611,7 @@ export function mountDesignTimeLayers(
           identity: registered.identity,
           message,
         });
-        store.shell.notifyIngestEdit();
+        store.notifyIngestEdit();
       });
   }
   orderedCandidates.forEach((candidate, i) => {
@@ -710,7 +710,7 @@ export function mountDesignTimeLayers(
       const stops: Array<() => void> = [];
       const invalidate =
         (apply: (candidate: DesignTimeRootDescriptor, index: number) => void) => (): void => {
-          if (torndown || playTeardownDone || store.shell.playState !== 'stopped') return;
+          if (torndown || playTeardownDone || store.playState !== 'stopped') return;
           orderedCandidates.forEach((candidate, index) => {
             if (candidate.kind === mount.kind) apply(candidate, index);
           });
@@ -731,7 +731,7 @@ export function mountDesignTimeLayers(
   // could not mount is waiting in `awaitingMount`; a registration is the
   // moment to mount it, and the moment to bind that medium's staleness hooks.
   const unsubMounts = subscribeDesignTimeMounts(() => {
-    if (torndown || playTeardownDone || store.shell.playState !== 'stopped') return;
+    if (torndown || playTeardownDone || store.playState !== 'stopped') return;
     orderedCandidates.forEach((candidate, index) => {
       if (!awaitingMount.has(candidate.worldId)) return;
       if (!designTimeMountFor(candidate.kind)) return;
@@ -768,7 +768,7 @@ export function mountDesignTimeLayers(
       composite.replaceChild(
         candidate.worldId,
         new BoundaryAuthoringAdapter(
-          store.shell,
+          store,
           info,
           `No package in this editor registered a design-time mount for a "${candidate.kind}" ` +
             'world, so there is nothing here to author it with. A build ships the packages its ' +
@@ -777,7 +777,7 @@ export function mountDesignTimeLayers(
       );
       refused = true;
     }
-    if (refused) store.shell.notifyIngestEdit();
+    if (refused) store.notifyIngestEdit();
   });
 
   // D4 (spec27 §8 "space-pan" row) — the lockstep half of the pan feature:
@@ -794,13 +794,13 @@ export function mountDesignTimeLayers(
     for (const layer of layers.values()) applyPanTransform(layer);
   });
 
-  const unsubStore = store.shell.subscribe(() => {
-    if (!playTeardownDone && store.shell.playState !== 'stopped') {
+  const unsubStore = store.subscribe(() => {
+    if (!playTeardownDone && store.playState !== 'stopped') {
       playTeardownDone = true;
       suspendForPlay();
       return;
     }
-    if (playTeardownDone && !rebuildRequested && store.shell.playState === 'stopped' && !torndown) {
+    if (playTeardownDone && !rebuildRequested && store.playState === 'stopped' && !torndown) {
       rebuildRequested = true;
       // Reuse the world root's stage's one authoritative reinstall path. The event
       // causes this mount's disposer to run before the replacement composite

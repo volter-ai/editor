@@ -6,7 +6,7 @@
  */
 
 import { measureAdapterReach } from '../host/adapter-reach';
-import { setActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
+import { setActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { setActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
 import {
   addMountFailureReport,
@@ -16,7 +16,7 @@ import {
 import { makeNoAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/no-authoring-adapter';
 import { resolveAllRoots } from '../host/binding-resolver';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { fetchGameManifest } from '@volter/editor-core/manifest-project';
 import { getCurrentProject } from '@volter/editor-core/project-manager';
 import type { GameSession, RootMountSpec } from '@volter/game-runtime/runtime/create-runtime';

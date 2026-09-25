@@ -61,7 +61,7 @@ import {
   editorLeaseViewVersion,
   subscribeEditorLeaseView,
 } from '../editor-lease-view';
-import { useEditorStore } from '../editor-runtime';
+import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
 import { useProjectMounts } from '../project-shape';
 import { getStorageBackend } from '@volter/editor-sdk/kit/storage/index';

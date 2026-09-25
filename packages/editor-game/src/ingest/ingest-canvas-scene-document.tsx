@@ -27,7 +27,7 @@ import {
 } from '@volter/editor-core/components/CanvasSceneViewport';
 import { RootSelectionOverlay } from '@volter/editor-core/components/RootSelectionOverlay';
 import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { liveDocumentContainer } from '@volter/editor-sdk/kit/live-document';
 import { projectAdapterFacet } from '@volter/editor-core/project-adapter';
 import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';

@@ -1,7 +1,7 @@
 import type { ViewportRoot } from '@volter/editor-sdk/host';
 import { stampMountedAuthoringIds } from './authoring/mounted-authoring';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
-import { stampThreeIdentities } from '@volter/editor-core/projection/three';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
+import { stampThreeIdentities } from '@volter/editor-threejs/kit/projection/three';
 
 /**
  * The Three viewport's PRESENTER — what `the world root's stage` binds as

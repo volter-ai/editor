@@ -30,7 +30,7 @@
  * routes over HTTP exactly as it did when it lived in the host.
  */
 
-import { registerDocumentOpener } from '@volter/editor-core/document-open-registry';
+import { registerDocumentOpener } from '@volter/editor-sdk/kit/document-open-registry';
 import { CONTRIBUTED_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-utilities';
 import { registerWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-utility-registry';
 import { GenerationActivity } from '../src/generation/GenerationActivity';

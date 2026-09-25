@@ -51,7 +51,7 @@ import {
   type Pass,
 } from 'postprocessing';
 import * as THREE from 'three';
-import { getActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
+import { getActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import type { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import {
   applyAuthoringTransform,
@@ -63,23 +63,23 @@ import { attachProjectAuthoringStage } from '@volter/editor-core/authoring/proje
 import {
   isThreejsSurfaceVisible,
   resolveThreeViewportRootId,
-} from '@volter/editor-core/authoring/world-hidden-viewport';
+} from '@volter/editor-threejs/kit/authoring/world-hidden-viewport';
 import { AutoFrameWindow } from '../auto-frame-window';
 import {
   type CameraAuthoringSubject,
   type CameraViewMode,
   cameraAuthoringPresentation,
   installCameraAuthoringHost,
-} from '@volter/editor-core/camera-authoring';
+} from '@volter/editor-threejs/kit/camera-authoring';
 import { registerPresentedCanvasFrame } from '@volter/editor-core/canvas-preview-frames';
 import { collectState } from '@volter/editor-core/command-listener';
 import { getDownloadedAssetPath, getOnlineAssetFiles, reportEditorState } from '@volter/editor-sdk/kit/editor-api';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { isEditorPresentationActive } from '@volter/editor-sdk/kit/editor-presentation-activity';
-import type { EditorStats } from '@volter/editor-core/editor-runtime';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
-import { EditorViewport, type OnlineAssetDrop } from '@volter/editor-core/editor-viewport';
-import { entityObject3D } from '@volter/editor-core/entity-object';
+import type { EditorStats } from '@volter/editor-sdk/kit/editor-runtime';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
+import { EditorViewport, type OnlineAssetDrop } from '@volter/editor-threejs/kit/editor-viewport';
+import { entityObject3D } from '@volter/editor-threejs/kit/entity-object';
 import {
   nativeSelectionColors,
   nativeViewportLook,
@@ -87,15 +87,15 @@ import {
 } from '@volter/editor-sdk/kit/native-selection-style';
 import { registerPerformanceSource } from '@volter/editor-sdk/kit/performance-sources';
 import { drawSceneUnlessRefused } from '../scene-view-drawability';
-import { withSceneFogNeutralized } from '@volter/editor-core/scene-view-fog';
+import { withSceneFogNeutralized } from '@volter/editor-threejs/kit/scene-view-fog';
 import { connectServerLogs } from '../server-log-bridge';
-import { focusedStageStore } from '@volter/editor-core/stage-context';
+import { focusedStageStore } from '@volter/editor-sdk/kit/stage-context';
 import {
   acquireThreeSelectionOutline,
   releaseThreeSelectionOutline,
   setThreeSelectionOutlineColors,
   syncThreeSelectionOutline,
-} from '@volter/editor-core/three-viewport/selection-outline';
+} from '@volter/editor-threejs/kit/three-viewport/selection-outline';
 import {
   setThreeViewportProjection,
   subscribeThreeViewportPresentation,
@@ -104,9 +104,9 @@ import {
 import { recordViewportFirstFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import { savedViewportPose, saveViewportPose } from '../viewport-pose-memory';
 import { presentThreeRoots } from '../viewport-root-presentation';
-import { isEditorViewportShadingTarget } from '@volter/editor-core/viewport-shading-boundary';
+import { isEditorViewportShadingTarget } from '@volter/editor-threejs/kit/viewport-shading-boundary';
 import { downloadOnlineAssetWithHistory } from '@volter/editor-sdk/kit/components/asset-editor-persistence';
-import { bindStagePresenceMarkers } from '@volter/editor-core/components/stage-presence-markers';
+import { bindStagePresenceMarkers } from '@volter/editor-threejs/kit/components/stage-presence-markers';
 
 /** Everything the world root's stage hands its medium's design session: the stage's own three
  *  handles. The stage and the medium that registered for `three` agree on it; the kit's mount
@@ -911,7 +911,7 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
 
   /** Whether this stage is the one the shared panels are following, and so the
    *  one that fills the shell's frame/camera readout — see its use below. */
-  const ownsShellReadout = (): boolean => focusedStageStore(store) === store;
+  const ownsShellReadout = (): boolean => focusedStageStore(store.shell) === store.shell;
 
   function frame(now: number, resumed: boolean): void {
     if (disposed) return;
@@ -1046,7 +1046,7 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
     if (!disposed) options.onMountStatus('ready');
   }
 
-  const authoringStage = attachProjectAuthoringStage(store, installStage);
+  const authoringStage = attachProjectAuthoringStage(store.shell, installStage);
   authoringStage.ready
     .then(() => reportEditorState(collectState(store.shell)))
     .catch((err) => {

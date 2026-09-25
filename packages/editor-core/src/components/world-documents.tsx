@@ -17,7 +17,7 @@ import {
 
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { getActiveAuthoring } from '../authoring/active-adapter';
+import { getActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { authoringAdapterKey } from '../authoring/adapter-key';
 import type { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import {
@@ -38,7 +38,7 @@ import {
   REACT_DESIGN_CANVAS_COLOR,
   REACT_DESIGN_CANVAS_DOT,
 } from '../authoring/react-design-canvas-style';
-import { resolveViewportToolContext } from '../authoring/viewport-tool-context';
+import { resolveViewportToolContext } from '@volter/editor-sdk/kit/authoring/viewport-tool-context';
 import {
   createRootViewController,
   getRootPan,
@@ -52,7 +52,6 @@ import {
   componentBoards,
   subscribeComponentBoards,
 } from '../component-board-registry';
-import type { EditorShellStore } from '../editor-shell-store';
 import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import { explainSurface } from '@volter/editor-sdk/kit/surface-state';
@@ -84,6 +83,7 @@ import {
 import { ReactCanvasControls } from './ReactCanvasControls';
 import { RootSelectionOverlay } from './RootSelectionOverlay';
 import { SurfaceStateOverlay } from './SurfaceStateOverlay';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 
 /** The canvas root's world document reads `Scene`, exactly like a three
  *  project's — THE SCENE VIEWPORT IS FOR THE SCENE, and a 2D world is a scene
@@ -100,14 +100,14 @@ export function RootDocumentContent({
 }: WorkspaceDocumentContentProps & {
   composite: CompositeAuthoringAdapter;
   descriptor: DesignTimeRootDescriptor;
-  store: EditorShellStore;
+  store: ShellStore;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const disposeMountRef = useRef<(() => void) | null>(null);
   const [canvasSceneView] = useState(createRootViewController);
   const isCanvasScene = descriptor.kind === 'canvas';
   const documentView = isCanvasScene ? canvasSceneView : sharedRootViewController;
-  useSyncExternalStore(store.shell.subscribe, store.shell.getSnapshot);
+  useSyncExternalStore(store.subscribe, store.getSnapshot);
   const rootReadiness = useSyncExternalStore(subscribeRootReadiness, readinessFacet);
   const mountFailures = useSyncExternalStore(subscribeToMountFailures, getMountFailureReports);
   // The layer's own adapter, for a board that has no composite child to carry
@@ -132,7 +132,7 @@ export function RootDocumentContent({
     // While the game PLAYS, this document's design mount is deliberately
     // suspended — the wait is not progress and says so (surface-state.ts).
     playSuspended:
-      store.shell.playState !== 'stopped' &&
+      store.playState !== 'stopped' &&
       (!documentAdapter || documentAdapter.provenance?.source === 'boundary'),
     phase:
       !documentAdapter || documentAdapter.provenance?.source === 'boundary' ? 'loading' : 'ready',
@@ -155,7 +155,7 @@ export function RootDocumentContent({
     if (!documentAdapter) return;
     return registerWorkspaceDocumentSelection(documentId, () => ({
       adapter: documentAdapter,
-      nodeId: [...store.shell.selectedEntityIds].find((id) => documentAdapter.hierarchy.node(id)) ?? null,
+      nodeId: [...store.selectedEntityIds].find((id) => documentAdapter.hierarchy.node(id)) ?? null,
     }));
   }, [composite, documentAdapter, documentId, store]);
 
@@ -224,8 +224,8 @@ export function RootDocumentContent({
   );
 
   const selectedContext = resolveViewportToolContext(
-    getActiveAuthoring(store.shell),
-    store.shell.selectedEntityIds,
+    getActiveAuthoring(store),
+    store.selectedEntityIds,
   );
   const context =
     selectedContext?.worldId === descriptor.worldId
@@ -346,7 +346,7 @@ function ReactDesignCanvasBackdrop() {
  * that board by matching the root descriptor's `kind` against the registered
  * `medium`; the host compares two values it was handed and spells neither. */
 export function installRootDocuments(
-  store: EditorShellStore,
+  store: ShellStore,
   composite: CompositeAuthoringAdapter,
 ): () => void {
   const previouslyActive = activeWorkspaceDocumentId();

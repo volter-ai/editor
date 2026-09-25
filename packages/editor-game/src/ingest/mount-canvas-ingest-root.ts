@@ -22,7 +22,7 @@
 
 import { measureAdapterReach } from '../host/adapter-reach';
 import { nextPaint } from '../host/after-paint';
-import { setActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
+import { setActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { setActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
 import { BabylonAuthoringAdapter } from '../host/authoring/babylon-authoring-adapter';
 import {
@@ -45,7 +45,7 @@ import {
   registerPresentedPixiApps,
 } from '@volter/editor-core/canvas-preview-frames';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { GAME_SURFACE_CONTAINMENT_CSS } from '../host/game-realm-page';
 import {
   clearGameSurface,

@@ -46,7 +46,7 @@
 import { numericStyleValue } from '@volter/editor-sdk/css-numeric-style';
 import { createEphemeralPersistence } from '../host/authoring/ephemeral-persistence';
 import { LIVE_ONLY_DESTINATION } from '@volter/editor-sdk/kit/write-pipe';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { type JournalSubject, JsonHistoryResource } from '../host/history/json-history-resource';
 import { DomProjector, structuralDomIdentity } from '../host/projection/dom';
 import { browserOrInlineResolver, getComputedStyleValue } from '@volter/editor-core/ui-source/inspect';

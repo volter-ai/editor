@@ -21,7 +21,7 @@ import {
   activeWorkspaceDocument,
   activeWorkspaceDocumentSelection,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { getAuthoringOverride } from './active-adapter';
+import { getAuthoringOverride } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 
 /** One mounted root, as this module needs to see it. Structural on purpose: the

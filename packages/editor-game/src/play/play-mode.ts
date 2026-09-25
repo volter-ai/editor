@@ -15,7 +15,7 @@ import { editorHost } from '@volter/editor-sdk/host';
  */
 
 import { installAdapterRuntimeBindings } from '../host/adapter-runtime-bindings';
-import { getAuthoringOverride, setActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
+import { getAuthoringOverride, setActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import {
   getActiveNetworking,
   inspectedInstanceId,
@@ -50,7 +50,7 @@ import {
   isEditorPresentationActive,
   subscribeEditorPresentationActivity,
 } from '@volter/editor-sdk/kit/editor-presentation-activity';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { GAME_SURFACE_CONTAINMENT_CSS } from '../host/game-realm-page';
 import { reclaimGameRealm } from '../host/game-realm-reclaim';
 import { toolContributionRecording } from '@volter/editor-core/gameplay-sessions';
@@ -83,7 +83,6 @@ import {
   formatProjectModuleSplitMessage,
 } from '@volter/editor-sdk/kit/project-module-split';
 import { clearRootReadiness, recordRootReadiness } from '@volter/editor-sdk/kit/readiness';
-import { onThreeStore } from '@volter/editor-core/shell-store-door';
 import { mountedStoryHasPixiContent } from '@volter/editor-core/stories/pixi-story-model';
 import { domHasRenderableContent, threeSceneHasRenderableContent } from '../host/surface-content';
 import { subscribeSurfaceKeyboard, surfaceHoldsKeyboard } from '@volter/editor-sdk/kit/surface-keyboard';
@@ -126,6 +125,7 @@ import { withPlayBootStallGuard } from './play-boot-stall';
 import { debugEventsToLogEntries } from './play-log-events';
 import { bindPlayRecordingStop, endPlayRecording } from './play-recording';
 import { createReactPlayAuthoringAdapter } from './react-play-live-authoring';
+import { onThreeStore } from '@volter/editor-threejs/kit/three-state';
 
 /** Context needed by the orchestrator (passed from the world root's stage). */
 export interface PlayModeContext {

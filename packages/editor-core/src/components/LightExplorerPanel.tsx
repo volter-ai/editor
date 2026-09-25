@@ -18,10 +18,10 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
-import { activeAuthoringVersion, subscribeActiveAuthoring } from '../authoring/active-adapter';
+import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
-import { resolvePanelAuthoring } from '../authoring/panel-authoring';
-import { useEditorStore } from '../editor-runtime';
+import { resolvePanelAuthoring } from '@volter/editor-sdk/kit/authoring/panel-authoring';
+import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import {
   type LightExplorerField,
   type LightExplorerRow,

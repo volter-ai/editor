@@ -29,9 +29,9 @@ import type {
   ContentEntrySource,
   ContentEntrySourceContext,
   ContentEntryThumbnailProps,
-} from '../content-entry-source-registry';
-import { openRegisteredDocument } from '../document-open-registry';
-import type { WorkspaceStateStore } from '../workspace-document-restore';
+} from '@volter/editor-sdk/kit/content-entry-source-registry';
+import { openRegisteredDocument } from '@volter/editor-sdk/kit/document-open-registry';
+import type { WorkspaceStateStore } from '@volter/editor-sdk/kit/workspace-document-restore';
 import { StoryComponentThumbnail } from './StoryComponentThumbnail';
 import {
   ISOLATED_STORY_DOCUMENT_OPENER,

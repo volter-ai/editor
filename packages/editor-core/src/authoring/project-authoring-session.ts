@@ -1,6 +1,5 @@
 /** The project owns its authoring session. Scene tabs attach renderers to it;
  * closing a viewport must not remove the other scenes or component canvases. */
-import type { EditorShellStore } from '../editor-shell-store';
 import { runProjectReady } from '../project-ready';
 import {
   availableWorkspaceDocuments,
@@ -13,6 +12,7 @@ import {
   exitEditModeAuthoring,
   installEditModeAuthoringForProject,
 } from './edit-mode-authoring';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 
 type Stage = (composite: CompositeAuthoringAdapter) => Promise<void>;
 class ProjectAuthoringSession {
@@ -25,7 +25,7 @@ class ProjectAuthoringSession {
   private unbind: () => void;
   readonly ready: Promise<void>;
 
-  constructor(private readonly store: EditorShellStore) {
+  constructor(private readonly store: ShellStore) {
     this.unbind = bindEditModeRebuildOwner(() => this.rebuild());
     this.ready = this.rebuild();
   }
@@ -87,8 +87,8 @@ class ProjectAuthoringSession {
     return run;
   }
 }
-const sessions = new Map<EditorShellStore, ProjectAuthoringSession>();
-function sessionFor(store: EditorShellStore): ProjectAuthoringSession {
+const sessions = new Map<ShellStore, ProjectAuthoringSession>();
+function sessionFor(store: ShellStore): ProjectAuthoringSession {
   let session = sessions.get(store);
   if (!session) {
     session = new ProjectAuthoringSession(store);
@@ -96,10 +96,10 @@ function sessionFor(store: EditorShellStore): ProjectAuthoringSession {
   }
   return session;
 }
-export function retainProjectAuthoringSession(store: EditorShellStore) {
+export function retainProjectAuthoringSession(store: ShellStore) {
   const session = sessionFor(store);
   return { ready: session.ready.then(() => runProjectReady()), dispose: session.retain() };
 }
-export function attachProjectAuthoringStage(store: EditorShellStore, stage: Stage) {
+export function attachProjectAuthoringStage(store: ShellStore, stage: Stage) {
   return sessionFor(store).attach(stage);
 }

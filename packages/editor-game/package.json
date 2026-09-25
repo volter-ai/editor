@@ -86,7 +86,8 @@
       "./contributions/three/model-asset-sections.service.ts",
       "./contributions/three/reflection-probe-capture.inspector.tsx",
       "./contributions/three/story-documents.service.ts",
-      "./contributions/three/three-authoring.service.ts"
+      "./contributions/three/three-authoring.service.ts",
+      "./contributions/three-story-capture.service.ts"
     ],
     "serving": "./dist-node/serving.mjs"
   },

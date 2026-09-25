@@ -36,7 +36,7 @@
 
 import type { CanvasIdentity } from '@volter/game-runtime/pixi/authoring';
 import type { Container } from 'pixi.js';
-import { occurrenceId } from '@volter/editor-core/authoring/component-instance-root';
+import { occurrenceId } from '@volter/editor-threejs/kit/authoring/component-instance-root';
 
 const PREFIX = 'pixi';
 

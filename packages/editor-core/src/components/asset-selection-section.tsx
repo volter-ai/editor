@@ -40,7 +40,7 @@ import {
   contentEntryForComponent,
   contentEntrySourceRegistryVersion,
   subscribeContentEntrySources,
-} from '../content-entry-source-registry';
+} from '@volter/editor-sdk/kit/content-entry-source-registry';
 import type { InspectionAction } from '@volter/editor-sdk/kit/inspection-model';
 import {
   PREVIEW_SECTION_ID,

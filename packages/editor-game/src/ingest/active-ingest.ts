@@ -12,7 +12,7 @@
  * makes that whole graph acyclic.
  */
 
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import type { MeasuredLoop } from '../host/same-realm-loop-gate';
 import type { DomAuthoringAdapter } from '../react/dom-authoring-adapter';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter/authoring';

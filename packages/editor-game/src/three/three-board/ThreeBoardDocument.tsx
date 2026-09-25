@@ -52,11 +52,11 @@ import { registerAvailableWorkspaceDocument } from '@volter/editor-core/workspac
  * degradation). Same sentences, same clipboard path, never a silent no-op.
  */
 
-import { object3DDocumentSession } from '@volter/editor-core/authoring/object3d-document-session-registry';
-import { Object3DDocumentViewport } from '@volter/editor-core/components/Object3DDocumentViewport';
-import { STANDARD_COMPONENT_CAMERA_DIRECTION } from '@volter/editor-core/components/standard-viewport-dressing';
+import { object3DDocumentSession } from '@volter/editor-threejs/kit/authoring/object3d-document-session-registry';
+import { Object3DDocumentViewport } from '@volter/editor-threejs/kit/components/Object3DDocumentViewport';
+import { STANDARD_COMPONENT_CAMERA_DIRECTION } from '@volter/editor-threejs/kit/components/standard-viewport-dressing';
 import { threeBoardBuildingCopy } from '@volter/editor-sdk/kit/viewport-surface-status';
-import { openRegisteredDocument } from '@volter/editor-core/document-open-registry';
+import { openRegisteredDocument } from '@volter/editor-sdk/kit/document-open-registry';
 import { listProjectComponents } from '@volter/editor-sdk/kit/editor-api';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
@@ -88,7 +88,7 @@ import {
   activeWorkspaceDocument,
   type WorkspaceDocumentContentProps,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import type { WorkspaceStateStore } from '@volter/editor-core/workspace-document-restore';
+import type { WorkspaceStateStore } from '@volter/editor-sdk/kit/workspace-document-restore';
 import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
@@ -829,7 +829,7 @@ const threeBoardPreview = {
       const { captureAuthoredThreeScenePreview } = await import('../../host/document-preview-three');
       const { createStandardEnvironment } = await import('@volter/editor-threejs/viewport/environment');
       const { applyStandardViewportDressing } = await import(
-        '@volter/editor-core/components/standard-viewport-dressing'
+        '@volter/editor-threejs/kit/components/standard-viewport-dressing'
       );
       const { isEditorOwnedObject } = await import('@volter/editor-threejs/viewport/editor-layers');
       board.root.traverse((object) => {

@@ -64,7 +64,7 @@
  */
 
 import type { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
-import type { EditorShellStore } from './editor-shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 
 /** Everything a board reads from the HOST at install, and deliberately
  *  nothing more — measured against the three installers as they stood:
@@ -74,7 +74,7 @@ import type { EditorShellStore } from './editor-shell-store';
 export interface ComponentBoardContext {
   /** The ONE format-neutral shell store the session's documents are opened
    *  against. */
-  readonly store: EditorShellStore;
+  readonly store: ShellStore;
   /** The live session's composite authoring adapter — the roots this project
    *  actually mounted, for a board that is also a root's document. */
   readonly composite: CompositeAuthoringAdapter;

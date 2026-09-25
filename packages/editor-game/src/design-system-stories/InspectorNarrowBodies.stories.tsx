@@ -27,7 +27,7 @@
  */
 
 import { UNCAPTURED_REACH } from '../host/adapter-reach';
-import { SourceObject3DAuthoringAdapter } from '@volter/editor-core/authoring/source-object3d-authoring-adapter';
+import { SourceObject3DAuthoringAdapter } from '@volter/editor-threejs/kit/authoring/source-object3d-authoring-adapter';
 import { faPalette } from '@fortawesome/free-solid-svg-icons';
 import type { Meta, StoryObj } from '@storybook/react';
 import { type ReactNode, useState } from 'react';

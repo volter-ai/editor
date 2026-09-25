@@ -7,7 +7,7 @@ import {
   WORKSPACE_DOCUMENT_KINDS,
   type WorkspaceDocumentDescriptor,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { registerWorkspaceDocumentRestorer } from './workspace-document-restore';
+import { registerWorkspaceDocumentRestorer } from '@volter/editor-sdk/kit/workspace-document-restore';
 
 export interface AvailableWorkspaceDocument {
   readonly descriptor: WorkspaceDocumentDescriptor;

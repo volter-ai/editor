@@ -38,10 +38,10 @@ import {
   disposeStoryObject3D,
   mountStoryObject3D,
   type StoryPreviewComponent,
-} from '@volter/editor-core/stories/story-three-preview';
+} from '../stories/story-three-preview';
 import { takeNamedExport } from '../take-named-export';
 import type { WorkspaceDocumentContentProps } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { Object3DDocumentViewport } from '@volter/editor-core/components/Object3DDocumentViewport';
+import { Object3DDocumentViewport } from '@volter/editor-threejs/kit/components/Object3DDocumentViewport';
 
 export interface ThreeIsolationSceneState {
   /** Project-relative module the composition lives in. */

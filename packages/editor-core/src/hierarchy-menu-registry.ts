@@ -1,3 +1,4 @@
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 /**
  * Hierarchy context-menu contribution registry — the escape hatch for
  * first-party-only row actions that are NOT contract-expressible through
@@ -17,12 +18,11 @@
  * an empty registry is a legitimate state.
  */
 
-import type { EditorShellStore } from './editor-shell-store';
 
 export interface HierarchyMenuContext {
   /** The row's node id (an `EditorNode.id` — format-neutral). */
   readonly nodeId: string;
-  readonly store: EditorShellStore;
+  readonly store: ShellStore;
 }
 
 export interface HierarchyMenuItem {

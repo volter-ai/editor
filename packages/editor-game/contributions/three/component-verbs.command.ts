@@ -24,14 +24,14 @@
  * the two cannot drift.
  */
 
-import { getActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import { getActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { canExtractNode, isExtractedHint } from '../../src/host/instance-extract-actions';
 import { canForkInstance, isForkedHint } from '../../src/host/instance-fork-actions';
-import { threeStoreForHost } from '@volter/editor-core/shell-store-door';
 import type { CommandContribution } from '@volter/editor-sdk/commands';
 import { instanceExtractSourceFor } from '../../src/three/component-verbs/extract-menu';
 import { instanceForkSourceFor } from '../../src/three/component-verbs/fork-menu';
+import { threeStoreForHost } from '@volter/editor-threejs/kit/three-state';
 
 /** The shell store, or the refusal that says the page has not installed one —
  *  the same shape `bridge.command.ts` takes it in, made explicit because both

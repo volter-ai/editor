@@ -1,68 +1,7 @@
 /**
- * THE THREE.JS ANSWER TO "what does this node look like"
- * (`@volter/editor-sdk/kit/inspection-node-media`): a selected node the shell's
- * Three store resolves to a live `Object3D` is previewed as an isolated live
- * view of that object, a camera has no Preview section (its view is the
- * viewport's), an instanced mesh names its units, and a node in the object map
- * has an Asset Editor document to jump to. The kit's composer
- * (`compose-subject.ts`) builds the sections from this answer.
+ * The inspector's group icons, re-exported where `@volter/editor-game`'s React inspector section
+ * reads them (its import is a frozen kit-internal edge, ARCHITECTURE.md §The plan); the table
+ * itself is the neutral composer's. The Three answer to "what does this node look like" is the
+ * Three integration's `three-inspection-media.ts`.
  */
-import {
-  type InspectionNodeMedia,
-  registerInspectionNodeMedia,
-} from '@volter/editor-sdk/kit/inspection-node-media';
-import { contentWorldBounds } from '@volter/editor-threejs/viewport/content-bounds';
-import { createElement, lazy } from 'react';
-import type * as THREE from 'three';
-import { openEntityAssetDocument } from '../components/asset-documents';
-import { InspectorPreviewBody } from '../components/inspector-preview-section';
-import { entityObject3D } from '../entity-object';
-import { describeInstancedPresentation } from '../instanced-presentation';
-import { threeStoreForHost } from '../shell-store-door';
-
-// `@volter/editor-game`'s React inspector section reads the group icons from
-// this path (its import is a frozen kit-internal edge, ARCHITECTURE.md §The
-// plan); the table itself is the neutral composer's.
 export { groupIcon } from './compose-subject';
-
-// The heavy render stack stays behind `lazy()`, so a headless composer
-// (`editor.inspect`, which never renders) pays nothing for it.
-const InspectorObjectPreview = lazy(() =>
-  import('../components/InspectorObjectPreview').then((m) => ({ default: m.InspectorObjectPreview })),
-);
-
-function objectMedia(
-  object: THREE.Object3D,
-  assetDocument: InspectionNodeMedia['assetDocument'],
-): InspectionNodeMedia {
-  return {
-    preview: (object as THREE.Camera).isCamera
-      ? null
-      : ({ displayName, previewKey, actions }) =>
-          (mode) =>
-            createElement(InspectorPreviewBody, {
-              picture: () =>
-                createElement(InspectorObjectPreview, { previewKey, object, displayName, fill: true }),
-              previewKey,
-              actions,
-              ...(mode ? { mode } : {}),
-            }),
-    // `contentWorldBounds` resolves instance matrices live — three's own cached
-    // object box would answer for whatever pose was first asked about.
-    instanced: describeInstancedPresentation(object, contentWorldBounds(object)),
-    assetDocument,
-  };
-}
-
-export function registerThreeInspectionMedia(): () => void {
-  return registerInspectionNodeMedia((adapter, nodeId) => {
-    const store = threeStoreForHost();
-    if (!store) return null;
-    const object = entityObject3D(adapter, store.objectMap, nodeId);
-    if (!object) return null;
-    return objectMedia(
-      object,
-      store.objectMap.has(nodeId) ? { open: () => openEntityAssetDocument(store, nodeId) } : null,
-    );
-  });
-}

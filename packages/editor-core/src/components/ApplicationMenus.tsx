@@ -7,8 +7,8 @@ import {
   MenuSeparator as Separator,
 } from '@volter/editor-sdk/widgets';
 import { type RefObject, useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { getActiveAuthoring } from '../authoring/active-adapter';
-import { selectAllAuthoringNodes } from '../authoring/shell-document-ops';
+import { getActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
+import { selectAllAuthoringNodes } from '@volter/editor-sdk/kit/authoring/shell-document-ops';
 import { useAvailabilitySelector } from '@volter/editor-sdk/kit/availability-tick';
 import {
   contributedChromeVersion,
@@ -26,7 +26,7 @@ import {
   duplicateSelection,
   pasteSelection,
 } from '../editor-hotkeys';
-import { useEditorStore, useHistoryCommandSnapshot, useHistoryCommands } from '../editor-runtime';
+import { useEditorStore, useHistoryCommandSnapshot, useHistoryCommands } from '@volter/editor-sdk/kit/editor-runtime';
 import { editorKeymapsVersion, subscribeEditorKeymap } from '@volter/editor-sdk/kit/keymap-presets';
 import {
   LEARN_MANUAL_URL,

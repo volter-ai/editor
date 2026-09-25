@@ -41,7 +41,7 @@
 import { registerContributedActions } from '@volter/editor-sdk/kit/chrome-registry';
 import { registerContributedCommands } from '@volter/editor-sdk/kit/command-registry';
 import { registerComponentStatesSource } from '../component-states-registry';
-import { registerContentEntrySource } from '../content-entry-source-registry';
+import { registerContentEntrySource } from '@volter/editor-sdk/kit/content-entry-source-registry';
 import { refreshProjectAdapter } from '../project-adapter';
 import { storyComponentContentSource } from './component-content-source';
 import { componentStatesSource } from './component-states-source';

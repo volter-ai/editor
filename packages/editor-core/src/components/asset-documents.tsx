@@ -45,13 +45,13 @@ import {
 } from '@volter/editor-sdk/kit/asset-workflow/pixi-spritesheet';
 import { authoringAssetDataUrl } from '../authoring/authoring-asset-url';
 import { awaitAnnouncedObject3DDocumentSession } from '../document-context-registry';
-import { registerDocumentOpener } from '../document-open-registry';
+import { registerDocumentOpener } from '@volter/editor-sdk/kit/document-open-registry';
 import { projectFileExists } from '@volter/editor-sdk/kit/editor-api';
 import type { AssetKind, OnlineAssetInfo } from '../asset-selection';
 import { type InspectionSection, PROPERTIES_SECTION_ORDER } from '@volter/editor-sdk/kit/inspection-model';
 import { inspectionNodeMedia } from '@volter/editor-sdk/kit/inspection-node-media';
-import { getActiveAuthoring } from '../authoring/active-adapter';
-import { shellStoreForHost } from '../shell-store-door';
+import { getActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
+import { shellStoreForHost } from '@volter/editor-sdk/kit/shell-store-door';
 import { DOCUMENT_REGISTRATION_TIMEOUT_MS, waitUntil } from '../wait-until';
 import {
   activeWorkspaceDocumentId,
@@ -61,7 +61,7 @@ import {
   type WorkspaceDocumentDescriptor,
   workspaceDocumentSelection,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { registerWorkspaceDocumentRestorer } from '../workspace-document-restore';
+import { registerWorkspaceDocumentRestorer } from '@volter/editor-sdk/kit/workspace-document-restore';
 
 import { MediaProperties } from './MediaProperties';
 
@@ -163,15 +163,6 @@ export function assetDocumentSpec(id: string): AssetDocumentSpec | undefined {
  *  `command-listener.ts` to report the legacy `activeTabKey` facet). */
 export function isAssetDocumentId(id: string): boolean {
   return _specs.has(id);
-}
-
-/** The narrow store surface asset documents need (T6.3 gate hand-off). */
-export interface AssetDocumentStore {
-}
-
-/** The Asset Editor additionally needs the live object's name for its §8 title. */
-export interface EntityAssetDocumentStore extends AssetDocumentStore {
-  readonly objectMap: ReadonlyMap<string, { readonly name: string }>;
 }
 
 /** Shallow equality over the union of both specs' keys — the specs are flat
@@ -355,6 +346,23 @@ export async function waitForAssetDocumentInspector(
   }, DOCUMENT_REGISTRATION_TIMEOUT_MS);
 }
 
+/**
+ * THE `asset-editor:entity` ADDRESS — the Asset Editor document over a live entity a medium has
+ * already resolved (the Three integration's inspector jump names the entity and its title). The
+ * `asset` address's entity form asks the medium; this is what the medium asks back.
+ */
+registerDocumentOpener<{ readonly entityId: string; readonly title: string }>({
+  id: 'asset-editor:entity',
+  owner: 'asset-documents',
+  open: (_store, { entityId, title }) =>
+    openSpecDocument(
+      `asset-editor:entity:${entityId}`,
+      title,
+      { assetPath: '', kind: 'model', entityId },
+      { origin: `entity:${entityId}` },
+    ),
+});
+
 registerDocumentOpener<{
   readonly path?: string;
   readonly assetKind?: string;
@@ -419,21 +427,6 @@ function inferAssetKind(path: string): AssetKind {
   return 'json';
 }
 
-/** Open the Asset Editor document for a live entity. */
-export function openEntityAssetDocument(
-  store: EntityAssetDocumentStore,
-  entityId: string,
-): string | null {
-  const object = store.objectMap.get(entityId);
-  if (!object) return null;
-  // The live `Object3D.name` is the only name there is.
-  const title = object.name || entityId;
-  return openSpecDocument(`asset-editor:entity:${entityId}`,
-    title,
-    { assetPath: '', kind: 'model', entityId },
-    { origin: `entity:${entityId}` },
-  );
-}
 
 /** Open an adapter-owned atomic asset that is embedded in a source document. */
 export function openAuthoringAssetDocument(

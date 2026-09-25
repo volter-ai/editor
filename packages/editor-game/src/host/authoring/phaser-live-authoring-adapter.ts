@@ -17,7 +17,7 @@ import type {
   PropertyDescriptor,
   Transform,
 } from '@volter/editor-project/adapter';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { createEphemeralPersistence } from './ephemeral-persistence';
 
 export interface PhaserGameObjectLike {

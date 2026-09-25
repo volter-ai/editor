@@ -1,7 +1,7 @@
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import type * as THREE from 'three';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
-import { stampEntityId } from '@volter/editor-core/entity-object';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
+import { stampEntityId } from '@volter/editor-threejs/kit/entity-object';
 
 /**
  * Selection is editor-global UI state. A mounted adapter may deliberately own

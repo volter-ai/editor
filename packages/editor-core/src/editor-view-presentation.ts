@@ -10,10 +10,10 @@ import {
   type PresentedEditorView,
 } from '@volter/editor-sdk';
 import type { StoryRef } from '@volter/editor-project/adapter';
-import { getActiveAuthoring } from './authoring/active-adapter';
+import { getActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { type DocumentViewport, documentViewport } from '@volter/editor-sdk/kit/document-viewports';
 import { setViewGridVisible, viewPresentationBinding } from '@volter/editor-sdk/kit/viewport-presentation';
-import { openRegisteredDocumentAsync, registeredDocumentOpenerIds } from './document-open-registry';
+import { openRegisteredDocumentAsync, registeredDocumentOpenerIds } from '@volter/editor-sdk/kit/document-open-registry';
 import { currentEditorView } from './editor-current-view';
 import { activeDocumentContainer } from './editor-document-probe';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';

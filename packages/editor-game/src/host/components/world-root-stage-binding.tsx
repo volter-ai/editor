@@ -10,7 +10,7 @@
  * `StageOverlays`, which the host renders beside this.
  */
 import { EDITOR_LAYER } from '@volter/editor-threejs/viewport/editor-layers';
-import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
+import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import {
   getMountFailureReports,
   subscribeToMountFailures,
@@ -18,16 +18,16 @@ import {
 import {
   object3DDocumentSessionsVersion,
   subscribeObject3DDocumentSessions,
-} from '@volter/editor-core/authoring/object3d-document-session-registry';
+} from '@volter/editor-threejs/kit/authoring/object3d-document-session-registry';
 import { RootSelectionOverlay } from '@volter/editor-core/components/RootSelectionOverlay';
 import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
 import type {
   WorldRootOverlayProps,
   WorldRootStageBinding,
-} from '@volter/editor-core/components/world-root-binding';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+} from '@volter/editor-threejs/kit/components/world-root-binding';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';
-import { documentStageContext } from '@volter/editor-core/stage-context';
+import { documentStageContext } from '@volter/editor-sdk/kit/stage-context';
 import { explainSurface } from '@volter/editor-sdk/kit/surface-state';
 import {
   subscribeWorkspaceDocuments,
@@ -99,7 +99,7 @@ function WorldRootOverlays({
   useSyncExternalStore(subscribeWorkspaceDocuments, workspaceDocumentRegistryVersion);
   // The world root's stage is the Scene document's: the kit's overlay props
   // carry no document id, and the Scene document is the one world-root stage.
-  const ctx = documentStageContext(store, documentId, 'document');
+  const ctx = documentStageContext(store.shell, documentId, 'document');
   return (
     <>
       {/* Three-scene selection overlay. React/Pixi documents mount their own

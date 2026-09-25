@@ -54,7 +54,7 @@ import { createLiveCanvasWriteTarget } from '../host/authoring/pixi-live-write-t
 import { resolveCanvasPixiForEditor } from '../host/canvas-entry-runtime';
 import { CrashNullBoundary } from '@volter/editor-sdk/kit/crash-null-boundary';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { authoringJournal } from '../host/history/json-history-resource';
 import { activeRealmServices } from '../host/realm-services';
 import { resolveReactAdapterRootComponent } from '../host/roots/react-root';

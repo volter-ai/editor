@@ -11,9 +11,9 @@
  * and lives server-side in the host's `ui-source/plan-extract-component.ts`.
  */
 
-import { getActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
+import { getActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { instanceSourceLocatorFor } from '@volter/editor-core/authoring/instance-source-menu';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { registerHierarchyMenuItems } from '@volter/editor-core/hierarchy-menu-registry';
 import {
   canExtractNode,
@@ -22,6 +22,7 @@ import {
 } from '../../host/instance-extract-actions';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
+import { threeStateOf } from '@volter/editor-threejs/kit/three-state';
 
 /** The extract surface for `nodeId`, or `null` — the host's own owner walk. */
 export function instanceExtractSourceFor(
@@ -46,9 +47,9 @@ let unregister: (() => void) | null = null;
 export function ensureInstanceExtractMenuRegistered(): void {
   if (unregister) return;
   unregister = registerHierarchyMenuItems(
-    ({ nodeId, store }) => extractable(store, nodeId),
+    ({ nodeId, store }) => extractable(threeStateOf(store), nodeId),
     ({ nodeId, store }) => {
-      const source = instanceExtractSourceFor(getActiveAuthoring(store.shell), nodeId);
+      const source = instanceExtractSourceFor(getActiveAuthoring(store), nodeId);
       return [
         {
           label: EXTRACT_COMPONENT_LABEL,

@@ -4,13 +4,13 @@ import {
 } from '@volter/editor-sdk/contributions';
 import type { EditorMaterialId } from '@volter/editor-sdk/widgets';
 import { Suspense, useSyncExternalStore } from 'react';
-import { activeAuthoringVersion, subscribeActiveAuthoring } from '../authoring/active-adapter';
+import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import {
   documentViewport,
   documentViewportsVersion,
   subscribeDocumentViewports,
 } from '@volter/editor-sdk/kit/document-viewports';
-import { useEditorStore } from '../editor-runtime';
+import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import type {
   WorkspaceDocumentDescriptor,
   WorkspaceDocumentKind,

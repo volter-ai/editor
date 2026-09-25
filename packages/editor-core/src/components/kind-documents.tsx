@@ -27,7 +27,7 @@ import {
   awaitAnnouncedObject3DDocumentSession,
   waitForContributedDocumentMount,
 } from '../document-context-registry';
-import { registerDocumentOpener } from '../document-open-registry';
+import { registerDocumentOpener } from '@volter/editor-sdk/kit/document-open-registry';
 import type { AssetKind } from '../asset-selection';
 import {
   projectAdapterFacet,
@@ -47,7 +47,7 @@ import {
   openWorkspaceDocuments,
   type WorkspaceDocumentContentProps,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { registerWorkspaceDocumentRestorer } from '../workspace-document-restore';
+import { registerWorkspaceDocumentRestorer } from '@volter/editor-sdk/kit/workspace-document-restore';
 import { openAssetDocument } from './asset-documents';
 import { ToolHost } from './ToolHost';
 

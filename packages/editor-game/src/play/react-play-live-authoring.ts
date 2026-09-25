@@ -44,7 +44,7 @@
  * three gizmo drag during play. That is the regime, not a defect.
  */
 
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import type { SourceWriteBackend } from '@volter/editor-core/ui-source/source-write-backend';
 import {
   type OidElementLike,

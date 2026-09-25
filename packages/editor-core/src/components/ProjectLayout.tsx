@@ -17,8 +17,8 @@ import {
   documentViewportsVersion,
   subscribeDocumentViewports,
 } from '@volter/editor-sdk/kit/document-viewports';
-import { openRegisteredDocumentAsync } from '../document-open-registry';
-import { useEditorStore } from '../editor-runtime';
+import { openRegisteredDocumentAsync } from '@volter/editor-sdk/kit/document-open-registry';
+import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import {
   projectAdapterWaitNarration,
   subscribeProjectAdapter,

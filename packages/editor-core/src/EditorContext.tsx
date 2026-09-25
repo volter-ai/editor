@@ -5,9 +5,8 @@ import { connectCommandListener } from './command-listener';
 import { registerStoryMediaCaptures } from './stories/story-media-captures';
 import { startSceneDocuments } from './components/scene-documents';
 import { reportTabCensus } from '@volter/editor-sdk/kit/editor-presence';
-import { EditorRuntimeProvider, type EditorStats } from './editor-runtime';
+import { EditorRuntimeProvider, type EditorStats } from '@volter/editor-sdk/kit/editor-runtime';
 import { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import { ensureThreeIntegration } from './three-integration';
 import { EditorSession } from '@volter/editor-sdk/kit/history/editor-session';
 import { bootstrapProject } from './initial-project';
 import { installObject3DDocumentWritePolicy } from '@volter/editor-sdk/kit/object3d-document-write-policy';
@@ -17,7 +16,7 @@ import { getCurrentProject } from './project-manager';
 import { startProjectSessionReset } from './project-session-reset';
 import { startProjectToolContributionDiscovery } from './project-tool-discovery';
 import { startProjectToolCatalog } from './project-tools';
-import { registerShellStoreForHost } from './shell-store-door';
+import { registerShellStoreForHost } from '@volter/editor-sdk/kit/shell-store-door';
 import { startTabCensus } from '@volter/editor-sdk/kit/tab-census';
 
 export function EditorProvider({ children }: { children: ReactNode }) {
@@ -28,11 +27,6 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     registerShellStoreForHost(storeRef.current);
   }
 
-  // The Three integration's registrations (surfaces, viewport verbs, viewers, captures, the
-  // viewport policy, view-state persistence): `three-integration.ts`. During render, before any
-  // viewport mounts (a child's effects run before this provider's); idempotent.
-  ensureThreeIntegration();
-
   const sessionRef = useRef<EditorSession | null>(null);
   if (!sessionRef.current) {
     const project = getCurrentProject();
@@ -41,7 +35,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   storeRef.current.attachHistory(sessionRef.current.history);
   // The shell's answers to the Asset Lab 3D document's writes — its own
   // persistence binding, whole-file source replacement, thumbnail framing.
-  // Installed HERE for the same reason as the Three integration above: an Asset Lab
+  // Installed HERE, during render, before any surface mounts: an Asset Lab
   // document can be the only surface on screen, and its writes must reach the
   // project the moment it mounts. See `object3d-document-write-policy.ts`.
   installObject3DDocumentWritePolicy(SHELL_OBJECT3D_DOCUMENT_WRITE_POLICY);

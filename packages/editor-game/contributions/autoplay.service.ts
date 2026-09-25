@@ -15,7 +15,7 @@
  * It reports its failure to the editor console — `vgai console` is what reads
  * it — rather than leaving a stopped surface with no reason on it.
  */
-import { onShellStore } from '@volter/editor-core/shell-store-door';
+import { onShellStore } from '@volter/editor-sdk/kit/shell-store-door';
 import { editorHost } from '@volter/editor-sdk/host';
 import { enterPlayMode } from '../src/play/play-mode';
 

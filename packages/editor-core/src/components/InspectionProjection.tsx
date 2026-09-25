@@ -83,7 +83,7 @@ import {
 import { compactInspectorTabs, setInspectorPresentationOverride } from '../inspector-presentation';
 import { useCompactInspectorHost } from './CompactInspectorShell';
 import { InspectorFieldsSection } from './InspectorFieldsSection';
-import { useAfterPaint } from './use-after-paint';
+import { useAfterPaint } from '@volter/editor-sdk/kit/components/use-after-paint';
 
 /** The body of one composed section, rendered by whichever layout asked for
  *  it: a `fields` body is the generic descriptor grid, a `custom` body is an

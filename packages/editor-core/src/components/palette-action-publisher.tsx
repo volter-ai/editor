@@ -24,7 +24,7 @@ import {
   subscribeContributedChrome,
 } from '@volter/editor-sdk/kit/chrome-registry';
 import { publishPaletteActions } from '../editor-commands';
-import { useEditorStore, useHistoryCommandSnapshot, useHistoryCommands } from '../editor-runtime';
+import { useEditorStore, useHistoryCommandSnapshot, useHistoryCommands } from '@volter/editor-sdk/kit/editor-runtime';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import type { HistoryCommandSnapshot, HistoryCommands } from '@volter/editor-sdk/kit/history/history-commands';
 import { editorKeymapsVersion, shortcutFor, subscribeEditorKeymap } from '@volter/editor-sdk/kit/keymap-presets';

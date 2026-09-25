@@ -16,7 +16,7 @@ import { assetCapabilities, assetDocumentKind } from '@volter/editor-sdk/kit/ass
 import { openAssetDocument } from '@volter/editor-core/components/asset-documents';
 import { AudioAssetThumb, ModelThumbnail } from '@volter/editor-core/components/asset-thumbnails';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { modelThumbnailFormat } from '@volter/editor-core/model-thumbnail';
+import { modelThumbnailFormat } from '@volter/editor-threejs/kit/model-thumbnail';
 import {
   Button,
   EditorBadge,

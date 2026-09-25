@@ -3,7 +3,7 @@ import { isEditorOwnedObject } from '@volter/editor-threejs/viewport/editor-laye
 import { markHostRenderer } from '@volter/editor-threejs/viewport/renderer-ownership';
 import * as THREE from 'three';
 import type { DocumentPreviewCaptureRequest } from '@volter/editor-sdk/kit/document-preview-source';
-import { frameableContentBounds } from '@volter/editor-core/scene-framing';
+import { frameableContentBounds } from '@volter/editor-threejs/kit/scene-framing';
 
 function authoredCameras(root: THREE.Object3D): THREE.Camera[] {
   const cameras: THREE.Camera[] = [];

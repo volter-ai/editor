@@ -1,11 +1,11 @@
 import { PROJECT_ASSET_COMMANDS } from './asset-workflow/project-asset-commands';
-import { getActiveAuthoring } from './authoring/active-adapter';
+import { getActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { NO_AUTHORING_ID } from '@volter/editor-sdk/kit/authoring/no-authoring-adapter';
 import {
   activeHierarchyRows,
   selectAllAuthoringNodes,
   selectAuthoringNodes,
-} from './authoring/shell-document-ops';
+} from '@volter/editor-sdk/kit/authoring/shell-document-ops';
 import { openAccountDocument } from './components/account-documents';
 import {
   copySelection,

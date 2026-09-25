@@ -46,7 +46,7 @@ import {
   activeSelectionCreationSite,
   activeSelectionIds,
   activeSelectionWriteAnchorKind,
-} from './authoring/shell-document-ops';
+} from '@volter/editor-sdk/kit/authoring/shell-document-ops';
 import { noteCommandDispatched } from './command-dispatch';
 import { contributedCommandDerivedRefresh } from '@volter/editor-sdk/kit/command-registry';
 import { resolveContributedCommand } from './resolve-contributed-command';
@@ -143,7 +143,7 @@ import {
   unwrapAuthoringNode,
   wrapAuthoringNode,
 } from '@volter/editor-sdk/kit/authoring/consumer-actions';
-import { resolvePanelAuthoring } from './authoring/panel-authoring';
+import { resolvePanelAuthoring } from '@volter/editor-sdk/kit/authoring/panel-authoring';
 import { ontologyInvariantFacet } from './coverage/session-vitals';
 import { documentContextFor, waitForDocumentContext } from './document-context-registry';
 import { executeCommand, openCommandPalette } from './editor-commands';
