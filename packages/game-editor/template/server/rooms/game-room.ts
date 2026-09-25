@@ -17,7 +17,7 @@
  * changes are delta-encoded at the patch rate (~20 Hz).
  */
 
-import { Room, type Client } from 'colyseus';
+import { Room, type Client } from '@colyseus/core';
 import { Schema, MapSchema, type } from '@colyseus/schema';
 
 // --- Constants ---

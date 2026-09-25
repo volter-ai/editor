@@ -47,7 +47,7 @@ const RUNTIME_PACKAGES = new Set(['@volter/editor-project', '@volter/threejs-run
 // Imported by project code that never runs in a served bundle: the dev server,
 // the game's own Node server, the editor product and its tooling.
 const NOT_SERVED = new Set([
-  'vite', 'colyseus', '@colyseus/ws-transport', '@pm2/io', 'ztrack',
+  'vite', 'colyseus', '@colyseus/core', '@colyseus/ws-transport', '@pm2/io', 'ztrack',
   '@volter/game-live', '@volter/editor-blender', '@volter/blender-engine',
 ]);
 

@@ -24,7 +24,7 @@
  * see `DEBUG_COMMANDS`/`onCreate` below.
  */
 
-import { Room, type Client } from 'colyseus';
+import { Room, type Client } from '@colyseus/core';
 import { Schema, MapSchema, type } from '@colyseus/schema';
 
 // --- Constants ---

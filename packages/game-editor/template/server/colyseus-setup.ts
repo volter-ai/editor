@@ -42,7 +42,7 @@ export interface ColyseusHandle {
 export async function startColyseus(options: ColyseusOptions): Promise<ColyseusHandle> {
   const port = options.port ?? 2567;
 
-  const { Server } = (await import('colyseus')) as unknown as {
+  const { Server } = (await import('@colyseus/core')) as unknown as {
     Server: new (opts: {
       transport: unknown;
       gracefullyShutdown: boolean;
