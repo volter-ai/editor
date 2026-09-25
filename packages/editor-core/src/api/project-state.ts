@@ -7,6 +7,7 @@
 
 import type { LeasePollResult } from '../editor-lease';
 import { assertEditorServerResponse, editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
+import { postJson } from '@volter/editor-sdk/kit/user-local-state';
 import { BASE } from '@volter/editor-sdk/kit/api-base';
 /**
  * PD-13: the validation failures and authoring warnings the dev server knows
@@ -92,15 +93,9 @@ export async function saveEditorState(
   options: { readonly leaving?: boolean } = {},
 ): Promise<boolean> {
   try {
-    const body = JSON.stringify(state);
-    const res = await fetch(`${BASE}/editor-state`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-      // A page going away cancels its requests unless they are kept alive, and the browser keeps
-      // alive only a body under 64 KB; a larger one goes as an ordinary request.
-      keepalive: options.leaving === true && body.length < 60_000,
-    });
+    // A page going away cancels its requests unless they are kept alive (`postJson` says within
+    // what bound).
+    const res = await postJson(`${BASE}/editor-state`, JSON.stringify(state), options.leaving === true);
     assertEditorServerResponse(res, 'Could not save editor state');
     return true;
   } catch (cause) {

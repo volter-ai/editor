@@ -166,7 +166,7 @@ export function registerSettingsRoutes(router: EditorServerRouter, ctx: RouteCon
       return;
     }
     if (JSON.stringify(patch).length > USER_STATE_LIMIT) {
-      res.status(413).json({ error: `User state sections are limited to ${USER_STATE_LIMIT} bytes a write.` });
+      res.status(413).json({ error: `User state sections are limited to ${USER_STATE_LIMIT} characters a write.` });
       return;
     }
     try {

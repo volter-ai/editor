@@ -54,6 +54,19 @@ export function userLocalSection<T>(name: string): T | undefined {
   return doc[name] as T | undefined;
 }
 
+/**
+ * POST a JSON body, kept alive past the page when the page is `leaving`. The browser keeps alive
+ * only 64 KiB of request bodies at once, in bytes, shared by every such request the page has in
+ * flight (the project's state and this one leave together): each takes at most a 32 KiB share,
+ * and a send the browser refuses to keep alive is sent again as an ordinary request.
+ */
+export function postJson(url: string, body: string, leaving: boolean): Promise<Response> {
+  const send = (keepalive: boolean) =>
+    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive });
+  const keepalive = leaving && new TextEncoder().encode(body).length <= 32 * 1024;
+  return keepalive ? send(true).catch(() => send(false)) : send(false);
+}
+
 /** Send the changed sections. `leaving`: the page is going away, so the request must outlive it. */
 function flush(leaving = false): void {
   if (timer !== null) {
@@ -63,14 +76,7 @@ function flush(leaving = false): void {
   if (changed.size === 0) return;
   const patch = Object.fromEntries([...changed].map((name) => [name, doc[name]]));
   changed.clear();
-  const body = JSON.stringify(patch);
-  void fetch(ROUTE, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body,
-    // The browser keeps alive only a body under 64 KB.
-    keepalive: leaving && body.length < 60_000,
-  })
+  void postJson(ROUTE, JSON.stringify(patch), leaving)
     .then((response) => assertEditorServerResponse(response, 'Could not save user state'))
     .catch((cause: unknown) => {
       if (reportedWriteFailure) return;
