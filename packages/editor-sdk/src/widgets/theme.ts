@@ -2500,12 +2500,17 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
           // wash would let the hairline show through the whole row.
           '--vgai-tree-row-active-bg': `rgb(from ${theme.color.accent.muted} r g b / 1)`,
           '--vgai-tree-row-active-border': `rgb(from ${theme.color.accent.muted} r g b / 1)`,
+          '--vgai-tree-datablock-fill': 'color-mix(in srgb, var(--vgai-category-data, currentColor) 14%, transparent)',
+          '--vgai-tree-datablock-border': 'color-mix(in srgb, var(--vgai-content-primary) 14%, transparent)',
         }
       : {
           '--vgai-tree-row-selected-bg': `color-mix(in srgb, ${theme.color.accent.default} 42%, #000)`,
           '--vgai-tree-row-active-bg': `color-mix(in srgb, ${theme.color.accent.default} 70%, #000)`,
           '--vgai-tree-row-active-border':
             'rgb(from var(--vgai-tree-row-active-bg) calc(r + 40) calc(g + 40) calc(b + 40))',
+          // The datablock plate's transcription (theme.css `.vgai-tree-datablock`), unchanged.
+          '--vgai-tree-datablock-fill': 'color-mix(in srgb, color-mix(in srgb, var(--vgai-category-data, currentColor) 60%, black) 26%, transparent)',
+          '--vgai-tree-datablock-border': 'color-mix(in srgb, var(--vgai-content-primary) 24%, transparent)',
         }),
     // WHO GETS THE ROW'S ONE TEXT MARK when a palette declares an ACTIVE ink.
     // The instance rule (`semantic.instance`, owner 2026-07-31) and the active

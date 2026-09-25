@@ -525,7 +525,7 @@
   overflow: hidden;
   border-radius: var(--vgai-radius-full);
   background: var(--vgai-bg-inset);
-  border: 1px solid var(--vgai-border-2);
+  border: 1px solid var(--vgai-boundary-default);
   color: var(--vgai-content-dim);
   pointer-events: none;
 }

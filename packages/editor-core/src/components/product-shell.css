@@ -632,7 +632,7 @@
   gap: var(--vgai-space-4);
   padding: 8px 8px 8px 14px;
   background: var(--vgai-surface-inset);
-  border: 1px solid var(--vgai-boundary-strong);
+  border: 1px solid var(--vgai-boundary-default);
   border-radius: var(--vgai-shell-radius-sm);
 }
 
@@ -1736,7 +1736,7 @@
   background: var(--vgai-surface-chrome);
   backdrop-filter: var(--vgai-content-frost-filter, none);
   -webkit-backdrop-filter: var(--vgai-content-frost-filter, none);
-  border: 1px solid var(--vgai-boundary-strong);
+  border: 1px solid var(--vgai-boundary-default);
   border-radius: var(--vgai-shell-radius-sm);
   font-size: var(--vgai-shell-font-sm);
   animation: vgai-shell-rise var(--vgai-duration-slow) var(--vgai-shell-var(--vgai-ease-standard))
@@ -1763,7 +1763,7 @@
   background: var(--vgai-surface-inset);
   backdrop-filter: var(--vgai-content-frost-filter, none);
   -webkit-backdrop-filter: var(--vgai-content-frost-filter, none);
-  border: 1px solid var(--vgai-boundary-strong);
+  border: 1px solid var(--vgai-boundary-default);
   border-radius: var(--vgai-shell-radius-sm);
   text-align: center;
 }

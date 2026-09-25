@@ -12,6 +12,14 @@
    doubled class outranks the workbench's rule. (`:focus-visible` cannot tell the two apart here:
    Chrome counts a script focus() as visible.) */
 .monaco-workbench .vgai-host-part.vgai-host-part:focus { outline: none; }
+/* The workbench styles every select: `.monaco-workbench select { border: 1px solid; }` (style.css), a
+   shorthand with no colour, so `currentColor` — and one element above the editor's `.vgai-select`,
+   so it wins. Every select in a hosted part drew its border in its TEXT colour in every look. These
+   restate the editor's own border states (theme.css `.vgai-select`) at the specificity that wins. */
+.monaco-workbench .vgai-host-part select { border-color: var(--vgai-input-border, var(--vgai-border-1)); }
+.monaco-workbench .vgai-host-part select:hover:not(:disabled) { border-color: var(--vgai-border-2); }
+.monaco-workbench .vgai-host-part select:focus-visible { border-color: var(--vgai-accent); }
+.monaco-workbench .vgai-host-part select[data-dynamic="true"] { border-color: var(--vgai-dynamic); }
 /* The title bar is the vgai header. THE STATUS BAR IS NOT HOSTED — it is the
    workbench's own, and every vgai status item is a real `IStatusbarService`
    entry in it (U8 step 7, `vgaiStatus.ts`). The two rules that used to live

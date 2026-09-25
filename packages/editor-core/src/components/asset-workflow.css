@@ -645,7 +645,7 @@
 .vgai-asset-editor__toolbar button,
 .vgai-asset-editor__toolbar select {
   min-height: 26px;
-  border: 1px solid var(--vgai-border-2);
+  border: 1px solid var(--vgai-boundary-default);
   border-radius: var(--vgai-radius-sm);
   background: var(--vgai-bg-3);
   color: var(--vgai-text-1);

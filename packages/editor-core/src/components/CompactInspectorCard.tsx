@@ -168,7 +168,7 @@ export function CompactInspectorCard() {
           ...(minimized ? { height: '100%' } : { maxHeight: '100%' }),
           borderRadius: minimized ? 999 : 'var(--dv-group-border-radius, 8px)',
           overflow: minimized ? ('hidden' as const) : ('clip' as const),
-          border: 'var(--dv-floating-border, 1px solid var(--vgai-border-2))',
+          border: 'var(--dv-floating-border, 1px solid var(--vgai-boundary-default))',
           boxShadow: 'var(--dv-floating-box-shadow, var(--vgai-shadow-lg))',
           background: 'var(--dv-group-view-background-color, var(--vgai-bg-1))',
           pointerEvents: 'auto',

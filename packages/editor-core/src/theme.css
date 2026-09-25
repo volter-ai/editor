@@ -163,7 +163,7 @@
   padding: var(--vgai-space-2) var(--vgai-space-4);
   color: var(--vgai-content-primary);
   background: var(--vgai-surface-inset);
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-strong);
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
   border-radius: var(--vgai-radius-md);
   box-shadow: var(--vgai-shadow-sm);
   font-size: var(--vgai-font-base);
@@ -280,7 +280,7 @@
 .vgai-btn[data-variant="secondary"] {
   background: var(--vgai-widget-regular);
   color: var(--vgai-content-primary);
-  border-color: var(--vgai-boundary-strong);
+  border-color: var(--vgai-boundary-default);
   padding-inline: var(--vgai-space-4);
   /* THE EMBOSS — Blender lays a 1 px translucent-black line under EVERY
      widget, below its own outline. One rule, verified on five widget kinds
@@ -496,7 +496,7 @@
   width: auto;
   height: auto;
   gap: var(--vgai-space-5);
-  border-color: var(--vgai-boundary-strong);
+  border-color: var(--vgai-boundary-default);
   background: var(--vgai-surface-overlay);
   color: var(--vgai-content-primary);
   padding: var(--vgai-space-3) var(--vgai-space-4);
@@ -1287,7 +1287,7 @@ select.vgai-input {
   padding: var(--vgai-space-3) var(--vgai-space-5);
   color: var(--vgai-content-primary);
   background: var(--vgai-surface-panel);
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-strong);
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
   font-size: var(--vgai-font-base);
   text-align: left;
   transition:
@@ -1477,7 +1477,7 @@ select.vgai-input {
   overflow: hidden;
   color: var(--vgai-content-primary);
   background: var(--vgai-glass-regular-bg, var(--vgai-surface-chrome));
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-strong);
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
   border-radius: var(--vgai-radius-lg);
   box-shadow: var(--vgai-shadow-lg);
   box-sizing: border-box;
@@ -1791,7 +1791,7 @@ select.vgai-input {
   min-height: auto;
   padding: var(--vgai-space-2) var(--vgai-space-3);
   border: var(--vgai-stroke-resting) solid
-    var(--vgai-island-border-color, var(--vgai-boundary-strong));
+    var(--vgai-island-border-color, var(--vgai-boundary-default));
   border-radius: var(--vgai-island-radius, var(--vgai-radius-md));
   /* Ambient-lift layer (P6-U6 taste decision 2): 'none' for every
      treatment-less theme, so the composed background stays byte-equivalent
@@ -1979,7 +1979,7 @@ select.vgai-input {
 [data-vgai-chrome="islands"] .vgai-chrome-island:not(:empty) {
   position: relative;
   border: var(--vgai-stroke-resting) solid
-    var(--vgai-island-border-color, var(--vgai-boundary-strong));
+    var(--vgai-island-border-color, var(--vgai-boundary-default));
   border-radius: var(--vgai-island-radius, var(--vgai-radius-md));
   background:
     var(--vgai-ambient-lift, none), var(--vgai-backdrop-dim, none),
@@ -2869,12 +2869,11 @@ select.vgai-input {
   opacity: 0.8;
 }
 .vgai-tree-datablock[data-active="true"] {
-  background: color-mix(
-    in srgb,
-    color-mix(in srgb, var(--vgai-category-data, currentColor) 60%, black) 26%,
-    transparent
-  );
-  border-color: color-mix(in srgb, var(--vgai-content-primary) 24%, transparent);
+  /* The fill and ring are the palette's (`theme.ts`, beside the tree bands): Blender's
+     transcription above on a dark panel, a light tint of the data ink on a light one, where
+     darkening toward black paints a dark blob on the selection band. */
+  background: var(--vgai-tree-datablock-fill);
+  border-color: var(--vgai-tree-datablock-border);
 }
 .vgai-tree-row-leading {
   display: inline-flex;
@@ -3058,7 +3057,7 @@ select.vgai-input {
 .vgai-popover {
   color: var(--vgai-content-primary);
   background: var(--vgai-glass-regular-bg, var(--vgai-surface-chrome));
-  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-strong);
+  border: var(--vgai-stroke-resting) solid var(--vgai-boundary-default);
   border-radius: var(--vgai-radius-md);
   box-shadow: var(--vgai-shadow-md);
 }
