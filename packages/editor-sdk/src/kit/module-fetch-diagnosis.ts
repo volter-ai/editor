@@ -16,8 +16,10 @@
  * after a failure and imports only the static graph the failed import was
  * already evaluating; `import()` edges are not followed.
  *
- * Walks share one request per URL and at most {@link MAX_DIAGNOSES} run per page,
- * so a shared dependency failing under many stories costs one walk's requests.
+ * Walks running together share one request per URL and at most
+ * {@link MAX_DIAGNOSES} run at once, so a shared dependency failing under many
+ * stories costs one walk's requests. Nothing is kept once the walks finish: a
+ * later failure of the same entry is walked afresh.
  */
 
 const FAILED_IMPORT = [
@@ -64,7 +66,9 @@ interface FetchedModule {
   readonly imports: readonly string[];
 }
 
+/** Requests shared by the walks in flight; cleared when the last one settles. */
 const fetchedModules = new Map<string, Promise<FetchedModule>>();
+/** The walks in flight, by entry. */
 const diagnoses = new Map<string, Promise<ModuleFetchDiagnosis>>();
 
 function fetchModule(url: string): Promise<FetchedModule> {
@@ -98,16 +102,21 @@ export function diagnoseModuleFetch(entry: string): Promise<ModuleFetchDiagnosis
     return Promise.resolve({
       entry,
       fetched: 0,
-      failed: { url: entry, status: null, detail: `not walked: ${MAX_DIAGNOSES} imports already diagnosed on this page` },
+      failed: { url: entry, status: null, detail: `not walked: ${MAX_DIAGNOSES} other failed imports are being walked` },
     });
   }
-  const pending = walk(entry).catch(
-    (err): ModuleFetchDiagnosis => ({
-      entry,
-      fetched: 0,
-      failed: { url: entry, status: null, detail: `walk failed: ${String(err)}` },
-    }),
-  );
+  const pending = walk(entry)
+    .catch(
+      (err): ModuleFetchDiagnosis => ({
+        entry,
+        fetched: 0,
+        failed: { url: entry, status: null, detail: `walk failed: ${String(err)}` },
+      }),
+    )
+    .finally(() => {
+      diagnoses.delete(entry);
+      if (diagnoses.size === 0) fetchedModules.clear();
+    });
   diagnoses.set(entry, pending);
   return pending;
 }
