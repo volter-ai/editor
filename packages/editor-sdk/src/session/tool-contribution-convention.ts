@@ -49,6 +49,9 @@ export const TOOL_CONTRIBUTION_SUFFIXES = [
   '.layout',
   '.keymap',
   '.style',
+  // A named VIEW (`kit/viewport-presentation` `ViewPreset`): a whole presentation a person can
+  // put on a view — data, registered by the host like the three above.
+  '.view',
   // A COMMAND table (`@volter/editor-sdk/commands`): session verbs a package
   // answers, registered with the host's relay; data, no UI.
   '.command',
@@ -87,12 +90,12 @@ export function isCommandContribution(fileName: string): boolean {
   );
 }
 
-export type LookContributionKind = 'layout' | 'keymap' | 'style';
+export type LookContributionKind = 'layout' | 'keymap' | 'style' | 'view';
 
 /** Which look point a contribution file names, or null for a module of
  *  another kind. */
 export function lookContributionKind(fileName: string): LookContributionKind | null {
-  for (const kind of ['layout', 'keymap', 'style'] as const)
+  for (const kind of ['layout', 'keymap', 'style', 'view'] as const)
     if (TOOL_CONTRIBUTION_EXTENSIONS.some((extension) => fileName.endsWith(`.${kind}${extension}`)))
       return kind;
   return null;

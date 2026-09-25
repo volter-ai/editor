@@ -143,6 +143,8 @@ export interface MaterialContribution {
    *  chrome rows, in px. Every field is optional; absent ones keep the
    *  editor's own. */
   readonly density?: DensityContribution;
+  /** What the look states about the 3D stage ({@link StageContribution}). */
+  readonly stage?: StageContribution;
 }
 
 export interface DensityContribution {
@@ -196,108 +198,109 @@ export interface DensityContribution {
      *  `areaEmbossValue` for the five fills it was solved against. */
     readonly areaEmboss?: number;
   };
+}
+
+/**
+ * WHAT A LOOK STATES ABOUT THE 3D STAGE, as opposed to about the chrome around it: how the
+ * stage's furniture is drawn (sizes, widths, the selection box's form). Absent members keep
+ * the editor's own. What the stage DOES — its boot tool, its box-select rule, its world's up
+ * axis — is its presentation's (`@volter/editor-sdk/kit/viewport-presentation`), never the
+ * look's (ARCHITECTURE.md rule 7).
+ */
+export interface StageContribution {
   /**
-   * WHAT A LOOK STATES ABOUT THE 3D STAGE, as opposed to about the chrome around it: how the
-   * stage's furniture is drawn (sizes, widths, the selection box's form). Absent members keep
-   * the editor's own. What the stage DOES — its boot tool, its box-select rule, its world's up
-   * axis — is its presentation's (`@volter/editor-sdk/kit/viewport-presentation`), never the
-   * look's (ARCHITECTURE.md rule 7).
+   * THE TRANSFORM GIZMO'S SCREEN SIZE, in px per gizmo unit — Blender's
+   * `U.gizmo_size` (`DNA_userdef_types.h:1095`, default 75; Preferences ▸
+   * Viewport ▸ Gizmos ▸ Size, `rna_userdef.cc:5415-5419`).
+   *
+   * A gizmo is a CONSTANT SCREEN SIZE, never a fraction of the object or of
+   * the viewport: `wm_gizmo.cc:450-474` computes
+   * `scale_final = scale_basis · UI_SCALE_FAC · U.gizmo_size ·
+   * ED_view3d_pixel_size_no_ui_scale(rv3d, origin)`, and that last term is
+   * world units per device pixel while `UI_SCALE_FAC` is device pixels per
+   * UI pixel — so one gizmo unit is exactly `U.gizmo_size` CSS px at any
+   * display scale.
+   *
+   * Absent keeps the editor's own gizmo, which is a fraction of the
+   * VIEWPORT (three's `TransformControls` at `size` 1). What the number
+   * means on our side — three's handles are authored on a unit half
+   * Blender's — is `editor-viewport.ts`'s to know, and it says so there.
    */
-  readonly viewport?: {
-    /**
-     * THE TRANSFORM GIZMO'S SCREEN SIZE, in px per gizmo unit — Blender's
-     * `U.gizmo_size` (`DNA_userdef_types.h:1095`, default 75; Preferences ▸
-     * Viewport ▸ Gizmos ▸ Size, `rna_userdef.cc:5415-5419`).
-     *
-     * A gizmo is a CONSTANT SCREEN SIZE, never a fraction of the object or of
-     * the viewport: `wm_gizmo.cc:450-474` computes
-     * `scale_final = scale_basis · UI_SCALE_FAC · U.gizmo_size ·
-     * ED_view3d_pixel_size_no_ui_scale(rv3d, origin)`, and that last term is
-     * world units per device pixel while `UI_SCALE_FAC` is device pixels per
-     * UI pixel — so one gizmo unit is exactly `U.gizmo_size` CSS px at any
-     * display scale.
-     *
-     * Absent keeps the editor's own gizmo, which is a fraction of the
-     * VIEWPORT (three's `TransformControls` at `size` 1). What the number
-     * means on our side — three's handles are authored on a unit half
-     * Blender's — is `editor-viewport.ts`'s to know, and it says so there.
-     */
-    readonly gizmoSize?: number;
-    /**
-     * THE GIZMO'S HANDLES AT REST AND HIGHLIGHTED. `gizmoOpacity` is a resting handle's opacity
-     * (a highlighted one is opaque): Blender's 0.6 (`transform_gizmo_3d.cc`,
-     * `gizmo_get_axis_color`), Godot's 0.9 (`editors/3d/manipulator_gizmo_opacity`), Unity's
-     * 0.93 (`Handles.cs`, the axis colours' alpha). A handle with no fixed highlight colour
-     * (`color.gizmo.hover`) highlights in its own axis colour with its saturation multiplied by
-     * `gizmoHighlightSaturation` and its value set to `gizmoHighlightValue`, each kept when
-     * absent: Blender keeps both, Godot's are 0.25 and 1 (`node_3d_editor_plugin.cpp`,
-     * `col.from_hsv(col.get_h(), col.get_s() * 0.25, 1.0, 1)`).
-     */
-    readonly gizmoOpacity?: number;
-    /**
-     * THE MOVE ARROWS' SHAPE: `gizmoArrowLength` is how far an arrow's tip stands from the
-     * centre, in rotation-ring radii (three's own 1.2; Godot's 1.6, measured on
-     * `tuto_3d5.png` as a 142 px tip against a 90 px ring), and `gizmoArrowHead` scales its
-     * head (three's own 1; Godot's about 1.5). Which handles the tool offers is the view's
-     * (`interaction.transformHandles`), never the look's.
-     */
-    readonly gizmoArrowLength?: number;
-    readonly gizmoArrowHead?: number;
-    /** THE ROTATION RINGS' THICKNESS, as a multiple of three's own (Godot's rings are about
-     *  twice as thick, `tuto_3d5.png`). */
-    readonly gizmoRingWidth?: number;
-    /**
-     * THE NAVIGATION GIZMO'S FORM AND CORNER: lettered `balls` (the editor's own, Blender's and
-     * Godot's), `cones` round a centre cube (Unity's scene gizmo) or a lettered axis `triad`
-     * (Unreal's); `top-right` (the editor's own) or `bottom-left` (Unreal's). Whether a click on
-     * it turns the view is the view's (`overlays.navigation`).
-     */
-    readonly navigationGizmo?: 'balls' | 'cones' | 'triad';
-    readonly navigationCorner?: 'top-right' | 'bottom-left';
-    /** The triad's size, a multiple of its own 24 px; line and letter stay inside the gizmo's
-     *  90 px box up to about 1.3 (Unreal's triad, letters included, is about 40 px). */
-    readonly navigationSize?: number;
-    readonly gizmoHighlightSaturation?: number;
-    readonly gizmoHighlightValue?: number;
-    /**
-     * THE FLOOR GRID'S LINES, in device pixels: the minor lines' width, the major lines' width,
-     * and how far the major lines' colour is carried past the minor's from the backdrop (1 draws
-     * both levels alike). A look that states none keeps the editor's own floor, one hairline
-     * level — the grid the kit drew before its floor was fitted to Blender. Blender's are 1.5,
-     * 2.25 and 39/21, measured across one scanline of `modeling-object-none.png`: the 1 m line
-     * 4 px at half rise plateauing at 83, the 10 m line 6 px plateauing at 101
-     * (`docs/VIEWPORT-STAGE.md`: widths are the look's, like colours).
-     */
-    readonly gridLineWidth?: number;
-    readonly gridMajorWidth?: number;
-    readonly gridMajorContrast?: number;
-    /** THE AXIS LINES' WIDTH in device pixels (the editor's own and Blender's are 2, measured
-     *  on `modeling-object-none.png`). Which axis lines show is the view's
-     *  (`overlays.axes`), never the look's. */
-    readonly axisLineWidth?: number;
-    /**
-     * HOW THE SELECTION BOX MARK IS DRAWN (the view's `overlays.selection.box`): `corners`, the
-     * editor's own brackets, or `edges`, the full box (Godot's selection box); and its stroke in
-     * CSS px (the editor's own is 3; Godot's box is a hairline).
-     */
-    readonly selectionBox?: 'corners' | 'edges';
-    /** Which axes the box is measured along: the world's (the editor's own) or the object's,
-     *  so it turns with a rotated object (Godot's). */
-    readonly selectionBoxFrame?: 'world' | 'object';
-    /**
-     * THE SELECTION OUTLINE'S FORM: `soft`, the editor's own blurred halo, or `crisp`, a hard
-     * line `outlineWidth` device pixels wide (Blender's, Unity's and Unreal's are crisp); and
-     * whether the parts of the selection other objects hide are drawn too (`outlineHidden`,
-     * the editor's own; Unity's and Blender's are not).
-     */
-    readonly outlineStyle?: 'soft' | 'crisp';
-    readonly outlineWidth?: number;
-    readonly outlineHidden?: boolean;
-    /** THE SELECTION WIRE'S OPACITY (the editor's own 0.5; Unity's blue wire is about 0.25,
-     *  `SceneVisExVisible.png`). Its colour is the palette's `color.viewport.wire`. */
-    readonly wireOpacity?: number;
-    readonly selectionBoxWidth?: number;
-  };
+  readonly gizmoSize?: number;
+  /**
+   * THE GIZMO'S HANDLES AT REST AND HIGHLIGHTED. `gizmoOpacity` is a resting handle's opacity
+   * (a highlighted one is opaque): Blender's 0.6 (`transform_gizmo_3d.cc`,
+   * `gizmo_get_axis_color`), Godot's 0.9 (`editors/3d/manipulator_gizmo_opacity`), Unity's
+   * 0.93 (`Handles.cs`, the axis colours' alpha). A handle with no fixed highlight colour
+   * (`color.gizmo.hover`) highlights in its own axis colour with its saturation multiplied by
+   * `gizmoHighlightSaturation` and its value set to `gizmoHighlightValue`, each kept when
+   * absent: Blender keeps both, Godot's are 0.25 and 1 (`node_3d_editor_plugin.cpp`,
+   * `col.from_hsv(col.get_h(), col.get_s() * 0.25, 1.0, 1)`).
+   */
+  readonly gizmoOpacity?: number;
+  /**
+   * THE MOVE ARROWS' SHAPE: `gizmoArrowLength` is how far an arrow's tip stands from the
+   * centre, in rotation-ring radii (three's own 1.2; Godot's 1.6, measured on
+   * `tuto_3d5.png` as a 142 px tip against a 90 px ring), and `gizmoArrowHead` scales its
+   * head (three's own 1; Godot's about 1.5). Which handles the tool offers is the view's
+   * (`interaction.transformHandles`), never the look's.
+   */
+  readonly gizmoArrowLength?: number;
+  readonly gizmoArrowHead?: number;
+  /** THE ROTATION RINGS' THICKNESS, as a multiple of three's own (Godot's rings are about
+   *  twice as thick, `tuto_3d5.png`). */
+  readonly gizmoRingWidth?: number;
+  /**
+   * THE NAVIGATION GIZMO'S FORM AND CORNER: lettered `balls` (the editor's own, Blender's and
+   * Godot's), `cones` round a centre cube (Unity's scene gizmo) or a lettered axis `triad`
+   * (Unreal's); `top-right` (the editor's own) or `bottom-left` (Unreal's). Whether a click on
+   * it turns the view is the view's (`overlays.navigation`).
+   */
+  readonly navigationGizmo?: 'balls' | 'cones' | 'triad';
+  readonly navigationCorner?: 'top-right' | 'bottom-left';
+  /** The triad's size, a multiple of its own 24 px; line and letter stay inside the gizmo's
+   *  90 px box up to about 1.3 (Unreal's triad, letters included, is about 40 px). */
+  readonly navigationSize?: number;
+  readonly gizmoHighlightSaturation?: number;
+  readonly gizmoHighlightValue?: number;
+  /**
+   * THE FLOOR GRID'S LINES, in device pixels: the minor lines' width, the major lines' width,
+   * and how far the major lines' colour is carried past the minor's from the backdrop (1 draws
+   * both levels alike). A look that states none keeps the editor's own floor, one hairline
+   * level — the grid the kit drew before its floor was fitted to Blender. Blender's are 1.5,
+   * 2.25 and 39/21, measured across one scanline of `modeling-object-none.png`: the 1 m line
+   * 4 px at half rise plateauing at 83, the 10 m line 6 px plateauing at 101
+   * (`docs/VIEWPORT-STAGE.md`: widths are the look's, like colours).
+   */
+  readonly gridLineWidth?: number;
+  readonly gridMajorWidth?: number;
+  readonly gridMajorContrast?: number;
+  /** THE AXIS LINES' WIDTH in device pixels (the editor's own and Blender's are 2, measured
+   *  on `modeling-object-none.png`). Which axis lines show is the view's
+   *  (`overlays.axes`), never the look's. */
+  readonly axisLineWidth?: number;
+  /**
+   * HOW THE SELECTION BOX MARK IS DRAWN (the view's `overlays.selection.box`): `corners`, the
+   * editor's own brackets, or `edges`, the full box (Godot's selection box); and its stroke in
+   * CSS px (the editor's own is 3; Godot's box is a hairline).
+   */
+  readonly selectionBox?: 'corners' | 'edges';
+  /** Which axes the box is measured along: the world's (the editor's own) or the object's,
+   *  so it turns with a rotated object (Godot's). */
+  readonly selectionBoxFrame?: 'world' | 'object';
+  /**
+   * THE SELECTION OUTLINE'S FORM: `soft`, the editor's own blurred halo, or `crisp`, a hard
+   * line `outlineWidth` device pixels wide (Blender's, Unity's and Unreal's are crisp); and
+   * whether the parts of the selection other objects hide are drawn too (`outlineHidden`,
+   * the editor's own; Unity's and Blender's are not).
+   */
+  readonly outlineStyle?: 'soft' | 'crisp';
+  readonly outlineWidth?: number;
+  readonly outlineHidden?: boolean;
+  /** THE SELECTION WIRE'S OPACITY (the editor's own 0.5; Unity's blue wire is about 0.25,
+   *  `SceneVisExVisible.png`). Its colour is the palette's `color.viewport.wire`. */
+  readonly wireOpacity?: number;
+  readonly selectionBoxWidth?: number;
 }
 
 /**

@@ -293,6 +293,47 @@ export function studioPresets(): readonly StudioPreset[] {
   return [...presets.values()];
 }
 
+// ---- View presets --------------------------------------------------------------------------------
+
+/**
+ * A NAMED VIEW: a whole presentation a person can put on a view at once — a target engine's
+ * default viewport (Godot's preview sun and sky, all three axis lines, the box, its Select
+ * gizmo), contributed as data by the package that knows it (`*.view.ts`). It is the view's
+ * FUNCTION and light, never its look: the style stays whatever the person wears.
+ */
+export interface ViewPreset {
+  readonly id: string;
+  readonly title: string;
+  readonly layer: PresentationLayer;
+}
+
+const viewPresetsById = new Map<string, ViewPreset>();
+
+export function registerViewPreset(preset: ViewPreset): () => void {
+  if (viewPresetsById.has(preset.id)) throw new Error(`registerViewPreset: "${preset.id}" is already registered.`);
+  viewPresetsById.set(preset.id, preset);
+  bump();
+  return () => {
+    if (viewPresetsById.get(preset.id) !== preset) return;
+    viewPresetsById.delete(preset.id);
+    bump();
+  };
+}
+
+export function viewPresets(): readonly ViewPreset[] {
+  return [...viewPresetsById.values()];
+}
+
+/** Put a named view on a view: the person's choices become the preset's, whole. `false` for
+ *  an id no package registered. */
+export function applyViewPreset(viewId: string, presetId: string): boolean {
+  const preset = viewPresetsById.get(presetId);
+  if (!preset) return false;
+  resetViewPresentation(viewId);
+  setViewPresentation(viewId, preset.layer);
+  return true;
+}
+
 // ---- Starting values, per kind of stage ---------------------------------------------------------
 
 const starting = new Map<string, PresentationLayer>();

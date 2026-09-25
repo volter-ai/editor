@@ -162,12 +162,12 @@ export function writeBracketSegments(box: THREE.Box3, out: Float32Array, edges =
 export interface SelectionBracketsOptions {
   /** Renderer-ready current palette accent. */
   readonly color: number;
-  /** Draw the full box instead of corner brackets (the look's `density.viewport.selectionBox`). */
+  /** Draw the full box instead of corner brackets (the look's `stage.selectionBox`). */
   readonly edges?: boolean;
   /** Stroke width in CSS px; the editor's own is {@link SELECTION_BRACKET_LINEWIDTH}. */
   readonly lineWidth?: number;
   /** Measure the box along the world's axes (the editor's own, Unity's bounds) or the object's
-   *  own, so it turns with the object (Godot's) — `density.viewport.selectionBoxFrame`. */
+   *  own, so it turns with the object (Godot's) — `stage.selectionBoxFrame`. */
   readonly frame?: 'world' | 'object';
   /**
    * Edge length of a fixed-size cube centered on the entity's world position,

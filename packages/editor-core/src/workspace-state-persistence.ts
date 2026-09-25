@@ -71,6 +71,12 @@ import {
  */
 
 import { editorViewFromUrl } from '@volter/editor-sdk';
+import {
+  type PresentationLayer,
+  restoreViewPresentation,
+  subscribeViewportPresentation,
+  viewPresentationSnapshot,
+} from '@volter/editor-sdk/kit/viewport-presentation';
 import { projectAdapterFacet, waitForProjectAdapter } from './project-adapter';
 import {
   preloadProjectLocalState,
@@ -175,6 +181,10 @@ export interface PersistedDocument {
   readonly kind: string;
   readonly id: string;
   readonly state: unknown;
+  /** The person's own choices for this document's VIEW (`kit/viewport-presentation`: its
+   *  lighting, backdrop, overlays, tool) — absent when they made none. Optional, so a record
+   *  written before views kept their choices is still this shape. */
+  readonly presentation?: PresentationLayer;
 }
 
 /** The section of the project-local document this module owns. */
@@ -232,7 +242,13 @@ export function persistableDocument(doc: OpenWorkspaceDocument): PersistedDocume
     return null;
   }
   if (state === undefined || state === null) return null;
-  return { kind: descriptor.kind, id: descriptor.id, state };
+  const presentation = viewPresentationSnapshot(descriptor.id);
+  return {
+    kind: descriptor.kind,
+    id: descriptor.id,
+    state,
+    ...(Object.keys(presentation).length > 0 ? { presentation } : {}),
+  };
 }
 
 /** Every registered kind's own session state, keyed by kind. Two restorers
@@ -391,6 +407,9 @@ export async function restoreWorkspaceDocuments(
   }
   await settleKindSources(docs.open);
   for (const doc of docs.open) {
+    // The view's choices FIRST: its stage binds as the document mounts, and a binding keeps the
+    // choices already recorded for the view.
+    if (doc.presentation) restoreViewPresentation(doc.id, doc.presentation);
     await restoreOneDocument(store, doc, docs.activeId);
   }
   // Restore the saved active tab when available. Otherwise retain the
@@ -527,6 +546,8 @@ export function installWorkspaceStatePersistence(store: WorkspaceStateStore): ()
     if (restoreTimer !== null) clearTimeout(restoreTimer);
     if (disposed) return;
     unsubscribers.push(subscribeWorkspaceDocuments(schedule));
+    // A view's choices are part of what is saved, so a changed choice is a write too.
+    unsubscribers.push(subscribeViewportPresentation(schedule));
     window.addEventListener('pagehide', onPageHide);
   });
   const restoreEpoch = publishWorkspaceRestore(restorePromise);

@@ -907,17 +907,24 @@ export class EditorClient {
 
   /** A document stage's viewport PRESENTATION (`kit/viewport-presentation`), resolved; with a
    *  `layer`, that choice is recorded for the view first, as the toolbar records it. */
+  /** A view's presentation, answered resolved. With a LAYER the person's choice is recorded
+   *  first; with a STRING, the named view (`*.view.ts`) of that id is put on the view whole. */
   async viewportPresentation(
     documentId: string,
-    layer?: import('./kit/viewport-presentation').PresentationLayer,
+    layer?: import('./kit/viewport-presentation').PresentationLayer | string,
   ): Promise<{
     presentation: import('./kit/viewport-presentation').ViewportPresentation;
     binding: { stageKind: string; documentLayer: import('./kit/viewport-presentation').PresentationLayer | null } | null;
     bound: { viewId: string; stageKind: string }[];
     lastDraw: import('./kit/viewport-presentation').ViewDrawReport | null;
     presets: string[];
+    viewPresets: string[];
   }> {
-    return this.command({ type: 'viewport-presentation', documentId, ...(layer ? { layer } : {}) });
+    return this.command({
+      type: 'viewport-presentation',
+      documentId,
+      ...(typeof layer === 'string' ? { preset: layer } : layer ? { layer } : {}),
+    });
   }
 
   /** Set the MATERIAL apart from the bundle that usually carries it.

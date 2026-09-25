@@ -30,30 +30,28 @@ export const style: StyleContribution = {
       medium: '0 2px 8px rgba(0,0,0,0.55)',
       large: '0 6px 18px rgba(0,0,0,0.6)',
     },
-    density: {
-      viewport: {
-        // Unreal keeps its widget a constant size on screen; in `level-editor.png` the Move
-        // arrows reach 85 to 100 px from the centre sphere. Fitted, not transcribed.
-        gizmoSize: 128,
-        // The axis triad in the viewport's bottom-left corner (`level-editor.png`).
-        navigationGizmo: 'triad',
-        navigationCorner: 'bottom-left',
-        navigationSize: 1.3,
-        // Unreal's arrows end in slim cones about 14 px long on ~85 px shafts (`level-editor.png`),
-        // fitted side by side at 1x.
-        gizmoArrowLength: 0.85,
-        gizmoArrowHead: 0.8,
-        // A hard yellow-orange line about three pixels wide around the whole silhouette; the
-        // parts other objects hide are drawn too (dotted in Unreal, behind the table). Widths
-        // over 4 widen the blur kernel and the band goes pale and soft (measured: 5 peaks at
-        // #dfad6b over the sky), so 3 is the widest solid band the crisp form draws.
-        outlineStyle: 'crisp',
-        outlineWidth: 3,
-        outlineHidden: true,
-        gridLineWidth: 1,
-        gridMajorWidth: 1,
-        gridMajorContrast: 1.3,
-      },
+    stage: {
+      // Unreal keeps its widget a constant size on screen; in `level-editor.png` the Move
+      // arrows reach 85 to 100 px from the centre sphere. Fitted, not transcribed.
+      gizmoSize: 128,
+      // The axis triad in the viewport's bottom-left corner (`level-editor.png`).
+      navigationGizmo: 'triad',
+      navigationCorner: 'bottom-left',
+      navigationSize: 1.3,
+      // Unreal's arrows end in slim cones about 14 px long on ~85 px shafts (`level-editor.png`),
+      // fitted side by side at 1x.
+      gizmoArrowLength: 0.85,
+      gizmoArrowHead: 0.8,
+      // A hard yellow-orange line about three pixels wide around the whole silhouette; the
+      // parts other objects hide are drawn too (dotted in Unreal, behind the table). Widths
+      // over 4 widen the blur kernel and the band goes pale and soft (measured: 5 peaks at
+      // #dfad6b over the sky), so 3 is the widest solid band the crisp form draws.
+      outlineStyle: 'crisp',
+      outlineWidth: 3,
+      outlineHidden: true,
+      gridLineWidth: 1,
+      gridMajorWidth: 1,
+      gridMajorContrast: 1.3,
     },
   },
   palette,

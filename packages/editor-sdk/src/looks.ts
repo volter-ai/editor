@@ -8,6 +8,7 @@ export type {
   WorkspaceLayoutContribution,
   MaterialContribution,
   DensityContribution,
+  StageContribution,
   IconCategoryTone,
   IconSetContribution,
   StyleContribution,

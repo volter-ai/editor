@@ -15,7 +15,7 @@ export interface NativeSelectionColors {
   /** The ACTIVE object's outline (`color.viewport.active`, Blender's lighter orange), or the
    *  selection's own when the palette names none. */
   readonly active?: { readonly visible: number; readonly hidden: number };
-  /** THE OUTLINE'S FORM (`density.viewport.outlineStyle`, `outlineWidth`, `outlineHidden`):
+  /** THE OUTLINE'S FORM (`stage.outlineStyle`, `outlineWidth`, `outlineHidden`):
    *  `soft`, the editor's own blurred halo, or `crisp` at a width in device pixels; and whether
    *  the parts other objects hide are drawn too. Absent is the editor's own. */
   readonly outline?: { readonly style: 'soft' | 'crisp'; readonly width: number | null; readonly hidden: boolean };
@@ -74,15 +74,45 @@ function themeToken(root: Element | null, name: string): string {
     : '';
 }
 
+/**
+ * THE STAGE'S COLOURS ARE THE WORKBENCH'S FIRST. Under the Code-OSS frame each is a theme
+ * colour (`vgai.viewport.*`, `vgai.gizmo.*`, the frame's `vgaiColors.ts`) the look sets and a
+ * person's `workbench.colorCustomizations` override, emitted as `--vscode-<id>` with dots as
+ * dashes; the page's own token is what the look said, read where there is no workbench.
+ */
+const WORKBENCH_COLOR: Readonly<Record<string, string>> = {
+  '--vgai-viewport-background': '--vscode-vgai-viewport-background',
+  '--vgai-viewport-grid': '--vscode-vgai-viewport-grid',
+  '--vgai-viewport-axis-x': '--vscode-vgai-viewport-axisX',
+  '--vgai-viewport-axis-y': '--vscode-vgai-viewport-axisY',
+  '--vgai-viewport-axis-z': '--vscode-vgai-viewport-axisZ',
+  '--vgai-viewport-selection': '--vscode-vgai-viewport-selection',
+  '--vgai-viewport-active': '--vscode-vgai-viewport-active',
+  '--vgai-viewport-wire': '--vscode-vgai-viewport-wire',
+  '--vgai-gizmo-x': '--vscode-vgai-gizmo-x',
+  '--vgai-gizmo-y': '--vscode-vgai-gizmo-y',
+  '--vgai-gizmo-z': '--vscode-vgai-gizmo-z',
+  '--vgai-gizmo-navigation-x': '--vscode-vgai-gizmo-navigationX',
+  '--vgai-gizmo-navigation-y': '--vscode-vgai-gizmo-navigationY',
+  '--vgai-gizmo-navigation-z': '--vscode-vgai-gizmo-navigationZ',
+  '--vgai-gizmo-hover': '--vscode-vgai-gizmo-hover',
+  '--vgai-gizmo-drag': '--vscode-vgai-gizmo-drag',
+};
+
+function stageColorToken(root: Element | null, name: string): string {
+  const workbench = WORKBENCH_COLOR[name];
+  return (workbench ? themeToken(root, workbench) : '') || themeToken(root, name);
+}
+
 /** The palette's selection colour: its viewport group's when it carries one
  *  (Blender's orange), the accent otherwise. */
 export function nativeSelectionColors(element?: Element | null): NativeSelectionColors {
   const root = themeRoot(element);
-  const raw = themeToken(root, '--vgai-viewport-selection') || themeToken(root, '--vgai-accent');
+  const raw = stageColorToken(root, '--vgai-viewport-selection') || themeToken(root, '--vgai-accent');
   const visible =
     parseCssColor(raw || graphiteDarkEditorTheme.color.accent.default) ??
     DEFAULT_NATIVE_SELECTION_COLOR;
-  const active = parseCssColor(themeToken(root, '--vgai-viewport-active'));
+  const active = parseCssColor(stageColorToken(root, '--vgai-viewport-active'));
   const style = themeToken(root, '--vgai-viewport-outline-style');
   const width = Number.parseFloat(themeToken(root, '--vgai-viewport-outline-width'));
   const hidden = themeToken(root, '--vgai-viewport-outline-hidden');
@@ -110,7 +140,7 @@ export interface NativeViewportLook {
   readonly axisX: number | null;
   readonly axisY: number | null;
   readonly axisZ: number | null;
-  /** `density.viewport.axisLineWidth`, device px, or `null` for the editor's own. */
+  /** `stage.axisLineWidth`, device px, or `null` for the editor's own. */
   readonly axisLineWidth: number | null;
   readonly active: number | null;
 }
@@ -147,7 +177,7 @@ export function lookPaintsLightViewport(element?: Element | null): boolean {
 export function nativeViewportLook(element?: Element | null): NativeViewportLook {
   const root = themeRoot(element);
   const read = (name: string): number | null => {
-    const raw = themeToken(root, name);
+    const raw = stageColorToken(root, name);
     return raw ? parseCssColor(raw) : null;
   };
   return {
@@ -166,7 +196,7 @@ export function nativeViewportLook(element?: Element | null): NativeViewportLook
 }
 
 /** THE LOOK'S GIZMO COLOURS AND HIGHLIGHT (`EditorTheme.color.gizmo`, and
- *  `density.viewport.gizmoOpacity`/`gizmoHighlightSaturation`/`gizmoHighlightValue`), each
+ *  `stage.gizmoOpacity`/`gizmoHighlightSaturation`/`gizmoHighlightValue`), each
  *  `null` when the look names none — the viewport keeps its own then. `axes` are X, Y, Z. */
 export interface NativeGizmoLook {
   readonly axes: readonly [number, number, number] | null;
@@ -188,7 +218,7 @@ export interface NativeGizmoLook {
 export function nativeGizmoLook(element?: Element | null): NativeGizmoLook {
   const root = themeRoot(element);
   const color = (name: string): number | null => {
-    const raw = themeToken(root, name);
+    const raw = stageColorToken(root, name);
     return raw ? parseCssColor(raw) : null;
   };
   const number = (name: string): number | null => {
@@ -225,7 +255,7 @@ export function nativeGizmoLook(element?: Element | null): NativeGizmoLook {
 
 /**
  * THE LOOK'S TRANSFORM-GIZMO SIZE, in px per gizmo unit
- * (`EditorTheme.density.viewport.gizmoSize`), or `null` when the look names
+ * (`EditorTheme.stage.gizmoSize`), or `null` when the look names
  * none — which is every look but Blender's, and means "keep three's own
  * viewport-relative handle".
  *
@@ -242,7 +272,7 @@ export function nativeViewportGizmoSize(element?: Element | null): number | null
   return Number.isFinite(value) && value > 0 ? value : null;
 }
 
-/** THE FLOOR GRID'S LINES the look states (`EditorTheme.density.viewport.gridLineWidth` and
+/** THE FLOOR GRID'S LINES the look states (`EditorTheme.stage.gridLineWidth` and
  *  its siblings), in device pixels, with the editor's own hairline floor for any it leaves out:
  *  one level, one pixel, the major lines drawn like the minor. */
 export function nativeViewportGrid(element?: Element | null): {
@@ -263,16 +293,16 @@ export function nativeViewportGrid(element?: Element | null): {
   };
 }
 
-/** HOW THE LOOK DRAWS THE SELECTION BOX MARK (`density.viewport.selectionBox` and its width),
+/** HOW THE LOOK DRAWS THE SELECTION BOX MARK (`stage.selectionBox` and its width),
  *  with the editor's own corner brackets at 3 CSS px for what it leaves out. */
-/** The selection wire's look: the palette's `viewport.wire` and `density.viewport.wireOpacity`,
+/** The selection wire's look: the palette's `viewport.wire` and `stage.wireOpacity`,
  *  each `null` for the editor's own (the selection colour at half opacity). */
 export function nativeViewportWire(element?: Element | null): {
   readonly color: number | null;
   readonly opacity: number | null;
 } {
   const root = themeRoot(element);
-  const raw = themeToken(root, '--vgai-viewport-wire');
+  const raw = stageColorToken(root, '--vgai-viewport-wire');
   const opacity = Number.parseFloat(themeToken(root, '--vgai-viewport-wire-opacity'));
   return {
     color: raw ? parseCssColor(raw) : null,
@@ -308,5 +338,25 @@ export function subscribeNativeSelectionTheme(
   if (!root || typeof MutationObserver === 'undefined') return () => {};
   const observer = new MutationObserver(listener);
   observer.observe(root, { attributes: true, attributeFilter: ['style'] });
-  return () => observer.disconnect();
+  // AND THE WORKBENCH'S COLOURS, which the frame applies after the look's own tokens land and a
+  // person's customizations change without touching this root: Code-OSS writes them into a
+  // stylesheet in the document head. The head changes for many reasons, so the listener runs
+  // only when the stage's own workbench colours did.
+  const signature = () =>
+    Object.values(WORKBENCH_COLOR)
+      .map((name) => themeToken(root, name))
+      .join('|');
+  let seen = signature();
+  const head = typeof document === 'undefined' ? null : document.head;
+  const workbench = new MutationObserver(() => {
+    const next = signature();
+    if (next === seen) return;
+    seen = next;
+    listener();
+  });
+  if (head) workbench.observe(head, { childList: true, subtree: true, characterData: true });
+  return () => {
+    observer.disconnect();
+    workbench.disconnect();
+  };
 }

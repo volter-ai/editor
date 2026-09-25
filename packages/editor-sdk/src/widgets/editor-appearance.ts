@@ -31,6 +31,7 @@ export interface ContributedMaterialDefinition extends EditorMaterialChoice {
   readonly shape: EditorTheme['shape'];
   readonly elevation: EditorTheme['elevation'];
   readonly density?: EditorTheme['density'];
+  readonly stage?: EditorTheme['stage'];
 }
 
 /** The only fields a color-theme document may contribute to composition. */
@@ -115,6 +116,7 @@ export function composeEditorAppearance(
       shape: material?.shape ?? CLASSIC_MATERIAL.shape,
       elevation: material?.elevation ?? CLASSIC_MATERIAL.elevation,
       ...(material?.density ? { density: material.density } : {}),
+      ...(material?.stage ? { stage: material.stage } : {}),
       appearance: { material: 'classic', transparency: 'standard' },
     };
   }

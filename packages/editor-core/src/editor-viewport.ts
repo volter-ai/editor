@@ -229,7 +229,7 @@ const KIT_GIZMO_AXIS_RGB: readonly [number, number, number][] = [
  * spellings, and the matrix is the authority — see
  * `blender-runtime-view.ts`'s constructor.
  *
- * Chosen by the look (`DensityContribution.viewport.upAxis`), never by the
+ * Chosen by the look (`StageContribution.upAxis`), never by the
  * document: the stage draws one world at a time and the look is what states
  * which program's viewport this is.
  */
@@ -910,7 +910,7 @@ export class EditorViewport {
   private _lookBackgroundHex: number | null = null;
   private _lookToneMapping: THREE.ToneMapping | null = null;
   private _lookExposure: number | null = null;
-  /** The active look's `density.viewport.gizmoSize`, px per Blender gizmo unit
+  /** The active look's `stage.gizmoSize`, px per Blender gizmo unit
    *  — null under every look that names none. Cached off the theme token
    *  rather than read per frame; {@link _applyGizmoSize} is what turns it into
    *  three's `size`. */
@@ -4118,7 +4118,7 @@ export class EditorViewport {
   }
 
   /**
-   * THE NAVIGATION GIZMO'S OTHER FORMS (`density.viewport.navigationGizmo`), in the same frame
+   * THE NAVIGATION GIZMO'S OTHER FORMS (`stage.navigationGizmo`), in the same frame
    * and colours as the balls. `cones`: Unity's scene gizmo — a cone on each side of each axis,
    * its tip toward a grey centre cube, the positive ones in the axis colour and lettered, the
    * negative ones grey; each is a click target. `triad`: Unreal's — a line along each positive
@@ -4714,7 +4714,7 @@ export class EditorViewport {
    *
    * Blender's rule is the same SHAPE with its own unit: one gizmo unit is
    * `U.gizmo_size` CSS px, flat (`wm_gizmo.cc:450-474`, and
-   * `DensityContribution.viewport.gizmoSize` for the whole derivation). So the
+   * `StageContribution.gizmoSize` for the whole derivation). So the
    * look states Blender's number and this converts it — and the conversion is
    * the one thing neither side can state, because THREE'S UNIT IS HALF
    * BLENDER'S. Measured off the two libraries' own handle geometry, all three
@@ -5117,7 +5117,7 @@ export class EditorViewport {
   }
 
   /**
-   * THE MOVE ARROWS IN THE LOOK'S SHAPE (`density.viewport.gizmoArrowLength`/`gizmoArrowHead`).
+   * THE MOVE ARROWS IN THE LOOK'S SHAPE (`stage.gizmoArrowLength`/`gizmoArrowHead`).
    * three bakes each handle's placement into its geometry, and repaints positions every frame,
    * so the shape is geometry: the shaft is stretched along its axis, the head scaled about its
    * base and carried to the shaft's new end, and the picker stretched to the new tip. Applied
@@ -5187,7 +5187,7 @@ export class EditorViewport {
   }
 
   /**
-   * THE ROTATION RINGS AT THE LOOK'S THICKNESS (`density.viewport.gizmoRingWidth`). three's
+   * THE ROTATION RINGS AT THE LOOK'S THICKNESS (`stage.gizmoRingWidth`). three's
    * rings are thin tori baked into geometry, so each vertex is carried away from the ring's
    * centre line by the ratio of the wanted thickness to the one already there; the ring's plane
    * is its thinnest extent, its radius the centre line's. The X, Y and Z rings only; pickers

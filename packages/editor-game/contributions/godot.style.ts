@@ -30,34 +30,32 @@ export const style: StyleContribution = {
       medium: '0 3px 10px rgba(0,0,0,0.45)',
       large: '0 6px 18px rgba(0,0,0,0.5)',
     },
-    density: {
-      viewport: {
-        // Godot's `manipulator_gizmo_size` is 80, but its unit is not ours: the stage's px per
-        // gizmo unit is fitted, not transcribed. At 128 the rotation rings measure ~80 px in
-        // radius on a 1x capture, against ~85 px in `engine-reference/godot/tuto_3d5.png`.
-        gizmoSize: 128,
-        // The move arrows reach 1.6 ring radii with a head about half again three's
-        // (`tuto_3d5.png`: a 142 px tip against a 90 px ring, a 25 px head).
-        gizmoArrowLength: 1.6,
-        gizmoArrowHead: 1.5,
-        // Its rotation rings are about twice three's thickness (`tuto_3d5.png`).
-        gizmoRingWidth: 2,
-        // `manipulator_gizmo_opacity` 0.9; the highlight is the axis colour at a quarter of its
-        // saturation and full value (`node_3d_editor_plugin.cpp`).
-        gizmoOpacity: 0.9,
-        gizmoHighlightSaturation: 0.25,
-        gizmoHighlightValue: 1,
-        // Godot's grid lines are hairlines at both levels.
-        gridLineWidth: 1,
-        gridMajorWidth: 1,
-        gridMajorContrast: 1.3,
-        // Godot's selection is the whole AABB. Its edge is one solid pixel at 1x
-        // (`tuto_3d5.png`); our screen-space line needs 2 to cover one captured pixel.
-        selectionBox: 'edges',
-        // Godot's box turns with the object: its AABB in the object's own frame.
-        selectionBoxFrame: 'object',
-        selectionBoxWidth: 2,
-      },
+    stage: {
+      // Godot's `manipulator_gizmo_size` is 80, but its unit is not ours: the stage's px per
+      // gizmo unit is fitted, not transcribed. At 128 the rotation rings measure ~80 px in
+      // radius on a 1x capture, against ~85 px in `engine-reference/godot/tuto_3d5.png`.
+      gizmoSize: 128,
+      // The move arrows reach 1.6 ring radii with a head about half again three's
+      // (`tuto_3d5.png`: a 142 px tip against a 90 px ring, a 25 px head).
+      gizmoArrowLength: 1.6,
+      gizmoArrowHead: 1.5,
+      // Its rotation rings are about twice three's thickness (`tuto_3d5.png`).
+      gizmoRingWidth: 2,
+      // `manipulator_gizmo_opacity` 0.9; the highlight is the axis colour at a quarter of its
+      // saturation and full value (`node_3d_editor_plugin.cpp`).
+      gizmoOpacity: 0.9,
+      gizmoHighlightSaturation: 0.25,
+      gizmoHighlightValue: 1,
+      // Godot's grid lines are hairlines at both levels.
+      gridLineWidth: 1,
+      gridMajorWidth: 1,
+      gridMajorContrast: 1.3,
+      // Godot's selection is the whole AABB. Its edge is one solid pixel at 1x
+      // (`tuto_3d5.png`); our screen-space line needs 2 to cover one captured pixel.
+      selectionBox: 'edges',
+      // Godot's box turns with the object: its AABB in the object's own frame.
+      selectionBoxFrame: 'object',
+      selectionBoxWidth: 2,
     },
   },
   palette,

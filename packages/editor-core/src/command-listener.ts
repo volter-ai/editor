@@ -1,8 +1,10 @@
 import { captureSizeFromCommand } from './capture-size';
 import {
+  applyViewPreset,
   setViewPresentation,
   studioPresets,
   viewPresentation,
+  viewPresets,
   viewPresentationBinding,
   boundViewPresentations,
   viewDrawReport,
@@ -1141,6 +1143,16 @@ export async function handleCommand(
         }
         setViewPresentation(documentId, layer as PresentationLayer);
       }
+      // Or a NAMED view (`*.view.ts`), put on the view whole.
+      const preset = cmd['preset'];
+      if (preset !== undefined) {
+        if (typeof preset !== 'string' || !applyViewPreset(documentId, preset)) {
+          return {
+            ok: false,
+            error: `viewport-presentation \`preset\` must be one of: ${viewPresets().map((one) => one.id).join(', ') || '(none registered)'}.`,
+          };
+        }
+      }
       return {
         ok: true,
         data: {
@@ -1149,6 +1161,7 @@ export async function handleCommand(
           bound: boundViewPresentations(),
           lastDraw: viewDrawReport(documentId),
           presets: studioPresets().map((preset) => preset.id),
+          viewPresets: viewPresets().map((one) => one.id),
         },
       };
     }

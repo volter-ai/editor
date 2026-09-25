@@ -214,14 +214,13 @@ export interface EditorDensity {
   /** Glyph sizes, independent of the type scale ({@link iconSize}). */
   readonly icon?: Partial<Record<keyof typeof iconSize, number>>;
   readonly chrome?: Partial<Record<keyof typeof chromeSize, number>>;
-  /** WHAT THE LOOK STATES ABOUT THE 3D STAGE, as opposed to about the chrome.
-   *  Every member is independently optional and there is no default table: an
-   *  absent member emits an EMPTY token and its reader keeps the editor's own
-   *  behaviour (the `color.viewport` group's convention, for the same reason
-   *  — the editor's gizmo is not expressed in px at all, and its shelf's boot
-   *  tool is its own). See `DensityContribution.viewport` in `looks.ts` for
-   *  both derivations and for why a non-length member sits under `density`. */
-  readonly viewport?: {
+}
+
+/** WHAT THE LOOK STATES ABOUT THE 3D STAGE, as opposed to about the chrome (the material's
+ *  `stage`, `@volter/editor-sdk/looks`' `StageContribution` for every member's derivation).
+ *  Every member is independently optional and there is no default table: an absent member
+ *  emits an EMPTY token and its reader keeps the editor's own behaviour. */
+export interface EditorStage {
     readonly gizmoSize?: number;
     readonly gizmoArrowLength?: number;
     readonly gizmoArrowHead?: number;
@@ -243,7 +242,6 @@ export interface EditorDensity {
     readonly outlineHidden?: boolean;
     readonly wireOpacity?: number;
     readonly selectionBoxWidth?: number;
-  };
 }
 function numberToken(value: number | undefined): string {
   return value === undefined ? '' : `${value}`;
@@ -730,7 +728,7 @@ export interface EditorTheme {
        *  named by the WORLD's axes, whatever the world's up axis. */
       readonly axisZ?: string;
       /** The selection's WIRE (optional; the selection colour otherwise): Unity draws it blue
-       *  under an orange outline. Its opacity is `density.viewport.wireOpacity`. */
+       *  under an orange outline. Its opacity is `stage.wireOpacity`. */
       readonly wire?: string;
       readonly selection: string;
       readonly active: string;
@@ -740,7 +738,7 @@ export interface EditorTheme {
      * by the WORLD's axes (the stage's `world.upAxis` decides which one points up). `hover` and
      * `drag` are a fixed highlight (Unity's preselection and selected-axis colours, Unreal's
      * yellow); without them a handle highlights in its own axis colour, carried by
-     * `density.viewport.gizmoHighlightSaturation`/`gizmoHighlightValue` (Blender's own colour;
+     * `stage.gizmoHighlightSaturation`/`gizmoHighlightValue` (Blender's own colour;
      * Godot's at a quarter of its saturation, full value). `navigationX`/`Y`/`Z` colour the
      * navigation gizmo where it is drawn differently from the axes (Blender's balls), and
      * default to `x`/`y`/`z`. Each trio comes together or not at all; every member is otherwise
@@ -1027,6 +1025,8 @@ export interface EditorTheme {
   /** A material's own chrome density (`editor-appearance.ts`); absent means
    *  the editor's own `controlSize`/`fontSize`/`chromeSize`. */
   readonly density?: EditorDensity;
+  /** A material's own 3D stage furniture ({@link EditorStage}); absent means the editor's own. */
+  readonly stage?: EditorStage;
   /**
    * Surface-treatment vocabulary (Glass-UI spike, W3 — work item 3).
    * Optional: absent means no backdrop treatment, matching every existing
@@ -2578,8 +2578,8 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     '--vgai-viewport-axis-y': theme.color.viewport?.axisY ?? '',
     '--vgai-viewport-axis-z': theme.color.viewport?.axisZ ?? '',
     '--vgai-viewport-wire': theme.color.viewport?.wire ?? '',
-    '--vgai-viewport-wire-opacity': numberToken(theme.density?.viewport?.wireOpacity),
-    '--vgai-viewport-axis-line-width': numberToken(theme.density?.viewport?.axisLineWidth),
+    '--vgai-viewport-wire-opacity': numberToken(theme.stage?.wireOpacity),
+    '--vgai-viewport-axis-line-width': numberToken(theme.stage?.axisLineWidth),
     '--vgai-viewport-selection': theme.color.viewport?.selection ?? '',
     '--vgai-viewport-active': theme.color.viewport?.active ?? '',
     '--vgai-gizmo-x': theme.color.gizmo?.x ?? '',
@@ -2590,36 +2590,36 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     '--vgai-gizmo-navigation-z': theme.color.gizmo?.navigationZ ?? '',
     '--vgai-gizmo-hover': theme.color.gizmo?.hover ?? '',
     '--vgai-gizmo-drag': theme.color.gizmo?.drag ?? '',
-    '--vgai-viewport-gizmo-opacity': numberToken(theme.density?.viewport?.gizmoOpacity),
-    '--vgai-viewport-gizmo-arrow-length': numberToken(theme.density?.viewport?.gizmoArrowLength),
-    '--vgai-viewport-gizmo-arrow-head': numberToken(theme.density?.viewport?.gizmoArrowHead),
-    '--vgai-viewport-gizmo-ring-width': numberToken(theme.density?.viewport?.gizmoRingWidth),
-    '--vgai-viewport-navigation-gizmo': theme.density?.viewport?.navigationGizmo ?? '',
-    '--vgai-viewport-navigation-corner': theme.density?.viewport?.navigationCorner ?? '',
-    '--vgai-viewport-navigation-size': numberToken(theme.density?.viewport?.navigationSize),
+    '--vgai-viewport-gizmo-opacity': numberToken(theme.stage?.gizmoOpacity),
+    '--vgai-viewport-gizmo-arrow-length': numberToken(theme.stage?.gizmoArrowLength),
+    '--vgai-viewport-gizmo-arrow-head': numberToken(theme.stage?.gizmoArrowHead),
+    '--vgai-viewport-gizmo-ring-width': numberToken(theme.stage?.gizmoRingWidth),
+    '--vgai-viewport-navigation-gizmo': theme.stage?.navigationGizmo ?? '',
+    '--vgai-viewport-navigation-corner': theme.stage?.navigationCorner ?? '',
+    '--vgai-viewport-navigation-size': numberToken(theme.stage?.navigationSize),
     '--vgai-viewport-gizmo-highlight-saturation': numberToken(
-      theme.density?.viewport?.gizmoHighlightSaturation,
+      theme.stage?.gizmoHighlightSaturation,
     ),
-    '--vgai-viewport-gizmo-highlight-value': numberToken(theme.density?.viewport?.gizmoHighlightValue),
+    '--vgai-viewport-gizmo-highlight-value': numberToken(theme.stage?.gizmoHighlightValue),
     // THE TRANSFORM GIZMO'S SCREEN SIZE, in px per gizmo unit, emitted the
     // same way and read the same way (`native-selection-style.ts`): a look
     // that names none emits empty, and the viewport keeps three's own
     // viewport-relative handle. Blender's is `U.gizmo_size` — see
-    // `DensityContribution.viewport.gizmoSize` for the derivation.
+    // `StageContribution.gizmoSize` for the derivation.
     '--vgai-viewport-gizmo-size':
-      theme.density?.viewport?.gizmoSize === undefined ? '' : `${theme.density.viewport.gizmoSize}`,
+      theme.stage?.gizmoSize === undefined ? '' : `${theme.stage.gizmoSize}`,
     // THE FLOOR GRID'S LINE WIDTHS AND MAJOR CONTRAST, emitted empty when the look states none,
-    // so the stage keeps its own hairline floor (`DensityContribution.viewport.gridLineWidth`).
-    '--vgai-viewport-grid-line-width': numberToken(theme.density?.viewport?.gridLineWidth),
-    '--vgai-viewport-grid-major-width': numberToken(theme.density?.viewport?.gridMajorWidth),
-    '--vgai-viewport-grid-major-contrast': numberToken(theme.density?.viewport?.gridMajorContrast),
-    '--vgai-viewport-selection-box': theme.density?.viewport?.selectionBox ?? '',
-    '--vgai-viewport-selection-box-frame': theme.density?.viewport?.selectionBoxFrame ?? '',
-    '--vgai-viewport-outline-style': theme.density?.viewport?.outlineStyle ?? '',
-    '--vgai-viewport-outline-width': numberToken(theme.density?.viewport?.outlineWidth),
+    // so the stage keeps its own hairline floor (`StageContribution.gridLineWidth`).
+    '--vgai-viewport-grid-line-width': numberToken(theme.stage?.gridLineWidth),
+    '--vgai-viewport-grid-major-width': numberToken(theme.stage?.gridMajorWidth),
+    '--vgai-viewport-grid-major-contrast': numberToken(theme.stage?.gridMajorContrast),
+    '--vgai-viewport-selection-box': theme.stage?.selectionBox ?? '',
+    '--vgai-viewport-selection-box-frame': theme.stage?.selectionBoxFrame ?? '',
+    '--vgai-viewport-outline-style': theme.stage?.outlineStyle ?? '',
+    '--vgai-viewport-outline-width': numberToken(theme.stage?.outlineWidth),
     '--vgai-viewport-outline-hidden':
-      theme.density?.viewport?.outlineHidden === undefined ? '' : `${theme.density.viewport.outlineHidden}`,
-    '--vgai-viewport-selection-box-width': numberToken(theme.density?.viewport?.selectionBoxWidth),
+      theme.stage?.outlineHidden === undefined ? '' : `${theme.stage.outlineHidden}`,
+    '--vgai-viewport-selection-box-width': numberToken(theme.stage?.selectionBoxWidth),
     // The widget classes. Unlike `viewport`, these are never emitted empty:
     // every one paints a control that must stay painted, so an absent group
     // resolves to the surface that call site already read.

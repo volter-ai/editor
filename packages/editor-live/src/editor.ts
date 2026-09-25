@@ -339,6 +339,8 @@ export class LiveEditor {
    * (`@volter/editor-sdk/kit/viewport-presentation`) — resolved. With `layer`, that choice is
    * recorded for the view first, as a person's toolbar change would be, e.g.
    * `presentation('model:src/models/cube.blend', { all: { lighting: { studioPreset: 'kit' } } })`.
+   * With a STRING, the named view of that id (`*.view.ts`, e.g. `'godot'`) is put on the view
+   * whole; the answer's `viewPresets` lists the ones registered.
    */
   async presentation(
     documentId: string,

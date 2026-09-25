@@ -30,34 +30,32 @@ export const style: StyleContribution = {
       medium: '0 2px 8px rgba(0,0,0,0.5)',
       large: '0 6px 18px rgba(0,0,0,0.55)',
     },
-    density: {
-      viewport: {
-        // `HandleUtility.GetHandleSize` keeps a handle a constant size on screen; the stage's
-        // px per gizmo unit is fitted, not transcribed: at 128 the move arrows reach ~95 px on
-        // a 1x capture, as in `engine-reference/unity/PrimitiveCube.png`.
-        gizmoSize: 128,
-        // Unity's scene gizmo: cones round a grey cube (`Editor-SceneGizmo.png`).
-        navigationGizmo: 'cones',
-        // Unity's move arrow is a thin shaft ending at the rotate ring, with a long cone head
-        // (`TransformGizmo35.png`, `game-objects-transform-modes.png`).
-        gizmoArrowLength: 1.1,
-        gizmoArrowHead: 1.2,
-        // The axis colours' alpha (`Handles.cs`); hover and drag are fixed colours (the palette).
-        gizmoOpacity: 0.93,
-        // `SceneViewGrid`: one-pixel lines at both levels, the ten-cell level a little stronger.
-        gridLineWidth: 1,
-        gridMajorWidth: 1,
-        gridMajorContrast: 1.25,
-        // Unity's selection outline is a hard orange line about two pixels wide at 1x, around
-        // the whole silhouette, occluded parts included (`game-objects-transform-modes.png`,
-        // `SceneVisExVisible.png`, where it crosses the rock in front of the structure); at 3
-        // device px the crisp line measures one full and one partial pixel on a 1x capture, as there.
-        outlineStyle: 'crisp',
-        outlineWidth: 3,
-        outlineHidden: true,
-        // The Selection Wire's alpha: `(94, 119, 155, 64)` (the palette holds its colour).
-        wireOpacity: 0.25,
-      },
+    stage: {
+      // `HandleUtility.GetHandleSize` keeps a handle a constant size on screen; the stage's
+      // px per gizmo unit is fitted, not transcribed: at 128 the move arrows reach ~95 px on
+      // a 1x capture, as in `engine-reference/unity/PrimitiveCube.png`.
+      gizmoSize: 128,
+      // Unity's scene gizmo: cones round a grey cube (`Editor-SceneGizmo.png`).
+      navigationGizmo: 'cones',
+      // Unity's move arrow is a thin shaft ending at the rotate ring, with a long cone head
+      // (`TransformGizmo35.png`, `game-objects-transform-modes.png`).
+      gizmoArrowLength: 1.1,
+      gizmoArrowHead: 1.2,
+      // The axis colours' alpha (`Handles.cs`); hover and drag are fixed colours (the palette).
+      gizmoOpacity: 0.93,
+      // `SceneViewGrid`: one-pixel lines at both levels, the ten-cell level a little stronger.
+      gridLineWidth: 1,
+      gridMajorWidth: 1,
+      gridMajorContrast: 1.25,
+      // Unity's selection outline is a hard orange line about two pixels wide at 1x, around
+      // the whole silhouette, occluded parts included (`game-objects-transform-modes.png`,
+      // `SceneVisExVisible.png`, where it crosses the rock in front of the structure); at 3
+      // device px the crisp line measures one full and one partial pixel on a 1x capture, as there.
+      outlineStyle: 'crisp',
+      outlineWidth: 3,
+      outlineHidden: true,
+      // The Selection Wire's alpha: `(94, 119, 155, 64)` (the palette holds its colour).
+      wireOpacity: 0.25,
     },
   },
   palette,

@@ -45,9 +45,11 @@ import { object3DDocumentWritePolicy } from '../object3d-document-write-policy';
 import { stageStore, stageStoresVersion, subscribeStageStores } from '../stage-store-registry';
 import { viewportStageHelperKinds } from '../viewport-door';
 import {
+  applyViewPreset,
   DOCUMENT_STUDIO_PRESET,
   setViewPresentation,
   studioPresets,
+  viewPresets,
   viewPresentationBinding,
   subscribeViewportPresentation,
   viewPresentation,
@@ -315,6 +317,29 @@ export function Object3DDocumentToolbar({
           choices={modes}
           segments={viewportShadingSegments}
         >
+          {/* A NAMED VIEW, first: a whole presentation (a target engine's default viewport —
+              its light, backdrop, overlays and tool) that the packages here contribute
+              (`*.view.ts`). Choosing one replaces the view's own choices; the rows below then
+              adjust it. Shown only where a package contributes one. */}
+          {viewPresets().length > 0 ? (
+            <label>
+              <span>View</span>
+              <Select
+                aria-label="View preset"
+                value=""
+                onChange={(event) => {
+                  if (event.target.value) applyViewPreset(documentId, event.target.value);
+                }}
+              >
+                <option value="">Choose…</option>
+                {viewPresets().map((preset) => (
+                  <option key={preset.id} value={preset.id}>
+                    {preset.title}
+                  </option>
+                ))}
+              </Select>
+            </label>
+          ) : null}
           {/* LIGHTING AND EXPOSURE ARE THE VIEW'S PRESENTATION (`kit/viewport-presentation`):
               a studio preset, or the scene's own lights, and the tone's exposure. */}
           <label>

@@ -175,36 +175,36 @@ export const style: StyleContribution = {
         // applied TWICE; see `theme.ts`'s `areaEmbossValue`.
         areaEmboss: 8.2,
       },
-      viewport: {
-        // BLENDER'S GIZMO IS A CONSTANT SCREEN SIZE (owner, 2026-09-21: "is
-        // gizmo perhaps the wrong size?"). `U.gizmo_size` is 75
-        // (`DNA_userdef_types.h:1095`; Preferences > Viewport > Gizmos > Size,
-        // `rna_userdef.cc:5415-5419`, range 10..200), and it is px PER GIZMO
-        // UNIT: `wm_gizmo.cc:450-474` sets `scale_final = scale_basis *
-        // UI_SCALE_FAC * U.gizmo_size * ED_view3d_pixel_size_no_ui_scale(...)`,
-        // whose last term is world units per DEVICE px against a
-        // `UI_SCALE_FAC` of device px per UI px — so one gizmo unit is 75 CSS
-        // px whatever the display scale (read back from the engine's own pin
-        // on this box: `ui_scale=2.0 pixel_size=2.0 gizmo_size=75`).
-        gizmoSize: 75,
-        // A resting handle at 0.6 opacity, a highlighted one opaque in its own colour
-        // (`transform_gizmo_3d.cc`, `gizmo_get_axis_color`).
-        gizmoOpacity: 0.6,
-        // BLENDER'S OUTLINE IS A HARD LINE, and hidden parts are not drawn: four device pixels
-        // of orange around the cube in `modeling-object-selected.png` (at 2x), no halo.
-        outlineStyle: 'crisp',
-        outlineWidth: 4,
-        outlineHidden: false,
-        // BLENDER'S FLOOR LINES, in device pixels, measured across one scanline of
-        // `modeling-object-none.png` at device resolution: the 1 m line is 4 px at half rise and
-        // plateaus at 83, the 10 m line is 6 px and plateaus at 101 — so the major line is wider
-        // (2.25 against 1.5) and carried (102 − 63) / (84 − 63) past the minor's colour from the
-        // background they share. Stated here, the look's, since the editor's own floor is a
-        // single hairline level.
-        gridLineWidth: 1.5,
-        gridMajorWidth: 2.25,
-        gridMajorContrast: 39 / 21,
-      },
+    },
+    stage: {
+      // BLENDER'S GIZMO IS A CONSTANT SCREEN SIZE (owner, 2026-09-21: "is
+      // gizmo perhaps the wrong size?"). `U.gizmo_size` is 75
+      // (`DNA_userdef_types.h:1095`; Preferences > Viewport > Gizmos > Size,
+      // `rna_userdef.cc:5415-5419`, range 10..200), and it is px PER GIZMO
+      // UNIT: `wm_gizmo.cc:450-474` sets `scale_final = scale_basis *
+      // UI_SCALE_FAC * U.gizmo_size * ED_view3d_pixel_size_no_ui_scale(...)`,
+      // whose last term is world units per DEVICE px against a
+      // `UI_SCALE_FAC` of device px per UI px — so one gizmo unit is 75 CSS
+      // px whatever the display scale (read back from the engine's own pin
+      // on this box: `ui_scale=2.0 pixel_size=2.0 gizmo_size=75`).
+      gizmoSize: 75,
+      // A resting handle at 0.6 opacity, a highlighted one opaque in its own colour
+      // (`transform_gizmo_3d.cc`, `gizmo_get_axis_color`).
+      gizmoOpacity: 0.6,
+      // BLENDER'S OUTLINE IS A HARD LINE, and hidden parts are not drawn: four device pixels
+      // of orange around the cube in `modeling-object-selected.png` (at 2x), no halo.
+      outlineStyle: 'crisp',
+      outlineWidth: 4,
+      outlineHidden: false,
+      // BLENDER'S FLOOR LINES, in device pixels, measured across one scanline of
+      // `modeling-object-none.png` at device resolution: the 1 m line is 4 px at half rise and
+      // plateaus at 83, the 10 m line is 6 px and plateaus at 101 — so the major line is wider
+      // (2.25 against 1.5) and carried (102 − 63) / (84 − 63) past the minor's colour from the
+      // background they share. Stated here, the look's, since the editor's own floor is a
+      // single hairline level.
+      gridLineWidth: 1.5,
+      gridMajorWidth: 2.25,
+      gridMajorContrast: 39 / 21,
     },
   },
   icons,

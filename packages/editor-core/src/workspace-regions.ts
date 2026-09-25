@@ -145,9 +145,9 @@ export interface ChromeRegions {
  * until the next cut — a region is not a value a look can add and use in the
  * same session. A look value that the STAGE reads (the transform gizmo's
  * screen size, which tool its shelf opens on) therefore rides the THEME
- * instead, as `density.viewport` emitted onto the theme root by the page
+ * instead, as the material's `stage` emitted onto the theme root by the page
  * itself: it crosses nothing (`@volter/editor-sdk/looks`'
- * `DensityContribution.viewport`, `native-selection-style.ts`'s readers).
+ * `StageContribution`, `native-selection-style.ts`'s readers).
  * A region stays a region — what CHROME is shown is genuinely a persisted
  * preference a person can also set.
  *

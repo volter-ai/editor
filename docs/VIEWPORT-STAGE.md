@@ -25,17 +25,21 @@ Unreal is not installed on this box and its documentation does not state these d
 | Backdrop form (flat, gradient, radial, sky) | no | fixed: flat when the palette names a colour, gradient otherwise |
 | Grid colour | yes, one colour (`color.viewport.grid`) | minor and major both derive from it; default `0x999999` |
 | Grid alpha, major step, reach and fade, planes | no | fade from 55% to 100% of the grid radius, a grazing fade only when the palette names a backdrop (`editor-viewport.ts`, `standard-viewport-dressing.ts`) |
-| Axis line colours and width | yes, named by the world's axes (`color.viewport.axisX`, `axisY`, optional `axisZ`, else the gizmo's; `density.viewport.axisLineWidth`) | which lines show is the view's (`overlays.axes`) |
+| Axis line colours and width | yes, named by the world's axes (`color.viewport.axisX`, `axisY`, optional `axisZ`, else the gizmo's; `stage.axisLineWidth`) | which lines show is the view's (`overlays.axes`) |
 | Selection | colour and active colour (`color.viewport.selection`, `active`: a lone selected object outlines in the active colour); the outline's form, width and hidden parts (`outlineStyle`, `outlineWidth`, `outlineHidden`); the box's form, width and frame (`selectionBox`, `selectionBoxWidth`, `selectionBoxFrame`); the wire's colour and opacity (`color.viewport.wire`, `wireOpacity`) | no children colour; several selected objects do not yet tell the active one apart |
 | Scene light when the scene has none | no | key `DirectionalLight(0xffffff, 1.9)` in the dressing; editor rig ambient 0.5 and directional 1.0 (`editor-viewport.ts`) |
 | Environment and its strength | no | RoomEnvironment at a fixed strength (`StageHost.tsx`) |
 | Tone mapping and exposure | no | ACES Filmic unless a document states its own |
-| Gizmo size | yes (`density.viewport`) | |
-| Gizmo colours, resting opacity, highlight | yes: `color.gizmo` (x, y, z; the navigation gizmo's own navigationX/Y/Z where the target draws it differently, as Blender's balls are; optional hover and drag) and `density.viewport.gizmoOpacity`, `gizmoHighlightSaturation`, `gizmoHighlightValue` | the transform and navigation gizmos; without the group, the kit's own (Godot's axis colours, three's yellow highlight, opaque handles) |
-| Move arrows' length and head, rotation rings' width | yes (`density.viewport.gizmoArrowLength`, `gizmoArrowHead`, `gizmoRingWidth`) | |
-| Navigation gizmo's form and corner | yes (`density.viewport.navigationGizmo`: balls, cones, triad; `navigationCorner`) | whether it is clicked is the view's (`overlays.navigation`) |
+| Gizmo size | yes (the material's `stage`) | |
+| Gizmo colours, resting opacity, highlight | yes: `color.gizmo` (x, y, z; the navigation gizmo's own navigationX/Y/Z where the target draws it differently, as Blender's balls are; optional hover and drag) and `stage.gizmoOpacity`, `gizmoHighlightSaturation`, `gizmoHighlightValue` | the transform and navigation gizmos; without the group, the kit's own (Godot's axis colours, three's yellow highlight, opaque handles) |
+| Move arrows' length and head, rotation rings' width | yes (`stage.gizmoArrowLength`, `gizmoArrowHead`, `gizmoRingWidth`) | |
+| Navigation gizmo's form and corner | yes (`stage.navigationGizmo`: balls, cones, triad; `navigationCorner`) | whether it is clicked is the view's (`overlays.navigation`) |
 | Other gizmo form (scale handles' shape, the plane handles' shape) | no | fixed: three's handles as patched |
 | Armed tool, box-select test, up axis, the transform tool's extra handles, which axis lines show, the grid's switch, whether the navigation gizmo is clicked | no: function, not look (ARCHITECTURE rule 7) | the stage's presentation (`interaction`, `world`, `overlays`) |
+
+## Where a look's colours live
+
+A look is its style: a palette (colours), a material (shape, density and the `stage` section above) and an icon set. Under the Code-OSS frame its colours are also the WORKBENCH's: the editor derives colour customizations from the look's resolved palette (`packages/editor-core/src/frame/look-colors.ts`) for the workbench's own chrome ids and for the stage's registered colours (`vgai.viewport.*`, `vgai.gizmo.*`). The frame applies them on the look's settings layer, under a person's own `workbench.colorCustomizations`. A look whose build ships a colour theme (Blender's `theme-blender`) keeps that theme's chrome and takes only the stage ids. The stage reads `--vscode-vgai-*` first and its own tokens where there is no workbench. The frame half is on branch `frame/look-colors`, not yet compiled into a workbench.
 
 ## The ruling: look, presentation and starting values (owner, 2026-09-25)
 
@@ -69,7 +73,7 @@ Built (`@volter/editor-sdk/kit/viewport-presentation`, `StagePresentationRig` in
 - the preview source draws Godot's preview sun and procedural sky; the backdrop sources `color`, `environment` and `transparent` replace the stage's own;
 - the stage's function: the tool it opens on, what a box drag selects and the world's up axis (`interaction`, `world`); the Blender integration starts its `model` stage on select, touch and Z-up, and a style switch leaves them alone;
 - the gizmos' colours from the look, by source: Blender's theme axis colours at 0.6 resting opacity, highlighting in their own colour (`userdef_default_theme.c`, `transform_gizmo_3d.cc`); Godot's at 0.9, highlighting at a quarter saturation and full value (`theme_modern.cpp`, `node_3d_editor_plugin.cpp`); Unity's at 0.93 with its preselection and selected-axis colours (`Handles.cs`). The opacity is the handles'; the drag's axis lines keep three's own. Resting colours and opacity are checked on captures; the highlight is not yet seen on screen, as the product has no door that holds a hover;
-- overlays: the selection marks (outline, wire, box, in any combination), the grid's major step and which world axis lines show; the look states the grid's line widths and major contrast, the axis lines' colours and width, and the box's form and frame (`density.viewport`);
+- overlays: the selection marks (outline, wire, box, in any combination), the grid's major step and which world axis lines show; the look states the grid's line widths and major contrast, the axis lines' colours and width, and the box's form and frame (the material's `stage`);
 - the transform tool's extra handles (scale, view-axis ring, free move) are the view's (`interaction.transformHandles`); the move arrows' length and head are the look's;
 - the preview sky is a float strip with Godot's sun in it (disc and 30° glow on a 0.15 curve), so a sun brighter than white stays bright;
 - `editor.presentation(documentId, layer?)` reads and records a view's presentation, and reports what its last draw was lit by.
@@ -83,22 +87,16 @@ Capability, per target (can its default viewport and its toggles be expressed wi
 | Unity | its procedural sky and narrow horizon band (the sky's curves), the grid, a crisp outline around the whole silhouette, its wire colour, the Move tool without a free-move centre, the cone scene gizmo | the skybox toggle as a backdrop source over a scene without a skybox, Prefab Mode's context fill, per-mode lighting of draw modes, the scene gizmo's "Persp" label |
 | Unreal | a sky standing in for the level's (preview), no grid, a crisp yellow-orange outline, the Move tool with its free-move centre, a Z-up LEFT-handed world, the bottom-left axis triad that is not clicked | clouds in the sky, the plane handles' L shape and the centre sphere, the arrow shaft's thickness, the gizmo drawn dithered behind objects, an outline wider than about 3 px stays crisp |
 
-Godot's default viewport is its style (`@volter/editor-game` `godot.style.ts`) with this presentation layer; judged side by side against `engine-reference/godot/tuto_3d3.png` and `tuto_3d5.png`, it reads as Godot's. Its sky is the kit's, which is Godot's own `ProceduralSkyMaterial` default; under Godot's Filmic curve it lands the floor on Godot's (62, 51, 40), measured, without fitting:
+Godot's default viewport is its style (`@volter/editor-game` `godot.style.ts`) with its named view; judged side by side against `engine-reference/godot/tuto_3d3.png` and `tuto_3d5.png`, it reads as Godot's. Its sky is the kit's, which is Godot's own `ProceduralSkyMaterial` default; under Godot's Filmic curve it lands the floor on Godot's (62, 51, 40), measured, without fitting.
 
-```json
-{"all":{"lighting":{"source":"preview","preview":{"sun":{"enabled":true,"color":"#ffffff","energy":1,"altitude":60,"azimuth":150,"shadowDistance":100},"environment":{"enabled":true,"energy":1,"rotation":0}},"tone":{"mapper":"filmic","exposure":1}},"backdrop":{"source":"environment","opacity":1,"blur":0}},"overlays":{"grid":{"visible":true,"majorEvery":8},"selection":{"outline":false,"wire":false,"box":true},"axes":{"x":true,"y":true,"z":true}},"interaction":{"transformHandles":{"scale":false,"viewRotate":false,"freeMove":false}}}
-```
+The layer is the named view `godot` (`@volter/editor-game` `contributions/godot.view.ts`), which a person puts on a view from the shading popover's View row or `editor.presentation(id, 'godot')`.
 
-Unity's default Scene view is its style (`@volter/editor-game` `unity.style.ts`) with this layer; judged against `engine-reference/unity/PrimitiveCube.png` and `NewEmptyScene_01.png`, it reads as Unity's in form (its sky's colours are fitted to the frames, not transcribed):
+Unity's default Scene view is its style (`@volter/editor-game` `unity.style.ts`) with its named view; judged against `engine-reference/unity/PrimitiveCube.png` and `NewEmptyScene_01.png`, it reads as Unity's in form (its sky's colours are fitted to the frames, not transcribed).
 
-```json
-{"all":{"lighting":{"source":"preview","preview":{"sun":{"enabled":true,"color":"#fff4d6","energy":1,"altitude":50,"azimuth":150,"shadowDistance":100},"environment":{"enabled":true,"sky":{"top":"#4a84c2","horizon":"#f0ffff","ground":"#68615c","topCurve":0.04,"groundCurve":0.003},"energy":1,"rotation":0}},"tone":{"mapper":"none","exposure":1}},"backdrop":{"source":"environment","opacity":1,"blur":0}},"overlays":{"grid":{"visible":true,"majorEvery":10},"selection":{"outline":true,"wire":false,"box":false},"axes":{"x":false,"y":false,"z":false}},"interaction":{"bootTool":"move","transformHandles":{"scale":false,"viewRotate":false,"freeMove":false}}}
-```
+The layer is the named view `unity` (`@volter/editor-game` `contributions/unity.view.ts`), which a person puts on a view from the shading popover's View row or `editor.presentation(id, 'unity')`.
 
-Unreal's default viewport is its style (`@volter/editor-game` `unreal.style.ts`) with this layer; judged against `engine-reference/unreal/default-interface.png`, it has Unreal's form in the gizmo, the outline, the world's orientation and the triad, but its cloudless sky and square plane handles keep it from being named Unreal's at a glance:
+Unreal's default viewport is its style (`@volter/editor-game` `unreal.style.ts`) with its named view; judged against `engine-reference/unreal/default-interface.png`, it has Unreal's form in the gizmo, the outline, the world's orientation and the triad, but its cloudless sky and square plane handles keep it from being named Unreal's at a glance.
 
-```json
-{"all":{"lighting":{"source":"preview","preview":{"sun":{"enabled":true,"color":"#ffffff","energy":2.5,"altitude":45,"azimuth":300,"shadowDistance":100},"environment":{"enabled":true,"sky":{"top":"#7488a3","horizon":"#8ea6c0","ground":"#28313d","topCurve":0.1,"groundCurve":0.12},"energy":1,"rotation":0}},"tone":{"mapper":"none","exposure":1}},"backdrop":{"source":"environment","opacity":1,"blur":0}},"overlays":{"navigation":"indicator","grid":{"visible":false},"selection":{"outline":true,"wire":false,"box":false},"axes":{"x":false,"y":false,"z":false}},"interaction":{"bootTool":"move","transformHandles":{"scale":false,"viewRotate":false,"freeMove":true}},"world":{"upAxis":"z","handedness":"left"}}
-```
+The layer is the named view `unreal` (`@volter/editor-game` `contributions/unreal.view.ts`), which a person puts on a view from the shading popover's View row or `editor.presentation(id, 'unreal')`.
 
 Neither half is accepted: Unreal still needs the capabilities its row names, Blender's Material Preview and Rendered modes are not expressible, and every judgement above is the orchestrator's alone. The reference frames are in `/Volumes/PeakSSD/volter-work/engine-reference`; the world stage is compiled but not yet seen on a project with a world.
