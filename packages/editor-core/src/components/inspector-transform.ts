@@ -1,19 +1,48 @@
 import type { Transform } from '@volter/editor-project/adapter';
-import * as THREE from 'three';
 
 export type TransformAxis = 0 | 1 | 2;
 
-/** Present Three.js quaternion rotations as the degree-based XYZ fields editors expect. */
-export function rotationDegrees(rotation: Transform['rotation']): [number, number, number] {
-  const quaternion = new THREE.Quaternion(...rotation);
-  if (quaternion.lengthSq() < Number.EPSILON) quaternion.identity();
-  else quaternion.normalize();
-  const euler = new THREE.Euler().setFromQuaternion(quaternion, 'XYZ');
+type Quaternion = [number, number, number, number];
+
+const DEG = 180 / Math.PI;
+
+/** An XYZ Euler rotation (radians) as a quaternion — the convention three.js's
+ *  `Quaternion.setFromEuler` uses for order `'XYZ'`, which the wire's rotation is. */
+function quaternionFromEulerXYZ(x: number, y: number, z: number): Quaternion {
+  const c1 = Math.cos(x / 2), c2 = Math.cos(y / 2), c3 = Math.cos(z / 2);
+  const s1 = Math.sin(x / 2), s2 = Math.sin(y / 2), s3 = Math.sin(z / 2);
   return [
-    THREE.MathUtils.radToDeg(euler.x),
-    THREE.MathUtils.radToDeg(euler.y),
-    THREE.MathUtils.radToDeg(euler.z),
+    s1 * c2 * c3 + c1 * s2 * s3,
+    c1 * s2 * c3 - s1 * c2 * s3,
+    c1 * c2 * s3 + s1 * s2 * c3,
+    c1 * c2 * c3 - s1 * s2 * s3,
   ];
+}
+
+/** A unit quaternion as XYZ Euler radians, through its rotation matrix exactly
+ *  as three.js's `Euler.setFromQuaternion(q, 'XYZ')` does, gimbal branch included. */
+function eulerXYZFromQuaternion([x, y, z, w]: Quaternion): [number, number, number] {
+  const x2 = x + x, y2 = y + y, z2 = z + z;
+  const xx = x * x2, xy = x * y2, xz = x * z2;
+  const yy = y * y2, yz = y * z2, zz = z * z2;
+  const wx = w * x2, wy = w * y2, wz = w * z2;
+  const m11 = 1 - (yy + zz), m12 = xy - wz, m13 = xz + wy;
+  const m22 = 1 - (xx + zz), m23 = yz - wx;
+  const m32 = yz + wx, m33 = 1 - (xx + yy);
+  const ey = Math.asin(Math.min(Math.max(m13, -1), 1));
+  if (Math.abs(m13) < 0.9999999) return [Math.atan2(-m23, m33), ey, Math.atan2(-m12, m11)];
+  return [Math.atan2(m32, m22), ey, 0];
+}
+
+/** Present quaternion rotations as the degree-based XYZ fields editors expect. */
+export function rotationDegrees(rotation: Transform['rotation']): [number, number, number] {
+  const [x, y, z, w] = rotation;
+  const lengthSq = x * x + y * y + z * z + w * w;
+  const length = Math.sqrt(lengthSq);
+  const unit: Quaternion =
+    lengthSq < Number.EPSILON ? [0, 0, 0, 1] : [x / length, y / length, z / length, w / length];
+  const [ex, ey, ez] = eulerXYZFromQuaternion(unit);
+  return [ex * DEG, ey * DEG, ez * DEG];
 }
 
 /**
@@ -38,15 +67,7 @@ export function withTransformChannel(
     scale: [...transform.scale] as [number, number, number],
   };
   if (channel === 'rotation') {
-    const q = new THREE.Quaternion().setFromEuler(
-      new THREE.Euler(
-        THREE.MathUtils.degToRad(value[0]!),
-        THREE.MathUtils.degToRad(value[1]!),
-        THREE.MathUtils.degToRad(value[2]!),
-        'XYZ',
-      ),
-    );
-    return { ...next, rotation: [q.x, q.y, q.z, q.w] };
+    return { ...next, rotation: quaternionFromEulerXYZ(value[0]! / DEG, value[1]! / DEG, value[2]! / DEG) };
   }
   return { ...next, [channel]: [value[0]!, value[1]!, value[2]!] };
 }
@@ -59,17 +80,9 @@ export function withRotationDegrees(
 ): Transform {
   const displayed = rotationDegrees(transform.rotation);
   displayed[axis] = degrees;
-  const quaternion = new THREE.Quaternion().setFromEuler(
-    new THREE.Euler(
-      THREE.MathUtils.degToRad(displayed[0]),
-      THREE.MathUtils.degToRad(displayed[1]),
-      THREE.MathUtils.degToRad(displayed[2]),
-      'XYZ',
-    ),
-  );
   return {
     position: [...transform.position] as [number, number, number],
-    rotation: [quaternion.x, quaternion.y, quaternion.z, quaternion.w],
+    rotation: quaternionFromEulerXYZ(displayed[0] / DEG, displayed[1] / DEG, displayed[2] / DEG),
     scale: [...transform.scale] as [number, number, number],
   };
 }

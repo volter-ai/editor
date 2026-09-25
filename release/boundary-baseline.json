@@ -497,7 +497,6 @@
  "kit-media  packages/editor-core/src/components/asset-viewers/QuarksAssetDocument.tsx -> three",
  "kit-media  packages/editor-core/src/components/asset-viewers/ShaderAssetDocument.tsx -> three",
  "kit-media  packages/editor-core/src/components/inspector-preview-section.tsx -> three",
- "kit-media  packages/editor-core/src/components/inspector-transform.ts -> three",
  "kit-media  packages/editor-core/src/components/stage-presence-markers.ts -> @volter/editor-threejs/viewport/content-bounds",
  "kit-media  packages/editor-core/src/components/stage-presence-markers.ts -> three",
  "kit-media  packages/editor-core/src/components/standard-viewport-dressing.ts -> @volter/editor-threejs/ecs/user-data",
