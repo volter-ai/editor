@@ -224,6 +224,19 @@ export interface DensityContribution {
      */
     readonly gizmoSize?: number;
     /**
+     * THE GIZMO'S HANDLES AT REST AND HIGHLIGHTED. `gizmoOpacity` is a resting handle's opacity
+     * (a highlighted one is opaque): Blender's 0.6 (`transform_gizmo_3d.cc`,
+     * `gizmo_get_axis_color`), Godot's 0.9 (`editors/3d/manipulator_gizmo_opacity`), Unity's
+     * 0.93 (`Handles.cs`, the axis colours' alpha). A handle with no fixed highlight colour
+     * (`color.gizmo.hover`) highlights in its own axis colour with its saturation multiplied by
+     * `gizmoHighlightSaturation` and its value set to `gizmoHighlightValue`, each kept when
+     * absent: Blender keeps both, Godot's are 0.25 and 1 (`node_3d_editor_plugin.cpp`,
+     * `col.from_hsv(col.get_h(), col.get_s() * 0.25, 1.0, 1)`).
+     */
+    readonly gizmoOpacity?: number;
+    readonly gizmoHighlightSaturation?: number;
+    readonly gizmoHighlightValue?: number;
+    /**
      * THE FLOOR GRID'S LINES, in device pixels: the minor lines' width, the major lines' width,
      * and how far the major lines' colour is carried past the minor's from the backdrop (1 draws
      * both levels alike). A look that states none keeps the editor's own floor, one hairline

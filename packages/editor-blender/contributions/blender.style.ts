@@ -187,6 +187,9 @@ export const style: StyleContribution = {
         // px whatever the display scale (read back from the engine's own pin
         // on this box: `ui_scale=2.0 pixel_size=2.0 gizmo_size=75`).
         gizmoSize: 75,
+        // A resting handle at 0.6 opacity, a highlighted one opaque in its own colour
+        // (`transform_gizmo_3d.cc`, `gizmo_get_axis_color`).
+        gizmoOpacity: 0.6,
         // BLENDER'S FLOOR LINES, in device pixels, measured across one scanline of
         // `modeling-object-none.png` at device resolution: the 1 m line is 4 px at half rise and
         // plateaus at 83, the 10 m line is 6 px and plateaus at 101 — so the major line is wider

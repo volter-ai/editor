@@ -132,6 +132,43 @@ export function nativeViewportLook(element?: Element | null): NativeViewportLook
   };
 }
 
+/** THE LOOK'S GIZMO COLOURS AND HIGHLIGHT (`EditorTheme.color.gizmo`, and
+ *  `density.viewport.gizmoOpacity`/`gizmoHighlightSaturation`/`gizmoHighlightValue`), each
+ *  `null` when the look names none — the viewport keeps its own then. `axes` are X, Y, Z. */
+export interface NativeGizmoLook {
+  readonly axes: readonly [number, number, number] | null;
+  readonly hover: number | null;
+  readonly drag: number | null;
+  readonly opacity: number | null;
+  readonly highlightSaturation: number | null;
+  readonly highlightValue: number | null;
+}
+
+export function nativeGizmoLook(element?: Element | null): NativeGizmoLook {
+  const root = themeRoot(element);
+  const color = (name: string): number | null => {
+    const raw = themeToken(root, name);
+    return raw ? parseCssColor(raw) : null;
+  };
+  const number = (name: string): number | null => {
+    const raw = themeToken(root, name);
+    if (!raw) return null;
+    const value = Number.parseFloat(raw);
+    return Number.isFinite(value) ? value : null;
+  };
+  const x = color('--vgai-gizmo-x');
+  const y = color('--vgai-gizmo-y');
+  const z = color('--vgai-gizmo-z');
+  return {
+    axes: x !== null && y !== null && z !== null ? [x, y, z] : null,
+    hover: color('--vgai-gizmo-hover'),
+    drag: color('--vgai-gizmo-drag'),
+    opacity: number('--vgai-viewport-gizmo-opacity'),
+    highlightSaturation: number('--vgai-viewport-gizmo-highlight-saturation'),
+    highlightValue: number('--vgai-viewport-gizmo-highlight-value'),
+  };
+}
+
 /**
  * THE LOOK'S TRANSFORM-GIZMO SIZE, in px per gizmo unit
  * (`EditorTheme.density.viewport.gizmoSize`), or `null` when the look names

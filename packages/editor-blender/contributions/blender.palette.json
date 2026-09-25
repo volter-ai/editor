@@ -53,6 +53,11 @@
         "selection": "#ed5700",
         "active": "#ffa028"
       },
+      "gizmo": {
+        "x": "#ff3352",
+        "y": "#8bdc00",
+        "z": "#2890ff"
+      },
       "region": {
         "outliner": "#282828",
         "properties": "#303030"

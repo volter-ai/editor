@@ -31,6 +31,8 @@ Unreal is not installed on this box and its documentation does not state these d
 | Environment and its strength | no | RoomEnvironment at a fixed strength (`StageHost.tsx`) |
 | Tone mapping and exposure | no | ACES Filmic unless a document states its own |
 | Gizmo size | yes (`density.viewport`) | |
+| Gizmo colours, resting opacity, highlight | yes: `color.gizmo` (x, y, z, optional hover and drag) and `density.viewport.gizmoOpacity`, `gizmoHighlightSaturation`, `gizmoHighlightValue` | the transform and navigation gizmos; without the group, the kit's own (Godot's axis colours, three's yellow highlight, opaque handles) |
+| Gizmo form (handle shapes, the navigation gizmo's balls, cube or triad and its corner) | no | fixed: three's handles as patched, Blender's navigation balls |
 | Armed tool, box-select test, up axis | no: function, not look (ARCHITECTURE rule 7) | the stage's presentation (`interaction`, `world`) |
 
 ## The ruling: look, presentation and starting values (owner, 2026-09-25)
@@ -64,6 +66,7 @@ Built (`@volter/editor-sdk/kit/viewport-presentation`, `StagePresentationRig` in
 - studio presets are data: the kit's own (the stage before the Blender fit), the reserved `document` preset (a document's own view-locked studio: Blender's four Solid-mode lights, which the Blender engine builds), and the world stage's (its old rig, unchanged);
 - the preview source draws Godot's preview sun and procedural sky; the backdrop sources `color`, `environment` and `transparent` replace the stage's own;
 - the stage's function: the tool it opens on, what a box drag selects and the world's up axis (`interaction`, `world`); the Blender integration starts its `model` stage on select, touch and Z-up, and a style switch leaves them alone;
+- the gizmos' colours from the look, by source: Blender's theme axis colours at 0.6 resting opacity, highlighting in their own colour (`userdef_default_theme.c`, `transform_gizmo_3d.cc`); Godot's at 0.9, highlighting at a quarter saturation and full value (`theme_modern.cpp`, `node_3d_editor_plugin.cpp`); Unity's at 0.93 with its preselection and selected-axis colours (`Handles.cs`). Resting colours and opacity are checked on captures; the highlight is not yet seen on screen, as the product has no door that holds a hover;
 - overlays: the selection marks (outline, wire, box, in any combination) and the grid's major step; the look states the grid's line widths and major contrast (`density.viewport`);
 - `editor.presentation(documentId, layer?)` reads and records a view's presentation, and reports what its last draw was lit by.
 

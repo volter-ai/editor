@@ -223,6 +223,9 @@ export interface EditorDensity {
    *  both derivations and for why a non-length member sits under `density`. */
   readonly viewport?: {
     readonly gizmoSize?: number;
+    readonly gizmoOpacity?: number;
+    readonly gizmoHighlightSaturation?: number;
+    readonly gizmoHighlightValue?: number;
     readonly gridLineWidth?: number;
     readonly gridMajorWidth?: number;
     readonly gridMajorContrast?: number;
@@ -712,6 +715,22 @@ export interface EditorTheme {
       readonly axisY: string;
       readonly selection: string;
       readonly active: string;
+    };
+    /**
+     * THE GIZMOS' COLOURS — the transform gizmo's handles and the navigation gizmo's axes, named
+     * by the WORLD's axes (the stage's `world.upAxis` decides which one points up). `hover` and
+     * `drag` are a fixed highlight (Unity's preselection and selected-axis colours, Unreal's
+     * yellow); without them a handle highlights in its own axis colour, carried by
+     * `density.viewport.gizmoHighlightSaturation`/`gizmoHighlightValue` (Blender's own colour;
+     * Godot's at a quarter of its saturation, full value). `x`, `y` and `z` come together or not
+     * at all; a palette without the group keeps the editor's own. See `docs/VIEWPORT-STAGE.md`.
+     */
+    readonly gizmo?: {
+      readonly x: string;
+      readonly y: string;
+      readonly z: string;
+      readonly hover?: string;
+      readonly drag?: string;
     };
     /**
      * WIDGET COLOUR CLASSES — one fill per KIND of widget, the way Blender's
@@ -2535,6 +2554,16 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     '--vgai-viewport-axis-y': theme.color.viewport?.axisY ?? '',
     '--vgai-viewport-selection': theme.color.viewport?.selection ?? '',
     '--vgai-viewport-active': theme.color.viewport?.active ?? '',
+    '--vgai-gizmo-x': theme.color.gizmo?.x ?? '',
+    '--vgai-gizmo-y': theme.color.gizmo?.y ?? '',
+    '--vgai-gizmo-z': theme.color.gizmo?.z ?? '',
+    '--vgai-gizmo-hover': theme.color.gizmo?.hover ?? '',
+    '--vgai-gizmo-drag': theme.color.gizmo?.drag ?? '',
+    '--vgai-viewport-gizmo-opacity': numberToken(theme.density?.viewport?.gizmoOpacity),
+    '--vgai-viewport-gizmo-highlight-saturation': numberToken(
+      theme.density?.viewport?.gizmoHighlightSaturation,
+    ),
+    '--vgai-viewport-gizmo-highlight-value': numberToken(theme.density?.viewport?.gizmoHighlightValue),
     // THE TRANSFORM GIZMO'S SCREEN SIZE, in px per gizmo unit, emitted the
     // same way and read the same way (`native-selection-style.ts`): a look
     // that names none emits empty, and the viewport keeps three's own

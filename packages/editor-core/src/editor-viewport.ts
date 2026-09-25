@@ -56,7 +56,9 @@ import { findEntityLod } from './entity-lod';
 import { entityIdOf, entityObject3D } from './entity-object';
 import { describeInstancedPresentation, instancedUnitCount } from './instanced-presentation';
 import {
+  type NativeGizmoLook,
   type NativeViewportLook,
+  nativeGizmoLook,
   nativeSelectionColors,
   nativeViewportGizmoSize,
   nativeViewportLook,
@@ -196,17 +198,12 @@ const VC_DIRS: THREE.Vector3[] = [
 ];
 
 /**
- * Godot axis color RGB triples (X/Y/Z) — V-13:
- * previously defined independently, from scratch, in BOTH
- * `_initOrientationGizmo` (the view-cube) and `_patchGizmo` (the transform
- * gizmo), each with its own identical "Godot axis colors" comment. Hoisted
- * to one module-level constant so a future retouch of one can't silently
- * drift from the other. Kept as plain `[r,g,b]` triples rather than shared
- * `THREE.Color` instances — call sites construct their own `new
- * THREE.Color(...)` from these, so nothing here can be mutated in place by
- * one call site (materials, sprite canvases) and leak into the other.
+ * THE EDITOR'S OWN TRANSFORM-GIZMO AXIS COLOURS (X/Y/Z), used when the look names no
+ * `color.gizmo` group. Their values are Godot's editor axis colours (`theme_modern.cpp`,
+ * `axis_x_color`…). Kept as plain `[r,g,b]` triples: call sites construct their own
+ * `new THREE.Color(...)`, so nothing here can be mutated in place.
  */
-const GODOT_AXIS_COLOR_RGB: readonly [number, number, number][] = [
+const KIT_GIZMO_AXIS_RGB: readonly [number, number, number][] = [
   [0.96, 0.2, 0.32], // X
   [0.53, 0.84, 0.01], // Y
   [0.16, 0.55, 0.96], // Z
@@ -375,6 +372,38 @@ export function stageVerticalFovDegrees(aspect: number): number {
  *  elevation 26.5°, azimuth −23.8° about the up axis — SOLVED from the
  *  reference's two floor axes, whose projected slopes there are +1.0093 (X)
  *  and −0.1969 (Y). In three's Y-up frame that is this unit vector. */
+
+/** A colour's hue, saturation and value (each 0..1), in whatever channels it carries. */
+function rgbToHsv(color: THREE.Color): { h: number; s: number; v: number } {
+  const max = Math.max(color.r, color.g, color.b);
+  const min = Math.min(color.r, color.g, color.b);
+  const d = max - min;
+  let h = 0;
+  if (d > 0) {
+    if (max === color.r) h = ((color.g - color.b) / d + 6) % 6;
+    else if (max === color.g) h = (color.b - color.r) / d + 2;
+    else h = (color.r - color.g) / d + 4;
+    h /= 6;
+  }
+  return { h, s: max === 0 ? 0 : d / max, v: max };
+}
+
+function hsvToColor(h: number, s: number, v: number, out: THREE.Color): THREE.Color {
+  const i = Math.floor(h * 6);
+  const f = h * 6 - i;
+  const p = v * (1 - s);
+  const q = v * (1 - f * s);
+  const t = v * (1 - (1 - f) * s);
+  const [r, g, b] = [
+    [v, t, p],
+    [q, v, p],
+    [p, v, t],
+    [p, q, v],
+    [t, p, v],
+    [v, p, q],
+  ][((i % 6) + 6) % 6]!;
+  return out.setRGB(r!, g!, b!);
+}
 
 /** The navigation gizmo's axis colours, read off Blender's own balls in
  *  `modeling-object-none.png`: X (245,54,81), Y (111,164,27), Z (46,131,227).
@@ -864,6 +893,16 @@ export class EditorViewport {
    *  apply only the difference. Mirroring is its own inverse, which is what
    *  makes a delta enough. */
   private _appliedAxisSigns: readonly (1 | -1)[] = [1, 1, 1];
+  /** The look's gizmo colours and highlight ({@link nativeGizmoLook}); all-null keeps the
+   *  editor's own (the kit's axis colours, three's yellow highlight, opaque handles). */
+  private _gizmoLook: NativeGizmoLook = {
+    axes: null,
+    hover: null,
+    drag: null,
+    opacity: null,
+    highlightSaturation: null,
+    highlightValue: null,
+  };
   /** The stage's box-select rule (its presentation's `interaction.boxSelect`) — `'touch'` is
    *  Blender's Select Box, `'contain'` (and null) the editor's own. Read by the marquee at the
    *  moment it resolves, never cached into the rectangle. */
@@ -1146,6 +1185,7 @@ export class EditorViewport {
       this._applyGridLines(nativeViewportGrid(canvas));
       this._lookGizmoSizePx = nativeViewportGizmoSize(canvas);
       this._applyGizmoSize();
+      this._gizmoLook = nativeGizmoLook(canvas);
       // WHAT FRAME THIS STAGE IS PRESENTING, and what a box select means in
       // it. Like the size above, the first synchronous call runs before the
       // gizmos exist and both appliers answer that by returning.
@@ -1416,7 +1456,9 @@ export class EditorViewport {
     this._vertexSnapIndicator.layers.set(EDITOR_LAYER);
     scene.add(this._vertexSnapIndicator);
 
-    // Patch gizmo: recolor handles to Godot axis colors and fix plane geometry.
+    // Patch gizmo: recolour handles to the look's axis colours and fix plane geometry.
+    this._gizmoLook = nativeGizmoLook(canvas);
+    for (const controls of this._allGizmos()) this._installGizmoHighlight(controls);
     this._patchGizmo(this._gizmoHelper);
     this._patchGizmo(this._auxRotateControls.getHelper());
     this._patchGizmo(this._auxScaleControls.getHelper());
@@ -3861,7 +3903,9 @@ export class EditorViewport {
       // WHICH SOURCE AXIS THIS THREE AXIS CARRIES, and which way round its
       // positive direction runs here (see {@link _buildOrientationGizmo}).
       const [sourceAxis, positive] = this._stageAxisFrame[i]!;
-      const color = COMPASS_AXIS_COLOR[sourceAxis]!;
+      const lookAxes = this._gizmoLook.axes;
+      const color =
+        lookAxes === null ? COMPASS_AXIS_COLOR[sourceAxis]! : new THREE.Color(lookAxes[sourceAxis]!);
       const letter = AXIS_LETTER[sourceAxis]!;
       const axis = axes[i]!.clone().multiplyScalar(positive);
 
@@ -4495,9 +4539,7 @@ export class EditorViewport {
    * its NORMAL axis's colour, which is the same rule one level removed.
    */
   private _axisColorMap(): Record<string, THREE.Color> {
-    // Godot axis colors (V-13 — see module-level `GODOT_AXIS_COLOR_RGB`)
-    const ink = (threeAxis: number): THREE.Color =>
-      new THREE.Color(...GODOT_AXIS_COLOR_RGB[this._stageAxisFrame[threeAxis]![0]]!);
+    const ink = (threeAxis: number): THREE.Color => this._gizmoAxisColor(this._stageAxisFrame[threeAxis]![0]);
     const axisX = ink(0);
     const axisY = ink(1);
     const axisZ = ink(2);
@@ -4584,12 +4626,12 @@ export class EditorViewport {
     // the scale handle that had pointed up was mirrored to point DOWN and a
     // drag where it used to be moved nothing at all.
     const identity: Record<string, THREE.Color> = {
-      X: new THREE.Color(...GODOT_AXIS_COLOR_RGB[0]!),
-      Y: new THREE.Color(...GODOT_AXIS_COLOR_RGB[1]!),
-      Z: new THREE.Color(...GODOT_AXIS_COLOR_RGB[2]!),
-      XY: new THREE.Color(...GODOT_AXIS_COLOR_RGB[2]!),
-      YZ: new THREE.Color(...GODOT_AXIS_COLOR_RGB[0]!),
-      XZ: new THREE.Color(...GODOT_AXIS_COLOR_RGB[1]!),
+      X: this._gizmoAxisColor(0),
+      Y: this._gizmoAxisColor(1),
+      Z: this._gizmoAxisColor(2),
+      XY: this._gizmoAxisColor(2),
+      YZ: this._gizmoAxisColor(0),
+      XZ: this._gizmoAxisColor(1),
     };
     // A HANDLE'S MATERIAL IS SHARED ACROSS THE WHOLE INSTANCE — three builds
     // ONE `materialLib` per `TransformControlsGizmo` and hands the same
@@ -4625,6 +4667,11 @@ export class EditorViewport {
         if (flip) material.side = THREE.DoubleSide;
         const ink = map[child.name];
         if (ink && material.color) {
+          // THE LOOK'S RESTING OPACITY over the handle's own (three draws its plane squares
+          // translucent); three caches it like the colour, so the cache is dropped too.
+          const base = (material.userData['vgaiBaseOpacity'] ??= material.opacity) as number;
+          material.opacity = base * (this._gizmoLook.opacity ?? 1);
+          (material as { _opacity?: number | undefined })._opacity = undefined;
           material.color.copy(ink);
           // THREE CACHES A HANDLE'S RESTING COLOUR ON ITS FIRST UPDATE
           // (`TransformControlsGizmo.updateMatrixWorld`: `material._color =
@@ -4659,6 +4706,68 @@ export class EditorViewport {
       }
     }
     if (mirrored) this._appliedAxisSigns = want as readonly (1 | -1)[];
+  }
+
+  /** The look's colour for a SOURCE axis (0=X, 1=Y, 2=Z), or the editor's own. */
+  private _gizmoAxisColor(sourceAxis: number): THREE.Color {
+    const axes = this._gizmoLook.axes;
+    // Godot's values are sRGB; `new THREE.Color(r, g, b)` would read them as linear and draw
+    // them washed out.
+    return axes === null
+      ? new THREE.Color().setRGB(...KIT_GIZMO_AXIS_RGB[sourceAxis]!, THREE.SRGBColorSpace)
+      : new THREE.Color(axes[sourceAxis]!);
+  }
+
+  /**
+   * HOW A HANDLE HIGHLIGHTS, by the look. three paints the hovered or dragged handle one
+   * colour for every axis (`materialLib.active`, yellow) at full opacity. A look with a
+   * `color.gizmo.hover` keeps that form in its own colours (Unity's preselection and selected
+   * axis); a look without one highlights each handle in its own resting colour, carried by
+   * `gizmoHighlightSaturation`/`gizmoHighlightValue` (Blender keeps it; Godot desaturates it
+   * to a quarter at full value). Runs after three's own pass each frame, on the handles three
+   * has just highlighted; a look that names neither axes nor a highlight keeps three's.
+   */
+  private _installGizmoHighlight(controls: TransformControls): void {
+    const node = controls
+      .getHelper()
+      .children.find(
+        (child) => (child as { isTransformControlsGizmo?: boolean }).isTransformControlsGizmo,
+      ) as
+      | (THREE.Object3D & {
+          gizmo: Record<string, THREE.Object3D>;
+          axis: string | null;
+          mode: string;
+          enabled: boolean;
+          dragging: boolean;
+        })
+      | undefined;
+    if (!node) return;
+    const threeUpdate = node.updateMatrixWorld.bind(node);
+    node.updateMatrixWorld = (force?: boolean) => {
+      threeUpdate(force);
+      const look = this._gizmoLook;
+      const axis = node.axis;
+      if (!node.enabled || !axis) return;
+      if (look.hover === null && look.axes === null) return;
+      const fixed = node.dragging ? (look.drag ?? look.hover) : look.hover;
+      for (const handle of node.gizmo[node.mode]?.children ?? []) {
+        if (handle.name !== axis && !axis.split('').some((letter) => handle.name === letter)) continue;
+        const material = (handle as THREE.Mesh).material as
+          | (THREE.MeshBasicMaterial & { _color?: THREE.Color })
+          | undefined;
+        if (!material || Array.isArray(material) || !material.color) continue;
+        if (fixed !== null) {
+          material.color.setHex(fixed);
+          continue;
+        }
+        // In sRGB, where the engines take their HSV (Godot's `Color.from_hsv`).
+        const resting = (material._color ?? material.color).clone().convertLinearToSRGB();
+        const hsv = rgbToHsv(resting);
+        const saturation = hsv.s * (look.highlightSaturation ?? 1);
+        const value = look.highlightValue ?? hsv.v;
+        hsvToColor(hsv.h, saturation, value, material.color).convertSRGBToLinear();
+      }
+    };
   }
 
   private _patchGizmo(gizmoHelper: THREE.Object3D): void {

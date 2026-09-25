@@ -156,6 +156,11 @@ const THEME_STRING_PATHS = [
   'color.viewport.axisY',
   'color.viewport.selection',
   'color.viewport.active',
+  'color.gizmo.x',
+  'color.gizmo.y',
+  'color.gizmo.z',
+  'color.gizmo.hover',
+  'color.gizmo.drag',
   'color.widget.regular',
   'color.widget.menu',
   'color.widget.field',
@@ -196,6 +201,11 @@ const POST_V3_OPTIONAL_STRING_PATHS: ReadonlySet<string> = new Set([
   'color.viewport.axisY',
   'color.viewport.selection',
   'color.viewport.active',
+  'color.gizmo.x',
+  'color.gizmo.y',
+  'color.gizmo.z',
+  'color.gizmo.hover',
+  'color.gizmo.drag',
   'color.widget.regular',
   'color.widget.menu',
   'color.widget.field',
@@ -365,6 +375,29 @@ function reconstructEditorPalette(value: unknown): EditorPalette {
           viewportKeys.map((key, index) => [key, viewportValues[index] as string]),
         ) as unknown as NonNullable<EditorPalette['color']['viewport']>)
       : undefined;
+  // The GIZMO group (`EditorTheme.color.gizmo`), rebuilt for the same reason: its three axes
+  // come together or not at all, and the two highlight colours are each optional.
+  const gizmoAxes = (['x', 'y', 'z'] as const).map(
+    (key) => valueAtPath(value, `color.gizmo.${key}`) as string | undefined,
+  );
+  const gizmoAxesPresent = gizmoAxes.filter((entry) => entry !== undefined).length;
+  if (gizmoAxesPresent !== 0 && gizmoAxesPresent !== 3) {
+    throw new Error(
+      "A palette's color.gizmo group names x, y and z together. Omit the group to keep the editor's own gizmo colours.",
+    );
+  }
+  const gizmoHover = valueAtPath(value, 'color.gizmo.hover') as string | undefined;
+  const gizmoDrag = valueAtPath(value, 'color.gizmo.drag') as string | undefined;
+  const gizmo: EditorPalette['color']['gizmo'] =
+    gizmoAxesPresent === 3
+      ? {
+          x: gizmoAxes[0]!,
+          y: gizmoAxes[1]!,
+          z: gizmoAxes[2]!,
+          ...(gizmoHover !== undefined ? { hover: gizmoHover } : {}),
+          ...(gizmoDrag !== undefined ? { drag: gizmoDrag } : {}),
+        }
+      : undefined;
   // The post-v3 WIDGET group (`EditorTheme.color.widget`). Same reason as
   // `viewport` above: a group this function does not rebuild is dropped from
   // every palette that arrives as a document. Unlike `viewport` it is NOT
@@ -525,6 +558,7 @@ function reconstructEditorPalette(value: unknown): EditorPalette {
       },
       scrim: get('color.scrim'),
       ...(viewport ? { viewport } : {}),
+      ...(gizmo ? { gizmo } : {}),
       ...(widget ? { widget } : {}),
       ...(category ? { category } : {}),
       ...(region ? { region } : {}),
