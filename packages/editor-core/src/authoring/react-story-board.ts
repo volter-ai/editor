@@ -767,12 +767,19 @@ export function createReactStoryBoard(
     fitBounds(container, { x: 0, y: 0, width, height }, 1);
   };
 
+  // The view this board's own fit last set. A frame is laid out at its
+  // declared size until its content is measured, so the opening fit can frame
+  // a rectangle the measurement then moves; while the view is still this one
+  // (nobody panned or zoomed since), a new measurement refits it.
+  let autoView: ReturnType<typeof getRootPan> | null = null;
   const scheduleFitActive = (): void => {
     if (pendingFit) return;
     pendingFit = true;
     queueMicrotask(() => {
       pendingFit = false;
-      if (!disposed) activate(activeStoryId, true);
+      if (disposed) return;
+      activate(activeStoryId, true);
+      autoView = getRootPan();
     });
   };
 
@@ -864,6 +871,7 @@ export function createReactStoryBoard(
       }
       layout();
       positionLabels();
+      if (autoView !== null && getRootPan() === autoView) scheduleFitActive();
     },
     setNote: (message) => {
       for (const note of notes.values()) {
