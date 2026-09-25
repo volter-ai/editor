@@ -52,6 +52,7 @@
         "axisY": "#9af348",
         "axisZ": "#3a7af8",
         "selection": "#ff6600",
+        "wire": "#5e779b",
         "active": "#ff6600"
       },
       "gizmo": {

@@ -46,6 +46,15 @@ export const style: StyleContribution = {
         gridLineWidth: 1,
         gridMajorWidth: 1,
         gridMajorContrast: 1.25,
+        // Unity's selection outline is a hard orange line about two pixels wide at 1x, around
+        // the whole silhouette, occluded parts included (`game-objects-transform-modes.png`,
+        // `SceneVisExVisible.png`, where it crosses the rock in front of the structure); at 3
+        // device px the crisp line measures one full and one partial pixel on a 1x capture, as there.
+        outlineStyle: 'crisp',
+        outlineWidth: 3,
+        outlineHidden: true,
+        // The Selection Wire's alpha: `(94, 119, 155, 64)` (the palette holds its colour).
+        wireOpacity: 0.25,
       },
     },
   },
