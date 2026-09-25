@@ -14,13 +14,10 @@ export const layout: WorkspaceLayoutContribution = {
   id: 'model',
   title: 'Model',
   description: 'Blender-shaped modeling: a dominant document, outliner above properties.',
-  // No `tabs` here ON PURPOSE. The host's default is already `shown`, so
-  // stating it changed nothing for a bare host — but the WORKSPACE layer wins
-  // over the style bundle (`workspace-regions.ts`), so restating the default
-  // silently shadowed `blender.style.ts`'s `tabs: 'hidden'` and the Model
-  // document still painted a 25px tab row (measured against Blender 5.2, which
-  // has none). Leave a region unstated unless this workspace genuinely needs
-  // it different from the host default.
+  // No `tabs` here: the workspace layer sits above the person's own choice
+  // (`workspace-regions.ts`), so a stated region shadows it. Leave a region
+  // unstated unless this workspace genuinely needs it different from the host
+  // default.
   // Blender's areas beneath this workspace's own (`../src/regions.ts`).
   regions: {
     ...BLENDER_REGIONS,

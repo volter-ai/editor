@@ -187,13 +187,23 @@ const MAPPING = {
     '#69aa15',
     'the same blend over `.tui.yaxis` #8bdc00 — measured, see axisX.',
   ),
-  // There is no `viewport.axisZ`: `EditorTheme.color.viewport` declares X and
-  // Y only (`packages/editor/src/theme.ts`), because the editor's grid plane
-  // draws two axis lines. `.tui.zaxis` #2890ff is the member a third would
-  // cite when one exists — a palette key no reader reads is a name with no
-  // caller.
+  // There is no `viewport.axisZ`: the grid plane draws two axis lines. The
+  // gizmos carry all three (`gizmo.*`).
   'viewport.selection': rgb('space_view3d.select'),
   'viewport.active': rgb('space_view3d.active'),
+
+  // The transform gizmo draws the theme's axis colours as they are
+  // (`transform_gizmo_3d.cc`, `gizmo_get_axis_color`).
+  'gizmo.x': rgb('tui.xaxis'),
+  'gizmo.y': rgb('tui.yaxis'),
+  'gizmo.z': rgb('tui.zaxis'),
+  'gizmo.navigationX': held(
+    '#f53651',
+    "the navigation gizmo's X ball as Blender draws it, read off `modeling-object-none.png` " +
+      '(245,54,81): drawn from `.tui.xaxis` but not equal to it — measured.',
+  ),
+  'gizmo.navigationY': held('#6fa41b', 'the same ball for Y (111,164,27) — measured, see navigationX.'),
+  'gizmo.navigationZ': held('#2e83e3', 'the same ball for Z (46,131,227) — measured, see navigationX.'),
 
   'region.outliner': rgb('space_outliner.back'),
   'region.properties': rgb('space_properties.back'),

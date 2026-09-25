@@ -222,9 +222,6 @@ export function activeChromeRegions(): ChromeRegions {
   return _merged;
 }
 
-/** The preset layer alone — what `workspace-style.ts` derives the active
- *  bundle from. */
-
 /** A stable string, because `useSyncExternalStore` compares snapshots by
  *  identity and a fresh object would loop. */
 export function chromeRegionsKey(): string {

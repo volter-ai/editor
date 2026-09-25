@@ -261,8 +261,8 @@ export function ProjectHeader({
 
 /**
  * The WORKSPACE TAB STRIP — Blender's top bar, shown only when the active
- * chrome regions say so (`workspaceTabs`, a style's or a workspace's region;
- * the Blender bundle turns it on). A click is the explicit act the workspace
+ * chrome regions say so (`workspaceTabs`, a workspace's region or the person's;
+ * Blender's workspaces turn it on). A click is the explicit act the workspace
  * ruling requires (`workspace-presets.ts`); the strip derives nothing.
  */
 function WorkspaceTabs() {

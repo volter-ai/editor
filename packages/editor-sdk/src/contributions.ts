@@ -214,6 +214,10 @@ export interface ToolObject3DAuthoringProps {
    *  fills the view (the default); Blender's startup view has its cube at
    *  about a third of that, so the Model document opens at `3`. Frame
    *  (numpad .) still fits exactly. */
+  /** The kind of stage this view is, for its starting presentation
+   *  (`@volter/editor-sdk/kit/viewport-presentation`): the document's own kind (`'model'`).
+   *  Without it the kind is read off the document id's prefix. */
+  readonly stageKind?: string;
   readonly openingFit?: number;
   /**
    * Optional binding from live native clips back to ordinary project source.

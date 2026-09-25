@@ -325,8 +325,8 @@ export class LiveEditor {
   }
 
   /**
-   * Apply a STYLE BUNDLE by id — the chrome's palette, material, icon set and
-   * region defaults in one gesture, the session door beside
+   * Apply a STYLE BUNDLE by id — the chrome's palette, material and icon set in
+   * one gesture, the session door beside
    * `View → <Style> Style`. A bundle the open project does not offer refuses
    * and names the vocabulary; `currentView().style` reports the one worn.
    */

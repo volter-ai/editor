@@ -22,16 +22,15 @@ import {
   Workspace,
   type WorkspaceArrangement,
 } from '@volter/editor-sdk/layouts';
+import { BLENDER_REGIONS } from './regions';
 
 export const ModelArrangement: WorkspaceArrangement = {
   id: 'model',
   title: 'Model',
-  // `tabs` unstated — see `../contributions/model.layout.ts`: the workspace
-  // layer wins over the style bundle, so restating the host default shadows it.
+  // `tabs` unstated — see `../contributions/model.layout.ts`.
+  // Blender's areas (`./regions.ts`), as every Blender workspace carries them.
   regions: {
-    header: 'shown',
-    shelf: 'shown',
-    inspector: 'properties',
+    ...BLENDER_REGIONS,
     drawer: 'hidden',
   },
 };

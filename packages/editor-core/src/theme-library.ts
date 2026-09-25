@@ -159,6 +159,9 @@ const THEME_STRING_PATHS = [
   'color.gizmo.x',
   'color.gizmo.y',
   'color.gizmo.z',
+  'color.gizmo.navigationX',
+  'color.gizmo.navigationY',
+  'color.gizmo.navigationZ',
   'color.gizmo.hover',
   'color.gizmo.drag',
   'color.widget.regular',
@@ -204,6 +207,9 @@ const POST_V3_OPTIONAL_STRING_PATHS: ReadonlySet<string> = new Set([
   'color.gizmo.x',
   'color.gizmo.y',
   'color.gizmo.z',
+  'color.gizmo.navigationX',
+  'color.gizmo.navigationY',
+  'color.gizmo.navigationZ',
   'color.gizmo.hover',
   'color.gizmo.drag',
   'color.widget.regular',
@@ -375,29 +381,28 @@ function reconstructEditorPalette(value: unknown): EditorPalette {
           viewportKeys.map((key, index) => [key, viewportValues[index] as string]),
         ) as unknown as NonNullable<EditorPalette['color']['viewport']>)
       : undefined;
-  // The GIZMO group (`EditorTheme.color.gizmo`), rebuilt for the same reason: its three axes
-  // come together or not at all, and the two highlight colours are each optional.
-  const gizmoAxes = (['x', 'y', 'z'] as const).map(
-    (key) => valueAtPath(value, `color.gizmo.${key}`) as string | undefined,
-  );
-  const gizmoAxesPresent = gizmoAxes.filter((entry) => entry !== undefined).length;
-  if (gizmoAxesPresent !== 0 && gizmoAxesPresent !== 3) {
-    throw new Error(
-      "A palette's color.gizmo group names x, y and z together. Omit the group to keep the editor's own gizmo colours.",
-    );
+  // The GIZMO group (`EditorTheme.color.gizmo`), rebuilt for the same reason. Each axis trio
+  // (x/y/z, navigationX/Y/Z) comes together or not at all; every other member is optional.
+  const gizmoKeys = ['x', 'y', 'z', 'navigationX', 'navigationY', 'navigationZ', 'hover', 'drag'] as const;
+  const gizmoEntries = gizmoKeys
+    .map((key) => [key, valueAtPath(value, `color.gizmo.${key}`) as string | undefined] as const)
+    .filter((entry): entry is readonly [(typeof gizmoKeys)[number], string] => entry[1] !== undefined);
+  const gizmoNamed = new Set(gizmoEntries.map(([key]) => key));
+  for (const trio of [
+    ['x', 'y', 'z'],
+    ['navigationX', 'navigationY', 'navigationZ'],
+  ] as const) {
+    const named = trio.filter((key) => gizmoNamed.has(key)).length;
+    if (named !== 0 && named !== 3) {
+      throw new Error(
+        `A palette's color.gizmo names ${trio.join(', ')} together. Omit them to keep the editor's own.`,
+      );
+    }
   }
-  const gizmoHover = valueAtPath(value, 'color.gizmo.hover') as string | undefined;
-  const gizmoDrag = valueAtPath(value, 'color.gizmo.drag') as string | undefined;
-  const gizmo: EditorPalette['color']['gizmo'] =
-    gizmoAxesPresent === 3
-      ? {
-          x: gizmoAxes[0]!,
-          y: gizmoAxes[1]!,
-          z: gizmoAxes[2]!,
-          ...(gizmoHover !== undefined ? { hover: gizmoHover } : {}),
-          ...(gizmoDrag !== undefined ? { drag: gizmoDrag } : {}),
-        }
-      : undefined;
+  const gizmo =
+    gizmoEntries.length === 0
+      ? undefined
+      : (Object.fromEntries(gizmoEntries) as NonNullable<EditorPalette['color']['gizmo']>);
   // The post-v3 WIDGET group (`EditorTheme.color.widget`). Same reason as
   // `viewport` above: a group this function does not rebuild is dropped from
   // every palette that arrives as a document. Unlike `viewport` it is NOT

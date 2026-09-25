@@ -897,6 +897,7 @@ export class EditorViewport {
    *  editor's own (the kit's axis colours, three's yellow highlight, opaque handles). */
   private _gizmoLook: NativeGizmoLook = {
     axes: null,
+    navigation: null,
     hover: null,
     drag: null,
     opacity: null,
@@ -3903,7 +3904,8 @@ export class EditorViewport {
       // WHICH SOURCE AXIS THIS THREE AXIS CARRIES, and which way round its
       // positive direction runs here (see {@link _buildOrientationGizmo}).
       const [sourceAxis, positive] = this._stageAxisFrame[i]!;
-      const lookAxes = this._gizmoLook.axes;
+      // The look's navigation colours, else its axis colours, else the editor's own.
+      const lookAxes = this._gizmoLook.navigation ?? this._gizmoLook.axes;
       const color =
         lookAxes === null ? COMPASS_AXIS_COLOR[sourceAxis]! : new THREE.Color(lookAxes[sourceAxis]!);
       const letter = AXIS_LETTER[sourceAxis]!;
@@ -4645,7 +4647,8 @@ export class EditorViewport {
       group: THREE.Object3D | undefined,
       map: Record<string, THREE.Color>,
       flip: boolean,
-      ownMaterial = false,
+      ownMaterial: boolean,
+      handles: boolean,
     ) => {
       if (!group) return;
       group.traverse((child) => {
@@ -4669,9 +4672,12 @@ export class EditorViewport {
         if (ink && material.color) {
           // THE LOOK'S RESTING OPACITY over the handle's own (three draws its plane squares
           // translucent); three caches it like the colour, so the cache is dropped too.
-          const base = (material.userData['vgaiBaseOpacity'] ??= material.opacity) as number;
-          material.opacity = base * (this._gizmoLook.opacity ?? 1);
-          (material as { _opacity?: number | undefined })._opacity = undefined;
+          // Handles only: the drag's axis lines (the `helper` family) keep three's own.
+          if (handles) {
+            const base = (material.userData['vgaiBaseOpacity'] ??= material.opacity) as number;
+            material.opacity = base * (this._gizmoLook.opacity ?? 1);
+            (material as { _opacity?: number | undefined })._opacity = undefined;
+          }
           material.color.copy(ink);
           // THREE CACHES A HANDLE'S RESTING COLOUR ON ITS FIRST UPDATE
           // (`TransformControlsGizmo.updateMatrixWorld`: `material._color =
@@ -4700,9 +4706,10 @@ export class EditorViewport {
         // ONLY THE TRANSLATE ARMS ARE MIRRORED. A rotate RING is symmetric
         // about every axis it spans, so the permutation is visible in its
         // colour alone; the scale family is in the object's own frame (above).
-        paint(node[family]?.['translate'], permuted, mirrored);
-        paint(node[family]?.['rotate'], permuted, false);
-        paint(node[family]?.['scale'], identity, false, true);
+        const handles = family === 'gizmo';
+        paint(node[family]?.['translate'], permuted, mirrored, false, handles);
+        paint(node[family]?.['rotate'], permuted, false, false, handles);
+        paint(node[family]?.['scale'], identity, false, true, handles);
       }
     }
     if (mirrored) this._appliedAxisSigns = want as readonly (1 | -1)[];
@@ -4725,7 +4732,7 @@ export class EditorViewport {
    * axis); a look without one highlights each handle in its own resting colour, carried by
    * `gizmoHighlightSaturation`/`gizmoHighlightValue` (Blender keeps it; Godot desaturates it
    * to a quarter at full value). Runs after three's own pass each frame, on the handles three
-   * has just highlighted; a look that names neither axes nor a highlight keeps three's.
+   * has just highlighted; a look that names no axes and no highlight keeps three's.
    */
   private _installGizmoHighlight(controls: TransformControls): void {
     const node = controls
@@ -4748,7 +4755,13 @@ export class EditorViewport {
       const look = this._gizmoLook;
       const axis = node.axis;
       if (!node.enabled || !axis) return;
-      if (look.hover === null && look.axes === null) return;
+      if (
+        look.hover === null &&
+        look.axes === null &&
+        look.highlightSaturation === null &&
+        look.highlightValue === null
+      )
+        return;
       const fixed = node.dragging ? (look.drag ?? look.hover) : look.hover;
       for (const handle of node.gizmo[node.mode]?.children ?? []) {
         if (handle.name !== axis && !axis.split('').some((letter) => handle.name === letter)) continue;

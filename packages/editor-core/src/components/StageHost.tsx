@@ -285,6 +285,10 @@ export interface Object3DDocumentViewportProps
   };
   /** Multiplies the opening fit distance; `1` fills the view. */
   readonly openingFit?: number;
+  /** The kind of stage this view is, for its starting presentation
+   *  (`@volter/editor-sdk/kit/viewport-presentation`): the document's own kind (`'model'`).
+   *  Without it the kind is read off the document id's prefix. */
+  readonly stageKind?: string;
 }
 
 /**
@@ -572,9 +576,11 @@ export function Object3DDocumentViewport({
   frameBounds,
   openingFrameBounds,
   openingFit,
+  stageKind,
   statistics,
   content,
 }: Object3DDocumentViewportProps) {
+  const viewStageKind = stageKind ?? stageKindOf(documentId);
   // ANNOUNCE THE STAGE (`authoring/object3d-document-session-registry.ts`).
   // The lazy boundary announces for the documents that go through it; the
   // asset viewers import THIS component directly (`asset-viewers/
@@ -1197,7 +1203,7 @@ export function Object3DDocumentViewport({
           {
             const rig = new StagePresentationRig(host.scene);
             host.presentationRig = rig;
-            bindViewPresentation(documentId, stageKindOf(documentId));
+            bindViewPresentation(documentId, viewStageKind);
             const applyPresentation = () => {
               const presentation = viewPresentation(documentId);
               rig.apply(presentation, renderer, dressingToneMapping);
@@ -1573,7 +1579,7 @@ export function Object3DDocumentViewport({
         // source. Lights the CONTENT carries are the view's `auto` rule's to weigh, per draw.
         bindViewPresentation(
           documentId,
-          stageKindOf(documentId),
+          viewStageKind,
           dressingViewLocked
             ? { all: { lighting: { source: 'studio', studioPreset: DOCUMENT_STUDIO_PRESET.id, auto: null } } }
             : dressingKeyLight === false

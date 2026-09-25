@@ -56,7 +56,10 @@
       "gizmo": {
         "x": "#ff3352",
         "y": "#8bdc00",
-        "z": "#2890ff"
+        "z": "#2890ff",
+        "navigationX": "#f53651",
+        "navigationY": "#6fa41b",
+        "navigationZ": "#2e83e3"
       },
       "region": {
         "outliner": "#282828",

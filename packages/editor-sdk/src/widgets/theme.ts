@@ -722,13 +722,18 @@ export interface EditorTheme {
      * `drag` are a fixed highlight (Unity's preselection and selected-axis colours, Unreal's
      * yellow); without them a handle highlights in its own axis colour, carried by
      * `density.viewport.gizmoHighlightSaturation`/`gizmoHighlightValue` (Blender's own colour;
-     * Godot's at a quarter of its saturation, full value). `x`, `y` and `z` come together or not
-     * at all; a palette without the group keeps the editor's own. See `docs/VIEWPORT-STAGE.md`.
+     * Godot's at a quarter of its saturation, full value). `navigationX`/`Y`/`Z` colour the
+     * navigation gizmo where it is drawn differently from the axes (Blender's balls), and
+     * default to `x`/`y`/`z`. Each trio comes together or not at all; every member is otherwise
+     * optional, and one left out keeps the editor's own. See `docs/VIEWPORT-STAGE.md`.
      */
     readonly gizmo?: {
-      readonly x: string;
-      readonly y: string;
-      readonly z: string;
+      readonly x?: string;
+      readonly y?: string;
+      readonly z?: string;
+      readonly navigationX?: string;
+      readonly navigationY?: string;
+      readonly navigationZ?: string;
       readonly hover?: string;
       readonly drag?: string;
     };
@@ -2557,6 +2562,9 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     '--vgai-gizmo-x': theme.color.gizmo?.x ?? '',
     '--vgai-gizmo-y': theme.color.gizmo?.y ?? '',
     '--vgai-gizmo-z': theme.color.gizmo?.z ?? '',
+    '--vgai-gizmo-navigation-x': theme.color.gizmo?.navigationX ?? '',
+    '--vgai-gizmo-navigation-y': theme.color.gizmo?.navigationY ?? '',
+    '--vgai-gizmo-navigation-z': theme.color.gizmo?.navigationZ ?? '',
     '--vgai-gizmo-hover': theme.color.gizmo?.hover ?? '',
     '--vgai-gizmo-drag': theme.color.gizmo?.drag ?? '',
     '--vgai-viewport-gizmo-opacity': numberToken(theme.density?.viewport?.gizmoOpacity),

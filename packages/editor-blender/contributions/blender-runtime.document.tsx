@@ -238,6 +238,9 @@ function BlenderModelViewport({
       // `--factory-startup`), about a third of the size a bare fit gives, which
       // is the number `openingFit` was written for and nothing was passing.
       openingFit={3}
+      // Every entry this document opens is a `model` stage, the standing `blender:runtime`
+      // address included (its id carries no `model:` prefix).
+      stageKind={documentKind}
       // SOLID SHADING IS BLENDER'S, and Blender's Solid mode has NO world
       // light: `light_ambient` is (0,0,0), there is no IBL, and the model is
       // lit by four studio lights stated in VIEW space. So this document

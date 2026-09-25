@@ -137,6 +137,8 @@ export function nativeViewportLook(element?: Element | null): NativeViewportLook
  *  `null` when the look names none — the viewport keeps its own then. `axes` are X, Y, Z. */
 export interface NativeGizmoLook {
   readonly axes: readonly [number, number, number] | null;
+  /** The navigation gizmo's own X, Y, Z, or `null` to draw it in {@link axes}. */
+  readonly navigation: readonly [number, number, number] | null;
   readonly hover: number | null;
   readonly drag: number | null;
   readonly opacity: number | null;
@@ -156,11 +158,15 @@ export function nativeGizmoLook(element?: Element | null): NativeGizmoLook {
     const value = Number.parseFloat(raw);
     return Number.isFinite(value) ? value : null;
   };
-  const x = color('--vgai-gizmo-x');
-  const y = color('--vgai-gizmo-y');
-  const z = color('--vgai-gizmo-z');
+  const trio = (prefix: string): readonly [number, number, number] | null => {
+    const x = color(`${prefix}-x`);
+    const y = color(`${prefix}-y`);
+    const z = color(`${prefix}-z`);
+    return x !== null && y !== null && z !== null ? [x, y, z] : null;
+  };
   return {
-    axes: x !== null && y !== null && z !== null ? [x, y, z] : null,
+    axes: trio('--vgai-gizmo'),
+    navigation: trio('--vgai-gizmo-navigation'),
     hover: color('--vgai-gizmo-hover'),
     drag: color('--vgai-gizmo-drag'),
     opacity: number('--vgai-viewport-gizmo-opacity'),
