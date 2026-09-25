@@ -222,6 +222,28 @@ export function openKindDocumentWhenReady(
   });
 }
 
+/** Open the kind document `documentId` names once its entry and editor exist,
+ *  without taking focus — a tab the workbench restored asking for its content.
+ *  False when the id is not a kind document's. */
+export function reopenKindDocument(documentId: string): boolean {
+  const entryId = kindDocumentEntryId(documentId);
+  if (entryId === null) return false;
+  // Not `whenDocumentEntry`: a restored tab asks before the page has a project,
+  // and that helper reads the project's arrival as a switch and gives up.
+  const attempt = (): boolean => {
+    const entry = projectAdapterFacet()?.scenes.entries.find((candidate) => candidate.id === entryId);
+    if (!entry) return false;
+    openKindDocumentWhenReady(entry, { activate: false });
+    return true;
+  };
+  if (!attempt()) {
+    const stop = subscribeProjectAdapter(() => {
+      if (attempt()) stop();
+    });
+  }
+  return true;
+}
+
 /** Every open kind document takes its slots afresh when contributions
  *  change (a module re-evaluated on save may have gained or lost its
  *  `Toolbar`); `openWorkspaceDocument` on an open id refreshes the descriptor. */

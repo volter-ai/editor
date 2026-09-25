@@ -124,6 +124,8 @@ import {
   type WorkspaceDocumentDescriptor,
   workspaceDocumentRegistryVersion,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
+import { reopenKindDocument } from '../components/kind-documents';
+import { requestAvailableWorkspaceDocument } from '../workspace-available-documents';
 import {
   installWorkspaceHostCommands,
   setActiveWorkspaceStaticPanel,
@@ -462,10 +464,34 @@ interface NativeDocumentView {
 const documentViews = new Map<string, NativeDocumentView>();
 let documentSlotsVersion = 0;
 const documentSlotListeners = new Set<() => void>();
+/** Every document open at some point in this page's life. A workbench tab for
+ *  a document in it that is no longer open is one the person closed; a tab for
+ *  one never in it is the workbench's own restore, whose document the kit's
+ *  record did not bring back. */
+const everOpenDocuments = new Set<string>();
+let followingOpenDocuments = false;
+function noteOpenDocuments(): void {
+  for (const open of openWorkspaceDocuments()) everOpenDocuments.add(open.descriptor.id);
+}
+/** THE WORKBENCH RESTORES ITS TABS AND THE KIT ITS DOCUMENTS, from two
+ *  records. When a restored tab names a document the kit did not reopen, the
+ *  tab asks for it — a kind document through its table entry, anything else
+ *  through the available-document request — rather than standing empty. */
+function restoreDocumentOfView(documentId: string): void {
+  if (!followingOpenDocuments) {
+    followingOpenDocuments = true;
+    subscribeWorkspaceDocuments(noteOpenDocuments);
+  }
+  noteOpenDocuments();
+  if (!documentId || everOpenDocuments.has(documentId)) return;
+  if (!reopenKindDocument(documentId)) requestAvailableWorkspaceDocument(documentId, false);
+}
+
 function setDocumentView(view: NativeDocumentView, closed: boolean): void {
   if (closed) {
     if (!documentViews.delete(view.id)) return;
   } else {
+    if (!documentViews.has(view.id)) restoreDocumentOfView(view.documentId);
     const previous = documentViews.get(view.id);
     if (previous?.element === view.element && previous.documentId === view.documentId) return;
     documentViews.set(view.id, { ...view });

@@ -141,11 +141,6 @@ Remaining:
    the full distance (measured: z moved 5.9 in one second, with the same reading when Game is
    focused). Play gates only `session.game.input`, and the listener shadow skips dependency code.
    Machine input through the native door (`native-debug-module.ts`) is not gated either.
-9. **Two restore records.** Under the Code-OSS frame the workbench restores its own editor tabs
-   while the kit restores `.vgai/editor-state.json`. When they disagree the tab stays and shows
-   "No document open" (measured on a game project: a restored `cube` tab beside the Scene, with
-   the kit's record `open: []`); `vgaiDocuments.ts` keeps a restored input until its document
-   registers, and nothing opens it. Closed when a restored tab reopens its document through the kit.
 
 ## Both products in the browser substrate
 
