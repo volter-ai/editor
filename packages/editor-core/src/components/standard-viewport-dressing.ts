@@ -468,52 +468,87 @@ export class StagePresentationRig {
     this.sun.target.updateMatrixWorld();
     const wantsSky =
       environment.enabled && (lighting.source === 'preview' || presentation.backdrop.source === 'environment');
-    if (wantsSky) this.buildSky(environment.sky, renderer);
+    if (wantsSky) {
+      this.buildSky(environment.sky, renderer, sun.enabled ? { direction: this.sun.position.clone().normalize(), color: sun.color, energy: sun.energy } : null);
+    }
   }
 
   /**
    * THE PREVIEW SKY, Godot's `ProceduralSkyMaterial` at its defaults: above the horizon the
    * horizon colour runs to the top colour on a curve of 0.15, below it to the ground colour on
-   * a curve of 0.02, mixed in linear light (`scene/resources/3d/sky_material.cpp`). Drawn once
-   * into an equirectangular strip, which is both the backdrop and, prefiltered, the light.
+   * a curve of 0.02, mixed in linear light (`scene/resources/3d/sky_material.cpp`). THE SUN in
+   * it follows the same material: inside the light's disc the sky is the sun's colour at its
+   * energy, and out to `sun_angle_max` (30°) it returns to the sky on a curve of `sun_curve`
+   * (0.15). A light with no angular size draws a half-degree disc.
+   *
+   * Drawn into a FLOAT equirectangular strip, because the sun is brighter than white: an 8-bit
+   * strip clipped it to 1.0, which the tone curve draws as grey 202 (measured) where Godot's
+   * sun blows out. The strip is both the backdrop and, prefiltered, the light; 1024 across,
+   * because the sun's bright core is about 3° wide and drew as two pixels at 256. Placed by
+   * three's equirectangular mapping (`atan(z, x)`, `asin(y)`); row 0 is straight down.
    */
   private buildSky(
     colours: ViewportPresentation['lighting']['preview']['environment']['sky'],
     renderer: THREE.WebGLRenderer,
+    sun: { readonly direction: THREE.Vector3; readonly color: string; readonly energy: number } | null,
   ): void {
-    const key = `${colours.top}|${colours.horizon}|${colours.ground}`;
+    const sunKey = sun
+      ? `${sun.direction.toArray().map((value) => value.toFixed(4)).join(',')}|${sun.color}|${sun.energy}`
+      : 'none';
+    const key = `${colours.top}|${colours.horizon}|${colours.ground}|${sunKey}`;
     if (this.sky?.key === key) return;
     this.disposeSky();
-    if (typeof document === 'undefined') return;
-    // A full equirectangular aspect: the prefilter samples the strip across its width, and a
-    // few-pixel strip prefiltered to black (measured: the preview lit nothing).
-    const width = 256;
-    const height = 128;
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const context = canvas.getContext('2d');
-    if (!context) return;
-    const linear = (hex: string) => new THREE.Color(hex);
-    const top = linear(colours.top);
-    const horizon = linear(colours.horizon);
-    const ground = linear(colours.ground);
-    const mixed = new THREE.Color();
+    const width = 1024;
+    const height = 512;
+    const DISC = THREE.MathUtils.degToRad(0.5);
+    const GLOW = THREE.MathUtils.degToRad(30);
+    const SUN_CURVE = 0.15;
+    const top = new THREE.Color(colours.top);
+    const horizon = new THREE.Color(colours.horizon);
+    const ground = new THREE.Color(colours.ground);
+    const light = sun ? new THREE.Color(sun.color).multiplyScalar(sun.energy) : null;
+    const data = new Float32Array(width * height * 4);
+    const band = new THREE.Color();
+    const pixel = new THREE.Color();
+    const direction = new THREE.Vector3();
     for (let row = 0; row < height; row++) {
-      const angle = ((row + 0.5) / height) * Math.PI; // 0 = straight up, PI = straight down
+      const elevation = ((row + 0.5) / height - 0.5) * Math.PI;
+      const angle = Math.PI / 2 - elevation; // 0 = straight up, PI = straight down
       if (angle <= Math.PI / 2) {
         const c = 1 - angle / (Math.PI / 2);
-        mixed.copy(horizon).lerp(top, THREE.MathUtils.clamp(1 - Math.pow(1 - c, 1 / 0.15), 0, 1));
+        band.copy(horizon).lerp(top, THREE.MathUtils.clamp(1 - Math.pow(1 - c, 1 / 0.15), 0, 1));
       } else {
         const c = (angle - Math.PI / 2) / (Math.PI / 2);
-        mixed.copy(horizon).lerp(ground, THREE.MathUtils.clamp(1 - Math.pow(1 - c, 1 / 0.02), 0, 1));
+        band.copy(horizon).lerp(ground, THREE.MathUtils.clamp(1 - Math.pow(1 - c, 1 / 0.02), 0, 1));
       }
-      context.fillStyle = `#${mixed.getHexString(THREE.SRGBColorSpace)}`;
-      context.fillRect(0, row, width, 1);
+      for (let column = 0; column < width; column++) {
+        pixel.copy(band);
+        if (light && sun && elevation > -Math.PI / 2) {
+          const longitude = ((column + 0.5) / width - 0.5) * Math.PI * 2;
+          direction.set(
+            Math.cos(longitude) * Math.cos(elevation),
+            Math.sin(elevation),
+            Math.sin(longitude) * Math.cos(elevation),
+          );
+          const toSun = direction.angleTo(sun.direction);
+          if (toSun < DISC) pixel.copy(light);
+          else if (toSun < GLOW) {
+            const c = (toSun - DISC) / (GLOW - DISC);
+            pixel.copy(light).lerp(band, THREE.MathUtils.clamp(1 - Math.pow(1 - c, 1 / SUN_CURVE), 0, 1));
+          }
+        }
+        const at = (row * width + column) * 4;
+        data[at] = pixel.r;
+        data[at + 1] = pixel.g;
+        data[at + 2] = pixel.b;
+        data[at + 3] = 1;
+      }
     }
-    const background = new THREE.CanvasTexture(canvas);
+    const background = new THREE.DataTexture(data, width, height, THREE.RGBAFormat, THREE.FloatType);
     background.mapping = THREE.EquirectangularReflectionMapping;
-    background.colorSpace = THREE.SRGBColorSpace;
+    background.colorSpace = THREE.LinearSRGBColorSpace;
+    background.magFilter = THREE.LinearFilter;
+    background.minFilter = THREE.LinearFilter;
     background.needsUpdate = true;
     this.pmrem ??= new THREE.PMREMGenerator(renderer);
     const environment = this.pmrem.fromEquirectangular(background).texture;

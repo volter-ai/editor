@@ -267,6 +267,9 @@ export interface DensityContribution {
      * CSS px (the editor's own is 3; Godot's box is a hairline).
      */
     readonly selectionBox?: 'corners' | 'edges';
+    /** Which axes the box is measured along: the world's (the editor's own) or the object's,
+     *  so it turns with a rotated object (Godot's). */
+    readonly selectionBoxFrame?: 'world' | 'object';
     readonly selectionBoxWidth?: number;
   };
 }

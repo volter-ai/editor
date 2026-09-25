@@ -241,11 +241,13 @@ export function nativeViewportGrid(element?: Element | null): {
 export function nativeViewportSelectionBox(element?: Element | null): {
   readonly edges: boolean;
   readonly lineWidth: number | null;
+  readonly frame: 'world' | 'object';
 } {
   const root = themeRoot(element);
   const width = Number.parseFloat(themeToken(root, '--vgai-viewport-selection-box-width'));
   return {
     edges: themeToken(root, '--vgai-viewport-selection-box') === 'edges',
+    frame: themeToken(root, '--vgai-viewport-selection-box-frame') === 'object' ? 'object' : 'world',
     lineWidth: Number.isFinite(width) && width > 0 ? width : null,
   };
 }

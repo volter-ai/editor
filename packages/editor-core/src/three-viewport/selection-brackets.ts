@@ -21,7 +21,10 @@
  */
 
 import { liveMixerFor } from '@volter/editor-threejs/animation/live-mixers';
-import { contentWorldBounds } from '@volter/editor-threejs/viewport/content-bounds';
+import {
+  contentBoundsInFrame,
+  contentWorldBounds,
+} from '@volter/editor-threejs/viewport/content-bounds';
 import * as THREE from 'three';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
@@ -163,6 +166,9 @@ export interface SelectionBracketsOptions {
   readonly edges?: boolean;
   /** Stroke width in CSS px; the editor's own is {@link SELECTION_BRACKET_LINEWIDTH}. */
   readonly lineWidth?: number;
+  /** Measure the box along the world's axes (the editor's own, Unity's bounds) or the object's
+   *  own, so it turns with the object (Godot's) — `density.viewport.selectionBoxFrame`. */
+  readonly frame?: 'world' | 'object';
   /**
    * Edge length of a fixed-size cube centered on the entity's world position,
    * used instead of a computed AABB. This is the degenerate-geometry path —
@@ -187,6 +193,9 @@ export class SelectionBrackets extends LineSegments2 {
 
   private readonly _fixedSize: number | undefined;
   private readonly _edges: boolean;
+  private readonly _objectFrame: boolean;
+  private readonly _toObject = new THREE.Matrix4();
+  private readonly _point = new THREE.Vector3();
   private readonly _positions = new Float32Array(BRACKET_SEGMENT_COUNT * FLOATS_PER_SEGMENT);
   private readonly _box = new THREE.Box3();
   private readonly _worldPos = new THREE.Vector3();
@@ -218,6 +227,7 @@ export class SelectionBrackets extends LineSegments2 {
     this.entityObject = entityObject;
     this._fixedSize = options.fixedSize;
     this._edges = options.edges === true;
+    this._objectFrame = options.frame === 'object';
     // A static hierarchy's world bounds do not change because the camera did.
     // Detect the cases whose vertices can move without an editor transform
     // notification; those keep the old every-frame bounds refresh. Ordinary
@@ -284,7 +294,12 @@ export class SelectionBrackets extends LineSegments2 {
       // Content only — a built-internal child (a world-space particle renderer
       // at identity, a pooled batch) would otherwise drag the cage off to
       // wherever its machinery lives. See `content-bounds.ts`.
-      contentWorldBounds(this.entityObject, this._box);
+      if (this._objectFrame) {
+        this._toObject.copy(this.entityObject.matrixWorld).invert();
+        contentBoundsInFrame(this.entityObject, this._toObject, this._box);
+      } else {
+        contentWorldBounds(this.entityObject, this._box);
+      }
       if (this._box.isEmpty()) return;
     }
     // Stand the cage off the silhouette. Per-axis, so a flat object (a ground
@@ -298,6 +313,18 @@ export class SelectionBrackets extends LineSegments2 {
     );
     this._box.expandByVector(this._standoff);
     writeBracketSegments(this._box, this._positions, this._edges);
+    // A box in the object's frame is written there and carried out to the world by the object.
+    if (this._objectFrame && this._fixedSize === undefined) {
+      const matrix = this.entityObject.matrixWorld;
+      for (let index = 0; index < this._positions.length; index += 3) {
+        this._point
+          .set(this._positions[index]!, this._positions[index + 1]!, this._positions[index + 2]!)
+          .applyMatrix4(matrix);
+        this._positions[index] = this._point.x;
+        this._positions[index + 1] = this._point.y;
+        this._positions[index + 2] = this._point.z;
+      }
+    }
     const start = this.geometry.getAttribute('instanceStart');
     // Both instanceStart and instanceEnd are views onto the one interleaved
     // buffer that owns `_positions`; flagging either one uploads all of it.

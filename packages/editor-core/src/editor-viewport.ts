@@ -1927,6 +1927,7 @@ export class EditorViewport {
           new SelectionBrackets(obj, {
             color: nativeSelectionColors(this._canvas).visible,
             edges: box.edges,
+            frame: box.frame,
             ...(box.lineWidth === null ? {} : { lineWidth: box.lineWidth }),
           }),
         );

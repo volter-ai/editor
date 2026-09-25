@@ -52,6 +52,8 @@ export const style: StyleContribution = {
         // Godot's selection is the whole AABB. Its edge is one solid pixel at 1x
         // (`tuto_3d5.png`); our screen-space line needs 2 to cover one captured pixel.
         selectionBox: 'edges',
+        // Godot's box turns with the object: its AABB in the object's own frame.
+        selectionBoxFrame: 'object',
         selectionBoxWidth: 2,
       },
     },

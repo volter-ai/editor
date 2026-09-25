@@ -71,6 +71,7 @@ export function traverseContent(
 /** Scratch for one node's transformed geometry box — this module is synchronous
  *  and single-threaded, so one instance serves every call. */
 const nodeBox = new THREE.Box3();
+const frameMatrix = new THREE.Matrix4();
 
 /**
  * Is this box a measurement at all?
@@ -139,10 +140,15 @@ function expandByInstances(
   target: THREE.Box3,
   node: THREE.InstancedMesh,
   geometryBox: THREE.Box3,
+  frame: THREE.Matrix4 | null,
 ): void {
   for (let index = 0; index < node.count; index++) {
     node.getMatrixAt(index, instanceMatrix);
-    instanceBox.copy(geometryBox).applyMatrix4(instanceMatrix).applyMatrix4(node.matrixWorld);
+    // ONE transform into the target space: a box carried through two is re-boxed twice, and a
+    // rotated object's box grows at each step.
+    instanceMatrix.premultiply(node.matrixWorld);
+    if (frame) instanceMatrix.premultiply(frame);
+    instanceBox.copy(geometryBox).applyMatrix4(instanceMatrix);
     if (!isFiniteBox(instanceBox)) continue;
     target.union(instanceBox);
   }
@@ -162,16 +168,26 @@ function expandByInstances(
  * `InstancedMesh` is the one node three's own rule gets wrong for a LIVE world;
  * see {@link expandByInstances}.
  */
-function expandByNodeGeometry(target: THREE.Box3, node: THREE.Object3D): void {
+function expandByNodeGeometry(
+  target: THREE.Box3,
+  node: THREE.Object3D,
+  frame: THREE.Matrix4 | null = null,
+): void {
   const geometry = (node as THREE.Mesh).geometry as THREE.BufferGeometry | undefined;
   if (!geometry) return;
   const local = localRenderableBox(node, geometry);
   if (!local) return;
   if ((node as THREE.InstancedMesh).isInstancedMesh) {
-    expandByInstances(target, node as THREE.InstancedMesh, local);
+    expandByInstances(target, node as THREE.InstancedMesh, local, frame);
     return;
   }
-  nodeBox.copy(local).applyMatrix4(node.matrixWorld);
+  if (frame) {
+    // One transform, for the same reason as the instances above.
+    frameMatrix.multiplyMatrices(frame, node.matrixWorld);
+    nodeBox.copy(local).applyMatrix4(frameMatrix);
+  } else {
+    nodeBox.copy(local).applyMatrix4(node.matrixWorld);
+  }
   if (!isFiniteBox(nodeBox)) return;
   target.union(nodeBox);
 }
@@ -327,6 +343,24 @@ export function contentWorldBounds(
 ): THREE.Box3 {
   target.makeEmpty();
   return expandBoxByContent(target, object);
+}
+
+/**
+ * `object`'s content box in a FRAME — `worldToFrame` carries world space into it (the
+ * inverse of the object's own `matrixWorld` gives its own axes, the box a rotated object's
+ * selection turns with in Godot). Same walk as {@link contentWorldBounds}.
+ */
+export function contentBoundsInFrame(
+  object: THREE.Object3D,
+  worldToFrame: THREE.Matrix4,
+  target: THREE.Box3 = new THREE.Box3(),
+): THREE.Box3 {
+  target.makeEmpty();
+  traverseContent(object, (node) => {
+    node.updateWorldMatrix(false, false);
+    expandByNodeGeometry(target, node, worldToFrame);
+  });
+  return target;
 }
 
 /**
