@@ -99,4 +99,11 @@ Unreal's default viewport is its style (`@volter/editor-game` `unreal.style.ts`)
 
 The layer is the named view `unreal` (`@volter/editor-game` `contributions/unreal.view.ts`), which a person puts on a view from the shading popover's View row or `editor.presentation(id, 'unreal')`.
 
-Neither half is accepted: Unreal still needs the capabilities its row names, Blender's Material Preview and Rendered modes are not expressible, and every judgement above is the orchestrator's alone. The reference frames are in `/Volumes/PeakSSD/volter-work/engine-reference`; the world stage is compiled but not yet seen on a project with a world.
+Independent judgement (an opus judge, frames captured through `captureActiveDocument` on a selected object, against `engine-reference` and Blender's `gizmo-*.png`): **Godot passes**; Unity, Unreal and Blender do not.
+
+- Unity and Unreal show the Godot-shaped gizmo (arrows, rotation rings, outer circle) where each opens on its Move tool: arrows with large cones and plane squares, no rings. That is the identity-breaking difference for both.
+- Unreal has no floor and no clouded sky, so the object floats; its bottom-left triad is missing.
+- Blender draws the grid and the X axis line through the solid cube, and lacks the 3D cursor and the origin dot.
+- Every target lacks its navigation gizmo in the frame (Godot's axis balls, Unity's cone gizmo with "Persp", Blender's navigation buttons); the capture did not show them.
+
+Neither half is accepted: the three failing targets above, Unreal's capability row, and Blender's Material Preview and Rendered modes. The reference frames are in `/Volumes/PeakSSD/volter-work/engine-reference`; the world stage is compiled but not yet seen on a project with a world.
