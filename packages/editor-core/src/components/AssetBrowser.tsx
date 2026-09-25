@@ -90,7 +90,7 @@ import { assetThumbnailRenderer } from '@volter/editor-sdk/kit/asset-thumbnails'
 import { object3DDocumentWritePolicy } from '../object3d-document-write-policy';
 import { projectAdapterFacet, subscribeProjectAdapter } from '../project-adapter';
 import { getCurrentProject } from '../project-manager';
-import { stageStore } from '../stage-store-registry';
+import { documentViewport } from '@volter/editor-sdk/kit/document-viewports';
 import { getStorageBackend } from '../storage';
 import { getGlobalToolContributions, subscribeToolContributions } from '../tool-loader';
 import { reportUnacceptedAssetDrop, showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
@@ -261,7 +261,8 @@ async function saveDocumentPreviewFraming(documentId: string, reset: boolean): P
   if (!reset && activeWorkspaceDocumentId() !== documentId) {
     throw new Error('Open this scene as the active document before using its current view.');
   }
-  const camera = stageStore(documentId)?.cameraPose;
+  const viewed = documentViewport(documentId)?.read()?.camera;
+  const camera = viewed && typeof viewed !== 'string' ? viewed : null;
   if (!reset && !camera) {
     throw new Error('The active scene has no ready 3D authoring view to save.');
   }
@@ -270,9 +271,9 @@ async function saveDocumentPreviewFraming(documentId: string, reset: boolean): P
     reset
       ? undefined
       : {
-          position: camera!.position.toArray(),
-          target: camera!.target.toArray(),
-          fov: camera!.fov,
+          position: [camera!.position.x, camera!.position.y, camera!.position.z],
+          target: [camera!.target.x, camera!.target.y, camera!.target.z],
+          fov: camera!.fov ?? 50,
         },
   );
 }

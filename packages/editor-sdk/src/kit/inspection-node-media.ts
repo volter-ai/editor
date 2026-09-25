@@ -31,8 +31,8 @@ export interface InspectionNodeMedia {
     readonly worldAnchored: boolean;
     readonly note: string | null;
   } | null;
-  /** The node has an Asset Editor document to jump to. */
-  readonly assetDocument: { readonly open: () => void } | null;
+  /** The node has an Asset Editor document to jump to; `open` answers its id. */
+  readonly assetDocument: { readonly open: () => string | null } | null;
 }
 
 export type InspectionNodeMediaProvider = (

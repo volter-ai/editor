@@ -49,7 +49,9 @@ import { registerDocumentOpener } from '../document-open-registry';
 import { projectFileExists } from '../editor-api';
 import type { AssetKind, OnlineAssetInfo } from '../asset-selection';
 import { type InspectionSection, PROPERTIES_SECTION_ORDER } from '@volter/editor-sdk/kit/inspection-model';
-import { threeStoreForHost } from '../shell-store-door';
+import { inspectionNodeMedia } from '@volter/editor-sdk/kit/inspection-node-media';
+import { getActiveAuthoring } from '../authoring/active-adapter';
+import { shellStoreForHost } from '../shell-store-door';
 import { DOCUMENT_REGISTRATION_TIMEOUT_MS, waitUntil } from '../wait-until';
 import {
   activeWorkspaceDocumentId,
@@ -362,13 +364,12 @@ registerDocumentOpener<{
   owner: 'asset-documents',
   open: (_store, request) => {
     if (request.entityId) {
-      // The Asset Editor's §8 title comes from the LIVE object map, which the
-      // address seam's narrow store (`WorkspaceStateStore`) does not carry and
-      // should not: `shell-store-door.ts` is how a lane reaches the one shell
-      // store without the seam widening for a single family.
-      const shell = threeStoreForHost();
+      // A live entity's Asset Editor document is the medium's to open: the one
+      // that draws it answers whether it has a model to show
+      // (`@volter/editor-sdk/kit/inspection-node-media`).
+      const shell = shellStoreForHost();
       if (!shell) return null;
-      const id = openEntityAssetDocument(shell, request.entityId);
+      const id = inspectionNodeMedia(getActiveAuthoring(shell), request.entityId)?.assetDocument?.open() ?? null;
       if (!id) throw new Error(`Scene entity is not available: ${request.entityId}`);
       return id;
     }
