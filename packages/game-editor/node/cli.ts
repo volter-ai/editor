@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import productPackage from '../package.json';
 import { createGameProject, presets } from './create';
 import { isScaffoldAddition, SCAFFOLD_ADDITIONS, type ScaffoldAddition } from './scaffold/additions';
-import { launch, type LaunchingProduct } from '@volter/editor-core/server/launcher/launch';
+import { launch, prepareSession, type LaunchingProduct } from '@volter/editor-core/server/launcher/launch';
 import { control } from '@volter/editor-core/server/launcher/control';
 import { listRecentProjects, listSessions, openProject, restart, screenshot, showProject, SCREENSHOT_OPTIONS, SCREENSHOT_USAGE } from '@volter/editor-core/server/launcher/session-verbs';
 import { hasManifest } from '@volter/editor-project/manifest/locate';
@@ -45,7 +45,7 @@ try {
   } else if (values.help) {
     console.log(`Volter Game Editor
   volter-game-editor create <folder> [--template ${Object.keys(presets.templates).join('|')}] [--with ${SCAFFOLD_ADDITIONS.join(',')}] [--workbench <dir>]
-  volter-game-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]
+  volter-game-editor prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  volter-game-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]
   volter-game-editor status | console | close
   volter-game-editor console ack <id> --reason <text>
   volter-game-editor eval <JavaScript body>   # { editor, game, page, tools, session } in scope
@@ -89,6 +89,9 @@ try {
   } else if (verb === 'sessions' || verb === 'project' || verb === 'projects') {
     if (positionals.length > 1) throw new Error(`Usage: volter-game-editor ${verb}`);
     await (verb === 'sessions' ? listSessions() : verb === 'project' ? showProject() : listRecentProjects());
+  } else if (verb === 'prepare') {
+    if (positionals.length > 2) throw new Error('Usage: volter-game-editor prepare [folder]');
+    await prepareSession(folder, PRODUCT);
   } else if (verb === 'open') {
     if (positionals.length !== 2) throw new Error('Usage: volter-game-editor open <path>');
     await openProject(positionals[1]!);

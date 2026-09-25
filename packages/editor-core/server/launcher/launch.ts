@@ -86,6 +86,28 @@ export async function launch(folder: string, launching: LaunchingProduct, option
   } finally { clearLaunch(); }
 }
 
+/**
+ * Run the session's own dependency optimizer for `folder` and stop: the step an
+ * image build runs so an opened session finds Vite's pre-bundle already made.
+ * It is the packaged session itself, with no workbench, port or tab, so what it
+ * records is exactly what the session would.
+ */
+export async function prepareSession(folder: string, launching: LaunchingProduct): Promise<void> {
+  const project = realpathSync(resolve(folder));
+  const product = resolveProductForProject(project);
+  if (product.name !== launching.packageName) throw new Error(`${project} declares ${product.name}, not ${launching.displayName}.`);
+  const entry = createRequire(join(product.dir, 'package.json')).resolve('@volter/editor-core/server/packaged');
+  const code = await new Promise<number | null>((done, fail) => {
+    const child = spawn(process.execPath, [entry], {
+      cwd: project, stdio: ['ignore', 'inherit', 'inherit'],
+      env: { ...process.env, VGAI_PROJECT: project, VGAI_PRODUCT_DIR: product.dir, VGAI_NO_OPEN: '1', VGAI_PREPARE: '1' },
+    });
+    child.once('error', fail);
+    child.once('exit', done);
+  });
+  if (code !== 0) throw new Error(`${launching.command} prepare exited with code ${code} for ${project}.`);
+}
+
 async function ensureTab(serverUrl: string, noOpen: boolean): Promise<void> {
   const openAttemptAt = Date.now();
   const result = await requestEditorTabEnsure(serverUrl, !noOpen);

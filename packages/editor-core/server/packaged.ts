@@ -991,6 +991,13 @@ async function main(): Promise<void> {
   }
   const resolvedViteConfig = await resolveConfig(viteInlineConfig, 'serve');
   await optimizeDeps(resolvedViteConfig);
+  // `<product> prepare`: the image a project is shipped in runs this session's
+  // own dependency optimizer ahead of time and carries what it recorded, so an
+  // opened session reuses it instead of optimizing (launcher/launch.ts).
+  if (process.env['VGAI_PREPARE']) {
+    console.log(`Prepared ${projectPath}: ${path.join(resolvedViteConfig.cacheDir, 'deps', '_metadata.json')}`);
+    process.exit(0);
+  }
   const vite = await createViteServer(resolvedViteConfig);
 
   // 2. Mount editor API routes (/__editor/*). `engineRoot` identifies the
