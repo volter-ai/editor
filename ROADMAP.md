@@ -90,7 +90,6 @@ Completion:
 Status: planned
 Source: vgai-engine `docs/WORK.md` §P2, each item with its own measurement.
 Completion:
-- Source identity instrumentation preserves application `userData` on native and custom R3F hosts across rerenders, including authored callbacks and refs.
 - A model task no longer pays the game template's ceremony; the skill no longer front-loads.
 - Grok's two clean Blender-lane runs are run in the modeling bench.
 - Visual generalizability: chrome anatomy, the missing axis.

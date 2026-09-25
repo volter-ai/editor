@@ -1054,6 +1054,49 @@ export function oidAttributeForSurface(
   return declaredSurface === 'three' ? 'userData-oid' : 'data-oid';
 }
 
+/**
+ * R3F host tags whose three class constructs WITHOUT a `userData` object, so the
+ * editor's `userData-*` stamps have no parent to pierce through unless one is
+ * seeded. Every Object3D, material, geometry and texture has its own, and a
+ * custom `extend` host is taken to be one of those.
+ */
+const SEEDED_USER_DATA_TAGS = new Set<string>([
+  'bufferAttribute',
+  'float16BufferAttribute',
+  'float32BufferAttribute',
+  'int8BufferAttribute',
+  'int16BufferAttribute',
+  'int32BufferAttribute',
+  'uint8BufferAttribute',
+  'uint8ClampedBufferAttribute',
+  'uint16BufferAttribute',
+  'uint32BufferAttribute',
+  'instancedBufferAttribute',
+  'interleavedBuffer',
+  'interleavedBufferAttribute',
+  'instancedInterleavedBuffer',
+  'color',
+  'vector2',
+  'vector3',
+  'vector4',
+  'euler',
+  'quaternion',
+  'matrix3',
+  'matrix4',
+  'fog',
+  'fogExp2',
+  'box2',
+  'box3',
+  'sphere',
+  'plane',
+  'ray',
+  'line3',
+  'triangle',
+  'spherical',
+  'cylindrical',
+  'layers',
+]);
+
 /** Options for {@link transformSource}. */
 export interface TransformSourceOptions {
   /**
@@ -1556,6 +1599,13 @@ export function transformSource(
           // destructive. That initializer's real subjects are the resources R3F
           // itself constructs.
           tag !== 'primitive' &&
+          // ONLY where the constructed object has no `userData` of its own. The
+          // seed is a new `{}` on every render, and Fiber REPLACES `userData`
+          // whenever that prop changes: seeded on an Object3D, a material or a
+          // custom host, it wiped what the game kept there on each rerender
+          // (measured: a mesh's `userData.probe`, set once on mount, gone after
+          // 13 renders, leaving only the editor's keys).
+          SEEDED_USER_DATA_TAGS.has(tag) &&
           !node.attributes.properties.some(
             (property) => ts.isJsxAttribute(property) && property.name.getText(sf) === 'userData',
           )
