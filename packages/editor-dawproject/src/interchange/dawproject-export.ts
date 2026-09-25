@@ -76,7 +76,11 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
       for (const device of channel.devices) {
         const role = device.plugin === 'soundfont' ? 'instrument' : 'noteFX';
         out(5, `<Device${attrs({ id: id(), name: device.name ?? device.plugin, deviceName: device.plugin, deviceRole: role, deviceVendor: 'Volter', loaded: false })}>`);
-        const numeric = Object.entries(device.params).filter(([, value]) => typeof value !== 'string');
+        // Single numbers and switches are parameters; a list (an equaliser's bands) has no
+        // generic-parameter form and is left to the device-specific elements.
+        const numeric = Object.entries(device.params).filter(
+          (entry): entry is [string, number | boolean] => typeof entry[1] === 'number' || typeof entry[1] === 'boolean',
+        );
         if (numeric.length > 0) {
           out(6, '<Parameters>');
           for (const [key, value] of numeric) {

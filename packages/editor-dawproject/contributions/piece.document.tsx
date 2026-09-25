@@ -21,6 +21,7 @@ export default function PieceDocument(props: ToolContributionProps) {
       active={props.active ?? true}
       {...(props.notify ? { notify: props.notify } : {})}
       {...(props.publishContext ? { publishContext: props.publishContext } : {})}
+      documentId={props.documentId ?? null}
     />
   );
 }

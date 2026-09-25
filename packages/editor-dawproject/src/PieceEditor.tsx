@@ -16,6 +16,7 @@
 import { formatAt, formatPitch, spelledFlat } from '@volter/dawproject/notation';
 import type { Piece, PieceClip, PieceNote, PieceTrack } from '@volter/dawproject/piece';
 import type { ToolNotice } from '@volter/editor-sdk/contributions';
+import { editorHost } from '@volter/editor-sdk/host';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { type CSSProperties, type PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLivePiece } from './live-piece';
@@ -81,9 +82,11 @@ export function PieceEditor({
   active,
   notify,
   publishContext,
+  documentId = null,
 }: {
   readonly file: string;
   readonly active: boolean;
+  readonly documentId?: string | null;
   readonly notify?: (notice: ToolNotice) => () => void;
   readonly publishContext?: (context: unknown) => () => void;
 }) {
@@ -245,6 +248,8 @@ export function PieceEditor({
             pxPerBeat={pxPerBeat * 2}
             playhead={playhead}
             onMessage={setMessage}
+            file={file}
+            documentId={documentId}
           />
         ) : (
           <div style={{ padding: 16, ...small }}>No clips yet. Clips appear here as the piece gains them.</div>
@@ -432,6 +437,8 @@ function PianoRoll(props: {
   readonly pxPerBeat: number;
   readonly playhead: number | null;
   readonly onMessage: (message: string | null) => void;
+  readonly file: string;
+  readonly documentId: string | null;
 }) {
   const { clip, color, piece, index, pxPerBeat } = props;
   // The gesture lives in a ref, read and written synchronously by every pointer event; the
@@ -486,11 +493,30 @@ function PianoRoll(props: {
     // Written back in the piece's own units: an absolute `bar:beat` and a note name, spelled
     // with flats when the note was.
     const props_: Record<string, string> = {};
-    if (time !== note.time) props_['at'] = formatAt(clip.time + time, piece.transport.beatsPerBar);
-    if (pitch !== note.pitch) props_['pitch'] = formatPitch(pitch, spelledFlat(note.written.pitch));
+    const before: Record<string, string> = {};
+    if (time !== note.time) {
+      props_['at'] = formatAt(clip.time + time, piece.transport.beatsPerBar);
+      before['at'] = note.written.at;
+    }
+    if (pitch !== note.pitch) {
+      props_['pitch'] = formatPitch(pitch, spelledFlat(note.written.pitch));
+      before['pitch'] = note.written.pitch;
+    }
     setPending((prev) => new Map(prev).set(note.id, { time, pitch }));
-    writeProps(note.oid, props_).then(
-      () => undefined,
+    const oid = note.oid;
+    writeProps(oid, props_).then(
+      () => {
+        // One entry on the workbench's one undo stack (Cmd+Z, the Edit menu): undo writes the
+        // literals the note had, redo the ones the gesture wrote, through the same source route.
+        editorHost().history.record({
+          id: globalThis.crypto?.randomUUID?.() ?? `note-${Date.now()}`,
+          label: props_['pitch'] && !props_['at'] ? 'Transpose Note' : 'Move Note',
+          resources: [props.file],
+          document: props.documentId,
+          undo: () => writeProps(oid, before).then(() => true, () => false),
+          redo: () => writeProps(oid, props_).then(() => true, () => false),
+        });
+      },
       (error: unknown) => {
         setPending((prev) => {
           const next = new Map(prev);
