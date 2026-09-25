@@ -5,9 +5,9 @@
     "id": "plotter",
     "color": {
       "surface": {
-        "shell": "#eeede7",
+        "shell": "#f7f6f1",
         "panel": "#f7f6f1",
-        "chrome": "#eeede7",
+        "chrome": "#f7f6f1",
         "raised": "#fbfaf7",
         "inset": "#f1f0eb",
         "overlay": "rgba(251,250,247,0.97)"
@@ -70,7 +70,7 @@
       }
     },
     "typography": {
-      "sans": "Geist, 'Segoe UI', system-ui, sans-serif",
+      "sans": "'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace",
       "mono": "'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace"
     }
   }
