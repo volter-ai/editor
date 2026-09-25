@@ -849,7 +849,7 @@ export function Object3DDocumentViewport({
       host.cleanups.push(registerStageTransport(documentId, host.transport));
       host.cleanups.push(
         registerDocumentViewport(documentId, {
-          ...sceneDocumentViewport(host.store),
+          ...sceneDocumentViewport(host.store, documentId),
           ...threeStageTransformChrome(documentId),
         }),
       );
@@ -1611,7 +1611,6 @@ export function Object3DDocumentViewport({
         const retainedPresentation = retainedState.presentation;
         if (retainedPresentation) {
           documentSession.setMode(retainedPresentation.mode);
-          documentSession.setGrid(retainedPresentation.grid);
           documentSession.setBackground(retainedPresentation.background);
           documentSession.setProjection(retainedPresentation.projection);
           documentSession.setSkeleton(retainedPresentation.skeleton);

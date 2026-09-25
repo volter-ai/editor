@@ -197,7 +197,6 @@ export class EditorShellStore extends ShellStore {
   protected _preserveChildrenTransform = false;
   protected _pivotMode: PivotMode = 'active-element';
   protected _gizmoAnchor: GizmoAnchor = 'auto';
-  protected _showGrid = true;
   protected _showHelpers = true;
   protected _helperVisibility: HelperVisibility = {
     bounds: false,
@@ -404,9 +403,6 @@ export class EditorShellStore extends ShellStore {
   }
   get gizmoAnchor(): GizmoAnchor {
     return this._gizmoAnchor;
-  }
-  get showGrid(): boolean {
-    return this._showGrid;
   }
   get showHelpers(): boolean {
     return this._showHelpers;
@@ -853,7 +849,6 @@ export class EditorShellStore extends ShellStore {
       preserveChildrenTransform: this._preserveChildrenTransform,
       pivotMode: this._pivotMode,
       gizmoAnchor: this._gizmoAnchor,
-      showGrid: this._showGrid,
       showHelpers: this._showHelpers,
       helperVisibility: { ...this._helperVisibility },
       showStats: this._showStats,
@@ -951,11 +946,6 @@ export class EditorShellStore extends ShellStore {
 
   setGizmoAnchor(anchor: GizmoAnchor): void {
     this._gizmoAnchor = anchor;
-    this._notify();
-  }
-
-  toggleGrid(): void {
-    this._showGrid = !this._showGrid;
     this._notify();
   }
 

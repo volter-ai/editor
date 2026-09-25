@@ -47,6 +47,8 @@ import { viewportStageHelperKinds } from '../viewport-door';
 import {
   applyViewPreset,
   DOCUMENT_STUDIO_PRESET,
+  setViewGridVisible,
+  viewGridVisible,
   setViewPresentation,
   studioPresets,
   viewPresets,
@@ -401,8 +403,9 @@ export function Object3DDocumentToolbar({
             {
               id: 'grid',
               label: 'Grid',
-              enabled: presentation.grid,
-              onToggle: () => session.setGrid(!presentation.grid),
+              // The VIEW's grid switch (`kit/viewport-presentation`), one per view.
+              enabled: viewGridVisible(documentId),
+              onToggle: () => setViewGridVisible(documentId, !viewGridVisible(documentId)),
             },
             {
               id: 'bounds',

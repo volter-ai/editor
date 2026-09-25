@@ -6,12 +6,13 @@
  */
 import type { DocumentViewport } from '@volter/editor-sdk/kit/document-viewports';
 import type { EditorShellStore } from './editor-shell-store';
+import { setViewGridVisible, viewGridVisible } from '@volter/editor-sdk/kit/viewport-presentation';
 
 type ShadingMode = Parameters<EditorShellStore['setShadingMode']>[0];
 
 const SCENE_MODES = new Set<string>(['solid', 'clay', 'unlit', 'wireframe', 'normals', 'overdraw']);
 
-export function sceneDocumentViewport(store: EditorShellStore): DocumentViewport {
+export function sceneDocumentViewport(store: EditorShellStore, documentId: string): DocumentViewport {
   return {
     read: () => {
       const pose = store.cameraPose;
@@ -24,12 +25,10 @@ export function sceneDocumentViewport(store: EditorShellStore): DocumentViewport
           ...(pose.fov ? { fov: pose.fov } : {}),
         },
         diagnostic: store.shadingMode,
-        grid: store.showGrid,
+        grid: viewGridVisible(documentId),
       };
     },
-    setGrid: (on) => {
-      if (store.showGrid !== on) store.toggleGrid();
-    },
+    setGrid: (on) => setViewGridVisible(documentId, on),
     setDiagnostic: (diagnostic) => {
       if (!SCENE_MODES.has(diagnostic)) return false;
       store.setShadingMode(diagnostic as ShadingMode);

@@ -1006,8 +1006,6 @@ export class EditorViewport {
   private _marksLook = '';
   /** The view's grid switch (`overlays.grid.visible`); the person's toggle is the store's. */
   private _presentationGrid = true;
-  /** A document session's own grid toggle ({@link setPersonGrid}). */
-  private _personGrid = true;
   private _vcMarginRight = COMPASS_MARGIN_RIGHT_PX;
   private _vcMarginTop = COMPASS_MARGIN_TOP_PX;
   /** See {@link EditorViewportOptions.chromeInsetPx}. */
@@ -2764,7 +2762,7 @@ export class EditorViewport {
     const threeSurface =
       this._standaloneAuthoring || policy.threeSurfaceShowing(this._store, authoring);
     this._threeSurfaceShowing = threeSurface;
-    this.grid.visible = this._store.showGrid && this._personGrid && this._presentationGrid && threeSurface;
+    this.grid.visible = this._presentationGrid && threeSurface;
     if (this._axisLines) this._axisLines.visible = this.grid.visible && this._axesWanted;
 
     // The two passes below (apply gizmos + per-type helper/icon visibility) are
@@ -4265,26 +4263,17 @@ export class EditorViewport {
     return { left: width - this._vcSize - this._vcMarginRight - inset, top: this._vcMarginTop + inset };
   }
 
-  /** The view's grid switch (`overlays.grid.visible`), beside the person's own toggle. */
+  /** The view's grid switch (`overlays.grid.visible`) — the person's toggle, one per view. */
   setGridVisible(visible: boolean): void {
     if (visible === this._presentationGrid) return;
     this._presentationGrid = visible;
     this._applyGridVisibility();
   }
 
-  /** A document session's own grid toggle (`object3d-document-session.ts` `setGrid`), the
-   *  person's choice beside the store's, joined with the view's switch like it. */
-  setPersonGrid(visible: boolean): void {
-    if (visible === this._personGrid) return;
-    this._personGrid = visible;
-    this._applyGridVisibility();
-  }
-
-  /** THE GRID SHOWS when the person's toggles, the view's switch and a showing stage all say
-   *  so; the axis lines follow it. */
+  /** THE GRID SHOWS when the view's switch (`overlays.grid.visible`, which every grid toggle
+   *  writes) and a showing stage both say so; the axis lines follow it. */
   private _applyGridVisibility(): void {
-    this.grid.visible =
-      this._store.showGrid && this._personGrid && this._presentationGrid && this._threeSurfaceShowing;
+    this.grid.visible = this._presentationGrid && this._threeSurfaceShowing;
     if (this._axisLines) this._axisLines.visible = this.grid.visible && this._axesWanted;
     invalidateStages();
   }

@@ -18,6 +18,12 @@ import {
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { showWorkspaceUtility } from '../workspace-host-commands';
 import { ViewportOverlaysMenu } from './ViewportOverlaysMenu';
+import {
+  setViewGridVisible,
+  subscribeViewportPresentation,
+  viewGridVisible,
+  viewportPresentationVersion,
+} from '@volter/editor-sdk/kit/viewport-presentation';
 import { ViewportShadingMenu } from './ViewportShadingMenu';
 import { ViewportViewMenu } from './ViewportViewMenu';
 
@@ -50,7 +56,8 @@ export function ViewportOverlay({
   const { adapter } = resolvePanelAuthoring(store);
   const session = object3DDocumentSession(documentId);
   useSyncExternalStore(session?.subscribe ?? NO_SESSION_SUBSCRIBE, session?.getSnapshot ?? ZERO);
-  const grid = session ? session.presentation().grid : store.showGrid;
+  useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
+  const grid = viewGridVisible(documentId);
   return (
     <FloatingToolbar
       label="Viewport display"
@@ -61,7 +68,7 @@ export function ViewportOverlay({
           aria-label="Toggle grid"
           aria-pressed={grid}
           size="comfortable"
-          onClick={() => (session ? session.setGrid(!grid) : store.toggleGrid())}
+          onClick={() => setViewGridVisible(documentId, !grid)}
         >
           <EditorIcon icon={faBorderAll} size="md" />
         </IconButton>

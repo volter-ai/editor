@@ -90,7 +90,6 @@ function finiteOr(value: unknown, fallback: number): number {
 
 export interface Object3DDocumentPresentationState {
   readonly mode: Object3DDocumentViewMode;
-  readonly grid: boolean;
   readonly background: 'neutral' | 'transparent';
   readonly projection: 'perspective' | 'orthographic';
   readonly skeleton: boolean;
@@ -99,7 +98,6 @@ export interface Object3DDocumentPresentationState {
 
 const INITIAL_PRESENTATION: Object3DDocumentPresentationState = {
   mode: 'solid',
-  grid: true,
   background: 'neutral',
   projection: 'perspective',
   skeleton: false,
@@ -700,14 +698,6 @@ export class Object3DDocumentSession {
     this.notify();
   }
 
-  setGrid(grid: boolean): void {
-    invalidateStages();
-    if (this.state.grid === grid) return;
-    this.viewport.setPersonGrid(grid);
-    this.state = { ...this.state, grid };
-    this.notify();
-  }
-
   /** The neutral backdrop as installed — what a re-tint replaces. */
   neutralBackgroundTexture(): THREE.Color | THREE.Texture | null {
     return this.neutralBackground;
@@ -745,7 +735,6 @@ export class Object3DDocumentSession {
     this.state = INITIAL_PRESENTATION;
     this.refreshSkeletonHelper();
     this.clearBoundsHelper();
-    this.viewport.setPersonGrid(true);
     this.scene.background = this.neutralBackground;
     this.viewport.camera.up.set(0, 1, 0);
     this.frame();

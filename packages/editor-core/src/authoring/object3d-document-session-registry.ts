@@ -7,6 +7,7 @@
  * diagnostic-rendering graph during a plain Scene boot. The class remains the
  * native session type; this module owns only its live identities.
  */
+import { setViewGridVisible, viewGridVisible } from '@volter/editor-sdk/kit/viewport-presentation';
 import {
   type DocumentViewport,
   registerDocumentViewport,
@@ -64,10 +65,10 @@ function object3DDocumentViewport(session: Object3DDocumentSession): DocumentVie
       return {
         camera: { position: xyz(pose.position), target: xyz(pose.target), ...(pose.fov ? { fov: pose.fov } : {}) },
         diagnostic: presentation.skeleton ? 'skeleton' : presentation.mode,
-        grid: presentation.grid,
+        grid: viewGridVisible(session.documentId),
       };
     },
-    setGrid: (on) => session.setGrid(on),
+    setGrid: (on) => setViewGridVisible(session.documentId, on),
     setDiagnostic: (diagnostic) => {
       session.setSkeleton(diagnostic === 'skeleton');
       session.setBounds(diagnostic === 'bounds');

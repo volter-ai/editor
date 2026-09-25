@@ -19,6 +19,8 @@ import {
 import { registerContributedActions } from './chrome-registry';
 import type { EditorShellStore } from './editor-shell-store';
 import { requestTransformMode } from './transform-mode-request';
+import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
+import { setViewGridVisible, viewGridVisible } from '@volter/editor-sdk/kit/viewport-presentation';
 
 function cameraActions(): ContributedAction[] {
   const presentation = cameraAuthoringPresentation();
@@ -60,7 +62,15 @@ export function registerViewportActions(store: EditorShellStore): () => void {
     { id: 'mode.scale', label: 'Scale Mode', shortcut: 'transform.scale', execute: () => requestTransformMode(store, 'scale') },
     { id: 'mode.world', label: 'World Space', execute: () => store.setTransformSpace('world') },
     { id: 'mode.local', label: 'Local Space', execute: () => store.setTransformSpace('local') },
-    { id: 'toggle.grid', label: 'Toggle Grid', execute: () => store.toggleGrid() },
+    {
+      id: 'toggle.grid',
+      label: 'Toggle Grid',
+      execute: () => {
+        // The ACTIVE view's grid switch, one per view (`kit/viewport-presentation`).
+        const viewId = activeWorkspaceDocumentId();
+        if (viewId) setViewGridVisible(viewId, !viewGridVisible(viewId));
+      },
+    },
     { id: 'toggle.helpers', label: 'Toggle Helpers', execute: () => store.toggleHelpers() },
     { id: 'toggle.stats', label: 'Toggle Stats Overlay', execute: () => store.toggleStats() },
     { id: 'toggle.snap', label: 'Toggle Snap', shortcut: 'viewport.toggleSnap', execute: () => store.toggleSnap() },

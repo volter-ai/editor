@@ -27,6 +27,13 @@ import {
 } from '../authoring/canvas-scene-guides';
 import type { RootViewController } from '@volter/editor-sdk/kit/world-pan-state';
 import { useEditorStore } from '../editor-runtime';
+import {
+  setViewGridVisible,
+  subscribeViewportPresentation,
+  viewGridVisible,
+  viewportPresentationVersion,
+} from '@volter/editor-sdk/kit/viewport-presentation';
+import { CANVAS_SCENE_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import { ToolStrip } from './Toolbar';
 import { TransientHintOverlay } from './TransientHint';
 
@@ -97,6 +104,9 @@ function frameBounds(
 export function CanvasSceneBackdrop({ view }: { view: RootViewController }) {
   const store = threeStateOf(useEditorStore());
   useSyncExternalStore(store.subscribe, store.getSnapshot);
+  // The 2D scene's grid switch is its VIEW's, like every stage's (`kit/viewport-presentation`).
+  useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
+  const showGrid = viewGridVisible(CANVAS_SCENE_DOCUMENT_ID);
   const pose = useSyncExternalStore(view.subscribe, view.get, view.get);
   useSyncExternalStore(
     useCallback((listener) => subscribeCanvasSceneGuides(view, listener), [view]),
@@ -116,7 +126,7 @@ export function CanvasSceneBackdrop({ view }: { view: RootViewController }) {
         pointerEvents: 'none',
       }}
     >
-      {store.showGrid && (
+      {showGrid && (
         <div
           style={{
             position: 'absolute',
@@ -423,6 +433,8 @@ export function CanvasSceneControls({
 }) {
   const store = threeStateOf(useEditorStore());
   useSyncExternalStore(store.subscribe, store.getSnapshot);
+  useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
+  const showGrid = viewGridVisible(CANVAS_SCENE_DOCUMENT_ID);
   const pose = useSyncExternalStore(view.subscribe, view.get, view.get);
 
   const zoomAroundCenter = useCallback(
@@ -498,12 +510,12 @@ export function CanvasSceneControls({
         className="vgai-viewport-toolbar vgai-viewport-toolbar-right"
         data-vgai-canvas-navigation-ignore="true"
       >
-        <Tooltip text={`Grid: ${store.showGrid ? 'On' : 'Off'}`}>
+        <Tooltip text={`Grid: ${showGrid ? 'On' : 'Off'}`}>
           <IconButton
             aria-label="Toggle 2D grid"
-            aria-pressed={store.showGrid}
+            aria-pressed={showGrid}
             size="comfortable"
-            onClick={() => store.toggleGrid()}
+            onClick={() => setViewGridVisible(CANVAS_SCENE_DOCUMENT_ID, !showGrid)}
           >
             <EditorIcon icon={faBorderAll} size="md" />
           </IconButton>

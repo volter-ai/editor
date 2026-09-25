@@ -293,6 +293,23 @@ export function studioPresets(): readonly StudioPreset[] {
   return [...presets.values()];
 }
 
+// ---- The grid switch ------------------------------------------------------------------------------
+
+/**
+ * WHETHER A VIEW DRAWS ITS GRID — the person's grid toggle, which is the view's own choice
+ * (`overlays.grid.visible`): every door that toggles a grid (the viewport's button, the overlays
+ * menu, the Toggle Grid action, `set-grid`, a restored view) writes it here, per view, and the
+ * stage and the status read it back. One home; a view the person never touched shows its grid.
+ */
+export function viewGridVisible(viewId: string): boolean {
+  return viewPresentation(viewId).overlays.grid.visible;
+}
+
+export function setViewGridVisible(viewId: string, visible: boolean): void {
+  if (viewGridVisible(viewId) === visible) return;
+  setViewPresentation(viewId, { overlays: { grid: { visible } } });
+}
+
 // ---- View presets --------------------------------------------------------------------------------
 
 /**

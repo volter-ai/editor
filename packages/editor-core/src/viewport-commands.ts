@@ -25,6 +25,7 @@ import { captureActiveEditorDocument } from './editor-view-presentation';
 import { entityObject3D } from './entity-object';
 import { threeStoreForHost } from './shell-store-door';
 import { focusedStageStore } from './stage-context';
+import { setViewGridVisible } from '@volter/editor-sdk/kit/viewport-presentation';
 
 function activeObject3DDocumentSession() {
   const documentId = activeWorkspaceDocumentId();
@@ -209,10 +210,10 @@ export const viewportCommands: CommandContribution['commands'] = {
   // The Asset Lab's photographs; the budget covers a multi-shot set's renders.
   'capture-asset-preview': verb((store, cmd) => handleAssetPreviewCommand(store, cmd), 30_000, 'if-content-changed'),
   // Display — set semantics (only toggle when the value differs).
-  'set-grid': verb((store, cmd) => {
-    const documentSession = activeObject3DDocumentSession();
-    if (documentSession) documentSession.setGrid(cmd['enabled'] as boolean);
-    else if (store.showGrid !== (cmd['enabled'] as boolean)) store.toggleGrid();
+  'set-grid': verb((_store, cmd) => {
+    // The ACTIVE view's grid switch (`kit/viewport-presentation`), one per view.
+    const viewId = activeWorkspaceDocumentId();
+    if (viewId) setViewGridVisible(viewId, cmd['enabled'] as boolean);
     return OK;
   }),
   // Helpers and the stats tile are per-STAGE view options, read by the focused

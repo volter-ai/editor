@@ -10,6 +10,7 @@ import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-docu
 import { object3DDocumentSession } from './authoring/object3d-document-session-registry';
 import { threeStoreForHost } from './shell-store-door';
 import { focusedStageStore } from './stage-context';
+import { viewGridVisible } from '@volter/editor-sdk/kit/viewport-presentation';
 
 export function reportViewportStatus(): () => void {
   return editorHost().session.reportFacet(() => {
@@ -24,7 +25,7 @@ export function reportViewportStatus(): () => void {
     // through, absent until one is bound — never a fabricated value.
     const pose = stage.cameraPose;
     return {
-      showGrid: presentation?.grid ?? store.showGrid,
+      showGrid: activeDocumentId ? viewGridVisible(activeDocumentId) : true,
       showHelpers: stage.showHelpers,
       showStats: stage.showStats,
       shadingMode: presentation?.mode ?? store.shadingMode,
