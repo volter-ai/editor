@@ -10,6 +10,7 @@ import {
   viewDrawReport,
   type PresentationLayer,
 } from '@volter/editor-sdk/kit/viewport-presentation';
+import { environmentImages } from '@volter/editor-sdk/kit/environment-images';
 import { documentViewport } from '@volter/editor-sdk/kit/document-viewports';
 import { inspectionNodeMedia } from '@volter/editor-sdk/kit/inspection-node-media';
 import { isGameplayExportActive } from './gameplay-export-state';
@@ -1162,6 +1163,7 @@ export async function handleCommand(
           lastDraw: viewDrawReport(documentId),
           presets: studioPresets().map((preset) => preset.id),
           viewPresets: viewPresets().map((one) => one.id),
+          environmentImages: environmentImages().map((one) => one.id),
         },
       };
     }

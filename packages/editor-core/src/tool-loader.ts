@@ -61,6 +61,7 @@ import { registerContributedWorkspace } from './workspace-presets';
 import { registerWorkspaceStatus } from './workspace-status-registry';
 import { registerContributedStyle } from './workspace-style';
 import { registerViewPreset, type ViewPreset } from '@volter/editor-sdk/kit/viewport-presentation';
+import { type EnvironmentImageSet, registerEnvironmentImages } from '@volter/editor-sdk/kit/environment-images';
 import { registerWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-utility-registry';
 
 /**
@@ -1090,7 +1091,7 @@ let unregisterStatusContributions: Array<() => void> = [];
 /** A look contribution as loaded: which point, and the module's one export. */
 interface LookModule {
   readonly entryPath: string;
-  readonly kind: 'layout' | 'keymap' | 'style' | 'view';
+  readonly kind: 'layout' | 'keymap' | 'style' | 'view' | 'environment';
   readonly module: unknown;
 }
 let unregisterLookContributions: Array<() => void> = [];
@@ -1333,7 +1334,7 @@ function applyLookContributions(items: readonly LookModule[]): void {
     ) {
       teachingError(
         `[tool contributions] ${item.entryPath} must \`export const ${item.kind}\` — an object with a ` +
-          `string \`id\` (see \`${item.kind === 'layout' ? 'WorkspaceLayoutContribution' : item.kind === 'keymap' ? 'KeymapContribution' : item.kind === 'view' ? 'ViewPreset (@volter/editor-sdk/kit/viewport-presentation)' : 'StyleContribution'}\` in @volter/editor-sdk/looks). Skipped.`,
+          `string \`id\` (see \`${item.kind === 'layout' ? 'WorkspaceLayoutContribution' : item.kind === 'keymap' ? 'KeymapContribution' : item.kind === 'view' ? 'ViewPreset (@volter/editor-sdk/kit/viewport-presentation)' : item.kind === 'environment' ? 'EnvironmentImageSet (@volter/editor-sdk/kit/environment-images)' : 'StyleContribution'}\` in @volter/editor-sdk/looks). Skipped.`,
       );
       continue;
     }
@@ -1347,7 +1348,9 @@ function applyLookContributions(items: readonly LookModule[]): void {
             ? registerContributedKeymap(value as Parameters<typeof registerContributedKeymap>[0])
             : item.kind === 'view'
               ? registerViewPreset(value as ViewPreset)
-              : registerContributedStyle(value as Parameters<typeof registerContributedStyle>[0]),
+              : item.kind === 'environment'
+                ? registerEnvironmentImages(value as EnvironmentImageSet)
+                : registerContributedStyle(value as Parameters<typeof registerContributedStyle>[0]),
       );
     } catch (error) {
       teachingError(`[tool contributions] ${item.entryPath} could not register.\n${String(error)}`);

@@ -34,9 +34,11 @@
 import { invalidateStages } from '../stage-invalidation';
 import { contentWorldBounds } from '@volter/editor-threejs/viewport/content-bounds';
 import { EDITOR_LAYER } from '@volter/editor-threejs/viewport/editor-layers';
-import type { StandardEnvironment } from '@volter/editor-threejs/viewport/environment';
+import { loadEnvironmentImage, type StandardEnvironment } from '@volter/editor-threejs/viewport/environment';
 import { setUserData } from '@volter/editor-threejs/ecs/user-data';
 import * as THREE from 'three';
+import { environmentImage } from '@volter/editor-sdk/kit/environment-images';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import {
   studioPreset,
   type StudioLight,
@@ -441,8 +443,14 @@ export class StagePresentationRig {
   private sky: { key: string; background: THREE.Texture; environment: THREE.Texture } | null = null;
   private pmrem: THREE.PMREMGenerator | null = null;
   private readonly direction = new THREE.Vector3();
+  /** The environment image being fetched (its sky key), so a second apply does not fetch it again. */
+  private loadingImage: string | null = null;
+  /** The environment's turn about the vertical axis, radians. */
+  private rotation = 0;
+  private disposed = false;
 
-  constructor(scene: THREE.Scene) {
+  /** `onReady`: an environment image arrived after the apply that asked for it; draw again. */
+  constructor(scene: THREE.Scene, private readonly onReady?: () => void) {
     this.group.name = 'vgai:stage-presentation-rig';
     // Kept out of hierarchy walks and picks, like every editor helper.
     this.group.userData['editorHelper'] = true;
@@ -493,11 +501,49 @@ export class StagePresentationRig {
     this.sun.shadow.camera.updateProjectionMatrix();
     this.sun.updateMatrixWorld();
     this.sun.target.updateMatrixWorld();
+    this.rotation = THREE.MathUtils.degToRad(environment.rotation);
     const wantsSky =
       environment.enabled && (lighting.source === 'preview' || presentation.backdrop.source === 'environment');
-    if (wantsSky) {
+    if (!wantsSky) return;
+    // An image the view names but no integration has registered (yet, or in this product) leaves
+    // the procedural sky in place; the image is built when it registers (the stage re-applies).
+    const image = environment.image === null ? null : environmentImage(environment.image);
+    if (image) this.buildImage(image, renderer);
+    else {
+      this.loadingImage = null;
       this.buildSky(environment.sky, renderer, sun.enabled ? { direction: this.sun.position.clone().normalize(), color: sun.color, energy: sun.energy } : null);
     }
+  }
+
+  /**
+   * AN ENVIRONMENT IMAGE as the preview's sky: the panorama drawn behind the scene and,
+   * prefiltered, the light, exactly where the procedural strip would be. Read as half float for
+   * the same reason as the strip (a bright sun past white; linear filtering on phones). The last
+   * sky stays drawn while the image loads.
+   */
+  private buildImage(
+    image: NonNullable<ReturnType<typeof environmentImage>>,
+    renderer: THREE.WebGLRenderer,
+  ): void {
+    const key = `image|${image.id}|${image.url}`;
+    if (this.sky?.key === key || this.loadingImage === key) return;
+    this.loadingImage = key;
+    loadEnvironmentImage(image.url, image.format)
+      .then((texture) => {
+        if (this.disposed || this.loadingImage !== key) {
+          texture.dispose();
+          return;
+        }
+        this.loadingImage = null;
+        this.disposeSky();
+        this.pmrem ??= new THREE.PMREMGenerator(renderer);
+        this.sky = { key, background: texture, environment: this.pmrem.fromEquirectangular(texture).texture };
+        this.onReady?.();
+      })
+      .catch((error: unknown) => {
+        if (this.loadingImage === key) this.loadingImage = null;
+        editorConsole.error(`Environment image "${image.id}" (${image.url}) did not load: ${String(error)}`, 'viewport');
+      });
   }
 
   /**
@@ -597,14 +643,14 @@ export class StagePresentationRig {
 
   /** The environment this draw lights by: the studio's own at the preset's strength, the
    *  preview sky at its energy, or `null` when the scene's own decides. */
-  environment(): { readonly texture: THREE.Texture | null; readonly intensity: number } | null {
+  environment(): { readonly texture: THREE.Texture | null; readonly intensity: number; readonly rotation: number } | null {
     const lighting = this.presentation?.lighting;
     if (!lighting) return null;
-    if (this.source === 'studio') return { texture: null, intensity: this.preset?.environmentIntensity ?? 0 };
+    if (this.source === 'studio') return { texture: null, intensity: this.preset?.environmentIntensity ?? 0, rotation: 0 };
     if (this.source === 'preview') {
       return lighting.preview.environment.enabled
-        ? { texture: this.sky?.environment ?? null, intensity: lighting.preview.environment.energy }
-        : { texture: null, intensity: 0 };
+        ? { texture: this.sky?.environment ?? null, intensity: lighting.preview.environment.energy, rotation: this.rotation }
+        : { texture: null, intensity: 0, rotation: 0 };
     }
     return null;
   }
@@ -615,14 +661,19 @@ export class StagePresentationRig {
    */
   backdrop():
     | 'keep'
-    | { readonly value: THREE.Color | THREE.Texture | null; readonly blur: number; readonly intensity: number } {
+    | {
+        readonly value: THREE.Color | THREE.Texture | null;
+        readonly blur: number;
+        readonly intensity: number;
+        readonly rotation: number;
+      } {
     const backdrop = this.presentation?.backdrop;
     if (!backdrop || backdrop.source === 'fill' || backdrop.source === 'scene') return 'keep';
-    if (backdrop.source === 'transparent') return { value: null, blur: 0, intensity: 1 };
-    if (backdrop.source === 'color') return { value: new THREE.Color(backdrop.color), blur: 0, intensity: 1 };
+    if (backdrop.source === 'transparent') return { value: null, blur: 0, intensity: 1, rotation: 0 };
+    if (backdrop.source === 'color') return { value: new THREE.Color(backdrop.color), blur: 0, intensity: 1, rotation: 0 };
     // `environment`: the preview sky drawn behind the scene, at the view's opacity and blur.
     return this.sky
-      ? { value: this.sky.background, blur: backdrop.blur, intensity: backdrop.opacity }
+      ? { value: this.sky.background, blur: backdrop.blur, intensity: backdrop.opacity, rotation: this.rotation }
       : 'keep';
   }
 
@@ -673,6 +724,7 @@ export class StagePresentationRig {
   }
 
   dispose(): void {
+    this.disposed = true;
     this.clearLights();
     this.group.removeFromParent();
     this.previewGroup.removeFromParent();

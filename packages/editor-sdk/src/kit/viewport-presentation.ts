@@ -85,6 +85,10 @@ export interface PreviewLighting {
       readonly topCurve: number;
       readonly groundCurve: number;
     };
+    /** A registered environment image (`kit/environment-images`) in place of the sky: the
+     *  panorama drawn behind the scene and lit by (Blender's Material Preview HDRI; Unreal's
+     *  preview-scene panorama). `null`: the procedural sky above. */
+    readonly image: string | null;
     readonly energy: number;
     /** Rotation about the vertical axis, degrees (Blender's Material Preview HDRI). */
     readonly rotation: number;
@@ -230,6 +234,7 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
         // Top (0.385, 0.454, 0.55) and ground (0.2, 0.169, 0.133); the horizon is Godot's own
         // derivation from them (their mix, pulled halfway to its luminance x 3.333).
         sky: { top: '#62748c', horizon: '#a9abaf', ground: '#332b22', topCurve: 0.15, groundCurve: 0.02 },
+        image: null,
         energy: 1,
         rotation: 0,
       },

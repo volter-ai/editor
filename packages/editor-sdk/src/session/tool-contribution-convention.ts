@@ -27,6 +27,13 @@ export function isEditorLanePath(path: string): boolean {
   );
 }
 
+/** The LOOK points (`@volter/editor-sdk/looks`): DATA registered by the host, mounted by no UI
+ *  point. A workspace layout, a keymap and a style bundle make "the Blender" a build; a named
+ *  VIEW (`kit/viewport-presentation` `ViewPreset`) is a whole presentation a person can put on a
+ *  view; an ENVIRONMENT set (`kit/environment-images`) is panoramas a view can light by. One list,
+ *  so the host's catalog and the page's loader cannot disagree about a kind. */
+const LOOK_CONTRIBUTION_KINDS = ['layout', 'keymap', 'style', 'view', 'environment'] as const;
+
 export const TOOL_CONTRIBUTION_SUFFIXES = [
   '.document',
   '.inspector',
@@ -43,15 +50,7 @@ export const TOOL_CONTRIBUTION_SUFFIXES = [
   // A FINDER contribution — registered into the finder registry by the host
   // that resolves the document table (the browser), never mounted as UI.
   '.finder',
-  // The LOOK points (`@volter/editor-sdk/looks`): a workspace layout, a keymap
-  // and a style bundle are DATA — registered by the host, mounted by no UI
-  // point. What makes "the Blender" a build is a package contributing these.
-  '.layout',
-  '.keymap',
-  '.style',
-  // A named VIEW (`kit/viewport-presentation` `ViewPreset`): a whole presentation a person can
-  // put on a view — data, registered by the host like the three above.
-  '.view',
+  ...LOOK_CONTRIBUTION_KINDS.map((kind) => `.${kind}` as const),
   // A COMMAND table (`@volter/editor-sdk/commands`): session verbs a package
   // answers, registered with the host's relay; data, no UI.
   '.command',
@@ -90,12 +89,12 @@ export function isCommandContribution(fileName: string): boolean {
   );
 }
 
-export type LookContributionKind = 'layout' | 'keymap' | 'style' | 'view';
+export type LookContributionKind = (typeof LOOK_CONTRIBUTION_KINDS)[number];
 
 /** Which look point a contribution file names, or null for a module of
  *  another kind. */
 export function lookContributionKind(fileName: string): LookContributionKind | null {
-  for (const kind of ['layout', 'keymap', 'style', 'view'] as const)
+  for (const kind of LOOK_CONTRIBUTION_KINDS)
     if (TOOL_CONTRIBUTION_EXTENSIONS.some((extension) => fileName.endsWith(`.${kind}${extension}`)))
       return kind;
   return null;

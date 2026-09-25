@@ -120,6 +120,7 @@ import {
   subscribeViewportPresentation,
   viewPresentation,
 } from '@volter/editor-sdk/kit/viewport-presentation';
+import { subscribeEnvironmentImages } from '@volter/editor-sdk/kit/environment-images';
 import { StagePresentationRig } from './standard-viewport-dressing';
 
 /** The kind of stage a document's view is, for its starting presentation: the document's own
@@ -1199,7 +1200,7 @@ export function Object3DDocumentViewport({
           // Every document stage has one: a studio stage differs in its BACKDROP (the page shows
           // through its alpha canvas), not in how it is lit.
           {
-            const rig = new StagePresentationRig(host.scene);
+            const rig = new StagePresentationRig(host.scene, invalidateStages);
             host.presentationRig = rig;
             bindViewPresentation(documentId, viewStageKind);
             const applyPresentation = () => {
@@ -1222,6 +1223,8 @@ export function Object3DDocumentViewport({
             host.applyPresentation = applyPresentation;
             applyPresentation();
             host.cleanups.push(subscribeViewportPresentation(applyPresentation));
+            // A view may name an environment image its integration registers later.
+            host.cleanups.push(subscribeEnvironmentImages(applyPresentation));
             host.cleanups.push(() => {
               rig.dispose();
               if (host.presentationRig === rig) host.presentationRig = null;
@@ -1626,6 +1629,9 @@ export function Object3DDocumentViewport({
           host.scene.fog = scene.fog;
           host.scene.environmentIntensity = scene.environmentIntensity;
           host.scene.environmentRotation.copy(scene.environmentRotation);
+          host.scene.backgroundIntensity = scene.backgroundIntensity;
+          host.scene.backgroundBlurriness = scene.backgroundBlurriness;
+          host.scene.backgroundRotation.copy(scene.backgroundRotation);
           // The source this draw lights by. A `studio` view lights by its preset alone: the
           // stage's own environment at the preset's strength, its camera-locked lights turned
           // with the camera, and the content's own lights dark for this draw only (restored
@@ -1637,6 +1643,7 @@ export function Object3DDocumentViewport({
             if (environment) {
               host.scene.environment = environment.texture ?? host.defaultEnvironment;
               host.scene.environmentIntensity = environment.intensity;
+              host.scene.environmentRotation.set(0, environment.rotation, 0);
             }
             // What is drawn behind the scene: the stage's own backdrop (the look's fill, or the
             // scene's own as mirrored above) unless the view names another.
@@ -1645,6 +1652,7 @@ export function Object3DDocumentViewport({
               host.scene.background = backdrop.value;
               host.scene.backgroundBlurriness = backdrop.blur;
               host.scene.backgroundIntensity = backdrop.intensity;
+              host.scene.backgroundRotation.set(0, backdrop.rotation, 0);
               host.backdropOverridden = true;
             } else if (host.backdropOverridden) {
               host.scene.background = documentSession.neutralBackgroundTexture();
@@ -1671,9 +1679,6 @@ export function Object3DDocumentViewport({
               toneMapping: String(renderer.toneMapping),
             });
           }
-          host.scene.backgroundIntensity = scene.backgroundIntensity;
-          host.scene.backgroundBlurriness = scene.backgroundBlurriness;
-          host.scene.backgroundRotation.copy(scene.backgroundRotation);
           if (nativeBackground !== scene.background) {
             nativeBackground = scene.background;
             documentSession.setNeutralBackground(nativeBackground ?? host.defaultBackground);

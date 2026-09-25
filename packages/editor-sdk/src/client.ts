@@ -919,6 +919,8 @@ export class EditorClient {
     lastDraw: import('./kit/viewport-presentation').ViewDrawReport | null;
     presets: string[];
     viewPresets: string[];
+    /** The environment images registered (`kit/environment-images`), for `lighting.preview.environment.image`. */
+    environmentImages: string[];
   }> {
     return this.command({
       type: 'viewport-presentation',

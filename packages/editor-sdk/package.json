@@ -67,6 +67,7 @@
     "./kit/breakpoint-state": "./src/kit/breakpoint-state.ts",
     "./kit/crash-null-boundary": "./src/kit/crash-null-boundary.ts",
     "./kit/document-preview-source": "./src/kit/document-preview-source.ts",
+    "./kit/environment-images": "./src/kit/environment-images.ts",
     "./kit/eyedropper-session": "./src/kit/eyedropper-session.ts",
     "./kit/hmr-registration-group": "./src/kit/hmr-registration-group.ts",
     "./kit/inspection-model": "./src/kit/inspection-model.ts",

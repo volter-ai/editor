@@ -38,6 +38,7 @@
       "./contributions/blender-runtime.document.tsx",
       "./contributions/blender-version.status.tsx",
       "./contributions/blender.command.ts",
+      "./contributions/blender.environment.ts",
       "./contributions/blender.keymap.ts",
       "./contributions/blender.status.tsx",
       "./contributions/blender.style.ts",
