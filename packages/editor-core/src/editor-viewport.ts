@@ -437,6 +437,28 @@ const COMPASS_AXIS_COLOR: readonly THREE.Color[] = [
 const COMPASS_LETTER_INK = 0.356;
 const COMPASS_LETTER_CAP_FRACTION = 7.5 / 17.5;
 
+/** A LETTER ALONE in its axis colour, for the cone and triad forms (Unity letters its cones,
+ *  Unreal its triad's tips); two texels per screen pixel, as the balls are. */
+function compassLetterTexture(color: THREE.Color, letter: string): THREE.CanvasTexture {
+  const size = 32;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = `#${color.getHexString()}`;
+    ctx.font = `bold ${Math.round(size * 0.8)}px system-ui, -apple-system, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(letter, size / 2, size / 2 + 1);
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.generateMipmaps = false;
+  texture.minFilter = THREE.LinearFilter;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
 function compassBallTexture(color: THREE.Color, letter: string | null): THREE.CanvasTexture {
   // TWO TEXELS PER SCREEN PIXEL, no mipmaps. At 64 the ball was a 4x
   // minification: three's default trilinear then samples between the 32 and
@@ -906,6 +928,8 @@ export class EditorViewport {
     arrowLength: null,
     arrowHead: null,
     ringWidth: null,
+    navigationForm: 'balls',
+    navigationCorner: 'top-right',
     highlightSaturation: null,
     highlightValue: null,
   };
@@ -965,7 +989,15 @@ export class EditorViewport {
     readonly positive: boolean;
   }> = [];
   private _vcStalks: Array<{ readonly mesh: THREE.Mesh; readonly direction: THREE.Vector3 }> = [];
+  /** The cone form's cones: drawn front to back, never dimmed (Unity's are not). */
+  private _vcSolids: Array<{ readonly mesh: THREE.Mesh; readonly direction: THREE.Vector3 }> = [];
   private _vcSize = COMPASS_BOX_PX;
+  /** The view's navigation gizmo (`overlays.navigation`): clicked, only drawn, or neither. */
+  private _navigation: 'interactive' | 'indicator' | 'hidden' = 'interactive';
+  /** The selection marks' look as last built ({@link _syncBoxHelpers}), to rebuild on change. */
+  private _marksLook = '';
+  /** The view's grid switch (`overlays.grid.visible`); the person's toggle is the store's. */
+  private _presentationGrid = true;
   private _vcMarginRight = COMPASS_MARGIN_RIGHT_PX;
   private _vcMarginTop = COMPASS_MARGIN_TOP_PX;
   /** See {@link EditorViewportOptions.chromeInsetPx}. */
@@ -1194,10 +1226,18 @@ export class EditorViewport {
     // "Cannot read properties of undefined (reading 'geometry')".
     this._unsubscribeSelectionTheme = subscribeNativeSelectionTheme(canvas, () => {
       invalidateStages();
-      // The selection marks carry the look whole (colour, box form and frame, wire colour and
-      // opacity), so a look change rebuilds them; they are rebuilt from scratch on every
-      // selection change anyway.
-      if (this._boxHelpers.size > 0) this._syncBoxHelpers();
+      // The selection marks carry their look whole (colour, box form and frame, wire colour and
+      // opacity), so a change to THAT look rebuilds them — not every theme mutation, which
+      // includes each hover step of a palette preview and would regenerate every wire.
+      const marksLook = JSON.stringify([
+        nativeSelectionColors(canvas),
+        nativeViewportSelectionBox(canvas),
+        nativeViewportWire(canvas),
+      ]);
+      if (marksLook !== this._marksLook) {
+        this._marksLook = marksLook;
+        if (this._boxHelpers.size > 0) this._syncBoxHelpers();
+      }
       // The gizmo look FIRST: an axis line the look gives no colour takes the gizmo's.
       this._gizmoLook = nativeGizmoLook(canvas);
       this._applyViewportLook(nativeViewportLook(canvas));
@@ -2714,7 +2754,7 @@ export class EditorViewport {
     const threeSurface =
       this._standaloneAuthoring || policy.threeSurfaceShowing(this._store, authoring);
     this._threeSurfaceShowing = threeSurface;
-    this.grid.visible = this._store.showGrid && threeSurface;
+    this.grid.visible = this._store.showGrid && this._presentationGrid && threeSurface;
     if (this._axisLines) this._axisLines.visible = this.grid.visible && this._axesWanted;
 
     // The two passes below (apply gizmos + per-type helper/icon visibility) are
@@ -3499,6 +3539,7 @@ export class EditorViewport {
   /** Render the standard orientation gizmo in the viewport's top-right corner. */
   renderViewCube(renderer: THREE.WebGLRenderer): void {
     if (!this._threeSurfaceShowing) return; // no three stage, no compass (Blender's is persistent on one)
+    if (this._navigation === 'hidden') return;
     if (this._cameraView) return; // exact camera view owns the viewport
     const w = renderer.domElement.clientWidth;
     const h = renderer.domElement.clientHeight;
@@ -3517,8 +3558,9 @@ export class EditorViewport {
     // SEE: a document stage's canvas bleeds past its panel, and the gizmo is
     // canvas-drawn, so it takes that bleed off both margins the way the DOM
     // furniture beside it already does (`chromeInsetPx`).
-    const px = w - size - this._vcMarginRight - this._chromeInsetPx;
-    const py = h - size - this._vcMarginTop - this._chromeInsetPx;
+    const origin = this._vcOrigin(w, h, this._chromeInsetPx);
+    const px = origin.left;
+    const py = h - size - origin.top;
 
     // EffectComposer owns autoClear=false. Preserve that renderer state across
     // this late overlay: forcing it back to true erases pass-specific clears on
@@ -3696,6 +3738,8 @@ export class EditorViewport {
       this.setSelectionMarks(presentation.overlays.selection);
       this.setGridMajorEvery(presentation.overlays.grid.majorEvery);
       this.setAxisLines(presentation.overlays.axes);
+      this.setNavigation(presentation.overlays.navigation);
+      this.setGridVisible(presentation.overlays.grid.visible);
       invalidateStages();
     };
     const stopListening = subscribeViewportPresentation(apply);
@@ -3979,11 +4023,17 @@ export class EditorViewport {
     for (const held of [...this._vcScene.children]) this._vcScene.remove(held);
     this._vcBalls.length = 0;
     this._vcStalks.length = 0;
+    this._vcSolids.length = 0;
     this._vcClickTargets.length = 0;
     this._initOrientationGizmo();
   }
 
   private _initOrientationGizmo(): void {
+    const form = this._gizmoLook.navigationForm;
+    if (form !== 'balls') {
+      this._initNavigationForm(form);
+      return;
+    }
     const perUnit = COMPASS_BOX_PX / 3;
     // The ball's BACK size; `_syncOrientationGizmoDepth` adds the depth gain
     // per ball, which is how Blender's front balls come out larger.
@@ -4049,6 +4099,77 @@ export class EditorViewport {
   }
 
   /**
+   * THE NAVIGATION GIZMO'S OTHER FORMS (`density.viewport.navigationGizmo`), in the same frame
+   * and colours as the balls. `cones`: Unity's scene gizmo — a cone on each side of each axis,
+   * its tip toward a grey centre cube, the positive ones in the axis colour and lettered, the
+   * negative ones grey; each is a click target. `triad`: Unreal's — a line along each positive
+   * axis with its letter past the tip, no negatives, nothing to click.
+   */
+  private _initNavigationForm(form: 'cones' | 'triad'): void {
+    const perUnit = COMPASS_BOX_PX / 3;
+    const up = new THREE.Vector3(0, 1, 0);
+    const axes = [new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1)];
+    const lookAxes = this._gizmoLook.navigation ?? this._gizmoLook.axes;
+    const letterSprite = (color: THREE.Color, letter: string, at: THREE.Vector3, px: number) => {
+      const sprite = new THREE.Sprite(
+        new THREE.SpriteMaterial({ map: compassLetterTexture(color, letter), transparent: true, depthTest: false }),
+      );
+      sprite.position.copy(at);
+      sprite.scale.setScalar(px / perUnit);
+      sprite.renderOrder = 200;
+      this._vcScene.add(sprite);
+    };
+    for (let i = 0; i < 3; i++) {
+      const [sourceAxis, positive] = this._stageAxisFrame[i]!;
+      const color =
+        lookAxes === null ? COMPASS_AXIS_COLOR[sourceAxis]! : new THREE.Color(lookAxes[sourceAxis]!);
+      const letter = AXIS_LETTER[sourceAxis]!;
+      const axis = axes[i]!.clone().multiplyScalar(positive);
+      if (form === 'triad') {
+        const length = 24 / perUnit;
+        const radius = COMPASS_STALK_WIDTH_PX / perUnit / 2;
+        const line = new THREE.Mesh(
+          new THREE.CylinderGeometry(radius, radius, length, 6),
+          new THREE.MeshBasicMaterial({ color, transparent: true, depthTest: false }),
+        );
+        line.position.copy(axis).multiplyScalar(length / 2);
+        line.quaternion.setFromUnitVectors(up, axis);
+        this._vcScene.add(line);
+        this._vcStalks.push({ mesh: line, direction: axis.clone() });
+        letterSprite(color, letter, axis.clone().multiplyScalar(length + 7 / perUnit), 12);
+        continue;
+      }
+      for (const sign of [1, -1] as const) {
+        const direction = axis.clone().multiplyScalar(sign);
+        const cone = new THREE.Mesh(
+          new THREE.ConeGeometry(6 / perUnit, 15 / perUnit, 20),
+          new THREE.MeshBasicMaterial({
+            color: sign > 0 ? color : new THREE.Color(0xd9d9d9),
+            transparent: true,
+            depthTest: false,
+          }),
+        );
+        cone.position.copy(direction).multiplyScalar(19 / perUnit);
+        cone.quaternion.setFromUnitVectors(up, direction.clone().negate());
+        // Three's direction index, as the balls' targets carry it (see `_initOrientationGizmo`).
+        setUserData(cone, 'vcDirIdx', i * 2 + (positive * sign > 0 ? 0 : 1));
+        this._vcScene.add(cone);
+        this._vcSolids.push({ mesh: cone, direction: direction.clone() });
+        this._vcClickTargets.push(cone);
+        if (sign > 0) letterSprite(color, letter.toLowerCase(), direction.clone().multiplyScalar(34 / perUnit), 12);
+      }
+    }
+    if (form === 'cones') {
+      const cube = new THREE.Mesh(
+        new THREE.BoxGeometry(11 / perUnit, 11 / perUnit, 11 / perUnit),
+        new THREE.MeshBasicMaterial({ color: 0xbdbdbd, transparent: true, depthTest: false }),
+      );
+      cube.renderOrder = 50;
+      this._vcScene.add(cube);
+    }
+  }
+
+  /**
    * The gizmo's depth cue, per frame: a ball pointing AWAY from the viewer is
    * drawn behind, dimmer and SMALLER, exactly as Blender's is. Both laws are
    * measured off the reference's own six balls and stated where they are
@@ -4083,6 +4204,9 @@ export class EditorViewport {
       (mesh.material as THREE.MeshBasicMaterial).opacity = 0.35 + facing * 0.65;
       mesh.renderOrder = Math.round(facing * 100);
     }
+    for (const { mesh, direction } of this._vcSolids) {
+      mesh.renderOrder = Math.round(((direction.dot(view) + 1) / 2) * 100);
+    }
   }
 
   /**
@@ -4094,12 +4218,45 @@ export class EditorViewport {
    * pointer found BEHIND it.
    */
   private _isOverViewCube(clientX: number, clientY: number): boolean {
+    // An indicator (Unreal's triad) is only drawn: clicks pass through to the stage.
+    if (this._navigation !== 'interactive') return false;
     const rect = this._canvas.getBoundingClientRect();
     const x = clientX - rect.left;
     const y = clientY - rect.top;
-    const vcLeft = rect.width - this._vcSize - this._vcMarginRight;
-    const vcTop = this._vcMarginTop;
+    const { left: vcLeft, top: vcTop } = this._vcOrigin(rect.width, rect.height, 0);
     return x >= vcLeft && x <= vcLeft + this._vcSize && y >= vcTop && y <= vcTop + this._vcSize;
+  }
+
+  /**
+   * WHERE THE NAVIGATION GIZMO'S BOX SITS, top-left in CSS px from the canvas's top-left: the
+   * look's corner (`navigationCorner`) — Blender's top right, set by its measured margins, or
+   * Unreal's bottom left, one small margin in from both edges — inset by the canvas's bleed.
+   */
+  private _vcOrigin(width: number, height: number, inset: number): { left: number; top: number } {
+    if (this._gizmoLook.navigationCorner === 'bottom-left') {
+      // Clear of the stage's own camera readout, two lines along the bottom edge (measured: a
+      // 4 px margin put the triad's lower half under it).
+      const left = 4;
+      const bottom = 48;
+      return { left: left + inset, top: height - this._vcSize - bottom - inset };
+    }
+    return { left: width - this._vcSize - this._vcMarginRight - inset, top: this._vcMarginTop + inset };
+  }
+
+  /** The view's grid switch (`overlays.grid.visible`), beside the person's own toggle. */
+  setGridVisible(visible: boolean): void {
+    if (visible === this._presentationGrid) return;
+    this._presentationGrid = visible;
+    this.grid.visible = this._store.showGrid && visible && this._threeSurfaceShowing;
+    if (this._axisLines) this._axisLines.visible = this.grid.visible && this._axesWanted;
+    invalidateStages();
+  }
+
+  /** The view's navigation gizmo (`overlays.navigation`). */
+  setNavigation(navigation: 'interactive' | 'indicator' | 'hidden'): void {
+    if (navigation === this._navigation) return;
+    this._navigation = navigation;
+    invalidateStages();
   }
 
   /** Returns true if the click was inside the gizmo area (consumed). */
@@ -4110,8 +4267,7 @@ export class EditorViewport {
     const y = e.clientY - rect.top;
 
     // Screen-space gizmo rect
-    const vcLeft = rect.width - this._vcSize - this._vcMarginRight;
-    const vcTop = this._vcMarginTop;
+    const { left: vcLeft, top: vcTop } = this._vcOrigin(rect.width, rect.height, 0);
 
     // Convert to NDC for the gizmo camera
     const ndcX = ((x - vcLeft) / this._vcSize) * 2 - 1;
@@ -4870,15 +5026,15 @@ export class EditorViewport {
       threeUpdate(force);
       // THE HANDLES THE VIEW TURNS OFF, drawn and picked by neither family: three sets every
       // handle's visibility on each update, and its pointer tests skip invisible pickers.
-      // The COMBINED tool's handles only: the single Rotate and Move tools keep theirs (Godot's
-      // Rotate tool draws its view ring).
+      // The free-move centre goes wherever move handles are drawn (Unity's Move tool has none,
+      // Blender's and Unreal's do); the view ring only from the COMBINED tool — the single
+      // Rotate tool keeps its own (Godot's Select gizmo has none, its Rotate tool does).
       const combined = this._store.transformMode === 'combined';
-      const hidden = !combined
-        ? null
-        : node.mode === 'rotate' && !this._transformHandles.viewRotate
-          ? 'E'
-          : node.mode === 'translate' && !this._transformHandles.freeMove
-            ? 'XYZ'
+      const hidden =
+        node.mode === 'translate' && !this._transformHandles.freeMove
+          ? 'XYZ'
+          : combined && node.mode === 'rotate' && !this._transformHandles.viewRotate
+            ? 'E'
             : null;
       if (hidden !== null) {
         for (const family of [node.gizmo, node.picker]) {
@@ -5336,17 +5492,7 @@ export class EditorViewport {
     const dy = e.clientY - this._pointerDownPos.y;
     if (!this._marqueeActive && Math.sqrt(dx * dx + dy * dy) > 5) {
       // Check we're not dragging from the viewcube area
-      const rect = this._canvas.getBoundingClientRect();
-      const sx = this._pointerDownPos.x - rect.left;
-      const sy = this._pointerDownPos.y - rect.top;
-      const vcLeft = rect.width - this._vcSize - this._vcMarginRight;
-      if (
-        sx >= vcLeft &&
-        sx <= vcLeft + this._vcSize &&
-        sy >= this._vcMarginTop &&
-        sy <= this._vcMarginTop + this._vcSize
-      )
-        return;
+      if (this._isOverViewCube(this._pointerDownPos.x, this._pointerDownPos.y)) return;
 
       this._marqueeActive = true;
       // Disable orbit controls while marquee is active

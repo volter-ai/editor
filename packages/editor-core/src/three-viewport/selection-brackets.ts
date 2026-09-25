@@ -294,7 +294,7 @@ export class SelectionBrackets extends LineSegments2 {
     const objectFrame =
       this._objectFrame &&
       this._fixedSize === undefined &&
-      Math.abs(this.entityObject.matrixWorld.determinant()) > 1e-12;
+      Math.abs(this.entityObject.matrixWorld.determinant()) > 1e-30;
     this.entityObject.matrixWorld.extractBasis(this._axisX, this._axisY, this._axisZ);
     const scale = objectFrame
       ? this._scale.set(this._axisX.length(), this._axisY.length(), this._axisZ.length())

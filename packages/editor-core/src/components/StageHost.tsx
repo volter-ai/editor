@@ -1213,6 +1213,8 @@ export function Object3DDocumentViewport({
               host.viewport?.setSelectionMarks(presentation.overlays.selection);
               host.viewport?.setGridMajorEvery(presentation.overlays.grid.majorEvery);
               host.viewport?.setAxisLines(presentation.overlays.axes);
+              host.viewport?.setNavigation(presentation.overlays.navigation);
+              host.viewport?.setGridVisible(presentation.overlays.grid.visible);
               if (host.session) {
                 host.session.selectionOutlineEnabled =
                   !shared && selectionOutlineRef.current && presentation.overlays.selection.outline;

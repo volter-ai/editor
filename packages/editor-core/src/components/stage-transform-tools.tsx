@@ -17,23 +17,27 @@ import { threeStateOf } from '../three-state';
 import { ToolStrip, TransformHeaderControls } from './Toolbar';
 
 /**
- * THE STAGES WHOSE SHELF HAS ALREADY OPENED — a `WeakSet` because a store
- * outlives nothing here: it is the stage's, and when the stage goes so does the
- * entry.
+ * THE VIEWS WHOSE SHELF HAS ALREADY OPENED, per store — keyed by the VIEW as well, because
+ * several views can share one store (measured: a restored `main` armed the shared store, and
+ * HeroBox opened after it never got its own boot tool). A `WeakMap` because a store outlives
+ * nothing here.
  */
-const shelfOpened = new WeakSet<EditorShellStore>();
+const shelfOpened = new WeakMap<EditorShellStore, Set<string>>();
 
 /**
  * THE SHELF'S BOOT TOOL IS THE STAGE'S FUNCTION (its view presentation's
  * `interaction.bootTool`, ARCHITECTURE.md rule 7), applied the first time this stage's shelf
  * draws. Blender's tool shelf opens on Select Box, so a selected object carries no transform
  * gizmo until one is armed (the Blender stage's starting values); this editor's opens on the
- * combined gizmo. A BOOT default and never a standing switch: once a person arms a tool the
- * `WeakSet` above keeps this from ever second-guessing them.
+ * combined gizmo. A BOOT default and never a standing switch: once a view's shelf has opened,
+ * the map above keeps this from ever second-guessing the person in that view.
  */
 function armShelfBootTool(store: EditorShellStore | null, documentId: string): void {
-  if (store === null || shelfOpened.has(store)) return;
-  shelfOpened.add(store);
+  if (store === null) return;
+  const opened = shelfOpened.get(store) ?? new Set<string>();
+  shelfOpened.set(store, opened);
+  if (opened.has(documentId)) return;
+  opened.add(documentId);
   const mode = {
     select: 'select',
     transform: null,

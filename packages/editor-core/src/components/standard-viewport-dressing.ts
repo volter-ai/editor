@@ -537,7 +537,11 @@ export class StagePresentationRig {
     const ground = new THREE.Color(colours.ground);
     const light = sun ? new THREE.Color(sun.color).multiplyScalar(sun.energy) : null;
     const data = new Uint16Array(width * height * 4);
-    const half = THREE.DataUtils.toHalfFloat;
+    // Half-float's range: three warns on every value past it, which a bright sun reaches.
+    const half = (value: number) => THREE.DataUtils.toHalfFloat(Math.min(value, 65504));
+    // A curve of zero divides by zero at the horizon row.
+    const topCurve = Math.max(colours.topCurve, 0.001);
+    const groundCurve = Math.max(colours.groundCurve, 0.001);
     const band = new THREE.Color();
     const pixel = new THREE.Color();
     const direction = new THREE.Vector3();
@@ -546,10 +550,10 @@ export class StagePresentationRig {
       const angle = Math.PI / 2 - elevation; // 0 = straight up, PI = straight down
       if (angle <= Math.PI / 2) {
         const c = 1 - angle / (Math.PI / 2);
-        band.copy(horizon).lerp(top, THREE.MathUtils.clamp(1 - Math.pow(1 - c, 1 / colours.topCurve), 0, 1));
+        band.copy(horizon).lerp(top, THREE.MathUtils.clamp(1 - Math.pow(1 - c, 1 / topCurve), 0, 1));
       } else {
         const c = (angle - Math.PI / 2) / (Math.PI / 2);
-        band.copy(horizon).lerp(ground, THREE.MathUtils.clamp(1 - Math.pow(1 - c, 1 / colours.groundCurve), 0, 1));
+        band.copy(horizon).lerp(ground, THREE.MathUtils.clamp(1 - Math.pow(1 - c, 1 / groundCurve), 0, 1));
       }
       for (let column = 0; column < width; column++) {
         pixel.copy(band);

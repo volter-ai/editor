@@ -246,6 +246,14 @@ export interface DensityContribution {
     /** THE ROTATION RINGS' THICKNESS, as a multiple of three's own (Godot's rings are about
      *  twice as thick, `tuto_3d5.png`). */
     readonly gizmoRingWidth?: number;
+    /**
+     * THE NAVIGATION GIZMO'S FORM AND CORNER: lettered `balls` (the editor's own, Blender's and
+     * Godot's), `cones` round a centre cube (Unity's scene gizmo) or a lettered axis `triad`
+     * (Unreal's); `top-right` (the editor's own) or `bottom-left` (Unreal's). Whether a click on
+     * it turns the view is the view's (`overlays.navigation`).
+     */
+    readonly navigationGizmo?: 'balls' | 'cones' | 'triad';
+    readonly navigationCorner?: 'top-right' | 'bottom-left';
     readonly gizmoHighlightSaturation?: number;
     readonly gizmoHighlightValue?: number;
     /**

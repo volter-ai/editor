@@ -12,6 +12,7 @@
  */
 
 import {
+  EDITOR_LAYER,
   EDITOR_SELECTION_LAYER,
   isInEditorOwnedSubtree,
 } from '@volter/editor-threejs/viewport/editor-layers';
@@ -91,6 +92,23 @@ export function createThreeSelectionOutline(
     // Any `{ value }` is a uniform to three; no runtime three import in this module.
     effect.uniforms.set('vgaiCrisp', { value: 0 } as THREE.Uniform<number>);
   }
+  // THE EDITOR'S OWN OVERLAYS DO NOT HIDE THE SELECTION. The effect measures what stands in
+  // front of the selected object with a depth pass under an override material, which writes
+  // depth for everything the camera sees — the floor grid included, though it writes none
+  // itself — so the grid hid the outline's lower half wherever it crossed the object (measured
+  // on Unity's look). Its layer is off the camera for the effect's update only; the effect
+  // saves and restores the camera's mask around its own mask pass.
+  const update = effect.update.bind(effect);
+  effect.update = (renderer, inputBuffer, deltaTime) => {
+    const current = (effect as unknown as { camera: THREE.Camera }).camera;
+    const editorLayerOn = current.layers.isEnabled(EDITOR_LAYER);
+    current.layers.disable(EDITOR_LAYER);
+    try {
+      update(renderer, inputBuffer, deltaTime);
+    } finally {
+      if (editorLayerOn) current.layers.enable(EDITOR_LAYER);
+    }
+  };
   outlineState.set(effect, { colors, roots: 0 });
   paintOutline(effect);
   return effect;

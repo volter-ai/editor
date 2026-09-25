@@ -226,6 +226,8 @@ export interface EditorDensity {
     readonly gizmoArrowLength?: number;
     readonly gizmoArrowHead?: number;
     readonly gizmoRingWidth?: number;
+    readonly navigationGizmo?: 'balls' | 'cones' | 'triad';
+    readonly navigationCorner?: 'top-right' | 'bottom-left';
     readonly gizmoOpacity?: number;
     readonly gizmoHighlightSaturation?: number;
     readonly gizmoHighlightValue?: number;
@@ -2591,6 +2593,8 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     '--vgai-viewport-gizmo-arrow-length': numberToken(theme.density?.viewport?.gizmoArrowLength),
     '--vgai-viewport-gizmo-arrow-head': numberToken(theme.density?.viewport?.gizmoArrowHead),
     '--vgai-viewport-gizmo-ring-width': numberToken(theme.density?.viewport?.gizmoRingWidth),
+    '--vgai-viewport-navigation-gizmo': theme.density?.viewport?.navigationGizmo ?? '',
+    '--vgai-viewport-navigation-corner': theme.density?.viewport?.navigationCorner ?? '',
     '--vgai-viewport-gizmo-highlight-saturation': numberToken(
       theme.density?.viewport?.gizmoHighlightSaturation,
     ),

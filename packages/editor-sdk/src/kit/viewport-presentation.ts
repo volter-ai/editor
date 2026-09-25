@@ -135,6 +135,9 @@ export interface ViewportOverlays {
    * toggles; Godot draws all three, Y vertical; Unity and Unreal none).
    */
   readonly axes: 'floor' | { readonly x: boolean; readonly y: boolean; readonly z: boolean };
+  /** The navigation gizmo: `interactive` (a click turns the view to that axis — Blender's,
+   *  Godot's, Unity's), `indicator` (drawn, not clicked — Unreal's axis triad) or `hidden`. */
+  readonly navigation: 'interactive' | 'indicator' | 'hidden';
 }
 
 /** How the stage's tools behave (function, ARCHITECTURE.md rule 7): the tool its shelf opens
@@ -235,6 +238,7 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
     grid: { visible: true, majorEvery: 10, planes: { xz: true, xy: false, yz: false } },
     selection: { outline: true, wire: false, box: false },
     axes: 'floor',
+    navigation: 'interactive',
   },
   interaction: {
     bootTool: 'transform',

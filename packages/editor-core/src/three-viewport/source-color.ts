@@ -42,6 +42,7 @@ export function toneMappedSourceColor(
   const exposure = renderer.toneMappingExposure || 1;
   if (renderer.toneMapping === THREE.LinearToneMapping) return target.multiplyScalar(1 / exposure);
   if (renderer.toneMapping === THREE.AgXToneMapping) return agxSourceColor(target, exposure);
+  if (renderer.toneMapping === THREE.CustomToneMapping) return godotFilmicSourceColor(target, exposure);
   if (renderer.toneMapping !== THREE.ACESFilmicToneMapping) return target;
   const IN: Mat3 = [
     [0.59719, 0.35458, 0.04823],
@@ -164,4 +165,33 @@ function invertMat3(m: Mat3): Mat3 {
     [B / det, (a * i - c * g) / det, -(a * f - c * d) / det],
     [C / det, -(a * h - b * g) / det, (a * e - b * d) / det],
   ];
+}
+
+/**
+ * The same inversion for Godot's Filmic — the curve the presentation's `filmic` mapper installs
+ * in three's custom slot (`components/standard-viewport-dressing.ts`): Hable's curve with an
+ * exposure bias of 2, divided by its value at white, per channel. Monotonic, so bisected.
+ */
+function godotFilmicSourceColor(target: THREE.Color, exposure: number): THREE.Color {
+  const hable = (x: number) =>
+    (x * (0.88 * x + 0.06) + 0.002) / (x * (0.88 * x + 0.6) + 0.06) - 0.01 / 0.3;
+  const white = hable(1);
+  const curve = (x: number) => hable(x) / white;
+  const invert = (f: number) => {
+    if (f <= 0) return 0;
+    let lo = 0;
+    let hi = 1;
+    for (let i = 0; i < 60; i++) {
+      const mid = (lo + hi) / 2;
+      if (curve(mid) < f) lo = mid;
+      else hi = mid;
+    }
+    return (lo + hi) / 2;
+  };
+  return new THREE.Color().setRGB(
+    invert(Math.min(target.r, 0.999)) / exposure,
+    invert(Math.min(target.g, 0.999)) / exposure,
+    invert(Math.min(target.b, 0.999)) / exposure,
+    THREE.LinearSRGBColorSpace,
+  );
 }
