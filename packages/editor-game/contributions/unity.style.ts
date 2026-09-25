@@ -1,0 +1,47 @@
+/**
+ * THE UNITY LOOK — Unity 6's dark editor skin and its Scene view's colours,
+ * made only of values (`docs/VIEWPORT-STAGE.md`, the Unity column).
+ *
+ * The viewport group transcribes UnityCsReference: the fill is the Scene
+ * view's flat colour with the skybox off (0.278, 0.278, 0.278); selection is
+ * `Handles.selectedColor`'s outline `#ff6600`. The grid (0.5, 0.5, 0.5, 0.4)
+ * is fitted by eye against `engine-reference/unity/NewEmptyScene_01.png`
+ * over its skybox ground. The axis colours, named by the world's axes, are
+ * `Handles.xAxisColor`, `yAxisColor` and `zAxisColor`; Unity's floor draws no axis
+ * lines, which is its view's presentation (`overlays.axes` all off), not this look's.
+ * Light, skybox and overlays are the VIEW's presentation, not this look's.
+ */
+import type { StyleContribution } from '@volter/editor-sdk/looks';
+import palette from './unity.palette.json';
+
+export const point = 'workspace.style';
+export const style: StyleContribution = {
+  id: 'unity',
+  title: 'Unity',
+  paletteId: 'unity',
+  materialId: 'unity',
+  material: {
+    id: 'unity',
+    title: 'Unity',
+    description: 'Flat grey panels, three-pixel control corners, a shadow under popups.',
+    shape: { small: '3px', medium: '3px', large: '4px', full: '9999px' },
+    elevation: {
+      small: 'none',
+      medium: '0 2px 8px rgba(0,0,0,0.5)',
+      large: '0 6px 18px rgba(0,0,0,0.55)',
+    },
+    density: {
+      viewport: {
+        // `HandleUtility.GetHandleSize`: a handle is 80 px on screen at any distance.
+        gizmoSize: 80,
+        // The axis colours' alpha (`Handles.cs`); hover and drag are fixed colours (the palette).
+        gizmoOpacity: 0.93,
+        // `SceneViewGrid`: one-pixel lines at both levels, the ten-cell level a little stronger.
+        gridLineWidth: 1,
+        gridMajorWidth: 1,
+        gridMajorContrast: 1.25,
+      },
+    },
+  },
+  palette,
+};
