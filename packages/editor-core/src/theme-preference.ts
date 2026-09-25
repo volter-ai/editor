@@ -16,8 +16,10 @@ import {
 import {
   adapterSettings,
   effectiveSettings,
+  projectSettings,
   subscribeSettings,
   updatePreferenceSettings,
+  userSettings,
 } from './settings-store';
 import { resolveEditorTheme, subscribeEditorThemeLibrary } from './theme-library';
 
@@ -70,6 +72,7 @@ export function setDefaultEditorAppearance(
   // rest of its life with nothing saying why.
   if (effectiveSettings().appearance?.palette === undefined) cachedPaletteId = null;
   if (effectiveSettings().appearance?.material === undefined) cachedMaterialId = null;
+  if (effectiveSettings().appearance?.icons === undefined) cachedIconSetId = null;
   fallBackFromMissingTheme();
   applyCurrentTheme();
   emit();
@@ -100,6 +103,28 @@ const REDUCED_TRANSPARENCY_QUERY = '(prefers-reduced-transparency: reduce)';
 
 let cachedPaletteId: string | null = null;
 let cachedMaterialId: EditorMaterialId | null = null;
+let cachedIconSetId: string | null = null;
+
+/**
+ * A SETTER'S WRITE IS IN FLIGHT until the layer it was written to carries it. Under the Code-OSS
+ * frame a write is the configuration service's asynchronous `updateValue`, and other settings
+ * changes arrive meanwhile, each still reporting the previous value: re-read then, a style
+ * bundle's palette, material and icon set fell back to the previous bundle's and the chrome wore
+ * a mix of the two until the writes landed (measured through `set-style`, which answered "custom
+ * mix" for every contributed style). So each axis keeps its setter's value while its write is in
+ * flight, and the stored value wins again once a layer carries the write — which is also how a
+ * project's own override of the axis still takes precedence.
+ */
+const pendingWrites = new Map<'palette' | 'material' | 'icons', string>();
+
+function writeLanded(axis: 'palette' | 'material' | 'icons'): boolean {
+  const pending = pendingWrites.get(axis);
+  if (pending === undefined) return true;
+  if (userSettings().appearance?.[axis] !== pending && projectSettings().appearance?.[axis] !== pending)
+    return false;
+  pendingWrites.delete(axis);
+  return true;
+}
 let installedRoot: HTMLElement | null = null;
 let previewTheme: EditorPalette | null = null;
 let removeSettingsListener: (() => void) | null = null;
@@ -129,14 +154,24 @@ function readStoredMaterialId(): EditorMaterialId {
   return isEditorMaterialId(stored) ? stored : defaultMaterialId();
 }
 
-/** The stored icon set when a registered set answers it; the editor's own otherwise. */
-export function editorIconSetSnapshot(): string {
+function readStoredIconSetId(): string {
   const stored = effectiveSettings().appearance?.icons;
   return isEditorIconSetId(stored) ? stored : defaultIconSetId();
 }
 
+/** The stored icon set when a registered set answers it; the editor's own otherwise. Cached
+ *  like the palette and the material: under a settings PROVIDER (the Code-OSS frame's) a write
+ *  reaches the effective settings only after the provider's round trip, so a read straight after
+ *  a setter would see the previous set and a style bundle would read as a custom mix. */
+export function editorIconSetSnapshot(): string {
+  cachedIconSetId ??= readStoredIconSetId();
+  return cachedIconSetId;
+}
+
 export function setEditorIconSetPreference(id: string): void {
   if (!isEditorIconSetId(id)) throw new Error(`Unknown editor icon set “${id}”.`);
+  cachedIconSetId = id;
+  pendingWrites.set('icons', id);
   updatePreferenceSettings({ appearance: { icons: id } });
   setActiveIconSet(id);
   emit();
@@ -256,6 +291,7 @@ export function setEditorPalettePreference(paletteId: string): void {
     return;
   }
   cachedPaletteId = paletteId;
+  pendingWrites.set('palette', paletteId);
   updatePreferenceSettings({ appearance: { palette: paletteId } });
   applyCurrentTheme();
   emit();
@@ -268,6 +304,7 @@ export function setEditorMaterialPreference(materialId: EditorMaterialId): void 
     return;
   }
   cachedMaterialId = materialId;
+  pendingWrites.set('material', materialId);
   updatePreferenceSettings({ appearance: { material: materialId } });
   applyCurrentTheme();
   emit();
@@ -294,13 +331,18 @@ export function installEditorTheme(root: HTMLElement): () => void {
   // appearance override became active, a setter wrote): re-read both axes.
   setActiveIconSet(editorIconSetSnapshot());
   removeIconSetsListener?.();
-  removeIconSetsListener = subscribeIconSets(() => setActiveIconSet(editorIconSetSnapshot()));
+  // A stored set a package carries is unknown until that package's style registers.
+  removeIconSetsListener = subscribeIconSets(() => {
+    if (writeLanded('icons')) cachedIconSetId = readStoredIconSetId();
+    setActiveIconSet(editorIconSetSnapshot());
+  });
 
   removeSettingsListener?.();
   removeSettingsListener = subscribeSettings(() => {
+    if (writeLanded('icons')) cachedIconSetId = readStoredIconSetId();
     setActiveIconSet(editorIconSetSnapshot());
-    const palette = readStoredPaletteId();
-    const material = readStoredMaterialId();
+    const palette = writeLanded('palette') ? readStoredPaletteId() : editorPaletteSnapshot();
+    const material = writeLanded('material') ? readStoredMaterialId() : editorMaterialSnapshot();
     if (palette === cachedPaletteId && material === cachedMaterialId) return;
     cachedPaletteId = palette;
     cachedMaterialId = material;
@@ -313,6 +355,7 @@ export function installEditorTheme(root: HTMLElement): () => void {
   // registers; Classic paints meanwhile and the stored choice wins on arrival.
   removeMaterialsListener?.();
   removeMaterialsListener = subscribeEditorMaterials(() => {
+    if (!writeLanded('material')) return;
     const material = readStoredMaterialId();
     if (material === cachedMaterialId) return;
     cachedMaterialId = material;
@@ -352,6 +395,8 @@ export function installEditorTheme(root: HTMLElement): () => void {
 export function resetEditorThemePreferenceForTests(): void {
   cachedPaletteId = null;
   cachedMaterialId = null;
+  cachedIconSetId = null;
+  pendingWrites.clear();
   installedRoot = null;
   previewTheme = null;
   removeReducedTransparencyListener?.();
@@ -370,8 +415,10 @@ subscribeEditorThemeLibrary(() => {
   // already does in `installEditorTheme`. Without this, a project whose
   // `.vgai/settings.json` names a contributed palette painted Graphite
   // forever and nothing said why.
-  const stored = readStoredPaletteId();
-  if (stored !== cachedPaletteId) cachedPaletteId = stored;
+  if (writeLanded('palette')) {
+    const stored = readStoredPaletteId();
+    if (stored !== cachedPaletteId) cachedPaletteId = stored;
+  }
   fallBackFromMissingTheme();
   applyCurrentTheme();
   emit();
