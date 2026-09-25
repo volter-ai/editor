@@ -113,7 +113,14 @@ Remaining:
    is `@volter/editor-game`'s. Walked on `arena` from product builds: select and inspect with
    preview, the shelf's tools reaching status, a source edit and undo byte for byte, Play with W
    and Stop restoring the scene, selection and camera pose, a glb and a Blender Model document.
-   `@volter/editor-game` imports kit internals from 80 files. Remaining in unit 3: Blender's lens,
+   Unit 4, walked in the model editor on this code (a fresh `create`d project): the Cube moved
+   through `blender-execute` shows moved and its `.blend` is rewritten on disk; undo returns it;
+   the Outliner eye hides and reveals it; the state survives a full editor reopen; closing the
+   Model document unbinds it from the engine and returns its renderer to the pool. The game
+   editor's Scene edit and Play were walked on the same code.
+   `@volter/editor-game` imports kit internals from 80 files (their closure is 254 of the kit's 259
+   modules, so they leave by dissolving the package, unit 5, not by moving the kit). Remaining in
+   unit 3: Blender's lens,
    opening direction, grid and axis colours become `@volter/editor-blender`'s specialization; the
    Three- and Pixi-typed adapter contract leaves `@volter/editor-project`; the SDK's
    `surfaces.Object3D*` and `host.viewport`/`host.hierarchy` doors still forward to what the Three
