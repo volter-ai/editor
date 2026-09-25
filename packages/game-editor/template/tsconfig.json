@@ -27,6 +27,7 @@
       "@volter/editor-project/*": ["node_modules/@volter/editor-project/src/*"],
       "@volter/threejs-runtime/*": ["node_modules/@volter/threejs-runtime/src/*"],
       "@volter/game-runtime/*": ["node_modules/@volter/game-runtime/src/*"],
+      "@editor/game-module-access": ["node_modules/@volter/editor-game/src/host/game-module-access.ts"],
       "@editor/*": ["node_modules/@volter/editor-core/src/*"]
     }
   },

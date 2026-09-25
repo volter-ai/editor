@@ -1532,6 +1532,11 @@ function rewriteTsconfig(targetDir: string, engineRelPath: string, editorRelPath
   if (editorRelPath) {
     tsconfig.compilerOptions.paths['@editor/*'] = [`${editorRelPath}/src/*`];
   }
+  // The one `@editor/*` name that is not editor-core's: the running game's module
+  // access lives in the editor-game host (served-bundle-runtime-modules.ts maps it).
+  tsconfig.compilerOptions.paths['@editor/game-module-access'] = [
+    'node_modules/@volter/editor-game/src/host/game-module-access.ts',
+  ];
   if (Array.isArray(tsconfig.files)) {
     tsconfig.files = tsconfig.files.map((f) => rewriteEngineRelativeFilePath(f, engineRelPath));
   }
