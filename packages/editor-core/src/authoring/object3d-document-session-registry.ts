@@ -30,9 +30,17 @@ function notifyRegistry(): void {
   for (const listener of registryListeners) listener();
 }
 
-export function registerObject3DDocumentSession(session: Object3DDocumentSession): () => void {
+/** `stage` is what the mounting stage adds to the document's viewport (its
+ *  transform tools, which only the stage host knows how to draw). */
+export function registerObject3DDocumentSession(
+  session: Object3DDocumentSession,
+  stage: Partial<DocumentViewport> = {},
+): () => void {
   sessions.set(session.documentId, session);
-  const stopViewport = registerDocumentViewport(session.documentId, object3DDocumentViewport(session));
+  const stopViewport = registerDocumentViewport(session.documentId, {
+    ...object3DDocumentViewport(session),
+    ...stage,
+  });
   notifyRegistry();
   return () => {
     stopViewport();

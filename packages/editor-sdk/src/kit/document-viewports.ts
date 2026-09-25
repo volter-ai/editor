@@ -34,6 +34,17 @@ export interface DocumentViewport {
   /** The controls this stage adds to its document's header (its shading,
    *  helpers and capture menus). */
   readonly HeaderControls?: ComponentType<{ readonly documentId: string; readonly assetPath?: string }>;
+  /**
+   * What the host's transform tools drive on this stage right now: `gizmo` (the
+   * stage's own transform handles, whose header wells configure them), `modal`
+   * (the stage transforms through a door it declared, and has no gizmo to
+   * configure) or `none` (nothing of this stage takes them).
+   */
+  transformTools?(): 'gizmo' | 'modal' | 'none';
+  /** The transform tool strip on the document's shelf. */
+  readonly TransformTools?: ComponentType<{ readonly documentId: string }>;
+  /** The gizmo's header wells (orientation, pivot, snap, options). */
+  readonly TransformControls?: ComponentType<{ readonly documentId: string }>;
 }
 
 const viewports = new Map<string, DocumentViewport>();

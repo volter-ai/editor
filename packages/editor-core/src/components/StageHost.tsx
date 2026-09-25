@@ -66,6 +66,7 @@ import {
 import { registerStageStore } from '../stage-store-registry';
 import { announceDocumentStage, registerDocumentViewport } from '@volter/editor-sdk/kit/document-viewports';
 import { sceneDocumentViewport } from '../scene-document-viewport';
+import { threeStageTransformChrome } from './stage-transform-chrome';
 import { RetainedDocumentStates } from '../retained-document-states';
 import { perspectiveDistanceToFitBox } from '../three-viewport/camera-fit';
 import {
@@ -790,7 +791,12 @@ export function Object3DDocumentViewport({
       documentHostRef.current = host;
       host.cleanups.push(registerStageStore(documentId, host.store));
       host.cleanups.push(registerStageTransport(documentId, host.transport));
-      host.cleanups.push(registerDocumentViewport(documentId, sceneDocumentViewport(host.store)));
+      host.cleanups.push(
+        registerDocumentViewport(documentId, {
+          ...sceneDocumentViewport(host.store),
+          ...threeStageTransformChrome(documentId),
+        }),
+      );
       const stage = binding.installWorldRootStage({
         store: host.store,
         documentId,
@@ -1783,7 +1789,9 @@ export function Object3DDocumentViewport({
               host.presence = binding;
               host.cleanups.push(() => binding.dispose());
             });
-            host.cleanups.push(registerObject3DDocumentSession(documentSession));
+            host.cleanups.push(
+              registerObject3DDocumentSession(documentSession, threeStageTransformChrome(documentId)),
+            );
             host.cleanups.push(
               registerPerformanceSource({
                 id: documentId,

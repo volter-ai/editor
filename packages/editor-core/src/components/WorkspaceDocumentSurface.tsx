@@ -1,21 +1,16 @@
-import { threeStateOf } from '../three-state';
 import {
-  stageTransformDoor,
   stageTransformsVersion,
   subscribeStageTransforms,
 } from '@volter/editor-sdk/contributions';
 import type { EditorMaterialId } from '@volter/editor-sdk/widgets';
-import { useEffect, useSyncExternalStore } from 'react';
+import { Suspense, useSyncExternalStore } from 'react';
 import { activeAuthoringVersion, subscribeActiveAuthoring } from '../authoring/active-adapter';
 import {
-  object3DDocumentSessionsVersion,
-  subscribeObject3DDocumentSessions,
-} from '../authoring/object3d-document-session-registry';
+  documentViewport,
+  documentViewportsVersion,
+  subscribeDocumentViewports,
+} from '@volter/editor-sdk/kit/document-viewports';
 import { useEditorStore } from '../editor-runtime';
-import type { EditorShellStore } from '../editor-shell-store';
-import { nativeViewportShelfTool } from '@volter/editor-sdk/kit/native-selection-style';
-import { documentStageContext, stageTransformDriver } from '../stage-context';
-import { stageStore, stageStoresVersion, subscribeStageStores } from '../stage-store-registry';
 import type {
   WorkspaceDocumentDescriptor,
   WorkspaceDocumentKind,
@@ -23,39 +18,6 @@ import type {
 import { assetDocumentSpec } from './asset-documents';
 import { DocumentHeaderStrip } from './DocumentHeaderStrip';
 import { DocumentShelfRail } from './DocumentShelfRail';
-import { ToolStrip, TransformHeaderControls } from './Toolbar';
-
-/**
- * THE STAGES WHOSE SHELF HAS ALREADY OPENED — the one piece of bookkeeping
- * behind {@link armShelfBootTool}, and a `WeakSet` because a store outlives
- * nothing here: it is the stage's, and when the stage goes so does the entry.
- */
-const shelfOpened = new WeakSet<EditorShellStore>();
-
-/**
- * THE SHELF'S BOOT TOOL IS THE LOOK'S, applied the first time this stage's
- * shelf draws.
- *
- * Blender's tool shelf opens on Select Box, so a selected object carries no
- * transform gizmo until one is armed (`DensityContribution.viewport.shelfTool`
- * in `@volter/editor-sdk/looks`, which cites the frames); this editor's opens on
- * the combined gizmo, which is what every look that names nothing keeps. It is a BOOT default and never a
- * standing switch — the tool is one click away in the rail below, and once a
- * person arms one the `WeakSet` above keeps this from ever second-guessing
- * them, through a document tab switch, a workspace change or a look change.
- *
- * WHY HERE AND NOT WHERE THE STORE IS MINTED: `StageHost` is the gizmo
- * viewport's own module and its value-import closure is PINNED
- * (`scripts/validate-editor-closure.mjs`). This is the panel that DRAWS the
- * shelf, so it is where the shelf's opening tool belongs; the reader it uses
- * is the same leaf the viewport reads its gizmo size through, which costs that
- * closure nothing either way.
- */
-function armShelfBootTool(store: EditorShellStore | null): void {
-  if (store === null || shelfOpened.has(store)) return;
-  shelfOpened.add(store);
-  if (nativeViewportShelfTool() === 'select') store.setTransformMode('select');
-}
 
 export type WorkspaceDocumentFamily = 'world' | 'resource';
 export type WorkspaceDocumentPlacement =
@@ -127,40 +89,20 @@ export function WorkspaceDocumentSurface({
   // is `stageTransformDriver`'s one answer below: the wells configure the
   // editor viewport's gizmo, so they follow the GIZMO arm and never appear
   // over a stage that transforms through its own modal door.
-  const store = threeStateOf(useEditorStore());
+  // What the host's transform tools drive, and the tools themselves, are the
+  // STAGE's answer for this document (`@volter/editor-sdk/kit/document-viewports`):
+  // a three stage draws its gizmo's strip and wells, a stage that transforms
+  // through its own door takes the modal arm, and a document with no stage has
+  // none.
+  const store = useEditorStore();
   useSyncExternalStore(store.subscribe, store.getShellSnapshot ?? store.getSnapshot);
   useSyncExternalStore(subscribeActiveAuthoring, activeAuthoringVersion, activeAuthoringVersion);
-  useSyncExternalStore(
-    subscribeObject3DDocumentSessions,
-    object3DDocumentSessionsVersion,
-    object3DDocumentSessionsVersion,
-  );
+  useSyncExternalStore(subscribeDocumentViewports, documentViewportsVersion, documentViewportsVersion);
   useSyncExternalStore(subscribeStageTransforms, stageTransformsVersion, stageTransformsVersion);
-  useSyncExternalStore(subscribeStageStores, stageStoresVersion, stageStoresVersion);
-  // A document with its OWN three stage (a model, an asset) carries the rail
-  // whatever the shell's roots say — a models project declares none. That is
-  // not a second rule: `stage-context.ts` answers what THIS document's stage is
-  // showing, and a document stage is a three stage.
-  const driver =
-    active && descriptor.kind !== 'game'
-      ? stageTransformDriver(documentStageContext(store, descriptor.id))
-      : 'none';
-  const door = driver === 'modal' ? stageTransformDoor(descriptor.id) : null;
-  // THE STORE THE GIZMO ARM WRITES — this stage's own, which for the world
-  // root IS the shell store (`StageHost.tsx`'s world-root install) and for
-  // every other stage is not. The shell is the fallback for a stage that has
-  // registered none yet, which is the state these controls used to write into
-  // permanently.
-  const gizmoStore = stageStore(descriptor.id) ?? store;
-  // THIS STAGE'S OWN store only — the shell's is the session's and arrives
-  // with whatever the world root was left at ({@link armShelfBootTool}). In an
-  // effect rather than in the body because arming notifies the store, and a
-  // store notification during another component's render is React's own
-  // "cannot update while rendering" case.
-  const ownStageStore = stageStore(descriptor.id);
-  useEffect(() => {
-    if (driver === 'gizmo') armShelfBootTool(ownStageStore);
-  }, [driver, ownStageStore]);
+  const stage = documentViewport(descriptor.id);
+  const driver = active && descriptor.kind !== 'game' ? (stage?.transformTools?.() ?? 'none') : 'none';
+  const TransformTools = stage?.TransformTools;
+  const TransformControls = stage?.TransformControls;
   return (
     <div
       className="vgai-dock-document"
@@ -175,7 +117,11 @@ export function WorkspaceDocumentSurface({
           island={backdrop && family === 'world'}
           assetPath={assetDocumentSpec(descriptor.id)?.assetPath}
           transformControls={
-            driver === 'gizmo' ? <TransformHeaderControls store={gizmoStore} /> : null
+            driver === 'gizmo' && TransformControls ? (
+              <Suspense fallback={null}>
+                <TransformControls documentId={descriptor.id} />
+              </Suspense>
+            ) : null
           }
         >
           {Toolbar ? <Toolbar documentId={descriptor.id} active={active} /> : null}
@@ -191,8 +137,10 @@ export function WorkspaceDocumentSurface({
           <DocumentShelfRail documentId={descriptor.id}>
             {driver !== 'none' || Shelf ? (
               <>
-                {driver === 'none' ? null : (
-                  <ToolStrip store={gizmoStore} {...(door ? { door } : {})} />
+                {driver === 'none' || !TransformTools ? null : (
+                  <Suspense fallback={null}>
+                    <TransformTools documentId={descriptor.id} />
+                  </Suspense>
                 )}
                 {Shelf ? <Shelf documentId={descriptor.id} active={active} /> : null}
               </>
