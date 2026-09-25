@@ -176,6 +176,9 @@ export interface BlenderWasmStatus {
   encoded: Record<string, 'br'>;
   /** Why it is unavailable, named. Empty when it is available. */
   missing: string[];
+  /** Emscripten: each file's SHA-256 as it decodes (`BUNDLE.json#rawFiles`,
+   *  `essentials.json`), so a page can keep the bytes it fetched once. */
+  digests?: Record<string, string>;
   /** WALI only: the `sha256-` SRI of `blender.wasm`. The program loader
    *  refuses any non-blob URL without one, so the session names the exact
    *  bytes it ran. */
@@ -238,7 +241,22 @@ async function emscriptenStatus(dir: string): Promise<BlenderWasmStatus> {
     sizes[file] = found.size;
     if (found.encoding) encoded[file] = found.encoding;
   }
-  return { available: missing.length === 0, skew: 'emscripten', dir, sizes, encoded, missing };
+  return { available: missing.length === 0, skew: 'emscripten', dir, sizes, encoded, missing, digests: await emscriptenDigests(dir) };
+}
+
+/** The decoded bytes' digests the build records, for the files it records them for. */
+async function emscriptenDigests(dir: string): Promise<Record<string, string>> {
+  const digests: Record<string, string> = {};
+  const read = async (file: string): Promise<unknown> => {
+    try { return JSON.parse(await readFile(join(dir, file), 'utf8')); } catch { return undefined; }
+  };
+  const bundle = await read('BUNDLE.json') as { rawFiles?: Record<string, { sha256?: unknown }> } | undefined;
+  for (const [file, record] of Object.entries(bundle?.rawFiles ?? {})) {
+    if (typeof record?.sha256 === 'string') digests[file] = record.sha256;
+  }
+  const essentials = await read('essentials.json') as { sha256?: unknown } | undefined;
+  if (typeof essentials?.sha256 === 'string') digests['essentials.bin'] = essentials.sha256;
+  return digests;
 }
 
 async function waliStatus(dir: string): Promise<BlenderWasmStatus> {

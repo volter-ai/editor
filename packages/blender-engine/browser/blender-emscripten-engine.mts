@@ -133,9 +133,37 @@ function moduleFiles(module: BlenderModule): BlenderFiles {
   };
 }
 
+/**
+ * BLENDER'S ARTIFACTS ARE FETCHED ONCE PER BUILD. The wasm (86 MB decoded), the
+ * `.data` package (53 MB) and the Essentials payload are immutable for a build,
+ * and the page keeps them in Cache Storage under the digest the artifact door
+ * reports, so a later open reads them at the browser's own speed instead of
+ * from the editor's server. Measured in the browser substrate, where that
+ * server runs in the tab: the three took 7.2 s per open (4.2 s for the wasm
+ * alone), about half of it decoding their brotli. A file the door gives no
+ * digest for is fetched as it always was.
+ */
+const ARTIFACT_CACHE = 'volter-blender-artifacts';
+
+async function cachedArtifact(file: string, digest: string | undefined): Promise<Response> {
+  const url = artifactUrl(file);
+  if (!digest || typeof caches === 'undefined') return fetch(url);
+  const key = `${url}?sha256=${digest}`;
+  const cache = await caches.open(ARTIFACT_CACHE);
+  const hit = await cache.match(key);
+  if (hit) return hit;
+  const response = await fetch(url);
+  if (!response.ok) return response;
+  // One build's bytes per file: an older build's are dropped as this one lands.
+  for (const old of await cache.keys()) if (old.url.startsWith(`${url}?sha256=`) && old.url !== key) await cache.delete(old);
+  const kept = new Response(await response.blob(), { headers: { 'content-type': response.headers.get('content-type') ?? 'application/octet-stream' } });
+  await cache.put(key, kept.clone());
+  return kept;
+}
+
 export async function startEmscriptenBlenderEngine(
   options: BlenderEngineOptions,
-  _status: BlenderArtifactStatus,
+  status: BlenderArtifactStatus,
 ): Promise<BlenderEngine> {
   if (!self.crossOriginIsolated)
     throw new Error(
@@ -144,7 +172,17 @@ export async function startEmscriptenBlenderEngine(
         'every response). This worker reports crossOriginIsolated=false.',
     );
   const glueUrl = artifactUrl('blender_browser.js');
-  const factory = await loadFactory(glueUrl);
+  const digests = status.digests ?? {};
+  // The `.data` package is handed to the glue whole (`getPreloadedPackage`),
+  // so it is read before the module starts; the wasm streams in beside it.
+  const [factory, preloaded] = await Promise.all([
+    loadFactory(glueUrl),
+    cachedArtifact('blender_browser.data', digests['blender_browser.data']).then(async (response) => {
+      if (!response.ok) throw new Error(`blender_browser.data: HTTP ${response.status}`);
+      return response.arrayBuffer();
+    }),
+  ]);
+  let bootError: unknown = null;
   const started = performance.now();
   let readyLine: string | null = null;
   // BLENDER'S OWN STREAMS ARE PAGE OUTPUT, NOT EDITOR-CONSOLE CONDITIONS.
@@ -164,6 +202,16 @@ export async function startEmscriptenBlenderEngine(
   const module = await factory({
     arguments: ['--background', '--factory-startup', '--python', SESSION_SCRIPT],
     locateFile: (file: string) => artifactUrl(file),
+    getPreloadedPackage: () => preloaded,
+    instantiateWasm: (imports: WebAssembly.Imports, receive: (instance: WebAssembly.Instance, module: WebAssembly.Module) => void) => {
+      void (async () => {
+        const response = await cachedArtifact('blender_browser.wasm', digests['blender_browser.wasm']);
+        if (!response.ok) throw new Error(`blender_browser.wasm: HTTP ${response.status}`);
+        const { instance, module: compiled } = await WebAssembly.instantiateStreaming(response, imports);
+        receive(instance, compiled);
+      })().catch((error: unknown) => { bootError = error; });
+      return {};
+    },
     // The pthreads load the SAME patched glue this worker just evaluated.
     mainScriptUrlOrBlob: glueUrl,
     print: (text: string) => say('log', text),
@@ -209,7 +257,10 @@ export async function startEmscriptenBlenderEngine(
   });
   // `main()` runs on a pthread (`-sPROXY_TO_PTHREAD`), so the factory resolves
   // long before the session exists. The ready line is what says it does.
-  while (readyLine === null) await sleep(5);
+  while (readyLine === null) {
+    if (bootError) throw bootError instanceof Error ? bootError : new Error(String(bootError));
+    await sleep(5);
+  }
   const bootMs = performance.now() - started;
   const banner = JSON.parse(readyLine) as { blender: string; engines: string[] };
 
@@ -268,7 +319,7 @@ export async function startEmscriptenBlenderEngine(
 
   const files = moduleFiles(module);
   FS.chmod('/bw/datafiles', 0o755);
-  await mountEssentials(files);
+  await mountEssentials(files, digests['essentials.bin']);
   const { request } = openSessionChannel(files, options);
 
   return {
@@ -293,9 +344,9 @@ export async function startEmscriptenBlenderEngine(
 /** Assets are data, not a second engine. Ship them separately so a data update
  * does not relink the 86 MB Wasm binary. Both payload and per-file bounds are
  * checked before anything enters Blender's filesystem. */
-async function mountEssentials(files: BlenderFiles): Promise<void> {
+async function mountEssentials(files: BlenderFiles, digest: string | undefined): Promise<void> {
   const [indexResponse, payloadResponse] = await Promise.all([
-    fetch(artifactUrl('essentials.json')), fetch(artifactUrl('essentials.bin')),
+    fetch(artifactUrl('essentials.json')), cachedArtifact('essentials.bin', digest),
   ]);
   if (!indexResponse.ok || !payloadResponse.ok)
     throw new Error(`Blender Essentials assets are missing (${indexResponse.status}/${payloadResponse.status})`);

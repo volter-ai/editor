@@ -179,6 +179,8 @@ export interface BlenderArtifactStatus {
   encoded: Record<string, 'br'>;
   /** Why it is unavailable, named. Empty when it is available. */
   missing: string[];
+  /** Emscripten: each file's SHA-256 as it decodes, the key a page keeps it under. */
+  digests?: Record<string, string>;
   /** WALI only: the `sha256-` SRI of `blender.wasm`, which the program loader
    *  requires for any non-blob URL. */
   integrity?: string;
