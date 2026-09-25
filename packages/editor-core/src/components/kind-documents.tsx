@@ -40,6 +40,7 @@ import {
   subscribeToolContributions,
 } from '../tool-loader';
 import { waitUntil } from '../wait-until';
+import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import {
   type OpenWorkspaceDocumentOptions,
   openWorkspaceDocument,
@@ -246,23 +247,14 @@ export function installKindDocumentRefresh(): () => void {
  * model document restored on the first resolution found no entry). Stops
  * waiting when the project changes under it.
  */
-function whenDocumentEntry(
-  entryId: string,
-  fn: (entry: DocumentEntry) => void,
-  gone?: () => void,
-): void {
+function whenDocumentEntry(entryId: string, fn: (entry: DocumentEntry) => void): void {
+  const project = getCurrentProject();
   const attempt = (): boolean => {
+    if (getCurrentProject() !== project) return true;
     const facet = projectAdapterFacet();
     if (!facet) return false;
     const entry = facet.scenes.entries.find((candidate) => candidate.id === entryId);
-    if (!entry) {
-      // The settled table no longer lists it (its file was deleted between sessions).
-      if (gone && !facet.documentsPending) {
-        gone();
-        return true;
-      }
-      return false;
-    }
+    if (!entry) return false;
     fn(entry);
     return true;
   };
@@ -365,8 +357,33 @@ function followNewTableDocuments(seen?: readonly string[]): void {
   stopFollowingTableDocuments = subscribeProjectAdapter(observe);
 }
 
-function openDefaultTableDocument(): void {
+/**
+ * A RECORD WHOSE FILES ARE ALL GONE opens the project's default, not nothing: a models project
+ * whose only `.blend` was deleted between sessions would otherwise sit on an empty workspace
+ * (on the model editor, the cover's 90 s refusal). Decided once, for the whole record, and only
+ * on a table that loaded cleanly for this project — a failed or partial load lists nothing and
+ * proves nothing gone.
+ */
+function openDefaultWhenRestoresAreGone(entryIds: readonly string[]): void {
+  const project = getCurrentProject();
   const attempt = (): boolean => {
+    if (getCurrentProject() !== project) return true;
+    const facet = projectAdapterFacet();
+    if (!facet || facet.documentsPending || facet.error !== null) return false;
+    if (facet.scenes.entries.some((entry) => entryIds.includes(entry.id))) return true;
+    openDefaultTableDocument();
+    return true;
+  };
+  if (attempt()) return;
+  const stop = subscribeProjectAdapter(() => {
+    if (attempt()) stop();
+  });
+}
+
+function openDefaultTableDocument(): void {
+  const project = getCurrentProject();
+  const attempt = (): boolean => {
+    if (getCurrentProject() !== project) return true;
     const facet = projectAdapterFacet();
     if (!facet || facet.documentsPending) return false;
     // "SOMETHING IS ALREADY OPEN" MEANS A DOCUMENT A PERSON IS IN — never an
@@ -430,20 +447,13 @@ registerWorkspaceDocumentRestorer({
     const record = state as { entryId?: unknown } | null | undefined;
     const entryId = typeof record?.entryId === 'string' ? record.entryId : null;
     if (!entryId) return false;
-    // A document whose file is gone reopens nothing, and the session falls back to the
-    // project's default rather than opening on nothing (a models project whose only `.blend`
-    // was deleted).
-    whenDocumentEntry(
-      entryId,
-      (entry) => {
-        openKindDocumentWhenReady(entry, { activate: active });
-      },
-      openDefaultTableDocument,
-    );
+    whenDocumentEntry(entryId, (entry) => {
+      openKindDocumentWhenReady(entry, { activate: active });
+    });
     return true;
   },
   persistKindState: () => (seenTableIds ? { seen: [...seenTableIds] } : undefined),
-  beginRestore: ({ state, hasDocumentsToRestore }) => {
+  beginRestore: ({ state, hasDocumentsToRestore, documentsToRestore }) => {
     const record = state as { seen?: unknown } | null | undefined;
     const seen = Array.isArray(record?.seen)
       ? record.seen.filter((id): id is string => typeof id === 'string')
@@ -462,6 +472,15 @@ registerWorkspaceDocumentRestorer({
     // then sat out its 90 s budget and blamed Blender for a model nobody had
     // asked it to open).
     if (!hasDocumentsToRestore) openDefaultTableDocument();
+    else {
+      // Only when the whole record is this kind's: another kind's document may be coming back.
+      const entryIds = documentsToRestore.map((doc) =>
+        doc.kind === 'document' ? (doc.state as { entryId?: unknown } | null)?.entryId : undefined,
+      );
+      if (entryIds.every((id): id is string => typeof id === 'string')) {
+        openDefaultWhenRestoresAreGone(entryIds);
+      }
+    }
     followNewTableDocuments(seen);
   },
 });

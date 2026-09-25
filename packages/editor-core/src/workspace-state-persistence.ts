@@ -343,7 +343,12 @@ function beginKindRestores(
   for (const restorer of workspaceDocumentRestorerEntries()) {
     if (!restorer.beginRestore) continue;
     try {
-      restorer.beginRestore({ state: kinds[restorer.kind], hasDocumentsToRestore, store });
+      restorer.beginRestore({
+        state: kinds[restorer.kind],
+        hasDocumentsToRestore,
+        documentsToRestore: (docs?.open ?? []).map((doc) => ({ kind: doc.kind, state: doc.state })),
+        store,
+      });
     } catch {
       // Same failure physics as every other contribution call here.
     }

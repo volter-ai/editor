@@ -195,9 +195,11 @@ export function syncThreeSelectionOutline(
   selectedRoots: Iterable<THREE.Object3D>,
 ): void {
   const roots = [...selectedRoots];
+  // A bone draws its own joint highlight and is never outlined, so it is not an object here.
+  const objects = roots.filter((root) => !(root as THREE.Bone).isBone).length;
   const state = outlineState.get(effect);
-  if (state && state.roots !== roots.length) {
-    state.roots = roots.length;
+  if (state && state.roots !== objects) {
+    state.roots = objects;
     paintOutline(effect);
   }
   const targets = collectThreeSelectionOutlineTargets(roots);

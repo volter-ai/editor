@@ -81,6 +81,9 @@ export interface WorkspaceDocumentKindRestoreContext {
    * is one fact however the record spells it.
    */
   readonly hasDocumentsToRestore: boolean;
+  /** The documents the record lists, of every kind and in order — so a kind can tell whether
+   *  the whole record was its own, before its `restore` calls arrive (they follow this). */
+  readonly documentsToRestore: readonly { readonly kind: string; readonly state: unknown }[];
   readonly store: WorkspaceStateStore;
 }
 
