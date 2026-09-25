@@ -905,6 +905,21 @@ export class EditorClient {
     await this.command({ type: 'set-style', style });
   }
 
+  /** A document stage's viewport PRESENTATION (`kit/viewport-presentation`), resolved; with a
+   *  `layer`, that choice is recorded for the view first, as the toolbar records it. */
+  async viewportPresentation(
+    documentId: string,
+    layer?: import('./kit/viewport-presentation').PresentationLayer,
+  ): Promise<{
+    presentation: import('./kit/viewport-presentation').ViewportPresentation;
+    binding: { stageKind: string; documentLayer: import('./kit/viewport-presentation').PresentationLayer | null } | null;
+    bound: { viewId: string; stageKind: string }[];
+    lastDraw: import('./kit/viewport-presentation').ViewDrawReport | null;
+    presets: string[];
+  }> {
+    return this.command({ type: 'viewport-presentation', documentId, ...(layer ? { layer } : {}) });
+  }
+
   /** Set the MATERIAL apart from the bundle that usually carries it.
    *  Answers with what the chrome wears afterwards. */
   async setAppearance(appearance: {

@@ -37,6 +37,13 @@ import { EDITOR_LAYER } from '@volter/editor-threejs/viewport/editor-layers';
 import type { StandardEnvironment } from '@volter/editor-threejs/viewport/environment';
 import { setUserData } from '@volter/editor-threejs/ecs/user-data';
 import * as THREE from 'three';
+import {
+  studioPreset,
+  type StudioLight,
+  type SceneTakeover,
+  type StudioPreset,
+  type ViewportPresentation,
+} from '@volter/editor-sdk/kit/viewport-presentation';
 
 /**
  * Front-right three-quarter view for project-owned R3F components. Their
@@ -271,55 +278,6 @@ export interface StandardViewportDressing {
   dispose(): void;
 }
 
-/**
- * The room bake's strength on a document stage. NOT the asset-preview lane's
- * `STUDIO_ENVIRONMENT_INTENSITY` (0.45): that lane has no key light, this rig
- * does, and the two are fitted together — with the mesh package's
- * `STUDIO_GREY`, which is the other half of this number.
- *
- * THE FRAME AND THE COORDINATES, so every round compares. Reference:
- * Blender's object-mode cube, `modeling-object-none.png` at its native 2x —
- * front face 111, left 130, top 141, spread 30, read identically at 2x and
- * downscaled to our 1728-wide frame. Ours: a fresh `--template models`
- * scaffold, the Model document on its own default camera, `vgai screenshot
- * editor` at 1x (1728x941), 11x11 medians at (735,505) front, (665,500) left,
- * (710,440) top.
- *
- * THE ROUNDS (albedo, strength -> front/left/top):
- *   #545454, 1.00 -> 108/130/159   reproduces the earlier round exactly
- *   #545454, 0.60 ->  90/100/135
- *   #545454, 0.30 ->  73/ 69/111   what shipped before this — see below
- *   #4f4f4f, 1.04 -> 103/125/154   the min-max alternative; duller by eye
- *   #5a5a5a, 0.85 -> 110/128/159   LANDED
- *
- * WHY 0.30 WAS WRONG: at that strength the cube is not uniformly dark. The
- * left face collapses BELOW the front one (69 against 73), inverting
- * Blender's own order — the left face is almost pure IBL, the front face
- * mostly key — so the narrow spread it bought was the two side faces meeting
- * in the dark, not Blender's shape.
- *
- * WHY THE TOP FACE STAYS ~18 HOT, and why no value here fixes it. This
- * subject has exactly TWO lighting bases, the directional key and the room
- * bake, so face radiance is p*K + q*E; the albedo, the key's intensity and
- * this strength only move p and q (the albedo scales both, adding no third
- * degree of freedom). Split from the rounds above, in scene-linear through
- * ACES: K = 0.044 / 0.020 / 0.070 and E = 0.069 / 0.134 / 0.161
- * (front/left/top). The model predicted 89/100/136 at strength 0.6 against
- * 90/100/135 measured, so it holds — and it says Blender's three faces need a
- * NEGATIVE p or q. Solving front+left exactly leaves the top at 161; the best
- * min-max anywhere in the family is 101/123/151, ten off on all three and
- * still 50 of spread. The residual is the RoomEnvironment's
- * ceiling-to-floor gradient against Blender's camera-following studio light:
- * closing it needs a different environment or a key from the camera's side,
- * not a different number here. So this is fitted on the two faces that ARE
- * reachable, which carry 74% of the cube's pixels (front 54%, left 20%,
- * top 26%).
- *
- * The host applies this to the CONTENT scene it creates (`StageHost.tsx`),
- * the one place the per-draw mirror cannot overwrite it.
- */
-export const STANDARD_ENVIRONMENT_INTENSITY = 0.85;
-
 /** Apply the standard dressing to one document viewport scene. */
 export function applyStandardViewportDressing(
   scene: THREE.Scene,
@@ -338,18 +296,10 @@ export function applyStandardViewportDressing(
   }
 
   if (keyLight) {
-    // NEUTRAL, not warm. It was `0xfff3dd` — (255,243,221), a 15% warm bias —
-    // and that is what made every document's subject read warm against the
-    // reference: measured live on the Model document's cube, our three faces
-    // came out (124,123,120), (145,145,145), (172,171,169) — R−B of +4/0/+3 —
-    // where Blender's object-mode cube (`modeling-object-none.png` at 2x) is
-    // (111,112,113), (129,131,131), (141,143,145), COOL by 2 to 4. White key,
-    // and every face measures R−B of 0. The INTENSITY is unchanged: measured
-    // across four rounds, halving and thirding it moved the faces 6–8 levels
-    // and barely touched the spread between them, so it is not what this
-    // difference was made of and every other document surface keeps its
-    // definition.
-    const key = new THREE.DirectionalLight(0xffffff, 1.9);
+    // The kit's own key, warm, as the kit studio preset states it (`KIT_STUDIO_PRESET`). A
+    // document stage is lit by its view's presentation instead (`StagePresentationRig`, and
+    // `StageHost` turns this key off); a stage without a presentation still gets this one.
+    const key = new THREE.DirectionalLight(0xfff3dd, 1.9);
     key.name = 'vgai:standard-dressing-key';
     key.position.set(6, 10, -4);
     key.castShadow = true;
@@ -418,4 +368,152 @@ export function applyStandardViewportDressing(
       }
     },
   };
+}
+
+/**
+ * THE STAGE'S LIGHTING, FROM ITS PRESENTATION — the Three half of
+ * `@volter/editor-sdk/kit/viewport-presentation`. A 3D document stage owns one rig; it draws
+ * the view's `studio` lighting (a preset's lights, world-fixed or camera-locked, and its
+ * ambient), sets the renderer's tone mapper and exposure, and answers the image-based light's
+ * strength. It replaces the lights that were fixed in code: the dressing's key and the
+ * viewport's own ambient and directional (`docs/VIEWPORT-STAGE.md` §The ruling). It moves to
+ * `@volter/editor-threejs` with the rest of the assembled viewport (ARCHITECTURE.md, the plan,
+ * unit 3).
+ *
+ * A `studio` draw lights by its preset alone: the stage darkens the content's own lights for
+ * that draw and restores them after it (`Object3DDocumentHost.darkenContentLights`). The
+ * `document` preset is the document's own view-locked studio (Blender's Solid lights), which the
+ * document manages together with its scene's lights.
+ *
+ * Not yet: the `preview` source (a sun and a sky) draws nothing, and a Blender document's
+ * `scene` source draws unlit, because Blender's render lighting lives in the Blender engine
+ * (`BlenderRuntimeView.setRendered`) rather than as lights in the document's content.
+ */
+const LIGHT_DISTANCE = 12;
+
+const TONE_MAPPERS: Record<ViewportPresentation['lighting']['tone']['mapper'], THREE.ToneMapping> = {
+  none: THREE.NoToneMapping,
+  aces: THREE.ACESFilmicToneMapping,
+  agx: THREE.AgXToneMapping,
+  // Godot's Filmic has no three counterpart; AgX is three's filmic curve.
+  filmic: THREE.AgXToneMapping,
+};
+
+export class StagePresentationRig {
+  private readonly group = new THREE.Group();
+  private readonly ambient = new THREE.AmbientLight(0xffffff, 0);
+  private lights: { readonly light: THREE.DirectionalLight; readonly spec: StudioLight }[] = [];
+  private preset: StudioPreset | null = null;
+  private presentation: ViewportPresentation | null = null;
+  private source: 'studio' | 'preview' | 'scene' = 'studio';
+  private readonly direction = new THREE.Vector3();
+
+  constructor(scene: THREE.Scene) {
+    this.group.name = 'vgai:stage-presentation-rig';
+    // Kept out of hierarchy walks and picks, like every editor helper.
+    this.group.userData['editorHelper'] = true;
+    this.group.add(this.ambient);
+    scene.add(this.group);
+  }
+
+  /** Apply a view's presentation. `toneMapping` is the document's own mapper when it states one
+   *  (a document's dressing), which outranks the view's. */
+  apply(
+    presentation: ViewportPresentation,
+    renderer: THREE.WebGLRenderer,
+    documentToneMapping?: THREE.ToneMapping,
+  ): void {
+    this.presentation = presentation;
+    const { lighting } = presentation;
+    const preset = studioPreset(lighting.studioPreset);
+    if (preset !== this.preset) this.build(preset);
+    this.source = lighting.source;
+    this.group.visible = lighting.source === 'studio';
+    renderer.toneMapping = documentToneMapping ?? TONE_MAPPERS[lighting.tone.mapper];
+    renderer.toneMappingExposure = lighting.tone.exposure;
+  }
+
+  /**
+   * Before every draw: the source this draw lights by, given what the scene holds. A view whose
+   * lighting is `auto` gives way to the scene's own when the scene has any of its `takeover`
+   * (the kit's rule, Godot's preview); without `auto` the view's source stands (Blender, Unity).
+   */
+  resolveSource(scene: Readonly<Partial<Record<SceneTakeover, boolean>>>): 'studio' | 'preview' | 'scene' {
+    const lighting = this.presentation?.lighting;
+    let source: 'studio' | 'preview' | 'scene' = lighting?.source ?? 'studio';
+    if (lighting?.auto && source !== 'scene' && lighting.auto.takeover.some((part) => scene[part] === true)) {
+      source = 'scene';
+    }
+    this.source = source;
+    this.group.visible = source === 'studio';
+    return source;
+  }
+
+  /** Whether the preset's own lights are showing. */
+  lightsVisible(): boolean {
+    return this.group.visible && this.lights.length > 0;
+  }
+
+  /** The studio preset the view names. */
+  presetId(): string | null {
+    return this.preset?.id ?? null;
+  }
+
+  /** The image-based light's strength this draw wants, or `null` when the scene's own decides. */
+  environmentIntensity(): number | null {
+    if (this.source !== 'studio') return null;
+    return this.preset?.environmentIntensity ?? null;
+  }
+
+  /** Before every draw: point the camera-locked lights along the camera. */
+  update(camera: THREE.Camera): void {
+    if (!this.group.visible) return;
+    for (const { light, spec } of this.lights) {
+      this.direction.set(...spec.direction).normalize();
+      if (spec.space === 'camera') this.direction.applyQuaternion(camera.quaternion);
+      light.position.copy(this.direction).multiplyScalar(-LIGHT_DISTANCE);
+      light.target.position.set(0, 0, 0);
+      light.updateMatrixWorld();
+      light.target.updateMatrixWorld();
+    }
+  }
+
+  dispose(): void {
+    this.clearLights();
+    this.group.removeFromParent();
+  }
+
+  private build(preset: StudioPreset): void {
+    this.clearLights();
+    this.preset = preset;
+    this.ambient.color.set(preset.ambient.color);
+    this.ambient.intensity = preset.ambient.intensity;
+    for (const spec of preset.lights) {
+      const light = new THREE.DirectionalLight(spec.color, spec.intensity);
+      light.name = `vgai:studio-light:${preset.id}`;
+      light.castShadow = spec.castShadow === true;
+      light.userData['editorHelper'] = true;
+      this.group.add(light);
+      this.group.add(light.target);
+      this.lights.push({ light, spec });
+    }
+    // World lights never move again; camera lights move every draw.
+    this.direction.set(0, 0, 0);
+    for (const { light, spec } of this.lights) {
+      if (spec.space !== 'world') continue;
+      this.direction.set(...spec.direction).normalize();
+      light.position.copy(this.direction).multiplyScalar(-LIGHT_DISTANCE);
+      light.updateMatrixWorld();
+      light.target.updateMatrixWorld();
+    }
+  }
+
+  private clearLights(): void {
+    for (const { light } of this.lights) {
+      light.removeFromParent();
+      light.target.removeFromParent();
+      light.dispose();
+    }
+    this.lights = [];
+  }
 }

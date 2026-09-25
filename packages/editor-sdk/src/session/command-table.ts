@@ -152,6 +152,8 @@ export const RELAY_COMMANDS = {
   // A style bundle is chrome appearance; the document is untouched.
   'set-style': noDerivedRefresh(),
   'set-appearance': noDerivedRefresh(),
+  // A view's viewport presentation (lighting, backdrop, overlays); the document is untouched.
+  'viewport-presentation': noDerivedRefresh(),
   'present-view': alwaysRefresh(30_000),
   'current-view': refreshIfContentChanged(),
   // A read of the resolved document table; changes nothing.

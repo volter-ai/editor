@@ -1,4 +1,5 @@
 import { createPerformanceProfiler } from '../performance-profiler';
+import { resetViewPresentation } from '@volter/editor-sdk/kit/viewport-presentation';
 import { invalidateStages } from '../stage-invalidation';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { viewportCaptureOutputPass } from '@volter/editor-threejs/capture/output-pass';
@@ -91,9 +92,7 @@ export interface Object3DDocumentPresentationState {
   readonly mode: Object3DDocumentViewMode;
   readonly grid: boolean;
   readonly background: 'neutral' | 'transparent';
-  readonly exposure: number;
   readonly projection: 'perspective' | 'orthographic';
-  readonly lighting: 'studio' | 'outdoor' | 'flat';
   readonly skeleton: boolean;
   readonly bounds: boolean;
 }
@@ -102,9 +101,7 @@ const INITIAL_PRESENTATION: Object3DDocumentPresentationState = {
   mode: 'solid',
   grid: true,
   background: 'neutral',
-  exposure: 1,
   projection: 'perspective',
-  lighting: 'studio',
   skeleton: false,
   bounds: false,
 };
@@ -170,7 +167,6 @@ export class Object3DDocumentSession {
     readonly scene: THREE.Scene,
     readonly renderer: THREE.WebGLRenderer,
     readonly viewport: EditorViewport,
-    private readonly editorLights: readonly THREE.Light[] = [],
     private authoring?: AuthoringAdapter,
     /** Asset Lab renders its neutral stage in editor chrome behind an alpha
      *  canvas; other document hosts may retain a real Three background. */
@@ -583,18 +579,6 @@ export class Object3DDocumentSession {
     this.notify();
   }
 
-  lightingAvailable(): boolean {
-    return this.editorLights.length > 0;
-  }
-
-  setLighting(lighting: 'studio' | 'outdoor' | 'flat'): void {
-    invalidateStages();
-    if (this.state.lighting === lighting) return;
-    this.setLightingValues(lighting);
-    this.state = { ...this.state, lighting };
-    this.notify();
-  }
-
   setMode(mode: Object3DDocumentViewMode): void {
     invalidateStages();
     if (this.state.mode === mode) return;
@@ -753,25 +737,16 @@ export class Object3DDocumentSession {
     this.notify();
   }
 
-  setExposure(exposure: number): void {
-    invalidateStages();
-    if (!Number.isFinite(exposure) || exposure < 0.2 || exposure > 2) return;
-    if (this.state.exposure === exposure) return;
-    this.renderer.toneMappingExposure = exposure;
-    this.state = { ...this.state, exposure };
-    this.notify();
-  }
-
   resetPresentation(): void {
     invalidateStages();
+    // Lighting, backdrop and tone are the view's presentation (`kit/viewport-presentation`).
+    resetViewPresentation(this.documentId);
     this.clearDiagnosticPresentation();
     this.state = INITIAL_PRESENTATION;
     this.refreshSkeletonHelper();
     this.clearBoundsHelper();
     this.viewport.grid.visible = true;
     this.scene.background = this.neutralBackground;
-    this.renderer.toneMappingExposure = 1;
-    this.setLightingValues('studio');
     this.viewport.camera.up.set(0, 1, 0);
     this.frame();
     this.notify();
@@ -1305,25 +1280,6 @@ export class Object3DDocumentSession {
     this.orthographicCamera.layers.mask = source.layers.mask;
     this.orthographicCamera.updateProjectionMatrix();
     this.orthographicCamera.updateMatrixWorld(true);
-  }
-
-  private setLightingValues(lighting: 'studio' | 'outdoor' | 'flat'): void {
-    for (const light of this.editorLights) {
-      if (light instanceof THREE.HemisphereLight) {
-        light.intensity = lighting === 'flat' ? 2 : lighting === 'outdoor' ? 1.15 : 1.7;
-      } else if (light instanceof THREE.DirectionalLight) {
-        light.intensity = lighting === 'flat' ? 0 : lighting === 'outdoor' ? 2.2 : 2.4;
-        // Every preset is NEUTRAL now, like the dressing's key this retunes
-        // (`standard-viewport-dressing.ts` carries the measurement against
-        // Blender's object-mode cube). Studio was `0xfff3dd`, so picking it in
-        // the preset menu put the warm cast back on a document the dressing
-        // had already lit white — and measured live, this whole function is
-        // dead until someone touches that menu: the initial `lighting:
-        // 'studio'` state never applies its own values, which is why changing
-        // them moved nothing until the dressing changed too.
-        light.color.set(0xffffff);
-      }
-    }
   }
 
   private clearDiagnosticPresentation(): void {

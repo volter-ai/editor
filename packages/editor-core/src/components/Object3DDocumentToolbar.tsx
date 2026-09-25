@@ -44,6 +44,15 @@ import type { HelperVisibility } from '../editor-shell-store';
 import { object3DDocumentWritePolicy } from '../object3d-document-write-policy';
 import { stageStore, stageStoresVersion, subscribeStageStores } from '../stage-store-registry';
 import { viewportStageHelperKinds } from '../viewport-door';
+import {
+  DOCUMENT_STUDIO_PRESET,
+  setViewPresentation,
+  studioPresets,
+  viewPresentationBinding,
+  subscribeViewportPresentation,
+  viewPresentation,
+  viewportPresentationVersion,
+} from '@volter/editor-sdk/kit/viewport-presentation';
 import { ViewportOverlaysGlyph, ViewportOverlaysMenu } from './ViewportOverlaysMenu';
 import {
   type ViewportDisplayModeChoice,
@@ -119,8 +128,12 @@ export function Object3DDocumentToolbar({
   const [moreOpen, setMoreOpen] = useState(false);
   const viewRef = useRef<HTMLButtonElement>(null);
   const moreRef = useRef<HTMLButtonElement>(null);
+  useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion, viewportPresentationVersion);
   if (!session) return null;
   const presentation = session.presentation();
+  const { lighting } = viewPresentation(documentId);
+  const documentStudioOffered =
+    viewPresentationBinding(documentId)?.documentLayer?.all?.lighting?.studioPreset === DOCUMENT_STUDIO_PRESET.id;
   const availableModes = new Set(
     supportedModelDiagnosticModes(session.root)
       .filter((item) => item.available)
@@ -302,39 +315,53 @@ export function Object3DDocumentToolbar({
           choices={modes}
           segments={viewportShadingSegments}
         >
-          {session.lightingAvailable() ? (
-            <>
-              <label>
-                <span>Lighting</span>
-                <Select
-                  aria-label="Lighting preset"
-                  value={presentation.lighting}
-                  onChange={(event) =>
-                    session.setLighting(event.target.value as 'studio' | 'outdoor' | 'flat')
-                  }
-                >
-                  <option value="studio">Studio</option>
-                  <option value="outdoor">Outdoor</option>
-                  <option value="flat">Flat</option>
-                </Select>
-              </label>
-              <label>
-                <span>Exposure</span>
-                <TextInput
-                  aria-label="Preview exposure"
-                  type="range"
-                  min="0.2"
-                  max="2"
-                  step="0.1"
-                  value={presentation.exposure}
-                  onChange={(event) => session.setExposure(Number(event.target.value))}
-                />
-                <Text as="span" variant="caption">
-                  {presentation.exposure.toFixed(1)}
-                </Text>
-              </label>
-            </>
-          ) : null}
+          {/* LIGHTING AND EXPOSURE ARE THE VIEW'S PRESENTATION (`kit/viewport-presentation`):
+              a studio preset, or the scene's own lights, and the tone's exposure. */}
+          <label>
+            <span>Lighting</span>
+            <Select
+              aria-label="Lighting"
+              value={lighting.source === 'studio' ? `studio:${lighting.studioPreset}` : lighting.source}
+              onChange={(event) => {
+                const value = event.target.value;
+                setViewPresentation(
+                  documentId,
+                  value.startsWith('studio:')
+                    ? { all: { lighting: { source: 'studio', studioPreset: value.slice('studio:'.length) } } }
+                    : { all: { lighting: { source: value as 'scene' } } },
+                );
+              }}
+            >
+              {studioPresets()
+                // The document's own studio is a choice only where the document brought one.
+                .filter((preset) => preset.id !== DOCUMENT_STUDIO_PRESET.id || documentStudioOffered)
+                .map((preset) => (
+                <option key={preset.id} value={`studio:${preset.id}`}>
+                  {preset.title}
+                </option>
+              ))}
+              <option value="scene">Scene lights</option>
+            </Select>
+          </label>
+          <label>
+            <span>Exposure</span>
+            <TextInput
+              aria-label="Preview exposure"
+              type="range"
+              min="0.2"
+              max="2"
+              step="0.1"
+              value={lighting.tone.exposure}
+              onChange={(event) =>
+                setViewPresentation(documentId, {
+                  all: { lighting: { tone: { exposure: Number(event.target.value) } } },
+                })
+              }
+            />
+            <Text as="span" variant="caption">
+              {lighting.tone.exposure.toFixed(1)}
+            </Text>
+          </label>
         </ViewportDisplayModeMenu>
         {/* THE EYE WAS THE OVERLAYS CONTROL ALL ALONG — measured by what it
             toggles, which is Grid and Bounds, exactly Blender's Show Overlays

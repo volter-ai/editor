@@ -42,6 +42,7 @@ export interface StudioLight {
   /** Blender's per-light specular colour and wrap (0..1), when the preset carries them. */
   readonly specular?: PresentationColor;
   readonly wrap?: number;
+  readonly castShadow?: boolean;
 }
 
 export interface StudioPreset {
@@ -53,9 +54,10 @@ export interface StudioPreset {
   readonly environmentIntensity: number;
 }
 
-/** What in the scene takes over from the preview, for `auto` lighting (Godot: a directional
- *  light or a world environment; an omni or spot light does not count). */
-export type SceneTakeover = 'directional-light' | 'environment';
+/** What in the scene takes over from the view's own lighting, for `auto` (Godot: a directional
+ *  light or a world environment, and an omni or spot light does not count; `light` is any light,
+ *  the kit's own rule that a document's authored lighting wins). */
+export type SceneTakeover = 'light' | 'directional-light' | 'environment';
 
 export interface PreviewLighting {
   readonly sun: {
@@ -89,13 +91,13 @@ export interface ViewportLighting {
    *  `scene`: the scene's own lights and environment only (Blender's Rendered; Unity with
    *  scene lighting on). */
   readonly source: 'studio' | 'preview' | 'scene';
-  /** When set, the preview gives way to the scene's own for each part the scene has, and
-   *  `overridable` says whether the person may turn the preview back on (Godot: false). Absent:
-   *  the source never changes on its own (Blender, Unity). */
-  readonly auto?: { readonly takeover: readonly SceneTakeover[]; readonly overridable: boolean };
+  /** When set, the view's own lighting gives way to the scene's when the scene has any of
+   *  `takeover`, and `overridable` says whether the person may turn it back on (Godot: false).
+   *  `null`: the source never changes on its own (Blender, Unity). */
+  readonly auto: { readonly takeover: readonly SceneTakeover[]; readonly overridable: boolean } | null;
   readonly studioPreset: string;
   readonly preview: PreviewLighting;
-  readonly tone: { readonly mapper: 'none' | 'filmic' | 'aces'; readonly exposure: number };
+  readonly tone: { readonly mapper: 'none' | 'filmic' | 'aces' | 'agx'; readonly exposure: number };
 }
 
 export interface ViewportBackdrop {
@@ -148,13 +150,18 @@ export interface PresentationLayer {
 
 // ---- The kit's own defaults ------------------------------------------------------------------
 
-/** The kit's studio rig: the stage the kit drew before it was fitted to Blender — one warm key
- *  fixed in the world with an image-based fill (engine `913444142` changed the key to white). */
+/** The kit's studio rig: the lights a document stage wore before they were fitted to Blender —
+ *  the dressing's key, warm (`#fff3dd`; engine `913444142` made it white), the viewport's own
+ *  directional and ambient, and the image-based fill at three's default strength (engine
+ *  `750b13fa9` set 0.3, later 0.85). */
 export const KIT_STUDIO_PRESET: StudioPreset = Object.freeze<StudioPreset>({
   id: 'kit',
   title: 'Studio',
-  lights: [{ color: '#fff3dd', intensity: 1.9, direction: [-6, -10, 4], space: 'world' }],
-  ambient: { color: '#ffffff', intensity: 0 },
+  lights: [
+    { color: '#fff3dd', intensity: 1.9, direction: [-6, -10, 4], space: 'world', castShadow: true },
+    { color: '#ffffff', intensity: 1, direction: [-10, -20, -10], space: 'world' },
+  ],
+  ambient: { color: '#ffffff', intensity: 0.5 },
   environmentIntensity: 1,
 });
 
@@ -162,6 +169,8 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
   drawMode: 'solid',
   lighting: {
     source: 'studio',
+    // The kit's own rule, kept: a document whose content carries lights wears them.
+    auto: { takeover: ['light'], overridable: true },
     studioPreset: KIT_STUDIO_PRESET.id,
     // Godot's preview defaults (`node_3d_editor_plugin.cpp` `_load_default_preview_settings`),
     // the one target that ships a preview sun and sky, so `preview` means something out of the box.
@@ -187,7 +196,24 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
 
 // ---- Studio presets ----------------------------------------------------------------------------
 
-const presets = new Map<string, StudioPreset>([[KIT_STUDIO_PRESET.id, KIT_STUDIO_PRESET]]);
+/**
+ * THE DOCUMENT'S OWN STUDIO — the lights a document hands its stage to turn with the view
+ * (`ToolViewportDressing.viewLocked`): Blender's four Solid-mode lights, built by the Blender
+ * engine from Blender's own data. The stage draws them in place of a preset's lights; the preset
+ * itself carries none, and no image-based light (Blender's Solid mode has none).
+ */
+export const DOCUMENT_STUDIO_PRESET: StudioPreset = Object.freeze<StudioPreset>({
+  id: 'document',
+  title: "Document's studio",
+  lights: [],
+  ambient: { color: '#ffffff', intensity: 0 },
+  environmentIntensity: 0,
+});
+
+const presets = new Map<string, StudioPreset>([
+  [KIT_STUDIO_PRESET.id, KIT_STUDIO_PRESET],
+  [DOCUMENT_STUDIO_PRESET.id, DOCUMENT_STUDIO_PRESET],
+]);
 
 /** Register a studio preset (an integration's own studio lights). A duplicate id throws. */
 export function registerStudioPreset(preset: StudioPreset): () => void {
@@ -280,6 +306,46 @@ export function restoreViewPresentation(viewId: string, chosen: PresentationLaye
   const current = views.get(viewId) ?? { stageKind: '', documentLayer: null, chosen: {} };
   views.set(viewId, { ...current, chosen });
   bump();
+}
+
+/** How a view is bound — its kind of stage and whether its document states a layer — or `null`
+ *  when no stage has bound it (a view id no stage draws). */
+export function viewPresentationBinding(
+  viewId: string,
+): { readonly stageKind: string; readonly documentLayer: PresentationLayer | null } | null {
+  const record = views.get(viewId);
+  return record && record.stageKind !== '' ? { stageKind: record.stageKind, documentLayer: record.documentLayer } : null;
+}
+
+/** What a view's LAST DRAW lit by, as its stage reports it: the source after `auto`, the
+ *  preset, and which light sets were showing. The readout for an agent asking "is the view
+ *  wearing what its presentation says". */
+export interface ViewDrawReport {
+  readonly source: 'studio' | 'preview' | 'scene';
+  readonly presetId: string | null;
+  readonly presetLights: boolean;
+  readonly documentStudio: boolean | null;
+  readonly contentLights: number;
+  readonly contentLightsDarkened: number;
+  readonly environmentIntensity: number;
+  readonly toneMapping: string;
+}
+
+const drawReports = new Map<string, ViewDrawReport>();
+
+export function reportViewDraw(viewId: string, report: ViewDrawReport): void {
+  drawReports.set(viewId, report);
+}
+
+export function viewDrawReport(viewId: string): ViewDrawReport | null {
+  return drawReports.get(viewId) ?? null;
+}
+
+/** Every view a stage has bound, by id and kind of stage. */
+export function boundViewPresentations(): readonly { readonly viewId: string; readonly stageKind: string }[] {
+  return [...views.entries()]
+    .filter(([, record]) => record.stageKind !== '')
+    .map(([viewId, record]) => ({ viewId, stageKind: record.stageKind }));
 }
 
 export function unbindViewPresentation(viewId: string): void {

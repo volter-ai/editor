@@ -1,4 +1,13 @@
 import { captureSizeFromCommand } from './capture-size';
+import {
+  setViewPresentation,
+  studioPresets,
+  viewPresentation,
+  viewPresentationBinding,
+  boundViewPresentations,
+  viewDrawReport,
+  type PresentationLayer,
+} from '@volter/editor-sdk/kit/viewport-presentation';
 import { documentViewport } from '@volter/editor-sdk/kit/document-viewports';
 import { inspectionNodeMedia } from '@volter/editor-sdk/kit/inspection-node-media';
 import { isGameplayExportActive } from './gameplay-export-state';
@@ -1110,6 +1119,38 @@ export async function handleCommand(
         };
       }
       return { ok: true, data: { style: id } };
+    }
+    case 'viewport-presentation': {
+      // A view's PRESENTATION (`kit/viewport-presentation`): what it draws with, lights by and
+      // shows behind the scene. With a `layer`, the person's choice is recorded first — the
+      // same write the toolbar's Lighting and Exposure make — and the view answers resolved.
+      const requested = cmd['documentId'];
+      if (typeof requested !== 'string' || requested === '') {
+        return { ok: false, error: 'viewport-presentation needs a `documentId` (a document stage).' };
+      }
+      // The view is bound under its stage's id, the workspace's `document:` wrapper around the
+      // document id `currentView` reports; either spelling reaches it.
+      const documentId =
+        viewPresentationBinding(requested) === null && viewPresentationBinding(`document:${requested}`) !== null
+          ? `document:${requested}`
+          : requested;
+      const layer = cmd['layer'];
+      if (layer !== undefined) {
+        if (typeof layer !== 'object' || layer === null) {
+          return { ok: false, error: 'viewport-presentation `layer` must be a presentation layer object.' };
+        }
+        setViewPresentation(documentId, layer as PresentationLayer);
+      }
+      return {
+        ok: true,
+        data: {
+          presentation: viewPresentation(documentId),
+          binding: viewPresentationBinding(documentId),
+          bound: boundViewPresentations(),
+          lastDraw: viewDrawReport(documentId),
+          presets: studioPresets().map((preset) => preset.id),
+        },
+      };
     }
     case 'set-appearance': {
       // The MATERIAL apart from the bundle that usually carries it.

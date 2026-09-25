@@ -5,7 +5,7 @@ import type {
   ToolObject3DPreviewSource,
   ToolViewportDressing,
 } from '@volter/editor-sdk/contributions';
-import { stageGeneration } from '../stage-invalidation';
+import { invalidateStages, stageGeneration } from '../stage-invalidation';
 import type { StageTransportSnapshot } from '@volter/editor-sdk/host';
 import { EditorIcon, editorIcons, IconButton, themeVars } from '@volter/editor-sdk/widgets';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
@@ -107,13 +107,28 @@ const LazyStageKeyboard = lazy(async () => {
 import {
   applyStandardViewportDressing,
   createGradientBackgroundTexture,
-  STANDARD_ENVIRONMENT_INTENSITY,
   type StandardViewportDressing,
   watchPaletteBackdrop,
 } from './standard-viewport-dressing';
 import { ViewportFurniture } from './ViewportFurniture';
 import { OBJECT3D_SURFACE_BUILDING, ViewportSurfaceStatus } from '@volter/editor-sdk/kit/viewport-surface-status';
 import { workspaceHistoryService } from './workspace-history';
+import {
+  bindViewPresentation,
+  DOCUMENT_STUDIO_PRESET,
+  reportViewDraw,
+  subscribeViewportPresentation,
+  viewPresentation,
+} from '@volter/editor-sdk/kit/viewport-presentation';
+import { StagePresentationRig } from './standard-viewport-dressing';
+
+/** The kind of stage a document's view is, for its starting presentation: the document's own
+ *  kind, its id's prefix inside the workspace's `document:` wrapper
+ *  (`document:model:src/models/cube.blend` is a `model` stage). */
+const stageKindOf = (documentId: string): string => {
+  const parts = documentId.split(':');
+  return (parts[0] === 'document' ? parts[1] : parts[0]) ?? documentId;
+};
 
 /** WHERE THIS DOCUMENT'S BYTES GO — the one collaborator the shell installs
  *  (`object3d-document-write-policy.ts`). The tier's source recorder, the
@@ -383,6 +398,35 @@ class Object3DDocumentHost {
   viewport: EditorViewport | null = null;
   session: Object3DDocumentSession | null = null;
   dressing: StandardViewportDressing | null = null;
+  /** The stage's lighting, tone and exposure, from its view's presentation
+   *  (`standard-viewport-dressing.ts`, `kit/viewport-presentation`). */
+  presentationRig: StagePresentationRig | null = null;
+  /** The document's own view-locked studio, under the stage's holder (`dressing.viewLocked`). */
+  documentStudio: THREE.Group | null = null;
+  /** The lights the content carries and what it holds, for the view's `auto` rule. */
+  contentLights: readonly THREE.Light[] = [];
+  contentHas: { readonly light: boolean; readonly 'directional-light': boolean } = {
+    light: false,
+    'directional-light': false,
+  };
+  private darkened: THREE.Light[] = [];
+  /** Hide the content's own lights for the coming draw; the rendered scene's after-render hook
+   *  shows them again. */
+  darkenContentLights(): number {
+    for (const light of this.contentLights) {
+      if (!light.visible) continue;
+      light.visible = false;
+      this.darkened.push(light);
+    }
+    if (this.darkened.length === 0) return 0;
+    const count = this.darkened.length;
+    this.scene.onAfterRender = () => {
+      for (const light of this.darkened) light.visible = true;
+      this.darkened = [];
+      this.scene.onAfterRender = () => {};
+    };
+    return count;
+  }
   defaultEnvironment: THREE.Texture | null = null;
   defaultBackground: THREE.Color | THREE.Texture | null = null;
   adapter: AuthoringAdapter | null = null;
@@ -928,25 +972,9 @@ export function Object3DDocumentViewport({
       const hasShell = hasShellRef.current;
       const assetSubject = assetSubjectRef.current;
       const scene = new THREE.Scene();
-      // The document's content scene is the HOST's own object here, and the
-      // host's `syncHostScene` mirrors its environment fields onto the
-      // rendered scene before every draw. So the studio IBL's strength is
-      // set on THIS scene, at creation: a value set on the rendered scene, or
-      // by the dressing (which dresses the rendered scene), is overwritten
-      // each frame by this scene's untouched default of 1 — measured twice,
-      // once by the long-tail pass and once by the orchestrator, with zero
-      // movement. The value is the dressing's own, fitted with its key light.
-      // A document whose adapter authors an intensity sets it after this and
-      // wins, as authored lighting always does.
-      //
-      // `environment: false` sets NEITHER: no map and no strength for it. The
-      // strength alone is inert with no map — but the mirror above copies
-      // this field onto the rendered scene every draw, so leaving a studio
-      // number here would scale ANY environment the document's own adapter
-      // later applies (a Blender render's world, which is applied to the
-      // presented root's scene) by a value that document opted out of.
-      if (dressingEnvironment !== false)
-        scene.environmentIntensity = STANDARD_ENVIRONMENT_INTENSITY;
+      // The image-based light's strength is the view presentation's (its studio preset's), set
+      // on the rendered scene before every draw (`syncHostScene`). The content scene keeps
+      // three's default, so a document that authors its own strength still states it here.
       const sourceParent = source.root.parent;
       scene.add(source.root);
       if (source.animations) source.root.animations = [...source.animations];
@@ -1147,7 +1175,8 @@ export function Object3DDocumentViewport({
               !studioStage &&
               background === undefined &&
               dressingBackground !== false,
-            keyLight: dressingKeyLight !== false,
+            // The stage's lights are the presentation rig's, below.
+            keyLight: false,
             grid: dressingGrid === true,
             content: source.root,
           });
@@ -1157,6 +1186,23 @@ export function Object3DDocumentViewport({
             host.scene.background = new THREE.Color(look.background);
           host.defaultEnvironment = host.scene.environment;
           host.defaultBackground = host.scene.background;
+          // Every document stage has one: a studio stage differs in its BACKDROP (the page shows
+          // through its alpha canvas), not in how it is lit.
+          {
+            const rig = new StagePresentationRig(host.scene);
+            host.presentationRig = rig;
+            bindViewPresentation(documentId, stageKindOf(documentId));
+            const applyPresentation = () => {
+              rig.apply(viewPresentation(documentId), renderer, dressingToneMapping);
+              invalidateStages();
+            };
+            applyPresentation();
+            host.cleanups.push(subscribeViewportPresentation(applyPresentation));
+            host.cleanups.push(() => {
+              rig.dispose();
+              if (host.presentationRig === rig) host.presentationRig = null;
+            });
+          }
           host.cleanups.push(() => {
             if (
               host.defaultBackground instanceof THREE.Texture &&
@@ -1207,7 +1253,7 @@ export function Object3DDocumentViewport({
             // this stage enables that layer to see the grid and the gizmo —
             // so the layer scopes them away from nothing at all and they lit
             // the content.
-            lightRig: dressingKeyLight !== false,
+            lightRig: false,
           });
           if (dressingGrid === true) host.viewport.grid.removeFromParent();
           const open = (event: MouseEvent) => {
@@ -1238,9 +1284,17 @@ export function Object3DDocumentViewport({
           // is deliberately not followed: a render is lit by the scene.
           const camera = viewport.camera;
           host.scene.add(camera);
-          camera.add(dressingViewLocked);
+          // Under a group of the stage's own, which the view's presentation shows only while it
+          // lights by the document's studio; the document keeps its say over what is inside.
+          const viewLockedHolder = new THREE.Group();
+          viewLockedHolder.name = 'vgai:document-studio';
+          viewLockedHolder.add(dressingViewLocked);
+          camera.add(viewLockedHolder);
+          host.documentStudio = viewLockedHolder;
           host.cleanups.push(() => {
             dressingViewLocked.removeFromParent();
+            viewLockedHolder.removeFromParent();
+            if (host.documentStudio === viewLockedHolder) host.documentStudio = null;
             camera.removeFromParent();
           });
         }
@@ -1439,7 +1493,6 @@ export function Object3DDocumentViewport({
             host.scene,
             renderer,
             viewport,
-            host.dressing.lights,
             adapter,
             studioStage
               ? null
@@ -1494,11 +1547,30 @@ export function Object3DDocumentViewport({
         interactionExtensionRef.current = interactionExtension;
         documentAdapterRef.current = adapter;
         setDocumentAdapter(adapter);
-        let sourceHasLight = false;
+        // THE DOCUMENT'S SAY, as its layer beneath the person's choices. A document that hands
+        // the stage its own view-locked studio (Blender's four Solid-mode lights) is lit by it —
+        // the `document` preset, never giving way to the scene, as Blender's Solid never does. A
+        // document that turned the key off without one has said it lights itself: the `scene`
+        // source. Lights the CONTENT carries are the view's `auto` rule's to weigh, per draw.
+        bindViewPresentation(
+          documentId,
+          stageKindOf(documentId),
+          dressingViewLocked
+            ? { all: { lighting: { source: 'studio', studioPreset: DOCUMENT_STUDIO_PRESET.id, auto: null } } }
+            : dressingKeyLight === false
+              ? { all: { lighting: { source: 'scene' } } }
+              : null,
+        );
+        const contentLights: THREE.Light[] = [];
         source.root.traverse((object) => {
-          if ((object as THREE.Light).isLight) sourceHasLight = true;
+          if ((object as THREE.Light).isLight) contentLights.push(object as THREE.Light);
         });
-        for (const light of host.dressing.lights) light.visible = !sourceHasLight;
+        const contentHas = {
+          light: contentLights.length > 0,
+          'directional-light': contentLights.some((light) => (light as THREE.DirectionalLight).isDirectionalLight),
+        };
+        host.contentLights = contentLights;
+        host.contentHas = contentHas;
         host.dressing.frameContent(source.root);
         store.selectMultiple(selected.filter((id) => store.objectMap.has(id)));
         store.notifyIngestObjectMapEdit();
@@ -1513,9 +1585,7 @@ export function Object3DDocumentViewport({
           documentSession.setMode(retainedPresentation.mode);
           documentSession.setGrid(retainedPresentation.grid);
           documentSession.setBackground(retainedPresentation.background);
-          documentSession.setExposure(retainedPresentation.exposure);
           documentSession.setProjection(retainedPresentation.projection);
-          documentSession.setLighting(retainedPresentation.lighting);
           documentSession.setSkeleton(retainedPresentation.skeleton);
           documentSession.setBounds(retainedPresentation.bounds);
           retainedState.presentation = null;
@@ -1531,6 +1601,35 @@ export function Object3DDocumentViewport({
           host.scene.fog = scene.fog;
           host.scene.environmentIntensity = scene.environmentIntensity;
           host.scene.environmentRotation.copy(scene.environmentRotation);
+          // The source this draw lights by. A `studio` view lights by its preset alone: the
+          // stage's own environment at the preset's strength, its camera-locked lights turned
+          // with the camera, and the content's own lights dark for this draw only (restored
+          // after it, so nothing that saves the document ever sees them changed).
+          const rig = host.presentationRig;
+          if (rig) {
+            const drawSource = rig.resolveSource({ ...host.contentHas, environment: scene.environment !== null });
+            const studioEnvironment = rig.environmentIntensity();
+            if (studioEnvironment !== null) {
+              host.scene.environment = host.defaultEnvironment;
+              host.scene.environmentIntensity = studioEnvironment;
+            }
+            const documentStudio = drawSource === 'studio' && rig.presetId() === DOCUMENT_STUDIO_PRESET.id;
+            if (host.documentStudio) host.documentStudio.visible = documentStudio;
+            // The document's own studio manages its scene's lights itself (Blender stands them
+            // down for modelling and up for a render); any other studio or preview lights alone.
+            const darkened = drawSource !== 'scene' && !documentStudio ? host.darkenContentLights() : 0;
+            rig.update(documentSession.camera());
+            reportViewDraw(documentId, {
+              source: drawSource,
+              presetId: rig.presetId(),
+              presetLights: rig.lightsVisible(),
+              documentStudio: host.documentStudio ? host.documentStudio.visible : null,
+              contentLights: host.contentLights.length,
+              contentLightsDarkened: darkened,
+              environmentIntensity: host.scene.environmentIntensity,
+              toneMapping: String(renderer.toneMapping),
+            });
+          }
           host.scene.backgroundIntensity = scene.backgroundIntensity;
           host.scene.backgroundBlurriness = scene.backgroundBlurriness;
           host.scene.backgroundRotation.copy(scene.backgroundRotation);

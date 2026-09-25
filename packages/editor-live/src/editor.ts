@@ -335,6 +335,19 @@ export class LiveEditor {
   }
 
   /**
+   * A document stage's viewport PRESENTATION — its draw mode, lighting, backdrop and overlays
+   * (`@volter/editor-sdk/kit/viewport-presentation`) — resolved. With `layer`, that choice is
+   * recorded for the view first, as a person's toolbar change would be, e.g.
+   * `presentation('model:src/models/cube.blend', { all: { lighting: { studioPreset: 'kit' } } })`.
+   */
+  async presentation(
+    documentId: string,
+    layer?: Parameters<EditorClient['viewportPresentation']>[1],
+  ): ReturnType<EditorClient['viewportPresentation']> {
+    return this.#client.viewportPresentation(documentId, layer);
+  }
+
+  /**
    * Set the MATERIAL apart from the bundle that usually carries it.
    * Appearance is palette × material, independent axes by ruling, so
    * `style()` alone can never say whether a cost belongs to the blur or to
