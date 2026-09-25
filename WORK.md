@@ -153,13 +153,16 @@ the workbench alone before the image carried its pre-bundle (load 12–35, so si
 runs vary by seconds). Where it goes (ms): runtime and image link 0–3,600; `edit` to the
 session listening 4,300; Code-OSS server 2,500; workbench and product bundle 3,300; the
 product mounting its model document 5,700; Blender 2,800 (its wasm, `.data` and
-Essentials come from Cache Storage after the first open). The Game Editor reaches its
-workbench and extension host in the tab with no in-tab builds: 26 s to the session
-listening, 36 s to the extension host (warm). Its gaps (ms): the `edit` launcher before
-it spawns the session 4,200; the session's module load and its optimizer set-up 13,000
-(the Model Editor's whole start is 3,700). Its world in the tab is not yet read. Open:
-the pack archives, unpublished while the editor is private. Under 10 s needs the
-substrate to resume processes (its W74), not only prebaked files.
+Essentials come from Cache Storage after the first open). The Game Editor opens its
+scene in the tab, prefab thumbnails included, with no in-tab builds: warm, the session
+listens at 3.4 s and the extension host starts at 5.4 s; the first open of a new image
+takes 12–14 s while the tab fetches and places its packs. Memory: a warm open peaks near
+3 GB of renderer and settles near 1 GB; the peak is uncollected garbage (a forced
+collection took 3.1 GB to 0.4 GB), and the largest remaining producers are Vite's
+per-module sourcemaps in the session and the page's workbench. Measured on a box at
+load under 20; at load 40–60 the same opens take 15–30 s. Open: the pack archives,
+unpublished while the editor is private. Under 10 s cold needs the substrate to resume
+processes (its W74), not only prebaked files.
 
 ## Supported-editing work
 
