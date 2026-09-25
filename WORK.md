@@ -118,8 +118,13 @@ Remaining:
    (`@volter/editor-threejs/serving`); `status` reports them as `liveMixers` (walked on `arena`:
    five mixers, their clips and the characters they animate). The runtime's
    `_animMixer`/`_availableClips` userData keys are declared and read but never set; they leave
-   with the runtime framework (§The plan, unit 5). The timeline driving a stamped mixer in Edit
-   is unwalked.
+   with the runtime framework (§The plan, unit 5). The Animation utility (View → Animation) lists
+   every stamped subject and its clips and scrubs it in Edit (walked on `arena`: five subjects;
+   a picked clip moves between 0 s and 1 s). Open: a world's own fades run on the mixer's clock,
+   which Edit never ticks, so arena's characters stand in their bind pose until the playhead
+   first moves past the fade; settling the fades instead drops arena's enemies below the floor
+   without their per-frame grip and IK pass (the player stands). Which pose Edit shows before
+   the first scrub is undecided.
 3. **Machine documents.** Authored edits and the live overlay are walked on `arena`; the fit on
    first size is unobserved, and an initial arrow can enter its state from below.
 4. **The design skew** (`website`): the DOM root is read-only, the Pages list is empty, and a

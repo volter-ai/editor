@@ -26,7 +26,7 @@ import {
   themeVars,
 } from '@volter/editor-sdk/widgets';
 import { useCallback, useSyncExternalStore } from 'react';
-import type { StageTransport } from '../animation/stage-transport';
+import type { StageTransportHandle } from '../transport';
 
 /** The speeds the strip offers. Not a free number field: a speed is a viewing
  *  choice with a few useful values, and a text box invites 0.37. */
@@ -37,7 +37,7 @@ function formatSeconds(seconds: number, fps: number): string {
   return `${seconds.toFixed(2)}s · f${frame}`;
 }
 
-export function TransportStrip({ transport }: { transport: StageTransport | null }) {
+export function TransportStrip({ transport }: { transport: StageTransportHandle | null }) {
   const snapshot = useSyncExternalStore(
     useCallback(
       (listener: () => void) => (transport ? transport.subscribe(listener) : () => {}),

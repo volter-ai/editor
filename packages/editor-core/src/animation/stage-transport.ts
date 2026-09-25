@@ -89,7 +89,13 @@ export class StageTransport {
   attach(subject: TransportSubject): () => void {
     this.subjects.push(subject);
     if (this.activeId === null) this.setActiveSubject(subject.id);
-    else this.notify();
+    else {
+      // A later subject shows the transport's time from its first frame too;
+      // unsampled, a skinned character stands in its bind pose until the
+      // playhead next moves.
+      subject.seek(this.clock.time);
+      this.notify();
+    }
     return () => {
       const at = this.subjects.indexOf(subject);
       if (at < 0) return;

@@ -144,7 +144,8 @@
     "./kit/asset-thumbnails": "./src/kit/asset-thumbnails.ts",
     "./kit/story-thumbnails": "./src/kit/story-thumbnails.ts",
     "./kit/canvas-frames": "./src/kit/canvas-frames.ts",
-    "./kit/viewport-presentation": "./src/kit/viewport-presentation.ts"
+    "./kit/viewport-presentation": "./src/kit/viewport-presentation.ts",
+    "./kit/transport-strip": "./src/kit/transport-strip.tsx"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",

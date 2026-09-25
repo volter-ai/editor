@@ -94,7 +94,7 @@ import {
 import { AssetEditorShell } from './AssetEditorShell';
 import { StageOverlays } from './StageOverlays';
 import type { WorldRootStageBinding } from './world-root-binding';
-import { TransportStrip } from './TransportStrip';
+import { TransportStrip } from '@volter/editor-sdk/kit/transport-strip';
 
 // The stage's own keyboard actions, behind the same lazy boundary as the
 // overlays and for the same reason — a bounded host pays for neither
@@ -874,7 +874,13 @@ export function Object3DDocumentViewport({
       // The world's tree arrives asynchronously and keeps changing, so its
       // clip subjects are rescanned on the store's change notification,
       // throttled, and not while Play drives time.
-      const clipScan = scanClipSubjects(stage.scene, host.transport);
+      // The scene the stage DRAWS: an R3F world renders the session store's
+      // scene, not the stage's own (`world-root-stage.ts`), and scanning the
+      // latter found no subject on a world whose enemies each had a mixer.
+      const clipScan = scanClipSubjects(() => host.store.scene ?? stage.scene, host.transport, {
+        // A game makes its mixers as its world runs, not when the store changes.
+        rescanOnLiveMixers: () => host.store.playState === 'stopped',
+      });
       let lastClipScan = 0;
       host.cleanups.push(() => clipScan.dispose());
       host.cleanups.push(

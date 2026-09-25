@@ -43,7 +43,8 @@
   },
   "vgai": {
     "contributions": [
-      "./contributions/animation-mixers.service.ts"
+      "./contributions/animation-mixers.service.ts",
+      "./contributions/animation-timeline.utility.tsx"
     ],
     "serving": "./dist-node/serving.mjs"
   },

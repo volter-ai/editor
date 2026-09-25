@@ -25,7 +25,7 @@
  * subject over `AnimationMixer`, never a wrapper around it. `setTime` is the
  * one write; the transport owns the position.
  */
-import { liveMixerFor } from '@volter/editor-threejs/animation/live-mixers';
+import { liveMixerFor, subscribeLiveMixers } from '@volter/editor-threejs/animation/live-mixers';
 import * as THREE from 'three';
 import type { StageTransport } from './stage-transport';
 
@@ -41,9 +41,11 @@ function clamp(value: number, min: number, max: number): number {
 
 /**
  * A subject over an object's OWN clips, on a mixer this subject mints and
- * owns. `setClip` swaps which clip is showing: the chosen action is played
- * PAUSED (so it poses the skeleton without advancing itself) and every other
- * action is stopped, because the transport — not the action — is what moves.
+ * owns. `setClip` swaps which clip is showing: the chosen action plays and
+ * every other action is stopped. Nothing but the transport ticks this mixer,
+ * so the action moves only when the transport samples it — and it must NOT
+ * be paused: three advances a paused action by zero, so every scrub would
+ * show the clip's first frame.
  */
 function attachOwnClips(object: THREE.Object3D, transport: StageTransport): (() => void) | null {
   const clips = object.animations;
@@ -55,7 +57,7 @@ function attachOwnClips(object: THREE.Object3D, transport: StageTransport): (() 
   const show = (clip: THREE.AnimationClip): void => {
     mixer.stopAllAction();
     const action = mixer.clipAction(clip);
-    action.paused = true;
+    action.paused = false;
     action.play();
     current = clip;
   };
@@ -89,14 +91,13 @@ function attachOwnClips(object: THREE.Object3D, transport: StageTransport): (() 
 function attachInspected(object: THREE.Object3D, transport: StageTransport): (() => void) | null {
   const inspection = liveMixerFor(object);
   if (!inspection) return null;
-  const entries = [...inspection.clips.entries()];
-  let current = entries[0]?.[1];
+  let current = inspection.clips.values().next().value;
   if (!current) return null;
 
   const show = (clip: THREE.AnimationClip): void => {
     inspection.mixer.stopAllAction();
     const action = inspection.mixer.clipAction(clip);
-    action.paused = true;
+    action.paused = false;
     action.play();
     current = clip;
   };
@@ -108,7 +109,7 @@ function attachInspected(object: THREE.Object3D, transport: StageTransport): (()
     seek: (seconds) => {
       inspection.mixer.setTime(clamp(seconds, 0, current?.duration ?? 0));
     },
-    clips: () => entries.map(([name, clip]) => ({ id: name, label: clip.name || name })),
+    clips: () => [...inspection.clips.entries()].map(([name, clip]) => ({ id: name, label: clip.name || name })),
     setClip: (id) => {
       const next = inspection.clips.get(id);
       if (next) show(next);
@@ -135,12 +136,22 @@ export interface ClipSubjectScan {
   dispose(): void;
 }
 
-export function scanClipSubjects(root: THREE.Object3D, transport: StageTransport): ClipSubjectScan {
+export function scanClipSubjects(
+  root: THREE.Object3D | (() => THREE.Object3D | null),
+  transport: StageTransport,
+  options: {
+    /** Rescan when the game registers or drops a mixer, while this answers true. */
+    readonly rescanOnLiveMixers?: () => boolean;
+  } = {},
+): ClipSubjectScan {
   const attached = new Map<string, () => void>();
 
   const refresh = (): void => {
     const seen = new Set<string>();
-    root.traverse((object) => {
+    // A getter for a stage whose rendered scene is not fixed at construction:
+    // a world stage draws the session store's scene once the world mounts.
+    const current = typeof root === 'function' ? root() : root;
+    current?.traverse((object) => {
       if (attached.has(object.uuid)) {
         seen.add(object.uuid);
         return;
@@ -161,10 +172,17 @@ export function scanClipSubjects(root: THREE.Object3D, transport: StageTransport
   };
 
   refresh();
+  const rescanWhen = options.rescanOnLiveMixers;
+  const stopMixers = rescanWhen
+    ? subscribeLiveMixers(() => {
+        if (rescanWhen()) refresh();
+      })
+    : () => {};
 
   return {
     refresh,
     dispose: () => {
+      stopMixers();
       for (const detach of attached.values()) detach();
       attached.clear();
     },

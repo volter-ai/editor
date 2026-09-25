@@ -76,6 +76,9 @@ export interface StageTransportHandle {
   /** Attach a subject; the first attach becomes active. Returns detach. */
   attach(subject: TransportSubject): () => void;
   setActiveSubject(id: string): void;
+  /** The active subject's clips, or `null` when it has none to choose between. */
+  activeClips(): readonly { id: string; label: string }[] | null;
+  setActiveClip(id: string): void;
   /** `'reverse'` plays backwards — Blender's Timeline has a play-reverse
    *  button beside play, and the engine's clock has carried the direction all
    *  along (`AnimationClock.play(direction)`). */
