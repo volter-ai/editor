@@ -1027,7 +1027,16 @@ export class HarnessChatService {
     });
   }
 
+  /** The private controls channel's environment for the extension host: started
+   *  at once, with no runtime behind it yet (the channel answers with it). */
+  async frontendControlsEnv(): Promise<Record<string, string>> {
+    return this.frontendControls.start();
+  }
+
   private async chatControlState() {
+    // The extension asks for this at activation; a runtime still being handed
+    // over is waited for, so the answer carries its connection.
+    await this.frontendHandoffInFlight?.catch(() => undefined);
     await this.ensureController();
     const snapshot = this.snapshot();
     return {

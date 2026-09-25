@@ -54,7 +54,13 @@ export class FrontendControls {
   private readonly state: () => Promise<unknown>;
   private readonly select: (s: ChatSelection) => Promise<unknown>;
   constructor(state: () => Promise<unknown>, select: (s: ChatSelection) => Promise<unknown>, private readonly open?: (id: string) => Promise<unknown>, private readonly remember?: (id:string, nativeId:string) => Promise<unknown>) { this.state = state; this.select = select; }
-  async start(): Promise<Record<string, string>> {
+  private starting: Promise<Record<string, string>> | undefined;
+  /** Starts the channel once; callers that arrive while it binds share that start. */
+  start(): Promise<Record<string, string>> {
+    this.starting ??= this.bind().catch((error) => { this.starting = undefined; throw error; });
+    return this.starting;
+  }
+  private async bind(): Promise<Record<string, string>> {
     if (!this.server) {
       this.server = createServer(async (req, res) => {
         res.setHeader('Cache-Control', 'no-store');

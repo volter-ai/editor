@@ -188,6 +188,10 @@ export type EditorServerRouter = Router & {
    * and the session opens anyway.
    */
   frontendHandoff(): Promise<FrontendHandoffResult>;
+  /** The chat controls channel's environment, which an extension host can be
+   *  spawned with before the runtime exists: the channel's state carries the
+   *  runtime's connection once it does, and waits for a handoff under way. */
+  frontendControlsEnv(): Promise<Record<string, string>>;
   /** The standing reason the Chat view has no agent, or `null` — re-raised per page load
    *  because the console ledger's clearing rule (a) is page-scoped and this condition is not. */
   frontendRefusal(): string | null;
@@ -1455,6 +1459,8 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     }
     return handoff;
   };
+
+  router.frontendControlsEnv = () => harnessChat.frontendControlsEnv();
 
   router.journalShutdownTask = (record) => {
     journalEvent({ kind: 'session-shutdown-task', ...record });

@@ -1143,17 +1143,22 @@ async function main(): Promise<void> {
       // is the slowest thing this boot does, and a frame that cannot start is a
       // `vgai edit` that has failed (frame-workbench.ts states the ownership).
       if (frameLaunch) {
-        // THE AGENT'S RUNTIME COMES FIRST — same reason as dev.ts: an extension
-        // host inherits its server's environment and that environment is fixed
-        // at spawn (frame-workbench.ts's `env`, frontend-handoff.ts's header).
-        const handoff = await editorRouter.frontendHandoff();
-        if (handoff.refusal) console.log(`  \x1b[33mAgent\x1b[0m: ${handoff.refusal}`);
+        // THE WORKBENCH DOES NOT WAIT FOR THE AGENT'S RUNTIME. The extension
+        // host is spawned with the chat controls channel, whose state carries
+        // the runtime's connection and waits for the handoff under way when the
+        // extension asks at activation. Handed over first, the runtime held the
+        // workbench back 7.3 s in the browser substrate (git, `supercode
+        // harness serve` and two `pi` runs, one after another).
+        void editorRouter.frontendHandoff().then((handoff) => {
+          if (handoff.refusal) console.log(`  \x1b[33mAgent\x1b[0m: ${handoff.refusal}`);
+        });
+        const controlsEnv = await editorRouter.frontendControlsEnv();
         try {
           frameWorkbench = await startFrameWorkbench({
             launch: frameLaunch,
             projectRoot: projectPath,
             sessionPort: PORT,
-            env: handoff.env,
+            env: controlsEnv,
             log: (line) => console.log(`  ${line}`),
           });
           console.log(`  \x1b[33mWorkbench\x1b[0m: \x1b[36m${frameWorkbench.url}\x1b[0m\n`);
