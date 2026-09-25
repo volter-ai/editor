@@ -7,8 +7,8 @@ import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
 import type { InspectionSection } from '@volter/editor-sdk/kit/inspection-model';
 import { CONTRIBUTED_SECTION_ORDER, PROPERTIES_SECTION_ORDER } from '@volter/editor-sdk/kit/inspection-model';
-import { AssetEditorShell } from '../AssetEditorShell';
-import { subscribeProjectAsset } from '../asset-editor-persistence';
+import { AssetEditorShell } from '@volter/editor-sdk/kit/components/AssetEditorShell';
+import { subscribeProjectAsset } from '@volter/editor-sdk/kit/components/asset-editor-persistence';
 
 interface EnvironmentImage {
   readonly texture: THREE.DataTexture;

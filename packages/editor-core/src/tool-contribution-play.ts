@@ -23,7 +23,7 @@
  */
 
 import type { ToolContributionPlay } from '@volter/editor-sdk/contributions';
-import { subscribeInspectedInstance } from './authoring/active-systems';
+import { subscribeInspectedInstance } from '@volter/editor-sdk/kit/authoring/active-systems';
 
 type PlayReader = () => ToolContributionPlay | null;
 

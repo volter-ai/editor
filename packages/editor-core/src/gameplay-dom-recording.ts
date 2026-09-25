@@ -13,7 +13,7 @@ import {
   appendGameplayRecordingAsset,
   appendGameplayRecordingDomEvents,
   type GameplayRecordingSink,
-} from './editor-api';
+} from '@volter/editor-sdk/kit/editor-api';
 
 const BLOCK_ATTRIBUTE = 'data-vgai-replay-block';
 const VIDEO_ATTRIBUTE = 'data-vgai-replay-video';

@@ -32,8 +32,8 @@ import {
   composeProjectStories,
   ensureProjectAnnotations,
 } from './compose-project-stories';
-import { getProjectStoryRegions } from './project-story-regions';
-import { declaredStoryMedium } from './story-declared-medium';
+import { getProjectStoryRegions } from '@volter/editor-sdk/kit/stories/project-story-regions';
+import { declaredStoryMedium } from '@volter/editor-sdk/kit/stories/story-declared-medium';
 import { deriveStoryGroupPath, formatStoryGroupPath } from './story-grouping';
 
 /** One composed portable CSF story of the open project, carrying the source

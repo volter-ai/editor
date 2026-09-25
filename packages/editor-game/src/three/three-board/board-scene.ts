@@ -73,11 +73,11 @@
  * only way it comes back.
  */
 
-import { getProjectStoryRegions } from '@volter/editor-core/stories/project-story-regions';
+import { getProjectStoryRegions } from '@volter/editor-sdk/kit/stories/project-story-regions';
 import {
   declaredStoryMedium,
   reportUndeclaredStoryMedium,
-} from '@volter/editor-core/stories/story-declared-medium';
+} from '@volter/editor-sdk/kit/stories/story-declared-medium';
 import {
   deriveStoryGroupPath,
   formatStoryGroupPath,

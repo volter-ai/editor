@@ -47,8 +47,8 @@ import {
   unplayedSessionTier,
 } from './support/project/build-discipline';
 import type { SessionJournalEvent } from './support/project/session-journal';
-import type { ProjectComponentEntry } from '../src/asset-workflow/project-content';
-import { ADAPTER_MODULE_FILENAME } from '../src/ui-source/adapter-region-includes';
+import type { ProjectComponentEntry } from '@volter/editor-sdk/kit/asset-workflow/project-content';
+import { ADAPTER_MODULE_FILENAME } from '@volter/editor-sdk/kit/ui-source/adapter-region-includes';
 import { canonicalProjectRoot } from './canonical-path';
 import type { AgentAuthorLease } from './collaboration-attribution';
 import { filesystemMutationAuthor } from './collaboration-attribution';

@@ -6,8 +6,8 @@ import { getCurrentProject } from '../../project-manager';
 import {
   projectModuleChangeMatches,
   subscribeProjectModuleChange,
-} from '../../project-module-changes';
-import { AssetEditorShell } from '../AssetEditorShell';
+} from '@volter/editor-sdk/kit/project-module-changes';
+import { AssetEditorShell } from '@volter/editor-sdk/kit/components/AssetEditorShell';
 import { CodeView, codeViewLanguage } from '../CodeView';
 import { AudioViewer } from './AudioViewer';
 import { ImageViewer } from './ImageViewer';

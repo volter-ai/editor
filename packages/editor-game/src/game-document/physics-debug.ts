@@ -23,7 +23,7 @@
  * destroyed, so nothing leaks into the next session.
  */
 
-import { getActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { getActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
 import { nodeKeyedPhysics, type PhysicsAdapter } from '@volter/editor-project/adapter';
 import { setUserData } from '@volter/threejs-runtime/ecs/user-data';
 import * as THREE from 'three';

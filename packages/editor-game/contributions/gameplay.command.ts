@@ -17,7 +17,7 @@
  * when they move. Nothing here is host API.
  */
 
-import { getActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { getActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
 import type { CommandContribution } from '@volter/editor-sdk/commands';
 import { notPlayingResult, structuredErrorResult } from '../src/command-results';
 import { getPlayRuntimeAccess, isPlayModeActive } from '../src/play/play-mode';

@@ -39,9 +39,9 @@ import {
 } from '../boot-routing';
 import { EditorProvider } from '../EditorContext';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { connectTabPresence, reportTabRoute } from '../editor-presence';
+import { connectTabPresence, reportTabRoute } from '@volter/editor-sdk/kit/editor-presence';
 import { type ActiveProject, detectProject } from '../project-manager';
-import { onTabAdopt } from '../tab-lifecycle-client';
+import { onTabAdopt } from '@volter/editor-sdk/kit/tab-lifecycle-client';
 import { DefaultEditorLayout } from './DefaultEditorLayout';
 import { EditorLeaseGuard } from './EditorLeaseGuard';
 import { StartupErrorScreen } from './StartupErrorScreen';

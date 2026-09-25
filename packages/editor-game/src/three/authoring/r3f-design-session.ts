@@ -61,16 +61,16 @@ import { onAssetReload } from '@volter/editor-sdk/kit/project-asset-refresh';
  *    published), and the returned disposer.
  */
 
-import { setActiveSystems, updateInstanceSystems } from '@volter/editor-core/authoring/active-systems';
+import { setActiveSystems, updateInstanceSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
 import {
   BoundaryAuthoringAdapter,
   type BoundaryRootInfo,
 } from '@volter/editor-core/authoring/boundary-authoring-adapter';
-import type { CompositeAuthoringAdapter } from '@volter/editor-core/authoring/composite-authoring-adapter';
+import type { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import {
   collaborationSnapshot,
   subscribeCollaborationRevision,
-} from '@volter/editor-core/collaboration-client';
+} from '@volter/editor-sdk/kit/collaboration-client';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import {
   describeModuleFetch,

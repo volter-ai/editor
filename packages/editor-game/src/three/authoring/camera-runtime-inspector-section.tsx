@@ -9,7 +9,7 @@
  * the editor creates no camera graph or sidecar.
  */
 
-import { getActiveCamera } from '@volter/editor-core/authoring/active-systems';
+import { getActiveCamera } from '@volter/editor-sdk/kit/authoring/active-systems';
 import type { InspectorSectionProps } from '@volter/editor-sdk/kit/inspector-section-registry';
 import type {
   AuthoringAdapter,

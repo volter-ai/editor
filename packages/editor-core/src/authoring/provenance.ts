@@ -10,7 +10,7 @@
  * `ownerOf`), never by decoding adapter-minted id strings here.
  */
 import type { AuthoringAdapter, AuthoringProvenance } from '@volter/editor-project/adapter';
-import { CompositeAuthoringAdapter } from './composite-authoring-adapter';
+import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 
 /** Resolve the concrete adapter that owns a real hierarchy node. Synthetic
  * composite rows and unknown ids have no owner. */

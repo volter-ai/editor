@@ -25,9 +25,9 @@ import type { CollaborationParticipant } from '@volter/editor-sdk/session/collab
 import { EDITOR_THEME_CLASS, graphiteDarkEditorTheme } from '@volter/editor-sdk/widgets';
 import { contentWorldBounds } from '@volter/editor-threejs/viewport/content-bounds';
 import * as THREE from 'three';
-import { collaborationSnapshot } from '../collaboration-client';
-import { reportCollaborationPresence } from '../collaboration-presence';
-import { EDITOR_PARTICIPANT_ID } from '../editor-presence';
+import { collaborationSnapshot } from '@volter/editor-sdk/kit/collaboration-client';
+import { reportCollaborationPresence } from '@volter/editor-sdk/kit/collaboration-presence';
+import { EDITOR_PARTICIPANT_ID } from '@volter/editor-sdk/kit/editor-presence';
 import type { EditorShellStore } from '../editor-shell-store';
 import type { EditorViewport } from '../editor-viewport';
 import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';

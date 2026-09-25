@@ -15,7 +15,7 @@
 
 import type { ViewportAuthoringPolicy } from '../viewport-authoring-policy';
 import { getActiveAuthoring } from './active-adapter';
-import { CompositeAuthoringAdapter } from './composite-authoring-adapter';
+import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import { pickTopmost } from './layered-pick';
 import { resolvePanelAuthoring } from './panel-authoring';
 import { isViewportToolContextVisible, resolveViewportToolContext } from './viewport-tool-context';

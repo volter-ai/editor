@@ -43,7 +43,7 @@ import {
   registerContributedActions,
   registerContributedHeaderItem,
   registerContributedMenu,
-} from './chrome-registry';
+} from '@volter/editor-sdk/kit/chrome-registry';
 import { contributedCommandRows, registerContributedCommands } from './command-registry';
 import { InspectorToolSection } from './components/InspectorToolSection';
 import { ToolHost } from './components/ToolHost';
@@ -54,12 +54,12 @@ import {
   type InspectorSectionMatchContext,
   registerInspectorSections,
 } from '@volter/editor-sdk/kit/inspector-section-registry';
-import { registerContributedKeymap, reportUnavailableKeymap } from './keymap-presets';
+import { registerContributedKeymap, reportUnavailableKeymap } from '@volter/editor-sdk/kit/keymap-presets';
 import { projectMounts } from './project-shape';
 import type { ProjectToolCatalog, ProjectToolCatalogEntry } from './project-tools';
 import { publishPlayUtilitiesReady } from './workspace-play-utilities';
 import { registerContributedWorkspace } from './workspace-presets';
-import { registerWorkspaceStatus } from './workspace-status-registry';
+import { registerWorkspaceStatus } from '@volter/editor-sdk/kit/workspace-status-registry';
 import { registerContributedStyle } from './workspace-style';
 import { registerViewPreset, type ViewPreset } from '@volter/editor-sdk/kit/viewport-presentation';
 import { type EnvironmentImageSet, registerEnvironmentImages } from '@volter/editor-sdk/kit/environment-images';

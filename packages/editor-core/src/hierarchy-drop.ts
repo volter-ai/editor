@@ -11,7 +11,7 @@
  * `ownerOf`), never by decoding adapter-minted id strings here.
  */
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
-import { CompositeAuthoringAdapter } from './authoring/composite-authoring-adapter';
+import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 
 /** The world that owns `nodeId` for drop purposes: the owning child's
  *  `worldId` for an ordinary row, the world itself for its synthetic

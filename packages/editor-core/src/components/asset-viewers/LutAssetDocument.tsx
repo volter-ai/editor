@@ -4,11 +4,11 @@ import { EffectComposer, EffectPass, LUT3DEffect, RenderPass } from 'postprocess
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { LUTCubeLoader } from 'three/addons/loaders/LUTCubeLoader.js';
-import { readProjectTextFile } from '../../editor-api';
+import { readProjectTextFile } from '@volter/editor-sdk/kit/editor-api';
 import type { InspectionSection } from '@volter/editor-sdk/kit/inspection-model';
 import { CONTRIBUTED_SECTION_ORDER, PROPERTIES_SECTION_ORDER } from '@volter/editor-sdk/kit/inspection-model';
-import { AssetEditorShell } from '../AssetEditorShell';
-import { subscribeProjectAsset } from '../asset-editor-persistence';
+import { AssetEditorShell } from '@volter/editor-sdk/kit/components/AssetEditorShell';
+import { subscribeProjectAsset } from '@volter/editor-sdk/kit/components/asset-editor-persistence';
 
 interface CubeLut {
   readonly title: string | null;

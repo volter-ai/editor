@@ -80,7 +80,7 @@ import {
   sourceOidIdentity,
   ThreeProjector,
 } from '@volter/editor-core/projection/three';
-import { getStorageBackend } from '@volter/editor-core/storage/index';
+import { getStorageBackend } from '@volter/editor-sdk/kit/storage/index';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import {
   type ComponentPropSpec,

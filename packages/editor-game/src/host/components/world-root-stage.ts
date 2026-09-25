@@ -52,12 +52,12 @@ import {
 } from 'postprocessing';
 import * as THREE from 'three';
 import { getActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
-import type { CompositeAuthoringAdapter } from '@volter/editor-core/authoring/composite-authoring-adapter';
+import type { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import {
   applyAuthoringTransform,
   beginAuthoringTransformEdit,
   endAuthoringTransformEdit,
-} from '@volter/editor-core/authoring/consumer-actions';
+} from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import { designTimeMountFor } from '@volter/editor-core/authoring/design-time-mount-registry';
 import { attachProjectAuthoringStage } from '@volter/editor-core/authoring/project-authoring-session';
 import {
@@ -73,7 +73,7 @@ import {
 } from '@volter/editor-core/camera-authoring';
 import { registerPresentedCanvasFrame } from '@volter/editor-core/canvas-preview-frames';
 import { collectState } from '@volter/editor-core/command-listener';
-import { getDownloadedAssetPath, getOnlineAssetFiles, reportEditorState } from '@volter/editor-core/editor-api';
+import { getDownloadedAssetPath, getOnlineAssetFiles, reportEditorState } from '@volter/editor-sdk/kit/editor-api';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { isEditorPresentationActive } from '@volter/editor-sdk/kit/editor-presentation-activity';
 import type { EditorStats } from '@volter/editor-core/editor-runtime';
@@ -85,7 +85,7 @@ import {
   nativeViewportLook,
   subscribeNativeSelectionTheme,
 } from '@volter/editor-sdk/kit/native-selection-style';
-import { registerPerformanceSource } from '@volter/editor-core/performance-sources';
+import { registerPerformanceSource } from '@volter/editor-sdk/kit/performance-sources';
 import { drawSceneUnlessRefused } from '../scene-view-drawability';
 import { withSceneFogNeutralized } from '@volter/editor-core/scene-view-fog';
 import { connectServerLogs } from '../server-log-bridge';
@@ -100,12 +100,12 @@ import {
   setThreeViewportProjection,
   subscribeThreeViewportPresentation,
   threeViewportPresentation,
-} from '@volter/editor-core/three-viewport-presentation';
+} from '@volter/editor-sdk/kit/three-viewport-presentation';
 import { recordViewportFirstFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import { savedViewportPose, saveViewportPose } from '../viewport-pose-memory';
 import { presentThreeRoots } from '../viewport-root-presentation';
 import { isEditorViewportShadingTarget } from '@volter/editor-core/viewport-shading-boundary';
-import { downloadOnlineAssetWithHistory } from '@volter/editor-core/components/asset-editor-persistence';
+import { downloadOnlineAssetWithHistory } from '@volter/editor-sdk/kit/components/asset-editor-persistence';
 import { bindStagePresenceMarkers } from '@volter/editor-core/components/stage-presence-markers';
 
 /** Everything the world root's stage hands its medium's design session: the stage's own three

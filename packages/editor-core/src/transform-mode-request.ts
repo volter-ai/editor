@@ -29,7 +29,7 @@
 
 import { getActiveAuthoring } from './authoring/active-adapter';
 import type { EditorShellStore, TransformMode } from './editor-shell-store';
-import { transformLockSummary } from './hierarchy-row-model';
+import { transformLockSummary } from '@volter/editor-sdk/kit/hierarchy-row-model';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 
 /** Set the transform mode, and NAME the refusal if the live selection is one

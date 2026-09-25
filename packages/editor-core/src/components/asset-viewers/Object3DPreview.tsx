@@ -15,8 +15,8 @@ import {
   type NativeObjectPreviewSource,
   type OwnedObjectPreviewSnapshot,
 } from '../../asset-preview';
-import { registerPreviewResource } from '../../asset-workflow/preview-resource-lifetime';
-import { registerDesignTimeSurface } from '../../coverage/design-time-surfaces';
+import { registerPreviewResource } from '@volter/editor-sdk/kit/asset-workflow/preview-resource-lifetime';
+import { registerDesignTimeSurface } from '@volter/editor-sdk/kit/coverage/design-time-surfaces';
 import {
   isEditorPresentationActive,
   subscribeEditorPresentationActivity,

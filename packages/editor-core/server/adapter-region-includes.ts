@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { AdapterRegionIncludes } from '../src/ui-source/adapter-region-includes';
+import type { AdapterRegionIncludes } from '@volter/editor-sdk/kit/ui-source/adapter-region-includes';
 import {
   ADAPTER_MODULE_FILENAME,
   EMPTY_REGION_INCLUDES,
   parseAdapterRegionIncludes,
-} from '../src/ui-source/adapter-region-includes';
+} from '@volter/editor-sdk/kit/ui-source/adapter-region-includes';
 
 /**
  * The dev server's filesystem half of the adapter's region `include`

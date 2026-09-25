@@ -1,4 +1,4 @@
-import { showWorkspaceAuxiliary } from './workspace-host-commands';
+import { showWorkspaceAuxiliary } from '@volter/editor-sdk/kit/workspace-host-commands';
 
 export function openUndoHistory(): void {
   showWorkspaceAuxiliary('undo-history');

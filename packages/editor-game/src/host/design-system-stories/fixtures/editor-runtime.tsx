@@ -3,15 +3,15 @@ import { resetProjectThumbnailManifestCache } from '@volter/editor-core/asset-wo
 import { type EditorRuntime, EditorRuntimeProvider, type EditorStats } from '@volter/editor-core/editor-runtime';
 import { type EditorShellStore, threeStateOf } from '@volter/editor-core/editor-shell-store';
 import { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import { EditorSession } from '@volter/editor-core/history/editor-session';
-import { getStorageBackend, MemStorage, setStorageBackend } from '@volter/editor-core/storage/index';
+import { EditorSession } from '@volter/editor-sdk/kit/history/editor-session';
+import { getStorageBackend, MemStorage, setStorageBackend } from '@volter/editor-sdk/kit/storage/index';
 import {
   activeWorkspaceUtility,
   installWorkspaceHostCommands,
   setActiveWorkspaceUtility,
   setWorkspaceUtilityTabs,
   workspaceUtilityTabs,
-} from '@volter/editor-core/workspace-host-commands';
+} from '@volter/editor-sdk/kit/workspace-host-commands';
 import { availableWorkspaceUtilities } from '@volter/editor-sdk/kit/workspace-utility-registry';
 
 const ZERO_STATS: EditorStats = {

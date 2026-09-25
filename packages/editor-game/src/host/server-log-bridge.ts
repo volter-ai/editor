@@ -6,9 +6,9 @@
  * endpoint and the console is this shell-side bridge, mounted once by the
  * session's viewport panel.
  */
-import { getServerValidationLog } from '@volter/editor-core/api/project-state';
+import { getServerValidationLog } from '@volter/editor-sdk/kit/api/project-state';
 import { emitServerLogEntry } from '@volter/editor-sdk/kit/editor-console';
-import { connectEvents } from '@volter/editor-core/editor-presence';
+import { connectEvents } from '@volter/editor-sdk/kit/editor-presence';
 
 /**
  * Connect to the editor SSE endpoint and pipe `server-log` events

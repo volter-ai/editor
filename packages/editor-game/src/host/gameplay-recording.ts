@@ -49,7 +49,7 @@ import {
   beginGameplayRecordingSink,
   finishGameplayRecordingSink,
   type GameplayRecordingSink,
-} from '@volter/editor-core/editor-api';
+} from '@volter/editor-sdk/kit/editor-api';
 import { type GameplayDomRecording, startGameplayDomRecording } from '@volter/editor-core/gameplay-dom-recording';
 import { publishToolContributionRecording } from '@volter/editor-core/gameplay-sessions';
 import { createRecordingPreviewEncoder } from './recording-preview';

@@ -22,12 +22,12 @@ import {
   contributedActions,
   contributedChromeVersion,
   subscribeContributedChrome,
-} from '../chrome-registry';
+} from '@volter/editor-sdk/kit/chrome-registry';
 import { publishPaletteActions } from '../editor-commands';
 import { useEditorStore, useHistoryCommandSnapshot, useHistoryCommands } from '../editor-runtime';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import type { HistoryCommandSnapshot, HistoryCommands } from '../history/history-commands';
-import { editorKeymapsVersion, shortcutFor, subscribeEditorKeymap } from '../keymap-presets';
+import type { HistoryCommandSnapshot, HistoryCommands } from '@volter/editor-sdk/kit/history/history-commands';
+import { editorKeymapsVersion, shortcutFor, subscribeEditorKeymap } from '@volter/editor-sdk/kit/keymap-presets';
 import { subscribeWorkspaceStyles, workspaceStylesVersion } from '../workspace-style';
 import { buildProjectToolActions } from './project-tool-documents';
 import { buildToolActions } from './tool-documents';

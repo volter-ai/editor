@@ -18,7 +18,7 @@ import { loadSplat } from '@volter/editor-threejs/asset-loaders';
 import { hasUserData } from '@volter/editor-threejs/ecs/user-data';
 import { gltfLoader } from '@volter/editor-threejs/loader';
 import * as THREE from 'three';
-import { forwardYawRadians, parseForwardVector } from './asset-compare-core';
+import { forwardYawRadians, parseForwardVector } from '@volter/editor-sdk/kit/asset-compare-core';
 import {
   ASSET_PREVIEW_PADDING,
   boneZoomCenter,
@@ -39,7 +39,7 @@ import {
   turntableViewBasis,
   unionOrthographicFrames,
 } from './asset-preview-framing';
-import { drawBitmapLabel, measureBitmapLabel } from './bitmap-label';
+import { drawBitmapLabel, measureBitmapLabel } from '@volter/editor-sdk/kit/bitmap-label';
 import {
   applyStudioEnvironment,
   disposeStudioEnvironment,

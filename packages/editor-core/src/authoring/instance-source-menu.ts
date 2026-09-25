@@ -27,8 +27,8 @@ import {
 } from '@volter/editor-sdk/kit/instance-source-actions';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import { getActiveAuthoring } from './active-adapter';
-import { CompositeAuthoringAdapter } from './composite-authoring-adapter';
-import { enterSelectionScope } from './selection-scope';
+import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
+import { enterSelectionScope } from '@volter/editor-sdk/kit/authoring/selection-scope';
 
 /**
  * The adapter whose source accessors answer for `nodeId`. Ownership is asked

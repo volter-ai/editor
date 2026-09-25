@@ -14,8 +14,8 @@
  */
 
 import type * as THREE from 'three';
-import { getProjectStoryRegions } from './project-story-regions';
-import { declaredStoryMedium, reportUndeclaredStoryMedium } from './story-declared-medium';
+import { getProjectStoryRegions } from '@volter/editor-sdk/kit/stories/project-story-regions';
+import { declaredStoryMedium, reportUndeclaredStoryMedium } from '@volter/editor-sdk/kit/stories/story-declared-medium';
 
 /**
  * Whether a mounted story's root wrapper actually holds `three` content.

@@ -39,9 +39,9 @@ import {
   contributedChromeVersion,
   contributedHeaderItems,
   subscribeContributedChrome,
-} from '../chrome-registry';
+} from '@volter/editor-sdk/kit/chrome-registry';
 import type { HelperVisibility } from '../editor-shell-store';
-import { object3DDocumentWritePolicy } from '../object3d-document-write-policy';
+import { object3DDocumentWritePolicy } from '@volter/editor-sdk/kit/object3d-document-write-policy';
 import { stageStore, stageStoresVersion, subscribeStageStores } from '../stage-store-registry';
 import { viewportStageHelperKinds } from '../viewport-door';
 import {
@@ -57,7 +57,7 @@ import {
   viewPresentation,
   viewportPresentationVersion,
 } from '@volter/editor-sdk/kit/viewport-presentation';
-import { ViewportOverlaysGlyph, ViewportOverlaysMenu } from './ViewportOverlaysMenu';
+import { ViewportOverlaysGlyph, ViewportOverlaysMenu } from '@volter/editor-sdk/kit/components/ViewportOverlaysMenu';
 import {
   type ViewportDisplayModeChoice,
   ViewportDisplayModeMenu,

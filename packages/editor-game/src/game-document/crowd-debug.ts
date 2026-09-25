@@ -13,7 +13,7 @@
  * the active-document debug-control pattern there.
  */
 
-import { getActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { getActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
 import type { NavCrowdAgentState } from '@volter/editor-project/adapter';
 import { setUserData } from '@volter/threejs-runtime/ecs/user-data';
 import * as THREE from 'three';

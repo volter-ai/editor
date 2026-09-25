@@ -28,7 +28,7 @@
  * it, and no contribution point injects a panel's header component.
  */
 
-import { getActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { getActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
 import { setGameplayExportActive } from '@volter/editor-core/gameplay-export-state';
 import { stopGameplayRecording } from '../src/host/gameplay-recording';
 import { liveInstanceContainer } from '@volter/editor-sdk/kit/live-session-registry';
@@ -55,7 +55,7 @@ export const point = 'workspace.command';
 async function captureLiveCanvasFrame(
   canvas: HTMLCanvasElement,
 ): Promise<CanvasImageSource | null> {
-  const { liveCanvasFrame } = await import('@volter/editor-core/live-canvas-frame');
+  const { liveCanvasFrame } = await import('@volter/editor-sdk/kit/live-canvas-frame');
   return liveCanvasFrame(canvas);
 }
 
@@ -303,7 +303,7 @@ export const commands: CommandContribution['commands'] = {
           appendGameplayRecordingChunk,
           finishGameplayRecordingSink,
           abortGameplayRecordingSink,
-        } = await import('@volter/editor-core/editor-api');
+        } = await import('@volter/editor-sdk/kit/editor-api');
         controller.signal.throwIfAborted();
         const sink = await beginGameplayRecordingSink(
           {

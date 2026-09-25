@@ -17,7 +17,7 @@ import type { HierarchyProvider } from '@volter/editor-project/adapter';
 import { componentRootName, isBuiltInternal } from '@volter/editor-threejs/adapter/hierarchy-marks';
 import { getUserData } from '@volter/editor-threejs/ecs/user-data';
 import { isComponentInstanceRoot } from './authoring/component-instance-root';
-import { NO_MARKS, type NodeMarkReader, type NodeMarks } from './hierarchy-component-marks';
+import { NO_MARKS, type NodeMarkReader, type NodeMarks } from '@volter/editor-sdk/kit/hierarchy-component-marks';
 
 /** Project-local R3F source already carries its component ownership on the
  * native node. Read that existing stamp as the automatic equivalent of an

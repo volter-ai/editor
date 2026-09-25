@@ -65,9 +65,20 @@ interface ViteErrorPayload {
 const lastTransformError = new Map<string, string>();
 let transformErrorsWired = false;
 
+/** Vite's HMR context when a dev server serves this module, typed here so the SDK carries no
+ *  bundler types. */
+const viteHot = (
+  import.meta as ImportMeta & {
+    hot?: {
+      on(event: string, listener: (payload: never) => void): void;
+      off(event: string, listener: (payload: never) => void): void;
+    };
+  }
+).hot;
+
 function wireTransformErrors(): void {
   if (transformErrorsWired) return;
-  const hot = import.meta.hot;
+  const hot = viteHot;
   if (!hot) return;
   transformErrorsWired = true;
   hot.on('vite:error', (payload: ViteErrorPayload) => {
@@ -137,7 +148,7 @@ export function projectModuleChangeMatches(changedPath: string, relativePath: st
  * channel, and a surface that needs one says so itself.
  */
 export function subscribeProjectModuleChange(listener: ProjectModuleChangeListener): () => void {
-  const hot = import.meta.hot;
+  const hot = viteHot;
   if (!hot) return () => {};
   wireTransformErrors();
   const onFileEvent = (payload: HotFilePayload): void => {

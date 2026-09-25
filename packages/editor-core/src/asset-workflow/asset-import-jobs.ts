@@ -1,4 +1,4 @@
-import { connectEvents } from '../editor-api';
+import { connectEvents } from '@volter/editor-sdk/kit/editor-api';
 import type { AssetImportStage } from './import-contract';
 
 export interface AssetImportJob {

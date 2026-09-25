@@ -11,7 +11,7 @@ import {
   modelSelectionObjects,
   type Object3DNodeInspection,
 } from '@volter/editor-core/asset-workflow/model-inspection';
-import { setAuthoringSelection } from '@volter/editor-core/authoring/consumer-actions';
+import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import { SourceObject3DAuthoringAdapter } from '@volter/editor-core/authoring/source-object3d-authoring-adapter';
 import { openToolDocument } from '@volter/editor-core/components/tool-documents';
 import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';

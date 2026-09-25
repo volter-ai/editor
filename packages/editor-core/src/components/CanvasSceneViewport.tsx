@@ -35,7 +35,7 @@ import {
   viewportPresentationVersion,
 } from '@volter/editor-sdk/kit/viewport-presentation';
 import { ToolStrip } from './Toolbar';
-import { TransientHintOverlay } from './TransientHint';
+import { TransientHintOverlay } from '@volter/editor-sdk/kit/components/TransientHint';
 
 interface Bounds {
   x: number;

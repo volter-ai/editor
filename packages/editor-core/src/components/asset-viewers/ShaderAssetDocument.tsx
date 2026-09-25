@@ -2,11 +2,11 @@ import { faCode, faSliders, faTriangleExclamation } from '@fortawesome/free-soli
 import { Checkbox, ColorInput, NumberInput, Select, themeVars } from '@volter/editor-sdk/widgets';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { readProjectTextFile } from '../../editor-api';
+import { readProjectTextFile } from '@volter/editor-sdk/kit/editor-api';
 import type { InspectionSection } from '@volter/editor-sdk/kit/inspection-model';
 import { CONTRIBUTED_SECTION_ORDER, PROPERTIES_SECTION_ORDER } from '@volter/editor-sdk/kit/inspection-model';
-import { AssetEditorShell } from '../AssetEditorShell';
-import { subscribeProjectAsset } from '../asset-editor-persistence';
+import { AssetEditorShell } from '@volter/editor-sdk/kit/components/AssetEditorShell';
+import { subscribeProjectAsset } from '@volter/editor-sdk/kit/components/asset-editor-persistence';
 import {
   FALLBACK_FRAGMENT_SHADER,
   FALLBACK_VERTEX_SHADER,
@@ -18,7 +18,7 @@ import {
   type ShaderUniformDescriptor,
   shaderCompanionPath,
   shaderStageFromPath,
-} from './shader-source';
+} from '@volter/editor-sdk/kit/components/asset-viewers/shader-source';
 
 type PreviewGeometry = 'sphere' | 'box' | 'plane';
 type UniformPreviewValue = number | boolean | string | number[];

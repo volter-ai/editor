@@ -51,7 +51,7 @@
  * create/delete/reparent is not meaningfully re-expressible against it.
  */
 
-import { getActiveNetworking, getActivePhysics } from '@volter/editor-core/authoring/active-systems';
+import { getActiveNetworking, getActivePhysics } from '@volter/editor-sdk/kit/authoring/active-systems';
 import {
   authoringOidOf,
   isComponentInstanceRoot,

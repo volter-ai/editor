@@ -19,7 +19,7 @@ import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { getActiveAuthoring } from '../authoring/active-adapter';
 import { authoringAdapterKey } from '../authoring/adapter-key';
-import type { CompositeAuthoringAdapter } from '../authoring/composite-authoring-adapter';
+import type { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import {
   type DesignTimeRootDescriptor,
   designTimeRootDescriptors,

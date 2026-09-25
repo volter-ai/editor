@@ -11,9 +11,9 @@
 
 import type { AuthoringAdapter, NodeCreationSite, WriteAnchorKind } from '@volter/editor-project/adapter';
 import type { ShellDocumentState } from '@volter/editor-sdk/kit/shell-document-state';
-import { forEachHierarchyNode } from '../hierarchy-walk';
+import { forEachHierarchyNode } from '@volter/editor-sdk/kit/hierarchy-walk';
 import { getActiveAuthoring } from './active-adapter';
-import { saveAuthoringDocument, setAuthoringSelection } from './consumer-actions';
+import { saveAuthoringDocument, setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import { resolvePanelAuthoring } from './panel-authoring';
 
 /** The authoring adapter owned by the active center document. This is the same

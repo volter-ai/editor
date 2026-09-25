@@ -31,7 +31,7 @@
  * where the rest of the dressing is plain scene-graph work.
  */
 
-import { invalidateStages } from '../stage-invalidation';
+import { invalidateStages } from '@volter/editor-sdk/kit/stage-invalidation';
 import { contentWorldBounds } from '@volter/editor-threejs/viewport/content-bounds';
 import { EDITOR_LAYER } from '@volter/editor-threejs/viewport/editor-layers';
 import { loadEnvironmentImage, type StandardEnvironment } from '@volter/editor-threejs/viewport/environment';

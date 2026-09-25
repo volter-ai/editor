@@ -19,7 +19,7 @@ import { ProjectLayout } from './ProjectLayout';
 import { PaletteActionPublisher } from './palette-action-publisher';
 import { ensureCoreStatusContributionsRegistered } from './status-contributions';
 import { installStandingToolDocuments } from './tool-documents';
-import { setWorkspaceHistoryService } from './workspace-history';
+import { setWorkspaceHistoryService } from '@volter/editor-sdk/kit/components/workspace-history';
 
 // Session discovery remains alive even when every document tab is closed.
 const ProjectAuthoringBootstrap = lazy(async () => {

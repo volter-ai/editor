@@ -1,6 +1,6 @@
 import { PROJECT_ASSET_COMMANDS } from './asset-workflow/project-asset-commands';
 import { getActiveAuthoring } from './authoring/active-adapter';
-import { NO_AUTHORING_ID } from './authoring/no-authoring-adapter';
+import { NO_AUTHORING_ID } from '@volter/editor-sdk/kit/authoring/no-authoring-adapter';
 import {
   activeHierarchyRows,
   selectAllAuthoringNodes,
@@ -16,15 +16,15 @@ import {
 } from './editor-hotkeys';
 import { invokeKeyAction } from './key-actions';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import type { HistoryCommandSnapshot, HistoryCommands } from './history/history-commands';
-import { editorKeymaps, setEditorKeymapPreference, shortcutFor } from './keymap-presets';
+import type { HistoryCommandSnapshot, HistoryCommands } from '@volter/editor-sdk/kit/history/history-commands';
+import { editorKeymaps, setEditorKeymapPreference, shortcutFor } from '@volter/editor-sdk/kit/keymap-presets';
 import { openUndoHistory } from './workspace-aux-commands';
 import { CORE_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-utilities';
 import {
   showWorkspaceStaticPanel,
   showWorkspaceUtility,
   toggleWorkspaceFocus,
-} from './workspace-host-commands';
+} from '@volter/editor-sdk/kit/workspace-host-commands';
 import {
   cycleEditorWorkspace,
   editorWorkspaces,

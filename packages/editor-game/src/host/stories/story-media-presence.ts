@@ -33,13 +33,13 @@
  * pass publishes.
  */
 
-import { getProjectStoryRegions } from '@volter/editor-core/stories/project-story-regions';
+import { getProjectStoryRegions } from '@volter/editor-sdk/kit/stories/project-story-regions';
 import {
   __resetUndeclaredStoryMediumReportsForTest,
   declaredStoryMedium,
   reportUndeclaredStoryMedium,
   type StoryMedium,
-} from '@volter/editor-core/stories/story-declared-medium';
+} from '@volter/editor-sdk/kit/stories/story-declared-medium';
 import { getProjectStoryModules, subscribeProjectStoryModules } from '@volter/editor-core/stories/story-registry';
 
 /** Which component boards the project's stories call for. */

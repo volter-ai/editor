@@ -1,4 +1,4 @@
-import { captureSizeFromCommand } from './capture-size';
+import { captureSizeFromCommand } from '@volter/editor-sdk/kit/capture-size';
 import { getProjectStoryModules } from './stories/story-registry';
 import {
   applyViewPreset,
@@ -36,7 +36,7 @@ import { inspectorPreviewRendererCounts } from '@volter/editor-threejs/viewport/
 import { liveHostRendererCount } from '@volter/editor-threejs/viewport/renderer-ownership';
 import { type AssetKind, setSelectedAsset } from './asset-selection';
 import { assetCapabilities, assetDocumentKind } from '@volter/editor-sdk/kit/asset-capabilities';
-import { systemsForInstance } from './authoring/active-systems';
+import { systemsForInstance } from '@volter/editor-sdk/kit/authoring/active-systems';
 import { getMountFailureReports } from '@volter/editor-sdk/kit/mount-failure-report';
 import {
   activeDocumentAuthoring,
@@ -63,7 +63,7 @@ import {
   reportCommandResult,
   reportEditorState,
   reportPlayBootPhase,
-} from './editor-api';
+} from '@volter/editor-sdk/kit/editor-api';
 import { captureEditorChrome } from './editor-chrome-capture';
 import type { ConsoleEntry } from '@volter/editor-sdk/kit/editor-console';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
@@ -77,7 +77,7 @@ import {
   nextHierarchyPanelSnapshot,
   serializeHierarchyPanel,
 } from './hierarchy-panel-view';
-import type { HistoryCommands } from './history/history-commands';
+import type { HistoryCommands } from '@volter/editor-sdk/kit/history/history-commands';
 import {
   anyLiveSessionMounted,
   anyLiveSessionPlaying,
@@ -90,7 +90,7 @@ import {
 import { setPlayBootPhaseReporter } from './play-boot-phase';
 import { projectAdapterFacet, subscribeProjectAdapter } from './project-adapter';
 import { getProjectModuleSplitReports } from '@volter/editor-sdk/kit/project-module-split';
-import { onSessionEndedChange, sessionEndedRefusal, sessionEndedState } from './session-tombstone';
+import { onSessionEndedChange, sessionEndedRefusal, sessionEndedState } from '@volter/editor-sdk/kit/session-tombstone';
 import { prepareSessionClose } from './session-close';
 import { scheduleDeferredFullReport } from './state-report-deferral';
 import { interactiveViewportRendererCounts } from './three-viewport/interactive-renderer';
@@ -141,7 +141,7 @@ import {
   ungroupAuthoringNode,
   unwrapAuthoringNode,
   wrapAuthoringNode,
-} from './authoring/consumer-actions';
+} from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import { resolvePanelAuthoring } from './authoring/panel-authoring';
 import { ontologyInvariantFacet } from './coverage/session-vitals';
 import { documentContextFor, waitForDocumentContext } from './document-context-registry';
@@ -172,7 +172,7 @@ import {
   openWorkspaceDocuments,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { availableWorkspaceDocuments } from './workspace-available-documents';
-import { activeWorkspaceUtility } from './workspace-host-commands';
+import { activeWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-host-commands';
 import {
   activeEditorWorkspace,
   editorWorkspaceIds,

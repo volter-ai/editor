@@ -64,9 +64,9 @@ import {
 import { useEditorStore } from '../editor-runtime';
 import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
 import { useProjectMounts } from '../project-shape';
-import { getStorageBackend } from '../storage';
-import { showWorkspaceUtility } from '../workspace-host-commands';
-import { registerWorkspaceStatus } from '../workspace-status-registry';
+import { getStorageBackend } from '@volter/editor-sdk/kit/storage/index';
+import { showWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-host-commands';
+import { registerWorkspaceStatus } from '@volter/editor-sdk/kit/workspace-status-registry';
 import { showConsoleUtility } from '../workspace-utility-commands';
 import {
   availableWorkspaceUtilities,

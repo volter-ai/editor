@@ -1,8 +1,8 @@
 import {
   adapterEditorConfiguration,
   subscribeAdapterEditorConfiguration,
-} from './adapter-editor-config';
-import { effectiveSettings, subscribeSettings } from './settings-store';
+} from '@volter/editor-sdk/kit/adapter-editor-config';
+import { effectiveSettings, subscribeSettings } from '@volter/editor-sdk/kit/settings-store';
 /**
  * WHICH CHROME REGIONS ARE SHOWN right now — the one store the two document
  * regions (`DocumentHeaderStrip`, `DocumentShelfRail`), the title bar's own

@@ -22,12 +22,12 @@ import {
   setActiveSystems,
   setInspectedInstance,
   updateInstanceSystems,
-} from '@volter/editor-core/authoring/active-systems';
+} from '@volter/editor-sdk/kit/authoring/active-systems';
 import { BoundaryAuthoringAdapter } from '@volter/editor-core/authoring/boundary-authoring-adapter';
 import {
   CompositeAuthoringAdapter,
   type CompositeChild,
-} from '@volter/editor-core/authoring/composite-authoring-adapter';
+} from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import { createEphemeralPersistence } from '../host/authoring/ephemeral-persistence';
 import {
   EPHEMERAL_DESTINATION,
@@ -36,8 +36,8 @@ import {
   type WriteAck,
 } from '@volter/editor-sdk/kit/write-pipe';
 import { resolveAllRootEntries } from '../host/binding-resolver';
-import type { LogEntry } from '@volter/editor-core/editor-api';
-import { endLogSession, flushLogEntries, startLogSession } from '@volter/editor-core/editor-api';
+import type { LogEntry } from '@volter/editor-sdk/kit/editor-api';
+import { endLogSession, flushLogEntries, startLogSession } from '@volter/editor-sdk/kit/editor-api';
 import type { ConsoleEntry } from '@volter/editor-sdk/kit/editor-console';
 import {
   editorConsole,
@@ -45,7 +45,7 @@ import {
   resumeEditorConsoleCapture,
   suspendEditorConsoleCapture,
 } from '@volter/editor-sdk/kit/editor-console';
-import { EDITOR_PARTICIPANT_ID, sendControl } from '@volter/editor-core/editor-presence';
+import { EDITOR_PARTICIPANT_ID, sendControl } from '@volter/editor-sdk/kit/editor-presence';
 import {
   isEditorPresentationActive,
   subscribeEditorPresentationActivity,
@@ -67,7 +67,7 @@ import { isEditableTarget, setActiveScope } from '@volter/editor-sdk/kit/hotkeys
 import { projectBootstrapSettled } from '@volter/editor-core/initial-project';
 import { registerGameNullSubject } from '@volter/editor-core/inspection/game-subject';
 import { fetchGameManifest } from '@volter/editor-core/manifest-project';
-import { registerPerformanceSource } from '@volter/editor-core/performance-sources';
+import { registerPerformanceSource } from '@volter/editor-sdk/kit/performance-sources';
 import {
   beginPlayBoot,
   endPlayBoot,

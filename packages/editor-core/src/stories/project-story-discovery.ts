@@ -10,9 +10,9 @@
 
 import { connectStoryFileEvents } from '../asset-events';
 import { getCurrentProject, onProjectChange } from '../project-manager';
-import { subscribeProjectModuleChange } from '../project-module-changes';
+import { subscribeProjectModuleChange } from '@volter/editor-sdk/kit/project-module-changes';
 import { waitForFirstViewportFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
-import { resetUndeclaredStoryMediumReports } from './story-declared-medium';
+import { resetUndeclaredStoryMediumReports } from '@volter/editor-sdk/kit/stories/story-declared-medium';
 import { refreshProjectStories } from './story-registry';
 
 /** Discover after the first authored frame, then re-discover on project

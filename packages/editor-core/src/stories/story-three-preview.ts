@@ -106,7 +106,7 @@ import {
   type StoryThreePreviewRuntime,
 } from '../story-three-preview-runtime';
 import { viewportTimingsEnabled } from '@volter/editor-sdk/kit/viewport-activation-timings';
-import { runInStoryMountTurn } from './story-mount-turn';
+import { runInStoryMountTurn } from '@volter/editor-sdk/kit/stories/story-mount-turn';
 
 /** Last mount's phase split — only written when timings are on. The board
  *  reads this after each attempt so a per-story row can name load vs fiber

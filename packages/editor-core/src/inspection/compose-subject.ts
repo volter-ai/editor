@@ -65,7 +65,7 @@ import {
   removeAuthoringInspectorField,
   removeAuthoringTransform,
   setAuthoringInspectorField,
-} from '../authoring/consumer-actions';
+} from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import { authoringDestination, provenanceForNode } from '../authoring/provenance';
 import { InspectorStoriesSection } from '../components/InspectorStoriesSection';
 import { InspectorTransformSection } from '../components/InspectorTransformSection';
@@ -105,7 +105,7 @@ import {
   TRANSFORM_SECTION_ID,
   TRANSFORM_SECTION_ORDER,
 } from '@volter/editor-sdk/kit/inspection-model';
-import type { NullInspectionSubject } from './null-subject';
+import type { NullInspectionSubject } from '@volter/editor-sdk/kit/inspection/null-subject';
 
 /** Above this many properties a group starts collapsed even when the document
  *  sets some of them — a 40-field library block is a wall, not a panel. */

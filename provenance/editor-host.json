@@ -29,7 +29,7 @@
     },
     {
       "source": "packages/editor/src/adapter-editor-config.ts",
-      "path": "packages/editor-core/src/adapter-editor-config.ts",
+      "path": "packages/editor-sdk/src/kit/adapter-editor-config.ts",
       "sha256": "dfaab5fdca182b6ca75cf37e70e5a63fe2384f7043f06ca402befa8a1db6e516"
     },
     {
@@ -39,7 +39,7 @@
     },
     {
       "source": "packages/editor/src/animation/stage-transport.ts",
-      "path": "packages/editor-core/src/animation/stage-transport.ts",
+      "path": "packages/editor-sdk/src/kit/animation/stage-transport.ts",
       "sha256": "5c902e63702490749cf3840724c2c2ceccf1911c08fb7c43de8f71f31376cb67"
     },
     {
@@ -54,7 +54,7 @@
     },
     {
       "source": "packages/editor/src/api/assets.ts",
-      "path": "packages/editor-core/src/api/assets.ts",
+      "path": "packages/editor-sdk/src/kit/api/assets.ts",
       "sha256": "1eeeb44986ea36c520fffa56b01a854636093208cb1dad898dc1735ba725b137"
     },
     {
@@ -84,22 +84,22 @@
     },
     {
       "source": "packages/editor/src/api/project-open.ts",
-      "path": "packages/editor-core/src/api/project-open.ts",
+      "path": "packages/editor-sdk/src/kit/api/project-open.ts",
       "sha256": "ffbea599b32be6efb8cbcac636897734e6f8bd93455548bee6c45f773872d07f"
     },
     {
       "source": "packages/editor/src/api/project-source.ts",
-      "path": "packages/editor-core/src/api/project-source.ts",
+      "path": "packages/editor-sdk/src/kit/api/project-source.ts",
       "sha256": "a0b1bf8ded7351f8dd195f00a25fba99f1337e0456d996fc0d2720ab6ee53cc3"
     },
     {
       "source": "packages/editor/src/api/project-state.ts",
-      "path": "packages/editor-core/src/api/project-state.ts",
+      "path": "packages/editor-sdk/src/kit/api/project-state.ts",
       "sha256": "b12b3abbc607da211e8c013a9faab162dba4fde96840aa8956f3ff390331600c"
     },
     {
       "source": "packages/editor/src/api/relay.ts",
-      "path": "packages/editor-core/src/api/relay.ts",
+      "path": "packages/editor-sdk/src/kit/api/relay.ts",
       "sha256": "39486cda31e4c74ee5bb7dcd5a2d69fdb05099819899835f56f858d03b1cdd22"
     },
     {
@@ -119,7 +119,7 @@
     },
     {
       "source": "packages/editor/src/asset-compare-core.ts",
-      "path": "packages/editor-core/src/asset-compare-core.ts",
+      "path": "packages/editor-sdk/src/kit/asset-compare-core.ts",
       "sha256": "acc247e9d1f6871d23867bc17e3d645619b3eb8c84f386b4699747ba84a104b7"
     },
     {
@@ -129,7 +129,7 @@
     },
     {
       "source": "packages/editor/src/asset-editor-context.tsx",
-      "path": "packages/editor-core/src/asset-editor-context.tsx",
+      "path": "packages/editor-sdk/src/kit/asset-editor-context.tsx",
       "sha256": "0e28ea477b51239876017e730cccc690f0abce362651dc06d2115d546f83d790"
     },
     {
@@ -249,12 +249,12 @@
     },
     {
       "source": "packages/editor/src/asset-workflow/pixi-spritesheet.ts",
-      "path": "packages/editor-core/src/asset-workflow/pixi-spritesheet.ts",
+      "path": "packages/editor-sdk/src/kit/asset-workflow/pixi-spritesheet.ts",
       "sha256": "f430002aa836279fe62db5502abc8bfc0bc0874b4cf921532a9728937018653d"
     },
     {
       "source": "packages/editor/src/asset-workflow/preview-resource-lifetime.ts",
-      "path": "packages/editor-core/src/asset-workflow/preview-resource-lifetime.ts",
+      "path": "packages/editor-sdk/src/kit/asset-workflow/preview-resource-lifetime.ts",
       "sha256": "c7fb547d156de58c8f22fbb6e2446d34bf4a1ce184b5ee2e8f961930c4d28d83"
     },
     {
@@ -279,12 +279,12 @@
     },
     {
       "source": "packages/editor/src/asset-workflow/project-content.ts",
-      "path": "packages/editor-core/src/asset-workflow/project-content.ts",
+      "path": "packages/editor-sdk/src/kit/asset-workflow/project-content.ts",
       "sha256": "67bff5e31228207be05ef0daec647a160ecc11b61e50aaae834840c63682c4c7"
     },
     {
       "source": "packages/editor/src/asset-workflow/project-source-index.ts",
-      "path": "packages/editor-core/src/asset-workflow/project-source-index.ts",
+      "path": "packages/editor-sdk/src/kit/asset-workflow/project-source-index.ts",
       "sha256": "f30e00fd0b7179472ccf81dd3aab30e34e0170a7ff729a1f98adcf67113c940b"
     },
     {
@@ -299,7 +299,7 @@
     },
     {
       "source": "packages/editor/src/authoring/active-systems.ts",
-      "path": "packages/editor-core/src/authoring/active-systems.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/active-systems.ts",
       "sha256": "9413086b408c43e19f19f6e2b53fded51436dd93901e57ecf8e3f896f8277dbd"
     },
     {
@@ -339,12 +339,12 @@
     },
     {
       "source": "packages/editor/src/authoring/composite-authoring-adapter.ts",
-      "path": "packages/editor-core/src/authoring/composite-authoring-adapter.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/composite-authoring-adapter.ts",
       "sha256": "690e19e7b6ad3ec2a55c41af5de009cbb4a299ca3fa7966e386a08af9f5a1c54"
     },
     {
       "source": "packages/editor/src/authoring/consumer-actions.ts",
-      "path": "packages/editor-core/src/authoring/consumer-actions.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/consumer-actions.ts",
       "sha256": "39c6660a2bbc78b30bc926a124fcab8e942eedd78311050565c7ffba721c595b"
     },
     {
@@ -414,7 +414,7 @@
     },
     {
       "source": "packages/editor/src/authoring/no-authoring-adapter.ts",
-      "path": "packages/editor-core/src/authoring/no-authoring-adapter.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/no-authoring-adapter.ts",
       "sha256": "1e52537a57e44d598785d9884d28ee8cb093ce10bdd7b70d44e5d6391a85dff1"
     },
     {
@@ -424,7 +424,7 @@
     },
     {
       "source": "packages/editor/src/authoring/object3d-document-persistence.ts",
-      "path": "packages/editor-core/src/authoring/object3d-document-persistence.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/object3d-document-persistence.ts",
       "sha256": "ade3080c10d2fc611bf2ba2408ddd83f582fbd0fab2f61b281665cae976ad76b"
     },
     {
@@ -439,7 +439,7 @@
     },
     {
       "source": "packages/editor/src/authoring/object3d-gesture-controller.ts",
-      "path": "packages/editor-core/src/authoring/object3d-gesture-controller.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/object3d-gesture-controller.ts",
       "sha256": "9da478347fe358657ccdeb2b7a8d4a974b873080714396b6a3c79ebe02e6892f"
     },
     {
@@ -489,7 +489,7 @@
     },
     {
       "source": "packages/editor/src/authoring/selection-scope.ts",
-      "path": "packages/editor-core/src/authoring/selection-scope.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/selection-scope.ts",
       "sha256": "940413909fbee7febcf58936bf12a2e2b07d458e5e5c86fc29696c31021c1bf9"
     },
     {
@@ -564,7 +564,7 @@
     },
     {
       "source": "packages/editor/src/authoring/world-session-state.ts",
-      "path": "packages/editor-core/src/authoring/world-session-state.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/world-session-state.ts",
       "sha256": "39c0696ae90802e8f35e2de9daa8767d6bba7c4979c90adc53c1f71ef234027d"
     },
     {
@@ -579,7 +579,7 @@
     },
     {
       "source": "packages/editor/src/bitmap-label.ts",
-      "path": "packages/editor-core/src/bitmap-label.ts",
+      "path": "packages/editor-sdk/src/kit/bitmap-label.ts",
       "sha256": "edea6f34f559091aa3edd0d9c88d732f0132282fbffd546701f8235de1d6ff1c"
     },
     {
@@ -624,12 +624,12 @@
     },
     {
       "source": "packages/editor/src/capture-camera-pose.ts",
-      "path": "packages/editor-core/src/capture-camera-pose.ts",
+      "path": "packages/editor-sdk/src/kit/capture-camera-pose.ts",
       "sha256": "8dde6e0c6304adfbc063d592c4dbd72c6a36c776be81110ade5c9af3973ac249"
     },
     {
       "source": "packages/editor/src/chrome-registry.ts",
-      "path": "packages/editor-core/src/chrome-registry.ts",
+      "path": "packages/editor-sdk/src/kit/chrome-registry.ts",
       "sha256": "aac609aa88443981c3b7cd2281e37907382a0e3f4f201dee2184d5634ae6d9a2"
     },
     {
@@ -639,12 +639,12 @@
     },
     {
       "source": "packages/editor/src/collaboration-client.ts",
-      "path": "packages/editor-core/src/collaboration-client.ts",
+      "path": "packages/editor-sdk/src/kit/collaboration-client.ts",
       "sha256": "e68711bfe364019dfbcbef1a7cef1f59d5fa2fc072089d23570c801e52b873b2"
     },
     {
       "source": "packages/editor/src/collaboration-presence.ts",
-      "path": "packages/editor-core/src/collaboration-presence.ts",
+      "path": "packages/editor-sdk/src/kit/collaboration-presence.ts",
       "sha256": "b640a9b30a12e5d9f09c702e3385ba32905be1cb65a3ead38080331b14894082"
     },
     {
@@ -699,7 +699,7 @@
     },
     {
       "source": "packages/editor/src/components/AssetEditorShell.tsx",
-      "path": "packages/editor-core/src/components/AssetEditorShell.tsx",
+      "path": "packages/editor-sdk/src/kit/components/AssetEditorShell.tsx",
       "sha256": "71a887db66dd638267a800357c6cc4decdb2df9bbd51a355bbca3a23baa1e198"
     },
     {
@@ -969,7 +969,7 @@
     },
     {
       "source": "packages/editor/src/components/TransientHint.tsx",
-      "path": "packages/editor-core/src/components/TransientHint.tsx",
+      "path": "packages/editor-sdk/src/kit/components/TransientHint.tsx",
       "sha256": "2668417dd953554c6ecabfe816a98c24669df5058b7aac67000c50d1f81a7b2b"
     },
     {
@@ -1009,7 +1009,7 @@
     },
     {
       "source": "packages/editor/src/components/ViewportOverlaysMenu.tsx",
-      "path": "packages/editor-core/src/components/ViewportOverlaysMenu.tsx",
+      "path": "packages/editor-sdk/src/kit/components/ViewportOverlaysMenu.tsx",
       "sha256": "710da1602f531af2f142e54dfbe4b3a5bf75922e5b8b9de7bad7d55df3c934ae"
     },
     {
@@ -1054,7 +1054,7 @@
     },
     {
       "source": "packages/editor/src/components/asset-editor-persistence.ts",
-      "path": "packages/editor-core/src/components/asset-editor-persistence.ts",
+      "path": "packages/editor-sdk/src/kit/components/asset-editor-persistence.ts",
       "sha256": "f8f43bfa393d3c5286495a101b35dbe26de886167227368208a3e32ba83e0d1b"
     },
     {
@@ -1154,7 +1154,7 @@
     },
     {
       "source": "packages/editor/src/components/asset-viewers/shader-source.ts",
-      "path": "packages/editor-core/src/components/asset-viewers/shader-source.ts",
+      "path": "packages/editor-sdk/src/kit/components/asset-viewers/shader-source.ts",
       "sha256": "beaa0149d1497c0cf8c04f288753dad6126007d9e67dea851a3603a95c4559cb"
     },
     {
@@ -1309,7 +1309,7 @@
     },
     {
       "source": "packages/editor/src/components/workspace-history.ts",
-      "path": "packages/editor-core/src/components/workspace-history.ts",
+      "path": "packages/editor-sdk/src/kit/components/workspace-history.ts",
       "sha256": "3c118ea80e45b1930daedc73be0270bee412bd0f8fc8a7bd8821ef0116ed4e19"
     },
     {
@@ -1364,7 +1364,7 @@
     },
     {
       "source": "packages/editor/src/coverage/design-time-surfaces.ts",
-      "path": "packages/editor-core/src/coverage/design-time-surfaces.ts",
+      "path": "packages/editor-sdk/src/kit/coverage/design-time-surfaces.ts",
       "sha256": "aa58d0acbaa26ebe02bb7303c9c9980fb3085269b03f9191c08f7002537a0566"
     },
     {
@@ -1419,12 +1419,12 @@
     },
     {
       "source": "packages/editor/src/document-renderer-session.ts",
-      "path": "packages/editor-core/src/document-renderer-session.ts",
+      "path": "packages/editor-sdk/src/kit/document-renderer-session.ts",
       "sha256": "8e6a58e2545a4e4ec4bf117a68697a787c4e026e4a60f45d12898fb112d113cf"
     },
     {
       "source": "packages/editor/src/editor-api.ts",
-      "path": "packages/editor-core/src/editor-api.ts",
+      "path": "packages/editor-sdk/src/kit/editor-api.ts",
       "sha256": "06647900ed13f2bf127518e88faf8c1830db688be53b58a72adf895c04d3dcc1"
     },
     {
@@ -1474,12 +1474,12 @@
     },
     {
       "source": "packages/editor/src/editor-lease.ts",
-      "path": "packages/editor-core/src/editor-lease.ts",
+      "path": "packages/editor-sdk/src/kit/editor-lease.ts",
       "sha256": "b9728813f259280b405b24e71cebeaaa0376528ff57d7e4bafc79b3d28ee3433"
     },
     {
       "source": "packages/editor/src/editor-mode.ts",
-      "path": "packages/editor-core/src/editor-mode.ts",
+      "path": "packages/editor-sdk/src/kit/editor-mode.ts",
       "sha256": "6e02baf0d5b2f9bc1bb713aef0472e4d310168a82ea1d41b06f7e2445720ddd8"
     },
     {
@@ -1489,7 +1489,7 @@
     },
     {
       "source": "packages/editor/src/editor-presence.ts",
-      "path": "packages/editor-core/src/editor-presence.ts",
+      "path": "packages/editor-sdk/src/kit/editor-presence.ts",
       "sha256": "b18bee49dc9d257afa3561b2ab866e4f280d4087e9c8f78e2694218b7096ef0a"
     },
     {
@@ -1559,12 +1559,12 @@
     },
     {
       "source": "packages/editor/src/files/file-provider.ts",
-      "path": "packages/editor-core/src/files/file-provider.ts",
+      "path": "packages/editor-sdk/src/kit/files/file-provider.ts",
       "sha256": "6a619ed263198fdbed078cd351cab5d77cf7fbc10c6bc41d7f4e695a6be13472"
     },
     {
       "source": "packages/editor/src/files/project-files.ts",
-      "path": "packages/editor-core/src/files/project-files.ts",
+      "path": "packages/editor-sdk/src/kit/files/project-files.ts",
       "sha256": "9648642dd29966d41a5752b701cd6fd49928851c5b19cb8c3542291974e10a06"
     },
     {
@@ -1614,7 +1614,7 @@
     },
     {
       "source": "packages/editor/src/hierarchy-component-marks.ts",
-      "path": "packages/editor-core/src/hierarchy-component-marks.ts",
+      "path": "packages/editor-sdk/src/kit/hierarchy-component-marks.ts",
       "sha256": "8e19564010181644cc0d49c2e3f0ddb7328b3dc2f4e3aff488a94aea3a8b4238"
     },
     {
@@ -1654,7 +1654,7 @@
     },
     {
       "source": "packages/editor/src/hierarchy-node-rows.ts",
-      "path": "packages/editor-core/src/hierarchy-node-rows.ts",
+      "path": "packages/editor-sdk/src/kit/hierarchy-node-rows.ts",
       "sha256": "aa2ebf9035ead92b2ff9cc9836aa8f7e222f84f0662b0be13e7115cdbe9108ce"
     },
     {
@@ -1674,27 +1674,27 @@
     },
     {
       "source": "packages/editor/src/hierarchy-row-model.ts",
-      "path": "packages/editor-core/src/hierarchy-row-model.ts",
+      "path": "packages/editor-sdk/src/kit/hierarchy-row-model.ts",
       "sha256": "4516740bf6c49276e1fa5e5a49d7887618949db919089ed3f907dcd9a5298538"
     },
     {
       "source": "packages/editor/src/hierarchy-rows.ts",
-      "path": "packages/editor-core/src/hierarchy-rows.ts",
+      "path": "packages/editor-sdk/src/kit/hierarchy-rows.ts",
       "sha256": "902dcc7fe443c0e192b88e1a07ab875f7f6bd679387a819726be192c7348c567"
     },
     {
       "source": "packages/editor/src/hierarchy-walk.ts",
-      "path": "packages/editor-core/src/hierarchy-walk.ts",
+      "path": "packages/editor-sdk/src/kit/hierarchy-walk.ts",
       "sha256": "c665e322ee6a241d8135855cdd95452da5f0e9ca8f9ab400eba25e88a8200822"
     },
     {
       "source": "packages/editor/src/history/editor-session.ts",
-      "path": "packages/editor-core/src/history/editor-session.ts",
+      "path": "packages/editor-sdk/src/kit/history/editor-session.ts",
       "sha256": "94d42831cd8cc11a4d9b6cb0b17e11af969d056aa55c4b5780a61797ba055e14"
     },
     {
       "source": "packages/editor/src/history/history-commands.ts",
-      "path": "packages/editor-core/src/history/history-commands.ts",
+      "path": "packages/editor-sdk/src/kit/history/history-commands.ts",
       "sha256": "3b1e23b38ae2a1e3d1ece10139b99d479e09af8891505305ea228025b4dd661b"
     },
     {
@@ -1704,7 +1704,7 @@
     },
     {
       "source": "packages/editor/src/history/history-limit-notices.ts",
-      "path": "packages/editor-core/src/history/history-limit-notices.ts",
+      "path": "packages/editor-sdk/src/kit/history/history-limit-notices.ts",
       "sha256": "f5dff1aec060fb496be1bb1d78b795a125007973e5da24b5b9cec920f0b18367"
     },
     {
@@ -1719,12 +1719,12 @@
     },
     {
       "source": "packages/editor/src/history/project-file-history.ts",
-      "path": "packages/editor-core/src/history/project-file-history.ts",
+      "path": "packages/editor-sdk/src/kit/history/project-file-history.ts",
       "sha256": "aafafe115728b35c2e658216fa475e93bc1afda1a4cde708ceef7ee3b26742b3"
     },
     {
       "source": "packages/editor/src/history/project-root-history-backends.ts",
-      "path": "packages/editor-core/src/history/project-root-history-backends.ts",
+      "path": "packages/editor-sdk/src/kit/history/project-root-history-backends.ts",
       "sha256": "dbd27230cf110bb3498ffff2ccf6e2dee85b16c6695f201c46b42159f4eda4ac"
     },
     {
@@ -1754,7 +1754,7 @@
     },
     {
       "source": "packages/editor/src/hmr-stable-react-context.ts",
-      "path": "packages/editor-core/src/hmr-stable-react-context.ts",
+      "path": "packages/editor-sdk/src/kit/hmr-stable-react-context.ts",
       "sha256": "5722ca838912cf69b82737c10a18d5d3e1476190322a86a201002a7e567728e7"
     },
     {
@@ -1794,7 +1794,7 @@
     },
     {
       "source": "packages/editor/src/inspection/document-subject.ts",
-      "path": "packages/editor-core/src/inspection/document-subject.ts",
+      "path": "packages/editor-sdk/src/kit/inspection/document-subject.ts",
       "sha256": "2fa9ec74d337d5db9721bd5757ce7a1b77615419453af0a98ae7c56ee3f63211"
     },
     {
@@ -1809,7 +1809,7 @@
     },
     {
       "source": "packages/editor/src/inspection/null-subject.ts",
-      "path": "packages/editor-core/src/inspection/null-subject.ts",
+      "path": "packages/editor-sdk/src/kit/inspection/null-subject.ts",
       "sha256": "8d8da22f9f52510680b59bab5dc64276778ce5da1922356a4333043199f3e77a"
     },
     {
@@ -1854,7 +1854,7 @@
     },
     {
       "source": "packages/editor/src/keymap-presets.ts",
-      "path": "packages/editor-core/src/keymap-presets.ts",
+      "path": "packages/editor-sdk/src/kit/keymap-presets.ts",
       "sha256": "b69e6c7ea5d8ad75e9d6e752f25f2b620e4448c68ecd08c1911fbfccc13f9ee5"
     },
     {
@@ -1869,12 +1869,12 @@
     },
     {
       "source": "packages/editor/src/light-explorer-model.ts",
-      "path": "packages/editor-core/src/light-explorer-model.ts",
+      "path": "packages/editor-sdk/src/kit/light-explorer-model.ts",
       "sha256": "0344eaa03cf214436160cd9b91d3d4246a164435c2901b72e658386201258fdd"
     },
     {
       "source": "packages/editor/src/live-canvas-frame.ts",
-      "path": "packages/editor-core/src/live-canvas-frame.ts",
+      "path": "packages/editor-sdk/src/kit/live-canvas-frame.ts",
       "sha256": "4c1cd69e3e97fdd86ea0770df1f3ad3839788ecc949bd6814e76c14219bce79b"
     },
     {
@@ -1914,7 +1914,7 @@
     },
     {
       "source": "packages/editor/src/object3d-document-write-policy.ts",
-      "path": "packages/editor-core/src/object3d-document-write-policy.ts",
+      "path": "packages/editor-sdk/src/kit/object3d-document-write-policy.ts",
       "sha256": "7a5a72d626cb00b53e2b9c5c062cd96e048e1f1c51add40bbd61a454d9ab32b4"
     },
     {
@@ -1939,7 +1939,7 @@
     },
     {
       "source": "packages/editor/src/performance-sources.ts",
-      "path": "packages/editor-core/src/performance-sources.ts",
+      "path": "packages/editor-sdk/src/kit/performance-sources.ts",
       "sha256": "3cb720c42e60009392568e480a9bb5aa8fea41bd41b17ea1054ec1d818b6de67"
     },
     {
@@ -1979,7 +1979,7 @@
     },
     {
       "source": "packages/editor/src/project-module-changes.ts",
-      "path": "packages/editor-core/src/project-module-changes.ts",
+      "path": "packages/editor-sdk/src/kit/project-module-changes.ts",
       "sha256": "b342eabeb89e68c3c613a1d124dd7f57655515fbc27541de2658f03f6aa0a374"
     },
     {
@@ -2044,7 +2044,7 @@
     },
     {
       "source": "packages/editor/src/resolve-relative-specifier.ts",
-      "path": "packages/editor-core/src/resolve-relative-specifier.ts",
+      "path": "packages/editor-sdk/src/kit/resolve-relative-specifier.ts",
       "sha256": "a0d0114b5ac210d9ce1595e3477be28e9f7b4671c3b9f659cee080fb5914f281"
     },
     {
@@ -2079,17 +2079,17 @@
     },
     {
       "source": "packages/editor/src/session-tombstone.ts",
-      "path": "packages/editor-core/src/session-tombstone.ts",
+      "path": "packages/editor-sdk/src/kit/session-tombstone.ts",
       "sha256": "7696af5efe315ee428ea965ae8f3be8e524a7030b4da764bbfb675c960be3ee4"
     },
     {
       "source": "packages/editor/src/settings-store.ts",
-      "path": "packages/editor-core/src/settings-store.ts",
+      "path": "packages/editor-sdk/src/kit/settings-store.ts",
       "sha256": "e0844b9a8695e5ee9d0fb03cc3e2bc14e83ba592c46fb315c1889720c5d97e7d"
     },
     {
       "source": "packages/editor/src/settings/settings-provider.ts",
-      "path": "packages/editor-core/src/settings/settings-provider.ts",
+      "path": "packages/editor-sdk/src/kit/settings/settings-provider.ts",
       "sha256": "94c21916c5ce2c004af1b849da768668b805e135fa63d8cb2f1740d6d8c2b392"
     },
     {
@@ -2134,22 +2134,22 @@
     },
     {
       "source": "packages/editor/src/storage/host-files-storage.ts",
-      "path": "packages/editor-core/src/storage/host-files-storage.ts",
+      "path": "packages/editor-sdk/src/kit/storage/host-files-storage.ts",
       "sha256": "2d9c48b8f7963cec16e00a8bf79d860bbd5e9c06bbb28947b9adb3c1162d8f88"
     },
     {
       "source": "packages/editor/src/storage/http-storage.ts",
-      "path": "packages/editor-core/src/storage/http-storage.ts",
+      "path": "packages/editor-sdk/src/kit/storage/http-storage.ts",
       "sha256": "ee08600ec923db605396d15b8a2facfb2c614152e9ac597e0864b8176f069850"
     },
     {
       "source": "packages/editor/src/storage/index.ts",
-      "path": "packages/editor-core/src/storage/index.ts",
+      "path": "packages/editor-sdk/src/kit/storage/index.ts",
       "sha256": "5b329adfa6613800ca42dde555a643afba7091b2458fa13053fcd885f2d31ead"
     },
     {
       "source": "packages/editor/src/storage/mem-storage.ts",
-      "path": "packages/editor-core/src/storage/mem-storage.ts",
+      "path": "packages/editor-sdk/src/kit/storage/mem-storage.ts",
       "sha256": "cbc457de94273cfc3b2332dde72cce1aa339bdfb863ec94f33576b659dca7244"
     },
     {
@@ -2159,7 +2159,7 @@
     },
     {
       "source": "packages/editor/src/storage/paths.ts",
-      "path": "packages/editor-core/src/storage/paths.ts",
+      "path": "packages/editor-sdk/src/kit/storage/paths.ts",
       "sha256": "684d8f7099e24edc771daacce32add861f08e4e88b2d451c2e96e66958f9e86d"
     },
     {
@@ -2214,7 +2214,7 @@
     },
     {
       "source": "packages/editor/src/stories/project-story-regions.ts",
-      "path": "packages/editor-core/src/stories/project-story-regions.ts",
+      "path": "packages/editor-sdk/src/kit/stories/project-story-regions.ts",
       "sha256": "6ba442c09d6212b9f0b6cf43fcab28b790221188c183e2a4757bbe5ce03d8eca"
     },
     {
@@ -2234,7 +2234,7 @@
     },
     {
       "source": "packages/editor/src/stories/story-declared-medium.ts",
-      "path": "packages/editor-core/src/stories/story-declared-medium.ts",
+      "path": "packages/editor-sdk/src/kit/stories/story-declared-medium.ts",
       "sha256": "f012209449bb0457a9f1454565d03a13b309c2e3eaaaed210ff8774205013a53"
     },
     {
@@ -2264,7 +2264,7 @@
     },
     {
       "source": "packages/editor/src/stories/story-mount-turn.ts",
-      "path": "packages/editor-core/src/stories/story-mount-turn.ts",
+      "path": "packages/editor-sdk/src/kit/stories/story-mount-turn.ts",
       "sha256": "29c1c22817c389576f45ded2e5a1cc7e4cad23725d7b98cf87aaee2c70590a9d"
     },
     {
@@ -2314,12 +2314,12 @@
     },
     {
       "source": "packages/editor/src/tab-census.ts",
-      "path": "packages/editor-core/src/tab-census.ts",
+      "path": "packages/editor-sdk/src/kit/tab-census.ts",
       "sha256": "688e998d10ec1f314a767e4da6f9c51f158bc6d4310ae26e97bc917d533bcdf3"
     },
     {
       "source": "packages/editor/src/tab-lifecycle-client.ts",
-      "path": "packages/editor-core/src/tab-lifecycle-client.ts",
+      "path": "packages/editor-sdk/src/kit/tab-lifecycle-client.ts",
       "sha256": "148b94a09a9f68a3df42061818fd78f99c25da67363c31755449c437a1a65c7b"
     },
     {
@@ -2339,7 +2339,7 @@
     },
     {
       "source": "packages/editor/src/three-viewport-presentation.ts",
-      "path": "packages/editor-core/src/three-viewport-presentation.ts",
+      "path": "packages/editor-sdk/src/kit/three-viewport-presentation.ts",
       "sha256": "24d2e573e5ddbabab9213e7a3ba95678ca5cd9c9056ad93ec6fce8c8acc94560"
     },
     {
@@ -2409,12 +2409,12 @@
     },
     {
       "source": "packages/editor/src/ui-source/adapter-region-includes.ts",
-      "path": "packages/editor-core/src/ui-source/adapter-region-includes.ts",
+      "path": "packages/editor-sdk/src/kit/ui-source/adapter-region-includes.ts",
       "sha256": "0a3521455e2b7c9fc64a6824b27586702d498a02ebb1eb1f8a054a500efe8489"
     },
     {
       "source": "packages/editor/src/ui-source/file-region-resolver.ts",
-      "path": "packages/editor-core/src/ui-source/file-region-resolver.ts",
+      "path": "packages/editor-sdk/src/kit/ui-source/file-region-resolver.ts",
       "sha256": "925cd799f6ec4f7da843e211c52a1d30e1f124503e2bbd2118f1392769fd41ef"
     },
     {
@@ -2559,7 +2559,7 @@
     },
     {
       "source": "packages/editor/src/workspace-host-commands.ts",
-      "path": "packages/editor-core/src/workspace-host-commands.ts",
+      "path": "packages/editor-sdk/src/kit/workspace-host-commands.ts",
       "sha256": "6e5704c24f0af9d24847454cb1ee817590173868334489a40277ce669df3c182"
     },
     {
@@ -2589,12 +2589,12 @@
     },
     {
       "source": "packages/editor/src/workspace-static-panels.ts",
-      "path": "packages/editor-core/src/workspace-static-panels.ts",
+      "path": "packages/editor-sdk/src/kit/workspace-static-panels.ts",
       "sha256": "3a5840b99616491f4e97130683bbee6d261c8e702924837999cbc7c35d85e853"
     },
     {
       "source": "packages/editor/src/workspace-status-registry.ts",
-      "path": "packages/editor-core/src/workspace-status-registry.ts",
+      "path": "packages/editor-sdk/src/kit/workspace-status-registry.ts",
       "sha256": "84c6f4ba70e11f33f034a051c55c839d1c47fc3eb403ffb10eafe300856577ff"
     },
     {
@@ -2719,7 +2719,7 @@
     },
     {
       "source": "packages/game-runtime/src/dev/performance-profiler.ts",
-      "path": "packages/editor-core/src/performance-profiler.ts",
+      "path": "packages/editor-sdk/src/kit/performance-profiler.ts",
       "sha256": "3b99b9b8678f3e907fda4ffbe3f38e80d19811f9cf124f2b70df66b5c9313ec0"
     },
     {

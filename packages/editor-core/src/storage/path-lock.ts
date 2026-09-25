@@ -26,7 +26,7 @@
  * Absent in a non-secure context and in Node (tests): callers then get the bare
  * operation, which is the same exclusivity the platform itself offers.
  */
-import { normalize } from './paths';
+import { normalize } from '@volter/editor-sdk/kit/storage/paths';
 
 export function withPathLock<T>(
   backendId: string,

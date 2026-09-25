@@ -11,7 +11,7 @@
 
 import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
 import { loadGameManifest, type ResolvedGameManifest } from '@volter/editor-project/manifest/load';
-import { servedUrl } from './served-url';
+import { servedUrl } from '@volter/editor-sdk/kit/served-url';
 
 /**
  * "This project has no manifest" — a DIFFERENT answer from "this project's

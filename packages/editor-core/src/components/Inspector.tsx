@@ -26,7 +26,7 @@ import { Button, EditorIcon, IconButton, Panel, themeVars } from '@volter/editor
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { useEffect, useReducer, useSyncExternalStore } from 'react';
 import { assetSelectionVersion, subscribeAssetSelection } from '../asset-selection';
-import { getActiveCamera } from '../authoring/active-systems';
+import { getActiveCamera } from '@volter/editor-sdk/kit/authoring/active-systems';
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
 import { useAvailabilitySelector } from '@volter/editor-sdk/kit/availability-tick';
 import { useEditorStore } from '../editor-runtime';

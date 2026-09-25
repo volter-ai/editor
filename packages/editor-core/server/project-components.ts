@@ -2,7 +2,7 @@ import type { Dirent } from 'node:fs';
 import { readdir, readFile } from 'node:fs/promises';
 import { join, relative, sep } from 'node:path';
 import { resolveManifestPath } from '@volter/editor-project/manifest/locate';
-import type { ProjectComponentEntry } from '../src/asset-workflow/project-content';
+import type { ProjectComponentEntry } from '@volter/editor-sdk/kit/asset-workflow/project-content';
 import {
   compareProjectComponents,
   discoverComponentsInSource,
@@ -12,8 +12,8 @@ import {
   projectRegionEntries,
   projectRootEntries,
   reportUnreadableRegions,
-} from '../src/asset-workflow/project-source-index';
-import { ADAPTER_MODULE_FILENAME } from '../src/ui-source/adapter-region-includes';
+} from '@volter/editor-sdk/kit/asset-workflow/project-source-index';
+import { ADAPTER_MODULE_FILENAME } from '@volter/editor-sdk/kit/ui-source/adapter-region-includes';
 
 /**
  * ABSENT resolves `null`; every OTHER failure rejects — the contract

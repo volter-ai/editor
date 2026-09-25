@@ -21,7 +21,7 @@
  * imports when they move. Nothing here is host API.
  */
 
-import { getActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { getActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
 import {
   activeGameplayRecordingTimeline,
   startGameplayRecording,
@@ -140,7 +140,7 @@ export const commands: CommandContribution['commands'] = {
           appendGameplayRecordingChunk,
           finishGameplayRecordingSink,
           abortGameplayRecordingSink,
-        } = await import('@volter/editor-core/editor-api');
+        } = await import('@volter/editor-sdk/kit/editor-api');
         const sink = await beginGameplayRecordingSink({
           startedAt: new Date().toISOString(),
           mimeType: 'video/webm',

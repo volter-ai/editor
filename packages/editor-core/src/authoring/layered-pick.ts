@@ -44,9 +44,9 @@ import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { SCENE_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { getActiveAuthoring } from './active-adapter';
-import { CompositeAuthoringAdapter } from './composite-authoring-adapter';
-import { currentSelectionScopeId } from './selection-scope';
-import { isRootHidden, isRootPickLocked } from './world-session-state';
+import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
+import { currentSelectionScopeId } from '@volter/editor-sdk/kit/authoring/selection-scope';
+import { isRootHidden, isRootPickLocked } from '@volter/editor-sdk/kit/authoring/world-session-state';
 
 export function resolveAdapterPick(
   adapter: AuthoringAdapter,

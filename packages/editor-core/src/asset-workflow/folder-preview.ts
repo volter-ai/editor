@@ -24,7 +24,7 @@
  * of the tree, letting the UI render an "N+" style count.
  */
 
-import { type AssetEntry, listAssets as defaultListAssets, type Listing } from '../editor-api';
+import { type AssetEntry, listAssets as defaultListAssets, type Listing } from '@volter/editor-sdk/kit/editor-api';
 import { type AssetCapabilityKind, assetCapabilities } from '@volter/editor-sdk/kit/asset-capabilities';
 
 /** Maximum number of preview items a folder summary carries. */

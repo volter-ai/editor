@@ -16,7 +16,7 @@ import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { inspectAuthoringAdapterSeams } from '@volter/editor-sdk/kit/authoring-seam-evidence';
 import type { EditorShellStore } from '../editor-shell-store';
 import type { ShellDocumentState } from '@volter/editor-sdk/kit/shell-document-state';
-import { makeNoAuthoringAdapter } from './no-authoring-adapter';
+import { makeNoAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/no-authoring-adapter';
 
 const byStore = new WeakMap<ShellDocumentState, AuthoringAdapter>();
 

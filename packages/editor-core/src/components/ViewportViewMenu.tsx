@@ -15,7 +15,7 @@ import {
   setThreeViewportProjection,
   subscribeThreeViewportPresentation,
   threeViewportPresentation,
-} from '../three-viewport-presentation';
+} from '@volter/editor-sdk/kit/three-viewport-presentation';
 
 /** The standard Scene-view camera menu: projection and axis views in one
  * place. These are editor-camera choices only. */

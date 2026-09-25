@@ -15,7 +15,7 @@
  *
  *  WHAT IT READS, and why THIS way. Three files of the vgai-engine checkout it is pointed at:
  *
- *    packages/editor-core/src/keymap-presets.ts        the `vgai` table — the editor's own chords
+ *    packages/editor-sdk/src/kit/keymap-presets.ts        the `vgai` table — the editor's own chords
  *    packages/<pkg>/contributions/*.keymap.ts     each package's keymap (`@vgai/blender`'s G/R/S)
  *    packages/editor-core/src/editor-hotkeys.ts        each action's SCOPE, from its `bind()` call
  *
@@ -359,7 +359,7 @@ async function main() {
 	const ts = await loadTypeScript();
 	const apis = await loadForkKeyApis(args.checkout);
 
-	const presetsFile = join(REPO_ROOT, 'packages/editor-core/src/keymap-presets.ts');
+	const presetsFile = join(REPO_ROOT, 'packages/editor-sdk/src/kit/keymap-presets.ts');
 	const hotkeysFile = join(REPO_ROOT, 'packages/editor-core/src/editor-hotkeys.ts');
 	const packagesDir = join(REPO_ROOT, 'packages');
 	// Every keymap a PACKAGE of this engine contributes. A capability's copied

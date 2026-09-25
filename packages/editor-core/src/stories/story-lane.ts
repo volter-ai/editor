@@ -38,7 +38,7 @@
  * namespace.
  */
 
-import { registerContributedActions } from '../chrome-registry';
+import { registerContributedActions } from '@volter/editor-sdk/kit/chrome-registry';
 import { registerContributedCommands } from '../command-registry';
 import { registerComponentStatesSource } from '../component-states-registry';
 import { registerContentEntrySource } from '../content-entry-source-registry';

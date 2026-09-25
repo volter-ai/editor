@@ -13,7 +13,7 @@
  */
 
 import type { AdapterReach } from '../host/adapter-reach';
-import { getActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { getActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
 import { ingestDataWriterNow } from '../host/authoring/ingest-data-writer';
 import { ingestOwnershipNow } from '../host/authoring/ingest-source-persistence';
 import {

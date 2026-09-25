@@ -38,7 +38,7 @@ import {
   lookPaintsLightViewport,
   subscribeNativeSelectionTheme,
 } from '@volter/editor-sdk/kit/native-selection-style';
-import type { ThreeViewportProjection } from '../three-viewport-presentation';
+import type { ThreeViewportProjection } from '@volter/editor-sdk/kit/three-viewport-presentation';
 
 /** The cluster sits 8px under the compass — one number, owned by the
  *  compass's own box (`editor-viewport.ts`, measured against Blender's

@@ -4,7 +4,7 @@
  * only AuthoringAdapter/CompositeAuthoringAdapter currency.
  */
 
-import { CompositeAuthoringAdapter } from '@volter/editor-core/authoring/composite-authoring-adapter';
+import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import {
   findCanvasUiElements,
   findPrimaryCanvas,

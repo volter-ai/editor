@@ -39,7 +39,7 @@ import {
   type EditorKeyActionId,
   shortcutFor,
   subscribeEditorKeymap,
-} from '../keymap-presets';
+} from '@volter/editor-sdk/kit/keymap-presets';
 import { requestTransformMode } from '../transform-mode-request';
 
 /** WHETHER IT IS LIT AND WHAT IT ARMS ARE THE STAGE'S ANSWER, not this

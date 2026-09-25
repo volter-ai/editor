@@ -14,7 +14,7 @@
  */
 
 import type { AuthoringAdapter, EditorNode, StoriesProvider } from '@volter/editor-project/adapter';
-import { CompositeAuthoringAdapter } from '../authoring/composite-authoring-adapter';
+import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import { governingAdapterForNode } from '../authoring/provenance';
 import { WORLD_SCOPE_NODE_ID } from '@volter/editor-sdk/kit/stories-scope';
 import { recordAuthoringConsumerUse } from '@volter/editor-sdk/kit/authoring-seam-evidence';

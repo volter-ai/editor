@@ -13,7 +13,7 @@ import {
   subscribeEditorMaterials,
   subscribeIconSets,
 } from '@volter/editor-sdk/widgets';
-import { effectiveSettings, subscribeSettings, updatePreferenceSettings } from './settings-store';
+import { effectiveSettings, subscribeSettings, updatePreferenceSettings } from '@volter/editor-sdk/kit/settings-store';
 import { resolveEditorTheme, subscribeEditorThemeLibrary } from './theme-library';
 
 // The palette and material are `appearance.palette` / `appearance.material`

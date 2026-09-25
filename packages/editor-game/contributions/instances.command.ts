@@ -10,7 +10,7 @@
  * when they move. Nothing here is host API.
  */
 
-import { liveInstanceIds } from '@volter/editor-core/authoring/active-systems';
+import { liveInstanceIds } from '@volter/editor-sdk/kit/authoring/active-systems';
 import type { CommandContribution } from '@volter/editor-sdk/commands';
 import {
   instanceEntries,

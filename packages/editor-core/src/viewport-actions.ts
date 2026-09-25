@@ -16,7 +16,7 @@ import {
   toggleCameraPreviewPin,
   viewThroughCamera,
 } from './camera-authoring';
-import { registerContributedActions } from './chrome-registry';
+import { registerContributedActions } from '@volter/editor-sdk/kit/chrome-registry';
 import type { EditorShellStore } from './editor-shell-store';
 import { requestTransformMode } from './transform-mode-request';
 import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';

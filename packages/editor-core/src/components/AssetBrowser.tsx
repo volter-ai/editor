@@ -68,10 +68,10 @@ import {
   projectComponentPriority,
   projectContentAssetFacet,
   projectContentAssetPriority,
-} from '../asset-workflow/project-content';
+} from '@volter/editor-sdk/kit/asset-workflow/project-content';
 import { activeAuthoringVersion, subscribeActiveAuthoring } from '../authoring/active-adapter';
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
-import { contributedMenuItems } from '../chrome-registry';
+import { contributedMenuItems } from '@volter/editor-sdk/kit/chrome-registry';
 import {
   type ContentEntry,
   type ContentEntrySource,
@@ -80,18 +80,18 @@ import {
   subscribeContentEntrySources,
 } from '../content-entry-source-registry';
 import { openRegisteredDocument } from '../document-open-registry';
-import { type AssetEntry, listAssets, listProjectComponents, revealInFinder } from '../editor-api';
+import { type AssetEntry, listAssets, listProjectComponents, revealInFinder } from '@volter/editor-sdk/kit/editor-api';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { useEditorStore, useHistoryService } from '../editor-runtime';
 import type { AssetKind as DocumentAssetKind } from '../asset-selection';
-import { hierarchyNodesBreadthFirst } from '../hierarchy-walk';
+import { hierarchyNodesBreadthFirst } from '@volter/editor-sdk/kit/hierarchy-walk';
 import { isEditableTarget, setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { assetThumbnailRenderer } from '@volter/editor-sdk/kit/asset-thumbnails';
-import { object3DDocumentWritePolicy } from '../object3d-document-write-policy';
+import { object3DDocumentWritePolicy } from '@volter/editor-sdk/kit/object3d-document-write-policy';
 import { projectAdapterFacet, subscribeProjectAdapter } from '../project-adapter';
 import { getCurrentProject } from '../project-manager';
 import { documentViewport } from '@volter/editor-sdk/kit/document-viewports';
-import { getStorageBackend } from '../storage';
+import { getStorageBackend } from '@volter/editor-sdk/kit/storage/index';
 import { getGlobalToolContributions, subscribeToolContributions } from '../tool-loader';
 import { reportUnacceptedAssetDrop, showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import {

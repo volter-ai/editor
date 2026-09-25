@@ -42,9 +42,9 @@ import {
   type MountedStoryViewportSource,
   mountedStoryViewportSource,
 } from '../../host/stories/mounted-story-viewport-source';
-import { getProjectStoryRegions } from '@volter/editor-core/stories/project-story-regions';
+import { getProjectStoryRegions } from '@volter/editor-sdk/kit/stories/project-story-regions';
 import { storyArgPropertyDescriptors } from '../../host/stories/story-arg-descriptors';
-import { declaredStoryMedium } from '@volter/editor-core/stories/story-declared-medium';
+import { declaredStoryMedium } from '@volter/editor-sdk/kit/stories/story-declared-medium';
 import {
   type StoryDocumentOpenRequest,
   THREE_STORY_DOCUMENT_OPENER,

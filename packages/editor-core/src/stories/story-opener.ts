@@ -47,8 +47,8 @@ import { getCurrentProject } from '../project-manager';
 import { tierSourceWriteBackend } from '../ui-source/tier-source-write-backend';
 import { DOCUMENT_REGISTRATION_TIMEOUT_MS, waitUntil } from '../wait-until';
 import type { WorkspaceStateStore } from '../workspace-document-restore';
-import { getProjectStoryRegions } from './project-story-regions';
-import { declaredStoryMedium, reportUndeclaredStoryMedium } from './story-declared-medium';
+import { getProjectStoryRegions } from '@volter/editor-sdk/kit/stories/project-story-regions';
+import { declaredStoryMedium, reportUndeclaredStoryMedium } from '@volter/editor-sdk/kit/stories/story-declared-medium';
 import {
   ISOLATED_STORY_DOCUMENT_OPENER,
   STORY_DOCS_DOCUMENT_OPENER,

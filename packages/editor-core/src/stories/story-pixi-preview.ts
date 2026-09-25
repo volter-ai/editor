@@ -56,7 +56,7 @@ import { withApplicationCollector } from '../canvas-preview-frames';
 import { CrashNullBoundary } from '@volter/editor-sdk/kit/crash-null-boundary';
 import { mountedStoryHasPixiContent } from './pixi-story-model';
 import { resolveStoryDomRuntime } from './story-dom-runtime';
-import { runInStoryMountTurn } from './story-mount-turn';
+import { runInStoryMountTurn } from '@volter/editor-sdk/kit/stories/story-mount-turn';
 import type { StoryPreviewComponent } from './story-three-preview';
 
 /**

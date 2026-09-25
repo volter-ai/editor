@@ -12,15 +12,15 @@ import { registerStoryMediaCaptures } from './stories/story-media-captures';
 import { reportViewportStatus } from './viewport-status-facet';
 import { registerThreeCanvasRender } from './three-canvas-render';
 import { startSceneDocuments } from './components/scene-documents';
-import { saveThumbnail } from './editor-api';
-import { reportTabCensus } from './editor-presence';
+import { saveThumbnail } from '@volter/editor-sdk/kit/editor-api';
+import { reportTabCensus } from '@volter/editor-sdk/kit/editor-presence';
 import { EditorRuntimeProvider, type EditorStats } from './editor-runtime';
 import type { EditorStatePersistence } from './editor-shell-store';
 import { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { threeStateOf } from './three-state';
-import { EditorSession } from './history/editor-session';
+import { EditorSession } from '@volter/editor-sdk/kit/history/editor-session';
 import { bootstrapProject } from './initial-project';
-import { installObject3DDocumentWritePolicy } from './object3d-document-write-policy';
+import { installObject3DDocumentWritePolicy } from '@volter/editor-sdk/kit/object3d-document-write-policy';
 import { startProjectAdapterLoad } from './project-adapter';
 import { startProjectDeclarationRefresh } from './project-declaration-refresh';
 import { writeProjectLocalSection } from './project-local-state';
@@ -29,7 +29,7 @@ import { startProjectSessionReset } from './project-session-reset';
 import { startProjectToolContributionDiscovery } from './project-tool-discovery';
 import { startProjectToolCatalog } from './project-tools';
 import { registerShellStoreForHost } from './shell-store-door';
-import { startTabCensus } from './tab-census';
+import { startTabCensus } from '@volter/editor-sdk/kit/tab-census';
 import { installViewportAuthoringPolicy } from './viewport-authoring-policy';
 
 /**

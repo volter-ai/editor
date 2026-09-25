@@ -7,13 +7,13 @@
 
 import { measureAdapterReach } from '../host/adapter-reach';
 import { setActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
-import { setActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { setActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
 import {
   addMountFailureReport,
   clearMountFailureReports,
   formatMountFailureMessage,
 } from '@volter/editor-sdk/kit/mount-failure-report';
-import { makeNoAuthoringAdapter } from '@volter/editor-core/authoring/no-authoring-adapter';
+import { makeNoAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/no-authoring-adapter';
 import { resolveAllRoots } from '../host/binding-resolver';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';

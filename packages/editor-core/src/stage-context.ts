@@ -18,7 +18,7 @@
 
 import { stageTransformDoor } from '@volter/editor-sdk/contributions';
 import { getActiveAuthoring } from './authoring/active-adapter';
-import { CompositeAuthoringAdapter } from './authoring/composite-authoring-adapter';
+import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import { object3DDocumentSession } from './authoring/object3d-document-session-registry';
 import {
   isViewportToolContextVisible,

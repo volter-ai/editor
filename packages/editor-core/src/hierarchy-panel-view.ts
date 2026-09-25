@@ -40,7 +40,7 @@
  * produced" rather than "the mutation was requested".
  */
 
-import type { HierarchyNodeRow } from './hierarchy-node-rows';
+import type { HierarchyNodeRow } from '@volter/editor-sdk/kit/hierarchy-node-rows';
 
 /**
  * What the panel hands over: its final rows plus the predicates it already

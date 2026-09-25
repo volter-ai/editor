@@ -32,7 +32,7 @@
 
 import type { AdapterSurface } from '@volter/editor-project/adapter';
 import type { ComponentType } from 'react';
-import type { ProjectComponentEntry } from './asset-workflow/project-content';
+import type { ProjectComponentEntry } from '@volter/editor-sdk/kit/asset-workflow/project-content';
 import type { WorkspaceStateStore } from './workspace-document-restore';
 
 /**

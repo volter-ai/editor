@@ -19,8 +19,8 @@ import { useEffect, useState } from 'react';
 import {
   collectProjectContentAssets,
   projectContentAssetFacet,
-} from '../asset-workflow/project-content';
-import { listAssets } from '../editor-api';
+} from '@volter/editor-sdk/kit/asset-workflow/project-content';
+import { listAssets } from '@volter/editor-sdk/kit/editor-api';
 
 /** How long a scan is reused. Long enough to cover one selection's worth of
  *  slots mounting together, short enough that a just-imported texture appears

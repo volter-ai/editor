@@ -11,7 +11,7 @@ import { activeProjectKey } from '@volter/editor-sdk/kit/active-project';
 import {
   adapterEditorConfiguration,
   subscribeAdapterEditorConfiguration,
-} from '../adapter-editor-config';
+} from '@volter/editor-sdk/kit/adapter-editor-config';
 import {
   documentViewport,
   documentViewportsVersion,

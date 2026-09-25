@@ -1,5 +1,5 @@
 import type { SparkRenderer } from '@sparkjsdev/spark';
-import { invalidateStages } from './stage-invalidation';
+import { invalidateStages } from '@volter/editor-sdk/kit/stage-invalidation';
 import { StagePresentationRig } from './components/standard-viewport-dressing';
 import {
   bindViewPresentation,
@@ -44,11 +44,11 @@ import {
   endAuthoringTransformEdit,
   setAuthoringSelection,
   spatialHandlesForAdapter,
-} from './authoring/consumer-actions';
+} from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import { beginLiveGesture, endLiveGesture } from '@volter/editor-sdk/kit/live-gesture-lock';
-import { drillIntoSelectionScope, pickAcrossScopeExit } from './authoring/selection-scope';
+import { drillIntoSelectionScope, pickAcrossScopeExit } from '@volter/editor-sdk/kit/authoring/selection-scope';
 import { setViewportPickContext } from './authoring/viewport-pick-context';
-import { isRootHidden } from './authoring/world-session-state';
+import { isRootHidden } from '@volter/editor-sdk/kit/authoring/world-session-state';
 import type { CameraViewMode } from './camera-authoring';
 import { type ConstraintControl, ConstraintHelper } from './constraint-helper';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
@@ -84,7 +84,7 @@ import { perspectiveDistanceToFitBox } from './three-viewport/camera-fit';
 import { SelectionBrackets } from './three-viewport/selection-brackets';
 import { collectThreeSelectionOutlineTargets } from './three-viewport/selection-outline';
 import { toneMappedSourceColor } from './three-viewport/source-color';
-import type { ThreeViewportProjection } from './three-viewport-presentation';
+import type { ThreeViewportProjection } from '@volter/editor-sdk/kit/three-viewport-presentation';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import { TriggerVolumeHelper } from './trigger-volume-helper';
 import { viewportAuthoringPolicy } from './viewport-authoring-policy';

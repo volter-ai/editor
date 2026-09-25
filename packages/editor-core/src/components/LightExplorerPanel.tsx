@@ -19,7 +19,7 @@ import {
   useSyncExternalStore,
 } from 'react';
 import { activeAuthoringVersion, subscribeActiveAuthoring } from '../authoring/active-adapter';
-import { setAuthoringSelection } from '../authoring/consumer-actions';
+import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
 import { useEditorStore } from '../editor-runtime';
 import {
@@ -27,7 +27,7 @@ import {
   type LightExplorerRow,
   lightExplorerRows,
   setLightExplorerField,
-} from '../light-explorer-model';
+} from '@volter/editor-sdk/kit/light-explorer-model';
 import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,

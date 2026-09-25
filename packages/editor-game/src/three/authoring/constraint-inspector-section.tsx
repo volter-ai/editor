@@ -1,5 +1,5 @@
 import { instanceStampOf } from '@volter/editor-core/authoring/component-instance-root';
-import { setAuthoringSelection } from '@volter/editor-core/authoring/consumer-actions';
+import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import { useThreeEditorStore } from '@volter/editor-core/editor-runtime';
 import type { InspectorSectionProps } from '@volter/editor-sdk/kit/inspector-section-registry';
 import type { AuthoringAdapter, EditorNode } from '@volter/editor-project/adapter';

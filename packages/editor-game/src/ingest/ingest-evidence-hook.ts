@@ -9,7 +9,7 @@
  * appears here because the mounted object actually has it.
  */
 
-import { getActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { getActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
 import { loadIngestOwnership } from '../host/authoring/ingest-source-persistence';
 import { gameLoopGate } from '../host/gated-globals';
 import type { DomAuthoringAdapter } from '../react/dom-authoring-adapter';

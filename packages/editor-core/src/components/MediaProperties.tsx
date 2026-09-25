@@ -1,6 +1,6 @@
 import { text } from '@volter/editor-sdk/widgets';
 import { useEffect, useState } from 'react';
-import { listAssets } from '../api/assets';
+import { listAssets } from '@volter/editor-sdk/kit/api/assets';
 import { projectPathForAssetUrl } from '@volter/editor-sdk/kit/project-asset-roots';
 
 type MediaKind = 'image' | 'video' | 'audio';

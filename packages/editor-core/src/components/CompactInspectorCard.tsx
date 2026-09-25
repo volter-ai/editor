@@ -32,7 +32,7 @@ import {
   clearSelectedAsset,
   subscribeAssetSelection,
 } from '../asset-selection';
-import { setAuthoringSelection } from '../authoring/consumer-actions';
+import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
 import { useEditorStore } from '../editor-runtime';
 import { useActiveInspection } from '../inspection/use-active-inspection';

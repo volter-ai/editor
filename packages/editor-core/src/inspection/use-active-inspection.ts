@@ -28,7 +28,7 @@
  */
 
 import { useEffect, useReducer, useRef, useSyncExternalStore } from 'react';
-import { assetEditorContextVersion, subscribeAssetEditorContext } from '../asset-editor-context';
+import { assetEditorContextVersion, subscribeAssetEditorContext } from '@volter/editor-sdk/kit/asset-editor-context';
 import {
   assetInspectorActionsVersion,
   subscribeAssetInspectorActions,
@@ -58,7 +58,7 @@ import type { InspectionDisplay } from './display';
 import {
   documentInspectionSubjectVersion,
   subscribeDocumentInspectionSubject,
-} from './document-subject';
+} from '@volter/editor-sdk/kit/inspection/document-subject';
 
 /**
  * The active inspection display, re-derived whenever anything it reads

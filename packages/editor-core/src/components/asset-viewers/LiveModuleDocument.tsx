@@ -71,7 +71,7 @@ import {
   projectModuleChangeMatches,
   projectModuleTransformError,
   subscribeProjectModuleChange,
-} from '../../project-module-changes';
+} from '@volter/editor-sdk/kit/project-module-changes';
 import { notifyWorkspaceDocumentSelectionChanged } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { Object3DDocumentViewport } from '../Object3DDocumentViewport';
 import { STANDARD_COMPONENT_CAMERA_DIRECTION } from '../standard-viewport-dressing';

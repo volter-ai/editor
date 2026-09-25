@@ -6,7 +6,7 @@ import type {
   ToolObject3DPreviewSource,
   ToolViewportDressing,
 } from '@volter/editor-sdk/contributions';
-import { invalidateStages, stageGeneration } from '../stage-invalidation';
+import { invalidateStages, stageGeneration } from '@volter/editor-sdk/kit/stage-invalidation';
 import type { StageTransportSnapshot } from '@volter/editor-sdk/host';
 import { EditorIcon, editorIcons, IconButton, themeVars } from '@volter/editor-sdk/widgets';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
@@ -29,7 +29,7 @@ import {
   useSyncExternalStore,
 } from 'react';
 import * as THREE from 'three';
-import { registerStageTransport, StageTransport } from '../animation/stage-transport';
+import { registerStageTransport, StageTransport } from '@volter/editor-sdk/kit/animation/stage-transport';
 import { scanClipSubjects } from '../animation/three-clips-subject';
 import { liveGestureActive, whenLiveGestureIdle } from '@volter/editor-sdk/kit/live-gesture-lock';
 import {
@@ -39,10 +39,10 @@ import {
 import {
   registerObject3DDocumentSession,
 } from '../authoring/object3d-document-session-registry';
-import { Object3DGestureController } from '../authoring/object3d-gesture-controller';
+import { Object3DGestureController } from '@volter/editor-sdk/kit/authoring/object3d-gesture-controller';
 import { SourceObject3DAuthoringAdapter } from '../authoring/source-object3d-authoring-adapter';
-import { registerDesignTimeSurface } from '../coverage/design-time-surfaces';
-import { DocumentRendererSession } from '../document-renderer-session';
+import { registerDesignTimeSurface } from '@volter/editor-sdk/kit/coverage/design-time-surfaces';
+import { DocumentRendererSession } from '@volter/editor-sdk/kit/document-renderer-session';
 import { useOptionalEditorStats, useOptionalEditorStore } from '../editor-runtime';
 import type { EditorShellStore } from '../editor-shell-store';
 import { EditorViewport } from '../editor-viewport';
@@ -54,8 +54,8 @@ import {
 import {
   type Object3DDocumentPersistenceSession,
   object3DDocumentWritePolicy,
-} from '../object3d-document-write-policy';
-import { registerPerformanceSource } from '../performance-sources';
+} from '@volter/editor-sdk/kit/object3d-document-write-policy';
+import { registerPerformanceSource } from '@volter/editor-sdk/kit/performance-sources';
 import { threeStoreForHost } from '../shell-store-door';
 import {
   assetSubjectApplies,
@@ -68,13 +68,13 @@ import { registerStageStore } from '../stage-store-registry';
 import { announceDocumentStage, registerDocumentViewport } from '@volter/editor-sdk/kit/document-viewports';
 import { sceneDocumentViewport } from '../scene-document-viewport';
 import { threeStageTransformChrome } from './stage-transform-chrome';
-import { RetainedDocumentStates } from '../retained-document-states';
+import { RetainedDocumentStates } from '@volter/editor-sdk/kit/retained-document-states';
 import { perspectiveDistanceToFitBox } from '../three-viewport/camera-fit';
 import {
   acquireInteractiveViewportRenderer,
   type InteractiveViewportRendererLease,
 } from '../three-viewport/interactive-renderer';
-import type { ThreeViewportProjection } from '../three-viewport-presentation';
+import type { ThreeViewportProjection } from '@volter/editor-sdk/kit/three-viewport-presentation';
 import {
   activeViewportBreakdownDocumentId,
   markViewportConstructReady,
@@ -92,7 +92,7 @@ import {
   registerWorkspaceDocumentSelection,
   subscribeWorkspaceDocuments,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { AssetEditorShell } from './AssetEditorShell';
+import { AssetEditorShell } from '@volter/editor-sdk/kit/components/AssetEditorShell';
 import { StageOverlays } from './StageOverlays';
 import type { WorldRootStageBinding } from './world-root-binding';
 import { TransportStrip } from '@volter/editor-sdk/kit/transport-strip';
@@ -113,7 +113,7 @@ import {
 } from './standard-viewport-dressing';
 import { ViewportFurniture } from './ViewportFurniture';
 import { OBJECT3D_SURFACE_BUILDING, ViewportSurfaceStatus } from '@volter/editor-sdk/kit/viewport-surface-status';
-import { workspaceHistoryService } from './workspace-history';
+import { workspaceHistoryService } from '@volter/editor-sdk/kit/components/workspace-history';
 import {
   bindViewPresentation,
   DOCUMENT_STUDIO_PRESET,

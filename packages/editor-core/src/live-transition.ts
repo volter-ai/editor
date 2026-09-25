@@ -32,7 +32,7 @@
 
 import * as THREE from 'three';
 import { layoutPolicy } from './layout-policy';
-import { effectiveSettings } from './settings-store';
+import { effectiveSettings } from '@volter/editor-sdk/kit/settings-store';
 import { threeStoreForHost } from './shell-store-door';
 import { onViewportFrame, viewportRig } from './viewport-door';
 import { setWorkspacePersistenceSuppressed } from './workspace-persistence-gate';

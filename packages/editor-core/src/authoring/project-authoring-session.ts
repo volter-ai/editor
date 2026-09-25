@@ -7,7 +7,7 @@ import {
   requestAvailableWorkspaceDocument,
 } from '../workspace-available-documents';
 import { activeWorkspaceDocumentId, openWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-document-registry';
-import type { CompositeAuthoringAdapter } from './composite-authoring-adapter';
+import type { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import {
   bindEditModeRebuildOwner,
   exitEditModeAuthoring,

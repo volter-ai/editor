@@ -12,7 +12,7 @@
  * rendered with an explicit `≥`, inspection failures with their reason).
  */
 
-import { getStorageBackend } from '@volter/editor-core/storage/index';
+import { getStorageBackend } from '@volter/editor-sdk/kit/storage/index';
 import { editorHost } from '@volter/editor-sdk/host';
 import {
   accent,

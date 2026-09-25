@@ -48,7 +48,7 @@ import {
   formatMountFailureMessage,
 } from '@volter/editor-sdk/kit/mount-failure-report';
 import { withStoreSelection } from '../host/authoring/mounted-authoring';
-import { makeNoAuthoringAdapter } from '@volter/editor-core/authoring/no-authoring-adapter';
+import { makeNoAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/no-authoring-adapter';
 import { PixiAuthoringAdapter } from '../host/authoring/pixi-authoring-adapter';
 import { createLiveCanvasWriteTarget } from '../host/authoring/pixi-live-write-target';
 import { resolveCanvasPixiForEditor } from '../host/canvas-entry-runtime';

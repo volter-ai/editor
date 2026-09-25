@@ -17,7 +17,7 @@ import { openRegisteredDocumentAsync, registeredDocumentOpenerIds } from './docu
 import { currentEditorView } from './editor-current-view';
 import { activeDocumentContainer } from './editor-document-probe';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import { activeEditorKeymap } from './keymap-presets';
+import { activeEditorKeymap } from '@volter/editor-sdk/kit/keymap-presets';
 import { liveFrameCanvas, liveInstanceContainer } from '@volter/editor-sdk/kit/live-session-registry';
 import { projectDocumentKinds } from './project-shape';
 import { DOCUMENT_REGISTRATION_TIMEOUT_MS, waitUntil } from './wait-until';
@@ -34,7 +34,7 @@ import {
   activeWorkspaceStaticPanel,
   showWorkspaceStaticPanel,
   showWorkspaceUtility,
-} from './workspace-host-commands';
+} from '@volter/editor-sdk/kit/workspace-host-commands';
 import {
   activeEditorWorkspace,
   editorWorkspaceIds,
@@ -42,7 +42,7 @@ import {
   setEditorWorkspace,
   whenEditorWorkspaceApplied,
 } from './workspace-presets';
-import { WORKSPACE_STATIC_PANELS, type WorkspaceStaticPanelKind } from './workspace-static-panels';
+import { WORKSPACE_STATIC_PANELS, type WorkspaceStaticPanelKind } from '@volter/editor-sdk/kit/workspace-static-panels';
 import { applyWorkspaceStyle, workspaceStyles } from './workspace-style';
 import {
   availableWorkspaceUtilities,
@@ -57,7 +57,7 @@ import {
 async function captureLiveCanvasFrame(
   canvas: HTMLCanvasElement,
 ): Promise<CanvasImageSource | null> {
-  const { liveCanvasFrame } = await import('./live-canvas-frame');
+  const { liveCanvasFrame } = await import('@volter/editor-sdk/kit/live-canvas-frame');
   return liveCanvasFrame(canvas);
 }
 

@@ -24,7 +24,7 @@ import {
   applyAuthoringInstanceToComponent,
   openAuthoringComponent,
   revertAuthoringInstance,
-} from './consumer-actions';
+} from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import { matchesPrefabInstance, prefabInstanceStoryAction } from './prefab-instance-section-model';
 
 function display(value: unknown): string {

@@ -5,7 +5,7 @@
  * viewport's relay verbs (`viewport-commands.ts`).
  */
 import type { EditorCommandMessage, EditorCommandResult } from '@volter/editor-sdk/commands';
-import { parseForwardVector } from './asset-compare-core';
+import { parseForwardVector } from '@volter/editor-sdk/kit/asset-compare-core';
 import { captureEntityComparePreview, captureModelComparePreview } from './asset-compare';
 import {
   type AssetPreviewBackground,
@@ -21,7 +21,7 @@ import {
   parseShotSetDefinition,
 } from './asset-preview';
 import { activeDocumentAuthoring } from './authoring/shell-document-ops';
-import { parseCameraChoice, parsePoseChoice } from './capture-camera-pose';
+import { parseCameraChoice, parsePoseChoice } from '@volter/editor-sdk/kit/capture-camera-pose';
 import type { EditorShellStore } from './editor-shell-store';
 import { entityObject3D } from './entity-object';
 

@@ -1,7 +1,7 @@
 import { fontSizeVar, text } from '@volter/editor-sdk/widgets';
 import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
 import { useEffect, useRef, useState } from 'react';
-import { listProjectSourceFiles, readProjectSourceText } from '../api/project-source';
+import { listProjectSourceFiles, readProjectSourceText } from '@volter/editor-sdk/kit/api/project-source';
 import {
   loadProjectThumbnailManifest,
   resetProjectThumbnailManifestCache,
@@ -14,9 +14,9 @@ import {
   DOCUMENT_PREVIEW_WIDTH,
   type DocumentPreviewSource,
 } from '@volter/editor-sdk/kit/document-preview-source';
-import { projectFiles } from '../files/project-files';
+import { projectFiles } from '@volter/editor-sdk/kit/files/project-files';
 import { getCurrentProject } from '../project-manager';
-import { getStorageBackend } from '../storage';
+import { getStorageBackend } from '@volter/editor-sdk/kit/storage/index';
 
 interface CaptureJob {
   readonly run: () => Promise<string>;

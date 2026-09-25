@@ -28,7 +28,7 @@
 
 import { framePartShown } from '../frame/frame-parts';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
-import { CompositeAuthoringAdapter } from '../authoring/composite-authoring-adapter';
+import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import { documentViewport } from '@volter/editor-sdk/kit/document-viewports';
 import { inspectionNodeMedia } from '@volter/editor-sdk/kit/inspection-node-media';
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
@@ -69,7 +69,7 @@ import {
   type InspectionSubject,
   type InspectionSurfaceKind,
 } from '@volter/editor-sdk/kit/inspection-model';
-import { describeNullInspectionSubject } from './null-subject';
+import { describeNullInspectionSubject } from '@volter/editor-sdk/kit/inspection/null-subject';
 import { NO_INSPECTION, type SerializedInspection, serializeInspectionSubject } from './serialize';
 
 /** A composed subject plus "is there an inspector at all?" — everything the

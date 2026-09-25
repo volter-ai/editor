@@ -7,7 +7,7 @@
  * `available` reads the PRIMARY authoring mount's debug adapter, exactly what
  * the panel itself reads, so the gate and the content can never disagree.
  */
-import { getActiveDebug } from '@volter/editor-core/authoring/active-systems';
+import { getActiveDebug } from '@volter/editor-sdk/kit/authoring/active-systems';
 import { StateWatchPanel } from '../src/state-watch/StateWatchPanel';
 
 export const point = 'workspace.utility';

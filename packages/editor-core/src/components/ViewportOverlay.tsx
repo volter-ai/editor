@@ -10,14 +10,14 @@ import {
 } from '../authoring/object3d-document-session-registry';
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
 import type { EditorShellStore } from '../editor-shell-store';
-import { activeLightCount } from '../light-explorer-model';
+import { activeLightCount } from '@volter/editor-sdk/kit/light-explorer-model';
 import { CORE_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-utilities';
 import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { showWorkspaceUtility } from '../workspace-host-commands';
-import { ViewportOverlaysMenu } from './ViewportOverlaysMenu';
+import { showWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-host-commands';
+import { ViewportOverlaysMenu } from '@volter/editor-sdk/kit/components/ViewportOverlaysMenu';
 import {
   setViewGridVisible,
   subscribeViewportPresentation,

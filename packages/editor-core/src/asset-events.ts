@@ -1,4 +1,4 @@
-import { connectEvents } from './editor-api';
+import { connectEvents } from '@volter/editor-sdk/kit/editor-api';
 import { announceAssetReload } from '@volter/editor-sdk/kit/project-asset-refresh';
 
 export interface AssetMovedEvent {

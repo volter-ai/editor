@@ -8,9 +8,9 @@
  * build takes real seconds and a modal would block the viewport.
  */
 
-import { workspaceHistoryService } from '@volter/editor-core/components/workspace-history';
-import { getDownloadUrl, readProjectTextFile, saveFile } from '@volter/editor-core/editor-api';
-import { getProjectFileHistory } from '@volter/editor-core/history/project-file-history';
+import { workspaceHistoryService } from '@volter/editor-sdk/kit/components/workspace-history';
+import { getDownloadUrl, readProjectTextFile, saveFile } from '@volter/editor-sdk/kit/editor-api';
+import { getProjectFileHistory } from '@volter/editor-sdk/kit/history/project-file-history';
 import { faGlobe } from '@fortawesome/free-solid-svg-icons';
 import type { BuildReport } from '@volter/editor-sdk/session/build-report';
 import {

@@ -33,8 +33,8 @@ import { getUserData } from '@volter/editor-threejs/ecs/user-data';
 import * as THREE from 'three';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { getActiveAuthoring } from './active-adapter';
-import { CompositeAuthoringAdapter } from './composite-authoring-adapter';
-import { isRootHidden } from './world-session-state';
+import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
+import { isRootHidden } from '@volter/editor-sdk/kit/authoring/world-session-state';
 
 /**
  * The worldId of the ONE three world actually rendered in this viewport

@@ -6,7 +6,7 @@ import type {
 } from '@volter/editor-sdk/contributions';
 import { lazy, Suspense, useEffect } from 'react';
 import { announceDocumentStage } from '@volter/editor-sdk/kit/document-viewports';
-import { AssetEditorSubject } from './AssetEditorShell';
+import { AssetEditorSubject } from '@volter/editor-sdk/kit/components/AssetEditorShell';
 
 const LazyToolObject3DPreview = lazy(async () => {
   const module = await import('./ToolObject3DPreview');

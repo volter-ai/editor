@@ -15,9 +15,9 @@
  * dispatched through the same `navmesh-actions.ts` events as always.
  */
 
-import { getActiveAssetEditorContext } from '../asset-editor-context';
-import { documentInspectionSubject } from '../inspection/document-subject';
-import { registerNullSubjectProvider } from '../inspection/null-subject';
+import { getActiveAssetEditorContext } from '@volter/editor-sdk/kit/asset-editor-context';
+import { documentInspectionSubject } from '@volter/editor-sdk/kit/inspection/document-subject';
+import { registerNullSubjectProvider } from '@volter/editor-sdk/kit/inspection/null-subject';
 import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
 
 /**

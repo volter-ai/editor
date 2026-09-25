@@ -27,7 +27,7 @@
  */
 import { liveMixerFor, subscribeLiveMixers } from '@volter/editor-threejs/animation/live-mixers';
 import * as THREE from 'three';
-import type { StageTransport } from './stage-transport';
+import type { StageTransport } from '@volter/editor-sdk/kit/animation/stage-transport';
 
 /** The display rate a three clip is shown at. Three clips carry a duration in
  *  SECONDS and no rate of their own, so the transport needs one to convert a

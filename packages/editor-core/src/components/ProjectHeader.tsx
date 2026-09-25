@@ -23,8 +23,8 @@ import {
   contributedChromeVersion,
   contributedHeaderItems,
   subscribeContributedChrome,
-} from '../chrome-registry';
-import { revealInFinder } from '../editor-api';
+} from '@volter/editor-sdk/kit/chrome-registry';
+import { revealInFinder } from '@volter/editor-sdk/kit/editor-api';
 import { getCurrentProject, onProjectChange } from '../project-manager';
 import {
   activeEditorWorkspace,

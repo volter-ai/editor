@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { projectFiles } from '../files/project-files';
-import type { StorageBackend } from '../storage';
+import { projectFiles } from '@volter/editor-sdk/kit/files/project-files';
+import type { StorageBackend } from '@volter/editor-sdk/kit/storage/index';
 import type { AssetCatalog } from './asset-types';
 
 /**

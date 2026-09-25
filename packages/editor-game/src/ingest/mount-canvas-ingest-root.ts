@@ -23,7 +23,7 @@
 import { measureAdapterReach } from '../host/adapter-reach';
 import { nextPaint } from '../host/after-paint';
 import { setActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
-import { setActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { setActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
 import { BabylonAuthoringAdapter } from '../host/authoring/babylon-authoring-adapter';
 import {
   type BabylonRealmLike,

@@ -52,9 +52,9 @@ import {
 } from '@volter/editor-sdk/kit/inspection-model';
 import { registerInspectorSections } from '@volter/editor-sdk/kit/inspector-section-registry';
 import type { ComposedProjectStory } from '@volter/editor-core/stories/compose-project-stories';
-import { getProjectStoryRegions } from '@volter/editor-core/stories/project-story-regions';
+import { getProjectStoryRegions } from '@volter/editor-sdk/kit/stories/project-story-regions';
 import { mountIsolatedStory, runStoryPlay } from '@volter/editor-core/stories/StoryPreviewMount';
-import { declaredStoryMedium } from '@volter/editor-core/stories/story-declared-medium';
+import { declaredStoryMedium } from '@volter/editor-sdk/kit/stories/story-declared-medium';
 import {
   ISOLATED_STORY_DOCUMENT_OPENER,
   STORY_DOCS_DOCUMENT_OPENER,

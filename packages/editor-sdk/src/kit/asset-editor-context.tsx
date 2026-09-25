@@ -13,7 +13,7 @@
  */
 
 import { useSyncExternalStore } from 'react';
-import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
+import { createHmrRegistrationGroup, type HmrRegistrationContext } from '@volter/editor-sdk/kit/hmr-registration-group';
 import { registerWorkspaceStatus } from './workspace-status-registry';
 
 export interface AssetEditorContextValue {
@@ -74,7 +74,8 @@ export function AssetEditorStatus() {
 }
 
 const registrationGroup = createHmrRegistrationGroup(
-  import.meta.hot,
+  // Vite's HMR context when a dev server serves this module; the SDK carries no bundler types.
+  (import.meta as ImportMeta & { hot?: HmrRegistrationContext }).hot,
   'asset-editor-shell-contributions',
 );
 

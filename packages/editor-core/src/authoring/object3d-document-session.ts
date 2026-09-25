@@ -1,6 +1,6 @@
-import { createPerformanceProfiler } from '../performance-profiler';
+import { createPerformanceProfiler } from '@volter/editor-sdk/kit/performance-profiler';
 import { resetViewPresentation } from '@volter/editor-sdk/kit/viewport-presentation';
-import { invalidateStages } from '../stage-invalidation';
+import { invalidateStages } from '@volter/editor-sdk/kit/stage-invalidation';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { viewportCaptureOutputPass } from '@volter/editor-threejs/capture/output-pass';
 import { contentWorldBounds } from '@volter/editor-threejs/viewport/content-bounds';
@@ -25,7 +25,7 @@ import {
 } from '../three-viewport/selection-outline';
 import { styleEditorSkeletonHelper } from '../three-viewport/skeleton-helper';
 import { isEditorViewportShadingTarget } from '../viewport-shading-boundary';
-import { setAuthoringSelection } from './consumer-actions';
+import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
 
 export type Object3DDocumentViewMode = ViewportShadingMode | 'uv' | 'vertex-colors';
 

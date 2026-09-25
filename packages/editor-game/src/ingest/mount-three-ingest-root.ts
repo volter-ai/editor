@@ -20,7 +20,7 @@
 
 import { measureAdapterReach } from '../host/adapter-reach';
 import { setActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
-import { setActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { setActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
 import { withContractHierarchy } from '../host/authoring/contract-hierarchy-authoring';
 import { clearMountFailureReports } from '@volter/editor-sdk/kit/mount-failure-report';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';

@@ -27,8 +27,8 @@ import { sourceMutationAttribution } from '@volter/editor-sdk/kit/editor-session
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import type { EditorShellStore } from '../editor-shell-store';
 import { hierarchyProjectionFromProjectConfig } from '@volter/editor-sdk/kit/hierarchy-projection';
-import { getProjectFileHistory, type ProjectFileHistory } from '../history/project-file-history';
-import { getManifestHistoryBackend } from '../history/project-root-history-backends';
+import { getProjectFileHistory, type ProjectFileHistory } from '@volter/editor-sdk/kit/history/project-file-history';
+import { getManifestHistoryBackend } from '@volter/editor-sdk/kit/history/project-root-history-backends';
 import { fetchRawGameManifest } from '../manifest-project';
 import { getCurrentProject } from '../project-manager';
 import { handleProjectMutationFailure } from '@volter/editor-sdk/kit/source-conflict';
@@ -41,13 +41,13 @@ import {
   setActiveAuthoring,
 } from './active-adapter';
 import { beginAuthoringBootstrap } from './bootstrap-state';
-import { makeNoAuthoringAdapter } from './no-authoring-adapter';
+import { makeNoAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/no-authoring-adapter';
 import { BoundaryAuthoringAdapter, type BoundaryRootInfo } from './boundary-authoring-adapter';
 import {
   CompositeAuthoringAdapter,
   type CompositeChild,
   type RootManifestProvider,
-} from './composite-authoring-adapter';
+} from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 
 /**
  * The mounted Scene document's acknowledged edit-mode reinstall owner.

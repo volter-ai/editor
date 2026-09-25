@@ -26,8 +26,8 @@ import type {
   EditorCommandMessage,
   EditorCommandResult,
 } from '@volter/editor-sdk/commands';
-import { parseCameraChoice, parsePoseChoice } from '../capture-camera-pose';
-import { readProjectTextFile } from '../editor-api';
+import { parseCameraChoice, parsePoseChoice } from '@volter/editor-sdk/kit/capture-camera-pose';
+import { readProjectTextFile } from '@volter/editor-sdk/kit/editor-api';
 import { getCurrentProject } from '../project-manager';
 
 /** What the registry reports a duplicate against. */

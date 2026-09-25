@@ -41,7 +41,7 @@ import type { EditorShellStore } from '../editor-shell-store';
 import { getCurrentProject } from '../project-manager';
 import { subscribeToolContributions } from '../tool-loader';
 import { BoundaryAuthoringAdapter, type BoundaryRootInfo } from './boundary-authoring-adapter';
-import type { CompositeAuthoringAdapter } from './composite-authoring-adapter';
+import type { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import {
   type DesignTimeMount,
   type DesignTimeMountContext,
@@ -72,7 +72,7 @@ import {
   resetRootPan,
   subscribeRootPan,
 } from '@volter/editor-sdk/kit/world-pan-state';
-import { isRootHidden, isRootInteractive } from './world-session-state';
+import { isRootHidden, isRootInteractive } from '@volter/editor-sdk/kit/authoring/world-session-state';
 
 /** D20: Play tears the design-time adapter down, so the selected CSF state
  * must live one level above that adapter to survive Stop's rebuild. Keyed by

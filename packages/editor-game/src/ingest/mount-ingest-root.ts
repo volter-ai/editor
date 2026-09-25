@@ -27,7 +27,7 @@ import { getAuthoringOverride, setActiveAuthoring } from '@volter/editor-core/au
 import {
   CompositeAuthoringAdapter,
   type CompositeChild,
-} from '@volter/editor-core/authoring/composite-authoring-adapter';
+} from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import {
   addMountFailureReport,
   clearMountFailureReports,

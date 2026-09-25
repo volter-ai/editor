@@ -73,7 +73,7 @@ import {
 } from '@volter/editor-sdk/kit/world-canvas-viewport-state';
 import { recordAuthoringConsumerUse } from '@volter/editor-sdk/kit/authoring-seam-evidence';
 import { CrashNullBoundary } from '@volter/editor-sdk/kit/crash-null-boundary';
-import { readProjectTextFile } from '@volter/editor-core/editor-api';
+import { readProjectTextFile } from '@volter/editor-sdk/kit/editor-api';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import {
   resolveReactRootMountRuntime,

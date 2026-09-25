@@ -5,8 +5,8 @@ import type {
   FileRegionAnswer,
   ImportersOf,
   RegionBinding,
-} from '../src/ui-source/file-region-resolver';
-import { resolveFileRegion } from '../src/ui-source/file-region-resolver';
+} from '@volter/editor-sdk/kit/ui-source/file-region-resolver';
+import { resolveFileRegion } from '@volter/editor-sdk/kit/ui-source/file-region-resolver';
 import type { DeclaredRootSurface, SourceDialectEvidence } from '@volter/editor-sdk/source-authoring';
 import { sourceDialectEvidence, sourceProvesR3f } from './source-analysis';
 import {
@@ -234,7 +234,7 @@ function regionOfEntry(file: string, projectRoot?: string): RegionBinding | unde
 }
 
 /** Re-exported so this tier's callers keep ONE import for the graph seam. */
-export type { ImportersOf } from '../src/ui-source/file-region-resolver';
+export type { ImportersOf } from '@volter/editor-sdk/kit/ui-source/file-region-resolver';
 
 /** Structural (not imported) shape of Vite's `ModuleGraph`. */
 interface ModuleNodeLike {

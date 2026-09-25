@@ -7,7 +7,7 @@
  */
 import { registerCanvasRender } from '@volter/editor-sdk/kit/canvas-frames';
 import { allObject3DDocumentSessions } from './authoring/object3d-document-session-registry';
-import { liveCanvasFrame } from './live-canvas-frame';
+import { liveCanvasFrame } from '@volter/editor-sdk/kit/live-canvas-frame';
 import { threeStoreForHost } from './shell-store-door';
 
 async function imageOf(dataUrl: string): Promise<HTMLImageElement> {

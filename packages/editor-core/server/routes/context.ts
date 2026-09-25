@@ -31,7 +31,7 @@ import type {
   SessionJournal,
   SessionJournalEvent,
 } from '../support/project/session-journal';
-import type { ProjectComponentEntry } from '../../src/asset-workflow/project-content';
+import type { ProjectComponentEntry } from '@volter/editor-sdk/kit/asset-workflow/project-content';
 import type { HarnessChatSnapshot } from '../../src/harness-chat-types';
 import type { EditorAccountService } from '../account-service';
 import type { CollaborationSession } from '../collaboration-session';

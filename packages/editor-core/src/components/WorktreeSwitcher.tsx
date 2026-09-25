@@ -45,7 +45,7 @@ import {
   listEditorWorktrees,
   openEditorWorktree,
   stopEditorWorktreeSession,
-} from '../editor-api';
+} from '@volter/editor-sdk/kit/editor-api';
 import { COLLABORATION_REMOTE_SHARE } from '@volter/editor-sdk/kit/editor-session-attribution';
 import { VersionControlSection } from './VersionControlSection';
 

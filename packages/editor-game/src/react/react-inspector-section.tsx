@@ -1,4 +1,4 @@
-import { setAuthoringSelection } from '@volter/editor-core/authoring/consumer-actions';
+import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import { faBookBookmark, faCode, faPalette } from '@fortawesome/free-solid-svg-icons';
 import {
   Button,
@@ -53,7 +53,7 @@ import {
   setActiveBreakpoint,
   subscribeBreakpoint,
 } from '@volter/editor-sdk/kit/breakpoint-state';
-import { CompositeAuthoringAdapter } from '@volter/editor-core/authoring/composite-authoring-adapter';
+import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import { numericStyleValue, UNITLESS_NUMBER_PROPS } from '@volter/editor-sdk/css-numeric-style';
 import { beginEyedropperSession } from '@volter/editor-sdk/kit/eyedropper-session';
 import { groupProperties } from '@volter/editor-sdk/kit/inspector-property-grouping';

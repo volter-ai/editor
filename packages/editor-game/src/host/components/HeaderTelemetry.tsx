@@ -9,7 +9,7 @@ import {
   getAllActiveAudio,
   getInspectedAudio,
   subscribeActiveAudio,
-} from '@volter/editor-core/authoring/active-systems';
+} from '@volter/editor-sdk/kit/authoring/active-systems';
 import { useEditorStore } from '@volter/editor-core/editor-runtime';
 import { useActivePerformanceSource } from '../use-active-performance-source';
 import {

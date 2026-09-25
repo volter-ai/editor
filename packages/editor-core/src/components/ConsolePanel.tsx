@@ -19,7 +19,7 @@ import {
 } from '@volter/editor-sdk/widgets';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { getActiveAuthoring } from '../authoring/active-adapter';
-import { setAuthoringSelection } from '../authoring/consumer-actions';
+import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import { type ConsoleLevel, editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { useEditorStore } from '../editor-runtime';
 

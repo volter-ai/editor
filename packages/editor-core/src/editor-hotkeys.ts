@@ -11,13 +11,13 @@ import {
   setAuthoringSelection,
   unwrapAuthoringNode,
   wrapAuthoringNode,
-} from './authoring/consumer-actions';
+} from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import { resolvePanelAuthoring } from './authoring/panel-authoring';
 import {
   currentSelectionScopeId,
   enterSelectedScope,
   exitSelectionScope,
-} from './authoring/selection-scope';
+} from '@volter/editor-sdk/kit/authoring/selection-scope';
 import { activeSelectionIds, saveActiveAuthoring } from './authoring/shell-document-ops';
 import { resetRootPan } from '@volter/editor-sdk/kit/world-pan-state';
 import {
@@ -30,7 +30,7 @@ import { openCommandPalette } from './editor-commands';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorHostKeyAction } from '@volter/editor-sdk/host';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import type { HistoryCommands } from './history/history-commands';
+import type { HistoryCommands } from '@volter/editor-sdk/kit/history/history-commands';
 import {
   allowsAppUndoWhileEditable,
   type HotkeyBinding,
@@ -43,11 +43,11 @@ import {
   type EditorKeyActionId,
   keyChordsFor,
   subscribeEditorKeymap,
-} from './keymap-presets';
+} from '@volter/editor-sdk/kit/keymap-presets';
 import { stopAllLiveSessions } from '@volter/editor-sdk/kit/live-session-registry';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import { saveActiveWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { toggleWorkspaceFocus } from './workspace-host-commands';
+import { toggleWorkspaceFocus } from '@volter/editor-sdk/kit/workspace-host-commands';
 import { cycleEditorWorkspace } from './workspace-presets';
 import { toggleConsoleUtility } from './workspace-utility-commands';
 

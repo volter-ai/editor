@@ -17,7 +17,7 @@
  */
 
 import { setActiveAuthoring } from '@volter/editor-core/authoring/active-adapter';
-import { setActiveSystems } from '@volter/editor-core/authoring/active-systems';
+import { setActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
 import { clearMountFailureReports } from '@volter/editor-sdk/kit/mount-failure-report';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { reclaimGameRealm } from '../host/game-realm-reclaim';

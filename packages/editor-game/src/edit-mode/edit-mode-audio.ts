@@ -15,7 +15,7 @@
  * unit 2. Same shape as `edit-mode-networking.ts` beside it.
  */
 
-import { setEditModeAudio } from '@volter/editor-core/authoring/active-systems';
+import { setEditModeAudio } from '@volter/editor-sdk/kit/authoring/active-systems';
 import {
   createAudioSystemAdapter,
   releaseAudioMeters,

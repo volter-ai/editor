@@ -5,7 +5,7 @@
  */
 import { useEffect, useRef } from 'react';
 import { integerFitScale } from '../../asset-workflow/image-view-scale';
-import { type PixiSpritesheetFrame, packedFrameRect } from '../../asset-workflow/pixi-spritesheet';
+import { type PixiSpritesheetFrame, packedFrameRect } from '@volter/editor-sdk/kit/asset-workflow/pixi-spritesheet';
 
 export function paintSpriteFrame(
   canvas: HTMLCanvasElement,

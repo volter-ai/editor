@@ -12,8 +12,8 @@
  * a store of its own — the surface is derived, never held.
  */
 
-import { getActiveAssetEditorContext } from '../asset-editor-context';
-import { CompositeAuthoringAdapter } from '../authoring/composite-authoring-adapter';
+import { getActiveAssetEditorContext } from '@volter/editor-sdk/kit/asset-editor-context';
+import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { liveSurface } from '@volter/editor-sdk/kit/live-session-registry';

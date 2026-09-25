@@ -14,14 +14,14 @@ import {
   inspectedInstanceId,
   inspectedInstanceVersion,
   subscribeInspectedInstance,
-} from '@volter/editor-core/authoring/active-systems';
+} from '@volter/editor-sdk/kit/authoring/active-systems';
 import {
   type EditorPerformanceSource,
   performanceSourceForDocument,
   performanceSourceForGameInstance,
   performanceSourcesVersion,
   subscribePerformanceSources,
-} from '@volter/editor-core/performance-sources';
+} from '@volter/editor-sdk/kit/performance-sources';
 import {
   activeWorkspaceDocumentId,
   subscribeWorkspaceDocuments,

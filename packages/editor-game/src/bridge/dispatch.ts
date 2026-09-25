@@ -13,7 +13,7 @@ import {
   getActiveSystems,
   InstanceResolutionError,
   systemsForInstance,
-} from '@volter/editor-core/authoring/active-systems';
+} from '@volter/editor-sdk/kit/authoring/active-systems';
 import { collectPlayRunPageErrors } from '@volter/editor-core/command-listener';
 import { gameContractEpoch } from '../host/coverage/game-contract-seam-evidence';
 import { recordLiveSeamEvidence } from '@volter/editor-sdk/kit/live-seam-evidence';

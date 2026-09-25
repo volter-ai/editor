@@ -1,9 +1,9 @@
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { adapterOnlyToolOwner, type ViewportToolOwner } from '../viewport-authoring-policy';
-import { CompositeAuthoringAdapter } from './composite-authoring-adapter';
+import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import { resolveThreeViewportRootId } from './world-hidden-viewport';
-import { isRootHidden } from './world-session-state';
+import { isRootHidden } from '@volter/editor-sdk/kit/authoring/world-session-state';
 
 /**
  * The one native root whose viewport tools may claim the current selection.

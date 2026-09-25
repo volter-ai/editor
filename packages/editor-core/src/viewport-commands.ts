@@ -19,7 +19,7 @@ import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-docu
 import { object3DDocumentSession } from './authoring/object3d-document-session-registry';
 import { activeDocumentAuthoring } from './authoring/shell-document-ops';
 import { handleAssetPreviewCommand } from './asset-preview-command';
-import { captureSizeFromCommand } from './capture-size';
+import { captureSizeFromCommand } from '@volter/editor-sdk/kit/capture-size';
 import type { EditorShellStore, HelperVisibility } from './editor-shell-store';
 import { editorHost } from '@volter/editor-sdk/host';
 import { entityObject3D } from './entity-object';

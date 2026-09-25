@@ -8,7 +8,7 @@
  * (`editorHost().projectLocalState`), not a project sidecar or a new format.
  */
 
-import { getActiveDebug } from '@volter/editor-core/authoring/active-systems';
+import { getActiveDebug } from '@volter/editor-sdk/kit/authoring/active-systems';
 import { editorHost } from '@volter/editor-sdk/host';
 import { Button, DisclosureIcon, TextInput, themeVars } from '@volter/editor-sdk/widgets';
 import type { DebugAdapter } from '@volter/editor-project/adapter/system-adapter';

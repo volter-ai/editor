@@ -42,7 +42,7 @@
 
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import type * as THREE from 'three';
-import { makeNoAuthoringAdapter } from './authoring/no-authoring-adapter';
+import { makeNoAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/no-authoring-adapter';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 
 /**

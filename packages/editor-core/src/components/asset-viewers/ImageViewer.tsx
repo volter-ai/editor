@@ -8,12 +8,12 @@
 import { Button, Text, text } from '@volter/editor-sdk/widgets';
 import { type ReactNode, type RefObject, useEffect, useRef, useState } from 'react';
 import { type ImageScaleMode, resolveImageScale } from '../../asset-workflow/image-view-scale';
-import type { PixiSpritesheet, PixiSpritesheetFrame } from '../../asset-workflow/pixi-spritesheet';
+import type { PixiSpritesheet, PixiSpritesheetFrame } from '@volter/editor-sdk/kit/asset-workflow/pixi-spritesheet';
 import {
   parsePixiSpritesheet,
   sidecarPathForSheet,
   splitSpritesheetAssetPath,
-} from '../../asset-workflow/pixi-spritesheet';
+} from '@volter/editor-sdk/kit/asset-workflow/pixi-spritesheet';
 import { SpritesheetSpriteView } from './SpritesheetSpriteView';
 
 export function ImageViewer({

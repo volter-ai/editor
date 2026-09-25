@@ -56,7 +56,7 @@
 
 import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import { useEffect, useRef, useState } from 'react';
-import { pollEditorLeaseIdentity } from '../editor-api';
+import { pollEditorLeaseIdentity } from '@volter/editor-sdk/kit/editor-api';
 import {
   DEFAULT_LEASE_FAILURE_THRESHOLD,
   decideLeaseRecovery,
@@ -70,12 +70,12 @@ import {
   type LeaseVoidReason,
   type LeaseWatchState,
   reduceLeasePoll,
-} from '../editor-lease';
+} from '@volter/editor-sdk/kit/editor-lease';
 import { publishEditorLeaseView } from '../editor-lease-view';
 import { dismissNotification, notify } from '../editor-notifications';
-import { connectEvents, readControlChannelState } from '../editor-presence';
+import { connectEvents, readControlChannelState } from '@volter/editor-sdk/kit/editor-presence';
 import { clearSessionOrphanRecord, writeSessionOrphanRecord } from '../session-orphan-record';
-import { clearSessionEnded, markSessionEnded } from '../session-tombstone';
+import { clearSessionEnded, markSessionEnded } from '@volter/editor-sdk/kit/session-tombstone';
 
 /** The last path segment of a project root, for user-facing copy. */
 function projectName(path: string | null): string | null {

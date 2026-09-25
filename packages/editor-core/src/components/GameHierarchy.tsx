@@ -109,7 +109,7 @@ import {
   hasAuthoringOverride,
   subscribeActiveAuthoring,
 } from '../authoring/active-adapter';
-import { CompositeAuthoringAdapter } from '../authoring/composite-authoring-adapter';
+import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import {
   copyAuthoringNodes,
   createAuthoringNode,
@@ -124,7 +124,7 @@ import {
   ungroupAuthoringNode,
   unwrapAuthoringNode,
   wrapAuthoringNode,
-} from '../authoring/consumer-actions';
+} from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import { enterInstanceRow } from '../authoring/instance-source-menu';
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
 import {
@@ -137,7 +137,7 @@ import {
   selectionScopeVersion,
   setSelectionScope,
   subscribeSelectionScope,
-} from '../authoring/selection-scope';
+} from '@volter/editor-sdk/kit/authoring/selection-scope';
 import { resolveThreeViewportRootId } from '../authoring/world-hidden-viewport';
 import {
   isRootHidden,
@@ -146,11 +146,11 @@ import {
   toggleRootHidden,
   toggleRootInteractive,
   toggleRootPickLock,
-} from '../authoring/world-session-state';
-import { collaborationSnapshot, connectCollaboration } from '../collaboration-client';
+} from '@volter/editor-sdk/kit/authoring/world-session-state';
+import { collaborationSnapshot, connectCollaboration } from '@volter/editor-sdk/kit/collaboration-client';
 import { openRegisteredDocument } from '../document-open-registry';
 import { deleteSelection, duplicateSelection } from '../editor-hotkeys';
-import { EDITOR_PARTICIPANT_ID } from '../editor-presence';
+import { EDITOR_PARTICIPANT_ID } from '@volter/editor-sdk/kit/editor-presence';
 import { useEditorStore } from '../editor-runtime';
 import type { EditorShellStore } from '../editor-shell-store';
 import { entityObject3D } from '../entity-object';
@@ -158,7 +158,7 @@ import {
   applyComponentRootExpansionDefaults,
   componentMarkView,
   type MarkedTreeSource,
-} from '../hierarchy-component-marks';
+} from '@volter/editor-sdk/kit/hierarchy-component-marks';
 import { hierarchyDropRefusal, isSameRootDrop } from '../hierarchy-drop';
 import {
   clearHierarchyExpansionPreferences,
@@ -183,7 +183,7 @@ import {
   hierarchyRowKey,
   hierarchyRowWindow,
   patchUniqueHierarchyRows,
-} from '../hierarchy-node-rows';
+} from '@volter/editor-sdk/kit/hierarchy-node-rows';
 import {
   clearHierarchyPanelSnapshot,
   type HierarchyPanelSnapshot,
@@ -205,8 +205,8 @@ import {
   rowIdentity,
   TransformLockCache,
   UNLOCKED,
-} from '../hierarchy-row-model';
-import { CHILD_CAP } from '../hierarchy-rows';
+} from '@volter/editor-sdk/kit/hierarchy-row-model';
+import { CHILD_CAP } from '@volter/editor-sdk/kit/hierarchy-rows';
 import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { instancedRowDetail } from '../instanced-presentation';
 import { getCurrentProject } from '../project-manager';

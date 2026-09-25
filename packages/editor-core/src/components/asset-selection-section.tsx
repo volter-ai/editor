@@ -34,7 +34,7 @@ import {
   parsePixiSpritesheet,
   sidecarPathForSheet,
   splitSpritesheetAssetPath,
-} from '../asset-workflow/pixi-spritesheet';
+} from '@volter/editor-sdk/kit/asset-workflow/pixi-spritesheet';
 import { PROJECT_ASSET_COMMANDS } from '../asset-workflow/project-asset-commands';
 import {
   contentEntryForComponent,
@@ -47,7 +47,7 @@ import {
   PREVIEW_SECTION_ORDER,
   PROPERTIES_SECTION_ORDER,
 } from '@volter/editor-sdk/kit/inspection-model';
-import type { NullInspectionSubject } from '../inspection/null-subject';
+import type { NullInspectionSubject } from '@volter/editor-sdk/kit/inspection/null-subject';
 import {
   getAssetInspectorToolContributions,
   getGlobalToolContributions,

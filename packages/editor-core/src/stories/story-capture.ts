@@ -53,7 +53,7 @@
  */
 
 import { reactStoryBoardLayout } from '../authoring/react-story-board';
-import { drawBitmapLabel } from '../bitmap-label';
+import { drawBitmapLabel } from '@volter/editor-sdk/kit/bitmap-label';
 import { observeCanvasMount } from '@volter/editor-sdk/kit/canvas-frames';
 import { type CaptureOptions, capturePlayComposite } from '../composite-screenshot';
 import { getCurrentProject } from '../project-manager';
@@ -62,9 +62,9 @@ import {
   composeProjectStories,
   ensureProjectAnnotations,
 } from './compose-project-stories';
-import { getProjectStoryRegions } from './project-story-regions';
+import { getProjectStoryRegions } from '@volter/editor-sdk/kit/stories/project-story-regions';
 import { mountIsolatedStory } from './StoryPreviewMount';
-import { declaredStoryMedium } from './story-declared-medium';
+import { declaredStoryMedium } from '@volter/editor-sdk/kit/stories/story-declared-medium';
 import {
   discoverProjectStories,
   loadProjectPreviewAnnotations,

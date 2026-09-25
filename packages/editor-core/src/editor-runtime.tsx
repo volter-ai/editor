@@ -22,10 +22,10 @@ import { type ReactNode, Suspense, useContext, useMemo, useSyncExternalStore } f
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import type { EditorShellStore } from './editor-shell-store';
 import { optionalThreeStateOf, threeStateOf } from './three-state';
-import type { EditorSession } from './history/editor-session';
-import type { HistoryCommandSnapshot, HistoryCommands } from './history/history-commands';
+import type { EditorSession } from '@volter/editor-sdk/kit/history/editor-session';
+import type { HistoryCommandSnapshot, HistoryCommands } from '@volter/editor-sdk/kit/history/history-commands';
 import type { HistoryService, HistorySnapshot } from '@volter/editor-sdk/kit/history/history-service';
-import { createHmrStableReactContext } from './hmr-stable-react-context';
+import { createHmrStableReactContext } from '@volter/editor-sdk/kit/hmr-stable-react-context';
 
 export interface EditorStats {
   fps: number;

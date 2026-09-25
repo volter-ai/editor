@@ -47,7 +47,7 @@
  * everyone who opens it.
  */
 
-import { projectSettings, updateProjectSettings } from '@volter/editor-core/settings-store';
+import { projectSettings, updateProjectSettings } from '@volter/editor-sdk/kit/settings-store';
 
 export type DevicePresetKind = 'fit' | 'phone' | 'tablet' | 'desktop';
 

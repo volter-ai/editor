@@ -38,7 +38,7 @@ import { mountedRootSubjects } from '../authoring/mounted-root-subjects';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { editorIsPlaying } from '@volter/editor-sdk/kit/editor-session-mode';
 import { liveSessions } from '@volter/editor-sdk/kit/live-session-registry';
-import { allPerformanceSources } from '../performance-sources';
+import { allPerformanceSources } from '@volter/editor-sdk/kit/performance-sources';
 import {
   anyCanvasHidesItself,
   type CanvasVisibilityFact,
@@ -46,7 +46,7 @@ import {
   hiddenCanvasBreakdown,
   presentingCanvasHiddenBy,
 } from './canvas-reveal';
-import { allDesignTimeSurfaces } from './design-time-surfaces';
+import { allDesignTimeSurfaces } from '@volter/editor-sdk/kit/coverage/design-time-surfaces';
 import {
   type DesignTimeSurfaceFact,
   deriveOntologyInvariants,

@@ -9,7 +9,7 @@
 import { type EditorHostOutput, registerEditorHost } from '@volter/editor-sdk/host';
 import type * as THREE from 'three';
 import { onProjectChange } from '@volter/editor-sdk/kit/active-project';
-import { stageTransport, subscribeStageTransports } from './animation/stage-transport';
+import { stageTransport, subscribeStageTransports } from '@volter/editor-sdk/kit/animation/stage-transport';
 import {
   activeAudioVersion,
   getInspectedAudio,
@@ -18,10 +18,10 @@ import {
   subscribeActiveAudio,
   subscribeActiveNavigation,
   subscribeActiveNetworking,
-} from './authoring/active-systems';
+} from '@volter/editor-sdk/kit/authoring/active-systems';
 import { activeDocumentSourcePath, activeSaveDestination } from './authoring/shell-document-ops';
 import { availabilityTickVersion, subscribeAvailabilityTick } from '@volter/editor-sdk/kit/availability-tick';
-import { setWorkerCallMeter } from './worker-call-metrics';
+import { setWorkerCallMeter } from '@volter/editor-sdk/kit/worker-call-metrics';
 import { beginPageWork } from './play-boot-phase';
 import { onCommandDispatched } from './command-dispatch';
 import { openToolDocument } from './components/tool-documents';
@@ -36,8 +36,8 @@ import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { resolvedProjectDocumentTable } from './project-adapter';
 import { notify } from './editor-notifications';
 import { registerEditorStateFacet } from '@volter/editor-sdk/kit/editor-state-facets';
-import { setFilesProvider } from './files/file-provider';
-import { projectFiles } from './files/project-files';
+import { setFilesProvider } from '@volter/editor-sdk/kit/files/file-provider';
+import { projectFiles } from '@volter/editor-sdk/kit/files/project-files';
 import {
   onHistoryElement,
   invalidateHistoryResources,
@@ -63,7 +63,7 @@ import {
   keymapTable,
   shortcutFor,
   subscribeEditorKeymap,
-} from './keymap-presets';
+} from '@volter/editor-sdk/kit/keymap-presets';
 import {
   acquireLiveDocument,
   liveDocumentContainer,
@@ -106,10 +106,10 @@ import {
 import { getCurrentProject } from './project-manager';
 import { onProjectReady } from './project-ready';
 import { projectMounts } from './project-shape';
-import { onSessionEndedChange } from './session-tombstone';
+import { onSessionEndedChange } from '@volter/editor-sdk/kit/session-tombstone';
 import { onBeforeSessionClose } from './session-close';
-import { setSettingsProvider, subscribeSettingsProvider } from './settings/settings-provider';
-import { getSetting, inspectSetting, setSetting, subscribeSettings } from './settings-store';
+import { setSettingsProvider, subscribeSettingsProvider } from '@volter/editor-sdk/kit/settings/settings-provider';
+import { getSetting, inspectSetting, setSetting, subscribeSettings } from '@volter/editor-sdk/kit/settings-store';
 import { onShellStoreChange, shellStoreForHost, threeStoreForHost } from './shell-store-door';
 import { captureActiveEditorDocument } from './editor-view-presentation';
 import { focusedStageContext } from './stage-context';
@@ -128,7 +128,7 @@ import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { showWorkspaceUtility } from './workspace-host-commands';
+import { showWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-host-commands';
 
 /**
  * THE ACTIVE DOCUMENT'S OWN INTERACTION MODE, if it has one.

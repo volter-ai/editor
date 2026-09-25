@@ -12,7 +12,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import type { ProjectComponentEntry } from '../asset-workflow/project-content';
+import type { ProjectComponentEntry } from '@volter/editor-sdk/kit/asset-workflow/project-content';
 import { TypedAssetThumbnail } from '../components/asset-thumbnails';
 import { waitForFirstViewportFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import type { ProjectPreviewStory } from './story-registry';

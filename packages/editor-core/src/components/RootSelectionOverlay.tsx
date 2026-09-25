@@ -83,12 +83,12 @@ import {
   canvasSceneGuides,
   subscribeCanvasSceneGuides,
 } from '../authoring/canvas-scene-guides';
-import { CompositeAuthoringAdapter } from '../authoring/composite-authoring-adapter';
+import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import {
   dropAuthoringAsset,
   reorderAuthoringNode,
   setAuthoringSelection,
-} from '../authoring/consumer-actions';
+} from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import {
   isEyedropperSessionActive,
   resolveEyedropperSession,
@@ -105,7 +105,7 @@ import {
   type RootViewController,
   sharedRootViewController,
 } from '@volter/editor-sdk/kit/world-pan-state';
-import { isRootHidden } from '../authoring/world-session-state';
+import { isRootHidden } from '@volter/editor-sdk/kit/authoring/world-session-state';
 import { useEditorStore } from '../editor-runtime';
 import { anyLiveSessionMounted } from '@volter/editor-sdk/kit/live-session-registry';
 import { effectiveColorFromChain } from '../ui-source/inspect';

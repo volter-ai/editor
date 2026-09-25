@@ -1,5 +1,5 @@
 import type { HistoryService } from '@volter/editor-sdk/kit/history/history-service';
-import { getProjectFileHistory } from '../history/project-file-history';
+import { getProjectFileHistory } from '@volter/editor-sdk/kit/history/project-file-history';
 import type { StorageBackend } from '@volter/editor-sdk/kit/storage-types';
 
 export type ProjectAssetOperation =

@@ -32,7 +32,7 @@ import {
   normalizedPlacement,
   overlayRgba,
   silhouetteMaskFromRgba,
-} from './asset-compare-core';
+} from '@volter/editor-sdk/kit/asset-compare-core';
 import {
   checkedDimension,
   createAssetPreviewSnapshot,
@@ -45,7 +45,7 @@ import {
   readModelForward,
 } from './asset-preview';
 
-export type { AssetCompareView } from './asset-compare-core';
+export type { AssetCompareView } from '@volter/editor-sdk/kit/asset-compare-core';
 // The forward detection moved to `asset-preview.ts` (the shot sets need it
 // too); re-exported here so compare-mode consumers keep their import path.
 export { readModelForward } from './asset-preview';

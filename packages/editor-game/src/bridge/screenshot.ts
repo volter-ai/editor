@@ -279,7 +279,7 @@ export async function handleBridgeScreenshot(
     // Same seam as the composite leg, for the same reason: a game's own canvas
     // is unreadable this late, so ask for a same-frame copy first and fall back
     // to reading the canvas itself.
-    const frameModule = await import('@volter/editor-core/live-canvas-frame');
+    const frameModule = await import('@volter/editor-sdk/kit/live-canvas-frame');
     const readable =
       frameModule.readablePngSource(await frameModule.liveCanvasFrame(canvas)) ?? canvas;
     const dataUrl = readable.toDataURL('image/png');

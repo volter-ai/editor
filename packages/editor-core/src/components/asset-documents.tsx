@@ -42,11 +42,11 @@ import { assetCapabilities } from '@volter/editor-sdk/kit/asset-capabilities';
 import {
   splitSpritesheetAssetPath,
   spritesheetFrameTitle,
-} from '../asset-workflow/pixi-spritesheet';
+} from '@volter/editor-sdk/kit/asset-workflow/pixi-spritesheet';
 import { authoringAssetDataUrl } from '../authoring/authoring-asset-url';
 import { awaitAnnouncedObject3DDocumentSession } from '../document-context-registry';
 import { registerDocumentOpener } from '../document-open-registry';
-import { projectFileExists } from '../editor-api';
+import { projectFileExists } from '@volter/editor-sdk/kit/editor-api';
 import type { AssetKind, OnlineAssetInfo } from '../asset-selection';
 import { type InspectionSection, PROPERTIES_SECTION_ORDER } from '@volter/editor-sdk/kit/inspection-model';
 import { inspectionNodeMedia } from '@volter/editor-sdk/kit/inspection-node-media';
@@ -66,7 +66,7 @@ import { registerWorkspaceDocumentRestorer } from '../workspace-document-restore
 import { MediaProperties } from './MediaProperties';
 
 const AssetEditorShell = lazy(async () => {
-  const module = await import('./AssetEditorShell');
+  const module = await import('@volter/editor-sdk/kit/components/AssetEditorShell');
   return { default: module.AssetEditorShell };
 });
 const AudioViewer = lazy(async () => {

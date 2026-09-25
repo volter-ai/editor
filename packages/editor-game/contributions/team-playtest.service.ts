@@ -11,10 +11,10 @@
  * through the `@editor/*` alias.
  */
 
-import { getActiveNetworking, subscribeActiveNetworking } from '@volter/editor-core/authoring/active-systems';
-import { connectCollaboration } from '@volter/editor-core/collaboration-client';
-import { reportCollaborationPresence } from '@volter/editor-core/collaboration-presence';
-import { EDITOR_PARTICIPANT_ID } from '@volter/editor-core/editor-presence';
+import { getActiveNetworking, subscribeActiveNetworking } from '@volter/editor-sdk/kit/authoring/active-systems';
+import { connectCollaboration } from '@volter/editor-sdk/kit/collaboration-client';
+import { reportCollaborationPresence } from '@volter/editor-sdk/kit/collaboration-presence';
+import { EDITOR_PARTICIPANT_ID } from '@volter/editor-sdk/kit/editor-presence';
 import { activePlaytest, enterPlayMode, exitPlayMode } from '../src/play/play-mode';
 
 export const point = 'workspace.service';

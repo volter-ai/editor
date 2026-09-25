@@ -31,10 +31,10 @@ import type {
   StructureProvider,
   TextProvider,
 } from '@volter/editor-project/adapter';
-import { CompositeAuthoringAdapter } from '../authoring/composite-authoring-adapter';
-import { spatialHandlesForAdapter } from '../authoring/consumer-actions';
+import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
+import { spatialHandlesForAdapter } from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import { numericStyleValue } from '@volter/editor-sdk/css-numeric-style';
-import { isRootHidden } from '../authoring/world-session-state';
+import { isRootHidden } from '@volter/editor-sdk/kit/authoring/world-session-state';
 import { recordAuthoringConsumerUse } from '@volter/editor-sdk/kit/authoring-seam-evidence';
 
 /** 8px snap grid — same constant `ui-editor/overlay.tsx`'s `GRID` uses (K3). */

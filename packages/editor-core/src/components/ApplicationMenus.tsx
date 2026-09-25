@@ -15,7 +15,7 @@ import {
   contributedDisabledFingerprint,
   contributedMenuItems,
   subscribeContributedChrome,
-} from '../chrome-registry';
+} from '@volter/editor-sdk/kit/chrome-registry';
 import { openCommandPalette } from '../editor-commands';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { currentEditorViewUrl } from '../editor-current-view';
@@ -27,7 +27,7 @@ import {
   pasteSelection,
 } from '../editor-hotkeys';
 import { useEditorStore, useHistoryCommandSnapshot, useHistoryCommands } from '../editor-runtime';
-import { editorKeymapsVersion, subscribeEditorKeymap } from '../keymap-presets';
+import { editorKeymapsVersion, subscribeEditorKeymap } from '@volter/editor-sdk/kit/keymap-presets';
 import {
   LEARN_MANUAL_URL,
   LEARN_QUICK_STARTS_URL,
@@ -45,7 +45,7 @@ import {
   showWorkspaceStaticPanel,
   showWorkspaceUtility,
   toggleWorkspaceFocus,
-} from '../workspace-host-commands';
+} from '@volter/editor-sdk/kit/workspace-host-commands';
 import {
   activeEditorWorkspace,
   editorWorkspaces,

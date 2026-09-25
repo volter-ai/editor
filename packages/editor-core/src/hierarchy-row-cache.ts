@@ -40,7 +40,7 @@
  * the cache a pure cost). Signatures are the way to put a collection in a key.
  */
 
-import type { HierarchyNodeRow } from './hierarchy-node-rows';
+import type { HierarchyNodeRow } from '@volter/editor-sdk/kit/hierarchy-node-rows';
 
 /** Element-wise `Object.is` over two key tuples. */
 function sameKey(a: readonly unknown[], b: readonly unknown[]): boolean {

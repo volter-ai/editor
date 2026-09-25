@@ -56,7 +56,7 @@ import {
   type WorkspaceDocumentSelection,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { getActiveAuthoring } from './active-adapter';
-import { CompositeAuthoringAdapter } from './composite-authoring-adapter';
+import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 
 export interface PanelAuthoringBinding {
   /** The adapter the Hierarchy/Inspector must drive. */

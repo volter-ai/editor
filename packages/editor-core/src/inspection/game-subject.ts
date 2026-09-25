@@ -18,8 +18,8 @@
 
 import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
-import type { NullInspectionSubject } from './null-subject';
-import { registerNullSubjectProvider } from './null-subject';
+import type { NullInspectionSubject } from '@volter/editor-sdk/kit/inspection/null-subject';
+import { registerNullSubjectProvider } from '@volter/editor-sdk/kit/inspection/null-subject';
 
 /**
  * The Game subject's id — and therefore the SCOPING KEY a project inspector

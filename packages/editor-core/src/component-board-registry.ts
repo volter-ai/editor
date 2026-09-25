@@ -63,7 +63,7 @@
  * opener gives.
  */
 
-import type { CompositeAuthoringAdapter } from './authoring/composite-authoring-adapter';
+import type { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import type { EditorShellStore } from './editor-shell-store';
 
 /** Everything a board reads from the HOST at install, and deliberately

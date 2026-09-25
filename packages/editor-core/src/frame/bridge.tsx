@@ -57,7 +57,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { createRoot } from 'react-dom/client';
-import { subscribeAdapterEditorConfiguration } from '../adapter-editor-config';
+import { subscribeAdapterEditorConfiguration } from '@volter/editor-sdk/kit/adapter-editor-config';
 import { AppRoot } from '../components/AppRoot';
 import { CompactInspectorCard } from '../components/CompactInspectorCard';
 import { GameHierarchy } from '../components/GameHierarchy';
@@ -78,7 +78,7 @@ import {
 } from '../editor-commands';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { installEditorHostDoor, setOutputProvider } from '../editor-host-door';
-import { getProjectDefinePath } from '../editor-mode';
+import { getProjectDefinePath } from '@volter/editor-sdk/kit/editor-mode';
 import { type EditorNotification, setNotificationDelegate } from '../editor-notifications';
 import { useEditorStore } from '../editor-runtime';
 import { clearHierarchyHeaderSlot, setHierarchyHeaderSlot } from '../hierarchy-header-slot';
@@ -100,7 +100,7 @@ import {
   effectiveSettings,
   preloadSettings,
   subscribeSettings,
-} from '../settings-store';
+} from '@volter/editor-sdk/kit/settings-store';
 import { useSharedViewRestore } from '../shared-view-restore';
 import { installStaleChunkRecovery } from '../stale-chunk-recovery';
 import { installStoryLane } from '../stories/story-lane';
@@ -131,18 +131,18 @@ import { requestAvailableWorkspaceDocument } from '../workspace-available-docume
 import {
   installWorkspaceHostCommands,
   setActiveWorkspaceStaticPanel,
-} from '../workspace-host-commands';
+} from '@volter/editor-sdk/kit/workspace-host-commands';
 import { notifyEditorWorkspaceApplied, setEditorWorkspace } from '../workspace-presets';
 import {
   installWorkspaceStatePersistence,
   waitForWorkspaceStateRestore,
 } from '../workspace-state-persistence';
-import { WORKSPACE_STATIC_PANELS } from '../workspace-static-panels';
+import { WORKSPACE_STATIC_PANELS } from '@volter/editor-sdk/kit/workspace-static-panels';
 import {
   subscribeWorkspaceStatus,
   workspaceStatusContributions,
   workspaceStatusRegistryVersion,
-} from '../workspace-status-registry';
+} from '@volter/editor-sdk/kit/workspace-status-registry';
 import {
   availableUtilityFingerprint,
   availableWorkspaceUtilities,

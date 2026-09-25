@@ -20,8 +20,8 @@ import { isContainedRelativePath } from '@volter/editor-sdk/session/relative-pat
 import { globToRegExp } from '@volter/editor-sdk/session/source-glob';
 import type { Request, Response } from 'express';
 import { resolveManifestPath } from '@volter/editor-project/manifest/locate';
-import { projectRegionEntriesFromSources } from '../../src/asset-workflow/project-source-index';
-import { ADAPTER_MODULE_FILENAME } from '../../src/ui-source/adapter-region-includes';
+import { projectRegionEntriesFromSources } from '@volter/editor-sdk/kit/asset-workflow/project-source-index';
+import { ADAPTER_MODULE_FILENAME } from '@volter/editor-sdk/kit/ui-source/adapter-region-includes';
 import { foldDataFileText } from '../data-file-serialize';
 import type { EditorServerRouter } from '../editor-server';
 import { buildScopedGameStyles } from '../scoped-game-css';

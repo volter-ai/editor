@@ -1,5 +1,5 @@
 import { SectionHeader, themeVars } from '@volter/editor-sdk/widgets';
-import { servedUrl } from '../../served-url';
+import { servedUrl } from '@volter/editor-sdk/kit/served-url';
 import { useEffect, useState } from 'react';
 import { CodeView, type CodeViewLanguage } from '../CodeView';
 

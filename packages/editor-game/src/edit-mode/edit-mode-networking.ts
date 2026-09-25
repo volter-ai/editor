@@ -30,7 +30,7 @@
  * active; on Stop, `getActiveNetworking()` falls back to this one.
  */
 
-import { setEditModeNetworking } from '@volter/editor-core/authoring/active-systems';
+import { setEditModeNetworking } from '@volter/editor-sdk/kit/authoring/active-systems';
 import { getCurrentProject } from '@volter/editor-core/project-manager';
 import type {
   ConnectionState,

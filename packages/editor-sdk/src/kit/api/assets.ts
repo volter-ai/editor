@@ -7,7 +7,7 @@
 import type { ProjectComponentEntry } from '../asset-workflow/project-content';
 
 import { assertEditorServerAnswered, editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
-import { getStorageBackend } from '../storage';
+import { getStorageBackend } from '../storage/index';
 import { BASE } from '@volter/editor-sdk/kit/api-base';
 export interface AssetEntry {
   name: string;

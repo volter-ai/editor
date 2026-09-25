@@ -10,7 +10,7 @@
  * host module: the host imports no package (WORKBENCH.md §The invariants), so
  * the button stays on this side of the line with the store and model it reads.
  */
-import { getInspectedRenderDebug } from '@volter/editor-core/authoring/active-systems';
+import { getInspectedRenderDebug } from '@volter/editor-sdk/kit/authoring/active-systems';
 import { useAvailabilitySelector } from '@volter/editor-sdk/kit/availability-tick';
 import { deriveRenderDebugCapabilities } from '../host/components/frame-debugger-model';
 import { profilerView } from '../host/components/utility-view-state';

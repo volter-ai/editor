@@ -34,7 +34,7 @@
 
 import type { WorkspaceLayoutContribution } from '@volter/editor-sdk/looks';
 import { activeProduct, subscribeActiveProduct } from './active-product';
-import { adapterEditorConfiguration } from './adapter-editor-config';
+import { adapterEditorConfiguration } from '@volter/editor-sdk/kit/adapter-editor-config';
 import { layoutPolicy, subscribeLayoutPolicy } from './layout-policy';
 import { projectDeclaresDocumentKind, projectMounts, subscribeProjectShape } from './project-shape';
 /** Imported arrangements may supply their own persistence identity. */

@@ -18,8 +18,8 @@
  */
 
 import { activeProjectKey, getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/active-project';
-import { loadEditorState, saveEditorState } from './editor-api';
-import { preloadSettings } from './settings-store';
+import { loadEditorState, saveEditorState } from '@volter/editor-sdk/kit/editor-api';
+import { preloadSettings } from '@volter/editor-sdk/kit/settings-store';
 
 type Sections = Record<string, unknown>;
 

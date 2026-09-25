@@ -10,10 +10,10 @@ import {
   getOnlineAssetFiles,
   getOnlineAssetPreview,
   type OnlineAssetPreview,
-} from '../../editor-api';
+} from '@volter/editor-sdk/kit/editor-api';
 import type { OnlineAssetInfo } from '../../asset-selection';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
-import { downloadOnlineAssetWithHistory } from '../asset-editor-persistence';
+import { downloadOnlineAssetWithHistory } from '@volter/editor-sdk/kit/components/asset-editor-persistence';
 
 
 const selectStyle: React.CSSProperties = {

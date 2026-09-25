@@ -16,7 +16,7 @@ import {
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { CameraInfo } from './CameraInfo';
 import { StatsOverlay } from './StatsOverlay';
-import { TransientHintOverlay } from './TransientHint';
+import { TransientHintOverlay } from '@volter/editor-sdk/kit/components/TransientHint';
 import { ViewportOverlay } from './ViewportOverlay';
 
 /** What the HOST hands over about the stage itself — its own store, the

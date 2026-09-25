@@ -28,9 +28,9 @@
  * way every project module loads.
  */
 
-import type { ProjectRegionEntry } from '../asset-workflow/project-source-index';
+import type { ProjectRegionEntry } from '@volter/editor-sdk/kit/asset-workflow/project-source-index';
 import { editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
-import { setProjectStoryRegions } from './project-story-regions';
+import { setProjectStoryRegions } from '@volter/editor-sdk/kit/stories/project-story-regions';
 
 /**
  * Why this session could not discover stories, or `null` when discovery

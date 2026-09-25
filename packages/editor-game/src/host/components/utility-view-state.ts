@@ -16,7 +16,7 @@
  * button both select a view of a bench that now ships in `@volter/editor-game`.
  */
 
-import { showWorkspaceUtility } from '@volter/editor-core/workspace-host-commands';
+import { showWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-host-commands';
 
 export type ProfilerViewId = 'profiler' | 'frame';
 

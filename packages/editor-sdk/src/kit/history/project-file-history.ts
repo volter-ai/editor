@@ -1,5 +1,5 @@
 import { sha256Hex } from '@volter/editor-sdk/kit/bytes-codec';
-import { getStorageBackend } from '../storage';
+import { getStorageBackend } from '../storage/index';
 import type { HistoryService } from '@volter/editor-sdk/kit/history/history-service';
 import { normalizeProjectPath } from '@volter/editor-sdk/kit/history/resource-registry';
 import type {

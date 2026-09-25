@@ -1,7 +1,7 @@
-import { adapterEditorConfiguration } from './adapter-editor-config';
+import { adapterEditorConfiguration } from '@volter/editor-sdk/kit/adapter-editor-config';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { layoutPolicy } from './layout-policy';
-import { captureWorkspaceUtilities, showWorkspaceUtility } from './workspace-host-commands';
+import { captureWorkspaceUtilities, showWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-host-commands';
 import { activeChromeRegions } from './workspace-regions';
 import { availableWorkspaceUtilities } from '@volter/editor-sdk/kit/workspace-utility-registry';
 

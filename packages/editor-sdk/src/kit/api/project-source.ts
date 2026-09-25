@@ -12,7 +12,7 @@
 
 import { base64ToBytes } from '@volter/editor-sdk/kit/bytes-codec';
 import { servedUrl } from '../served-url';
-import { getStorageBackend } from '../storage';
+import { getStorageBackend } from '../storage/index';
 
 /**
  * Read a project text file from the session that owns the project namespace.

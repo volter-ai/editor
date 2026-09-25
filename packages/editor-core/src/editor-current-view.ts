@@ -1,12 +1,12 @@
 import { type EditorView, editorViewUrl, isEditorViewUtility } from '@volter/editor-sdk';
 import { documentViewport } from '@volter/editor-sdk/kit/document-viewports';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import { activeEditorKeymap } from './keymap-presets';
+import { activeEditorKeymap } from '@volter/editor-sdk/kit/keymap-presets';
 import {
   activeWorkspaceDocument,
   activeWorkspaceDocumentSelection,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { activeWorkspaceStaticPanel, activeWorkspaceUtility } from './workspace-host-commands';
+import { activeWorkspaceStaticPanel, activeWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-host-commands';
 import { activeEditorWorkspace } from './workspace-presets';
 import { activeWorkspaceStyleId } from './workspace-style';
 
