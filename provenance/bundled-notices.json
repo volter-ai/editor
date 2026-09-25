@@ -26,7 +26,7 @@
     },
     {
       "name": "@volter/editor-project",
-      "version": "0.5.65",
+      "version": "0.5.66",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -37,7 +37,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.65",
+      "version": "0.5.66",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -142,7 +142,7 @@
   "editor-live": [
     {
       "name": "@volter/editor-project",
-      "version": "0.5.65",
+      "version": "0.5.66",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -153,7 +153,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.65",
+      "version": "0.5.66",
       "license": "Apache-2.0",
       "notices": [
         {
