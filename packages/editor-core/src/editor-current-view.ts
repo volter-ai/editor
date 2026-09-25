@@ -1,6 +1,6 @@
 import { type EditorView, editorViewUrl, isEditorViewUtility } from '@volter/editor-sdk';
-import { object3DDocumentSession } from './authoring/object3d-document-session-registry';
-import type { EditorShellStore } from './editor-shell-store';
+import { documentViewport } from '@volter/editor-sdk/kit/document-viewports';
+import type { ShellStore } from './shell-store';
 import { activeEditorKeymap } from './keymap-presets';
 import {
   activeWorkspaceDocument,
@@ -9,18 +9,6 @@ import {
 import { activeWorkspaceStaticPanel, activeWorkspaceUtility } from './workspace-host-commands';
 import { activeEditorWorkspace } from './workspace-presets';
 import { activeWorkspaceStyleId } from './workspace-style';
-
-function cameraState(
-  position: readonly [number, number, number] | { x: number; y: number; z: number },
-  target: readonly [number, number, number] | { x: number; y: number; z: number },
-  fov?: number,
-) {
-  const vector = (value: typeof position) =>
-    'x' in value
-      ? { x: value.x, y: value.y, z: value.z }
-      : { x: value[0]!, y: value[1]!, z: value[2]! };
-  return { position: vector(position), target: vector(target), ...(fov ? { fov } : {}) };
-}
 
 /** Inverse of `revealUtility` (editor-view-presentation.ts): map the live
  *  utility id back into `@volter/editor-sdk`'s public link vocabulary — one of
@@ -34,32 +22,18 @@ function presentedUtility(): EditorView['utility'] {
 
 /** Derive the projection from live document/session state. This is the
  * inverse of presentEditorView, not a cache of the last agent request. */
-export function currentEditorView(store: EditorShellStore): EditorView {
+export function currentEditorView(store: ShellStore): EditorView {
   const active = activeWorkspaceDocument();
   const document = active?.descriptor.presentation?.() ?? undefined;
-  const session = active ? object3DDocumentSession(active.descriptor.id) : null;
+  // The stage showing the active document answers for its viewport
+  // (`@volter/editor-sdk/kit/document-viewports`), and for its selection when
+  // it keeps its own; a document with no viewport has neither.
+  const stage = documentViewport(active?.descriptor.id);
   const documentSelection = activeWorkspaceDocumentSelection();
-  const selected = session
-    ? session.selection()
-    : (documentSelection?.adapter?.selection?.get() ??
-      (active?.descriptor.id === 'workspace:scene' ? [...store.selectedEntityIds] : []));
-  let viewport: EditorView['viewport'];
-  if (session) {
-    const pose = session.cameraPose();
-    const presentation = session.presentation();
-    viewport = {
-      camera: cameraState(pose.position, pose.target, pose.fov),
-      diagnostic: presentation.skeleton ? 'skeleton' : presentation.mode,
-      grid: presentation.grid,
-    };
-  } else if (active?.descriptor.id === 'workspace:scene' && store.cameraPose) {
-    const pose = store.cameraPose;
-    viewport = {
-      camera: cameraState(pose.position, pose.target, pose.fov),
-      diagnostic: store.shadingMode,
-      grid: store.showGrid,
-    };
-  }
+  const selected = stage?.selection
+    ? stage.selection.read()
+    : (documentSelection?.adapter?.selection?.get() ?? (stage ? [...store.selectedEntityIds] : []));
+  const viewport: EditorView['viewport'] = stage?.read() ?? undefined;
   const utility = presentedUtility();
   // The static panel holding the dock's focus, straight from the dock's own
   // active-panel readout — the inverse of `revealStaticPanel`.
@@ -77,6 +51,6 @@ export function currentEditorView(store: EditorShellStore): EditorView {
   };
 }
 
-export function currentEditorViewUrl(store: EditorShellStore): string {
+export function currentEditorViewUrl(store: ShellStore): string {
   return editorViewUrl(currentEditorView(store), window.location.href);
 }

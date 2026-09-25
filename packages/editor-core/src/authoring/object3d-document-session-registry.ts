@@ -7,6 +7,10 @@
  * diagnostic-rendering graph during a plain Scene boot. The class remains the
  * native session type; this module owns only its live identities.
  */
+import {
+  type DocumentViewport,
+  registerDocumentViewport,
+} from '@volter/editor-sdk/kit/document-viewports';
 import type { Object3DDocumentSession } from './object3d-document-session';
 
 const sessions = new Map<string, Object3DDocumentSession>();
@@ -22,11 +26,53 @@ function notifyRegistry(): void {
 
 export function registerObject3DDocumentSession(session: Object3DDocumentSession): () => void {
   sessions.set(session.documentId, session);
+  const stopViewport = registerDocumentViewport(session.documentId, object3DDocumentViewport(session));
   notifyRegistry();
   return () => {
+    stopViewport();
     if (sessions.get(session.documentId) !== session) return;
     sessions.delete(session.documentId);
     notifyRegistry();
+  };
+}
+
+const xyz = ([x, y, z]: readonly [number, number, number]) => ({ x, y, z });
+
+/** An Object3D document's own viewport: its session's camera, view mode, grid,
+ *  framing, selection and photograph (`@volter/editor-sdk/kit/document-viewports`). */
+function object3DDocumentViewport(session: Object3DDocumentSession): DocumentViewport {
+  type Preset = Parameters<Object3DDocumentSession['setViewPreset']>[0];
+  type Mode = Parameters<Object3DDocumentSession['setMode']>[0];
+  return {
+    read: () => {
+      const pose = session.cameraPose();
+      const presentation = session.presentation();
+      return {
+        camera: { position: xyz(pose.position), target: xyz(pose.target), ...(pose.fov ? { fov: pose.fov } : {}) },
+        diagnostic: presentation.skeleton ? 'skeleton' : presentation.mode,
+        grid: presentation.grid,
+      };
+    },
+    setGrid: (on) => session.setGrid(on),
+    setDiagnostic: (diagnostic) => {
+      session.setSkeleton(diagnostic === 'skeleton');
+      session.setBounds(diagnostic === 'bounds');
+      session.setMode(diagnostic === 'skeleton' || diagnostic === 'bounds' ? 'solid' : (diagnostic as Mode));
+      return true;
+    },
+    setCamera: (camera) => {
+      if (typeof camera !== 'string') {
+        session.setCameraPose(camera.position, camera.target, camera.fov);
+      } else if (camera === 'perspective') {
+        session.setProjection('perspective');
+        session.frame();
+      } else session.setViewPreset(camera as Preset);
+      return true;
+    },
+    frame: (target) => (target === 'selection' ? session.frameSelection() : (session.frame(), true)),
+    selection: { read: () => session.selection(), apply: (ids) => session.select(ids) },
+    capture: (size) => session.captureImage(size ?? 512),
+    prepare: () => prepareObject3DDocument(session.documentId),
   };
 }
 

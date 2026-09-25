@@ -8,18 +8,14 @@ import {
   editorViewUrl,
   isEditorViewDocumentKind,
   type PresentedEditorView,
-  type ShadingMode,
 } from '@volter/editor-sdk';
 import type { StoryRef } from '@volter/editor-project/adapter';
 import { getActiveAuthoring } from './authoring/active-adapter';
-import {
-  object3DDocumentSession,
-  prepareObject3DDocument,
-} from './authoring/object3d-document-session-registry';
+import { type DocumentViewport, documentViewport } from '@volter/editor-sdk/kit/document-viewports';
 import { openRegisteredDocumentAsync, registeredDocumentOpenerIds } from './document-open-registry';
 import { currentEditorView } from './editor-current-view';
 import { activeDocumentContainer } from './editor-document-probe';
-import type { EditorShellStore } from './editor-shell-store';
+import type { ShellStore } from './shell-store';
 import { activeEditorKeymap } from './keymap-presets';
 import { liveFrameCanvas, liveInstanceContainer } from '@volter/editor-sdk/kit/live-session-registry';
 import { projectDocumentKinds } from './project-shape';
@@ -112,15 +108,6 @@ async function projectToolContributions() {
 async function presentationNotice() {
   return import('./editor-presentation-notice');
 }
-
-const SCENE_MODES = new Set<ShadingMode>([
-  'solid',
-  'clay',
-  'unlit',
-  'wireframe',
-  'normals',
-  'overdraw',
-]);
 
 /**
  * Reveal the bottom-drawer utility a view names — the ONE door onto the
@@ -233,7 +220,7 @@ type ViewDocument<K extends NonNullable<EditorView['document']>['kind']> = Extra
  * scene surface and lets its adapter own what is on it. Nothing fetches or
  * parses the path.
  */
-function openSceneView(_store: EditorShellStore, _document: ViewDocument<'scene'>) {
+function openSceneView(_store: ShellStore, _document: ViewDocument<'scene'>) {
   if (activateWorkspaceDocument('workspace:scene')) return 'workspace:scene';
   // Refused rather than reported as presented: a session whose surface is another document
   // (a product's Game tab) has no Scene tab to move to.
@@ -335,7 +322,7 @@ async function applyBoardStory(documentId: string, requested: string): Promise<v
  * already opened, which the host activates by id out of its own registry. The
  * host used to spell the two constructed ids here by hand.
  */
-async function openWorkspaceView(store: EditorShellStore, document: ViewDocument<'workspace'>) {
+async function openWorkspaceView(store: ShellStore, document: ViewDocument<'workspace'>) {
   const claimed = await openRegisteredDocumentAsync(document.kind, store, document);
   if (claimed !== null) return claimed;
   // Pinned component boards are registered from asynchronous story-media
@@ -376,7 +363,7 @@ async function openWorkspaceView(store: EditorShellStore, document: ViewDocument
  * medium has always given.
  */
 async function openDelegatedView(
-  store: EditorShellStore,
+  store: ShellStore,
   document: NonNullable<EditorView['document']>,
 ): Promise<string> {
   const opened = await openRegisteredDocumentAsync(document.kind, store, document);
@@ -421,7 +408,7 @@ function documentKindAdvice(kind: string): string {
 }
 
 async function openRequestedDocument(
-  store: EditorShellStore,
+  store: ShellStore,
   document: EditorView['document'],
 ): Promise<string | null> {
   if (!document) return activeWorkspaceDocumentId();
@@ -532,7 +519,7 @@ function ingestBlankFrameRefusal(
  * including its visible overlays, and do not use `size`.
  */
 export async function captureActiveEditorDocument(
-  store: EditorShellStore,
+  store: ShellStore,
   size?: CaptureDimensions,
 ): Promise<ActiveDocumentCapture> {
   const active = activeWorkspaceDocument();
@@ -546,9 +533,9 @@ export async function captureActiveEditorDocument(
     ...(descriptor.provenance?.sourcePath ? { sourcePath: descriptor.provenance.sourcePath } : {}),
     ...(descriptor.provenance?.rootId ? { rootId: descriptor.provenance.rootId } : {}),
   };
-  const session = object3DDocumentSession(descriptor.id);
-  if (session) {
-    const dataUrl = session.captureImage(size);
+  const stage = documentViewport(descriptor.id);
+  if (stage?.capture) {
+    const dataUrl = stage.capture(size);
     if (!dataUrl) throw new Error(`Object3D document could not be captured: ${descriptor.id}`);
     return {
       ...captureDataUrl(dataUrl),
@@ -620,7 +607,9 @@ export async function captureActiveEditorDocument(
   };
 }
 
-type ObjectSession = NonNullable<ReturnType<typeof object3DDocumentSession>>;
+/** The Scene document's id: the viewport a view applies to when the active
+ *  document has none of its own (the store-level path it always took). */
+const SCENE_DOCUMENT_ID = 'workspace:scene';
 
 /**
  * WHICH STAGE THIS VIEW DRIVES — a plain lookup, and deliberately nothing else.
@@ -628,92 +617,42 @@ type ObjectSession = NonNullable<ReturnType<typeof object3DDocumentSession>>;
  * A kind declares when its document is ready to be DRIVEN in its own opener's
  * `ready` (`document-open-registry.ts`), and the registry awaits it inside the
  * open `openRequestedDocument` has already performed above. So by the moment
- * this reads, a document that mounts a stage has one, and a document that
- * mounts none never will: there is nothing left here to wait for and no way
- * for this file to know what a wait would even be waiting on. A view asking
- * for a selection or a viewport on a session-less document takes the
- * store-level path `applyGrid` and `applyDiagnostic` already take for it.
+ * this reads, a document that mounts a stage has registered its viewport, and a
+ * document that mounts none never will.
  */
-function resolveObjectSession(documentId: string | null): ObjectSession | null {
-  return documentId ? object3DDocumentSession(documentId) : null;
-}
-
-function applyGrid(store: EditorShellStore, session: ObjectSession | null, grid?: boolean): void {
-  if (grid === undefined) return;
-  if (session) session.setGrid(grid);
-  else if (store.showGrid !== grid) store.toggleGrid();
-}
-
-function applyDiagnostic(
-  store: EditorShellStore,
-  session: ObjectSession | null,
-  diagnostic: NonNullable<EditorView['viewport']>['diagnostic'],
-  warnings: string[],
-): void {
-  if (!diagnostic) return;
-  if (session) {
-    session.setSkeleton(diagnostic === 'skeleton');
-    session.setBounds(diagnostic === 'bounds');
-    if (diagnostic === 'skeleton' || diagnostic === 'bounds') {
-      session.setMode('solid');
-    } else {
-      session.setMode(diagnostic);
-    }
-  } else if (SCENE_MODES.has(diagnostic as ShadingMode))
-    store.setShadingMode(diagnostic as ShadingMode);
-  else warnings.push(`Diagnostic ${diagnostic} is unavailable for this document.`);
-}
-
-function applyCamera(
-  store: EditorShellStore,
-  session: ObjectSession | null,
-  camera: NonNullable<EditorView['viewport']>['camera'],
-  warnings: string[],
-): void {
-  if (!camera) return;
-  if (typeof camera !== 'string') {
-    if (session) session.setCameraPose(camera.position, camera.target, camera.fov);
-    else store.setCameraPose(camera.position, camera.target, camera.fov);
-    return;
-  }
-  if (session && camera === 'perspective') {
-    session.setProjection('perspective');
-    session.frame();
-  } else if (session && camera !== 'perspective') session.setViewPreset(camera);
-  else if (camera !== 'isometric') store.setViewPreset(camera);
-  else warnings.push('Isometric camera is unavailable for this document.');
-}
-
-function applyFraming(
-  store: EditorShellStore,
-  session: ObjectSession | null,
-  view: EditorView,
-  warnings: string[],
-): void {
-  if (view.selection?.focus || view.viewport?.frame === 'selection') {
-    if (session && !session.frameSelection()) {
-      warnings.push('The requested selection could not be framed.');
-    } else if (!session) store.focusOnSelection();
-  } else if (view.viewport?.frame === 'document') {
-    if (session) session.frame();
-    else warnings.push('Document framing is unavailable for this document.');
-  }
+function resolveViewport(documentId: string | null): DocumentViewport | null {
+  return documentViewport(documentId) ?? documentViewport(SCENE_DOCUMENT_ID);
 }
 
 function applyPresentation(
-  store: EditorShellStore,
-  session: ObjectSession | null,
+  store: ShellStore,
+  documentId: string | null,
   view: EditorView,
   warnings: string[],
 ): void {
+  const own = documentViewport(documentId);
+  const stage = resolveViewport(documentId);
   if (view.selection) {
-    if (session) session.select(view.selection.ids);
+    if (own?.selection) own.selection.apply(view.selection.ids);
     else store.selectMultiple(view.selection.ids);
   }
-  applyGrid(store, session, view.viewport?.grid);
-  applyDiagnostic(store, session, view.viewport?.diagnostic, warnings);
-  applyCamera(store, session, view.viewport?.camera, warnings);
-  applyFraming(store, session, view, warnings);
+  const viewport = view.viewport;
+  if (viewport?.grid !== undefined) stage?.setGrid(viewport.grid);
+  if (viewport?.diagnostic && !stage?.setDiagnostic(viewport.diagnostic)) {
+    warnings.push(`Diagnostic ${viewport.diagnostic} is unavailable for this document.`);
+  }
+  if (viewport?.camera && !stage?.setCamera(viewport.camera)) {
+    warnings.push(
+      typeof viewport.camera === 'string'
+        ? `${viewport.camera === 'isometric' ? 'Isometric' : viewport.camera} camera is unavailable for this document.`
+        : 'The camera is unavailable for this document.',
+    );
+  }
+  if (view.selection?.focus || viewport?.frame === 'selection') {
+    if (!stage?.frame('selection')) warnings.push('The requested selection could not be framed.');
+  } else if (viewport?.frame === 'document') {
+    if (!stage?.frame('document')) warnings.push('Document framing is unavailable for this document.');
+  }
 }
 
 /**
@@ -722,7 +661,7 @@ function applyPresentation(
  * it never encodes physical coordinates.
  */
 export async function presentEditorView(
-  store: EditorShellStore,
+  store: ShellStore,
   view: EditorView,
   options: { updateUrl?: boolean; origin?: 'agent' | 'link' | 'return' } = {},
 ): Promise<PresentedEditorView> {
@@ -783,13 +722,13 @@ export async function presentEditorView(
   }
   const documentId = await openRequestedDocument(store, view.document);
   await revealUtility(view.utility);
-  const session = resolveObjectSession(documentId);
-  if (session && documentId) await prepareObject3DDocument(documentId);
+  const own = documentViewport(documentId);
+  await own?.prepare?.();
   // A shared scene/world link can arrive before the source-backed hierarchy
   // mounts. Applying selection to that empty shell loses it when the world is
   // adopted. Wait for the owning adapter to expose the requested identities.
   if (
-    !session &&
+    !own?.selection &&
     view.selection?.ids.length &&
     (view.document?.kind === 'scene' || view.document?.kind === 'world')
   ) {
@@ -806,7 +745,7 @@ export async function presentEditorView(
   if (documentId && activeWorkspaceDocumentId() !== documentId) {
     activateWorkspaceDocument(documentId);
   }
-  applyPresentation(store, session, view, warnings);
+  applyPresentation(store, documentId, view, warnings);
   // The panel LAST: opening a document and reconciling the utility drawer both
   // take the dock's focus, so a view naming a panel must END on it.
   if (view.panel !== undefined) await revealStaticPanel(view.panel);

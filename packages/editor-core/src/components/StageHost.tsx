@@ -65,6 +65,8 @@ import {
   studioStageApplies,
 } from '../stage-context';
 import { registerStageStore } from '../stage-store-registry';
+import { registerDocumentViewport } from '@volter/editor-sdk/kit/document-viewports';
+import { sceneDocumentViewport } from '../scene-document-viewport';
 import { RetainedDocumentStates } from '../retained-document-states';
 import { perspectiveDistanceToFitBox } from '../three-viewport/camera-fit';
 import {
@@ -789,6 +791,7 @@ export function Object3DDocumentViewport({
       documentHostRef.current = host;
       host.cleanups.push(registerStageStore(documentId, host.store));
       host.cleanups.push(registerStageTransport(documentId, host.transport));
+      host.cleanups.push(registerDocumentViewport(documentId, sceneDocumentViewport(host.store)));
       const stage = binding.installWorldRootStage({
         store: host.store,
         documentId,
