@@ -1,4 +1,3 @@
-import { threeStateOf } from '../three-state';
 import {
   faCircleInfo,
   faCube,
@@ -6,6 +5,7 @@ import {
   faTimesCircle,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons';
+import { invokeKeyAction } from '../key-actions';
 import {
   Button,
   EditorIcon,
@@ -47,7 +47,7 @@ const LEVEL_ICONS = {
 };
 
 export function ConsolePanel() {
-  const store = threeStateOf(useEditorStore());
+  const store = useEditorStore();
   useSyncExternalStore(editorConsole.subscribe, editorConsole.getSnapshot);
 
   const [filter, setFilter] = useState('');
@@ -100,7 +100,8 @@ export function ConsolePanel() {
 
   const selectAndFocusEntity = (entityId: string) => {
     setAuthoringSelection(getActiveAuthoring(store), [entityId]);
-    store.focusOnEntity(entityId);
+    // Framing is the focused stage's, if it has a camera.
+    invokeKeyAction('viewport.frameSelection');
   };
 
   const counts = editorConsole.counts;
@@ -171,8 +172,9 @@ export function ConsolePanel() {
         {filtered.map((entry) => {
           const entityId =
             entry.metadata?.['entityId'] != null ? String(entry.metadata['entityId']) : null;
-          // The live Object3D's own name is the entity's name.
-          const entityName = (entityId ? store.objectMap.get(entityId)?.name : null) || entityId;
+          // The entity's name is the one the Hierarchy shows for it.
+          const entityName =
+            (entityId ? getActiveAuthoring(store).hierarchy.node(entityId)?.label : null) || entityId;
           const instanceId =
             typeof entry.metadata?.['instanceId'] === 'string'
               ? entry.metadata['instanceId']
