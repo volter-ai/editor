@@ -295,6 +295,9 @@ export function setEditorPalettePreference(paletteId: string): void {
   previewTheme = null;
   if (editorPaletteSnapshot() === paletteId) {
     applyCurrentTheme();
+    // The same palette re-applied can still paint differently (its document changed), and the
+    // frame derives the workbench's colours from what is painted (`frame/look-colors.ts`).
+    emit();
     return;
   }
   cachedPaletteId = paletteId;
@@ -319,12 +322,17 @@ export function setEditorMaterialPreference(materialId: EditorMaterialId): void 
 export function previewEditorTheme(theme: EditorPalette): void {
   previewTheme = theme;
   applyCurrentTheme();
+  // A draft is painted like a choice, so the workbench's colours follow it too: the stage
+  // reads those first (`native-selection-style.ts`), and a preview they never reached left
+  // the 3D viewport on the saved look.
+  emit();
 }
 
 /** Return from a draft preview to the currently persisted library theme. */
 export function clearEditorThemePreview(): void {
   previewTheme = null;
   applyCurrentTheme();
+  emit();
 }
 
 /** Install persisted theming and settings-layer synchronization on one editor root. */

@@ -1249,13 +1249,12 @@ export async function mountEditor(next: VscodeParts): Promise<{
       // A property that has not been painted yet reads '' and parses NaN. Hand back NOTHING
       // rather than a guess: the frame then clears the key and the title bar keeps its own
       // 30/35 until the theme lands, which is a correct top bar rather than a wrong one.
-      if (!Number.isFinite(height) || height <= 0) return [];
-      return [
-        ['window.titleBarHeight', Math.round(height)],
-        // The look's colours for the workbench's own ids and the stage's (`look-colors.ts`),
-        // read off the same resolved root, so the frame and the page cannot disagree.
-        ['workbench.colorCustomizations', lookColorCustomizations(root)],
-      ];
+      // The look's colours for the workbench's own ids and the stage's (`look-colors.ts`),
+      // read off the same resolved root, so the frame and the page cannot disagree — and
+      // handed over whatever the height's state, which is a separate answer.
+      const colors: readonly [string, unknown] = ['workbench.colorCustomizations', lookColorCustomizations(root)];
+      if (!Number.isFinite(height) || height <= 0) return [colors];
+      return [['window.titleBarHeight', Math.round(height)], colors];
     },
     // THE LOOK ITSELF, so the frame can choose its own colour theme for it. `theme-blender`
     // used to set `workbench.colorTheme` as a blanket `configurationDefaults`, which is why

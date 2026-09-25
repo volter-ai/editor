@@ -144,6 +144,10 @@ export function lookColorCustomizations(root: Element): Record<string, string> {
   for (const [id, token, alpha] of CHROME) {
     const hex = hexOf(style.getPropertyValue(token));
     if (hex === null) continue;
+    // A TRANSLUCENT surface stays ours: Glass paints its panels in rgba over a backdrop blur
+    // the workbench does not have, so the same value on the editor, terminal or side bar would
+    // draw them nearly clear over the window. The workbench keeps its own there.
+    if (hex.length === 9 && !alpha) continue;
     out[id] = alpha && hex.length === 7 ? `${hex}${alpha}` : hex;
   }
   for (const [id, token] of STAGE) {

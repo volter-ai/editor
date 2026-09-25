@@ -162,7 +162,7 @@ const PRODUCT_ICON_THEME_KEY = 'workbench.productIconTheme';
  * 3D viewport through `vgai.viewport.*` (`vgaiColors.ts`), both read back as `--vscode-*`.
  *
  * TWO RULES make it a layer rather than an override. A look this build ships a THEME for
- * keeps that theme's chrome and takes only the `vgai.*` ids from the palette (Blender's
+ * keeps that theme's chrome and takes only the stage's ids (`vgai.viewport.*`, `vgai.gizmo.*`) from the palette (Blender's
  * traced chrome is better than a derivation). And the PERSON's own customizations, user or
  * workspace, are merged over the look's, id by id, so a colour a person set still wins —
  * the memory layer is the top one, and writing the look's map alone would hide theirs.
@@ -394,7 +394,8 @@ export class VgaiSettings extends Disposable {
 				declared.set(PRODUCT_ICON_THEME_KEY, themes.productIcon);
 				const colors = declared.get(COLOR_CUSTOMIZATIONS_KEY) as Record<string, string> | undefined;
 				if (row && colors) {
-					declared.set(COLOR_CUSTOMIZATIONS_KEY, Object.fromEntries(Object.entries(colors).filter(([id]) => id.startsWith('vgai.'))));
+					// The STAGE's ids only: `vgai.view.background` is chrome, and the theme keeps it.
+					declared.set(COLOR_CUSTOMIZATIONS_KEY, Object.fromEntries(Object.entries(colors).filter(([id]) => id.startsWith('vgai.viewport.') || id.startsWith('vgai.gizmo.'))));
 				}
 			}
 			for (const [key, value] of this.bridge.adapterValues()) {

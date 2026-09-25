@@ -162,12 +162,12 @@ export async function waitForWorkspaceStateRestore(): Promise<void> {
  * chrome "memory-holed, never migrated").
  *
  * The shape this number names: `{ version, workspace?, documents?: { open:
- * { kind, id, state }[], activeId, kinds? } }`. Change any
+ * { kind, id, state, presentation? }[], activeId, kinds? } }`. Change any
  * of it — a key's name, a nesting, what a value means — and bump this in the
  * same commit, because nothing else lets the reader tell a stale record from a
  * current one.
  */
-const WORKSPACE_STATE_VERSION = 15;
+const WORKSPACE_STATE_VERSION = 16;
 const WRITE_DEBOUNCE_MS = 300;
 /** Bound on the document-restore verification before write-through installs
  *  anyway (module header's "wait is BOUNDED" rule). */
@@ -182,8 +182,7 @@ export interface PersistedDocument {
   readonly id: string;
   readonly state: unknown;
   /** The person's own choices for this document's VIEW (`kit/viewport-presentation`: its
-   *  lighting, backdrop, overlays, tool) — absent when they made none. Optional, so a record
-   *  written before views kept their choices is still this shape. */
+   *  lighting, backdrop, overlays, tool) — absent when they made none. */
   readonly presentation?: PresentationLayer;
 }
 
@@ -409,7 +408,10 @@ export async function restoreWorkspaceDocuments(
   for (const doc of docs.open) {
     // The view's choices FIRST: its stage binds as the document mounts, and a binding keeps the
     // choices already recorded for the view.
-    if (doc.presentation) restoreViewPresentation(doc.id, doc.presentation);
+    const presentation = doc.presentation as unknown;
+    if (presentation && typeof presentation === 'object' && !Array.isArray(presentation)) {
+      restoreViewPresentation(doc.id, presentation as PresentationLayer);
+    }
     await restoreOneDocument(store, doc, docs.activeId);
   }
   // Restore the saved active tab when available. Otherwise retain the

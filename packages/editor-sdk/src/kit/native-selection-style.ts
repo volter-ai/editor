@@ -339,24 +339,45 @@ export function subscribeNativeSelectionTheme(
   const observer = new MutationObserver(listener);
   observer.observe(root, { attributes: true, attributeFilter: ['style'] });
   // AND THE WORKBENCH'S COLOURS, which the frame applies after the look's own tokens land and a
-  // person's customizations change without touching this root: Code-OSS writes them into a
-  // stylesheet in the document head. The head changes for many reasons, so the listener runs
-  // only when the stage's own workbench colours did.
+  // person's customizations change without touching this root (`subscribeWorkbenchStageColors`).
+  const stopWorkbench = subscribeWorkbenchStageColors(root, listener);
+  return () => {
+    observer.disconnect();
+    stopWorkbench();
+  };
+}
+
+/**
+ * THE WORKBENCH'S STAGE COLOURS, watched once for every subscriber: Code-OSS writes them into a
+ * stylesheet in the document head, which changes for many other reasons (every stylesheet a
+ * module loads), so one observer reads the stage's colours once per change and wakes the
+ * subscribers only when they moved.
+ */
+const workbenchListeners = new Set<() => void>();
+let workbenchObserver: MutationObserver | null = null;
+let workbenchSeen = '';
+
+function subscribeWorkbenchStageColors(root: Element, listener: () => void): () => void {
   const signature = () =>
     Object.values(WORKBENCH_COLOR)
       .map((name) => themeToken(root, name))
       .join('|');
-  let seen = signature();
-  const head = typeof document === 'undefined' ? null : document.head;
-  const workbench = new MutationObserver(() => {
-    const next = signature();
-    if (next === seen) return;
-    seen = next;
-    listener();
-  });
-  if (head) workbench.observe(head, { childList: true, subtree: true, characterData: true });
+  workbenchListeners.add(listener);
+  if (!workbenchObserver && typeof document !== 'undefined' && document.head) {
+    workbenchSeen = signature();
+    workbenchObserver = new MutationObserver(() => {
+      const next = signature();
+      if (next === workbenchSeen) return;
+      workbenchSeen = next;
+      for (const each of [...workbenchListeners]) each();
+    });
+    workbenchObserver.observe(document.head, { childList: true, subtree: true, characterData: true });
+  }
   return () => {
-    observer.disconnect();
-    workbench.disconnect();
+    workbenchListeners.delete(listener);
+    if (workbenchListeners.size === 0 && workbenchObserver) {
+      workbenchObserver.disconnect();
+      workbenchObserver = null;
+    }
   };
 }
