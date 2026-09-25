@@ -60,7 +60,11 @@ export const commands: CommandContribution['commands'] = {
   'blender-screenshot-view': verb('always', 60_000),
   'blender-read-file': verb('none', 60_000),
   'blender-write-file': verb('none', 60_000),
-  'blender-list-files': verb('none'),
+  // Listing waits on the worker like a read: after an execute the MCP mirror lists
+  // while the page is still presenting the frame and refreshing its RNA and
+  // outliner reads, which on a large document outlasts the generic 5s default and
+  // turned a successful execute into a timeout.
+  'blender-list-files': verb('none', 60_000),
   // THE RNA DOOR (WORK.md §Blender in the tab is Blender, "Inspection
   // parity", I1). Two READS — a datablock's `bl_rna.properties` and the
   // Properties context — and one WRITE. The reads present nothing, so they
