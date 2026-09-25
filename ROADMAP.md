@@ -15,8 +15,3 @@ recordings of the original fifteen.
 Completion:
 - The original fifteen and the five new real-Blender references are scored through browser-only execution on the same scoreboard, with no local modeling fallback, measured through the tab's `blender-*` doors.
 
-## editor-blender-in-a-game: The Blender skew in a game project
-
-Status: planned
-Completion:
-- `editor-blender` loads through the loader door in a game project as it does in a models project, measured through the product's own doors.
