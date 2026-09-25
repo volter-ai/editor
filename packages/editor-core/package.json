@@ -119,6 +119,6 @@
   },
   "optionalDependencies": {
     "@napi-rs/keyring": "^1.3.0",
-    "@volter-ai-dev/supercode": "0.4.38"
+    "@volter-ai-dev/supercode": "0.4.81"
   }
 }
