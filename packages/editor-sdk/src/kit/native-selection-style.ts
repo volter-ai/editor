@@ -15,6 +15,10 @@ export interface NativeSelectionColors {
   /** The ACTIVE object's outline (`color.viewport.active`, Blender's lighter orange), or the
    *  selection's own when the palette names none. */
   readonly active?: { readonly visible: number; readonly hidden: number };
+  /** THE OUTLINE'S FORM (`density.viewport.outlineStyle`, `outlineWidth`, `outlineHidden`):
+   *  `soft`, the editor's own blurred halo, or `crisp` at a width in device pixels; and whether
+   *  the parts other objects hide are drawn too. Absent is the editor's own. */
+  readonly outline?: { readonly style: 'soft' | 'crisp'; readonly width: number | null; readonly hidden: boolean };
 }
 
 function rgbHex(red: number, green: number, blue: number): number {
@@ -79,10 +83,22 @@ export function nativeSelectionColors(element?: Element | null): NativeSelection
     parseCssColor(raw || graphiteDarkEditorTheme.color.accent.default) ??
     DEFAULT_NATIVE_SELECTION_COLOR;
   const active = parseCssColor(themeToken(root, '--vgai-viewport-active'));
+  const style = themeToken(root, '--vgai-viewport-outline-style');
+  const width = Number.parseFloat(themeToken(root, '--vgai-viewport-outline-width'));
+  const hidden = themeToken(root, '--vgai-viewport-outline-hidden');
   return {
     visible,
     hidden: dimColor(visible),
     ...(active === null ? {} : { active: { visible: active, hidden: dimColor(active) } }),
+    ...(style === '' && hidden === '' && !Number.isFinite(width)
+      ? {}
+      : {
+          outline: {
+            style: style === 'crisp' ? 'crisp' : 'soft',
+            width: Number.isFinite(width) && width > 0 ? width : null,
+            hidden: hidden !== 'false',
+          },
+        }),
   };
 }
 

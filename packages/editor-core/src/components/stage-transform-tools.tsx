@@ -7,7 +7,7 @@
  * the session store, so the Scene document is unchanged either way.
  */
 import { stageTransformDoor } from '@volter/editor-sdk/contributions';
-import { viewPresentation } from '@volter/editor-sdk/kit/viewport-presentation';
+import { type ViewportInteraction, viewPresentation } from '@volter/editor-sdk/kit/viewport-presentation';
 import { useEffect, useSyncExternalStore } from 'react';
 import { useEditorStore } from '../editor-runtime';
 import type { EditorShellStore } from '../editor-shell-store';
@@ -34,7 +34,15 @@ const shelfOpened = new WeakSet<EditorShellStore>();
 function armShelfBootTool(store: EditorShellStore | null, documentId: string): void {
   if (store === null || shelfOpened.has(store)) return;
   shelfOpened.add(store);
-  if (viewPresentation(documentId).interaction.bootTool === 'select') store.setTransformMode('select');
+  const mode = {
+    select: 'select',
+    transform: null,
+    move: 'translate',
+    rotate: 'rotate',
+    scale: 'scale',
+  } as const satisfies Record<ViewportInteraction['bootTool'], string | null>;
+  const boot = mode[viewPresentation(documentId).interaction.bootTool];
+  if (boot !== null) store.setTransformMode(boot);
 }
 
 export function ThreeStageTransformTools({ documentId }: { readonly documentId: string }) {

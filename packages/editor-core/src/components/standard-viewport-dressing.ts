@@ -501,9 +501,9 @@ export class StagePresentationRig {
   }
 
   /**
-   * THE PREVIEW SKY, Godot's `ProceduralSkyMaterial` at its defaults: above the horizon the
-   * horizon colour runs to the top colour on a curve of 0.15, below it to the ground colour on
-   * a curve of 0.02, mixed in linear light (`scene/resources/3d/sky_material.cpp`). THE SUN in
+   * THE PREVIEW SKY, Godot's `ProceduralSkyMaterial`: above the horizon the horizon colour runs
+   * to the top colour on the sky's top curve (Godot's 0.15), below it to the ground colour on its
+   * ground curve (Godot's 0.02), mixed in linear light (`scene/resources/3d/sky_material.cpp`). THE SUN in
    * it follows the same material: inside the light's disc the sky is the sun's colour at its
    * energy, and out to `sun_angle_max` (30°) it returns to the sky on a curve of `sun_curve`
    * (0.15). A light with no angular size draws a half-degree disc.
@@ -524,7 +524,7 @@ export class StagePresentationRig {
     const sunKey = sun
       ? `${sun.direction.toArray().map((value) => value.toFixed(4)).join(',')}|${sun.color}|${sun.energy}`
       : 'none';
-    const key = `${colours.top}|${colours.horizon}|${colours.ground}|${sunKey}`;
+    const key = `${colours.top}|${colours.horizon}|${colours.ground}|${colours.topCurve}|${colours.groundCurve}|${sunKey}`;
     if (this.sky?.key === key) return;
     this.disposeSky();
     const width = 1024;
@@ -546,10 +546,10 @@ export class StagePresentationRig {
       const angle = Math.PI / 2 - elevation; // 0 = straight up, PI = straight down
       if (angle <= Math.PI / 2) {
         const c = 1 - angle / (Math.PI / 2);
-        band.copy(horizon).lerp(top, THREE.MathUtils.clamp(1 - Math.pow(1 - c, 1 / 0.15), 0, 1));
+        band.copy(horizon).lerp(top, THREE.MathUtils.clamp(1 - Math.pow(1 - c, 1 / colours.topCurve), 0, 1));
       } else {
         const c = (angle - Math.PI / 2) / (Math.PI / 2);
-        band.copy(horizon).lerp(ground, THREE.MathUtils.clamp(1 - Math.pow(1 - c, 1 / 0.02), 0, 1));
+        band.copy(horizon).lerp(ground, THREE.MathUtils.clamp(1 - Math.pow(1 - c, 1 / colours.groundCurve), 0, 1));
       }
       for (let column = 0; column < width; column++) {
         pixel.copy(band);

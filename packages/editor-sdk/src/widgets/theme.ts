@@ -235,6 +235,9 @@ export interface EditorDensity {
     readonly axisLineWidth?: number;
     readonly selectionBox?: 'corners' | 'edges';
     readonly selectionBoxFrame?: 'world' | 'object';
+    readonly outlineStyle?: 'soft' | 'crisp';
+    readonly outlineWidth?: number;
+    readonly outlineHidden?: boolean;
     readonly selectionBoxWidth?: number;
   };
 }
@@ -2600,6 +2603,10 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     '--vgai-viewport-grid-major-contrast': numberToken(theme.density?.viewport?.gridMajorContrast),
     '--vgai-viewport-selection-box': theme.density?.viewport?.selectionBox ?? '',
     '--vgai-viewport-selection-box-frame': theme.density?.viewport?.selectionBoxFrame ?? '',
+    '--vgai-viewport-outline-style': theme.density?.viewport?.outlineStyle ?? '',
+    '--vgai-viewport-outline-width': numberToken(theme.density?.viewport?.outlineWidth),
+    '--vgai-viewport-outline-hidden':
+      theme.density?.viewport?.outlineHidden === undefined ? '' : `${theme.density.viewport.outlineHidden}`,
     '--vgai-viewport-selection-box-width': numberToken(theme.density?.viewport?.selectionBoxWidth),
     // The widget classes. Unlike `viewport`, these are never emitted empty:
     // every one paints a control that must stay painted, so an absent group

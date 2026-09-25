@@ -190,6 +190,11 @@ export const style: StyleContribution = {
         // A resting handle at 0.6 opacity, a highlighted one opaque in its own colour
         // (`transform_gizmo_3d.cc`, `gizmo_get_axis_color`).
         gizmoOpacity: 0.6,
+        // BLENDER'S OUTLINE IS A HARD LINE, and hidden parts are not drawn: four device pixels
+        // of orange around the cube in `modeling-object-selected.png` (at 2x), no halo.
+        outlineStyle: 'crisp',
+        outlineWidth: 4,
+        outlineHidden: false,
         // BLENDER'S FLOOR LINES, in device pixels, measured across one scanline of
         // `modeling-object-none.png` at device resolution: the 1 m line is 4 px at half rise and
         // plateaus at 83, the 10 m line is 6 px and plateaus at 101 — so the major line is wider

@@ -79,6 +79,11 @@ export interface PreviewLighting {
       readonly top: PresentationColor;
       readonly horizon: PresentationColor;
       readonly ground: PresentationColor;
+      /** How fast the horizon gives way to the top colour above it and to the ground below it
+       *  (Godot's `sky_curve` 0.15 and `ground_curve` 0.02; Unity's horizon haze is a
+       *  narrower band). */
+      readonly topCurve: number;
+      readonly groundCurve: number;
     };
     readonly energy: number;
     /** Rotation about the vertical axis, degrees (Blender's Material Preview HDRI). */
@@ -136,7 +141,10 @@ export interface ViewportOverlays {
  *  on, and what a box drag selects. Blender opens on Select Box and selects anything a box
  *  touches; the editor's own opens on the transform gizmo and selects what a box contains. */
 export interface ViewportInteraction {
-  readonly bootTool: 'select' | 'transform';
+  /** The tool the shelf opens on: Select (Blender's Select Box), the combined transform tool
+   *  (the editor's own, Godot's Select gizmo), or one transform alone (Unity's and Unreal's
+   *  Move). */
+  readonly bootTool: 'select' | 'transform' | 'move' | 'rotate' | 'scale';
   readonly boxSelect: 'contain' | 'touch';
   /**
    * Which handles the combined transform tool offers beside its arrows and rings: scaling,
@@ -215,7 +223,7 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
         enabled: true,
         // Top (0.385, 0.454, 0.55) and ground (0.2, 0.169, 0.133); the horizon is Godot's own
         // derivation from them (their mix, pulled halfway to its luminance x 3.333).
-        sky: { top: '#62748c', horizon: '#a9abaf', ground: '#332b22' },
+        sky: { top: '#62748c', horizon: '#a9abaf', ground: '#332b22', topCurve: 0.15, groundCurve: 0.02 },
         energy: 1,
         rotation: 0,
       },

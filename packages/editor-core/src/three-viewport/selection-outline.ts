@@ -72,7 +72,27 @@ export function createThreeSelectionOutline(
   // the effect's own layer and both masks cancel to no visible edge.
   effect.selectionLayer = EDITOR_SELECTION_LAYER;
   camera.layers.disable(EDITOR_SELECTION_LAYER);
+  // A CRISP LINE NEEDS ITS COLOUR UNSCALED. postprocessing's composite multiplies the edge colour
+  // by the edge value and uses that value again as alpha, so a partial edge darkens (Blender's
+  // orange read brown) and a strength above one pushes the colour past itself (it read white).
+  // Under `vgaiCrisp` the colour is divided back out of the edge value, leaving only the alpha
+  // to follow the edge; the editor's own halo keeps the library's composite.
+  const shader = effect.getFragmentShader();
+  const stock = 'vec3 color=edge.x*visibleEdgeColor+edge.y*hiddenEdgeColor;';
+  if (shader.includes(stock)) {
+    (effect as unknown as { setFragmentShader(source: string): void }).setFragmentShader(
+      shader
+        .replace('uniform float edgeStrength;', 'uniform float edgeStrength;uniform float vgaiCrisp;')
+        .replace(
+          stock,
+          `${stock}if(vgaiCrisp>0.5){float vgaiSum=edge.x+edge.y;if(vgaiSum>0.0)color/=vgaiSum;edge=min(edge,vec2(1.0));}`,
+        ),
+    );
+    // Any `{ value }` is a uniform to three; no runtime three import in this module.
+    effect.uniforms.set('vgaiCrisp', { value: 0 } as THREE.Uniform<number>);
+  }
   outlineState.set(effect, { colors, roots: 0 });
+  paintOutline(effect);
   return effect;
 }
 
@@ -123,6 +143,7 @@ type OutlineColors = {
   readonly visible: number;
   readonly hidden: number;
   readonly active?: { readonly visible: number; readonly hidden: number };
+  readonly outline?: { readonly style: 'soft' | 'crisp'; readonly width: number | null; readonly hidden: boolean };
 };
 
 /** Each effect's palette colours and how many roots it last outlined, so a selection change
@@ -141,6 +162,24 @@ function paintOutline(effect: OutlineEffect): void {
   const colors = state.roots === 1 && state.colors.active ? state.colors.active : state.colors;
   effect.visibleEdgeColor.setHex(colors.visible);
   effect.hiddenEdgeColor.setHex(colors.hidden);
+  // THE LOOK'S FORM. The editor's own is the soft halo `createThreeSelectionOutline` builds (a
+  // half-resolution mask under a medium blur). A crisp line is the mask at FULL resolution under
+  // the smallest blur that reaches the width, so its edge stays anti-aliased and its colour its
+  // own. Measured, and why not the obvious ways: an unblurred mask at 1/width resolution drew
+  // 4 px stair-steps, and a strength above the halo's 5 multiplies the colour itself (Blender's
+  // orange read white).
+  const form = state.colors.outline;
+  const crisp = form?.style === 'crisp';
+  const width = form?.width ?? 2;
+  effect.resolution.scale = crisp ? 1 : 0.5;
+  effect.blurPass.enabled = true;
+  // postprocessing's `KernelSize`: VERY_SMALL 0, SMALL 1, MEDIUM 2, LARGE 3. The blur sets how
+  // far the edge reaches; the strength saturates it into a solid band of that reach.
+  effect.blurPass.kernelSize = crisp ? (width <= 2 ? 0 : width <= 4 ? 1 : width <= 6 ? 2 : 3) : 2;
+  effect.edgeStrength = crisp ? 8 : 5;
+  const crispUniform = effect.uniforms.get('vgaiCrisp');
+  if (crispUniform) crispUniform.value = crisp ? 1 : 0;
+  effect.xRay = form?.hidden ?? true;
 }
 
 /** Apply supplied renderer-ready colors without rebuilding GPU pass resources. */

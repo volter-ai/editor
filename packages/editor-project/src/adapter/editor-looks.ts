@@ -273,6 +273,15 @@ export interface DensityContribution {
     /** Which axes the box is measured along: the world's (the editor's own) or the object's,
      *  so it turns with a rotated object (Godot's). */
     readonly selectionBoxFrame?: 'world' | 'object';
+    /**
+     * THE SELECTION OUTLINE'S FORM: `soft`, the editor's own blurred halo, or `crisp`, a hard
+     * line `outlineWidth` device pixels wide (Blender's, Unity's and Unreal's are crisp); and
+     * whether the parts of the selection other objects hide are drawn too (`outlineHidden`,
+     * the editor's own; Unity's and Blender's are not).
+     */
+    readonly outlineStyle?: 'soft' | 'crisp';
+    readonly outlineWidth?: number;
+    readonly outlineHidden?: boolean;
     readonly selectionBoxWidth?: number;
   };
 }
