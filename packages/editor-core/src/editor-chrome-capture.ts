@@ -18,11 +18,9 @@
  * photographs as it appears. Three kinds of canvas sit inside that root and
  * only one of them can be read late:
  *
- *  - the Scene viewport's canvas has no `preserveDrawingBuffer`; its pixels
- *    come from its registered presenter, including camera preview and helpers;
- *    the store's offscreen render is the fallback before registration;
- *  - an Asset Lab 3D document's canvas is the same story through its
- *    session (`Object3DDocumentSession.captureImage`);
+ *  - a canvas a medium re-renders at a chosen size — a three.js viewport or
+ *    Object3D document with no `preserveDrawingBuffer` — is drawn by that
+ *    medium (`@volter/editor-sdk/kit/canvas-frames`'s `renderedCanvasFrame`);
  *  - a live game or Pixi canvas goes through the one `canvasFrame` seam
  *    every pixel door shares (`live-canvas-frame.ts`).
  *
@@ -33,10 +31,10 @@
  */
 
 import type { EditorView } from '@volter/editor-sdk';
-import { allObject3DDocumentSessions } from './authoring/object3d-document-session-registry';
+import { renderedCanvasFrame } from '@volter/editor-sdk/kit/canvas-frames';
 import { type CompositeCapture, capturePlayComposite } from './composite-screenshot';
 import { currentEditorView } from './editor-current-view';
-import type { EditorShellStore } from './editor-shell-store';
+import type { ShellStore } from './shell-store';
 import { liveCanvasFrame } from './live-canvas-frame';
 
 export const EDITOR_CHROME_ROOT_ID = 'editor-chrome-root';
@@ -67,54 +65,27 @@ export interface EditorChromeCaptureOptions {
 }
 
 /** A data URL as something `drawImage` accepts. */
-async function imageOf(dataUrl: string): Promise<HTMLImageElement> {
-  const image = new Image();
-  image.src = dataUrl;
-  await image.decode();
-  return image;
-}
-
 /**
  * Same-frame pixels for every canvas the page holds — the seam described in
  * the header. `null` means "read the canvas directly".
  */
-function chromeCanvasFrame(store: EditorShellStore, scale: number) {
+function chromeCanvasFrame(scale: number) {
   return async (canvas: HTMLCanvasElement): Promise<CanvasImageSource | null> => {
-    // The re-render fallbacks below draw at a size WE choose, so they are asked
-    // for the frame's own scale — a 2x capture whose viewport had to be
-    // re-rendered gets a 2x render, not a 1x one stretched. The presented-frame
-    // paths above them hand back the live buffer at its own backing-store size,
-    // which is the ceiling those legs have.
+    // A medium's re-render draws at a size WE choose, so it is asked for the
+    // frame's own scale — a 2x capture whose viewport had to be re-rendered gets
+    // a 2x render, not a 1x one stretched (`@volter/editor-sdk/kit/canvas-frames`).
     const size = {
       width: Math.max(1, Math.round(canvas.clientWidth * scale)),
       height: Math.max(1, Math.round(canvas.clientHeight * scale)),
     };
-    if (store.viewportCanvas() === canvas) {
-      const presented = await liveCanvasFrame(canvas);
-      if (presented) return presented;
-      const dataUrl = store.captureViewportImage(size);
-      return dataUrl ? imageOf(dataUrl) : null;
-    }
-    for (const session of allObject3DDocumentSessions()) {
-      if (session.renderer.domElement !== canvas) continue;
-      // The PRESENTED frame first: everything the host drew over the
-      // document's own render — the compass above all — lives only in the
-      // default framebuffer, and `captureImage` is an offscreen re-render of
-      // the subject alone (see `requestPresentedFrame`). Falling back to it
-      // keeps a stopped loop photographable.
-      const presented = await session.requestPresentedFrame();
-      if (presented) return presented;
-      const dataUrl = session.captureImage(size);
-      return dataUrl ? imageOf(dataUrl) : null;
-    }
-    return liveCanvasFrame(canvas);
+    return (await renderedCanvasFrame(canvas, size)) ?? liveCanvasFrame(canvas);
   };
 }
 
 /** Photograph the editor page. Throws, by name, when the chrome root is not
  *  mounted — a page that is not the editor has nothing to photograph. */
 export async function captureEditorChrome(
-  store: EditorShellStore,
+  store: ShellStore,
   options?: EditorChromeCaptureOptions,
 ): Promise<EditorChromeCapture> {
   const root = document.getElementById(EDITOR_CHROME_ROOT_ID);
@@ -131,7 +102,7 @@ export async function captureEditorChrome(
     height: Math.max(1, Math.round(rect.height * scale)),
   };
   const composite = await capturePlayComposite(root, {
-    canvasFrame: chromeCanvasFrame(store, scale),
+    canvasFrame: chromeCanvasFrame(scale),
     includeDocumentStyles: true,
     size,
   });

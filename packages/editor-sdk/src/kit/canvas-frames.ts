@@ -56,3 +56,33 @@ export async function observeCanvasMount<T>(task: () => Promise<T>): Promise<Obs
   if (observer) return observer.observe(task);
   return { result: await task(), settled: async () => {}, frame: async () => null };
 }
+
+/** A medium's re-render of a canvas it owns at a requested size, for a caller
+ *  that photographs at its own scale (the editor chrome); `null` when the
+ *  canvas is not its. */
+export type CanvasRender = (
+  canvas: HTMLCanvasElement,
+  size: { readonly width: number; readonly height: number },
+) => Promise<CanvasImageSource | null> | null;
+
+let renders: readonly CanvasRender[] = [];
+
+export function registerCanvasRender(render: CanvasRender): () => void {
+  renders = [...renders, render];
+  return () => {
+    renders = renders.filter((existing) => existing !== render);
+  };
+}
+
+/** The first registered medium's rendering of `canvas` at `size`, or null. */
+export async function renderedCanvasFrame(
+  canvas: HTMLCanvasElement,
+  size: { readonly width: number; readonly height: number },
+): Promise<CanvasImageSource | null> {
+  for (const render of renders) {
+    const pending = render(canvas, size);
+    if (pending === null) continue;
+    return pending;
+  }
+  return null;
+}

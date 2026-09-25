@@ -10,6 +10,7 @@ import { registerThreeInspectionMedia } from './inspection/compose';
 import { registerModelThumbnails } from './model-thumbnail';
 import { registerStoryMediaCaptures } from './stories/story-media-captures';
 import { reportViewportStatus } from './viewport-status-facet';
+import { registerThreeCanvasRender } from './three-canvas-render';
 import { startSceneDocuments } from './components/scene-documents';
 import { saveThumbnail } from './editor-api';
 import { reportTabCensus } from './editor-presence';
@@ -122,6 +123,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   useEffect(() => registerModelThumbnails(), []);
   useEffect(() => registerStoryMediaCaptures(), []);
   useEffect(() => reportViewportStatus(), []);
+  useEffect(() => registerThreeCanvasRender(), []);
 
   // Project-tool discovery is EDITOR-INIT lifecycle, not a side effect of any
   // one surface — it runs (and keeps re-running on project change / tool-file
