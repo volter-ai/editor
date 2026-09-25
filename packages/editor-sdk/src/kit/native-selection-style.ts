@@ -159,6 +159,8 @@ export interface NativeGizmoLook {
   readonly hover: number | null;
   readonly drag: number | null;
   readonly opacity: number | null;
+  readonly arrowLength: number | null;
+  readonly arrowHead: number | null;
   readonly highlightSaturation: number | null;
   readonly highlightValue: number | null;
 }
@@ -187,6 +189,8 @@ export function nativeGizmoLook(element?: Element | null): NativeGizmoLook {
     hover: color('--vgai-gizmo-hover'),
     drag: color('--vgai-gizmo-drag'),
     opacity: number('--vgai-viewport-gizmo-opacity'),
+    arrowLength: number('--vgai-viewport-gizmo-arrow-length'),
+    arrowHead: number('--vgai-viewport-gizmo-arrow-head'),
     highlightSaturation: number('--vgai-viewport-gizmo-highlight-saturation'),
     highlightValue: number('--vgai-viewport-gizmo-highlight-value'),
   };

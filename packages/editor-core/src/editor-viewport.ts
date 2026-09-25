@@ -900,6 +900,8 @@ export class EditorViewport {
     hover: null,
     drag: null,
     opacity: null,
+    arrowLength: null,
+    arrowHead: null,
     highlightSaturation: null,
     highlightValue: null,
   };
@@ -907,6 +909,15 @@ export class EditorViewport {
    *  Blender's Select Box, `'contain'` (and null) the editor's own. Read by the marquee at the
    *  moment it resolves, never cached into the rectangle. */
   private _stageBoxSelect: 'contain' | 'touch' | null = null;
+  /** The combined tool's extra handles (the presentation's `interaction.transformHandles`). */
+  private _transformHandles: { readonly scale: boolean; readonly viewRotate: boolean; readonly freeMove: boolean } = {
+    scale: true,
+    viewRotate: true,
+    freeMove: true,
+  };
+  /** The arrow shape the translate geometry is already in ({@link _applyGizmoArrows}): tip
+   *  distance in ring radii and head scale, three's own to start. */
+  private _appliedArrow: { readonly length: number; readonly head: number } = { length: 1.2, head: 1 };
   private _store: EditorShellStore;
   private _objectMap = new Map<string, THREE.Object3D>();
   private _canvas: HTMLCanvasElement;
@@ -1186,6 +1197,7 @@ export class EditorViewport {
       this._lookGizmoSizePx = nativeViewportGizmoSize(canvas);
       this._applyGizmoSize();
       this._gizmoLook = nativeGizmoLook(canvas);
+      this._applyGizmoArrows();
       // WHAT FRAME THIS STAGE IS PRESENTING, and what a box select means in
       // it. Like the size above, the first synchronous call runs before the
       // gizmos exist and both appliers answer that by returning.
@@ -1465,6 +1477,7 @@ export class EditorViewport {
     this._dropNegativeAxisHandles(this._gizmoHelper, ['translate', 'scale']);
     this._dropNegativeAxisHandles(this._auxScaleControls.getHelper(), ['scale']);
     this._patchCombinedScaleGizmo(this._auxScaleControls.getHelper());
+    this._applyGizmoArrows();
     // The look's gizmo size, now that there are controls to set it on: the
     // theme subscription above installed before they existed and its first
     // synchronous call found none (see {@link _applyGizmoSize}).
@@ -2961,7 +2974,11 @@ export class EditorViewport {
       attachedId === null || (editability?.(attachedId, channel).writable ?? true);
     const rotateOn =
       combined && this._auxRotateControls.object !== undefined && writable('rotation');
-    const scaleOn = combined && this._auxScaleControls.object !== undefined && writable('scale');
+    const scaleOn =
+      combined &&
+      this._transformHandles.scale &&
+      this._auxScaleControls.object !== undefined &&
+      writable('scale');
     this._auxRotateControls.enabled = rotateOn;
     this._auxScaleControls.enabled = scaleOn;
     const rotateHelper = this._auxRotateControls.getHelper();
@@ -4605,8 +4622,24 @@ export class EditorViewport {
    * the presented world is up — what the gizmos name and orient their axes by — and what a box
    * drag selects. Never from the look: a Blender look over a Y-up game world named its axes Z-up.
    */
-  setStageFunction(world: { readonly upAxis: 'y' | 'z' }, interaction: { readonly boxSelect: 'contain' | 'touch' }): void {
+  setStageFunction(
+    world: { readonly upAxis: 'y' | 'z' },
+    interaction: {
+      readonly boxSelect: 'contain' | 'touch';
+      readonly transformHandles: { readonly scale: boolean; readonly viewRotate: boolean; readonly freeMove: boolean };
+    },
+  ): void {
     this._stageBoxSelect = interaction.boxSelect;
+    const handles = interaction.transformHandles;
+    if (
+      handles.scale !== this._transformHandles.scale ||
+      handles.viewRotate !== this._transformHandles.viewRotate ||
+      handles.freeMove !== this._transformHandles.freeMove
+    ) {
+      this._transformHandles = { scale: handles.scale, viewRotate: handles.viewRotate, freeMove: handles.freeMove };
+      this._syncCombinedGizmoHalves();
+      invalidateStages();
+    }
     const frame = world.upAxis === 'z' ? AXIS_FRAME_Z_UP : AXIS_FRAME_Y_UP;
     if (frame === this._stageAxisFrame) return;
     this._stageAxisFrame = frame;
@@ -4775,6 +4808,7 @@ export class EditorViewport {
       ) as
       | (THREE.Object3D & {
           gizmo: Record<string, THREE.Object3D>;
+          picker: Record<string, THREE.Object3D>;
           axis: string | null;
           mode: string;
           enabled: boolean;
@@ -4785,6 +4819,21 @@ export class EditorViewport {
     const threeUpdate = node.updateMatrixWorld.bind(node);
     node.updateMatrixWorld = (force?: boolean) => {
       threeUpdate(force);
+      // THE HANDLES THE VIEW TURNS OFF, drawn and picked by neither family: three sets every
+      // handle's visibility on each update, and its pointer tests skip invisible pickers.
+      const hidden =
+        node.mode === 'rotate' && !this._transformHandles.viewRotate
+          ? 'E'
+          : node.mode === 'translate' && !this._transformHandles.freeMove
+            ? 'XYZ'
+            : null;
+      if (hidden !== null) {
+        for (const family of [node.gizmo, node.picker]) {
+          for (const handle of family[node.mode]?.children ?? []) {
+            if (handle.name === hidden) handle.visible = false;
+          }
+        }
+      }
       const look = this._gizmoLook;
       const axis = node.axis;
       if (!node.enabled || !axis) return;
@@ -4814,6 +4863,72 @@ export class EditorViewport {
         hsvToColor(hsv.h, saturation, value, material.color).convertSRGBToLinear();
       }
     };
+  }
+
+  /**
+   * THE MOVE ARROWS IN THE LOOK'S SHAPE (`density.viewport.gizmoArrowLength`/`gizmoArrowHead`).
+   * three bakes each handle's placement into its geometry, and repaints positions every frame,
+   * so the shape is geometry: the shaft is stretched along its axis, the head scaled about its
+   * base and carried to the shaft's new end, and the picker stretched to the new tip. Applied
+   * as the difference from the shape already there, so a look change can call it again, and
+   * independent of the axis mirror (both are scales along an axis through the centre).
+   * three's shape: ring radius 0.5, shaft to 0.5, a head 0.1 long, so a tip at 1.2 radii.
+   */
+  private _applyGizmoArrows(): void {
+    if (this.transformControls === undefined) return;
+    const want = {
+      length: this._gizmoLook.arrowLength ?? 1.2,
+      head: this._gizmoLook.arrowHead ?? 1,
+    };
+    const was = this._appliedArrow;
+    if (want.length === was.length && want.head === was.head) return;
+    const RING = 0.5;
+    const HEAD = 0.1;
+    const shaftEnd = (shape: { length: number; head: number }) => RING * shape.length - HEAD * shape.head;
+    const stretch = shaftEnd(want) / shaftEnd(was);
+    const headScale = want.head / was.head;
+    const tipScale = want.length / was.length;
+    const node = this.transformControls
+      .getHelper()
+      .children.find(
+        (child) => (child as { isTransformControlsGizmo?: boolean }).isTransformControlsGizmo,
+      ) as unknown as
+      | { gizmo: Record<string, THREE.Object3D>; picker: Record<string, THREE.Object3D> }
+      | undefined;
+    if (!node) return;
+    const axisIndex: Record<string, number> = { X: 0, Y: 1, Z: 2 };
+    const along = (index: number, factor: number): [number, number, number] =>
+      [0, 1, 2].map((i) => (i === index ? factor : 1)) as [number, number, number];
+    for (const handle of node.gizmo['translate']?.children ?? []) {
+      const index = axisIndex[handle.name];
+      const geometry = (handle as THREE.Mesh).geometry as THREE.BufferGeometry | undefined;
+      if (index === undefined || !geometry) continue;
+      const cylinder = geometry as THREE.CylinderGeometry;
+      const isHead = cylinder.parameters?.radiusTop === 0;
+      if (!isHead) {
+        geometry.scale(...along(index, stretch));
+        continue;
+      }
+      geometry.computeBoundingBox();
+      const box = geometry.boundingBox!;
+      const low = [box.min.x, box.min.y, box.min.z][index]!;
+      const high = [box.max.x, box.max.y, box.max.z][index]!;
+      // The base is the end nearer the centre, on whichever side the arm is drawn.
+      const base = Math.abs(low) < Math.abs(high) ? low : high;
+      const offset = [0, 0, 0] as [number, number, number];
+      offset[index] = -base;
+      geometry.translate(...offset);
+      geometry.scale(headScale, headScale, headScale);
+      offset[index] = base * stretch;
+      geometry.translate(...offset);
+    }
+    for (const handle of node.picker['translate']?.children ?? []) {
+      const index = axisIndex[handle.name];
+      const geometry = (handle as THREE.Mesh).geometry as THREE.BufferGeometry | undefined;
+      if (index === undefined || !geometry) continue;
+      geometry.scale(...along(index, tipScale));
+    }
+    this._appliedArrow = want;
   }
 
   private _patchGizmo(gizmoHelper: THREE.Object3D): void {

@@ -223,6 +223,8 @@ export interface EditorDensity {
    *  both derivations and for why a non-length member sits under `density`. */
   readonly viewport?: {
     readonly gizmoSize?: number;
+    readonly gizmoArrowLength?: number;
+    readonly gizmoArrowHead?: number;
     readonly gizmoOpacity?: number;
     readonly gizmoHighlightSaturation?: number;
     readonly gizmoHighlightValue?: number;
@@ -2575,6 +2577,8 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     '--vgai-gizmo-hover': theme.color.gizmo?.hover ?? '',
     '--vgai-gizmo-drag': theme.color.gizmo?.drag ?? '',
     '--vgai-viewport-gizmo-opacity': numberToken(theme.density?.viewport?.gizmoOpacity),
+    '--vgai-viewport-gizmo-arrow-length': numberToken(theme.density?.viewport?.gizmoArrowLength),
+    '--vgai-viewport-gizmo-arrow-head': numberToken(theme.density?.viewport?.gizmoArrowHead),
     '--vgai-viewport-gizmo-highlight-saturation': numberToken(
       theme.density?.viewport?.gizmoHighlightSaturation,
     ),

@@ -36,6 +36,10 @@ export const style: StyleContribution = {
         // gizmo unit is fitted, not transcribed. At 128 the rotation rings measure ~80 px in
         // radius on a 1x capture, against ~85 px in `engine-reference/godot/tuto_3d5.png`.
         gizmoSize: 128,
+        // The move arrows reach 1.6 ring radii with a head about half again three's
+        // (`tuto_3d5.png`: a 142 px tip against a 90 px ring, a 25 px head).
+        gizmoArrowLength: 1.6,
+        gizmoArrowHead: 1.5,
         // `manipulator_gizmo_opacity` 0.9; the highlight is the axis colour at a quarter of its
         // saturation and full value (`node_3d_editor_plugin.cpp`).
         gizmoOpacity: 0.9,

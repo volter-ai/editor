@@ -138,6 +138,16 @@ export interface ViewportOverlays {
 export interface ViewportInteraction {
   readonly bootTool: 'select' | 'transform';
   readonly boxSelect: 'contain' | 'touch';
+  /**
+   * Which handles the combined transform tool offers beside its arrows and rings: scaling,
+   * rotating about the view axis (the outer ring), and moving freely (the centre). The
+   * editor's own offers all three; Godot's Select gizmo moves and rotates only.
+   */
+  readonly transformHandles: {
+    readonly scale: boolean;
+    readonly viewRotate: boolean;
+    readonly freeMove: boolean;
+  };
 }
 
 /** How the world the stage presents is oriented: which of its axes is up, which is what the
@@ -167,7 +177,7 @@ type DeepPartial<T> = { readonly [K in keyof T]?: T[K] extends readonly unknown[
 export interface PresentationLayer {
   readonly drawMode?: ViewportDrawMode;
   readonly overlays?: DeepPartial<ViewportOverlays>;
-  readonly interaction?: Partial<ViewportInteraction>;
+  readonly interaction?: DeepPartial<ViewportInteraction>;
   readonly world?: Partial<ViewportWorld>;
   readonly all?: DeepPartial<ViewportModePresentation>;
   readonly modes?: { readonly [M in ViewportDrawMode]?: DeepPartial<ViewportModePresentation> };
@@ -218,7 +228,11 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
     selection: { outline: true, wire: false, box: false },
     axes: 'floor',
   },
-  interaction: { bootTool: 'transform', boxSelect: 'contain' },
+  interaction: {
+    bootTool: 'transform',
+    boxSelect: 'contain',
+    transformHandles: { scale: true, viewRotate: true, freeMove: true },
+  },
   world: { upAxis: 'y' },
 });
 

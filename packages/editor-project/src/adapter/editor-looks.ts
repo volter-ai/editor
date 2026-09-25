@@ -234,6 +234,15 @@ export interface DensityContribution {
      * `col.from_hsv(col.get_h(), col.get_s() * 0.25, 1.0, 1)`).
      */
     readonly gizmoOpacity?: number;
+    /**
+     * THE MOVE ARROWS' SHAPE: `gizmoArrowLength` is how far an arrow's tip stands from the
+     * centre, in rotation-ring radii (three's own 1.2; Godot's 1.6, measured on
+     * `tuto_3d5.png` as a 142 px tip against a 90 px ring), and `gizmoArrowHead` scales its
+     * head (three's own 1; Godot's about 1.5). Which handles the tool offers is the view's
+     * (`interaction.transformHandles`), never the look's.
+     */
+    readonly gizmoArrowLength?: number;
+    readonly gizmoArrowHead?: number;
     readonly gizmoHighlightSaturation?: number;
     readonly gizmoHighlightValue?: number;
     /**
