@@ -30,7 +30,7 @@ import { getActiveCamera } from '../authoring/active-systems';
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
 import { useAvailabilitySelector } from '@volter/editor-sdk/kit/availability-tick';
 import { useEditorStore } from '../editor-runtime';
-import type { EditorShellStore } from '../editor-shell-store';
+import type { ShellStore } from '../shell-store';
 import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { composeInspectionForBinding } from '../inspection/active-subject';
 import type { InspectionPresentation, InspectionSurfaceKind } from '@volter/editor-sdk/kit/inspection-model';
@@ -46,7 +46,7 @@ import type { WorkspaceDocumentSelection } from '@volter/editor-sdk/kit/workspac
 import { InspectionProjectionView } from './InspectionProjection';
 
 export interface AuthoringInspectorSurfaceProps {
-  readonly store: EditorShellStore;
+  readonly store: ShellStore;
   readonly adapter: AuthoringAdapter;
   readonly documentSelection: WorkspaceDocumentSelection | null;
   /** The RESOLVED presentation for this surface (`inspection/display.ts`):

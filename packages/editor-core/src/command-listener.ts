@@ -18,7 +18,7 @@ import { isGameplayExportActive } from './gameplay-export-state';
 
 /**
  * Command listener — receives commands from the editor server via SSE
- * and dispatches them to the EditorShellStore and play-mode functions.
+ * and dispatches them to the ShellStore and play-mode functions.
  *
  * The server broadcasts `editor-command` events sent by the SDK/CLI.
  * This module translates them into store method calls.
@@ -69,7 +69,8 @@ import type { ConsoleEntry } from '@volter/editor-sdk/kit/editor-console';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { currentEditorView } from './editor-current-view';
 import { editorIsPlaying } from '@volter/editor-sdk/kit/editor-session-mode';
-import type { EditorShellStore, HelperVisibility } from './editor-shell-store';
+import type { HelperVisibility } from './editor-shell-store';
+import type { ShellStore } from './shell-store';
 import { collectEditorStateFacets, reusableFacetKeys } from '@volter/editor-sdk/kit/editor-state-facets';
 import {
   hierarchyPanelSnapshot,
@@ -316,7 +317,7 @@ function playCommandOwesDerivedRefresh(
  * entity, so an id nothing owns is refused by name here rather than fabricated
  * downstream.
  */
-function unresolvedSelectionRefusal(store: EditorShellStore, id: string): string | null {
+function unresolvedSelectionRefusal(store: ShellStore, id: string): string | null {
   // Resolve through the same document-scoped binding as Hierarchy and
   // Inspector. Asset Lab documents publish their own adapter while the scene
   // adapter remains globally active; asking the latter would reject the exact
@@ -335,7 +336,7 @@ function unresolvedSelectionRefusal(store: EditorShellStore, id: string): string
 }
 
 function applyControlSelection(
-  store: EditorShellStore,
+  store: ShellStore,
   ids: readonly string[],
   options: CommandHandlingOptions | undefined,
 ): void {
@@ -423,7 +424,7 @@ function currentStatePatch(state: Record<string, unknown>): Record<string, unkno
 }
 
 export function collectState(
-  store: EditorShellStore,
+  store: ShellStore,
   /**
    * A previous full snapshot whose {@link REUSABLE_DERIVED_FACETS} this collect
    * may copy instead of re-deriving, or `null`/omitted for a full collect.
@@ -800,13 +801,13 @@ async function handleDocumentScript(cmd: EditorCommand): Promise<CommandResult> 
 
 /**
  * Exported (alongside `collectState` above) so unit tests can dispatch
- * commands directly against a headless `EditorShellStore`, with no SSE/server
+ * commands directly against a headless `ShellStore`, with no SSE/server
  * round-trip — see `packages/editor/test/command-listener.test.ts`, notably
  * the false-ack regression test: an unrecognized command must return
  * `{ok:false}`, never fall through to a fabricated `{ok:true}`.
  */
 export async function handleCommand(
-  store: EditorShellStore,
+  store: ShellStore,
   cmd: EditorCommand,
   options?: CommandHandlingOptions,
 ): Promise<CommandResult> {
@@ -1749,7 +1750,7 @@ export async function handleCommand(
  * Reports state after each command and on initial connect.
  */
 export function connectCommandListener(
-  store: EditorShellStore,
+  store: ShellStore,
   /**
    * The session's own undo/redo queue — the SAME object the keyboard shortcut
    * and the command palette drive, so a relayed undo is the user's undo and not

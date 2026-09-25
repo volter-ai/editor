@@ -268,7 +268,7 @@ const coverageSubject = columnSubject({
 
 /** A real THREE model scene → the source-object3d model adapter, the same
  *  fixture the model-asset workflow exercises. */
-function buildModelAdapter(store: Parameters<typeof AuthoringInspectorSurface>[0]['store']) {
+function buildModelAdapter(store: ConstructorParameters<typeof SourceObject3DAuthoringAdapter>[0]) {
   const scene = new THREE.Scene();
   const root = new THREE.Group();
   root.name = 'Ship';

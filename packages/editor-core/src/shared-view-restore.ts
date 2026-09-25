@@ -14,11 +14,11 @@ import { editorViewFromUrl } from '@volter/editor-sdk';
 import { useEffect } from 'react';
 import { activeProjectKey } from '@volter/editor-sdk/kit/active-project';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import type { EditorShellStore } from './editor-shell-store';
+import type { ShellStore } from './shell-store';
 import { presentEditorView } from './editor-view-presentation';
 import { waitForWorkspaceStateRestore } from './workspace-state-persistence';
 
-export function useSharedViewRestore(store: EditorShellStore): void {
+export function useSharedViewRestore(store: ShellStore): void {
   useEffect(() => {
     const view = editorViewFromUrl(window.location.href);
     if (!view) return;

@@ -38,7 +38,7 @@ import { ingestCoverageSection } from '@volter/editor-sdk/kit/CapabilityCoverage
 import { resolveInspectionSubjectId } from '../components/inspector-selection';
 import { resolveComposeStoriesInput } from '../components/inspector-stories-gating';
 import { kindDocumentEntry } from '../components/kind-documents';
-import type { EditorShellStore } from '../editor-shell-store';
+import type { ShellStore } from '../shell-store';
 import { inspectorPresentationOverride } from '../inspector-presentation';
 import { matchedInspectorSections } from '@volter/editor-sdk/kit/inspector-section-registry';
 import { liveCoverage } from '@volter/editor-sdk/kit/live-session-registry';
@@ -175,7 +175,7 @@ function ownedInspectorRail(): { rail: OwnedInspectorRail } | null {
  * discipline, and the point of the model is that it should be structure.
  */
 export function composeInspectionForBinding(input: {
-  readonly store: EditorShellStore;
+  readonly store: ShellStore;
   readonly adapter: AuthoringAdapter;
   readonly documentSelection: WorkspaceDocumentSelection | null;
   /** Absent in a bounded host: it names no surface, so its subject carries no
@@ -263,7 +263,7 @@ export function composeInspectionForBinding(input: {
  * on it, and `inspectActiveSubject` serializes it — all from this one call,
  * so no consumer can reach a different answer (see `inspection/display.ts`).
  */
-export function describeActiveInspectionSubject(store: EditorShellStore): InspectionDisplay {
+export function describeActiveInspectionSubject(store: ShellStore): InspectionDisplay {
   const surface = activeInspectionSurface(store);
   const { adapter, documentSelection } = resolvePanelAuthoring(store);
   const composed = composeInspectionForBinding({
@@ -349,7 +349,7 @@ export function describeActiveInspectionSubject(store: EditorShellStore): Inspec
  * inspector's contents — the fabrication the anti-shim rule names, on the one
  * surface that exists to be believed.
  */
-export function inspectActiveSubject(store: EditorShellStore): SerializedInspection {
+export function inspectActiveSubject(store: ShellStore): SerializedInspection {
   const { subject, surface, presentation, available } = describeActiveInspectionSubject(store);
   if (!available) return NO_INSPECTION;
   return serializeInspectionSubject(subject, { surface, presentation });
@@ -363,7 +363,7 @@ export function inspectActiveSubject(store: EditorShellStore): SerializedInspect
  * the active Inspector subject is the address, just as it is for field edits.
  */
 export async function runActiveInspectionAction(
-  store: EditorShellStore,
+  store: ShellStore,
   actionId: string,
 ): Promise<SerializedInspection> {
   const { subject, available } = describeActiveInspectionSubject(store);
@@ -443,7 +443,7 @@ function assertInspectionFieldValue(field: FieldDescriptor, value: unknown): voi
  * no fallback that reads a destination from anywhere else.
  */
 export async function setActiveInspectionField(
-  store: EditorShellStore,
+  store: ShellStore,
   path: string,
   value: unknown,
 ): Promise<{ subject: SerializedInspection; write: WriteAck }> {
@@ -464,7 +464,7 @@ interface FieldMatch {
  * every field door (`set` and `remove`), so the two cannot disagree about which
  * io owns a path or about what "no such field" means.
  */
-function resolveWritableField(store: EditorShellStore, path: string): FieldMatch {
+function resolveWritableField(store: ShellStore, path: string): FieldMatch {
   const { subject, available } = describeActiveInspectionSubject(store);
   if (!available) throw new Error('No Inspector subject is active.');
   const subjectMatches = (subject.editable?.fields ?? [])
@@ -546,7 +546,7 @@ export class InspectionRemovalUnavailableError extends Error {
  * write that pretends to be a revert.
  */
 export async function removeActiveInspectionField(
-  store: EditorShellStore,
+  store: ShellStore,
   path: string,
 ): Promise<{ subject: SerializedInspection; write: WriteAck }> {
   const match = resolveWritableField(store, path);

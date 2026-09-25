@@ -38,7 +38,7 @@ import { activeAuthoringVersion, subscribeActiveAuthoring } from '../authoring/a
 import { resolvePanelAuthoring } from '../authoring/panel-authoring';
 import { recordAuthoringConsumerUse } from '@volter/editor-sdk/kit/authoring-seam-evidence';
 import { documentContextVersion, subscribeDocumentContexts } from '../document-context-registry';
-import type { EditorShellStore } from '../editor-shell-store';
+import type { ShellStore } from '../shell-store';
 import {
   inspectorPresentationVersion,
   subscribeInspectorPresentation,
@@ -66,7 +66,7 @@ import {
  * the workspace's physical gating (the workspace host) and the
  * floating card's own chrome (`components/CompactInspectorCard.tsx`).
  */
-export function useActiveInspection(store: EditorShellStore): InspectionDisplay {
+export function useActiveInspection(store: ShellStore): InspectionDisplay {
   // 1. Selection, the scene, and reflected edits. Exact membership-only
   // changes for an unrelated runtime object cannot change the active subject;
   // selected replacement and conservative structural changes advance the
