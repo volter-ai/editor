@@ -24,6 +24,7 @@ import { writeProjectLocalSection } from '@volter/editor-sdk/kit/project-local-s
 import { onShellStore } from '@volter/editor-sdk/kit/shell-store-door';
 import { registerThreeCanvasRender } from './three-canvas-render';
 import { registerThreeHierarchyRowMedia } from './three-hierarchy-row-media';
+import { registerThreePlayCameraFlight } from './play-camera-flight';
 import { registerThreeInspectionMedia } from './three-inspection-media';
 import { threeStateOf, threeStoreForHost } from './three-state';
 import { installViewportAuthoringPolicy } from './viewport-authoring-policy';
@@ -63,6 +64,7 @@ export function ensureThreeIntegration(): () => void {
     reportViewportStatus(),
     registerThreeCanvasRender(),
     registerThreeHierarchyRowMedia(),
+    registerThreePlayCameraFlight(),
     registerHostHierarchyObjects({
       object: (id) => threeStoreForHost()?.objectMap.get(id) ?? null,
       objects: () => threeStoreForHost()?.objectMap ?? NO_OBJECTS,

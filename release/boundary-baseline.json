@@ -208,7 +208,6 @@
  "kit-internal  packages/model-editor/vite.config.ts -> @volter/editor-core/build/shared-react",
  "kit-internal  packages/model-editor/vite.config.ts -> @volter/editor-core/build/shared-three",
  "kit-media  packages/editor-core/src/canvas-preview-frames.ts -> pixi.js",
- "kit-media  packages/editor-core/src/live-transition.ts -> three",
  "kit-media  packages/editor-core/src/stories/pixi-story-model.ts -> pixi.js",
  "kit-media  packages/editor-core/src/stories/story-pixi-preview.ts -> pixi.js",
  "kit-media  packages/editor-project/src/adapter/asset-cache.ts -> three",
