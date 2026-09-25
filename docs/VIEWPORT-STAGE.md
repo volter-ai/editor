@@ -78,6 +78,7 @@ Built (`@volter/editor-sdk/kit/viewport-presentation`, `StagePresentationRig` in
 - the preview sky is a float strip with Godot's sun in it (disc and 30° glow on a 0.15 curve), so a sun brighter than white stays bright, and may carry a cloud layer (cover, opacity, scale) thinning into the horizon;
 - environment images: a registered panorama (`@volter/editor-sdk/kit/environment-images`, contributed by `*.environment.ts`) in place of the sky, drawn and lit by, turned by the environment's rotation; `@volter/editor-blender` ships Blender's eight world studio lights (CC0). A preview may leave the scene's own lights out (`sceneLights`);
 - a floor under a document's content (`overlays.floor`), at its lowest point, taking the preview sun's shadow, as Unreal's asset editors place their preview floor;
+- the grid in an axis-aligned orthographic view (Front, Right, Top and their opposites) lies in that view's plane, behind the geometry, around the view's centre and reaching its corners, with Blender's zoom-dependent level (`EditorViewport.alignGridToView`, from `overlay_grid.hh`); other views draw the floor. The level's fade is a linear reading of Blender's, not its per-level pixel fade. Seen on Blender's stage only;
 - `editor.presentation(documentId, layer?)` reads and records a view's presentation, and reports what its last draw was lit by.
 
 Capability, per target (can its default viewport and its toggles be expressed without new code):
@@ -101,11 +102,19 @@ Unreal's default viewport is its style (`@volter/editor-game` `unreal.style.ts`)
 
 The layer is the named view `unreal` (`@volter/editor-game` `contributions/unreal.view.ts`), which a person puts on a view from the shading popover's View row or `editor.presentation(id, 'unreal')`.
 
-Independent judgement (an opus judge, frames captured through `captureActiveDocument` on a selected object, against `engine-reference` and Blender's `gizmo-*.png`): **Godot, Unity and Unreal pass**; Blender does not. Each target is captured with its document opened under its own view, so the stage arms that view's boot tool; a view put on a document already open keeps the tool that was armed.
+Independent judgement (an opus judge, frames captured on a selected object, against `engine-reference` and Blender's `gizmo-*.png`): **Godot, Unity, Unreal and Blender pass**; Blender narrowly, in its second round. Each target is captured with its document opened under its own view, so the stage arms that view's boot tool; a view put on a document already open keeps the tool that was armed.
 
 - Unreal passes with its cloud layer and preview floor (`contributions/unreal.view.ts`; sky, cloud and floor values fitted to `level-editor.png`). Remaining: the object's shadow on the floor is faint beside the reference's, the floor meets the sky on a hard line where Unreal's fog softens it, and the Move gizmo's arrows are short and thin.
 - Unity's arrows are short with small cones next to its Move tool's.
-- Blender lacked the 3D cursor and the origin dot when judged; both are drawn now and await the next judgement. (The judge also read the floor lines on the cube's lower half as drawn through it; the default cube straddles the floor, so those lines lie in front of it, as in Blender's own perspective view.)
+- Blender passes on a Front Orthographic frame (`captureEditorChrome({ region: 'document' })`) against `gizmo-select-box.png`. Its first round failed on a missing grid and X axis in that view and an oversized origin dot; the grid now lies in an axis-aligned orthographic view's own plane and the dot is Blender's size. Remaining, most important first:
+  - the navigation cluster keeps its zoom pair and Frame All on a capsule and has no camera button, and its projection toggle shows pressed. The pair and Frame All are this file's decisions (`ViewportFurniture.tsx`); the judge's objection is on record, and no evidence has been put against those decisions yet;
+  - the subject line reads the document alone (`cube`) where Blender reads `(1) Collection | Cube`, and there is no grid-scale line (`10 Centimeters`). On a cold open the active object's name is missing though the Cube is selected; no door reads the stage's active id, so the cause is not measured, and two explanations were tried and excluded;
+  - the grid's lines are brighter and closer in weight than Blender's, and the X axis thicker and more saturated;
+  - the navigation gizmo's colours are desaturated and its centre ball reads `Y` where Blender's reads `-Y`;
+  - the Select Box tool shows a plain arrow;
+  - the outline's corners are slightly rounded and its orange duller;
+  - the cube's face reads 143 against Blender's 161 in that view. In the default perspective view the three faces match within 3; the cause of the front-on difference is not measured. A Workbench render is no stand-in for it: it gives 154 there, and 84 for faces the viewport draws at 129 and 111.
+  (The first round's judge also read the floor lines on the cube's lower half as drawn through it; the default cube straddles the floor, so those lines lie in front of it, as in Blender's own perspective view.)
 - The judged frames came from `captureActiveDocument`, the document's own render, which leaves out the viewport's overlay pass: every target's navigation gizmo is drawn on screen (Unreal's triad, seen through `captureEditorChrome`) but was missing from those frames. Judge a stage through `captureEditorChrome({ region: 'document' })`, the active document as the person sees it.
 - Blender's Material Preview passes on the cube's shading and the backdrop against Blender 5.2's own render of the same world.
 
@@ -113,4 +122,4 @@ Blender's Material Preview is the named view `blender-material-preview` (`@volte
 
 Blender's Rendered is the named view `blender-rendered` (`contributions/rendered.view.ts`). It is not a path tracer: it is the same rasterized drawing of the scene's lights and World that a render here photographs, so the viewport and a render agree by construction, and neither is Cycles or EEVEE. Seen on `cube.blend` with a point lamp: the cube is lit by the lamp over the World's backdrop, and a change to the lamp re-lights the viewport with no mode switch.
 
-Neither half is accepted: Blender above and Unreal's capability row. The reference frames are in `/Volumes/PeakSSD/volter-work/engine-reference`; the world stage is compiled but not yet seen on a project with a world.
+Not yet accepted: Unreal's capability row. The reference frames are in `/Volumes/PeakSSD/volter-work/engine-reference`; the world stage is compiled but not yet seen on a project with a world.
