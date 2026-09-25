@@ -161,6 +161,7 @@ export interface NativeGizmoLook {
   readonly opacity: number | null;
   readonly arrowLength: number | null;
   readonly arrowHead: number | null;
+  readonly ringWidth: number | null;
   readonly highlightSaturation: number | null;
   readonly highlightValue: number | null;
 }
@@ -191,6 +192,7 @@ export function nativeGizmoLook(element?: Element | null): NativeGizmoLook {
     opacity: number('--vgai-viewport-gizmo-opacity'),
     arrowLength: number('--vgai-viewport-gizmo-arrow-length'),
     arrowHead: number('--vgai-viewport-gizmo-arrow-head'),
+    ringWidth: number('--vgai-viewport-gizmo-ring-width'),
     highlightSaturation: number('--vgai-viewport-gizmo-highlight-saturation'),
     highlightValue: number('--vgai-viewport-gizmo-highlight-value'),
   };

@@ -40,6 +40,8 @@ export const style: StyleContribution = {
         // (`tuto_3d5.png`: a 142 px tip against a 90 px ring, a 25 px head).
         gizmoArrowLength: 1.6,
         gizmoArrowHead: 1.5,
+        // Its rotation rings are about twice three's thickness (`tuto_3d5.png`).
+        gizmoRingWidth: 2,
         // `manipulator_gizmo_opacity` 0.9; the highlight is the axis colour at a quarter of its
         // saturation and full value (`node_3d_editor_plugin.cpp`).
         gizmoOpacity: 0.9,

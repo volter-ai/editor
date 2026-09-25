@@ -904,6 +904,7 @@ export class EditorViewport {
     opacity: null,
     arrowLength: null,
     arrowHead: null,
+    ringWidth: null,
     highlightSaturation: null,
     highlightValue: null,
   };
@@ -920,6 +921,8 @@ export class EditorViewport {
   /** The arrow shape the translate geometry is already in ({@link _applyGizmoArrows}): tip
    *  distance in ring radii and head scale, three's own to start. */
   private _appliedArrow: { readonly length: number; readonly head: number } = { length: 1.2, head: 1 };
+  /** The ring thickness the rotate geometry is already in, as a multiple of three's. */
+  private _appliedRingWidth = 1;
   private _store: EditorShellStore;
   private _objectMap = new Map<string, THREE.Object3D>();
   private _canvas: HTMLCanvasElement;
@@ -4924,6 +4927,7 @@ export class EditorViewport {
    */
   private _applyGizmoArrows(): void {
     if (this.transformControls === undefined) return;
+    this._applyGizmoRings();
     const want = {
       length: this._gizmoLook.arrowLength ?? 1.2,
       head: this._gizmoLook.arrowHead ?? 1,
@@ -4980,6 +4984,52 @@ export class EditorViewport {
       geometry.scale(...along(index, tipScale));
     }
     this._appliedArrow = want;
+  }
+
+  /**
+   * THE ROTATION RINGS AT THE LOOK'S THICKNESS (`density.viewport.gizmoRingWidth`). three's
+   * rings are thin tori baked into geometry, so each vertex is carried away from the ring's
+   * centre line by the ratio of the wanted thickness to the one already there; the ring's plane
+   * is its thinnest extent, its radius the centre line's. The X, Y and Z rings only; pickers
+   * keep three's own reach.
+   */
+  private _applyGizmoRings(): void {
+    const want = this._gizmoLook.ringWidth ?? 1;
+    if (want <= 0 || want === this._appliedRingWidth) return;
+    const ratio = want / this._appliedRingWidth;
+    const point = new THREE.Vector3();
+    const centre = new THREE.Vector3();
+    const size = new THREE.Vector3();
+    for (const controls of [this.transformControls, this._auxRotateControls]) {
+      const node = controls
+        .getHelper()
+        .children.find(
+          (child) => (child as { isTransformControlsGizmo?: boolean }).isTransformControlsGizmo,
+        ) as unknown as { gizmo: Record<string, THREE.Object3D> } | undefined;
+      for (const handle of node?.gizmo['rotate']?.children ?? []) {
+        const geometry = (handle as THREE.Mesh).geometry as THREE.BufferGeometry | undefined;
+        // The axis rings only: the trackball circle and the view ring stay hairlines (Godot's
+        // grey circle is one).
+        if (!['X', 'Y', 'Z'].includes(handle.name)) continue;
+        if (!geometry || (geometry as THREE.TorusGeometry).type !== 'TorusGeometry') continue;
+        const radius = (geometry as THREE.TorusGeometry).parameters.radius;
+        geometry.computeBoundingBox();
+        geometry.boundingBox!.getSize(size);
+        const normal = size.x <= size.y && size.x <= size.z ? 0 : size.y <= size.z ? 1 : 2;
+        const positions = geometry.getAttribute('position') as THREE.BufferAttribute;
+        for (let index = 0; index < positions.count; index++) {
+          point.fromBufferAttribute(positions, index);
+          centre.copy(point).setComponent(normal, 0);
+          if (centre.lengthSq() === 0) continue;
+          centre.setLength(radius);
+          point.sub(centre).multiplyScalar(ratio).add(centre);
+          positions.setXYZ(index, point.x, point.y, point.z);
+        }
+        positions.needsUpdate = true;
+        geometry.computeBoundingSphere();
+      }
+    }
+    this._appliedRingWidth = want;
   }
 
   private _patchGizmo(gizmoHelper: THREE.Object3D): void {

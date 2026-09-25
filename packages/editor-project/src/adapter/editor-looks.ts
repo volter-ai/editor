@@ -243,6 +243,9 @@ export interface DensityContribution {
      */
     readonly gizmoArrowLength?: number;
     readonly gizmoArrowHead?: number;
+    /** THE ROTATION RINGS' THICKNESS, as a multiple of three's own (Godot's rings are about
+     *  twice as thick, `tuto_3d5.png`). */
+    readonly gizmoRingWidth?: number;
     readonly gizmoHighlightSaturation?: number;
     readonly gizmoHighlightValue?: number;
     /**

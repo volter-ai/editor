@@ -32,8 +32,8 @@ Unreal is not installed on this box and its documentation does not state these d
 | Tone mapping and exposure | no | ACES Filmic unless a document states its own |
 | Gizmo size | yes (`density.viewport`) | |
 | Gizmo colours, resting opacity, highlight | yes: `color.gizmo` (x, y, z; the navigation gizmo's own navigationX/Y/Z where the target draws it differently, as Blender's balls are; optional hover and drag) and `density.viewport.gizmoOpacity`, `gizmoHighlightSaturation`, `gizmoHighlightValue` | the transform and navigation gizmos; without the group, the kit's own (Godot's axis colours, three's yellow highlight, opaque handles) |
-| Move arrows' length and head | yes (`density.viewport.gizmoArrowLength`, `gizmoArrowHead`) | |
-| Other gizmo form (ring width, scale handles' shape, the navigation gizmo's balls, cube or triad and its corner) | no | fixed: three's handles as patched, Blender's navigation balls |
+| Move arrows' length and head, rotation rings' width | yes (`density.viewport.gizmoArrowLength`, `gizmoArrowHead`, `gizmoRingWidth`) | |
+| Other gizmo form (scale handles' shape, the navigation gizmo's balls, cube or triad and its corner) | no | fixed: three's handles as patched, Blender's navigation balls |
 | Armed tool, box-select test, up axis, the transform tool's extra handles, which axis lines show | no: function, not look (ARCHITECTURE rule 7) | the stage's presentation (`interaction`, `world`, `overlays.axes`) |
 
 ## The ruling: look, presentation and starting values (owner, 2026-09-25)
@@ -78,11 +78,11 @@ Capability, per target (can its default viewport and its toggles be expressed wi
 | Target | Expressible now | Not yet |
 |---|---|---|
 | Blender | Solid (its own studio, AgX, no environment), the fill, outline, grid step and widths | Material Preview's HDRI (only a procedural sky exists), Rendered (the engine's render lighting is not a scene light the stage can switch to), box and wire on Blender documents (its selection ids are datablocks, not three objects) |
-| Godot | preview sun and sky with the sun in it, sky as backdrop, 8-cell major step, the full box in the object's frame, all three axis lines, the Select gizmo's arrows and handles, its Filmic curve (the `filmic` mapper) | per-part takeover (the sun and the environment give way separately; `auto` switches the whole source), ring width, the sun's energy unit, XY and YZ grid planes |
+| Godot | preview sun and sky with the sun in it, sky as backdrop, 8-cell major step, the full box in the object's frame, all three axis lines, the Select gizmo's arrows and handles, its Filmic curve (the `filmic` mapper), ring width | per-part takeover (the sun and the environment give way separately; `auto` switches the whole source), the sun's energy unit, XY and YZ grid planes |
 | Unity | scene lighting, outline plus wire, a camera-locked headlight as a preset | the skybox toggle as a backdrop source over a scene without a skybox, Prefab Mode's context fill, per-mode lighting of draw modes |
 | Unreal | the level's own sky and lights (`scene` sources), an outline | the outline's width and colour as look values; not measured beyond its frames |
 
-Godot's default viewport is its style (`@volter/editor-game` `godot.style.ts`) with this presentation layer; judged side by side against `engine-reference/godot/tuto_3d3.png` and `tuto_3d5.png`, it reads as Godot's except for the rotation rings' width:
+Godot's default viewport is its style (`@volter/editor-game` `godot.style.ts`) with this presentation layer; judged side by side against `engine-reference/godot/tuto_3d3.png` and `tuto_3d5.png`, it reads as Godot's:
 
 ```json
 {"all":{"lighting":{"source":"preview","preview":{"sun":{"enabled":true,"color":"#ffffff","energy":1,"altitude":60,"azimuth":150,"shadowDistance":100},"environment":{"enabled":true,"sky":{"top":"#8797ad","horizon":"#e2e5e9","ground":"#383129"},"energy":1,"rotation":0}},"tone":{"mapper":"filmic","exposure":1}},"backdrop":{"source":"environment","opacity":1,"blur":0}},"overlays":{"grid":{"visible":true,"majorEvery":8},"selection":{"outline":false,"wire":false,"box":true},"axes":{"x":true,"y":true,"z":true}},"interaction":{"transformHandles":{"scale":false,"viewRotate":false,"freeMove":false}}}
