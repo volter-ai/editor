@@ -132,7 +132,6 @@
  "kit-internal  packages/editor-game/src/host/gated-globals.ts -> @volter/editor-core/game-globals-prelude",
  "kit-internal  packages/editor-game/src/host/stories/mounted-story-viewport-source.ts -> @volter/editor-core/stories/story-three-preview",
  "kit-internal  packages/editor-game/src/host/stories/story-media-presence.ts -> @volter/editor-core/stories/story-registry",
- "kit-internal  packages/editor-game/src/host/viewport-pose-memory.ts -> @volter/editor-core/project-local-state",
  "kit-internal  packages/editor-game/src/host/viewport-root-presentation.ts -> @volter/editor-core/editor-shell-store",
  "kit-internal  packages/editor-game/src/host/viewport-root-presentation.ts -> @volter/editor-core/projection/three",
  "kit-internal  packages/editor-game/src/ingest/active-ingest.ts -> @volter/editor-core/editor-shell-store",

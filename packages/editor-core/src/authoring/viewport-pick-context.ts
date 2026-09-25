@@ -11,6 +11,7 @@
  * degrade, never a throw.
  */
 
+import { setViewportEditorControls, type ViewportEditorControls } from '@volter/editor-sdk/kit/viewport-editor-controls';
 import type * as THREE from 'three';
 
 export interface ViewportPickContext {
@@ -20,11 +21,8 @@ export interface ViewportPickContext {
    * target/pole effectors). The full-cover selection overlay owns pointer
    * events in the project viewport, so it forwards them through this narrow
    * seam instead of duplicating Three raycasting or constraint semantics. */
-  readonly editorControls?: {
-    activate(clientX: number, clientY: number): boolean;
-    hover(clientX: number, clientY: number): 'pointer' | 'not-allowed' | null;
-    clearHover(): void;
-  };
+  readonly editorControls?: ViewportEditorControls;
+
 }
 
 let _ctx: ViewportPickContext | null = null;
@@ -32,6 +30,7 @@ let _ctx: ViewportPickContext | null = null;
 /** Install/clear the live viewport's pick context (`EditorViewport` ctor/dispose). */
 export function setViewportPickContext(ctx: ViewportPickContext | null): void {
   _ctx = ctx;
+  setViewportEditorControls(ctx?.editorControls ?? null);
 }
 
 /** The live viewport's camera/canvas, or `null` when none is mounted. */

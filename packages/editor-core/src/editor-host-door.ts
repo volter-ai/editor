@@ -102,7 +102,7 @@ import {
   projectLocalSection,
   projectLocalStateReady,
   writeProjectLocalSection,
-} from './project-local-state';
+} from '@volter/editor-sdk/kit/project-local-state';
 import { getCurrentProject } from './project-manager';
 import { onProjectReady } from './project-ready';
 import { projectMounts } from './project-shape';

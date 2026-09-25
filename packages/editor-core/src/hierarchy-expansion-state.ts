@@ -18,7 +18,7 @@ import {
   projectLocalSection,
   projectLocalStateReady,
   writeProjectLocalSection,
-} from './project-local-state';
+} from '@volter/editor-sdk/kit/project-local-state';
 
 type ProjectPreferences = Map<string, boolean>;
 

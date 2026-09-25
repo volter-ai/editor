@@ -659,7 +659,7 @@
     },
     {
       "source": "packages/editor/src/command-registry.ts",
-      "path": "packages/editor-core/src/command-registry.ts",
+      "path": "packages/editor-sdk/src/kit/command-registry.ts",
       "sha256": "b46f37f41ee26bbcecf71500e87fb9be20afaa434c28744ba491b926e126990a"
     },
     {
@@ -1969,7 +1969,7 @@
     },
     {
       "source": "packages/editor/src/project-local-state.ts",
-      "path": "packages/editor-core/src/project-local-state.ts",
+      "path": "packages/editor-sdk/src/kit/project-local-state.ts",
       "sha256": "540de8e73dcfc6caad0668bf030cb61c42d1dde2ce82384cc21e302a4df81180"
     },
     {

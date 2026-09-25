@@ -6,15 +6,17 @@
  * Three half saves. The kit constructs none of it; the integration installs it once, and every
  * Three surface asks for it before it mounts (`ensureThreeIntegration`).
  */
-import { registerContributedCommands } from './command-registry';
+import { registerContributedCommands } from '@volter/editor-sdk/kit/command-registry';
 import { saveThumbnail } from '@volter/editor-sdk/kit/editor-api';
 import { registerObject3DSurfaces } from '@volter/editor-sdk/kit/object3d-surfaces';
+import { registerRendererResourceCounts } from '@volter/editor-sdk/kit/renderer-resource-counts';
+import { interactiveViewportRendererCounts } from './three-viewport/interactive-renderer';
 import { lazy } from 'react';
 import { SHELL_VIEWPORT_AUTHORING_POLICY } from './authoring/shell-viewport-policy';
 import { registerThreeAssetViewers } from './components/asset-viewers/three-asset-viewers';
 import type { EditorStatePersistence } from './editor-shell-store';
 import { registerModelThumbnails } from './model-thumbnail';
-import { writeProjectLocalSection } from './project-local-state';
+import { writeProjectLocalSection } from '@volter/editor-sdk/kit/project-local-state';
 import { onShellStore } from './shell-store-door';
 import { registerThreeStoryCapture } from './stories/three-story-captures';
 import { registerThreeCanvasRender } from './three-canvas-render';
@@ -55,6 +57,7 @@ export function ensureThreeIntegration(): () => void {
     registerThreeStoryCapture(),
     reportViewportStatus(),
     registerThreeCanvasRender(),
+    registerRendererResourceCounts('interactive', interactiveViewportRendererCounts),
     // The session store's Three half saves its view state; attached once per store.
     onShellStore((store) => threeStateOf(store).attachStatePersistence(VIEW_STATE_PERSISTENCE)),
   ];

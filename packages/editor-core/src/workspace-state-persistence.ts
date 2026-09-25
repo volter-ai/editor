@@ -83,7 +83,7 @@ import {
   projectLocalSection,
   projectLocalStateReady,
   writeProjectLocalSection,
-} from './project-local-state';
+} from '@volter/editor-sdk/kit/project-local-state';
 import { getCurrentProject } from './project-manager';
 import { refreshProjectToolContributions } from './tool-loader';
 import { PINNED_ASYNC_DOCUMENT_IDS } from '@volter/editor-sdk/kit/workspace-document-ids';

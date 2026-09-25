@@ -39,7 +39,7 @@
  */
 
 import { registerContributedActions } from '@volter/editor-sdk/kit/chrome-registry';
-import { registerContributedCommands } from '../command-registry';
+import { registerContributedCommands } from '@volter/editor-sdk/kit/command-registry';
 import { registerComponentStatesSource } from '../component-states-registry';
 import { registerContentEntrySource } from '../content-entry-source-registry';
 import { refreshProjectAdapter } from '../project-adapter';

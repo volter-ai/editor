@@ -24,7 +24,7 @@ import {
   isViewportToolContextVisible,
   resolveViewportToolContext,
 } from './authoring/viewport-tool-context';
-import { isThreejsSurfaceVisible } from './authoring/world-hidden-viewport';
+import { isThreejsSurfaceVisible } from './authoring/three-root';
 import type { EditorShellStore } from './editor-shell-store';
 import { stageStore } from './stage-store-registry';
 import { activeWorkspaceDocumentId, openWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-document-registry';

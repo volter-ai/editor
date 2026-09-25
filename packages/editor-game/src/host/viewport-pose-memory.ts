@@ -15,7 +15,7 @@
  */
 
 import type * as THREE from 'three';
-import { projectLocalSection, writeProjectLocalSection } from '@volter/editor-core/project-local-state';
+import { projectLocalSection, writeProjectLocalSection } from '@volter/editor-sdk/kit/project-local-state';
 
 /** The section of the project-local document this module owns. */
 const SECTION = 'viewportPose';

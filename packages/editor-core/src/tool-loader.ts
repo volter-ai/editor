@@ -44,7 +44,7 @@ import {
   registerContributedHeaderItem,
   registerContributedMenu,
 } from '@volter/editor-sdk/kit/chrome-registry';
-import { contributedCommandRows, registerContributedCommands } from './command-registry';
+import { contributedCommandRows, registerContributedCommands } from '@volter/editor-sdk/kit/command-registry';
 import { InspectorToolSection } from './components/InspectorToolSection';
 import { ToolHost } from './components/ToolHost';
 import { editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';

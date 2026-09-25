@@ -127,7 +127,7 @@ export function lastStoryMountPhaseTiming(): StoryMountPhaseTiming | null {
 /** A composed portable story is a callable React component; Storybook attaches
  *  an optional `.load()` when the CSF export declares `loaders`. A plain React
  *  component (no `.load`) is accepted too — the load step is simply skipped. */
-import type { StoryPreviewComponent } from './story-preview-component';
+import type { StoryPreviewComponent } from '@volter/editor-sdk/kit/stories/story-preview-component';
 export type { StoryPreviewComponent };
 
 export interface MountedStoryObject3D {

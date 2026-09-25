@@ -138,7 +138,7 @@ import {
   setSelectionScope,
   subscribeSelectionScope,
 } from '@volter/editor-sdk/kit/authoring/selection-scope';
-import { resolveThreeViewportRootId } from '../authoring/world-hidden-viewport';
+import { resolveThreeViewportRootId } from '../authoring/three-root';
 import {
   isRootHidden,
   isRootInteractive,

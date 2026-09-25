@@ -98,7 +98,7 @@ import {
   selectReactStoryFrameAtPoint,
   zoomReactStoryFrameAtPoint,
 } from '../authoring/react-story-board';
-import { getViewportPickContext } from '../authoring/viewport-pick-context';
+import { viewportEditorControls } from '@volter/editor-sdk/kit/viewport-editor-controls';
 import {
   panTransformValue,
   type RootViewController,
@@ -180,7 +180,7 @@ function activateViewportEditorControl(
   clientY: number,
 ): boolean {
   if (scopedAdapter) return false;
-  return getViewportPickContext()?.editorControls?.activate(clientX, clientY) ?? false;
+  return viewportEditorControls()?.activate(clientX, clientY) ?? false;
 }
 
 function updateViewportEditorControlHover(
@@ -193,7 +193,7 @@ function updateViewportEditorControlHover(
 ): void {
   const cursor = scopedAdapter
     ? null
-    : (getViewportPickContext()?.editorControls?.hover(clientX, clientY) ?? null);
+    : (viewportEditorControls()?.hover(clientX, clientY) ?? null);
   setCursor(cursor);
   setHoverId(cursor ? null : pickAt(clientX, clientY));
 }
@@ -2327,7 +2327,7 @@ export function RootSelectionOverlay({
   );
 
   const onPointerLeave = useCallback(() => {
-    if (!scopedAdapter) getViewportPickContext()?.editorControls?.clearHover();
+    if (!scopedAdapter) viewportEditorControls()?.clearHover();
     setEditorControlCursor(null);
     setHoverId(null);
   }, [scopedAdapter]);

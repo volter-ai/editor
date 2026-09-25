@@ -48,7 +48,8 @@ import {
   activeSelectionWriteAnchorKind,
 } from './authoring/shell-document-ops';
 import { noteCommandDispatched } from './command-dispatch';
-import { resolveContributedCommand, contributedCommandDerivedRefresh } from './command-registry';
+import { contributedCommandDerivedRefresh } from '@volter/editor-sdk/kit/command-registry';
+import { resolveContributedCommand } from './resolve-contributed-command';
 import {
   isAssetDocumentId,
   openAssetDocument,
@@ -93,7 +94,7 @@ import { getProjectModuleSplitReports } from '@volter/editor-sdk/kit/project-mod
 import { onSessionEndedChange, sessionEndedRefusal, sessionEndedState } from '@volter/editor-sdk/kit/session-tombstone';
 import { prepareSessionClose } from './session-close';
 import { scheduleDeferredFullReport } from './state-report-deferral';
-import { interactiveViewportRendererCounts } from './three-viewport/interactive-renderer';
+import { rendererResourceCounts } from '@volter/editor-sdk/kit/renderer-resource-counts';
 import {
   subscribeViewportActivationTimings,
   viewportActivationTimings,
@@ -530,7 +531,7 @@ export function collectState(
     // waiting for the browser to evict the oldest viewport.
     rendererResources: {
       hostLive: liveHostRendererCount(),
-      interactive: interactiveViewportRendererCounts(),
+      ...rendererResourceCounts(),
       inspectorPreview: inspectorPreviewRendererCounts(),
     },
     // The ontology's LIVE invariants, re-derived on read. Every row is present

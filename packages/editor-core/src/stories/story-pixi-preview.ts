@@ -57,7 +57,7 @@ import { CrashNullBoundary } from '@volter/editor-sdk/kit/crash-null-boundary';
 import { mountedStoryHasPixiContent } from './pixi-story-model';
 import { resolveStoryDomRuntime } from './story-dom-runtime';
 import { runInStoryMountTurn } from '@volter/editor-sdk/kit/stories/story-mount-turn';
-import type { StoryPreviewComponent } from './story-preview-component';
+import type { StoryPreviewComponent } from '@volter/editor-sdk/kit/stories/story-preview-component';
 
 /**
  * How long the mount waits for the story's `Application` to finish initializing

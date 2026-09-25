@@ -239,7 +239,13 @@
     "./kit/workspace-host-commands": "./src/kit/workspace-host-commands.ts",
     "./kit/workspace-static-panels": "./src/kit/workspace-static-panels.ts",
     "./kit/workspace-status-registry": "./src/kit/workspace-status-registry.ts",
-    "./kit/object3d-surfaces": "./src/kit/object3d-surfaces.ts"
+    "./kit/object3d-surfaces": "./src/kit/object3d-surfaces.ts",
+    "./kit/viewport-editor-controls": "./src/kit/viewport-editor-controls.ts",
+    "./kit/renderer-resource-counts": "./src/kit/renderer-resource-counts.ts",
+    "./kit/authoring/viewport-tool-owner": "./src/kit/authoring/viewport-tool-owner.ts",
+    "./kit/command-registry": "./src/kit/command-registry.ts",
+    "./kit/project-local-state": "./src/kit/project-local-state.ts",
+    "./kit/stories/story-preview-component": "./src/kit/stories/story-preview-component.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",
