@@ -25,15 +25,16 @@ Unreal is not installed on this box and its documentation does not state these d
 | Backdrop form (flat, gradient, radial, sky) | no | fixed: flat when the palette names a colour, gradient otherwise |
 | Grid colour | yes, one colour (`color.viewport.grid`) | minor and major both derive from it; default `0x999999` |
 | Grid alpha, major step, reach and fade, planes | no | fade from 55% to 100% of the grid radius, a grazing fade only when the palette names a backdrop (`editor-viewport.ts`, `standard-viewport-dressing.ts`) |
-| Axis colours | X and Y only (`color.viewport.axisX`, `axisY`) | no Z, no alpha, no centre colour |
-| Selection | colour and active colour (`color.viewport.selection`, `active`) | outline only; no box-corner style, no children colour, fixed width |
+| Axis line colours and width | yes, named by the world's axes (`color.viewport.axisX`, `axisY`, optional `axisZ`, else the gizmo's; `density.viewport.axisLineWidth`) | which lines show is the view's (`overlays.axes`) |
+| Selection | colour and active colour (`color.viewport.selection`, `active`: a lone selected object outlines in the active colour); the box's form, width and frame (`selectionBox`, `selectionBoxWidth`, `selectionBoxFrame`) | no children colour; several selected objects do not yet tell the active one apart |
 | Scene light when the scene has none | no | key `DirectionalLight(0xffffff, 1.9)` in the dressing; editor rig ambient 0.5 and directional 1.0 (`editor-viewport.ts`) |
 | Environment and its strength | no | RoomEnvironment at a fixed strength (`StageHost.tsx`) |
 | Tone mapping and exposure | no | ACES Filmic unless a document states its own |
 | Gizmo size | yes (`density.viewport`) | |
 | Gizmo colours, resting opacity, highlight | yes: `color.gizmo` (x, y, z; the navigation gizmo's own navigationX/Y/Z where the target draws it differently, as Blender's balls are; optional hover and drag) and `density.viewport.gizmoOpacity`, `gizmoHighlightSaturation`, `gizmoHighlightValue` | the transform and navigation gizmos; without the group, the kit's own (Godot's axis colours, three's yellow highlight, opaque handles) |
-| Gizmo form (handle shapes, the navigation gizmo's balls, cube or triad and its corner) | no | fixed: three's handles as patched, Blender's navigation balls |
-| Armed tool, box-select test, up axis | no: function, not look (ARCHITECTURE rule 7) | the stage's presentation (`interaction`, `world`) |
+| Move arrows' length and head | yes (`density.viewport.gizmoArrowLength`, `gizmoArrowHead`) | |
+| Other gizmo form (ring width, scale handles' shape, the navigation gizmo's balls, cube or triad and its corner) | no | fixed: three's handles as patched, Blender's navigation balls |
+| Armed tool, box-select test, up axis, the transform tool's extra handles, which axis lines show | no: function, not look (ARCHITECTURE rule 7) | the stage's presentation (`interaction`, `world`, `overlays.axes`) |
 
 ## The ruling: look, presentation and starting values (owner, 2026-09-25)
 
@@ -67,7 +68,9 @@ Built (`@volter/editor-sdk/kit/viewport-presentation`, `StagePresentationRig` in
 - the preview source draws Godot's preview sun and procedural sky; the backdrop sources `color`, `environment` and `transparent` replace the stage's own;
 - the stage's function: the tool it opens on, what a box drag selects and the world's up axis (`interaction`, `world`); the Blender integration starts its `model` stage on select, touch and Z-up, and a style switch leaves them alone;
 - the gizmos' colours from the look, by source: Blender's theme axis colours at 0.6 resting opacity, highlighting in their own colour (`userdef_default_theme.c`, `transform_gizmo_3d.cc`); Godot's at 0.9, highlighting at a quarter saturation and full value (`theme_modern.cpp`, `node_3d_editor_plugin.cpp`); Unity's at 0.93 with its preselection and selected-axis colours (`Handles.cs`). The opacity is the handles'; the drag's axis lines keep three's own. Resting colours and opacity are checked on captures; the highlight is not yet seen on screen, as the product has no door that holds a hover;
-- overlays: the selection marks (outline, wire, box, in any combination) and the grid's major step; the look states the grid's line widths and major contrast (`density.viewport`);
+- overlays: the selection marks (outline, wire, box, in any combination), the grid's major step and which world axis lines show; the look states the grid's line widths and major contrast, the axis lines' colours and width, and the box's form and frame (`density.viewport`);
+- the transform tool's extra handles (scale, view-axis ring, free move) are the view's (`interaction.transformHandles`); the move arrows' length and head are the look's;
+- the preview sky is a float strip with Godot's sun in it (disc and 30° glow on a 0.15 curve), so a sun brighter than white stays bright;
 - `editor.presentation(documentId, layer?)` reads and records a view's presentation, and reports what its last draw was lit by.
 
 Capability, per target (can its default viewport and its toggles be expressed without new code):
@@ -75,8 +78,14 @@ Capability, per target (can its default viewport and its toggles be expressed wi
 | Target | Expressible now | Not yet |
 |---|---|---|
 | Blender | Solid (its own studio, AgX, no environment), the fill, outline, grid step and widths | Material Preview's HDRI (only a procedural sky exists), Rendered (the engine's render lighting is not a scene light the stage can switch to), box and wire on Blender documents (its selection ids are datablocks, not three objects) |
-| Godot | preview sun and sky, sky as backdrop, 8-cell major step | its selection box as the full AABB (ours draws corner brackets), per-part takeover (the sun and the environment give way separately; `auto` switches the whole source), its Filmic curve (AgX stands in), the sun's energy unit, XY and YZ grid planes |
+| Godot | preview sun and sky with the sun in it, sky as backdrop, 8-cell major step, the full box in the object's frame, all three axis lines, the Select gizmo's arrows and handles | per-part takeover (the sun and the environment give way separately; `auto` switches the whole source), its Filmic curve (three's maps white to about 0.8, so its sun reads grey at energy 1), ring width, the sun's energy unit, XY and YZ grid planes |
 | Unity | scene lighting, outline plus wire, a camera-locked headlight as a preset | the skybox toggle as a backdrop source over a scene without a skybox, Prefab Mode's context fill, per-mode lighting of draw modes |
 | Unreal | the level's own sky and lights (`scene` sources), an outline | the outline's width and colour as look values; not measured beyond its frames |
 
-Neither half is accepted. The reference frames are downloaded (`/Volumes/PeakSSD/volter-work/engine-reference`); the targets' looks are still to be authored and judged side by side against them; the world stage is compiled but not yet seen on a project with a world.
+Godot's default viewport is its style (`@volter/editor-game` `godot.style.ts`) with this presentation layer; judged side by side against `engine-reference/godot/tuto_3d3.png` and `tuto_3d5.png`, it reads as Godot's except for the tone curve and ring width:
+
+```json
+{"all":{"lighting":{"source":"preview","preview":{"sun":{"enabled":true,"color":"#ffffff","energy":1,"altitude":60,"azimuth":150,"shadowDistance":100},"environment":{"enabled":true,"sky":{"top":"#8797ad","horizon":"#e2e5e9","ground":"#383129"},"energy":1,"rotation":0}},"tone":{"mapper":"filmic","exposure":1}},"backdrop":{"source":"environment","opacity":1,"blur":0}},"overlays":{"grid":{"visible":true,"majorEvery":8},"selection":{"outline":false,"wire":false,"box":true},"axes":{"x":true,"y":true,"z":true}},"interaction":{"transformHandles":{"scale":false,"viewRotate":false,"freeMove":false}}}
+```
+
+Neither half is accepted. The reference frames are downloaded (`/Volumes/PeakSSD/volter-work/engine-reference`); the Unity and Unreal looks are still to be authored and judged side by side against them; the world stage is compiled but not yet seen on a project with a world.
