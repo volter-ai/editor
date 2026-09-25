@@ -401,6 +401,8 @@ class Object3DDocumentHost {
   /** The stage's lighting, tone and exposure, from its view's presentation
    *  (`standard-viewport-dressing.ts`, `kit/viewport-presentation`). */
   presentationRig: StagePresentationRig | null = null;
+  /** Whether the view's presentation replaced the stage's own backdrop at the last draw. */
+  backdropOverridden = false;
   /** The document's own view-locked studio, under the stage's holder (`dressing.viewLocked`). */
   documentStudio: THREE.Group | null = null;
   /** The lights the content carries and what it holds, for the view's `auto` rule. */
@@ -1608,16 +1610,32 @@ export function Object3DDocumentViewport({
           const rig = host.presentationRig;
           if (rig) {
             const drawSource = rig.resolveSource({ ...host.contentHas, environment: scene.environment !== null });
-            const studioEnvironment = rig.environmentIntensity();
-            if (studioEnvironment !== null) {
-              host.scene.environment = host.defaultEnvironment;
-              host.scene.environmentIntensity = studioEnvironment;
+            const environment = rig.environment();
+            if (environment) {
+              host.scene.environment = environment.texture ?? host.defaultEnvironment;
+              host.scene.environmentIntensity = environment.intensity;
+            }
+            // What is drawn behind the scene: the stage's own backdrop (the look's fill, or the
+            // scene's own as mirrored above) unless the view names another.
+            const backdrop = rig.backdrop();
+            if (backdrop !== 'keep') {
+              host.scene.background = backdrop.value;
+              host.scene.backgroundBlurriness = backdrop.blur;
+              host.scene.backgroundIntensity = backdrop.intensity;
+              host.backdropOverridden = true;
+            } else if (host.backdropOverridden) {
+              host.scene.background = documentSession.neutralBackgroundTexture();
+              host.scene.backgroundBlurriness = scene.backgroundBlurriness;
+              host.scene.backgroundIntensity = scene.backgroundIntensity;
+              host.backdropOverridden = false;
             }
             const documentStudio = drawSource === 'studio' && rig.presetId() === DOCUMENT_STUDIO_PRESET.id;
             if (host.documentStudio) host.documentStudio.visible = documentStudio;
             // The document's own studio manages its scene's lights itself (Blender stands them
-            // down for modelling and up for a render); any other studio or preview lights alone.
-            const darkened = drawSource !== 'scene' && !documentStudio ? host.darkenContentLights() : 0;
+            // down for modelling and up for a render).
+            // A studio lights alone; a preview ADDS to the scene's other lights (Godot's preview
+            // sun gives way only to a directional light, which `auto` weighs).
+            const darkened = drawSource === 'studio' && !documentStudio ? host.darkenContentLights() : 0;
             rig.update(documentSession.camera());
             reportViewDraw(documentId, {
               source: drawSource,

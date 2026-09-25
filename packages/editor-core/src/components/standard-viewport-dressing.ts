@@ -406,6 +406,13 @@ export class StagePresentationRig {
   private preset: StudioPreset | null = null;
   private presentation: ViewportPresentation | null = null;
   private source: 'studio' | 'preview' | 'scene' = 'studio';
+  /** The `preview` source's sun (Godot's preview sun). */
+  private readonly previewGroup = new THREE.Group();
+  private readonly sun = new THREE.DirectionalLight(0xffffff, 1);
+  /** The preview sky, built from its three colours: the background drawn behind the scene and
+   *  the environment that lights it, rebuilt only when the colours change. */
+  private sky: { key: string; background: THREE.Texture; environment: THREE.Texture } | null = null;
+  private pmrem: THREE.PMREMGenerator | null = null;
   private readonly direction = new THREE.Vector3();
 
   constructor(scene: THREE.Scene) {
@@ -414,6 +421,13 @@ export class StagePresentationRig {
     this.group.userData['editorHelper'] = true;
     this.group.add(this.ambient);
     scene.add(this.group);
+    this.previewGroup.name = 'vgai:stage-preview-rig';
+    this.previewGroup.userData['editorHelper'] = true;
+    this.sun.name = 'vgai:preview-sun';
+    this.sun.userData['editorHelper'] = true;
+    this.previewGroup.add(this.sun, this.sun.target);
+    this.previewGroup.visible = false;
+    scene.add(this.previewGroup);
   }
 
   /** Apply a view's presentation. `toneMapping` is the document's own mapper when it states one
@@ -431,6 +445,109 @@ export class StagePresentationRig {
     this.group.visible = lighting.source === 'studio';
     renderer.toneMapping = documentToneMapping ?? TONE_MAPPERS[lighting.tone.mapper];
     renderer.toneMappingExposure = lighting.tone.exposure;
+    // The preview sun: Godot's, placed by altitude and azimuth (clockwise from north, -Z).
+    const { sun, environment } = lighting.preview;
+    const altitude = THREE.MathUtils.degToRad(sun.altitude);
+    const azimuth = THREE.MathUtils.degToRad(sun.azimuth);
+    this.sun.color.set(sun.color);
+    // Godot's energy as three's intensity, unscaled: the unit mapping is measured against
+    // Godot's own frames, not assumed.
+    this.sun.intensity = sun.enabled ? sun.energy : 0;
+    this.sun.position
+      .set(Math.sin(azimuth) * Math.cos(altitude), Math.sin(altitude), -Math.cos(azimuth) * Math.cos(altitude))
+      .multiplyScalar(LIGHT_DISTANCE);
+    this.sun.castShadow = sun.enabled && sun.shadowDistance > 0;
+    const reach = Math.min(Math.max(sun.shadowDistance, 1), 50) / 2;
+    Object.assign(this.sun.shadow.camera, { left: -reach, right: reach, top: reach, bottom: -reach });
+    this.sun.shadow.camera.updateProjectionMatrix();
+    this.sun.updateMatrixWorld();
+    this.sun.target.updateMatrixWorld();
+    const wantsSky =
+      environment.enabled && (lighting.source === 'preview' || presentation.backdrop.source === 'environment');
+    if (wantsSky) this.buildSky(environment.sky, renderer);
+  }
+
+  /**
+   * THE PREVIEW SKY, Godot's `ProceduralSkyMaterial` at its defaults: above the horizon the
+   * horizon colour runs to the top colour on a curve of 0.15, below it to the ground colour on
+   * a curve of 0.02, mixed in linear light (`scene/resources/3d/sky_material.cpp`). Drawn once
+   * into an equirectangular strip, which is both the backdrop and, prefiltered, the light.
+   */
+  private buildSky(
+    colours: ViewportPresentation['lighting']['preview']['environment']['sky'],
+    renderer: THREE.WebGLRenderer,
+  ): void {
+    const key = `${colours.top}|${colours.horizon}|${colours.ground}`;
+    if (this.sky?.key === key) return;
+    this.disposeSky();
+    if (typeof document === 'undefined') return;
+    const width = 4;
+    const height = 256;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    const linear = (hex: string) => new THREE.Color(hex);
+    const top = linear(colours.top);
+    const horizon = linear(colours.horizon);
+    const ground = linear(colours.ground);
+    const mixed = new THREE.Color();
+    for (let row = 0; row < height; row++) {
+      const angle = ((row + 0.5) / height) * Math.PI; // 0 = straight up, PI = straight down
+      if (angle <= Math.PI / 2) {
+        const c = 1 - angle / (Math.PI / 2);
+        mixed.copy(horizon).lerp(top, THREE.MathUtils.clamp(1 - Math.pow(1 - c, 1 / 0.15), 0, 1));
+      } else {
+        const c = (angle - Math.PI / 2) / (Math.PI / 2);
+        mixed.copy(horizon).lerp(ground, THREE.MathUtils.clamp(1 - Math.pow(1 - c, 1 / 0.02), 0, 1));
+      }
+      context.fillStyle = `#${mixed.getHexString(THREE.SRGBColorSpace)}`;
+      context.fillRect(0, row, width, 1);
+    }
+    const background = new THREE.CanvasTexture(canvas);
+    background.mapping = THREE.EquirectangularReflectionMapping;
+    background.colorSpace = THREE.SRGBColorSpace;
+    this.pmrem ??= new THREE.PMREMGenerator(renderer);
+    const environment = this.pmrem.fromEquirectangular(background).texture;
+    this.sky = { key, background, environment };
+  }
+
+  private disposeSky(): void {
+    this.sky?.background.dispose();
+    this.sky?.environment.dispose();
+    this.sky = null;
+  }
+
+  /** The environment this draw lights by: the studio's own at the preset's strength, the
+   *  preview sky at its energy, or `null` when the scene's own decides. */
+  environment(): { readonly texture: THREE.Texture | null; readonly intensity: number } | null {
+    const lighting = this.presentation?.lighting;
+    if (!lighting) return null;
+    if (this.source === 'studio') return { texture: null, intensity: this.preset?.environmentIntensity ?? 0 };
+    if (this.source === 'preview') {
+      return lighting.preview.environment.enabled
+        ? { texture: this.sky?.environment ?? null, intensity: lighting.preview.environment.energy }
+        : { texture: null, intensity: 0 };
+    }
+    return null;
+  }
+
+  /**
+   * What this draw shows behind the scene, or `'keep'` for the stage's own backdrop (the look's
+   * fill, and a scene's own background as the stage already mirrors it).
+   */
+  backdrop():
+    | 'keep'
+    | { readonly value: THREE.Color | THREE.Texture | null; readonly blur: number; readonly intensity: number } {
+    const backdrop = this.presentation?.backdrop;
+    if (!backdrop || backdrop.source === 'fill' || backdrop.source === 'scene') return 'keep';
+    if (backdrop.source === 'transparent') return { value: null, blur: 0, intensity: 1 };
+    if (backdrop.source === 'color') return { value: new THREE.Color(backdrop.color), blur: 0, intensity: 1 };
+    // `environment`: the preview sky drawn behind the scene, at the view's opacity and blur.
+    return this.sky
+      ? { value: this.sky.background, blur: backdrop.blur, intensity: backdrop.opacity }
+      : 'keep';
   }
 
   /**
@@ -446,6 +563,7 @@ export class StagePresentationRig {
     }
     this.source = source;
     this.group.visible = source === 'studio';
+    this.previewGroup.visible = source === 'preview';
     return source;
   }
 
@@ -459,11 +577,6 @@ export class StagePresentationRig {
     return this.preset?.id ?? null;
   }
 
-  /** The image-based light's strength this draw wants, or `null` when the scene's own decides. */
-  environmentIntensity(): number | null {
-    if (this.source !== 'studio') return null;
-    return this.preset?.environmentIntensity ?? null;
-  }
 
   /** Before every draw: point the camera-locked lights along the camera. */
   update(camera: THREE.Camera): void {
@@ -481,6 +594,10 @@ export class StagePresentationRig {
   dispose(): void {
     this.clearLights();
     this.group.removeFromParent();
+    this.previewGroup.removeFromParent();
+    this.sun.dispose();
+    this.disposeSky();
+    this.pmrem?.dispose();
   }
 
   private build(preset: StudioPreset): void {
