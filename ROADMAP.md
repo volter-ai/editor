@@ -96,7 +96,6 @@ Completion:
 - Visual generalizability: chrome anatomy, the missing axis.
 - The browser editor: a static page as an authoring peer (owner decision).
 - Findings from the first human play sessions, the serious build session, the authoring checklist and the design-round blind walk are each closed or evidenced as limits.
-- Untrusted pointer events drive OrbitControls and TransformControls; `editor.captureActiveDocument()` goes through the EffectComposer.
 - Scatter/foliage brush, Tiled `.tmj` ingest, sprite slicing, dialogue (Ink first), localization (i18next), data relations, humanoid polish.
 
 ## assets-networking-services: Assets, networking and services
