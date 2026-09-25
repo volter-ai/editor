@@ -125,12 +125,23 @@ export class PreviewEngine {
       if (!this.context) {
         this.setState({ kind: 'loading', detail: 'Starting the audio engine' });
         this.context = new AudioContext();
+      }
+      // Resume INSIDE the gesture that called play, before any await: the browser grants audio to
+      // the click itself (autoplay policy), and a context that is still suspended after a moment
+      // was not granted one; that is said plainly instead of waiting forever.
+      const resumed = this.context.resume();
+      if (this.context.state !== 'running') {
+        const granted = await Promise.race([resumed.then(() => true), new Promise<boolean>((done) => setTimeout(() => done(false), 1500))]);
+        if (!granted) {
+          throw new Error('The browser is holding audio until you click in the editor (autoplay policy). Click Play.');
+        }
+      }
+      if (!this.synth) {
         await this.context.audioWorklet.addModule(processorUrl);
         this.synth = new WorkletSynthesizer(this.context);
         this.synth.connect(this.context.destination);
         await this.synth.isReady;
       }
-      await this.context.resume();
       await this.loadBanks(piece);
       this.stopTimer();
       this.synth?.stopAll(true);
