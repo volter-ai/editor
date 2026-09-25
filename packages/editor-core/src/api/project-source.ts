@@ -33,6 +33,23 @@ export async function readProjectTextFile(path: string): Promise<string | null> 
 }
 
 /**
+ * A project source file as written, or null when it is absent or unreadable.
+ * The dev server serves `src/...` TRANSFORMED (imports rewritten to served
+ * paths), so a reader of the author's source asks `/__editor/source-file`.
+ */
+export async function readProjectSourceText(path: string): Promise<string | null> {
+  try {
+    const res = await fetch(`/__editor/source-file?path=${encodeURIComponent(path.replace(/^\.?\//, ''))}`, {
+      cache: 'no-store',
+    });
+    if (res.ok) return await res.text();
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+/**
  * What a probe can honestly conclude about a project file. THREE answers,
  * because "no" and "I could not tell" are different facts and a boolean has
  * to spend one of them.

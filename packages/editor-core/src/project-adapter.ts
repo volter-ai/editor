@@ -105,7 +105,7 @@ import {
   listProjectComponents,
   listProjectSourceFiles,
   probeProjectFile,
-  readProjectTextFile,
+  readProjectSourceText,
 } from './editor-api';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { fetchGameManifest } from './manifest-project';
@@ -400,7 +400,7 @@ async function gatherFinderInput(
     entrypoints.push({
       regionId: root.id,
       path: root.entry,
-      source: await readProjectTextFile(root.entry),
+      source: await readProjectSourceText(root.entry),
     });
   }
 
@@ -454,7 +454,7 @@ async function gatherFinderInput(
       // before the test can run, so a binary under a finder's globs is read
       // once per adapter resolve. A selection that declared it wants paths
       // only would close it; no shipped finder needs that yet.
-      const source = await readProjectTextFile(path);
+      const source = await readProjectSourceText(path);
       if (source !== null && !source.includes('\0')) sources.push({ path, source });
     }
   }

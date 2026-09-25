@@ -256,6 +256,8 @@ const VIEW_API_PATHS = new Set([
   '/__editor/themes/project',
   '/__editor/story-files',
   '/__editor/source-conflict',
+  // Source as written; a guest already reads it transformed from the dev server.
+  '/__editor/source-file',
   '/__editor/templates',
   '/__editor/tab-yielded',
   '/__editor/validation-log',
