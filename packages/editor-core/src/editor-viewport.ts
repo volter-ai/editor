@@ -82,6 +82,12 @@ import { viewportAuthoringPolicy } from './viewport-authoring-policy';
 import { recordOrbitGesture } from './viewport-controls-hint';
 
 /** A bounds box or LineSegments wireframe tagged with its source entity object. */
+/** A selected mesh's wireframe (the view's `selection.wire` overlay, Unity's Selection Wire):
+ *  a stage-owned line set that copies the mesh's world matrix each frame, never a child of it. */
+interface WireHelper extends THREE.LineSegments {
+  _wireOf?: THREE.Object3D;
+}
+
 interface TaggedHelper extends ContentBoundsHelper {
   isBoxHelper: boolean;
   _entityObj?: THREE.Object3D;
@@ -648,6 +654,7 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
       // The look's widths (`nativeViewportGrid`), applied with its colours.
       uLineWidth: { value: 1 },
       uMajorWidth: { value: 1 },
+      uMajorEvery: { value: 10 },
       uFadeStart: { value: (extent / 2) * 0.55 },
       uFadeEnd: { value: extent / 2 },
       // The grazing fade's amount, 0..1 — set by `_applyViewportLook` from
@@ -668,6 +675,7 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
       uniform float uOpacity;
       uniform float uLineWidth;
       uniform float uMajorWidth;
+      uniform float uMajorEvery;
       uniform float uFadeStart;
       uniform float uFadeEnd;
       uniform float uGrazingFade;
@@ -700,7 +708,7 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
         // line is 4 px at half rise and plateaus at 83, the 10 m line is 6 px
         // and plateaus at 101. At one shared width ours drew a 10 m line that
         // never exceeded 0.75 coverage and so measured 91, not 102.
-        float major = gridLine(p / 10.0, uMajorWidth);
+        float major = gridLine(p / uMajorEvery, uMajorWidth);
         float line = max(minor, major);
         float fade = 1.0 - smoothstep(uFadeStart, uFadeEnd, length(p));
         // The floor's DEPTH, beside the band that ends its finite extent:
@@ -763,6 +771,10 @@ export class EditorViewport {
    *  Nothing reads a key back; the map exists so a rebuild can dispose exactly
    *  what it made. */
   private _boxHelpers = new Map<string, BoundsHelper>();
+  /** The view's selection marks (`kit/viewport-presentation` overlays.selection): the native
+   *  outline is the stage's own switch; `box` brackets every selected object, not only those
+   *  without geometry (Godot); `wire` draws the selected meshes' wireframes (Unity). */
+  private _selectionMarks = { outline: true, wire: false, box: false };
   private _unsubscribeSelectionTheme: () => void = () => {};
   private _constraintHelpers = new Map<string, ConstraintHelper>();
   private _constraintControlRaycaster = (() => {
@@ -1822,7 +1834,35 @@ export class EditorViewport {
     // fallback so every hierarchy row can still be found in the viewport.
     for (const id of this._store.selectedEntityIds) {
       const obj = this._objectForAuthoringId(id);
-      if (!obj || this._hasBoundableGeometry(obj)) continue;
+      if (!obj) continue;
+      const geometric = this._hasBoundableGeometry(obj);
+      if (geometric && this._selectionMarks.wire) {
+        let index = 0;
+        obj.traverse((child) => {
+          const mesh = child as THREE.Mesh;
+          if (!mesh.isMesh || !mesh.geometry || isInEditorOwnedSubtree(mesh)) return;
+          const wire = new THREE.LineSegments(
+            new THREE.WireframeGeometry(mesh.geometry),
+            new THREE.LineBasicMaterial({
+              color: nativeSelectionColors(this._canvas).visible,
+              transparent: true,
+              opacity: 0.5,
+              depthTest: true,
+            }),
+          ) as WireHelper;
+          wire.matrixAutoUpdate = false;
+          wire._wireOf = mesh;
+          add(`wire:${id}:${index++}`, wire);
+        });
+      }
+      if (geometric && !this._selectionMarks.box) continue;
+      if (geometric) {
+        add(
+          `selection:${id}`,
+          new SelectionBrackets(obj, { color: nativeSelectionColors(this._canvas).visible }),
+        );
+        continue;
+      }
       // Object3D documents paint bones with their native selected-joint point
       // and thick incident segments. The generic empty-transform brackets are
       // a second, less specific selection treatment and make the rig overlay
@@ -3289,6 +3329,12 @@ export class EditorViewport {
     }
 
     for (const helper of this._boxHelpers.values()) {
+      const wireOf = (helper as WireHelper)._wireOf;
+      if (wireOf) {
+        helper.matrix.copy(wireOf.matrixWorld);
+        helper.matrixWorldNeedsUpdate = true;
+        continue;
+      }
       if (helper instanceof SelectionBrackets) {
         // Static terrain/building selections keep their already-computed AABB.
         // Root motion and vertex-animated selections still refresh here.
@@ -3541,6 +3587,20 @@ export class EditorViewport {
    * the 84 and the 102 were read in, before the inversion, because ACES is
    * not linear and extrapolating on its far side lands somewhere else.
    */
+  /** The view's selection marks; a change rebuilds the marks for the current selection. */
+  setSelectionMarks(marks: { readonly outline: boolean; readonly wire: boolean; readonly box: boolean }): void {
+    const current = this._selectionMarks;
+    if (current.outline === marks.outline && current.wire === marks.wire && current.box === marks.box) return;
+    this._selectionMarks = { outline: marks.outline, wire: marks.wire, box: marks.box };
+    this._syncBoxHelpers();
+  }
+
+  /** Minor cells per major line (`overlays.grid.majorEvery`; Blender 10, Godot 8). */
+  setGridMajorEvery(every: number): void {
+    const uniform = this.grid.material.uniforms['uMajorEvery'];
+    if (uniform && Number.isFinite(every) && every >= 1) uniform.value = every;
+  }
+
   /** The look's floor lines: widths in device pixels and the major level's contrast. */
   private _gridMajorContrast = 1;
   private _applyGridLines(lines: ReturnType<typeof nativeViewportGrid>): void {

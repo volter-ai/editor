@@ -401,6 +401,8 @@ class Object3DDocumentHost {
   /** The stage's lighting, tone and exposure, from its view's presentation
    *  (`standard-viewport-dressing.ts`, `kit/viewport-presentation`). */
   presentationRig: StagePresentationRig | null = null;
+  /** Re-apply the view's presentation (after the viewport and session exist). */
+  applyPresentation: (() => void) | null = null;
   /** Whether the view's presentation replaced the stage's own backdrop at the last draw. */
   backdropOverridden = false;
   /** The document's own view-locked studio, under the stage's holder (`dressing.viewLocked`). */
@@ -703,6 +705,8 @@ export function Object3DDocumentViewport({
     const session = documentHostRef.current?.session;
     if (session)
       session.selectionOutlineEnabled = rendererLane !== 'inspector-preview' && selectionOutline;
+    // And the view's own selection marks over it (`overlays.selection.outline`).
+    documentHostRef.current?.applyPresentation?.();
   }, [selectionOutline, rendererLane]);
   const contentUpdateTail = useRef<Promise<void>>(Promise.resolve());
   const retainSourceOnDisposeRef = useRef(false);
@@ -1195,9 +1199,19 @@ export function Object3DDocumentViewport({
             host.presentationRig = rig;
             bindViewPresentation(documentId, stageKindOf(documentId));
             const applyPresentation = () => {
-              rig.apply(viewPresentation(documentId), renderer, dressingToneMapping);
+              const presentation = viewPresentation(documentId);
+              rig.apply(presentation, renderer, dressingToneMapping);
+              // The view's overlays: its selection marks and its grid's major step. The native
+              // outline is also the stage's own switch (a shared preview draws none).
+              host.viewport?.setSelectionMarks(presentation.overlays.selection);
+              host.viewport?.setGridMajorEvery(presentation.overlays.grid.majorEvery);
+              if (host.session) {
+                host.session.selectionOutlineEnabled =
+                  !shared && selectionOutlineRef.current && presentation.overlays.selection.outline;
+              }
               invalidateStages();
             };
+            host.applyPresentation = applyPresentation;
             applyPresentation();
             host.cleanups.push(subscribeViewportPresentation(applyPresentation));
             host.cleanups.push(() => {
@@ -1504,6 +1518,8 @@ export function Object3DDocumentViewport({
             overviewFrame,
           );
           host.session.selectionOutlineEnabled = !shared && selectionOutlineRef.current;
+          // The view's presentation, now that the viewport and session exist to take it.
+          host.applyPresentation?.();
           if (!studioStage && background === undefined && host.dressing.backgroundTexture) {
             const session = host.session;
             host.cleanups.push(
