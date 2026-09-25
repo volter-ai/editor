@@ -198,6 +198,15 @@ export const style: StyleContribution = {
         // same frame. Ours opened on the COMBINED gizmo — Unity's shape, three
         // tools' handles at once, on something merely selected.
         shelfTool: 'select',
+        // BLENDER'S FLOOR LINES, in device pixels, measured across one scanline of
+        // `modeling-object-none.png` at device resolution: the 1 m line is 4 px at half rise and
+        // plateaus at 83, the 10 m line is 6 px and plateaus at 101 — so the major line is wider
+        // (2.25 against 1.5) and carried (102 − 63) / (84 − 63) past the minor's colour from the
+        // background they share. Stated here, the look's, since the editor's own floor is a
+        // single hairline level.
+        gridLineWidth: 1.5,
+        gridMajorWidth: 2.25,
+        gridMajorContrast: 39 / 21,
         // BLENDER'S WORLD IS Z-UP, and the stage presents it through the exact
         // signed permutation `(x, y, z) → (x, z, −y)` the presented root
         // carries (`blender-runtime-view.ts`'s constructor). So three's Y is

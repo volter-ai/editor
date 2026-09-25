@@ -55,6 +55,7 @@ import {
   nativeViewportBoxSelect,
   nativeViewportGizmoSize,
   nativeViewportLook,
+  nativeViewportGrid,
   nativeViewportUpAxis,
   subscribeNativeSelectionTheme,
 } from '@volter/editor-sdk/kit/native-selection-style';
@@ -363,10 +364,6 @@ export function stageVerticalFovDegrees(aspect: number): number {
  *  elevation 26.5°, azimuth −23.8° about the up axis — SOLVED from the
  *  reference's two floor axes, whose projected slopes there are +1.0093 (X)
  *  and −0.1969 (Y). In three's Y-up frame that is this unit vector. */
-/** How much brighter Blender's 10 m line is than its 1 m line, measured over
- *  the background they share: (102 − 63) / (84 − 63) in
- *  `modeling-object-none.png`. */
-const GRID_MAJOR_CONTRAST = 39 / 21;
 
 /** The navigation gizmo's axis colours, read off Blender's own balls in
  *  `modeling-object-none.png`: X (245,54,81), Y (111,164,27), Z (46,131,227).
@@ -648,7 +645,9 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
       uColor: { value: new THREE.Color(0x999999) },
       uMajorColor: { value: new THREE.Color(0x999999) },
       uOpacity: { value: 1 },
-      uLineWidth: { value: 1.5 },
+      // The look's widths (`nativeViewportGrid`), applied with its colours.
+      uLineWidth: { value: 1 },
+      uMajorWidth: { value: 1 },
       uFadeStart: { value: (extent / 2) * 0.55 },
       uFadeEnd: { value: extent / 2 },
       // The grazing fade's amount, 0..1 — set by `_applyViewportLook` from
@@ -668,6 +667,7 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
       uniform vec3 uMajorColor;
       uniform float uOpacity;
       uniform float uLineWidth;
+      uniform float uMajorWidth;
       uniform float uFadeStart;
       uniform float uFadeEnd;
       uniform float uGrazingFade;
@@ -700,7 +700,7 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
         // line is 4 px at half rise and plateaus at 83, the 10 m line is 6 px
         // and plateaus at 101. At one shared width ours drew a 10 m line that
         // never exceeded 0.75 coverage and so measured 91, not 102.
-        float major = gridLine(p / 10.0, uLineWidth * 1.5);
+        float major = gridLine(p / 10.0, uMajorWidth);
         float line = max(minor, major);
         float fade = 1.0 - smoothstep(uFadeStart, uFadeEnd, length(p));
         // The floor's DEPTH, beside the band that ends its finite extent:
@@ -1124,6 +1124,7 @@ export class EditorViewport {
         if (helper instanceof SelectionBrackets) helper.setColor(color);
       }
       this._applyViewportLook(nativeViewportLook(canvas));
+      this._applyGridLines(nativeViewportGrid(canvas));
       this._lookGizmoSizePx = nativeViewportGizmoSize(canvas);
       this._applyGizmoSize();
       // WHAT FRAME THIS STAGE IS PRESENTING, and what a box select means in
@@ -3540,6 +3541,16 @@ export class EditorViewport {
    * the 84 and the 102 were read in, before the inversion, because ACES is
    * not linear and extrapolating on its far side lands somewhere else.
    */
+  /** The look's floor lines: widths in device pixels and the major level's contrast. */
+  private _gridMajorContrast = 1;
+  private _applyGridLines(lines: ReturnType<typeof nativeViewportGrid>): void {
+    const uniforms = this.grid.material.uniforms;
+    if (uniforms['uLineWidth']) uniforms['uLineWidth'].value = lines.lineWidth;
+    if (uniforms['uMajorWidth']) uniforms['uMajorWidth'].value = lines.majorWidth;
+    this._gridMajorContrast = lines.majorContrast;
+    this._paintLookGrid();
+  }
+
   private _paintLookGrid(): void {
     const hex = this._lookGridHex;
     if (hex === null) return;
@@ -3547,7 +3558,7 @@ export class EditorViewport {
     const channel = (shift: number) => {
       const line = (hex >> shift) & 0xff;
       const back = (backgroundHex >> shift) & 0xff;
-      return Math.round(Math.min(255, Math.max(0, back + (line - back) * GRID_MAJOR_CONTRAST)));
+      return Math.round(Math.min(255, Math.max(0, back + (line - back) * this._gridMajorContrast)));
     };
     const majorHex = (channel(16) << 16) | (channel(8) << 8) | channel(0);
     const minor = toneMappedSourceColor(hex, this._renderer);

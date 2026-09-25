@@ -226,7 +226,13 @@ export interface EditorDensity {
     readonly shelfTool?: 'select' | 'transform';
     readonly upAxis?: 'y' | 'z';
     readonly boxSelect?: 'contain' | 'touch';
+    readonly gridLineWidth?: number;
+    readonly gridMajorWidth?: number;
+    readonly gridMajorContrast?: number;
   };
+}
+function numberToken(value: number | undefined): string {
+  return value === undefined ? '' : `${value}`;
 }
 function density(theme: Pick<EditorTheme, 'density'>) {
   return {
@@ -2553,6 +2559,11 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     // group runs on. See `DensityContribution.viewport` for both.
     '--vgai-viewport-up-axis': theme.density?.viewport?.upAxis ?? '',
     '--vgai-viewport-box-select': theme.density?.viewport?.boxSelect ?? '',
+    // THE FLOOR GRID'S LINE WIDTHS AND MAJOR CONTRAST, emitted empty when the look states none,
+    // so the stage keeps its own hairline floor (`DensityContribution.viewport.gridLineWidth`).
+    '--vgai-viewport-grid-line-width': numberToken(theme.density?.viewport?.gridLineWidth),
+    '--vgai-viewport-grid-major-width': numberToken(theme.density?.viewport?.gridMajorWidth),
+    '--vgai-viewport-grid-major-contrast': numberToken(theme.density?.viewport?.gridMajorContrast),
     // The widget classes. Unlike `viewport`, these are never emitted empty:
     // every one paints a control that must stay painted, so an absent group
     // resolves to the surface that call site already read.

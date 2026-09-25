@@ -290,6 +290,18 @@ export interface DensityContribution {
      * answer; a look that states nothing keeps the editor's.
      */
     readonly boxSelect?: 'contain' | 'touch';
+    /**
+     * THE FLOOR GRID'S LINES, in device pixels: the minor lines' width, the major lines' width,
+     * and how far the major lines' colour is carried past the minor's from the backdrop (1 draws
+     * both levels alike). A look that states none keeps the editor's own floor, one hairline
+     * level — the grid the kit drew before its floor was fitted to Blender. Blender's are 1.5,
+     * 2.25 and 39/21, measured across one scanline of `modeling-object-none.png`: the 1 m line
+     * 4 px at half rise plateauing at 83, the 10 m line 6 px plateauing at 101
+     * (`docs/VIEWPORT-STAGE.md`: widths are the look's, like colours).
+     */
+    readonly gridLineWidth?: number;
+    readonly gridMajorWidth?: number;
+    readonly gridMajorContrast?: number;
   };
 }
 

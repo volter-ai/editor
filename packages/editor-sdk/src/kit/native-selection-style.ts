@@ -195,6 +195,27 @@ export function nativeViewportBoxSelect(element?: Element | null): 'contain' | '
   return raw === 'contain' || raw === 'touch' ? raw : null;
 }
 
+/** THE FLOOR GRID'S LINES the look states (`EditorTheme.density.viewport.gridLineWidth` and
+ *  its siblings), in device pixels, with the editor's own hairline floor for any it leaves out:
+ *  one level, one pixel, the major lines drawn like the minor. */
+export function nativeViewportGrid(element?: Element | null): {
+  readonly lineWidth: number;
+  readonly majorWidth: number;
+  readonly majorContrast: number;
+} {
+  const root = themeRoot(element);
+  const read = (name: string, fallback: number): number => {
+    const value = Number.parseFloat(themeToken(root, name) ?? '');
+    return Number.isFinite(value) && value > 0 ? value : fallback;
+  };
+  const lineWidth = read('--vgai-viewport-grid-line-width', 1);
+  return {
+    lineWidth,
+    majorWidth: read('--vgai-viewport-grid-major-width', lineWidth),
+    majorContrast: read('--vgai-viewport-grid-major-contrast', 1),
+  };
+}
+
 /**
  * Observe the one theme root's inline token update. This includes saved theme
  * changes and unsaved Theme Manager previews; neither renderer has to poll
