@@ -383,9 +383,27 @@ function Numeric({
   );
 }
 
-/** X/Y/Z/W — `RNA_property_array_item_char`'s own letters for a vector or
- *  colour; anything longer is numbered, as Blender numbers it. */
-const ARRAY_LETTERS = ['X', 'Y', 'Z', 'W'];
+/** An array component's letter, as `RNA_property_array_item_char` gives it:
+ *  W/X/Y/Z for a quaternion or axis-angle (the angle first), X/Y/Z/W for the
+ *  vector subtypes, R/G/B/A for a colour, and none otherwise, where the
+ *  component is numbered. */
+const VECTOR_SUBTYPES = new Set([
+  'TRANSLATION',
+  'DIRECTION',
+  'XYZ',
+  'XYZ_LENGTH',
+  'EULER',
+  'VELOCITY',
+  'ACCELERATION',
+  'COORDS',
+]);
+function arrayItemChar(subtype: string, index: number): string | undefined {
+  if (subtype === 'QUATERNION' || subtype === 'AXISANGLE') return 'WXYZ'[index];
+  if (index >= 4) return undefined;
+  if (VECTOR_SUBTYPES.has(subtype)) return 'XYZW'[index];
+  if (subtype === 'COLOR' || subtype === 'COLOR_GAMMA') return 'RGBA'[index];
+  return undefined;
+}
 
 /** A field's WHOLE name, for the control's `aria-label` — the property's UI
  *  name (its RNA identifier when it has none), plus the array component's
@@ -393,7 +411,7 @@ const ARRAY_LETTERS = ['X', 'Y', 'Z', 'W'];
  *  component after the first. */
 function fieldName(row: BlenderRnaRow, index?: number): string {
   const name = row.name || row.identifier;
-  return index === undefined ? name : `${name} ${ARRAY_LETTERS[index] ?? index}`;
+  return index === undefined ? name : `${name} ${arrayItemChar(row.subtype, index) ?? index}`;
 }
 
 function colourOf(values: readonly number[]): string {
@@ -499,8 +517,8 @@ function ArrayRows({ row, label, title, write }: WidgetProps & { label: string; 
     <>
       {values.map((value, index) => (
         <Row
-          key={`${row.identifier}-${ARRAY_LETTERS[index] ?? index}`}
-          label={componentLabel(label, index, values.length)}
+          key={`${row.identifier}-${index}`}
+          label={componentLabel(label, index, row.subtype)}
           title={title}
           readonly={row.readonly}
           identifier={`${row.identifier}[${index}]`}
@@ -526,9 +544,10 @@ function ArrayRows({ row, label, title, write }: WidgetProps & { label: string; 
   );
 }
 
-function componentLabel(label: string, index: number, length: number): string {
-  if (length > ARRAY_LETTERS.length) return index === 0 ? label : `${label} ${index}`;
-  return `${index === 0 ? `${label}  ` : ''}${ARRAY_LETTERS[index]}`;
+function componentLabel(label: string, index: number, subtype: string): string {
+  const letter = arrayItemChar(subtype, index);
+  if (letter === undefined) return index === 0 ? label : `${label} ${index}`;
+  return `${index === 0 ? `${label}  ` : ''}${letter}`;
 }
 
 function widgetFor(props: WidgetProps): React.ReactNode {
