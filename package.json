@@ -31,7 +31,7 @@
     "pixi.js": "8.19.0",
     "@fortawesome/fontawesome-svg-core": "7.2.0",
     "@fortawesome/free-solid-svg-icons": "7.2.0",
-    "@volter-ai-dev/supercode-frontend-vscode": "0.1.6",
+    "@volter-ai-dev/supercode-frontend-vscode": "0.1.7",
     "storybook": "10.6.0",
     "@storybook/react": "10.6.0"
   }
