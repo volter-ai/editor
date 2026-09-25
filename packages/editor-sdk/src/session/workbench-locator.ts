@@ -400,8 +400,13 @@ export async function resolveWorkbenchForProject(options: {
       tag: null,
       fetched: false,
     };
+  // A declaration under the cache root is the one the fetch below wrote: the
+  // product's pin decides it, so a pin that moved, or a cache that was
+  // cleared, fetches again instead of opening a stale release or refusing a
+  // directory that is gone.
   const declared = readWorkbenchDeclaration(projectRoot);
-  if (declared !== null)
+  const fetchRecord = declared !== null && product.workbench !== null && declared.startsWith(`${WORKBENCH_CACHE_ROOT}/`);
+  if (declared !== null && !fetchRecord)
     return {
       ...resolveWorkbench(declared, productId),
       source: 'declaration',
