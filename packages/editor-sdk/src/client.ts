@@ -1406,6 +1406,51 @@ export class EditorClient {
     return this.command<DocumentTableProjection>({ type: 'document-table' });
   }
 
+  /**
+   * Reload the editor's page and wait until the new document answers — the
+   * host's `page-reload`, for a product with no game client (`@volter/game-live`'s
+   * `page.reload()` is the same order with the same two witnesses). A tab's
+   * epoch count rising proves a new document loaded; a host command answering
+   * proves it can be driven. It is sent only once that tab reports its command
+   * listener ready, because a command sent before is filed as a stall.
+   */
+  async reloadPage(timeoutMs = 60_000): Promise<void> {
+    const epochs = async () => {
+      const tabs = (await this.getState().catch(() => ({ tabs: [] }) as Partial<EditorState>)).tabs ?? [];
+      const byTab = tabs as ReadonlyArray<{ tabId8: string; epochCount: number; commandListener?: unknown }>;
+      return new Map(byTab.map((tab) => [tab.tabId8, tab] as const));
+    };
+    const pause = () => new Promise((settle) => setTimeout(settle, 250));
+    const before = await epochs();
+    const deadline = Date.now() + timeoutMs;
+    await this.command({ type: 'page-reload' });
+    let reloaded: string[] = [];
+    while (reloaded.length === 0) {
+      if (Date.now() > deadline) throw new Error('The reload was ordered and no tab of this session reported a new page load.');
+      await pause();
+      const now = await epochs();
+      reloaded = [...now].filter(([tabId, tab]) => tab.epochCount > (before.get(tabId)?.epochCount ?? 0)).map(([tabId]) => tabId);
+    }
+    for (;;) {
+      if (Date.now() > deadline) throw new Error('A new page loaded, but its command listener did not become ready.');
+      const now = await epochs();
+      if (reloaded.some((tabId) => {
+        const listener = now.get(tabId)?.commandListener;
+        return typeof listener !== 'string' || listener === 'ready';
+      })) break;
+      await pause();
+    }
+    for (;;) {
+      try {
+        await this.command({ type: 'current-view' });
+        return;
+      } catch (error) {
+        if (Date.now() > deadline) throw error;
+        await pause();
+      }
+    }
+  }
+
   async getState(): Promise<EditorState> {
     const res = await this.httpFetch(`${this.baseUrl}/__editor/state`);
     const state = (await this.readJson(res)) as EditorState;

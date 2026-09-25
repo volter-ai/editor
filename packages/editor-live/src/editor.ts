@@ -666,6 +666,11 @@ export class LiveEditor {
     return this.#client.redo();
   }
 
+  /** Reload the editor's page and resolve once the new document answers. */
+  async reloadPage(): Promise<void> {
+    await this.#client.reloadPage();
+  }
+
   /** Mirrors `vgai status` — the full live editor state as JSON. */
   async status(): Promise<EditorState> {
     return this.#client.getState();
