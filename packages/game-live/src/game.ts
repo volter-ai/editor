@@ -49,6 +49,14 @@ export interface LiveGame extends GameClient {
    * the honest answer.
    */
   instances(): Promise<AddressedGameClient[]>;
+  /**
+   * Play this many instances split-screen: a total `count` (default "Player N"
+   * labels) or `names`, whose length is the count and whose first entry is the
+   * primary. The Play bar's player count, as a verb; refused when not playing.
+   * The new instances mount asynchronously: `instances()` lists them once they
+   * have.
+   */
+  setInstances(countOrNames: number | readonly string[]): Promise<void>;
 }
 
 /**
@@ -118,6 +126,24 @@ async function listInstanceIds(port: number): Promise<string[]> {
   return body.instances.map(String);
 }
 
+/** Ask the editor for this many split-screen instances (`set-instance-count`,
+ *  a session-level command like `list-instances`). */
+async function setInstanceCount(port: number, countOrNames: number | readonly string[]): Promise<void> {
+  const res = await fetch(`http://127.0.0.1:${port}/__editor/command`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(
+      typeof countOrNames === 'number'
+        ? { type: 'set-instance-count', count: countOrNames }
+        : { type: 'set-instance-count', names: [...countOrNames] },
+    ),
+  });
+  const body = (await res.json()) as { ok?: boolean; error?: string };
+  if (!body.ok) {
+    throw new Error(`@volter/game-live: set-instance-count failed — ${body.error ?? 'no reason given'}`);
+  }
+}
+
 /** Build the `LiveGame` — the base `game` client plus its instance-addressing
  *  surface. */
 export function createLiveGame(
@@ -133,5 +159,7 @@ export function createLiveGame(
     Object.assign(gameClientFor(port, artifactsDir, id, projectRoot), { id });
   const instances = async (): Promise<AddressedGameClient[]> =>
     (await listInstanceIds(port)).map(instance);
-  return Object.assign(base, { instance, instances });
+  const setInstances = (countOrNames: number | readonly string[]): Promise<void> =>
+    setInstanceCount(port, countOrNames);
+  return Object.assign(base, { instance, instances, setInstances });
 }
