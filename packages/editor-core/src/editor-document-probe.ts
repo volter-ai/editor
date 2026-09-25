@@ -142,6 +142,8 @@ export function activeDocumentContainer(documentId: string): HTMLElement | null 
 
 interface Scope {
   readonly container: HTMLElement;
+  /** Roots the scope also covers beside its container (the inspector's card, for 'rail'). */
+  readonly extraRoots?: readonly HTMLElement[];
   readonly name: DocumentProbeScope;
   readonly id: string;
   readonly title: string;
@@ -193,7 +195,7 @@ const DOCUMENT_STRIPS = {
  * between steps, which is the whole point of driving one.
  */
 function scopeRoots(scope: Scope): HTMLElement[] {
-  const roots: HTMLElement[] = [scope.container];
+  const roots: HTMLElement[] = [scope.container, ...(scope.extraRoots ?? [])];
   // TRANSITIVE, because a portal opens a portal: a menu's PANEL is portaled,
   // and a submenu opened from one of its rows is portaled from inside THAT
   // panel — so the second anchor is not in the document's box at all. One
@@ -242,6 +244,17 @@ function resolveScope(name: DocumentProbeScope): Scope {
     name === 'rail' || name === 'outliner' || name === 'content' ? VIEW_SCOPES[name] : null;
   if (view) {
     const container = viewPart(view.part);
+    // THE INSPECTOR AS A CARD. The rail's subject is the inspector, which a person may show as a
+    // card over the viewport instead of the Properties column (`inspector-presentation.ts`); the
+    // workspace's layout host mounts that card outside every document's box, so scope 'rail'
+    // covers it too — the same inspector in its other projection, whether or not the Properties
+    // view is open beside it.
+    const card =
+      name === 'rail'
+        ? document.querySelector<HTMLElement>('[data-testid="inspector-panel"][data-vgai-inspector-presentation="card"]')
+        : null;
+    if (card && !container) return { container: card, name, id: view.view, title: 'Inspector card' };
+    if (card && container) return { container, extraRoots: [card], name, id: view.view, title: `${view.title} and the inspector card` };
     if (!container) {
       throw new Error(
         `The ${view.title} view (${view.view}) is not open, so scope '${name}' has nothing to ` +
@@ -270,13 +283,17 @@ function resolveDocumentScope(name: DocumentProbeScope): Scope {
   // play-gated (`InputManager.setEnabled` + `gated-globals.ts`), so a probe
   // here would either silently do nothing (not playing) or bypass the play
   // path's contract (playing). Refuse toward the honest doors instead of
-  // becoming an ungated second one.
-  if (id === GAME_DOCUMENT_ID) {
+  // becoming an ungated second one. Its HEADER STRIP is the exception: the
+  // editor's own chrome (the Play bar, the resolution, the audio control), not
+  // the game's DOM, and otherwise no door reached a control a person clicks
+  // there every session.
+  if (id === GAME_DOCUMENT_ID && name !== 'header') {
     throw new Error(
       "The Game document is out of this door's scope: drive and read a game through its own " +
         'doors — `game.commands()`/`game.command(n)`/`game.state(n)`, or `page(step)` during ' +
-        "play — never through synthetic DOM gestures. The editor's own views around it stay " +
-        "readable while a game is active: scope 'outliner' and scope 'rail'.",
+        "play — never through synthetic DOM gestures. Its header strip (the editor's own Play " +
+        "bar and controls) is scope 'header'; the editor's views around it stay readable: scope " +
+        "'outliner' and scope 'rail'.",
     );
   }
   const container = activeDocumentContainer(id);
