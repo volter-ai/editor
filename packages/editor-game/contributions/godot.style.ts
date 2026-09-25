@@ -6,8 +6,9 @@
  * 0.32), Z (0.16, 0.55, 0.96) — our floor's second axis — and the selection
  * box (1.0, 0.5, 0). The fill is Godot's `default_clear_color` (0.3, 0.3, 0.3),
  * what shows with the preview environment off. The grid's minor and major
- * levels are the primary/secondary grid colours at alpha 0.5, fitted by eye
- * against `engine-reference/godot/tuto_3d3.png` over the preview sky's ground.
+ * levels are the primary/secondary grid colours at alpha 0.5, fitted against
+ * `engine-reference/godot/tuto_3d3.png` over the preview sky's ground: a line
+ * there peaks near (95, 91, 87) over a (62, 51, 40) floor.
  * Light, sky and overlays are the VIEW's presentation, not this look's.
  */
 import type { StyleContribution } from '@volter/editor-sdk/looks';
@@ -31,8 +32,10 @@ export const style: StyleContribution = {
     },
     density: {
       viewport: {
-        // `manipulator_gizmo_size` 80.
-        gizmoSize: 80,
+        // Godot's `manipulator_gizmo_size` is 80, but its unit is not ours: the stage's px per
+        // gizmo unit is fitted, not transcribed. At 128 the rotation rings measure ~80 px in
+        // radius on a 1x capture, against ~85 px in `engine-reference/godot/tuto_3d5.png`.
+        gizmoSize: 128,
         // `manipulator_gizmo_opacity` 0.9; the highlight is the axis colour at a quarter of its
         // saturation and full value (`node_3d_editor_plugin.cpp`).
         gizmoOpacity: 0.9,
@@ -42,9 +45,10 @@ export const style: StyleContribution = {
         gridLineWidth: 1,
         gridMajorWidth: 1,
         gridMajorContrast: 1.3,
-        // Godot's selection is the whole AABB, a hairline.
+        // Godot's selection is the whole AABB. Its edge is one solid pixel at 1x
+        // (`tuto_3d5.png`); our screen-space line needs 2 to cover one captured pixel.
         selectionBox: 'edges',
-        selectionBoxWidth: 1,
+        selectionBoxWidth: 2,
       },
     },
   },
