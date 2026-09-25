@@ -1898,6 +1898,29 @@ function isOpaqueColor(value: string): boolean {
  * is how a pressed eye toggle became an unreadable black smudge while the
  * same control read white in Blender.
  */
+/**
+ * Whether an opaque surface colour is LIGHT (relative luminance above one
+ * half) — the fact a derivation that sinks toward black has to know before it
+ * can be right. Surfaces are opaque by contract (`theme-library.ts`), written
+ * as hex or `rgb()`; anything else answers `false`, the dark case every
+ * palette before Plotter was.
+ */
+function isBrightSurface(value: string): boolean {
+  const v = value.trim().toLowerCase();
+  let rgb: number[] | null = null;
+  const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/.exec(v);
+  if (hex) {
+    const h = hex[1]!.length === 3 ? [...hex[1]!].map((c) => c + c).join('') : hex[1]!;
+    rgb = [0, 2, 4].map((i) => Number.parseInt(h.slice(i, i + 2), 16));
+  } else {
+    const fn = /^rgba?\(([^)]*)\)$/.exec(v);
+    if (fn) rgb = (fn[1] ?? '').split(/[,\s/]+/).slice(0, 3).map((n) => Number.parseFloat(n));
+  }
+  if (!rgb || rgb.some((n) => !Number.isFinite(n))) return false;
+  const [r, g, b] = rgb as [number, number, number];
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.5;
+}
+
 function selectionInkValue(theme: EditorTheme): string {
   if (usesNeutralSelection(theme)) return 'var(--vgai-content-primary)';
   return isOpaqueColor(theme.color.accent.muted)
@@ -2456,10 +2479,29 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     // lift — mixing toward white moves the channels by different amounts — so
     // this is the one place the stylesheet uses relative colour syntax, which
     // states the measurement literally and derives for every palette.
-    '--vgai-tree-row-selected-bg': `color-mix(in srgb, ${theme.color.accent.default} 42%, #000)`,
-    '--vgai-tree-row-active-bg': `color-mix(in srgb, ${theme.color.accent.default} 70%, #000)`,
-    '--vgai-tree-row-active-border':
-      'rgb(from var(--vgai-tree-row-active-bg) calc(r + 40) calc(g + 40) calc(b + 40))',
+    //
+    // Both derivations sink the accent toward BLACK, which is a statement about
+    // a DARK palette: the band has to sit darker than the stripe it replaces.
+    // On a LIGHT panel (the Plotter palette, paper) the same arithmetic paints a
+    // near-black band under dark ink. There the selected band is the palette's
+    // own selection wash (`accent.muted`, what a pressed control already wears);
+    // the active row is that colour at full strength inside a hairline in the
+    // accent. Every dark palette
+    // computes exactly what it did before.
+    ...(isBrightSurface(theme.color.surface.panel)
+      ? {
+          '--vgai-tree-row-selected-bg': theme.color.accent.muted,
+          // Opaque: the active band is painted OVER its hairline layer, so a
+          // wash would let the hairline show through the whole row.
+          '--vgai-tree-row-active-bg': `rgb(from ${theme.color.accent.muted} r g b / 1)`,
+          '--vgai-tree-row-active-border': theme.color.accent.default,
+        }
+      : {
+          '--vgai-tree-row-selected-bg': `color-mix(in srgb, ${theme.color.accent.default} 42%, #000)`,
+          '--vgai-tree-row-active-bg': `color-mix(in srgb, ${theme.color.accent.default} 70%, #000)`,
+          '--vgai-tree-row-active-border':
+            'rgb(from var(--vgai-tree-row-active-bg) calc(r + 40) calc(g + 40) calc(b + 40))',
+        }),
     // WHO GETS THE ROW'S ONE TEXT MARK when a palette declares an ACTIVE ink.
     // The instance rule (`semantic.instance`, owner 2026-07-31) and the active
     // object's orange name both want the name, and on the active row only one

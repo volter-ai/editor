@@ -12,7 +12,7 @@
  *
  * The editor registers what a project's declared packages contribute beside
  * its own built-ins — Look, Animate and Design as workspaces, the vgai keymap,
- * the Classic/Glass/Maya/Substance bundles — and never asks which package is
+ * the Classic/Glass/Maya/Substance/Plotter bundles — and never asks which package is
  * open: a build without the Blender look has no Model workspace.
  */
 import type { WorkspaceArrangement } from './workspace-arrangement';

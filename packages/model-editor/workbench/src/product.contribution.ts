@@ -28,6 +28,7 @@ import { Action2, registerAction2 } from '../../../../platform/actions/common/ac
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
+import { ThemeSettingDefaults } from '../../../services/themes/common/workbenchThemeService.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { registerColor } from '../../../../platform/theme/common/colorRegistry.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
@@ -148,9 +149,13 @@ registerVgaiProduct({
 	// to claim for both products.
 	trustSentence: localize('vgaiModelTrustRequest', "Volter Model Editor runs this project's own code — its editor contributions, its dev server, and Blender itself in this tab. Trust this folder to open it."),
 	// THE LOOK'S THEME ARTIFACTS, and they are named here because this product SHIPS them
-	// (`packages/model-editor/workbench/extensions/theme-blender`). A look with no row wears the
-	// workbench's own themes; the bridge hands over the look's id and never a theme name.
-	looks: new Map([['blender', { color: 'Blender', productIcon: 'blender-icons' }]]),
+	// (`packages/model-editor/workbench/extensions/theme-blender`, and the kit's
+	// `extensions/theme-plotter`, which every product's build carries). A look with no row wears
+	// the workbench's own themes; the bridge hands over the look's id and never a theme name.
+	looks: new Map([
+		['blender', { color: 'Blender', productIcon: 'blender-icons' }],
+		['plotter', { color: 'Plotter', productIcon: ThemeSettingDefaults.PRODUCT_ICON_THEME }],
+	]),
 	// THIS PRODUCT'S OWN SPLASH (F4). The kit owns the cover's mechanism — when it goes up,
 	// that it comes away whole, what a refusal looks like; this is the picture inside it, in
 	// Blender's own palette and this product's own words, drawn with no image to fetch so the

@@ -26,6 +26,7 @@ import './media/game-cover.css';
 import { $ } from '../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 import { localize } from '../../../../nls.js';
+import { ThemeSettingDefaults } from '../../../services/themes/common/workbenchThemeService.js';
 import { registerVgaiProduct, type VgaiProductCover, type VgaiProductCoverContext, type VgaiProductMountContext } from '../../vgai/browser/vgaiProduct.js';
 import { VgaiGameSkew, type VgaiGameBridge } from './vgaiGameSkew.js';
 
@@ -96,6 +97,9 @@ registerVgaiProduct({
 		],
 	},
 	title: localize('vgaiGameTitle', "Volter Game Editor"),
+	// THE LOOK'S THEME ARTIFACTS: the kit's `extensions/theme-plotter`, which this product's
+	// build carries. Every other look wears the workbench's own themes.
+	looks: new Map([['plotter', { color: 'Plotter', productIcon: ThemeSettingDefaults.PRODUCT_ICON_THEME }]]),
 	// The workbench's own trust prompt, in this product's words: a game project runs its own
 	// code the moment it opens — its contributions from its `node_modules`, its dev server, and
 	// the game itself in the pane.

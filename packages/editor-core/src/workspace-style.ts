@@ -100,6 +100,14 @@ const BUILT_IN_STYLES: readonly WorkspaceStyleBundle[] = Object.freeze([
     iconSetId: DEFAULT_ICON_SET_ID,
     regions: { header: 'hidden', shelf: 'hidden', inspector: 'column' },
   },
+  {
+    id: 'plotter',
+    title: 'Plotter',
+    paletteId: 'plotter',
+    materialId: 'classic',
+    iconSetId: DEFAULT_ICON_SET_ID,
+    regions: {},
+  },
 ]);
 
 interface ContributedStyle {
