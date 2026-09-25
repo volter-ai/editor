@@ -1,14 +1,14 @@
 # Public release status
 
-Volter Editor 0.5.64 / Blender packages 0.1.7 are public on npm. Every
+Volter Editor 0.5.65 is public on npm, the game editor's packages with it ([release/game.json](release/game.json)),
+except `@volter/editor-react`, `@volter/editor-xstate` and `@volter/model-editor`. The 0.5.64 / Blender 0.1.7 release
+record follows. Every
 registry digest matches its tested archive, and every tarball downloads without
 credentials byte-identical to it. Installation from an initially empty npm cache
 and automatic public workbench download succeeded and passed live acceptance;
 that install ran in a shell holding npm tokens and a gh login, so the
 credential-free proof is the anonymous downloads (provenance/public-npm-release.json).
-The new install reports zero npm vulnerabilities. Only the
-eight packages in [release/modeling.json](release/modeling.json) are published;
-game packages remain excluded.
+The new install reports zero npm vulnerabilities. The 0.5.64 release published the eight packages in [release/modeling.json](release/modeling.json).
 
 ## Game editor (branch `game-editor`)
 

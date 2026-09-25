@@ -26,6 +26,14 @@ Both products' workbenches are rebuilt with the Chat patches and pinned at `2a8d
 Completion:
 - A release carrying `507e47d` is pinned, and each product's first boot logs neither "No default agent registered" nor a GitHub sign-in timeout.
 
+## model-editor-publish: The model editor installs as its README says
+
+Status: planned
+The rename to `@volter/model-editor` is done in the tree, but npm has only `@volter/editor` (0.5.65), so the README's
+`npx @volter/model-editor create my-models` and `npx volter-model-editor` cannot install.
+Completion:
+- `@volter/model-editor` is on npm, and the README's install command works from an empty npm cache with no credentials.
+
 ## architecture-plan: The architecture plan's remaining units
 
 Status: active
@@ -105,9 +113,9 @@ Completion:
 ## public-game-release: The game editor's public release
 
 Status: planned
-The game's packages are on npm under their own [release/game.json](release/game.json), except `@volter/editor-react` and
-`@volter/editor-xstate`, which that release names and npm does not have.
+The game's packages are on npm under their own [release/game.json](release/game.json), except `@volter/editor-react`,
+`@volter/editor-xstate` and `@volter/model-editor`, which that release names and npm does not have.
 The canonical games that must satisfy their briefs first are `volter-ai/game-benchmarks`' `original-trials-slate`.
 Completion:
-- `@volter/editor-react` and `@volter/editor-xstate` are published with the next game release.
+- `@volter/editor-react`, `@volter/editor-xstate` and `@volter/model-editor` are published with the next release.
 - A qualifying public release of the game editor satisfies the company's G2 acceptance (company `projects/game-engine-launch.md`).
