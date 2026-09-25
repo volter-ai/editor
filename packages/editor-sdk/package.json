@@ -238,7 +238,8 @@
     "./kit/worker-call-metrics": "./src/kit/worker-call-metrics.ts",
     "./kit/workspace-host-commands": "./src/kit/workspace-host-commands.ts",
     "./kit/workspace-static-panels": "./src/kit/workspace-static-panels.ts",
-    "./kit/workspace-status-registry": "./src/kit/workspace-status-registry.ts"
+    "./kit/workspace-status-registry": "./src/kit/workspace-status-registry.ts",
+    "./kit/object3d-surfaces": "./src/kit/object3d-surfaces.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",

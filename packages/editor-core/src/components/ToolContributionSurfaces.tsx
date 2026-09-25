@@ -4,29 +4,28 @@ import type {
   ToolObject3DAuthoringProps,
   ToolObject3DPreviewProps,
 } from '@volter/editor-sdk/contributions';
-import { lazy, Suspense, useEffect } from 'react';
+import { Suspense, useEffect, useSyncExternalStore } from 'react';
 import { announceDocumentStage } from '@volter/editor-sdk/kit/document-viewports';
 import { AssetEditorSubject } from '@volter/editor-sdk/kit/components/AssetEditorShell';
+import { object3DSurfaces, subscribeObject3DSurfaces } from '@volter/editor-sdk/kit/object3d-surfaces';
 
-const LazyToolObject3DPreview = lazy(async () => {
-  const module = await import('./ToolObject3DPreview');
-  return { default: module.ToolObject3DPreview };
-});
-
-const LazyToolObject3DAuthoring = lazy(async () => {
-  const module = await import('./StageHost');
-  return { default: module.ToolObject3DAuthoring };
-});
+/** The Three integration's surfaces, once it has registered them (`kit/object3d-surfaces`). */
+function useObject3DSurfaces() {
+  return useSyncExternalStore(subscribeObject3DSurfaces, object3DSurfaces, object3DSurfaces);
+}
 
 /**
- * Lightweight contribution boundary: importing ToolHost must not eagerly pull
- * WebGL, postprocessing, or browser-only Model Asset modules into Node tools
- * and tests that never render a 3D preview.
+ * Lightweight contribution boundary: the kit renders the Three integration's
+ * registered surface and imports no viewport, so ToolHost pulls no WebGL,
+ * postprocessing or Model Asset modules into Node tools and tests.
  */
 export function ToolObject3DPreviewSurface(props: ToolObject3DPreviewProps) {
+  const surfaces = useObject3DSurfaces();
+  const fallback = <div style={{ minHeight: 240 }}>Loading 3D preview…</div>;
+  if (!surfaces) return fallback;
   return (
-    <Suspense fallback={<div style={{ minHeight: 240 }}>Loading 3D preview…</div>}>
-      <LazyToolObject3DPreview {...props} />
+    <Suspense fallback={fallback}>
+      <surfaces.Preview {...props} />
     </Suspense>
   );
 }
@@ -41,9 +40,12 @@ export function ToolObject3DAuthoringSurface(props: ToolObject3DAuthoringProps) 
   // `workspace.document` contributions do not, and which is which belongs to
   // the PROJECT, never to a list here.
   useEffect(() => announceDocumentStage(props.documentId), [props.documentId]);
+  const surfaces = useObject3DSurfaces();
+  const fallback = <div style={{ minHeight: 240 }}>Loading 3D authoring surface…</div>;
+  if (!surfaces) return fallback;
   return (
-    <Suspense fallback={<div style={{ minHeight: 240 }}>Loading 3D authoring surface…</div>}>
-      <LazyToolObject3DAuthoring {...props} />
+    <Suspense fallback={fallback}>
+      <surfaces.Authoring {...props} />
     </Suspense>
   );
 }

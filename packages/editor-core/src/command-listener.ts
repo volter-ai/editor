@@ -69,7 +69,7 @@ import type { ConsoleEntry } from '@volter/editor-sdk/kit/editor-console';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { currentEditorView } from './editor-current-view';
 import { editorIsPlaying } from '@volter/editor-sdk/kit/editor-session-mode';
-import type { HelperVisibility } from './editor-shell-store';
+import type { HelperVisibility } from '@volter/editor-sdk/kit/shell-store';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { collectEditorStateFacets, reusableFacetKeys } from '@volter/editor-sdk/kit/editor-state-facets';
 import {

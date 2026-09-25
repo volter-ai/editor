@@ -28,7 +28,7 @@
  */
 
 import { getActiveAuthoring } from './authoring/active-adapter';
-import type { TransformMode } from './editor-shell-store';
+import type { TransformMode } from '@volter/editor-sdk/kit/shell-store';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { transformLockSummary } from '@volter/editor-sdk/kit/hierarchy-row-model';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';

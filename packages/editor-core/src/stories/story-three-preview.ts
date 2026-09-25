@@ -127,9 +127,8 @@ export function lastStoryMountPhaseTiming(): StoryMountPhaseTiming | null {
 /** A composed portable story is a callable React component; Storybook attaches
  *  an optional `.load()` when the CSF export declares `loaders`. A plain React
  *  component (no `.load`) is accepted too — the load step is simply skipped. */
-export type StoryPreviewComponent = React.ComponentType<Record<string, unknown>> & {
-  load?: () => Promise<unknown>;
-};
+import type { StoryPreviewComponent } from './story-preview-component';
+export type { StoryPreviewComponent };
 
 export interface MountedStoryObject3D {
   /** The named wrapper group the story rendered INTO — a single `THREE.Object3D`

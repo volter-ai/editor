@@ -1,67 +1,24 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 import { SHELL_OBJECT3D_DOCUMENT_WRITE_POLICY } from './authoring/shell-object3d-document-write-policy';
-import { SHELL_VIEWPORT_AUTHORING_POLICY } from './authoring/shell-viewport-policy';
 
 import { connectCommandListener } from './command-listener';
-import { registerContributedCommands } from './command-registry';
-import { viewportCommands } from './viewport-commands';
-import { registerThreeAssetViewers } from './components/asset-viewers/three-asset-viewers';
-import { registerThreeInspectionMedia } from './inspection/compose';
-import { registerModelThumbnails } from './model-thumbnail';
 import { registerStoryMediaCaptures } from './stories/story-media-captures';
-import { reportViewportStatus } from './viewport-status-facet';
-import { registerThreeCanvasRender } from './three-canvas-render';
 import { startSceneDocuments } from './components/scene-documents';
-import { saveThumbnail } from '@volter/editor-sdk/kit/editor-api';
 import { reportTabCensus } from '@volter/editor-sdk/kit/editor-presence';
 import { EditorRuntimeProvider, type EditorStats } from './editor-runtime';
-import type { EditorStatePersistence } from './editor-shell-store';
 import { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import { threeStateOf } from './three-state';
+import { ensureThreeIntegration } from './three-integration';
 import { EditorSession } from '@volter/editor-sdk/kit/history/editor-session';
 import { bootstrapProject } from './initial-project';
 import { installObject3DDocumentWritePolicy } from '@volter/editor-sdk/kit/object3d-document-write-policy';
 import { startProjectAdapterLoad } from './project-adapter';
 import { startProjectDeclarationRefresh } from './project-declaration-refresh';
-import { writeProjectLocalSection } from './project-local-state';
 import { getCurrentProject } from './project-manager';
 import { startProjectSessionReset } from './project-session-reset';
 import { startProjectToolContributionDiscovery } from './project-tool-discovery';
 import { startProjectToolCatalog } from './project-tools';
 import { registerShellStoreForHost } from './shell-store-door';
 import { startTabCensus } from '@volter/editor-sdk/kit/tab-census';
-import { installViewportAuthoringPolicy } from './viewport-authoring-policy';
-
-/**
- * The store's persistence collaborator, bound to the server SDK. ONE module
- * constant, not an object literal at the install site: `attachStatePersistence`
- * keeps the one-owner rule `attachHistory` keeps, so a fresh literal on every
- * render (a strict-mode double render, any re-render of the provider) was a
- * different owner and threw — measured 2026-09-02 as "EditorStore is already
- * attached to a state persistence" from `<EditorProvider>` on every editor boot.
- */
-const SERVER_STATE_PERSISTENCE: EditorStatePersistence = hmrStableValue(
-  'SERVER_STATE_PERSISTENCE',
-  () => ({ save: (state) => writeProjectLocalSection('view', state), saveThumbnail }),
-);
-
-/**
- * The same object across a Fast Refresh of THIS module. The store lives in a
- * ref, which Fast Refresh preserves, but a module-scope constant is minted
- * again on every re-evaluation — so the second render after an HMR edit
- * handed the store a NEW persistence object and `attachStatePersistence`'s
- * one-owner rule threw (measured 2026-09-03, editing a sibling module in
- * this file's graph while the editor was open: every panel went dark). The
- * context itself already rides `import.meta.hot.data` for exactly this
- * reason (`createHmrStableReactContext`); the collaborator does the same.
- */
-function hmrStableValue<T>(key: string, create: () => T): T {
-  const data = import.meta.hot?.data as Record<string, T> | undefined;
-  if (data?.[key]) return data[key] as T;
-  const value = create();
-  if (data) data[key] = value;
-  return value;
-}
 
 export function EditorProvider({ children }: { children: ReactNode }) {
   const storeRef = useRef<ShellStore | null>(null);
@@ -71,28 +28,23 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     registerShellStoreForHost(storeRef.current);
   }
 
+  // The Three integration's registrations (surfaces, viewport verbs, viewers, captures, the
+  // viewport policy, view-state persistence): `three-integration.ts`. During render, before any
+  // viewport mounts (a child's effects run before this provider's); idempotent.
+  ensureThreeIntegration();
+
   const sessionRef = useRef<EditorSession | null>(null);
   if (!sessionRef.current) {
     const project = getCurrentProject();
     sessionRef.current = new EditorSession(project?.rootPath ?? 'unknown-project');
   }
   storeRef.current.attachHistory(sessionRef.current.history);
-  // The shell's answers to the gizmo viewport's questions — which adapter is
-  // active, what is under the pointer, which root is world-hidden. Installed
-  // HERE (boot, before any viewport mounts) rather than in `the world root's stage`,
-  // because an Asset Lab document's own viewport can be the only one on
-  // screen; see `viewport-authoring-policy.ts`. Idempotent for the same
-  // policy object, so a strict-mode double render is a no-op.
-  installViewportAuthoringPolicy(SHELL_VIEWPORT_AUTHORING_POLICY);
   // The shell's answers to the Asset Lab 3D document's writes — its own
   // persistence binding, whole-file source replacement, thumbnail framing.
-  // Installed HERE for the same reason as the policy above: an Asset Lab
+  // Installed HERE for the same reason as the Three integration above: an Asset Lab
   // document can be the only surface on screen, and its writes must reach the
   // project the moment it mounts. See `object3d-document-write-policy.ts`.
   installObject3DDocumentWritePolicy(SHELL_OBJECT3D_DOCUMENT_WRITE_POLICY);
-  // The shell binds the server SDK as the store's persistence; the store
-  // itself imports no transport (ARCHITECTURE-CORE §Editor chrome).
-  threeStateOf(storeRef.current).attachStatePersistence(SERVER_STATE_PERSISTENCE);
 
   const statsRef = useRef<EditorStats | null>(null);
   if (!statsRef.current) {
@@ -117,15 +69,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     return connectCommandListener(storeRef.current!, sessionRef.current!.historyCommands);
   }, []);
-  // The Three viewport's relay verbs arrive as its own command contribution,
-  // and its Asset Lab viewers by route.
-  useEffect(() => registerContributedCommands('three-viewport', viewportCommands), []);
-  useEffect(() => registerThreeAssetViewers(), []);
-  useEffect(() => registerThreeInspectionMedia(), []);
-  useEffect(() => registerModelThumbnails(), []);
   useEffect(() => registerStoryMediaCaptures(), []);
-  useEffect(() => reportViewportStatus(), []);
-  useEffect(() => registerThreeCanvasRender(), []);
 
   // Project-tool discovery is EDITOR-INIT lifecycle, not a side effect of any
   // one surface — it runs (and keeps re-running on project change / tool-file

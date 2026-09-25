@@ -32,7 +32,7 @@ import {
 } from '@volter/editor-sdk/widgets';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useEditorStore } from '../editor-runtime';
-import type { GizmoAnchor, PivotMode } from '../editor-shell-store';
+import type { GizmoAnchor, PivotMode } from '@volter/editor-sdk/kit/shell-store';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import {
   activeEditorKeymap,

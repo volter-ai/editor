@@ -40,7 +40,7 @@ import {
   contributedHeaderItems,
   subscribeContributedChrome,
 } from '@volter/editor-sdk/kit/chrome-registry';
-import type { HelperVisibility } from '../editor-shell-store';
+import type { HelperVisibility } from '@volter/editor-sdk/kit/shell-store';
 import { object3DDocumentWritePolicy } from '@volter/editor-sdk/kit/object3d-document-write-policy';
 import { stageStore, stageStoresVersion, subscribeStageStores } from '../stage-store-registry';
 import { viewportStageHelperKinds } from '../viewport-door';
