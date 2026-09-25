@@ -26,15 +26,16 @@ Unreal is not installed on this box and its documentation does not state these d
 | Grid colour | yes, one colour (`color.viewport.grid`) | minor and major both derive from it; default `0x999999` |
 | Grid alpha, major step, reach and fade, planes | no | fade from 55% to 100% of the grid radius, a grazing fade only when the palette names a backdrop (`editor-viewport.ts`, `standard-viewport-dressing.ts`) |
 | Axis line colours and width | yes, named by the world's axes (`color.viewport.axisX`, `axisY`, optional `axisZ`, else the gizmo's; `density.viewport.axisLineWidth`) | which lines show is the view's (`overlays.axes`) |
-| Selection | colour and active colour (`color.viewport.selection`, `active`: a lone selected object outlines in the active colour); the box's form, width and frame (`selectionBox`, `selectionBoxWidth`, `selectionBoxFrame`) | no children colour; several selected objects do not yet tell the active one apart |
+| Selection | colour and active colour (`color.viewport.selection`, `active`: a lone selected object outlines in the active colour); the outline's form, width and hidden parts (`outlineStyle`, `outlineWidth`, `outlineHidden`); the box's form, width and frame (`selectionBox`, `selectionBoxWidth`, `selectionBoxFrame`); the wire's colour and opacity (`color.viewport.wire`, `wireOpacity`) | no children colour; several selected objects do not yet tell the active one apart |
 | Scene light when the scene has none | no | key `DirectionalLight(0xffffff, 1.9)` in the dressing; editor rig ambient 0.5 and directional 1.0 (`editor-viewport.ts`) |
 | Environment and its strength | no | RoomEnvironment at a fixed strength (`StageHost.tsx`) |
 | Tone mapping and exposure | no | ACES Filmic unless a document states its own |
 | Gizmo size | yes (`density.viewport`) | |
 | Gizmo colours, resting opacity, highlight | yes: `color.gizmo` (x, y, z; the navigation gizmo's own navigationX/Y/Z where the target draws it differently, as Blender's balls are; optional hover and drag) and `density.viewport.gizmoOpacity`, `gizmoHighlightSaturation`, `gizmoHighlightValue` | the transform and navigation gizmos; without the group, the kit's own (Godot's axis colours, three's yellow highlight, opaque handles) |
 | Move arrows' length and head, rotation rings' width | yes (`density.viewport.gizmoArrowLength`, `gizmoArrowHead`, `gizmoRingWidth`) | |
-| Other gizmo form (scale handles' shape, the navigation gizmo's balls, cube or triad and its corner) | no | fixed: three's handles as patched, Blender's navigation balls |
-| Armed tool, box-select test, up axis, the transform tool's extra handles, which axis lines show | no: function, not look (ARCHITECTURE rule 7) | the stage's presentation (`interaction`, `world`, `overlays.axes`) |
+| Navigation gizmo's form and corner | yes (`density.viewport.navigationGizmo`: balls, cones, triad; `navigationCorner`) | whether it is clicked is the view's (`overlays.navigation`) |
+| Other gizmo form (scale handles' shape, the plane handles' shape) | no | fixed: three's handles as patched |
+| Armed tool, box-select test, up axis, the transform tool's extra handles, which axis lines show, the grid's switch, whether the navigation gizmo is clicked | no: function, not look (ARCHITECTURE rule 7) | the stage's presentation (`interaction`, `world`, `overlays`) |
 
 ## The ruling: look, presentation and starting values (owner, 2026-09-25)
 
@@ -79,13 +80,19 @@ Capability, per target (can its default viewport and its toggles be expressed wi
 |---|---|---|
 | Blender | Solid (its own studio, AgX, no environment), the fill, outline, grid step and widths | Material Preview's HDRI (only a procedural sky exists), Rendered (the engine's render lighting is not a scene light the stage can switch to), box and wire on Blender documents (its selection ids are datablocks, not three objects) |
 | Godot | preview sun and sky with the sun in it, sky as backdrop, 8-cell major step, the full box in the object's frame, all three axis lines, the Select gizmo's arrows and handles, its Filmic curve (the `filmic` mapper), ring width | per-part takeover (the sun and the environment give way separately; `auto` switches the whole source), the sun's energy unit, XY and YZ grid planes |
-| Unity | scene lighting, outline plus wire, a camera-locked headlight as a preset | the skybox toggle as a backdrop source over a scene without a skybox, Prefab Mode's context fill, per-mode lighting of draw modes |
+| Unity | its procedural sky and narrow horizon band (the sky's curves), the grid, a crisp outline around the whole silhouette, its wire colour, the Move tool without a free-move centre, the cone scene gizmo | the skybox toggle as a backdrop source over a scene without a skybox, Prefab Mode's context fill, per-mode lighting of draw modes, the scene gizmo's "Persp" label |
 | Unreal | the level's own sky and lights (`scene` sources), an outline | the outline's width and colour as look values; not measured beyond its frames |
 
-Godot's default viewport is its style (`@volter/editor-game` `godot.style.ts`) with this presentation layer; judged side by side against `engine-reference/godot/tuto_3d3.png` and `tuto_3d5.png`, it reads as Godot's:
+Godot's default viewport is its style (`@volter/editor-game` `godot.style.ts`) with this presentation layer; judged side by side against `engine-reference/godot/tuto_3d3.png` and `tuto_3d5.png`, it reads as Godot's. Its sky is the kit's, which is Godot's own `ProceduralSkyMaterial` default; under Godot's Filmic curve it lands the floor on Godot's (62, 51, 40), measured, without fitting:
 
 ```json
-{"all":{"lighting":{"source":"preview","preview":{"sun":{"enabled":true,"color":"#ffffff","energy":1,"altitude":60,"azimuth":150,"shadowDistance":100},"environment":{"enabled":true,"sky":{"top":"#8797ad","horizon":"#e2e5e9","ground":"#383129"},"energy":1,"rotation":0}},"tone":{"mapper":"filmic","exposure":1}},"backdrop":{"source":"environment","opacity":1,"blur":0}},"overlays":{"grid":{"visible":true,"majorEvery":8},"selection":{"outline":false,"wire":false,"box":true},"axes":{"x":true,"y":true,"z":true}},"interaction":{"transformHandles":{"scale":false,"viewRotate":false,"freeMove":false}}}
+{"all":{"lighting":{"source":"preview","preview":{"sun":{"enabled":true,"color":"#ffffff","energy":1,"altitude":60,"azimuth":150,"shadowDistance":100},"environment":{"enabled":true,"energy":1,"rotation":0}},"tone":{"mapper":"filmic","exposure":1}},"backdrop":{"source":"environment","opacity":1,"blur":0}},"overlays":{"grid":{"visible":true,"majorEvery":8},"selection":{"outline":false,"wire":false,"box":true},"axes":{"x":true,"y":true,"z":true}},"interaction":{"transformHandles":{"scale":false,"viewRotate":false,"freeMove":false}}}
 ```
 
-Neither half is accepted. The reference frames are downloaded (`/Volumes/PeakSSD/volter-work/engine-reference`); the Unity and Unreal looks are still to be authored and judged side by side against them; the world stage is compiled but not yet seen on a project with a world.
+Unity's default Scene view is its style (`@volter/editor-game` `unity.style.ts`) with this layer; judged against `engine-reference/unity/PrimitiveCube.png` and `NewEmptyScene_01.png`, it reads as Unity's in form (its sky's colours are fitted to the frames, not transcribed):
+
+```json
+{"all":{"lighting":{"source":"preview","preview":{"sun":{"enabled":true,"color":"#fff4d6","energy":1,"altitude":50,"azimuth":150,"shadowDistance":100},"environment":{"enabled":true,"sky":{"top":"#4a84c2","horizon":"#f0ffff","ground":"#68615c","topCurve":0.04,"groundCurve":0.003},"energy":1,"rotation":0}},"tone":{"mapper":"none","exposure":1}},"backdrop":{"source":"environment","opacity":1,"blur":0}},"overlays":{"grid":{"visible":true,"majorEvery":10},"selection":{"outline":true,"wire":false,"box":false},"axes":{"x":false,"y":false,"z":false}},"interaction":{"bootTool":"move","transformHandles":{"scale":false,"viewRotate":false,"freeMove":false}}}
+```
+
+Neither half is accepted. The reference frames are downloaded (`/Volumes/PeakSSD/volter-work/engine-reference`); the Unreal look is still to be authored and judged side by side against them; the world stage is compiled but not yet seen on a project with a world.
