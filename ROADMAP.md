@@ -28,14 +28,6 @@ Completion:
 - Every target is judged again from the page capture cropped to its viewport, with the overlay pass in it.
 - Blender's Rendered mode and Unreal's capability row are accepted, and the world stage is seen on a project with a world.
 
-## model-editor-publish: The model editor installs as its README says
-
-Status: planned
-The rename to `@volter/model-editor` is done in the tree, but npm has only `@volter/editor` (0.5.65), so the README's
-`npx @volter/model-editor create my-models` and `npx volter-model-editor` cannot install.
-Completion:
-- `@volter/model-editor` is on npm, and the README's install command works from an empty npm cache with no credentials.
-
 ## architecture-plan: The architecture plan's remaining units
 
 Status: active
@@ -118,9 +110,10 @@ Completion:
 ## public-game-release: The game editor's public release
 
 Status: planned
-The game's packages are on npm under their own [release/game.json](release/game.json), except `@volter/editor-react`,
-`@volter/editor-xstate` and `@volter/model-editor`, which that release names and npm does not have.
+The game's packages are on npm at 0.5.66 under their own [release/game.json](release/game.json), except
+`@volter/game-editor` itself, which npm holds as a staged version awaiting a proof-of-presence (2FA) approval; its
+latest stays 0.5.65.
 The canonical games that must satisfy their briefs first are `volter-ai/game-benchmarks`' `original-trials-slate`.
 Completion:
-- `@volter/editor-react`, `@volter/editor-xstate` and `@volter/model-editor` are published with the next release.
+- `@volter/game-editor` 0.5.66 is approved and live, its tarball byte-identical to the tested archive.
 - A qualifying public release of the game editor satisfies the company's G2 acceptance (company `projects/game-engine-launch.md`).
