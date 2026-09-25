@@ -46,18 +46,28 @@ export function assignChannels(piece: Piece): Map<string, TrackAssignment> {
   return out;
 }
 
+/** The tracks that sound in a full render: a soundfont device, not muted, and soloed when any track is. */
+export function audibleTracks(piece: Piece): Piece['tracks'] {
+  const assignments = assignChannels(piece);
+  const soloed = piece.tracks.some((track) => track.channel?.solo);
+  return piece.tracks.filter((track) => assignments.has(track.id) && !track.channel?.mute && (!soloed || track.channel?.solo));
+}
+
 /**
  * The piece as a type-1 Standard MIDI File, `passes` times through, from its PERFORMANCE
  * (`perform`): the same notes, lengths, velocities and controller events the editor plays.
  * Seconds go back to musical ticks through the tempo map's inverse, and the map itself is
  * written as tempo events (one per quarter beat where it moves), so another DAW sees the
  * ritardando on its grid.
+ *
+ * `only` (track ids) writes a subset of the audible tracks, on the channels they have in the
+ * full piece: a stem is the same performance with the other tracks left out.
  */
-export function pieceToMidi(piece: Piece, passes = 1): MIDIBuilder {
+export function pieceToMidi(piece: Piece, passes = 1, only?: ReadonlySet<string>): MIDIBuilder {
   const performance = perform(piece);
   const midi = new MIDIBuilder({ timeDivision: PPQ, initialTempo: piece.transport.tempo, name: 'piece', format: 1 });
   const assignments = assignChannels(piece);
-  const soloed = piece.tracks.some((track) => track.channel?.solo);
+  const audible = new Set(audibleTracks(piece).map((track) => track.id));
   const span = Math.max(1, piece.length);
   const tick = (seconds: number, pass: number): number => Math.max(0, Math.round((pass * span + performance.beatAt(seconds)) * PPQ));
   // Tempo events on the conductor track (track 0).
@@ -74,8 +84,8 @@ export function pieceToMidi(piece: Piece, passes = 1): MIDIBuilder {
   let trackIndex = 0;
   for (const track of piece.tracks) {
     const assignment = assignments.get(track.id);
-    if (!assignment) continue;
-    if (track.channel?.mute || (soloed && !track.channel?.solo)) continue;
+    if (!assignment || !audible.has(track.id)) continue;
+    if (only && !only.has(track.id)) continue;
     trackIndex++;
     midi.addTrack(track.name);
     const { channel } = assignment;
@@ -114,14 +124,26 @@ export interface RenderedLoop {
   readonly loopSeconds: number;
 }
 
-/** Render one seamless loop of the piece: two passes and a tail, second pass kept. */
-export async function renderLoop(piece: Piece, soundBank: ArrayBuffer, sampleRate = 48_000, tailSeconds = 4): Promise<RenderedLoop> {
+/**
+ * Render one seamless loop of the piece: two passes and a tail, second pass kept. `only` (track
+ * ids) renders just those tracks (a stem); by default every audible track sounds.
+ */
+export async function renderLoop(
+  piece: Piece,
+  soundBank: ArrayBuffer,
+  sampleRate = 48_000,
+  tailSeconds = 4,
+  only?: ReadonlySet<string>,
+): Promise<RenderedLoop> {
   const synth = new SpessaSynthProcessor(sampleRate, { eventsEnabled: false });
   synth.soundBankManager.addSoundBank(SoundBankLoader.fromArrayBuffer(soundBank), 'main');
   await synth.processorInitialized;
   synth.setSystemParameter('autoAllocateVoices', true);
   const sequencer = new SpessaSynthSequencer(synth);
-  sequencer.loadNewSongList([pieceToMidi(piece, 2)]);
+  // The sequencer skips leading silence by default, which would slide a stem whose first note is
+  // late (and a humanised mix by its first note's drift) off the piece's own clock.
+  sequencer.skipToFirstNoteOn = false;
+  sequencer.loadNewSongList([pieceToMidi(piece, 2, only)]);
   sequencer.play();
   const loopSeconds = perform(piece).secondsAt(Math.max(1, piece.length));
   const total = Math.ceil(sampleRate * (2 * loopSeconds + tailSeconds));

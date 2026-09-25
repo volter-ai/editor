@@ -1,30 +1,52 @@
 /**
- * `render-piece <project> <piece> [out]` — render one piece to a seamless loop and measure it,
- * for the composing agent, which cannot hear: the numbers in `report.json` are what it reads.
+ * `render-piece <project> <piece> [out] [--target console|portable|<LUFS>]` — render one piece to
+ * a seamless loop and measure it, for the composing agent, which cannot hear: the numbers in
+ * `report.json` are what it reads.
  *
- *   <out>/<name>.wav     24-bit loop (second pass of two, tail wrapped)
- *   <out>/<name>.ogg     the same loop, Vorbis
- *   <out>/<name>.mid     the piece as a Standard MIDI File (one pass)
- *   <out>/report.json    loudness (EBU R128 via ffmpeg), true peak, loop seam, and the
- *                        structural checks: notes outside their clip, bar count, ranges
+ *   <out>/<name>.wav          24-bit loop (second pass of two, tail wrapped), with a `smpl`
+ *                             chunk declaring the whole file one forward loop
+ *   <out>/<name>.ogg          the same loop, Vorbis
+ *   <out>/<name>.mid          the piece as a Standard MIDI File (one pass)
+ *   <out>/stems/<track>.wav   each audible track rendered alone, at the mix's own gain, so the
+ *                             stems sum back to the mix (`stems.nullResidualDb` says how nearly)
+ *   <out>/report.json         loudness against the target (EBU R128 via ffmpeg), true peak, the
+ *                             loop seam, crest factor, spectral centroid, band split, stereo
+ *                             width, and the structural checks of `src/checks.ts`
+ *
+ * LOUDNESS TARGET: `console` is −24 LUFS, `portable` −18 LUFS (Sony ASWG-R001's two figures);
+ * a number is LUFS. The default is `portable`. The true peak never exceeds −1 dBTP; when the
+ * ceiling wins, the report says the target was not met.
  *
  * Run with `tsx` from a checkout; the piece is mounted with `@volter/dawproject`'s own renderer,
  * so what is measured is exactly what the editor shows.
  */
 
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { readPiece } from '@volter/dawproject/piece';
 import { createPieceRoot } from '@volter/dawproject/render';
 import type { ComponentType } from 'react';
-import { audioToWav } from 'spessasynth_core';
-import { assignChannels, pieceToMidi, renderLoop, seamRatio } from '../src/render-offline';
+import { checkPiece } from '../src/checks';
+import { measureLoop, nullResidualDb } from '../src/measure';
+import { assignChannels, audibleTracks, pieceToMidi, type RenderedLoop, renderLoop, seamRatio } from '../src/render-offline';
+import { loopWav24 } from '../src/wav';
 
-const [projectArg, pieceArg, outArg] = process.argv.slice(2);
-if (!projectArg || !pieceArg) {
-  console.error('Usage: render-piece <project dir> <piece path, project-relative> [out dir]');
+const TARGETS: Record<string, number> = { console: -24, portable: -18 };
+const positional: string[] = [];
+let targetArg = 'portable';
+const argv = process.argv.slice(2);
+for (let i = 0; i < argv.length; i++) {
+  const arg = argv[i] ?? '';
+  if (arg === '--target') targetArg = argv[++i] ?? '';
+  else if (arg.startsWith('--target=')) targetArg = arg.slice('--target='.length);
+  else positional.push(arg);
+}
+const [projectArg, pieceArg, outArg] = positional;
+const TARGET_LUFS = TARGETS[targetArg] ?? Number(targetArg);
+if (!projectArg || !pieceArg || targetArg === '' || !Number.isFinite(TARGET_LUFS)) {
+  console.error('Usage: render-piece <project dir> <piece path, project-relative> [out dir] [--target console|portable|<LUFS>]');
   process.exit(2);
 }
 const project = resolve(projectArg);
@@ -41,30 +63,26 @@ const graph = await root.render(module.default);
 const piece = readPiece(graph);
 root.unmount();
 
-// Structural checks: the questions a composer answers by eye, answered by count.
 const beatsPerBar = piece.transport.beatsPerBar;
-const problems: string[] = [];
-for (const track of piece.tracks) {
-  for (const clip of track.clips) {
-    for (const note of clip.notes) {
-      if (note.time < 0 || note.time + note.duration > clip.duration + 1e-9) {
-        problems.push(`${track.name}: a note at beat ${note.time} of "${clip.name ?? 'clip'}" runs outside the clip (${clip.duration} beats).`);
-      }
-    }
-  }
-}
-if (Math.abs(piece.length / beatsPerBar - Math.round(piece.length / beatsPerBar)) > 1e-9) {
-  problems.push(`The piece is ${piece.length} beats, not a whole number of ${beatsPerBar}-beat bars.`);
-}
+const problems: string[] = [...checkPiece(piece).problems];
 
 const assignments = assignChannels(piece);
 const bankPath = [...assignments.values()][0]?.bank;
 if (!bankPath) throw new Error('No track has a soundfont device; there is nothing to render.');
 const bankBytes = readFileSync(resolve(project, bankPath));
-const loop = await renderLoop(piece, bankBytes.buffer.slice(bankBytes.byteOffset, bankBytes.byteOffset + bankBytes.byteLength));
+const bank = bankBytes.buffer.slice(bankBytes.byteOffset, bankBytes.byteOffset + bankBytes.byteLength);
+const loop = await renderLoop(piece, bank);
+// Each audible track alone, through the same render: the same channels, the same performance.
+const stems: { track: string; loop: RenderedLoop }[] = [];
+for (const track of audibleTracks(piece)) {
+  stems.push({ track: track.name, loop: await renderLoop(piece, bank, loop.sampleRate, undefined, new Set([track.id])) });
+}
 
 mkdirSync(out, { recursive: true });
 const wavPath = join(out, `${name}.wav`);
+const stemsDir = join(out, 'stems');
+rmSync(stemsDir, { recursive: true, force: true });
+mkdirSync(stemsDir, { recursive: true });
 
 /** ffmpeg's EBU R128 summary for a WAV: integrated loudness, loudness range, true peak. */
 function measure(path: string): { integrated: number; range: number; truePeak: number } {
@@ -78,21 +96,36 @@ function measure(path: string): { integrated: number; range: number; truePeak: n
   };
 }
 
-function scale(gain: number): void {
-  for (const channel of [loop.left, loop.right]) for (let i = 0; i < channel.length; i++) channel[i] = (channel[i] ?? 0) * gain;
+function scale(target: RenderedLoop, gain: number): void {
+  for (const channel of [target.left, target.right]) for (let i = 0; i < channel.length; i++) channel[i] = (channel[i] ?? 0) * gain;
 }
 
-// GAIN STAGING. The synth's summed output runs hot, and 16-bit WAV clips at full scale, so the
-// loop is first taken 18 dB down, measured, then set to the loudness target; if that would put
-// the true peak above the ceiling, the ceiling wins and the report says the target was not met.
-const TARGET_LUFS = Number(process.env['TARGET_LUFS'] ?? -18);
+// GAIN STAGING. The synth's summed output runs hot and the WAV clamps at full scale, so the loop
+// is first taken down (18 dB, or further if its sample peak needs it), measured, then set to the
+// loudness target; if that would put the true peak above the ceiling, the ceiling wins and the
+// report says the target was not met. Every stem gets exactly the mix's gain: nothing is
+// re-normalised, so the stems sum back to the mix.
 const CEILING_DBTP = -1;
-scale(10 ** (-18 / 20));
-writeFileSync(wavPath, new Uint8Array(audioToWav([loop.left, loop.right], loop.sampleRate, { normalizeAudio: false, loop: { start: 0, end: loop.loopSeconds } })));
+let samplePeak = 0;
+for (const channel of [loop.left, loop.right]) for (const sample of channel) samplePeak = Math.max(samplePeak, Math.abs(sample));
+const preGain = Math.min(10 ** (-18 / 20), 0.9 / Math.max(samplePeak, 1e-9));
+scale(loop, preGain);
+writeFileSync(wavPath, loopWav24(loop.left, loop.right, loop.sampleRate));
 const first = measure(wavPath);
 const gainDb = Math.min(TARGET_LUFS - first.integrated, CEILING_DBTP - first.truePeak);
-scale(10 ** (gainDb / 20));
-writeFileSync(wavPath, new Uint8Array(audioToWav([loop.left, loop.right], loop.sampleRate, { normalizeAudio: false, loop: { start: 0, end: loop.loopSeconds } })));
+scale(loop, 10 ** (gainDb / 20));
+writeFileSync(wavPath, loopWav24(loop.left, loop.right, loop.sampleRate));
+const stemFiles: string[] = [];
+for (const stem of stems) {
+  scale(stem.loop, preGain * 10 ** (gainDb / 20));
+  const file = `${stem.track.replace(/[/\\:*?"<>|]/g, '-')}.wav`;
+  writeFileSync(join(stemsDir, file), loopWav24(stem.loop.left, stem.loop.right, stem.loop.sampleRate));
+  stemFiles.push(`stems/${file}`);
+}
+const residual = nullResidualDb(
+  [loop.left, loop.right],
+  stems.map((stem) => [stem.loop.left, stem.loop.right]),
+);
 writeFileSync(join(out, `${name}.mid`), new Uint8Array(pieceToMidi(piece, 1).writeMIDI()));
 execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', wavPath, '-c:a', 'vorbis', '-strict', '-2', '-b:a', '224k', join(out, `${name}.ogg`)]);
 
@@ -126,7 +159,20 @@ const report = {
   loopSeconds: Math.round(loop.loopSeconds * 1000) / 1000,
   notes: notes.length,
   tracks: byTrack,
-  loudness: { integratedLufs: integrated, loudnessRangeLu: range, truePeakDbfs: truePeak },
+  loudness: {
+    target: targetArg in TARGETS ? targetArg : 'custom',
+    targetLufs: TARGET_LUFS,
+    ceilingDbtp: CEILING_DBTP,
+    integratedLufs: integrated,
+    loudnessRangeLu: range,
+    truePeakDbfs: truePeak,
+  },
+  measures: measureLoop(loop.left, loop.right, loop.sampleRate),
+  stems: {
+    files: stemFiles,
+    // Residual energy of (mix − sum of stems) against the mix, dB; null is an exact null.
+    nullResidualDb: Number.isFinite(residual) ? residual : null,
+  },
   seamRatio: Math.round(seamRatio(loop) * 1000) / 1000,
   problems,
 };
