@@ -101,12 +101,13 @@ Unreal's default viewport is its style (`@volter/editor-game` `unreal.style.ts`)
 
 The layer is the named view `unreal` (`@volter/editor-game` `contributions/unreal.view.ts`), which a person puts on a view from the shading popover's View row or `editor.presentation(id, 'unreal')`.
 
-Independent judgement (an opus judge, frames captured through `captureActiveDocument` on a selected object, against `engine-reference` and Blender's `gizmo-*.png`): **Godot and Unity pass**; Unreal and Blender do not. Each target is captured with its document opened under its own view, so the stage arms that view's boot tool; a view put on a document already open keeps the tool that was armed.
+Independent judgement (an opus judge, frames captured through `captureActiveDocument` on a selected object, against `engine-reference` and Blender's `gizmo-*.png`): **Godot, Unity and Unreal pass**; Blender does not. Each target is captured with its document opened under its own view, so the stage arms that view's boot tool; a view put on a document already open keeps the tool that was armed.
 
-- Unreal has no floor and no clouded sky, so the object floats; its bottom-left triad is missing. Its Move gizmo is right in form, with arrows short and thin beside the reference.
+- Unreal passes with its cloud layer and preview floor (`contributions/unreal.view.ts`; sky, cloud and floor values fitted to `level-editor.png`). Remaining: the object's shadow on the floor is faint beside the reference's, the floor meets the sky on a hard line where Unreal's fog softens it, and the Move gizmo's arrows are short and thin.
 - Unity's arrows are short with small cones next to its Move tool's.
 - Blender lacks the 3D cursor and the origin dot. (The judge also read the floor lines on the cube's lower half as drawn through it; the default cube straddles the floor, so those lines lie in front of it, as in Blender's own perspective view.)
-- Every target lacks its navigation gizmo in the frame (Godot's axis balls, Unity's cone gizmo with "Persp", Blender's navigation buttons); the capture did not show them.
+- The judged frames came from `captureActiveDocument`, the document's own render, which leaves out the viewport's overlay pass: every target's navigation gizmo is drawn on screen (Unreal's triad, seen through `captureEditorChrome`) but was missing from those frames. Judge a stage from the page capture, cropped to its viewport.
+- Blender's Material Preview passes on the cube's shading and the backdrop against Blender 5.2's own render of the same world.
 
 Blender's Material Preview is the named view `blender-material-preview` (`@volter/editor-blender` `contributions/material-preview.view.ts`) over Blender's eight world studio lights (`blender.environment.ts`, CC0). On `cube.blend` its faces measure 186–202 where Blender 5.2's own EEVEE render of the default cube under the same world, composited over the fill, measures 190–198; that render stands in for a viewport screenshot and is not an independent judgement.
 
