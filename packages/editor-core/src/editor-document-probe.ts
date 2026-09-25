@@ -249,9 +249,16 @@ function resolveScope(name: DocumentProbeScope): Scope {
     // workspace's layout host mounts that card outside every document's box, so scope 'rail'
     // covers it too — the same inspector in its other projection, whether or not the Properties
     // view is open beside it.
+    // The visible card: every view of the active document mounts one, and a parked view's is
+    // in the page with no box.
     const card =
       name === 'rail'
-        ? document.querySelector<HTMLElement>('[data-testid="inspector-panel"][data-vgai-inspector-presentation="card"]')
+        ? ([
+            ...document.querySelectorAll<HTMLElement>('[data-testid="inspector-panel"][data-vgai-inspector-presentation="card"]'),
+          ].find((candidate) => {
+            const box = candidate.getBoundingClientRect();
+            return box.width > 0 && box.height > 0;
+          }) ?? null)
         : null;
     if (card && !container) return { container: card, name, id: view.view, title: 'Inspector card' };
     if (card && container) return { container, extraRoots: [card], name, id: view.view, title: `${view.title} and the inspector card` };
@@ -835,6 +842,16 @@ function acceptStep(step: DocumentProbeStep): Scope {
 
 export async function runDocumentProbe(step: DocumentProbeStep): Promise<DocumentProbeResult> {
   const scope = acceptStep(step);
+  // THE GAME'S HEADER TAKES POINTER CLICKS AND READS ONLY. Its strip is the editor's chrome, but
+  // every event this door dispatches bubbles to \`window\`, where a playing game listens: a key,
+  // a typed string, a paste or a drag there would drive the game with synthetic input, which is
+  // what refusing the Game document protects.
+  if (scope.id === GAME_DOCUMENT_ID && step.action !== 'query' && step.action !== 'click' && step.action !== 'select') {
+    throw new Error(
+      `'${step.action}' is refused in the Game document's header strip: its events bubble to the ` +
+        "playing game. Query, click and select are its door; drive the game through the game's own doors.",
+    );
+  }
   const where = { name: scope.name, id: scope.id, title: scope.title };
   /** Every gesture answers with the element it drove, so a transcript proves
    *  WHAT was driven and not merely that something was. */

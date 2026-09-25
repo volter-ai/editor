@@ -156,8 +156,8 @@ export function resolveInspectionDisplay(input: {
   // ONE resolver, shared with every other caller of the preference
   // (`inspector-presentation.ts`).
   const resolved: InspectionPresentation = resolveInspectorPresentation(affinity, override, workspaceDefault);
-  // A column no one can see shows the inspector nowhere: with its view closed it is a card.
-  const presentation: InspectionPresentation = resolved === 'column' && !columnShown ? 'card' : resolved;
+  // A docked inspector no one can see shows it nowhere: with its view closed it is a card.
+  const presentation: InspectionPresentation = resolved !== 'card' && !columnShown ? 'card' : resolved;
   return {
     subject,
     surface,

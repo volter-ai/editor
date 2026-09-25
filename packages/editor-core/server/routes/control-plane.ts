@@ -330,9 +330,14 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
     return true;
   }
   // Pending command results — keyed by requestId, resolved by browser POST
-  /** Per tab, a command it received that outlived its budget and has not been answered: it may
-   *  still be running and blocking the tab. Cleared by the tab's next receipt or answer. */
-  const runningPastBudget = new Map<string, { readonly type: string; readonly acknowledgedAt: number }>();
+  /** Per tab, the LAST command it received: which, when, on which page load (`epochCount`), and
+   *  whether it has answered. A command the tab then never receives, sent after that receipt on
+   *  the same page load while it is unanswered, is waiting on a tab that has received nothing
+   *  since; the page runs commands concurrently, so only that ordering says so. */
+  const lastReceipt = new Map<
+    string,
+    { requestId: string; type: string; at: number; epoch: number; answered: boolean }
+  >();
 
   const pendingCommands = new Map<
     string,
@@ -359,9 +364,8 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
        *  timer: the final refusal awaits a main-thread echo, and a receipt
        *  arriving inside that window must win. */
       acknowledged?: boolean;
-      /** When the receipt arrived: an acknowledged command still pending is RUNNING, and the
-       *  page runs its commands one at a time, so it is what later ones are queued behind. */
-      acknowledgedAt?: number;
+      /** When the relay sent it, so a timeout can tell whether the tab's last receipt came before. */
+      relayedAt?: number;
       /** Long-budget commands have separate delivery and work budgets. The
        *  relay starts a defensive timer immediately, then the first receipt
        *  restarts it so time spent queued behind a blocked main thread cannot
@@ -452,14 +456,8 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
     // no census and sends no report), and an answered one is the proof that
     // clears it. `tab-presence.ts`'s `tabState` is the only reader.
     if (pending.tabId) {
-      if (result.timedOut === true && pending.acknowledged === true) {
-        runningPastBudget.set(pending.tabId, {
-          type: String(pending.command?.['type'] ?? 'a command'),
-          acknowledgedAt: pending.acknowledgedAt ?? Date.now(),
-        });
-      } else if (result.timedOut !== true) {
-        runningPastBudget.delete(pending.tabId);
-      }
+      const last = lastReceipt.get(pending.tabId);
+      if (last?.requestId === id && result.timedOut !== true) last.answered = true;
       const table = tabTableOwning(pending.tabId);
       if (result.timedOut === true) table?.onCommandOutcome(pending.tabId, 'timed-out');
       else if (result.ok === true) table?.onCommandOutcome(pending.tabId, 'answered');
@@ -736,8 +734,15 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
         journalEvent({ kind: 'command-receipt', requestId8: short(requestId) });
         const firstReceipt = pending.acknowledged !== true;
         pending.acknowledged = true;
-        pending.acknowledgedAt = Date.now();
-        if (pending.tabId) runningPastBudget.delete(pending.tabId);
+        if (pending.tabId) {
+          lastReceipt.set(pending.tabId, {
+            requestId,
+            type: String(pending.command?.['type'] ?? 'a command'),
+            at: Date.now(),
+            epoch: tabTableOwning(pending.tabId)?.tab(pending.tabId)?.epochCount ?? 0,
+            answered: false,
+          });
+        }
         noteCommandReceipt(pending.controllerClientId);
         if (pending.ackTimer) {
           clearTimeout(pending.ackTimer);
@@ -1754,27 +1759,25 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
         // can act on: measured at N=20000, `play`, `screenshot` and `stop` all
         // expired with it while the page sat inside one 199.5s block and its
         // WORKER heartbeat kept the tab looking healthy. See `play-stall.ts`.
-        // NAME WHAT HOLDS THE TAB. A command the tab received and never finished can block its main
-        // thread, and then every later command is never even received and expires with the
-        // sentence above (measured: a `present-view` received and not answered, then five later
-        // commands with no receipt, each "did not respond"). When this command was not received,
-        // an earlier one on the same tab that was received and is still running is the cause.
-        const blocking = (pending?.acknowledged === true ? [] : [...pendingCommands.entries()])
-          .filter(
-            ([id, other]) =>
-              id !== requestId &&
-              other.tabId === targetTabId &&
-              other.acknowledged === true &&
-              other.acknowledgedAt !== undefined &&
-              other.acknowledgedAt < expiredAt,
-          )
-          .sort(([, a], [, b]) => (a.acknowledgedAt ?? 0) - (b.acknowledgedAt ?? 0))
-          .map(([, other]) => ({ type: String(other.command?.['type'] ?? 'a command'), acknowledgedAt: other.acknowledgedAt ?? expiredAt }))[0] ??
-          (pending?.acknowledged === true || targetTabId === undefined ? undefined : runningPastBudget.get(targetTabId));
-        const queuedBehind = blocking
-          ? ` The tab never received it: \`${blocking.type}\`, received ` +
-            `${Math.round((expiredAt - blocking.acknowledgedAt) / 1000)}s ago, has not finished ` +
-            'and the tab has received nothing since.'
+        // NAME WHAT THE TAB LAST RECEIVED. A command the tab received and never finished can
+        // block its main thread, and every later command is then never even received and expires
+        // with the sentence above (measured: a `present-view` received and not answered, then
+        // five later commands with no receipt, each "did not respond"). Named only when it holds:
+        // this command was not received, the tab's last receipt came before it was sent, on the
+        // page load still running, and has not been answered.
+        const last = targetTabId === undefined ? undefined : lastReceipt.get(targetTabId);
+        const holding =
+          pending?.acknowledged !== true &&
+          last !== undefined &&
+          !last.answered &&
+          last.at <= (pending?.relayedAt ?? expiredAt) &&
+          last.epoch === (tab?.epochCount ?? last.epoch)
+            ? last
+            : undefined;
+        const queuedBehind = holding
+          ? ` The last command the tab received was \`${holding.type}\`, ` +
+            `${Math.round((expiredAt - holding.at) / 1000)}s ago; it has not answered and the tab ` +
+            'has received nothing since.'
           : '';
         const stall = playStallDiagnosis({
           command: body['type'],
@@ -1820,6 +1823,7 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
         command: commandWithId,
         refreshWorkTimer,
         epochAtRelay: table?.tab(targetTabId)?.epochCount ?? 0,
+        relayedAt: Date.now(),
         ...(hasSeparateDeliveryBudget
           ? {
               restartWorkTimerAfterReceipt: () => {

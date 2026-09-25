@@ -411,8 +411,10 @@ const partWatchers = new Map<string, ResizeObserver>();
 function watchPartShown(id: string, element: HTMLElement | null): void {
   partWatchers.get(id)?.disconnect();
   partWatchers.delete(id);
-  const report = () =>
-    setFramePartShown(id, element !== null && element.isConnected && element.getBoundingClientRect().width > 0);
+  const report = () => {
+    const box = element?.isConnected ? element.getBoundingClientRect() : null;
+    setFramePartShown(id, box !== null && box.width > 0 && box.height > 0);
+  };
   report();
   if (element === null || typeof ResizeObserver === 'undefined') return;
   const watcher = new ResizeObserver(report);

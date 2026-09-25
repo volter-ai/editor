@@ -40,6 +40,7 @@ import type {
   InspectionSurfaceKind,
 } from '@volter/editor-sdk/kit/inspection-model';
 import {
+  preloadUserLocalState,
   userLocalSection,
   userLocalStateLoaded,
   writeUserLocalSection,
@@ -72,6 +73,12 @@ let _overrides: OverrideMap | null = null;
 let _version = 0;
 const _listeners = new Set<() => void>();
 let stopFrameParts: (() => void) | null = null;
+// A subscriber that read before the person's state loaded re-resolves once it has.
+void preloadUserLocalState().then(() => {
+  _overrides = null;
+  _version++;
+  for (const listener of _listeners) listener();
+});
 function notifyFramePartChange(): void {
   _version++;
   for (const listener of _listeners) listener();
