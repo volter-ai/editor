@@ -55,10 +55,8 @@
  * are different answers and only the second is worth showing.
  */
 
-import type * as THREE from 'three';
-import type { EditorShellStore } from '../editor-shell-store';
-import type { CompositeAuthoringAdapter } from './composite-authoring-adapter';
-import type { DesignTimeRootDescriptor, LayerMountResult } from './design-time-layers';
+import type { AuthoringAdapter, PickProvider } from '@volter/editor-project/adapter';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import type { RootViewController } from '@volter/editor-sdk/kit/world-pan-state';
 
 /**
@@ -68,13 +66,34 @@ import type { RootViewController } from '@volter/editor-sdk/kit/world-pan-state'
  * the activation document id; `mountCanvasLayer` read those three plus the
  * presentation's view controller.
  */
+/** One declared `dom`/`canvas` root the design-time stack may mount into a layer. */
+export interface DesignTimeRootDescriptor {
+  readonly worldId: string;
+  readonly kind: 'dom' | 'canvas';
+  readonly path: string | undefined;
+  readonly zOrder: number;
+  readonly pausable: boolean;
+}
+
+/** What a layer mount hands back to the stack. */
+export interface LayerMountResult {
+  readonly adapter?: AuthoringAdapter;
+  /**
+   * D12 (B4) — a stage hit-test over opaque mounted content, in client pixels.
+   * Source-backed React/Pixi mounts carry picking on their full adapter;
+   * foreign Pixi mounts can return this narrower capability instead.
+   */
+  readonly pick?: PickProvider['pick'];
+  dispose(): void;
+}
+
 export interface DesignTimeMountContext {
   /** The open project's absolute root path — resolved once by the stack, and
    *  the reason it refuses to mount anything when there is no project. */
   readonly projectRootPath: string;
   /** The ONE format-neutral shell store (selection, history handle, play
    *  state) every authoring adapter is constructed against. */
-  readonly store: EditorShellStore;
+  readonly store: ShellStore;
   /** Present only when the document this layer belongs to presents its own
    *  independent editor camera and viewport renderer rather than the shared
    *  artboard (`mountDesignTimeLayers`' `presentation`). A mount that has no
@@ -148,27 +167,17 @@ export interface DesignTimeLayerMount extends DesignTimeMountBase {
   ) => Promise<LayerMountResult>;
 }
 
-/** Everything the world root's stage hands its medium's design session. It is
- *  the stage's own three handles: nothing here is a layer, a candidate or a
- *  project path, because the session resolves its world from the manifest
- *  itself. Measured against `mountR3FDesignSession` as it stood. */
-export interface WorldRootSessionContext {
-  /** The ONE format-neutral shell store the session's adapter is built over. */
-  readonly store: EditorShellStore;
-  /** The edit-mode composite the session swaps its own child adapter into. */
-  readonly composite: CompositeAuthoringAdapter;
-  /** The stage's renderer — the session adopts it rather than building one. */
-  readonly renderer: THREE.WebGLRenderer;
-}
-
 export interface DesignTimeStageMount extends DesignTimeMountBase {
   readonly kind: DesignTimeStageKind;
   /**
    * Mount this medium's design session onto the world root's stage. Returns
    * its teardown. Throwing is the sanctioned failure, the same as a layer
-   * mount's.
+   * mount's. The context is the stage's own handles (its store, composite and
+   * renderer), agreed between the stage that calls and the medium that
+   * registered; the kit is not a party to its shape, so it types it `unknown`
+   * here the way `documents.context` does.
    */
-  readonly mountWorldRootSession: (context: WorldRootSessionContext) => Promise<() => void>;
+  mountWorldRootSession(context: unknown): Promise<() => void>;
 }
 
 export type DesignTimeMount = DesignTimeLayerMount | DesignTimeStageMount;

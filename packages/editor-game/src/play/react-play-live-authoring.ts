@@ -158,7 +158,7 @@ export function createReactPlayAuthoringAdapter(
   root: OidElementLike,
   store: EditorShellStore,
 ): ReactRootAuthoringAdapter {
-  return new ReactRootAuthoringAdapter(root, store, {
+  return new ReactRootAuthoringAdapter(root, store.shell, {
     writeBackend: createEphemeralDomWriteBackend(root),
     provenance: EPHEMERAL_DOM_PROVENANCE,
   });

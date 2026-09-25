@@ -21,7 +21,7 @@ import { activeDocumentAuthoring } from './authoring/shell-document-ops';
 import { handleAssetPreviewCommand } from './asset-preview-command';
 import { captureSizeFromCommand } from './capture-size';
 import type { EditorShellStore, HelperVisibility } from './editor-shell-store';
-import { captureActiveEditorDocument } from './editor-view-presentation';
+import { editorHost } from '@volter/editor-sdk/host';
 import { entityObject3D } from './entity-object';
 import { threeStoreForHost } from './shell-store-door';
 import { focusedStageStore } from './stage-context';
@@ -182,7 +182,7 @@ export const viewportCommands: CommandContribution['commands'] = {
     // adopted through them came back white.
     if (store.hasAdoptedScene) {
       try {
-        const capture = await captureActiveEditorDocument(store.shell, requested.size);
+        const capture = await editorHost().documents.captureActive(requested.size);
         return { ok: true, data: { base64: capture.base64, mimeType: capture.mimeType } };
       } catch (error) {
         return { ok: false, error: error instanceof Error ? error.message : String(error) };

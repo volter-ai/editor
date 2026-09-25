@@ -30,6 +30,7 @@ import { registerDesignTimeMount } from '@volter/editor-core/authoring/design-ti
 import { queueEditModeRebuild } from '@volter/editor-core/authoring/edit-mode-authoring';
 import { authoringJournal } from '../../src/host/history/json-history-resource';
 import { oidThree } from '../../src/three/authoring/three-authoring-adapter';
+import type { WorldRootSessionContext } from '../../src/host/components/world-root-stage';
 
 export const point = 'workspace.service';
 
@@ -50,7 +51,8 @@ export function start(): () => void {
   const stopMount = registerDesignTimeMount({
     kind: 'three',
     owner: '@volter/editor-game/three/three-authoring',
-    mountWorldRootSession: async (context) => {
+    async mountWorldRootSession(stage) {
+      const context = stage as WorldRootSessionContext;
       const { mountR3FDesignSession } = await session;
       return mountR3FDesignSession(context.store, context.composite, context.renderer);
     },

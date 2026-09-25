@@ -28,6 +28,7 @@ import type { EditorKeyActionId, KeyChord } from '@volter/editor-project/adapter
 import { useSyncExternalStore } from 'react';
 import type * as THREE from 'three';
 import type { StageTransportHandle } from './transport';
+import type { ActiveDocumentCapture, CaptureDimensions } from './types';
 
 /**
  * THE STORY RUNTIME'S DOORWAY — the URL a package dynamic-imports to reach
@@ -191,6 +192,12 @@ export interface EditorHostDocuments {
    * unchanged, and a document that published none is a no-op.
    */
   contextChanged(documentId: string): void;
+  /**
+   * The active center document's pixels, taken by the document's own presenter (never another
+   * stage's renderer and camera). A viewport whose scene another document adopted answers its
+   * capture through here, because the adopter is the one presenting it.
+   */
+  captureActive(size?: CaptureDimensions): Promise<ActiveDocumentCapture>;
 }
 
 /**

@@ -227,7 +227,7 @@ async function mountDefaultReactSibling(
       // built — `ui-source/tier-source-write-backend.ts`, and the packaged-
       // editor bug the old `import.meta.env.DEV` gate carried here.
       const writeBackend = sourceWriteBackendIfPrimed('An ingest sibling’s react layer');
-      authoring = new ReactRootAuthoringAdapter(layer, store, {
+      authoring = new ReactRootAuthoringAdapter(layer, store.shell, {
         ...(writeBackend ? { writeBackend } : {}),
       });
     } else {

@@ -111,6 +111,7 @@ import { onBeforeSessionClose } from './session-close';
 import { setSettingsProvider, subscribeSettingsProvider } from './settings/settings-provider';
 import { getSetting, inspectSetting, setSetting, subscribeSettings } from './settings-store';
 import { onShellStoreChange, shellStoreForHost, threeStoreForHost } from './shell-store-door';
+import { captureActiveEditorDocument } from './editor-view-presentation';
 import { focusedStageContext } from './stage-context';
 import {
   onViewportFrame,
@@ -327,6 +328,11 @@ export function installEditorHostDoor(): void {
       context: documentContextFor,
       waitForContext: waitForDocumentContext,
       contextChanged: notifyDocumentContextChanged,
+      captureActive: (size) => {
+        const store = shellStoreForHost();
+        if (!store) return Promise.reject(new Error('No editor session is open to capture a document from.'));
+        return captureActiveEditorDocument(store, size);
+      },
     },
     // THE STAGE TRANSPORT. A lookup plus a subscription, exactly like
     // `documents` above: the registry IS the identity map, so the door adds

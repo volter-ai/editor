@@ -108,6 +108,18 @@ import { isEditorViewportShadingTarget } from '@volter/editor-core/viewport-shad
 import { downloadOnlineAssetWithHistory } from '@volter/editor-core/components/asset-editor-persistence';
 import { bindStagePresenceMarkers } from '@volter/editor-core/components/stage-presence-markers';
 
+/** Everything the world root's stage hands its medium's design session: the stage's own three
+ *  handles. The stage and the medium that registered for `three` agree on it; the kit's mount
+ *  registry types it `unknown`. */
+export interface WorldRootSessionContext {
+  /** The shell store the session's adapter is built over. */
+  readonly store: EditorShellStore;
+  /** The edit-mode composite the session swaps its own child adapter into. */
+  readonly composite: CompositeAuthoringAdapter;
+  /** The stage's renderer — the session adopts it rather than building one. */
+  readonly renderer: THREE.WebGLRenderer;
+}
+
 /**
  * THE WORLD STAGE'S STARTING PRESENTATION. Its studio is the light the world has always been
  * shown by — the viewport's own ambient (0.5) and directional (1.0 from (10, 20, 10)), with no
@@ -1024,7 +1036,7 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
     const stageMount = designTimeMountFor('three');
     if (disposed || editModeComposite !== composite) return;
     const disposeSession = stageMount
-      ? await stageMount.mountWorldRootSession({ store, composite, renderer })
+      ? await stageMount.mountWorldRootSession({ store, composite, renderer } satisfies WorldRootSessionContext)
       : () => {};
     if (disposed || editModeComposite !== composite) {
       disposeSession();

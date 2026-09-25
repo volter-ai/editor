@@ -44,7 +44,7 @@ import {
 } from '@volter/editor-sdk/kit/write-pipe';
 import { guideClientEdges } from '@volter/editor-core/components/board-guides';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import type { EditorShellStore } from '@volter/editor-core/editor-shell-store';
+import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { withProjectSourceHistory } from '@volter/editor-core/history/source-history-backend';
 import { DomProjector, oidDomIdentity, projectOidDom } from '../host/projection/dom';
 import { storyArgPropertyDescriptors } from '../host/stories/story-arg-descriptors';
@@ -1042,12 +1042,12 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
 
   constructor(
     private readonly root: OidElementLike,
-    private readonly store: EditorShellStore,
+    private readonly store: ShellStore,
     opts: ReactRootAuthoringOptions = {},
   ) {
     this.assetRoot = opts.assetRoot ?? root;
     this.provenance = opts.provenance ?? JSX_SOURCE_PROVENANCE;
-    this.writeBackend = withProjectSourceHistory(opts.writeBackend, store.shell.projectHistory);
+    this.writeBackend = withProjectSourceHistory(opts.writeBackend, store.projectHistory);
     this.computedStyle = opts.computedStyle ?? browserOrInlineResolver;
     this.matchedCssRules =
       opts.matchedCssRules ??
@@ -1190,7 +1190,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
         .index()
         .then((idx) => {
           this.oidIndex = new Map(Object.entries(idx));
-          this.store.shell.notifyIngestEdit();
+          this.store.notifyIngestEdit();
         })
         .catch(() => {
           // Honest degradation: labels stay tag-only if the index can't be fetched.
@@ -1230,7 +1230,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
     const index = await this.writeBackend?.index?.();
     if (!index) return;
     this.oidIndex = new Map(Object.entries(index));
-    this.store.shell.notifyIngestEdit();
+    this.store.notifyIngestEdit();
   }
 
   // --- A4: optimistic value echo (see {@link valueEcho}) ---
@@ -1311,7 +1311,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
     if (this.valueEcho.size === 0 && this.pendingSourceReconcile === 0) return;
     this.valueEcho.clear();
     if (this.pendingSourceReconcile > 0) this.pendingSourceReconcile--;
-    this.store.shell.notifyIngestEdit();
+    this.store.notifyIngestEdit();
   }
 
   /**
@@ -1380,7 +1380,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
   private repairSelectionAfterReprojection(alreadyReported: boolean): boolean {
     const remembered = this.lastResolvedSelection;
     if (remembered.length === 0) return false;
-    if (this.store.shell.selectedEntityIds.size > 0) return false; // not lost (yet)
+    if (this.store.selectedEntityIds.size > 0) return false; // not lost (yet)
     const tree = this.snapshot();
     const alive = remembered.filter((id) => tree.nodes.has(id));
     if (alive.length === 0) {
@@ -1404,7 +1404,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
           'per session; the repair runs on every re-projection.',
       );
     }
-    this.store.shell.selectMultiple([...alive]);
+    this.store.selectMultiple([...alive]);
     return true;
   }
 
@@ -1651,7 +1651,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
 
   readonly selection: SelectionProvider = {
     get: () => {
-      const ids = [...this.store.shell.selectedEntityIds];
+      const ids = [...this.store.selectedEntityIds];
       // Remember the last NON-EMPTY selection so a re-projection that drops it
       // can be repaired — see `repairSelectionAfterReprojection`. Recorded on
       // the read because that is the one call every projection of the
@@ -1661,7 +1661,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
       if (ids.length > 0) this.lastResolvedSelection = ids;
       return ids;
     },
-    set: (ids) => this.store.shell.selectMultiple(ids),
+    set: (ids) => this.store.selectMultiple(ids),
     resolve: (rawId, options) => {
       const raw = this.hierarchy.node(rawId);
       if (!raw) return null;
@@ -2325,7 +2325,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
         if (node?.el.style) (node.el.style as Record<string, unknown>)[prop] = prior;
       }
       this.dirty = wasDirty;
-      this.store.shell.notifyIngestEdit();
+      this.store.notifyIngestEdit();
       throw error;
     }
   }
@@ -2514,14 +2514,14 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
         const next = { ...current, [name]: value };
         this.portableStoryArgs.set(id, next);
         this.onPortableStoryArgsChanged?.(id, { ...next });
-        this.store.shell.notifyIngestEdit();
+        this.store.notifyIngestEdit();
         return;
       }
       // D4 — see the matching `get` branch's doc comment.
       if (path === 'locked') {
         if (value) this.lockedIds.add(id);
         else this.lockedIds.delete(id);
-        this.store.shell.notifyIngestEdit();
+        this.store.notifyIngestEdit();
         return;
       }
       if (path === 'visible') {
@@ -2689,7 +2689,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
       const res = await writeNamedStyle({ op: 'remove', oid: n.oid, className: op.className });
       if (!res.changed) return refuse(res.error ?? 'no change');
       this.dirty = true;
-      this.store.shell.notifyIngestEdit();
+      this.store.notifyIngestEdit();
       return { changed: true };
     }
     const existing = findClassRuleSource(op.className);
@@ -2697,7 +2697,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
       const res = await writeNamedStyle({ op: 'apply', oid: n.oid, className: op.className });
       if (!res.changed) return refuse(res.error ?? 'the element already wears this class');
       this.dirty = true;
-      this.store.shell.notifyIngestEdit();
+      this.store.notifyIngestEdit();
       return { changed: true };
     }
     // The rule's home: the last matched first-party rule's own file, else any
@@ -2726,7 +2726,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
     });
     if (!res.changed) return refuse(res.error ?? 'no change');
     this.dirty = true;
-    this.store.shell.notifyIngestEdit();
+    this.store.notifyIngestEdit();
     return { changed: true, created: true };
   }
 
@@ -2779,7 +2779,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
       if (this.activeStoryId === storyId) this.activeStoryId = null;
     }
     this.dirty = true;
-    this.store.shell.notifyIngestEdit();
+    this.store.notifyIngestEdit();
     return { changed: true };
   }
 
@@ -2790,7 +2790,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
     const next = { ...(story.args ?? {}) };
     this.portableStoryArgs.set(storyId, next);
     this.onPortableStoryArgsChanged?.(storyId, { ...next });
-    this.store.shell.notifyIngestEdit();
+    this.store.notifyIngestEdit();
   }
 
   /** Cap 4: PropertyDescriptors for a node's editable component props (read off the fiber). */
@@ -2870,7 +2870,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
       return false;
     }
     this.dirty = true;
-    this.store.shell.notifyIngestEdit();
+    this.store.notifyIngestEdit();
     return true;
   }
 
@@ -2900,7 +2900,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
       // outside every story row".
       this.activeStoryId = storyId ?? this.portableDefaultStoryId;
       this.onPortableStoryApplied?.(storyId);
-      this.store.shell.notifyIngestEdit();
+      this.store.notifyIngestEdit();
     },
     // This provider's states ARE the project's portable CSF, so it is the one
     // that can say whether discovery ran at all. Without this the section that
@@ -3241,7 +3241,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
           // — the value just snapped back with no visible reason).
           showTransientHint(guard);
         }
-        this.store.shell.notifyIngestEdit();
+        this.store.notifyIngestEdit();
         this.refuseStyleWrite(`[ReactRootAuthoringAdapter] breakpoint edit refused: ${guard}`);
         return false;
       }
@@ -3261,7 +3261,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
         return false;
       }
       this.dirty = true;
-      this.store.shell.notifyIngestEdit();
+      this.store.notifyIngestEdit();
       return true;
     }
     if (backend.writeCss) {
@@ -3294,7 +3294,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
         );
         if (res.changed) {
           this.dirty = true;
-          this.store.shell.notifyIngestEdit();
+          this.store.notifyIngestEdit();
           return true;
         }
         if (!res.generated) {
@@ -3332,7 +3332,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
       // `readonly: true` descriptor only reach the UI on a store tick. Without
       // this the widget keeps showing the refused value, enabled, until some
       // unrelated event happens to re-render.
-      this.store.shell.notifyIngestEdit();
+      this.store.notifyIngestEdit();
       this.refuseStyleWrite(
         `[ReactRootAuthoringAdapter] style write refused/no-op for oid "${n.oid}" ` +
           `prop "${prop}": ${guard ?? res.error ?? 'no change'}`,
@@ -3366,7 +3366,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
     if (priorInlineOverride === undefined && n.el.style) {
       (n.el.style as Record<string, unknown>)[prop] = cssTextForStyleValue(prop, value);
     }
-    this.store.shell.notifyIngestEdit();
+    this.store.notifyIngestEdit();
     return true;
   }
 
@@ -3450,7 +3450,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
     if (!res.changed) return false; // longhand wasn't authored — nothing removed, no undo
     this.dirty = true;
     if (n.el.style) delete (n.el.style as Record<string, unknown>)[prop];
-    this.store.shell.notifyIngestEdit();
+    this.store.notifyIngestEdit();
     return true;
   }
 
@@ -3484,7 +3484,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
           'The body has an expression or child elements, so replacing it with text is guarded.',
         );
       }
-      this.store.shell.notifyIngestEdit();
+      this.store.notifyIngestEdit();
       console.warn(
         `[ReactRootAuthoringAdapter] text edit refused/no-op for oid "${n.oid}": ` +
           `${res.dynamic ? 'body has an expression/children (guarded)' : (res.error ?? 'no change')}`,
@@ -3498,7 +3498,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
     // paths) — same pre-HMR-notify timing gap as a structural op (see
     // `pendingSourceReconcile`'s doc comment): queue a pending reconcile.
     this.pendingSourceReconcile++;
-    this.store.shell.notifyIngestEdit();
+    this.store.notifyIngestEdit();
   }
 
   /**
@@ -3539,7 +3539,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
       if (res.dynamic) this.markGuarded(id, echoPath, DYNAMIC_EXPRESSION_GUARD);
       // D2 — notify so the cleared echo + (dynamic) new `readonly: true`
       // descriptor render at refusal time, not on the next unrelated event.
-      this.store.shell.notifyIngestEdit();
+      this.store.notifyIngestEdit();
       console.warn(
         `[ReactRootAuthoringAdapter] prop write refused/no-op for oid "${cp.callSiteOid}" ` +
           `prop "${prop}": ${res.dynamic ? 'value is a dynamic expression (guarded)' : (res.error ?? 'no change')}`,
@@ -3547,7 +3547,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
       return false;
     }
     this.dirty = true;
-    this.store.shell.notifyIngestEdit();
+    this.store.notifyIngestEdit();
     return true;
   }
 
@@ -3588,7 +3588,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
   }
 
   subscribe(listener: () => void): () => void {
-    return this.store.shell.subscribe(listener);
+    return this.store.subscribe(listener);
   }
 
   // A class GETTER, not a field initializer — see `ui-authoring-adapter.ts`/
@@ -3672,7 +3672,7 @@ export class ReactRootAuthoringAdapter implements AuthoringAdapter {
     onChanged: () => {
       this.dirty = true;
       this.pendingSourceReconcile++;
-      this.store.shell.notifyIngestEdit();
+      this.store.notifyIngestEdit();
     },
   });
 

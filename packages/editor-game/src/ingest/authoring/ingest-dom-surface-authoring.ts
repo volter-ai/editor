@@ -128,7 +128,7 @@ function domSurfaceAdapter(
     });
   }
   const writeBackend = sourceWriteBackendIfPrimed('An ingested game’s DOM UI surface');
-  return new ReactRootAuthoringAdapter(liveUiRoot, store, {
+  return new ReactRootAuthoringAdapter(liveUiRoot, store.shell, {
     ...(writeBackend ? { writeBackend } : {}),
   });
 }

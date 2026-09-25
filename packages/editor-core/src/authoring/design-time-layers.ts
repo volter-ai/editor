@@ -34,7 +34,7 @@
  * stays here rather than moving with either mount.
  */
 
-import type { AuthoringAdapter, PickProvider } from '@volter/editor-project/adapter';
+import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { stackOrder } from '@volter/editor-project/adapter/root-stacking';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '../editor-shell-store';
@@ -45,10 +45,14 @@ import type { CompositeAuthoringAdapter } from './composite-authoring-adapter';
 import {
   type DesignTimeMount,
   type DesignTimeMountContext,
+  type DesignTimeRootDescriptor,
   designTimeMountFor,
   designTimeMounts,
+  type LayerMountResult,
   subscribeDesignTimeMounts,
 } from './design-time-mount-registry';
+
+export type { DesignTimeRootDescriptor, LayerMountResult };
 import { queueEditModeRebuild } from './edit-mode-authoring';
 import {
   addMountFailureReport,
@@ -108,13 +112,6 @@ const BASE_Z_INDEX = 1;
  *  existing `BoundaryAuthoringAdapter` (kind/path/zOrder/pausable are already
  *  exposed there, independent of whether the composite has a writable manifest
  *  manifest surface — see that adapter's own inspector). */
-export interface DesignTimeRootDescriptor {
-  readonly worldId: string;
-  readonly kind: 'dom' | 'canvas';
-  readonly path: string | undefined;
-  readonly zOrder: number;
-  readonly pausable: boolean;
-}
 
 function readCandidates(composite: CompositeAuthoringAdapter): DesignTimeRootDescriptor[] {
   const out: DesignTimeRootDescriptor[] = [];
@@ -293,16 +290,6 @@ function applyPanTransform(layer: HTMLElement): void {
  * exported since the mounts moved into their surface packages
  * (`design-time-mount-registry.ts`).
  */
-export interface LayerMountResult {
-  readonly adapter?: AuthoringAdapter;
-  /**
-   * D12 (B4) — a stage hit-test over opaque mounted content, in client pixels.
-   * Source-backed React/Pixi mounts carry picking on their full adapter;
-   * foreign Pixi mounts can return this narrower capability instead.
-   */
-  readonly pick?: PickProvider['pick'];
-  dispose(): void;
-}
 
 /**
  * Mount design-time React worlds declared by `composite` into a caller's
@@ -534,7 +521,7 @@ export function mountDesignTimeLayers(
 
     const context: DesignTimeMountContext = {
       projectRootPath,
-      store,
+      store: store.shell,
       ...(presentation ? { view: presentation.canvasSceneView } : {}),
       ...(activationDocumentId ? { activationDocumentId } : {}),
     };
