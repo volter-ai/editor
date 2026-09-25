@@ -103,7 +103,7 @@ Independent judgement (an opus judge, frames captured through `captureActiveDocu
 
 - Unreal has no floor and no clouded sky, so the object floats; its bottom-left triad is missing. Its Move gizmo is right in form, with arrows short and thin beside the reference.
 - Unity's arrows are short with small cones next to its Move tool's.
-- Blender draws the grid and the X axis line through the solid cube, and lacks the 3D cursor and the origin dot.
+- Blender lacks the 3D cursor and the origin dot. (The judge also read the floor lines on the cube's lower half as drawn through it; the default cube straddles the floor, so those lines lie in front of it, as in Blender's own perspective view.)
 - Every target lacks its navigation gizmo in the frame (Godot's axis balls, Unity's cone gizmo with "Persp", Blender's navigation buttons); the capture did not show them.
 
 Neither half is accepted: Unreal and Blender above, Unreal's capability row, and Blender's Material Preview and Rendered modes. The reference frames are in `/Volumes/PeakSSD/volter-work/engine-reference`; the world stage is compiled but not yet seen on a project with a world.
