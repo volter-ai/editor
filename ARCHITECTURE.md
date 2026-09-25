@@ -44,7 +44,8 @@ Rules:
    look, as data. Audit when recorded: the viewport stage fails. Its backdrop, grid fade,
    key light, material level and light-probe strength were fitted to Blender in shared code
    (engine `5d28941`, `1e5add8`, `9134441`, `a254519`), and a look declares only its
-   viewport colours, gizmo size and shelf tool.
+   viewport colours, gizmo size and shelf tool. The targets' measured defaults and the gap are
+   [docs/VIEWPORT-STAGE.md](docs/VIEWPORT-STAGE.md).
 
 ## Doors
 
