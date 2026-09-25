@@ -3726,7 +3726,8 @@ export class EditorViewport {
     bindViewPresentation(viewId, stageKind);
     const apply = () => {
       const presentation = viewPresentation(viewId);
-      if (this._renderer) rig.apply(presentation, this._renderer, undefined, { tone: false });
+      // This stage draws neither the view's environment nor its backdrop, so it builds no sky.
+      if (this._renderer) rig.apply(presentation, this._renderer, undefined, { tone: false, sky: false });
       this.setStageFunction(presentation.world, presentation.interaction);
       this.setSelectionMarks(presentation.overlays.selection);
       this.setGridMajorEvery(presentation.overlays.grid.majorEvery);

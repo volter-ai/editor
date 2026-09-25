@@ -64,3 +64,9 @@ against the pinned public commit; `wasm/essentials.json` records per-file
 hashes and the complete payload hash. The payload includes the upstream
 CC0-1.0 license as `assets/LICENSE`. This data does not change the engine's
 GPL license or its corresponding-source obligation.
+
+`@volter/editor-blender` ships Blender's eight world studio-light HDRIs
+(`contributions/studiolights/world/*.exr`, from Blender 5.2's
+`datafiles/studiolights/world`) as environment images. They are CC0-1.0, by
+Greg Zaal (Poly Haven); `license.txt` beside them names each original. The
+product bundle emits them as assets, outside the recorded module inputs above.

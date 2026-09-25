@@ -428,6 +428,11 @@ const TONE_MAPPERS: Record<ViewportPresentation['lighting']['tone']['mapper'], T
   filmic: THREE.CustomToneMapping,
 };
 
+/** One image's sky key: a changed URL (a rebuilt asset) is a different image to load. */
+function imageKey(image: NonNullable<ReturnType<typeof environmentImage>>): string {
+  return `image|${image.id}|${image.url}`;
+}
+
 export class StagePresentationRig {
   private readonly group = new THREE.Group();
   private readonly ambient = new THREE.AmbientLight(0xffffff, 0);
@@ -440,11 +445,21 @@ export class StagePresentationRig {
   private readonly sun = new THREE.DirectionalLight(0xffffff, 1);
   /** The preview sky, built from its three colours: the background drawn behind the scene and
    *  the environment that lights it, rebuilt only when the colours change. */
-  private sky: { key: string; background: THREE.Texture; environment: THREE.Texture } | null = null;
+  private sky: {
+    key: string;
+    /** The environment image drawn, or `null` for the procedural strip. */
+    image: string | null;
+    background: THREE.Texture;
+    environment: THREE.WebGLRenderTarget;
+  } | null = null;
   private pmrem: THREE.PMREMGenerator | null = null;
   private readonly direction = new THREE.Vector3();
   /** The environment image being fetched (its sky key), so a second apply does not fetch it again. */
   private loadingImage: string | null = null;
+  /** The image the view names while it loads or after it failed, for the draw report. */
+  private pendingImage: { id: string; state: 'unregistered' | 'loading' | 'failed' } | null = null;
+  /** Images that failed to load, by sky key: not fetched again for this rig. */
+  private readonly failedImages = new Set<string>();
   /** The environment's turn about the vertical axis, radians. */
   private rotation = 0;
   private disposed = false;
@@ -471,7 +486,7 @@ export class StagePresentationRig {
     presentation: ViewportPresentation,
     renderer: THREE.WebGLRenderer,
     documentToneMapping?: THREE.ToneMapping,
-    options: { readonly tone?: boolean } = {},
+    options: { readonly tone?: boolean; readonly sky?: boolean } = {},
   ): void {
     this.presentation = presentation;
     const { lighting } = presentation;
@@ -503,16 +518,29 @@ export class StagePresentationRig {
     this.sun.target.updateMatrixWorld();
     this.rotation = THREE.MathUtils.degToRad(environment.rotation);
     const wantsSky =
-      environment.enabled && (lighting.source === 'preview' || presentation.backdrop.source === 'environment');
-    if (!wantsSky) return;
-    // An image the view names but no integration has registered (yet, or in this product) leaves
-    // the procedural sky in place; the image is built when it registers (the stage re-applies).
-    const image = environment.image === null ? null : environmentImage(environment.image);
-    if (image) this.buildImage(image, renderer);
-    else {
+      options.sky !== false &&
+      environment.enabled &&
+      (lighting.source === 'preview' || presentation.backdrop.source === 'environment');
+    if (!wantsSky) {
       this.loadingImage = null;
-      this.buildSky(environment.sky, renderer, sun.enabled ? { direction: this.sun.position.clone().normalize(), color: sun.color, energy: sun.energy } : null);
+      this.pendingImage = null;
+      return;
     }
+    // An image the view names but no integration has registered (yet, or in this product), or
+    // one that failed to load, leaves the procedural sky; a registration re-applies the view.
+    const image = environment.image === null ? null : environmentImage(environment.image);
+    const sky = () =>
+      this.buildSky(environment.sky, renderer, sun.enabled ? { direction: this.sun.position.clone().normalize(), color: sun.color, energy: sun.energy } : null);
+    if (image && !this.failedImages.has(imageKey(image))) {
+      // Nothing drawn yet: the procedural sky stands while the image loads.
+      if (!this.sky) sky();
+      this.buildImage(image, renderer, sky);
+      return;
+    }
+    this.loadingImage = null;
+    this.pendingImage =
+      environment.image === null ? null : { id: environment.image, state: image ? 'failed' : 'unregistered' };
+    sky();
   }
 
   /**
@@ -524,10 +552,16 @@ export class StagePresentationRig {
   private buildImage(
     image: NonNullable<ReturnType<typeof environmentImage>>,
     renderer: THREE.WebGLRenderer,
+    fallback: () => void,
   ): void {
-    const key = `image|${image.id}|${image.url}`;
-    if (this.sky?.key === key || this.loadingImage === key) return;
+    const key = imageKey(image);
+    if (this.sky?.key === key) {
+      this.pendingImage = null;
+      return;
+    }
+    if (this.loadingImage === key) return;
     this.loadingImage = key;
+    this.pendingImage = { id: image.id, state: 'loading' };
     loadEnvironmentImage(image.url, image.format)
       .then((texture) => {
         if (this.disposed || this.loadingImage !== key) {
@@ -535,15 +569,33 @@ export class StagePresentationRig {
           return;
         }
         this.loadingImage = null;
+        this.pendingImage = null;
         this.disposeSky();
         this.pmrem ??= new THREE.PMREMGenerator(renderer);
-        this.sky = { key, background: texture, environment: this.pmrem.fromEquirectangular(texture).texture };
+        this.sky = { key, image: image.id, background: texture, environment: this.pmrem.fromEquirectangular(texture) };
         this.onReady?.();
       })
       .catch((error: unknown) => {
-        if (this.loadingImage === key) this.loadingImage = null;
+        if (this.disposed || this.loadingImage !== key) return;
+        this.loadingImage = null;
+        this.failedImages.add(key);
+        this.pendingImage = { id: image.id, state: 'failed' };
         editorConsole.error(`Environment image "${image.id}" (${image.url}) did not load: ${String(error)}`, 'viewport');
+        // The view still names it, so what stands is the procedural sky, never the last image.
+        fallback();
+        this.onReady?.();
       });
+  }
+
+  /** The environment image the last draw showed and the one still loading or failed. */
+  imageReport(): { readonly shown: string | null; readonly pending: { readonly id: string; readonly state: 'unregistered' | 'loading' | 'failed' } | null } {
+    return { shown: this.sky?.image ?? null, pending: this.pendingImage };
+  }
+
+  /** The environment's turn: an image's, never the procedural strip's (its sun is the preview
+   *  sun's, which does not turn with it). */
+  private turn(): number {
+    return this.sky?.image ? this.rotation : 0;
   }
 
   /**
@@ -631,12 +683,13 @@ export class StagePresentationRig {
     background.minFilter = THREE.LinearFilter;
     background.needsUpdate = true;
     this.pmrem ??= new THREE.PMREMGenerator(renderer);
-    const environment = this.pmrem.fromEquirectangular(background).texture;
-    this.sky = { key, background, environment };
+    const environment = this.pmrem.fromEquirectangular(background);
+    this.sky = { key, image: null, background, environment };
   }
 
   private disposeSky(): void {
     this.sky?.background.dispose();
+    // The prefiltered target, not only its texture: its framebuffer is the target's.
     this.sky?.environment.dispose();
     this.sky = null;
   }
@@ -649,7 +702,7 @@ export class StagePresentationRig {
     if (this.source === 'studio') return { texture: null, intensity: this.preset?.environmentIntensity ?? 0, rotation: 0 };
     if (this.source === 'preview') {
       return lighting.preview.environment.enabled
-        ? { texture: this.sky?.environment ?? null, intensity: lighting.preview.environment.energy, rotation: this.rotation }
+        ? { texture: this.sky?.environment.texture ?? null, intensity: lighting.preview.environment.energy, rotation: this.turn() }
         : { texture: null, intensity: 0, rotation: 0 };
     }
     return null;
@@ -673,7 +726,7 @@ export class StagePresentationRig {
     if (backdrop.source === 'color') return { value: new THREE.Color(backdrop.color), blur: 0, intensity: 1, rotation: 0 };
     // `environment`: the preview sky drawn behind the scene, at the view's opacity and blur.
     return this.sky
-      ? { value: this.sky.background, blur: backdrop.blur, intensity: backdrop.opacity, rotation: this.rotation }
+      ? { value: this.sky.background, blur: backdrop.blur, intensity: backdrop.opacity, rotation: this.turn() }
       : 'keep';
   }
 

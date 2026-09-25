@@ -42,6 +42,7 @@
       "./contributions/blender.keymap.ts",
       "./contributions/blender.status.tsx",
       "./contributions/blender.style.ts",
+      "./contributions/material-preview.view.ts",
       "./contributions/model.layout.ts",
       "./contributions/models.finder.ts",
       "./contributions/properties-bone-constraints.inspector.tsx",

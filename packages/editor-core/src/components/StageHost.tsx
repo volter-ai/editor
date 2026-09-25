@@ -1676,6 +1676,8 @@ export function Object3DDocumentViewport({
               contentLights: host.contentLights.length,
               contentLightsDarkened: darkened,
               environmentIntensity: host.scene.environmentIntensity,
+              environmentImage: rig.imageReport().shown,
+              environmentImagePending: rig.imageReport().pending,
               toneMapping: String(renderer.toneMapping),
             });
           }

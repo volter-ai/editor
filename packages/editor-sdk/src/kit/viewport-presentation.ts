@@ -448,6 +448,10 @@ export interface ViewDrawReport {
   readonly contentLights: number;
   readonly contentLightsDarkened: number;
   readonly environmentIntensity: number;
+  /** The environment image this draw showed (`null`: the procedural sky or none), and the one
+   *  the view names while it is still loading or after it failed to load. */
+  readonly environmentImage: string | null;
+  readonly environmentImagePending: { readonly id: string; readonly state: 'unregistered' | 'loading' | 'failed' } | null;
   readonly toneMapping: string;
 }
 
