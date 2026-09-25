@@ -1932,9 +1932,12 @@ function selectionInkValue(theme: EditorTheme): string {
 }
 
 function selectionBorderValue(theme: EditorTheme): string {
-  return usesNeutralSelection(theme)
-    ? 'color-mix(in srgb, currentColor 30%, transparent)'
-    : 'var(--vgai-accent)';
+  if (usesNeutralSelection(theme)) return 'color-mix(in srgb, currentColor 30%, transparent)';
+  // On a LIGHT panel the accent is the ink, and an ink ring round every pressed
+  // control is a hard black box; the selection there is the fill alone, so the
+  // border is the fill's own colour.
+  if (isBrightSurface(theme.color.surface.panel)) return `rgb(from ${theme.color.accent.muted} r g b / 1)`;
+  return 'var(--vgai-accent)';
 }
 
 function selectionIndicatorValue(theme: EditorTheme): string {
@@ -2488,8 +2491,7 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     // On a LIGHT panel (the Plotter palette, paper) the same arithmetic paints a
     // near-black band under dark ink. There the selected band is the palette's
     // own selection wash (`accent.muted`, what a pressed control already wears);
-    // the active row is that colour at full strength inside a hairline in the
-    // accent. Every dark palette
+    // the active row is that colour at full strength, with no ink ring. Every dark palette
     // computes exactly what it did before.
     ...(isBrightSurface(theme.color.surface.panel)
       ? {
@@ -2497,7 +2499,7 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
           // Opaque: the active band is painted OVER its hairline layer, so a
           // wash would let the hairline show through the whole row.
           '--vgai-tree-row-active-bg': `rgb(from ${theme.color.accent.muted} r g b / 1)`,
-          '--vgai-tree-row-active-border': theme.color.accent.default,
+          '--vgai-tree-row-active-border': `rgb(from ${theme.color.accent.muted} r g b / 1)`,
         }
       : {
           '--vgai-tree-row-selected-bg': `color-mix(in srgb, ${theme.color.accent.default} 42%, #000)`,
