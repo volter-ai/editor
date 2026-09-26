@@ -22,6 +22,71 @@ import { LiveMix, mixSignature, servedIrLoader } from './mix/live-mix';
 import processorUrl from 'spessasynth_lib/dist/spessasynth_processor.min.js?url';
 
 const LOOKAHEAD_S = 0.2;
+
+/** Each track's channel set to its preset, at unity level and centre (the mix's strips apply the channel's own). */
+export function setUpVoices(synth: WorkletSynthesizer, piece: Piece): void {
+  const voices = trackVoices(piece);
+  for (const track of piece.tracks) {
+    const voice = voices.get(track.id);
+    if (!voice) continue;
+    if (voice.channel !== DRUM_CHANNEL) {
+      synth.controllerChange(voice.channel, 0, voice.bankNumber);
+      synth.programChange(voice.channel, voice.program);
+    }
+    // Level and pan are the mix's faders and panners (`mix/live-mix.ts`), not the synth's
+    // controllers, so they are applied once; the synth channel stays at unity and centre.
+    synth.controllerChange(voice.channel, 7, 127);
+    synth.controllerChange(voice.channel, 10, 64);
+  }
+}
+
+/**
+ * Hand the synth every note and controller of the performance whose piece-second falls in
+ * [from, to), counting up across loop passes, each timestamped `at(second)` on the audio clock.
+ * The engine's timer calls it for the stretch ahead of the playhead.
+ */
+export function scheduleSpan(
+  synth: WorkletSynthesizer,
+  piece: Piece,
+  performance: Performance,
+  fromSecond: number,
+  toSecond: number,
+  at: (second: number) => number,
+): void {
+  const span = performance.seconds;
+  if (span <= 0) return;
+  const voices = trackVoices(piece);
+  const audibleTracks = new Map(piece.tracks.map((track) => [track.id, audible(piece, track)]));
+  let from = fromSecond;
+  while (from < toSecond) {
+    // Piece-seconds count up across passes; each pass is folded into the loop to find its events.
+    const passStart = Math.floor(from / span) * span;
+    const end = Math.min(toSecond, passStart + span);
+    const localFrom = from - passStart;
+    const localTo = end - passStart;
+    for (const control of performance.controls) {
+      if (control.time < localFrom || control.time >= localTo) continue;
+      const voice = voices.get(control.track);
+      if (!voice || !audibleTracks.get(control.track)) continue;
+      const when = { time: at(passStart + control.time) };
+      if (control.controller === 'pitchbend') {
+        synth.pitchWheel(voice.channel, Math.max(0, Math.min(16383, Math.round(8192 + control.value * 8191))), when);
+      } else {
+        synth.controllerChange(voice.channel, control.controller as never, Math.max(0, Math.min(127, Math.round(control.value * 127))), when);
+      }
+    }
+    for (const note of performance.notes) {
+      if (note.start < localFrom || note.start >= localTo) continue;
+      const voice = voices.get(note.track);
+      if (!voice || !audibleTracks.get(note.track)) continue;
+      const velocity = Math.max(1, Math.min(127, Math.round(note.velocity * 127)));
+      synth.noteOn(voice.channel, note.pitch, velocity, { time: at(passStart + note.start) });
+      synth.noteOff(voice.channel, note.pitch, { time: at(passStart + note.end) });
+    }
+    from = end;
+  }
+}
+
 const TICK_MS = 25;
 const DRUM_CHANNEL = 9;
 
@@ -221,21 +286,7 @@ export class PreviewEngine {
   }
 
   private applyMix(piece: Piece): void {
-    const synth = this.synth;
-    if (!synth) return;
-    const voices = trackVoices(piece);
-    for (const track of piece.tracks) {
-      const voice = voices.get(track.id);
-      if (!voice) continue;
-      if (voice.channel !== DRUM_CHANNEL) {
-        synth.controllerChange(voice.channel, 0, voice.bankNumber);
-        synth.programChange(voice.channel, voice.program);
-      }
-      // Level and pan are the mix's faders and panners (`mix/live-mix.ts`), not the synth's
-      // controllers, so they are applied once; the synth channel stays at unity and centre.
-      synth.controllerChange(voice.channel, 7, 127);
-      synth.controllerChange(voice.channel, 10, 64);
-    }
+    if (this.synth) setUpVoices(this.synth, piece);
   }
 
   private tick(): void {
@@ -244,40 +295,10 @@ export class PreviewEngine {
     const piece = this.piece;
     const performance = this.performance;
     if (!context || !synth || !piece || !performance || performance.seconds <= 0) return;
-    const span = performance.seconds;
     const horizon = this.originSecond + (context.currentTime + LOOKAHEAD_S - this.originTime);
     if (horizon <= this.scheduledTo) return;
-    const voices = trackVoices(piece);
-    const audibleTracks = new Map(piece.tracks.map((track) => [track.id, audible(piece, track)]));
     const at = (second: number): number => this.originTime + (second - this.originSecond);
-    let from = this.scheduledTo;
-    while (from < horizon) {
-      // Piece-seconds count up across passes; each pass is folded into the loop to find its events.
-      const passStart = Math.floor(from / span) * span;
-      const to = Math.min(horizon, passStart + span);
-      const localFrom = from - passStart;
-      const localTo = to - passStart;
-      for (const control of performance.controls) {
-        if (control.time < localFrom || control.time >= localTo) continue;
-        const voice = voices.get(control.track);
-        if (!voice || !audibleTracks.get(control.track)) continue;
-        const when = { time: at(passStart + control.time) };
-        if (control.controller === 'pitchbend') {
-          synth.pitchWheel(voice.channel, Math.max(0, Math.min(16383, Math.round(8192 + control.value * 8191))), when);
-        } else {
-          synth.controllerChange(voice.channel, control.controller as never, Math.max(0, Math.min(127, Math.round(control.value * 127))), when);
-        }
-      }
-      for (const note of performance.notes) {
-        if (note.start < localFrom || note.start >= localTo) continue;
-        const voice = voices.get(note.track);
-        if (!voice || !audibleTracks.get(note.track)) continue;
-        const velocity = Math.max(1, Math.min(127, Math.round(note.velocity * 127)));
-        synth.noteOn(voice.channel, note.pitch, velocity, { time: at(passStart + note.start) });
-        synth.noteOff(voice.channel, note.pitch, { time: at(passStart + note.end) });
-      }
-      from = to;
-    }
+    scheduleSpan(synth, piece, performance, this.scheduledTo, horizon, at);
     this.scheduledTo = horizon;
   }
 }

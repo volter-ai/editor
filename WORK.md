@@ -211,9 +211,14 @@ the report's bar 3 plus the lead), with the output equal to each loop's own samp
 side of the fade.
 
 Open, with what closes each:
-- Live against export, synth half: the preview's worklet synthesizer and its real-time
-  scheduler against the export's offline synthesizer, as one null number (the mix half is
-  measured above).
+- Live against export, synth half. Read from `spessasynth_lib`'s processor: at the start of
+  each 128-sample render quantum it applies every queued event whose time has passed, then
+  renders the quantum, so each note the preview schedules sounds up to 2.67 ms after its
+  performed time (the export is sample-exact). Under a quantum is inaudible; matching the export
+  exactly needs the processor to split its quantum at event times, a change to that library. The
+  offline null of the two (+1.6 dB at equal level) is not yet a clean reading: in an
+  OfflineAudioContext the worklet stayed silent after the preview's channel setup, so the
+  instrument has to be settled before its number means anything.
 - Sampled instruments beyond the General MIDI SoundFont. Found: sfizz's own WebAudio build
   (`sfztools/sfizz-webaudio`, GitHub only, last pushed 2024-06); no SFZ engine on npm, no native
   sfizz on the box. Proposed, not yet measured: sfizz's WASM in both the preview's worklet and the
