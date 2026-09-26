@@ -119,6 +119,15 @@ spiccato, pizzicato and staccato repeat without the machine-gun sound.
 - `<Device plugin="humanize" params={{ timingMs: 14, velocity: 0.05, seed: 3 }} />`: seeded,
   so every render is the same.
 
+## Worked pieces
+
+`node_modules/@volter/editor-dawproject/examples/music/` holds finished pieces, each passing
+`check-piece`: `harbor.tsx` (a 16-bar menu loop in two sections on the General MIDI bank) and
+`harbor-orchestra.tsx` (the same on the VS Chamber Orchestra banks), `tidewatch.tsx` (two game states, Explore
+and Battle, each looping and handing over on the dominant) and `victory.tsx` (a stinger). Read
+them for how a brief, a chord table, voice-led parts and literal melodies sit in one file; they
+import `examples/lib/music/voicing.ts`, which a project copies to `src/lib/music/` with them.
+
 ## Compose in stages, one save per stage
 
 The person is watching; each stage lands as its own save, sounds on its own, and passes the

@@ -32,6 +32,7 @@
   "include": [
     "src",
     "contributions",
-    "scripts"
+    "scripts",
+    "examples"
   ]
 }
