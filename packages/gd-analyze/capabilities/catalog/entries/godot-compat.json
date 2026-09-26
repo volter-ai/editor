@@ -6,6 +6,7 @@
     "src/lib/godot-compat/callable.ts",
     "src/lib/godot-compat/color.ts",
     "src/lib/godot-compat/dictionary.ts",
+    "src/lib/godot-compat/global-scope.ts",
     "src/lib/godot-compat/node-process.ts",
     "src/lib/godot-compat/packed-string-array.ts",
     "src/lib/godot-compat/plane.ts",
