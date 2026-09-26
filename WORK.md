@@ -145,18 +145,22 @@ Remaining:
    UI root's `debug.state` and follows an arrow key; `npm run build` builds both, and the built
    `full` page draws the world under its UI with no console errors. Static batching reads
    Vite's own dev flag, and a game's Web Audio is observed rather than declared, so the
-   template's game code imports nothing of the runtime framework. Still on it: the editor's own
-   mounting (`mountManifestRoots`, the design session's inert `Game`, 44 `@volter/editor-game`
-   files), the template's `validate-asset-content.ts` (the input-map schema) and dev aliases,
-   and `arena` (vgai-engine's `examples/arena`), whose mount, `react-root`, input manager and
-   `<RapierPhysicsBridge>` are the framework's. The framework retires only after `arena` no
-   longer mounts through it. Its physics no longer needs the bridge: the editor finds a game's
-   own `<Physics>` world in the project Fiber's root registry (`services/game-physics.ts`,
-   through the R3F doorway) and answers ownership and freeze/commit from it for a `three` root
-   that declares no physics (walked on `arena` with the bridge and its physics system removed:
-   during Play, EnemyBody's transform reads "Moves the physics body that owns this node.", with
-   no console error). Not walked: a drag visibly holding a body, since `arena`'s moving bodies are
-   kinematic and driven by its own code.
+   template's game code imports nothing of the runtime framework. The editor finds a game's own
+   `<Physics>` world in the project Fiber's root registry (`services/game-physics.ts`, through
+   the R3F doorway) and answers ownership and freeze/commit from it for a `three` root that
+   declares no physics. `arena` runs with none of the framework in its source: the template's
+   boot, no `react-root`, no `<RapierPhysicsBridge>` or audio/physics declarations, and its own
+   input store in `src/lib/input` (the map's keys, mouse, gamepad and virtual actions, attached
+   by `<InputRig />`). Walked on the editor's local `@volter` copy of `arena`, which lives in no
+   repository (vgai-engine's `examples/arena` still imports `@vgai/game-runtime`, whose editor
+   has none of these observers): during Play, no console error; `move_forward` held for one sim
+   second moves the player from z 24.0 to 20.2, `fire` fires the pistol twice; EnemyBody's
+   transform reads "Moves the physics body that owns this node.". Not walked: the ported copy's
+   standalone build, a physical keystroke, and a drag visibly holding a body (its moving bodies
+   are kinematic and driven by its own code). Still on it: the editor's own mounting
+   (`mountManifestRoots` and the R3F root factory it mounts `three` entries with, the design
+   session's inert `Game`, 44 `@volter/editor-game` files), and the input-map schema that the
+   template's and `arena`'s `validate-asset-content.ts` import, plus their dev aliases.
 2. **Animation seen from outside.** The editor finds a game's mixers through a served stamp on
    the project's own `new AnimationMixer(...)` and `useAnimations(...)` call sites
    (`@volter/editor-threejs/serving`); `status` reports them as `liveMixers` (walked on `arena`:
