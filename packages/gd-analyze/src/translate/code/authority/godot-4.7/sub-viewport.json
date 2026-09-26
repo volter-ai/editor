@@ -1,0 +1,150 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/sub-viewport"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SubViewport",
+        "member": "get_size",
+        "kind": "native-member",
+        "signature": "hash:3690982128"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sub-viewport",
+        "exportName": "get_size",
+        "localName": "SubViewport_get_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SubViewport.get_size"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SubViewport",
+        "member": "set_size",
+        "kind": "native-member",
+        "signature": "hash:1130785943"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sub-viewport",
+        "exportName": "set_size",
+        "localName": "SubViewport_set_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SubViewport.set_size"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SubViewport.get_size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SubViewport\u0000get_size\u0000hash:3690982128",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/viewport.cpp",
+        "sourceSymbol": "SubViewport.get_size",
+        "sourceLine": 5640
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "bf4d2cdbfb1d1106a5beb549ef528fefe5d6a8d03e48b309a733df8902ce67fe",
+        "callsite": "res://probe.gd _init() get_size-default",
+        "observedOutputSha256": "f63a98d015bbe424df3b86c75a1fd319a5886ee10a14c206920d53a688fa8d19"
+      },
+      "target": {
+        "implementationSha256": "054c831e6744d0ad1d65c19812f706ba270f44e80c9cce7be405cbb88530a81a",
+        "callsite": "lib/godot-compat/sub-viewport.ts get_size",
+        "observedOutputSha256": "f63a98d015bbe424df3b86c75a1fd319a5886ee10a14c206920d53a688fa8d19"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "49f8909039f0c568b08ff5c7198c56d309b70f9500ab938c64aa3d5aaf0e160c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sub-viewport",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SubViewport.set_size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SubViewport\u0000set_size\u0000hash:1130785943",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/viewport.cpp",
+        "sourceSymbol": "SubViewport.set_size",
+        "sourceLine": 5611
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4111f28128381eaa59e3fe4111f1af2f9fe67bafaae3c2ee0c309d610d1a8ffd",
+        "callsite": "res://probe.gd _init() set_size-640x480 set_size-1x1 set_size-1920x1080 set_size-333x777 set_size-0x5 set_size--3x2 set_size-2x-100",
+        "observedOutputSha256": "fc6bd0f025eaadb4160a5b70c8b9b0e04ce279b22ee22323f64c930e472b3743"
+      },
+      "target": {
+        "implementationSha256": "054c831e6744d0ad1d65c19812f706ba270f44e80c9cce7be405cbb88530a81a",
+        "callsite": "lib/godot-compat/sub-viewport.ts set_size",
+        "observedOutputSha256": "fc6bd0f025eaadb4160a5b70c8b9b0e04ce279b22ee22323f64c930e472b3743"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "9dfcb474f0daee74e3eb369993dc34c956d6c82ab89e3e22a37ac200a45a5e67"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sub-viewport",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-SubViewport.get_size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "bf4d2cdbfb1d1106a5beb549ef528fefe5d6a8d03e48b309a733df8902ce67fe",
+      "implementationSha256": "054c831e6744d0ad1d65c19812f706ba270f44e80c9cce7be405cbb88530a81a"
+    },
+    {
+      "claimId": "godot-4.7-binding-SubViewport.set_size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4111f28128381eaa59e3fe4111f1af2f9fe67bafaae3c2ee0c309d610d1a8ffd",
+      "implementationSha256": "054c831e6744d0ad1d65c19812f706ba270f44e80c9cce7be405cbb88530a81a"
+    }
+  ]
+}
