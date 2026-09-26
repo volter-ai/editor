@@ -48,7 +48,7 @@ export const hasLiveDebugPlane = (): boolean => getActiveSystems().debug != null
  *  `Error` carrying a machine-readable `code` (and optional `data`), the same
  *  shape `DebugError`/`InputActionError` already throw. Used by
  *  `dispatchBridgeMethod` below for its OWN precondition failures (no debug
- *  adapter installed, no InputManager wired) so they survive
+ *  adapter installed, no input door wired) so they survive
  *  `structuredErrorResult` exactly like an engine-thrown error would. */
 export function bridgeError(code: string, message: string, data?: Record<string, unknown>): Error {
   const err = new Error(message) as Error & { code: string; data?: unknown };
@@ -337,8 +337,8 @@ export async function dispatchBridgeMethod(
       if (!inputTarget) {
         throw bridgeError(
           'DEBUG_INPUT_UNAVAILABLE',
-          `session wire: ${method}() has no virtual-input target wired — no default three ` +
-            "world has mounted yet, or this project's mount path never wired one",
+          `session wire: ${method}() has no virtual-input target wired — no root ` +
+            "entry exports `debug.input` (the game's own input door), or none has mounted yet",
         );
       }
       if (method === 'input.setVirtualAction') {
@@ -382,8 +382,8 @@ export async function dispatchBridgeMethod(
       if (!inputTarget) {
         throw bridgeError(
           'DEBUG_INPUT_UNAVAILABLE',
-          'session wire: input.scheduleActionAtTick() has no virtual-input target wired — no ' +
-            "default three world has mounted yet, or this project's mount path never wired one",
+          'session wire: input.scheduleActionAtTick() has no virtual-input target wired — no root ' +
+            "entry exports `debug.input` (the game's own input door), or none has mounted yet",
         );
       }
       return inputTarget.scheduleActionAtTick(tick, action, value);
@@ -405,8 +405,8 @@ export async function dispatchBridgeMethod(
       if (!inputTarget) {
         throw bridgeError(
           'DEBUG_INPUT_UNAVAILABLE',
-          `session wire: ${method}() has no virtual-input target wired — no default three ` +
-            "world has mounted yet, or this project's mount path never wired one",
+          `session wire: ${method}() has no virtual-input target wired — no root ` +
+            "entry exports `debug.input` (the game's own input door), or none has mounted yet",
         );
       }
       if (method === 'input.injectPointerDelta') {
@@ -430,8 +430,8 @@ export async function dispatchBridgeMethod(
       if (!inputTarget) {
         throw bridgeError(
           'DEBUG_INPUT_UNAVAILABLE',
-          'session wire: holdFor() has no virtual-input target wired — no default three ' +
-            "world has mounted yet, or this project's mount path never wired one",
+          'session wire: holdFor() has no virtual-input target wired — no root ' +
+            "entry exports `debug.input` (the game's own input door), or none has mounted yet",
         );
       }
       const action = callArgs[0] as string;

@@ -10,8 +10,8 @@
  *
  * The world is an ordinary R3F app. The editor renders it bare into a Fiber
  * root on the host's canvas and renderer, drives Fiber's `frameloop: 'never'`
- * scheduler from the game's own loop, and wires the game-scoped input seams
- * from outside the tree (`@volter/editor-game/runtime/game-input-seams`).
+ * scheduler from the game's own loop. A game's input is its own: the session's
+ * input door reaches it through the entry's `debug.input` export.
  *
  * WHOSE REACT AND FIBER. The entry's hooks resolve `react` and
  * `@react-three/fiber` through the project's module graph, so the root that
@@ -43,10 +43,6 @@ import { RENDER_SUBMIT_PHASE } from '@volter/game-runtime/dev/render-vitals';
 import { createWebGLFrameCapture } from '../../runtime/dev/webgl-frame-capture';
 import { getDebugRegistry } from '../../runtime/debug-registry';
 import { devBuildEnabled } from '@volter/game-runtime/runtime/dev-build';
-import {
-  DEFAULT_INPUT_MAP_PATH,
-  wireGameInputSeams,
-} from '../../runtime/game-input-seams';
 import type { GameThreeHostContext } from '../../runtime/host-context';
 import type * as React from 'react';
 import type { ComponentType, PropsWithChildren } from 'react';
@@ -132,23 +128,7 @@ function threeWorldAdapter(id: string, component: ComponentType, runtime: R3FRun
       // per mount is idempotent.
       extend(host.three as unknown as Parameters<typeof extend>[0]);
 
-      // THE HOST WIRES THIS GAME'S INPUT FROM OUTSIDE THE TREE: the project's
-      // declared map, and this root's `game.input.*` seams on the debug
-      // registry. Skipping those made a fresh scaffold's bot/autoplay/
-      // `vgai eval` input doors throw `DEBUG_INPUT_UNAVAILABLE` and left the
-      // declared actions unloaded. The conventional path is optional — quiet
-      // when the project ships no map, since a brand-new project declares no
-      // actions yet. Actions must exist before any component's first frame
-      // reads them — wait for the (never-rejecting) load before the first
-      // commit.
       const gameDebugRegistry = host.game ? getDebugRegistry(host.game) : null;
-      if (gameDebugRegistry) {
-        await wireGameInputSeams(host, gameDebugRegistry, {
-          id,
-          inputMapPath: DEFAULT_INPUT_MAP_PATH,
-          optionalInputMap: true,
-        });
-      }
 
       const canvas = host.surface.canvas;
       const root = createRoot(canvas);

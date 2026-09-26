@@ -7,9 +7,7 @@
  * Its AUDIO sibling (`createAudioSystemAdapter`, `releaseAudioMeters`) is the
  * game runtime's — `@volter/editor-game/runtime/adapter/first-party-audio-system` — for
  * the same reason this one is three.js's: each lives with the subsystem it
- * wraps. (The former `AnimationAdapter` over the `AnimGraph` map was removed
- * by E5; `createInputManagerAdapter`/`createVgaiAssetAdapter` went with
- * `SystemAdapters.input`/`.assets`, registered and never read.)
+ * wraps.
  */
 
 import type {

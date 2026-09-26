@@ -85,7 +85,7 @@ import {
 import { clearRootReadiness, recordRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import { mountedStoryHasPixiContent } from '../host/stories/pixi-story-model';
 import { domHasRenderableContent, threeSceneHasRenderableContent } from '../host/surface-content';
-import { subscribeSurfaceKeyboard, surfaceHoldsKeyboard } from '@volter/editor-sdk/kit/surface-keyboard';
+import { surfaceHoldsKeyboard } from '@volter/editor-sdk/kit/surface-keyboard';
 import { publishToolContributionPlay } from '@volter/editor-sdk/kit/tool-contribution-play';
 import { liveWorldId, presentThreeRoots } from '../host/viewport-root-presentation';
 import {
@@ -253,8 +253,8 @@ let _hostMountedReadyRootIds: readonly string[] = [];
 // id) resolves to the primary, so the default — and the single-instance case —
 // is "the primary has the keyboard", exactly as before split screen existed.
 // A click on an instance's viewport routes the keyboard to it
-// (`setFocusedInstance`); the input gate + InputManager for every instance read
-// this, so exactly the focused one is live and the rest are inert.
+// (`setFocusedInstance`); every instance's input gate reads this, so exactly
+// the focused one is live and the rest are inert.
 let _focusedInstanceId: string | null = null;
 const focusListeners = new Set<() => void>();
 
@@ -295,7 +295,6 @@ export function setFocusedInstance(id: string): void {
   setInspectedInstance(id);
   if (focusedInstanceId() === id) return;
   _focusedInstanceId = id;
-  resyncInstanceInputs();
   notifyFocusedInstance();
 }
 
@@ -303,15 +302,12 @@ export function setFocusedInstance(id: string): void {
  *  Game tab is active, this instance holds keyboard focus, AND our surface
  *  holds the keyboard.
  *
- *  The fourth term is U2's, and it exists for the engine's `InputManager`
- *  specifically. `gated-globals.ts` already ANDs the same predicate into every
- *  raw `window`/`document` listener a PROJECT module registers, but
- *  `InputManager` is `@volter/game-runtime`'s — a dependency, not a project module, so
- *  the dev server's lexical shadow never covers it and it attaches to the real
- *  `window`. Under the Code-OSS frame that window also carries Monaco, so
- *  without this a keystroke meant for the source file beside the running game
- *  moves the game too. Standalone it is a constant true and nothing changes.
- *  See `@editor/surface-keyboard`. */
+ *  The fourth term is U2's: `gated-globals.ts` ANDs this predicate into every
+ *  raw `window`/`document` listener a project module registers, and under the
+ *  Code-OSS frame that window also carries Monaco, so without it a keystroke
+ *  meant for the source file beside the running game moves the game too.
+ *  Standalone it is a constant true and nothing changes. See
+ *  `@editor/surface-keyboard`. */
 function instanceInputActive(id: string): boolean {
   if (!_ctx) return false;
   const { store } = _ctx;
@@ -322,39 +318,6 @@ function instanceInputActive(id: string): boolean {
     surfaceHoldsKeyboard()
   );
 }
-
-/** The first-party `InputManager` for an instance, or `undefined` — a session's
- *  game handle may lack one (an ingest mount, a partial double), so resolve it
- *  defensively. */
-function instanceInput(inst: PlayInstance): { setEnabled(on: boolean): void } | undefined {
-  try {
-    return inst.session?.game?.input;
-  } catch {
-    return undefined;
-  }
-}
-
-/** Re-apply the enabled/disabled state of every live instance's InputManager
- *  from the current play/tab/focus predicate. Called whenever any of those
- *  change (store subscription, focus switch, an instance mounting). The raw
- *  window/document gates are closures over `instanceInputActive`, so they need
- *  no re-registration — they re-read focus on every event. */
-function resyncInstanceInputs(): void {
-  if (_instance.id) instanceInput(_instance)?.setEnabled(instanceInputActive(_instance.id));
-  for (const inst of _additional) instanceInput(inst)?.setEnabled(instanceInputActive(inst.id));
-}
-
-/**
- * THE SURFACE TERM'S OWN EDGE. The store subscription re-gates on play/tab
- * changes and `setFocusedInstance` on focus changes, but the fourth term above
- * moves on neither: a person clicks into Monaco and nothing in the editor's own
- * state has changed. `InputManager` is a LATCHED `setEnabled`, so unlike the
- * raw gates (closures re-read per event) it has to be told. Module scope and
- * never unsubscribed on purpose — the notification is a no-op with no instances
- * mounted, and a lane-scoped subscription would have to be rebuilt on every
- * mount for a predicate that is process-wide.
- */
-subscribeSurfaceKeyboard(resyncInstanceInputs);
 
 let _ctx: PlayModeContext | null = null;
 const playModeBindingWaiters = new Set<() => void>();
@@ -515,7 +478,6 @@ export async function runWarmRestartPauseBracket(
     if (!wasPaused) session.resume();
   }
 }
-let _unsubStore: (() => void) | null = null;
 /** Browser-mode component-source watch (Phase A2); null in server mode / stopped. */
 /**
  * The authoring override that was active before THIS play session installed its
@@ -1050,9 +1012,9 @@ export function bindPlayMode(store: EditorShellStore): void {
   // game's, and what decides is the workbench: our stage actions carry a
   // `when` clause over `vgai.stage.focused`/`vgai.play`, so a bare key reaches
   // the game rather than a shell binding, and a ⌘-chord stays the workbench's.
-  // The engine's own `InputManager` gate tracks the same predicate
-  // independently (`gated-globals.ts` and `surface-keyboard.ts`), which is what
-  // keeps a game's raw `window.addEventListener('keydown')` gated too.
+  // The realm gate tracks the same predicate independently (`gated-globals.ts`
+  // and `surface-keyboard.ts`), which is what keeps a game's raw
+  // `window.addEventListener('keydown')` gated too.
   // The idle auto-stop needs a way to end play without `play-recording.ts`
   // importing the play lifecycle it is driven BY. Handed over here rather than
   // at module scope so the two directions of the edge stay one-way.
@@ -1066,7 +1028,7 @@ export function isPlayModeActive(): boolean {
 }
 
 /**
- * Narrow relay accessor — the live play session's `InputManager`(s)
+ * Narrow relay accessor — the live play session's virtual input targets
  * and the Game root's loop, for `command-listener.ts`'s
  * `inject-input`/`set-time-scale`/`set-seed` cases. This is exactly the
  * accessor the vgai-sdk honest-gap jsdocs prescribed
@@ -1076,13 +1038,7 @@ export function isPlayModeActive(): boolean {
  * `setActiveSystems`/`getActiveSystems` instead.
  *
  * `getInputTarget(worldId?)` (D15/T-D15.5 — review objection 2's fix)
- * REPLACES what used to be a plain `input: Game['input'] | null` field —
- * `Game.input` always resolves to the DEFAULT world's `InputManager` only,
- * while the debug bridge's `window.__vgai.input.*` reached whichever world's
- * `InputManager` last called `DebugRegistry.setVirtualInputTarget` (a
- * SEPARATE, last-writer-wins slot). In a multi-world project those two could
- * name DIFFERENT roots — the exact closed-PR review objection. Now both
- * doors call the SAME `getDebugRegistry(game).getVirtualInputTarget(worldId)`
+ * is one resolution for every input door: both the SAME `getDebugRegistry(game).getVirtualInputTarget(worldId)`
  * — one resolution function (`debug-registry.ts`'s `resolveInputRootId`),
  * so `inject-input` (this accessor) and `window.__vgai.input.*`
  * (`debug-bridge.ts`) can never disagree about which world an unqualified
@@ -1881,8 +1837,7 @@ async function enterPlayModeInner(
       }) ?? null;
 
     // T6.3: gate game input (raw `window`/`document` listeners in game code via
-    // gated-globals, AND the default world's first-party InputManager) to only
-    // fire while play is actually running AND the Game tab is the focused
+    // gated-globals) to only fire while play is actually running AND the Game tab is the focused
     // viewport — so keystrokes typed into the editor (Scene tab, inspector
     // fields) don't leak into the running game.
     // The gate is FOCUS-AWARE (`instanceInputActive`): input flows only while
@@ -1895,19 +1850,10 @@ async function enterPlayModeInner(
     // the modules find the default realm's gate instead of their own.
     setGameInputGate(() => instanceInputActive(mountId), mountId);
     // THE DEFAULT REALM follows the focused instance too. Module-lifetime code
-    // that no mount id reaches lives there — a game's own `InputManager`
-    // (`@volter/game-runtime`'s input, served through the realm shadow) — and
-    // the stop path leaves it open, so a key aimed at a Model document while
-    // the game played still reached it.
+    // that no mount id reaches lives there — a game's own input store,
+    // attached at module load — and the stop path leaves it open, so a key
+    // aimed at a Model document while the game played still reached it.
     setGameInputGate(() => instanceInputActive(focusedInstanceId()));
-    // Sync EVERY live instance's first-party InputManager from the play/tab/
-    // focus predicate whenever the store changes (a tab switch flips the active
-    // viewport for all of them). `resyncInstanceInputs` resolves each
-    // instance's `game.input` defensively — a session whose game handle has no
-    // first-party InputManager (an ingest mount, a partial double) has only the
-    // raw window/document gate above.
-    resyncInstanceInputs();
-    _unsubStore = store.shell.subscribe(resyncInstanceInputs);
 
     // Node-id keyed only: `setEcsSyncTransform` hands this an editor node id
     // and a THREE `Transform`, which a display-keyed carrier has no values for.
@@ -2073,15 +2019,12 @@ export async function mountAdditionalInstance(
     }) ?? null;
   // FOCUS-AWARE input, exactly like the primary: this instance takes the shared
   // keyboard only while it holds focus. It mounts UNFOCUSED (the primary keeps
-  // focus), so its gate is closed and its InputManager is disabled until a click
+  // focus), so its gate is closed until a click
   // on its viewport routes focus here (`setFocusedInstance`). This is what stops
   // the pre-focus bug where every seat took the same keystroke, AND what lets
   // you drive a chosen seat manually rather than only via autoplay.
   setGameInputGate(() => instanceInputActive(mountId), mountId);
   _additional.push(inst);
-  // Now that it is in `_additional`, sync its (and every) InputManager to the
-  // current focus — disabled here, since the primary is focused.
-  resyncInstanceInputs();
 
   // `setActiveSystems` moved editor focus (`getActiveSystems`) onto the newer
   // mount. The user is still authoring the PRIMARY, so restore its focus
@@ -2156,11 +2099,10 @@ export function unmountAdditionalInstance(id: string): void {
   inst.container = null;
   inst.session = null;
   // If the removed instance held keyboard focus, focus falls back to the primary
-  // (`focusedInstanceId` already resolves a stale id to it); re-sync so the
-  // primary's InputManager re-enables, and notify the viewport highlight.
+  // (`focusedInstanceId` already resolves a stale id to it); notify the
+  // viewport highlight.
   if (_focusedInstanceId === id) {
     _focusedInstanceId = null;
-    resyncInstanceInputs();
     notifyFocusedInstance();
   }
   notifySessionListeners();
@@ -2342,11 +2284,9 @@ export function exitPlayMode(): void {
   _hostMountedReadyRootIds = [];
 
   // Cleanup subscriptions
-  _unsubStore?.();
-  _unsubStore = null;
 
-  // T6.3: no game running — game input (raw window/document listeners AND the
-  // InputManager sync above) should never be suppressed again until the next
+  // T6.3: no game running — game input (raw window/document listeners) should
+  // never be suppressed again until the next
   // play session re-gates it. The mount's own gate is DROPPED rather than set
   // to always-true: its id is never reused, so overwriting would retain one
   // dead closure per play run.

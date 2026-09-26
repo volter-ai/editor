@@ -93,7 +93,7 @@ const INPUT_EVENT_TYPES = new Set<string>([
  * the keyboard and pointer, and it stopped keyup/mouseup/pointerup the same
  * way — so a key pressed while the gate was open and released after it closed
  * (Stop with W still held) left the game's OWN input manager holding KeyW for
- * good: the editor flushes only the session's InputManager, never a
+ * good: the editor flushes only the session's own input state, never a
  * project-owned one. With both vertical keys stuck the hero
  * could not move up or down while A/D worked (runhuman pass 129; Opus
  * reproduction 2026-09-03 — forcing KeyW+KeyS into `keysDown` reproduced the

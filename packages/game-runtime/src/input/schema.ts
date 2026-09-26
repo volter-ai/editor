@@ -1,38 +1,12 @@
 // T4.6 — the `.inputmap.json` schema.
 //
-// Was TS-types-only (`input-types.ts`) until T4.6 authored this Zod schema.
-// `InputManager.loadMap` (input-manager.ts) is this schema's runtime reader: it
-// parses via this schema, then copies each action's `bindings` array (and its
-// declared `valueType`, F1) straight into
-// `this.actions`/`this.actionValueTypes`.
+// The shape a game's own `.inputmap.json` follows: named actions, each with a
+// declared `valueType` and its device bindings. No runtime here reads it — a
+// game's own input code does — and the template's `validate-asset-content.ts`
+// checks a project's maps against it.
 //
 // Every field has a `.describe()` (repo policy — powers
-// `scripts/generate-schema.ts` and the T4.1/T4.6 schema-walk coverage test).
-// No runtime dependency beyond `zod`, matching the `scene/schema/` and
-// `manifest/schema.ts` precedent.
-//
-// T4.1 history (now closed by F2): `mouse_move` and `gamepad_axis_pair` were
-// authored-but-unhandled binding kinds — REJECTED at parse via a `.superRefine`
-// that threw naming the field, mirroring the `scene/schema/ui.ts` dead-field
-// mechanism. F2 (spec §12 "Complete Device Backends") un-rejects both: real
-// `InputManager` readers now exist for them (`collectPointerDeltaContributions`/
-// `collectVector2Contributions` — `mouse_move` feeds pointerDelta/vector2 from
-// the existing mouseDelta accumulator; `gamepad_axis_pair` feeds vector2 from
-// the coupled `xAxis`/`yAxis` gamepad reading). F2 also adds two new LIVE
-// binding kinds, `touch_button`/`touch_stick` (the touch/virtual-control
-// backend — see `InputManager.setTouchButton`/`setTouchStick`).
-//
-// F1 (spec §12 "Define Typed Action Values") adds:
-//  - `InputAction.valueType` — an action now DECLARES its value shape
-//    (`digital`/`scalar`/`vector2`/`pointerDelta`/`pointerPosition`),
-//    defaulted to `digital` so every pre-F1 action stays valid unchanged.
-//  - four new, LIVE (not dead-rejected) binding kinds — `test_axis`,
-//    `test_vector2`, `test_pointer_delta`, `test_pointer_position` — the
-//    "injected test input" backend F2's acceptance criteria names as a
-//    peer of keyboard/mouse/gamepad/touch. They read back a caller-injected
-//    raw value (InputManager.injectAxis/injectVector2/injectPointerDelta/
-//    injectPointerPosition) through the SAME deadzone/normalize/combine path
-//    real device bindings use.
+// `scripts/generate-schema.ts`). No runtime dependency beyond `zod`.
 
 import { z } from 'zod';
 import type { InputAction, InputBinding, InputMapFile } from './input-types';
@@ -107,11 +81,8 @@ const GamepadAxisPairBindingSchema = z
   .strict();
 
 // ---------------------------------------------------------------------------
-// F1 (spec §12) — injected test input bindings. LIVE (real runtime readers in
-// InputManager's getScalar/getVector2/getPointerDelta/getPointerPosition),
-// unlike the two dead stubs above. Foreshadows F2's "injected test input"
-// backend: real device kinds F2 adds later feed the same typed-value
-// aggregation path these exercise today.
+// F1 (spec §12) — injected test input bindings: a caller-injected raw value
+// read through the same typed-value path as a device binding.
 // ---------------------------------------------------------------------------
 
 const TestAxisBindingSchema = z
@@ -120,12 +91,12 @@ const TestAxisBindingSchema = z
       .literal('test_axis')
       .describe(
         "Binding kind: an injected synthetic scalar value for a 'scalar'-valueType action " +
-          '(InputManager.injectAxis/getScalar) — the "injected test input" backend named in F2, ' +
+          ' — the "injected test input" backend named in F2, ' +
           "built in F1 as the typed scalar value model's testable source.",
       ),
     sourceId: z
       .string()
-      .describe('Names the injected test source this binding reads (InputManager.injectAxis).'),
+      .describe('Names the injected test source this binding reads.'),
     deadzone: z
       .number()
       .optional()
@@ -143,12 +114,12 @@ const TestVector2BindingSchema = z
       .literal('test_vector2')
       .describe(
         "Binding kind: an injected synthetic {x,y} value for a 'vector2'-valueType action " +
-          '(InputManager.injectVector2/getVector2) — the "injected test input" backend named in ' +
+          ' — the "injected test input" backend named in ' +
           "F2, built in F1 as the typed Vector2 value model's testable source.",
       ),
     sourceId: z
       .string()
-      .describe('Names the injected test source this binding reads (InputManager.injectVector2).'),
+      .describe('Names the injected test source this binding reads.'),
     deadzone: z
       .number()
       .optional()
@@ -167,13 +138,13 @@ const TestPointerDeltaBindingSchema = z
       .literal('test_pointer_delta')
       .describe(
         "Binding kind: an injected synthetic per-frame {x,y} delta for a 'pointerDelta'-" +
-          'valueType action (InputManager.injectPointerDelta/getPointerDelta) — the "injected ' +
+          'valueType action — the "injected ' +
           'test input" backend named in F2. No deadzone (deltas are not deadzoned).',
       ),
     sourceId: z
       .string()
       .describe(
-        'Names the injected test source this binding reads (InputManager.injectPointerDelta).',
+        'Names the injected test source this binding reads.',
       ),
   })
   .strict();
@@ -184,25 +155,20 @@ const TestPointerPositionBindingSchema = z
       .literal('test_pointer_position')
       .describe(
         "Binding kind: an injected synthetic absolute {x,y} position for a 'pointerPosition'-" +
-          'valueType action (InputManager.injectPointerPosition/getPointerPosition) — the ' +
+          'valueType action — the ' +
           '"injected test input" backend named in F2.',
       ),
     sourceId: z
       .string()
       .describe(
-        'Names the injected test source this binding reads (InputManager.injectPointerPosition).',
+        'Names the injected test source this binding reads.',
       ),
   })
   .strict();
 
 // ---------------------------------------------------------------------------
-// F2 (spec §12 "Complete Device Backends") — touch/virtual-control bindings.
-// LIVE (real runtime readers in InputManager's isPressed/isJustPressed/
-// isJustReleased/getDigitalSource and getVector2), driven by
-// InputManager.setTouchButton/setTouchStick — the headless-testable
-// injectable entry points a real on-screen touch-control UI's own
-// touchstart/touchmove/touchend handlers would call (that DOM wiring is a
-// thin adapter at the edge, out of scope here — see input-manager.ts).
+// F2 (spec §12 "Complete Device Backends") — touch/virtual-control bindings:
+// a named on-screen control zone the game's own touch UI writes.
 // ---------------------------------------------------------------------------
 
 const TouchButtonBindingSchema = z
@@ -211,13 +177,13 @@ const TouchButtonBindingSchema = z
       .literal('touch_button')
       .describe(
         "Binding kind: a virtual on-screen button for a 'digital' action " +
-          '(InputManager.setTouchButton/isPressed) — edge-tracked (isJustPressed/isJustReleased) ' +
+          ' — edge-tracked (isJustPressed/isJustReleased) ' +
           'the same way a real mouse/keyboard button is.',
       ),
     sourceId: z
       .string()
       .describe(
-        'Names the virtual control zone this binding reads (InputManager.setTouchButton) — a ' +
+        'Names the virtual control zone this binding reads — a ' +
           'touch-UI-chosen id, not a real device index.',
       ),
   })
@@ -229,13 +195,13 @@ const TouchStickBindingSchema = z
       .literal('touch_stick')
       .describe(
         "Binding kind: a virtual on-screen analog stick for a 'vector2' action " +
-          '(InputManager.setTouchStick/getVector2) — radial-deadzoned + unit-circle-clamped the ' +
+          ' — radial-deadzoned + unit-circle-clamped the ' +
           'same way a real gamepad stick is.',
       ),
     sourceId: z
       .string()
       .describe(
-        'Names the virtual control zone this binding reads (InputManager.setTouchStick) — a ' +
+        'Names the virtual control zone this binding reads — a ' +
           'touch-UI-chosen id, not a real device index.',
       ),
     deadzone: z
@@ -248,8 +214,7 @@ const TouchStickBindingSchema = z
   })
   .strict();
 
-/** A single input binding. Every kind listed here is LIVE — F2 (spec §12) closed the last two
- *  dead stubs (`mouse_move`/`gamepad_axis_pair`) by giving both real `InputManager` readers. */
+/** A single input binding. */
 export const InputBindingSchema: z.ZodType<InputBinding> = z.discriminatedUnion('type', [
   KeyBindingSchema,
   MouseButtonBindingSchema,
@@ -277,9 +242,7 @@ export const InputActionSchema: z.ZodType<InputAction> = z
           "action authored before F1. 'scalar' is a single deadzone-rescaled float axis. " +
           "'vector2' is a radial-deadzoned, unit-circle-normalized {x,y}. 'pointerDelta' is a " +
           "per-frame {x,y} movement delta, summed across sources. 'pointerPosition' is an " +
-          'absolute {x,y}, last-write-wins across sources. InputManager enforces this at read ' +
-          'time: reading an action through the wrong typed getter (e.g. getScalar on a ' +
-          "'digital' action) throws.",
+          'absolute {x,y}, last-write-wins across sources.',
       ),
     bindings: z
       .array(InputBindingSchema)
@@ -295,7 +258,7 @@ export const InputActionSchema: z.ZodType<InputAction> = z
   .strict();
 
 /**
- * The `.inputmap.json` file format (`InputManager.loadMap`).
+ * The `.inputmap.json` file format.
  *
  * `version` is RESERVED (no range-check reader exists yet for this format —
  * same convention `2d.version`/`Scene2DSchema` used before T2.3 gave the 3D
@@ -306,6 +269,6 @@ export const InputMapFileSchema: z.ZodType<InputMapFile> = z
     version: z.number().describe('Input map file format version (RESERVED — no range check yet)'),
     actions: z
       .record(z.string(), InputActionSchema)
-      .describe('Named actions, each with a list of bindings (InputManager.loadMap)'),
+      .describe('Named actions, each with a list of bindings'),
   })
   .strict() as z.ZodType<InputMapFile>;

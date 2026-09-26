@@ -29,7 +29,6 @@ import { createSimClock, registerSimClock, type SimClockInternal } from '@volter
 import { createSystemRunner, type SystemRunner } from './core/system-runner';
 import { PHASE_ORDER, SystemPhase, type SystemPhaseName } from './core/types';
 import { createPerformanceProfiler, type PerformanceProfiler } from '@volter/game-runtime/dev/performance-profiler';
-import { InputManager } from '@volter/game-runtime/input/input-manager';
 // TYPE-ONLY (same rule as the pixi import above): this lives under `pixi/`,
 // but `game.ts` only ever names its TYPE.
 import type { Physics2DRegistry } from '@volter/game-runtime/pixi/physics-registry';
@@ -608,8 +607,6 @@ export interface Game {
    * that every slot is answered.
    */
   readonly declaredSystemAbsences?: readonly DeclaredSystemAbsence[];
-  /** The one game-owned `InputManager`, shared by every first-party root. */
-  readonly input: InputManager;
   /** Game-level play-state control surface (D10, T7.6) — see {@link PlayState}. */
   readonly play: PlayState;
   /**
@@ -794,31 +791,11 @@ export interface GameInternal extends Game {
    *   running-game primitive, not a paused-world stepper, and silently
    *   no-op-ing or silently ignoring pause would violate the "byte-identical
    *   across doors" contract this primitive exists to provide.
-   * - **Does not bypass the input focus gate.** Every tick's `input` phase
-   *   runs through the SAME `InputManager` every other call to `runFrame`
-   *   does — a gated virtual actuation (page unfocused, Game tab inactive)
-   *   still reports `{delivered: false, reason}` exactly as it would under
-   *   normal play; `runTicks` has no special-cased "force focus" behavior.
+   * - **Does not bypass the input focus gate.** Every tick runs the same
+   *   frame every other call to `runFrame` does; `runTicks` has no
+   *   special-cased "force focus" behavior.
    */
   runTicks(n: number, opts?: RunTicksOptions): void;
-  /**
-   * ADAPTER-MOUNT surface, not game-facing: an adapter's `mount()` calls
-   * this (via `host.game` — the R3F
-   * `createR3FRootContext` does) to load the game-owned input map ONCE,
-   * even when several roots ask for the same path; competing paths throw
-   * (input is game-owned, so roots cannot load competing maps). GAME code
-   * never calls this — a project's map loads automatically at mount from
-   * the conventional `/inputmaps/default.inputmap.json` (or the adapter's
-   * configured `inputMapPath`); runtime additions go through
-   * `ctx.input.registerAction` instead.
-   *
-   * `{ optional: true }` is the CONVENTIONAL-PATH probe a root uses when the
-   * project never named a map: an absent file resolves quietly (a brand-new
-   * scaffold declares no actions yet), pins nothing — so a sibling root may
-   * still declare its own map — and yields to a map another root already
-   * owns. A map that exists but fails to parse is as loud either way.
-   */
-  loadInputMap(path: string, options?: { optional?: boolean }): Promise<void>;
   /** Release game-owned resources after every mounted root has disposed. */
   dispose(): void;
 }
@@ -848,7 +825,6 @@ export function createGame(opts: {
   const roots: RootInstance[] = [];
   const profiler = createPerformanceProfiler();
   const systems = createSystemRunner(profiler.systemObserver, 'game');
-  const input = new InputManager();
   // D15 (T-D15.1) — the game-scoped seeded-random surface every world's
   // `ctx.random` aliases (see `editor-game/src/host/roots/r3f-root.tsx`'s `ctx.random =
   // ...`, wired the same way `ctx.debug` is just below). Constructed
@@ -912,9 +888,8 @@ export function createGame(opts: {
     getSimT: () => simT,
     getFixedDt: () => opts.loop.fixedDt,
     // D15/T-D15.5 — "the manifest's first/default world" for the debug
-    // registry's world-addressed input-target surface. Every
-    // first-party root now registers the SAME game-owned InputManager, but the
-    // stable default id still keeps explicit/implicit debug routing coherent.
+    // registry's world-addressed input-target surface: the root an unaddressed
+    // `game.input.*` call reaches when several roots export an input door.
     // Use the SAME "first three world, else first world" rule
     // `requireDefaultRoot` (declared just below — safe: this closure is
     // only ever CALLED later, once at least one world has mounted) already
@@ -927,21 +902,8 @@ export function createGame(opts: {
     // the loop is actually ticking.
     getLoopLiveness: () => opts.loop.liveness,
   });
-  let inputFrameActive = false;
-  systems.add(
-    'input',
-    () => {
-      if (inputFrameActive) input.poll(debugRegistry.getGameTick());
-    },
-    { name: 'input.poll' },
-  );
-  input.setDebugEmit((event, detail) => debugRegistry.forRoot('(game)').emit(event, detail));
-  let inputMapPath: string | null = null;
-  let inputMapLoad: Promise<void> | null = null;
-  /** In-flight/settled conventional-path probes (`loadInputMap(path, {optional})`),
-   *  so two roots probing the same path share one fetch. Separate from
-   *  `inputMapLoad` because a probe that found nothing declares nothing. */
-  const inputMapProbes = new Map<string, Promise<void>>();
+  /** Whether any world advances this frame — the game-owned systems run only then. */
+  let worldsAdvancing = false;
 
   function requireDefaultRoot(): RootInstance {
     if (roots.length === 0) {
@@ -1138,13 +1100,13 @@ export function createGame(opts: {
     // a world pushed during this very frame. This also drops the two
     // per-phase `for...of` iterator allocations.
     const n = roots.length;
-    inputFrameActive = false;
+    worldsAdvancing = false;
     for (let i = 0; i < n; i++) {
       const world = roots[i]!;
       if (world.disposed) continue;
       if (onlyFrozen) {
         if (paused && world.pausable && !world.mounted.drivesOwnLoop) {
-          inputFrameActive = true;
+          worldsAdvancing = true;
           break;
         }
       } else if (
@@ -1152,7 +1114,7 @@ export function createGame(opts: {
           ? !paused || !world.pausable || !world.mounted.setPaused
           : !paused || !world.pausable
       ) {
-        inputFrameActive = true;
+        worldsAdvancing = true;
         break;
       }
     }
@@ -1190,10 +1152,7 @@ export function createGame(opts: {
         profiler.beginPhase();
         // Game-owned systems follow the same one-run-per-phase contract as a
         // normal frame whenever Step advances at least one frozen world.
-        // In particular, the game-owned InputManager must poll before those
-        // worlds read actions; its matching endFrame remains at the shared
-        // frame tail below.
-        if (inputFrameActive) systems.runPhase(phase, dt);
+        if (worldsAdvancing) systems.runPhase(phase, dt);
         for (let i = 0; i < n; i++) {
           const world = roots[i]!;
           if (world.disposed) continue;
@@ -1322,7 +1281,6 @@ export function createGame(opts: {
     // world's endFrame/update above, at most once per completed
     // `runFrame`/`step()` call and, per §7.1-11's fix, only when `advanced`
     // (see above) is true: a fully-gated paused game advances nothing.
-    if (inputFrameActive) input.endFrame();
     if (advanced) {
       tick++;
       simT += dt;
@@ -1494,7 +1452,6 @@ export function createGame(opts: {
       declaredAbsences.set(rootId, absent);
       gameInternal.notifySystemAdaptersChanged();
     },
-    input,
     play: {
       get paused() {
         return paused;
@@ -1637,36 +1594,6 @@ export function createGame(opts: {
         runFrameImpl(fixedDt, { skipRenderPhases });
       }
     },
-    loadInputMap(path: string, options?: { optional?: boolean }): Promise<void> {
-      if (options?.optional === true) {
-        // The conventional-path probe. It never becomes the game's declared
-        // map unless a file was actually there, so a root that DOES name a
-        // map (a sibling canvas root, a later mount) is never pre-empted by a
-        // probe that found nothing — the competing-path throw below would
-        // otherwise fire on a project that declared exactly one map.
-        if (inputMapPath) return inputMapLoad ?? Promise.resolve();
-        let probe = inputMapProbes.get(path);
-        if (!probe) {
-          probe = input.loadMapIfPresent(path).then((loaded) => {
-            if (loaded && !inputMapPath) {
-              inputMapPath = path;
-              inputMapLoad = Promise.resolve();
-            }
-          });
-          inputMapProbes.set(path, probe);
-        }
-        return probe;
-      }
-      if (inputMapPath && inputMapPath !== path) {
-        throw new Error(
-          `Game.loadInputMap: input map is already "${inputMapPath}"; root requested "${path}". ` +
-            'Input is game-owned, so roots cannot load competing maps.',
-        );
-      }
-      inputMapPath = path;
-      inputMapLoad ??= input.loadMap(path);
-      return inputMapLoad;
-    },
     dispose(): void {
       // P3 — the sim clock is GAME-scoped, so this is the only correct place to
       // dispose it: `create-runtime.ts`'s `fullCleanup` calls us after EVERY
@@ -1680,7 +1607,6 @@ export function createGame(opts: {
       // `debugRegistry` are game-scoped too, and per-root teardown has never
       // destroyed either — only ever `strip(this.id)`, its own slice.
       simClock.dispose();
-      input.dispose();
       debugRegistry.strip();
     },
   };

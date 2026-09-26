@@ -44,21 +44,18 @@
  * the active editor, and gating on focus would have killed input on the first
  * click into the game.
  *
- * ## Its readers, both of them, and why they are both needed
+ * ## Its reader
  *
  * `gated-globals.ts` covers every RAW `window`/`document` listener a project
  * module registers — first-party games, ingest mounts and the module lane
- * alike, since the dev server's lexical shadow is what they all go through.
- * `@vgai/game`'s `play-mode.ts` covers the engine's own `InputManager`, which
- * is NOT a project module (it is `@vgai/game-runtime`, resolved as a dependency) and
- * therefore attaches to the real `window` unshadowed; it reads this through
- * `instanceInputActive` and re-gates on this module's notification.
+ * alike, since the dev server's lexical shadow is what they all go through. It
+ * reads this per event through play mode's `instanceInputActive`, so a change
+ * of answer needs no notification.
  */
 
 type SurfaceKeyboardProbe = () => boolean;
 
 let probe: SurfaceKeyboardProbe | null = null;
-const listeners = new Set<() => void>();
 
 /**
  * True while the surface a game is mounted in holds the keyboard.
@@ -85,28 +82,13 @@ export function surfaceHoldsKeyboard(): boolean {
  */
 export function setSurfaceKeyboardProbe(next: SurfaceKeyboardProbe | null): () => void {
   probe = next;
-  notifySurfaceKeyboard();
   return () => {
     if (probe !== next) return;
     probe = null;
-    notifySurfaceKeyboard();
   };
-}
-
-/** The frame calls this when its answer changes; `gated-globals`' gates re-read
- *  per event and need no notification, but `InputManager` is a latched
- *  `setEnabled` and does. */
-export function notifySurfaceKeyboard(): void {
-  for (const listener of listeners) listener();
-}
-
-export function subscribeSurfaceKeyboard(listener: () => void): () => void {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
 }
 
 /** Test-only reset. */
 export function __resetSurfaceKeyboardForTest(): void {
   probe = null;
-  listeners.clear();
 }

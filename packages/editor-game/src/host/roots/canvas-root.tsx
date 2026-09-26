@@ -8,10 +8,10 @@
  * }
  * ```
  *
- * The world is an ordinary `@pixi/react` app. The editor renders it bare,
- * advances Pixi's real (never-started) ticker on GAME time, and wires the
- * game-scoped input seams from outside the tree
- * (`@volter/editor-game/runtime/game-input-seams`).
+ * The world is an ordinary `@pixi/react` app. The editor renders it bare and
+ * advances Pixi's real (never-started) ticker on GAME time. A game's input is
+ * its own: the session's input door reaches it through the entry's `debug.input`
+ * export.
  *
  * WHOSE REACT, RECONCILER AND PIXI. The entry's hooks resolve `react`,
  * `@pixi/react` and `pixi.js` through the project's module graph, so the root
@@ -47,10 +47,6 @@ import type * as PixiReact from '@pixi/react';
 import type { MountedCanvasRoot, MountedCanvasSubstrate, RootAdapter } from '@volter/editor-project/adapter';
 import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
 import { getDebugRegistry } from '../../runtime/debug-registry';
-import {
-  DEFAULT_INPUT_MAP_PATH,
-  wireGameInputSeams,
-} from '../../runtime/game-input-seams';
 import type { GameCanvasHostContext } from '../../runtime/host-context';
 import type * as PIXI from 'pixi.js';
 import type { Application, ApplicationOptions, Container } from 'pixi.js';
@@ -132,21 +128,7 @@ function canvasWorldAdapter(
     id,
 
     async mount(host: GameCanvasHostContext): Promise<MountedPixiRoot> {
-      // THE HOST WIRES THIS GAME'S INPUT FROM OUTSIDE THE TREE — the project's
-      // declared map (conventional path, optional: a brand-new project
-      // declares no actions yet) and this root's `game.input.*` seams on the
-      // debug registry. Actions must exist before any component's first tick
-      // reads them — wait for the (never-rejecting) load before the first
-      // commit.
       const registry = host.game ? getDebugRegistry(host.game) : null;
-      if (registry) {
-        await wireGameInputSeams(host, registry, {
-          id,
-          inputMapPath: DEFAULT_INPUT_MAP_PATH,
-          optionalInputMap: true,
-        });
-      }
-
       const canvas = host.canvas;
       if (MOUNTED_CANVASES.has(canvas)) {
         throw new Error(

@@ -25,7 +25,7 @@
 
 import { GAME_CSS_SCOPE_SELECTOR } from '@volter/editor-sdk/session/game-css-scope';
 import type { Plugin } from 'vite';
-import { isRuntimeInputModule, shouldScopeGameCss, shouldShadowGameGlobals } from './server/game-globals-shadow';
+import { shouldScopeGameCss, shouldShadowGameGlobals } from './server/game-globals-shadow';
 import { mountIdOf } from './server/project-module-instance';
 import { scopeGameCss } from '@volter/editor-sdk/session/scoped-game-css';
 // The DOM-free prelude module, NOT `src/gated-globals.ts`: this file is reachable
@@ -40,13 +40,6 @@ import { EDITOR_TREE_QUERY } from './vite-plugin-shared-react';
  */
 export function gameGlobalsShadowPlugin(
   getRoots: () => Iterable<string>,
-  /**
-   * Runtime package directories whose modules a game uses as its own library
-   * and which register raw input listeners — `@volter/game-runtime`'s `input/`,
-   * whose `InputManager` a project may construct itself. Their listeners go
-   * through the same realm gate as the project's own code. Omitted: none.
-   */
-  getRuntimeRoots: () => Iterable<string> = () => [],
 ): Plugin {
   return {
     name: 'vgai-game-globals',
@@ -63,7 +56,7 @@ export function gameGlobalsShadowPlugin(
           map: null,
         };
       }
-      if (!shouldShadowGameGlobals(file, getRoots()) && !isRuntimeInputModule(file, getRuntimeRoots()))
+      if (!shouldShadowGameGlobals(file, getRoots()))
         return null;
       // Already shadowed. The marker is the prelude's stable HEAD rather than
       // the whole string, because the prelude now varies by mount id — a

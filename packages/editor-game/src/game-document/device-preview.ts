@@ -27,14 +27,13 @@
  *    game registered (raw canvas listeners, gated `window`/`document`
  *    listeners via `gated-globals.ts` — the clone bubbles to the real window
  *    exactly like the original would, so the T6.3 input gate still applies)
- *    sees touch. The engine `InputManager` is untouched: it listens for
- *    compatibility `mouse*` events on `window`, which the browser still
- *    fires (we never `preventDefault()` the pointer event). Fidelity limits,
- *    recorded: real mobile fires compat mousedown/up AFTER a tap completes
- *    and never streams hover mousemove — here the InputManager sees
- *    desktop-timed mouse events alongside the touch clones, so games mixing
- *    pointer handlers with InputManager mouse state get simultaneous rather
- *    than sequenced input, and hover-dependent logic that breaks on device
+ *    sees touch. A game listening for compatibility `mouse*` events on
+ *    `window` still hears them: the browser still fires them (we never
+ *    `preventDefault()` the pointer event). Fidelity limits, recorded: real
+ *    mobile fires compat mousedown/up AFTER a tap completes and never streams
+ *    hover mousemove — here a game sees desktop-timed mouse events alongside
+ *    the touch clones, so games mixing pointer handlers with mouse state get
+ *    simultaneous rather than sequenced input, and hover-dependent logic that breaks on device
  *    still works in emulation. No `TouchEvent` (`touchstart`/`touchmove`)
  *    synthesis (Chrome device mode does synthesize these) — raw-touch-event
  *    games see nothing. A game capture-phase window/document pointer
@@ -253,8 +252,8 @@ function interceptPointer(e: Event): void {
   // listeners, gated window/document listeners) …
   e.stopImmediatePropagation();
   // … and deliver the identical gesture as touch. Compat mouse events are
-  // deliberately NOT suppressed (no preventDefault): the engine InputManager
-  // listens for window `mouse*` and keeps working, exactly as on a real
+  // deliberately NOT suppressed (no preventDefault): a game listening for
+  // window `mouse*` keeps working, exactly as on a real
   // mobile browser where compat mouse events accompany touches.
   const clone = new PointerEvent(e.type, {
     bubbles: true,

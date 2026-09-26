@@ -287,7 +287,7 @@ function resolveDocumentScope(name: DocumentProbeScope): Scope {
   // The Game document is the one center document with its OWN doors — and the
   // one where a synthetic DOM gesture is the exact instrument the doctrine
   // bans ("never pilot a game with synthetic key events"). Its input is
-  // play-gated (`InputManager.setEnabled` + `gated-globals.ts`), so a probe
+  // play-gated (`gated-globals.ts`), so a probe
   // here would either silently do nothing (not playing) or bypass the play
   // path's contract (playing). Refuse toward the honest doors instead of
   // becoming an ungated second one. Its HEADER STRIP is the exception: the

@@ -256,10 +256,6 @@ export function registerR3FDesignRoot(
  * promises. It also gets its OWN debug registry (registries are game-scoped),
  * so design-time providers can't collide with the play game's.
  *
- * Input is explicitly DISABLED: `new InputManager()` binds window-level
- * keyboard/mouse listeners in its constructor, and design time is not play
- * (T6.3's invariant). `dispose()` unbinds them — the caller must call it.
- *
  * Its renderer is `createDesignTimeRenderer`, which isolates Fiber configuration
  * and permits real offscreen work without transferring canvas ownership.
  */
@@ -272,7 +268,6 @@ function createDesignHost(renderer: THREE.WebGLRenderer): {
   const borrowedRenderer = createDesignTimeRenderer(canvas, renderer);
   const assets = createAssetCache();
   const game = createGame({ loop: createGameLoop({ update: () => {} }), assets });
-  game.input.setEnabled(false);
   return {
     game,
     host: {

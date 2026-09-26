@@ -58,7 +58,7 @@ export function ingestPlaying(): boolean {
  * THE one write to the ingest play state.
  *
  * An ingested game's input is gated by the same mechanisms a first-party play
- * session's is (the engine's `InputManager.setEnabled` and `gated-globals.ts`'s
+ * session's is (`gated-globals.ts`'s
  * lexical window/document shadow), driven by the input gate the mount installs.
  */
 export function setIngestPlaying(playing: boolean): void {

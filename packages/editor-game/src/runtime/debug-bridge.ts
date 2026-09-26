@@ -33,15 +33,13 @@ export interface DebugBridgeManifest {
   readonly debug?: { readonly allowInProduction: boolean } | undefined;
 }
 
-/** The bridge's actuation surface — byte-identical method names to
- *  `InputManager`'s virtual-action primitives (Task 1.4), reached through
- *  `DebugRegistry.getVirtualInputTarget(worldId?)` rather than a direct
- *  import. Every method takes an optional trailing `worldId` (D15/T-D15.5,
+/** The bridge's actuation surface — a root's input door, reached through
+ *  `DebugRegistry.getVirtualInputTarget(worldId?)`. Every method takes an optional trailing `worldId` (D15/T-D15.5,
  *  the review-objection-2 fix): omitted, it resolves to the SAME default
  *  world the editor relay's `inject-input` case resolves to (one shared
  *  resolution function, `debug-registry.ts`'s `resolveInputRootId`) — never
- *  "whichever world's `InputManager` happened to register last". An
- *  explicit `worldId` reaches that world's `InputManager` specifically. */
+ *  "whichever root happened to register last". An explicit `worldId`
+ *  reaches that root's door specifically. */
 export interface VgaiDebugInputHandle {
   setVirtualAction(
     action: string,
@@ -84,15 +82,14 @@ export interface VgaiDebugInputHandle {
   stopRecording(worldId?: string): void;
   /** Whether a recording is currently active. */
   isRecording(worldId?: string): boolean;
-  /** Accumulate a synthetic pointer delta for a named test source — mirrors
-   *  `InputManager.injectPointerDelta` (the "injected test input" seam):
-   *  multiple calls within the same frame SUM, and the accumulator clears
+  /** Accumulate a synthetic pointer delta for a named test source (the
+   *  "injected test input" seam): multiple calls within the same frame SUM, and the accumulator clears
    *  each frame (`endFrame`). Bindings with `valueType: 'pointerDelta'`
    *  reading this source (`{ type: 'test_pointer_delta', sourceId }`) see the
    *  accumulated value via `getPointerDelta`. */
   injectPointerDelta(sourceId: string, delta: { x: number; y: number }, worldId?: string): void;
-  /** Set a synthetic absolute pointer position for a named test source —
-   *  mirrors `InputManager.injectPointerPosition`: LAST-WRITE-WINS across
+  /** Set a synthetic absolute pointer position for a named test source:
+   *  LAST-WRITE-WINS across
    *  contributing sources on read, and persists until changed. Bindings with
    *  `valueType: 'pointerPosition'` reading this source (`{ type:
    *  'test_pointer_position', sourceId }`) see it via `getPointerPosition`. */
@@ -422,8 +419,8 @@ function buildDebugHandle(opts: {
     if (!target) {
       throw new DebugError(
         'DEBUG_INPUT_UNAVAILABLE',
-        `debug bridge: ${method}() has no virtual-input target wired — no default three ` +
-          "world has mounted yet, or this project's mount path never wired one",
+        `debug bridge: ${method}() has no virtual-input target wired — no root ` +
+          "entry exports `debug.input` (the game's own input door), or none has mounted yet",
       );
     }
     return target;

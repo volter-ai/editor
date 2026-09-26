@@ -4,7 +4,7 @@
  *
  * The contract does not restate `@volter/editor-game/runtime/debug-registry`'s
  * `DebugRegistry`: that interface names the game runtime's own vocabulary
- * (`DebugCtxSurface`, `InputManager`, `Game`, the run-ticks target), and
+ * (`DebugCtxSurface`, `Game`, the input doors, the run-ticks target), and
  * moving it here would put the game host's debugger inside the project
  * contract. Nothing across this seam calls the registry — the binding holds
  * the reference so the host can hand it back to whoever created it — so the

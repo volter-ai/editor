@@ -15,7 +15,7 @@ import type * as THREE from 'three';
 import type { Game } from './game';
 
 /**
- * THE FOUR DOORS a mounting root actually opens on the Game — and the whole
+ * THE DOORS a mounting root actually opens on the Game — and the whole
  * reason `three`/`canvas` host contexts no longer name `GameInternal`.
  *
  * `GameInternal` is the HOST's own control surface: `runFrame`,
@@ -25,28 +25,17 @@ import type { Game } from './game';
  * the type said they could, so "what may a root do to its Game?" had no
  * answer short of "everything".
  *
- * The three doors, each with its verified consumer:
+ * The two doors, each with its verified consumer:
  *
- *  1. **Input-map load** — `runtime/game-input-seams.ts` calls
- *     `game.loadInputMap(path)` (and reads `game.input`/`game.loop.fixedDt`)
- *     from every three and canvas mount.
- *  2. **Debug-registry access** — `getDebugRegistry(host.game)`
+ *  1. **Debug-registry access** — `getDebugRegistry(host.game)`
  *     (`r3f-root.tsx` and `canvas-root.tsx` in the editor); the registry is keyed by
  *     Game IDENTITY, which is why this handle is the Game and not a projection
  *     of it.
- *  3. **The profiler toggle** — `host.game.profiler` (`r3f-root.tsx`).
+ *  2. **The profiler toggle** — `host.game.profiler` (`r3f-root.tsx`).
  *
- * Doors 2–3 are already on the PUBLIC {@link Game}. `loadInputMap` is the one
- * member that was only on `GameInternal`, and it is explicitly an adapter-mount
- * door (see its own doc comment in `runtime/game.ts`). So this handle is
- * `Game` plus that one method — and a `GameInternal` satisfies it, so every
- * host that already passes one keeps compiling unchanged.
+ * Both are on the PUBLIC {@link Game}, and a `GameInternal` satisfies it.
  */
-export interface HostGameHandle extends Game {
-  /** Load the game-owned input map ONCE, however many roots ask. See
-   *  `GameInternal.loadInputMap` for the load-once/competing-paths contract. */
-  loadInputMap(path: string, options?: { optional?: boolean }): Promise<void>;
-}
+export type HostGameHandle = Game;
 
 /**
  * A `three`-surface host context carrying the Game root. The host constructs

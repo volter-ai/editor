@@ -149,11 +149,10 @@ function describeCause(cause: unknown): {
 const SERVER_COMMAND_TIMEOUT_MS = 10_000;
 
 /** The virtual-input surface the debug bridge (`runtime/debug-bridge.ts`)
- *  actuates through — the SAME three methods `InputManager` exposes
- *  (`setVirtualAction`/`tapVirtualAction`/`clearVirtualActions`, Task 1.4),
- *  typed narrowly here so this module never imports `InputManager` itself.
- *  Wired once by the hosting adapter (`editor-game/src/host/roots/r3f-root.tsx`, at the
- *  same seed spot as `setInputActionsSource`) — absent until then. */
+ *  actuates through: a root's input door — its entry's `debug.input`
+ *  (`adapter/native-debug-module.ts`) or a `vgai.adapter.ts` input binding
+ *  (`host/adapter-runtime-bindings.ts`), wired once per root when its bindings
+ *  install, at the same spot as `setInputActionsSource` — absent until then. */
 export interface DebugVirtualInputTarget {
   setVirtualAction(
     action: string,
@@ -172,8 +171,7 @@ export interface DebugVirtualInputTarget {
   startInputRecording(): void;
   stopInputRecording(): void;
   isInputRecording(): boolean;
-  /** The four legacy named-test-source injectors (`InputManager`'s own),
-   *  included here so `inject-input`'s non-`action` kinds route through the
+  /** The four named-test-source injectors, included here so `inject-input`'s non-`action` kinds route through the
    *  SAME per-world resolution as everything else on this interface (D15
    *  review objection: routing must never depend on registration order). */
   injectAxis(sourceId: string, value: number): void;
@@ -186,7 +184,7 @@ export interface DebugVirtualInputTarget {
  * D15/T-D15.5 — the `input.trace` builtin provider's shape.
  * `seed`/`fixedDt` are
  * replay-critical metadata a future SP5 consumer needs BESIDE the raw
- * per-tick action deltas (`ticks`, straight off `InputManager.getInputTrace()`)
+ * per-tick action deltas (`ticks`, the input door's own trace)
  * to know what to replay the trace AGAINST — recording deltas alone is not
  * enough to reproduce a run. Both are `null` only when no wiring/no
  * `ctx.random`/no `Game` exists behind this world (never a fabricated 0).
@@ -269,8 +267,8 @@ export interface DebugRegistry {
   /** Manifest wiring lands in a later wave; until then, call this directly
    *  (default `false`) to exercise the locus-required throw. */
   setRoomDeclared(declared: boolean): void;
-  /** Wire the built-in `input.actions` provider to a live `InputManager`
-   *  (T1.2), scoped to `worldId` — lazy, since a world's InputManager doesn't
+  /** Wire the built-in `input.actions` provider to a root's input door
+   *  (T1.2), scoped to `worldId` — lazy, since a root's door doesn't
    *  exist yet when the registry is constructed (`createGame`, before any
    *  world mounts). Before ANY source is set, `input.actions` reads `[]`;
    *  once one or more roots have registered, the built-in `input.actions`
@@ -278,36 +276,28 @@ export interface DebugRegistry {
    *  same resolution every other per-world seam on this interface uses. */
   setInputActionsSource(worldId: string, fn: () => { name: string; valueType: string }[]): void;
   /** D15/T-D15.5 — wire the built-in `input.trace` provider to a live
-   *  `InputManager.getInputTrace`, scoped to `worldId` — same lazy-supplier
+   *  root's input trace, scoped to `worldId` — same lazy-supplier
    *  shape/seed spot as {@link setInputActionsSource}, same default-world
    *  resolution for the read. Before a source is set, `input.trace` reads
    *  `{version: 1, seed: null, fixedDt: null, ticks: []}`. `seed`/`fixedDt`
    *  are the two replay-critical metadata fields the design doc's format
-   *  sketch (§2.c) calls for beside the raw per-tick deltas — the wiring
-   *  adapter (`editor-game/src/host/roots/r3f-root.tsx`) assembles them from
-   *  `getSeededRandom(game)?.seed`/`host.game?.loop.fixedDt` alongside
-   *  `InputManager.getInputTrace()`'s own `{version, ticks}`. An `engine`
+   *  sketch (§2.c) calls for beside the raw per-tick deltas. An `engine`
    *  (package version) stamp remains a KNOWN GAP — no build-time version
    *  constant is threaded into the runtime bundle today; a future track
    *  adding one should extend this shape, not invent a second trace format. */
   setInputTraceSource(worldId: string, fn: () => InputTraceSnapshot): void;
   /**
    * Wire the debug bridge's actuation methods (`runtime/debug-bridge.ts`) to
-   * a live `InputManager` (Task 2.1), scoped to `worldId` — same lazy-
+   * a root's input door (Task 2.1), scoped to `worldId` — same lazy-
    * supplier shape as {@link setInputActionsSource}, wired at the same seed
    * spot (once per world mount, not once per Game).
    *
-   * Fix for a closed-PR review objection: this used to be a SINGLE slot
-   * (last-writer-wins across every world that mounted), which could route
-   * the debug bridge (`window.__vgai.input.*`, which read this directly) and
-   * the editor relay (which reached the default world's `InputManager`
-   * through a DIFFERENT accessor, `Game.input`) to two DIFFERENT roots in a
-   * multi-world project — the bridge always got whichever world mounted
-   * LAST, the relay always got the FIRST/default world. Now every world's
-   * target is kept, keyed by `worldId`, and {@link getVirtualInputTarget}
-   * resolves ONE of them via {@link resolveInputRootId} — the SAME
-   * resolution the bridge and the relay both call through, so they can never
-   * disagree again. An explicit `worldId` reaches that world specifically. */
+   * Every world's target is kept, keyed by `worldId`, and
+   * {@link getVirtualInputTarget} resolves ONE of them via
+   * {@link resolveInputRootId} — the SAME resolution the debug bridge
+   * (`window.__vgai.input.*`) and the editor relay both call through, so they
+   * can never disagree about which root an unaddressed actuation reaches. An
+   * explicit `worldId` reaches that world specifically. */
   setVirtualInputTarget(worldId: string, target: DebugVirtualInputTarget): void;
   /**
    * Resolve and return a virtual-input target: `worldId` given and
@@ -359,10 +349,8 @@ export interface DebugRegistry {
    *  timeout), never silently un-gate it. */
   worldSettled(): boolean;
   /** D15/T-D15.3/.5 — the CURRENT shared game tick (the same counter the
-   *  built-in `time` provider's `tick` field reads), for a per-world
-   *  `InputManager.poll(tick)` call to key its `scheduleActionAtTick`
-   *  numbering off — see `editor-game/src/host/roots/r3f-root.tsx`'s `systems.add('input',
-   *  ...)` wiring. `0` for a bare `createDebugRegistry()` test stand-in with
+   *  built-in `time` provider's `tick` field reads), for a root's input door
+   *  to key its `scheduleActionAtTick` numbering off. `0` for a bare `createDebugRegistry()` test stand-in with
    *  no real `Game`/tick counter behind it (matching `getTick`'s own
    *  constructor-supplied default in that case). */
   getGameTick(): number;
@@ -454,7 +442,7 @@ export function createDebugRegistry(opts: {
       if (!virtualInputTargets.has(explicit)) {
         throw new DebugError(
           'DEBUG_INPUT_WORLD_NOT_FOUND',
-          `debug: no InputManager wired for world "${explicit}" — registered: ` +
+          `debug: no input door wired for world "${explicit}" — registered: ` +
             (virtualInputTargets.size ? [...virtualInputTargets.keys()].join(', ') : '(none)'),
           { worldId: explicit, registered: [...virtualInputTargets.keys()] },
         );

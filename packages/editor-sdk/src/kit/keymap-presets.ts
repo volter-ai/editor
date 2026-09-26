@@ -39,7 +39,7 @@ export type { EditorKeyActionId, KeyChord } from '@volter/editor-sdk/looks';
  * EDITOR's own chrome bindings, consumed by `hotkeys.ts`'s single `keydown`
  * dispatcher on the editor's window. Play-mode input isolation is a different
  * mechanism entirely and is untouched by a keymap switch: the engine's
- * `InputManager.setEnabled` gate plus `gated-globals.ts`'s lexical
+ * realm gate, `gated-globals.ts`'s lexical
  * `window`/`document` shadow over project modules decide whether GAME code
  * hears a key. A game never reads this table, and no keymap entry can widen or
  * narrow what a running game receives.

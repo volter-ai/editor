@@ -104,7 +104,7 @@ import {
 import { useSharedViewRestore } from '../shared-view-restore';
 import { installStaleChunkRecovery } from '../stale-chunk-recovery';
 import { installStoryLane } from '../stories/story-lane';
-import { notifySurfaceKeyboard, setSurfaceKeyboardProbe } from '@volter/editor-sdk/kit/surface-keyboard';
+import { setSurfaceKeyboardProbe } from '@volter/editor-sdk/kit/surface-keyboard';
 import { preloadEditorThemeLibrary } from '@volter/editor-sdk/kit/theme-library';
 import {
   editorPaletteSnapshot,
@@ -1421,7 +1421,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
   //
   // The pane's active state is held here rather than re-asked, because the probe is read on
   // EVERY gated DOM event (`gated-globals.ts`'s `gateFor`) and must not cross the bridge to
-  // answer. `notifySurfaceKeyboard()` is the edge the engine's latched `InputManager` needs.
+  // answer.
   let paneActive = true;
   let stopImmersive: (() => void) | null = null;
   let stopDockCommands: (() => void) | null = null;
@@ -1445,7 +1445,6 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     setPaneActive: (active) => {
       if (paneActive === active) return;
       paneActive = active;
-      notifySurfaceKeyboard();
     },
     // IMMERSIVE PLAY RIDES THE EDITOR'S EXISTING SEAM. `live-transition.ts` owns the timing and
     // the camera flight and never touches a dock; what the dock registered here as a chrome

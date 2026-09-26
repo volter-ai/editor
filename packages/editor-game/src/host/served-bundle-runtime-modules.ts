@@ -153,8 +153,6 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   '@volter/threejs-runtime/setup/setup-renderer': () =>
     import('@volter/threejs-runtime/setup/setup-renderer'),
   // littlest-tokyo (GLTF quick-start) extras:
-  '@volter/game-runtime/input/rebind-controller': () =>
-    import('@volter/game-runtime/input/rebind-controller'),
   // The generic fetched-asset parse error — the template's and
   // top-down-strategy's `runtime/pixi-adapter.ts` raise it, so a canvas root
   // cannot mount hosted without it registered.
