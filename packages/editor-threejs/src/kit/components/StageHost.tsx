@@ -1257,7 +1257,10 @@ export function Object3DDocumentViewport({
               host.viewport?.setGridVisible(presentation.overlays.grid.visible);
               if (host.session) {
                 // An X-ray with no surface draws no outline: the selection is its wires' colour.
-                const surfaceless = presentation.xray.enabled && presentation.xray.alpha <= 0;
+                const surfaceless =
+                  host.session.presentation().mode === 'wireframe' &&
+                  presentation.xray.enabled &&
+                  presentation.xray.alpha <= 0;
                 host.session.selectionOutlineEnabled =
                   !shared && selectionOutlineRef.current && presentation.overlays.selection.outline && !surfaceless;
                 host.session.selectionOriginsEnabled = !shared && presentation.overlays.selection.origins;
@@ -1713,8 +1716,15 @@ export function Object3DDocumentViewport({
         // the session follows. Modes the view does
         // not carry (UV, vertex colours) change only the session.
         const viewModes = new Set<string>(VIEW_DRAW_MODES);
+        let drawnMode: string | undefined;
         const sessionToView = (): void => {
           const mode = host.session?.presentation().mode;
+          // What the presentation applies can depend on the mode drawn, the view's or not (an
+          // X-ray's outline): a change of it applies the presentation again.
+          if (mode !== drawnMode) {
+            drawnMode = mode;
+            host.applyPresentation?.();
+          }
           if (mode === undefined || !viewModes.has(mode)) return;
           if (viewPresentation(documentId).drawMode !== mode)
             setViewPresentation(documentId, { drawMode: mode as ViewportDrawMode });
