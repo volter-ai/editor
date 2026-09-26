@@ -31,9 +31,27 @@
  
  		CallNode() {
  			type = CALL;
+@@ -1042,6 +1061,7 @@
+ 	struct ReturnNode : public Node {
+ 		ExpressionNode *return_value = nullptr;
+ 		bool void_return = false;
++		mutable bool use_conversion = false;
+ 
+ 		ReturnNode() {
+ 			type = RETURN;
+--- a/modules/gdscript/gdscript_compiler.h
++++ b/modules/gdscript/gdscript_compiler.h
+@@ -77,6 +77,7 @@
+ 		const GDScriptParser::FunctionNode *function_node = nullptr;
+ 		StringName function_name;
+ 		GDScriptCodeGenerator *generator = nullptr;
++		GDScriptDataType frontend_export_return_type;
+ 		HashMap<StringName, GDScriptCodeGenerator::Address> parameters;
+ 		HashMap<StringName, GDScriptCodeGenerator::Address> locals;
+ 		List<HashMap<StringName, GDScriptCodeGenerator::Address>> locals_stack;
 --- a/modules/gdscript/gdscript_compiler.cpp
 +++ b/modules/gdscript/gdscript_compiler.cpp
-@@ -40,6 +40,14 @@
+@@ -40,6 +40,44 @@
  #include "core/config/project_settings.h"
  
  #include "scene/scene_string_names.h"
@@ -45,10 +63,40 @@
 +	p_call->frontend_export_call_hash = p_hash;
 +}
 +#define RECORD_FRONTEND_EXPORT_CALL(m_call, m_kind, m_owner, m_member, m_hash) _record_frontend_export_call(m_call, GDScriptParser::CallNode::m_kind, m_owner, m_member, m_hash)
++
++// Transcribes GDScriptByteCodeGenerator::write_return(const Address &) (gdscript_byte_codegen.cpp:1834-1928
++// at 89cea143987d564363e15d207438530651d943ac): true exactly when it emits a typed return opcode
++// (RETURN_TYPED_ARRAY/DICTIONARY/BUILTIN/NATIVE/SCRIPT) instead of plain OPCODE_RETURN, which is what
++// ReturnNode::use_conversion selects in 4.7. p_return_type is the value handed to write_start.
++static bool _frontend_export_return_uses_conversion(const GDScriptDataType &p_return_type, const GDScriptCodeGenerator::Address &p_return_value) {
++	if (!p_return_type.has_type() || p_return_value.type.has_type()) { // :1835
++		if (p_return_type.has_type()) { // :1839
++			if (p_return_type.kind == GDScriptDataType::BUILTIN && p_return_type.builtin_type == Variant::ARRAY && p_return_type.has_container_element_type(0)) { // :1840
++				return true;
++			} else if (p_return_type.kind == GDScriptDataType::BUILTIN && p_return_type.builtin_type == Variant::DICTIONARY &&
++					p_return_type.has_container_element_types()) { // :1848-1849
++				return true;
++			} else if (p_return_type.kind == GDScriptDataType::BUILTIN && p_return_value.type.kind == GDScriptDataType::BUILTIN && p_return_type.builtin_type != p_return_value.type.builtin_type) { // :1861
++				return true;
++			}
++			return false; // :1866-1870, just assign.
++		}
++		return false; // :1871-1874
++	}
++	switch (p_return_type.kind) { // :1875-1876
++		case GDScriptDataType::BUILTIN: // :1877-1900, every branch typed.
++		case GDScriptDataType::NATIVE: // :1902
++		case GDScriptDataType::GDSCRIPT: // :1910-1911
++		case GDScriptDataType::SCRIPT:
++			return true;
++		default: // :1919-1925
++			return false;
++	}
++}
  
  bool GDScriptCompiler::_is_class_member_property(CodeGen &codegen, const StringName &p_name) {
  	if (codegen.function_node && codegen.function_node->is_static) {
-@@ -621,12 +629,15 @@
+@@ -621,12 +659,15 @@
  			}
  
  			if (!call->is_super && call->callee->type == GDScriptParser::Node::IDENTIFIER && GDScriptParser::get_builtin_type(call->function_name) < Variant::VARIANT_MAX) {
@@ -64,7 +112,7 @@
  				gen->write_call_gdscript_utility(result, call->function_name, arguments);
  			} else {
  				// Regular function.
-@@ -634,6 +645,7 @@
+@@ -634,6 +675,7 @@
  
  				if (call->is_super) {
  					// Super call.
@@ -72,7 +120,7 @@
  					gen->write_super_call(result, call->function_name, arguments);
  				} else {
  					if (callee->type == GDScriptParser::Node::IDENTIFIER) {
-@@ -643,6 +655,7 @@
+@@ -643,6 +685,7 @@
  							GDScriptCodeGenerator::Address self;
  							self.mode = GDScriptCodeGenerator::Address::SELF;
  							MethodBind *method = ClassDB::get_method(codegen.script->native->get_name(), call->function_name);
@@ -80,7 +128,7 @@
  
  							if (_can_use_validate_call(method, arguments)) {
  								// Exact arguments, use validated call.
-@@ -654,12 +667,14 @@
+@@ -654,12 +697,14 @@
  						} else if (call->is_static || codegen.is_static || (codegen.function_node && codegen.function_node->is_static) || call->function_name == "new") {
  							GDScriptCodeGenerator::Address self;
  							self.mode = GDScriptCodeGenerator::Address::CLASS;
@@ -95,7 +143,7 @@
  							if (is_awaited) {
  								gen->write_call_self_async(result, call->function_name, arguments);
  							} else {
-@@ -672,12 +687,15 @@
+@@ -672,12 +717,15 @@
  						if (subscript->is_attribute) {
  							// May be static built-in method call.
  							if (!call->is_super && subscript->base->type == GDScriptParser::Node::IDENTIFIER && GDScriptParser::get_builtin_type(static_cast<GDScriptParser::IdentifierNode *>(subscript->base)->name) < Variant::VARIANT_MAX) {
@@ -111,7 +159,7 @@
  								if (_can_use_validate_call(method, arguments)) {
  									// Exact arguments, use validated call.
  									gen->write_call_native_static_validated(result, method, arguments);
-@@ -691,6 +709,7 @@
+@@ -691,6 +739,7 @@
  									return GDScriptCodeGenerator::Address();
  								}
  								if (is_awaited) {
@@ -119,7 +167,7 @@
  									gen->write_call_async(result, base, call->function_name, arguments);
  								} else if (base.type.kind != GDScriptDataType::VARIANT && base.type.kind != GDScriptDataType::BUILTIN) {
  									// Native method, use faster path.
-@@ -702,6 +721,7 @@
+@@ -702,6 +751,7 @@
  									}
  									if (GDScriptAnalyzer::class_exists(class_name) && ClassDB::has_method(class_name, call->function_name)) {
  										MethodBind *method = ClassDB::get_method(class_name, call->function_name);
@@ -127,7 +175,7 @@
  										if (_can_use_validate_call(method, arguments)) {
  											// Exact arguments, use validated call.
  											gen->write_call_method_bind_validated(result, base, method, arguments);
-@@ -710,11 +730,14 @@
+@@ -710,11 +760,14 @@
  											gen->write_call_method_bind(result, base, method, arguments);
  										}
  									} else {
@@ -142,6 +190,35 @@
  									gen->write_call(result, base, call->function_name, arguments);
  								}
  								if (base.mode == GDScriptCodeGenerator::Address::TEMPORARY) {
+@@ -2170,8 +2223,11 @@
+ 
+ 				if (return_n->void_return) {
+ 					// Always return "null", even if the expression is a call to a void function.
+-					gen->write_return(codegen.add_constant(Variant()));
++					const GDScriptCodeGenerator::Address null_value = codegen.add_constant(Variant());
++					return_n->use_conversion = _frontend_export_return_uses_conversion(codegen.frontend_export_return_type, null_value);
++					gen->write_return(null_value);
+ 				} else {
++					return_n->use_conversion = _frontend_export_return_uses_conversion(codegen.frontend_export_return_type, return_value);
+ 					gen->write_return(return_value);
+ 				}
+ 				if (return_value.mode == GDScriptCodeGenerator::Address::TEMPORARY) {
+@@ -2330,6 +2386,7 @@
+ 	if (is_static) {
+ 		method_info.flags |= METHOD_FLAG_STATIC;
+ 	}
++	codegen.frontend_export_return_type = return_type;
+ 	codegen.generator->write_start(p_script, func_name, is_static, rpc_config, return_type);
+ 
+ 	int optional_parameters = 0;
+@@ -2553,6 +2610,7 @@
+ 
+ 	codegen.function_name = func_name;
+ 	codegen.is_static = is_static;
++	codegen.frontend_export_return_type = return_type;
+ 	codegen.generator->write_start(p_script, func_name, is_static, rpc_config, return_type);
+ 
+ 	// The static initializer is always called on the same class where the static variables are defined,
 --- a/modules/gdscript/gdscript_analyzer.cpp
 +++ b/modules/gdscript/gdscript_analyzer.cpp
 @@ -3253,6 +3253,10 @@
