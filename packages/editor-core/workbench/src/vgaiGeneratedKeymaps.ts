@@ -10,10 +10,11 @@
  *
  *  Regenerate:  node scripts/workbench/generate-keymaps.mjs --checkout <fork dir> --write
  *  Sources (sha256 at generation; the generator refuses when one has moved):
- *    b8deca33b20dfa38785d1f265b3e4d3bca537dad6c798fde816a7997322bea1b  packages/editor/src/keymap-presets.ts
- *    54d449e030f250bd3e68ed5fad90f5525ca4451f183a7c98ba507d12b6754768  packages/editor/src/editor-hotkeys.ts
- *    6ccac92e785bc7b7f5cdc5c633758c1739d4d5a89ebd9b64ad1550c4c19dd671  packages/blender/contributions/blender.keymap.ts
- *  81 rules over 41 commands (vgai 39, blender 42).
+ *    6f108bdb96992dcb37eefacb44b81c051742f8981014224810c60a08af288c2f  packages/editor-sdk/src/kit/keymap-presets.ts
+ *    2a05e31762620b0cf734310744c95db38a1912d4f084605296aca335f31c2d89  packages/editor-core/src/editor-hotkeys.ts
+ *    491c47e51c07365561ab63735e998d28017ce2602ab792ebaf96e6c9cf1a32df  packages/editor-threejs/src/kit/viewport-hotkeys.ts
+ *    868c4b53787de4c9ef2ee58a43c753d31f906fa8471b6d9cae3cee26e951d6cb  packages/editor-blender/contributions/blender.keymap.ts
+ *  81 rules over 42 commands (vgai 39, blender 42).
  *--------------------------------------------------------------------------------------------*/
 
 /** Every keymap the generated extension carries chords for. */
@@ -47,6 +48,7 @@ export const CARRIED_ACTION_IDS: readonly string[] = [
 	'transform.combined',
 	'transform.rotate',
 	'transform.scale',
+	'transform.select',
 	'transform.translate',
 	'view.commandPalette',
 	'view.focusMode',
