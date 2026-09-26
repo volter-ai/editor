@@ -9,8 +9,8 @@
  * It proves the UI node rules, the resource rules and that authored layout properties
  * (`layout_mode`, `anchors_preset`, anchors, offsets, grow directions, size flags) reach their
  * setters at mount. The mount performs the host's duties the composition site owes a UI scene:
- * the tree root, the root window's size, the default theme font, and the scene's entry into the
- * tree (which the composition performs only for a scene with script attachments).
+ * the tree root, the root window's size and its resize, the default theme font, and the scene's
+ * entry into the tree (which the composition performs only for a scene with script attachments).
  */
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
@@ -32,7 +32,8 @@ import { canonical, type GodotProofMeasurement, type GodotProofTools, sha256 } f
 const PACKAGE_ROOT = path.resolve(import.meta.dirname, '..', '..', '..');
 const MONOREPO_ROOT = path.resolve(PACKAGE_ROOT, '..', '..');
 
-/** The root window's size both sides give the tree before the scene enters it. */
+/** The root window's size as the scene enters the tree, and the size the host then resizes it to. */
+const ENTRY_WINDOW = [320, 200] as const;
 const WINDOW = [640, 360] as const;
 
 const files: Readonly<Record<string, string>> = {
@@ -183,13 +184,16 @@ func _walk(rows: Dictionary, path: String, node: Node) -> void:
 \t\t_walk(rows, child.name if path == "." else path + "/" + child.name, child)
 
 # The headless display server sizes the root window to 64x64 after initialization; the window
-# takes the proof's size on the first frame, before the scene enters it.
+# takes the proof's entry size on the first frame, before the scene enters it, and is resized on
+# the next.
 func _process(_delta: float) -> bool:
 \tframes += 1
 \tif frames == 1:
-\t\troot.size = Vector2i(${WINDOW[0]}, ${WINDOW[1]})
+\t\troot.size = Vector2i(${ENTRY_WINDOW[0]}, ${ENTRY_WINDOW[1]})
 \t\tmain = load("res://main.tscn").instantiate()
 \t\troot.add_child(main)
+\tif frames == 2:
+\t\troot.size = Vector2i(${WINDOW[0]}, ${WINDOW[1]})
 \tif frames < 4:
 \t\treturn false
 \tvar rows := {"window": [root.size.x, root.size.y]}
@@ -210,8 +214,9 @@ function inputDigest(): string {
 /**
  * Mounts the emitted main scene with R3F's own root and reads each mounted entity through compat.
  * Before the scene mounts it does what the composition site owes a UI scene: R3F's scene is the
- * tree's root, the root window takes its size, and the default theme font is loaded. It runs in
- * the emitted project's directory, so tsx compiles the scene under that project's own tsconfig.
+ * tree's root, the root window takes its size (and later its new size), and the default theme
+ * font is loaded. It runs in the emitted project's directory, so tsx compiles the scene under that
+ * project's own tsconfig.
  */
 const MOUNT = `import { createElement, act } from 'react';
 import { readFileSync } from 'node:fs';
@@ -256,14 +261,17 @@ const holder = { current: null };
 await act(async () => { root.render(createElement('group', { ref: holder })); });
 const scene = holder.current.parent;
 godot_tree_set_root(scene);
-godot_window_set_size(scene, vector2i(${WINDOW[0]}, ${WINDOW[1]}));
+godot_window_set_size(scene, vector2i(${ENTRY_WINDOW[0]}, ${ENTRY_WINDOW[1]}));
 godot_font_default(godot_font_load(new Uint8Array(readFileSync('./src/lib/godot-compat/OpenSans_SemiBold.woff2'))));
 await act(async () => { root.render(createElement('group', { ref: holder }, createElement(MainScene, { name: 'Main' }))); });
 // The scene is built with its authored properties set outside the tree (SceneState::instantiate),
 // then enters it, as the root's add_child does; the composition attaches no script here.
 mountGodotScriptTree(holder.current.children[0], []);
 godot_message_queue_flush();
-for (let frame = 0; frame < 3; frame += 1) godot_tree_frame(1 / 60);
+godot_tree_frame(1 / 60);
+// The host resizes the root window as the page resizes the canvas.
+godot_window_set_size(scene, vector2i(${WINDOW[0]}, ${WINDOW[1]}));
+for (let frame = 0; frame < 2; frame += 1) godot_tree_frame(1 / 60);
 const size = get_size(scene);
 const rows = { window: [size.x, size.y] };
 const walk = (path, node) => {

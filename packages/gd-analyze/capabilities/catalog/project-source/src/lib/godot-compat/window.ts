@@ -13,17 +13,41 @@ import type { Object3D } from 'three';
 import { construct as vector2i, type Vector2i } from './vector2i';
 
 const SIZES = new WeakMap<Object3D, Vector2i>();
+const SIZE_CHANGED = new WeakMap<Object3D, Set<() => void>>();
 
 /**
  * Stores the window's size as the host reads it from the page (`Window::set_size`,
  * `window.cpp:413`, with the size the display server gives); a script's own `set_size` on the root
- * window is the platform's to honour and is not bound.
+ * window is the platform's to honour and is not bound. A size that differs from the stored one
+ * emits the viewport's `size_changed` (`Viewport::_set_size`, `viewport.cpp:1188`), after the
+ * floor of 2 (`viewport.cpp:1154`).
  *
  * @godot Window (protocol)
  * @source scene/main/window.cpp:413
  */
 export function godot_window_set_size(self: Object3D, p_size: Vector2i): void {
-  SIZES.set(self, vector2i(p_size.x, p_size.y));
+  const size = vector2i(Math.max(p_size.x, 2), Math.max(p_size.y, 2));
+  const previous = SIZES.get(self);
+  SIZES.set(self, size);
+  if (previous !== undefined && previous.x === size.x && previous.y === size.y) return;
+  for (const listener of [...(SIZE_CHANGED.get(self) ?? [])]) listener();
+}
+
+/**
+ * Connects `listener` to the window's `size_changed`, as a root Control connects its
+ * `_size_changed` on entering the canvas (`control.cpp:4577`); the returned call disconnects it
+ * (`NOTIFICATION_EXIT_CANVAS`, `control.cpp:4589`).
+ *
+ * @godot Window (protocol)
+ * @source scene/main/viewport.cpp:1188
+ */
+export function godot_window_connect_size_changed(self: Object3D, listener: () => void): () => void {
+  const listeners = SIZE_CHANGED.get(self) ?? new Set<() => void>();
+  SIZE_CHANGED.set(self, listeners);
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 /**

@@ -70,7 +70,7 @@
         "observedOutputSha256": "f63a98d015bbe424df3b86c75a1fd319a5886ee10a14c206920d53a688fa8d19"
       },
       "target": {
-        "implementationSha256": "054c831e6744d0ad1d65c19812f706ba270f44e80c9cce7be405cbb88530a81a",
+        "implementationSha256": "ad1e6e0076064537c28411ec367d80ce20258782c4838787fe7a579de03f2d79",
         "callsite": "lib/godot-compat/sub-viewport.ts get_size",
         "observedOutputSha256": "f63a98d015bbe424df3b86c75a1fd319a5886ee10a14c206920d53a688fa8d19"
       },
@@ -109,7 +109,7 @@
         "observedOutputSha256": "fc6bd0f025eaadb4160a5b70c8b9b0e04ce279b22ee22323f64c930e472b3743"
       },
       "target": {
-        "implementationSha256": "054c831e6744d0ad1d65c19812f706ba270f44e80c9cce7be405cbb88530a81a",
+        "implementationSha256": "ad1e6e0076064537c28411ec367d80ce20258782c4838787fe7a579de03f2d79",
         "callsite": "lib/godot-compat/sub-viewport.ts set_size",
         "observedOutputSha256": "fc6bd0f025eaadb4160a5b70c8b9b0e04ce279b22ee22323f64c930e472b3743"
       },
@@ -136,7 +136,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "bf4d2cdbfb1d1106a5beb549ef528fefe5d6a8d03e48b309a733df8902ce67fe",
-      "implementationSha256": "054c831e6744d0ad1d65c19812f706ba270f44e80c9cce7be405cbb88530a81a"
+      "implementationSha256": "ad1e6e0076064537c28411ec367d80ce20258782c4838787fe7a579de03f2d79"
     },
     {
       "claimId": "godot-4.7-binding-SubViewport.set_size",
@@ -144,7 +144,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "4111f28128381eaa59e3fe4111f1af2f9fe67bafaae3c2ee0c309d610d1a8ffd",
-      "implementationSha256": "054c831e6744d0ad1d65c19812f706ba270f44e80c9cce7be405cbb88530a81a"
+      "implementationSha256": "ad1e6e0076064537c28411ec367d80ce20258782c4838787fe7a579de03f2d79"
     }
   ]
 }

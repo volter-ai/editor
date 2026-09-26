@@ -13,6 +13,7 @@ import type { Object3D } from 'three';
 import { construct as vector2i, type Vector2i } from './vector2i';
 
 const SIZE = new WeakMap<Object3D, Vector2i>();
+const SIZE_CHANGED = new WeakMap<Object3D, Set<() => void>>();
 
 /**
  * Stores `p_size.maxi(2)`, each component at least 2 (`Viewport::_set_size`,
@@ -23,7 +24,28 @@ const SIZE = new WeakMap<Object3D, Vector2i>();
  * @source scene/main/viewport.cpp:5611
  */
 export function set_size(self: Object3D, p_size: Vector2i): void {
-  SIZE.set(self, vector2i(Math.max(p_size.x, 2), Math.max(p_size.y, 2)));
+  const size = vector2i(Math.max(p_size.x, 2), Math.max(p_size.y, 2));
+  const previous = SIZE.get(self) ?? vector2i(512, 512);
+  SIZE.set(self, size);
+  // A changed size emits `size_changed` (`viewport.cpp:1188`).
+  if (previous.x === size.x && previous.y === size.y) return;
+  for (const listener of [...(SIZE_CHANGED.get(self) ?? [])]) listener();
+}
+
+/**
+ * Connects `listener` to the SubViewport's `size_changed`, as a root Control inside it does on
+ * entering the canvas (`control.cpp:4577`); the returned call disconnects it.
+ *
+ * @godot SubViewport (protocol)
+ * @source scene/main/viewport.cpp:1188
+ */
+export function godot_sub_viewport_connect_size_changed(self: Object3D, listener: () => void): () => void {
+  const listeners = SIZE_CHANGED.get(self) ?? new Set<() => void>();
+  SIZE_CHANGED.set(self, listeners);
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 /**

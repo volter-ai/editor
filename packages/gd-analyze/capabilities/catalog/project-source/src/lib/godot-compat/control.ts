@@ -40,8 +40,8 @@ import {
 import { godot_node_adopt, godot_node_entity, godot_node_tree_signal, is_inside_tree } from './node';
 import { godot_message_queue_push } from './object';
 import { construct as rect2, type Rect2 } from './rect2';
-import { get_size as subViewportSize } from './sub-viewport';
-import { get_size as windowSize, godot_window_has_size } from './window';
+import { get_size as subViewportSize, godot_sub_viewport_connect_size_changed } from './sub-viewport';
+import { get_size as windowSize, godot_window_connect_size_changed, godot_window_has_size } from './window';
 import { basis_xform, construct as transform2d, get_scale as transformScale, affine_inverse, op_multiply as xform, type Transform2D } from './transform-2d';
 import { construct as vector2, type Vector2 } from './vector2';
 
@@ -114,6 +114,8 @@ export interface ControlVirtuals {
 }
 
 interface ControlState {
+  /** A root Control's connection to its viewport's `size_changed`, while in the canvas. */
+  viewportSizeChanged?: (() => void) | undefined;
   readonly anchor: number[];
   readonly offset: number[];
   hGrow: number;
@@ -225,6 +227,18 @@ function enteredTree(entity: Object3D): void {
   // precedes its entering the tree.
   const state = CONTROLS.get(entity) as ControlState;
   state.storedLayoutMode = computedLayoutMode(entity, state);
+  // `NOTIFICATION_ENTER_CANVAS` (`control.cpp:4577`): without a parent canvas item, the Control
+  // follows its viewport's size, the root window's or a SubViewport's (the viewport is one of them).
+  const viewport = godot_canvas_item_parent(entity) === null ? viewportOf(entity) : null;
+  if (viewport !== null) {
+    const resized = () => sizeChanged(entity);
+    const fromWindow = godot_window_connect_size_changed(viewport, resized);
+    const fromSubViewport = godot_sub_viewport_connect_size_changed(viewport, resized);
+    state.viewportSizeChanged = () => {
+      fromWindow();
+      fromSubViewport();
+    };
+  }
   themeChanged(entity);
   updateMaximumSize(entity);
   sizeChanged(entity);
@@ -235,8 +249,14 @@ function enteredTree(entity: Object3D): void {
   }
 }
 
-/** The parent container's `remove_child_notify` (`container.cpp:76`). */
+/**
+ * `NOTIFICATION_EXIT_CANVAS`'s viewport disconnection (`control.cpp:4589`), then the parent
+ * container's `remove_child_notify` (`container.cpp:76`).
+ */
 function exitingTree(entity: Object3D): void {
+  const state = CONTROLS.get(entity) as ControlState;
+  state.viewportSizeChanged?.();
+  state.viewportSizeChanged = undefined;
   const container = parentContainer(entity);
   if (container !== null) {
     updateMinimumSize(container);
