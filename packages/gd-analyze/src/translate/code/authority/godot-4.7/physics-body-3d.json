@@ -67,17 +67,17 @@
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
         "inputSha256": "d32ce26328c4096f92823d20af1efbfe27d8159721a736060503d25713381638",
         "callsite": "res://probe.gd _init() add_collision_exception_with add_collision_exception_with-rigid",
-        "observedOutputSha256": "cc3914f9bcaee4d6ec17a517f1c70e7e9ef0e56146c7e94d238370a3e0063a2f"
+        "observedOutputSha256": "7dc84ce0ecbf98aa1c0506a678a656fa2a48eec5e30183cb6c6c316f32588c84"
       },
       "target": {
-        "implementationSha256": "c4bc24329d012bd511a3d13bc9397b061168646d2e012db0a45d8b50255c1b0e",
+        "implementationSha256": "6a3d308877e443697e27bc7d1a6e214b13178eff6506b71a0119fff2bbf8df12",
         "callsite": "lib/godot-compat/physics-body-3d.ts add_collision_exception_with",
-        "observedOutputSha256": "d43d09e1a1731665ce776de6dd7de3ae4752e677f7873f19cf39ae0e8ee608be"
+        "observedOutputSha256": "e642b8f63f95a69ee322207d3e7023a5f1ad05edc0444dd0af7f7533ab15ddba"
       },
       "comparison": {
         "comparator": "typed float64-bit JSON: physics-trajectory, rapier-geometry",
         "tolerance": "Rapier's query geometry: within 0.05; measured max 0.04609572887420654 over 2 cases",
-        "resultSha256": "18abb4eabeeb04d05807feeaa6e431d57533479aba55a859200960aa4551e0f4"
+        "resultSha256": "db00d84f71617849db5054bde288a4a105851e4a9a2fbb608954b0bbf4b02027"
       },
       "reproductionCommand": [
         "npx",
@@ -106,17 +106,17 @@
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
         "inputSha256": "345ca2b1cf056fc19a0f6e802b978f5dedcc9778afb2f9021b81a225bd934174",
         "callsite": "res://probe.gd _init() remove_collision_exception_with",
-        "observedOutputSha256": "e491cd7e85f5c6a73c2f82529827bbe0c649a72ccd8e4399083931af16c28d75"
+        "observedOutputSha256": "62505bba6873c4c96357727495cd13c0a854cc1c02c53562102a7978978aa494"
       },
       "target": {
-        "implementationSha256": "c4bc24329d012bd511a3d13bc9397b061168646d2e012db0a45d8b50255c1b0e",
+        "implementationSha256": "6a3d308877e443697e27bc7d1a6e214b13178eff6506b71a0119fff2bbf8df12",
         "callsite": "lib/godot-compat/physics-body-3d.ts remove_collision_exception_with",
-        "observedOutputSha256": "b3b2057f992ad3011112647061970e349c023641bc468d3dcc899678ed985c4c"
+        "observedOutputSha256": "0382b12fdf27cf534c04921f83e7d8b01725de39109643be7ac7c853b5f7c848"
       },
       "comparison": {
         "comparator": "typed float64-bit JSON: rapier-geometry",
-        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.006591081619262695 over 1 cases",
-        "resultSha256": "e7344ca0b8ad9531d0657c11422d01f0d665cfef9beaef19f19a57531b86f705"
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.00010986253619194031 over 1 cases",
+        "resultSha256": "ff5761690ff469e406e66f34fd20e3a7558ab6cb2f800f37647a04ae0661ac91"
       },
       "reproductionCommand": [
         "npx",
@@ -136,7 +136,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "d32ce26328c4096f92823d20af1efbfe27d8159721a736060503d25713381638",
-      "implementationSha256": "c4bc24329d012bd511a3d13bc9397b061168646d2e012db0a45d8b50255c1b0e"
+      "implementationSha256": "6a3d308877e443697e27bc7d1a6e214b13178eff6506b71a0119fff2bbf8df12"
     },
     {
       "claimId": "godot-4.7-binding-PhysicsBody3D.remove_collision_exception_with",
@@ -144,7 +144,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "345ca2b1cf056fc19a0f6e802b978f5dedcc9778afb2f9021b81a225bd934174",
-      "implementationSha256": "c4bc24329d012bd511a3d13bc9397b061168646d2e012db0a45d8b50255c1b0e"
+      "implementationSha256": "6a3d308877e443697e27bc7d1a6e214b13178eff6506b71a0119fff2bbf8df12"
     }
   ]
 }

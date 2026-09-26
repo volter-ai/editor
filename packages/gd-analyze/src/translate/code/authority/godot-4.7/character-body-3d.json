@@ -863,19 +863,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "e031b5bcfadced4c4ba97e6284fe02b0885b629a7089a819255846c198b84b33",
+        "inputSha256": "1a987fa5e2793bc9a9e26820bcb28f6eff5507cad12cbffeb53b9a2190630528",
         "callsite": "res://probe.gd _init() move_and_slide-fall-and-land move_and_slide-walk move_and_slide-jump move_and_slide-wall-slide move_and_slide-ceiling",
-        "observedOutputSha256": "76155be21a65b99f9db316c56941c90043f3e020be20064463e035f985c9ff74"
+        "observedOutputSha256": "dd70d524a7cdba0a0916b06f025eae3aa52ae7c945cb53b795997fc2c8f171ad"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts move_and_slide",
-        "observedOutputSha256": "a4029bfd9700e822ef5a5a328fbbc4f272b1b36d7f130b184a678207829b5d32"
+        "observedOutputSha256": "050241afb343a1c45dac9c0e58de235a60e98d1985b232c751917379d4803625"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact, safe-margin",
-        "tolerance": "kinematic place in a broad-phase order Godot's BVH history decides: within 0.001 (the safe margin); measured max 0.0008143186569213867 over 5 cases",
-        "resultSha256": "60c173177951528b0d9b058df2a55e6752833f63eb8c74641ee7fea1bac116bf"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.04242455214262009 over 5 cases; slide collisions per frame: Godot 1 or 2 / Rapier 3 where Godot's sweep misses a floor graze (it sinks up to 0.0027) (within 2): measured max difference 2; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "c96110b92361df3b855886e5a9c323e4c5ab7be589294e665b7bf0a8d2da6390"
       },
       "reproductionCommand": [
         "npx",
@@ -902,19 +902,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "dd26c20570a0d3a02cbbfbc6e67de4d9d66556c6ffe8015cfc960f391d4065ad",
+        "inputSha256": "33ce3358948ff2b0dbd3e5243ec118e1c8bb38fe31dbcdef56f174f6677cf16e",
         "callsite": "res://probe.gd _init() is_on_floor-landing",
-        "observedOutputSha256": "78ef1cc2c486d7bfb0b88ab2b26b6a6d9d4d5a4c8ba8bb95e75f098860f2435e"
+        "observedOutputSha256": "ae3a7b82152d89133515ddf0ad64f64b03939793311c0d66962ba50d73d76329"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts is_on_floor",
-        "observedOutputSha256": "78ef1cc2c486d7bfb0b88ab2b26b6a6d9d4d5a4c8ba8bb95e75f098860f2435e"
+        "observedOutputSha256": "eebc7a29f94b2edaaba59a2d2d4bcbff933ab5ddc97e448129ed55aa522d136d"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "788e3d4978fba536065a48b183cd132a908e1c1440481dcc2475013770b03286"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.0014355182647705078 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "b2c9c6b13c772acf28fccd80f6038e153b46d5480829d1125b39e5932067e2ed"
       },
       "reproductionCommand": [
         "npx",
@@ -941,19 +941,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "a91e09a9e369de9c70fb9ae3e17f46e9fc69dd59ede598b229ed94ea79c154b1",
+        "inputSha256": "26de130b0bf53ef3d43c1a12905eccb4322656ab86f5701222d839ff3ca1514f",
         "callsite": "res://probe.gd _init() is_on_floor_only-landing",
-        "observedOutputSha256": "090fb652294bf9728b76d051f9d88f4ea689653e8a317b1c5d1b54693c985acf"
+        "observedOutputSha256": "e2c87d1ff7cad91b77af0663d5a9aeab2213321a0ceb3757479f2506360f89b8"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts is_on_floor_only",
-        "observedOutputSha256": "090fb652294bf9728b76d051f9d88f4ea689653e8a317b1c5d1b54693c985acf"
+        "observedOutputSha256": "ce41f9412025b0541b9172b73d3feb45604cb18ddbd32de6444e332f0681be87"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "a4064aec2e1a1fcf4c1ea647b978a2267d3cae10664688990a3703fd3a010a0a"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.0014355182647705078 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "8820ae0ee94f10fe6dd9a86630c8f9ff2554b6ea6c1a617abc57b541a042feb6"
       },
       "reproductionCommand": [
         "npx",
@@ -980,19 +980,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "fc68af4ac3fa9f1128dcc578c714d56d896de407b4317f232c8a9a7c319b0dcc",
+        "inputSha256": "deae82f5b247b7870d15caafcb165374cf6b114db7924a3bd0949239f32b83ed",
         "callsite": "res://probe.gd _init() is_on_wall-landing",
-        "observedOutputSha256": "11fedc4b65d074d3bb7428409fad2c831b4700796326f2d5d844f630a9688efa"
+        "observedOutputSha256": "e14bad8654dfa571bf360d2aa780fb562d5ccf64a1662f72c94bdfa69099f785"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts is_on_wall",
-        "observedOutputSha256": "11fedc4b65d074d3bb7428409fad2c831b4700796326f2d5d844f630a9688efa"
+        "observedOutputSha256": "deb942b10f00c60007d427b3b34588f5043261e6cc36cc48e7c6dec118ba33a8"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "e9cfa740d3fed4913dda72866f652c358ff650c8809d4334a2cf3e57eb6035ec"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.0014355182647705078 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "8a381417ca981d1d6b68c19e9aae356636e7496417559da9bdd1b1bb929fa31c"
       },
       "reproductionCommand": [
         "npx",
@@ -1019,19 +1019,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "70a6effbed75c2d54879e643d97f20e62963cf5f032b8c7add26bf12dfc9f30f",
+        "inputSha256": "010177a6ff0332b465c36e7293a81f52501a5c9a3cf54ccf2e7fadb503f67275",
         "callsite": "res://probe.gd _init() is_on_wall_only-landing",
-        "observedOutputSha256": "3d2aa692f1deaab8a82c59717b6a92414324ba3db7f8b46b2d7efdc0a17490d4"
+        "observedOutputSha256": "372647134f14a83319800a389c4a7505c178e9be712e110c22b07472bc10b5cb"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts is_on_wall_only",
-        "observedOutputSha256": "3d2aa692f1deaab8a82c59717b6a92414324ba3db7f8b46b2d7efdc0a17490d4"
+        "observedOutputSha256": "b0ff2fa5257fea23cc7d4e5d77c21af5bf34a792a1288d4f8b6ccb72f3d27fc8"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "2c6984dc46bee02f638764e5554e7e0d7691b81090d741051f7c40461cc7fc00"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.0014355182647705078 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "d5cd2d8c9a3e766bcaebccc87786b14f605894047596030be9c908848bf98edd"
       },
       "reproductionCommand": [
         "npx",
@@ -1058,19 +1058,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "0841339141be4515f53a1ff2b1d318ee269191ea0a95702be2304bfc608aa7c2",
+        "inputSha256": "9e392926e6c13a1875d424dd15596ced58216260e0fcbfc069dabcdcb17a1070",
         "callsite": "res://probe.gd _init() is_on_ceiling-landing",
-        "observedOutputSha256": "d8a78456116991781aac69f1626f6d8e150e449f8b1ab24acbf9e331dbb2a7cf"
+        "observedOutputSha256": "69f084b1593d33da631791e48aafa9cbde7e5947db998389850c6c4a2faa2fb3"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts is_on_ceiling",
-        "observedOutputSha256": "d8a78456116991781aac69f1626f6d8e150e449f8b1ab24acbf9e331dbb2a7cf"
+        "observedOutputSha256": "a2e65d3a4ff52e206f077a28e90fe8b43e4fe5b9465fe9917e82f4f0f4c50932"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "45e4d46e10e84d66c4449f6cce86199b13424c4c3abef6e974f3ed92d88e0853"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.0014355182647705078 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "ee68007c5d45551df1b5eb07b62eea3b52a2a5a4d0522005a14f6747b16a5610"
       },
       "reproductionCommand": [
         "npx",
@@ -1097,19 +1097,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "b9820fa25801a39c4df2fcbcba40e47e4355ac6a1d24e31c5688d98161f6d849",
+        "inputSha256": "2c1f8d740023230399cee8734d5fa1c7f98a8d046d6b107023b2e81a188349bf",
         "callsite": "res://probe.gd _init() is_on_ceiling_only-landing",
-        "observedOutputSha256": "d01ee4025b87687838d54f92c420758a78f69e9429e984dc2968c639a00a1db9"
+        "observedOutputSha256": "a5e51e4207a1519ba8d6f04149c5394bd249af0192a23bf9b12aaa1440845be5"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts is_on_ceiling_only",
-        "observedOutputSha256": "d01ee4025b87687838d54f92c420758a78f69e9429e984dc2968c639a00a1db9"
+        "observedOutputSha256": "43114eac3cfa4e5ba9b4b97b38c0a6c84c8dbe3a6b03376e06173296691c4ff4"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "7476b7b8110b0772061ed1055a7ac90cf1640449da81e5196e2266a9e99fb87c"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.0014355182647705078 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "d674328ce402477d23db118e384bc5f3215e93f30b04e9e57c453e8c4c4591de"
       },
       "reproductionCommand": [
         "npx",
@@ -1136,19 +1136,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "2013d76ce06252ac68adb1d1aa75474162f63b8481d3ac075608d40d3eb53cf3",
+        "inputSha256": "6e1c4ef1da4f664cffc1390bc6a6023a9b2e6d3ff88abfcf857c9ee7a975cd9f",
         "callsite": "res://probe.gd _init() get_floor_normal-landing",
-        "observedOutputSha256": "f7a0be1df317f8d20d232fea03091cfd2db11dbb3710a953532be62cbfa32574"
+        "observedOutputSha256": "c8b2c683276854223e824cd82885c694e73eca8a86fcce7fc215d563185358f0"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts get_floor_normal",
-        "observedOutputSha256": "f7a0be1df317f8d20d232fea03091cfd2db11dbb3710a953532be62cbfa32574"
+        "observedOutputSha256": "4dcb3e1cf6d7ffbef9161609e9fbce1b8a01380c74c8200d7efaec2abbb6d8b0"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "1edf40024319d2520d407c1a56ec11412169a0f5b6c7eae1bdb811ed185da87d"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.0014355182647705078 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "374cdf913440a416ec8da61be863ad3bc406b32eca9ac380dbad6b0c58df9cf8"
       },
       "reproductionCommand": [
         "npx",
@@ -1175,19 +1175,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "8881d4f657aa48a82b05d8c60e4ae438d420e7e54b5867eeeb6aa965bfc5c162",
+        "inputSha256": "6d86f331d4239608b09a6d952f4ab82cf6ecf1d574398e869e740e7928131cb1",
         "callsite": "res://probe.gd _init() get_wall_normal-landing",
-        "observedOutputSha256": "82657faf3e37fe77c54a61c26da470e64586afd78ac8432b3e3d793fc1f2d928"
+        "observedOutputSha256": "a85405608d430f54be10d24e2a96015511ae5d753efb0be26f0176f85bfd00c9"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts get_wall_normal",
-        "observedOutputSha256": "82657faf3e37fe77c54a61c26da470e64586afd78ac8432b3e3d793fc1f2d928"
+        "observedOutputSha256": "b4c097de63ff2b1768f0a0eb26103dcf2899b985eeaf4eeddf519ae2c9cd3985"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "618d4e940155d93d8ab4f445a8143a99b2e13741afb8ea64707bfe59839be9e1"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.0014355182647705078 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "5274ba1754bcf752d241e201fdf9f2b32bb6a010b2a76be87d33434e4ee78981"
       },
       "reproductionCommand": [
         "npx",
@@ -1214,19 +1214,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "962586eddd3a191eee8f56fb3f5f647d3ca886d32b47a57684425cbdc5100108",
+        "inputSha256": "aeba190d74e39e619c7a7301921b28856ee6c5dce2c8dfece05b57b513bbbe7c",
         "callsite": "res://probe.gd _init() get_last_motion-landing",
-        "observedOutputSha256": "f839c71a6fab601812151a1a5d2e5761578eb4f93806a307def280b09d56a88d"
+        "observedOutputSha256": "a7cd1624a9fa322db83e71d3cd9ea1f68972a9458c0fc85150e8534c0fddca9a"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts get_last_motion",
-        "observedOutputSha256": "f839c71a6fab601812151a1a5d2e5761578eb4f93806a307def280b09d56a88d"
+        "observedOutputSha256": "28a2867bc503dbd94f366368bd765f4ec0bd38cc1b33536ddd2266b6299b8cd6"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "49cb93c2c34db9a5806fec845e552f322c93b220a5b7cb0cfc45b1771afa7847"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.0014355182647705078 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "3d3d55cc6f939c46abe2ca25e99b7804e45b4c3505ee2360367367cc831ae186"
       },
       "reproductionCommand": [
         "npx",
@@ -1253,19 +1253,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "2359beafad4b21619e136614b3d52949768ee9d88f3fda55ddb76c2e6e24f002",
+        "inputSha256": "800a0b25c0639e527024ebd317efd5a3cb9330668459dfdb63dd952839407ffd",
         "callsite": "res://probe.gd _init() get_position_delta-landing",
-        "observedOutputSha256": "81281dced7824b2975ec490d853623308ef7227fec4458b80e903d6c2b1b7024"
+        "observedOutputSha256": "4262924cf9de639230d7726d7bd4b6428ff73f29ff25463bdb73b68c316d62dd"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts get_position_delta",
-        "observedOutputSha256": "81281dced7824b2975ec490d853623308ef7227fec4458b80e903d6c2b1b7024"
+        "observedOutputSha256": "e8c243fdb2954d815a731332932366a2717ecb32ed5f72f51349ccfe9694c44f"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "4cb7fcb192eff600545f073b02fa3c4aaa0299b1c5dab684ca0ab7000568257d"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.0014355182647705078 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "30631502567fe8e638a38ebb77cbb75b9561fc3b73fca11caa5c685355b2628f"
       },
       "reproductionCommand": [
         "npx",
@@ -1292,19 +1292,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "7b7c5e2fb0c77445130310e931e8f9fed4ba7d8232c9c1d0ce6e9caeaa266b77",
+        "inputSha256": "5a04cc9eb0022f973271cf9ac80c47f35654ec46bcab736c2491eeaddeaf883f",
         "callsite": "res://probe.gd _init() get_real_velocity-landing",
-        "observedOutputSha256": "e6657c4b59defeb7287ba55ecc7308ae216931988f17ecd6b2b404133cce1c33"
+        "observedOutputSha256": "c12a7d8d8ef566a648990f3ff6f545bcd334f4a9c23f4d26262cbad8f1c91e4c"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts get_real_velocity",
-        "observedOutputSha256": "e6657c4b59defeb7287ba55ecc7308ae216931988f17ecd6b2b404133cce1c33"
+        "observedOutputSha256": "1abe4e252dc2910837eab2eee887f3ddac14c504ef3094f800811168d0ef11a0"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "74a66c8a723015c75252dd285e5d2c5df9f676327b6909d80164488b20c88e15"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.0014355182647705078 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "c19810934d794c6727f13d8da2e6312dc0e9463f1ec70929d1df562d8bbe7949"
       },
       "reproductionCommand": [
         "npx",
@@ -1331,19 +1331,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "9552f1ee08e9812bf0fa2d8c4eb22184851be61dd7a125b6ad4606b15017303c",
+        "inputSha256": "c0a6dff7c2d43e75ce8b6ba5d52507f7192755d2c363f7d1e976a37e10179d0e",
         "callsite": "res://probe.gd _init() get_slide_collision_count-landing",
-        "observedOutputSha256": "0e6cc27b6ae85bb687fc29590ddab24f0e0a9e57ccf9d91dcd878bccaa247a85"
+        "observedOutputSha256": "15a71cbee80f91424484bf2f2d2b0186c8a9fc8b075ce0d76dde00052b436d29"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts get_slide_collision_count",
-        "observedOutputSha256": "0e6cc27b6ae85bb687fc29590ddab24f0e0a9e57ccf9d91dcd878bccaa247a85"
+        "observedOutputSha256": "c976f5d245d998d6af1dd82eda4212ad6c32688d948355e56f400bf81461f983"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "4425fb0faff94303714975c1511205a03ec83e59b7202670758139222cde0365"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.0014355182647705078 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "1bb2541e092f8b99a84db2354cd3462c9d2fe719b09a204ad004b4f671edf170"
       },
       "reproductionCommand": [
         "npx",
@@ -1370,19 +1370,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "dc9eb813ae04e53388704e32e2f3d8903726100cdfdee761e74d1b9d06f25736",
+        "inputSha256": "11c5df540834f5c1f4c53f743739e38115014b44fe0a22a1b8027dd3bc4c9f5e",
         "callsite": "res://probe.gd _init() get_velocity-landing",
-        "observedOutputSha256": "8bad0d29bcde6ccac1471c27417b31ea27413806eb4f2921c38fef3445b52c10"
+        "observedOutputSha256": "db028e25b817b324f72b80f4696aa1d5fb2a4f0c1cb76aae84cfded22b03b2d4"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts get_velocity",
-        "observedOutputSha256": "8bad0d29bcde6ccac1471c27417b31ea27413806eb4f2921c38fef3445b52c10"
+        "observedOutputSha256": "3e8fe46542890f46febb30359bd3202cd679f449074f243b0b17f9d66ae70a1c"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "32fd64cc5a6d086709b6b4a039240ae16e6ba1d053517e8ee7df064bbdfbfe4d"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.0014355182647705078 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "fcea1d4076608c69d02bab1e2aaa4b52e9de4a9c8a5a242d1f3091f544fb95fb"
       },
       "reproductionCommand": [
         "npx",
@@ -1409,19 +1409,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "96b1e9d3b6b0a65073f9b011a4e7c94b2ba15762a31f4ed61e18371245c795ec",
+        "inputSha256": "9f068b5be159a59802dfe922141190567bbb372af3f0ce3ec6216bfea2cdc914",
         "callsite": "res://probe.gd _init() set_velocity-landing",
-        "observedOutputSha256": "b0e2b4b1a9d4bd755b357368764f5e2fe26b1f22c5cc0e18be958946834c0624"
+        "observedOutputSha256": "ceb116fd9c5146f2a92693cbb5d3c686a6c5c422cb7cc70617921c203016bd73"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts set_velocity",
-        "observedOutputSha256": "b0e2b4b1a9d4bd755b357368764f5e2fe26b1f22c5cc0e18be958946834c0624"
+        "observedOutputSha256": "c225ab3b62156bcd1b722d2762b0d95fca0f45f6e2c0bbd0d397426ed1e28158"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "45631a1b89463097b72bbc70466ffcbe8fc2e0a79d608bd9f8979433b41c5923"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.0014355182647705078 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "2ac68c1c02d95614ae1df98802f566a6b81d3c7fc33543e8febaad44e845fd41"
       },
       "reproductionCommand": [
         "npx",
@@ -1448,19 +1448,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "6e8bad291d6bcb0b4910868a3187589321a100a352f20c541cb8d634594daaa0",
+        "inputSha256": "6a61ac3d44d57affcd5a78640d50a8bd4c8542449a359a8010fa33433afd49d1",
         "callsite": "res://probe.gd _init() set_up_direction-walk",
-        "observedOutputSha256": "1af85a75fc868ac45abf998b2eb8c8f6f156c2777669235c30c830f91a805bf0"
+        "observedOutputSha256": "ebbfe375d64cc4e2481623967da8cb693e1fc2150788b0440d7011c3cfa4140b"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts set_up_direction",
-        "observedOutputSha256": "1af85a75fc868ac45abf998b2eb8c8f6f156c2777669235c30c830f91a805bf0"
+        "observedOutputSha256": "c171fb5ccd68aefa390a2915fc26f8d31050ef9cd1dedf6c68ce4b68a18e7b19"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "b7ef3480450dc1f9905277f542280cf08d08ce52f27d29452c694854c5f6af05"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.035317263565957546 over 1 cases; slide collisions per frame: Godot 1 or 2 / Rapier 3 where Godot's sweep misses a floor graze (it sinks up to 0.0027) (within 2): measured max difference 2; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "22c941d2f7e7d927b9fc6d8d7f28923aabbec4265bf93edff85db1d430796b87"
       },
       "reproductionCommand": [
         "npx",
@@ -1487,19 +1487,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "9a5db97eda5e9aad96b2efb7582851ba5ae25a0e33af96e06474fdf3b78aa33f",
+        "inputSha256": "f6c35c4ad065b9cf853b62511c7ef49771460cb423c126e14b9e1478c9bcbf82",
         "callsite": "res://probe.gd _init() set_floor_max_angle-walk",
-        "observedOutputSha256": "0364ee088a789244794db930a6ce62950a7b33a2b6d6159712e50bde4a4b977a"
+        "observedOutputSha256": "b0dd25698c21fb9ef68068d43b8a0c639d8909be0fc0700d90c308f17aef8676"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts set_floor_max_angle",
-        "observedOutputSha256": "0364ee088a789244794db930a6ce62950a7b33a2b6d6159712e50bde4a4b977a"
+        "observedOutputSha256": "b597d4fb855280f0d30c126297d8e7a2f217650eb78bfe5517883089a0663b32"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "236980dcee78658f10a23eff717bef1ea99b6e50d787926d7b7f0908cb8ca584"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.035317263565957546 over 1 cases; slide collisions per frame: Godot 1 or 2 / Rapier 3 where Godot's sweep misses a floor graze (it sinks up to 0.0027) (within 2): measured max difference 2; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "9695661a0f6103295b7f9259dec89c4bca83518912cfa197191c4ceeb97c3002"
       },
       "reproductionCommand": [
         "npx",
@@ -1526,19 +1526,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "18798bc7cbe6a49a84b91b6d4a47d8d8847efdff25b474d2282cac647712e3ee",
+        "inputSha256": "3f23dc9355d688630fafcc705a73d96e95a2f18cf16fbc589a17756ebb626c09",
         "callsite": "res://probe.gd _init() set_floor_snap_length-walk",
-        "observedOutputSha256": "72e7062c9b2e4022455b7586b2d3816c50e88cbef6c4ba7b83c54544fbb7be33"
+        "observedOutputSha256": "aeaf0b9356a4bd4baa135dc5976360d2a106c141a3d5412e90c392fb2925f0ff"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts set_floor_snap_length",
-        "observedOutputSha256": "72e7062c9b2e4022455b7586b2d3816c50e88cbef6c4ba7b83c54544fbb7be33"
+        "observedOutputSha256": "94613307f4e59d7737c2e31f65d30d4a9c55058c635273c651995d7cd7f188c8"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "2efe447349e33ae167c44ae0cb679409b87a28789b30afab49f5687573a9b9d2"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.035317263565957546 over 1 cases; slide collisions per frame: Godot 1 or 2 / Rapier 3 where Godot's sweep misses a floor graze (it sinks up to 0.0027) (within 2): measured max difference 2; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "98a3de57918b2c06420c5218734c4836bd368b54f7f3e6d97352c986a63dd973"
       },
       "reproductionCommand": [
         "npx",
@@ -1565,19 +1565,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "03ac7d9671f28278cf0049ef8401e6265e8ea2e156ac3738698133f9ee3aba3f",
+        "inputSha256": "8749f6e720e31a476ea94f0efd44529f38e0a227d04ef2684ff66ef6a48e89e4",
         "callsite": "res://probe.gd _init() set_max_slides-walk",
-        "observedOutputSha256": "805005effcae1454651661c90ce1b6141cd12463d02a32c65b94485f117ecaba"
+        "observedOutputSha256": "406da818ecb32c8f34db6c74ea0bc23cf7b3a33f472e996815a452d61942a4cd"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts set_max_slides",
-        "observedOutputSha256": "805005effcae1454651661c90ce1b6141cd12463d02a32c65b94485f117ecaba"
+        "observedOutputSha256": "0e96c7cfb7366c0b031f1c5e3832bf207eac0e72c0f0fc3be714ea01394cac03"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "bfb3cc1f250ce7914e37b5ef3412ad73c8a65a56e0322c1c7f19a16eff180d48"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.029614552855491638 over 1 cases; slide collisions per frame: Godot 1 or 2 / Rapier 3 where Godot's sweep misses a floor graze (it sinks up to 0.0027) (within 2): measured max difference 0; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "3fc6072b35a521718b64555471448ffdf11afd481ad52289b8ed68d2c2b67b56"
       },
       "reproductionCommand": [
         "npx",
@@ -1604,19 +1604,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "54fc288374e863761ee670d361e88d8d4df0d2219eaf89788ac17d4e789244b3",
+        "inputSha256": "d92de17d070bc7d9400b1141240fa9ba9c90376029041529a9f40712e8399b08",
         "callsite": "res://probe.gd _init() set_safe_margin-walk",
-        "observedOutputSha256": "b70364d7acfb69ca64bcc751f5dcb5d4b9c14fe2168079b69e5ed6ac17732c32"
+        "observedOutputSha256": "1c575590fe92fbb01f95fcd47c7d68c064a74d9e5a4d08140eae4e275073afc5"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts set_safe_margin",
-        "observedOutputSha256": "b70364d7acfb69ca64bcc751f5dcb5d4b9c14fe2168079b69e5ed6ac17732c32"
+        "observedOutputSha256": "b4ca64605cc7583e477ce21971e464be82180741680d6ac56b5afd3963c83086"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "6d6b02a437a91194dfa86f5d742f95f78bba809829853961d552ccb7843977d5"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.000004676081516663544 over 1 cases; slide collisions per frame: Godot 1 or 2 / Rapier 3 where Godot's sweep misses a floor graze (it sinks up to 0.0027) (within 2): measured max difference 0; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "e6bae2f1ea1593c463fa12fc9d19928ab68010a2b02313cb9937ef2f83a2d8ba"
       },
       "reproductionCommand": [
         "npx",
@@ -1643,19 +1643,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "7cd99a9208783be0cabc0003a14d7b345342d3f0ea9581b16c17682994268da9",
+        "inputSha256": "adb9b5559759903631674327901243cb935f9123b88c1c6d66f7aed536817742",
         "callsite": "res://probe.gd _init() set_floor_stop_on_slope_enabled-walk",
-        "observedOutputSha256": "62404710b34148431bc24e0e909b528cd1bb20f56f4d898dd9dc43914825c3dd"
+        "observedOutputSha256": "4aef3d0450c44234d23317f48e03a385f9744ded4ee51007ea619e5e78d70d9b"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts set_floor_stop_on_slope_enabled",
-        "observedOutputSha256": "62404710b34148431bc24e0e909b528cd1bb20f56f4d898dd9dc43914825c3dd"
+        "observedOutputSha256": "fffb2a270f5639fe1a5e8ddbfce0fd71c00f5cc35541e37eec7f3a02213db8fe"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "43e63520979f32a7eeb4e32e6aeb586de44f136613118d7072953b795f94245c"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.019141029566526413 over 1 cases; slide collisions per frame: Godot 1 or 2 / Rapier 3 where Godot's sweep misses a floor graze (it sinks up to 0.0027) (within 2): measured max difference 1; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "70816dacebd6cb570217f1165e1602edcd9837dac366cbe70924ebf2e48036a0"
       },
       "reproductionCommand": [
         "npx",
@@ -1682,19 +1682,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "a36584f4ff552216cfc3668563cf18c2aefc0db260e8aecbd8e5aac26cadc938",
+        "inputSha256": "deb7173199fe66d47e0b46c795b1a089ac66653afd3e4b29a4f2467205add7ad",
         "callsite": "res://probe.gd _init() set_floor_constant_speed_enabled-walk",
-        "observedOutputSha256": "bbb5fd51c63a50933e14273c9263bb9b517899fb0ad7cb4a05a35da3499969d2"
+        "observedOutputSha256": "5cb04e166b16d725ca74547ee5b3e3efeb8ff5897205ce694d8f599b19c74c42"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts set_floor_constant_speed_enabled",
-        "observedOutputSha256": "bbb5fd51c63a50933e14273c9263bb9b517899fb0ad7cb4a05a35da3499969d2"
+        "observedOutputSha256": "7b8167fd4b33f48c36e8b00ee4fced65d45417b64b5806b7d246357bcd5605ea"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "8339c40e1a9f07dc4b5c9e554f68080ed37e6729e2d9051f8f4d3e3b1ec15ac0"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.03272005543112755 over 1 cases; slide collisions per frame: Godot 1 or 2 / Rapier 3 where Godot's sweep misses a floor graze (it sinks up to 0.0027) (within 2): measured max difference 2; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "a3baf5dae5b63057d93f0686009a70af3fbe9fbe87847515c2e8fb45ac69995f"
       },
       "reproductionCommand": [
         "npx",
@@ -1721,19 +1721,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "017827cabee5af6f7ca20fc3ec7ce4d5bbef19bb9f4acd505cf33efe76cc95a2",
+        "inputSha256": "9eada36feabbfeb53eb2eb50b6a5885c1aaf1e27455d6e3aa41d7f48550dc2d7",
         "callsite": "res://probe.gd _init() set_floor_block_on_wall_enabled-walk",
-        "observedOutputSha256": "ddf067158188e00a1d9322848f2bd490b2c6c1ab2fafaf937293717b3c49aa57"
+        "observedOutputSha256": "4fefb48dc1a4d02b95b1e4828df8b572ca69428a62caa50bc0e7bf5d2064f093"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts set_floor_block_on_wall_enabled",
-        "observedOutputSha256": "ddf067158188e00a1d9322848f2bd490b2c6c1ab2fafaf937293717b3c49aa57"
+        "observedOutputSha256": "b87ca127ff137b0206705d1fb2af7f469c4da85eca523dbc4c655b46713d4847"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "b3ae98ea13de1921a71b72937a014a6428b0f3e90dfc1756b25ed4b73f870024"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.035317263565957546 over 1 cases; slide collisions per frame: Godot 1 or 2 / Rapier 3 where Godot's sweep misses a floor graze (it sinks up to 0.0027) (within 2): measured max difference 2; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "dab7a40986ca52d25e75984a4f6579c234ca2265d7f2f2c9589f3856d7d1c351"
       },
       "reproductionCommand": [
         "npx",
@@ -1760,19 +1760,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "7653c389a857799bc192aa2e1a2dff397753d685a6ada1524927f4e75cb07111",
+        "inputSha256": "d1a7c0b2d60efb65689ec19c43ea97049b209e9fdacb188e1af24e86b08e3d5c",
         "callsite": "res://probe.gd _init() set_slide_on_ceiling_enabled-walk",
-        "observedOutputSha256": "8e8b609fad8126ad1a7faad026e6f8f1cb07eeeb88c93f1de453fd882e041aed"
+        "observedOutputSha256": "fd45be583590675c42c6fe233abbcc8af47025f40a7b25908944457dcb262b71"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts set_slide_on_ceiling_enabled",
-        "observedOutputSha256": "8e8b609fad8126ad1a7faad026e6f8f1cb07eeeb88c93f1de453fd882e041aed"
+        "observedOutputSha256": "ef1768f8117fab3d11aebdd07e44abc9a95c23bd0ad78f9af8f575dbba0fe6b1"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "cd23908382243c98403443643f1961249f9fbee4fa873cff7e66cfbcf65874a5"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.035317263565957546 over 1 cases; slide collisions per frame: Godot 1 or 2 / Rapier 3 where Godot's sweep misses a floor graze (it sinks up to 0.0027) (within 2): measured max difference 2; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "6cbb2c50a553680000d353d86d90e737f493dfe4225b9772302b231013415162"
       },
       "reproductionCommand": [
         "npx",
@@ -1799,19 +1799,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "9ff3ad621534eb04da9e77dee7ebfb2a517d38b95a84f77459b5368c003cedd3",
+        "inputSha256": "8add5a6530c76e4289008b8e7a8b8574153ad3927d589a1c1be72dfaaaa82c46",
         "callsite": "res://probe.gd _init() set_motion_mode-walk",
-        "observedOutputSha256": "010459c103954b53ce1c04f74a263b7175a2ac555819d620a33e52485a4e4481"
+        "observedOutputSha256": "7eb0939fd7d9f965f6e6b430e522753e92090ad39ccae5c03e2ff582fa4fd58e"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts set_motion_mode",
-        "observedOutputSha256": "010459c103954b53ce1c04f74a263b7175a2ac555819d620a33e52485a4e4481"
+        "observedOutputSha256": "1356dc38ed8bdf0fc2eb9f684f4fbd6dba9e2f9b7f9a32f1a4a1488c03135000"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "3c94de84b03cfc90e72c3f67a2d7640641401eb50d5c2c3edb4353dabfc699a5"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.032470203936100006 over 1 cases; slide collisions per frame: Godot 1 or 2 / Rapier 3 where Godot's sweep misses a floor graze (it sinks up to 0.0027) (within 2): measured max difference 1; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "a07d8b7d6ca0fdd308a5ebbe37d2e87aa45f4d65aa1da9715216b91d4c7edbb4"
       },
       "reproductionCommand": [
         "npx",
@@ -1838,19 +1838,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "f41a651cc9ef70e3763c05468a817af30afe706e6b8c124ae6e77687686f1f70",
+        "inputSha256": "50a5d903a4ee5f0cb5a92e23a94a19053db7dae59643187b849d7ebf9a97ebfb",
         "callsite": "res://probe.gd _init() set_wall_min_slide_angle-walk",
-        "observedOutputSha256": "0b8af1e4432252e4fb97bfc96dc44bb669a605c1de532196af292f6b1bfba766"
+        "observedOutputSha256": "a15272b421175579273a801122701a6eaed96c074f738d2351451de8d5736b8f"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts set_wall_min_slide_angle",
-        "observedOutputSha256": "0b8af1e4432252e4fb97bfc96dc44bb669a605c1de532196af292f6b1bfba766"
+        "observedOutputSha256": "442fa43f92f2a63514bb895dbc88d748d9978664bce2d117b79c1053a7ccb4a9"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "3e75a73a1c527c81f93f05e93ee3d507f6d4e02dc148582fff71e54529b52b17"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.035317263565957546 over 1 cases; slide collisions per frame: Godot 1 or 2 / Rapier 3 where Godot's sweep misses a floor graze (it sinks up to 0.0027) (within 2): measured max difference 2; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "9f36c579ab4099502962bc0f90b2597678cc881a64d59813e1c65cc26937f8ca"
       },
       "reproductionCommand": [
         "npx",
@@ -1877,19 +1877,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "e42a603ca1d5ac4c00c380dcbd8c9cabef479311dedf44bf46d8fcffb84a6361",
+        "inputSha256": "39fbb341d30ee9ab88c637b829eac2b313ce5e40b10f860994253adc9fd54d33",
         "callsite": "res://probe.gd _init() apply_floor_snap",
         "observedOutputSha256": "5ec6bfde6772096094d622333acaeaaef1b275a3def411ed16884ebdcf21fa25"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts apply_floor_snap",
-        "observedOutputSha256": "5ec6bfde6772096094d622333acaeaaef1b275a3def411ed16884ebdcf21fa25"
+        "observedOutputSha256": "97888de0c8184bcc84dcf182525dc5cc177869aefdd23095d8015aef8875bb79"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "b96986a0f150083047ee37ef4895dc603e4d3043b8602a36b9a6f22c1f910a1d"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.00039064884185791016 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "75b05d9fae506926c80d8efbc41d25b27c88e7375c919835d4a3c8518a64e933"
       },
       "reproductionCommand": [
         "npx",
@@ -1916,19 +1916,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "b4fe231ddb1cb9963f11fb6b2159a6db56a72e004fb47a5c5ed930f382b1ae20",
+        "inputSha256": "16cd75c73ab8984ba7b12682c9df2ee1881ffccc7920260bf96b6294f30543b8",
         "callsite": "res://probe.gd _init() get_safe_margin-defaults-and-landing",
-        "observedOutputSha256": "b0474de193155153e4bd6156852a4c8f8e8c45e1b4022850ed97dde9f5a8eb31"
+        "observedOutputSha256": "b66038e9f049d8c489bb283f45d854e7ec2c97e72d1975ddebb55c73fef3a2b3"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts get_safe_margin",
-        "observedOutputSha256": "b0474de193155153e4bd6156852a4c8f8e8c45e1b4022850ed97dde9f5a8eb31"
+        "observedOutputSha256": "07bd10bc52db06098de79f54edecd211f79226e3a182625f9f8e03d3930504c5"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "4a290c1f4fd1578aa64c8a1f9e00c22c9ca9441e4312e9690639bb53e2ed2190"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 2.9803837264807953e-7 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "7852039d0a8b251151b61b244efc267dee05c0ba4fa57985ad9649c4a2d860cc"
       },
       "reproductionCommand": [
         "npx",
@@ -1955,19 +1955,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "d1a60b80b55da6876ef32c1683b9ee0ba0b5c2c27bdb00d28f563b39bd9042ac",
+        "inputSha256": "4a9ef799b340a936ad74c736d3a9c749c010fcfa42a56b9b37fa842d12250452",
         "callsite": "res://probe.gd _init() get_floor_angle-defaults-and-landing",
-        "observedOutputSha256": "ce24875900f2dc07fbfff90b3f0e73d92ba3c4d12a6f13ff1c0802ba3d4fb42b"
+        "observedOutputSha256": "6c61b9b279557bd93846dd80e733659c0942bb54a4bae8927b80e031a7e2e92c"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts get_floor_angle",
-        "observedOutputSha256": "ce24875900f2dc07fbfff90b3f0e73d92ba3c4d12a6f13ff1c0802ba3d4fb42b"
+        "observedOutputSha256": "3a9c29b46948a119bfc5999fde92708f1e5ae251e36f1cc67b51afe17307689c"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "c64f9fa32b1000e3be712f358debde3169b976e6ad43419bb219d0ddb96d795a"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 2.9803837264807953e-7 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "634fc0bf85ec47ba9b8149441da80a5c6ccb1b108e2731ece1b4d13d3de0828d"
       },
       "reproductionCommand": [
         "npx",
@@ -1994,19 +1994,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "1f665d72893f87387c151ac53053df3c6eeb714fe119c15baebb6d9ae0d0eb30",
+        "inputSha256": "82e7709f9a21f216e00cdab2d469ac3d9322a4f4037beea5a8a8c404acfd5072",
         "callsite": "res://probe.gd _init() get_platform_velocity-defaults-and-landing",
-        "observedOutputSha256": "50f6d2cf19c0d51f2e8791f01564a5de3f377f74b2097cd8aa0da07eec9e7e6b"
+        "observedOutputSha256": "cdfaec8b8d6ddfec921056641827b71d490fcf46ee1b38bcd8018125c71fad84"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts get_platform_velocity",
-        "observedOutputSha256": "50f6d2cf19c0d51f2e8791f01564a5de3f377f74b2097cd8aa0da07eec9e7e6b"
+        "observedOutputSha256": "8334ccc98af3e4f378c6ac19fee8c2b7c89829c50bb2e04e13ace9ba364ea8c7"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "c2173aab4cc74666163595c9f3067f075944d664c47315dddcd8b4ff968124c9"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 2.9803837264807953e-7 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "e76f2bb3d52cec78212c091a07dba03bc19540e800984b94f5821d4b525362fc"
       },
       "reproductionCommand": [
         "npx",
@@ -2033,19 +2033,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "9f3565345e69f1fa4180925e718bda237d89170a527602a6d7bc049da3ac794c",
+        "inputSha256": "9e9f31e73fdd907d1619890934cebb7d0b5c354cb8eda96c00f903bde447764a",
         "callsite": "res://probe.gd _init() is_floor_stop_on_slope_enabled-defaults-and-landing",
-        "observedOutputSha256": "3a2d85d7a551c43df5c52adc105eec13f6ead89ca801898cf459166e2b353055"
+        "observedOutputSha256": "5f324144e2081659849bf30047bed9f45fdffb6d8c73b0195a883e943fe38ba2"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts is_floor_stop_on_slope_enabled",
-        "observedOutputSha256": "3a2d85d7a551c43df5c52adc105eec13f6ead89ca801898cf459166e2b353055"
+        "observedOutputSha256": "cdb9e3435a04f1b44ca75b75b27f7c31424478f53f57881a552a66d309cf6a05"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "712973401891b5858d7e158cd68fbabd9aa848000e4bf8a0ad29218f623f71b2"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 2.9803837264807953e-7 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "a72fb18bf633b64e385763997367513cc1ac7066e95f16d8bfb304ea2093fcf8"
       },
       "reproductionCommand": [
         "npx",
@@ -2072,19 +2072,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "77a669eb0d14605eb8fb0a6f8837092399267e785f63a250066c04c6dd53d116",
+        "inputSha256": "94d45f0374a9b673cc1c33e4e12f96f4bd7ba6a5f31401a8ed7c38c792084456",
         "callsite": "res://probe.gd _init() is_floor_constant_speed_enabled-defaults-and-landing",
-        "observedOutputSha256": "8ffd2176789ff95d7c701db8ca62a4ff81ce393dfa6def3712bc9278515cb5c4"
+        "observedOutputSha256": "4a068d58ae1ba458b06d633de0ce51c8dcf9dc0e1bac01f1dd0540640d5e1ba6"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts is_floor_constant_speed_enabled",
-        "observedOutputSha256": "8ffd2176789ff95d7c701db8ca62a4ff81ce393dfa6def3712bc9278515cb5c4"
+        "observedOutputSha256": "a120c6ddaafcb6bc691a5ea1f8a00befe38f5a7ee574b084bc2caf204eb77641"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "a6133676d56a3216450e34547dcb04e46a92326cf16a0e8c373bd2ab8ad80627"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 2.9803837264807953e-7 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "ca66299acf8238c73aee57bf85b9e3dd3b156093ffc0372ece47cda37558f4df"
       },
       "reproductionCommand": [
         "npx",
@@ -2111,19 +2111,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "af9e9a8051e99e32f3d0b4cb45797fc83c25220b8c4292a221bff9e6283daff1",
+        "inputSha256": "80f7320994e82bb9aeb3deb17e9866949d3fdf7c02bd91b3d4b53154a8fe4fd8",
         "callsite": "res://probe.gd _init() is_floor_block_on_wall_enabled-defaults-and-landing",
-        "observedOutputSha256": "285f9193c5a801482aeb44a6347466b02145f6f8dad53c7850ca19d65752b796"
+        "observedOutputSha256": "1e784c0767be2ae583ea6553bceec49b7315f0cb3e7435b0e7d78d10f59e8e60"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts is_floor_block_on_wall_enabled",
-        "observedOutputSha256": "285f9193c5a801482aeb44a6347466b02145f6f8dad53c7850ca19d65752b796"
+        "observedOutputSha256": "e5f0cf4e648a6294d1924810e35cde0674adfb6f75972cc9556c3b4fcd7494f1"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "c6aa3455f5ebae89f5559e3aa5ee7dc6455b7e340db781e5cfe2f6bbc50d946e"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 2.9803837264807953e-7 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "7f875292f0e436405b2321597919889feb9b1fa6de0ec97587899b13177527e1"
       },
       "reproductionCommand": [
         "npx",
@@ -2150,19 +2150,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "cdc698c2ecd889f5535203b03738bfdb631f1bb50acc86d0ec84ad7e55c51462",
+        "inputSha256": "559e30ccc53fa99cb760993a1aa02912bf5e40a9c56f953e99fcce810be64b0c",
         "callsite": "res://probe.gd _init() is_slide_on_ceiling_enabled-defaults-and-landing",
-        "observedOutputSha256": "5ce98f89faac33bc33d261969492c431ae4676f335e20a7b848c412c2cdafa11"
+        "observedOutputSha256": "28aaa75bc1c20496068a4291469e70ed7ec7d6284047ffffa16d53eba54ae76e"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts is_slide_on_ceiling_enabled",
-        "observedOutputSha256": "5ce98f89faac33bc33d261969492c431ae4676f335e20a7b848c412c2cdafa11"
+        "observedOutputSha256": "9d1718c051568fcbbacab941c08fe492f9e20857a76fa76d97973c6afbf9dffc"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "fda44ced177c2304b931e002749c751895c8123226dd226b8c8e0482e440525a"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 2.9803837264807953e-7 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "3cf14b826354d777041206eda4a65f89079ef030267e3bceb9226547530711db"
       },
       "reproductionCommand": [
         "npx",
@@ -2189,19 +2189,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "6533b6e2831e0b50b29482d96ae9bb7f24f69a3065246e4da0734840af7401be",
+        "inputSha256": "dad64f219993e62c7fd5263f2dab4d302206fd00ed8510d660a95f4c7840f652",
         "callsite": "res://probe.gd _init() get_motion_mode-defaults-and-landing",
-        "observedOutputSha256": "7651cc6221003b7aae64df6a9da2be4aeafa8f8977b0b1a9b2bc8e89ac1c87c1"
+        "observedOutputSha256": "706f7558d0a00cdb60b0463b303f49cd819c46ba07705a03c85776ef63887d59"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts get_motion_mode",
-        "observedOutputSha256": "7651cc6221003b7aae64df6a9da2be4aeafa8f8977b0b1a9b2bc8e89ac1c87c1"
+        "observedOutputSha256": "c3c6dd8807c2af9b6736bae5af3eec09432207980fbb759704ac847745b6bca2"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "8f01ec6a95d6a1caebc652176679c540808bdfead385920a911b0ab1ee2b09ea"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 2.9803837264807953e-7 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "7e4e7aeb1f75df5f91faf21b74342f24e311d39cf402aaed6b2bb8e29254c3aa"
       },
       "reproductionCommand": [
         "npx",
@@ -2228,19 +2228,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "acaff76d011df99895088fbafce66c7199590e9de1a9d9ed454754e0f2a52fdb",
+        "inputSha256": "2429f9a315a858ee7ec163ba7d708ae9ee9f5d767c55c522dc69f318303ea812",
         "callsite": "res://probe.gd _init() get_max_slides-defaults-and-landing",
-        "observedOutputSha256": "0aa4dc598659d819073c99b0ca1687f05fc0db46fb0da169462957e5c28834a4"
+        "observedOutputSha256": "d462c0188672daf4f3134b1353999139b826db9c2e1c86a4000db1cda044e4a6"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts get_max_slides",
-        "observedOutputSha256": "0aa4dc598659d819073c99b0ca1687f05fc0db46fb0da169462957e5c28834a4"
+        "observedOutputSha256": "7137f2f2433a2c23ff920a26598e4eb64fbdabd5f33d4456b181d70049945a3c"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "132805272b7e4bbba18e0ec1bf4c8576ecda631a2e75f6628bc37203a1ccef29"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 2.9803837264807953e-7 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "8cf5773c29c672bd5fb906bedf860307f0506e823d97625ba4cbf73be7fdd0cc"
       },
       "reproductionCommand": [
         "npx",
@@ -2267,19 +2267,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "2149235fc9bbd18bac2b4317ec6b7e78d9f9d916f20b417fef8365b79c037355",
+        "inputSha256": "65d7d5448f83e7d286d7fadcbde3f3d902660c9cb2b37a084fe2b3c490742f6d",
         "callsite": "res://probe.gd _init() get_floor_max_angle-defaults-and-landing",
-        "observedOutputSha256": "94a002148f3e7c48d34e24ee095449f48f5eb047fa1bb17c2f453e5502287a39"
+        "observedOutputSha256": "04b566b1461cbf186bfc4a3afd8b18e645ca6a47ab84c73c6f1bbdbcfb8184ef"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts get_floor_max_angle",
-        "observedOutputSha256": "94a002148f3e7c48d34e24ee095449f48f5eb047fa1bb17c2f453e5502287a39"
+        "observedOutputSha256": "79343ecb5d36a2ee228340f0ffcb1ad094513c11d4881f0196acdf4c9b6bca17"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "360a06c1df0a826b4cdf59071c170670c6da17609c0e95bd5d7a75f84069e493"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 2.9803837264807953e-7 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "f4014d4afa743c997587e234f1115351dd8040e0d2a781fa01c68c8ee6f12b95"
       },
       "reproductionCommand": [
         "npx",
@@ -2306,19 +2306,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "58c710f7fe5930bfa0157ed41c5dece1e0a897203184d7bda6ca9ab53b69a1cc",
+        "inputSha256": "21d7f16865e31e381b630f14b3ccd9d53bb8bbc77360d4afaec97234d644ec01",
         "callsite": "res://probe.gd _init() get_floor_snap_length-defaults-and-landing",
-        "observedOutputSha256": "90a0582e769f36810de5133acdd45987a581d9d8ac81977f8999cf887826c4ff"
+        "observedOutputSha256": "4942c33ee67fc13ae5db3c62a0f82bd4908b7a8932c577e482ffa362175879cb"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts get_floor_snap_length",
-        "observedOutputSha256": "90a0582e769f36810de5133acdd45987a581d9d8ac81977f8999cf887826c4ff"
+        "observedOutputSha256": "4482c480501fa12201cd6b7ea9899c29d8a809648b02fbbb619dde0979fe364a"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "c8acbcc3093e5d81d525a014f1d5272299e45aef9abc89e4fbeb880dd0ae9537"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 2.9803837264807953e-7 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "bc4ecd219d36a5464f7460d5b2696eaa0626387bd513ae6d5a89230812ba4d99"
       },
       "reproductionCommand": [
         "npx",
@@ -2345,19 +2345,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "c39b217746cd8cab71a02f590d6d54ec1af6af6bbf397d6e64ce638bbd956e92",
+        "inputSha256": "1ce74f81eaf51d9b2ea687f41c4bee94a2afac09bbac70affc8f9801b346755c",
         "callsite": "res://probe.gd _init() get_wall_min_slide_angle-defaults-and-landing",
-        "observedOutputSha256": "39ed0ac22babbe22ceed9bb7796b25a376a6e373beaf28b40c19d5a1990e9e5f"
+        "observedOutputSha256": "832a4d5c2f1c51a2c3c14f8b5043ed34da47f5a5d5cf30ed653a970b394b706a"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts get_wall_min_slide_angle",
-        "observedOutputSha256": "39ed0ac22babbe22ceed9bb7796b25a376a6e373beaf28b40c19d5a1990e9e5f"
+        "observedOutputSha256": "da29bb5672889d69f06256589aed94aa9ee5260b61f1503d03a4c9a3bc29eb19"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "a5824ead3a36b56655d1f34e45af346d8bc951ae7f49022639ab5cb6ce8f8fd6"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 2.9803837264807953e-7 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "60093ad79053c21b92d81cead1495825c26bc0749777b169af67cf13ee643968"
       },
       "reproductionCommand": [
         "npx",
@@ -2384,19 +2384,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "44e26020961e432b9ea3ccb5112cd2e312306e0979962e0761d17a9c949c9e64",
+        "inputSha256": "0cd1e2353b1af7805d6052ff20fb77aa7bb55d09a037dc83ad28b6a4b73ebfad",
         "callsite": "res://probe.gd _init() get_up_direction-defaults-and-landing",
-        "observedOutputSha256": "522875c8f0d925f9918d98bd6471b49ae169a9f596c62cc847a6a5903aafc196"
+        "observedOutputSha256": "d9380e3939bc39c47af145a5a8ec5b484109c826c6c26ebd8eb12744f4ab2f52"
       },
       "target": {
-        "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350",
+        "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9",
         "callsite": "lib/godot-compat/character-body-3d.ts get_up_direction",
-        "observedOutputSha256": "522875c8f0d925f9918d98bd6471b49ae169a9f596c62cc847a6a5903aafc196"
+        "observedOutputSha256": "adf58f650e8a5471ace555b3b8076e70baf4e8f95b8edb4afed5edd1b0a8a5be"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "29cbc6c2514787732f7f1e579a102a4bc1319695db20643c20a43b2dd5826481"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 2.9803837264807953e-7 over 1 cases; get_real_velocity is compared as get_real_velocity() / 60, the frame's displacement, and get_last_motion as the displacement it is, under the position bound",
+        "resultSha256": "4f175dd29ab37285bcc1de9142b4add56ab6024b856cf254314ad7b5ffe84206"
       },
       "reproductionCommand": [
         "npx",
@@ -2415,320 +2415,320 @@
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "e031b5bcfadced4c4ba97e6284fe02b0885b629a7089a819255846c198b84b33",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "1a987fa5e2793bc9a9e26820bcb28f6eff5507cad12cbffeb53b9a2190630528",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.is_on_floor",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "dd26c20570a0d3a02cbbfbc6e67de4d9d66556c6ffe8015cfc960f391d4065ad",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "33ce3358948ff2b0dbd3e5243ec118e1c8bb38fe31dbcdef56f174f6677cf16e",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.is_on_floor_only",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "a91e09a9e369de9c70fb9ae3e17f46e9fc69dd59ede598b229ed94ea79c154b1",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "26de130b0bf53ef3d43c1a12905eccb4322656ab86f5701222d839ff3ca1514f",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.is_on_wall",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "fc68af4ac3fa9f1128dcc578c714d56d896de407b4317f232c8a9a7c319b0dcc",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "deae82f5b247b7870d15caafcb165374cf6b114db7924a3bd0949239f32b83ed",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.is_on_wall_only",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "70a6effbed75c2d54879e643d97f20e62963cf5f032b8c7add26bf12dfc9f30f",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "010177a6ff0332b465c36e7293a81f52501a5c9a3cf54ccf2e7fadb503f67275",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.is_on_ceiling",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "0841339141be4515f53a1ff2b1d318ee269191ea0a95702be2304bfc608aa7c2",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "9e392926e6c13a1875d424dd15596ced58216260e0fcbfc069dabcdcb17a1070",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.is_on_ceiling_only",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "b9820fa25801a39c4df2fcbcba40e47e4355ac6a1d24e31c5688d98161f6d849",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "2c1f8d740023230399cee8734d5fa1c7f98a8d046d6b107023b2e81a188349bf",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.get_floor_normal",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "2013d76ce06252ac68adb1d1aa75474162f63b8481d3ac075608d40d3eb53cf3",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "6e1c4ef1da4f664cffc1390bc6a6023a9b2e6d3ff88abfcf857c9ee7a975cd9f",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.get_wall_normal",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "8881d4f657aa48a82b05d8c60e4ae438d420e7e54b5867eeeb6aa965bfc5c162",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "6d86f331d4239608b09a6d952f4ab82cf6ecf1d574398e869e740e7928131cb1",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.get_last_motion",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "962586eddd3a191eee8f56fb3f5f647d3ca886d32b47a57684425cbdc5100108",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "aeba190d74e39e619c7a7301921b28856ee6c5dce2c8dfece05b57b513bbbe7c",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.get_position_delta",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "2359beafad4b21619e136614b3d52949768ee9d88f3fda55ddb76c2e6e24f002",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "800a0b25c0639e527024ebd317efd5a3cb9330668459dfdb63dd952839407ffd",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.get_real_velocity",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "7b7c5e2fb0c77445130310e931e8f9fed4ba7d8232c9c1d0ce6e9caeaa266b77",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "5a04cc9eb0022f973271cf9ac80c47f35654ec46bcab736c2491eeaddeaf883f",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.get_slide_collision_count",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "9552f1ee08e9812bf0fa2d8c4eb22184851be61dd7a125b6ad4606b15017303c",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "c0a6dff7c2d43e75ce8b6ba5d52507f7192755d2c363f7d1e976a37e10179d0e",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.get_velocity",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "dc9eb813ae04e53388704e32e2f3d8903726100cdfdee761e74d1b9d06f25736",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "11c5df540834f5c1f4c53f743739e38115014b44fe0a22a1b8027dd3bc4c9f5e",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.set_velocity",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "96b1e9d3b6b0a65073f9b011a4e7c94b2ba15762a31f4ed61e18371245c795ec",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "9f068b5be159a59802dfe922141190567bbb372af3f0ce3ec6216bfea2cdc914",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.set_up_direction",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "6e8bad291d6bcb0b4910868a3187589321a100a352f20c541cb8d634594daaa0",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "6a61ac3d44d57affcd5a78640d50a8bd4c8542449a359a8010fa33433afd49d1",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.set_floor_max_angle",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "9a5db97eda5e9aad96b2efb7582851ba5ae25a0e33af96e06474fdf3b78aa33f",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "f6c35c4ad065b9cf853b62511c7ef49771460cb423c126e14b9e1478c9bcbf82",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.set_floor_snap_length",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "18798bc7cbe6a49a84b91b6d4a47d8d8847efdff25b474d2282cac647712e3ee",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "3f23dc9355d688630fafcc705a73d96e95a2f18cf16fbc589a17756ebb626c09",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.set_max_slides",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "03ac7d9671f28278cf0049ef8401e6265e8ea2e156ac3738698133f9ee3aba3f",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "8749f6e720e31a476ea94f0efd44529f38e0a227d04ef2684ff66ef6a48e89e4",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.set_safe_margin",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "54fc288374e863761ee670d361e88d8d4df0d2219eaf89788ac17d4e789244b3",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "d92de17d070bc7d9400b1141240fa9ba9c90376029041529a9f40712e8399b08",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.set_floor_stop_on_slope_enabled",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "7cd99a9208783be0cabc0003a14d7b345342d3f0ea9581b16c17682994268da9",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "adb9b5559759903631674327901243cb935f9123b88c1c6d66f7aed536817742",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.set_floor_constant_speed_enabled",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "a36584f4ff552216cfc3668563cf18c2aefc0db260e8aecbd8e5aac26cadc938",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "deb7173199fe66d47e0b46c795b1a089ac66653afd3e4b29a4f2467205add7ad",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.set_floor_block_on_wall_enabled",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "017827cabee5af6f7ca20fc3ec7ce4d5bbef19bb9f4acd505cf33efe76cc95a2",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "9eada36feabbfeb53eb2eb50b6a5885c1aaf1e27455d6e3aa41d7f48550dc2d7",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.set_slide_on_ceiling_enabled",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "7653c389a857799bc192aa2e1a2dff397753d685a6ada1524927f4e75cb07111",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "d1a7c0b2d60efb65689ec19c43ea97049b209e9fdacb188e1af24e86b08e3d5c",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.set_motion_mode",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "9ff3ad621534eb04da9e77dee7ebfb2a517d38b95a84f77459b5368c003cedd3",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "8add5a6530c76e4289008b8e7a8b8574153ad3927d589a1c1be72dfaaaa82c46",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.set_wall_min_slide_angle",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "f41a651cc9ef70e3763c05468a817af30afe706e6b8c124ae6e77687686f1f70",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "50a5d903a4ee5f0cb5a92e23a94a19053db7dae59643187b849d7ebf9a97ebfb",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.apply_floor_snap",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "e42a603ca1d5ac4c00c380dcbd8c9cabef479311dedf44bf46d8fcffb84a6361",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "39fbb341d30ee9ab88c637b829eac2b313ce5e40b10f860994253adc9fd54d33",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.get_safe_margin",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "b4fe231ddb1cb9963f11fb6b2159a6db56a72e004fb47a5c5ed930f382b1ae20",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "16cd75c73ab8984ba7b12682c9df2ee1881ffccc7920260bf96b6294f30543b8",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.get_floor_angle",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "d1a60b80b55da6876ef32c1683b9ee0ba0b5c2c27bdb00d28f563b39bd9042ac",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "4a9ef799b340a936ad74c736d3a9c749c010fcfa42a56b9b37fa842d12250452",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.get_platform_velocity",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "1f665d72893f87387c151ac53053df3c6eeb714fe119c15baebb6d9ae0d0eb30",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "82e7709f9a21f216e00cdab2d469ac3d9322a4f4037beea5a8a8c404acfd5072",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.is_floor_stop_on_slope_enabled",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "9f3565345e69f1fa4180925e718bda237d89170a527602a6d7bc049da3ac794c",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "9e9f31e73fdd907d1619890934cebb7d0b5c354cb8eda96c00f903bde447764a",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.is_floor_constant_speed_enabled",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "77a669eb0d14605eb8fb0a6f8837092399267e785f63a250066c04c6dd53d116",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "94d45f0374a9b673cc1c33e4e12f96f4bd7ba6a5f31401a8ed7c38c792084456",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.is_floor_block_on_wall_enabled",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "af9e9a8051e99e32f3d0b4cb45797fc83c25220b8c4292a221bff9e6283daff1",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "80f7320994e82bb9aeb3deb17e9866949d3fdf7c02bd91b3d4b53154a8fe4fd8",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.is_slide_on_ceiling_enabled",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "cdc698c2ecd889f5535203b03738bfdb631f1bb50acc86d0ec84ad7e55c51462",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "559e30ccc53fa99cb760993a1aa02912bf5e40a9c56f953e99fcce810be64b0c",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.get_motion_mode",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "6533b6e2831e0b50b29482d96ae9bb7f24f69a3065246e4da0734840af7401be",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "dad64f219993e62c7fd5263f2dab4d302206fd00ed8510d660a95f4c7840f652",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.get_max_slides",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "acaff76d011df99895088fbafce66c7199590e9de1a9d9ed454754e0f2a52fdb",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "2429f9a315a858ee7ec163ba7d708ae9ee9f5d767c55c522dc69f318303ea812",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.get_floor_max_angle",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "2149235fc9bbd18bac2b4317ec6b7e78d9f9d916f20b417fef8365b79c037355",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "65d7d5448f83e7d286d7fadcbde3f3d902660c9cb2b37a084fe2b3c490742f6d",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.get_floor_snap_length",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "58c710f7fe5930bfa0157ed41c5dece1e0a897203184d7bda6ca9ab53b69a1cc",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "21d7f16865e31e381b630f14b3ccd9d53bb8bbc77360d4afaec97234d644ec01",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.get_wall_min_slide_angle",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "c39b217746cd8cab71a02f590d6d54ec1af6af6bbf397d6e64ce638bbd956e92",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "1ce74f81eaf51d9b2ea687f41c4bee94a2afac09bbac70affc8f9801b346755c",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     },
     {
       "claimId": "godot-4.7-binding-CharacterBody3D.get_up_direction",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "44e26020961e432b9ea3ccb5112cd2e312306e0979962e0761d17a9c949c9e64",
-      "implementationSha256": "01d0102c4f82d93b3de372f367a2b530ae4d260729535f503363e878397ec350"
+      "inputSha256": "0cd1e2353b1af7805d6052ff20fb77aa7bb55d09a037dc83ad28b6a4b73ebfad",
+      "implementationSha256": "2d87339d85c7082d507923444f0fbc48deb63e0b8f6c92477bc7d090a9703cb9"
     }
   ]
 }
