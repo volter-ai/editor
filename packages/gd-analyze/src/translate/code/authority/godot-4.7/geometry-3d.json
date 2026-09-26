@@ -91,7 +91,7 @@
         "observedOutputSha256": "00fe454ee056bfcb3be92fef572d68e75b1567beed2f61ab0405205296d4673c"
       },
       "target": {
-        "implementationSha256": "f98bb60f1543aa947b7dfb2ec9aff17c4f405a225454ab642154e4fb6ceaa06f",
+        "implementationSha256": "f0582a503db188e58e6e3d87285525d435426de071ed44edb75992af6e6d3372",
         "callsite": "lib/godot-compat/geometry-3d.ts segment_intersects_sphere",
         "observedOutputSha256": "00fe454ee056bfcb3be92fef572d68e75b1567beed2f61ab0405205296d4673c"
       },
@@ -130,7 +130,7 @@
         "observedOutputSha256": "fe44e68fab814117c1fc27d9169a19dda4eed5423a37adde69239df87cbdd2bc"
       },
       "target": {
-        "implementationSha256": "f98bb60f1543aa947b7dfb2ec9aff17c4f405a225454ab642154e4fb6ceaa06f",
+        "implementationSha256": "f0582a503db188e58e6e3d87285525d435426de071ed44edb75992af6e6d3372",
         "callsite": "lib/godot-compat/geometry-3d.ts segment_intersects_cylinder",
         "observedOutputSha256": "fe44e68fab814117c1fc27d9169a19dda4eed5423a37adde69239df87cbdd2bc"
       },
@@ -169,7 +169,7 @@
         "observedOutputSha256": "ccb6dc40038a83374834c1887a8bcfdb6e6dbbe0c77e38f73ac7f82f0511d12f"
       },
       "target": {
-        "implementationSha256": "f98bb60f1543aa947b7dfb2ec9aff17c4f405a225454ab642154e4fb6ceaa06f",
+        "implementationSha256": "f0582a503db188e58e6e3d87285525d435426de071ed44edb75992af6e6d3372",
         "callsite": "lib/godot-compat/geometry-3d.ts segment_intersects_triangle",
         "observedOutputSha256": "ccb6dc40038a83374834c1887a8bcfdb6e6dbbe0c77e38f73ac7f82f0511d12f"
       },
@@ -196,7 +196,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "a9a7aca6e3b653873a2818c35a35fdc8a10d9a5905166434255643e99efaad2a",
-      "implementationSha256": "f98bb60f1543aa947b7dfb2ec9aff17c4f405a225454ab642154e4fb6ceaa06f"
+      "implementationSha256": "f0582a503db188e58e6e3d87285525d435426de071ed44edb75992af6e6d3372"
     },
     {
       "claimId": "godot-4.7-binding-Geometry3D.segment_intersects_cylinder",
@@ -204,7 +204,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "925c4d4398870c99b3b549f7d6700dbd9ecfccba13b9c9561cc540fbe29df79f",
-      "implementationSha256": "f98bb60f1543aa947b7dfb2ec9aff17c4f405a225454ab642154e4fb6ceaa06f"
+      "implementationSha256": "f0582a503db188e58e6e3d87285525d435426de071ed44edb75992af6e6d3372"
     },
     {
       "claimId": "godot-4.7-binding-Geometry3D.segment_intersects_triangle",
@@ -212,7 +212,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "b1a3613a6f9416ad0b985c08d55eee0349e94267e15fba0043f78d863eec9984",
-      "implementationSha256": "f98bb60f1543aa947b7dfb2ec9aff17c4f405a225454ab642154e4fb6ceaa06f"
+      "implementationSha256": "f0582a503db188e58e6e3d87285525d435426de071ed44edb75992af6e6d3372"
     }
   ]
 }

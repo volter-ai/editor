@@ -127,7 +127,7 @@
         "observedOutputSha256": "24a23ef3a95522dd54e940a2aad0f36bdfef7f79ddcd364c8506520191203f34"
       },
       "target": {
-        "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6",
+        "implementationSha256": "1c87695d62063cf9fafde73752ea13c564ea786a821f1488749b901fc70a61d0",
         "callsite": "lib/godot-compat/plane.ts construct",
         "observedOutputSha256": "76d3501fb59befb1ed70c8ae8647ff7932a52c00d44e66350aed6b32f15cf034"
       },
@@ -166,7 +166,7 @@
         "observedOutputSha256": "92453a79533dbad359424bf0aed015ecaa3c5d36684162d5d829848ed63b32c8"
       },
       "target": {
-        "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6",
+        "implementationSha256": "1c87695d62063cf9fafde73752ea13c564ea786a821f1488749b901fc70a61d0",
         "callsite": "lib/godot-compat/plane.ts intersects_ray",
         "observedOutputSha256": "92453a79533dbad359424bf0aed015ecaa3c5d36684162d5d829848ed63b32c8"
       },
@@ -205,7 +205,7 @@
         "observedOutputSha256": "a8ea31429a41a99655d4e59e74b921adb0970de12176e412853d57931f164112"
       },
       "target": {
-        "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6",
+        "implementationSha256": "1c87695d62063cf9fafde73752ea13c564ea786a821f1488749b901fc70a61d0",
         "callsite": "lib/godot-compat/plane.ts with_normal",
         "observedOutputSha256": "56566eaa8ebc1382b441a5d9ea3ce61b5383204c00b6c25601e35f062044be8e"
       },
@@ -244,7 +244,7 @@
         "observedOutputSha256": "ee7852ce0c0b2a8531bcc3b06ceb5fbf5f4a22f3eaaa01f04a8b632ab8ef8f74"
       },
       "target": {
-        "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6",
+        "implementationSha256": "1c87695d62063cf9fafde73752ea13c564ea786a821f1488749b901fc70a61d0",
         "callsite": "lib/godot-compat/plane.ts with_d",
         "observedOutputSha256": "9101483b6ed3c63ef661ccd8ca64435a12e01bd58d3537cfe4dd599a55ce8d5b"
       },
@@ -283,7 +283,7 @@
         "observedOutputSha256": "fbd6ef95703eec79acb814fe60e1520948362ab024a9816f31127cd8859cf6a1"
       },
       "target": {
-        "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6",
+        "implementationSha256": "1c87695d62063cf9fafde73752ea13c564ea786a821f1488749b901fc70a61d0",
         "callsite": "lib/godot-compat/plane.ts Plane",
         "observedOutputSha256": "109453a3e0dd4333e36db82de4ce8240b2f7b5592339bed387414380ea38fb2a"
       },
@@ -310,7 +310,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "faac4b140d614574a3daa57f847cfbf94f2a7e6d8541346e3140d1a27e30e7d6",
-      "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6"
+      "implementationSha256": "1c87695d62063cf9fafde73752ea13c564ea786a821f1488749b901fc70a61d0"
     },
     {
       "claimId": "godot-4.7-binding-Plane.intersects_ray",
@@ -318,7 +318,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "23736517ef59b4ef2b7f962ac0586da49ccb4a01ba7896354b771cb218080104",
-      "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6"
+      "implementationSha256": "1c87695d62063cf9fafde73752ea13c564ea786a821f1488749b901fc70a61d0"
     },
     {
       "claimId": "godot-4.7-binding-Plane.normal.set",
@@ -326,7 +326,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "92ea41bc2d73ac73326aacba05cd3e6ca8ddf573b4ef188d7b7e126de84d045b",
-      "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6"
+      "implementationSha256": "1c87695d62063cf9fafde73752ea13c564ea786a821f1488749b901fc70a61d0"
     },
     {
       "claimId": "godot-4.7-binding-Plane.d.set",
@@ -334,7 +334,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "a8f1bf37826636ebb69c3440df41722b0a36534c18d9f5a734e0ceadb2345622",
-      "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6"
+      "implementationSha256": "1c87695d62063cf9fafde73752ea13c564ea786a821f1488749b901fc70a61d0"
     },
     {
       "claimId": "godot-4.7-datatype-Plane",
@@ -342,7 +342,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "ed6b15b6c3ed3ebf253e1690e32688f6a7de47d4e0136f8e877f4624c0f9253b",
-      "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6"
+      "implementationSha256": "1c87695d62063cf9fafde73752ea13c564ea786a821f1488749b901fc70a61d0"
     }
   ]
 }

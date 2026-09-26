@@ -1,0 +1,150 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/physics-body-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsBody3D",
+        "member": "add_collision_exception_with",
+        "kind": "native-member",
+        "signature": "hash:1078189570"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-body-3d",
+        "exportName": "add_collision_exception_with",
+        "localName": "PhysicsBody3D_add_collision_exception_with",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsBody3D.add_collision_exception_with"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsBody3D",
+        "member": "remove_collision_exception_with",
+        "kind": "native-member",
+        "signature": "hash:1078189570"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-body-3d",
+        "exportName": "remove_collision_exception_with",
+        "localName": "PhysicsBody3D_remove_collision_exception_with",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsBody3D.remove_collision_exception_with"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsBody3D.add_collision_exception_with",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsBody3D\u0000add_collision_exception_with\u0000hash:1078189570",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/physics_body_3d.cpp",
+        "sourceSymbol": "PhysicsBody3D.add_collision_exception_with",
+        "sourceLine": 76
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e22d744bc7265f312664c392e1add68c4b0040d937ca7d6a8c60bc0b07cb0297",
+        "callsite": "res://probe.gd _init() add_collision_exception_with",
+        "observedOutputSha256": "b2eac5c4db7352263ae4f600b9dc78c360875373b6f2c26c93626295350136c9"
+      },
+      "target": {
+        "implementationSha256": "194d1d7bee7a41be7272a22d0405c3d9ba4c7e2f4986253489633a084b6adf40",
+        "callsite": "lib/godot-compat/physics-body-3d.ts add_collision_exception_with",
+        "observedOutputSha256": "b2eac5c4db7352263ae4f600b9dc78c360875373b6f2c26c93626295350136c9"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e4adc6b2aed2c2f3fc6086dfa8ce2bfeffe81c4b7866d06d38fa1601c44d9b42"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsBody3D.remove_collision_exception_with",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsBody3D\u0000remove_collision_exception_with\u0000hash:1078189570",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/physics_body_3d.cpp",
+        "sourceSymbol": "PhysicsBody3D.remove_collision_exception_with",
+        "sourceLine": 83
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "7b2927a0cd951972e631c56b07ba5dc75bb7ab00affdc25b5b8dc25f17573d25",
+        "callsite": "res://probe.gd _init() remove_collision_exception_with",
+        "observedOutputSha256": "e491cd7e85f5c6a73c2f82529827bbe0c649a72ccd8e4399083931af16c28d75"
+      },
+      "target": {
+        "implementationSha256": "194d1d7bee7a41be7272a22d0405c3d9ba4c7e2f4986253489633a084b6adf40",
+        "callsite": "lib/godot-compat/physics-body-3d.ts remove_collision_exception_with",
+        "observedOutputSha256": "e491cd7e85f5c6a73c2f82529827bbe0c649a72ccd8e4399083931af16c28d75"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "39b10fc20a1dd1ed67233964094e1be158af74d1e3c530fb0a3bc51836abb0d8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-PhysicsBody3D.add_collision_exception_with",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e22d744bc7265f312664c392e1add68c4b0040d937ca7d6a8c60bc0b07cb0297",
+      "implementationSha256": "194d1d7bee7a41be7272a22d0405c3d9ba4c7e2f4986253489633a084b6adf40"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsBody3D.remove_collision_exception_with",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "7b2927a0cd951972e631c56b07ba5dc75bb7ab00affdc25b5b8dc25f17573d25",
+      "implementationSha256": "194d1d7bee7a41be7272a22d0405c3d9ba4c7e2f4986253489633a084b6adf40"
+    }
+  ]
+}

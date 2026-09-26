@@ -55,6 +55,12 @@ export interface GodotEvidenceSymbol {
  * result whose formula is transcribed but whose operand order Godot takes from a construction the
  * compat module names as a bounded deviation (which corner of a convex hull face Godot lists
  * first); never where Godot's operand order is transcribed. The claim records the measured maximum.
+ * `safe-margin`: every float within 0.001, a physics body's default safe margin, of the native one.
+ * Only for a kinematic body's place where GodotPhysics3D sums contacts in the order its BVH returns
+ * them, which depends on the broad phase's history rather than on the scene (the same frames
+ * resolve differently natively after other cases ran): test_body_motion places a body only to
+ * within its margin. Flags, normals and velocities in such a case still agree; never for anything
+ * the scene alone decides. The claim records the measured maximum.
  * `web-platform-fact`: the value Godot's web export gives where it differs from the native binary's
  * platform (the rendering method): the case's `fact`, cited to the web platform's code path, stands
  * in for the native run, and the target must equal it exactly.
@@ -67,6 +73,7 @@ export type GodotEvidenceComparator =
   | 'float32-ulp'
   | 'platform-libm'
   | 'float32-geometry'
+  | 'safe-margin'
   | 'web-platform-fact'
   | 'render-mapping';
 

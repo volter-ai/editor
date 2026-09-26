@@ -22,8 +22,8 @@
 import RAPIER from '@dimforge/rapier3d-compat';
 import { godot_segment_intersects_triangle } from './geometry-3d';
 import { construct as plane, type Plane } from './plane';
-import { godot_shape_3d_describe, type ShapeSegmentHit } from './shape-3d';
-import { construct as vector3, dot, op_add, op_multiply, op_subtract, type Vector3 } from './vector3';
+import { godot_shape_3d_describe, type ShapeSegmentHit, type ShapeSupports } from './shape-3d';
+import { construct as vector3, dot, normalized, op_add, op_multiply, op_subtract, type Vector3 } from './vector3';
 
 const f32 = Math.fround;
 
@@ -219,6 +219,44 @@ function intersectSegment(shape: ConvexPolygonShape3D, begin: Vector3, end: Vect
   return best;
 }
 
+/** `face_support_threshold` and `edge_support_threshold_lower` (`godot_shape_3d.cpp:55`), doubles. */
+const FACE_SUPPORT_THRESHOLD = 0.9998;
+const EDGE_SUPPORT_THRESHOLD_LOWER = Math.sqrt(1 - 0.99999998 * 0.99999998);
+
+/** `GodotConvexPolygonShape3D::get_supports` (`godot_shape_3d.cpp:894`) over the hull's faces. */
+function supports(shape: ConvexPolygonShape3D, direction: Vector3): ShapeSupports {
+  const faces = facesOf(shape);
+  const vertices = [...new Set(faces.flatMap((face) => face.vertices))];
+  if (vertices.length === 0) return { points: [], type: 0 };
+  let vtx = vertices[0] as Vector3;
+  let max = dot(direction, vtx);
+  for (const vertex of vertices) {
+    const d = dot(direction, vertex);
+    if (d > max) {
+      max = d;
+      vtx = vertex;
+    }
+  }
+  for (const face of faces) {
+    if (dot(face.plane.normal, direction) > FACE_SUPPORT_THRESHOLD && face.vertices.includes(vtx)) return { points: face.vertices, type: 2 };
+  }
+  for (const face of faces) {
+    for (let i = 0; i < face.vertices.length; i += 1) {
+      const a = face.vertices[i] as Vector3;
+      const b = face.vertices[(i + 1) % face.vertices.length] as Vector3;
+      if (a !== vtx && b !== vtx) continue;
+      if (Math.abs(dot(normalized(op_subtract(a, b)), direction)) < EDGE_SUPPORT_THRESHOLD_LOWER) return { points: [a, b], type: 1 };
+    }
+  }
+  return { points: [vtx], type: 0 };
+}
+
+/** A point on exactly one face plane of the hull gives that plane's normal. */
+function faceNormal(shape: ConvexPolygonShape3D, point: Vector3): Vector3 | undefined {
+  const on = facesOf(shape).filter((face) => Math.abs(distanceTo(face.plane, point)) <= 1e-4);
+  return on.length === 1 ? (on[0] as HullFace).plane.normal : undefined;
+}
+
 /** `GodotConvexPolygonShape3D::intersect_point` (`godot_shape_3d.cpp:1002`). */
 function intersectPoint(shape: ConvexPolygonShape3D, point: Vector3): boolean {
   const faces = facesOf(shape);
@@ -232,7 +270,28 @@ function intersectPoint(shape: ConvexPolygonShape3D, point: Vector3): boolean {
  * @source scene/resources/3d/convex_polygon_shape_3d.cpp:129
  */
 export function construct(): ConvexPolygonShape3D {
-  return godot_shape_3d_describe({ points: Object.freeze([]) as readonly Vector3[] }, { collider: hull, intersectSegment, intersectPoint });
+  return godot_shape_3d_describe({ points: Object.freeze([]) as readonly Vector3[] }, {
+    collider: hull,
+    intersectSegment,
+    intersectPoint,
+    faceNormal,
+    supports,
+    // `GodotConvexPolygonShape3D::get_support` (`godot_shape_3d.cpp:839`): the hull vertex farthest along it.
+    support: (shape, direction) => {
+      let best = vector3();
+      let max = -Infinity;
+      for (const face of facesOf(shape)) {
+        for (const vertex of face.vertices) {
+          const d = dot(direction, vertex);
+          if (d > max) {
+            max = d;
+            best = vertex;
+          }
+        }
+      }
+      return best;
+    },
+  });
 }
 
 /**

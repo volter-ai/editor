@@ -122,6 +122,46 @@ export function is_zero_approx(self: Vector3): boolean {
   return Math.abs(self.x) < CMP_EPSILON && Math.abs(self.y) < CMP_EPSILON && Math.abs(self.z) < CMP_EPSILON;
 }
 
+/** `Math::is_equal_approx(float, float)` (`core/math/math_funcs.h:540`). */
+function isEqualApproxReal(left: number, right: number): boolean {
+  if (left === right) return true;
+  let tolerance = f32(CMP_EPSILON * Math.abs(left));
+  if (tolerance < CMP_EPSILON) tolerance = CMP_EPSILON;
+  return Math.abs(f32(left - right)) < tolerance;
+}
+
+/**
+ * @godot Vector3.is_equal_approx
+ * @source core/math/vector3.cpp:141
+ */
+export function is_equal_approx(self: Vector3, p_v: Vector3): boolean {
+  return isEqualApproxReal(self.x, p_v.x) && isEqualApproxReal(self.y, p_v.y) && isEqualApproxReal(self.z, p_v.z);
+}
+
+/**
+ * `Math::is_equal_approx(length_squared(), 1, UNIT_EPSILON)` (`core/math/math_funcs.h:519`).
+ *
+ * @godot Vector3.is_normalized
+ * @source core/math/vector3.h:574
+ */
+export function is_normalized(self: Vector3): boolean {
+  const l = length_squared(self);
+  return l === 1 || Math.abs(f32(l - 1)) < UNIT_EPSILON;
+}
+
+/**
+ * `*this - p_normal * dot(p_normal)`; under `MATH_CHECKS` a normal that is not normalized fails
+ * with (0, 0, 0).
+ *
+ * @godot Vector3.slide
+ * @source core/math/vector3.h:588
+ */
+export function slide(self: Vector3, p_normal: Vector3): Vector3 {
+  if (!is_normalized(p_normal)) return make(0, 0, 0);
+  const d = dot(self, p_normal);
+  return make(f32(self.x - f32(p_normal.x * d)), f32(self.y - f32(p_normal.y * d)), f32(self.z - f32(p_normal.z * d)));
+}
+
 /** `Math::lerp(float, float, float)` (`core/math/math_funcs.h:338`). */
 function lerpReal(from: number, to: number, weight: number): number {
   return f32(from + f32(f32(to - from) * weight));

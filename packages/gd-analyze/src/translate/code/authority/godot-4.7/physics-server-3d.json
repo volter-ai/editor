@@ -24,6 +24,27 @@
         },
         "evidenceClaimId": "godot-4.7-binding-PhysicsServer3D.space_get_direct_state"
       }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsServer3D",
+        "member": "body_test_motion",
+        "kind": "native-member",
+        "signature": "hash:1944921792"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-server-3d",
+        "exportName": "body_test_motion",
+        "localName": "PhysicsServer3D_body_test_motion",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsServer3D.body_test_motion"
+      }
     }
   ],
   "rules": [],
@@ -49,7 +70,7 @@
         "observedOutputSha256": "10cd1859c94366f9518aaa69e184e2323caaeef10f04af5a4539b4d286b4a31f"
       },
       "target": {
-        "implementationSha256": "ec017abe4ef922065db152f5c05998e051a4d8a8bd9dcdee75ff2858662ab5e2",
+        "implementationSha256": "f3fe4bfee34f045714768d1b059958409e4a170c23b9dabe92bb19d7e8f8b3fa",
         "callsite": "lib/godot-compat/physics-server-3d.ts space_get_direct_state",
         "observedOutputSha256": "10cd1859c94366f9518aaa69e184e2323caaeef10f04af5a4539b4d286b4a31f"
       },
@@ -57,6 +78,45 @@
         "comparator": "typed float64-bit JSON: exact",
         "tolerance": "exact",
         "resultSha256": "a8314d82cd0e2d6fb7a2e8ef2cdd6c4e100af94b5899e40da60d38e872f10d63"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-server-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsServer3D.body_test_motion",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsServer3D\u0000body_test_motion\u0000hash:1944921792",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/godot_physics_3d/godot_space_3d.cpp",
+        "sourceSymbol": "PhysicsServer3D.body_test_motion",
+        "sourceLine": 652
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "50d6942f00b74a86e5716fc586cfd93c637e88ef0f3530d2268c2e359077920e",
+        "callsite": "res://probe.gd _init() body_test_motion body_test_motion-along-wall body_test_motion-into-crate",
+        "observedOutputSha256": "09808baf7a01dc57d3e4062d6d3d08f6ceba1029804e7b3ea203ae5ee53bd8c4"
+      },
+      "target": {
+        "implementationSha256": "f3fe4bfee34f045714768d1b059958409e4a170c23b9dabe92bb19d7e8f8b3fa",
+        "callsite": "lib/godot-compat/physics-server-3d.ts body_test_motion",
+        "observedOutputSha256": "09808baf7a01dc57d3e4062d6d3d08f6ceba1029804e7b3ea203ae5ee53bd8c4"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b80641d97430b70e5387233a423bd70b528ea698f8adb4abf6ceb3b9f40603e3"
       },
       "reproductionCommand": [
         "npx",
@@ -76,7 +136,15 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "050781512d3b6af1d3bb49b49f6e61d47fc8e6e63941b73462918a2cab4da2b4",
-      "implementationSha256": "ec017abe4ef922065db152f5c05998e051a4d8a8bd9dcdee75ff2858662ab5e2"
+      "implementationSha256": "f3fe4bfee34f045714768d1b059958409e4a170c23b9dabe92bb19d7e8f8b3fa"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsServer3D.body_test_motion",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "50d6942f00b74a86e5716fc586cfd93c637e88ef0f3530d2268c2e359077920e",
+      "implementationSha256": "f3fe4bfee34f045714768d1b059958409e4a170c23b9dabe92bb19d7e8f8b3fa"
     }
   ]
 }

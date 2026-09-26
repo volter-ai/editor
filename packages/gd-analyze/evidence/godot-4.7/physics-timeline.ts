@@ -10,6 +10,7 @@ import { Group, Object3D, Scene } from 'three';
 import * as AREA from '../../capabilities/catalog/project-source/src/lib/godot-compat/area-3d';
 import * as BOX from '../../capabilities/catalog/project-source/src/lib/godot-compat/box-shape-3d';
 import * as CAP from '../../capabilities/catalog/project-source/src/lib/godot-compat/capsule-shape-3d';
+import * as CB from '../../capabilities/catalog/project-source/src/lib/godot-compat/character-body-3d';
 import * as CO from '../../capabilities/catalog/project-source/src/lib/godot-compat/collision-object-3d';
 import * as CS from '../../capabilities/catalog/project-source/src/lib/godot-compat/collision-shape-3d';
 import * as CONCAVE from '../../capabilities/catalog/project-source/src/lib/godot-compat/concave-polygon-shape-3d';
@@ -17,6 +18,11 @@ import * as CONVEX from '../../capabilities/catalog/project-source/src/lib/godot
 import * as N from '../../capabilities/catalog/project-source/src/lib/godot-compat/node';
 import * as N3 from '../../capabilities/catalog/project-source/src/lib/godot-compat/node-3d';
 import * as DSS from '../../capabilities/catalog/project-source/src/lib/godot-compat/physics-direct-space-state-3d';
+import * as PB from '../../capabilities/catalog/project-source/src/lib/godot-compat/physics-body-3d';
+import * as TMP from '../../capabilities/catalog/project-source/src/lib/godot-compat/physics-test-motion-parameters-3d';
+import * as TMR from '../../capabilities/catalog/project-source/src/lib/godot-compat/physics-test-motion-result-3d';
+import * as B3 from '../../capabilities/catalog/project-source/src/lib/godot-compat/basis';
+import * as T3 from '../../capabilities/catalog/project-source/src/lib/godot-compat/transform-3d';
 import * as RQ from '../../capabilities/catalog/project-source/src/lib/godot-compat/physics-ray-query-parameters-3d';
 import * as PS from '../../capabilities/catalog/project-source/src/lib/godot-compat/physics-server-3d';
 import * as RC from '../../capabilities/catalog/project-source/src/lib/godot-compat/ray-cast-3d';
@@ -68,6 +74,12 @@ export type Op =
   | { readonly watch: string }
   | { readonly monitoring: string; readonly on: boolean }
   | { readonly mark: string }
+  | { readonly slide: string; readonly velocity?: Triple; readonly plus?: Triple }
+  | { readonly character: string; readonly set: 'up_direction' | 'floor_max_angle' | 'floor_snap_length' | 'max_slides' | 'safe_margin' | 'floor_stop_on_slope' | 'floor_constant_speed' | 'floor_block_on_wall' | 'slide_on_ceiling' | 'motion_mode' | 'wall_min_slide_angle'; readonly value: number | boolean | Triple }
+  | { readonly snap: string }
+  | { readonly testMotion: string; readonly from: Triple; readonly motion: Triple; readonly margin?: number; readonly max?: number; readonly recovery?: boolean }
+  | { readonly except: string; readonly with: string }
+  | { readonly unexcept: string; readonly with: string }
   | { readonly read: Read };
 
 export type Read =
@@ -80,6 +92,12 @@ export type Read =
   | readonly ['overlapping', string]
   | readonly ['overlaps', string, string]
   | readonly ['monitoring', string]
+  | readonly ['char', string]
+  /** A CharacterBody3D's place and contact state, without the travel-derived readers. */
+  | readonly ['charState', string]
+  | readonly ['charPosition', string]
+  /** A CharacterBody3D reader with no arguments. */
+  | readonly ['charGet', string, string]
   | readonly ['layer', string]
   | readonly ['mask', string]
   | readonly ['layerBit', string, number]
@@ -171,6 +189,14 @@ function gdRead(read: Read): string[] {
       return [`log.append(${v(read[1])}.overlaps_body(${v(read[2])}))`];
     case 'monitoring':
       return [`log.append(${v(read[1])}.is_monitoring())`];
+    case 'char':
+      return [`log.append(_char(${v(read[1])}))`];
+    case 'charState':
+      return [`log.append(_char(${v(read[1])}).slice(0, 8))`];
+    case 'charPosition':
+      return [`log.append(${v(read[1])}.position)`];
+    case 'charGet':
+      return [`log.append(${v(read[1])}.${read[2]}())`];
     case 'layer':
       return [`log.append(${v(read[1])}.get_collision_layer())`];
     case 'mask':
@@ -238,6 +264,33 @@ function gdOp(op: Op): string[] {
   }
   if ('monitoring' in op) return [`${v(op.monitoring)}.monitoring = ${String(op.on)}`];
   if ('mark' in op) return [`log.append(${gs(op.mark)})`];
+  if ('slide' in op) {
+    return [
+      ...(op.velocity === undefined ? [] : [`${v(op.slide)}.velocity = ${gv(op.velocity)}`]),
+      ...(op.plus === undefined ? [] : [`${v(op.slide)}.velocity += ${gv(op.plus)}`]),
+      `log.append(${v(op.slide)}.move_and_slide())`,
+    ];
+  }
+  if ('character' in op) {
+    const value = Array.isArray(op.value) ? gv(op.value as Triple) : typeof op.value === 'number' ? (op.set === 'max_slides' || op.set === 'motion_mode' ? String(op.value) : gd(op.value)) : String(op.value);
+    return [`${v(op.character)}.${op.set} = ${value}`];
+  }
+  if ('snap' in op) return [`${v(op.snap)}.apply_floor_snap()`];
+  if ('testMotion' in op) {
+    const k = String((shapeNumber += 1));
+    return [
+      `var tm_p${k} := PhysicsTestMotionParameters3D.new()`,
+      `tm_p${k}.from = Transform3D(Basis(), ${gv(op.from)})`,
+      `tm_p${k}.motion = ${gv(op.motion)}`,
+      ...(op.margin === undefined ? [] : [`tm_p${k}.margin = ${gd(op.margin)}`]),
+      ...(op.max === undefined ? [] : [`tm_p${k}.max_collisions = ${String(op.max)}`]),
+      ...(op.recovery === undefined ? [] : [`tm_p${k}.recovery_as_collision = ${String(op.recovery)}`]),
+      `var tm_r${k} := PhysicsTestMotionResult3D.new()`,
+      `log.append(_motion(PhysicsServer3D.body_test_motion(${v(op.testMotion)}.get_rid(), tm_p${k}, tm_r${k}), tm_r${k}))`,
+    ];
+  }
+  if ('except' in op) return [`${v(op.except)}.add_collision_exception_with(${v(op.with)})`];
+  if ('unexcept' in op) return [`${v(op.unexcept)}.remove_collision_exception_with(${v(op.with)})`];
   if ('remove' in op) return [`${v(op.remove)}.get_parent().remove_child(${v(op.remove)})`];
   return gdRead(op.read);
 }
@@ -252,6 +305,15 @@ func _raycast(r: RayCast3D) -> Variant:
 \tif not r.is_colliding():
 \t\treturn [false]
 \treturn [true, r.get_collision_point(), r.get_collision_normal(), String(r.get_collider().name), r.get_collider_shape()]
+
+func _motion(hit: bool, r: PhysicsTestMotionResult3D) -> Variant:
+\tvar collisions := []
+\tfor i in r.get_collision_count():
+\t\tcollisions.append([r.get_collision_point(i), r.get_collision_normal(i), r.get_collision_depth(i), String(r.get_collider(i).name), r.get_collider_shape(i), r.get_collision_local_shape(i), r.get_collider_velocity(i)])
+\treturn [hit, r.get_travel(), r.get_remainder(), r.get_collision_safe_fraction(), r.get_collision_unsafe_fraction(), collisions]
+
+func _char(c: CharacterBody3D) -> Variant:
+\treturn [c.position, c.velocity, c.is_on_floor(), c.is_on_wall(), c.is_on_ceiling(), c.get_floor_normal(), c.get_wall_normal(), c.get_slide_collision_count(), c.get_real_velocity(), c.get_last_motion()]
 `;
 
 function gdscript(segments: readonly Segment[]): string {
@@ -322,6 +384,42 @@ function target(segments: readonly Segment[]): () => unknown {
         case 'monitoring':
           log.push(AREA.is_monitoring(node(r[1])));
           return;
+        case 'char': {
+          const c = node(r[1]);
+          log.push([
+            N3.get_position(c),
+            CB.get_velocity(c),
+            CB.is_on_floor(c),
+            CB.is_on_wall(c),
+            CB.is_on_ceiling(c),
+            CB.get_floor_normal(c),
+            CB.get_wall_normal(c),
+            CB.get_slide_collision_count(c),
+            CB.get_real_velocity(c),
+            CB.get_last_motion(c),
+          ]);
+          return;
+        }
+        case 'charState': {
+          const c = node(r[1]);
+          log.push([
+            N3.get_position(c),
+            CB.get_velocity(c),
+            CB.is_on_floor(c),
+            CB.is_on_wall(c),
+            CB.is_on_ceiling(c),
+            CB.get_floor_normal(c),
+            CB.get_wall_normal(c),
+            CB.get_slide_collision_count(c),
+          ]);
+          return;
+        }
+        case 'charPosition':
+          log.push(N3.get_position(node(r[1])));
+          return;
+        case 'charGet':
+          log.push((CB as unknown as Record<string, (c: object) => unknown>)[r[2]]?.(node(r[1])));
+          return;
         case 'layer':
           log.push(CO.get_collision_layer(node(r[1])));
           return;
@@ -344,6 +442,7 @@ function target(segments: readonly Segment[]): () => unknown {
         body.name = op.body;
         if (op.kind === 'area') AREA.godot_area_3d_adopt(body);
         else if (op.kind === 'static') STATIC.godot_static_body_3d_adopt(body);
+        else if (op.kind === 'character') CB.godot_character_body_3d_adopt(body);
         else CO.godot_collision_object_adopt(body, op.kind);
         for (const entry of op.shapes) {
           const cs = new Object3D();
@@ -388,6 +487,51 @@ function target(segments: readonly Segment[]): () => unknown {
         AREA.godot_area_3d_signal(area, 'body_exited').connect((b) => log.push(['out', op.watch, N.get_name(b)]));
       } else if ('monitoring' in op) AREA.set_monitoring(node(op.monitoring), op.on);
       else if ('mark' in op) log.push(op.mark);
+      else if ('slide' in op) {
+        const c = node(op.slide);
+        if (op.velocity !== undefined) CB.set_velocity(c, V.construct(...op.velocity));
+        if (op.plus !== undefined) CB.set_velocity(c, V.op_add(CB.get_velocity(c), V.construct(...op.plus)));
+        log.push(CB.move_and_slide(c));
+      } else if ('character' in op) {
+        const c = node(op.character);
+        const value = op.value;
+        const setters: Record<string, (target: object, value: never) => void> = {
+          up_direction: CB.set_up_direction,
+          floor_max_angle: CB.set_floor_max_angle,
+          floor_snap_length: CB.set_floor_snap_length,
+          max_slides: CB.set_max_slides,
+          safe_margin: CB.set_safe_margin,
+          floor_stop_on_slope: CB.set_floor_stop_on_slope_enabled,
+          floor_constant_speed: CB.set_floor_constant_speed_enabled,
+          floor_block_on_wall: CB.set_floor_block_on_wall_enabled,
+          slide_on_ceiling: CB.set_slide_on_ceiling_enabled,
+          motion_mode: CB.set_motion_mode,
+          wall_min_slide_angle: CB.set_wall_min_slide_angle,
+        };
+        (setters[op.set] as (target: object, value: unknown) => void)(c, Array.isArray(value) ? V.construct(...(value as Triple)) : value);
+      } else if ('snap' in op) CB.apply_floor_snap(node(op.snap));
+      else if ('testMotion' in op) {
+        const p = TMP.godot_test_motion_parameters();
+        TMP.set_from(p, T3.construct(B3.construct(), V.construct(...op.from)));
+        TMP.set_motion(p, V.construct(...op.motion));
+        if (op.margin !== undefined) TMP.set_margin(p, op.margin);
+        if (op.max !== undefined) TMP.set_max_collisions(p, op.max);
+        if (op.recovery !== undefined) TMP.set_recovery_as_collision_enabled(p, op.recovery);
+        const r = TMR.godot_test_motion_result();
+        const hit = PS.body_test_motion(CO.get_rid(node(op.testMotion)), p, r);
+        const collisions = Array.from({ length: TMR.get_collision_count(r) }, (_, i) => [
+          TMR.get_collision_point(r, i),
+          TMR.get_collision_normal(r, i),
+          TMR.get_collision_depth(r, i),
+          N.get_name(TMR.get_collider(r, i) as object),
+          TMR.get_collider_shape(r, i),
+          TMR.get_collision_local_shape(r, i),
+          TMR.get_collider_velocity(r, i),
+        ]);
+        log.push([hit, TMR.get_travel(r), TMR.get_remainder(r), TMR.get_collision_safe_fraction(r), TMR.get_collision_unsafe_fraction(r), collisions]);
+      }
+      else if ('except' in op) PB.add_collision_exception_with(node(op.except), node(op.with));
+      else if ('unexcept' in op) PB.remove_collision_exception_with(node(op.unexcept), node(op.with));
       else if ('remove' in op) N.remove_child(node(op.remove).parent as object, node(op.remove));
       else read(op.read);
     };

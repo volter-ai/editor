@@ -16,13 +16,53 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import { godot_segment_intersects_triangle } from './geometry-3d';
 import { construct as plane } from './plane';
 import { godot_shape_3d_describe, type ShapeSegmentHit } from './shape-3d';
-import { construct as vector3, dot, normalized, op_negate, op_subtract, type Vector3 } from './vector3';
+import { construct as vector3, cross, dot, normalized, op_negate, op_subtract, type Vector3 } from './vector3';
 
 const f32 = Math.fround;
 
 export interface ConcavePolygonShape3D {
   faces: readonly Vector3[];
   backface_collision: boolean;
+}
+
+/** How far a contact point may sit off a face and still be on it: Rapier's single-precision contacts. */
+const FACE_TOLERANCE = 1e-4;
+
+/** The one face a point lies inside gives its `Plane(v0, v1, v2)` normal (`godot_shape_3d.cpp:1240`). */
+function faceNormal(shape: ConcavePolygonShape3D, point: Vector3): Vector3 | undefined {
+  const faces = shape.faces;
+  if (faces.length % 3 !== 0) return undefined;
+  let found: Vector3 | undefined;
+  for (let index = 0; index < faces.length / 3; index += 1) {
+    const v0 = faces[index * 3] as Vector3;
+    const v1 = faces[index * 3 + 1] as Vector3;
+    const v2 = faces[index * 3 + 2] as Vector3;
+    const p = plane(v0, v1, v2);
+    if (Math.abs(dot(p.normal, point) - p.d) > FACE_TOLERANCE) continue;
+    // Inside the triangle, strictly away from its edges.
+    const inside = [
+      [v0, v1],
+      [v1, v2],
+      [v2, v0],
+    ].every(([a, b]) => {
+      const edge = op_subtract(b as Vector3, a as Vector3);
+      const toPoint = op_subtract(point, a as Vector3);
+      const side = dot(cross(toPoint, edge), p.normal);
+      return side > FACE_TOLERANCE * Math.max(1, Math.sqrt(dot(edge, edge)));
+    }) || [
+      [v0, v1],
+      [v1, v2],
+      [v2, v0],
+    ].every(([a, b]) => {
+      const edge = op_subtract(b as Vector3, a as Vector3);
+      const toPoint = op_subtract(point, a as Vector3);
+      return dot(cross(toPoint, edge), p.normal) < -FACE_TOLERANCE * Math.max(1, Math.sqrt(dot(edge, edge)));
+    });
+    if (!inside) continue;
+    if (found !== undefined) return undefined;
+    found = p.normal;
+  }
+  return found;
 }
 
 function intersectSegment(shape: ConcavePolygonShape3D, begin: Vector3, end: Vector3, hitBackFaces: boolean): ShapeSegmentHit | undefined {
@@ -76,6 +116,15 @@ export function construct(): ConcavePolygonShape3D {
       intersectSegment,
       // A concave shape has no inside (`godot_shape_3d.cpp:1405`).
       intersectPoint: () => false,
+      faceNormal,
+      triangles: (shape) => {
+        const faces = shape.faces;
+        if (faces.length % 3 !== 0) return { faces: [], backface: shape.backface_collision };
+        return {
+          faces: Array.from({ length: faces.length / 3 }, (_, i) => [faces[i * 3] as Vector3, faces[i * 3 + 1] as Vector3, faces[i * 3 + 2] as Vector3] as const),
+          backface: shape.backface_collision,
+        };
+      },
     },
   );
 }

@@ -305,6 +305,29 @@ add('op_equal-rounded', operator('OP_EQUAL', 'Vector3'), `${gv(t(0.1, 0, 0))} ==
   V.op_equal(tv(t(0.1, 0, 0)), tv(t(0.10000000000000002, 0, 0))),
 );
 
+// is_normalized, is_equal_approx and slide (the CharacterBody3D slide math).
+for (const [name, value] of VECTORS) {
+  add(`is_normalized-${name}`, member('is_normalized'), `${gv(value)}.is_normalized()`, () => V.is_normalized(tv(value)));
+  for (const [otherName, other] of [
+    ['same', value],
+    ['nudged', t(value.x + 1e-6, value.y, value.z - 2e-6)],
+    ['apart', t(value.x + 0.01, value.y, value.z)],
+  ] as const) {
+    add(`is_equal_approx-${name}-${otherName}`, member('is_equal_approx'), `${gv(value)}.is_equal_approx(${gv(other)})`, () =>
+      V.is_equal_approx(tv(value), tv(other)),
+    );
+  }
+  for (const [normalName, normal] of [
+    ['up', Y],
+    ['diagonal', DIAGONAL],
+    ['slope', t(0, 0.8660254037844387, 0.5)],
+    ['nearly', t(0, 1.0004, 0)],
+    ['not-normalized', t(0, 2, 0)],
+  ] as const) {
+    add(`slide-${name}-${normalName}`, member('slide'), `${gv(value)}.slide(${gv(normal)})`, () => V.slide(tv(value), tv(normal)));
+  }
+}
+
 const VECTOR3_EVIDENCE: GodotEvidenceCaseFile = {
   godotClass: 'Vector3',
   compatModule: 'lib/godot-compat/vector3',

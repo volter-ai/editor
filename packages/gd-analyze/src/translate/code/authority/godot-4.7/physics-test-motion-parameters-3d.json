@@ -1,0 +1,898 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/physics-test-motion-parameters-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsTestMotionParameters3D",
+        "member": "get_from",
+        "kind": "native-member",
+        "signature": "hash:3229777777"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-test-motion-parameters-3d",
+        "exportName": "get_from",
+        "localName": "PhysicsTestMotionParameters3D_get_from",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.get_from"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsTestMotionParameters3D",
+        "member": "get_motion",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-test-motion-parameters-3d",
+        "exportName": "get_motion",
+        "localName": "PhysicsTestMotionParameters3D_get_motion",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.get_motion"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsTestMotionParameters3D",
+        "member": "get_margin",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-test-motion-parameters-3d",
+        "exportName": "get_margin",
+        "localName": "PhysicsTestMotionParameters3D_get_margin",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.get_margin"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsTestMotionParameters3D",
+        "member": "get_max_collisions",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-test-motion-parameters-3d",
+        "exportName": "get_max_collisions",
+        "localName": "PhysicsTestMotionParameters3D_get_max_collisions",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.get_max_collisions"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsTestMotionParameters3D",
+        "member": "is_collide_separation_ray_enabled",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-test-motion-parameters-3d",
+        "exportName": "is_collide_separation_ray_enabled",
+        "localName": "PhysicsTestMotionParameters3D_is_collide_separation_ray_enabled",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.is_collide_separation_ray_enabled"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsTestMotionParameters3D",
+        "member": "is_recovery_as_collision_enabled",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-test-motion-parameters-3d",
+        "exportName": "is_recovery_as_collision_enabled",
+        "localName": "PhysicsTestMotionParameters3D_is_recovery_as_collision_enabled",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.is_recovery_as_collision_enabled"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsTestMotionParameters3D",
+        "member": "set_from",
+        "kind": "native-member",
+        "signature": "hash:2952846383"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-test-motion-parameters-3d",
+        "exportName": "set_from",
+        "localName": "PhysicsTestMotionParameters3D_set_from",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_from"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsTestMotionParameters3D",
+        "member": "set_motion",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-test-motion-parameters-3d",
+        "exportName": "set_motion",
+        "localName": "PhysicsTestMotionParameters3D_set_motion",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_motion"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsTestMotionParameters3D",
+        "member": "set_margin",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-test-motion-parameters-3d",
+        "exportName": "set_margin",
+        "localName": "PhysicsTestMotionParameters3D_set_margin",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_margin"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsTestMotionParameters3D",
+        "member": "set_max_collisions",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-test-motion-parameters-3d",
+        "exportName": "set_max_collisions",
+        "localName": "PhysicsTestMotionParameters3D_set_max_collisions",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_max_collisions"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsTestMotionParameters3D",
+        "member": "set_collide_separation_ray_enabled",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-test-motion-parameters-3d",
+        "exportName": "set_collide_separation_ray_enabled",
+        "localName": "PhysicsTestMotionParameters3D_set_collide_separation_ray_enabled",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_collide_separation_ray_enabled"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsTestMotionParameters3D",
+        "member": "set_recovery_as_collision_enabled",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-test-motion-parameters-3d",
+        "exportName": "set_recovery_as_collision_enabled",
+        "localName": "PhysicsTestMotionParameters3D_set_recovery_as_collision_enabled",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_recovery_as_collision_enabled"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsTestMotionParameters3D",
+        "member": "set_exclude_bodies",
+        "kind": "native-member",
+        "signature": "hash:381264803"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-test-motion-parameters-3d",
+        "exportName": "set_exclude_bodies",
+        "localName": "PhysicsTestMotionParameters3D_set_exclude_bodies",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_exclude_bodies"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.get_from",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsTestMotionParameters3D\u0000get_from\u0000hash:3229777777",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/physics_3d/physics_server_3d.h",
+        "sourceSymbol": "PhysicsTestMotionParameters3D.get_from",
+        "sourceLine": 951
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d8922a5dcd6ee8d897c6bdddb816a8fa45d5d97ace93933dd6086d8f1c508589",
+        "callsite": "res://probe.gd _init() get_from-default",
+        "observedOutputSha256": "69c91da6bbcf6133120814a8429d8748094cb9ad3ada51d13911e592c1975fa8"
+      },
+      "target": {
+        "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b",
+        "callsite": "lib/godot-compat/physics-test-motion-parameters-3d.ts get_from",
+        "observedOutputSha256": "ad8ea4022e39933bfd1e0e6120cde2bd9a93d75172bd79f77d315cc41d2c8480"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7cec1f4d1aa271f8b69a53c42bb47b10c25ea9966a42352f3a63216d9cd99a9c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-test-motion-parameters-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.get_motion",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsTestMotionParameters3D\u0000get_motion\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/physics_3d/physics_server_3d.h",
+        "sourceSymbol": "PhysicsTestMotionParameters3D.get_motion",
+        "sourceLine": 954
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4909d027cdb2da9f4bb1d535e26f91a2db455a4d5f724c454bf37a8321863ab6",
+        "callsite": "res://probe.gd _init() get_motion-default",
+        "observedOutputSha256": "633a7d6bedd0a5214933bfb8a74bdaccfc9a32462d9d55b8dec601429f586e60"
+      },
+      "target": {
+        "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b",
+        "callsite": "lib/godot-compat/physics-test-motion-parameters-3d.ts get_motion",
+        "observedOutputSha256": "633a7d6bedd0a5214933bfb8a74bdaccfc9a32462d9d55b8dec601429f586e60"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "175f3896ccc820cfaef40a7d94b9596e89e137117488b0665e56bed353ad594f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-test-motion-parameters-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.get_margin",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsTestMotionParameters3D\u0000get_margin\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/physics_3d/physics_server_3d.h",
+        "sourceSymbol": "PhysicsTestMotionParameters3D.get_margin",
+        "sourceLine": 957
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b36892220892b2aa885385530a5db5b10f4eb37d592fdfa6eb5f6d92b024a74f",
+        "callsite": "res://probe.gd _init() get_margin-default",
+        "observedOutputSha256": "3575252dbb7eadc46babce08033278f0a09035fdefa18357ae201e144a8497f5"
+      },
+      "target": {
+        "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b",
+        "callsite": "lib/godot-compat/physics-test-motion-parameters-3d.ts get_margin",
+        "observedOutputSha256": "3575252dbb7eadc46babce08033278f0a09035fdefa18357ae201e144a8497f5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5197ee4dffb1a652b039e71f4e58185c3dcd81bc9b3954b5a0e3ef6aec583e02"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-test-motion-parameters-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.get_max_collisions",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsTestMotionParameters3D\u0000get_max_collisions\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/physics_3d/physics_server_3d.h",
+        "sourceSymbol": "PhysicsTestMotionParameters3D.get_max_collisions",
+        "sourceLine": 960
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a4454d67b1dac50d242d1b39c9ad3ab18704b55ab7e71c864b9d01c1593ae113",
+        "callsite": "res://probe.gd _init() get_max_collisions-default",
+        "observedOutputSha256": "5e16c1621689e0087743662594854835d04a9fa7abeddfc45f91a44f8df2cfea"
+      },
+      "target": {
+        "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b",
+        "callsite": "lib/godot-compat/physics-test-motion-parameters-3d.ts get_max_collisions",
+        "observedOutputSha256": "5e16c1621689e0087743662594854835d04a9fa7abeddfc45f91a44f8df2cfea"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c5865bfaebb1f9759cd9a80920345d83d3ab908bff95b6606a97145b0ea736d3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-test-motion-parameters-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.is_collide_separation_ray_enabled",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsTestMotionParameters3D\u0000is_collide_separation_ray_enabled\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/physics_3d/physics_server_3d.h",
+        "sourceSymbol": "PhysicsTestMotionParameters3D.is_collide_separation_ray_enabled",
+        "sourceLine": 963
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f10605c0c0c6bf68699242b095ca8f4a1c645d2760410c7b12bf08f857689ed2",
+        "callsite": "res://probe.gd _init() is_collide_separation_ray_enabled-default",
+        "observedOutputSha256": "90abfb962c50b0cd44cad084ccffcbb36cc701aa281bdffb128cd6cc18e9984f"
+      },
+      "target": {
+        "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b",
+        "callsite": "lib/godot-compat/physics-test-motion-parameters-3d.ts is_collide_separation_ray_enabled",
+        "observedOutputSha256": "90abfb962c50b0cd44cad084ccffcbb36cc701aa281bdffb128cd6cc18e9984f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "9d3bbb73613fa257fce90752d1ed87bf72d7fc8ff5d644a8df9f59309e565d34"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-test-motion-parameters-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.is_recovery_as_collision_enabled",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsTestMotionParameters3D\u0000is_recovery_as_collision_enabled\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/physics_3d/physics_server_3d.h",
+        "sourceSymbol": "PhysicsTestMotionParameters3D.is_recovery_as_collision_enabled",
+        "sourceLine": 972
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1d0ef8ac4b05b881411c3192b7ec8dde365d06498dbc32e28a60972578588506",
+        "callsite": "res://probe.gd _init() is_recovery_as_collision_enabled-default",
+        "observedOutputSha256": "0e0eea6665bf102651364624a8dceab6b668cdc142bc328c7d3e264b50c68e8d"
+      },
+      "target": {
+        "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b",
+        "callsite": "lib/godot-compat/physics-test-motion-parameters-3d.ts is_recovery_as_collision_enabled",
+        "observedOutputSha256": "0e0eea6665bf102651364624a8dceab6b668cdc142bc328c7d3e264b50c68e8d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c87b56c843bd34604701f31bca7611cf04430c9497e96c3724c93ca82ec04497"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-test-motion-parameters-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_from",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsTestMotionParameters3D\u0000set_from\u0000hash:2952846383",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/physics_3d/physics_server_3d.h",
+        "sourceSymbol": "PhysicsTestMotionParameters3D.set_from",
+        "sourceLine": 952
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "25d9aef22c4e435cf4ab0855fcd5039d6ef86a43c0b0527efc5d40aa1a94835f",
+        "callsite": "res://probe.gd _init() set_from",
+        "observedOutputSha256": "cfbc0e1e24ac4b0cde88c6d3bc6a9c18f0b81bdceda68c13f56bdfab017855a1"
+      },
+      "target": {
+        "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b",
+        "callsite": "lib/godot-compat/physics-test-motion-parameters-3d.ts set_from",
+        "observedOutputSha256": "68cb016ab8cc49f48700354b8cfb4129bb4c2f7f28f612cb56e6d7d991623846"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "60f933b8fab2294258400abea5a528c9fb3b3c4333b874e1fda942e4d2662665"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-test-motion-parameters-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_motion",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsTestMotionParameters3D\u0000set_motion\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/physics_3d/physics_server_3d.h",
+        "sourceSymbol": "PhysicsTestMotionParameters3D.set_motion",
+        "sourceLine": 955
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "8b4e415269e9ad4b2c5dab821e609804be84b929a45e4819e1d67c225406a2f8",
+        "callsite": "res://probe.gd _init() set_motion",
+        "observedOutputSha256": "50e3fbad76c089d25f18af65599cc49c55896c21fb3d724d5bd1efd565c42c01"
+      },
+      "target": {
+        "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b",
+        "callsite": "lib/godot-compat/physics-test-motion-parameters-3d.ts set_motion",
+        "observedOutputSha256": "77f80a0fbc01f57316f4af967d6fe279b3fce290fbfe92a4d05a5aeb53a28f84"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ee4ea24cfa883fdb3081abe4763eac8ac389a0053d0f5c9a35c705849679ae86"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-test-motion-parameters-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_margin",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsTestMotionParameters3D\u0000set_margin\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/physics_3d/physics_server_3d.h",
+        "sourceSymbol": "PhysicsTestMotionParameters3D.set_margin",
+        "sourceLine": 958
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "320b7058cf4805ce55de3ed1a6a446106147e942f2e0963f9b26cf5f0c4e2b0b",
+        "callsite": "res://probe.gd _init() set_margin",
+        "observedOutputSha256": "4b48c3e43ff8a7965e0afee716d74ad67876ea921af94ec32bf5c8968edc1542"
+      },
+      "target": {
+        "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b",
+        "callsite": "lib/godot-compat/physics-test-motion-parameters-3d.ts set_margin",
+        "observedOutputSha256": "98bbdd525deea89ca8f055158376b16c8c267f235032f7112aa20e31bd7f8c12"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5cf42fdbb68e015a2430170ea9c6284d80195a59856c8c22ebcee831b0ff6fcb"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-test-motion-parameters-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_max_collisions",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsTestMotionParameters3D\u0000set_max_collisions\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/physics_3d/physics_server_3d.h",
+        "sourceSymbol": "PhysicsTestMotionParameters3D.set_max_collisions",
+        "sourceLine": 961
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "217768ca879363cb8f47a892ab557f83bdfdc7de62555c6d2ec0f9ed4aa638a4",
+        "callsite": "res://probe.gd _init() set_max_collisions",
+        "observedOutputSha256": "dc062e8064cc4c4c03b9dec8204fc60c53b939b50352e03b73bad41f14ead3b1"
+      },
+      "target": {
+        "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b",
+        "callsite": "lib/godot-compat/physics-test-motion-parameters-3d.ts set_max_collisions",
+        "observedOutputSha256": "d471b33e92dea3156f0f98a0c5cf8a9ea827b454228e4daf9e2a08f4ad659a82"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e7212d0e76fcecdc2bf865c81d0ef39c4eaa7a192af491d893c5d252c922e93d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-test-motion-parameters-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_collide_separation_ray_enabled",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsTestMotionParameters3D\u0000set_collide_separation_ray_enabled\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/physics_3d/physics_server_3d.h",
+        "sourceSymbol": "PhysicsTestMotionParameters3D.set_collide_separation_ray_enabled",
+        "sourceLine": 964
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c73052c6a802e0ae599f1ba862dbbe03090881ba84e724af5fcc8cf6f82df3cb",
+        "callsite": "res://probe.gd _init() set_collide_separation_ray_enabled",
+        "observedOutputSha256": "51eef71ff4218f7d24d9406146ed057585856f109fb08c23ab7c4379ca05a8ad"
+      },
+      "target": {
+        "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b",
+        "callsite": "lib/godot-compat/physics-test-motion-parameters-3d.ts set_collide_separation_ray_enabled",
+        "observedOutputSha256": "045eea6a2799b309bfe5d592d0f95a27c6131937888702112b5933455d6b6266"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a0036de8f029fab45037e9fb1c93076f754646568134f6a80bc397618060f03e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-test-motion-parameters-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_recovery_as_collision_enabled",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsTestMotionParameters3D\u0000set_recovery_as_collision_enabled\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/physics_3d/physics_server_3d.h",
+        "sourceSymbol": "PhysicsTestMotionParameters3D.set_recovery_as_collision_enabled",
+        "sourceLine": 973
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4226926c38078116bf9244db0ab129df5035df135eed7984ca11d806ff325f0f",
+        "callsite": "res://probe.gd _init() set_recovery_as_collision_enabled",
+        "observedOutputSha256": "077fa4bc3c561387039b22e97bab16c18d5cb15da83ead8b67834f7296edbfe2"
+      },
+      "target": {
+        "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b",
+        "callsite": "lib/godot-compat/physics-test-motion-parameters-3d.ts set_recovery_as_collision_enabled",
+        "observedOutputSha256": "ac486ab194a96ea557c471a2b3cc29989479c01eb6de9f0c729a49e917269a6a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "eec631b2a86cab35c42508085b836edc23da64e90ce43abc51bd6892205f3edc"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-test-motion-parameters-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_exclude_bodies",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsTestMotionParameters3D\u0000set_exclude_bodies\u0000hash:381264803",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/physics_3d/physics_server_3d.cpp",
+        "sourceSymbol": "PhysicsTestMotionParameters3D.set_exclude_bodies",
+        "sourceLine": 511
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "78902a352ccdb3ceedc5ea5a15e4888bb3dd863e9790178b02cfde0e04ec6d93",
+        "callsite": "res://probe.gd _init() set_exclude_bodies",
+        "observedOutputSha256": "5dbce78f788d6b8d09360622e020587f7d962018e0105b91a27fc192fd5286ac"
+      },
+      "target": {
+        "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b",
+        "callsite": "lib/godot-compat/physics-test-motion-parameters-3d.ts set_exclude_bodies",
+        "observedOutputSha256": "e236dee54b5376acdff98a332a0671df5679054fc07f54ed2c300cd62d03cdf1"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6b7a0be6edaf7ec0f35c37447b6898dcf9a5cee81b61306fab7dde5ebeb5c7ff"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-test-motion-parameters-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.get_from",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d8922a5dcd6ee8d897c6bdddb816a8fa45d5d97ace93933dd6086d8f1c508589",
+      "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.get_motion",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4909d027cdb2da9f4bb1d535e26f91a2db455a4d5f724c454bf37a8321863ab6",
+      "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.get_margin",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b36892220892b2aa885385530a5db5b10f4eb37d592fdfa6eb5f6d92b024a74f",
+      "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.get_max_collisions",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a4454d67b1dac50d242d1b39c9ad3ab18704b55ab7e71c864b9d01c1593ae113",
+      "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.is_collide_separation_ray_enabled",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f10605c0c0c6bf68699242b095ca8f4a1c645d2760410c7b12bf08f857689ed2",
+      "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.is_recovery_as_collision_enabled",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1d0ef8ac4b05b881411c3192b7ec8dde365d06498dbc32e28a60972578588506",
+      "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_from",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "25d9aef22c4e435cf4ab0855fcd5039d6ef86a43c0b0527efc5d40aa1a94835f",
+      "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_motion",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "8b4e415269e9ad4b2c5dab821e609804be84b929a45e4819e1d67c225406a2f8",
+      "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_margin",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "320b7058cf4805ce55de3ed1a6a446106147e942f2e0963f9b26cf5f0c4e2b0b",
+      "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_max_collisions",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "217768ca879363cb8f47a892ab557f83bdfdc7de62555c6d2ec0f9ed4aa638a4",
+      "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_collide_separation_ray_enabled",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c73052c6a802e0ae599f1ba862dbbe03090881ba84e724af5fcc8cf6f82df3cb",
+      "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_recovery_as_collision_enabled",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4226926c38078116bf9244db0ab129df5035df135eed7984ca11d806ff325f0f",
+      "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsTestMotionParameters3D.set_exclude_bodies",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "78902a352ccdb3ceedc5ea5a15e4888bb3dd863e9790178b02cfde0e04ec6d93",
+      "implementationSha256": "50dd36c009ca27d411193ee866c72712af257bfcb1b360e9990e872fc65f7c1b"
+    }
+  ]
+}

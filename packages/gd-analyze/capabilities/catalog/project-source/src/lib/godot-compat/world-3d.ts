@@ -71,7 +71,7 @@ export function godot_world_3d_attach(world: World): World3D {
     },
     step: (delta: number) => {
       godot_collision_objects_sync(world);
-      godot_collision_objects_step(world);
+      godot_collision_objects_step(world, delta);
       for (const handler of stepHandlers) handler(world, delta);
       godot_collision_objects_settle();
       world.timestep = delta;

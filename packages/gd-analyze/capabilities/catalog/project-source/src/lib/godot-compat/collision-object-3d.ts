@@ -30,6 +30,7 @@ import { godot_node_entity, godot_node_is_freed, godot_node_object, is_inside_tr
 import { get_global_transform, get_transform } from './node-3d';
 import { godot_shape_3d_collider } from './shape-3d';
 import { affine_inverse, construct as transform3d, type Transform3D } from './transform-3d';
+import { construct as vector3, op_divide, op_subtract, type Vector3 } from './vector3';
 
 export type CollisionObjectKind = 'static' | 'character' | 'rigid' | 'area';
 
@@ -65,6 +66,8 @@ interface ObjectState {
   moved: boolean;
   /** A kinematic body that moved in this step (in the space's active list, `godot_body_3d.cpp:705`). */
   active: boolean;
+  /** A kinematic body's velocity: its last step's motion over the step (`godot_body_3d.cpp:616`). */
+  linearVelocity: Vector3;
   readonly exceptions: Set<object>;
 }
 
@@ -97,6 +100,7 @@ export function godot_collision_object_adopt(entity: object, kind: CollisionObje
     pending: undefined,
     moved: false,
     active: false,
+    linearVelocity: vector3(),
     exceptions: new Set(),
   });
 }
@@ -130,6 +134,7 @@ export function godot_collision_object_state(entity: object):
       readonly inverse: Transform3D;
       readonly moved: boolean;
       readonly active: boolean;
+      readonly linearVelocity: Vector3;
     }
   | undefined {
   return OBJECT.get(godot_node_entity(entity));
@@ -362,10 +367,16 @@ export function godot_collision_objects_transforms_changed(): void {
  * @godot CollisionObject3D (protocol)
  * @source modules/godot_physics_3d/godot_physics_server_3d.cpp:1679
  */
-export function godot_collision_objects_step(world: World): void {
+export function godot_collision_objects_step(world: World, delta: number): void {
   for (const state of OBJECT.values()) updateShapes(state);
+  const step = Math.fround(delta);
   for (const [entity, state] of OBJECT) {
     state.active = state.pending !== undefined;
+    if (state.kind === 'character') {
+      // `linear_velocity = motion / p_step` from the held transform (`godot_body_3d.cpp:616`).
+      const target = state.pending ?? state.transform;
+      state.linearVelocity = op_divide(op_subtract(target.origin, state.transform.origin), step);
+    }
     if (state.pending === undefined) continue;
     godot_collision_object_place(entity, state.pending);
     state.pending = undefined;
@@ -381,6 +392,41 @@ export function godot_collision_objects_step(world: World): void {
  */
 export function godot_collision_objects_settle(): void {
   for (const state of OBJECT.values()) state.moved = false;
+}
+
+/**
+ * The server's pending shapes join the broad phase (`GodotPhysicsServer3D::_update_shapes`, which
+ * `body_test_motion` runs first, `godot_physics_server_3d.cpp:946`).
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source modules/godot_physics_3d/godot_physics_server_3d.cpp:946
+ */
+export function godot_collision_objects_update_shapes(): void {
+  for (const state of OBJECT.values()) updateShapes(state);
+}
+
+/**
+ * A Godot transform as a Rapier pose: its origin and the quaternion of its (orthonormal) basis.
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source core/math/basis.cpp:780
+ */
+export function godot_collision_object_pose(transform: Transform3D): {
+  readonly translation: { x: number; y: number; z: number };
+  readonly rotation: { x: number; y: number; z: number; w: number };
+} {
+  return { translation: { x: transform.origin.x, y: transform.origin.y, z: transform.origin.z }, rotation: rotationOf(transform) };
+}
+
+/**
+ * A body's collision exceptions (`GodotBody3D::exceptions`, `godot_body_3d.h:132`), which
+ * `add_collision_exception_with` fills.
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source modules/godot_physics_3d/godot_body_3d.h:132
+ */
+export function godot_collision_object_exceptions(entity: object): Set<object> {
+  return stateOf(entity, 'add_collision_exception_with').exceptions;
 }
 
 /**
