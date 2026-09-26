@@ -64,6 +64,9 @@ export function TransportBar(props: {
   /** Whether the transport repeats the loop region instead of the whole piece. */
   readonly looping: boolean;
   readonly onLoop: () => void;
+  /** Whether the preview clicks each beat while playing. */
+  readonly metronome: boolean;
+  readonly onMetronome: () => void;
 }) {
   const { piece, playing, engineState, playhead } = props;
   return (
@@ -84,6 +87,16 @@ export function TransportBar(props: {
         style={{ ...button, background: props.looping ? themeVars.semantic.warning : themeVars.surface.raised, color: props.looping ? themeVars.surface.panel : themeVars.content.primary }}
       >
         Loop
+      </button>
+      <button
+        type="button"
+        data-control="metronome"
+        aria-pressed={props.metronome}
+        onClick={props.onMetronome}
+        title="Metronome: click each beat while playing"
+        style={{ ...button, background: props.metronome ? themeVars.semantic.warning : themeVars.surface.raised, color: props.metronome ? themeVars.surface.panel : themeVars.content.primary }}
+      >
+        Metronome
       </button>
       <span style={{ flex: 1 }} />
       {engineState.kind === 'loading' ? <span style={small}>{engineState.detail}…</span> : null}

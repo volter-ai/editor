@@ -268,6 +268,40 @@ export class PreviewEngine {
   /** The loop region in beats (`setLoop`), or `null` to repeat the whole piece. */
   private loopBeats: { readonly from: number; readonly to: number } | null = null;
 
+  /** Whether the metronome clicks each beat while playing (`setMetronome`). */
+  private metronomeOn = false;
+  /** Where the clicks go: straight to the context's destination, past the mix. Exists while the metronome is on. */
+  private clickOut: GainNode | null = null;
+
+  get metronome(): boolean {
+    return this.metronomeOn;
+  }
+
+  /** Click every beat from the next tick on (the downbeat higher and louder), or stop clicking. */
+  setMetronome(on: boolean): void {
+    this.metronomeOn = on;
+    if (!on) {
+      this.clickOut?.disconnect();
+      this.clickOut = null;
+    }
+  }
+
+  /** One click: a short sine blip at `when` on the audio clock, enveloped so it never pops. */
+  private blip(context: AudioContext, when: number, accent: boolean): void {
+    if (!this.clickOut) {
+      this.clickOut = context.createGain();
+      this.clickOut.connect(context.destination);
+    }
+    const oscillator = context.createOscillator();
+    oscillator.frequency.value = accent ? 1760 : 1320;
+    const envelope = context.createGain();
+    envelope.gain.setValueAtTime(accent ? 0.5 : 0.3, when);
+    envelope.gain.exponentialRampToValueAtTime(0.001, when + 0.04);
+    oscillator.connect(envelope).connect(this.clickOut);
+    oscillator.start(when);
+    oscillator.stop(when + 0.05);
+  }
+
   /** The loop region the transport repeats, in beats, or `null` when it repeats the whole piece. */
   get loop(): { readonly from: number; readonly to: number } | null {
     return this.loopBeats;
@@ -306,10 +340,11 @@ export class PreviewEngine {
 
   /**
    * What the engine has built, for a reader: whether a synth and graph exist, the signature of the
-   * graph sounding, whether the synth feeds it, and the banks loaded.
+   * graph sounding, whether the synth feeds it, the banks loaded, and whether the metronome's
+   * output node exists.
    */
-  get wiring(): { readonly synth: boolean; readonly mixBuiltFor: string; readonly connected: boolean; readonly banks: readonly string[] } {
-    return { synth: this.synth !== null, mixBuiltFor: this.mixBuiltFor, connected: this.mix?.connected ?? false, banks: [...this.bankOffsets.keys()] };
+  get wiring(): { readonly synth: boolean; readonly mixBuiltFor: string; readonly connected: boolean; readonly banks: readonly string[]; readonly metronome: boolean } {
+    return { synth: this.synth !== null, mixBuiltFor: this.mixBuiltFor, connected: this.mix?.connected ?? false, banks: [...this.bankOffsets.keys()], metronome: this.clickOut !== null };
   }
 
   subscribe(listener: (state: EngineState) => void): () => void {
@@ -481,6 +516,9 @@ export class PreviewEngine {
     this.transport++;
     this.stopTimer();
     this.synth?.stopAll(true);
+    // Clicks already scheduled ahead go with their node; the next tick makes a new one.
+    this.clickOut?.disconnect();
+    this.clickOut = null;
     if (this.state.kind === 'playing' || this.state.kind === 'loading') this.setState({ kind: 'idle' });
   }
 
@@ -494,6 +532,8 @@ export class PreviewEngine {
     this.epoch++;
     this.request++;
     this.mix?.dispose();
+    this.clickOut?.disconnect();
+    this.clickOut = null;
     this.synth?.destroy();
     void this.context?.close();
     this.mix = null;
@@ -541,7 +581,21 @@ export class PreviewEngine {
     const horizon = this.originSecond + (context.currentTime + LOOKAHEAD_S - this.originTime);
     if (horizon <= this.scheduledTo) return;
     const at = (second: number): number => this.originTime + (second - this.originSecond);
-    scheduleSpan(synth, piece, performance, this.scheduledTo, horizon, at, this.patches, this.region(performance, this.originSecond));
+    const region = this.region(performance, this.originSecond);
+    scheduleSpan(synth, piece, performance, this.scheduledTo, horizon, at, this.patches, region);
+    if (this.metronomeOn) {
+      // Every beat whose piece-second falls in each pass, the bar's first one accented.
+      const beatsPerBar = piece.transport.beatsPerBar;
+      for (const pass of passes(this.scheduledTo, horizon, region)) {
+        for (let beat = Math.ceil(performance.beatAt(pass.from) - 1e-6); ; beat++) {
+          const second = performance.secondsAt(beat);
+          if (second >= pass.to - 1e-9) break;
+          if (second < pass.from - 1e-9) continue;
+          const inBar = beat % beatsPerBar;
+          this.blip(context, at(pass.offset + second), Math.min(inBar, beatsPerBar - inBar) < 1e-6);
+        }
+      }
+    }
     this.scheduledTo = horizon;
   }
 }

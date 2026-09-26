@@ -50,6 +50,8 @@ export interface PieceDocumentContext {
   readonly start: number;
   /** The region the engine repeats, in beats, or `null` for the whole piece (Loop off). */
   readonly loop: { readonly from: number; readonly to: number } | null;
+  /** Whether the engine clicks the beat while playing. */
+  readonly metronome: boolean;
   play(fromBeat?: number): Promise<void>;
   stop(): void;
 }
@@ -95,6 +97,8 @@ export function PieceEditor({
   // engine is handed, never written into the piece.
   const [loopRegion, setLoopRegion] = useState<{ readonly from: number; readonly to: number } | null>(null);
   const [looping, setLooping] = useState(false);
+  const [metronome, setMetronome] = useState(false);
+  useEffect(() => engine.setMetronome(metronome), [engine, metronome]);
 
   useEffect(() => {
     if (!publishContext) return;
@@ -117,6 +121,9 @@ export function PieceEditor({
       },
       get loop() {
         return engine.loop;
+      },
+      get metronome() {
+        return engine.metronome;
       },
       play: (fromBeat = startRef.current) => engine.play(fromBeat),
       stop: () => engine.stop(),
@@ -231,6 +238,8 @@ export function PieceEditor({
         onZoom={setPxPerBeat}
         looping={looping}
         onLoop={() => setLooping((on) => !on)}
+        metronome={metronome}
+        onMetronome={() => setMetronome((on) => !on)}
       />
       {live.error ? (
         <div style={{ padding: '4px 10px', color: themeVars.semantic.danger, borderBottom: `1px solid ${themeVars.boundary.default}` }}>
