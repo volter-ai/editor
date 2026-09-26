@@ -39,7 +39,6 @@ import { checkPiece } from '../src/checks';
 import { measureLoop, nullResidualDb } from '../src/measure';
 import { assignChannels, audibleTracks, mixLoop, mixOneShot, pieceToMidi, type RenderedLoop, renderChannels, seamRatio } from '../src/render-offline';
 import type { ImpulseResponse } from '../src/mix/offline-mix';
-import { slicePiece } from '../src/slice-piece';
 import { loopWav24, wav24, readWav } from '../src/wav';
 
 const TARGETS: Record<string, number> = { console: -24, portable: -18 };
@@ -177,8 +176,8 @@ if (sections) {
   for (let i = 0; i < markers.length; i++) {
     const marker = markers[i]!;
     const end = markers[i + 1]?.time ?? piece.length;
-    const section = slicePiece(piece, marker.time, end);
-    const audio = mixLoop(await renderChannels(section, bank, undefined, undefined, irs));
+    // The section is that stretch of the whole piece's performance, looped on itself.
+    const audio = mixLoop(await renderChannels(piece, bank, undefined, undefined, irs, 2, { fromBeat: marker.time, toBeat: end }));
     scale(audio, preGain * 10 ** (gainDb / 20));
     const base = safeName(marker.name);
     let file = base;
@@ -187,7 +186,7 @@ if (sections) {
     const wav = join(directory, `${file}.wav`);
     writeFileSync(wav, loopWav24(audio.left, audio.right, audio.sampleRate));
     encodeOgg(wav, join(directory, `${file}.ogg`));
-    sectionReports.push({ name: marker.name, bar: marker.time / beatsPerBar + 1, bars: section.length / beatsPerBar, seconds: audio.loopSeconds, file: `sections/${file}.ogg` });
+    sectionReports.push({ name: marker.name, bar: marker.time / beatsPerBar + 1, bars: (end - marker.time) / beatsPerBar, seconds: audio.loopSeconds, file: `sections/${file}.ogg` });
   }
 }
 const performance = perform(piece);

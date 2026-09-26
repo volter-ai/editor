@@ -11,7 +11,7 @@
 import { perform } from '@volter/dawproject/perform';
 import type { Piece } from '@volter/dawproject/piece';
 import { type ImpulseResponse, mix } from './mix/offline-mix';
-import { MIDIBuilder, SoundBankLoader, SpessaSynthProcessor, SpessaSynthSequencer } from 'spessasynth_core';
+import { MIDIBuilder, SoundBankLoader, SpessaSynthProcessor } from 'spessasynth_core';
 
 const PPQ = 480;
 const DRUM_CHANNEL = 9;
@@ -64,7 +64,7 @@ export function audibleTracks(piece: Piece): Piece['tracks'] {
  * `only` (track ids) writes a subset of the audible tracks, on the channels they have in the
  * full piece: a stem is the same performance with the other tracks left out.
  */
-export function pieceToMidi(piece: Piece, passes = 1, only?: ReadonlySet<string>, forMix = false): MIDIBuilder {
+export function pieceToMidi(piece: Piece, passes = 1, only?: ReadonlySet<string>): MIDIBuilder {
   const performance = perform(piece);
   const midi = new MIDIBuilder({ timeDivision: PPQ, initialTempo: piece.transport.tempo, name: 'piece', format: 1 });
   const assignments = assignChannels(piece);
@@ -94,12 +94,10 @@ export function pieceToMidi(piece: Piece, passes = 1, only?: ReadonlySet<string>
       midi.controllerChange(0, trackIndex, channel, 0, assignment.bankNumber);
       midi.programChange(0, trackIndex, channel, assignment.program);
     }
-    // A file for another DAW carries the channel's level and pan as CC7/CC10. Rendered through the
-    // mix (`forMix`), the synth channel stays at unity and centre: the mix's faders and panners
-    // apply them, once, exactly as the editor does.
-    const volume = forMix ? 127 : Math.max(0, Math.min(127, Math.round(127 * 10 ** ((track.channel?.volume ?? 0) / 40))));
+    // A file for another DAW carries the channel's level and pan as CC7/CC10.
+    const volume = Math.max(0, Math.min(127, Math.round(127 * 10 ** ((track.channel?.volume ?? 0) / 40))));
     midi.controllerChange(0, trackIndex, channel, 7, volume);
-    midi.controllerChange(0, trackIndex, channel, 10, forMix ? 64 : Math.max(0, Math.min(127, Math.round(64 + (track.channel?.pan ?? 0) * 63))));
+    midi.controllerChange(0, trackIndex, channel, 10, Math.max(0, Math.min(127, Math.round(64 + (track.channel?.pan ?? 0) * 63))));
     for (let pass = 0; pass < passes; pass++) {
       for (const control of performance.controls) {
         if (control.track !== track.id) continue;
@@ -137,10 +135,103 @@ export interface RenderedChannels {
   readonly irs: ReadonlyMap<string, ImpulseResponse>;
 }
 
+/** One thing the synth does, at one sample: a note, a controller, a channel's setup. */
+interface SynthEvent {
+  readonly sample: number;
+  /** Among events on one sample: setup first, then controllers, note-offs, note-ons. */
+  readonly rank: number;
+  readonly apply: (synth: SpessaSynthProcessor) => void;
+}
+
+/** A stretch of the piece, in beats: a section from its marker to the next. */
+export interface BeatWindow {
+  readonly fromBeat: number;
+  readonly toBeat: number;
+}
+
 /**
- * Run the synth once over the whole piece (two passes by default, plus a tail), each MIDI channel into its own
- * stereo buffer with the synth's own effects off. The mix and every stem are then mixed from these
- * buffers (`mixLoop`), so a stem is exactly its track's share of the mix.
+ * The piece's performance as synth events at exact samples, `passes` times through. Each audible
+ * track's channel is set up at sample 0 (bank, program, and unity level and centre: the mix's
+ * faders and panners apply the channel's own, once, exactly as the editor does); then every
+ * controller and note at the sample its performed second falls on.
+ *
+ * A `window` is that stretch of the SAME performance, not a performance of a shorter piece: the
+ * notes that start in it, played exactly as they are in the whole piece (the humanize drift is a
+ * walk over the whole track, so a section performed on its own would drift differently), and each
+ * controller's value at the window's start carried in.
+ */
+function synthEvents(piece: Piece, passes: number, sampleRate: number, window?: BeatWindow): { events: SynthEvent[]; loopSeconds: number } {
+  const performance = perform(piece);
+  const assignments = assignChannels(piece);
+  const channelOf = new Map([...assignments].map(([trackId, assignment]) => [trackId, assignment.channel]));
+  const from = window ? performance.secondsAt(window.fromBeat) : 0;
+  const to = window ? performance.secondsAt(window.toBeat) : performance.secondsAt(Math.max(1, piece.length));
+  const loopSeconds = to - from;
+  const inWindow = (second: number): boolean => second >= from - 1e-9 && second < to - 1e-9;
+  // Each controller's last value before the window, sounding from its first sample.
+  const carried = new Map<string, (typeof performance.controls)[number]>();
+  for (const control of performance.controls) {
+    if (control.time >= from - 1e-9) continue;
+    const key = `${control.track}:${control.controller}`;
+    const held = carried.get(key);
+    if (!held || held.time <= control.time) carried.set(key, control);
+  }
+  const controls = [...[...carried.values()].map((control) => ({ ...control, time: 0 })), ...performance.controls.filter((control) => inWindow(control.time)).map((control) => ({ ...control, time: control.time - from }))];
+  const notes = performance.notes.filter((note) => inWindow(note.start)).map((note) => ({ ...note, start: note.start - from, end: note.end - from }));
+  const events: SynthEvent[] = [];
+  for (const track of audibleTracks(piece)) {
+    const assignment = assignments.get(track.id)!;
+    const { channel } = assignment;
+    events.push({
+      sample: 0,
+      rank: 0,
+      apply: (synth) => {
+        if (channel !== DRUM_CHANNEL) {
+          synth.controllerChange(channel, 0 as never, assignment.bankNumber);
+          synth.programChange(channel, assignment.program);
+        }
+        synth.controllerChange(channel, 7 as never, 127);
+        synth.controllerChange(channel, 10 as never, 64);
+      },
+    });
+  }
+  const audible = new Set(audibleTracks(piece).map((track) => track.id));
+  for (let pass = 0; pass < passes; pass++) {
+    const at = (seconds: number): number => Math.round((pass * loopSeconds + seconds) * sampleRate);
+    for (const control of controls) {
+      const channel = channelOf.get(control.track);
+      if (channel === undefined || !audible.has(control.track)) continue;
+      if (control.controller === 'pitchbend') {
+        const value = Math.max(0, Math.min(16383, Math.round(8192 + control.value * 8191)));
+        events.push({ sample: at(control.time), rank: 1, apply: (synth) => synth.pitchWheel(channel, value) });
+      } else {
+        const controller = control.controller;
+        const value = Math.max(0, Math.min(127, Math.round(control.value * 127)));
+        events.push({ sample: at(control.time), rank: 1, apply: (synth) => synth.controllerChange(channel, controller as never, value) });
+      }
+    }
+    for (const note of notes) {
+      const channel = channelOf.get(note.track);
+      if (channel === undefined || !audible.has(note.track)) continue;
+      const velocity = Math.max(1, Math.min(127, Math.round(note.velocity * 127)));
+      const on = at(note.start);
+      events.push({ sample: on, rank: 3, apply: (synth) => synth.noteOn(channel, note.pitch, velocity) });
+      events.push({ sample: Math.max(on + 1, at(note.end)), rank: 2, apply: (synth) => synth.noteOff(channel, note.pitch) });
+    }
+  }
+  return { events: events.sort((a, b) => a.sample - b.sample || a.rank - b.rank), loopSeconds };
+}
+
+/**
+ * Run the synth once over the whole piece (two passes by default, plus a tail), each MIDI channel
+ * into its own stereo buffer with the synth's own effects off. The mix and every stem are then
+ * mixed from these buffers (`mixLoop`), so a stem is exactly its track's share of the mix.
+ *
+ * The synth is driven from the performance directly, every event on its exact sample: the audio
+ * is rendered up to an event, the event applied, and on. Through a MIDI file and a sequencer
+ * ticked once per 128-sample block, each note landed up to 2.7 ms late, differently for every
+ * pass and every section; measured on one slice rendered twice, the two passes nulled at +1.8 dB
+ * when the loop was not a whole number of blocks and −15.9 dB when it was.
  */
 export async function renderChannels(
   piece: Piece,
@@ -149,6 +240,7 @@ export async function renderChannels(
   tailSeconds = 4,
   irs: ReadonlyMap<string, ImpulseResponse> = new Map(),
   passes = 2,
+  window?: BeatWindow,
 ): Promise<RenderedChannels> {
   const synth = new SpessaSynthProcessor(sampleRate, { eventsEnabled: false });
   synth.soundBankManager.addSoundBank(SoundBankLoader.fromArrayBuffer(soundBank), 'main');
@@ -156,22 +248,26 @@ export async function renderChannels(
   synth.setSystemParameter('autoAllocateVoices', true);
   // The mix owns space and level (`mix/offline-mix.ts`): the synth's own reverb and chorus are off.
   synth.setSystemParameter('effectsEnabled', false);
-  const sequencer = new SpessaSynthSequencer(synth);
-  // The sequencer skips leading silence by default, which would slide a stem whose first note is
-  // late (and a humanised mix by its first note's drift) off the piece's own clock.
-  sequencer.skipToFirstNoteOn = false;
-  sequencer.loadNewSongList([pieceToMidi(piece, passes, undefined, true)]);
-  sequencer.play();
-  const loopSeconds = perform(piece).secondsAt(Math.max(1, piece.length));
+  const { events, loopSeconds } = synthEvents(piece, passes, sampleRate, window);
   const total = Math.ceil(sampleRate * (passes * loopSeconds + tailSeconds));
   const channels = Array.from({ length: 16 }, () => [new Float32Array(total), new Float32Array(total)] as [Float32Array, Float32Array]);
   const effectsLeft = new Float32Array(total);
   const effectsRight = new Float32Array(total);
   const block = 128;
-  for (let filled = 0; filled < total; filled += block) {
-    sequencer.processTick();
-    synth.processSplit(channels, effectsLeft, effectsRight, filled, Math.min(block, total - filled));
+  let filled = 0;
+  const renderTo = (sample: number): void => {
+    while (filled < sample) {
+      const count = Math.min(block, sample - filled);
+      synth.processSplit(channels, effectsLeft, effectsRight, filled, count);
+      filled += count;
+    }
+  };
+  for (const event of events) {
+    if (event.sample >= total) break;
+    renderTo(event.sample);
+    event.apply(synth);
   }
+  renderTo(total);
   return { piece, sampleRate, loopSeconds, channels, irs };
 }
 
