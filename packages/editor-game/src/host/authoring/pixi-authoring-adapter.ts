@@ -84,6 +84,7 @@ import {
 import { CanvasStructureHistory } from './pixi-structure-history';
 import { fromNeutralTransform, toNeutralTransform } from './pixi-transform-channels';
 import { resolvesLiveOnly, runWritePipe } from '@volter/editor-sdk/kit/write-pipe';
+import { editorHost } from '@volter/editor-sdk/host';
 
 /**
  * What a write target is handed at construction — the live view it edits
@@ -302,6 +303,18 @@ export interface PixiAuthoringOptions {
  * `Texture.WHITE` and a size; a graphics gets a drawn rect): a node the author
  * cannot see is indistinguishable from a create that silently failed.
  */
+/** The project-local section holding each canvas world's locked and grouped label paths. */
+const EDIT_LOCKS_SECTION = 'canvasEditLocks';
+type EditLocks = Record<string, { readonly locked: readonly string[]; readonly grouped: readonly string[] }>;
+
+function readEditLocks(): EditLocks {
+  return editorHost().projectLocalState.read<EditLocks>(EDIT_LOCKS_SECTION) ?? {};
+}
+
+function writeEditLocks(world: string, locks: EditLocks[string]): void {
+  editorHost().projectLocalState.write(EDIT_LOCKS_SECTION, { ...readEditLocks(), [world]: locks });
+}
+
 const CANVAS_CREATABLE_KINDS: readonly { kind: string; label: string }[] = [
   { kind: 'container', label: 'Container' },
   { kind: 'sprite', label: 'Sprite' },
@@ -669,10 +682,17 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
     | undefined;
   private listeners = new Set<() => void>();
   private boxEditSessions = new Map<string, CanvasBoxEditSession>();
-  private lockedIds = new Set<string>();
-  /** Godot's Group: a click on any node inside a grouped one selects the group. Session-local, as
-   *  the lock is. */
-  private groupedIds = new Set<string>();
+  /**
+   * Lock (a click passes through the node) and Godot's Group (a click inside a grouped node selects
+   * the group), held by each node's label path in this world so they survive the remount a source
+   * write causes and the next session. Kept per checkout, as Unity keeps scene pickability per
+   * user; Godot writes them into the scene file instead.
+   */
+  private lockedPaths = new Set<string>();
+  private groupedPaths = new Set<string>();
+  private readonly editLockWorld: string;
+  /** Each node's label path, cleared whenever the tree is re-projected. */
+  private pathKeys = new Map<string, string>();
 
   constructor(
     private readonly root: Container,
@@ -750,6 +770,10 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
         this.target.provenance.source === 'source-code' && this.target.persistence !== undefined,
     };
     this.target.bind({ a2d: this.a2d, store, journal: opts.journal, notify: () => this.notify() });
+    this.editLockWorld = opts.journal.id;
+    const saved = readEditLocks()[this.editLockWorld];
+    this.lockedPaths = new Set(saved?.locked ?? []);
+    this.groupedPaths = new Set(saved?.grouped ?? []);
     const structure = this.target.structure ?? this.liveStructure;
     // A placed creation reaches the structure in the new node's PARENT's own space: the target
     // writes `x`/`y` as authored, and only this adapter knows the frame `rects` answer in.
@@ -858,6 +882,7 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
     queueMicrotask(() => {
       this.structureNotifyQueued = false;
       this.projector.reproject();
+      this.pathKeys.clear();
       this.watchStructure(this.root);
       this.target.onReindex();
       this.notify();
@@ -1022,6 +1047,7 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
    */
   private afterStructuralChange(): void {
     this.projector.reproject();
+    this.pathKeys.clear();
     this.watchStructure(this.root);
     this.target.onReindex();
     this.notify();
@@ -1537,15 +1563,19 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
     ],
     get: (id, path) =>
       path === 'locked'
-        ? this.lockedIds.has(id)
+        ? this.lockedPaths.has(this.pathKeyOf(id))
         : path === 'grouped'
-          ? this.groupedIds.has(id)
+          ? this.groupedPaths.has(this.pathKeyOf(id))
           : this.target.get(id, path),
     set: (id, path, value) => {
       if (path === 'locked' || path === 'grouped') {
-        const set = path === 'locked' ? this.lockedIds : this.groupedIds;
-        if (value === true) set.add(id);
-        else set.delete(id);
+        const set = path === 'locked' ? this.lockedPaths : this.groupedPaths;
+        if (value === true) set.add(this.pathKeyOf(id));
+        else set.delete(this.pathKeyOf(id));
+        writeEditLocks(this.editLockWorld, {
+          locked: [...this.lockedPaths],
+          grouped: [...this.groupedPaths],
+        });
         this.notify();
         return;
       }
@@ -1555,12 +1585,36 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
     remove: (id, path) => this.target.remove?.(id, path),
   };
 
+  /** `id`'s label path from its world's root: each step the authored label and its place among
+   *  same-labelled siblings, so it holds across line edits and reloads (a rename drops it). */
+  private pathKeyOf(id: string): string {
+    const known = this.pathKeys.get(id);
+    if (known !== undefined) return known;
+    const labelOf = (nodeId: string): string => this.projector.object(nodeId)?.label ?? '';
+    const segments: string[] = [];
+    let current: string | null = id;
+    while (current) {
+      const node = this.projector.node(current);
+      if (!node) break;
+      const siblings = node.parentId
+        ? (this.projector.node(node.parentId)?.childIds ?? [])
+        : this.projector.roots().map((root) => root.id);
+      const label = labelOf(current);
+      const place = siblings.filter((sibling) => labelOf(sibling) === label).indexOf(current);
+      segments.unshift(`${label}#${Math.max(0, place)}`);
+      current = node.parentId ?? null;
+    }
+    const key = segments.join('/');
+    this.pathKeys.set(id, key);
+    return key;
+  }
+
   /** The outermost grouped node that contains `id`, or `id` itself when none does. */
   private groupOf(id: string): string {
     let group = id;
     let current: string | null = id;
     while (current) {
-      if (this.groupedIds.has(current)) group = current;
+      if (this.groupedPaths.has(this.pathKeyOf(current))) group = current;
       current = this.projector.node(current)?.parentId ?? null;
     }
     return group;
@@ -1569,7 +1623,7 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
   private isPickLocked(id: string): boolean {
     let current: string | null = id;
     while (current) {
-      if (this.lockedIds.has(current)) return true;
+      if (this.lockedPaths.has(this.pathKeyOf(current))) return true;
       current = this.projector.node(current)?.parentId ?? null;
     }
     return false;
@@ -1588,8 +1642,7 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
 
   dispose(): void {
     this.boxEditSessions.clear();
-    this.lockedIds.clear();
-    this.groupedIds.clear();
+    this.pathKeys.clear();
     for (const object of this.watchedForStructure) {
       object.off('childAdded', this.onStructureChanged);
       object.off('childRemoved', this.onStructureChanged);
