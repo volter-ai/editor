@@ -406,6 +406,12 @@ rule('assign-convert-int-float', 'ASSIGNMENT', 'operator:OP_NONE:25:conversion',
 // A Variant into a float place converts at run time (`write_assign_with_conversion`); a Variant
 // holding a float or an int is that number in JS. (A Variant of another type is a Godot runtime
 // error the target does not raise.)
+// A built-in value into a Variant place is stored as it is (`write_assign`, no conversion).
+rule('assign-builtin-into-variant', 'ASSIGNMENT', 'operator:OP_NONE:25', ['VARIANT:*', B], B, { kind: 'assignment', operator: '=' }, {
+  file: COMPILER,
+  symbol: 'GDScriptCompiler::_parse_expression ASSIGNMENT',
+  line: 982,
+});
 rule('assign-convert-variant-float', 'ASSIGNMENT', 'operator:OP_NONE:25:conversion', [FLOAT, 'VARIANT:Variant'], 'VARIANT:Variant', { kind: 'assignment', operator: '=' }, CONVERSION);
 rule('variable-convert-int-float', 'VARIABLE', 'variable:declared:instance:conversion', [INT, FLOAT], '', structural('variable'), CONVERSION);
 // A bare `return` leaves the function with no value (`OPCODE_RETURN` of nil in a void function).
@@ -815,6 +821,11 @@ static func variant_flow(u):
 \tvar b
 \tb = a
 \treturn b
+
+static func variant_holds_builtin():
+\tvar v
+\tv = "held"
+\treturn v
 
 static func variant_to_vector(u) -> Vector3:
 \tvar v: Vector3 = u
@@ -1462,6 +1473,7 @@ for (const call of ['variant_flow', 'variant_to_vector', 'variant_return']) {
     add(`${call.replaceAll('_', '-')}-from-vector3i`, call, 'Vector3i(1, -2, 3)', () => [{ x: 1, y: -2, z: 3 }]);
   }
 }
+cases.push({ id: 'variant-holds-builtin', call: 'variant_holds_builtin', comparator: 'exact' });
 cases.push({ id: 'inferred-constant-float', call: 'inferred_constant_float', comparator: 'exact' });
 cases.push({
   id: 'members-and-onready',

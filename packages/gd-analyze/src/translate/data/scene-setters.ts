@@ -28,6 +28,10 @@ export type SceneSetterLookup = (className: string, property: string) => SceneSe
  * `MeshInstance3D::_set` (`scene/3d/mesh_instance_3d.cpp:59`): `surface_material_override/N` is
  * `set_surface_override_material(N, value)`, a property the class declares per surface.
  */
+/** Properties whose internal setter forwards to a public method, which the write calls. */
+const FORWARDED_SETTERS: Readonly<Record<string, string>> = {
+  'Control.global_position': 'set_global_position',
+};
 const SURFACE_OVERRIDE = /^surface_material_override\/(\d+)$/;
 
 /**
@@ -105,6 +109,13 @@ export function sceneSetterLookup(
         index = found.index;
         break;
       }
+    }
+    // A property whose setter the dump leaves out (`PROPERTY_USAGE_NONE`) and whose internal setter
+    // only forwards to a public method: `Control::_set_global_position` is
+    // `set_global_position(p_point)` (scene/gui/control.cpp:1492).
+    if (owner !== undefined && setter === undefined) {
+      const forwarded = FORWARDED_SETTERS[`${owner}.${property}`];
+      if (forwarded !== undefined) setter = forwarded;
     }
     if (owner === undefined) return `${className} declares no property ${property}`;
     if (setter === undefined) return `${owner}.${property} has no setter`;
