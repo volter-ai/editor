@@ -95,6 +95,8 @@ export type ViewportAction =
   | { type: 'focus-entity'; id: string }
   | { type: 'focus-selection' }
   | { type: 'focus-scene' }
+  | { type: 'frame-all' }
+  | { type: 'zoom-view'; direction: 1 | -1 }
   | { type: 'snap-selection-to-floor' }
   | { type: 'set-view-preset'; preset: ViewPreset }
   | { type: 'step-view'; step: ViewStep }
@@ -370,6 +372,16 @@ export class ShellStore implements ShellDocumentState {
   /** Focus the viewport camera on the current selection. */
   focusOnSelection(): void {
     this.requestViewportAction({ type: 'focus-selection' });
+  }
+
+  /** Frame everything in the view, selected or not. */
+  frameAll(): void {
+    this.requestViewportAction({ type: 'frame-all' });
+  }
+
+  /** Step the view nearer (1) or farther (-1) by the keymap's zoom step. */
+  zoomView(direction: 1 | -1): void {
+    this.requestViewportAction({ type: 'zoom-view', direction });
   }
 
   /** Frame the whole active scene. A medium may carry more with it (the Three half's game

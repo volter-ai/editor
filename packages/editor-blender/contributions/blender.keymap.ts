@@ -51,11 +51,22 @@ export const keymap: KeymapContribution = {
     'view.opposite': [{ key: '', code: 'Numpad9' }],
     'view.rollLeft': [{ key: '', code: 'Numpad4', shift: true }],
     'view.rollRight': [{ key: '', code: 'Numpad6', shift: true }],
+    // `view3d.view_all` on HOME; `view3d.zoom` on NUMPAD_PLUS/NUMPAD_MINUS and Ctrl+=/Ctrl+-.
+    'view.all': [{ key: '', code: 'Home' }],
+    'view.zoomIn': [{ key: '', code: 'NumpadAdd' }, { key: '', code: 'Equal', ctrl: true }],
+    'view.zoomOut': [{ key: '', code: 'NumpadSubtract' }, { key: '', code: 'Minus', ctrl: true }],
   },
   // `km_view3d` — `view3d.rotate` on MIDDLEMOUSE and `view3d.move` on Shift+MIDDLEMOUSE; the
   // right button is the context menu's, and Shift+Right places the 3D cursor. The factory
   // rotation is Turntable at 0.4° a pixel (`view_rotate_method`,
   // `view_rotate_sensitivity_turntable`, read back from Blender 5.2; a pixel over `UI_SCALE_FAC`,
   // so one CSS pixel on any display), with Auto Perspective on (`use_auto_perspective`).
-  navigation: { orbit: 'middle', turntable: { degreesPerPixel: 0.4 }, autoPerspective: true },
+  // Zoom: a key steps the distance by 1.2 (`view_zoom_apply_step`), and Ctrl+middle drags in the
+  // factory Dolly style (`U.viewzoom`, `viewzoom_scale_value`).
+  navigation: {
+    orbit: 'middle',
+    turntable: { degreesPerPixel: 0.4 },
+    autoPerspective: true,
+    zoom: { step: 1.2, drag: 'dolly' },
+  },
 };

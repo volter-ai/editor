@@ -2181,6 +2181,16 @@ export function Object3DDocumentViewport({
                 case 'toggle-camera-view':
                   host.session?.toggleCameraView();
                   break;
+                case 'frame-all':
+                  if (!host.session?.frame(1, 'all') && host.session?.root) viewport.focusOn(host.session.root);
+                  else if (!host.session) viewport.focusOnScene();
+                  break;
+                case 'zoom-view':
+                  // In a camera view a zoom zooms the camera's frame (`view_zoom_to_window_xy_camera`).
+                  if (host.session?.cameraView() && !host.session.cameraViewLocked())
+                    host.session.zoomCameraView(action.direction > 0 ? 1.2 : 1 / 1.2);
+                  else viewport.zoomStep(action.direction);
+                  break;
                 case 'step-view':
                   // In a camera view only the lock orbits, moving the camera (Blender cancels
                   // it otherwise).

@@ -10,11 +10,11 @@
  *
  *  Regenerate:  node scripts/workbench/generate-keymaps.mjs --checkout <fork dir> --write
  *  Sources (sha256 at generation; the generator refuses when one has moved):
- *    826bae94f0c456f566cb473187c5d0e48f2e53e834e1fb91314b38961e468be7  packages/editor-sdk/src/kit/keymap-presets.ts
- *    2a05e31762620b0cf734310744c95db38a1912d4f084605296aca335f31c2d89  packages/editor-core/src/editor-hotkeys.ts
- *    7841f00f64c7ce51126d0c6e7ebc96d81bf02d747e428aaa703e7d3fac8b1a2c  packages/editor-threejs/src/kit/viewport-hotkeys.ts
- *    3ec8a2cf4011cdfc866d450b90125c4ccdeabd7f16de84e204099790ec1c3cbc  packages/editor-blender/contributions/blender.keymap.ts
- *  93 rules over 54 commands (vgai 40, blender 53).
+ *    8cbc6d45bc0fc2439089225ef6114243e35714d3470ed5ffb6810425325f39e8  packages/editor-sdk/src/kit/keymap-presets.ts
+ *    7e779dc4663c599c4901d3f16f707a2d042e120554b03df6789951a80e047f5f  packages/editor-sdk/src/kit/editor-hotkeys.ts
+ *    b7a7bea8f3419cfe3f999369a77042ee7009b731899f8a72ee9fd95e6f270d15  packages/editor-threejs/src/kit/viewport-hotkeys.ts
+ *    2e0ec417ba7ae4fe6435c898071d06fc42eb5985fe6efa186e21741ec7cc24de  packages/editor-blender/contributions/blender.keymap.ts
+ *  98 rules over 57 commands (vgai 40, blender 58).
  *--------------------------------------------------------------------------------------------*/
 
 /** Every keymap the generated extension carries chords for. */
@@ -50,6 +50,7 @@ export const CARRIED_ACTION_IDS: readonly string[] = [
 	'transform.scale',
 	'transform.select',
 	'transform.translate',
+	'view.all',
 	'view.back',
 	'view.bottom',
 	'view.camera',
@@ -70,6 +71,8 @@ export const CARRIED_ACTION_IDS: readonly string[] = [
 	'view.rollRight',
 	'view.toggleConsole',
 	'view.top',
+	'view.zoomIn',
+	'view.zoomOut',
 	'viewport.cyclePivot',
 	'viewport.frameSelection',
 	'viewport.snapToFloor',

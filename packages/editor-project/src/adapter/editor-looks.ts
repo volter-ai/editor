@@ -81,6 +81,11 @@ export type EditorKeyActionId =
   | 'view.opposite'
   | 'view.rollLeft'
   | 'view.rollRight'
+  /** Frame everything in the view, selected or not (Blender's `view3d.view_all`, Home). */
+  | 'view.all'
+  /** Step the view nearer or farther by the keymap's zoom step (`view3d.zoom`, numpad +/-). */
+  | 'view.zoomIn'
+  | 'view.zoomOut'
   | 'view.perspective'
   /** Switch the view between perspective and orthographic, keeping where it looks from
    *  (Blender's `view3d.view_persportho`, numpad 5). */
@@ -137,6 +142,13 @@ export interface KeymapNavigation {
    * Auto Perspective does (`ED_view3d_persp_ensure`); the axis views themselves are orthographic.
    */
   readonly autoPerspective?: boolean;
+  /**
+   * ZOOM: `step` is the distance factor one zoom key moves by (Blender's `view_zoom_apply_step`,
+   * 1.2); `drag: 'dolly'` makes a zoom drag Blender's Dolly style (`viewzoom_scale_value`: the
+   * distance scales by `2 · (len / len₀ − 1) + 1`, `len` the pointer's height below the region's
+   * top plus 5). Absent: the editor's own.
+   */
+  readonly zoom?: { readonly step: number; readonly drag?: 'dolly' };
 }
 
 export type WorkspaceLayoutRegions = NonNullable<WorkspaceArrangement['regions']>;

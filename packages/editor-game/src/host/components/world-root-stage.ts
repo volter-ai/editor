@@ -819,6 +819,12 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
       case 'step-view':
         viewport.stepView(action.step);
         break;
+      case 'frame-all':
+        viewport.focusOnScene();
+        break;
+      case 'zoom-view':
+        viewport.zoomStep(action.direction);
+        break;
       case 'set-camera-pose':
         viewport.setPose(action.position, action.target, action.fov);
         break;

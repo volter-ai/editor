@@ -1934,6 +1934,43 @@ export class EditorViewport {
       _handleMouseDownRotate(event: PointerEvent): void;
       _handleMouseMoveRotate(event: PointerEvent): void;
       _handleTouchStartRotate(event: PointerEvent): void;
+      _handleMouseDownDolly(event: PointerEvent): void;
+      _handleMouseMoveDolly(event: PointerEvent): void;
+    };
+    // A KEYMAP'S DOLLY DRAG (`KeymapNavigation.zoom.drag`), Blender's `viewzoom_scale_value` in its
+    // factory Dolly style: the distance the drag began at, scaled by `2 · (len / len₀ − 1) + 1`,
+    // `len` the pointer's height below the region's top plus 5 — up closes in, down backs away.
+    // The navigation cluster's Zoom button runs the same rule.
+    const dollyDown = controls._handleMouseDownDolly.bind(this.orbitControls);
+    const dollyMove = controls._handleMouseMoveDolly.bind(this.orbitControls);
+    let dolly: { len0: number; offset: THREE.Vector3; zoom0: number } | null = null;
+    controls._handleMouseDownDolly = (event) => {
+      dollyDown(event);
+      dolly = null;
+      if (activeKeymapNavigation().zoom?.drag !== 'dolly') return;
+      const top = this._canvas.getBoundingClientRect().top;
+      const camera = this.orbitControls.object;
+      dolly = {
+        len0: Math.max(5 + event.clientY - top, 1),
+        offset: camera.position.clone().sub(this.orbitControls.target),
+        zoom0: (camera as THREE.OrthographicCamera).zoom ?? 1,
+      };
+    };
+    controls._handleMouseMoveDolly = (event) => {
+      if (activeKeymapNavigation().zoom?.drag !== 'dolly' || !dolly) {
+        dollyMove(event);
+        return;
+      }
+      const top = this._canvas.getBoundingClientRect().top;
+      const factor = Math.max(0.01, 2 * ((5 + event.clientY - top) / dolly.len0 - 1) + 1);
+      const camera = this.orbitControls.object;
+      if ((camera as THREE.OrthographicCamera).isOrthographicCamera) {
+        (camera as THREE.OrthographicCamera).zoom = dolly.zoom0 / factor;
+        (camera as THREE.OrthographicCamera).updateProjectionMatrix();
+      } else {
+        camera.position.copy(this.orbitControls.target).addScaledVector(dolly.offset, factor);
+      }
+      this.orbitControls.update();
     };
     // A touch rotate is a rotate too, for whoever ensures the projection when one starts.
     const touchDown = controls._handleTouchStartRotate.bind(this.orbitControls);
@@ -2076,6 +2113,27 @@ export class EditorViewport {
     camera.quaternion.copy(rotation);
     camera.position.copy(target).addScaledVector(new THREE.Vector3(0, 0, 1).applyQuaternion(rotation), distance);
     camera.up.set(0, 1, 0).applyQuaternion(rotation);
+    this.orbitControls.update();
+    this.orbitControls.dispatchEvent({ type: 'end' });
+  }
+
+  /**
+   * ONE ZOOM STEP nearer (1) or farther (-1): the distance divided or multiplied by the keymap's
+   * step (`KeymapNavigation.zoom.step`; Blender's `view_zoom_apply_step` is 1.2), about the
+   * orbit's pivot, as a whole gesture (a camera lock writes it).
+   */
+  zoomStep(direction: 1 | -1): void {
+    const step = activeKeymapNavigation().zoom?.step ?? 1.2;
+    const factor = direction > 0 ? 1 / step : step;
+    const camera = this.orbitControls.object;
+    this.orbitControls.dispatchEvent({ type: 'start' });
+    if ((camera as THREE.OrthographicCamera).isOrthographicCamera) {
+      (camera as THREE.OrthographicCamera).zoom /= factor;
+      (camera as THREE.OrthographicCamera).updateProjectionMatrix();
+    } else {
+      const target = this.orbitControls.target;
+      camera.position.sub(target).multiplyScalar(factor).add(target);
+    }
     this.orbitControls.update();
     this.orbitControls.dispatchEvent({ type: 'end' });
   }

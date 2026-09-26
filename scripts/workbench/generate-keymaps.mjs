@@ -17,7 +17,7 @@
  *
  *    packages/editor-sdk/src/kit/keymap-presets.ts        the `vgai` table — the editor's own chords
  *    packages/<pkg>/contributions/*.keymap.ts     each package's keymap (`@vgai/blender`'s G/R/S)
- *    packages/editor-core/src/editor-hotkeys.ts        each action's SCOPE, from its `bind()` call
+ *    packages/editor-sdk/src/kit/editor-hotkeys.ts        each action's SCOPE, from its `bind()` call
  *
  *  It reads them STATICALLY, with the TypeScript compiler API, rather than importing them
  *  through the SDK-facing door the bridge uses (`@vgai/editor-sdk/host`'s `keyboard`). That
@@ -311,6 +311,12 @@ function keyCodeFor(chord, KeyCode) {
 			case 'PageUp': return KeyCode.PageUp;
 			case 'End': return KeyCode.End;
 			case 'Home': return KeyCode.Home;
+			case 'NumpadAdd': return KeyCode.NumpadAdd;
+			case 'NumpadSubtract': return KeyCode.NumpadSubtract;
+			case 'NumpadMultiply': return KeyCode.NumpadMultiply;
+			case 'NumpadDivide': return KeyCode.NumpadDivide;
+			case 'Equal': return KeyCode.Equal;
+			case 'Minus': return KeyCode.Minus;
 		}
 		const letter = /^Key([A-Z])$/.exec(chord.code);
 		if (letter) { return KeyCode.KeyA + (letter[1].charCodeAt(0) - 'A'.charCodeAt(0)); }
@@ -428,7 +434,7 @@ async function main() {
 	const apis = await loadForkKeyApis(args.checkout);
 
 	const presetsFile = join(REPO_ROOT, 'packages/editor-sdk/src/kit/keymap-presets.ts');
-	const hotkeysFile = join(REPO_ROOT, 'packages/editor-core/src/editor-hotkeys.ts');
+	const hotkeysFile = join(REPO_ROOT, 'packages/editor-sdk/src/kit/editor-hotkeys.ts');
 	const packagesDir = join(REPO_ROOT, 'packages');
 	// Every keymap a PACKAGE of this engine contributes. A capability's copied
 	// `src/contributions/*.keymap.ts` is deliberately not here: once copied it is the

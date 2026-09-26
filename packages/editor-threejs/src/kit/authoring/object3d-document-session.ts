@@ -286,8 +286,8 @@ export class Object3DDocumentSession {
     return this.state;
   }
 
-  private resolveFrameBounds(): THREE.Box3 {
-    const selection = this.authoring?.selection?.get() ?? [];
+  private resolveFrameBounds(subject: 'selection' | 'all' = 'selection'): THREE.Box3 {
+    const selection = subject === 'all' ? [] : (this.authoring?.selection?.get() ?? []);
     if (selection.length > 0) {
       const selected = new THREE.Box3();
       let found = false;
@@ -307,12 +307,13 @@ export class Object3DDocumentSession {
 
   /**
    * Frame the subject: the selection if there is one, else this document's
-   * frame box, else the whole root. `fit` scales the fitted distance — 1 is
+   * frame box, else the whole root; `subject: 'all'` passes over the
+   * selection (Blender's View All). `fit` scales the fitted distance — 1 is
    * the tight fit the toolbar's Frame button has always used, >1 pulls back.
    */
-  frame(fit = 1): boolean {
+  frame(fit = 1, subject: 'selection' | 'all' = 'selection'): boolean {
     this.leaveCameraView(false);
-    const bounds = this.resolveFrameBounds();
+    const bounds = this.resolveFrameBounds(subject);
     if (bounds.isEmpty()) {
       // A Frame that does nothing must say why — a model document whose
       // mesh measures as nothing is a defect, never a quiet no-op.

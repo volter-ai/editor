@@ -939,6 +939,23 @@ export async function runDocumentProbe(step: DocumentProbeStep): Promise<Documen
       if (step.button !== undefined && ![0, 1, 2].includes(step.button))
         throw new Error(`Unknown button ${JSON.stringify(step.button)}: 0 primary, 1 middle, 2 secondary.`);
       const element = resolveTarget(scope, step.selector, step.index ?? 0);
+      // Points are FRACTIONS of the element's box. A pixel value lands far outside it and the
+      // gesture silently goes somewhere else, so a point outside 0..1 is refused by name.
+      const box = element.getBoundingClientRect();
+      const points: [string, readonly [number, number]][] = [
+        ['from', step.from],
+        ...(step.via ?? []).map((point, index): [string, readonly [number, number]] => [`via[${index}]`, point]),
+        ['to', step.to],
+      ];
+      for (const [name, point] of points) {
+        if (point.every((value) => Number.isFinite(value) && value >= 0 && value <= 1)) continue;
+        throw new Error(
+          `drag ${name} ${JSON.stringify(point)} is not a fraction of the element's box: points are ` +
+            `[x, y] from 0 to 1 from its top-left ([0.5, 0.5] is its centre). This element is ` +
+            `${Math.round(box.width)} x ${Math.round(box.height)} px at (${Math.round(box.x)}, ${Math.round(box.y)}); ` +
+            `a page pixel px becomes (px - ${Math.round(box.x)}) / ${Math.round(box.width)}.`,
+        );
+      }
       dispatchDrag(
         element,
         step.from,
