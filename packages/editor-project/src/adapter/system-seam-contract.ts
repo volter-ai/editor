@@ -71,6 +71,7 @@ export const NETWORKING_ADAPTER_SHAPE = defineSeamShape<NetworkingAdapter>()({
   ping: { optional: true, kind: 'function', required: 'effect' },
   inspectServer: { optional: true, kind: 'function', required: 'operation' },
   disconnectClient: { optional: true, kind: 'function', required: 'effect' },
+  editServerState: { optional: true, kind: 'function', required: 'effect' },
 });
 
 export const NAVIGATION_ADAPTER_SHAPE = defineSeamShape<NavigationAdapter>()({

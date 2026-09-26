@@ -41,18 +41,16 @@ not a render.
 | Header: connection, room name, room id, session, entities | Monitor's Room status line | present |
 | msgs and bytes in/out, with sparklines | Godot's Down/Up | present |
 | Traffic table (type; in and out counts and bytes) | Godot's RPC and synchronizer tables | present; state and patches are rows of the same table |
-| State tree | Monitor's State tab; Godot's Remote tree | present, read-only: a client cannot write authoritative state |
+| State tree, its numbers, strings and booleans editable on the server | Monitor's State tab; Godot's Remote tree | present: an edit goes through Monitor's `_editStateProperty` on the room server (walked: the player's `x` typed as 9 read 9 on the server) |
 | Message log with Pause, Clear and a type filter | Godot's Start/Stop and Clear | present, always recording |
-| Send (type, JSON payload) | Monitor's Send | into the room as this client; typing into it during Play is not walked (needs the workbench built with the focus gate) |
+| Send (type, JSON payload) | Monitor's Send | into the room as this client (walked on a workbench carrying the focus gate: `position` with `{"x":3,"y":0,"z":2}` moved the player to (3, 2) on the server, and typing "dddddddd" into the field left the running game's player where it was) |
 | Ping, and its round trip | (neither reference; Unity's multiplayer tools show RTT) | present: the SDK's own PING frame through the game's socket (walked: 2 ms on loopback) |
-| Conditioner: latency and jitter, both directions, in order | Unity's network simulator | present; loss is stated as not simulated, because a WebSocket resends what it loses. Driving it during Play is not walked (needs the workbench built with the focus gate) |
+| Conditioner: latency and jitter, both directions, in order | Unity's network simulator | present; loss is stated as not simulated, because a WebSocket resends what it loses. Not walked: its fields are scrub controls the document door's drag does not move |
 | Server: rooms (name, id, clients, lock, age), connections, CPU, memory, state size; the current room's clients with Disconnect | Monitor's room list and Clients tab | present, read from Monitor's own API on the room server, which the editor's `server` configuration turns on (`VGAI_ROOM_MONITOR=1`; a production start leaves Monitor off). Walked: Disconnect took this client's connection to disconnected |
 | Run configuration `play + server`, and the Instances picker of a compound | Godot's multiple-instance run | present |
 
 ## Gaps, the work order
 
-1. Editing the state from the tree, through Monitor's `_editStateProperty` on the server (Monitor's
-   State tab is editable; ours is read-only).
-2. Send to one client from the server's side (Monitor's per-client Send), beside Send as this client.
-3. The schema's types beside the state tree (Godot's Replication panel shows what replicates; a
+1. Send to one client from the server's side (Monitor's per-client Send), beside Send as this client.
+2. The schema's types beside the state tree (Godot's Replication panel shows what replicates; a
    Colyseus schema states it in the server's code).

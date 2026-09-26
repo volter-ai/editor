@@ -432,6 +432,18 @@ async function monitorJson<T>(url: string): Promise<T | null> {
   return (await response.json().catch(() => null)) as T | null;
 }
 
+/** One of Monitor's room actions (`/room/call`), on the current room. */
+async function roomCall(method: string, args: unknown[], what: string): Promise<void> {
+  const mirror = current();
+  if (!mirror) throw new Error('No room is observed.');
+  const query = new URLSearchParams({ roomId: mirror.roomId, method, args: JSON.stringify(args) });
+  const response = await fetch(`${monitorApi(mirror)}/room/call?${query}`);
+  if (response.status === 404) {
+    throw new Error(`The room server serves no Monitor view, so ${what} has nowhere to go (its \`server\` configuration sets VGAI_ROOM_MONITOR=1).`);
+  }
+  if (!response.ok) throw new Error(`The room server refused ${what} (${response.status}).`);
+}
+
 /** The room the inspector reads: the newest one still open, else the newest. */
 function current(): Mirror | null {
   for (let index = mirrors.length - 1; index >= 0; index -= 1) {
@@ -569,17 +581,9 @@ export const observedGameNetwork: NetworkingAdapter = {
         : null,
     };
   },
-  async disconnectClient(sessionId: string): Promise<void> {
-    const mirror = current();
-    if (!mirror) throw new Error('No room is observed.');
-    const query = new URLSearchParams({
-      roomId: mirror.roomId,
-      method: '_forceClientDisconnect',
-      args: JSON.stringify([sessionId]),
-    });
-    const response = await fetch(`${monitorApi(mirror)}/room/call?${query}`);
-    if (!response.ok) throw new Error(`The room server refused the disconnect (${response.status}).`);
-  },
+  disconnectClient: (sessionId: string) => roomCall('_forceClientDisconnect', [sessionId], 'the disconnect'),
+  editServerState: (path: readonly (string | number)[], value: unknown) =>
+    roomCall('_editStateProperty', [path, value], 'the state edit'),
   getTrafficByType() {
     const mirror = current();
     return mirror ? [...mirror.types.values()].map(({ type, countIn, countOut, bytesIn, bytesOut }) => ({ type, countIn, countOut, bytesIn, bytesOut })) : [];

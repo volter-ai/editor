@@ -103,8 +103,25 @@ function formatLeaf(value: unknown): string {
  * are NOT mounted: a fresh snapshot every poll re-renders only the visible
  * rows, never a collapsed subtree.
  */
-function StateTreeNode({ name, value, depth }: { name: string; value: unknown; depth: number }) {
+type StateEdit = (path: readonly (string | number)[], value: unknown) => Promise<void>;
+
+function StateTreeNode({
+  name,
+  value,
+  depth,
+  path = [],
+  edit,
+}: {
+  name: string;
+  value: unknown;
+  depth: number;
+  path?: readonly string[];
+  /** The server's state edit (Monitor's), when the adapter offers one: leaves become editable. */
+  edit?: StateEdit | undefined;
+}) {
   const [expanded, setExpanded] = useState(depth === 0);
+  const [draft, setDraft] = useState<string | null>(null);
+  const [failed, setFailed] = useState<string | null>(null);
   const rowStyle: React.CSSProperties = {
     ...MONO,
     paddingLeft: 8 + depth * 14,
@@ -113,11 +130,53 @@ function StateTreeNode({ name, value, depth }: { name: string; value: unknown; d
   };
 
   if (!isBranch(value)) {
+    const editable = edit && (typeof value === 'number' || typeof value === 'string' || typeof value === 'boolean');
+    const commit = (next: unknown) => {
+      setDraft(null);
+      edit?.(path, next).then(
+        () => setFailed(null),
+        (caught: unknown) => setFailed(caught instanceof Error ? caught.message : String(caught)),
+      );
+    };
+    const parse = (text: string): unknown => {
+      if (typeof value === 'number') {
+        const number = Number(text);
+        return Number.isFinite(number) ? number : value;
+      }
+      return text;
+    };
     return (
-      <div style={rowStyle} data-testid="net-tree-leaf">
+      <div style={rowStyle} data-testid="net-tree-leaf" data-path={path.join('.')}>
         <span style={{ color: themeVars.content.primary }}>{name}</span>
         <span style={{ color: themeVars.content.muted }}>: </span>
-        <span style={{ color: themeVars.content.primary }}>{formatLeaf(value)}</span>
+        {draft !== null ? (
+          <TextInput
+            data-testid="net-tree-edit"
+            autoFocus
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') commit(parse(draft));
+              if (event.key === 'Escape') setDraft(null);
+            }}
+            onBlur={() => setDraft(null)}
+            style={{ width: 120 }}
+          />
+        ) : (
+          <span
+            data-testid={editable ? 'net-tree-value' : undefined}
+            title={editable ? (typeof value === 'boolean' ? 'Click to toggle on the server' : 'Click to edit on the server') : undefined}
+            style={{ color: themeVars.content.primary, cursor: editable ? 'text' : undefined }}
+            onClick={
+              editable
+                ? () => (typeof value === 'boolean' ? commit(!value) : setDraft(String(value)))
+                : undefined
+            }
+          >
+            {formatLeaf(value)}
+          </span>
+        )}
+        {failed ? <span style={{ color: themeVars.semantic.danger }}> {failed}</span> : null}
       </div>
     );
   }
@@ -142,7 +201,14 @@ function StateTreeNode({ name, value, depth }: { name: string; value: unknown; d
       </div>
       {expanded &&
         entries.map(([key, child]) => (
-          <StateTreeNode key={key} name={key} value={child} depth={depth + 1} />
+          <StateTreeNode
+            key={key}
+            name={key}
+            value={child}
+            depth={depth + 1}
+            path={depth === 0 ? [key] : [...path, key]}
+            edit={edit}
+          />
         ))}
     </div>
   );
@@ -582,7 +648,12 @@ export function NetworkInspectorPanel() {
         >
           {caps.stateTree ? (
             snapshot != null ? (
-              <StateTreeNode name="state" value={snapshot} depth={0} />
+              <StateTreeNode
+                name="state"
+                value={snapshot}
+                depth={0}
+                edit={adapter.editServerState ? (path, next) => adapter.editServerState!(path, next) : undefined}
+              />
             ) : (
               <AbsentNote>Not connected — no replicated state to show.</AbsentNote>
             )

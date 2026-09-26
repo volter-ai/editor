@@ -369,6 +369,9 @@ export interface NetworkingAdapter {
   inspectServer?(): Promise<NetServerInspection | null>;
   /** Disconnect one client of the current room from the server's side (Monitor's Disconnect). */
   disconnectClient?(sessionId: string): Promise<void>;
+  /** Set one value of the room's authoritative state on the server (Monitor's State edit);
+   *  `path` is the keys from the state's root. */
+  editServerState?(path: readonly (string | number)[], value: unknown): Promise<void>;
   /** Optional capability, PAIRED with {@link getPlayerIdentity}: set the local
    *  player's identity through the game's OWN multiplayer mechanism. The editor
    *  renders an editable name field ONLY when a real implementer provides this
