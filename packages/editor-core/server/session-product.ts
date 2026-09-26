@@ -14,7 +14,7 @@
  * rather than guessing, so `npx tsx packages/editor/server/dev.ts` by hand
  * behaves the same as a CLI launch and fails with the same sentence.
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -109,6 +109,26 @@ export function productContributionFiles(product: ProductIdentity): string[] {
 
 interface ContributingManifest {
   vgai?: { contributions?: unknown; serving?: unknown };
+}
+
+/**
+ * THE FOLDERS THE PRODUCT'S COMPOSED PACKAGES LIVE IN, real paths: the page imports their
+ * contribution files by absolute path, so the project's dev server must serve them. The
+ * project's own declared packages are not enough: a game declares the product, not what the
+ * product composes, and from a checkout those resolve outside the game's install (measured: every
+ * `editor-game` service contribution answered 403 in a checkout-linked project).
+ */
+export function productPackageRoots(product: ProductIdentity): string[] {
+  const resolveFrom = createRequire(pathToFileURL(join(product.dir, 'package.json')));
+  const roots: string[] = [];
+  for (const name of composedPackages(product)) {
+    try {
+      roots.push(realpathSync(dirname(resolveFrom.resolve(`${name}/package.json`))));
+    } catch {
+      // Not installed: nothing of it is imported, so nothing of it is served.
+    }
+  }
+  return roots;
 }
 
 /**

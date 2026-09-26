@@ -263,7 +263,7 @@ import {
   resolveInstalledPackageSrcDir,
 } from './server-utils';
 import { createProjectServingServices, loadServingPlugins } from './project-serving-services';
-import { productServingModules, resolveProductForProject, sessionProduct } from './session-product';
+import { productPackageRoots, productServingModules, resolveProductForProject, sessionProduct } from './session-product';
 import { setProductNames } from '@volter/editor-sdk/kit/product-command';
 import { registerSession, unregisterSession } from './session-registry';
 
@@ -960,6 +960,8 @@ async function main(): Promise<void> {
       fs: {
         allow: [
           ...projectFsRoots,
+          // What the product composes, which the page imports by path (`productPackageRoots`).
+          ...productPackageRoots(sessionProductIdentity),
           // The `@editor/*` deep specifiers above are source-served, so this
           // package's own `src/` must be readable even when it does not sit
           // under the project's own resolved `node_modules`.
