@@ -210,15 +210,24 @@ export interface ToolObject3DAuthoringProps {
   readonly cameraDirection?: readonly [number, number, number];
   /** Per-document overrides of the standard viewport dressing. */
   readonly dressing?: ToolViewportDressing;
-  /** How far the OPENING view stands back from a fit of the content: `1`
-   *  fills the view (the default); Blender's startup view has its cube at
-   *  about a third of that, so the Model document opens at `3`. Frame
-   *  (numpad .) still fits exactly. */
   /** The kind of stage this view is, for its starting presentation
    *  (`@volter/editor-sdk/kit/viewport-presentation`): the document's own kind (`'model'`).
    *  Without it the kind is read off the document id's prefix. */
   readonly stageKind?: string;
+  /** How far the OPENING view stands back from a fit of the content: `1` fills the view (the
+   *  default). Frame (numpad .) still fits exactly. */
   readonly openingFit?: number;
+  /**
+   * THE OPENING VIEW STATED OUTRIGHT, for a document whose file saved one (a .blend's 3D View,
+   * where Blender opens it): the pivot, the direction from the pivot to the eye and the distance,
+   * in the stage's frame. In place of `cameraDirection` and `openingFit` when given; Frame still
+   * fits.
+   */
+  readonly openingView?: {
+    readonly target: readonly [number, number, number];
+    readonly direction: readonly [number, number, number];
+    readonly distance: number;
+  } | null;
   /**
    * Optional binding from live native clips back to ordinary project source.
    * Project code only serializes its own TypeScript shape; the editor owns the
@@ -262,6 +271,20 @@ export interface ToolObject3DAuthoringProps {
    * what it is counting. Omit it and no block is drawn.
    */
   readonly statistics?: readonly ToolViewportStatistic[];
+  /**
+   * This document's own SUBJECT LINE, the overlay's second line, drawn as given in place of the
+   * host's `<document> | <active object>`. For a document whose source system composes that line
+   * itself (Blender's `(1) Collection | Cube`, `draw_selected_name`). Omit it and the host's is
+   * drawn.
+   */
+  readonly subject?: string;
+  /**
+   * The name of the grid's step under the subject line, for the world units per DEVICE pixel the
+   * view is drawn at, or null for none (Blender's `10 Centimeters`, `draw_grid_unit_name`). The
+   * host asks only in an axis-aligned orthographic view, where Blender draws it. Omit it and no
+   * line is drawn.
+   */
+  readonly gridScale?: (worldPerDevicePixel: number) => string | null;
 }
 
 /** One row of the viewport overlay's statistics block: Blender's label column

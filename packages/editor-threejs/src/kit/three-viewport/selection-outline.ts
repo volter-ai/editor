@@ -74,13 +74,18 @@ export function createThreeSelectionOutline(
   // by the edge value and uses that value again as alpha, so a partial edge darkens (Blender's
   // orange read brown) and a strength above one pushes the colour past itself (it read white).
   // Under `vgaiCrisp` the colour is divided back out of the edge value, leaving only the alpha
-  // to follow the edge; the editor's own halo keeps the library's composite.
+  // to follow the edge; the editor's own halo keeps the library's composite. And the library
+  // draws an edge only OUTSIDE the silhouette (it scales the edge by the mask, which is zero on
+  // the selection); Blender's detect marks the pixels on both sides of it, so a crisp line keeps
+  // its inner half.
   const shader = effect.getFragmentShader();
   const stock = 'vec3 color=edge.x*visibleEdgeColor+edge.y*hiddenEdgeColor;';
-  if (shader.includes(stock)) {
+  const outsideOnly = 'edge*=(edgeStrength*mask.x*pulse);';
+  if (shader.includes(stock) && shader.includes(outsideOnly)) {
     (effect as unknown as { setFragmentShader(source: string): void }).setFragmentShader(
       shader
         .replace('uniform float edgeStrength;', 'uniform float edgeStrength;uniform float vgaiCrisp;')
+        .replace(outsideOnly, 'edge*=(edgeStrength*(vgaiCrisp>0.5?1.0:mask.x)*pulse);')
         .replace(
           stock,
           `${stock}if(vgaiCrisp>0.5){float vgaiSum=edge.x+edge.y;if(vgaiSum>0.0)color/=vgaiSum;edge=min(edge,vec2(1.0));}`,
@@ -185,6 +190,35 @@ type OutlineColors = {
   readonly outline?: { readonly style: 'soft' | 'crisp'; readonly width: number | null; readonly hidden: boolean };
 };
 
+/**
+ * BLENDER'S OUTLINE DETECT (`overlay_outline_detect_frag.glsl`), over our selection mask instead
+ * of its object-id buffer: a pixel is outline when the mask changes along an axis within the
+ * reach, looked for at one pixel and, with `do_thick_outlines`, two, on both sides of the
+ * silhouette. Only the axes are looked along, which is why Blender's convex corner leaves its
+ * one diagonal pixel dark. Blender's later line anti-aliasing is not transcribed: diagonal edges
+ * step where its are smoothed. Visibility is the stock material's: the least visible of the
+ * pixels looked at.
+ */
+const BLENDER_OUTLINE_DETECT = /* glsl */ `uniform lowp sampler2D inputBuffer;uniform vec2 texelSize;uniform float vgaiReach;
+varying vec2 vUv0;varying vec2 vUv1;varying vec2 vUv2;varying vec2 vUv3;
+void main(){
+  vec2 uv=(vUv0+vUv1)*0.5;
+  vec2 c=texture2D(inputBuffer,uv).rg;
+  float edge=0.0;float visibility=1.0;
+  for(int i=1;i<=2;i++){
+    if(float(i)>vgaiReach||edge>0.0)break;
+    vec2 o=texelSize*float(i);
+    vec2 s0=texture2D(inputBuffer,uv+vec2(o.x,0.0)).rg;vec2 s1=texture2D(inputBuffer,uv-vec2(o.x,0.0)).rg;
+    vec2 s2=texture2D(inputBuffer,uv+vec2(0.0,o.y)).rg;vec2 s3=texture2D(inputBuffer,uv-vec2(0.0,o.y)).rg;
+    if(abs(s0.x-c.x)>0.5||abs(s1.x-c.x)>0.5||abs(s2.x-c.x)>0.5||abs(s3.x-c.x)>0.5)edge=1.0;
+    visibility=min(min(s0.y,s1.y),min(s2.y,s3.y));
+  }
+  gl_FragColor.rg=(1.0-visibility>0.001)?vec2(edge,0.0):vec2(0.0,edge);
+}`;
+
+/** The detect material's own shader, kept to put back when a look turns the crisp form off. */
+const stockDetect = new WeakMap<THREE.ShaderMaterial, string>();
+
 /** Each effect's palette colours and how many roots it last outlined, so a selection change
  *  and a palette change each paint the right one. */
 const outlineState = new WeakMap<OutlineEffect, { colors: OutlineColors; roots: number }>();
@@ -202,19 +236,27 @@ function paintOutline(effect: OutlineEffect): void {
   effect.visibleEdgeColor.setHex(colors.visible);
   effect.hiddenEdgeColor.setHex(colors.hidden);
   // THE LOOK'S FORM. The editor's own is the soft halo `createThreeSelectionOutline` builds (a
-  // half-resolution mask under a medium blur). A crisp line is the mask at FULL resolution under
-  // the smallest blur that reaches the width, so its edge stays anti-aliased and its colour its
-  // own. Measured, and why not the obvious ways: an unblurred mask at 1/width resolution drew
-  // 4 px stair-steps, and a strength above the halo's 5 multiplies the colour itself (Blender's
-  // orange read white).
+  // half-resolution mask under a medium blur). A crisp line is Blender's: the mask at full
+  // resolution, edge-detected by `BLENDER_OUTLINE_DETECT` and not blurred, so its band is hard
+  // and its corners square.
   const form = state.colors.outline;
   const crisp = form?.style === 'crisp';
   const width = form?.width ?? 2;
   effect.resolution.scale = crisp ? 1 : 0.5;
-  effect.blurPass.enabled = true;
-  // postprocessing's `KernelSize`: VERY_SMALL 0, SMALL 1, MEDIUM 2, LARGE 3. The blur sets how
-  // far the edge reaches; the strength saturates it into a solid band of that reach.
-  effect.blurPass.kernelSize = crisp ? (width <= 2 ? 0 : width <= 4 ? 1 : width <= 6 ? 2 : 3) : 2;
+  effect.blurPass.enabled = !crisp;
+  effect.blurPass.kernelSize = 2;
+  const detect = (effect as unknown as { outlinePass: { fullscreenMaterial: THREE.ShaderMaterial } }).outlinePass
+    .fullscreenMaterial;
+  const stock = stockDetect.get(detect) ?? detect.fragmentShader;
+  stockDetect.set(detect, stock);
+  const fragment = crisp ? BLENDER_OUTLINE_DETECT : stock;
+  if (detect.fragmentShader !== fragment) {
+    detect.fragmentShader = fragment;
+    detect.needsUpdate = true;
+  }
+  // Half the width on each side of the silhouette's edge: Blender's 4 device px is its
+  // `do_thick_outlines` reach of 2.
+  detect.uniforms['vgaiReach'] = { value: Math.max(1, Math.round(width / 2)) } as THREE.IUniform<number>;
   effect.edgeStrength = crisp ? 8 : 5;
   const crispUniform = effect.uniforms.get('vgaiCrisp');
   if (crispUniform) crispUniform.value = crisp ? 1 : 0;

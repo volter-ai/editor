@@ -56,10 +56,10 @@ export function registerViewportHotkeys(
         store.shell.setPivotMode(pivotModes[(idx + 1) % pivotModes.length]!);
       },
     },
-    { id: 'view.top', scope: 'stage', run: () => viewport.setViewPreset('top') },
-    { id: 'view.front', scope: 'stage', run: () => viewport.setViewPreset('front') },
-    { id: 'view.right', scope: 'stage', run: () => viewport.setViewPreset('right') },
-    { id: 'view.perspective', scope: 'stage', run: () => viewport.setViewPreset('perspective') },
+    { id: 'view.top', scope: 'stage', run: () => store.shell.setViewPreset('top') },
+    { id: 'view.front', scope: 'stage', run: () => store.shell.setViewPreset('front') },
+    { id: 'view.right', scope: 'stage', run: () => store.shell.setViewPreset('right') },
+    { id: 'view.perspective', scope: 'stage', run: () => store.shell.setViewPreset('perspective') },
     { id: 'viewport.snapToFloor', scope: 'stage', run: () => viewport.snapSelectionToFloor() },
   ]);
 

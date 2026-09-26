@@ -190,14 +190,10 @@ export const editorIcons = {
      * a broken ring of arrows — are not those meanings. Same rule as
      * `modeling` above: a glyph that IS an operation owns its own name.
      */
-    /** Blender's group 1, Select Box — the tool that arms no gizmo. It shares
-     *  `arrow-pointer` with the action set's `select` above, because the two
-     *  mean the same thing and the Blender set already carries one drawing of
-     *  it in Blender's idiom (`blender-icons.source.mjs`, under `-- tools --`).
-     *  Blender's own mark is that pointer inside a dashed marquee; the marquee
-     *  is what this glyph does not carry, and that is the one difference
-     *  between the two shelves' first button. */
-    select: faArrowPointer,
+    /** Blender's group 1, Select Box — the tool that arms no gizmo. Its Blender mark is a pointer
+     *  inside a dashed marquee, which is the tool and not the action set's `select` above, so it
+     *  owns `tool-select-box`; a set without it draws the pointer (`arrow-pointer`). */
+    select: meshGlyph('tool-select-box', faArrowPointer),
     move: faUpDownLeftRight,
     rotate: faRotate,
     scale: meshGlyph('tool-scale', faMaximize),

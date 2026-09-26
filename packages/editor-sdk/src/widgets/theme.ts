@@ -444,6 +444,25 @@ export const focusRing = 'var(--vgai-focus-ring)';
 export const EDITOR_REGION_NAMES = ['outliner', 'properties'] as const;
 export type EditorRegionName = (typeof EDITOR_REGION_NAMES)[number];
 
+/** The glyph inks a palette may name (`EditorTheme.color.category`). */
+export type EditorCategoryName = keyof NonNullable<EditorTheme['color']['category']>;
+/**
+ * Every member of `EditorTheme.color.category`, for code that walks the group. Spelled as a
+ * record so the compiler refuses a list that misses a member: a palette arriving as a document
+ * is rebuilt member by member, and a name left off the walk is dropped without a sound.
+ */
+export const EDITOR_CATEGORY_NAMES = Object.keys({
+  object: true,
+  modifier: true,
+  material: true,
+  tool: true,
+  operator: true,
+  data: true,
+  scene: true,
+  collection: true,
+  select: true,
+} satisfies Record<EditorCategoryName, true>) as readonly EditorCategoryName[];
+
 /**
  * Runtime editor-theme contract. The compatibility exports above are CSS
  * references so existing DOM chrome themes at paint time; concrete defaults
@@ -969,6 +988,9 @@ export interface EditorTheme {
        *  (`userdef_default_theme.c:273`). White rather than the scene grey,
        *  which is why it is its own name. */
       readonly collection?: string;
+      /** The selection tools' marquee (Blender's Select Box icon: an orange dashed box, baked
+       *  into the icon's geometry, not a theme member). */
+      readonly select?: string;
     };
     /**
      * REGION FILLS — one colour per EDITOR AREA, the way Blender's theme
@@ -2636,14 +2658,9 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     // The literal is used rather than an empty string (the `viewport` group's
     // answer) because these tokens are read by a `fill`, where empty is not
     // a colour and the fallback must therefore be a real one.
-    '--vgai-category-object': theme.color.category?.object ?? 'currentColor',
-    '--vgai-category-modifier': theme.color.category?.modifier ?? 'currentColor',
-    '--vgai-category-material': theme.color.category?.material ?? 'currentColor',
-    '--vgai-category-tool': theme.color.category?.tool ?? 'currentColor',
-    '--vgai-category-operator': theme.color.category?.operator ?? 'currentColor',
-    '--vgai-category-data': theme.color.category?.data ?? 'currentColor',
-    '--vgai-category-scene': theme.color.category?.scene ?? 'currentColor',
-    '--vgai-category-collection': theme.color.category?.collection ?? 'currentColor',
+    ...Object.fromEntries(
+      EDITOR_CATEGORY_NAMES.map((name) => [`--vgai-category-${name}`, theme.color.category?.[name] ?? 'currentColor']),
+    ),
     // The REGION fills, a pair per area. Never emitted empty (the `widget`
     // group's answer, not the `viewport` group's): each falls back to the
     // surface its call site already reads, so the dock can point a group at

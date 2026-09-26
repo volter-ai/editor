@@ -1487,6 +1487,35 @@ g(
       [9.3, 4],
     ]),
 );
+/*
+ * SELECT BOX. Measured on `gizmo-select-box.png` (the lit first button, native 2x) and mapped onto
+ * the 16-unit grid with the marquee spanning 1..15: a dashed square, 0.7 units thick, dashes about
+ * 2.3 units with 1.1-unit gaps and an L at each corner, in the selection tools' orange (the
+ * `select` tone, `tonedPath`); inside it a pointer from its tip (6.1, 4.5) down to (6.2, 11.5),
+ * notched at (8.2, 9.4), to (11.2, 9.4).
+ */
+const MARQUEE_T = 0.7;
+const marquee =
+  // corners: an L each
+  rrect(1, 1, 2.7, MARQUEE_T) + rrect(1, 1, MARQUEE_T, 2.5) +
+  rrect(12.3, 1, 2.7, MARQUEE_T) + rrect(14.3, 1, MARQUEE_T, 2.4) +
+  rrect(1, 14.3, 2.5, MARQUEE_T) + rrect(1, 12.4, MARQUEE_T, 2.6) +
+  rrect(12.3, 14.3, 2.7, MARQUEE_T) + rrect(14.3, 12.4, MARQUEE_T, 2.6) +
+  // the dashes between
+  rrect(5, 1, 2.2, MARQUEE_T) + rrect(8.4, 1, 2.3, MARQUEE_T) +
+  rrect(5.5, 14.3, 2.4, MARQUEE_T) + rrect(9, 14.3, 2.4, MARQUEE_T) +
+  rrect(1, 4.6, MARQUEE_T, 2.1) + rrect(1, 8, MARQUEE_T, 2.1) +
+  rrect(14.3, 4.6, MARQUEE_T, 2.1) + rrect(14.3, 8, MARQUEE_T, 2.1);
+g(
+  'tool-select-box',
+  poly([
+    [6.1, 4.5],
+    [11.2, 9.4],
+    [8.2, 9.4],
+    [6.2, 11.5],
+  ]),
+  { tone: 'select', tonedPath: marquee },
+);
 g(
   /**
    * TRANSFORM (all handles). Blender's (button 6): a solid square from
@@ -2442,7 +2471,7 @@ g(
 /** The union `IconCategoryTone` declares (`@vgai/editor-sdk/looks`), and the
  *  reason `blender.style.ts` may narrow this JSON with an assertion: a tone
  *  outside it never reaches the artifact. */
-const TONES = ['object', 'modifier', 'material', 'tool', 'operator', 'data', 'scene', 'collection'];
+const TONES = ['object', 'modifier', 'material', 'tool', 'operator', 'data', 'scene', 'collection', 'select'];
 
 // The outliner's three names, aliased onto the drawings they share with the
 // generic glyphs. Same picture, its own name, so only the outliner is tinted.

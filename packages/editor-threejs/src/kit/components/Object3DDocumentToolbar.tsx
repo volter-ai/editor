@@ -282,7 +282,7 @@ export function Object3DDocumentToolbar({
                 <MenuItem
                   key={preset}
                   onSelect={() => {
-                    session.setViewPreset(preset);
+                    session.setViewPreset(preset, 'view');
                     setViewOpen(false);
                   }}
                 >

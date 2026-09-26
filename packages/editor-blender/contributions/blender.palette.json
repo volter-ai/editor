@@ -70,6 +70,7 @@
         "scene": "#cccccc",
         "collection": "#ffffff",
         "tool": "#cbcbcb",
+        "select": "#ffaf2a",
         "operator": "#95dab2"
       },
       "semantic": {

@@ -530,15 +530,26 @@ export class Object3DDocumentSession {
    * The pose is still solved against the PERSPECTIVE camera, because the
    * session's orthographic camera is derived from that pose every frame
    * (`syncOrthographicCamera`) rather than posed independently.
+   *
+   * `around` says what the view turns about. `bounds`, the document's opening camera, frames the
+   * content from that side. `view` is a person's numpad: Blender's `view3d.view_axis` turns about
+   * the view's own pivot at its own distance, so the zoom holds.
    */
-  setViewPreset(preset: ModelCameraPreset): void {
+  setViewPreset(preset: ModelCameraPreset, around: 'bounds' | 'view' = 'bounds'): void {
     invalidateStages();
     this.settleFlight('superseded');
-    const bounds = this.resolveFrameBounds();
-    if (bounds.isEmpty()) return;
-    const center = bounds.getCenter(new THREE.Vector3());
     const direction = cameraPresetDirection(preset);
-    const distance = perspectiveDistanceToFitBox(bounds, this.viewport.camera, direction);
+    let center: THREE.Vector3;
+    let distance: number;
+    if (around === 'view') {
+      center = this.viewport.orbitControls.target.clone();
+      distance = this.viewport.camera.position.distanceTo(center);
+    } else {
+      const bounds = this.resolveFrameBounds();
+      if (bounds.isEmpty()) return;
+      center = bounds.getCenter(new THREE.Vector3());
+      distance = perspectiveDistanceToFitBox(bounds, this.viewport.camera, direction);
+    }
     const position = center.clone().addScaledVector(direction, distance);
     this.viewport.camera.up.set(0, preset === 'top' ? 0 : 1, preset === 'top' ? -1 : 0);
     this.viewport.setPose(position, center);

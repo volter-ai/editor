@@ -41,6 +41,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
 } from 'react';
 import * as THREE from 'three';
 import { bindModelDocument, blenderExecute, openModelDocumentBlend } from '../host/blender-runtime-host';
@@ -93,6 +94,9 @@ export const inspectorBuiltins: readonly string[] = [];
 // Timeline binds a skeleton into the same presented graph and there is exactly
 // one set of presented objects (`blender-runtime-skin.ts`).
 const view = blenderModelView;
+const subscribeView = (listener: () => void) => view.onChange(listener);
+const subjectOfView = () => view.subjectLine();
+const gridScale = (worldPerDevicePixel: number) => view.gridUnitName(worldPerDevicePixel);
 
 export default function BlenderModelDocument(props: ToolContributionProps) {
   const { active, document, documentId, notify, publishContext } = props;
@@ -166,6 +170,7 @@ function BlenderModelViewport({
     [],
   );
   const blend = document?.source?.path;
+  const subject = useSyncExternalStore(subscribeView, subjectOfView);
   /**
    * THE INSPECTION OVERLAYS ARE HELPERS, and the Helpers menu owns them
    * (WORK.md §Blender in the tab is Blender, "Inspection parity", I4).
@@ -338,6 +343,10 @@ function BlenderModelViewport({
       documentId={documentId}
       sourcePath={blend ?? 'blender:runtime'}
       displayName={document?.label ?? 'Model'}
+      // THE OVERLAY'S SUBJECT AND GRID LINES ARE BLENDER'S: the engine composes the subject from
+      // the scene (`session.py` `_subject_line`) and names the grid's step in the scene's units.
+      {...(subject === null ? {} : { subject })}
+      gridScale={gridScale}
       build={build}
       audit={false}
       // ON A MODEL DOCUMENT THE HIERARCHY IS BLENDER'S OUTLINER, for the same
@@ -356,6 +365,9 @@ function BlenderModelViewport({
       // `--factory-startup`), about a third of the size a bare fit gives, which
       // is the number `openingFit` was written for and nothing was passing.
       openingFit={3}
+      // WHERE BLENDER OPENS THE FILE: its own saved 3D View, when it holds one; the direction and
+      // fit above are the fallback for a file that saved none.
+      openingView={view.savedView()}
       // Every entry this document opens is a `model` stage, the standing `blender:runtime`
       // address included (its id carries no `model:` prefix).
       stageKind={documentKind}

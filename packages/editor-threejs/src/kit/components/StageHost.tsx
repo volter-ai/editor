@@ -597,8 +597,11 @@ export function Object3DDocumentViewport({
   frameBounds,
   openingFrameBounds,
   openingFit,
+  openingView,
   stageKind,
   statistics,
+  subject,
+  gridScale,
   content,
 }: Object3DDocumentViewportProps) {
   const viewStageKind = stageKind ?? stageKindOf(documentId);
@@ -771,6 +774,8 @@ export function Object3DDocumentViewport({
   frameBoundsRef.current = frameBounds;
   const openingFrameBoundsRef = useRef(openingFrameBounds);
   openingFrameBoundsRef.current = openingFrameBounds;
+  const openingViewRef = useRef(openingView);
+  openingViewRef.current = openingView;
   // The current prop is still read by asynchronous installation. Attachment
   // lifetime is controlled separately by `surfaceAttached` above.
   const activeRef = useRef(active);
@@ -1540,7 +1545,14 @@ export function Object3DDocumentViewport({
           const overviewFrame = boxFromFrameBounds(frameBoundsRef.current);
           const openingFrame = boxFromFrameBounds(openingFrameBoundsRef.current) ?? overviewFrame;
           if (!openingFrame) viewport.focusOn(source.root);
-          if (cameraX !== undefined && cameraY !== undefined && cameraZ !== undefined) {
+          const stated = openingViewRef.current;
+          if (stated) {
+            const target = new THREE.Vector3(...stated.target);
+            viewport.camera.position
+              .copy(target)
+              .add(new THREE.Vector3(...stated.direction).normalize().multiplyScalar(stated.distance));
+            viewport.orbitControls.target.copy(target);
+          } else if (cameraX !== undefined && cameraY !== undefined && cameraZ !== undefined) {
             const box = openingFrame ?? contentWorldBounds(source.root);
             const center = box.getCenter(new THREE.Vector3());
             const direction = new THREE.Vector3(cameraX, cameraY, cameraZ).normalize();
@@ -2099,7 +2111,12 @@ export function Object3DDocumentViewport({
                   viewport.snapSelectionToFloor();
                   break;
                 case 'set-view-preset':
-                  viewport.setViewPreset(action.preset);
+                  // A mounted document draws with its own camera pair, so the preset is its
+                  // (the relay's `view-preset` routes the same way); the viewport's own
+                  // projection would change a camera nobody draws with.
+                  if (host.session)
+                    host.session.setViewPreset(action.preset === 'perspective' ? 'isometric' : action.preset, 'view');
+                  else viewport.setViewPreset(action.preset);
                   break;
                 case 'set-camera-pose':
                   viewport.setPose(action.position, action.target, action.fov);
@@ -2368,6 +2385,8 @@ export function Object3DDocumentViewport({
               projection={projection}
               displayName={displayName}
               {...(statistics ? { statistics } : {})}
+              {...(subject !== undefined ? { subject } : {})}
+              {...(gridScale ? { gridScale } : {})}
               objectName={(id) =>
                 ((adapter) => (adapter ? threeObject(adapter.hierarchy, id)?.name : undefined))(documentHostRef.current?.adapter) ??
                 // Document builders may supply names through their store index.

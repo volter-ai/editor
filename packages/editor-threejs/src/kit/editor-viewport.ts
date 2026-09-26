@@ -341,31 +341,20 @@ export interface EditorViewportOptions {
  * the floor occludes it, and it occludes nothing.
  */
 /**
- * THE STAGE'S LENS — Blender's, MEASURED, and the reason the viewport's field
- * of view is derived rather than stored.
+ * THE STAGE'S LENS — Blender's, and the reason the viewport's field of view is derived rather
+ * than stored.
  *
- * Blender holds an ANGLE on the larger of the region's two dimensions (its
- * View ▸ Focal Length), so a wider panel sees no more world sideways and a
- * shorter one sees less vertically — which is why three's vertical `fov`
- * cannot be a constant here.
+ * Blender holds an ANGLE on the larger of the region's two dimensions (sensor fit AUTO), so a
+ * wider panel sees no more world sideways and a shorter one sees less vertically — which is why
+ * three's vertical `fov` cannot be a constant here.
  *
- * The angle is measured, not taken from the 50 mm / 36 mm arithmetic the
- * focal-length field suggests: that arithmetic gives 39.6 deg and the
- * reference disagrees with it. `modeling-far.png` is shot at a stated view
- * distance of 40 m, and at 70% of its region's height its floor grid has a
- * clean 38.0 CSS px pitch over 36 consecutive lines. The same row of our own
- * stage at 46.8 m measured 55 CSS px. Pitch scales as 1/distance for an orbit
- * that is otherwise identical, so the two normalise to 1520 against 2574 —
- * our metre is 1.69x too large on screen, i.e. our angle was 1.69x too
- * narrow. 39.6 deg widened by that factor is the number below.
- *
- * Known limit: our own two frames (far at 46.8 m, startup at 14.2 m) should
- * give an identical pitch-times-distance and differ by 20%, so the peak
- * detection this rests on is worth about that much. The DIRECTION is not in
- * doubt — at matched framing Blender's floor carries visibly more cells than
- * ours did — and the sighted far-frame comparison is what accepts the value.
+ * The angle is the view's own arithmetic (`BKE_camera_params_from_view3d`,
+ * `BKE_camera_params_compute_viewplane`): the 36 mm sensor over the View's 50 mm lens
+ * (`View3D.lens`, 50 at factory startup, read back from Blender 5.2), times the viewport's
+ * `CAMERA_PARAM_ZOOM_INIT_PERSP` of 2. The same zoom scales an orthographic view's
+ * `dist * sensor / lens`, so the two projections agree at the pivot.
  */
-const STAGE_LENS_HORIZONTAL_FOV_DEG = 62.6;
+const STAGE_LENS_HORIZONTAL_FOV_DEG = THREE.MathUtils.radToDeg(2 * Math.atan((36 * 2) / (2 * 50)));
 
 /** three's fov is VERTICAL; Blender's lens angle is on the larger dimension. */
 export function stageVerticalFovDegrees(aspect: number): number {
@@ -4317,7 +4306,8 @@ export class EditorViewport {
       return out.setRGB(x.r + (y.r - x.r) * t, x.g + (y.g - x.g) * t, x.b + (y.b - x.b) * t, THREE.SRGBColorSpace);
     };
     let aligned = -1;
-    for (const { direction, axis } of this._vcBalls) if (Math.abs(direction.dot(view)) > 1 - 1e-4) aligned = axis;
+    // Blender's test: the axis's in-plane length squared under 1e-6 (`axis_align`).
+    for (const { direction, axis } of this._vcBalls) if (1 - direction.dot(view) ** 2 < 1e-6) aligned = axis;
     const scratch = new THREE.Color();
     const black = new THREE.Color(0, 0, 0);
     for (const { fill, ring, letter, direction, positive, axis, color } of this._vcBalls) {
@@ -4370,7 +4360,8 @@ export class EditorViewport {
       mix(background, color, (0.75 + (depth + 1) * 0.25 + 0.5) / 2, material.color);
       material.opacity = 1;
       mesh.visible = positive || aligned !== -1;
-      mesh.renderOrder = Math.round(facing * 100);
+      // On the balls' scale, just under the ball it leads to, so depth sorts stalk and ball together.
+      mesh.renderOrder = 10 + Math.round(facing * 100) * 3 - 1;
     }
     for (const { mesh, direction } of this._vcSolids) {
       mesh.renderOrder = Math.round(((direction.dot(view) + 1) / 2) * 100);
@@ -4419,7 +4410,8 @@ export class EditorViewport {
       material.color.copy(color);
       material.opacity = Math.min(1, 0.35 + (facing / 0.5) * 0.65);
       mesh.visible = positive;
-      mesh.renderOrder = Math.round(facing * 100);
+      // On the balls' scale, just under the ball it leads to, so depth sorts stalk and ball together.
+      mesh.renderOrder = 10 + Math.round(facing * 100) * 3 - 1;
     }
   }
 

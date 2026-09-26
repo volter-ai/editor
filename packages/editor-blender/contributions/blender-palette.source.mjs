@@ -220,6 +220,11 @@ const MAPPING = {
       '`DEF_ICON`, drawn in `.text`. Measured on the reference frames, and a level below ' +
       '`.tui.icon_scene` #cccccc, which is what it sits beside.',
   ),
+  'category.select': held(
+    '#ffaf2a',
+    "Blender's Select Box marquee, baked into the tool icon's geometry (`ops.generic.select_box`), " +
+      'not a theme member. Measured on `gizmo-select-box.png`: (255,175,42).',
+  ),
   'category.operator': held(
     '#95dab2',
     "Blender's edit-mode tool column tints its creating operators green; no theme member carries " +

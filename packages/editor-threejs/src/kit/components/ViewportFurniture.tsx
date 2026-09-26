@@ -27,7 +27,7 @@ import {
   Tooltip,
   themeVars,
 } from '@volter/editor-sdk/widgets';
-import { Fragment, type PointerEvent as ReactPointerEvent, useSyncExternalStore } from 'react';
+import { Fragment, type PointerEvent as ReactPointerEvent, useCallback, useSyncExternalStore } from 'react';
 import * as THREE from 'three';
 import { axisViewName } from '../asset-workflow/model-inspection';
 import type { Object3DDocumentSession } from '../authoring/object3d-document-session';
@@ -83,6 +83,24 @@ const STATISTICS_BLOCK_OFFSET = 5 as const;
  *  the overlay block's left edge. */
 const STATISTICS_LABEL_COLUMN_PX = 58;
 
+/** What the overlay lines read off the camera, so a move that changes one re-renders them. */
+function cameraSignature(viewport: EditorViewport, session: Object3DDocumentSession | null): string {
+  const camera = session?.camera() ?? viewport.renderCamera;
+  const position = viewport.camera.position;
+  const target = viewport.orbitControls.target;
+  const zoom = (camera as THREE.OrthographicCamera).isOrthographicCamera
+    ? orthographicWorldPerDevicePixel(camera as THREE.OrthographicCamera, viewport)
+    : 0;
+  return [position.x, position.y, position.z, target.x, target.y, target.z, zoom].map((n) => n.toPrecision(6)).join(',');
+}
+
+/** World units across one device pixel of an orthographic view. */
+function orthographicWorldPerDevicePixel(camera: THREE.OrthographicCamera, viewport: EditorViewport): number {
+  const element = viewport.orbitControls.domElement;
+  const height = Math.max(1, (element?.clientHeight ?? 1) * (element?.ownerDocument.defaultView?.devicePixelRatio ?? 1));
+  return (camera.top - camera.bottom) / camera.zoom / height;
+}
+
 export interface ViewportFurnitureProps {
   readonly viewport: EditorViewport | null;
   readonly session: Object3DDocumentSession | null;
@@ -92,6 +110,10 @@ export interface ViewportFurnitureProps {
   readonly objectName: (id: string) => string | null;
   /** The active document's own counts. See `ToolObject3DAuthoringProps.statistics`. */
   readonly statistics?: readonly ToolViewportStatistic[];
+  /** The document's own subject line. See `ToolObject3DAuthoringProps.subject`. */
+  readonly subject?: string;
+  /** The document's grid-step name. See `ToolObject3DAuthoringProps.gridScale`. */
+  readonly gridScale?: (worldPerDevicePixel: number) => string | null;
 }
 
 export function ViewportFurniture({
@@ -102,8 +124,23 @@ export function ViewportFurniture({
   displayName,
   objectName,
   statistics,
+  subject: documentSubject,
+  gridScale,
 }: ViewportFurnitureProps) {
   useSyncExternalStore(store.subscribe, store.getShellSnapshot ?? store.getSnapshot);
+  // THE LINES FOLLOW THE CAMERA: the view text names the axis the view looks down and the grid
+  // line names the step at the current zoom, and neither is a store or session change.
+  useSyncExternalStore(
+    useCallback(
+      (listener: () => void) => {
+        const controls = viewport?.orbitControls;
+        controls?.addEventListener('change', listener);
+        return () => controls?.removeEventListener('change', listener);
+      },
+      [viewport],
+    ),
+    () => (viewport ? cameraSignature(viewport, session) : ''),
+  );
   // The VIEW TEXT must follow the projection the stage is actually drawing
   // with. A document session carries its own (`session.camera()` returns its
   // orthographic camera off it), and the viewport's flag says nothing about
@@ -188,9 +225,16 @@ export function ViewportFurniture({
   const activeId = store.selectedEntityId;
   const activeName = (activeId === null ? null : objectName(activeId)) || null;
   const subject =
-    activeName === null || activeName === displayName
-      ? displayName
-      : `${displayName} | ${activeName}`;
+    documentSubject ??
+    (activeName === null || activeName === displayName ? displayName : `${displayName} | ${activeName}`);
+  // THE GRID'S STEP, where Blender names it: an orthographic view down an axis
+  // (`draw_grid_unit_name`, `!rv3d->is_persp && RV3D_VIEW_IS_AXIS`). What the step is called
+  // is the document's; the host hands it the world units one device pixel spans.
+  const drawnCamera = session?.camera() ?? viewport.renderCamera;
+  const gridLine =
+    gridScale && axis !== 'User' && (drawnCamera as THREE.OrthographicCamera).isOrthographicCamera
+      ? gridScale(orthographicWorldPerDevicePixel(drawnCamera as THREE.OrthographicCamera, viewport))
+      : null;
 
   const dolly = (factor: number): void => {
     const camera = viewport.renderCamera;
@@ -263,6 +307,7 @@ export function ViewportFurniture({
       >
         <span>{viewText}</span>
         <span>{subject}</span>
+        {gridLine ? <span data-testid="viewport-grid-scale">{gridLine}</span> : null}
         {statistics && statistics.length > 0 ? (
           <div
             data-testid="viewport-statistics"

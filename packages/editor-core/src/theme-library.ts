@@ -1,4 +1,5 @@
-import type { EditorPalette } from '@volter/editor-sdk/widgets';
+import type { EditorCategoryName, EditorPalette } from '@volter/editor-sdk/widgets';
+import { EDITOR_CATEGORY_NAMES } from '@volter/editor-sdk/widgets';
 import {
   type EditorThemeId,
   editorThemes,
@@ -441,11 +442,10 @@ function reconstructEditorPalette(value: unknown): EditorPalette {
   // optional like `widget`, never all-or-nothing: each token falls back to
   // `currentColor`, so a palette naming one category and no other is
   // complete and paints the rest exactly as a monochrome set does.
-  const categoryKeys = ['object', 'modifier', 'material', 'tool', 'operator', 'data'] as const;
-  const categoryEntries = categoryKeys
+  const categoryEntries = EDITOR_CATEGORY_NAMES
     .map((key) => [key, valueAtPath(value, `color.category.${key}`) as string | undefined] as const)
     .filter(
-      (entry): entry is readonly [(typeof categoryKeys)[number], string] => entry[1] !== undefined,
+      (entry): entry is readonly [EditorCategoryName, string] => entry[1] !== undefined,
     );
   const category =
     categoryEntries.length === 0

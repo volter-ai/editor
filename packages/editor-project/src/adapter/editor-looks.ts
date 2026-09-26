@@ -333,7 +333,10 @@ export type IconCategoryTone =
   // and Scene tabs are `DEF_ICON_SCENE`; the Collection tab is
   // `DEF_ICON_COLLECTION(GROUP)` (`UI_icons.hh:248`).
   | 'scene'
-  | 'collection';
+  | 'collection'
+  // The SELECTION TOOLS' marquee, which Blender bakes into their tool icons' geometry
+  // (`ops.generic.select_box`) rather than reading from a theme member.
+  | 'select';
 
 /**
  * An ICON SET a style bundle carries: glyphs keyed by the Font Awesome icon

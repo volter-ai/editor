@@ -514,9 +514,48 @@ export const frameSchema = z
     /** `Scene.cursor.matrix` (`blender-runtime-cursor.ts`); absent from an
      *  engine that does not report it. */
     cursor: cursorSchema.optional(),
+    /** The 3D View the file saved (`session.py` `_saved_view`), null when it holds none. */
+    view: z
+      .object({
+        location: z.tuple([z.number(), z.number(), z.number()]),
+        rotation: z.tuple([z.number(), z.number(), z.number(), z.number()]),
+        distance: z.number().finite(),
+      })
+      .nullable()
+      .optional(),
+    /** The viewport's subject line as Blender composes it (`draw_selected_name`). */
+    subject: z.string().optional(),
+    /** `Scene.unit_settings`: the length system and scale the grid's step is named in. */
+    units: z
+      .object({ system: z.enum(['NONE', 'METRIC', 'IMPERIAL']), scale_length: z.number().finite() })
+      .optional(),
   })
   .strict();
 type Frame = z.infer<typeof frameSchema>;
+
+/** Blender's length units, smallest first, with their display names (`unit.cc`
+ *  `buMetricLenDef`, `buImperialLenDef`; nano- and picometres are compiled out there). */
+const LENGTH_UNITS: Readonly<Record<'METRIC' | 'IMPERIAL', readonly (readonly [number, string])[]>> = {
+  METRIC: [
+    [0.000001, 'Micrometers'],
+    [0.001, 'Millimeters'],
+    [0.01, 'Centimeters'],
+    [0.1, '10 Centimeters'],
+    [1, 'Meters'],
+    [10, '10 Meters'],
+    [100, '100 Meters'],
+    [1000, 'Kilometers'],
+  ],
+  IMPERIAL: [
+    [0.0000254, 'Thou'],
+    [0.0254, 'Inches'],
+    [0.3048, 'Feet'],
+    [0.9144, 'Yards'],
+    [20.1168, 'Chains'],
+    [201.168, 'Furlongs'],
+    [1609.344, 'Miles'],
+  ],
+};
 /** One render's two poses, in Blender's own (Z-up) frame. */
 export interface PhotographRecord {
   /** `scene.camera.matrix_world`, as `session.py::_photograph` sent it. */
@@ -703,6 +742,51 @@ export class BlenderRuntimeView {
    * allows an active object that is not selected, and the Properties editor
    * follows the ACTIVE one while the outline follows the selected set.
    */
+  /**
+   * WHERE BLENDER OPENS THIS FILE: its saved 3D View in the stage's frame — the pivot, the
+   * direction from the pivot to the eye (the view's +Z, `view_rotation` turning view space into
+   * the world) and the distance. Null before a frame or when the file saved no 3D View.
+   */
+  savedView(): {
+    readonly target: readonly [number, number, number];
+    readonly direction: readonly [number, number, number];
+    readonly distance: number;
+  } | null {
+    const saved = this.frame?.view;
+    if (!saved) return null;
+    const [w, x, y, z] = saved.rotation;
+    const target = new THREE.Vector3(...saved.location).applyMatrix4(this.root.matrix);
+    const direction = new THREE.Vector3(0, 0, 1)
+      .applyQuaternion(new THREE.Quaternion(x, y, z, w))
+      .applyMatrix4(this.root.matrix)
+      .normalize();
+    return { target: target.toArray(), direction: direction.toArray(), distance: saved.distance };
+  }
+
+  /** The viewport's subject line, `(1) Collection | Cube`, as the engine composed it; null
+   *  before a frame or from an engine that does not report it. */
+  subjectLine(): string | null {
+    return this.frame?.subject ?? null;
+  }
+
+  /**
+   * THE GRID STEP'S NAME for an axis-aligned orthographic view drawn at `worldPerDevicePixel`,
+   * as `ED_view3d_grid_view_scale` picks it (`view3d_draw.cc`): the scene's length units from
+   * the smallest up, each scaled by `1 / scale_length`, and the first longer than six device
+   * pixels (`12 / (sizex * winmat[0][0])`) is named by its display name. A scene with no unit
+   * system names none. The overlay's grid Scale (`View3DOverlay.grid_scale`, `× 0.5`) has no
+   * home here and is taken as 1.
+   */
+  gridUnitName(worldPerDevicePixel: number): string | null {
+    const units = this.frame?.units;
+    if (units === undefined || units.system === 'NONE') return null;
+    const steps = LENGTH_UNITS[units.system];
+    const reach = 6 * worldPerDevicePixel;
+    const scale = 1 / (units.scale_length || 1);
+    const step = steps.find(([size]) => size * scale > reach) ?? steps[steps.length - 1]!;
+    return step[1];
+  }
+
   blenderSelection(): { readonly selected: readonly string[]; readonly active: string | null } {
     const frame = this.frame;
     if (frame === null) return { selected: [], active: null };

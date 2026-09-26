@@ -732,6 +732,77 @@ def _refusal(node):
     return None
 
 
+
+def _saved_view():
+    """The 3D View the file saved, which is where Blender opens it: the `Modeling` workspace's
+    (this editor's Model workspace is Blender's Modeling), else the first 3D View any screen
+    holds. `RegionView3D`'s pivot, rotation (view to world, `(w, x, y, z)`) and distance."""
+    workspace = bpy.data.workspaces.get("Modeling")
+    screens = list(workspace.screens) if workspace is not None else []
+    screens.extend(bpy.data.screens)
+    for screen in screens:
+        for area in screen.areas:
+            if area.type != "VIEW_3D":
+                continue
+            region = area.spaces[0].region_3d
+            return {
+                "location": [float(v) for v in region.view_location],
+                "rotation": [float(v) for v in region.view_rotation],
+                "distance": float(region.view_distance),
+            }
+    return None
+
+
+def _subject_line(scene, view_layer):
+    """The 3D Viewport's second overlay line, as `draw_selected_name` (`view3d_draw.cc`) writes it:
+    `(frame)`, then in Object Mode (or with nothing active) the active collection and a bar, then
+    the active object; outside Object Mode its data's name; the active edit or pose bone, or the
+    active shape key (` (Soloed)` when pinned); and the marker on the current frame. Blender tints
+    the line on a keyframe; that colour is not carried."""
+    frame = scene.frame_current
+    parts = ["(%d)" % frame]
+    ob = view_layer.objects.active
+    if ob is None or ob.mode == "OBJECT":
+        # `BKE_collection_ui_name_get`: the master collection reads "Scene Collection", which is
+        # also what its RNA name returns.
+        parts.append(" " + view_layer.active_layer_collection.collection.name)
+        if ob is not None:
+            parts.append(" |")
+    if ob is not None:
+        parts.append(" " + ob.name)
+        if ob.mode != "OBJECT" and ob.data is not None:
+            parts.append(" | " + ob.data.name)
+        if ob.type == "ARMATURE":
+            arm = ob.data
+            if ob.mode == "EDIT":
+                if arm.edit_bones.active is not None:
+                    parts.append(" : " + arm.edit_bones.active.name)
+            elif ob.mode == "POSE" and arm.bones.active is not None and _bone_shown(arm.bones.active):
+                parts.append(" : " + arm.bones.active.name)
+        elif ob.type in ("MESH", "LATTICE", "CURVE"):
+            if ob.type == "MESH" and ob.mode == "WEIGHT_PAINT":
+                rig = ob.find_armature()
+                if rig is not None and rig.mode == "POSE":
+                    bone = rig.data.bones.active
+                    if bone is not None and _bone_shown(bone):
+                        parts.append(" : " + bone.name)
+            key = ob.active_shape_key if getattr(ob.data, "shape_keys", None) is not None else None
+            if key is not None:
+                parts.append(" : " + key.name)
+                if ob.show_only_shape_key:
+                    parts.append(" (Soloed)")
+    marker = next((m.name for m in scene.timeline_markers if m.frame == frame), None)
+    if marker is not None:
+        parts.append(" <" + marker + ">")
+    return "".join(parts)
+
+
+def _bone_shown(bone):
+    """`ANIM_bonecoll_is_visible_actbone`: a bone in no collection, or in a visible one."""
+    collections = getattr(bone, "collections", None)
+    return not collections or any(c.is_visible for c in collections)
+
+
 class _GraphRefusal(Exception):
     pass
 
@@ -1312,6 +1383,14 @@ class Session:
         # THE OVERLAYS, after the door's frame stands: `_weights` reads the
         # mesh's own revision out of it (see there), so it cannot run before.
         view_layer = bpy.context.view_layer
+        # THE VIEWPORT'S SUBJECT LINE and the units its grid step is named in: Blender composes
+        # both from the scene, so they come from here (`_subject_line`).
+        frame["subject"] = _subject_line(scene, view_layer)
+        frame["view"] = _saved_view()
+        frame["units"] = {
+            "system": scene.unit_settings.system,
+            "scale_length": float(scene.unit_settings.scale_length),
+        }
         frame["armatures"] = _armatures(view_layer)
         frame["weights"] = _weights(scene, view_layer, frame, self._known)
         warnings = list(frame.get("warnings", ()))
