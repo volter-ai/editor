@@ -179,3 +179,19 @@ version/commit/hash and the format census, then typecheck the package and run it
 over every ladder fixture. If Godot ever begins publishing `extension_api.json` as
 a release asset again — or `godot-cpp` resumes tagging — prefer the organisation's own bytes and a
 raw-file pin, exactly as the 3.6.2 section does, and say so here.
+
+---
+
+# godot-4.6-extension_api.json — vendored, pinned
+
+Generated exactly as the 4.7 file above, by the official `4.6-stable` macOS universal binary
+(`Godot_v4.6-stable_macos.universal.zip`, sha512
+`589ac663552253e93dc34d741bbc280f9e23e050f5cd79ec6bb8586d55114fbb71539d0e630d0af6c0f7fb4352e562a5b0666b3c7cb5d4bef9f7514fdce130ef`,
+equal to the release's `SHA512-SUMS.txt` line; executable sha256
+`974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc`, reporting
+`4.6.stable.official.89cea1439`) with `--headless --dump-extension-api`. Tag **`4.6-stable`**,
+commit **`89cea143987d564363e15d207438530651d943ac`**, retrieved 2026-09-25, MIT. `sha256`:
+`7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2` (sidecar
+`godot-4.6-extension_api.json.sha256`; no CR bytes). Census: `header.version_minor` 6, `precision`
+`single`, 1,023 `classes`, 38 `builtin_classes`, 114 `utility_functions`, 39 `singletons`, 22
+`global_enums`, 0 `global_constants`, 14 `native_structures`.
