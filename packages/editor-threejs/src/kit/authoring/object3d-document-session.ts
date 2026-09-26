@@ -725,7 +725,12 @@ export class Object3DDocumentSession {
     }
     const source = this.cameraViewSource;
     const camera = source?.camera() ?? null;
-    if (!source || camera === null) return false;
+    if (!source) return false;
+    if (camera === null) {
+      // A view that does not change says why, as Blender's `view_camera_exec` reports.
+      editorConsole.warn('camera view: No active camera — the scene has no camera to look through', 'document');
+      return false;
+    }
     invalidateStages();
     this.settleFlight('superseded');
     const viewport = this.viewport;
