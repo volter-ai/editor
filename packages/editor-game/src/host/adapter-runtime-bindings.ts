@@ -84,7 +84,7 @@ const RAPIER_LIBRARIES = ['@react-three/rapier', '@dimforge/rapier3d-compat'];
  * project's dependency list is still loading (`projectVerbFacts` starts that read) the answer is
  * unknown, not no, so the observer is attached; it answers `unresolved` until a world mounts.
  */
-function withObservedPhysics(game: Game, bindings: NativeSystemsBinding[]): NativeSystemsBinding[] {
+export function withObservedPhysics(game: Game, bindings: NativeSystemsBinding[]): NativeSystemsBinding[] {
   projectVerbFacts();
   const dependencies = projectDependencyNames();
   const shipsRapier = dependencies === null || dependencies.some((name) => RAPIER_LIBRARIES.includes(name));

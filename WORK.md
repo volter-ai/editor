@@ -153,9 +153,12 @@ Remaining:
    `@volter` copy with its own input store (it lives in no repository; vgai-engine's
    `examples/arena` still imports `@vgai/game-runtime`), plays with no console error, moves
    and fires through the input door, and reads "Moves the physics body that owns this node." on
-   EnemyBody; a scratch canvas project plays and animates. Not walked: a physical keystroke, a
-   drag visibly holding a body (arena's moving bodies are kinematic), and collider readouts,
-   which the Rapier observer does not answer. Open: the `.inputmap.json` format and its
+   EnemyBody; a scratch canvas project plays and animates. The observer also answers a body's
+   colliders and joints, and the design session gets it too. Not walked: a physical keystroke, a
+   drag visibly holding a body (arena's moving bodies are kinematic), and a collider row: its one
+   reader, the R3F source adapter, reads colliders only while its own store plays, and no
+   document reached in this build showed one (the Scene during Play answers from a stopped
+   design store). Open: the `.inputmap.json` format and its
    `InputManager`, which only the editor's `Game`, the asset documents and the template's
    `validate-asset-content.ts` still use; a canvas root has no design-time mount (Edit waits on
    "Loading Scene root").

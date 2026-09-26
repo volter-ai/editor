@@ -78,6 +78,7 @@ import {
   failedImportEntry,
 } from '@volter/editor-sdk/kit/module-fetch-diagnosis';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
+import { withObservedPhysics } from '../../host/adapter-runtime-bindings';
 import { adjudicateThreeEntry } from '../../host/entry-adjudication';
 import { onPlayTransitionSettled } from '@volter/editor-sdk/kit/live-transition';
 import { fetchRawGameManifest } from '@volter/editor-sdk/kit/manifest-project';
@@ -235,7 +236,8 @@ export function registerR3FDesignRoot(
 ): void {
   registerThreeRoot(game, adapter, mounted, { id: worldId });
   installNativeDebugBindings(game, entryDebug ? [entryDebug] : []);
-  installNativeSystemsBindings(game, entrySystems ? [entrySystems] : []);
+  // The design world's own `@react-three/rapier` world is observed the way Play's is.
+  installNativeSystemsBindings(game, withObservedPhysics(game, entrySystems ? [entrySystems] : []));
 }
 
 /**
