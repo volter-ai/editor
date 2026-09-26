@@ -88,6 +88,8 @@ export interface NetworkCapabilityMap {
   send: boolean;
   /** Measuring a round trip (`ping`). */
   ping: boolean;
+  /** The room server's own view (`inspectServer`). */
+  server: boolean;
 }
 
 export function deriveNetworkCapabilities(
@@ -112,6 +114,7 @@ export function deriveNetworkCapabilities(
     traffic: typeof adapter.getTrafficByType === 'function',
     send: typeof adapter.sendMessage === 'function',
     ping: typeof adapter.ping === 'function',
+    server: typeof adapter.inspectServer === 'function',
   };
 }
 

@@ -46,17 +46,13 @@ not a render.
 | Send (type, JSON payload) | Monitor's Send | into the room as this client; typing into it during Play is not walked (needs the workbench built with the focus gate) |
 | Ping, and its round trip | (neither reference; Unity's multiplayer tools show RTT) | present: the SDK's own PING frame through the game's socket (walked: 2 ms on loopback) |
 | Conditioner: latency and jitter, both directions, in order | Unity's network simulator | present; loss is stated as not simulated, because a WebSocket resends what it loses. Driving it during Play is not walked (needs the workbench built with the focus gate) |
+| Server: rooms (name, id, clients, lock, age), connections, CPU, memory, state size; the current room's clients with Disconnect | Monitor's room list and Clients tab | present, read from Monitor's own API on the room server, which the editor's `server` configuration turns on (`VGAI_ROOM_MONITOR=1`; a production start leaves Monitor off). Walked: Disconnect took this client's connection to disconnected |
 | Run configuration `play + server`, and the Instances picker of a compound | Godot's multiple-instance run | present |
 
 ## Gaps, the work order
 
-1. The rooms a session joined, as Monitor's room list (the observer keeps them; the inspector shows
-   the current one).
-2. The server's view: every client of a room and its elapsed time (Monitor's Clients tab) is the
-   server's to report, and the room server does not expose it to the editor.
+1. Editing the state from the tree, through Monitor's `_editStateProperty` on the server (Monitor's
+   State tab is editable; ours is read-only).
+2. Send to one client from the server's side (Monitor's per-client Send), beside Send as this client.
 3. The schema's types beside the state tree (Godot's Replication panel shows what replicates; a
    Colyseus schema states it in the server's code).
-
-Below this line is planning, not measurement: whether the server's view arrives through
-`@colyseus/monitor`'s own API on the room server or through the editor's session is decided when
-row 2 is built.

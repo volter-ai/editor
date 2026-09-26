@@ -27,6 +27,12 @@ export interface ColyseusOptions {
   }>;
   /** Port to bind; 2567 when omitted, `0` for an OS-assigned one. */
   port?: number | undefined;
+  /**
+   * Serve Colyseus Monitor at `/monitor` (its rooms, clients and state, and their actions) — what
+   * the editor's Network inspector reads the server's side from. Never in production: Monitor
+   * has no authentication of its own.
+   */
+  monitor?: boolean | undefined;
 }
 
 export interface ColyseusHandle {
@@ -46,6 +52,7 @@ export async function startColyseus(options: ColyseusOptions): Promise<ColyseusH
     Server: new (opts: {
       transport: unknown;
       gracefullyShutdown: boolean;
+      express?: (app: { use: (path: string, handler: unknown) => unknown }) => void;
     }) => {
       define: (
         name: string,
@@ -62,9 +69,13 @@ export async function startColyseus(options: ColyseusOptions): Promise<ColyseusH
     WebSocketTransport: new () => unknown;
   };
 
+  const monitor = options.monitor
+    ? ((await import('colyseus')) as unknown as { monitor: () => unknown }).monitor
+    : null;
   const server = new Server({
     transport: new WebSocketTransport(),
     gracefullyShutdown: false,
+    ...(monitor ? { express: (app) => void app.use('/monitor', monitor()) } : {}),
   });
 
   for (const room of options.rooms) {

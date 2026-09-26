@@ -29,7 +29,9 @@
 import { startColyseus } from './colyseus-setup.js';
 import { rooms } from './rooms.js';
 
-const handle = await startColyseus({ rooms }).catch((err: NodeJS.ErrnoException) => {
+// The editor's `server` configuration sets VGAI_ROOM_MONITOR so its Network inspector can read
+// the server's side through Colyseus Monitor; a production start leaves it unset.
+const handle = await startColyseus({ rooms, monitor: process.env['VGAI_ROOM_MONITOR'] === '1' }).catch((err: NodeJS.ErrnoException) => {
   // The refusal below already says everything a reader needs; a raw stack
   // around it would be noise.
   if (err?.code !== 'EADDRINUSE') throw err;

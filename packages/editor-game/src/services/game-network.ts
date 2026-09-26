@@ -23,6 +23,7 @@ import { SchemaSerializer } from '@colyseus/sdk';
 import type {
   ConnectionState,
   NetConditioning,
+  NetServerInspection,
   NetMessageEvent,
   NetPeer,
   NetRates,
@@ -408,6 +409,29 @@ export function observedRooms(): readonly ObservedRoom[] {
   }));
 }
 
+/** Colyseus Monitor's API on the room's own server, when the server mounts it (`/monitor`). */
+function monitorApi(mirror: Mirror): string {
+  return `${mirror.endpoint.replace(/^ws/, 'http')}/monitor/api`;
+}
+
+interface MonitorRooms {
+  rooms?: { roomId: string; name: string; clients: number; maxClients?: string | number | null; locked?: boolean; elapsedTime?: number }[];
+  connections?: number;
+  cpu?: number;
+  memory?: { totalMemMb?: number; usedMemMb?: number };
+}
+
+interface MonitorRoom {
+  clients?: { sessionId: string; elapsedTime: number }[];
+  stateSize?: number;
+}
+
+async function monitorJson<T>(url: string): Promise<T | null> {
+  const response = await fetch(url).catch(() => null);
+  if (!response || !response.ok) return null;
+  return (await response.json().catch(() => null)) as T | null;
+}
+
 /** The room the inspector reads: the newest one still open, else the newest. */
 function current(): Mirror | null {
   for (let index = mirrors.length - 1; index >= 0; index -= 1) {
@@ -509,6 +533,52 @@ export const observedGameNetwork: NetworkingAdapter = {
       // answer to a ping it did not send.
       mirror.socket.send(new Uint8Array([PING]));
     });
+  },
+  async inspectServer(): Promise<NetServerInspection | null> {
+    const mirror = current();
+    if (!mirror) return null;
+    const api = monitorApi(mirror);
+    const list = await monitorJson<MonitorRooms>(`${api}/`);
+    if (!list) return null;
+    const detail = await monitorJson<MonitorRoom>(`${api}/room?roomId=${encodeURIComponent(mirror.roomId)}`);
+    const maxClients = (value: string | number | null | undefined): number | null => {
+      const count = Number(value);
+      return Number.isFinite(count) ? count : null;
+    };
+    return {
+      rooms: (list.rooms ?? []).map((room) => ({
+        roomId: room.roomId,
+        name: room.name,
+        clients: room.clients,
+        maxClients: maxClients(room.maxClients),
+        locked: room.locked === true,
+        elapsedMs: room.elapsedTime ?? 0,
+      })),
+      connections: list.connections ?? 0,
+      cpuPercent: typeof list.cpu === 'number' && Number.isFinite(list.cpu) ? list.cpu : null,
+      memory:
+        list.memory?.usedMemMb !== undefined && list.memory.totalMemMb !== undefined
+          ? { usedMb: list.memory.usedMemMb, totalMb: list.memory.totalMemMb }
+          : null,
+      room: detail
+        ? {
+            roomId: mirror.roomId,
+            clients: (detail.clients ?? []).map((client) => ({ sessionId: client.sessionId, elapsedMs: client.elapsedTime })),
+            stateBytes: detail.stateSize ?? 0,
+          }
+        : null,
+    };
+  },
+  async disconnectClient(sessionId: string): Promise<void> {
+    const mirror = current();
+    if (!mirror) throw new Error('No room is observed.');
+    const query = new URLSearchParams({
+      roomId: mirror.roomId,
+      method: '_forceClientDisconnect',
+      args: JSON.stringify([sessionId]),
+    });
+    const response = await fetch(`${monitorApi(mirror)}/room/call?${query}`);
+    if (!response.ok) throw new Error(`The room server refused the disconnect (${response.status}).`);
   },
   getTrafficByType() {
     const mirror = current();

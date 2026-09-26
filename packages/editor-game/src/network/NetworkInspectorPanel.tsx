@@ -38,6 +38,7 @@ import type {
   ConnectionState,
   NetConditioning,
   NetMessageEvent,
+  NetServerInspection,
   NetTypeTraffic,
   NetworkingAdapter,
 } from '@volter/editor-project/adapter';
@@ -563,6 +564,7 @@ export function NetworkInspectorPanel() {
         </AbsentNote>
       )}
 
+      {caps.server ? <ServerView adapter={adapter} ownSession={view.roomInfo?.sessionId ?? null} /> : null}
       {caps.traffic ? <TrafficTable rows={adapter.getTrafficByType?.() ?? []} /> : null}
       {caps.send ? <SendControls adapter={adapter} ping={caps.ping} /> : null}
 
@@ -766,6 +768,101 @@ function SendControls({ adapter, ping }: { adapter: NetworkingAdapter; ping: boo
           {error}
         </span>
       ) : null}
+    </div>
+  );
+}
+
+/**
+ * The room server's side — Colyseus Monitor's room list and a room's Clients tab, read from
+ * Monitor's own API on the server: every room with its clients, lock and age, the machine's CPU
+ * and memory, and the current room's clients with Disconnect.
+ */
+function ServerView({ adapter, ownSession }: { adapter: NetworkingAdapter; ownSession: string | null }) {
+  const [inspection, setInspection] = useState<NetServerInspection | null | undefined>(undefined);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    const read = () => {
+      void adapter.inspectServer?.().then(
+        (next) => {
+          if (live) setInspection(next);
+        },
+        (caught: unknown) => {
+          if (live) setError(caught instanceof Error ? caught.message : String(caught));
+        },
+      );
+    };
+    read();
+    // Monitor refreshes its room view every 5 s; this reads the server every 2.
+    const id = setInterval(read, 2000);
+    return () => {
+      live = false;
+      clearInterval(id);
+    };
+  }, [adapter]);
+  const seconds = (ms: number) => `${Math.round(ms / 1000)} s`;
+  const cell = { padding: `0 ${spaceVar[3]}`, whiteSpace: 'nowrap' as const };
+  if (inspection === undefined) return null;
+  if (inspection === null) {
+    return (
+      <AbsentNote testId="net-server-absent">
+        The room server serves no Monitor view (its `server` configuration sets VGAI_ROOM_MONITOR=1).
+      </AbsentNote>
+    );
+  }
+  return (
+    <div
+      data-testid="net-server"
+      style={{ padding: `${spaceVar[2]} 0`, borderBottom: `1px solid ${themeVars.boundary.default}`, fontSize: fontSizeVar.sm }}
+    >
+      <div data-testid="net-server-summary" style={{ padding: `0 ${spaceVar[3]}`, color: themeVars.content.muted }}>
+        Server · {inspection.rooms.length} room{inspection.rooms.length === 1 ? '' : 's'} · {inspection.connections}{' '}
+        connection{inspection.connections === 1 ? '' : 's'}
+        {inspection.cpuPercent !== null ? ` · CPU ${inspection.cpuPercent.toFixed(0)}%` : ''}
+        {inspection.memory ? ` · memory ${Math.round(inspection.memory.usedMb)} / ${Math.round(inspection.memory.totalMb)} MB` : ''}
+        {inspection.room ? ` · state ${inspection.room.stateBytes} B` : ''}
+      </div>
+      <table style={{ borderCollapse: 'collapse', ...MONO }}>
+        <tbody>
+          {inspection.rooms.map((room) => (
+            <tr key={room.roomId} data-testid="net-server-room">
+              <td style={cell}>{room.name}</td>
+              <td style={cell}>{room.roomId}</td>
+              <td style={cell}>
+                {room.clients}
+                {room.maxClients !== null ? ` / ${room.maxClients}` : ''} clients
+              </td>
+              <td style={cell}>{room.locked ? 'locked' : 'open'}</td>
+              <td style={cell}>{seconds(room.elapsedMs)}</td>
+            </tr>
+          ))}
+          {inspection.room?.clients.map((client) => (
+            <tr key={client.sessionId} data-testid="net-server-client">
+              <td style={cell}>client</td>
+              <td style={cell}>
+                {client.sessionId}
+                {client.sessionId === ownSession ? ' (this client)' : ''}
+              </td>
+              <td style={cell}>{seconds(client.elapsedMs)}</td>
+              <td style={cell} colSpan={2}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  data-testid="net-server-disconnect"
+                  onClick={() => {
+                    adapter.disconnectClient?.(client.sessionId).catch((caught: unknown) =>
+                      setError(caught instanceof Error ? caught.message : String(caught)),
+                    );
+                  }}
+                >
+                  Disconnect
+                </Button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {error ? <AbsentNote>{error}</AbsentNote> : null}
     </div>
   );
 }

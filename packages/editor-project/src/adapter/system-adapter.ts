@@ -235,6 +235,31 @@ export interface NetTypeTraffic {
   bytesOut: number;
 }
 
+export interface NetServerRoom {
+  roomId: string;
+  name: string;
+  clients: number;
+  /** `null` when the room admits any number. */
+  maxClients: number | null;
+  locked: boolean;
+  elapsedMs: number;
+}
+
+export interface NetServerClient {
+  sessionId: string;
+  elapsedMs: number;
+}
+
+export interface NetServerInspection {
+  rooms: NetServerRoom[];
+  connections: number;
+  /** The server machine's CPU use in percent, when it reports one. */
+  cpuPercent: number | null;
+  memory: { usedMb: number; totalMb: number } | null;
+  /** The current room's clients and its full state's size, when the room is still hosted. */
+  room: { roomId: string; clients: NetServerClient[]; stateBytes: number } | null;
+}
+
 export interface NetConditioningLimits {
   latencyMs?: string;
   jitterMs?: string;
@@ -339,6 +364,11 @@ export interface NetworkingAdapter {
   getConditioningLimits?(): NetConditioningLimits;
   /** Measure one round trip to the server now, in milliseconds. */
   ping?(): Promise<number>;
+  /** The room server's own view — every room it hosts, and the current room's clients (Colyseus
+   *  Monitor's). `null` when the server serves no such view. */
+  inspectServer?(): Promise<NetServerInspection | null>;
+  /** Disconnect one client of the current room from the server's side (Monitor's Disconnect). */
+  disconnectClient?(sessionId: string): Promise<void>;
   /** Optional capability, PAIRED with {@link getPlayerIdentity}: set the local
    *  player's identity through the game's OWN multiplayer mechanism. The editor
    *  renders an editable name field ONLY when a real implementer provides this
