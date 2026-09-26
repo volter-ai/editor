@@ -123,8 +123,9 @@ Remaining:
    unit 3: Blender's lens,
    opening direction, grid and axis colours become `@volter/editor-blender`'s specialization; the
    Three- and Pixi-typed adapter contract leaves `@volter/editor-project` (`hierarchy.object3D`,
-   a mounted Three root's scene and camera, navigation's `debugMesh`/`bake`), shaped with unit 5,
-   which rewrites the adapters a game writes against it; the SDK's `surfaces.Object3D*` stay on the
+   a mounted Three root's scene and camera, navigation's `debugMesh`/`bake`) for
+   `@volter/editor-threejs` (DOCUMENT-VIEW-OWNERSHIP.md's corrections; the runtime framework's
+   retirement is the later unit); the SDK's `surfaces.Object3D*` stay on the
    contribution contract, forwarding to what the Three integration registers, because project
    contributions mount them (the authored viewport's own door, `viewport-door`, is already
    `@volter/editor-threejs`'s); `packaged.ts`'s Blender prebundle exclusion. A W held
