@@ -1,0 +1,694 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/camera-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Camera3D",
+        "member": "get_fov",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/camera-3d",
+        "exportName": "get_fov",
+        "localName": "Camera3D_get_fov",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Camera3D.get_fov"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Camera3D",
+        "member": "get_near",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/camera-3d",
+        "exportName": "get_near",
+        "localName": "Camera3D_get_near",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Camera3D.get_near"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Camera3D",
+        "member": "get_far",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/camera-3d",
+        "exportName": "get_far",
+        "localName": "Camera3D_get_far",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Camera3D.get_far"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Camera3D",
+        "member": "get_keep_aspect_mode",
+        "kind": "native-member",
+        "signature": "hash:2790278316"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/camera-3d",
+        "exportName": "get_keep_aspect_mode",
+        "localName": "Camera3D_get_keep_aspect_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Camera3D.get_keep_aspect_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Camera3D",
+        "member": "set_fov",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/camera-3d",
+        "exportName": "set_fov",
+        "localName": "Camera3D_set_fov",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Camera3D.set_fov"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Camera3D",
+        "member": "set_near",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/camera-3d",
+        "exportName": "set_near",
+        "localName": "Camera3D_set_near",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Camera3D.set_near"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Camera3D",
+        "member": "set_far",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/camera-3d",
+        "exportName": "set_far",
+        "localName": "Camera3D_set_far",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Camera3D.set_far"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Camera3D",
+        "member": "set_keep_aspect_mode",
+        "kind": "native-member",
+        "signature": "hash:1740651252"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/camera-3d",
+        "exportName": "set_keep_aspect_mode",
+        "localName": "Camera3D_set_keep_aspect_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Camera3D.set_keep_aspect_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Camera3D",
+        "member": "project_ray_normal",
+        "kind": "native-member",
+        "signature": "hash:1718073306"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/camera-3d",
+        "exportName": "project_ray_normal",
+        "localName": "Camera3D_project_ray_normal",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Camera3D.project_ray_normal"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Camera3D",
+        "member": "project_ray_origin",
+        "kind": "native-member",
+        "signature": "hash:1718073306"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/camera-3d",
+        "exportName": "project_ray_origin",
+        "localName": "Camera3D_project_ray_origin",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Camera3D.project_ray_origin"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Camera3D.get_fov",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Camera3D\u0000get_fov\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/camera_3d.cpp",
+        "sourceSymbol": "Camera3D.get_fov",
+        "sourceLine": 713
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "71f8ece7fcd0281600e8ace0ff0c847fea2c65e7139457f85a5d26bc7b9f10ee",
+        "callsite": "res://probe.gd _init() fresh-get_fov",
+        "observedOutputSha256": "24929e57bbf74c811e9f9a47014b20707297d23aaee662a8209534ffd26e18ab"
+      },
+      "target": {
+        "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb",
+        "callsite": "lib/godot-compat/camera-3d.ts get_fov",
+        "observedOutputSha256": "24929e57bbf74c811e9f9a47014b20707297d23aaee662a8209534ffd26e18ab"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1df1823553afca04095c0cc21cb2a573c039df3649c57d3523bcf6995d1059a4"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "camera-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Camera3D.get_near",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Camera3D\u0000get_near\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/camera_3d.cpp",
+        "sourceSymbol": "Camera3D.get_near",
+        "sourceLine": 721
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "11c3c3c4495dec25909a32c2feaf214f077c62eccb8a08e755287903013f88fe",
+        "callsite": "res://probe.gd _init() fresh-get_near",
+        "observedOutputSha256": "3e8b03073b1bfc918fdc2044bb810012311c46c0f846e535e9dcb480a4afb6ea"
+      },
+      "target": {
+        "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb",
+        "callsite": "lib/godot-compat/camera-3d.ts get_near",
+        "observedOutputSha256": "3e8b03073b1bfc918fdc2044bb810012311c46c0f846e535e9dcb480a4afb6ea"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e667a5be744ef9d1b1240a81a112ba667b5aa1bca4a1a4520b07e6a4ceec27f5"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "camera-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Camera3D.get_far",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Camera3D\u0000get_far\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/camera_3d.cpp",
+        "sourceSymbol": "Camera3D.get_far",
+        "sourceLine": 729
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "55de01073b6768abac8086b21bdae5a6bb51783c5362dad959e83d2b8d1364a5",
+        "callsite": "res://probe.gd _init() fresh-get_far",
+        "observedOutputSha256": "b98d31766bfe6438d2e508b6e480cdf14ac2d3b454faa1680587fa9194115944"
+      },
+      "target": {
+        "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb",
+        "callsite": "lib/godot-compat/camera-3d.ts get_far",
+        "observedOutputSha256": "b98d31766bfe6438d2e508b6e480cdf14ac2d3b454faa1680587fa9194115944"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7aef151166161c07f4f7674f07f85d727bc0d0b5759b55a5cfd6a38dcf185c90"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "camera-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Camera3D.get_keep_aspect_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Camera3D\u0000get_keep_aspect_mode\u0000hash:2790278316",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/camera_3d.cpp",
+        "sourceSymbol": "Camera3D.get_keep_aspect_mode",
+        "sourceLine": 606
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a3682c7362238e1212bd5c0509a100c5bfc9c66aaede60c482136e2661d07d27",
+        "callsite": "res://probe.gd _init() fresh-get_keep_aspect_mode",
+        "observedOutputSha256": "8d7b6775ac133df39e5d05fe75a740a0d42312723df07fad47646b756292ff64"
+      },
+      "target": {
+        "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb",
+        "callsite": "lib/godot-compat/camera-3d.ts get_keep_aspect_mode",
+        "observedOutputSha256": "8d7b6775ac133df39e5d05fe75a740a0d42312723df07fad47646b756292ff64"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "270210dafd47a2e21543337e679d2969630b2064f60bd0e7a88c58df3d37fee4"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "camera-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Camera3D.set_fov",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Camera3D\u0000set_fov\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/camera_3d.cpp",
+        "sourceSymbol": "Camera3D.set_fov",
+        "sourceLine": 737
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "47e32b5b7e0131a929aff1f441cf86d9a30001d02ba7bc1e97da4141c589b362",
+        "callsite": "res://probe.gd _init() set_fov-75 set_fov-1 set_fov-179 set_fov-0.5 set_fov-200 set_fov-33.3",
+        "observedOutputSha256": "7f4a297bb27988961042bb01d4c8307c5519a48628a8af70ffd075a70746e274"
+      },
+      "target": {
+        "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb",
+        "callsite": "lib/godot-compat/camera-3d.ts set_fov",
+        "observedOutputSha256": "7f4a297bb27988961042bb01d4c8307c5519a48628a8af70ffd075a70746e274"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "cd1a5d8a3f8aefd94aa8f0033afe0f3c05956cf1fa8ea024b4d40c41ec69a3f4"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "camera-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Camera3D.set_near",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Camera3D\u0000set_near\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/camera_3d.cpp",
+        "sourceSymbol": "Camera3D.set_near",
+        "sourceLine": 749
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "35b0e23eab35573fceb65de59c64ddf035b0c06e12cd9661c13aed6ea0ee832c",
+        "callsite": "res://probe.gd _init() set_near-0.05 set_near-0.1 set_near-0.0001 set_near-3.3",
+        "observedOutputSha256": "f0a4cadecc3050fbba47c83b1aae6fcf241b7b86f7ff2518e7222721bb3c7743"
+      },
+      "target": {
+        "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb",
+        "callsite": "lib/godot-compat/camera-3d.ts set_near",
+        "observedOutputSha256": "f0a4cadecc3050fbba47c83b1aae6fcf241b7b86f7ff2518e7222721bb3c7743"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3db5b40e7b259629b69c14c0c8d218d5d245e3d83cf49611f9166f1d3cb673cc"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "camera-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Camera3D.set_far",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Camera3D\u0000set_far\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/camera_3d.cpp",
+        "sourceSymbol": "Camera3D.set_far",
+        "sourceLine": 759
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "578f56b829b79ea52faae39f50dfeb724b34b282ef72fc03efb3b04e82ef96d3",
+        "callsite": "res://probe.gd _init() set_far-4000 set_far-100.5 set_far-1000000",
+        "observedOutputSha256": "0faa7fc9fe8f0491da3106b93fd7751fba3c22db85783f8efa763ffa08c5332e"
+      },
+      "target": {
+        "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb",
+        "callsite": "lib/godot-compat/camera-3d.ts set_far",
+        "observedOutputSha256": "0faa7fc9fe8f0491da3106b93fd7751fba3c22db85783f8efa763ffa08c5332e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1b64032df1426911d8611e429b9458f62581ed35924de42d4605cf1cfba99d9f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "camera-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Camera3D.set_keep_aspect_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Camera3D\u0000set_keep_aspect_mode\u0000hash:1740651252",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/camera_3d.cpp",
+        "sourceSymbol": "Camera3D.set_keep_aspect_mode",
+        "sourceLine": 599
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0805dcdb961be9273c49193f305215eda69bfafe53fda7c3c8eb6decb877bac0",
+        "callsite": "res://probe.gd _init() set_keep_aspect_mode-0 set_keep_aspect_mode-1",
+        "observedOutputSha256": "b7ac6ababdaf1a213308b5aefe8fd13cde0aad22c5549961f99e14d5e9ca2ddb"
+      },
+      "target": {
+        "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb",
+        "callsite": "lib/godot-compat/camera-3d.ts set_keep_aspect_mode",
+        "observedOutputSha256": "b7ac6ababdaf1a213308b5aefe8fd13cde0aad22c5549961f99e14d5e9ca2ddb"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3f1dbddcca5b9437a70f4387cfe04b554bddec18bd6e23335df1a0b062dac5e0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "camera-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Camera3D.project_ray_normal",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Camera3D\u0000project_ray_normal\u0000hash:1718073306",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/camera_3d.cpp",
+        "sourceSymbol": "Camera3D.project_ray_normal",
+        "sourceLine": 406
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e9d87884b4f4f1d9a3d4f408491e884550db68e6cc8f01efecb1a7487eb9f7fd",
+        "callsite": "res://probe.gd _init() project_ray_normal-640x480-identity-default-0 project_ray_normal-640x480-identity-default-1 project_ray_normal-640x480-identity-default-2 project_ray_normal-640x480-identity-default-3 project_ray_normal-640x480-identity-default-4 project_ray_normal-640x480-identity-wide-0 project_ray_normal-640x480-identity-wide-1 project_ray_normal-640x480-identity-wide-2 project_ray_normal-640x480-identity-wide-3 project_ray_normal-640x480-identity-wide-4 project_ray_normal-640x480-identity-keep-width-0 project_ray_normal-640x480-identity-keep-width-1 project_ray_normal-640x480-identity-keep-width-2 project_ray_normal-640x480-identity-keep-width-3 project_ray_normal-640x480-identity-keep-width-4 project_ray_normal-640x480-moved-default-0 project_ray_normal-640x480-moved-default-1 project_ray_normal-640x480-moved-default-2 project_ray_normal-640x480-moved-default-3 project_ray_normal-640x480-moved-default-4 project_ray_normal-640x480-moved-wide-0 project_ray_normal-640x480-moved-wide-1 project_ray_normal-640x480-moved-wide-2 project_ray_normal-640x480-moved-wide-3 project_ray_normal-640x480-moved-wide-4 project_ray_normal-640x480-moved-keep-width-0 project_ray_normal-640x480-moved-keep-width-1 project_ray_normal-640x480-moved-keep-width-2 project_ray_normal-640x480-moved-keep-width-3 project_ray_normal-640x480-moved-keep-width-4 project_ray_normal-640x480-scaled-default-0 project_ray_normal-640x480-scaled-default-1 project_ray_normal-640x480-scaled-default-2 project_ray_normal-640x480-scaled-default-3 project_ray_normal-640x480-scaled-default-4 project_ray_normal-640x480-scaled-wide-0 project_ray_normal-640x480-scaled-wide-1 project_ray_normal-640x480-scaled-wide-2 project_ray_normal-640x480-scaled-wide-3 project_ray_normal-640x480-scaled-wide-4 project_ray_normal-640x480-scaled-keep-width-0 project_ray_normal-640x480-scaled-keep-width-1 project_ray_normal-640x480-scaled-keep-width-2 project_ray_normal-640x480-scaled-keep-width-3 project_ray_normal-640x480-scaled-keep-width-4 project_ray_normal-640x480-looking-default-0 project_ray_normal-640x480-looking-default-1 project_ray_normal-640x480-looking-default-2 project_ray_normal-640x480-looking-default-3 project_ray_normal-640x480-looking-default-4 project_ray_normal-640x480-looking-wide-0 project_ray_normal-640x480-looking-wide-1 project_ray_normal-640x480-looking-wide-2 project_ray_normal-640x480-looking-wide-3 project_ray_normal-640x480-looking-wide-4 project_ray_normal-640x480-looking-keep-width-0 project_ray_normal-640x480-looking-keep-width-1 project_ray_normal-640x480-looking-keep-width-2 project_ray_normal-640x480-looking-keep-width-3 project_ray_normal-640x480-looking-keep-width-4 project_ray_normal-1920x1080-identity-default-0 project_ray_normal-1920x1080-identity-default-1 project_ray_normal-1920x1080-identity-default-2 project_ray_normal-1920x1080-identity-default-3 project_ray_normal-1920x1080-identity-default-4 project_ray_normal-1920x1080-identity-wide-0 project_ray_normal-1920x1080-identity-wide-1 project_ray_normal-1920x1080-identity-wide-2 project_ray_normal-1920x1080-identity-wide-3 project_ray_normal-1920x1080-identity-wide-4 project_ray_normal-1920x1080-identity-keep-width-0 project_ray_normal-1920x1080-identity-keep-width-1 project_ray_normal-1920x1080-identity-keep-width-2 project_ray_normal-1920x1080-identity-keep-width-3 project_ray_normal-1920x1080-identity-keep-width-4 project_ray_normal-1920x1080-moved-default-0 project_ray_normal-1920x1080-moved-default-1 project_ray_normal-1920x1080-moved-default-2 project_ray_normal-1920x1080-moved-default-3 project_ray_normal-1920x1080-moved-default-4 project_ray_normal-1920x1080-moved-wide-0 project_ray_normal-1920x1080-moved-wide-1 project_ray_normal-1920x1080-moved-wide-2 project_ray_normal-1920x1080-moved-wide-3 project_ray_normal-1920x1080-moved-wide-4 project_ray_normal-1920x1080-moved-keep-width-0 project_ray_normal-1920x1080-moved-keep-width-1 project_ray_normal-1920x1080-moved-keep-width-2 project_ray_normal-1920x1080-moved-keep-width-3 project_ray_normal-1920x1080-moved-keep-width-4 project_ray_normal-1920x1080-scaled-default-0 project_ray_normal-1920x1080-scaled-default-1 project_ray_normal-1920x1080-scaled-default-2 project_ray_normal-1920x1080-scaled-default-3 project_ray_normal-1920x1080-scaled-default-4 project_ray_normal-1920x1080-scaled-wide-0 project_ray_normal-1920x1080-scaled-wide-1 project_ray_normal-1920x1080-scaled-wide-2 project_ray_normal-1920x1080-scaled-wide-3 project_ray_normal-1920x1080-scaled-wide-4 project_ray_normal-1920x1080-scaled-keep-width-0 project_ray_normal-1920x1080-scaled-keep-width-1 project_ray_normal-1920x1080-scaled-keep-width-2 project_ray_normal-1920x1080-scaled-keep-width-3 project_ray_normal-1920x1080-scaled-keep-width-4 project_ray_normal-1920x1080-looking-default-0 project_ray_normal-1920x1080-looking-default-1 project_ray_normal-1920x1080-looking-default-2 project_ray_normal-1920x1080-looking-default-3 project_ray_normal-1920x1080-looking-default-4 project_ray_normal-1920x1080-looking-wide-0 project_ray_normal-1920x1080-looking-wide-1 project_ray_normal-1920x1080-looking-wide-2 project_ray_normal-1920x1080-looking-wide-3 project_ray_normal-1920x1080-looking-wide-4 project_ray_normal-1920x1080-looking-keep-width-0 project_ray_normal-1920x1080-looking-keep-width-1 project_ray_normal-1920x1080-looking-keep-width-2 project_ray_normal-1920x1080-looking-keep-width-3 project_ray_normal-1920x1080-looking-keep-width-4 project_ray_normal-300x900-identity-default-0 project_ray_normal-300x900-identity-default-1 project_ray_normal-300x900-identity-default-2 project_ray_normal-300x900-identity-default-3 project_ray_normal-300x900-identity-default-4 project_ray_normal-300x900-identity-wide-0 project_ray_normal-300x900-identity-wide-1 project_ray_normal-300x900-identity-wide-2 project_ray_normal-300x900-identity-wide-3 project_ray_normal-300x900-identity-wide-4 project_ray_normal-300x900-identity-keep-width-0 project_ray_normal-300x900-identity-keep-width-1 project_ray_normal-300x900-identity-keep-width-2 project_ray_normal-300x900-identity-keep-width-3 project_ray_normal-300x900-identity-keep-width-4 project_ray_normal-300x900-moved-default-0 project_ray_normal-300x900-moved-default-1 project_ray_normal-300x900-moved-default-2 project_ray_normal-300x900-moved-default-3 project_ray_normal-300x900-moved-default-4 project_ray_normal-300x900-moved-wide-0 project_ray_normal-300x900-moved-wide-1 project_ray_normal-300x900-moved-wide-2 project_ray_normal-300x900-moved-wide-3 project_ray_normal-300x900-moved-wide-4 project_ray_normal-300x900-moved-keep-width-0 project_ray_normal-300x900-moved-keep-width-1 project_ray_normal-300x900-moved-keep-width-2 project_ray_normal-300x900-moved-keep-width-3 project_ray_normal-300x900-moved-keep-width-4 project_ray_normal-300x900-scaled-default-0 project_ray_normal-300x900-scaled-default-1 project_ray_normal-300x900-scaled-default-2 project_ray_normal-300x900-scaled-default-3 project_ray_normal-300x900-scaled-default-4 project_ray_normal-300x900-scaled-wide-0 project_ray_normal-300x900-scaled-wide-1 project_ray_normal-300x900-scaled-wide-2 project_ray_normal-300x900-scaled-wide-3 project_ray_normal-300x900-scaled-wide-4 project_ray_normal-300x900-scaled-keep-width-0 project_ray_normal-300x900-scaled-keep-width-1 project_ray_normal-300x900-scaled-keep-width-2 project_ray_normal-300x900-scaled-keep-width-3 project_ray_normal-300x900-scaled-keep-width-4 project_ray_normal-300x900-looking-default-0 project_ray_normal-300x900-looking-default-1 project_ray_normal-300x900-looking-default-2 project_ray_normal-300x900-looking-default-3 project_ray_normal-300x900-looking-default-4 project_ray_normal-300x900-looking-wide-0 project_ray_normal-300x900-looking-wide-1 project_ray_normal-300x900-looking-wide-2 project_ray_normal-300x900-looking-wide-3 project_ray_normal-300x900-looking-wide-4 project_ray_normal-300x900-looking-keep-width-0 project_ray_normal-300x900-looking-keep-width-1 project_ray_normal-300x900-looking-keep-width-2 project_ray_normal-300x900-looking-keep-width-3 project_ray_normal-300x900-looking-keep-width-4 project_ray_normal-1x1-identity-default-0 project_ray_normal-1x1-identity-default-1 project_ray_normal-1x1-identity-default-2 project_ray_normal-1x1-identity-default-3 project_ray_normal-1x1-identity-default-4 project_ray_normal-1x1-identity-wide-0 project_ray_normal-1x1-identity-wide-1 project_ray_normal-1x1-identity-wide-2 project_ray_normal-1x1-identity-wide-3 project_ray_normal-1x1-identity-wide-4 project_ray_normal-1x1-identity-keep-width-0 project_ray_normal-1x1-identity-keep-width-1 project_ray_normal-1x1-identity-keep-width-2 project_ray_normal-1x1-identity-keep-width-3 project_ray_normal-1x1-identity-keep-width-4 project_ray_normal-1x1-moved-default-0 project_ray_normal-1x1-moved-default-1 project_ray_normal-1x1-moved-default-2 project_ray_normal-1x1-moved-default-3 project_ray_normal-1x1-moved-default-4 project_ray_normal-1x1-moved-wide-0 project_ray_normal-1x1-moved-wide-1 project_ray_normal-1x1-moved-wide-2 project_ray_normal-1x1-moved-wide-3 project_ray_normal-1x1-moved-wide-4 project_ray_normal-1x1-moved-keep-width-0 project_ray_normal-1x1-moved-keep-width-1 project_ray_normal-1x1-moved-keep-width-2 project_ray_normal-1x1-moved-keep-width-3 project_ray_normal-1x1-moved-keep-width-4 project_ray_normal-1x1-scaled-default-0 project_ray_normal-1x1-scaled-default-1 project_ray_normal-1x1-scaled-default-2 project_ray_normal-1x1-scaled-default-3 project_ray_normal-1x1-scaled-default-4 project_ray_normal-1x1-scaled-wide-0 project_ray_normal-1x1-scaled-wide-1 project_ray_normal-1x1-scaled-wide-2 project_ray_normal-1x1-scaled-wide-3 project_ray_normal-1x1-scaled-wide-4 project_ray_normal-1x1-scaled-keep-width-0 project_ray_normal-1x1-scaled-keep-width-1 project_ray_normal-1x1-scaled-keep-width-2 project_ray_normal-1x1-scaled-keep-width-3 project_ray_normal-1x1-scaled-keep-width-4 project_ray_normal-1x1-looking-default-0 project_ray_normal-1x1-looking-default-1 project_ray_normal-1x1-looking-default-2 project_ray_normal-1x1-looking-default-3 project_ray_normal-1x1-looking-default-4 project_ray_normal-1x1-looking-wide-0 project_ray_normal-1x1-looking-wide-1 project_ray_normal-1x1-looking-wide-2 project_ray_normal-1x1-looking-wide-3 project_ray_normal-1x1-looking-wide-4 project_ray_normal-1x1-looking-keep-width-0 project_ray_normal-1x1-looking-keep-width-1 project_ray_normal-1x1-looking-keep-width-2 project_ray_normal-1x1-looking-keep-width-3 project_ray_normal-1x1-looking-keep-width-4",
+        "observedOutputSha256": "151156212749808c015c3abb49b0c9508f796b439c23a43827e0360baca9942d"
+      },
+      "target": {
+        "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb",
+        "callsite": "lib/godot-compat/camera-3d.ts project_ray_normal",
+        "observedOutputSha256": "151156212749808c015c3abb49b0c9508f796b439c23a43827e0360baca9942d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e108e37db9bd76aaf644488bd5fd51412ac2d06380bedaabe1d73168ff6b4eff"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "camera-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Camera3D.project_ray_origin",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Camera3D\u0000project_ray_origin\u0000hash:1718073306",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/camera_3d.cpp",
+        "sourceSymbol": "Camera3D.project_ray_origin",
+        "sourceLine": 429
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "78d71ffca27b1cc882713a5eb2d2b61d563b85af51319dba23cfa755b32c50e6",
+        "callsite": "res://probe.gd _init() project_ray_origin-640x480-identity-default project_ray_origin-640x480-identity-wide project_ray_origin-640x480-identity-keep-width project_ray_origin-640x480-moved-default project_ray_origin-640x480-moved-wide project_ray_origin-640x480-moved-keep-width project_ray_origin-640x480-scaled-default project_ray_origin-640x480-scaled-wide project_ray_origin-640x480-scaled-keep-width project_ray_origin-640x480-looking-default project_ray_origin-640x480-looking-wide project_ray_origin-640x480-looking-keep-width project_ray_origin-1920x1080-identity-default project_ray_origin-1920x1080-identity-wide project_ray_origin-1920x1080-identity-keep-width project_ray_origin-1920x1080-moved-default project_ray_origin-1920x1080-moved-wide project_ray_origin-1920x1080-moved-keep-width project_ray_origin-1920x1080-scaled-default project_ray_origin-1920x1080-scaled-wide project_ray_origin-1920x1080-scaled-keep-width project_ray_origin-1920x1080-looking-default project_ray_origin-1920x1080-looking-wide project_ray_origin-1920x1080-looking-keep-width project_ray_origin-300x900-identity-default project_ray_origin-300x900-identity-wide project_ray_origin-300x900-identity-keep-width project_ray_origin-300x900-moved-default project_ray_origin-300x900-moved-wide project_ray_origin-300x900-moved-keep-width project_ray_origin-300x900-scaled-default project_ray_origin-300x900-scaled-wide project_ray_origin-300x900-scaled-keep-width project_ray_origin-300x900-looking-default project_ray_origin-300x900-looking-wide project_ray_origin-300x900-looking-keep-width project_ray_origin-1x1-identity-default project_ray_origin-1x1-identity-wide project_ray_origin-1x1-identity-keep-width project_ray_origin-1x1-moved-default project_ray_origin-1x1-moved-wide project_ray_origin-1x1-moved-keep-width project_ray_origin-1x1-scaled-default project_ray_origin-1x1-scaled-wide project_ray_origin-1x1-scaled-keep-width project_ray_origin-1x1-looking-default project_ray_origin-1x1-looking-wide project_ray_origin-1x1-looking-keep-width",
+        "observedOutputSha256": "3892bf9ee617bff2cd51ffbac5f1f5715889e780bac748a37bfeb2d06384d990"
+      },
+      "target": {
+        "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb",
+        "callsite": "lib/godot-compat/camera-3d.ts project_ray_origin",
+        "observedOutputSha256": "3892bf9ee617bff2cd51ffbac5f1f5715889e780bac748a37bfeb2d06384d990"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5fce954128b2b8401f9c5ba37f5bea1c112e693a39ac804c271746fe66ffc1a2"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "camera-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Camera3D.get_fov",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "71f8ece7fcd0281600e8ace0ff0c847fea2c65e7139457f85a5d26bc7b9f10ee",
+      "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb"
+    },
+    {
+      "claimId": "godot-4.7-binding-Camera3D.get_near",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "11c3c3c4495dec25909a32c2feaf214f077c62eccb8a08e755287903013f88fe",
+      "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb"
+    },
+    {
+      "claimId": "godot-4.7-binding-Camera3D.get_far",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "55de01073b6768abac8086b21bdae5a6bb51783c5362dad959e83d2b8d1364a5",
+      "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb"
+    },
+    {
+      "claimId": "godot-4.7-binding-Camera3D.get_keep_aspect_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a3682c7362238e1212bd5c0509a100c5bfc9c66aaede60c482136e2661d07d27",
+      "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb"
+    },
+    {
+      "claimId": "godot-4.7-binding-Camera3D.set_fov",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "47e32b5b7e0131a929aff1f441cf86d9a30001d02ba7bc1e97da4141c589b362",
+      "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb"
+    },
+    {
+      "claimId": "godot-4.7-binding-Camera3D.set_near",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "35b0e23eab35573fceb65de59c64ddf035b0c06e12cd9661c13aed6ea0ee832c",
+      "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb"
+    },
+    {
+      "claimId": "godot-4.7-binding-Camera3D.set_far",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "578f56b829b79ea52faae39f50dfeb724b34b282ef72fc03efb3b04e82ef96d3",
+      "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb"
+    },
+    {
+      "claimId": "godot-4.7-binding-Camera3D.set_keep_aspect_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0805dcdb961be9273c49193f305215eda69bfafe53fda7c3c8eb6decb877bac0",
+      "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb"
+    },
+    {
+      "claimId": "godot-4.7-binding-Camera3D.project_ray_normal",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e9d87884b4f4f1d9a3d4f408491e884550db68e6cc8f01efecb1a7487eb9f7fd",
+      "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb"
+    },
+    {
+      "claimId": "godot-4.7-binding-Camera3D.project_ray_origin",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "78d71ffca27b1cc882713a5eb2d2b61d563b85af51319dba23cfa755b32c50e6",
+      "implementationSha256": "ab758ca1cf88cf07df97e5e9b42beb602876c40d1065a783b72f8654d87768fb"
+    }
+  ]
+}
