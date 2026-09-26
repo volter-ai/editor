@@ -1,0 +1,348 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/transform-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Transform3D",
+        "member": "Transform3D",
+        "kind": "builtin-constructor",
+        "signature": "unhashed"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/transform-3d",
+        "exportName": "construct",
+        "localName": "Transform3D_construct",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Transform3D.Transform3D"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Transform3D",
+        "member": "looking_at",
+        "kind": "builtin-member",
+        "signature": "hash:90889270"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/transform-3d",
+        "exportName": "looking_at",
+        "localName": "Transform3D_looking_at",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Transform3D.looking_at"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Transform3D",
+        "member": "basis",
+        "kind": "builtin-member-set",
+        "signature": "set"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/transform-3d",
+        "exportName": "with_basis",
+        "localName": "Transform3D_with_basis",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Transform3D.basis.set"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Transform3D",
+        "member": "origin",
+        "kind": "builtin-member-set",
+        "signature": "set"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/transform-3d",
+        "exportName": "with_origin",
+        "localName": "Transform3D_with_origin",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Transform3D.origin.set"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [
+    {
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "sourceDatatype": "BUILTIN:Transform3D",
+      "targetType": {
+        "kind": "type-reference",
+        "name": "Transform3D",
+        "arguments": []
+      },
+      "typeImport": {
+        "module": "lib/godot-compat/transform-3d",
+        "exportName": "Transform3D"
+      },
+      "evidenceClaimId": "godot-4.7-datatype-Transform3D"
+    }
+  ],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Transform3D.Transform3D",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-constructor\u0000Transform3D\u0000Transform3D\u0000unhashed",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/transform_3d.h",
+        "sourceSymbol": "Transform3D.Transform3D",
+        "sourceLine": 132
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c9ba8f41b6257b298f93b624ba835de296f914b461cf4cac3d77e91344d47438",
+        "callsite": "res://probe.gd _init() construct-empty construct-basis-origin-zero construct-axes-zero construct-copy-zero construct-basis-origin-a construct-axes-a construct-copy-a construct-basis-origin-decimals construct-axes-decimals construct-copy-decimals construct-basis-origin-far construct-axes-far construct-copy-far",
+        "observedOutputSha256": "22c5cad809decf4425aab41a2f1266d2ec5e1254ee1e148c8ba3ade8cd359276"
+      },
+      "target": {
+        "implementationSha256": "6e62c6c70dfe2ab3323ef64884623923e630bc2bb9a0fa5d98727e207d9bf3ad",
+        "callsite": "lib/godot-compat/transform-3d.ts construct",
+        "observedOutputSha256": "d9a85b72ac1b9dbb5f3df62ac8840d8cc804d580f758b14bd212ecb736a768fd"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8454fb2000f6fb5076a287d94b7e0e51940dac8e5baab93b93080eccd92d24d9"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "transform-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Transform3D.looking_at",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Transform3D\u0000looking_at\u0000hash:90889270",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/transform_3d.cpp",
+        "sourceSymbol": "Transform3D.looking_at",
+        "sourceLine": 79
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c5823834592d6dfe640beabd4430576ad8e6acfc7ffb6c7a2a0d737fb47ac86f",
+        "callsite": "res://probe.gd _init() looking_at-default-zero-forward looking_at-zero-forward-up-false looking_at-zero-forward-up-true looking_at-zero-forward-x-false looking_at-zero-forward-x-true looking_at-zero-forward-tilted-false looking_at-zero-forward-tilted-true looking_at-zero-forward-zero-false looking_at-zero-forward-zero-true looking_at-default-zero-diagonal looking_at-zero-diagonal-up-false looking_at-zero-diagonal-up-true looking_at-zero-diagonal-x-false looking_at-zero-diagonal-x-true looking_at-zero-diagonal-tilted-false looking_at-zero-diagonal-tilted-true looking_at-zero-diagonal-zero-false looking_at-zero-diagonal-zero-true looking_at-default-zero-up looking_at-zero-up-up-false looking_at-zero-up-up-true looking_at-zero-up-x-false looking_at-zero-up-x-true looking_at-zero-up-tilted-false looking_at-zero-up-tilted-true looking_at-zero-up-zero-false looking_at-zero-up-zero-true looking_at-default-zero-down looking_at-zero-down-up-false looking_at-zero-down-up-true looking_at-zero-down-x-false looking_at-zero-down-x-true looking_at-zero-down-tilted-false looking_at-zero-down-tilted-true looking_at-zero-down-zero-false looking_at-zero-down-zero-true looking_at-default-zero-near looking_at-zero-near-up-false looking_at-zero-near-up-true looking_at-zero-near-x-false looking_at-zero-near-x-true looking_at-zero-near-tilted-false looking_at-zero-near-tilted-true looking_at-zero-near-zero-false looking_at-zero-near-zero-true looking_at-default-zero-same-as-a looking_at-zero-same-as-a-up-false looking_at-zero-same-as-a-up-true looking_at-zero-same-as-a-x-false looking_at-zero-same-as-a-x-true looking_at-zero-same-as-a-tilted-false looking_at-zero-same-as-a-tilted-true looking_at-zero-same-as-a-zero-false looking_at-zero-same-as-a-zero-true looking_at-default-zero-decimals looking_at-zero-decimals-up-false looking_at-zero-decimals-up-true looking_at-zero-decimals-x-false looking_at-zero-decimals-x-true looking_at-zero-decimals-tilted-false looking_at-zero-decimals-tilted-true looking_at-zero-decimals-zero-false looking_at-zero-decimals-zero-true looking_at-default-zero-far looking_at-zero-far-up-false looking_at-zero-far-up-true looking_at-zero-far-x-false looking_at-zero-far-x-true looking_at-zero-far-tilted-false looking_at-zero-far-tilted-true looking_at-zero-far-zero-false looking_at-zero-far-zero-true looking_at-default-a-forward looking_at-a-forward-up-false looking_at-a-forward-up-true looking_at-a-forward-x-false looking_at-a-forward-x-true looking_at-a-forward-tilted-false looking_at-a-forward-tilted-true looking_at-a-forward-zero-false looking_at-a-forward-zero-true looking_at-default-a-diagonal looking_at-a-diagonal-up-false looking_at-a-diagonal-up-true looking_at-a-diagonal-x-false looking_at-a-diagonal-x-true looking_at-a-diagonal-tilted-false looking_at-a-diagonal-tilted-true looking_at-a-diagonal-zero-false looking_at-a-diagonal-zero-true looking_at-default-a-up looking_at-a-up-up-false looking_at-a-up-up-true looking_at-a-up-x-false looking_at-a-up-x-true looking_at-a-up-tilted-false looking_at-a-up-tilted-true looking_at-a-up-zero-false looking_at-a-up-zero-true looking_at-default-a-down looking_at-a-down-up-false looking_at-a-down-up-true looking_at-a-down-x-false looking_at-a-down-x-true looking_at-a-down-tilted-false looking_at-a-down-tilted-true looking_at-a-down-zero-false looking_at-a-down-zero-true looking_at-default-a-near looking_at-a-near-up-false looking_at-a-near-up-true looking_at-a-near-x-false looking_at-a-near-x-true looking_at-a-near-tilted-false looking_at-a-near-tilted-true looking_at-a-near-zero-false looking_at-a-near-zero-true looking_at-default-a-same-as-a looking_at-a-same-as-a-up-false looking_at-a-same-as-a-up-true looking_at-a-same-as-a-x-false looking_at-a-same-as-a-x-true looking_at-a-same-as-a-tilted-false looking_at-a-same-as-a-tilted-true looking_at-a-same-as-a-zero-false looking_at-a-same-as-a-zero-true looking_at-default-a-decimals looking_at-a-decimals-up-false looking_at-a-decimals-up-true looking_at-a-decimals-x-false looking_at-a-decimals-x-true looking_at-a-decimals-tilted-false looking_at-a-decimals-tilted-true looking_at-a-decimals-zero-false looking_at-a-decimals-zero-true looking_at-default-a-far looking_at-a-far-up-false looking_at-a-far-up-true looking_at-a-far-x-false looking_at-a-far-x-true looking_at-a-far-tilted-false looking_at-a-far-tilted-true looking_at-a-far-zero-false looking_at-a-far-zero-true looking_at-default-decimals-forward looking_at-decimals-forward-up-false looking_at-decimals-forward-up-true looking_at-decimals-forward-x-false looking_at-decimals-forward-x-true looking_at-decimals-forward-tilted-false looking_at-decimals-forward-tilted-true looking_at-decimals-forward-zero-false looking_at-decimals-forward-zero-true looking_at-default-decimals-diagonal looking_at-decimals-diagonal-up-false looking_at-decimals-diagonal-up-true looking_at-decimals-diagonal-x-false looking_at-decimals-diagonal-x-true looking_at-decimals-diagonal-tilted-false looking_at-decimals-diagonal-tilted-true looking_at-decimals-diagonal-zero-false looking_at-decimals-diagonal-zero-true looking_at-default-decimals-up looking_at-decimals-up-up-false looking_at-decimals-up-up-true looking_at-decimals-up-x-false looking_at-decimals-up-x-true looking_at-decimals-up-tilted-false looking_at-decimals-up-tilted-true looking_at-decimals-up-zero-false looking_at-decimals-up-zero-true looking_at-default-decimals-down looking_at-decimals-down-up-false looking_at-decimals-down-up-true looking_at-decimals-down-x-false looking_at-decimals-down-x-true looking_at-decimals-down-tilted-false looking_at-decimals-down-tilted-true looking_at-decimals-down-zero-false looking_at-decimals-down-zero-true looking_at-default-decimals-near looking_at-decimals-near-up-false looking_at-decimals-near-up-true looking_at-decimals-near-x-false looking_at-decimals-near-x-true looking_at-decimals-near-tilted-false looking_at-decimals-near-tilted-true looking_at-decimals-near-zero-false looking_at-decimals-near-zero-true looking_at-default-decimals-same-as-a looking_at-decimals-same-as-a-up-false looking_at-decimals-same-as-a-up-true looking_at-decimals-same-as-a-x-false looking_at-decimals-same-as-a-x-true looking_at-decimals-same-as-a-tilted-false looking_at-decimals-same-as-a-tilted-true looking_at-decimals-same-as-a-zero-false looking_at-decimals-same-as-a-zero-true looking_at-default-decimals-decimals looking_at-decimals-decimals-up-false looking_at-decimals-decimals-up-true looking_at-decimals-decimals-x-false looking_at-decimals-decimals-x-true looking_at-decimals-decimals-tilted-false looking_at-decimals-decimals-tilted-true looking_at-decimals-decimals-zero-false looking_at-decimals-decimals-zero-true looking_at-default-decimals-far looking_at-decimals-far-up-false looking_at-decimals-far-up-true looking_at-decimals-far-x-false looking_at-decimals-far-x-true looking_at-decimals-far-tilted-false looking_at-decimals-far-tilted-true looking_at-decimals-far-zero-false looking_at-decimals-far-zero-true looking_at-default-far-forward looking_at-far-forward-up-false looking_at-far-forward-up-true looking_at-far-forward-x-false looking_at-far-forward-x-true looking_at-far-forward-tilted-false looking_at-far-forward-tilted-true looking_at-far-forward-zero-false looking_at-far-forward-zero-true looking_at-default-far-diagonal looking_at-far-diagonal-up-false looking_at-far-diagonal-up-true looking_at-far-diagonal-x-false looking_at-far-diagonal-x-true looking_at-far-diagonal-tilted-false looking_at-far-diagonal-tilted-true looking_at-far-diagonal-zero-false looking_at-far-diagonal-zero-true looking_at-default-far-up looking_at-far-up-up-false looking_at-far-up-up-true looking_at-far-up-x-false looking_at-far-up-x-true looking_at-far-up-tilted-false looking_at-far-up-tilted-true looking_at-far-up-zero-false looking_at-far-up-zero-true looking_at-default-far-down looking_at-far-down-up-false looking_at-far-down-up-true looking_at-far-down-x-false looking_at-far-down-x-true looking_at-far-down-tilted-false looking_at-far-down-tilted-true looking_at-far-down-zero-false looking_at-far-down-zero-true looking_at-default-far-near looking_at-far-near-up-false looking_at-far-near-up-true looking_at-far-near-x-false looking_at-far-near-x-true looking_at-far-near-tilted-false looking_at-far-near-tilted-true looking_at-far-near-zero-false looking_at-far-near-zero-true looking_at-default-far-same-as-a looking_at-far-same-as-a-up-false looking_at-far-same-as-a-up-true looking_at-far-same-as-a-x-false looking_at-far-same-as-a-x-true looking_at-far-same-as-a-tilted-false looking_at-far-same-as-a-tilted-true looking_at-far-same-as-a-zero-false looking_at-far-same-as-a-zero-true looking_at-default-far-decimals looking_at-far-decimals-up-false looking_at-far-decimals-up-true looking_at-far-decimals-x-false looking_at-far-decimals-x-true looking_at-far-decimals-tilted-false looking_at-far-decimals-tilted-true looking_at-far-decimals-zero-false looking_at-far-decimals-zero-true looking_at-default-far-far looking_at-far-far-up-false looking_at-far-far-up-true looking_at-far-far-x-false looking_at-far-far-x-true looking_at-far-far-tilted-false looking_at-far-far-tilted-true looking_at-far-far-zero-false looking_at-far-far-zero-true",
+        "observedOutputSha256": "5dcc1d926c81394d07eb13dbd5d3e35fc58ed38628ce2a777976abd9a89f21c9"
+      },
+      "target": {
+        "implementationSha256": "6e62c6c70dfe2ab3323ef64884623923e630bc2bb9a0fa5d98727e207d9bf3ad",
+        "callsite": "lib/godot-compat/transform-3d.ts looking_at",
+        "observedOutputSha256": "f4efadfe6d3d6bceccc67dc7c1a0578bbfd6857fde29df6dff2e03edc9bba6bd"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e454951866368b175a6a24e571097d9cf553357be0fbbb53e4e0b44ef89b70ae"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "transform-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Transform3D.basis.set",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member-set\u0000Transform3D\u0000basis\u0000set",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/transform_3d.h",
+        "sourceSymbol": "Transform3D.basis",
+        "sourceLine": 43
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "39696086b6e273bcf13f4d401f6d1277c71ade0fa90128874c470fde4795fa49",
+        "callsite": "res://probe.gd _init() with_basis-zero with_basis-a with_basis-decimals with_basis-far",
+        "observedOutputSha256": "76f61f24bebb2883915132dbe919c16fb6faf71244228d7f70dec533c4ac3d37"
+      },
+      "target": {
+        "implementationSha256": "6e62c6c70dfe2ab3323ef64884623923e630bc2bb9a0fa5d98727e207d9bf3ad",
+        "callsite": "lib/godot-compat/transform-3d.ts with_basis",
+        "observedOutputSha256": "630ea4539f92e380c9f2abf775ca1608d899069d8085b6e3adf1fb440c4008ec"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "2cff11877472d4eb22a9a8fea5047bbb332efebe45438708ab15b5ef96aa92bb"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "transform-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Transform3D.origin.set",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member-set\u0000Transform3D\u0000origin\u0000set",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/transform_3d.h",
+        "sourceSymbol": "Transform3D.origin",
+        "sourceLine": 44
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e36386d8cb5c18745ddd8bbad1b25519386dfd156ce3b7204027e9aaab65d215",
+        "callsite": "res://probe.gd _init() with_origin-zero with_origin-a with_origin-decimals with_origin-far",
+        "observedOutputSha256": "536f3d93456dc6412d726ce8d970b2c5703a71384ee495b09217056fa4ab62fc"
+      },
+      "target": {
+        "implementationSha256": "6e62c6c70dfe2ab3323ef64884623923e630bc2bb9a0fa5d98727e207d9bf3ad",
+        "callsite": "lib/godot-compat/transform-3d.ts with_origin",
+        "observedOutputSha256": "bba4a30dd6e62741c6f0d442e60c97ac597d0813623faf5d308a16c40af3e374"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "021759574d767639842ba9f9a558e1f84d34497557c84f2b906fb8062bac6cf5"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "transform-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-datatype-Transform3D",
+      "layer": "translate-code",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000datatype\u0000BUILTIN:Transform3D",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/variant.h",
+        "sourceSymbol": "Variant::TRANSFORM3D",
+        "sourceLine": 119
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ebe50f906ecbcebb274a3fcca76087363f7935773c4c834039f4ec36958c3e9f",
+        "callsite": "res://probe.gd _init() every case",
+        "observedOutputSha256": "3907d788f32b5236b7e5dd80d86707b9121110dc27009bbbcda85a6d9f80f826"
+      },
+      "target": {
+        "implementationSha256": "6e62c6c70dfe2ab3323ef64884623923e630bc2bb9a0fa5d98727e207d9bf3ad",
+        "callsite": "lib/godot-compat/transform-3d.ts Transform3D",
+        "observedOutputSha256": "47092016c5a7ef251e345c764c9a8abae0b009c7114f414a6fb93272f0b081cd"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "17b192d9a72530d618b98997a4b934cf35226d813187c7e45de4a653c3831e34"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "transform-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Transform3D.Transform3D",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c9ba8f41b6257b298f93b624ba835de296f914b461cf4cac3d77e91344d47438",
+      "implementationSha256": "6e62c6c70dfe2ab3323ef64884623923e630bc2bb9a0fa5d98727e207d9bf3ad"
+    },
+    {
+      "claimId": "godot-4.7-binding-Transform3D.looking_at",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c5823834592d6dfe640beabd4430576ad8e6acfc7ffb6c7a2a0d737fb47ac86f",
+      "implementationSha256": "6e62c6c70dfe2ab3323ef64884623923e630bc2bb9a0fa5d98727e207d9bf3ad"
+    },
+    {
+      "claimId": "godot-4.7-binding-Transform3D.basis.set",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "39696086b6e273bcf13f4d401f6d1277c71ade0fa90128874c470fde4795fa49",
+      "implementationSha256": "6e62c6c70dfe2ab3323ef64884623923e630bc2bb9a0fa5d98727e207d9bf3ad"
+    },
+    {
+      "claimId": "godot-4.7-binding-Transform3D.origin.set",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e36386d8cb5c18745ddd8bbad1b25519386dfd156ce3b7204027e9aaab65d215",
+      "implementationSha256": "6e62c6c70dfe2ab3323ef64884623923e630bc2bb9a0fa5d98727e207d9bf3ad"
+    },
+    {
+      "claimId": "godot-4.7-datatype-Transform3D",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ebe50f906ecbcebb274a3fcca76087363f7935773c4c834039f4ec36958c3e9f",
+      "implementationSha256": "6e62c6c70dfe2ab3323ef64884623923e630bc2bb9a0fa5d98727e207d9bf3ad"
+    }
+  ]
+}
