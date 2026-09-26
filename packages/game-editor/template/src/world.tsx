@@ -14,7 +14,6 @@ import { useEffect } from 'react';
 import * as THREE from 'three';
 import { QaTester } from './bot/QaTester';
 import { attachKeyboard } from './input';
-import { sfxAudioSystem } from './lib/audio/sfx';
 import { MainScene } from './scenes/MainScene';
 
 /** Renderer finish is project-owned state, restored when this world unmounts. */
@@ -81,7 +80,5 @@ function World() {
     </>
   );
 }
-
-export const systems = { audio: sfxAudioSystem() };
 
 export default World;

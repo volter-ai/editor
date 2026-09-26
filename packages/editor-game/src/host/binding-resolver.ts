@@ -48,11 +48,13 @@ import type { SurfaceAdapter } from '@volter/editor-project/adapter';
 import type { AdapterDefinition } from '@volter/editor-project/adapter/adapter-module';
 import { assertNever } from '@volter/editor-project/adapter/adapter-surface';
 import type { RootDeclaration } from '@volter/editor-project/adapter/binding';
+import type { NativeSystemsBinding } from '@volter/editor-project/adapter/native-entry-surface';
 import { declaredRoots } from '@volter/editor-project/adapter/manifest-interpreter';
 import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@volter/editor-project/manifest/load';
 import { adjudicateThreeEntry } from './entry-adjudication';
 import { projectAdapterDefinition } from '@volter/editor-core/project-adapter';
 import { activeRealmServices, type RealmServices } from './realm-services';
+import { observedGameAudio } from '../services/game-audio';
 import { resolveModuleAdapter } from './roots/module-root';
 import { resolveDomAdapter, resolveIngestReactAdapter } from './roots/react-root';
 
@@ -107,7 +109,7 @@ function declare(
   module: Record<string, unknown>,
 ): RootDeclaration {
   const debug = nativeDebugBindingFromEntryModule(root.id, module);
-  const systems = nativeSystemsBindingFromEntryModule(root.id, module, root.surface);
+  const systems = withObservedAudio(root.id, nativeSystemsBindingFromEntryModule(root.id, module, root.surface));
   return {
     root,
     definition,
@@ -115,6 +117,16 @@ function declare(
     ...(debug ? { entryDebug: debug } : {}),
     ...(systems ? { entrySystems: systems } : {}),
   };
+}
+
+/**
+ * A root that declares no audio, and does not declare its absence, is heard through the
+ * editor's own observer of the page's Web Audio (`services/game-audio.ts`): the game keeps its
+ * sound in its own code, and mute, silence-on-pause and the Audio panel's graph still reach it.
+ */
+function withObservedAudio(rootId: string, systems: NativeSystemsBinding | null): NativeSystemsBinding {
+  if (systems && (systems.slots.audio || systems.absent.some((slot) => slot.slot === 'audio'))) return systems;
+  return { rootId, slots: { ...systems?.slots, audio: observedGameAudio }, absent: systems?.absent ?? [] };
 }
 
 /**

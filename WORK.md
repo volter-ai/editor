@@ -131,9 +131,13 @@ Remaining:
    opening direction, grid and axis colours become `@volter/editor-blender`'s specialization; the SDK's `surfaces.Object3D*` stay on the
    contribution contract, forwarding to what the Three integration registers, because project
    contributions mount them (the authored viewport's own door, `viewport-door`, is already
-   `@volter/editor-threejs`'s). A W held
-   during Play reports "keyboard action transform.translate did not run" from the workbench's own
-   keybinding (`vgaiKeyboard.ts`).
+   `@volter/editor-threejs`'s). The workbench's stage and panel chords stand down on the Game
+   document (`vgai.document.kind != 'game'`): a W held in Play had run `transform.translate`,
+   which refused and warned into every Play log. The Scene's W still sets translate through the
+   workbench's own keybinding (walked through the document door on the regenerated keymap: W and E
+   set translate and rotate). The Game side is not walked:
+   the door refuses synthetic keys on the Game document by ruling, and no other door delivers a
+   keystroke to it.
    Unit 5 has begun with the template's boot: `src/main.ts` mounts each declared root in its own
    library (`<Canvas>` for `three`, react-dom for `dom`), the UI starter shows its debugger a
    module-level `debug` export instead of `useDebugProvider`, and the project-owned React
@@ -145,9 +149,12 @@ Remaining:
 2. **Animation seen from outside.** The editor finds a game's mixers through a served stamp on
    the project's own `new AnimationMixer(...)` and `useAnimations(...)` call sites
    (`@volter/editor-threejs/serving`); `status` reports them as `liveMixers` (walked on `arena`:
-   five mixers, their clips and the characters they animate). The runtime's
-   `_animMixer`/`_availableClips` userData keys are declared and read but never set; they leave
-   with the runtime framework (§The plan, unit 5). The Animation utility (View → Animation) lists
+   five mixers, their clips and the characters they animate). A game's Web Audio is heard the
+   same way: the editor routes each context's output through its own gain and records the
+   connections (`services/game-audio.ts`), and a root that declares no audio gets that observer
+   as its `systems.audio`, so the template and its audio capability name no editor type (walked
+   on `arena` with its audio declaration removed: the Audio panel shows the game's gain graph,
+   Pause mutes it with no gate warning, resume makes it audible). The Animation utility (View → Animation) lists
    every stamped subject and its clips and scrubs it in Edit (walked on `arena`: five subjects;
    a picked clip moves between 0 s and 1 s). Open: a world's own fades run on the mixer's clock,
    which Edit never ticks, so arena's characters stand in their bind pose until the playhead

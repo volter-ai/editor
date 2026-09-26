@@ -7,11 +7,11 @@
  * neither matters to a project that plays nothing.
  */
 import { installAudioPoseGuard } from '../src/services/audio-pose-guard';
-import { installGameAudioUnlock } from '../src/services/game-audio-unlock';
+import { installGameAudio } from '../src/services/game-audio';
 
 export const point = 'workspace.service';
 
 export function start(): void {
-  installGameAudioUnlock();
+  installGameAudio();
   installAudioPoseGuard();
 }
