@@ -69,6 +69,8 @@ export interface PaletteActionEntry {
   /** `action` | `entity` | `asset`, as `action-registry.ts` spells it. */
   readonly category: string;
   readonly run: () => void | Promise<void>;
+  /** The application menu it is an item of, and its label there. */
+  readonly menu?: { readonly id: string; readonly label: string };
 }
 
 let entries: readonly PaletteActionEntry[] = [];

@@ -40,7 +40,7 @@ import { CommandsRegistry, ICommandService } from '../../../../platform/commands
  */
 export interface VgaiCommandsBridge {
 	/** Every action the editor's palette would list, right now. */
-	list(): readonly { readonly id: string; readonly label: string; readonly category: string }[];
+	list(): readonly { readonly id: string; readonly label: string; readonly category: string; readonly menu?: { readonly id: string; readonly label: string } }[];
 	/** Run one by id. `false` means the editor no longer has that entry. */
 	invoke(id: string): boolean;
 	/** Fires when the table's membership or any label changes. */
@@ -82,6 +82,22 @@ function categoryFor(category: string) {
 	}
 }
 
+/**
+ * THE EDITOR'S APPLICATION MENUS, IN THE WORKBENCH'S MENUBAR. A package's `workspace.menu` item
+ * names one of the editor's menus; under this frame the editor draws no menubar of its own, so
+ * the item goes where a person looks for it: `view` and `help` are VS Code's own View and Help,
+ * and `debug`, `tools` and `window` — which VS Code does not have — are menus of their own,
+ * appended to the menubar only while they have an item.
+ */
+interface VgaiMenuTitle { readonly value: string; readonly original: string; readonly mnemonicTitle: string }
+const VGAI_MENUS: Readonly<Record<string, { readonly id: MenuId; readonly title?: VgaiMenuTitle; readonly order?: number }>> = {
+	view: { id: MenuId.MenubarViewMenu },
+	help: { id: MenuId.MenubarHelpMenu },
+	debug: { id: new MenuId('VgaiMenubarDebugMenu'), title: { value: 'Debug', original: 'Debug', mnemonicTitle: localize({ key: 'vgaiMenuDebug', comment: ['&& denotes a mnemonic'] }, "&&Debug") }, order: 6.5 },
+	tools: { id: new MenuId('VgaiMenubarToolsMenu'), title: { value: 'Tools', original: 'Tools', mnemonicTitle: localize({ key: 'vgaiMenuTools', comment: ['&& denotes a mnemonic'] }, "T&&ools") }, order: 7.5 },
+	window: { id: new MenuId('VgaiMenubarWindowMenu'), title: { value: 'Window', original: 'Window', mnemonicTitle: localize({ key: 'vgaiMenuWindow', comment: ['&& denotes a mnemonic'] }, "&&Window") }, order: 7.6 },
+};
+
 export class VgaiCommands extends Disposable {
 
 	/** The current generation's command + menu registrations, replaced whole on every change. */
@@ -110,6 +126,7 @@ export class VgaiCommands extends Disposable {
 
 	private publish(): void {
 		this.generation.clear();
+		const menusWithItems = new Set<string>();
 		for (const entry of this.bridge.list()) {
 			const id = commandIdFor(entry.id);
 			const actionId = entry.id;
@@ -132,6 +149,20 @@ export class VgaiCommands extends Disposable {
 			}));
 			this.generation.add(MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
 				command: { id, title: entry.label, category: categoryFor(entry.category) },
+			}));
+			const menu = entry.menu && VGAI_MENUS[entry.menu.id];
+			if (entry.menu && menu) {
+				menusWithItems.add(entry.menu.id);
+				this.generation.add(MenuRegistry.appendMenuItem(menu.id, {
+					command: { id, title: entry.menu.label }, group: 'vgai',
+				}));
+			}
+		}
+		for (const key of menusWithItems) {
+			const menu = VGAI_MENUS[key];
+			if (!menu?.title) { continue; }
+			this.generation.add(MenuRegistry.appendMenuItem(MenuId.MenubarMainMenu, {
+				submenu: menu.id, title: menu.title, order: menu.order,
 			}));
 		}
 	}

@@ -47,6 +47,9 @@ export interface EditorAction {
    */
   shortcut?: string | undefined;
   execute: () => void | Promise<void>;
+  /** The application menu this action is an item of (a package's `workspace.menu`), and its
+   *  label THERE — the palette's label names the menu, the menu's does not. */
+  menu?: { readonly id: string; readonly label: string } | undefined;
 }
 
 /** Build the static list of editor command actions. */

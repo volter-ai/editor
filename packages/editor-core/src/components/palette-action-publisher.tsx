@@ -84,11 +84,13 @@ const MENU_TITLES: Record<(typeof APPLICATION_MENUS)[number], string> = {
 function applicationMenuActions(): EditorAction[] {
   return APPLICATION_MENUS.flatMap((menu) =>
     contributedMenuItems(menu).map((item) => {
-      const label = `${MENU_TITLES[menu]}: ${typeof item.label === 'function' ? item.label() : item.label}`;
+      const itemLabel = typeof item.label === 'function' ? item.label() : item.label;
+      const label = `${MENU_TITLES[menu]}: ${itemLabel}`;
       return {
         id: item.id,
         label,
         category: 'action' as const,
+        menu: { id: menu, label: itemLabel },
         execute: () => {
           if (item.disabled?.({})) {
             showTransientHint(`${label} is not available right now.`);
@@ -102,7 +104,7 @@ function applicationMenuActions(): EditorAction[] {
 }
 
 function signatureOf(actions: readonly EditorAction[]): string {
-  return actions.map((action) => `${action.id}\u0000${action.label}`).join('\u0001');
+  return actions.map((action) => `${action.id}\u0000${action.label}\u0000${action.menu?.id ?? ''}`).join('\u0001');
 }
 
 /** Renders nothing: it publishes the action table ⌘⇧P lists. Mounted by
@@ -163,6 +165,7 @@ export function PaletteActionPublisher() {
         label: action.label,
         category: action.category,
         run: action.execute,
+        ...(action.menu ? { menu: action.menu } : {}),
       })),
     );
   }, [actions]);

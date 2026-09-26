@@ -1349,6 +1349,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
         id: entry.id,
         label: entry.label,
         category: entry.category,
+        ...(entry.menu ? { menu: entry.menu } : {}),
       })),
     invoke: (id) => invokePaletteAction(id),
     subscribe: (listener) => subscribePaletteActions(listener),
