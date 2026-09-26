@@ -195,8 +195,8 @@ export function classifyProjectHotUpdate(
   // `entry`, from the live import graph when it's reachable from exactly one
   // root's `entry` (`importersOf`, when the caller has one — see
   // `dev.ts`/`packaged.ts`'s `handleHotUpdate`), and otherwise from the file's
-  // own dialect evidence (a direct `@react-three/fiber` /
-  // `@vgai/game-runtime/world3d-react` import, OR an R3F-only intrinsic tag like
+  // own dialect evidence (a direct `@react-three/fiber` import, OR an R3F-only
+  // intrinsic tag like
   // `<mesh>`). Reading its ATTRIBUTE rather than its surface is what keeps the
   // two halves identical by construction: a file stamped `userData-oid` is, by
   // definition, an R3F module. Its export shape decides whether the renderer

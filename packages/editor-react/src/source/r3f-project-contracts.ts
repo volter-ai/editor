@@ -135,7 +135,7 @@ export function visibleR3fContracts(code: string, file: string): Map<string, R3f
  * `export default World` or `export default function World() {…}`.
  *
  * A three root's entry module default-exports its component (D26,
- * `r3fRootFactory`) — the same contract dom roots use. That component IS the
+ * the editor's `roots/r3f-root.tsx`) — the same contract dom roots use. That component IS the
  * adapter root, so the single-spatial-root rule must not fire on it: a world
  * legitimately returns a fragment of lights, scenery and players.
  */

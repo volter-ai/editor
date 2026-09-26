@@ -18,7 +18,7 @@
  * ## How the off-screen mount works (and why no real WebGL is needed to build
  * the graph)
  *
- * This mirrors `@vgai/game-runtime/world3d-react`'s `r3f-adapter.tsx` bridge, minus the
+ * This mirrors the editor's three root mount (`host/roots/r3f-root.tsx`), minus the
  * engine runtime: `createRoot(canvas)` + `configure({ frameloop: 'never' })`,
  * waiting for fiber's `onCreated` for the real `THREE.Scene` (React 19 gives no
  * synchronous first commit). Two deliberate choices:

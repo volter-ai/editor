@@ -43,7 +43,7 @@
  * OWNER: the caller of {@link createRenderVitals}, which allocates one state
  * object and one `profiler.subscribe` registration. SHARER: none — the state
  * is private to that call. TEARDOWN: the returned `dispose()`, the ONE path
- * that ends the subscription (`world3d-react/r3f-root-factory.tsx` calls it
+ * that ends the subscription (`editor-game/src/host/roots/r3f-root.tsx` calls it
  * from the mounted root's own `dispose()`).
  */
 
@@ -52,7 +52,7 @@ import type { PerformanceFrame, PerformanceProfiler } from './performance-profil
 /**
  * The profiler phase name the three adapter brackets its CPU render
  * submission with — spelled HERE and nowhere else, so the producer
- * (`world3d-react/r3f-root-factory.tsx`) and the consumer ({@link foldProfilerFrame})
+ * (`editor-game/src/host/roots/r3f-root.tsx`) and the consumer ({@link foldProfilerFrame})
  * cannot drift apart. Dotted, so it reads as a decomposition of the enclosing
  * `render` phase rather than a ninth peer of `SystemPhase`.
  */

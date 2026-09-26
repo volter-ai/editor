@@ -47,8 +47,6 @@ import type { ActiveDocumentCapture, CaptureDimensions } from './types';
 export const STORY_RUNTIME_PATH = '/__vgai-story-runtime';
 /** Project-owned React/Three namespace shared by preview consumers and the server. */
 export const R3F_RUNTIME_PATH = '/__vgai-r3f-runtime';
-/** The game runtime's R3F entry resolver, served from the project's graph. */
-export const R3F_ENTRY_RUNTIME_PATH = '/__vgai-r3f-entry-runtime';
 /** The project's React and react-dom for a React world mount. */
 export const REACT_WORLD_RUNTIME_PATH = '/__vgai-react-world-runtime';
 /** The project's Pixi and canvas entry resolver for a canvas root mount. */

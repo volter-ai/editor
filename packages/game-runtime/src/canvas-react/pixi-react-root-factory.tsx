@@ -1,6 +1,6 @@
 /**
- * `pixiReactRootFactory` — mount a `canvas` root whose entry module
- * DEFAULT-EXPORTS a React component. This is the ONE first-party canvas mount:
+ * The editor's mount of a `canvas` root whose entry module DEFAULT-EXPORTS a
+ * React component. This is the ONE first-party canvas mount:
  *
  * ```tsx
  * export default function World() {
@@ -14,14 +14,6 @@
  * ever enters the React tree. The host advances Pixi's real (never-started)
  * ticker on GAME time, wires the game-scoped input seams from outside
  * (`../runtime/game-input-seams.ts`), and renders the entry bare.
- *
- * ## Why this is NOT in `mount-game.ts`
- *
- * The kind registry beside `mount-game.ts` is deliberately dependency-free:
- * registering a canvas factory there would make `pixi.js` + `@pixi/react`
- * unconditional for every game, including three-only ones. `canvas-react` is
- * the opt-in module that owns those dependencies, so the factory lives here and
- * a project opts in with `registerAdapter('canvas', pixiReactRootFactory)`.
  *
  * ## The loop contract
  *
@@ -54,7 +46,6 @@ import * as PIXI from 'pixi.js';
 import { type ComponentType, createElement, Fragment, useEffect, useLayoutEffect } from 'react';
 import { getDebugRegistry } from '../runtime/debug-registry';
 import { DEFAULT_INPUT_MAP_PATH, wireGameInputSeams } from '../runtime/game-input-seams';
-import type { AdapterSurfaceFactory } from '../runtime/mount-game';
 
 /** How long `mount()` waits for the tree's first commit before failing loudly
  *  rather than hanging (and wedging every root declared after this one, since
@@ -341,16 +332,13 @@ function canvasWorldAdapter(id: string, component: ComponentType): RootAdapter<'
 /**
  * What a canvas entry module MEANS, in one place.
  *
- * Two callers need this answer and must never disagree about it: the runtime
- * mount ({@link pixiReactRootFactory}, below) and the EDITOR, which resolves
- * the same entry for play mode and for the design-time layer. When only one
- * side knows the shape, a world plays fine and shows "(no scene loaded)" in
- * edit mode.
+ * The editor resolves the same entry for play mode and for the design-time
+ * layer, through this one function. When only one side knew the shape, a
+ * world played fine and showed "(no scene loaded)" in edit mode.
  *
  * Returns `null` when the module has no default-exported component — the
- * callers differ on what to do about that (the factory throws; the editor
- * reports a mount failure on that root's boundary node and leaves every
- * sibling working).
+ * editor reports a mount failure on that root's boundary node and leaves every
+ * sibling working.
  */
 export function resolveCanvasEntryAdapter(
   entryModule: unknown,
@@ -361,15 +349,3 @@ export function resolveCanvasEntryAdapter(
   if (typeof mod?.default === 'function') return canvasWorldAdapter(rootId, mod.default);
   return null;
 }
-
-/**
- * Register with `registerAdapter('canvas', pixiReactRootFactory)`.
- */
-export const pixiReactRootFactory: AdapterSurfaceFactory = (root, ctx) => {
-  const adapter = resolveCanvasEntryAdapter(ctx.entryModule, root.id);
-  if (adapter) return { kind: 'canvas', adapter };
-  throw new Error(
-    `pixiReactRootFactory: entry module "${root.entry ?? '(none)'}" for root "${root.id}" must ` +
-      'default-export a React component (`export default function World() { … }`).',
-  );
-};

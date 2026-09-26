@@ -38,8 +38,8 @@ export const GAME_MANIFEST_VERSION = 2 as const;
 // construction.
 //
 // All three surfaces are legal as a BARE adapter string: each names a root the
-// engine itself mounts from an `entry` module — `three` through the R3F lane
-// (`@vgai/game-runtime/world3d-react`), `canvas` through the Pixi lane
+// editor itself mounts from an `entry` module — `three` through the R3F lane
+// (`editor-game/src/host/roots/r3f-root.tsx`), `canvas` through the Pixi lane
 // (`@vgai/game-runtime/canvas-react`), `dom` through the React lane. In every case the
 // entry's document is its own TSX source. A root the engine does NOT mount
 // arrives as an `{ ingest }` root or a `{ module }` adapter the project

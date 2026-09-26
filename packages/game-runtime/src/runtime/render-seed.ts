@@ -44,8 +44,7 @@ export function createMulberry32(seed: number): () => number {
 /**
  * Replace the global `Math.random` with a seeded, deterministic generator.
  * Idempotent to call more than once (each call re-seeds from scratch — the
- * last call wins), which matters for HMR-style re-execution the same way
- * `main.ts`'s `registerAdapterSurface` guard does elsewhere in this runtime.
+ * last call wins), which matters for HMR-style re-execution.
  */
 export function installDeterministicRandom(seed: number): void {
   Math.random = createMulberry32(seed);

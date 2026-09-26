@@ -1035,8 +1035,7 @@ export function sourceDialectEvidence(code: string): SourceDialectEvidence {
   const scanned = stripCommentsForScan(code);
   return {
     reconcilerImport:
-      scanned.includes('@react-three/fiber') ||
-      scanned.includes('@vgai/game-runtime/world3d-react'),
+      scanned.includes('@react-three/fiber'),
     r3fOnlyTags: distinctTags(scanned, R3F_ONLY_INTRINSIC_RE),
     domOnlyTags: distinctTags(scanned, DOM_ONLY_INTRINSIC_RE),
   };
@@ -1057,8 +1056,8 @@ export function sourceProvesR3f(evidence: SourceDialectEvidence): boolean {
  *    reaches it. `'three'` stamps `userData-oid`; `'canvas'`/`'dom'` stamp
  *    `data-oid`. It is resolved from OUTSIDE the file, exactly where the fact
  *    lives, which is what makes it right for a world whose entry
- *    default-exports a component and imports NEITHER `@react-three/fiber` nor
- *    `@vgai/game-runtime/world3d-react` (legal: R3F's global JSX-intrinsics augmentation,
+ *    default-exports a component and does not import `@react-three/fiber`
+ *    (legal: R3F's global JSX-intrinsics augmentation,
  *    or an entry composed entirely of already-typed child components, needs no
  *    import in THIS file). Every call site threads it from a context that
  *    resolved it per file: `binding-resolver.ts`'s per-surface resolvers, the

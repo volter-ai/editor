@@ -474,7 +474,7 @@ export class InputManager {
   // caller never tells `poll()` which tick it's servicing (every existing
   // bare/headless caller — tests, a mount with no `Game` shell behind it —
   // keeps this exact pre-existing behavior, zero regression). The REAL
-  // per-world wiring (`world3d-react/r3f-root-factory.tsx`) instead passes the
+  // per-world wiring (`editor-game/src/host/roots/r3f-root.tsx`) instead passes the
   // shared `Game`-level tick counter into every `poll(tick)` call — this is
   // deliberate: an InputManager-local counter drifts from the actual game
   // tick for a paused/frozen world (its `poll()` isn't called every game
@@ -507,7 +507,7 @@ export class InputManager {
    *  action}`) emitted whenever a scheduled entry is discarded because its
    *  target tick's input phase never ran. Wired by whoever constructs this
    *  `InputManager` with access to a `DebugRegistry`
-   *  (`world3d-react/r3f-root-factory.tsx`, the same seed spot as
+   *  (`editor-game/src/host/roots/r3f-root.tsx`, the same seed spot as
    *  `setVirtualInputTarget`/`setInputActionsSource`) — `null` (the
    *  default) for a bare/headless `InputManager`, in which case a drop
    *  stays silent (matching pre-D15/T-D15.5 behavior). */
@@ -1007,7 +1007,7 @@ export class InputManager {
    * Poll gamepads and virtual look stick (call at start of frame).
    *
    * `tick` (D15/T-D15.3/.5) — the GAME tick this call services. Pass the
-   * live, shared `Game` tick counter here (`world3d-react/r3f-root-factory.tsx` does,
+   * live, shared `Game` tick counter here (`editor-game/src/host/roots/r3f-root.tsx` does,
    * via `DebugRegistry.getGameTick()`) so `scheduleActionAtTick`'s numbering
    * never drifts from the actual game tick — the bug an earlier revision of
    * this feature had: an InputManager-LOCAL counter, incremented once per
@@ -2766,7 +2766,7 @@ export class InputManager {
    *  `'input.schedule.dropped'` (`{tick, action}`) whenever it discards a
    *  scheduled entry for a tick whose input phase never ran. Called once by
    *  whoever constructs this `InputManager` with a `DebugRegistry` behind it
-   *  (`world3d-react/r3f-root-factory.tsx`), the same seed spot as
+   *  (`editor-game/src/host/roots/r3f-root.tsx`), the same seed spot as
    *  `setVirtualInputTarget`/`setInputActionsSource` — never called directly
    *  by gameplay code. */
   setDebugEmit(fn: ((event: string, detail?: unknown) => void) | null): void {

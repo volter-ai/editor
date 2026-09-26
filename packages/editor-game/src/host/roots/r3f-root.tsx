@@ -1,6 +1,6 @@
 /**
- * `r3fRootFactory` — mount a `three` root whose entry module DEFAULT-EXPORTS a
- * React component. This is the ONE first-party three mount:
+ * The editor's mount of a `three` root whose entry module DEFAULT-EXPORTS a
+ * React component — the world a game's own boot renders inside `<Canvas>`:
  *
  * ```tsx
  * export default function World() {
@@ -8,65 +8,61 @@
  * }
  * ```
  *
- * The world is an ordinary R3F app. Everything vgai-shaped stays at the entry
- * module's STATIC surface (`export { debug, systems } from './commands'`) and
- * on the host's side of the seam; no vgai runtime context ever enters the
- * React tree. The host controls Fiber's `frameloop: 'never'` scheduler, wires
- * the game-scoped input seams from outside (`../runtime/game-input-seams.ts`),
- * and renders the entry bare, as the game's own `<Canvas>` does.
+ * The world is an ordinary R3F app. The editor renders it bare into a Fiber
+ * root on the host's canvas and renderer, drives Fiber's `frameloop: 'never'`
+ * scheduler from the game's own loop, and wires the game-scoped input seams
+ * from outside the tree (`@volter/game-runtime/runtime/game-input-seams`).
  *
- * ## Why this is NOT in `mount-game.ts`
+ * WHOSE REACT AND FIBER. The entry's hooks resolve `react` and
+ * `@react-three/fiber` through the project's module graph, so the root that
+ * renders it must be built with the same instances: {@link R3FRuntime} is
+ * handed in by `r3f-entry-runtime.ts`, which takes them from the R3F doorway
+ * under the packaged runtime and from its own imports in a checkout, where one
+ * Vite graph already shares them.
  *
- * The adapter registry module is deliberately dependency-free beyond `three`
- * (already an unconditional engine dependency). `@react-three/fiber` is NOT —
- * it is the PROJECT's dependency, and `world3d-react` is the opt-in module
- * that owns it. Putting this factory beside the registry would make R3F
- * unconditional for every game, including ones with no React at all; instead
- * each project's `main.ts` registers it (`registerAdapter('three',
- * r3fRootFactory)`).
- *
- * ## The mount mechanics (fiber v9, host-gated)
- *
- * three.js identity: this module never imports `three` itself for scene
- * objects — fiber's internal `import * as THREE from 'three'` must resolve to
- * the SAME instance the engine's `ThreeHostContext.three` points at, which the
- * importing project guarantees via its Vite
- * `resolve.dedupe: ['three', 'react', 'react-dom']`.
+ * three.js identity: nothing here imports `three` for scene objects. Fiber's
+ * catalogue is extended with the host's `three` (`host.three`), the same
+ * instance the returned scene and camera belong to.
  */
 
-import {
-  advance,
-  createRoot,
-  extend,
-  flushSync,
-  events as pointerEvents,
-  type RootState,
-} from '@react-three/fiber';
+import type * as Fiber from '@react-three/fiber';
+import type { RootState } from '@react-three/fiber';
 import type { MountedThreeRoot, RootAdapter } from '@volter/editor-project/adapter';
-import type { GameThreeHostContext } from '../runtime/host-context';
 import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
 import {
-  Component,
-  type ComponentType,
-  createElement,
-  Fragment,
-  type PropsWithChildren,
-  useEffect,
-} from 'react';
-import { type RenderVitalsRegistration, registerRenderVitals } from '../dev/register-render-vitals';
+  type RenderVitalsRegistration,
+  registerRenderVitals,
+} from '@volter/game-runtime/dev/register-render-vitals';
 import {
   createRenderDebugAdapter,
   frameCaptureContextFor,
   type RenderDebugWiring,
-} from '../dev/render-debug-adapter';
-import { collectRenderMemory } from '../dev/render-memory';
-import { RENDER_SUBMIT_PHASE } from '../dev/render-vitals';
-import { createWebGLFrameCapture } from '../dev/webgl-frame-capture';
-import { getDebugRegistry } from '../runtime/debug-registry';
-import { devBuildEnabled } from '../runtime/dev-build';
-import { DEFAULT_INPUT_MAP_PATH, wireGameInputSeams } from '../runtime/game-input-seams';
-import type { AdapterSurfaceFactory } from '../runtime/mount-game';
-import { clearHostFrameDelta, setHostFrameDelta } from './frame-delta';
+} from '@volter/game-runtime/dev/render-debug-adapter';
+import { collectRenderMemory } from '@volter/game-runtime/dev/render-memory';
+import { RENDER_SUBMIT_PHASE } from '@volter/game-runtime/dev/render-vitals';
+import { createWebGLFrameCapture } from '@volter/game-runtime/dev/webgl-frame-capture';
+import { getDebugRegistry } from '@volter/game-runtime/runtime/debug-registry';
+import { devBuildEnabled } from '@volter/game-runtime/runtime/dev-build';
+import {
+  DEFAULT_INPUT_MAP_PATH,
+  wireGameInputSeams,
+} from '@volter/game-runtime/runtime/game-input-seams';
+import type { GameThreeHostContext } from '@volter/game-runtime/runtime/host-context';
+import type * as React from 'react';
+import type { ComponentType, PropsWithChildren } from 'react';
+
+/** The React and Fiber a three world is mounted with — the ones its own hooks resolve. */
+export interface R3FRuntime {
+  readonly createElement: typeof React.createElement;
+  readonly Fragment: typeof React.Fragment;
+  readonly Component: typeof React.Component;
+  readonly useEffect: typeof React.useEffect;
+  readonly createRoot: typeof Fiber.createRoot;
+  readonly extend: typeof Fiber.extend;
+  readonly advance: typeof Fiber.advance;
+  readonly flushSync: typeof Fiber.flushSync;
+  readonly events: typeof Fiber.events;
+}
 
 /** The slice of `WebGLRenderer.info` the vitals reporter reads. Declared
  *  structurally rather than imported from `three`, per this module's own
@@ -82,22 +78,29 @@ interface R3FEntryModuleExports {
   readonly default?: ComponentType;
 }
 
+type MountErrorBoundaryProps = PropsWithChildren<{ onError: (error: Error) => void }>;
+
 /** React errors must reject a mount in Node too, where there is no window
- * error event. This boundary changes no authored content on successful mounts. */
-class MountErrorBoundary extends Component<
-  PropsWithChildren<{ onError: (error: Error) => void }>,
-  { failed: boolean }
-> {
-  override state = { failed: false };
-  static getDerivedStateFromError(): { failed: boolean } {
-    return { failed: true };
+ * error event. This boundary changes no authored content on successful mounts.
+ * Built on the runtime's own `Component`, once per runtime. */
+const boundaries = new WeakMap<object, ComponentType<MountErrorBoundaryProps>>();
+function mountErrorBoundary(runtime: R3FRuntime): ComponentType<MountErrorBoundaryProps> {
+  const known = boundaries.get(runtime.Component);
+  if (known) return known;
+  class MountErrorBoundary extends runtime.Component<MountErrorBoundaryProps, { failed: boolean }> {
+    override state = { failed: false };
+    static getDerivedStateFromError(): { failed: boolean } {
+      return { failed: true };
+    }
+    override componentDidCatch(error: Error): void {
+      this.props.onError(error);
+    }
+    override render() {
+      return this.state.failed ? null : this.props.children;
+    }
   }
-  override componentDidCatch(error: Error): void {
-    this.props.onError(error);
-  }
-  override render() {
-    return this.state.failed ? null : this.props.children;
-  }
+  boundaries.set(runtime.Component, MountErrorBoundary);
+  return MountErrorBoundary;
 }
 
 /**
@@ -106,7 +109,9 @@ class MountErrorBoundary extends Component<
  * through the host's own `WebGLRenderer` — never a second renderer, never a
  * second `requestAnimationFrame` loop.
  */
-function threeWorldAdapter(id: string, component: ComponentType): RootAdapter {
+function threeWorldAdapter(id: string, component: ComponentType, runtime: R3FRuntime): RootAdapter {
+  const { createElement, Fragment, useEffect, createRoot, extend, advance, flushSync } = runtime;
+  const MountErrorBoundary = mountErrorBoundary(runtime);
   const content = createElement(component);
 
   return {
@@ -212,7 +217,7 @@ function threeWorldAdapter(id: string, component: ComponentType): RootAdapter {
         // bound to the canvas, no error — and every mesh-level pointer prop
         // (`onClick`, `onPointerOver`, `onPointerMissed`) is dead. Proven by a
         // control experiment differing ONLY in this property.
-        ...(host.headless ? {} : { events: pointerEvents }),
+        ...(host.headless ? {} : { events: runtime.events }),
         onCreated: (state) => resolveState(state),
       });
 
@@ -398,7 +403,6 @@ function threeWorldAdapter(id: string, component: ComponentType): RootAdapter {
           // Fiber receives an ABSOLUTE timestamp and reconstructs `delta` by subtraction. Publish
           // the exact host-owned dt beside the synchronous advance so compatibility adapters that
           // reproduce another engine's frame clock do not inherit one-ulp cancellation residue.
-          setHostFrameDelta(current, dt);
           try {
             renderDebugWiring?.beforeRender();
             const profiler = host.game?.profiler;
@@ -437,7 +441,6 @@ function threeWorldAdapter(id: string, component: ComponentType): RootAdapter {
               });
             }
           } finally {
-            clearHostFrameDelta(current);
             renderDebugWiring?.afterRender();
           }
         },
@@ -475,31 +478,16 @@ function threeWorldAdapter(id: string, component: ComponentType): RootAdapter {
 }
 
 /**
- * What a three entry module MEANS, in one place.
- *
- * Two callers need this answer and must never disagree about it: the runtime
- * mount ({@link r3fRootFactory}, below) and the EDITOR's design session
- * (`packages/editor/src/authoring/r3f-design-session.ts`), which design-mounts
- * the same entry so edit mode authors the live fiber scene.
- *
- * Returns `null` when the module has no default-exported component — the
- * callers differ on what to do about that (the factory throws, the design
- * session declines the world and leaves existing paths alone).
+ * What a three entry module MEANS: a default-exported component is a world;
+ * anything else is `null`, and each caller decides what that means (Play
+ * refuses the root by name, the design session declines the world).
  */
-export function resolveR3FEntryAdapter(entryModule: unknown, rootId: string): RootAdapter | null {
+export function resolveR3FEntryAdapter(
+  entryModule: unknown,
+  rootId: string,
+  runtime: R3FRuntime,
+): RootAdapter | null {
   const mod = entryModule as R3FEntryModuleExports | undefined;
-  if (typeof mod?.default === 'function') return threeWorldAdapter(rootId, mod.default);
+  if (typeof mod?.default === 'function') return threeWorldAdapter(rootId, mod.default, runtime);
   return null;
 }
-
-/**
- * Register with `registerAdapter('three', r3fRootFactory)`.
- */
-export const r3fRootFactory: AdapterSurfaceFactory = (root, ctx) => {
-  const adapter = resolveR3FEntryAdapter(ctx.entryModule, root.id);
-  if (adapter) return { kind: 'three', adapter };
-  throw new Error(
-    `r3fRootFactory: entry module "${root.entry ?? '(none)'}" for root "${root.id}" must ` +
-      'default-export a React component (`export default function World() { … }`).',
-  );
-};

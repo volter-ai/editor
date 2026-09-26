@@ -51,9 +51,8 @@ import { RENDER_SEED_QUERY_PARAM } from './render-seed';
  *    not). Always wins if present, regardless of the world's `entry` field —
  *    full caller control, including for a `{ module }`-adapter world
  *    (mountManifestRoots cannot import an arbitrary module path itself —
- *    for a default-exported world, build the adapter with
- *    `resolveR3FEntryAdapter(entryModule, worldId)` from
- *    `@volter/game-runtime/world3d-react` and pass it here).
+ *    for a default-exported world the editor builds the adapter from the
+ *    entry module, `resolveR3FEntryAdapterForEditor`, and passes it here).
  */
 export interface ThreeMountEntry extends MountEntryDeclaration {
   readonly kind: 'three';
@@ -243,11 +242,7 @@ function looksAlreadyResolved(value: unknown): value is ResolvedGameManifest {
   });
 }
 
-/**
- * Exported (E4) so `mount-game.ts`'s `mountGameFromManifest` composer can
- * share this exact raw-vs-resolved detection instead of re-implementing it
- * — the two modules must always agree on what "already resolved" means.
- */
+/** The manifest resolved, whether `raw` is the file's JSON or an already-resolved manifest. */
 export function resolveManifest(raw: unknown): ResolvedGameManifest {
   if (looksAlreadyResolved(raw)) return raw;
   return loadGameManifest(raw, { configurationKinds: 'defer' });
@@ -287,8 +282,8 @@ function resolveThreeAdapter(
     throw new Error(
       `mountManifestRoots: world "${world.id}" (three) declares \`entry\` "${world.entry}" ` +
         `— supply entries["${world.id}"] = { kind: 'three', adapter } (for a default-exported ` +
-        'world, build it with `resolveR3FEntryAdapter(entryModule, worldId)` from ' +
-        '`@volter/game-runtime/world3d-react`). Got ' +
+        'world, the editor builds it from the entry module with ' +
+        '`resolveR3FEntryAdapterForEditor`). Got ' +
         `${entry === undefined ? 'no entry at all' : 'an entry with no `adapter`'}.`,
     );
   }

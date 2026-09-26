@@ -152,7 +152,7 @@ const SERVER_COMMAND_TIMEOUT_MS = 10_000;
  *  actuates through — the SAME three methods `InputManager` exposes
  *  (`setVirtualAction`/`tapVirtualAction`/`clearVirtualActions`, Task 1.4),
  *  typed narrowly here so this module never imports `InputManager` itself.
- *  Wired once by the hosting adapter (`world3d-react/r3f-root-factory.tsx`, at the
+ *  Wired once by the hosting adapter (`editor-game/src/host/roots/r3f-root.tsx`, at the
  *  same seed spot as `setInputActionsSource`) — absent until then. */
 export interface DebugVirtualInputTarget {
   setVirtualAction(
@@ -241,7 +241,7 @@ interface CommandEntry {
 
 /** What {@link createDebugRegistry} returns — the adapter half (`DebugAdapter`,
  *  for `SystemAdapters.debug`) plus the registration/lifecycle surface the
- *  hosting adapter (`world3d-react/r3f-root-factory.tsx`) and `createGame` drive. */
+ *  hosting adapter (`editor-game/src/host/roots/r3f-root.tsx`) and `createGame` drive. */
 export interface DebugRegistry {
   /** The `SystemAdapters.debug` implementer — one shared instance, seeded
    *  onto every world's adapter bag. */
@@ -284,7 +284,7 @@ export interface DebugRegistry {
    *  `{version: 1, seed: null, fixedDt: null, ticks: []}`. `seed`/`fixedDt`
    *  are the two replay-critical metadata fields the design doc's format
    *  sketch (§2.c) calls for beside the raw per-tick deltas — the wiring
-   *  adapter (`world3d-react/r3f-root-factory.tsx`) assembles them from
+   *  adapter (`editor-game/src/host/roots/r3f-root.tsx`) assembles them from
    *  `getSeededRandom(game)?.seed`/`host.game?.loop.fixedDt` alongside
    *  `InputManager.getInputTrace()`'s own `{version, ticks}`. An `engine`
    *  (package version) stamp remains a KNOWN GAP — no build-time version
@@ -361,7 +361,7 @@ export interface DebugRegistry {
   /** D15/T-D15.3/.5 — the CURRENT shared game tick (the same counter the
    *  built-in `time` provider's `tick` field reads), for a per-world
    *  `InputManager.poll(tick)` call to key its `scheduleActionAtTick`
-   *  numbering off — see `world3d-react/r3f-root-factory.tsx`'s `systems.add('input',
+   *  numbering off — see `editor-game/src/host/roots/r3f-root.tsx`'s `systems.add('input',
    *  ...)` wiring. `0` for a bare `createDebugRegistry()` test stand-in with
    *  no real `Game`/tick counter behind it (matching `getTick`'s own
    *  constructor-supplied default in that case). */

@@ -22,9 +22,8 @@ below where they differ:
   half of `@volter/editor-project`'s adapter contract (`root-adapter`, `authoring`,
   `system-adapter`, `host-context`, `asset-cache`) moves to `@volter/editor-threejs`, not to a
   shipped runtime. The shipped runtimes keep helpers that return the library's own objects;
-  their framework a game is written against (`mountGame`, `createRuntime`, `world3d-react`,
-  `rapier-physics-bridge`, `input-manager`, system adapters) retires in a
-  later unit into the ingest-style adapter the editor already has. `game-runtime`'s imports of
+  their framework a game is written against (`createRuntime`, `input-manager`, system
+  adapters) retires in a later unit into the ingest-style adapter the editor already has. `game-runtime`'s imports of
   the contract are recorded debt until then.
 - **The model editor's closure.** `@volter/editor-threejs` ships in the model release; its
   shared viewport entry imports no React Three Fiber, React authoring, `@volter/threejs-runtime`
@@ -542,17 +541,12 @@ Stop/session shutdown releases it. Provider-specific rendering suspension must
 not accidentally pause or duplicate the simulation. Unmodified DOM games can
 remain single-surface providers.
 
-The Rapier problem is deeper than disposal order: `rapier-physics-bridge.tsx`
-uses a module-global `physicsSlot`, so simultaneous design/runtime worlds route
-commands to whichever mounted last. Introduce explicit per-root-mount system
-binding at the adapter boundary; each evaluation/execution owns its system
-registry. Commands capture that binding, not a global or currently focused
-physics adapter. The static declaration describes a system factory; attaching
-returns an identity-checked disposer. Preserve public runtime entry paths and
-native game source: inject scope at the adapter mount, not by asking every game
-component to import an editor context. Legacy unscoped lookup must refuse when
-ambiguous rather than use a last-writer winner. Validate two concurrent worlds
-by editing a body in each and observing only its own world change.
+Physics commands must reach the world they name. The editor's physics observer
+(`editor-game/src/services/game-physics.ts`) is attached per root and resolves
+the `<Physics>` world inside the R3F root that renders that root's scene on every
+call, so no module-global slot decides which world a command reaches. Not yet
+validated: two concurrent worlds, editing a body in each and observing only its
+own world change.
 
 Capture acquires a separate design evaluation when rendering could invoke
 project callbacks or mutate shared state. A reusable immutable render snapshot

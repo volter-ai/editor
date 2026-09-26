@@ -4,20 +4,17 @@
  *
  * The canvas surface is source-as-truth: a canvas root's document IS its
  * TSX world file, exactly as a three root's document is its R3F source. This
- * module is the peer of `world3d-react/` — same seam, same shape, Pixi instead
- * of three — and the peer of `pixi/`, which holds what the host needs to mount
+ * module is the peer of `pixi/`, which holds what the host needs to mount
  * and inspect a PixiJS game it did NOT write.
  *
  * The engine CORE never imports this (enforced by
  * `packages/engine/test/react-core-import-ban.test.ts` — this directory is an
- * allowed react-importing entry alongside `react/` and `world3d-react/`, and
- * core files may not import it), so a three-only bundle never pays for react
- * or the Pixi reconciler.
+ * allowed react-importing entry, and core files may not import it), so a
+ * three-only bundle never pays for react or the Pixi reconciler.
  *
  * Surface:
- *  - `pixiReactRootFactory` / `resolveCanvasEntryAdapter` — what a canvas entry
- *    module MEANS: a default-exported component, mounted as a first-party
- *    `surface: "canvas"` root under the host's gated loop. The world's vgai
+ *  - `resolveCanvasEntryAdapter` — what a canvas entry module MEANS: a
+ *    default-exported component, mounted as a first-party `surface: "canvas"` root under the host's gated loop. The world's vgai
  *    surface is its entry module's static exports
  *    (`export { debug, systems } from './commands'`), connected by the host at
  *    mount.
@@ -32,4 +29,4 @@
  */
 
 export { adoptNow, PixiPrimitive, type PixiPrimitiveProps } from './pixi-primitive';
-export { pixiReactRootFactory, resolveCanvasEntryAdapter } from './pixi-react-root-factory';
+export { resolveCanvasEntryAdapter } from './pixi-react-root-factory';

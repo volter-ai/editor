@@ -3,7 +3,7 @@
  * the WebGL2 frame capture (`webgl-frame-capture.ts`), a live three.js scene,
  * and the render adapter's per-frame render pass.
  *
- * Split OUT of `world3d-react/r3f-root-factory.tsx` so the capture/attribution/restore
+ * Split OUT of `editor-game/src/host/roots/r3f-root.tsx` so the capture/attribution/restore
  * flow is unit-testable in a headless Node test with a mock GL context and a
  * plain scene — a real non-headless GPU mount (EffectComposer + WebGLRenderer)
  * cannot run under vitest here. `mount()` owns the

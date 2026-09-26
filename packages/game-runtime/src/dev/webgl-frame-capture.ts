@@ -4,7 +4,7 @@
  * WHY FIRST-PARTY, NOT spectorjs (recorded per the "use libraries directly, no
  * wrappers" rule): the capture seam we need is the WebGL2 context this engine
  * ALREADY owns end-to-end (`renderer.getContext()` in
- * `world3d-react/r3f-root-factory.tsx`). spectorjs is absent from node_modules, and its
+ * `editor-game/src/host/roots/r3f-root.tsx`). spectorjs is absent from node_modules, and its
  * actual value is a bundled inspector UI we would discard — adopting it imports
  * ~2MB of library to keep ~10% of it, and it wraps the context with its own
  * global patching model rather than the instance-shadow-and-restore discipline

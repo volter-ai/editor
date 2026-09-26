@@ -9,7 +9,7 @@
  *
  * Ownership, stated in one place (the build rule):
  *  - OWNER: this function. It resolves the answer; nothing else derives it.
- *  - SHARERS: the three-root adapter (`world3d-react/r3f-root-factory.tsx`),
+ *  - SHARERS: the three-root adapter (`editor-game/src/host/roots/r3f-root.tsx`),
  *    which seeds live render vitals only under it. Any future dev-only
  *    instrument calls this too, with its own `override`.
  *  - TEARDOWN: none. This is a pure predicate over build config and one

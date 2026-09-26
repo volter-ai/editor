@@ -31,10 +31,10 @@ import type { Game } from './game';
  *     `game.loadInputMap(path)` (and reads `game.input`/`game.loop.fixedDt`)
  *     from every three and canvas mount.
  *  2. **Debug-registry access** — `getDebugRegistry(host.game)`
- *     (`r3f-root-factory`, `pixi-react-root-factory`); the registry is keyed by
+ *     (`r3f-root.tsx` in the editor, `pixi-react-root-factory`); the registry is keyed by
  *     Game IDENTITY, which is why this handle is the Game and not a projection
  *     of it.
- *  3. **The profiler toggle** — `host.game.profiler` (`r3f-root-factory`).
+ *  3. **The profiler toggle** — `host.game.profiler` (`r3f-root.tsx`).
  *
  * Doors 2–3 are already on the PUBLIC {@link Game}. `loadInputMap` is the one
  * member that was only on `GameInternal`, and it is explicitly an adapter-mount

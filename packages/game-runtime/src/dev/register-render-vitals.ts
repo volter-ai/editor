@@ -8,7 +8,7 @@
  *
  * Engine-owned and first-party, seeded by BOTH three-root mount paths — a game
  * writes nothing to get these, and there is no capability to install:
- *  - `world3d-react/r3f-root-factory.tsx` (a TSX/R3F world — the shape EVERY
+ *  - `editor-game/src/host/roots/r3f-root.tsx` (a TSX/R3F world — the shape EVERY
  *    scaffolded project's three root has), right after fiber's first commit
  *    resolves the scene.
  * Both is the whole point and not redundancy: they are two independent mounts

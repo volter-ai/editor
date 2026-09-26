@@ -598,7 +598,6 @@ const LAZY_RUNTIME_CRAWL_SPECIFIERS: readonly string[] = [
   '@volter/game-runtime/input/input-manager',
   '@volter/game-runtime/input/rebind-controller',
   '@volter/game-runtime/runtime/mount-game',
-  '@volter/game-runtime/world3d-react',
 ];
 
 /**
@@ -608,7 +607,7 @@ const LAZY_RUNTIME_CRAWL_SPECIFIERS: readonly string[] = [
  *
  * `packaged.ts` `exclude`s each runtime package, and Vite's dep SCANNER checks
  * `exclude` against the raw specifier BEFORE it resolves anything — so an
- * `import … from '@vgai/game-runtime/world3d-react'` is externalized on sight and the
+ * `import … from '@vgai/game-runtime/canvas-react'` is externalized on sight and the
  * engine's own source graph is never crawled at all. That graph is then served
  * as source and its bare imports are discovered one browser request at a time,
  * each a fresh optimizer wave. Naming the engine FILES as entries walks that
@@ -616,9 +615,8 @@ const LAZY_RUNTIME_CRAWL_SPECIFIERS: readonly string[] = [
  * bare-specifier `exclude` check never sees them, while the modules they reach
  * are the very ones the browser will ask for.
  *
- * Measured on the same cold Pixi project as above, scoped to
- * `world3d-react`: four `three/addons/*` entry points
- * (`DRACOLoader`, `GLTFLoader`, `KTX2Loader`, `meshopt_decoder`) that the
+ * Measured on the same cold Pixi project as above: four `three/addons/*` entry
+ * points (`DRACOLoader`, `GLTFLoader`, `KTX2Loader`, `meshopt_decoder`) that the
  * include list alone never reaches are discovered at boot — four waves that
  * would otherwise fire the first time the asset lane loads a glTF.
  *
@@ -652,10 +650,8 @@ export function computeRuntimeSourceCrawlEntries(sources: RuntimePackageSources)
  *
  * This is the safety net that makes `computeRuntimeSourceCrawlEntries` safe to
  * hand to Vite. Crawling engine source can reach a package the engine does not
- * DECLARE and a given project therefore does not have: measured on this repo's
- * engine, `src/world3d-react/r3f-adapter.tsx` imports `@react-three/fiber`
- * and `src/world3d-react/rapier-physics-bridge.tsx` imports
- * `@react-three/rapier` — neither of them in the engine's `dependencies`. An unresolvable bare import during the scan is not a
+ * DECLARE and a given project therefore does not have (an optional peer such
+ * as `react`, imported by the engine's canvas lane). An unresolvable bare import during the scan is not a
  * warning: Vite collects it and `discoverProjectDependencies` THROWS "The
  * following dependencies are imported but could not be resolved", which in
  * `packaged.ts` rejects the boot-time `optimizeDeps()` barrier and kills the

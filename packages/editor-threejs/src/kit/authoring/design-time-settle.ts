@@ -25,7 +25,7 @@
  *
  * `MountedThreeRoot.update(dt)` — the world's own host-driven tick, the exact
  * one `runFrameImpl` (`@vgai/game-runtime/runtime/game`) calls at play time. For an R3F
- * world that is `world3d-react/r3f-adapter.tsx`'s `update()`: it runs the
+ * world that is `editor-game/src/host/roots/r3f-root.tsx`'s `update()`: it runs the
  * engine phases and then `advance(elapsed, true, state)`, which under
  * `frameloop: 'never'` is what runs every `useFrame` subscriber.
  *

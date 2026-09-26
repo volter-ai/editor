@@ -139,9 +139,8 @@ function shippedLibraries(slot: SystemAdapterSlot, facts: NativeProjectFacts): r
 function contradictionFix(slot: SystemAdapterSlot, libraries: readonly string[]): string {
   return (
     `this project depends on ${libraries.join(' + ')}, so "nothing built a ${slot} world" is not ` +
-    `a settled answer. Reach a terminal state either way: BIND it — declare a ${slot} adapter in ` +
-    `the root entry's \`systems\` table (the engine ships \`rapierPhysicsSystem()\` for the R3F ` +
-    `Rapier bridge; other slots take the game's own adapter) — or DECLARE the absence with ` +
+    `a settled answer. Reach a terminal state either way: BIND it — declare the game's own ${slot} ` +
+    `adapter in the root entry's \`systems\` table — or DECLARE the absence with ` +
     `\`absent(reason)\` in that same table. The reason must NAME the dependency and say why it ` +
     `is there while the subsystem is not (a transitive pull, a leftover, a build-only use); a ` +
     `declared absence blind to the shipped dependency grades malformed, not terminal.`

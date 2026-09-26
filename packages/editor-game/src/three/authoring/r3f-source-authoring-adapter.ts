@@ -2691,10 +2691,10 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
   /**
    * The physics adapter ONLY while a world is actually stepping.
    *
-   * The engine's slot refuses by name when no `<RapierPhysicsBridge>` is
-   * live, and that is right for its declared members: they are gesture-rate
-   * ACTIONS, so a fabricated empty would be a lie about a sim you just tried
-   * to edit (`world3d-react/rapier-physics-bridge.tsx`). The two binding
+   * The physics slot refuses by name when no Rapier world is live, and that
+   * is right for its declared members: they are gesture-rate ACTIONS, so a
+   * fabricated empty would be a lie about a sim you just tried to edit. The
+   * two binding
    * readers below break that premise — they run from `properties()`, which
    * the Inspector calls on EVERY RENDER — so selecting a physics object in
    * edit mode threw the refusal up through React and took the whole editor

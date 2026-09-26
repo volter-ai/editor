@@ -1538,7 +1538,7 @@ export function uiOidPlugin(
   // Captured by `configureServer` below, read by `transform` — the dev
   // server's own `ModuleGraph` is what lets `declaredSurfaceForProjectFileViaGraph`
   // reach a root entry's surface through a NON-entry file's importer chain
-  // (a child component with no direct fiber/world3d-react import of its
+  // (a child component with no direct fiber import of its
   // own). `undefined` in a build/SSR context without `configureServer`
   // (e.g. a one-off transform in a test) degrades to the direct-entry-only
   // answer, same as before this existed.

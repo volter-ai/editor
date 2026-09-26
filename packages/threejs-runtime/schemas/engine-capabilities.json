@@ -11,11 +11,11 @@
       "status": "unsupported",
       "claim": "No Continuous Collision Detection (CCD). Fast/small dynamic bodies can tunnel through thin colliders in one step.",
       "evidence": [
-        "packages/game-runtime/src/world3d-react/rapier-physics-bridge.tsx (the engine's one physics-facing module: observation/debug bridge only — it constructs no world, no bodies, and sets no ccd flag)"
+        "packages/editor-game/src/services/game-physics.ts (the editor's one view of a game's @react-three/rapier world: observation only — it constructs no world, no bodies, and sets no ccd flag)"
       ],
       "notes": "Grepped packages/engine/src for ccd/CCD/setCcdEnabled: zero matches. The engine constructs no Rapier world or rigid bodies at all — physics lives in the game's own tree via @react-three/rapier (<Physics>/<RigidBody>), so CCD is a game choice: @react-three/rapier's `ccd` prop (or setCcdEnabled on a body ref) enables it per body with no engine involvement.",
       "evidenceHashes": {
-        "packages/game-runtime/src/world3d-react/rapier-physics-bridge.tsx": "8e330688628c393f44cb38578b070fb60e6174439ad762ce759b1005ecebdea6"
+        "packages/editor-game/src/services/game-physics.ts": "e9078ccab3cfab8fd4acd04fd709da690a98ce6f76ae5d59599efd4fa6bb888b"
       }
     },
     {

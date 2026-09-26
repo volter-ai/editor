@@ -862,7 +862,7 @@ async function main(): Promise<void> {
         //
         // The scanner matches the RAW specifier before any alias runs, so a
         // package left out here is prebundlable — which is how eight runtime
-        // modules (`world3d-react`, `runtime/mount-game`, …) once sat in
+        // modules (`runtime/mount-game`, …) once sat in
         // `.vite/deps` beside their source-served twins, each chunk carrying
         // its own bundled registries.
         ...RUNTIME_PACKAGE_NAMES,

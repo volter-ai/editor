@@ -1,7 +1,7 @@
 /**
  * Adapter interfaces — the seams the engine host and the editor DEPEND ON.
  *
- *   host    → RootAdapter ← { r3fRootFactory-built adapters, IngestRootAdapter, … }
+ *   host    → RootAdapter ← { the editor's R3F root mounts, IngestRootAdapter, … }
  *   editor  → AuthoringAdapter ← { ThreeAuthoringAdapter, ReactRootAuthoringAdapter, … }
  *   game    → SystemAdapters (physics/networking/navigation/audio/camera/debug)
  *

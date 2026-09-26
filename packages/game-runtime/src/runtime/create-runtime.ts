@@ -962,9 +962,8 @@ async function createRootsGameRuntime(config: RootsRuntimeConfig): Promise<GameS
   const assets = createAssetCache();
   // Every manifest/host-mounted game is a deterministic-capture candidate —
   // the render-control seam (`?vgai-render=1`, render-control.ts) is wired
-  // HERE, at the one host every boot path shares (mountGameFromManifest,
-  // mountManifestRoots, and direct createGameRuntime callers all reach this
-  // function), instead of asking every project's entry page to install it
+  // HERE, at the one host every boot path shares (mountManifestRoots and
+  // direct createGameRuntime callers both reach this function), instead of asking every project's entry page to install it
   // the way the e2e fixtures do. Production-protected twice over:
   // `isRenderModeRequested` gates on the query param, and
   // `installRenderControlHarness` re-checks it internally (its AC 4), so a

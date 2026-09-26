@@ -461,7 +461,7 @@ function readRapierHandles(owner: DebrisOwner): {
  * only *when*; this is the *what*, and it lives here because it is the runtime
  * that knows about Rapier and shared geometry.
  *
- * The order mirrors `adapter/world3d-react/r3f-root-factory.tsx`'s world teardown for
+ * The order mirrors `editor-game/src/host/roots/r3f-root.tsx`'s world teardown for
  * ONE subtree. Within the physics step,
  * `rapierWorld.removeRigidBody(body)` comes BEFORE `physics.remove(node)`: the
  * registry's `remove()` only drops index entries, so reversing the two leaks
@@ -850,7 +850,7 @@ export function createGame(opts: {
   const systems = createSystemRunner(profiler.systemObserver, 'game');
   const input = new InputManager();
   // D15 (T-D15.1) — the game-scoped seeded-random surface every world's
-  // `ctx.random` aliases (see `world3d-react/r3f-root-factory.tsx`'s `ctx.random =
+  // `ctx.random` aliases (see `editor-game/src/host/roots/r3f-root.tsx`'s `ctx.random =
   // ...`, wired the same way `ctx.debug` is just below). Constructed
   // unconditionally (cheap — a handful of closures) regardless of whether
   // this project ever declares `determinism.seededRandom`; only the BOOT
@@ -898,7 +898,7 @@ export function createGame(opts: {
   //
   // The disposer is supplied HERE rather than inside the clock because
   // `core/sim-clock.ts` deliberately knows nothing about Rapier or shared
-  // geometry. It mirrors `world3d-react/r3f-root-factory.tsx`'s world teardown
+  // geometry. It mirrors `editor-game/src/host/roots/r3f-root.tsx`'s world teardown
   // ordering for ONE subtree.
   const simClock: SimClockInternal = createSimClock({
     // Every mount that could own part of the subtree is offered it:
@@ -1673,7 +1673,7 @@ export function createGame(opts: {
       // root's `mounted.dispose()`, whereas a per-root teardown may be ending
       // just one sub-session while sibling roots keep running (see the
       // disposed-world guard in `runFrame`). It used to be disposed from
-      // `world3d-react/r3f-root-factory.tsx`'s teardown, which meant disposing one of
+      // `editor-game/src/host/roots/r3f-root.tsx`'s teardown, which meant disposing one of
       // two three roots froze `now()` for the whole Game, rejected the other
       // world's pending `delay`s and turned its `after()` calls into silent
       // no-ops. Note the asymmetry that gives the bug away: `seededRandom` and

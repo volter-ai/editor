@@ -131,11 +131,6 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   '@volter/game-runtime/runtime/debug-registry': () =>
     import('@volter/game-runtime/runtime/debug-registry'),
   '@volter/game-runtime/runtime/game': () => import('@volter/game-runtime/runtime/game'),
-  '@volter/game-runtime/world3d-react': () => import('@volter/game-runtime/world3d-react'),
-  '@volter/game-runtime/world3d-react/rapier-physics-bridge': () =>
-    import('@volter/game-runtime/world3d-react/rapier-physics-bridge'),
-  // …and the factory that mounts an example's default-exported world. A
-  // three root cannot mount hosted without it.
   // The mesh-kit's two library-backed modifiers. `src/lib/mesh/modifiers.ts` —
   // scaffolded into EVERY default project by the humanoid capability, and
   // present verbatim in the template and four examples — imports both at
