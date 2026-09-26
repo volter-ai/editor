@@ -126,6 +126,8 @@ import {
   computeResizePatch,
   frameAngle,
   frameForId,
+  rectFrame,
+  snapPointToFrame,
   frameHandlePosition,
   frameIsTurned,
   frameResizePatch,
@@ -1803,7 +1805,24 @@ export function RootSelectionOverlay({
     id: string;
     handleId: string;
     provider: SpatialHandlesProvider;
+    /** The handle is the node's pivot (its owner's `origin` layer), which snaps to its own box. */
+    pivot: boolean;
   } | null>(null);
+
+  /** Where a pivot lands: smart snapping's Node Sides and Node Center pull it onto its own node's
+   *  sides and centre lines (Godot's), unless Alt frees it. */
+  const snapPivot = useCallback(
+    (id: string, local: { x: number; y: number }, free: boolean): { x: number; y: number } => {
+      const choice = store.smartSnap;
+      if (free || !choice.enabled || (!choice.sides && !choice.center)) return local;
+      const rect = rectForId(adapter, id);
+      const frame = frameForId(adapter, id) ?? (rect ? rectFrame(rect) : null);
+      if (!frame) return local;
+      const zoom = Math.max(view.get().zoom, 0.01);
+      return snapPointToFrame(local, frame, choice.sides, choice.center, EDGE_SNAP_THRESHOLD_PX / zoom);
+    },
+    [adapter, store, view],
+  );
 
   const onSpatialHandleDown = useCallback(
     (
@@ -1815,7 +1834,10 @@ export function RootSelectionOverlay({
       e.stopPropagation();
       if (e.button !== 0 || !handle.writable) return;
       capturePointer(e);
-      spatialDragRef.current = { id, handleId: handle.id, provider };
+      const pivot = provider
+        .layers(id)
+        .some((layer) => layer.category === 'origin' && layer.handles.some((h) => h.id === handle.id));
+      spatialDragRef.current = { id, handleId: handle.id, provider, pivot };
     },
     [],
   );
@@ -1824,11 +1846,12 @@ export function RootSelectionOverlay({
     (e: ReactPointerEvent<HTMLElement>) => {
       const drag = spatialDragRef.current;
       if (!drag) return;
-      const local = toHostLocal(e.clientX, e.clientY);
+      const pointer = toHostLocal(e.clientX, e.clientY);
+      const local = drag.pivot ? snapPivot(drag.id, pointer, e.altKey) : pointer;
       drag.provider.preview(drag.id, drag.handleId, [local.x, local.y, 0]);
       bumpGesture();
     },
-    [bumpGesture, toHostLocal],
+    [bumpGesture, toHostLocal, snapPivot],
   );
 
   const onSpatialHandleUp = useCallback(
@@ -1837,11 +1860,12 @@ export function RootSelectionOverlay({
       spatialDragRef.current = null;
       if (!drag) return;
       releaseCapturedPointer(e);
-      const local = toHostLocal(e.clientX, e.clientY);
+      const pointer = toHostLocal(e.clientX, e.clientY);
+      const local = drag.pivot ? snapPivot(drag.id, pointer, e.altKey) : pointer;
       void drag.provider.commit(drag.id, drag.handleId, [local.x, local.y, 0]);
       bumpGesture();
     },
-    [bumpGesture, toHostLocal],
+    [bumpGesture, toHostLocal, snapPivot],
   );
 
   const startSpacingGesture = useCallback(
@@ -2048,8 +2072,9 @@ export function RootSelectionOverlay({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [eyedropperActive]);
 
-  // Godot's V on a native 2D surface: put the selected node's pivot where the pointer is. The pivot
-  // is the owner's `origin` spatial handle, committed the way its own drag commits (one edit).
+  // Godot's V on a native 2D surface: put the selected node's pivot where the pointer is, snapped as
+  // a dragged pivot snaps. The pivot is the owner's `origin` spatial handle, committed the way its
+  // own drag commits (one edit).
   useEffect(() => {
     if (!transformModeAware) return;
     const onKeyDown = (e: KeyboardEvent): void => {
@@ -2074,13 +2099,13 @@ export function RootSelectionOverlay({
         ?.handles.find((h) => h.writable);
       if (!provider || !handle) return;
       e.preventDefault();
-      const local = toHostLocal(at.x, at.y);
+      const local = snapPivot(id, toHostLocal(at.x, at.y), false);
       void provider.commit(id, handle.id, [local.x, local.y, 0]);
       bumpGesture();
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [adapter, store, transformModeAware, toHostLocal, bumpGesture]);
+  }, [adapter, store, transformModeAware, toHostLocal, bumpGesture, snapPivot]);
 
   // D4 (spec27 §8 "space-pan" row) — the Space-held ARM SWITCH for the pan
   // gesture below (`onPointerDown`'s own early branch). A raw `window`

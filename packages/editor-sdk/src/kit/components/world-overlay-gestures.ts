@@ -692,6 +692,54 @@ export function computeNativeMoveSnap(
   };
 }
 
+/**
+ * Snap a pivot to its own node's box (Godot's Snap to Node Sides and Snap to Node Center): along
+ * each axis of the box's own frame, so a turned node snaps along its turned sides, to a side
+ * (`sides`) or the centre line (`center`) within `threshold` host px.
+ */
+export function snapPointToFrame(
+  point: { x: number; y: number },
+  frame: FrameCorners,
+  sides: boolean,
+  center: boolean,
+  threshold: number,
+): { x: number; y: number } {
+  const ux = frame.tr.x - frame.tl.x;
+  const uy = frame.tr.y - frame.tl.y;
+  const vx = frame.bl.x - frame.tl.x;
+  const vy = frame.bl.y - frame.tl.y;
+  const det = ux * vy - uy * vx;
+  if (Math.abs(det) < 1e-9) return point;
+  const px = point.x - frame.tl.x;
+  const py = point.y - frame.tl.y;
+  const stops = [...(sides ? [0, 1] : []), ...(center ? [0.5] : [])];
+  const snap = (param: number, length: number): number => {
+    let best = param;
+    let distance = threshold;
+    for (const stop of stops) {
+      const d = Math.abs(param - stop) * length;
+      if (d <= distance) {
+        distance = d;
+        best = stop;
+      }
+    }
+    return best;
+  };
+  const s = snap((px * vy - py * vx) / det, Math.hypot(ux, uy));
+  const t = snap((ux * py - uy * px) / det, Math.hypot(vx, vy));
+  return { x: frame.tl.x + s * ux + t * vx, y: frame.tl.y + s * uy + t * vy };
+}
+
+/** A rect's corners, for a box with no turned frame. */
+export function rectFrame(rect: RectLike): FrameCorners {
+  return {
+    tl: { x: rect.x, y: rect.y },
+    tr: { x: rect.x + rect.width, y: rect.y },
+    br: { x: rect.x + rect.width, y: rect.y + rect.height },
+    bl: { x: rect.x, y: rect.y + rect.height },
+  };
+}
+
 /** Which things a native 2D move aligns to (Godot's Smart Snapping targets). */
 export interface SmartSnapTargets {
   readonly parent: boolean;

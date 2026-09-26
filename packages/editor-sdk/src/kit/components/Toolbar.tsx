@@ -279,6 +279,8 @@ function SnapButton({
                   [
                     ['parent', 'Snap to Parent'],
                     ['others', 'Snap to Other Nodes'],
+                    ['sides', 'Snap to Node Sides'],
+                    ['center', 'Snap to Node Center'],
                     ['guides', 'Snap to Guides'],
                   ] as const
                 ).map(([target, label]) => (

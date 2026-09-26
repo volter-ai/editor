@@ -45,13 +45,15 @@ export interface Snap2D {
   readonly pixel: boolean;
 }
 
-/** Smart snapping's switch and its targets: the parent's box, other nodes (their sides and
- *  centres), and the view's guides. */
+/** Smart snapping's switch and its targets: a move aligns to the parent's box, other nodes (their
+ *  sides and centres) and the view's guides; a pivot snaps to its own node's sides and centre. */
 export interface SmartSnap {
   readonly enabled: boolean;
   readonly parent: boolean;
   readonly others: boolean;
   readonly guides: boolean;
+  readonly sides: boolean;
+  readonly center: boolean;
 }
 
 export type PivotMode = 'active-element' | 'median-point' | 'individual-origins';
@@ -270,6 +272,8 @@ export class ShellStore implements ShellDocumentState {
     parent: true,
     others: true,
     guides: true,
+    sides: true,
+    center: true,
   };
   protected _preserveChildrenTransform = false;
   protected _pivotMode: PivotMode = 'active-element';
