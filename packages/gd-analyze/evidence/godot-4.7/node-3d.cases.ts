@@ -208,6 +208,26 @@ for (const [name, args] of [
   cases.push({ id: 'get_world_3d', symbol: member('get_world_3d'), gdscript: built.gdscript, target: built.target, comparator: 'rapier-geometry' });
 }
 
+// Visibility: the node's own flag, and its chain of parent Node3Ds (a plain Node ends the chain).
+const TREE: Step[] = [{ node: 'p' }, { node: 'a', parent: 'p' }, { node: 'c', parent: 'a' }];
+add('is_visible-fresh', 'is_visible', [A], 'is_visible');
+add('set_visible-false', 'set_visible', [A, { call: 'set_visible', on: 'a', args: [false] }], 'is_visible');
+add('set_visible-true', 'set_visible', [A, { call: 'set_visible', on: 'a', args: [false] }, { call: 'set_visible', on: 'a', args: [true] }], 'is_visible');
+add('hide', 'hide', [A, { call: 'hide', on: 'a' }], 'is_visible');
+add('show', 'show', [A, { call: 'hide', on: 'a' }, { call: 'show', on: 'a' }], 'is_visible');
+add('is_visible_in_tree-fresh', 'is_visible_in_tree', TREE, 'is_visible_in_tree', 'c');
+add('is_visible_in_tree-hidden-grandparent', 'is_visible_in_tree', [...TREE, { call: 'hide', on: 'p' }], 'is_visible_in_tree', 'c');
+add('is_visible-hidden-parent', 'is_visible', [...TREE, { call: 'hide', on: 'a' }], 'is_visible', 'c');
+add('is_visible_in_tree-hidden-self', 'is_visible_in_tree', [...TREE, { call: 'hide', on: 'c' }], 'is_visible_in_tree', 'c');
+add('is_visible_in_tree-shown-again', 'is_visible_in_tree', [...TREE, { call: 'hide', on: 'a' }, { call: 'show', on: 'a' }], 'is_visible_in_tree', 'c');
+add(
+  'is_visible_in_tree-plain-node-between',
+  'is_visible_in_tree',
+  [{ node: 'p' }, { node: 'n', parent: 'p', plain: true }, { node: 'c', parent: 'n' }, { call: 'hide', on: 'p' }],
+  'is_visible_in_tree',
+  'c',
+);
+
 const NODE3D_EVIDENCE: GodotEvidenceCaseFile = {
   kind: 'node',
   probeHelpers: PHYSICS_PROBE_HELPERS,

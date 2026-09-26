@@ -28,7 +28,7 @@
 
 import { Matrix4, type Object3D } from 'three';
 import { type Basis, construct as basis } from './basis';
-import { godot_node_duplicate_state, godot_node_is_spatial, is_inside_tree } from './node';
+import { godot_node_duplicate_state, godot_node_is_spatial, godot_node_processing, is_inside_tree } from './node';
 import { type Transform3D, construct as transform3d } from './transform-3d';
 import { construct as vector3, type Vector3 } from './vector3';
 
@@ -814,6 +814,57 @@ export function look_at_from_position(
   const originalScale = get_scale(self);
   set_global_transform(self, toTransform({ basis: basisLooking, origin: pos }));
   set_scale(self, originalScale);
+}
+
+/**
+ * The node's own visibility, which is three's `Object3D.visible`: three draws an object only when
+ * it and every ancestor are visible, as Godot draws a Node3D visible in the tree. Unchanged, it
+ * does nothing (`node_3d.cpp:1122`).
+ *
+ * @godot Node3D.set_visible
+ * @source scene/3d/node_3d.cpp:1120
+ */
+export function set_visible(self: Object3D, p_visible: boolean): void {
+  self.visible = Boolean(p_visible);
+}
+
+/**
+ * @godot Node3D.is_visible
+ * @source scene/3d/node_3d.cpp:1134
+ */
+export function is_visible(self: Object3D): boolean {
+  return self.visible;
+}
+
+/**
+ * @godot Node3D.show
+ * @source scene/3d/node_3d.cpp:1110
+ */
+export function show(self: Object3D): void {
+  set_visible(self, true);
+}
+
+/**
+ * @godot Node3D.hide
+ * @source scene/3d/node_3d.cpp:1115
+ */
+export function hide(self: Object3D): void {
+  set_visible(self, false);
+}
+
+/**
+ * Visible, and so is every parent Node3D up the chain (`data.parent`, set as the node enters the
+ * tree: a node outside the tree has none).
+ *
+ * @godot Node3D.is_visible_in_tree
+ * @source scene/3d/node_3d.cpp:1139
+ */
+export function is_visible_in_tree(self: Object3D): boolean {
+  for (let node: Object3D | null = self; node !== null; ) {
+    if (!node.visible) return false;
+    node = godot_node_processing(node)?.insideTree === false ? null : parentNode3D(node);
+  }
+  return true;
 }
 
 /**
