@@ -235,6 +235,7 @@ function StateTreeNode({
           {Array.isArray(value) ? `[${entries.length}]` : `{${entries.length}}`}
         </span>
         <TypeTag type={path.length > 0 ? typeOf?.(path) : null} />
+        {failed ? <span style={{ color: themeVars.semantic.danger }}> {failed}</span> : null}
         {remove && path.length > 0 ? (
           <button
             type="button"
@@ -243,7 +244,10 @@ function StateTreeNode({
             aria-label={`Delete ${path.join('.')} on the server`}
             onClick={(event) => {
               event.stopPropagation();
-              remove(path).catch(() => undefined);
+              remove(path).then(
+                () => setFailed(null),
+                (caught: unknown) => setFailed(caught instanceof Error ? caught.message : String(caught)),
+              );
             }}
             style={{ marginLeft: 8, border: 0, background: 'transparent', color: themeVars.content.muted, cursor: 'pointer' }}
           >
@@ -687,7 +691,12 @@ export function NetworkInspectorPanel() {
       )}
 
       {caps.server ? (
-        <ServerView adapter={adapter} ownSession={view.roomInfo?.sessionId ?? null} draft={draft} />
+        <ServerView
+          adapter={adapter}
+          ownSession={view.roomInfo?.sessionId ?? null}
+          ownRoom={view.roomInfo?.roomId ?? null}
+          draft={draft}
+        />
       ) : null}
       {caps.traffic ? <TrafficTable rows={adapter.getTrafficByType?.() ?? []} /> : null}
       {caps.send ? <SendControls adapter={adapter} ping={caps.ping} draft={draft} setDraft={setDraft} /> : null}
@@ -934,10 +943,12 @@ function SendControls({
 function ServerView({
   adapter,
   ownSession,
+  ownRoom,
   draft,
 }: {
   adapter: NetworkingAdapter;
   ownSession: string | null;
+  ownRoom: string | null;
   draft: MessageDraft;
 }) {
   const [inspection, setInspection] = useState<NetServerInspection | null | undefined>(undefined);
@@ -1049,6 +1060,19 @@ function ServerView({
           ))}
         </tbody>
       </table>
+      {inspection.room && inspection.room.roomId !== ownRoom && inspection.room.state !== undefined ? (
+        // ANOTHER room's state, as Monitor's Inspect opens it: read from the server, and edited
+        // and deleted in THAT room. The tree below the section stays this client's own room.
+        <div data-testid="net-server-room-state" style={{ padding: `${spaceVar[2]} 0` }}>
+          <StateTreeNode
+            name={`room ${inspection.room.roomId}`}
+            value={inspection.room.state}
+            depth={0}
+            edit={adapter.editServerState ? (path, next) => adapter.editServerState!(path, next, roomId) : undefined}
+            remove={adapter.deleteServerState ? (path) => adapter.deleteServerState!(path, roomId) : undefined}
+          />
+        </div>
+      ) : null}
       {error ? <AbsentNote>{error}</AbsentNote> : null}
     </div>
   );

@@ -825,9 +825,12 @@ function nativeScalePatch(
   snapEnabled: boolean,
   altKey: boolean,
   scaleStep: number,
+  proportional = false,
 ): Record<string, number> {
   const span = gesture.nativeHandleSpan ?? 1;
-  const axis = gesture.nativeScaleAxis ?? 'both';
+  // Shift scales proportionally (Godot's Scale mode): an axis handle moves both axes together.
+  const axis = proportional ? 'both' : (gesture.nativeScaleAxis ?? 'both');
+  const along = proportional && gesture.nativeScaleAxis === 'x' ? dx : proportional && gesture.nativeScaleAxis === 'y' ? dy : null;
   let scaleXFactor: number;
   let scaleYFactor: number;
   if (axis === 'x') {
@@ -840,7 +843,7 @@ function nativeScalePatch(
     // The uniform handle sits one `span` from the origin on a 45-degree
     // axis. Project the drag onto that axis so moving the handle one
     // handle-length doubles the scale, just like either axis handle.
-    const factor = 1 + (dx + dy) / (Math.SQRT2 * span);
+    const factor = along !== null ? 1 + along / span : 1 + (dx + dy) / (Math.SQRT2 * span);
     scaleXFactor = factor;
     scaleYFactor = factor;
   }
@@ -1912,6 +1915,7 @@ export function RootSelectionOverlay({
           store.scaleSnap,
           e.altKey,
           store.snapValues.scale,
+          e.shiftKey,
         );
         setSnapGuides([]);
       } else if (gesture.kind === 'move') {
@@ -2116,6 +2120,13 @@ export function RootSelectionOverlay({
       // the session instead of the ordinary click-select flow below (which it
       // deliberately skips entirely — picking a color is not a selection
       // gesture).
+      // Godot's Select-mode modifier drags on a native 2D surface: Cmd (Ctrl) rotates the selected
+      // node about its pivot, Cmd+Alt (Ctrl+Alt) scales it — wherever the press lands.
+      if (transformModeAware && store.selectedEntityIds.size === 1 && (e.metaKey || e.ctrlKey)) {
+        if (e.altKey) startNativeScaleGesture('both', e);
+        else startRotateGesture(e);
+        return;
+      }
       if (eyedropperActive) {
         resolveEyedropperSession(sampleColorAt(e.clientX, e.clientY));
         setEyedropperPreview(null);
@@ -2197,6 +2208,8 @@ export function RootSelectionOverlay({
       sampleColorAt,
       pickAt,
       scopedAdapter,
+      startNativeScaleGesture,
+      startRotateGesture,
     ],
   );
 

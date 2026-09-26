@@ -257,7 +257,7 @@ export interface NetServerInspection {
   cpuPercent: number | null;
   memory: { usedMb: number; totalMb: number } | null;
   /** The current room's clients and its full state's size, when the room is still hosted. */
-  room: { roomId: string; clients: NetServerClient[]; stateBytes: number } | null;
+  room: { roomId: string; clients: NetServerClient[]; stateBytes: number; state?: unknown } | null;
 }
 
 export interface NetConditioningLimits {
@@ -371,9 +371,9 @@ export interface NetworkingAdapter {
   disconnectClient?(sessionId: string, roomId?: string): Promise<void>;
   /** Set one value of the room's authoritative state on the server (Monitor's State edit);
    *  `path` is the keys from the state's root. */
-  editServerState?(path: readonly (string | number)[], value: unknown): Promise<void>;
+  editServerState?(path: readonly (string | number)[], value: unknown, roomId?: string): Promise<void>;
   /** Remove one key of the room's authoritative state on the server (Monitor's State delete). */
-  deleteServerState?(path: readonly (string | number)[]): Promise<void>;
+  deleteServerState?(path: readonly (string | number)[], roomId?: string): Promise<void>;
   /** From the server, send `payload` under `type` to one client of the room (Monitor's Send). */
   sendToClient?(sessionId: string, type: string, payload: unknown, roomId?: string): Promise<void>;
   /** From the server, send `payload` under `type` to every client of the room (Monitor's

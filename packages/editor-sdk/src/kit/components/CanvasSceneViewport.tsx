@@ -1,7 +1,7 @@
 import {
   faBorderAll,
   faCheck,
-  faExpand,
+  faCrosshairs,
   faHand,
   faLayerGroup,
   faLock,
@@ -639,7 +639,7 @@ export function CanvasSceneControls({
           size="comfortable"
           onClick={centerView}
         >
-          <EditorIcon icon={faExpand} size="md" />
+          <EditorIcon icon={faCrosshairs} size="md" />
         </IconButton>
         <IconButton
           aria-label="Zoom out"

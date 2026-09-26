@@ -462,6 +462,7 @@ interface MonitorRooms {
 interface MonitorRoom {
   clients?: { sessionId: string; elapsedTime: number }[];
   stateSize?: number;
+  state?: unknown;
 }
 
 async function monitorJson<T>(url: string): Promise<T | null> {
@@ -616,16 +617,17 @@ export const observedGameNetwork: NetworkingAdapter = {
             roomId: inspected,
             clients: (detail.clients ?? []).map((client) => ({ sessionId: client.sessionId, elapsedMs: client.elapsedTime })),
             stateBytes: detail.stateSize ?? 0,
+            ...(detail.state !== undefined ? { state: detail.state } : {}),
           }
         : null,
     };
   },
   disconnectClient: (sessionId: string, roomId?: string) =>
     roomCall('_forceClientDisconnect', [sessionId], 'the disconnect', roomId),
-  editServerState: (path: readonly (string | number)[], value: unknown) =>
-    roomCall('_editStateProperty', [path, value], 'the state edit'),
-  deleteServerState: (path: readonly (string | number)[]) =>
-    roomCall('_deleteStateProperty', [path], 'the state delete'),
+  editServerState: (path: readonly (string | number)[], value: unknown, roomId?: string) =>
+    roomCall('_editStateProperty', [path, value], 'the state edit', roomId),
+  deleteServerState: (path: readonly (string | number)[], roomId?: string) =>
+    roomCall('_deleteStateProperty', [path], 'the state delete', roomId),
   sendToClient: (sessionId: string, type: string, payload: unknown, roomId?: string) =>
     roomCall('_sendMessageToClient', [sessionId, type, payload], 'the send', roomId),
   broadcast: (type: string, payload: unknown, roomId?: string) =>

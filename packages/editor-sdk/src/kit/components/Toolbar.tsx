@@ -659,7 +659,8 @@ export function ToolStrip({
           faIcon={editorIcons.tool.select}
           action="transform.select"
           label="Select"
-          active={store.transformMode === 'select'}
+          // On a 2D surface Select is the handle mode, which the store names `combined`.
+          active={store.transformMode === 'select' || (dimensions === '2d' && store.transformMode === 'combined')}
           onArm={() => requestTransformMode(store, 'select')}
         />
       )}
