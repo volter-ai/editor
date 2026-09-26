@@ -381,34 +381,57 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
       };
     }
     case 'FOR': {
-      if (node.useConversionAssign) {
-        return context.refuse(node, 'for binding conversion needs an evidenced conversion recipe');
-      }
       const iterableNode = context.node(node.list, node);
-      if (iterableNode.datatype.kind === 'BUILTIN' && iterableNode.datatype.builtinType === 'int') {
+      if (!node.useConversionAssign && iterableNode.datatype.kind === 'BUILTIN' && iterableNode.datatype.builtinType === 'int') {
         return lowerIntegerRange(context, node, iterableNode);
       }
+      // A typed loop variable over elements of another type converts each element as it is
+      // assigned (`GDScriptByteCodeGenerator::write_for`, gdscript_byte_codegen.cpp:1607, from gdscript_compiler.cpp:2101): the element bound
+      // to a temporary, the variable declared from it through the type's constructor binding.
+      const variableNode = context.node(node.variable, node);
       const structuralRequirements = context.structural(
         node,
         'for-of',
-        [iterableNode],
-        'for-of:direct-binding',
+        node.useConversionAssign ? [iterableNode, variableNode] : [iterableNode],
+        node.useConversionAssign ? 'for-of:conversion' : 'for-of:direct-binding',
       );
       const iterable = settleForStatement(context, lowerExpression(context, iterableNode));
       const body = lowerOfficialSuite(context, context.node(node.loop, node));
+      const name = officialBoundIdentifier(context, node.variable, node);
+      let binding = name;
+      const prefix: TargetTsStatement[] = [];
+      const conversion: OfficialBoundLoweringRequirement[] = [];
+      if (node.useConversionAssign) {
+        if (variableNode.datatype.kind !== 'BUILTIN') {
+          return context.refuse(node, `a ${variableNode.datatype.display} loop variable's conversion has no binding`);
+        }
+        binding = context.temporary();
+        const element = { ...iterableNode, datatype: { ...iterableNode.datatype, kind: 'VARIANT' as const } };
+        const converted = convertedValue(context, variableNode, element, {
+          before: [],
+          value: { kind: 'identifier-expression', name: binding, span: officialBoundSpan(context.script, node) },
+          after: [],
+          requirements: [],
+        });
+        if (converted.before.length > 0 || converted.after.length > 0) {
+          return context.refuse(node, 'a sequenced loop variable conversion needs a restructuring recipe');
+        }
+        prefix.push({ kind: 'variable-statement', declaration: 'const', name, initializer: converted.value, span: officialBoundSpan(context.script, node) });
+        conversion.push(...converted.requirements);
+      }
       return {
         statements: [
           ...iterable.before,
           {
             kind: 'for-of-statement',
-            binding: officialBoundIdentifier(context, node.variable, node),
+            binding,
             iterable: iterable.value,
-            body: body.statements,
+            body: [...prefix, ...body.statements],
             span: officialBoundSpan(context.script, node),
           },
           ...iterable.after,
         ],
-        requirements: [...structuralRequirements, ...iterable.requirements, ...body.requirements],
+        requirements: [...structuralRequirements, ...iterable.requirements, ...conversion, ...body.requirements],
       };
     }
     case 'BREAK':

@@ -73,9 +73,9 @@ const NARROWED = [
 ] as const;
 
 /**
- * Expressions whose datatype the analysis fixes (`refineDatatypes`): scene nodes by `$Path` and
- * `%Unique` (their class, or their script when they carry one), and member reads on them (a
- * native property's getter type, a script field's declared type).
+ * Expressions whose datatype the analysis fixes (`refineDatatypes`): scene nodes by `$Path`,
+ * `%Unique` and `get_node` of a literal path (their class, or their script when they carry one),
+ * and member reads on them (a native property's getter type, a script field's declared type).
  */
 const REFINED = [
   '$Level/Door',
@@ -87,6 +87,9 @@ const REFINED = [
   '$Scripted.level',
   '$Scripted.position',
   '%Marker.gizmo_extents',
+  '$Level.get_node("Door")',
+  'get_node(^"Level/Inner/Lamp").omni_range',
+  '$Level.get_node(^"Inner").get_node("Lamp").omni_range',
 ] as const;
 
 /** The keys of \`intersect_ray\`'s result the analysis types. */

@@ -3,7 +3,9 @@
  * Each is what Godot's runtime would find there, and the rule that finds it is evidenced:
  *
  * - `scene-node-receiver`: `$Path` / `%Unique` is the node at that path in every scene the script
- *   is attached to (they must agree): its script class when it carries a script, else its class.
+ *   is attached to (they must agree): its script class when it carries a script, else its class; so
+ *   is `get_node(<literal relative path>)` on self or on a base whose scene path is known, at that
+ *   base's path joined with the literal (`Node::get_node`, scene/main/node.cpp:1943).
  * - `classdb-method-selection`: a member read on a typed object is the member's declared type: a
  *   script field's, else the native property's getter return type (`ClassDB::get_property`).
  * - `type-test-narrowing`: a local used where `local is T` has held (the true branch of the `if`,
@@ -279,6 +281,26 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
     });
   };
 
+  /**
+   * The scene path an expression names, when it names one statically: `$Path` and `%Unique`, self,
+   * and `get_node` of a literal relative path on either.
+   */
+  const scenePathOf = (id: number): string | undefined => {
+    const node = nodes.get(id);
+    if (node?.kind === 'GET_NODE') return node.fullPath;
+    if (node?.kind === 'SELF') return '.';
+    if (node?.kind !== 'CALL' || node.compilerTarget.kind !== 'native-method' || node.compilerTarget.member !== 'get_node' || node.arguments.length !== 1) return undefined;
+    const argument = nodes.get(node.arguments[0] as number);
+    if (argument?.kind !== 'LITERAL') return undefined;
+    const value = argument.value;
+    const text = value.kind === 'string' ? value.value : value.kind === 'opaque' && value.type === 'NodePath' ? value.text : undefined;
+    if (text === undefined || text === '' || text.startsWith('/') || text.startsWith('%') || text.includes(':')) return undefined;
+    const callee = nodes.get(node.callee);
+    const base = callee?.kind === 'SUBSCRIPT' && callee.isAttribute ? scenePathOf(callee.base) : callee?.kind === 'IDENTIFIER' ? '.' : undefined;
+    if (base === undefined) return undefined;
+    return base === '.' ? text : `${base}/${text}`;
+  };
+
   function refine(id: number): BoundGodotRefinedType | undefined {
     if (refined.has(id)) return refined.get(id) ?? undefined;
     refined.set(id, null);
@@ -287,6 +309,16 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
     if (node?.kind === 'GET_NODE') {
       const own = node.datatype;
       const type = sceneNode(node.fullPath);
+      if (
+        type !== undefined &&
+        (own.kind === 'VARIANT' || (own.kind === 'NATIVE' && inherits(type.nativeType, own.nativeType) && (type.kind !== 'NATIVE' || type.nativeType !== own.nativeType)))
+      ) {
+        result = { datatype: type, rule: 'scene-node-receiver' };
+      }
+    } else if (node?.kind === 'CALL' && node.compilerTarget.kind === 'native-method' && node.compilerTarget.member === 'get_node') {
+      const own = node.datatype;
+      const path = scenePathOf(id);
+      const type = path === undefined ? undefined : sceneNode(path);
       if (
         type !== undefined &&
         (own.kind === 'VARIANT' || (own.kind === 'NATIVE' && inherits(type.nativeType, own.nativeType) && (type.kind !== 'NATIVE' || type.nativeType !== own.nativeType)))

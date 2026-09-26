@@ -291,7 +291,17 @@ rule('for-range-int', 'FOR', 'for-range:int', [INT], '', structural('for-range')
   symbol: 'GDScriptCompiler::_parse_block FOR over int',
   line: 2080,
 });
+// A typed loop variable over elements of another type (an untyped array literal) converts each
+// element as it is assigned (`GDScriptByteCodeGenerator::write_for` with conversion), through the
+// type's constructor binding.
+rule('for-of-conversion', 'FOR', 'for-of:conversion', [B, B], '', structural('for-of'), {
+  file: 'modules/gdscript/gdscript_byte_codegen.cpp',
+  symbol: 'GDScriptByteCodeGenerator::write_for',
+  line: 1607,
+});
 rule('local-iterator-int', 'IDENTIFIER', 'local-identifier:LOCAL_ITERATOR', [], INT, structural('local-identifier'), EXPRESSION);
+// A String loop variable reads its current value.
+rule('local-iterator-string', 'IDENTIFIER', 'local-identifier:LOCAL_ITERATOR', [], 'BUILTIN:String', structural('local-identifier'), EXPRESSION);
 
 // `and` / `or` are jumps over a booleanized left operand, never both evaluated
 // (`GDScriptCompiler::_parse_expression` BINARY_OPERATOR OP_LOGIC_AND/OR, write_and_left_operand).
@@ -821,6 +831,14 @@ static func variant_flow(u):
 \tvar b
 \tb = a
 \treturn b
+
+static func typed_for_over_literal():
+\tvar a = "left"
+\tvar b = &"right"
+\tvar out := ""
+\tfor action: String in [a, b]:
+\t\tout = out + action + ","
+\treturn out
 
 static func variant_holds_builtin():
 \tvar v
@@ -1474,6 +1492,7 @@ for (const call of ['variant_flow', 'variant_to_vector', 'variant_return']) {
   }
 }
 cases.push({ id: 'variant-holds-builtin', call: 'variant_holds_builtin', comparator: 'exact' });
+cases.push({ id: 'typed-for-over-literal', call: 'typed_for_over_literal', comparator: 'exact' });
 cases.push({ id: 'inferred-constant-float', call: 'inferred_constant_float', comparator: 'exact' });
 cases.push({
   id: 'members-and-onready',
@@ -1654,6 +1673,7 @@ const GDSCRIPT_EVIDENCE: GodotLanguageEvidenceFile = {
     'lib/godot-compat/light-3d',
     'lib/godot-compat/node',
     'lib/godot-compat/node-3d',
+    'lib/godot-compat/string',
     'lib/godot-compat/vector3',
   ],
   rules,

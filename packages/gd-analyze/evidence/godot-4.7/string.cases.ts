@@ -3,6 +3,11 @@ import type { GodotEvidenceCaseFile } from '../../src/evidence/case';
 import { caseCollector, gs } from './literals';
 
 const c = caseCollector('String');
+// Constructors: none, from a String, from a StringName, from a NodePath (their text).
+c.add('construct-empty', c.constructor, 'String()', () => S.construct());
+c.add('construct-string', c.constructor, 'String("left")', () => S.construct('left'));
+c.add('construct-string-name', c.constructor, 'String(&"move_right")', () => S.construct('move_right'));
+c.add('construct-node-path', c.constructor, 'String(^"../GridMap")', () => S.construct('../GridMap'));
 const TEXTS = ['', 'a,b,c', ',a,,b,', 'no delimiter', 'aaa', '  padded \t\n', 'x::y::z', 'é,ü,😀,ß', '😀😀', ',,'];
 const SPLITTERS = ['', ',', '::', 'a', 'zz', '😀'];
 

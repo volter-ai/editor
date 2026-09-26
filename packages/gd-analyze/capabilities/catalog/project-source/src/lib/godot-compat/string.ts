@@ -106,3 +106,14 @@ export function op_add(left: string, right: string): string {
 export function op_equal(left: string, right: string): boolean {
   return left === right;
 }
+
+/**
+ * The Variant constructors: none (the empty string), `from: String`, `from: StringName` and
+ * `from: NodePath` (their text). A String, a StringName and a NodePath are all JS strings here.
+ *
+ * @godot String.String
+ * @source core/variant/variant_construct.cpp:79
+ */
+export function construct(from?: string): string {
+  return from === undefined ? '' : String(from);
+}

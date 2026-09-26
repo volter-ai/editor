@@ -8,6 +8,27 @@
       "source": {
         "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
         "owner": "String",
+        "member": "String",
+        "kind": "builtin-constructor",
+        "signature": "unhashed"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/string",
+        "exportName": "construct",
+        "localName": "String_construct",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-String.String"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "String",
         "member": "split",
         "kind": "builtin-member",
         "signature": "hash:1252735785"
@@ -136,6 +157,45 @@
   "claims": [
     {
       "registryVersion": 1,
+      "claimId": "godot-4.7-binding-String.String",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-constructor\u0000String\u0000String\u0000unhashed",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/variant_construct.cpp",
+        "sourceSymbol": "String.String",
+        "sourceLine": 79
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "71cc8eea4b34688e8ed136c60dfa850089da05e779ba1a3e0f29d19e6adc471e",
+        "callsite": "res://probe.gd _init() construct-empty construct-string construct-string-name construct-node-path",
+        "observedOutputSha256": "82eb7048d0836d4f3e401c7e886d91e4a467f76753839ae8715ccc41aeeaa438"
+      },
+      "target": {
+        "implementationSha256": "577f8528ad9a4cc8c649a40b204cead4b649b6ca58fd14ae9a86d54d737e8f23",
+        "callsite": "lib/godot-compat/string.ts construct",
+        "observedOutputSha256": "82eb7048d0836d4f3e401c7e886d91e4a467f76753839ae8715ccc41aeeaa438"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "9782596fffc67588186a14e6fb7408076004e7c4c3bca5f990e1efdfe405c85b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "string",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
       "claimId": "godot-4.7-binding-String.split",
       "layer": "binding",
       "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000String\u0000split\u0000hash:1252735785",
@@ -154,7 +214,7 @@
         "observedOutputSha256": "91733ed7633e1c1ba29cdf29bd676a9ca483d6337cec8897402f82607c007811"
       },
       "target": {
-        "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b",
+        "implementationSha256": "577f8528ad9a4cc8c649a40b204cead4b649b6ca58fd14ae9a86d54d737e8f23",
         "callsite": "lib/godot-compat/string.ts split",
         "observedOutputSha256": "91733ed7633e1c1ba29cdf29bd676a9ca483d6337cec8897402f82607c007811"
       },
@@ -193,7 +253,7 @@
         "observedOutputSha256": "a21a56e0fd6f7287620e03c83eb14808000b0c96c8920c449fdb7d090b240d5f"
       },
       "target": {
-        "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b",
+        "implementationSha256": "577f8528ad9a4cc8c649a40b204cead4b649b6ca58fd14ae9a86d54d737e8f23",
         "callsite": "lib/godot-compat/string.ts strip_edges",
         "observedOutputSha256": "a21a56e0fd6f7287620e03c83eb14808000b0c96c8920c449fdb7d090b240d5f"
       },
@@ -232,7 +292,7 @@
         "observedOutputSha256": "9a111a62c538d20bdba1fd482d99ca1033f5c9b1b050010b96a8494a148770f8"
       },
       "target": {
-        "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b",
+        "implementationSha256": "577f8528ad9a4cc8c649a40b204cead4b649b6ca58fd14ae9a86d54d737e8f23",
         "callsite": "lib/godot-compat/string.ts op_add",
         "observedOutputSha256": "9a111a62c538d20bdba1fd482d99ca1033f5c9b1b050010b96a8494a148770f8"
       },
@@ -271,7 +331,7 @@
         "observedOutputSha256": "ca09f9c8c9582136b75d58a0fc99cfd1b61a81a2442911899bf175bea63af801"
       },
       "target": {
-        "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b",
+        "implementationSha256": "577f8528ad9a4cc8c649a40b204cead4b649b6ca58fd14ae9a86d54d737e8f23",
         "callsite": "lib/godot-compat/string.ts op_add",
         "observedOutputSha256": "ca09f9c8c9582136b75d58a0fc99cfd1b61a81a2442911899bf175bea63af801"
       },
@@ -310,7 +370,7 @@
         "observedOutputSha256": "c7155f72e5dc1e4c00d4cafad4bc6468e48bfe30885103a3da8fb29a6b1317b2"
       },
       "target": {
-        "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b",
+        "implementationSha256": "577f8528ad9a4cc8c649a40b204cead4b649b6ca58fd14ae9a86d54d737e8f23",
         "callsite": "lib/godot-compat/string.ts op_equal",
         "observedOutputSha256": "c7155f72e5dc1e4c00d4cafad4bc6468e48bfe30885103a3da8fb29a6b1317b2"
       },
@@ -349,7 +409,7 @@
         "observedOutputSha256": "3b1d19654c95677ecfa84de9fdf53e90f089ff29dd301b5f34cab785d23ae8b5"
       },
       "target": {
-        "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b",
+        "implementationSha256": "577f8528ad9a4cc8c649a40b204cead4b649b6ca58fd14ae9a86d54d737e8f23",
         "callsite": "lib/godot-compat/string.ts op_equal",
         "observedOutputSha256": "3b1d19654c95677ecfa84de9fdf53e90f089ff29dd301b5f34cab785d23ae8b5"
       },
@@ -371,12 +431,20 @@
   ],
   "liveness": [
     {
+      "claimId": "godot-4.7-binding-String.String",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "71cc8eea4b34688e8ed136c60dfa850089da05e779ba1a3e0f29d19e6adc471e",
+      "implementationSha256": "577f8528ad9a4cc8c649a40b204cead4b649b6ca58fd14ae9a86d54d737e8f23"
+    },
+    {
       "claimId": "godot-4.7-binding-String.split",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "beaed4158c57153d62dec8ef95140d96acd1bf92b8b7e02b0c5e218c83690d32",
-      "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b"
+      "implementationSha256": "577f8528ad9a4cc8c649a40b204cead4b649b6ca58fd14ae9a86d54d737e8f23"
     },
     {
       "claimId": "godot-4.7-binding-String.strip_edges",
@@ -384,7 +452,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "7a73d1361404693ff688ab28e3c025fb853e9ae2f3ddff6dac3fed17fa430818",
-      "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b"
+      "implementationSha256": "577f8528ad9a4cc8c649a40b204cead4b649b6ca58fd14ae9a86d54d737e8f23"
     },
     {
       "claimId": "godot-4.7-binding-String.OP_ADD.right:String",
@@ -392,7 +460,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "d498f6e7da134daea5beac4966b520cadd7612451297963592f821f8db9fd64c",
-      "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b"
+      "implementationSha256": "577f8528ad9a4cc8c649a40b204cead4b649b6ca58fd14ae9a86d54d737e8f23"
     },
     {
       "claimId": "godot-4.7-binding-String.OP_ADD.right:StringName",
@@ -400,7 +468,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "68fedcf006269bd9d6f845c546c2b7118a4a182cb26df44d44f7941d1cf8ea68",
-      "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b"
+      "implementationSha256": "577f8528ad9a4cc8c649a40b204cead4b649b6ca58fd14ae9a86d54d737e8f23"
     },
     {
       "claimId": "godot-4.7-binding-String.OP_EQUAL.right:String",
@@ -408,7 +476,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "8e95a59c7e94df58cd0df2ea595937c95d00cbe23ccde086f821b12d11e99a75",
-      "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b"
+      "implementationSha256": "577f8528ad9a4cc8c649a40b204cead4b649b6ca58fd14ae9a86d54d737e8f23"
     },
     {
       "claimId": "godot-4.7-binding-String.OP_EQUAL.right:StringName",
@@ -416,7 +484,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "1a5bc01757ce9082b1afd4a4e385d9b39cdb47aa8ccfd36f3e9703d1ea5ee0c5",
-      "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b"
+      "implementationSha256": "577f8528ad9a4cc8c649a40b204cead4b649b6ca58fd14ae9a86d54d737e8f23"
     }
   ]
 }
