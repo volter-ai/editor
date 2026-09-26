@@ -79,7 +79,6 @@ export default defineConfig({
     alias: {
       '@volter/editor-project': packageSource('@volter/editor-project'),
       '@volter/threejs-runtime': packageSource('@volter/threejs-runtime'),
-      '@volter/game-runtime': packageSource('@volter/game-runtime'),
     },
     // The aliases above serve the runtime packages as SOURCE from their
     // installed directories, where module resolution walks up to a physical
