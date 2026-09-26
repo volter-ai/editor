@@ -692,6 +692,9 @@ async function main(): Promise<void> {
       // provide an export named 'flushSync'` at Play-mode mount before this
       // entry was added.
       include: [
+        // CommonJS-only packages a contribution package imports, which the scanner cannot reach
+        // from an installed package (`PackageContributionCrawl.commonJs`).
+        ...packageContributionCrawl.commonJs,
         'react',
         'react-dom',
         'react-dom/client',

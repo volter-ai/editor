@@ -744,6 +744,16 @@ export interface PackageContributionCrawl {
   readonly entries: string[];
   readonly unresolvable: string[];
   readonly sourceServed: string[];
+  /**
+   * The bare imports of those trees that are CommonJS-only packages (no ES module entry), to be
+   * PREBUNDLED: the browser can take them only as the optimizer's ES module. Vite's scanner does
+   * not find them itself when the package is installed: from a contribution file under
+   * `node_modules` it follows bare imports only, never the relative import into the package's
+   * own `src/`, so `@volter/editor-dawproject`'s `typescript` (its source editing) was served raw
+   * and the piece document failed with "does not provide an export named 'default'" on every
+   * registry install (measured on the 0.5.67 packed acceptance).
+   */
+  readonly commonJs: string[];
 }
 
 export function computePackageContributionCrawlEntries(
@@ -759,7 +769,7 @@ export function computePackageContributionCrawlEntries(
     };
     declared = [...Object.keys(pkg.dependencies ?? {}), ...Object.keys(pkg.devDependencies ?? {})];
   } catch {
-    return { entries, unresolvable: [], sourceServed: [] };
+    return { entries, unresolvable: [], sourceServed: [], commonJs: [] };
   }
   const req = createRequire(join(projectRoot, 'package.json'));
   for (const name of declared) {
@@ -808,7 +818,21 @@ export function computePackageContributionCrawlEntries(
   const sourceServed = [...specifiers]
     .filter((name) => !unresolvable.includes(name) && spawnsModuleRelativeWorker(req, name))
     .sort();
-  return { entries, unresolvable, sourceServed };
+  const commonJs = [...specifiers].filter((name) => !unresolvable.includes(name) && isCommonJsOnly(req, name)).sort();
+  return { entries, unresolvable, sourceServed, commonJs };
+}
+
+/** Whether an installed package offers no ES module entry (no `type: module`, `module` or `import` export). */
+function isCommonJsOnly(req: NodeJS.Require, name: string): boolean {
+  if (name.startsWith('@volter/') || name.startsWith('node:')) return false;
+  let manifest: { type?: string; module?: string; exports?: unknown };
+  try {
+    manifest = JSON.parse(readFileSync(req.resolve(`${name}/package.json`), 'utf8')) as typeof manifest;
+  } catch {
+    return false;
+  }
+  if (manifest.type === 'module' || manifest.module) return false;
+  return !/"(import|module)"\s*:/.test(JSON.stringify(manifest.exports ?? null));
 }
 
 const MODULE_RELATIVE_WORKER = /new\s+(?:Shared)?Worker\(\s*new\s+URL\(/;
