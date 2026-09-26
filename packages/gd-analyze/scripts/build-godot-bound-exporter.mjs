@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
-/** Build the official bound-GDScript exporter into an exact pinned Godot 4.7 source tree. */
+/** Build the official bound-GDScript exporter into an exact pinned Godot source tree (`--version 4.6|4.7`). */
 import { createHash } from 'node:crypto';
 import {
   chmodSync,
@@ -24,13 +24,25 @@ const MODULE_ROOT = join(
   PACKAGE_ROOT,
   'godot-frontend/exporter-modules/gdscript_frontend_exporter',
 );
-const OFFICIAL_SOURCE_PATCH = join(
-  PACKAGE_ROOT,
-  'godot-frontend/official-source-patches/4.7-selected-call-targets.patch',
-);
-const REVISION = '5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88';
-const SOURCE_TREE_SHA256 = 'b25d23ca60d7a9e99c2cccda9a5a1b2e736e6d0f79a8411d6647dafd4693cbec';
-const SOURCE_ARCHIVE_SHA256 = 'b3d705612228c09083d55a89ed3ea7381e6181387ecfdb74fd5cf9733b28eee6';
+/**
+ * Each pinned Godot release: its exact commit, the digest of its `.cpp`/`.h` tree under this
+ * script's own `aggregate`, the digest of the GitHub source archive for that commit, and the
+ * frontend instrumentation patch written against that tree.
+ */
+const VERSIONS = {
+  '4.6': {
+    revision: '89cea143987d564363e15d207438530651d943ac',
+    sourceTreeSha256: '0bbc5b19dc29cfd69b020f58691dd710539c5e8717dc14082aa963a1be9f57f3',
+    sourceArchiveSha256: '4387f22b1ef3ad9efd34ba0cd8075b0c3f192ddb3fc2ad7e400c9c44145900ad',
+    patch: '4.6-selected-call-targets.patch',
+  },
+  '4.7': {
+    revision: '5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88',
+    sourceTreeSha256: 'b25d23ca60d7a9e99c2cccda9a5a1b2e736e6d0f79a8411d6647dafd4693cbec',
+    sourceArchiveSha256: 'b3d705612228c09083d55a89ed3ea7381e6181387ecfdb74fd5cf9733b28eee6',
+    patch: '4.7-selected-call-targets.patch',
+  },
+};
 const BUILD_OPTIONS =
   'platform=macos target=editor arch=arm64 dev_build=yes debug_symbols=no lto=none vulkan=no opengl3=no metal=no angle=no accesskit=no sdl=no disable_path_overrides=no modules_enabled_by_default=yes module_gdscript_enabled=yes module_gdscript_frontend_exporter_enabled=yes';
 const EXCLUDED_SOURCE_SEGMENTS = new Set(['.git', 'thirdparty', 'tests']);
@@ -73,8 +85,8 @@ function aggregate(root, paths) {
   );
 }
 
-export function exporterSourceSha256() {
-  const roots = [MODULE_ROOT, OFFICIAL_SOURCE_PATCH];
+export function exporterSourceSha256(officialSourcePatch) {
+  const roots = [MODULE_ROOT, officialSourcePatch];
   const rows = [];
   for (const root of roots) {
     if (!existsSync(root)) continue;
@@ -100,11 +112,22 @@ function argument(name) {
 
 const sourceRootArg = argument('--source-root');
 const sourceArchiveArg = argument('--source-archive');
+const versionArg = argument('--version') ?? '4.7';
 if (sourceRootArg === undefined || sourceArchiveArg === undefined) {
   fail(
-    'usage: build-godot-bound-exporter.mjs --source-root <tree> --source-archive <tar.gz> [--out-dir <dir>]',
+    'usage: build-godot-bound-exporter.mjs --source-root <tree> --source-archive <tar.gz> [--version <4.6|4.7>] [--out-dir <dir>]',
   );
 }
+if (!Object.hasOwn(VERSIONS, versionArg)) {
+  fail(`--version must be one of ${Object.keys(VERSIONS).join(', ')}, received ${versionArg}`);
+}
+const {
+  revision: REVISION,
+  sourceTreeSha256: SOURCE_TREE_SHA256,
+  sourceArchiveSha256: SOURCE_ARCHIVE_SHA256,
+  patch,
+} = VERSIONS[versionArg];
+const OFFICIAL_SOURCE_PATCH = join(PACKAGE_ROOT, 'godot-frontend/official-source-patches', patch);
 const sourceRoot = resolve(sourceRootArg);
 const sourceArchive = resolve(sourceArchiveArg);
 const outDir = resolve(
@@ -124,7 +147,7 @@ if (sourceTreeSha256 !== SOURCE_TREE_SHA256) {
   fail(`source tree is not the audited ${REVISION} tree: got ${sourceTreeSha256}`);
 }
 
-const exporterSha256 = exporterSourceSha256();
+const exporterSha256 = exporterSourceSha256(OFFICIAL_SOURCE_PATCH);
 const temp = mkdtempSync(join(tmpdir(), 'vgai-godot-bound-exporter-module-'));
 const buildRoot = mkdtempSync(join(dirname(sourceRoot), '.vgai-godot-bound-exporter-build-'));
 const buildSource = join(buildRoot, 'source');
@@ -200,7 +223,7 @@ try {
     : candidate;
   if (!existsSync(builtBinary)) fail(`built executable does not exist: ${builtBinary}`);
   mkdirSync(outDir, { recursive: true });
-  const outputBinary = join(outDir, 'godot-4.7-bound-exporter-arm64');
+  const outputBinary = join(outDir, `godot-${versionArg}-bound-exporter-arm64`);
   cpSync(builtBinary, outputBinary);
   chmodSync(outputBinary, 0o755);
   const executableSha256 = sha256(readFileSync(outputBinary));
