@@ -42,6 +42,7 @@ import {
   transform2DChanged,
 } from './pixi-transform-channels';
 import { createStructWritePipe, type StructOpOptions } from './struct-write-pipe';
+import { PIXI_CREATABLE_KINDS } from './pixi-creatable-kinds';
 import {
   clipboardOutcome,
   LIVE_ONLY_ACK,
@@ -113,12 +114,6 @@ const CREATE_SNIPPETS: Readonly<Record<string, string>> = {
   sprite: '<pixiSprite label="Sprite" />',
   text: '<pixiText label="Text" text="Text" />',
   graphics: '<pixiGraphics label="Graphics" />',
-};
-const CREATE_LABELS: Readonly<Record<string, string>> = {
-  container: 'Container',
-  sprite: 'Sprite',
-  text: 'Text',
-  graphics: 'Graphics',
 };
 
 function isHiddenProp(name: string): boolean {
@@ -1210,9 +1205,8 @@ export function createSourceCanvasWriteTarget(
       if (!backend?.writeStruct) return [];
       if (parentId && !oidOf(parentId)) return [];
       if (!parentId && a2d.roots().length === 0) return [];
-      return Object.keys(CREATE_SNIPPETS).map((kind) => ({
-        kind,
-        label: CREATE_LABELS[kind] ?? kind,
+      return PIXI_CREATABLE_KINDS.filter((entry) => CREATE_SNIPPETS[entry.kind] !== undefined).map((entry) => ({
+        ...entry,
       }));
     },
     // Returns the promise (never `void structOp(…)`): `deleteSelection`

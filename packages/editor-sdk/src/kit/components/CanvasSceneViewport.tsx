@@ -514,14 +514,19 @@ export function CanvasSceneControls({
   // three viewport binds the same actions for its own store (`viewport-hotkeys.ts`).
   useEffect(() => {
     if (!active) return;
-    const arm = (mode: 'select' | 'translate' | 'rotate' | 'scale') => () => requestTransformMode(store, mode);
+    // The key leaves List Select, Pivot, Pan and Ruler itself, even when its tool was the one
+    // already armed under them (no mode change would say so).
+    const arm = (mode: 'select' | 'translate' | 'rotate' | 'scale') => () => {
+      setMode(null);
+      requestTransformMode(store, mode);
+    };
     return editorHost().keyboard.bindActions([
       { id: 'transform.select', scope: 'stage', run: arm('select') },
       { id: 'transform.translate', scope: 'stage', run: arm('translate') },
       { id: 'transform.rotate', scope: 'stage', run: arm('rotate') },
       { id: 'transform.scale', scope: 'stage', run: arm('scale') },
     ]);
-  }, [active, store]);
+  }, [active, store, setMode]);
   // One radio group however a tool is picked: a transform tool chosen by its key (W, E, R, T)
   // leaves List Select, Pivot, Pan and Ruler as its button does.
   const transformMode = store.transformMode;
@@ -995,6 +1000,16 @@ function CanvasSceneModeLayer({
     const y = clientY - (box?.top ?? 0);
     return { x: (x - now.x) / now.zoom, y: (y - now.y) / now.zoom };
   };
+  /** A ruler point snaps as Godot's does (measured on 4.7.1: with grid snap on the point read
+   *  (1136, 552) on the 8 px grid where it read (1136, 549) off): the grid when the magnet is on,
+   *  then whole pixels under Use Pixel Snap. */
+  const rulerPoint = (point: { x: number; y: number }): { x: number; y: number } => {
+    const grid = store.snap2D;
+    const onGrid = (value: number, offset: number): number =>
+      store.snapEnabled && grid.step > 0 ? Math.round((value - offset) / grid.step) * grid.step + offset : value;
+    const snapped = { x: onGrid(point.x, grid.offsetX), y: onGrid(point.y, grid.offsetY) };
+    return grid.pixel ? { x: Math.round(snapped.x), y: Math.round(snapped.y) } : snapped;
+  };
   /** Where the pivot goes for a point: snapped to its node's sides and centre as a dragged pivot is. */
   const pivotPoint = (id: string, point: { x: number; y: number }, free: boolean) => {
     const choice = store.smartSnap;
@@ -1042,7 +1057,7 @@ function CanvasSceneModeLayer({
     event.currentTarget.setPointerCapture(event.pointerId);
     const start = { clientX: event.clientX, clientY: event.clientY, pose: view.get() };
     const from = worldAt(event.clientX, event.clientY);
-    if (mode === 'ruler') setMeasure({ from, to: from });
+    if (mode === 'ruler') setMeasure({ from: rulerPoint(from), to: rulerPoint(from) });
     const move = (next: PointerEvent) => {
       if (mode === 'pan') {
         view.setView(
@@ -1051,7 +1066,7 @@ function CanvasSceneModeLayer({
           start.pose.zoom,
         );
       } else {
-        setMeasure({ from, to: worldAt(next.clientX, next.clientY) });
+        setMeasure({ from: rulerPoint(from), to: rulerPoint(worldAt(next.clientX, next.clientY)) });
       }
     };
     const end = () => {

@@ -231,6 +231,7 @@ export function ReactCanvasControls({
       <FloatingToolbar
         label={boardOnly ? '2D component board view' : 'React canvas view'}
         data-testid={boardOnly ? 'canvas-board-zoom-controls' : 'react-canvas-zoom-controls'}
+        {...(boardOnly ? { 'data-board-zoom': '' } : {})}
         data-vgai-canvas-navigation-ignore="true"
         className="vgai-react-canvas-controls"
       >

@@ -561,6 +561,15 @@ export interface StructuralIdsWrite {
  * destination. A bare `true` cannot prove a byte landed anywhere. */
 export type StructuralClipboardOutcome = false | WriteAck | Promise<false | WriteAck>;
 
+/** One kind `create` accepts: its label, and optionally what it is (a create dialog's Description)
+ *  and the kind it extends (the dialog's class tree, as Godot's Create New Node shows it). */
+export interface CreatableKind {
+  kind: string;
+  label: string;
+  description?: string;
+  extends?: string;
+}
+
 export interface StructureProvider {
   /** Create a `kind` under `parentId`, answering with the new id AND this
    *  creation's own write ack (see {@link StructuralIdWrite}). `at` places it: a
@@ -603,7 +612,7 @@ export interface StructureProvider {
    * itself may still work when called directly (e.g. programmatically, or by
    * an adapter-specific affordance outside the generic palette).
    */
-  creatableKinds?(parentId: string | null): { kind: string; label: string }[];
+  creatableKinds?(parentId: string | null): CreatableKind[];
   /** D3 (spec 27 §6) — wrap `id` in a new container element (default tag
    *  adapter-chosen, e.g. a `div`), re-parenting `id` as that container's sole
    *  child. Absent ⇒ the shell's context menu shows no Wrap item for this

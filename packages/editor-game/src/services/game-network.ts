@@ -388,8 +388,10 @@ function attach(socket: WebSocket, url: string): void {
   };
   // Autostart decides a RUN's recording once, at its first room socket; a reconnect inside the
   // same run keeps whatever Start or Stop the person chose.
+  // Outside Play there is no run to key on: a socket opening with none live starts one.
   const run = getPlayStartedAt();
-  if (run !== autostartedRun) {
+  const idle = !mirrors.some((other) => other.state === 'connected' || other.state === 'connecting');
+  if (run !== autostartedRun || (run === null && idle)) {
     autostartedRun = run;
     recording = editorHost().projectLocalState.read<boolean>(NETWORK_AUTOSTART_SECTION) ?? false;
   }

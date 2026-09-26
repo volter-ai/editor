@@ -598,7 +598,8 @@ export function NetworkInspectorPanel() {
   // The one message draft: sent as this client, or from the server to one client or all.
   // Kept per checkout, as Monitor keeps its Send draft in its browser storage.
   const [draft, setDraftState] = useState<MessageDraft>(
-    () => editorHost().projectLocalState.read<MessageDraft>(DRAFT_SECTION) ?? { type: '', payload: '' },
+    // Monitor's own first draft: `message_type` and an empty object.
+    () => editorHost().projectLocalState.read<MessageDraft>(DRAFT_SECTION) ?? { type: 'message_type', payload: '{}' },
   );
   const setDraft = (next: MessageDraft): void => {
     editorHost().projectLocalState.write(DRAFT_SECTION, next);
@@ -891,10 +892,18 @@ function EntityTrafficTable({ rows }: { rows: readonly NetEntityTraffic[] }) {
           <thead>
             <tr style={{ color: themeVars.content.muted }}>
               <th style={{ ...cell, textAlign: 'left' }}>Entity</th>
-              <th style={cell} title="State patches that changed it">Syncs in</th>
+              <th
+                style={cell}
+                title="Syncs in - out, as Godot pairs them: the state patches that changed it, and none out, because a Colyseus client sends no state"
+              >
+                Count
+              </th>
               <th style={cell} title="Field changes those patches carried">Changes</th>
-              <th style={cell} title="Size range of those patches, which carried other entities too">
-                Patch size
+              <th
+                style={cell}
+                title="Size in - out: the size range of the patches that carried it (they carried other entities too), and none out"
+              >
+                Size
               </th>
             </tr>
           </thead>
@@ -902,12 +911,10 @@ function EntityTrafficTable({ rows }: { rows: readonly NetEntityTraffic[] }) {
             {rows.map((row) => (
               <tr key={row.path} data-testid="net-entity-traffic-row">
                 <td style={{ ...cell, textAlign: 'left' }}>{row.path}</td>
-                <td style={cell}>{row.syncs}</td>
+                <td style={cell}>{`${row.syncs} - 0`}</td>
                 <td style={cell}>{row.changes}</td>
                 <td style={cell}>
-                  {row.patchBytesMin === row.patchBytesMax
-                    ? `${row.patchBytesMin} B`
-                    : `${row.patchBytesMin} - ${row.patchBytesMax} B`}
+                  {`${row.patchBytesMin === row.patchBytesMax ? `${row.patchBytesMin} B` : `${row.patchBytesMin}…${row.patchBytesMax} B`} - 0 B`}
                 </td>
               </tr>
             ))}
@@ -915,6 +922,164 @@ function EntityTrafficTable({ rows }: { rows: readonly NetEntityTraffic[] }) {
         </table>
       )}
     </div>
+  );
+}
+
+type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
+
+/** A leaf's text as typed: a JSON literal when it reads as one (5, true, null, {}), else a string. */
+function readLiteral(text: string): Json {
+  try {
+    return JSON.parse(text) as Json;
+  } catch {
+    return text;
+  }
+}
+
+/**
+ * Colyseus Monitor's payload editor: the message's JSON as a tree whose values are edited in
+ * place, keys and items added and removed; the Text view is the same payload as raw JSON.
+ */
+function PayloadEditor({ text, onChange }: { text: string; onChange: (text: string) => void }) {
+  const [view, setView] = useState<'tree' | 'text'>('tree');
+  let parsed: Json | undefined;
+  try {
+    parsed = text.trim() === '' ? {} : (JSON.parse(text) as Json);
+  } catch {
+    parsed = undefined;
+  }
+  const write = (next: Json) => onChange(JSON.stringify(next));
+  return (
+    <div data-testid="net-payload-editor" style={{ display: 'flex', flexDirection: 'column', gap: spaceVar[1] }}>
+      <div style={{ display: 'flex', gap: spaceVar[1] }}>
+        {(['tree', 'text'] as const).map((key) => (
+          <Button
+            key={key}
+            type="button"
+            variant="ghost"
+            aria-pressed={view === key}
+            data-testid={`net-payload-view-${key}`}
+            onClick={() => setView(key)}
+          >
+            {key === 'tree' ? 'Tree' : 'Text'}
+          </Button>
+        ))}
+      </div>
+      {view === 'text' || parsed === undefined ? (
+        <>
+          <TextArea
+            data-testid="net-send-dialog-payload"
+            rows={6}
+            value={text}
+            onChange={(event) => onChange(event.target.value)}
+            style={MONO}
+          />
+          {parsed === undefined ? (
+            <span style={{ color: themeVars.content.muted }}>Not JSON yet, so the tree cannot show it.</span>
+          ) : null}
+        </>
+      ) : (
+        <div style={{ ...MONO, fontSize: fontSizeVar.sm }}>
+          <PayloadNode value={parsed} onChange={write} depth={0} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PayloadNode({ value, onChange, depth }: { value: Json; onChange: (next: Json) => void; depth: number }) {
+  const [newKey, setNewKey] = useState('');
+  const [newValue, setNewValue] = useState('');
+  const pad = { paddingLeft: depth * 12 };
+  if (value !== null && typeof value === 'object') {
+    const isArray = Array.isArray(value);
+    const entries: [string, Json][] = isArray ? value.map((item, index) => [String(index), item]) : Object.entries(value);
+    const set = (key: string, next: Json) => {
+      if (isArray) onChange(value.map((item, index) => (String(index) === key ? next : item)));
+      else onChange({ ...value, [key]: next });
+    };
+    const remove = (key: string) => {
+      if (isArray) onChange(value.filter((_, index) => String(index) !== key));
+      else onChange(Object.fromEntries(Object.entries(value).filter(([entry]) => entry !== key)));
+    };
+    return (
+      <div data-testid="net-payload-branch">
+        {entries.map(([key, child]) => (
+          <div key={key} style={pad}>
+            <span style={{ color: themeVars.content.muted }}>{key}: </span>
+            {child !== null && typeof child === 'object' ? (
+              <span style={{ color: themeVars.content.muted }}>{Array.isArray(child) ? '[' : '{'}</span>
+            ) : null}
+            <button
+              type="button"
+              data-testid="net-payload-remove"
+              title={`Remove ${key}`}
+              onClick={() => remove(key)}
+              style={{ background: 'none', border: 0, color: themeVars.content.muted, cursor: 'pointer' }}
+            >
+              ×
+            </button>
+            {child !== null && typeof child === 'object' ? (
+              <PayloadNode value={child} onChange={(next) => set(key, next)} depth={depth + 1} />
+            ) : (
+              <PayloadLeaf value={child} onChange={(next) => set(key, next)} />
+            )}
+          </div>
+        ))}
+        <div style={{ ...pad, display: 'flex', gap: spaceVar[1] }}>
+          {isArray ? null : (
+            <TextInput
+              data-testid="net-payload-new-key"
+              placeholder="key"
+              value={newKey}
+              onChange={(event) => setNewKey(event.target.value)}
+              style={{ width: 90 }}
+            />
+          )}
+          <TextInput
+            data-testid="net-payload-new-value"
+            placeholder="value"
+            value={newValue}
+            onChange={(event) => setNewValue(event.target.value)}
+            style={{ width: 110 }}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            data-testid="net-payload-add"
+            disabled={!isArray && newKey.trim() === ''}
+            onClick={() => {
+              const next = readLiteral(newValue);
+              if (isArray) onChange([...value, next]);
+              else onChange({ ...value, [newKey.trim()]: next });
+              setNewKey('');
+              setNewValue('');
+            }}
+          >
+            Add
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  return <PayloadLeaf value={value} onChange={onChange} />;
+}
+
+function PayloadLeaf({ value, onChange }: { value: Json; onChange: (next: Json) => void }) {
+  const shown = typeof value === 'string' ? value : JSON.stringify(value);
+  const [text, setText] = useState(shown);
+  useEffect(() => setText(shown), [shown]);
+  return (
+    <TextInput
+      data-testid="net-payload-leaf"
+      value={text}
+      onChange={(event) => setText(event.target.value)}
+      onBlur={() => onChange(readLiteral(text))}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') onChange(readLiteral(text));
+      }}
+      style={{ width: 120 }}
+    />
   );
 }
 
@@ -1092,6 +1257,7 @@ function ServerView({
   // editing the one message draft (which Monitor keeps too, in its browser storage).
   const [sendTarget, setSendTarget] = useState<{ sessionId: string | null } | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [roomTab, setRoomTab] = useState<'clients' | 'state'>('clients');
   const [inspection, setInspection] = useState<NetServerInspection | null | undefined>(undefined);
   const [inspected, setInspected] = useState<string | undefined>(undefined);
   // Monitor's room grid sorts by any column.
@@ -1190,7 +1356,10 @@ function ServerView({
                     type="button"
                     variant="ghost"
                     data-testid="net-server-broadcast"
-                    onClick={() => setSendTarget({ sessionId: null })}
+                    onClick={() => {
+                      setSendError(null);
+                      setSendTarget({ sessionId: null });
+                    }}
                   >
                     Broadcast
                   </Button>
@@ -1201,27 +1370,6 @@ function ServerView({
                 )}
                 {/* Monitor offers Dispose on every room of its list. */}
                 {actButton('net-server-dispose', 'Dispose', () => adapter.disposeRoom?.(room.roomId))}
-              </td>
-            </tr>
-          ))}
-          {inspection.room?.clients.map((client) => (
-            <tr key={client.sessionId} data-testid="net-server-client">
-              <td style={cell}>client</td>
-              <td style={cell}>
-                {client.sessionId}
-                {client.sessionId === ownSession ? ' (this client)' : ''}
-              </td>
-              <td style={cell}>{seconds(client.elapsedMs)}</td>
-              <td style={cell} colSpan={3}>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  data-testid="net-server-send"
-                  onClick={() => setSendTarget({ sessionId: client.sessionId })}
-                >
-                  Send
-                </Button>
-                {actButton('net-server-disconnect', 'Disconnect', () => adapter.disconnectClient?.(client.sessionId, roomId))}
               </td>
             </tr>
           ))}
@@ -1252,13 +1400,7 @@ function ServerView({
             </label>
             <label style={{ display: 'flex', flexDirection: 'column', gap: spaceVar[1] }}>
               <span style={{ color: themeVars.content.muted }}>Message payload (JSON)</span>
-              <TextArea
-                data-testid="net-send-dialog-payload"
-                rows={6}
-                value={draft.payload}
-                onChange={(event) => setDraft({ ...draft, payload: event.target.value })}
-                style={MONO}
-              />
+              <PayloadEditor text={draft.payload} onChange={(payload) => setDraft({ ...draft, payload })} />
             </label>
             {sendError ? <span data-testid="net-send-dialog-error">{sendError}</span> : null}
           </div>
@@ -1290,17 +1432,73 @@ function ServerView({
           </div>
         </div>
       ) : null}
-      {inspection.room && inspection.room.roomId !== ownRoom && inspection.room.state !== undefined ? (
-        // ANOTHER room's state, as Monitor's Inspect opens it: read from the server, and edited
-        // and deleted in THAT room. The tree below the section stays this client's own room.
-        <div data-testid="net-server-room-state" style={{ padding: `${spaceVar[2]} 0` }}>
-          <StateTreeNode
-            name={`room ${inspection.room.roomId}`}
-            value={inspection.room.state}
-            depth={0}
-            edit={adapter.editServerState ? (path, next) => adapter.editServerState!(path, next, roomId) : undefined}
-            remove={adapter.deleteServerState ? (path) => adapter.deleteServerState!(path, roomId) : undefined}
-          />
+      {inspection.room ? (
+        // Monitor's room view: a Clients tab and a State tab. The State tab is the SERVER's state
+        // of the inspected room, edited and deleted there; the tree below this section stays this
+        // client's replicated copy of its own room.
+        <div data-testid="net-server-room-view" style={{ padding: `${spaceVar[2]} 0` }}>
+          <div role="tablist" style={{ display: 'flex', gap: spaceVar[2], padding: `0 ${spaceVar[3]}` }}>
+            {(
+              [
+                ['clients', `Clients (${inspection.room.clients.length})`],
+                ['state', 'State'],
+              ] as const
+            ).map(([key, label]) => (
+              <Button
+                key={key}
+                type="button"
+                variant="ghost"
+                role="tab"
+                aria-selected={roomTab === key}
+                data-testid={`net-server-tab-${key}`}
+                onClick={() => setRoomTab(key)}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+          {roomTab === 'clients' ? (
+            <table style={{ borderCollapse: 'collapse', ...MONO }}>
+              <tbody>
+              {inspection.room.clients.map((client) => (
+            <tr key={client.sessionId} data-testid="net-server-client">
+              <td style={cell}>client</td>
+              <td style={cell}>
+                {client.sessionId}
+                {client.sessionId === ownSession ? ' (this client)' : ''}
+              </td>
+              <td style={cell}>{seconds(client.elapsedMs)}</td>
+              <td style={cell} colSpan={3}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  data-testid="net-server-send"
+                  onClick={() => {
+                    setSendError(null);
+                    setSendTarget({ sessionId: client.sessionId });
+                  }}
+                >
+                  Send
+                </Button>
+                {actButton('net-server-disconnect', 'Disconnect', () => adapter.disconnectClient?.(client.sessionId, roomId))}
+              </td>
+            </tr>
+          ))}
+              </tbody>
+            </table>
+          ) : inspection.room.state !== undefined ? (
+            <div data-testid="net-server-room-state">
+              <StateTreeNode
+                name={`room ${inspection.room.roomId}${inspection.room.roomId === ownRoom ? ' (this client’s room)' : ''}`}
+                value={inspection.room.state}
+                depth={0}
+                edit={adapter.editServerState ? (path, next) => adapter.editServerState!(path, next, roomId) : undefined}
+                remove={adapter.deleteServerState ? (path) => adapter.deleteServerState!(path, roomId) : undefined}
+              />
+            </div>
+          ) : (
+            <AbsentNote>The server sent no state for this room.</AbsentNote>
+          )}
         </div>
       ) : null}
       {error ? <AbsentNote>{error}</AbsentNote> : null}

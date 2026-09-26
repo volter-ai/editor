@@ -82,6 +82,7 @@ import {
   readContainerAuthoringLabel,
 } from './pixi-source-identity';
 import { CanvasStructureHistory } from './pixi-structure-history';
+import { PIXI_CREATABLE_KINDS } from './pixi-creatable-kinds';
 import { fromNeutralTransform, toNeutralTransform } from './pixi-transform-channels';
 import { resolvesLiveOnly, runWritePipe } from '@volter/editor-sdk/kit/write-pipe';
 import { editorHost } from '@volter/editor-sdk/host';
@@ -315,12 +316,7 @@ function writeEditLocks(world: string, locks: EditLocks[string]): void {
   editorHost().projectLocalState.write(EDIT_LOCKS_SECTION, { ...readEditLocks(), [world]: locks });
 }
 
-const CANVAS_CREATABLE_KINDS: readonly { kind: string; label: string }[] = [
-  { kind: 'container', label: 'Container' },
-  { kind: 'sprite', label: 'Sprite' },
-  { kind: 'text', label: 'Text' },
-  { kind: 'graphics', label: 'Graphics' },
-];
+const CANVAS_CREATABLE_KINDS = PIXI_CREATABLE_KINDS;
 
 /** What a canvas world can take from the asset browser: an image becomes a
  *  Sprite. A model or an audio file has no display object to become here. */

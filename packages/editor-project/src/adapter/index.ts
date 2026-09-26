@@ -65,6 +65,7 @@ export type {
   StructuralIdWrite,
   StructuralWriteOutcome,
   StructureProvider,
+  CreatableKind,
   TextProvider,
   TransformChannel,
   TransformEditability,
