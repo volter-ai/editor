@@ -10,7 +10,7 @@
  */
 import type { Piece, PieceTrack } from '@volter/dawproject/piece';
 import { convolve, prepareIr } from './convolve';
-import { type Band, Biquad, Compressor, compressorParams, dbToGain, gain, Limiter, pan, type Stereo } from './dsp';
+import { Biquad, Compressor, compressorParams, dbToGain, gain, Limiter, pan, type Stereo, validBands } from './dsp';
 
 export interface ImpulseResponse {
   readonly channels: readonly Float32Array[];
@@ -58,7 +58,7 @@ function runDevices(track: PieceTrack, signal: Stereo, inputs: MixInputs): Stere
   for (const device of track.channel?.devices ?? []) {
     const params = device.params as Readonly<Record<string, unknown>>;
     if (device.plugin === 'equalizer') {
-      for (const band of (Array.isArray(params['bands']) ? params['bands'] : []) as Band[]) new Biquad(band, inputs.sampleRate).process(current);
+      for (const band of validBands(params['bands'])) new Biquad(band, inputs.sampleRate).process(current);
     } else if (device.plugin === 'compressor') {
       const settings = compressorParams(params);
       const compressor = new Compressor(settings, inputs.sampleRate);
@@ -85,49 +85,82 @@ function runDevices(track: PieceTrack, signal: Stereo, inputs: MixInputs): Stere
   return current;
 }
 
+/**
+ * Whether any instrument strip is soloed. Only a `regular` channel's solo counts: a bus or the
+ * master has nothing to be soloed against, so a `solo` written there is ignored by both mixes.
+ */
+export function soloActive(piece: Piece): boolean {
+  return piece.tracks.some((track) => (track.channel?.role ?? 'regular') === 'regular' && track.channel?.solo === true);
+}
+
+/**
+ * THE LEVELS OF A STRIP, the one statement of what mute, solo, volume, pan and send level mean,
+ * read by this mix and by the editor's graph (`live-mix.ts`) alike: whether it sounds, the fader's
+ * linear gain (0 when it does not), its pan, and each send's linear gain in `channel.sends` order. An
+ * instrument strip is silenced by its mute or by another strip's solo, and its sends with it; a bus
+ * and the master are silenced by their own mute.
+ */
+export function stripLevels(piece: Piece, track: PieceTrack, soloed = soloActive(piece)): { sounding: boolean; fader: number; pan: number; sends: number[] } {
+  const channel = track.channel;
+  if (!channel) return { sounding: false, fader: 0, pan: 0, sends: [] };
+  const sounding = channel.role === 'regular' ? !channel.mute && (!soloed || channel.solo) : !channel.mute;
+  return {
+    sounding,
+    fader: sounding ? dbToGain(channel.volume) : 0,
+    pan: channel.pan,
+    sends: channel.sends.map((send) => (sounding ? dbToGain(send.level) : 0)),
+  };
+}
+
 export function mix(piece: Piece, inputs: MixInputs): Stereo {
   const length = inputs.channels[0]?.[0].length ?? 0;
   const silence = (): Stereo => [new Float32Array(length), new Float32Array(length)];
   const master = silence();
   const busInput = new Map<string, Stereo>();
-  const soloed = piece.tracks.some((track) => track.channel?.solo);
-  const sendTo = (track: PieceTrack, signal: Stereo, pre: boolean): void => {
-    for (const send of track.channel?.sends ?? []) {
-      if (send.pre !== pre) continue;
+  const soloed = soloActive(piece);
+  const sendTo = (track: PieceTrack, levels: readonly number[], signal: Stereo, pre: boolean): void => {
+    (track.channel?.sends ?? []).forEach((send, index) => {
+      if (send.pre !== pre) return;
       const bus = busInput.get(send.to) ?? silence();
       busInput.set(send.to, bus);
-      addInto(bus, signal, dbToGain(send.level));
-    }
+      addInto(bus, signal, levels[index] ?? 0);
+    });
   };
   // Instrument tracks.
   for (const track of piece.tracks) {
     const channel = inputs.channelOf.get(track.id);
     if (channel === undefined || (track.channel?.role ?? 'regular') !== 'regular') continue;
-    if (track.channel?.mute || (soloed && !track.channel?.solo)) continue;
+    const levels = stripLevels(piece, track, soloed);
+    if (!levels.sounding) continue;
     if (inputs.only && !inputs.only.has(track.id)) continue;
     const source = inputs.channels[channel];
     if (!source) continue;
     const signal = runDevices(track, copy(source), inputs);
-    sendTo(track, signal, true);
-    gain(signal, dbToGain(track.channel?.volume ?? 0));
-    pan(signal, track.channel?.pan ?? 0);
-    sendTo(track, signal, false);
+    sendTo(track, levels.sends, signal, true);
+    gain(signal, levels.fader);
+    pan(signal, levels.pan);
+    sendTo(track, levels.sends, signal, false);
     addInto(master, signal);
   }
   // Effect buses: what was sent to them, through their own strips.
   for (const track of piece.tracks) {
-    if (track.channel?.role !== 'effect' || track.channel.mute) continue;
+    if (track.channel?.role !== 'effect') continue;
+    const levels = stripLevels(piece, track, soloed);
+    if (!levels.sounding) continue;
     const input = busInput.get(track.name);
     if (!input) continue;
     const signal = runDevices(track, input, inputs);
-    gain(signal, dbToGain(track.channel.volume));
-    pan(signal, track.channel.pan);
+    gain(signal, levels.fader);
+    pan(signal, levels.pan);
     addInto(master, signal);
   }
-  // The master strip.
+  // The master strip: its devices, fader (silent when muted) and pan.
   const masterTrack = piece.tracks.find((track) => track.channel?.role === 'master');
   if (!masterTrack) return master;
+  const levels = stripLevels(piece, masterTrack, soloed);
+  if (!levels.sounding) return silence();
   const out = runDevices(masterTrack, master, inputs);
-  gain(out, dbToGain(masterTrack.channel?.volume ?? 0));
+  gain(out, levels.fader);
+  pan(out, levels.pan);
   return out;
 }

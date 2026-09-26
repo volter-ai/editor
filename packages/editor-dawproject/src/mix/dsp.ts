@@ -29,6 +29,31 @@ export interface Band {
   readonly q?: number;
 }
 
+const BAND_TYPES: ReadonlySet<string> = new Set<BandType>(['highPass', 'lowPass', 'lowShelf', 'highShelf', 'bell']);
+
+/**
+ * The bands of an equaliser's `params.bands` that can be applied, in order. A band with an unknown
+ * type, a missing or non-positive frequency, a non-positive `q` or a non-numeric gain is SKIPPED,
+ * in both mixes through this one function: a BiquadFilterNode refuses such values (the preview
+ * failed to build) while the cookbook turns them into NaN (the export rendered silence).
+ */
+export function validBands(bands: unknown): Band[] {
+  if (!Array.isArray(bands)) return [];
+  const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
+  return bands.filter((candidate): candidate is Band => {
+    if (!candidate || typeof candidate !== 'object') return false;
+    const band = candidate as Record<string, unknown>;
+    return (
+      typeof band['type'] === 'string' &&
+      BAND_TYPES.has(band['type']) &&
+      finite(band['freq']) &&
+      band['freq'] > 0 &&
+      (band['q'] === undefined || (finite(band['q']) && band['q'] > 0)) &&
+      (band['gain'] === undefined || finite(band['gain']))
+    );
+  });
+}
+
 /** A band as a Web Audio BiquadFilterNode configuration: `type` and a `Q` in the node's units. */
 export function biquadNode(band: Band): { type: BiquadFilterType; frequency: number; gain: number; Q: number } {
   const q = band.q ?? 0.707;

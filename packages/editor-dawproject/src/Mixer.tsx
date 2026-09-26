@@ -5,8 +5,9 @@
  *
  * Every control writes the literal on the element that owns it (`<Channel volume={-6}>`,
  * `<Send to="Hall" level={-12}>`), in the piece's own source, as one undoable edit; the
- * re-mounted piece rebuilds the preview's mix graph, so the change is heard as it lands. A
- * channel or send that the source generates, or whose value is computed, refuses with the reason.
+ * re-mounted piece sets the preview's levels in place (`LiveMix.apply`), so the change is heard as
+ * it lands, reverb tails and all. A channel or send that the source generates, or whose value is
+ * computed, refuses with the reason.
  */
 
 import type { Piece, PieceChannel, PieceSend, PieceTrack } from '@volter/dawproject/piece';
@@ -32,8 +33,9 @@ function dbOf(travel: number): number {
   const db = 20 * Math.log10(2 * travel ** 3);
   return Math.max(MIN_DB, Math.min(MAX_DB, Math.round(db * 10) / 10));
 }
+/** The value as written: the fader's bottom writes −60 dB, so it says −60, not −inf. */
 function formatDb(db: number): string {
-  return db <= MIN_DB ? '-inf' : `${db > 0 ? '+' : ''}${db.toFixed(1)}`;
+  return `${db > 0 ? '+' : ''}${Number.isInteger(db) ? db : db.toFixed(1)}`;
 }
 
 interface Resource {
@@ -44,12 +46,13 @@ interface Resource {
 /**
  * A control that is dragged: the value follows the pointer while it is down and is written once,
  * on release. The gesture lives in a ref so a press, moves and release arriving in one task are
- * all seen (the piano roll's reason).
+ * all seen (the piano roll's reason). A write that is refused or fails (`onCommit` answers false)
+ * returns the control to the source's value; a write that lands is shown by the new piece.
  */
 function useDragValue(
   value: number,
   toValue: (start: number, dx: number, dy: number) => number,
-  onCommit: (value: number) => void,
+  onCommit: (value: number) => Promise<boolean>,
 ): {
   readonly shown: number;
   readonly handlers: {
@@ -85,7 +88,9 @@ function useDragValue(
           setShown(null);
           return;
         }
-        onCommit(current.value);
+        void onCommit(current.value).then((written) => {
+          if (!written) setShown(null);
+        });
       },
     },
   };
@@ -122,15 +127,20 @@ function Strip(props: {
   const { piece, track, channel, index } = props;
   const count = channel.oid ? (piece.oidCounts.get(channel.oid) ?? 0) : 0;
   const refusal = (prop: string): string | null => setRefusal(index, channel.oid, prop, count);
-  const set = (label: string, prop: string, value: Literal | null): void => {
+  /** Write one prop; answers whether the write landed. */
+  const set = (label: string, prop: string, value: Literal | null): Promise<boolean> => {
     const why = refusal(prop);
     if (why || !channel.oid) {
       props.onMessage(why);
-      return;
+      return Promise.resolve(false);
     }
     props.onMessage(null);
-    setProps(label, index, channel.oid, { [prop]: value }, props.resource).catch((error: unknown) =>
-      props.onMessage(error instanceof Error ? error.message : String(error)),
+    return setProps(label, index, channel.oid, { [prop]: value }, props.resource).then(
+      () => true,
+      (error: unknown) => {
+        props.onMessage(error instanceof Error ? error.message : String(error));
+        return false;
+      },
     );
   };
   const fader = useDragValue(
@@ -146,7 +156,7 @@ function Strip(props: {
   const color = props.colorOf(track);
   const volumeRefusal = refusal('volume');
   const panRefusal = refusal('pan');
-  const toggle = (prop: 'mute' | 'solo', on: boolean): void =>
+  const toggle = (prop: 'mute' | 'solo', on: boolean): Promise<boolean> =>
     // Off is the default: taking the attribute off says it, rather than writing `mute={false}`.
     set(on ? `${prop === 'mute' ? 'Mute' : 'Solo'} ${track.name}` : `Un${prop} ${track.name}`, prop, on ? true : null);
   const button = (on: boolean, tone: string): CSSProperties => ({
@@ -177,7 +187,7 @@ function Strip(props: {
       <div
         data-control="pan"
         {...pan.handlers}
-        onDoubleClick={() => set('Set Pan', 'pan', null)}
+        onDoubleClick={() => void set('Set Pan', 'pan', null)}
         title={panRefusal ?? `pan ${pan.shown}`}
         style={{ position: 'relative', height: 10, background: themeVars.surface.inset, borderRadius: 2, cursor: panRefusal ? 'not-allowed' : 'ew-resize' }}
       >
@@ -198,7 +208,7 @@ function Strip(props: {
         <div
           data-control="volume"
           {...fader.handlers}
-          onDoubleClick={() => set('Set Volume', 'volume', null)}
+          onDoubleClick={() => void set('Set Volume', 'volume', null)}
           title={volumeRefusal ?? `${formatDb(fader.shown)} dB`}
           style={{ position: 'relative', width: 14, height: FADER_H, background: themeVars.surface.inset, borderRadius: 2, cursor: volumeRefusal ? 'not-allowed' : 'ns-resize' }}
         >
@@ -208,11 +218,11 @@ function Strip(props: {
         <div style={{ ...small, ...mono, color: themeVars.content.primary }}>{formatDb(fader.shown)}</div>
       </div>
       <div style={{ display: 'flex', gap: 3 }}>
-        <button type="button" data-control="mute" style={button(channel.mute, themeVars.semantic.warning)} onClick={() => toggle('mute', !channel.mute)}>
+        <button type="button" data-control="mute" style={button(channel.mute, themeVars.semantic.warning)} onClick={() => void toggle('mute', !channel.mute)}>
           M
         </button>
         {channel.role === 'regular' ? (
-          <button type="button" data-control="solo" style={button(channel.solo, themeVars.semantic.success)} onClick={() => toggle('solo', !channel.solo)}>
+          <button type="button" data-control="solo" style={button(channel.solo, themeVars.semantic.success)} onClick={() => void toggle('solo', !channel.solo)}>
             S
           </button>
         ) : null}
@@ -240,10 +250,14 @@ function SendControl(props: {
     (db) => {
       if (refusal || !send.oid) {
         props.onMessage(refusal);
-        return;
+        return Promise.resolve(false);
       }
-      setProps(`Set Send to ${send.to}`, index, send.oid, { level: db }, props.resource).catch((error: unknown) =>
-        props.onMessage(error instanceof Error ? error.message : String(error)),
+      return setProps(`Set Send to ${send.to}`, index, send.oid, { level: db }, props.resource).then(
+        () => true,
+        (error: unknown) => {
+          props.onMessage(error instanceof Error ? error.message : String(error));
+          return false;
+        },
       );
     },
   );
