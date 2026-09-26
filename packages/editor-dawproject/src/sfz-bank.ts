@@ -6,7 +6,7 @@
  * Translated, from what the library at hand uses (VSCO 2 Community Edition counts every opcode
  * below): `sample`, `lokey`/`hikey`, `lovel`/`hivel`, `pitch_keycenter`, `tune`, `volume`,
  * `ampeg_attack`, `ampeg_release`, and `default_path` from `<control>`, with `<global>` and
- * `<group>` values inherited by their regions. A SoundFont has no round robin, so a patch with
+ * `<master>` and `<group>` values inherited by their regions (keys as MIDI numbers or note names). A SoundFont has no round robin, so a patch with
  * round-robin sets (`seq_position`, or `lorand` ranges) becomes one preset per member: the first
  * at the patch's own bank and program, member n at bank + (n − 1) with the same program, named
  * `<name> ~n` (`roundRobins` reads that back, and the players step through the members note by
@@ -38,9 +38,19 @@ export interface SfzPatch {
   readonly sample: (path: string) => { readonly channels: readonly Float32Array[]; readonly sampleRate: number };
 }
 
-const TRANSLATED = new Set(['sample', 'lokey', 'hikey', 'lovel', 'hivel', 'pitch_keycenter', 'tune', 'volume', 'ampeg_attack', 'ampeg_release']);
+const TRANSLATED = new Set(['sample', 'lokey', 'hikey', 'key', 'lovel', 'hivel', 'pitch_keycenter', 'tune', 'volume', 'ampeg_attack', 'ampeg_release']);
 /** Opcodes that say nothing a SoundFont zone can hold, and change nothing when left out. */
-const IGNORED = new Set(['ampeg_dynamic', 'group_label', 'sw_label', 'seq_length', 'hirand']);
+const IGNORED = new Set(['ampeg_dynamic', 'group_label', 'seq_length', 'hirand']);
+const NOTE_INDEX: Record<string, number> = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 };
+
+/** An SFZ key value as a MIDI number: `60`, `c4`, `c#4`, `db4`. */
+export function sfzKey(value: string): number {
+  if (/^-?\d+$/.test(value.trim())) return Number(value);
+  const match = /^([a-g])([#b]?)(-?\d+)$/i.exec(value.trim());
+  if (!match) throw new Error(`"${value}" is not a key (a MIDI number or a note name such as c4).`);
+  const [, letter = 'c', accidental = '', octave = '4'] = match;
+  return (Number(octave) + 1) * 12 + NOTE_INDEX[letter.toLowerCase()]! + (accidental === '#' ? 1 : accidental === 'b' ? -1 : 0);
+}
 
 type Opcodes = Record<string, string>;
 
@@ -50,11 +60,12 @@ function parseSfz(text: string): { regions: Opcodes[]; defaultPath: string } {
   let header = '';
   let control: Opcodes = {};
   let global: Opcodes = {};
+  let master: Opcodes = {};
   let group: Opcodes = {};
   let region: Opcodes | null = null;
   const regions: Opcodes[] = [];
   const close = (): void => {
-    if (region) regions.push({ ...global, ...group, ...region });
+    if (region) regions.push({ ...global, ...master, ...group, ...region });
     region = null;
   };
   for (const line of lines) {
@@ -67,13 +78,21 @@ function parseSfz(text: string): { regions: Opcodes[]; defaultPath: string } {
         header = headerMatch[1]!;
         if (header === 'control') control = {};
         if (header === 'global') global = {};
+        if (header === 'master') {
+          master = {};
+          group = {};
+        }
         if (header === 'group') group = {};
+        if (!['control', 'global', 'master', 'group', 'region'].includes(header)) {
+          throw new Error(`The SFZ header <${header}> has no translation to a SoundFont.`);
+        }
         if (header === 'region') region = {};
         rest = headerMatch[2] ?? '';
       }
       // A value runs to the next opcode: `sample=` paths may hold spaces.
       for (const match of rest.matchAll(/([a-z_0-9]+)=(.*?)(?=\s+[a-z_0-9]+=|$)/g)) {
-        const target = header === 'control' ? control : header === 'global' ? global : header === 'group' ? group : region;
+        const target =
+          header === 'control' ? control : header === 'global' ? global : header === 'master' ? master : header === 'group' ? group : header === 'region' ? region : null;
         if (target) target[match[1]!] = match[2]!.trim();
       }
     }
@@ -97,7 +116,10 @@ function convertedRegions(patches: readonly SfzPatch[]) {
     const { regions, defaultPath } = parseSfz(patch.sfz);
     const kept = regions.filter((region) => {
       for (const opcode of Object.keys(region)) {
-        if (TRANSLATED.has(opcode) || IGNORED.has(opcode) || /^(seq_position|lorand|sw_)/.test(opcode)) continue;
+        if (TRANSLATED.has(opcode) || IGNORED.has(opcode) || /^(seq_position|lorand)$/.test(opcode)) continue;
+        if (/^sw_/.test(opcode)) {
+          throw new Error(`${patch.name}: ${opcode} makes this a keyswitched instrument, whose layers a SoundFont would sound all at once; convert each articulation's own SFZ instead.`);
+        }
         throw new Error(`${patch.name}: the opcode ${opcode} has no translation to a SoundFont zone.`);
       }
       return true;
@@ -185,11 +207,12 @@ export async function sfzBank(patches: readonly SfzPatch[], headroomDb?: number,
       const name = members > 1 && member > 0 ? `${patch.name.slice(0, 16)} ~${member + 1}` : patch.name.slice(0, 20);
       instrument.name = name;
       for (const { region, path, gainDb } of regions.filter((candidate) => candidate.member === -1 || candidate.member === member)) {
-        const key = Number(region['pitch_keycenter'] ?? 60);
+        // `key` sets all three at once; each key is a MIDI number or a note name.
+        const key = sfzKey(region['pitch_keycenter'] ?? region['key'] ?? '60');
         const parts = sampleFor(path, key);
         parts.forEach((sample, index) => {
           const zone = instrument.createZone(sample);
-          zone.keyRange = { min: Number(region['lokey'] ?? 0), max: Number(region['hikey'] ?? 127) };
+          zone.keyRange = { min: sfzKey(region['lokey'] ?? region['key'] ?? '0'), max: sfzKey(region['hikey'] ?? region['key'] ?? '127') };
           zone.velRange = { min: Number(region['lovel'] ?? 0), max: Number(region['hivel'] ?? 127) };
           zone.setGenerator(GeneratorTypes.overridingRootKey, key);
           const below = gainOf.get(path)! - gainDb;
