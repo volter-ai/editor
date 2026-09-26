@@ -168,6 +168,7 @@ export type {
   NetMessageEvent,
   NetPeer,
   NetPlayerIdentity,
+  NetConditioningLimits,
   NetRates,
   NetTypeTraffic,
   NetServerConfig,

@@ -86,6 +86,8 @@ export interface NetworkCapabilityMap {
   traffic: boolean;
   /** Sending a message into the room as this client (`sendMessage`). */
   send: boolean;
+  /** Measuring a round trip (`ping`). */
+  ping: boolean;
 }
 
 export function deriveNetworkCapabilities(
@@ -109,6 +111,7 @@ export function deriveNetworkCapabilities(
     identitySettable: typeof adapter.setPlayerIdentity === 'function',
     traffic: typeof adapter.getTrafficByType === 'function',
     send: typeof adapter.sendMessage === 'function',
+    ping: typeof adapter.ping === 'function',
   };
 }
 

@@ -235,6 +235,12 @@ export interface NetTypeTraffic {
   bytesOut: number;
 }
 
+export interface NetConditioningLimits {
+  latencyMs?: string;
+  jitterMs?: string;
+  packetLoss?: string;
+}
+
 export interface NetRates {
   msgsInPerSec: number;
   msgsOutPerSec: number;
@@ -328,6 +334,11 @@ export interface NetworkingAdapter {
   /** Send `payload` to the room as this client, under message type `type` (Colyseus Monitor's
    *  Send), so a server handler can be exercised from the inspector. */
   sendMessage?(type: string, payload: unknown): void;
+  /** Which conditioning fields this adapter cannot apply, each with the reason (a reliable
+   *  WebSocket loses nothing, so it cannot simulate loss). Omitted means every field applies. */
+  getConditioningLimits?(): NetConditioningLimits;
+  /** Measure one round trip to the server now, in milliseconds. */
+  ping?(): Promise<number>;
   /** Optional capability, PAIRED with {@link getPlayerIdentity}: set the local
    *  player's identity through the game's OWN multiplayer mechanism. The editor
    *  renders an editable name field ONLY when a real implementer provides this

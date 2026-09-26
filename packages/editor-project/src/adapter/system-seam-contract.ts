@@ -67,6 +67,8 @@ export const NETWORKING_ADAPTER_SHAPE = defineSeamShape<NetworkingAdapter>()({
   setPlayerIdentity: { optional: true, kind: 'function', required: 'effect' },
   getTrafficByType: { optional: true, kind: 'function', required: 'operation' },
   sendMessage: { optional: true, kind: 'function', required: 'effect' },
+  getConditioningLimits: { optional: true, kind: 'function', required: 'operation' },
+  ping: { optional: true, kind: 'function', required: 'effect' },
 });
 
 export const NAVIGATION_ADAPTER_SHAPE = defineSeamShape<NavigationAdapter>()({

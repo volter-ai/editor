@@ -254,6 +254,7 @@ function ConditionerControls({ adapter }: { adapter: NetworkingAdapter }) {
   const [cond, setCond] = useState<NetConditioning>(
     () => adapter.getConditioning?.() ?? { latencyMs: 0, jitterMs: 0, packetLoss: 0 },
   );
+  const limits = adapter.getConditioningLimits?.() ?? {};
   const apply = (next: NetConditioning) => {
     setCond(next);
     adapter.setConditioning?.(next);
@@ -283,13 +284,23 @@ function ConditionerControls({ adapter }: { adapter: NetworkingAdapter }) {
         testId="net-cond-jitter"
         onChange={(v) => apply({ ...cond, jitterMs: Math.max(0, v) })}
       />
-      <NumberInput
-        label="loss %"
-        value={cond.packetLoss * 100}
-        step={5}
-        testId="net-cond-loss"
-        onChange={(v) => apply({ ...cond, packetLoss: Math.min(1, Math.max(0, v / 100)) })}
-      />
+      {limits.packetLoss ? (
+        <span
+          data-testid="net-cond-loss-absent"
+          title={limits.packetLoss}
+          style={{ fontSize: fontSizeVar.sm, color: themeVars.content.muted }}
+        >
+          loss: not simulated
+        </span>
+      ) : (
+        <NumberInput
+          label="loss %"
+          value={cond.packetLoss * 100}
+          step={5}
+          testId="net-cond-loss"
+          onChange={(v) => apply({ ...cond, packetLoss: Math.min(1, Math.max(0, v / 100)) })}
+        />
+      )}
     </div>
   );
 }
@@ -553,7 +564,7 @@ export function NetworkInspectorPanel() {
       )}
 
       {caps.traffic ? <TrafficTable rows={adapter.getTrafficByType?.() ?? []} /> : null}
-      {caps.send ? <SendControls adapter={adapter} /> : null}
+      {caps.send ? <SendControls adapter={adapter} ping={caps.ping} /> : null}
 
       {/* Body: state tree | message log */}
       <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
@@ -695,7 +706,15 @@ function TrafficTable({ rows }: { rows: readonly NetTypeTraffic[] }) {
  * Send a message into the room as this client — Colyseus Monitor's Send (a message type and a
  * JSON payload), so a server handler can be exercised without writing game code for it.
  */
-function SendControls({ adapter }: { adapter: NetworkingAdapter }) {
+function SendControls({ adapter, ping }: { adapter: NetworkingAdapter; ping: boolean }) {
+  const [rtt, setRtt] = useState<string | null>(null);
+  const measure = () => {
+    setRtt('…');
+    adapter.ping?.().then(
+      (ms) => setRtt(`${ms} ms`),
+      (caught: unknown) => setRtt(caught instanceof Error ? caught.message : String(caught)),
+    );
+  };
   const [type, setType] = useState('');
   const [payload, setPayload] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -730,6 +749,18 @@ function SendControls({ adapter }: { adapter: NetworkingAdapter }) {
       <Button type="button" variant="ghost" data-testid="net-send-button" disabled={type.trim() === ''} onClick={send}>
         Send
       </Button>
+      {ping ? (
+        <>
+          <Button type="button" variant="ghost" data-testid="net-ping" onClick={measure}>
+            Ping
+          </Button>
+          {rtt ? (
+            <span data-testid="net-rtt" style={{ fontSize: fontSizeVar.sm, ...MONO }}>
+              {rtt}
+            </span>
+          ) : null}
+        </>
+      ) : null}
       {error ? (
         <span data-testid="net-send-error" style={{ color: themeVars.semantic.danger, fontSize: fontSizeVar.sm }}>
           {error}

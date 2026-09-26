@@ -22,6 +22,7 @@ import { decode, encode, type Iterator } from '@colyseus/schema';
 import { SchemaSerializer } from '@colyseus/sdk';
 import type {
   ConnectionState,
+  NetConditioning,
   NetMessageEvent,
   NetPeer,
   NetRates,
@@ -98,9 +99,33 @@ interface Mirror {
   patchBytes: number;
   types: Map<string, MutableType>;
   socket: WebSocket;
+  /** When the last delayed frame is due, per direction: a later frame never overtakes it. */
+  dueIn: number;
+  dueOut: number;
 }
 
 const mirrors: Mirror[] = [];
+const mirrorOf = new WeakMap<WebSocket, Mirror>();
+const pingWaiters = new WeakMap<Mirror, (rttMs: number) => void>();
+/** The link conditioner (Unity's network simulator): latency and jitter on every observed room
+ *  socket, both directions, in order. A WebSocket is reliable and ordered, so loss is not one of
+ *  its behaviours and is not simulated. */
+let conditioning: NetConditioning = { latencyMs: 0, jitterMs: 0, packetLoss: 0 };
+
+/** Run `deliver` after the conditioned delay, never before the direction's previous frame. */
+function conditioned(mirror: Mirror, direction: 'in' | 'out', deliver: () => void): void {
+  const { latencyMs, jitterMs } = conditioning;
+  const now = performance.now();
+  const last = direction === 'in' ? mirror.dueIn : mirror.dueOut;
+  if (latencyMs <= 0 && jitterMs <= 0 && last <= now) {
+    deliver();
+    return;
+  }
+  const due = Math.max(last, now + latencyMs + Math.random() * jitterMs);
+  if (direction === 'in') mirror.dueIn = due;
+  else mirror.dueOut = due;
+  setTimeout(deliver, due - now);
+}
 const roomNames = new Map<string, string>();
 const log: NetMessageEvent[] = [];
 let seq = 0;
@@ -197,6 +222,9 @@ function observeIncoming(mirror: Mirror, bytes: Uint8Array): void {
     } else if (code === PING) {
       if (mirror.pingSentAt !== null) mirror.rttMs = Math.round(performance.now() - mirror.pingSentAt);
       mirror.pingSentAt = null;
+      const waiting = pingWaiters.get(mirror);
+      pingWaiters.delete(mirror);
+      if (waiting && mirror.rttMs !== null) waiting(mirror.rttMs);
       record(mirror, 'in', 'ping', bytes.byteLength);
     }
   } catch (error) {
@@ -274,8 +302,11 @@ function attach(socket: WebSocket, url: string): void {
     patchBytes: 0,
     types: new Map(),
     socket,
+    dueIn: 0,
+    dueOut: 0,
   };
   mirrors.push(mirror);
+  mirrorOf.set(socket, mirror);
   socket.addEventListener('message', (event: MessageEvent) => {
     if (event.data instanceof ArrayBuffer) observeIncoming(mirror, new Uint8Array(event.data));
   });
@@ -293,7 +324,9 @@ function attach(socket: WebSocket, url: string): void {
   const send = socket.send.bind(socket);
   socket.send = (data: string | ArrayBufferLike | Blob | ArrayBufferView) => {
     observeOutgoing(mirror, data);
-    send(data);
+    conditioned(mirror, 'out', () => {
+      if (socket.readyState === socket.OPEN) send(data);
+    });
   };
   notify();
 }
@@ -326,6 +359,20 @@ export function installGameNetwork(): void {
       constructor(url: string | URL, protocols?: string | string[]) {
         super(url, protocols);
         attach(this, String(url));
+      }
+
+      // The SDK receives through `onmessage`; a room socket's handler is handed each frame
+      // after the conditioner's delay. The mirror's own listener reads it on arrival.
+      override set onmessage(handler: ((this: WebSocket, event: MessageEvent) => unknown) | null) {
+        const mirror = mirrorOf.get(this);
+        super.onmessage =
+          handler && mirror
+            ? (event: MessageEvent) => conditioned(mirror, 'in', () => handler.call(this, event))
+            : handler;
+      }
+
+      override get onmessage(): ((this: WebSocket, event: MessageEvent) => unknown) | null {
+        return super.onmessage;
       }
     };
     window.WebSocket = Observed as typeof WebSocket;
@@ -439,6 +486,29 @@ export const observedGameNetwork: NetworkingAdapter = {
     frame.set(body, it.offset);
     // Through the game's own socket, so the send is observed and logged like any other.
     mirror.socket.send(frame);
+  },
+  getConditioning: () => ({ ...conditioning }),
+  setConditioning(next: NetConditioning): void {
+    conditioning = { latencyMs: Math.max(0, next.latencyMs), jitterMs: Math.max(0, next.jitterMs), packetLoss: 0 };
+    notify();
+  },
+  getConditioningLimits: () => ({
+    packetLoss: 'A WebSocket is reliable and ordered: a lost packet is resent, so loss is not simulated here.',
+  }),
+  ping(): Promise<number> {
+    const mirror = current();
+    if (!mirror || mirror.state !== 'connected') return Promise.reject(new Error('No room is connected to ping.'));
+    return new Promise((resolve, reject) => {
+      pingWaiters.set(mirror, resolve);
+      setTimeout(() => {
+        if (pingWaiters.get(mirror) !== resolve) return;
+        pingWaiters.delete(mirror);
+        reject(new Error('The server did not answer the ping within 5 s.'));
+      }, 5000);
+      // The SDK's own PING frame (`Room.ping`), through the game's socket; the SDK ignores the
+      // answer to a ping it did not send.
+      mirror.socket.send(new Uint8Array([PING]));
+    });
   },
   getTrafficByType() {
     const mirror = current();

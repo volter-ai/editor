@@ -44,19 +44,19 @@ not a render.
 | State tree | Monitor's State tab; Godot's Remote tree | present, read-only: a client cannot write authoritative state |
 | Message log with Pause, Clear and a type filter | Godot's Start/Stop and Clear | present, always recording |
 | Send (type, JSON payload) | Monitor's Send | into the room as this client; typing into it during Play is not walked (needs the workbench built with the focus gate) |
+| Ping, and its round trip | (neither reference; Unity's multiplayer tools show RTT) | present: the SDK's own PING frame through the game's socket (walked: 2 ms on loopback) |
+| Conditioner: latency and jitter, both directions, in order | Unity's network simulator | present; loss is stated as not simulated, because a WebSocket resends what it loses. Driving it during Play is not walked (needs the workbench built with the focus gate) |
 | Run configuration `play + server`, and the Instances picker of a compound | Godot's multiple-instance run | present |
 
 ## Gaps, the work order
 
 1. The rooms a session joined, as Monitor's room list (the observer keeps them; the inspector shows
    the current one).
-2. Round-trip time: the observer times a ping the game sends; nothing asks for one.
-3. Link conditioning (latency and jitter) at the observed socket, as Unity's network simulator does.
-4. The server's view: every client of a room and its elapsed time (Monitor's Clients tab) is the
+2. The server's view: every client of a room and its elapsed time (Monitor's Clients tab) is the
    server's to report, and the room server does not expose it to the editor.
-5. The schema's types beside the state tree (Godot's Replication panel shows what replicates; a
+3. The schema's types beside the state tree (Godot's Replication panel shows what replicates; a
    Colyseus schema states it in the server's code).
 
 Below this line is planning, not measurement: whether the server's view arrives through
 `@colyseus/monitor`'s own API on the room server or through the editor's session is decided when
-row 4 is built.
+row 2 is built.
