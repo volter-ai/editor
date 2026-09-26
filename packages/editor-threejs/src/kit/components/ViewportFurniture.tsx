@@ -32,11 +32,20 @@ import * as THREE from 'three';
 import { axisViewName } from '../asset-workflow/model-inspection';
 import type { Object3DDocumentSession } from '../authoring/object3d-document-session';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import { COMPASS_CLUSTER_TOP_PX, type EditorViewport } from '../editor-viewport';
+import {
+  COMPASS_CENTER_RIGHT_PX,
+  COMPASS_CLUSTER_TOP_PX,
+  COMPASS_INK_BOTTOM_PX,
+  type EditorViewport,
+} from '../editor-viewport';
+import { faBars, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
+import { stageViewName } from './stage-view-name';
+import { ViewportViewMenu } from './ViewportViewMenu';
 import {
   lookDeclaresViewportColors,
   lookPaintsLightViewport,
   subscribeNativeSelectionTheme,
+  useViewportChrome,
 } from '@volter/editor-sdk/kit/native-selection-style';
 import type { ThreeViewportProjection } from '@volter/editor-sdk/kit/three-viewport-presentation';
 
@@ -113,6 +122,8 @@ function orthographicWorldPerDevicePixel(
 
 export interface ViewportFurnitureProps {
   readonly viewport: EditorViewport | null;
+  /** The stage's document, whose view menu the look's view-name pill opens. */
+  readonly documentId: string;
   readonly session: Object3DDocumentSession | null;
   readonly store: ShellStore;
   readonly projection: ThreeViewportProjection;
@@ -128,6 +139,7 @@ export interface ViewportFurnitureProps {
 
 export function ViewportFurniture({
   viewport,
+  documentId,
   session,
   store,
   projection,
@@ -190,6 +202,10 @@ export function ViewportFurniture({
   // there it is the ground's own colour, so the ordinary ink reads instead.
   const lookPaintsLight = useSyncExternalStore(subscribeThemeViewportGroup, lookPaintsLightViewport);
   const overlayInk = lookPaintsViewport && !lookPaintsLight ? themeVars.content.onAccent : themeVars.content.primary;
+  // WHICH OF THIS FURNITURE THE TARGET DRAWS is the look's (`stage.chrome`): the view text is
+  // Blender's, the zoom and pan cluster Blender's alone; Godot names the view in a pill that
+  // opens the view menu, Unity under its scene gizmo.
+  const chrome = useViewportChrome();
   if (!viewport) return null;
   // Blender's view text names the DIRECTION as well as the projection —
   // "Front Orthographic" on numpad 1 (`modeling-front-ortho.png`), "User
@@ -339,6 +355,7 @@ export function ViewportFurniture({
 
   return (
     <>
+      {chrome.viewName === 'text' ? (
       <div
         data-testid="viewport-view-text"
         aria-hidden="true"
@@ -384,6 +401,60 @@ export function ViewportFurniture({
           </div>
         ) : null}
       </div>
+      ) : null}
+      {chrome.viewName === 'menu' ? (
+        <div
+          className="vgai-viewport-view-pill"
+          style={{
+            position: 'absolute',
+            top: 'var(--vgai-viewport-overlay-top, var(--vgai-space-4))',
+            // Past the tool shelf when the tools ride it, as the view text is.
+            left:
+              chrome.tools === 'shelf'
+                ? 'calc(var(--vgai-space-4) + var(--vgai-control-comfortable-height) * 2 + var(--vgai-space-4))'
+                : 'var(--vgai-space-2)',
+            zIndex: 'calc(var(--vgai-z-dropdown, 1000) - 1)',
+            pointerEvents: 'auto',
+          }}
+        >
+          <ViewportViewMenu shell={store} documentId={documentId} label={stageViewName(viewport, drawn, 'long')} kebab />
+        </div>
+      ) : null}
+      {chrome.viewName === 'gizmo' ? (
+        // UNITY'S LABEL UNDER THE SCENE GIZMO (`Editor-SceneGizmo.png`): the projection's mark and
+        // its name, and a click toggles the projection, as Unity's does.
+        <button
+          type="button"
+          data-testid="viewport-view-name"
+          className="vgai-viewport-gizmo-label"
+          aria-label={drawn === 'perspective' ? 'Switch to orthographic' : 'Switch to perspective'}
+          onClick={() => {
+            const next = drawn === 'perspective' ? 'orthographic' : 'perspective';
+            if (session) session.setProjection(next);
+            else viewport.setProjection(next);
+          }}
+          style={{
+            position: 'absolute',
+            top: COMPASS_INK_BOTTOM_PX + 4,
+            right: COMPASS_CENTER_RIGHT_PX,
+            transform: 'translateX(50%)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 'var(--vgai-space-1)',
+            padding: 0,
+            border: 0,
+            background: 'none',
+            fontSize: 'var(--vgai-font-sm)',
+            color: overlayInk,
+            textShadow: 'var(--vgai-content-text-shadow, none)',
+            cursor: 'pointer',
+            pointerEvents: 'auto',
+          }}
+        >
+          <EditorIcon size="xs" icon={drawn === 'perspective' ? faChevronLeft : faBars} />
+          {stageViewName(viewport, drawn, 'short')}
+        </button>
+      ) : null}
       {/* BLENDER'S NAVIGATION CLUSTER (`view3d_gizmo_navigate.cc`): Zoom and Pan, each a drag;
           Camera; and the projection toggle, whose mark is the projection the view has. Cell,
           gap, pitch and capsule width are Blender's (`modeling-edit-none.png`: glyph boxes 16
@@ -391,6 +462,7 @@ export function ViewportFurniture({
           header's view control and the Home and numpad-period keys, as Blender's is its View
           menu. The Camera button is not drawn yet: looking through a scene camera is not a
           view this stage has. */}
+      {chrome.navigation ? (
       <div
         data-testid="viewport-navigation"
         role="toolbar"
@@ -491,6 +563,7 @@ export function ViewportFurniture({
         </Tooltip>
         )}
       </div>
+      ) : null}
       {through && session ? (
         <CameraFrame view={through} canvas={session.renderer.domElement} locked={session.cameraViewLocked() === true} />
       ) : null}

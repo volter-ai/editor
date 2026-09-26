@@ -355,6 +355,41 @@ export interface StageContribution {
    *  `SceneVisExVisible.png`). Its colour is the palette's `color.viewport.wire`. */
   readonly wireOpacity?: number;
   readonly selectionBoxWidth?: number;
+  /** THE STAGE'S OWN CHROME: which overlay controls the viewport carries and where. See
+   *  {@link StageChromeContribution}; absent keeps the editor's own set. */
+  readonly chrome?: StageChromeContribution;
+}
+
+/**
+ * THE VIEWPORT'S OWN CHROME, as each target's viewport arranges it (read from the reference
+ * frames, `docs/VIEWPORT-STAGE.md`): a look places the stage's controls, it never adds one.
+ * Each member is independently optional; absent keeps the editor's own arrangement (Blender's:
+ * the view text top-left, the tool shelf, the display controls in the top-right corner, the
+ * zoom and pan cluster, the camera readout).
+ *
+ * - `bar`: a row across the stage's top. `strip` is a flush panel band (Godot's 3D toolbar,
+ *   Unity's Scene view toolbar); `pills` is a row of rounded pills floating over the view
+ *   (Unreal's level viewport toolbar). Absent, there is no bar.
+ * - `viewName`: where the view's name is. `text` is Blender's lines at the top-left; `menu`
+ *   a pill at the top-left that opens the view menu (Godot's "⋮ Perspective"); `gizmo` a label
+ *   under the navigation gizmo that toggles the projection (Unity's "Persp"); `bar` the first
+ *   pill of the bar, opening the view menu (Unreal's "Perspective").
+ * - `tools`: the transform tools on the `shelf` (Blender's, Unity's Tools overlay) or at the
+ *   bar's `bar-start` (Godot) or `bar-end` (Unreal).
+ * - `display`: the display controls (shading, grid, helpers, lights) in the top-right
+ *   `corner` or at the bar's `bar-start` (Unity, Unreal) or `bar-end` (Godot).
+ * - `navigation`: whether the zoom and pan cluster under the navigation gizmo is drawn
+ *   (Blender's only).
+ * - `readout`: whether the camera's position and target are drawn at the bottom-left (the
+ *   editor's own; no reference draws one).
+ */
+export interface StageChromeContribution {
+  readonly bar?: 'strip' | 'pills';
+  readonly viewName?: 'text' | 'menu' | 'gizmo' | 'bar';
+  readonly tools?: 'shelf' | 'bar-start' | 'bar-end';
+  readonly display?: 'corner' | 'bar-start' | 'bar-end';
+  readonly navigation?: boolean;
+  readonly readout?: boolean;
 }
 
 /**

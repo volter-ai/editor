@@ -31,6 +31,11 @@ export const style: StyleContribution = {
       large: '0 6px 18px rgba(0,0,0,0.55)',
     },
     stage: {
+      // THE SCENE VIEW'S OWN CHROME (`NewEmptyScene_01.png`, `PrimitiveCube.png`): the Scene
+      // view's toolbar is a flush band with the draw mode first ("Shaded"); the tools are
+      // Unity's Tools overlay at the view's left; the view's name is the label under the scene
+      // gizmo ("Persp"), which toggles the projection. No zoom and pan cluster, no readout.
+      chrome: { bar: 'strip', viewName: 'gizmo', tools: 'shelf', display: 'bar-start', navigation: false, readout: false },
       // A handle is 80 points on screen whatever the distance (`HandleUtility.GetHandleSize`,
       // `k_KHandleSize`), the radius of the rotate disc; the stage's ring radius is this many
       // CSS px. The documentation's frames are small Scene views at about half scale, so their

@@ -552,6 +552,11 @@ const COMPASS_INK_WIDTH_PX = 74.5;
 const COMPASS_INK_HEIGHT_PX = 73.5;
 const COMPASS_MARGIN_RIGHT_PX = 8.5 + COMPASS_INK_WIDTH_PX / 2 - COMPASS_BOX_PX / 2;
 const COMPASS_MARGIN_TOP_PX = 38 + COMPASS_INK_HEIGHT_PX / 2 - COMPASS_BOX_PX / 2;
+/** The gizmo's centre, CSS px in from the canvas's right edge, and its ink's lower edge from
+ *  the canvas's top: where a label under the gizmo stands (Unity's "Persp", the look's
+ *  `stage.chrome.viewName` `gizmo`). */
+export const COMPASS_CENTER_RIGHT_PX = COMPASS_MARGIN_RIGHT_PX + COMPASS_BOX_PX / 2;
+export const COMPASS_INK_BOTTOM_PX = COMPASS_MARGIN_TOP_PX + COMPASS_BOX_PX / 2 + COMPASS_INK_HEIGHT_PX / 2;
 /**
  * Where the navigation cluster starts. Blender's first GLYPH sits 16 CSS
  * under the gizmo's ink; the cluster component pads 14.5 CSS above its own

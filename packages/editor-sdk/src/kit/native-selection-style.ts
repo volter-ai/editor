@@ -4,6 +4,7 @@
  * module resolves the inherited token to the integer both renderers speak.
  */
 
+import { useMemo, useSyncExternalStore } from 'react';
 import { EDITOR_THEME_CLASS, graphiteDarkEditorTheme } from '@volter/editor-sdk/widgets';
 
 /** Import/SSR fallback: Graphite Dark's canonical blue accent. */
@@ -325,6 +326,64 @@ export function nativeViewportSelectionBox(element?: Element | null): {
     frame: themeToken(root, '--vgai-viewport-selection-box-frame') === 'object' ? 'object' : 'world',
     lineWidth: Number.isFinite(width) && width > 0 ? width : null,
   };
+}
+
+/** THE STAGE'S OWN CHROME as the look places it (`StageContribution.chrome`), each member
+ *  resolved to the editor's own arrangement where the look states none. */
+export interface NativeViewportChrome {
+  readonly bar: 'none' | 'strip' | 'pills';
+  readonly viewName: 'text' | 'menu' | 'gizmo' | 'bar';
+  readonly tools: 'shelf' | 'bar-start' | 'bar-end';
+  readonly display: 'corner' | 'bar-start' | 'bar-end';
+  readonly navigation: boolean;
+  readonly readout: boolean;
+}
+
+/** The chrome's members as one string, a stable snapshot for `useSyncExternalStore`
+ *  ({@link viewportChromeFromKey} reads it back). */
+export function nativeViewportChromeKey(element?: Element | null): string {
+  const root = themeRoot(element);
+  return [
+    '--vgai-viewport-chrome-bar',
+    '--vgai-viewport-chrome-view-name',
+    '--vgai-viewport-chrome-tools',
+    '--vgai-viewport-chrome-display',
+    '--vgai-viewport-chrome-navigation',
+    '--vgai-viewport-chrome-readout',
+  ]
+    .map((name) => themeToken(root, name))
+    .join('|');
+}
+
+export function viewportChromeFromKey(key: string): NativeViewportChrome {
+  const [bar, viewName, tools, display, navigation, readout] = key.split('|');
+  const bars = ['strip', 'pills'] as const;
+  const names = ['menu', 'gizmo', 'bar'] as const;
+  const places = ['bar-start', 'bar-end'] as const;
+  const pick = <T extends string>(value: string | undefined, members: readonly T[], fallback: T): T =>
+    members.includes(value as T) ? (value as T) : fallback;
+  return {
+    bar: pick(bar, bars, 'none'),
+    viewName: pick(viewName, names, 'text'),
+    tools: pick(tools, places, 'shelf'),
+    display: pick(display, places, 'corner'),
+    navigation: navigation !== 'false',
+    readout: readout !== 'false',
+  };
+}
+
+export function nativeViewportChrome(element?: Element | null): NativeViewportChrome {
+  return viewportChromeFromKey(nativeViewportChromeKey(element));
+}
+
+function subscribeViewportChrome(listener: () => void): () => void {
+  return subscribeNativeSelectionTheme(null, listener);
+}
+
+/** The look's stage chrome, following a change of look. */
+export function useViewportChrome(): NativeViewportChrome {
+  const key = useSyncExternalStore(subscribeViewportChrome, nativeViewportChromeKey, nativeViewportChromeKey);
+  return useMemo(() => viewportChromeFromKey(key), [key]);
 }
 
 /**

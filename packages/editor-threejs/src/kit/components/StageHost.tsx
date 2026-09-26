@@ -2499,6 +2499,7 @@ export function Object3DDocumentViewport({
           {!chromeless && surfaceStatus === 'ready' && documentHostRef.current && (
             <ViewportFurniture
               viewport={documentHostRef.current.viewport}
+              documentId={documentId}
               session={documentHostRef.current.session}
               store={documentHostRef.current.store.shell}
               projection={projection}

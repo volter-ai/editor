@@ -11,6 +11,7 @@ import {
   subscribeDocumentViewports,
 } from '@volter/editor-sdk/kit/document-viewports';
 import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
+import { useViewportChrome } from '@volter/editor-sdk/kit/native-selection-style';
 import type {
   WorkspaceDocumentDescriptor,
   WorkspaceDocumentKind,
@@ -103,6 +104,11 @@ export function WorkspaceDocumentSurface({
   const driver = active && descriptor.kind !== 'game' ? (stage?.transformTools?.() ?? 'none') : 'none';
   const TransformTools = stage?.TransformTools;
   const TransformControls = stage?.TransformControls;
+  // WHERE THE STAGE'S OWN CONTROLS SIT is the look's (`StageContribution.chrome`): the content
+  // box carries it, and the stylesheet places the shelf, the display controls and the bar by it
+  // (`workspace-surfaces.css`, "THE STAGE'S BAR"). The tools' place applies only where this
+  // host draws them.
+  const stageChrome = useViewportChrome();
   return (
     <div
       className="vgai-dock-document"
@@ -131,8 +137,16 @@ export function WorkspaceDocumentSurface({
         className="vgai-dock-document-content"
         data-workspace-document-id={descriptor.id}
         data-workspace-view-id={viewId}
+        data-vgai-stage-bar={stageChrome.bar === 'none' ? undefined : stageChrome.bar}
+        data-vgai-stage-display={stageChrome.display}
+        data-vgai-stage-tools={driver === 'none' ? undefined : stageChrome.tools}
       >
         <Content documentId={descriptor.id} {...(viewId ? { viewId } : {})} active={active} />
+        {/* THE STAGE'S BAR, when the look draws one: only its band; the controls it carries
+            are placed over it by the stylesheet. */}
+        {chrome && stage && stageChrome.bar !== 'none' ? (
+          <div className="vgai-stage-bar" data-form={stageChrome.bar} aria-hidden="true" />
+        ) : null}
         {chrome && (
           <DocumentShelfRail documentId={descriptor.id}>
             {driver !== 'none' || Shelf ? (

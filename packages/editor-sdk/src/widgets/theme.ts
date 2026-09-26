@@ -242,6 +242,15 @@ export interface EditorStage {
     readonly outlineHidden?: boolean;
     readonly wireOpacity?: number;
     readonly selectionBoxWidth?: number;
+    /** `StageContribution.chrome`: which overlay controls the stage carries and where. */
+    readonly chrome?: {
+      readonly bar?: 'strip' | 'pills';
+      readonly viewName?: 'text' | 'menu' | 'gizmo' | 'bar';
+      readonly tools?: 'shelf' | 'bar-start' | 'bar-end';
+      readonly display?: 'corner' | 'bar-start' | 'bar-end';
+      readonly navigation?: boolean;
+      readonly readout?: boolean;
+    };
 }
 function numberToken(value: number | undefined): string {
   return value === undefined ? '' : `${value}`;
@@ -2642,6 +2651,16 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     '--vgai-viewport-outline-hidden':
       theme.stage?.outlineHidden === undefined ? '' : `${theme.stage.outlineHidden}`,
     '--vgai-viewport-selection-box-width': numberToken(theme.stage?.selectionBoxWidth),
+    // THE STAGE'S OWN CHROME (`StageContribution.chrome`), empty when the look places nothing:
+    // the stage keeps the editor's own arrangement then (`nativeViewportChrome`).
+    '--vgai-viewport-chrome-bar': theme.stage?.chrome?.bar ?? '',
+    '--vgai-viewport-chrome-view-name': theme.stage?.chrome?.viewName ?? '',
+    '--vgai-viewport-chrome-tools': theme.stage?.chrome?.tools ?? '',
+    '--vgai-viewport-chrome-display': theme.stage?.chrome?.display ?? '',
+    '--vgai-viewport-chrome-navigation':
+      theme.stage?.chrome?.navigation === undefined ? '' : `${theme.stage.chrome.navigation}`,
+    '--vgai-viewport-chrome-readout':
+      theme.stage?.chrome?.readout === undefined ? '' : `${theme.stage.chrome.readout}`,
     // The widget classes. Unlike `viewport`, these are never emitted empty:
     // every one paints a control that must stay painted, so an absent group
     // resolves to the surface that call site already read.

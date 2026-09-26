@@ -26,6 +26,8 @@ import {
 } from '@volter/editor-sdk/kit/viewport-presentation';
 import { ViewportShadingMenu } from './ViewportShadingMenu';
 import { ViewportViewMenu } from './ViewportViewMenu';
+import { useViewportChrome } from '@volter/editor-sdk/kit/native-selection-style';
+import { stageViewName } from './stage-view-name';
 
 /**
  * Three-specific viewport display controls, mounted over ONE STAGE and driving
@@ -55,11 +57,23 @@ export function ViewportOverlay({
   useSyncExternalStore(session?.subscribe ?? NO_SESSION_SUBSCRIBE, session?.getSnapshot ?? ZERO);
   useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
   const grid = viewGridVisible(documentId);
+  // THE VIEW'S NAME ON THE BAR (the look's `stage.chrome.viewName` `bar`, Unreal's
+  // "Perspective" pill) leads these controls and opens the view menu; wherever the name opens
+  // that menu itself (`bar`, `menu`) the camera icon is not drawn a second time.
+  const chrome = useViewportChrome();
+  const namedView = chrome.viewName === 'bar' || chrome.viewName === 'menu';
   return (
     <FloatingToolbar
       label="Viewport display"
-      className="vgai-viewport-toolbar vgai-viewport-toolbar-right"
+      className="vgai-viewport-toolbar vgai-viewport-toolbar-right vgai-stage-display"
     >
+      {chrome.viewName === 'bar' && session ? (
+        <ViewportViewMenu
+          shell={store.shell}
+          documentId={documentId}
+          label={stageViewName(session.viewport, session.projection(), 'long')}
+        />
+      ) : null}
       <Tooltip text={`Grid: ${grid ? 'On' : 'Off'}`}>
         <IconButton
           aria-label="Toggle grid"
@@ -75,7 +89,7 @@ export function ViewportOverlay({
         mode={store.shadingMode}
         onChange={(mode) => store.setShadingMode(mode)}
       />
-      <ViewportViewMenu store={store} />
+      {namedView ? null : <ViewportViewMenu shell={store.shell} documentId={documentId} />}
       <LightExplorerButton adapter={adapter} store={store} />
     </FloatingToolbar>
   );
