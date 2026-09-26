@@ -21,8 +21,10 @@ import {
   type GodotSceneNodeClaimLiveness,
   type GodotSceneNodeRule,
   type GodotSceneResourceRule,
+  type GodotSceneSignalRule,
   godotSceneNodeRuleKey,
   godotSceneResourceRuleKey,
+  godotSceneSignalRuleKey,
 } from '../scene-node-authority';
 
 const IDENTITIES = godotProofIdentities('scene-physics');
@@ -67,6 +69,19 @@ export const GODOT_4_7_PHYSICS_RESOURCE_RULES: readonly (GodotSceneResourceRule 
   source: { file, symbol: `${className}::${className}`, line },
 }));
 
+/** An area's body signals, connected by a scene (the proof's coin connects `body_entered`). */
+export const GODOT_4_7_PHYSICS_SIGNAL_RULES: readonly (GodotSceneSignalRule & { readonly source: Source })[] = (
+  ['body_entered', 'body_exited'] as const
+).map((signal) => ({
+  sourceRevision: REVISION,
+  ownerClass: 'Area3D',
+  signal,
+  accessor: { module: 'lib/godot-compat/area-3d', exportName: 'godot_area_3d_signal', named: true },
+  arguments: 1,
+  evidenceClaimId: `godot-4.7-scene-connection-area-3d-${signal.replace('_', '-')}`,
+  source: { file: 'scene/resources/packed_scene.cpp', symbol: 'SceneState::instantiate (connections)', line: 682 },
+}));
+
 function physicsClaim(canonicalIdentity: string, claimId: string, source: Source): SemanticClaimRecord {
   return {
     registryVersion: 1,
@@ -107,6 +122,9 @@ export const GODOT_4_7_PHYSICS_CLAIMS: readonly SemanticClaimRecord[] = [
   ),
   ...GODOT_4_7_PHYSICS_RESOURCE_RULES.map((rule) =>
     physicsClaim(godotSceneResourceRuleKey(rule.sourceRevision, rule.className), rule.evidenceClaimId, rule.source),
+  ),
+  ...GODOT_4_7_PHYSICS_SIGNAL_RULES.map((rule) =>
+    physicsClaim(godotSceneSignalRuleKey(rule.sourceRevision, rule.ownerClass, rule.signal), rule.evidenceClaimId, rule.source),
   ),
 ];
 

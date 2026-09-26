@@ -1,13 +1,14 @@
 /**
- * The scene-physics proof: a scene of static, rigid and character bodies, an area, a ray cast and
- * a marker, an instanced rigid body whose instance root overrides its mass, material and an axis
- * lock, with box, sphere, capsule, convex and concave collision shapes and physics materials,
- * built by official Godot and read back after its first physics frame (each node's path, class and
- * global transform bits; bodies' layers, masks, axis locks and settings; shapes and their
- * parameters; the ray cast's result and rays cast into the world, whose hit points and normals are
- * Rapier's geometry and compare to 1e-4), against the emitted project's world
- * module (its Rapier world hand-over and the main scene) mounted in Node by @react-three/fiber, one
- * physics step run on compat's SceneTree clock as the composition site runs it, read through
+ * The scene-physics proof: a scene of static, rigid and character bodies, an area whose
+ * `body_entered` the scene connects to its script, a ray cast and a marker, an instanced rigid
+ * body whose instance root overrides its mass, material and an axis lock, with box, sphere,
+ * capsule, convex and concave collision shapes and physics materials, built by official Godot and
+ * read back after two physics frames (the bodies the area reported, with the frame; each node's
+ * path, class and global transform bits; bodies' layers, masks, axis locks and settings; shapes
+ * and their parameters; the ray cast's result and rays cast into the world, whose hit points and
+ * normals are Rapier's geometry and compare to 1e-4), against the emitted project's world module
+ * (its Rapier world hand-over and the main scene) mounted in Node by @react-three/fiber, two
+ * physics steps run on compat's SceneTree clock as the composition site runs them, read through
  * compat's getters.
  */
 import { spawnSync } from 'node:child_process';
@@ -46,6 +47,11 @@ window/size/viewport_height=540
 renderer/rendering_method="gl_compatibility"
 `,
   'main.gd': `extends Node3D
+
+var entered: Array = []
+
+func _on_coin_body_entered(body: Node3D) -> void:
+\tentered.append([body.name, Engine.get_physics_frames()])
 `,
   'ball.tscn': `[gd_scene load_steps=2 format=3]
 
@@ -108,7 +114,7 @@ physics_material_override = SubResource("Ice")
 shape = SubResource("FloorBox")
 
 [node name="Crate" type="RigidBody3D" parent="."]
-transform = Transform3D(0.617236, 0, 0.786778, 0, 1, 0, -0.786778, 0, 0.617236, 1, 3, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 3, 0)
 mass = 2.5
 gravity_scale = 0.5
 axis_lock_angular_x = true
@@ -166,11 +172,19 @@ mass = 1.5
 physics_material_override = SubResource("Ice")
 axis_lock_linear_x = true
 
+[node name="Pad" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 3.2)
+
+[node name="Box" type="CollisionShape3D" parent="Pad"]
+shape = SubResource("Lid")
+
 [node name="Deck" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 2, -6)
 
 [node name="Mesh" type="CollisionShape3D" parent="Deck"]
 shape = SubResource("Sheet")
+
+[connection signal="body_entered" from="Coin" to="." method="_on_coin_body_entered"]
 `,
 };
 
@@ -258,8 +272,14 @@ func _initialize() -> void:
 \tmain = load("res://main.tscn").instantiate()
 \troot.add_child(main)
 
+var frames := 0
+
+# Read after two physics steps: an area reports the bodies inside it at the second's flush.
 func _process(_delta: float) -> bool:
-\tvar rows := []
+\tframes += 1
+\tif frames < 2:
+\t\treturn false
+\tvar rows := [main.entered]
 \t_walk(main, main, rows)
 \tvar space := root.find_world_3d().direct_space_state
 \tfor ray in ${JSON.stringify(RAYS.map(([from, to]) => [...from, ...to]))}:
@@ -340,8 +360,10 @@ await act(async () => { root.render(createElement('group', { ref: holder }, crea
 ST.godot_tree_set_root(holder.current.parent);
 ST.godot_tree_physics_step(1 / 60);
 ST.godot_tree_frame(1 / 60);
+ST.godot_tree_physics_step(1 / 60);
+ST.godot_tree_frame(1 / 60);
 const main = holder.current.children[0];
-const rows = [];
+const rows = [N.godot_node_object(main).entered];
 const walk = (path, node) => {
   const row = { path, class: CLASSES.find((name) => is(node, name)) };
   if (N.godot_node_is_spatial(node)) {

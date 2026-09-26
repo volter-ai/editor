@@ -42,6 +42,7 @@ import {
   GODOT_4_7_PHYSICS_LIVENESS,
   GODOT_4_7_PHYSICS_NODE_RULES,
   GODOT_4_7_PHYSICS_RESOURCE_RULES,
+  GODOT_4_7_PHYSICS_SIGNAL_RULES,
 } from './authority/godot-4.7-scene-physics';
 import {
   GODOT_SCENE_NODE_AUTHORITY_VERSION,
@@ -209,7 +210,7 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
     structureRules: supported
       ? [...GODOT_4_7_STRUCTURE_RULES, ...GODOT_4_7_RENDER_STRUCTURE_RULES, ...GODOT_4_7_IMPORTED_STRUCTURE_RULES]
       : [],
-    signalRules: supported ? GODOT_4_7_SIGNAL_RULES : [],
+    signalRules: supported ? [...GODOT_4_7_SIGNAL_RULES, ...GODOT_4_7_PHYSICS_SIGNAL_RULES] : [],
     resourceRules: supported
       ? [...GODOT_4_7_RENDER_RESOURCE_RULES, ...GODOT_4_7_UI_RESOURCE_RULES, ...GODOT_4_7_PHYSICS_RESOURCE_RULES]
       : [],
