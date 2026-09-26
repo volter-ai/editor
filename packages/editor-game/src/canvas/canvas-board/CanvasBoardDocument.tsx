@@ -74,7 +74,8 @@ import {
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { storyBoardPresentation } from '@volter/editor-sdk/kit/stories/story-presentation';
 import { getProjectStoryModules, subscribeProjectStoryModules } from '@volter/editor-sdk/kit/stories/story-registry';
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import type { AuthoringAdapter, EditorNode } from '@volter/editor-project/adapter';
 import {
   buildCanvasBoard,
   type CanvasBoard,
@@ -113,6 +114,8 @@ interface CanvasBoardPresentation {
   zoomAt(clientX: number, clientY: number): boolean;
   /** The exhibit the board is currently showing as active, for the Inspector. */
   activeStoryId(): string | null;
+  /** Select one frame by its id, as a click on it does (the layers list's row). */
+  selectStory(storyId: string): boolean;
   dispose(): void;
 }
 
@@ -131,6 +134,53 @@ interface CanvasBoardPresentation {
  * An ungrouped exhibit (no district) carries no title and falls back to the
  * substrate's own module-path derivation, exactly like an untitled dom story.
  */
+/**
+ * THE BOARD'S LAYERS — Figma's layers panel lists a page's frames; this adapter hands the
+ * Hierarchy the board's frames the same way, each with its district beside its name. It owns no
+ * transform, inspector or structure: a frame is chosen here, and choosing one is the same act as
+ * clicking it on the board.
+ */
+function canvasBoardAdapter(
+  board: CanvasBoard,
+  selected: () => string | null,
+  select: (storyId: string) => void,
+): AuthoringAdapter & { notify(): void } {
+  const listeners = new Set<() => void>();
+  const nodes: EditorNode[] = boardRows(board).map((row) => ({
+    id: row.id,
+    label: row.label,
+    ...(row.title ? { secondaryLabel: row.title } : {}),
+    kind: 'frame',
+    typeLabel: 'Frame',
+    parentId: null,
+    childIds: [],
+  }));
+  return {
+    capabilities: { transform: false, inspectorFields: false, persist: false },
+    hierarchy: {
+      roots: () => nodes,
+      node: (id) => nodes.find((node) => node.id === id) ?? null,
+    },
+    selection: {
+      get: () => {
+        const id = selected();
+        return id ? [id] : [];
+      },
+      set: (ids) => {
+        const id = ids.at(-1);
+        if (id) select(id);
+      },
+    },
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    notify() {
+      for (const listener of listeners) listener();
+    },
+  };
+}
+
 function boardRows(board: CanvasBoard): ReactStoryBoardStory[] {
   return [
     ...board.exhibits.map((exhibit) => ({
@@ -305,6 +355,13 @@ function presentCanvasBoard(
     activeStoryId(): string | null {
       return selectedStoryId;
     },
+    selectStory(storyId: string): boolean {
+      if (!rows.some((row) => row.id === storyId)) return false;
+      selectedStoryId = storyId;
+      storyBoard?.activate(storyId, false);
+      onSelectionChanged?.();
+      return true;
+    },
     zoomAt(clientX: number, clientY: number): boolean {
       return storyBoard?.zoomAtClientPoint(clientX, clientY) ?? false;
     },
@@ -446,13 +503,29 @@ function CanvasBoardContent({ active }: WorkspaceDocumentContentProps) {
   // never reach the no-selection seam at all
   // (`workspace-document-registry.ts`'s `WorkspaceDocumentSelection`, and
   // `components/AssetEditorShell.tsx`, which registers the same pair).
+  // The layers list: the board's frames through their own adapter. The node stays null so the
+  // Inspector keeps describing the chosen frame through the subject published below.
+  const boardAdapter = useMemo(
+    () =>
+      board
+        ? canvasBoardAdapter(
+            board,
+            () => presentationRef.current?.activeStoryId() ?? null,
+            (storyId) => presentationRef.current?.selectStory(storyId),
+          )
+        : null,
+    [board],
+  );
+  useEffect(() => {
+    boardAdapter?.notify();
+  }, [boardAdapter, selectedStoryId]);
   useEffect(() => {
     if (!active) return;
     return registerWorkspaceDocumentSelection(CANVAS_COMPONENTS_DOCUMENT_ID, () => ({
-      adapter: null,
+      adapter: boardAdapter,
       nodeId: null,
     }));
-  }, [active]);
+  }, [active, boardAdapter]);
   useEffect(() => {
     if (!active || !selectedExhibit) return;
     return publishDocumentInspectionSubject(CANVAS_COMPONENTS_DOCUMENT_ID, () => ({

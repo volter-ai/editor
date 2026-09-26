@@ -97,6 +97,11 @@ import {
 } from '@volter/editor-sdk/kit/eyedropper-session';
 import { pickCandidates, pickTopmost } from '@volter/editor-sdk/kit/authoring/layered-pick';
 import {
+  subscribeViewportPresentation,
+  viewDrafting,
+  viewportPresentationVersion,
+} from '@volter/editor-sdk/kit/viewport-presentation';
+import {
   selectReactStoryFrameAtPoint,
   zoomReactStoryFrameAtPoint,
 } from '@volter/editor-sdk/kit/authoring/react-story-board';
@@ -1325,6 +1330,7 @@ export function RootSelectionOverlay({
   adapter: scopedAdapter,
   view: suppliedView,
   transformModeAware = false,
+  presentationId,
 }: {
   adapter?: AuthoringAdapter;
   /** Presentation camera for this document. Native Canvas scenes pass their
@@ -1333,6 +1339,9 @@ export function RootSelectionOverlay({
   /** Native scene toolbars use explicit Move/Rotate/Scale modes. Component
    * boards retain their Figma-style all-handles-at-once interaction. */
   transformModeAware?: boolean;
+  /** The view whose presentation switches this overlay obeys (a 2D view's Position and
+   *  Transformation gizmos, `viewDrafting`); absent, every gizmo draws. */
+  presentationId?: string;
 } = {}): React.ReactNode {
   const store = useEditorStore();
   const storeVersion = useSyncExternalStore(store.subscribe, store.getSnapshot);
@@ -1457,6 +1466,11 @@ export function RootSelectionOverlay({
   // Godot's Select tool and Figma's selection do.
   const axisGizmos =
     transformModeAware && store.transformMode !== 'combined' && store.transformMode !== 'select';
+  // Godot's View › Gizmos: Position (the origin handle) and Transformation (the tool's axis gizmo).
+  useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
+  const gizmoSwitches = presentationId ? viewDrafting(presentationId) : null;
+  const showPositionGizmo = gizmoSwitches?.position ?? true;
+  const showAxisGizmo = !axisGizmos || (gizmoSwitches?.transformation ?? true);
   // True while the Space key is physically held (and not typing — see the
   // keydown/keyup effect below), the hold-to-pan gesture's arm switch.
   // `spaceHeldRef` mirrors the state for a synchronous read in the pointer
@@ -2751,6 +2765,7 @@ export function RootSelectionOverlay({
   const spatialLayers =
     spatialSelection && spatialHandles && store.showHelpers
       ? spatialHandles.layers(spatialSelection).filter((layer) => {
+          if (layer.category === 'origin' && !showPositionGizmo) return false;
           const visibility = store.helperVisibility as Record<string, boolean | undefined>;
           // A category the shell does not name obeys the master Helpers toggle,
           // per the `SpatialHandleLayer` contract — never rejected for being
@@ -3042,7 +3057,7 @@ export function RootSelectionOverlay({
                   />
                 )),
               )}
-            {transformModeAware && store.transformMode === 'translate' && (
+            {transformModeAware && store.transformMode === 'translate' && showAxisGizmo && (
               <>
                 <div
                   data-testid="world-2d-move-axis-x"
@@ -3105,6 +3120,7 @@ export function RootSelectionOverlay({
               </>
             )}
             {transformArms(transformModeAware, store.transformMode, 'scale') &&
+              showAxisGizmo &&
               (axisGizmos ? (
                 <>
                   <div
@@ -3203,7 +3219,7 @@ export function RootSelectionOverlay({
                   </div>
                 </>
               ))}
-            {transformArms(transformModeAware, store.transformMode, 'rotate') && (
+            {transformArms(transformModeAware, store.transformMode, 'rotate') && showAxisGizmo && (
               <>
                 {axisGizmos && (
                   <div

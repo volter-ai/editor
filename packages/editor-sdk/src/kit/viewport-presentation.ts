@@ -168,16 +168,19 @@ export interface ViewportOverlays {
    *  Show Origin, Show Viewport; all on by default there): the rulers along the view's edges, the
    *  guides dragged from them, the origin's axis lines, and the game's viewport rectangle (the
    *  manifest's `resolution` from the origin). `gridWhenSnapping` is the Grid submenu's Show When
-   *  Snapping (the grid drawn only while the magnet is on); `lock` and `group` are the Gizmos
-   *  submenu's marks on locked and grouped nodes. */
+   *  Snapping (the grid drawn only while the magnet is on); the Gizmos submenu's `position` (the
+   *  selected node's origin handle), `lock` and `group` (marks on locked and grouped nodes) and
+   *  `transformation` (the Move, Rotate and Scale tools' axis gizmo). */
   readonly drafting: {
     readonly rulers: boolean;
     readonly guides: boolean;
     readonly origin: boolean;
     readonly viewport: boolean;
     readonly gridWhenSnapping: boolean;
+    readonly position: boolean;
     readonly lock: boolean;
     readonly group: boolean;
+    readonly transformation: boolean;
   };
 }
 
@@ -325,8 +328,10 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
       origin: true,
       viewport: true,
       gridWhenSnapping: false,
+      position: true,
       lock: true,
       group: true,
+      transformation: true,
     },
   },
   interaction: {

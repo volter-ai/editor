@@ -277,7 +277,7 @@ export function RootDocumentContent({
         key={`selection:${authoringAdapterKey(documentAdapter)}`}
         {...(documentAdapter ? { adapter: documentAdapter } : {})}
         {...(isCanvasScene && !isBabylonScene
-          ? { view: canvasSceneView, transformModeAware: true }
+          ? { view: canvasSceneView, transformModeAware: true, presentationId: documentId }
           : {})}
       />
       <SurfaceStateOverlay

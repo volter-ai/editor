@@ -866,11 +866,13 @@ function CanvasSceneViewMenu({
             </MenuItem>
           ))}
           <MenuSeparator />
-          {/* Godot's Gizmos submenu: the marks on locked and grouped nodes. */}
+          {/* Godot's Gizmos submenu, in its order: Position, Lock, Group, Transformation. */}
           {(
             [
+              ['position', 'Position Gizmo'],
               ['lock', 'Lock Gizmo'],
               ['group', 'Group Gizmo'],
+              ['transformation', 'Transformation Gizmo'],
             ] as const
           ).map(([key, label]) => (
             <MenuItem
