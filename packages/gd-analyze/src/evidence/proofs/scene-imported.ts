@@ -152,6 +152,8 @@ import { createElement, act } from 'react';
 import * as THREE from 'three';
 import { createRoot, extend } from '@react-three/fiber';
 import { MainScene } from './src/scenes/main';
+import { GodotProjectStartup } from './src/lib/godot-compat/react-lifecycle';
+import { godot_tree_set_root } from './src/lib/godot-compat/scene-tree';
 import { get_children, get_name, godot_is_native, godot_node_is_spatial } from './src/lib/godot-compat/node';
 import { get_global_transform } from './src/lib/godot-compat/node-3d';
 import * as SK from './src/lib/godot-compat/skeleton-3d';
@@ -163,6 +165,11 @@ globalThis.ProgressEvent ??= class extends Event {
   constructor(type, init = {}) { super(type); Object.assign(this, init); }
 };
 THREE.DefaultLoadingManager.setURLModifier((url) =>
+  url.startsWith('/godot/') ? 'data:model/gltf-binary;base64,' + readFileSync('public' + url).toString('base64') : url);
+// drei's loader loads through three's CommonJS build in Node (the project's bundle has one three):
+// it serves the project's copied asset the same way.
+const { createRequire } = await import('node:module');
+createRequire(import.meta.url)('three').DefaultLoadingManager.setURLModifier((url) =>
   url.startsWith('/godot/') ? 'data:model/gltf-binary;base64,' + readFileSync('public' + url).toString('base64') : url);
 const bits = (value) => Buffer.from(new Float64Array([value]).buffer).toString('hex');
 const CLASSES = ['Skeleton3D', 'MeshInstance3D', 'AnimationPlayer', 'Node3D', 'Node'];
@@ -184,7 +191,12 @@ const gl = {
 const root = createRoot(canvas);
 await root.configure({ gl, size: { width: 640, height: 480, top: 0, left: 0 }, frameloop: 'never' });
 const holder = { current: null };
-await act(async () => { root.render(createElement('group', { ref: holder }, createElement(MainScene, { name: 'Main' }))); });
+// Mounted as the world mounts a scene: under the tree root, inside the startup transaction.
+const setRoot = (group) => {
+  holder.current = group;
+  if (group !== null) godot_tree_set_root(group);
+};
+await act(async () => { root.render(createElement('group', { ref: setRoot }, createElement(GodotProjectStartup, null, createElement(MainScene, { name: 'Main' })))); });
 for (let tries = 0; tries < 200 && (holder.current?.children[0]?.children.length ?? 0) === 0; tries += 1) {
   await act(async () => { await new Promise((resolve) => setTimeout(resolve, 25)); });
 }
@@ -320,6 +332,7 @@ export async function measureSceneImportedProof(tools: GodotProofTools): Promise
       },
     ];
   } finally {
-    rmSync(temp, { recursive: true, force: true });
+    if (process.env['KEEP_WORLD'] === undefined) rmSync(temp, { recursive: true, force: true });
+    else process.stdout.write(`${temp}\n`);
   }
 }

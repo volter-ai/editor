@@ -29,6 +29,7 @@ import type {
 } from '../data/direct-project-composition-plan';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 import { directGodotSceneAutoloadContextName, directGodotSceneAutoloadReferences } from './direct-autoload-syntax';
+import { godotImportedModelDataPath } from '../data/scene-document-plan';
 import {
   attribute,
   camelName,
@@ -118,6 +119,8 @@ interface Emission {
   readonly scenes: ReadonlyMap<string, DirectGodotSceneDocumentPlan>;
   /** The prefab components the scene instances, by name, with their modules. */
   readonly instances: Map<string, string>;
+  /** The imported models' data files the scene reads, by local name. */
+  readonly models: Map<string, string>;
   /** The scene's autoload context (`<Scene>Autoloads`), when its scripts read autoloads. */
   readonly autoloads: string | undefined;
 }
@@ -449,6 +452,57 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
   return element(local, [name, ...ref, ...transform, ...overrides], children);
 }
 
+/** The URL the project serves an imported model's file at (its copied asset). */
+function importedModelUrl(resPath: string): string {
+  return `/godot/${resPath.slice('res://'.length)}`;
+}
+
+/**
+ * An instanced imported model: compat's `<GodotImportedScene>` over drei's `useGLTF`, with the
+ * importer's tree from its data file, the bone poses the scene sets on its nodes as `overrides`,
+ * the instance's own children as JSX children, and the nodes placed under a model node inside
+ * `<GodotPlaced at>`.
+ */
+function modelElement(emission: Emission, node: DirectGodotSceneNodePlan, name: TargetTsJsxAttribute, transform: TargetTsJsxAttribute[]): TargetTsJsxChild {
+  const model = node.model as NonNullable<DirectGodotSceneNodePlan['model']>;
+  const file = godotImportedModelDataPath(model.sourceResPath);
+  let local = [...emission.models].find(([, path]) => path === file)?.[0];
+  if (local === undefined) {
+    local = `${camelName(path.posix.basename(model.sourceResPath).replace(/\.[^.]+$/u, ''))}Model`;
+    for (let n = 2; emission.family.taken.has(local); n += 1) local = `${camelName(path.posix.basename(model.sourceResPath).replace(/\.[^.]+$/u, ''))}Model${String(n)}`;
+    emission.family.taken.add(local);
+    emission.models.set(local, file);
+  }
+  const overrides: Record<string, Record<string, unknown>> = {};
+  const POSE: Readonly<Record<string, string>> = { set_bone_pose_position: 'position', set_bone_pose_rotation: 'rotation', set_bone_pose_scale: 'scale' };
+  for (const override of model.overrides) {
+    const properties: Record<string, unknown> = {};
+    for (const setter of override.setters) properties[`bones/${String(setter.index)}/${POSE[setter.setter.exportName] as string}`] = plainValue(setter.value);
+    overrides[override.at] = properties;
+  }
+  useCompat(emission, 'packed-scene', 'GodotImportedScene');
+  const placed = new Map<string, TargetTsJsxChild[]>();
+  for (const placement of node.placements ?? []) {
+    placed.set(placement.at, [...(placed.get(placement.at) ?? []), nodeElement(emission, placement.node)]);
+  }
+  const placements = [...placed].map(([at, children]) => {
+    useCompat(emission, 'packed-scene', 'GodotPlaced');
+    return element('GodotPlaced', [{ kind: 'jsx-string-attribute', name: 'at', value: at }], children);
+  });
+  return element(
+    'GodotImportedScene',
+    [
+      name,
+      ...nodeRef(emission, node, 'Group'),
+      { kind: 'jsx-string-attribute', name: 'src', value: importedModelUrl(model.sourceResPath) },
+      attribute('tree', { kind: 'identifier-expression', name: local }),
+      ...transform,
+      ...(Object.keys(overrides).length === 0 ? [] : [attribute('overrides', dataExpression(overrides))]),
+    ],
+    [...node.children.map((child) => nodeElement(emission, child)), ...placements],
+  );
+}
+
 function sameSetter(left: TargetGodotSceneSetterPlan, right: TargetGodotSceneSetterPlan): boolean {
   return left.setter.exportName === right.setter.exportName && left.index === right.index;
 }
@@ -469,6 +523,7 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
     (entry) => !scaleless || entry.kind === 'jsx-spread-attribute' || entry.name !== 'scale',
   );
   const children = () => node.children.map((child) => nodeElement(emission, child));
+  if (node.model !== undefined) return modelElement(emission, node, name, transform);
   if (node.instance !== undefined) return instanceElement(emission, node, name, transform, at);
   const bodyType = BODY_TYPES[className];
   if (bodyType !== undefined) {
@@ -601,6 +656,7 @@ export function idiomaticSceneSourceFile(
     rapierTypes: new Set(),
     scenes: new Map(project.scenes.map((entry) => [entry.sourceResPath, entry] as const)),
     instances: new Map(),
+    models: new Map(),
     autoloads: autoloadReferences.length === 0 ? undefined : directGodotSceneAutoloadContextName(scene.exportName),
   };
   const node = nodeElement(emission, scene.root) as TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' };
@@ -710,6 +766,12 @@ export function idiomaticSceneSourceFile(
     ...(emission.rapierTypes.size === 0
       ? []
       : [{ kind: 'import-statement' as const, module: '@react-three/rapier', namedBindings: [...emission.rapierTypes].sort().map((name) => ({ imported: name, local: name })), typeOnly: true as const }]),
+    ...[...emission.models].map(([local, file]) => ({
+      kind: 'import-statement' as const,
+      module: `${moduleSpecifier(scene.targetPath, file.replace(/\.json$/u, '.ts'))}.json`,
+      defaultBinding: local,
+      namedBindings: [],
+    })),
     ...[...emission.instances].map(([local, module]) => ({
       kind: 'import-statement' as const,
       module,

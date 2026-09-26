@@ -1345,6 +1345,9 @@ const BODY_CLASSES = new Set(['StaticBody3D', 'RigidBody3D', 'CharacterBody3D', 
 /** The families only the idiomatic shape writes: a scene holding one is refused in any other. */
 const IDIOMATIC_ONLY_CLASSES = new Set([...BODY_CLASSES, 'CollisionShape3D', 'RayCast3D', 'Marker3D']);
 
+/** The properties an imported model's element sets on the model's own nodes (bone poses). */
+const MODEL_OVERRIDE_SETTERS = ['set_bone_pose_position', 'set_bone_pose_rotation', 'set_bone_pose_scale'];
+
 /** An instance whose scene's root class is not known yet. */
 const PENDING_INSTANCE = '(instanced scene)';
 
@@ -1371,7 +1374,23 @@ export function idiomaticRefusal(
     if (setter !== undefined) return `${resource.className}.${setter.propertyName}`;
   }
   const walk = (node: TargetGodotSceneNodePlan, parentClass: string | undefined): string | undefined => {
-    if (node.model !== undefined) return `imported model ${node.nodePath}`;
+    if (node.model !== undefined) {
+      // An imported model: its root takes the transform only; the model's own nodes take the bone
+      // poses its element states; the nodes placed under them are written as the scene's own.
+      if (node.setters.length > 0 || node.properties.some((entry) => entry.propertyName !== 'transform')) return `overrides on the imported model ${node.nodePath}`;
+      const override = node.model.overrides.flatMap((entry) => entry.setters).find((entry) => !MODEL_OVERRIDE_SETTERS.includes(entry.setter.exportName));
+      if (override !== undefined) return `the imported model's ${override.propertyName}`;
+      if (node.groups.length > 0 || node.unique === true) return `groups or a unique name on the imported model ${node.nodePath}`;
+      for (const placed of node.placements ?? []) {
+        const refused = walk(placed.node, undefined);
+        if (refused !== undefined) return refused;
+      }
+      for (const child of node.children) {
+        const refused = walk(child, node.model.rootClasses[0]);
+        if (refused !== undefined) return refused;
+      }
+      return undefined;
+    }
     let className = node.classes[0];
     if (node.instance !== undefined) {
       className = instanced(node.instance.sourceResPath);
@@ -1384,7 +1403,6 @@ export function idiomaticRefusal(
     const allowed =
       carried || className === PENDING_INSTANCE ? node.setters.map((entry) => setterName(entry)[0] as string) : IDIOMATIC_NODE_SETTERS[className];
     if (allowed === undefined) return `class ${className}`;
-    if ((node.placements ?? []).length > 0) return `placements under ${node.nodePath}`;
     if (className === 'CollisionShape3D' && (parentClass === undefined || !(BODY_CLASSES.has(parentClass) || parentClass === PENDING_INSTANCE))) {
       return 'a collision shape outside a body';
     }
@@ -1679,4 +1697,9 @@ export function planGodotSceneDocuments(
       semanticClaimRegistryDigest: authority.registryDigest,
     },
   };
+}
+
+/** An imported model's data file: the importer's tree (`src/models/<path>.json`). */
+export function godotImportedModelDataPath(resPath: string): string {
+  return `src/models/${resPath.slice('res://'.length).replace(/[^A-Za-z0-9._/-]+/gu, '_')}.json`;
 }

@@ -178,8 +178,22 @@ function parentEntity(entity: object): object | null {
  */
 function childEntities(entity: object): readonly object[] {
   return ((entity as Object3D).children ?? []).flatMap((child) =>
-    NODE.has(child) || nameOf(child) !== '' ? [child] : childEntities(child),
+    FOREIGN.has(child) ? [] : NODE.has(child) || nameOf(child) !== '' ? [child] : childEntities(child),
   );
+}
+
+/** Objects a library made that are not Godot nodes, whatever their names (a model's bones). */
+const FOREIGN = new WeakSet<object>();
+
+/**
+ * Marks an object a library made as not a Godot node (with what it holds): an imported model's
+ * joints and per-surface meshes, which Godot's importer makes bones and surfaces, not nodes.
+ *
+ * @godot Node (protocol)
+ * @source editor/import/3d/resource_importer_scene.cpp:3174
+ */
+export function godot_node_foreign(object: object): void {
+  FOREIGN.add(object);
 }
 
 function nameOf(entity: object): string {

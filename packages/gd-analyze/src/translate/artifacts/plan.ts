@@ -1,3 +1,4 @@
+import { godotImportedModelDataPath } from '../data/scene-document-plan';
 import { createHash } from 'node:crypto';
 import type { CapabilityCopyArtifact } from '../../snapshot/toolchain-snapshot';
 import type { OfficialBoundCodePlan } from '../code/lower-official-bound';
@@ -98,6 +99,26 @@ function sourceArtifacts(
   return [...plannedCode, ...plannedScenes];
 }
 
+/** Each imported model's data file (the importer's tree), once however many scenes instance it. */
+function modelDataArtifacts(composition: DirectGodotProjectCompositionPlan): readonly GodotPlannedArtifact[] {
+  const written = new Map<string, GodotPlannedArtifact>();
+  const visit = (scene: DirectGodotProjectCompositionPlan['scenes'][number], node: DirectGodotProjectCompositionPlan['scenes'][number]['root']): void => {
+    if (node.model !== undefined) {
+      const file = godotImportedModelDataPath(node.model.sourceResPath);
+      if (!written.has(file)) {
+        written.set(
+          file,
+          projectDataJsonArtifact(file, { rootClasses: node.model.rootClasses, nodes: node.model.nodes } as unknown as DirectJsonValue, [scene.sourceResPath]),
+        );
+      }
+    }
+    for (const child of node.children) visit(scene, child);
+    for (const placed of node.placements ?? []) visit(scene, placed.node);
+  };
+  for (const scene of composition.scenes) visit(scene, scene.root);
+  return [...written.values()];
+}
+
 /** Each `ArrayMesh`'s and `MeshLibrary`'s data file, once however many scenes use it, and each GridMap's cells. */
 function meshDataArtifacts(composition: DirectGodotProjectCompositionPlan): readonly GodotPlannedArtifact[] {
   const written = new Map<string, GodotPlannedArtifact>();
@@ -142,6 +163,7 @@ function projectArtifacts(
     projectDataJsonArtifact(DIRECT_GODOT_SETTINGS_PATH, directGodotSettingsJson(composition) as DirectJsonValue, sourcePaths),
     projectDataJsonArtifact(DIRECT_GODOT_INPUT_MAP_PATH, directGodotInputMapJson(composition) as DirectJsonValue, sourcePaths),
     ...meshDataArtifacts(composition),
+    ...modelDataArtifacts(composition),
     projectDataJsonArtifact('vgai.project.json', plan.manifest, sourcePaths),
     projectDataJsonArtifact('package.json', plan.packageManifest, sourcePaths),
     projectDataJsonArtifact('package-lock.json', plan.packageLock, sourcePaths),

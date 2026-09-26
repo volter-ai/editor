@@ -4,12 +4,14 @@
  *
  * Godot 4.7's imported scene (`editor/import/3d/resource_importer_scene.cpp` over
  * `modules/gltf/gltf_document.cpp`, revision `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) bound onto
- * three's glTF loader. Godot's importer builds its own node tree from the file: it synthesizes a
+ * drei's `useGLTF`. Godot's importer builds its own node tree from the file: it synthesizes a
  * root, a `Skeleton3D` per skin (the joints become its bones, not nodes) and an `AnimationPlayer`,
  * reparents skinned meshes under their skeleton, and names every node with its own uniquifier.
  * three's loader keeps the file's tree. The translated scene hands this component Godot's tree (the
- * importer model in `read/gltf-godot-scene.ts`: each node's Godot name, class chain, local
- * transform and, for a node the file backs, its glTF `nodes[]` index); the component loads the
+ * importer model in `read/gltf-godot-scene.ts`, as the model's data file: each node's Godot name,
+ * class chain, local transform and, for a node the file backs, its glTF `nodes[]` index); the
+ * scene writes `<GodotImportedScene src tree overrides>`, its own children as JSX children and the
+ * nodes it places under a node of the model inside `<GodotPlaced at="Path">`; the component loads the
  * file, and makes each Godot node the three object the loader made for that glTF node (a
  * synthesized node a new group), under Godot's parent, with Godot's name and transform, adopted
  * by the Node protocol; a Skeleton3D's bones are the loader's joint objects in Godot's bone order.
@@ -21,13 +23,15 @@
  * importer's skeleton gives it (`skin_tool.cpp:636`), which the RESET keys can differ from.
  */
 
-import { createPortal, type ThreeElements, useLoader } from '@react-three/fiber';
-import { createElement, type ReactNode, useLayoutEffect, useMemo, useRef } from 'react';
+import { useGLTF } from '@react-three/drei';
+import { createPortal, type ThreeElements } from '@react-three/fiber';
+import { createContext, createElement, type ReactNode, useContext, useLayoutEffect, useMemo, useRef } from 'react';
 import { Group, type Object3D } from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { godot_node_adopt } from './node';
-import { godot_skeleton_3d_bind } from './skeleton-3d';
+import { godot_node_adopt, godot_node_foreign } from './node';
+import { construct as quaternion } from './quaternion';
+import { godot_skeleton_3d_bind, set_bone_pose_position, set_bone_pose_rotation, set_bone_pose_scale } from './skeleton-3d';
+import { construct as vector3 } from './vector3';
 
 /** One node of the imported tree, below its root, in `Node::get_children` depth-first order. */
 export interface GodotImportedSceneNode {
@@ -54,15 +58,50 @@ export interface GodotImportedSceneNode {
   }[];
 }
 
-/** A node the instancing scene places under a node of the imported tree. */
-export interface GodotImportedScenePlacement {
-  readonly at: string;
-  readonly element: ReactNode;
+/** The importer's tree of a model, as its data file holds it. */
+export interface GodotImportedSceneTree {
+  readonly rootClasses: readonly string[];
+  readonly nodes: readonly GodotImportedSceneNode[];
+}
+
+const BONE_POSE = /^bones\/(\d+)\/(position|rotation|scale)$/u;
+
+/**
+ * One property the instancing scene sets on a node of the model, by its Godot name, through the
+ * node's setter: a Skeleton3D's bone poses (`Skeleton3D::_set`, `skeleton_3d.cpp:118`).
+ */
+function applyOverride(entity: Object3D, property: string, value: unknown): void {
+  const bone = BONE_POSE.exec(property);
+  if (bone === null) throw new Error(`godot-compat: an imported model's node has no overridable property ${property}.`);
+  const index = Number(bone[1]);
+  const components = value as readonly number[];
+  if (bone[2] === 'rotation') set_bone_pose_rotation(entity, index, quaternion(...(components as [number, number, number, number])));
+  else if (bone[2] === 'position') set_bone_pose_position(entity, index, vector3(...(components as [number, number, number])));
+  else set_bone_pose_scale(entity, index, vector3(...(components as [number, number, number])));
+}
+
+/** The loaded tree's nodes by path, for the nodes a scene places under them. */
+const TreeContext = createContext<ReadonlyMap<string, Object3D> | null>(null);
+
+/**
+ * Nodes the instancing scene places under a node of the imported model (`at`, its path in the
+ * model): mounted as that node's children.
+ *
+ * @godot PackedScene (protocol)
+ * @source scene/resources/packed_scene.cpp:540
+ */
+export function GodotPlaced({ at, children }: { readonly at: string; readonly children?: ReactNode }) {
+  const byPath = useContext(TreeContext);
+  const target = byPath?.get(at);
+  if (target === undefined) throw new Error(`godot-compat: the imported tree has no node ${at}`);
+  return createPortal(children, target);
 }
 
 type GroupProps = Omit<ThreeElements['group'], 'ref'>;
 
 interface BuiltTree {
+  /** Every object the loader made (a Godot node or not). */
+  readonly loaded: readonly Object3D[];
   readonly byPath: ReadonlyMap<string, Object3D>;
   readonly byIndex: ReadonlyMap<number, Object3D>;
   readonly depthOne: readonly Object3D[];
@@ -71,6 +110,8 @@ interface BuiltTree {
 /** The loaded file's objects as Godot's imported tree, on a private clone of the loaded scene. */
 function buildTree(scene: Object3D, associations: ReadonlyMap<Object3D, { readonly nodes?: number }>, nodes: readonly GodotImportedSceneNode[]): BuiltTree {
   const copy = cloneSkinned(scene);
+  const loaded: Object3D[] = [];
+  copy.traverse((object) => loaded.push(object));
   // The clone has the loaded scene's shape: walk both together to find each glTF node's copy.
   const byIndex = new Map<number, Object3D>();
   const pair = (source: Object3D, target: Object3D): void => {
@@ -99,7 +140,7 @@ function buildTree(scene: Object3D, associations: ReadonlyMap<Object3D, { readon
     }
     byPath.set(node.path, entity);
   }
-  return { byPath, byIndex, depthOne };
+  return { loaded, byPath, byIndex, depthOne };
 }
 
 /**
@@ -110,23 +151,20 @@ function buildTree(scene: Object3D, associations: ReadonlyMap<Object3D, { readon
  * @source editor/import/3d/resource_importer_scene.cpp:3174
  */
 export function GodotImportedScene({
-  url,
-  rootClasses,
-  nodes,
-  placements = [],
-  overrides = [],
+  src,
+  tree: model,
+  overrides = {},
   children,
   ...props
 }: GroupProps & {
-  readonly url: string;
-  readonly rootClasses: readonly string[];
-  readonly nodes: readonly GodotImportedSceneNode[];
-  readonly placements?: readonly GodotImportedScenePlacement[];
-  /** The instancing scene's authored properties on the model's nodes, by their setters. */
-  readonly overrides?: readonly { readonly at: string; readonly apply: (entity: Object3D) => void }[];
+  readonly src: string;
+  readonly tree: GodotImportedSceneTree;
+  /** The instancing scene's properties on the model's nodes: by node path, by Godot name. */
+  readonly overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
   readonly children?: ReactNode;
 }) {
-  const gltf = useLoader(GLTFLoader, url);
+  const gltf = useGLTF(src);
+  const { rootClasses, nodes } = model;
   const tree = useMemo(
     () => buildTree(gltf.scene, gltf.parser.associations as ReadonlyMap<Object3D, { readonly nodes?: number }>, nodes),
     [gltf, nodes],
@@ -143,6 +181,9 @@ export function GodotImportedScene({
       entity.children.splice(entity.children.indexOf(child), 1);
       entity.children.splice(index, 0, child);
     });
+    // What the loader made that Godot's importer has no node for is not a node.
+    const members = new Set(tree.byPath.values());
+    for (const object of tree.loaded) if (!members.has(object)) godot_node_foreign(object);
     for (const node of nodes) {
       const member = tree.byPath.get(node.path) as Object3D;
       godot_node_adopt(member, {
@@ -165,10 +206,10 @@ export function GodotImportedScene({
     }
     // Godot sets the instancing scene's values on the instantiated nodes (`SceneState::instantiate`,
     // packed_scene.cpp:400).
-    for (const override of overrides) {
-      const target = tree.byPath.get(override.at);
-      if (target === undefined) throw new Error(`godot-compat: the imported tree has no node ${override.at}`);
-      override.apply(target);
+    for (const [at, properties] of Object.entries(overrides)) {
+      const target = tree.byPath.get(at);
+      if (target === undefined) throw new Error(`godot-compat: the imported tree has no node ${at}`);
+      for (const [property, value] of Object.entries(properties)) applyOverride(target, property, value);
     }
     return () => {
       for (const child of tree.depthOne) entity.remove(child);
@@ -177,11 +218,6 @@ export function GodotImportedScene({
   return createElement(
     'group',
     { ...props, ref: root },
-    children,
-    placements.map((placement) => {
-      const target = tree.byPath.get(placement.at);
-      if (target === undefined) throw new Error(`godot-compat: the imported tree has no node ${placement.at}`);
-      return createPortal(placement.element, target);
-    }),
+    createElement(TreeContext.Provider, { value: tree.byPath }, children),
   );
 }
