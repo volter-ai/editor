@@ -21,9 +21,11 @@
   "devDependencies": {
     "@dimforge/rapier3d-compat": "^0.14.0",
     "@hpcc-js/wasm-zstd": "^1.15.0",
+    "@types/fontkit": "^2.0.9",
     "@types/node": "^25.3.0",
     "fontkit": "^2.0.4",
     "jsdom": "^27.0.1",
+    "linebreak": "^1.1.0",
     "pako": "^3.0.1",
     "react": "~19.2.4",
     "react-dom": "~19.2.4"

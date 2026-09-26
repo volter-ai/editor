@@ -1,0 +1,286 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/font"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Font",
+        "member": "get_ascent",
+        "kind": "native-member",
+        "signature": "hash:378113874"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/font",
+        "exportName": "get_ascent",
+        "localName": "Font_get_ascent",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Font.get_ascent"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Font",
+        "member": "get_descent",
+        "kind": "native-member",
+        "signature": "hash:378113874"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/font",
+        "exportName": "get_descent",
+        "localName": "Font_get_descent",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Font.get_descent"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Font",
+        "member": "get_height",
+        "kind": "native-member",
+        "signature": "hash:378113874"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/font",
+        "exportName": "get_height",
+        "localName": "Font_get_height",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Font.get_height"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Font",
+        "member": "get_string_size",
+        "kind": "native-member",
+        "signature": "hash:1868866121"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/font",
+        "exportName": "get_string_size",
+        "localName": "Font_get_string_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Font.get_string_size"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Font.get_ascent",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Font\u0000get_ascent\u0000hash:378113874",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/font.cpp",
+        "sourceSymbol": "Font.get_ascent",
+        "sourceLine": 229
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e17936fb5a314258620c78a2d7910d02949d4a91d929f10dd04c73a9d5f7054f",
+        "callsite": "res://probe.gd _init() get_ascent-sizes",
+        "observedOutputSha256": "b7a31aa21a4908337761831c1c993344dae16a69209681ed48c131284c45ebab"
+      },
+      "target": {
+        "implementationSha256": "f225bd61ab4b5797a4577aaf8e5b447a31f4604c7b903917ddc2aa586d3b7c04",
+        "callsite": "lib/godot-compat/font.ts get_ascent",
+        "observedOutputSha256": "b7a31aa21a4908337761831c1c993344dae16a69209681ed48c131284c45ebab"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "618d82fc5dab5b625a64298b8ff599711ca296a2472a491e457115b3bc184a1d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "font",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Font.get_descent",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Font\u0000get_descent\u0000hash:378113874",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/font.cpp",
+        "sourceSymbol": "Font.get_descent",
+        "sourceLine": 240
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0180aea55614d83b9bd0f8a239a4962851a7112db5f62ee5a8511415176c95f0",
+        "callsite": "res://probe.gd _init() get_descent-sizes",
+        "observedOutputSha256": "b24178a15b48efd60cd7fa435eed32f11250e402edc347dabda19c517e63602b"
+      },
+      "target": {
+        "implementationSha256": "f225bd61ab4b5797a4577aaf8e5b447a31f4604c7b903917ddc2aa586d3b7c04",
+        "callsite": "lib/godot-compat/font.ts get_descent",
+        "observedOutputSha256": "b24178a15b48efd60cd7fa435eed32f11250e402edc347dabda19c517e63602b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b200dbc5e49c74dc6d6686f8554158ad0bb9c57ce85d78a722d30ea9691e6654"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "font",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Font.get_height",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Font\u0000get_height\u0000hash:378113874",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/font.cpp",
+        "sourceSymbol": "Font.get_height",
+        "sourceLine": 217
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "85c8b0943f04f5ba036d702756a5f41b55c9fc21a02ff79ae42a57e10571a3c5",
+        "callsite": "res://probe.gd _init() get_height-sizes",
+        "observedOutputSha256": "d17f2d90ba063361bcdf44c6f88c02264e66e1742efb8ea16f5cfc50fdd460f5"
+      },
+      "target": {
+        "implementationSha256": "f225bd61ab4b5797a4577aaf8e5b447a31f4604c7b903917ddc2aa586d3b7c04",
+        "callsite": "lib/godot-compat/font.ts get_height",
+        "observedOutputSha256": "d17f2d90ba063361bcdf44c6f88c02264e66e1742efb8ea16f5cfc50fdd460f5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "d79415bc1f7d616e80ea3f6cf794bb501f5f48b7282181807c11eba30f25b448"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "font",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Font.get_string_size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Font\u0000get_string_size\u0000hash:1868866121",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/font.cpp",
+        "sourceSymbol": "Font.get_string_size",
+        "sourceLine": 319
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c9d8f541ae96b86c53c68fccf59c38fe8bb578f6dae6c0e146dba00b905dc265",
+        "callsite": "res://probe.gd _init() get_string_size-texts",
+        "observedOutputSha256": "5cdbb9ec60ba05073faf594f484afd7e28dfcdbbc2967f062a86a5d1f95a3e2a"
+      },
+      "target": {
+        "implementationSha256": "f225bd61ab4b5797a4577aaf8e5b447a31f4604c7b903917ddc2aa586d3b7c04",
+        "callsite": "lib/godot-compat/font.ts get_string_size",
+        "observedOutputSha256": "5cdbb9ec60ba05073faf594f484afd7e28dfcdbbc2967f062a86a5d1f95a3e2a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0853b28da6990bcfa4ab7c03d92c787eb940e55303f5ba53456757dcb298edd8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "font",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Font.get_ascent",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e17936fb5a314258620c78a2d7910d02949d4a91d929f10dd04c73a9d5f7054f",
+      "implementationSha256": "f225bd61ab4b5797a4577aaf8e5b447a31f4604c7b903917ddc2aa586d3b7c04"
+    },
+    {
+      "claimId": "godot-4.7-binding-Font.get_descent",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0180aea55614d83b9bd0f8a239a4962851a7112db5f62ee5a8511415176c95f0",
+      "implementationSha256": "f225bd61ab4b5797a4577aaf8e5b447a31f4604c7b903917ddc2aa586d3b7c04"
+    },
+    {
+      "claimId": "godot-4.7-binding-Font.get_height",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "85c8b0943f04f5ba036d702756a5f41b55c9fc21a02ff79ae42a57e10571a3c5",
+      "implementationSha256": "f225bd61ab4b5797a4577aaf8e5b447a31f4604c7b903917ddc2aa586d3b7c04"
+    },
+    {
+      "claimId": "godot-4.7-binding-Font.get_string_size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c9d8f541ae96b86c53c68fccf59c38fe8bb578f6dae6c0e146dba00b905dc265",
+      "implementationSha256": "f225bd61ab4b5797a4577aaf8e5b447a31f4604c7b903917ddc2aa586d3b7c04"
+    }
+  ]
+}

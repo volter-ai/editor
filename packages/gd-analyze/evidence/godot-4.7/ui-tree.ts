@@ -11,6 +11,10 @@ import * as COLOR from '../../capabilities/catalog/project-source/src/lib/godot-
 import * as CONTAINER from '../../capabilities/catalog/project-source/src/lib/godot-compat/container';
 import * as C from '../../capabilities/catalog/project-source/src/lib/godot-compat/control';
 import * as HBOX from '../../capabilities/catalog/project-source/src/lib/godot-compat/h-box-container';
+import { readFileSync } from 'node:fs';
+import * as F from '../../capabilities/catalog/project-source/src/lib/godot-compat/font';
+import * as L from '../../capabilities/catalog/project-source/src/lib/godot-compat/label';
+import * as LS from '../../capabilities/catalog/project-source/src/lib/godot-compat/label-settings';
 import * as N from '../../capabilities/catalog/project-source/src/lib/godot-compat/node';
 import * as PT from '../../capabilities/catalog/project-source/src/lib/godot-compat/placeholder-texture-2d';
 import * as T2D from '../../capabilities/catalog/project-source/src/lib/godot-compat/texture-2d';
@@ -40,7 +44,7 @@ export const rect = (x: number, y: number, w: number, h: number): Value => ({ re
 export const color = (r: number, g: number, b: number, a: number): Value => ({ color: [r, g, b, a] });
 export const ref = (node: string): Value => ({ node });
 
-export type Kind = 'CanvasLayer' | 'Control' | 'HBoxContainer' | 'TextureRect';
+export type Kind = 'CanvasLayer' | 'Control' | 'HBoxContainer' | 'TextureRect' | 'Label';
 
 export type Op =
   /** A node of `kind` under `parent` (default: the SubViewport), or outside the tree when `detached`. */
@@ -51,7 +55,11 @@ export type Op =
   | { readonly read: string; readonly on: string; readonly args?: readonly Value[]; readonly then?: string }
   | { readonly remove: string }
   /** A `PlaceholderTexture2D` (a resource, not a node). */
-  | { readonly placeholder: string };
+  | { readonly placeholder: string }
+  /** A `LabelSettings` (a resource). */
+  | { readonly settings: string }
+  /** The default theme's font (`ThemeDB.fallback_font`). */
+  | { readonly font: string };
 
 export interface Segment {
   /** Frames to wait (`await process_frame`) before the steps. */
@@ -67,8 +75,14 @@ const MODULES: Readonly<Record<Kind, readonly Exports[]>> = {
   Control: [C, CI, N],
   HBoxContainer: [BOX, CONTAINER, C, CI, N],
   TextureRect: [TR, C, CI, N],
+  Label: [L, C, CI, N],
 };
 const TEXTURE_MODULES: readonly Exports[] = [PT, T2D];
+
+// The default theme's font: the bytes Godot embeds, shipped beside the compat module.
+F.godot_font_default(
+  F.godot_font_load(new Uint8Array(readFileSync(new URL('../../capabilities/catalog/project-source/src/lib/godot-compat/OpenSans_SemiBold.woff2', import.meta.url)))),
+);
 
 function gdValue(value: Value): string {
   if (typeof value === 'number') return gd(value);
@@ -93,6 +107,10 @@ export function uiGdscript(size: Pair, segments: readonly Segment[]): string {
     for (const op of segment.ops) {
       if ('placeholder' in op) {
         lines.push(`var n_${op.placeholder} := PlaceholderTexture2D.new()`);
+      } else if ('settings' in op) {
+        lines.push(`var n_${op.settings} := LabelSettings.new()`);
+      } else if ('font' in op) {
+        lines.push(`var n_${op.font} := ThemeDB.fallback_font`);
       } else if ('node' in op) {
         lines.push(`var n_${op.node} := ${op.kind}.new()`);
         lines.push(`n_${op.node}.name = ${JSON.stringify(op.node)}`);
@@ -127,14 +145,14 @@ export function uiTarget(size: Pair, segments: readonly Segment[]): () => unknow
     SV.set_size(viewport, { x: size[0], y: size[1] });
     N.add_child(holder, viewport);
     const nodes = new Map<string, { readonly entity: Object3D; readonly kind: Kind }>();
-    const textures = new Map<string, object>();
+    const textures = new Map<string, { readonly value: object; readonly modules: readonly Exports[] }>();
     const jsValue = (value: Value): unknown => {
       if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'string') return value;
       if ('int' in value) return value.int;
       if ('v2' in value) return V2.construct(value.v2[0], value.v2[1]);
       if ('rect' in value) return R.construct(...value.rect);
       if ('color' in value) return COLOR.construct(...value.color);
-      return nodes.get(value.node)?.entity ?? textures.get(value.node);
+      return nodes.get(value.node)?.entity ?? textures.get(value.node)?.value;
     };
     const resolve = (kind: Kind, name: string): ((...args: unknown[]) => unknown) => {
       const found = MODULES[kind].find((module) => typeof module[name] === 'function');
@@ -146,7 +164,11 @@ export function uiTarget(size: Pair, segments: readonly Segment[]): () => unknow
       for (let frame = 0; frame < (segment.await ?? 0); frame += 1) ST.godot_tree_frame(DT);
       for (const op of segment.ops) {
         if ('placeholder' in op) {
-          textures.set(op.placeholder, PT.godot_placeholder_texture_2d_new());
+          textures.set(op.placeholder, { value: PT.godot_placeholder_texture_2d_new(), modules: [PT, T2D] });
+        } else if ('settings' in op) {
+          textures.set(op.settings, { value: LS.godot_label_settings_new(), modules: [LS] });
+        } else if ('font' in op) {
+          textures.set(op.font, { value: F.godot_font_default(), modules: [F] });
         } else if ('node' in op) {
           const entity = new Group();
           entity.name = op.node;
@@ -155,6 +177,7 @@ export function uiTarget(size: Pair, segments: readonly Segment[]): () => unknow
             CL.godot_canvas_layer_mount(entity);
           } else if (op.kind === 'HBoxContainer') HBOX.godot_h_box_container_mount(entity);
           else if (op.kind === 'TextureRect') TR.godot_texture_rect_mount(entity);
+          else if (op.kind === 'Label') L.godot_label_mount(entity);
           else C.godot_control_mount(entity, ['Control', 'CanvasItem', 'Node']);
           if (op.detached !== true) N.add_child(op.parent === undefined ? viewport : (nodes.get(op.parent)?.entity as Object3D), entity);
           nodes.set(op.node, { entity, kind: op.kind });
@@ -170,9 +193,9 @@ export function uiTarget(size: Pair, segments: readonly Segment[]): () => unknow
           if (texture === undefined && node === undefined) throw new Error(`no node ${op.on}`);
           const fn =
             texture !== undefined
-              ? (TEXTURE_MODULES.find((module) => typeof module[name] === 'function')?.[name] as (...args: unknown[]) => unknown)
+              ? (texture.modules.find((module) => typeof module[name] === 'function')?.[name] as (...args: unknown[]) => unknown)
               : resolve((node as { readonly kind: Kind }).kind, name);
-          const result = fn(texture ?? (node as { readonly entity: Object3D }).entity, ...(op.args ?? []).map(jsValue));
+          const result = fn(texture?.value ?? (node as { readonly entity: Object3D }).entity, ...(op.args ?? []).map(jsValue));
           if ('read' in op) {
             const then = op.then;
             log.push(then === undefined ? result : (TEXTURE_MODULES.find((module) => typeof module[then] === 'function')?.[then] as (value: unknown) => unknown)(result));

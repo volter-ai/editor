@@ -1,0 +1,1238 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/label-settings"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "LabelSettings",
+        "member": "set_line_spacing",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/label-settings",
+        "exportName": "set_line_spacing",
+        "localName": "LabelSettings_set_line_spacing",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-LabelSettings.set_line_spacing"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "LabelSettings",
+        "member": "get_line_spacing",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/label-settings",
+        "exportName": "get_line_spacing",
+        "localName": "LabelSettings_get_line_spacing",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-LabelSettings.get_line_spacing"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "LabelSettings",
+        "member": "set_paragraph_spacing",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/label-settings",
+        "exportName": "set_paragraph_spacing",
+        "localName": "LabelSettings_set_paragraph_spacing",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-LabelSettings.set_paragraph_spacing"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "LabelSettings",
+        "member": "get_paragraph_spacing",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/label-settings",
+        "exportName": "get_paragraph_spacing",
+        "localName": "LabelSettings_get_paragraph_spacing",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-LabelSettings.get_paragraph_spacing"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "LabelSettings",
+        "member": "set_font_size",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/label-settings",
+        "exportName": "set_font_size",
+        "localName": "LabelSettings_set_font_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-LabelSettings.set_font_size"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "LabelSettings",
+        "member": "get_font_size",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/label-settings",
+        "exportName": "get_font_size",
+        "localName": "LabelSettings_get_font_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-LabelSettings.get_font_size"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "LabelSettings",
+        "member": "set_font_color",
+        "kind": "native-member",
+        "signature": "hash:2920490490"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/label-settings",
+        "exportName": "set_font_color",
+        "localName": "LabelSettings_set_font_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-LabelSettings.set_font_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "LabelSettings",
+        "member": "get_font_color",
+        "kind": "native-member",
+        "signature": "hash:3444240500"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/label-settings",
+        "exportName": "get_font_color",
+        "localName": "LabelSettings_get_font_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-LabelSettings.get_font_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "LabelSettings",
+        "member": "set_outline_size",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/label-settings",
+        "exportName": "set_outline_size",
+        "localName": "LabelSettings_set_outline_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-LabelSettings.set_outline_size"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "LabelSettings",
+        "member": "get_outline_size",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/label-settings",
+        "exportName": "get_outline_size",
+        "localName": "LabelSettings_get_outline_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-LabelSettings.get_outline_size"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "LabelSettings",
+        "member": "set_outline_color",
+        "kind": "native-member",
+        "signature": "hash:2920490490"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/label-settings",
+        "exportName": "set_outline_color",
+        "localName": "LabelSettings_set_outline_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-LabelSettings.set_outline_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "LabelSettings",
+        "member": "get_outline_color",
+        "kind": "native-member",
+        "signature": "hash:3444240500"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/label-settings",
+        "exportName": "get_outline_color",
+        "localName": "LabelSettings_get_outline_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-LabelSettings.get_outline_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "LabelSettings",
+        "member": "set_shadow_size",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/label-settings",
+        "exportName": "set_shadow_size",
+        "localName": "LabelSettings_set_shadow_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-LabelSettings.set_shadow_size"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "LabelSettings",
+        "member": "get_shadow_size",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/label-settings",
+        "exportName": "get_shadow_size",
+        "localName": "LabelSettings_get_shadow_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-LabelSettings.get_shadow_size"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "LabelSettings",
+        "member": "set_shadow_color",
+        "kind": "native-member",
+        "signature": "hash:2920490490"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/label-settings",
+        "exportName": "set_shadow_color",
+        "localName": "LabelSettings_set_shadow_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-LabelSettings.set_shadow_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "LabelSettings",
+        "member": "get_shadow_color",
+        "kind": "native-member",
+        "signature": "hash:3444240500"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/label-settings",
+        "exportName": "get_shadow_color",
+        "localName": "LabelSettings_get_shadow_color",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-LabelSettings.get_shadow_color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "LabelSettings",
+        "member": "set_shadow_offset",
+        "kind": "native-member",
+        "signature": "hash:743155724"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/label-settings",
+        "exportName": "set_shadow_offset",
+        "localName": "LabelSettings_set_shadow_offset",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-LabelSettings.set_shadow_offset"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "LabelSettings",
+        "member": "get_shadow_offset",
+        "kind": "native-member",
+        "signature": "hash:3341600327"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/label-settings",
+        "exportName": "get_shadow_offset",
+        "localName": "LabelSettings_get_shadow_offset",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-LabelSettings.get_shadow_offset"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-LabelSettings.set_line_spacing",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000LabelSettings\u0000set_line_spacing\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/label_settings.cpp",
+        "sourceSymbol": "LabelSettings.set_line_spacing",
+        "sourceLine": 134
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2f85d509fabc4133cdc872bb0cab9a301073fca6937400d31f153466752e41fb",
+        "callsite": "res://probe.gd _init() set_line_spacing",
+        "observedOutputSha256": "5ffacf3ec171b2e45593657a60205edd10956509bec838c6c904a2825c12f40e"
+      },
+      "target": {
+        "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f",
+        "callsite": "lib/godot-compat/label-settings.ts set_line_spacing",
+        "observedOutputSha256": "ee9dacf3afb0da9f934d5b2bf3fd19ac301c7d2492bab9cc111587a735ba6f14"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "4e1efe388f1dc52798efeb1b0277039ea35b644ee3fb10a4b4a02e70a3f85dea"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "label-settings",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-LabelSettings.get_line_spacing",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000LabelSettings\u0000get_line_spacing\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/label_settings.cpp",
+        "sourceSymbol": "LabelSettings.get_line_spacing",
+        "sourceLine": 141
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0521cbe1bcb53bd418e73d03eb391bf7425a6b2e9ef0b77ac4b8ab025a6f8469",
+        "callsite": "res://probe.gd _init() get_line_spacing",
+        "observedOutputSha256": "ff5fed0fabc92398146b4101d6fd45e270964047e1c08ff143fa2149a084dc8a"
+      },
+      "target": {
+        "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f",
+        "callsite": "lib/godot-compat/label-settings.ts get_line_spacing",
+        "observedOutputSha256": "07884c88fe40da83de62524c2e3838dd3b050530446efaf6b2f55d28d22dd1bb"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "66b55c68aaf83f9edb2244f888d18f03855b2a84a2ab951f5b22bdac9b7f8638"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "label-settings",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-LabelSettings.set_paragraph_spacing",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000LabelSettings\u0000set_paragraph_spacing\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/label_settings.cpp",
+        "sourceSymbol": "LabelSettings.set_paragraph_spacing",
+        "sourceLine": 145
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f9d73ae2274b7e36f55829b0f8028abd474b1feea0de43033526b1d02c15a2ef",
+        "callsite": "res://probe.gd _init() set_paragraph_spacing",
+        "observedOutputSha256": "3d67b9817f2ddbcfb7b5e11cd11c227c6585369b29c83b7baade1f4ee9dbd4f8"
+      },
+      "target": {
+        "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f",
+        "callsite": "lib/godot-compat/label-settings.ts set_paragraph_spacing",
+        "observedOutputSha256": "f1bf294f711fa1abdf4a50c37914a0b0c41570b995e8e4d5a1ddfb0ce00356ff"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "924fed8f30f9ff59f58d67060817d74d943a672215acbad4f63a8e3e77fb57c5"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "label-settings",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-LabelSettings.get_paragraph_spacing",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000LabelSettings\u0000get_paragraph_spacing\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/label_settings.cpp",
+        "sourceSymbol": "LabelSettings.get_paragraph_spacing",
+        "sourceLine": 152
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "bca058889c30a6708d31f2967ee93d3d2b5e26594b0a6eb0a2a03a35b0096582",
+        "callsite": "res://probe.gd _init() get_paragraph_spacing",
+        "observedOutputSha256": "80e4f0ee1402c36108f9b90d08a0d0a817e9b0ee5149d0a11ad98640421996bf"
+      },
+      "target": {
+        "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f",
+        "callsite": "lib/godot-compat/label-settings.ts get_paragraph_spacing",
+        "observedOutputSha256": "cc3ee14932c5aa41eb6c44d14a1d1c2231ed53c73aa553543c86e2923376b807"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8da99c20a158ccf3e1a9773d17673a2a3b37bdc1debb7a63a03015946e67845f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "label-settings",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-LabelSettings.set_font_size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000LabelSettings\u0000set_font_size\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/label_settings.cpp",
+        "sourceSymbol": "LabelSettings.set_font_size",
+        "sourceLine": 173
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "da66b18505570d3427f012d3fddfae3abcf1e839f278bb92483171d879a98473",
+        "callsite": "res://probe.gd _init() set_font_size",
+        "observedOutputSha256": "5b99427bdafe7c048de2d3bb60b3839120049081a17f94f4b61c5a936a9d0e62"
+      },
+      "target": {
+        "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f",
+        "callsite": "lib/godot-compat/label-settings.ts set_font_size",
+        "observedOutputSha256": "5a04ac12bb504ebab8b20538dce0393191755a2b535c6c1bd2222edf630af351"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "56601bd3654e5cbc2362a653759e6f65a26d1081bc7d4fefc28734a2446219ae"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "label-settings",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-LabelSettings.get_font_size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000LabelSettings\u0000get_font_size\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/label_settings.cpp",
+        "sourceSymbol": "LabelSettings.get_font_size",
+        "sourceLine": 180
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "769d25f148b7c39b1743252b3a9ce3ec8cad70d41b64dcd8fa31974b76ee1677",
+        "callsite": "res://probe.gd _init() get_font_size",
+        "observedOutputSha256": "07e1e6442dfc265490836a3f178ae09316d989730ffc8063f5e57024432dfd75"
+      },
+      "target": {
+        "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f",
+        "callsite": "lib/godot-compat/label-settings.ts get_font_size",
+        "observedOutputSha256": "bc6ec165564b611abccb3e54fde961787c52b055445036c414435b8e7c786917"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "27929a615ef786cae01d7a718204a0454dbb2efb581ff6334d0fc3e70e2466aa"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "label-settings",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-LabelSettings.set_font_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000LabelSettings\u0000set_font_color\u0000hash:2920490490",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/label_settings.cpp",
+        "sourceSymbol": "LabelSettings.set_font_color",
+        "sourceLine": 184
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ecca48a0901cbae63bd9f50f8b104f7a071dc250e66178e643f3bb034e5f33c9",
+        "callsite": "res://probe.gd _init() set_font_color",
+        "observedOutputSha256": "4d53cdc1ee864c652af42bbbd70bdb2affe92622d8946030bfe250db431913a0"
+      },
+      "target": {
+        "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f",
+        "callsite": "lib/godot-compat/label-settings.ts set_font_color",
+        "observedOutputSha256": "afaa97675094641e49fa7e7db621b664e4136130ad00a82ba4bd668cd43390c3"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5f444dab69859c21437cecbc4004726043c4a271cff25a8a8d9aa24a5bfc909a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "label-settings",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-LabelSettings.get_font_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000LabelSettings\u0000get_font_color\u0000hash:3444240500",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/label_settings.cpp",
+        "sourceSymbol": "LabelSettings.get_font_color",
+        "sourceLine": 191
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "314407081241d454c5425343e80fa0c51348e78d3889b62bfcdd609eab2ce692",
+        "callsite": "res://probe.gd _init() get_font_color",
+        "observedOutputSha256": "53dedf6ce91470edb1592980a4b73f617c1e84fb09a5f2dcb731e50a9d9dcd09"
+      },
+      "target": {
+        "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f",
+        "callsite": "lib/godot-compat/label-settings.ts get_font_color",
+        "observedOutputSha256": "64771ff8d5f742c0f02e8393c162260adfbc879a979e9c60a62a03cbd0abcb87"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "38b1ca18785234b69e10a4b16994d6ceb0838c82158e117cb06cfd1879b49be1"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "label-settings",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-LabelSettings.set_outline_size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000LabelSettings\u0000set_outline_size\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/label_settings.cpp",
+        "sourceSymbol": "LabelSettings.set_outline_size",
+        "sourceLine": 195
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d81576f31c9040e290783018b6b084f0d90216696fcd7e9155e4d7cdee955742",
+        "callsite": "res://probe.gd _init() set_outline_size",
+        "observedOutputSha256": "6ea88c791749ece7aa47c463004cec5b8fc6f689508ee5fef769b90532fab85f"
+      },
+      "target": {
+        "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f",
+        "callsite": "lib/godot-compat/label-settings.ts set_outline_size",
+        "observedOutputSha256": "d2158953cfcd3422428b63d62c651123d28150199898f5dd0d402745325b8ff8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f28fcdd0078c03299613b7e01ac48cbce8e1d3846be2c6e7c337eddbb055b60f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "label-settings",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-LabelSettings.get_outline_size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000LabelSettings\u0000get_outline_size\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/label_settings.cpp",
+        "sourceSymbol": "LabelSettings.get_outline_size",
+        "sourceLine": 202
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e458d4f8ecddcb4b2e36358dfb0bd0d3474c9503e6dd4b696ec53a5bc801b807",
+        "callsite": "res://probe.gd _init() get_outline_size",
+        "observedOutputSha256": "f88a01eb0d1786aea4aabbf639d71161bdfda7fdee2966b2b42e1cf03f4ab04e"
+      },
+      "target": {
+        "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f",
+        "callsite": "lib/godot-compat/label-settings.ts get_outline_size",
+        "observedOutputSha256": "e32170cc2f221144542c93080fbf096275c36a744558c7c06016d1fcca0380d4"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "793223eac7301bf4aaed96341be4b55d43d918d16d5975894409bdf27562dbd8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "label-settings",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-LabelSettings.set_outline_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000LabelSettings\u0000set_outline_color\u0000hash:2920490490",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/label_settings.cpp",
+        "sourceSymbol": "LabelSettings.set_outline_color",
+        "sourceLine": 206
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "7fc086d53d17e11023fa1fcbb4610a540ec8d3f3875d4251620ae83def7131e4",
+        "callsite": "res://probe.gd _init() set_outline_color",
+        "observedOutputSha256": "3abaee48b5150bf5140124410a2b3f46f1f1f223e9474e3de49290567c22b144"
+      },
+      "target": {
+        "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f",
+        "callsite": "lib/godot-compat/label-settings.ts set_outline_color",
+        "observedOutputSha256": "09ba27648cd149180c34a1895b9071298164809365d3bf9423397a9d07af3749"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e2c86e12a1128a708d6d29be1922b4fa9b3814befcd3aa53258dc9124490e602"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "label-settings",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-LabelSettings.get_outline_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000LabelSettings\u0000get_outline_color\u0000hash:3444240500",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/label_settings.cpp",
+        "sourceSymbol": "LabelSettings.get_outline_color",
+        "sourceLine": 213
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c7ec68ed5cf99a2b2a2b12502a83c1981142b178df41d9c12cd77ce694683d45",
+        "callsite": "res://probe.gd _init() get_outline_color",
+        "observedOutputSha256": "b3058d89558b7089b40281b015c7431cc7b4662337aa760dc10aee61b8ce643e"
+      },
+      "target": {
+        "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f",
+        "callsite": "lib/godot-compat/label-settings.ts get_outline_color",
+        "observedOutputSha256": "ee5a651e4bdbcc29784eb3d2a0997bd387a3b4db8c4d228dcf7313ee1f6749b4"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7156f8f3ff6e16a0ad24fff932bac5af11680676861d858f8fd74dc071b2e992"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "label-settings",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-LabelSettings.set_shadow_size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000LabelSettings\u0000set_shadow_size\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/label_settings.cpp",
+        "sourceSymbol": "LabelSettings.set_shadow_size",
+        "sourceLine": 217
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d9c5df75b1d8712d0f699995c3d99699064ca272e4387a8fb5f71c74b24014ec",
+        "callsite": "res://probe.gd _init() set_shadow_size",
+        "observedOutputSha256": "797bd20f91ae00d2d947a0f4ec32969275304b29d4e10e63a2380a52c480e6d1"
+      },
+      "target": {
+        "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f",
+        "callsite": "lib/godot-compat/label-settings.ts set_shadow_size",
+        "observedOutputSha256": "20cab234bbfbfd77356f075a0b319950e3a764ff7df85fa81892d6918a41e904"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c5501636fcd16182479f5f3af81dd2b09da84a8f286017e9efccfb4f695fda7f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "label-settings",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-LabelSettings.get_shadow_size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000LabelSettings\u0000get_shadow_size\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/label_settings.cpp",
+        "sourceSymbol": "LabelSettings.get_shadow_size",
+        "sourceLine": 224
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a5aa7c2ca8f1ffd2065ad64f2b55422bd80c318d911d848aef918666daf0d26a",
+        "callsite": "res://probe.gd _init() get_shadow_size",
+        "observedOutputSha256": "a6b475e97a594b93d297d18723b8c09235a2f47cdcff765ae3c92f8c01b54e22"
+      },
+      "target": {
+        "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f",
+        "callsite": "lib/godot-compat/label-settings.ts get_shadow_size",
+        "observedOutputSha256": "444cb3b1149c429d42df6ea26a07e55745bf44545c0a1add171587e61923a852"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "61b630f66c145648a48d041b10a2d09a553fb1e50882eef3c461bec0052cded0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "label-settings",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-LabelSettings.set_shadow_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000LabelSettings\u0000set_shadow_color\u0000hash:2920490490",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/label_settings.cpp",
+        "sourceSymbol": "LabelSettings.set_shadow_color",
+        "sourceLine": 228
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e8a7806aca474b2340c8a3dc099d4b9edcab33310dbfa7ed9f98ffaf8587ff3b",
+        "callsite": "res://probe.gd _init() set_shadow_color",
+        "observedOutputSha256": "c1a6fffe1b21946c2b7c7db9ec328aadb255553220ccfe9c170869e46b1f4d07"
+      },
+      "target": {
+        "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f",
+        "callsite": "lib/godot-compat/label-settings.ts set_shadow_color",
+        "observedOutputSha256": "fdf0c39b11d0fd69645f92255f2ed6b31e8fdc91439a8ae72f0fb070523bc9fb"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b857cc9a96634efb6705f837d054e3ce3028c40c95c0a33d9630313f7d41488e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "label-settings",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-LabelSettings.get_shadow_color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000LabelSettings\u0000get_shadow_color\u0000hash:3444240500",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/label_settings.cpp",
+        "sourceSymbol": "LabelSettings.get_shadow_color",
+        "sourceLine": 235
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b4fb5b07aa79f7efbb1a7aada1584509c8e47d186380d6528167da731debfd67",
+        "callsite": "res://probe.gd _init() get_shadow_color",
+        "observedOutputSha256": "f3eb163898f3936cb95ee0b6c27399da230886bc50beb9128a225ed38535a1fa"
+      },
+      "target": {
+        "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f",
+        "callsite": "lib/godot-compat/label-settings.ts get_shadow_color",
+        "observedOutputSha256": "b4ffc8c449215031befd737049dfc4d45cf55d7b924cc8db9f228704dc25d1eb"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "469a6b4a86a3c72a1e9dc5a66b81dfd823750ead1e7a9a35663074b26ba191f0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "label-settings",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-LabelSettings.set_shadow_offset",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000LabelSettings\u0000set_shadow_offset\u0000hash:743155724",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/label_settings.cpp",
+        "sourceSymbol": "LabelSettings.set_shadow_offset",
+        "sourceLine": 239
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "837e1a19da521f3e67b5d4869d898ccdee7d022bea195492f67d43a270881911",
+        "callsite": "res://probe.gd _init() set_shadow_offset",
+        "observedOutputSha256": "6d87336a8d73c3fa8d5e5e6d8fb58a6d77c2b24cd5837736db99467eb10459a5"
+      },
+      "target": {
+        "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f",
+        "callsite": "lib/godot-compat/label-settings.ts set_shadow_offset",
+        "observedOutputSha256": "754d44c4b679446776b42884c0ce640c644747d0beb5718cec081320ca6d72cf"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0df83cf23743e8bd3b4d091763359075f4051a9d22b0caec0b27a3d8fea0944e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "label-settings",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-LabelSettings.get_shadow_offset",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000LabelSettings\u0000get_shadow_offset\u0000hash:3341600327",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/label_settings.cpp",
+        "sourceSymbol": "LabelSettings.get_shadow_offset",
+        "sourceLine": 246
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "567da410a956f9483ed29770a441cc97783f28570cd12d974c426b1bc82ceffc",
+        "callsite": "res://probe.gd _init() get_shadow_offset",
+        "observedOutputSha256": "c57c360f04f74eadbf1c2123e6a756cbb6c93ac68b3535c9679779712c998b8c"
+      },
+      "target": {
+        "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f",
+        "callsite": "lib/godot-compat/label-settings.ts get_shadow_offset",
+        "observedOutputSha256": "c1ac31983c53df9a194371c24c2ba79c84077cc165613df979b0545935ec8386"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5a018d1de712ae54a8a585851fcdad01acfc30af94a93a43cba75484af626d95"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "label-settings",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-LabelSettings.set_line_spacing",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2f85d509fabc4133cdc872bb0cab9a301073fca6937400d31f153466752e41fb",
+      "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f"
+    },
+    {
+      "claimId": "godot-4.7-binding-LabelSettings.get_line_spacing",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0521cbe1bcb53bd418e73d03eb391bf7425a6b2e9ef0b77ac4b8ab025a6f8469",
+      "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f"
+    },
+    {
+      "claimId": "godot-4.7-binding-LabelSettings.set_paragraph_spacing",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f9d73ae2274b7e36f55829b0f8028abd474b1feea0de43033526b1d02c15a2ef",
+      "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f"
+    },
+    {
+      "claimId": "godot-4.7-binding-LabelSettings.get_paragraph_spacing",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "bca058889c30a6708d31f2967ee93d3d2b5e26594b0a6eb0a2a03a35b0096582",
+      "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f"
+    },
+    {
+      "claimId": "godot-4.7-binding-LabelSettings.set_font_size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "da66b18505570d3427f012d3fddfae3abcf1e839f278bb92483171d879a98473",
+      "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f"
+    },
+    {
+      "claimId": "godot-4.7-binding-LabelSettings.get_font_size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "769d25f148b7c39b1743252b3a9ce3ec8cad70d41b64dcd8fa31974b76ee1677",
+      "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f"
+    },
+    {
+      "claimId": "godot-4.7-binding-LabelSettings.set_font_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ecca48a0901cbae63bd9f50f8b104f7a071dc250e66178e643f3bb034e5f33c9",
+      "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f"
+    },
+    {
+      "claimId": "godot-4.7-binding-LabelSettings.get_font_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "314407081241d454c5425343e80fa0c51348e78d3889b62bfcdd609eab2ce692",
+      "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f"
+    },
+    {
+      "claimId": "godot-4.7-binding-LabelSettings.set_outline_size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d81576f31c9040e290783018b6b084f0d90216696fcd7e9155e4d7cdee955742",
+      "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f"
+    },
+    {
+      "claimId": "godot-4.7-binding-LabelSettings.get_outline_size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e458d4f8ecddcb4b2e36358dfb0bd0d3474c9503e6dd4b696ec53a5bc801b807",
+      "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f"
+    },
+    {
+      "claimId": "godot-4.7-binding-LabelSettings.set_outline_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "7fc086d53d17e11023fa1fcbb4610a540ec8d3f3875d4251620ae83def7131e4",
+      "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f"
+    },
+    {
+      "claimId": "godot-4.7-binding-LabelSettings.get_outline_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c7ec68ed5cf99a2b2a2b12502a83c1981142b178df41d9c12cd77ce694683d45",
+      "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f"
+    },
+    {
+      "claimId": "godot-4.7-binding-LabelSettings.set_shadow_size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d9c5df75b1d8712d0f699995c3d99699064ca272e4387a8fb5f71c74b24014ec",
+      "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f"
+    },
+    {
+      "claimId": "godot-4.7-binding-LabelSettings.get_shadow_size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a5aa7c2ca8f1ffd2065ad64f2b55422bd80c318d911d848aef918666daf0d26a",
+      "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f"
+    },
+    {
+      "claimId": "godot-4.7-binding-LabelSettings.set_shadow_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e8a7806aca474b2340c8a3dc099d4b9edcab33310dbfa7ed9f98ffaf8587ff3b",
+      "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f"
+    },
+    {
+      "claimId": "godot-4.7-binding-LabelSettings.get_shadow_color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b4fb5b07aa79f7efbb1a7aada1584509c8e47d186380d6528167da731debfd67",
+      "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f"
+    },
+    {
+      "claimId": "godot-4.7-binding-LabelSettings.set_shadow_offset",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "837e1a19da521f3e67b5d4869d898ccdee7d022bea195492f67d43a270881911",
+      "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f"
+    },
+    {
+      "claimId": "godot-4.7-binding-LabelSettings.get_shadow_offset",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "567da410a956f9483ed29770a441cc97783f28570cd12d974c426b1bc82ceffc",
+      "implementationSha256": "dc068d01493d773433316fb1822aaaa4f4b7bf277ffe90c85215955d53332d9f"
+    }
+  ]
+}

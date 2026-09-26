@@ -1,6 +1,8 @@
 {
   "description": "Godot class semantics for imported games, transcribed from the pinned Godot 4.7 source. One module per Godot class, built-in type or singleton, named as Godot names it; each export is one Godot member by its Godot name with the native receiver first, citing the source it transcribes (@godot, @source). Receivers are the native entities the generated scene mounted (Three.js objects, Rapier bodies, DOM elements); Godot state no native object holds lives in a WeakMap keyed by that entity. There are no class-name dispatch tables, no Godot server modules and no frame loop, timer or scheduler of its own: the generated composition hands the lifecycle protocol the host's own events. scripts/check-godot-compat.mjs enforces this.",
   "files": [
+    "src/lib/godot-compat/LICENSE.OpenSans.txt",
+    "src/lib/godot-compat/OpenSans_SemiBold.woff2",
     "src/lib/godot-compat/area-3d.ts",
     "src/lib/godot-compat/array.ts",
     "src/lib/godot-compat/base-material-3d.ts",
@@ -25,6 +27,7 @@
     "src/lib/godot-compat/directional-light-3d.ts",
     "src/lib/godot-compat/engine.ts",
     "src/lib/godot-compat/float.ts",
+    "src/lib/godot-compat/font.ts",
     "src/lib/godot-compat/geometry-3d.ts",
     "src/lib/godot-compat/geometry-instance-3d.ts",
     "src/lib/godot-compat/global-scope.ts",
@@ -34,6 +37,8 @@
     "src/lib/godot-compat/input-event-screen-touch.ts",
     "src/lib/godot-compat/input-event.ts",
     "src/lib/godot-compat/input.ts",
+    "src/lib/godot-compat/label-settings.ts",
+    "src/lib/godot-compat/label.ts",
     "src/lib/godot-compat/light-3d.ts",
     "src/lib/godot-compat/mesh-instance-3d.ts",
     "src/lib/godot-compat/node-3d.ts",
@@ -88,6 +93,8 @@
     "dependencies": {
       "@dimforge/rapier3d-compat": "^0.14.0",
       "@react-three/fiber": "^9.6.1",
+      "fontkit": "^2.0.4",
+      "linebreak": "^1.1.0",
       "react": "^19.2.4",
       "three": "^0.180.0"
     }
@@ -100,5 +107,5 @@
   "requires": [],
   "skills": [],
   "title": "Godot compat (backends for a ported game)",
-  "version": "0.850.0"
+  "version": "0.851.0"
 }
