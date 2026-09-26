@@ -22,8 +22,7 @@
  * cone is not drawn.
  *
  * AN EMPTY is its display shape at its display size: plain axes, arrows (with their letters and
- * the markers at their ends), a single arrow, a circle, a cube, a sphere or a cone. An image
- * empty is not drawn.
+ * the markers at their ends), a single arrow, a circle, a cube, a sphere, a cone or an image.
  */
 import * as THREE from 'three';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
@@ -39,6 +38,18 @@ const scalar = z.number().finite();
 export const emptySchema = z.object({
   display: z.enum(['PLAIN_AXES', 'ARROWS', 'SINGLE_ARROW', 'CIRCLE', 'CUBE', 'SPHERE', 'CONE', 'IMAGE']),
   size: scalar,
+  image: z
+    .object({
+      name: z.string().nullable(),
+      offset: z.tuple([scalar, scalar]),
+      depth: z.enum(['DEFAULT', 'FRONT', 'BACK']),
+      side: z.enum(['DOUBLE_SIDED', 'FRONT', 'BACK']),
+      perspective: z.boolean(),
+      orthographic: z.boolean(),
+      axis_aligned: z.boolean(),
+      opacity: scalar.nullable(),
+    })
+    .optional(),
 });
 export type EmptyData = z.infer<typeof emptySchema>;
 
@@ -100,6 +111,8 @@ export interface ExtrasInput {
   readonly lightDistances: Readonly<Record<string, readonly [number, number]>>;
   /** The presented object an extra stands for, which a click on its drawing selects. */
   readonly presented: (name: string) => THREE.Object3D | null;
+  /** A frame image's texture and its size in pixels (0 while it is still decoding). */
+  readonly image: (name: string) => { readonly texture: THREE.Texture; readonly width: number; readonly height: number } | null;
 }
 
 export class ExtrasOverlay {
@@ -140,7 +153,9 @@ export class ExtrasOverlay {
       if (!camera && !light && !empty) continue;
       seen.add(object.name);
       const distances = light && object.light ? (input.lightDistances[object.light] ?? null) : null;
+      const picture = empty?.image?.name ? input.image(empty.image.name) : null;
       const key = JSON.stringify([
+        picture ? [picture.texture.uuid, picture.width, picture.height] : null,
         object.matrix,
         color,
         camera,
@@ -161,7 +176,7 @@ export class ExtrasOverlay {
       const before = new Set(group.children);
       if (camera) this.camera(camera, matrix, color, object.name === input.sceneCamera, input.renderAspect);
       else if (light) this.light(light, matrix, color, distances);
-      else if (empty) this.empty(empty, matrix, color);
+      else if (empty) this.empty(empty, matrix, color, picture);
       const parts = group.children.filter((child) => !before.has(child));
       for (const part of parts) part.userData['vgaiPicksAs'] = stands;
       this.drawn.set(object.name, { key, parts });
@@ -177,6 +192,7 @@ export class ExtrasOverlay {
     for (const part of parts) {
       part.removeFromParent();
       (part as THREE.Mesh).geometry?.dispose();
+      if (part.userData['vgaiOwnMaterial']) ((part as THREE.Mesh).material as THREE.Material).dispose();
     }
   }
 
@@ -328,7 +344,12 @@ export class ExtrasOverlay {
   }
 
   /** `overlay_empty.hh`'s shapes, at the empty's display size in its own frame. */
-  private empty(empty: EmptyData, matrix: THREE.Matrix4, color: number): void {
+  private empty(
+    empty: EmptyData,
+    matrix: THREE.Matrix4,
+    color: number,
+    picture: { readonly texture: THREE.Texture; readonly width: number; readonly height: number } | null,
+  ): void {
     const s = empty.size;
     const lines: Segments = [];
     const circle = (plane: 'xy' | 'xz' | 'yz', n: number) => {
@@ -383,6 +404,7 @@ export class ExtrasOverlay {
         }
         break;
       case 'IMAGE':
+        this.imageEmpty(empty, matrix, color, picture);
         return;
     }
     const pose = matrix.clone().multiply(new THREE.Matrix4().makeScale(s, s, s));
@@ -433,6 +455,98 @@ export class ExtrasOverlay {
       }
     });
     return lines;
+  }
+
+  /**
+   * AN IMAGE EMPTY (`overlay_empty.hh` `image_sync`): its frame in the wire colour, and the picture
+   * on a quad as wide as the display size along the image's longer side, moved by its offset
+   * (`(offset · 2 + 1)` of the scaled axes; the default −0.5 centres it), unlit. Whether either
+   * shows is Blender's per view: the projection flags for both, then the side (by the object's Z
+   * against the view) and the axis-aligned-only flag for the picture. In front of or behind the
+   * scene when its depth says so. A picture still decoding shows its frame alone.
+   */
+  private imageEmpty(
+    empty: EmptyData,
+    matrix: THREE.Matrix4,
+    color: number,
+    picture: { readonly texture: THREE.Texture; readonly width: number; readonly height: number } | null,
+  ): void {
+    const settings = empty.image;
+    if (!settings) return;
+    const width = picture?.width ?? 0;
+    const height = picture?.height ?? 0;
+    const aspect = width > 0 && height > 0 ? (width >= height ? [1, height / width] : [width / height, 1]) : [1, 1];
+    const x = new THREE.Vector3();
+    const y = new THREE.Vector3();
+    const z = new THREE.Vector3();
+    matrix.extractBasis(x, y, z);
+    x.multiplyScalar(aspect[0]! * 0.5 * empty.size);
+    y.multiplyScalar(aspect[1]! * 0.5 * empty.size);
+    const origin = new THREE.Vector3()
+      .setFromMatrixPosition(matrix)
+      .addScaledVector(x, settings.offset[0] * 2 + 1)
+      .addScaledVector(y, settings.offset[1] * 2 + 1);
+    const pose = new THREE.Matrix4().makeBasis(x, y, z.clone()).setPosition(origin);
+    const frame: Segments = [];
+    loop(frame, [[-1, -1], [1, -1], [1, 1], [-1, 1]]);
+    const outline = this.lines(frame, color, 1, pose);
+    const normal = z.clone().normalize();
+    const eye = new THREE.Vector3();
+    const forward = new THREE.Vector3();
+    const shown = (camera: THREE.Camera, picture: boolean): boolean => {
+      const orthographic = (camera as THREE.OrthographicCamera).isOrthographicCamera === true;
+      if (orthographic ? !settings.orthographic : !settings.perspective) return false;
+      if (!picture) return true;
+      // In the stage's frame: this group carries the Blender → stage permutation.
+      const worldNormal = normal.clone().transformDirection(this.empties.matrixWorld);
+      camera.getWorldDirection(forward);
+      let dot: number;
+      let eps: number;
+      if (orthographic) {
+        dot = worldNormal.dot(forward.clone().negate());
+        eps = 1e-5;
+      } else {
+        const at = origin.clone().applyMatrix4(this.empties.matrixWorld);
+        dot = worldNormal.dot(eye.setFromMatrixPosition(camera.matrixWorld).sub(at));
+        eps = 0;
+      }
+      if (settings.side === 'FRONT' && dot < eps) return false;
+      if (settings.side === 'BACK' && dot > -eps) return false;
+      if (settings.axis_aligned) {
+        const projected = worldNormal.clone().projectOnPlane(forward);
+        if (projected.lengthSq() > 1e-5) return false;
+      }
+      return true;
+    };
+    const hideUnless = (part: THREE.Object3D, picture: boolean): void => {
+      const own = part.onBeforeRender.bind(part);
+      part.onBeforeRender = (renderer, scene, camera, geometry, material, group) => {
+        part.matrix.copy(pose);
+        if (!shown(camera, picture)) part.matrix.scale(new THREE.Vector3(0, 0, 0));
+        part.updateMatrixWorld(true);
+        own(renderer, scene, camera, geometry, material, group);
+      };
+    };
+    hideUnless(outline, false);
+    this.empties.add(outline);
+    if (!picture || (settings.opacity !== null && settings.opacity <= 0)) return;
+    const material = new THREE.MeshBasicMaterial({
+      map: picture.texture,
+      side: THREE.DoubleSide,
+      transparent: settings.opacity !== null && settings.opacity < 1,
+      opacity: settings.opacity ?? 1,
+      toneMapped: false,
+      depthTest: settings.depth === 'DEFAULT',
+      depthWrite: settings.depth === 'DEFAULT',
+    });
+    const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+    quad.matrixAutoUpdate = false;
+    quad.matrix.copy(pose);
+    quad.renderOrder = settings.depth === 'FRONT' ? 1000 : settings.depth === 'BACK' ? -1000 : 0;
+    // Its material is its own (the picture and its opacity), freed with the quad.
+    quad.userData['vgaiOwnMaterial'] = true;
+    hideUnless(quad, true);
+    this.empties.add(quad);
   }
 
   /** The arrows' X, Y and Z, drawn as lines facing the view at 1.25 of each axis. */

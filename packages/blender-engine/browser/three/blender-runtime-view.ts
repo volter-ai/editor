@@ -1291,6 +1291,8 @@ export class BlenderRuntimeView {
     return warnings;
   }
 
+  /** Pictures the extras asked for before they had decoded. */
+  private readonly awaitedImages = new Set<string>();
   /** The camera a camera view is looking through, which the extras do not draw. */
   private lookingThrough: string | null = null;
 
@@ -1321,6 +1323,23 @@ export class BlenderRuntimeView {
       presented: (name) => {
         const row = next.objects.find((object) => object.name === name);
         return row ? (this.objects.get(row.id) ?? null) : null;
+      },
+      image: (name) => {
+        const held = this.textures.get(name);
+        if (!held) return null;
+        const bitmap = held.texture.image as { width?: number; height?: number } | null;
+        const width = held.width || bitmap?.width || 0;
+        const height = held.height || bitmap?.height || 0;
+        // A picture still decoding is drawn again when it has decoded.
+        if ((width === 0 || height === 0) && held.ready && !this.awaitedImages.has(name)) {
+          this.awaitedImages.add(name);
+          void held.ready.then(() => {
+            this.awaitedImages.delete(name);
+            if (this.frame) this.applyExtras(this.frame);
+            presenterChanged();
+          });
+        }
+        return { texture: held.texture, width, height };
       },
     });
   }

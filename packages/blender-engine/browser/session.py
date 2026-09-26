@@ -737,6 +737,25 @@ def _refusal(node):
 
 
 
+def _empty_display(obj):
+    """An empty's display (`overlay_empty.hh`): its type and size, and for an image empty the
+    picture, where it sits on the object (`empty_image_offset`), how it meets depth, which side
+    shows, in which projections, and its opacity when it blends."""
+    display = {"display": obj.empty_display_type, "size": float(obj.empty_display_size)}
+    if obj.empty_display_type == "IMAGE":
+        display["image"] = {
+            "name": obj.data.name if obj.data is not None else None,
+            "offset": [float(v) for v in obj.empty_image_offset],
+            "depth": obj.empty_image_depth,
+            "side": obj.empty_image_side,
+            "perspective": bool(obj.show_empty_image_perspective),
+            "orthographic": bool(obj.show_empty_image_orthographic),
+            "axis_aligned": bool(obj.show_empty_image_only_axis_aligned),
+            "opacity": float(obj.color[3]) if obj.use_empty_image_alpha else None,
+        }
+    return display
+
+
 def _saved_view():
     """The 3D View the file saved, which is where Blender opens it: the `Modeling` workspace's
     (this editor's Model workspace is Blender's Modeling), else the first 3D View any screen
@@ -1311,9 +1330,13 @@ class Session:
         """
         scene = bpy.context.scene
         graphs = material_graphs(scene)
+        # An IMAGE EMPTY's picture travels with the graphs' images: the overlay draws it
+        # (`overlay_empty.hh` `image_sync`).
+        empty_images = {obj.data.name for obj in scene.objects
+                        if obj.type == "EMPTY" and obj.empty_display_type == "IMAGE" and obj.data is not None}
         options = {"session": self.session, "evaluate": True, "known": self._known,
                    "graph_materials": sorted(graphs),
-                   "graph_images": sorted({i for g in graphs.values() for i in g["images"]}),
+                   "graph_images": sorted({i for g in graphs.values() for i in g["images"]} | empty_images),
                    "graph_generated": sorted(n for n, g in graphs.items() if g["generated"])}
         # THE ARENA IS WRITTEN BEFORE THE ASK, and on a skew whose channel is
         # an ordered stream of filesystem patches that is the whole
@@ -1411,10 +1434,7 @@ class Session:
             for light in bpy.data.lights
         }
         # WHAT THE OVERLAY DRAWS FOR AN EMPTY (`overlay_empty.hh`): its display type and size.
-        frame["empties"] = {
-            obj.name: {"display": obj.empty_display_type, "size": float(obj.empty_display_size)}
-            for obj in scene.objects if obj.type == "EMPTY"
-        }
+        frame["empties"] = {obj.name: _empty_display(obj) for obj in scene.objects if obj.type == "EMPTY"}
         frame["view"] = _saved_view()
         frame["units"] = {
             "system": scene.unit_settings.system,
