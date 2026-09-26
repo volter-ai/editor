@@ -23,8 +23,8 @@ Completion:
 Status: active
 Design and measurements: [docs/VIEWPORT-STAGE.md](docs/VIEWPORT-STAGE.md) (ARCHITECTURE.md rule 6: a component is themable only when it can be themed into each of several real targets). An independent judge passes all four; Blender's judged objections are closed by Blender's own rules, and a blind walk of a fresh Blender model has its defects fixed. Unity's Move handle is at Unity's own 80-point size.
 Completion:
-- Every target is judged again from the page capture cropped to its viewport, with the overlay pass in it.
-- Unreal's remaining differences (a faint floor shadow, a hard floor-sky line, thin Move shafts) are closed or named as limits.
+- The stage's chrome is the look's to state (its view text, tool strip, pills and readout), so Unreal's row of top pills, Godot's "⋮ Perspective" pill and Unity's "Persp" label can be drawn, and Unreal passes a judge that sees the page capture with its overlay pass (it failed on 2026-09-26 for this).
+- Unreal's thin Move shafts, Unity's outline band on the HeroBox (10 device px for a stated ~4) and Godot's navigation gizmo under the shading pill are closed or named as limits.
 - Blender's Rendered mode and Unreal's capability row are accepted, and the world stage is seen on a project with a world.
 
 ## game-editor-gaps: The game editor's remaining walks and gates
