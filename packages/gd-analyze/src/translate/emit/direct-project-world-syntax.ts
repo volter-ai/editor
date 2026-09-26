@@ -11,6 +11,7 @@ import {
 import type {
   DirectGodotProjectCompositionPlan,
   DirectGodotScriptAutoloadPlan,
+  DirectGodotSettingValue,
 } from '../data/direct-project-composition-plan';
 import {
   directGodotAutoloadIndex,
@@ -19,6 +20,68 @@ import {
   directGodotSceneAutoloadReferences,
 } from './direct-autoload-syntax';
 import { directGodotScenePropertyAttributes } from './direct-scene-syntax';
+
+/**
+ * The project's settings, loaded when the world module is evaluated: before any script runs, as
+ * Godot loads them in `Main::setup` (`main/main.cpp:2102`). Built-in values through their compat
+ * constructors.
+ */
+function projectSettingsLoad(composition: DirectGodotProjectCompositionPlan): {
+  readonly imports: readonly TargetTsStatement[];
+  readonly statements: readonly TargetTsStatement[];
+} {
+  if (composition.projectSettings.length === 0) return { imports: [], statements: [] };
+  const constructors = new Set<string>();
+  const valueExpression = (value: DirectGodotSettingValue): TargetTsExpression => {
+    switch (value.kind) {
+      case 'number':
+      case 'bool':
+      case 'string':
+        return { kind: 'literal-expression', value: value.value };
+      default:
+        constructors.add(value.kind);
+        return {
+          kind: 'call-expression',
+          callee: { kind: 'identifier-expression', name: `${value.kind}_construct` },
+          arguments: value.components.map((component) => ({ kind: 'literal-expression', value: component })),
+        };
+    }
+  };
+  const entries: TargetTsExpression = {
+    kind: 'array-expression',
+    elements: composition.projectSettings.map((setting) => ({
+      kind: 'array-expression',
+      elements: [{ kind: 'literal-expression', value: setting.key }, valueExpression(setting.value)],
+    })),
+  };
+  const modules: Readonly<Record<string, string>> = { Vector2: 'vector2', Vector3: 'vector3', Color: 'color' };
+  return {
+    imports: [
+      {
+        kind: 'import-statement',
+        module: './lib/godot-compat/project-settings',
+        namedBindings: [{ imported: 'godot_project_settings_load', local: 'godot_project_settings_load' }],
+      },
+      ...[...constructors].sort().map(
+        (name): TargetTsStatement => ({
+          kind: 'import-statement',
+          module: `./lib/godot-compat/${modules[name] as string}`,
+          namedBindings: [{ imported: 'construct', local: `${name}_construct` }],
+        }),
+      ),
+    ],
+    statements: [
+      {
+        kind: 'expression-statement',
+        expression: {
+          kind: 'call-expression',
+          callee: { kind: 'identifier-expression', name: 'godot_project_settings_load' },
+          arguments: [entries],
+        },
+      },
+    ],
+  };
+}
 
 function referenceType(name: string): TargetTsType {
   return { kind: 'type-reference', name, arguments: [] };
@@ -379,11 +442,14 @@ export function emitDirectGodotWorldSyntax(
             composedMainScene,
           ],
         };
+  const settings = projectSettingsLoad(composition);
   return {
     syntaxVersion: TARGET_TS_SYNTAX_VERSION,
     sourcePath: 'project.godot',
     statements: [
       ...imports,
+      ...settings.imports,
+      ...settings.statements,
       ...composition.scriptAutoloads.map(autoloadComponent),
       {
         kind: 'function-statement',

@@ -107,6 +107,12 @@ for (const [name, cls] of [
   });
 }
 rule('self', 'SELF', 'self', [], CLASS, structural('self'), EXPRESSION);
+// An engine singleton as a call's receiver (`Input.is_action_pressed`) is its class's one object.
+rule('singleton', 'IDENTIFIER', 'singleton', [], '', structural('singleton'), {
+  file: COMPILER,
+  symbol: 'GDScriptCompiler::_parse_expression IDENTIFIER (global map: engine singleton)',
+  line: 419,
+});
 rule('variable-declared-uninitialized', 'VARIABLE', 'variable:declared:instance', [], '', structural('variable'), BLOCK);
 rule('member-constant-enum-type', 'IDENTIFIER', 'member-identifier:MEMBER_CONSTANT', [], 'ENUM:meta:*', structural('member-identifier'), EXPRESSION);
 rule('enum-value', 'SUBSCRIPT', 'subscript-attribute', [`${ENUM.slice(0, -1)}meta:*`], ENUM, structural('subscript-attribute'), {
@@ -718,6 +724,9 @@ static func native_constants() -> int:
 \tvar d: int = q
 \treturn a * 1000 + b * 100 + c * 10 + d
 
+static func singleton_calls() -> int:
+\treturn Engine.get_process_frames() + Engine.get_physics_frames() * 10
+
 static func while_call() -> int:
 \thits = 0
 \twhile touch(hits < 3):
@@ -1279,7 +1288,7 @@ cases.push({ id: 'typed-arrays', call: 'typed_arrays', comparator: 'exact' });
 cases.push({ id: 'typed-dictionary', call: 'typed_dictionary', comparator: 'exact' });
 add('dictionary-one', 'dictionary_one', '7', () => [7]);
 cases.push({ id: 'string-name', call: 'string_name', comparator: 'exact' });
-for (const call of ['native_constants', 'while_call']) {
+for (const call of ['native_constants', 'while_call', 'singleton_calls']) {
   cases.push({ id: call.replaceAll('_', '-'), call, comparator: 'exact' });
 }
 for (const call of ['variant_flow', 'variant_to_vector', 'variant_return']) {
@@ -1415,7 +1424,7 @@ const GDSCRIPT_EVIDENCE: GodotLanguageEvidenceFile = {
     { file: 'node_path_cases.tscn', source: NODE_PATH_SCENE },
     { file: 'type_cases.tscn', source: TYPE_SCENE },
   ],
-  compatModules: ['lib/godot-compat/vector3', 'lib/godot-compat/node-3d', 'lib/godot-compat/node'],
+  compatModules: ['lib/godot-compat/vector3', 'lib/godot-compat/node-3d', 'lib/godot-compat/node', 'lib/godot-compat/engine'],
   rules,
   datatypes,
   cases,

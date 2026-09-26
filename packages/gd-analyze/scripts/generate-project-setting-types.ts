@@ -1,7 +1,8 @@
 /**
  * Writes `vendor/project-settings/godot-4.7.json`: every setting the official Godot 4.7 binary
  * registers (its `GLOBAL_DEF`s), with the Variant type of its registered default, read as
- * `typeof(ProjectSettings.get_setting(name))` on a project that declares none of them.
+ * `typeof(ProjectSettings.get_setting(name))` on a project that declares none of them, and the
+ * default itself as `var_to_str` writes it (the text syntax `project.godot` uses).
  *
  *   npx tsx packages/gd-analyze/scripts/generate-project-setting-types.ts --official-binary <Godot>
  */
@@ -30,11 +31,13 @@ try {
 
 func _init() -> void:
 \tvar rows := {}
+\tvar values := {}
 \tfor property in ProjectSettings.get_property_list():
 \t\tvar name: String = property["name"]
 \t\tif ProjectSettings.has_setting(name):
 \t\t\trows[name] = type_string(typeof(ProjectSettings.get_setting(name)))
-\tprint("SETTINGS " + JSON.stringify(rows))
+\t\t\tvalues[name] = var_to_str(ProjectSettings.get_setting(name))
+\tprint("SETTINGS " + JSON.stringify({"types": rows, "values": values}))
 \tquit()
 `,
   );
@@ -45,12 +48,17 @@ func _init() -> void:
   });
   const line = result.stdout.split('\n').find((entry) => entry.startsWith('SETTINGS '));
   if (line === undefined) throw new Error(`the probe printed no settings\n${result.stderr}`);
-  const rows = JSON.parse(line.slice('SETTINGS '.length)) as Record<string, string>;
+  const rows = JSON.parse(line.slice('SETTINGS '.length)) as {
+    readonly types: Record<string, string>;
+    readonly values: Record<string, string>;
+  };
   // The probe's own project declares `application/config/features`; its registered type is the same.
-  const sorted = Object.fromEntries(Object.entries(rows).sort(([a], [b]) => a.localeCompare(b)));
+  const sort = (record: Record<string, string>) =>
+    Object.fromEntries(Object.entries(record).sort(([a], [b]) => a.localeCompare(b)));
+  const sorted = sort(rows.types);
   writeFileSync(
     path.join(import.meta.dirname, '..', 'vendor/project-settings/godot-4.7.json'),
-    `${JSON.stringify({ executableSha256: OFFICIAL_SHA256, types: sorted }, null, 1)}\n`,
+    `${JSON.stringify({ executableSha256: OFFICIAL_SHA256, types: sorted, values: sort(rows.values) }, null, 1)}\n`,
   );
   process.stdout.write(`${String(Object.keys(sorted).length)} registered settings\n`);
 } finally {

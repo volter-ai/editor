@@ -568,6 +568,8 @@ export interface GodotProject {
   readonly resolvedSettings: ReadonlyMap<string, ResolvedSetting>;
   /** Complete parsed project.godot setting membership plus pinned registered defaults. */
   readonly projectSettings: ReadonlyMap<string, GodotValue>;
+  /** Only the keys `project.godot` authors, as written. */
+  readonly authoredSettings: ReadonlyMap<string, GodotValue>;
   readonly autoloads: readonly Autoload[];
   readonly inputActions: readonly InputAction[];
   readonly globalClasses: readonly GlobalClass[];

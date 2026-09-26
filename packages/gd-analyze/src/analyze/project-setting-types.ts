@@ -13,17 +13,50 @@ import { readFileSync } from 'node:fs';
 import * as path from 'node:path';
 import type { GodotBoundNode, GodotBoundScript } from '../godot-frontend/bound-program';
 import type { GodotValue } from '../read/godot-value';
+import { parseGodotTextFile } from '../read/text-format';
 import type { GodotApiDump } from './api-dump';
 
 export interface BoundGodotTypedValue {
   readonly nodeId: number;
   /** The Variant type name (`float`, `Vector3`). */
   readonly builtinType: string;
+  /** For a `get_setting` call itself: the setting and the value project facts fix for it. */
+  readonly setting?: { readonly key: string; readonly value: GodotValue };
   readonly evidenceClaimIds: readonly string[];
 }
 
 const PACKAGE_ROOT = path.resolve(import.meta.dirname, '..', '..');
 let registered: ReadonlyMap<string, string> | undefined;
+
+let registeredValues: ReadonlyMap<string, string> | undefined;
+
+/**
+ * A registered setting's default value, parsed from the text `var_to_str` wrote for it (the syntax
+ * `project.godot` uses), or undefined for an unregistered key.
+ */
+export function registeredSettingValue(key: string): GodotValue | undefined {
+  if (registeredValues === undefined) {
+    const file = JSON.parse(
+      readFileSync(path.join(PACKAGE_ROOT, 'vendor/project-settings/godot-4.7.json'), 'utf8'),
+    ) as { readonly values: Readonly<Record<string, string>> };
+    registeredValues = new Map(Object.entries(file.values));
+  }
+  const text = registeredValues.get(key);
+  return text === undefined ? undefined : parseSettingValueText(text);
+}
+
+/** A setting value written in `project.godot`'s text syntax, read as the project reader reads it. */
+export function parseSettingValueText(text: string): GodotValue | undefined {
+  return parseGodotTextFile(`[setting]\nvalue = ${text}\n`, 'res://project.godot').sections[0]?.properties['value'];
+}
+
+/** The value project facts fix for a setting: the declared one, else the registered default. */
+export function projectSettingValue(
+  projectSettings: ReadonlyMap<string, GodotValue>,
+  key: string,
+): GodotValue | undefined {
+  return projectSettings.get(key) ?? registeredSettingValue(key);
+}
 
 /** Godot 4.7's registered settings and the Variant type of each registered default. */
 export function registeredSettingTypes(): ReadonlyMap<string, string> {
@@ -73,6 +106,7 @@ const OPERATOR_SPELLING: Readonly<Record<number, string>> = {
 
 export function typeProjectSettingValues(inputs: {
   readonly program: GodotBoundScript;
+  /** The settings `project.godot` authors; every other key takes its registered default. */
   readonly projectSettings: ReadonlyMap<string, GodotValue>;
   readonly apiDump: GodotApiDump;
   /** The rule's live claim; asked only when a value is typed, so an unused rule is not recorded. */
@@ -81,6 +115,7 @@ export function typeProjectSettingValues(inputs: {
   const nodes = inputs.program.nodes;
   const builtins = new Map((inputs.apiDump.builtinClasses ?? []).map((entry) => [entry.name, entry] as const));
   const typed = new Map<number, string>();
+  const settings = new Map<number, { readonly key: string; readonly value: GodotValue }>();
   const settingType = (node: GodotBoundNode): string | undefined => {
     if (node.kind !== 'CALL' || node.functionName !== 'get_setting') return undefined;
     const target = node.compilerTarget;
@@ -91,7 +126,10 @@ export function typeProjectSettingValues(inputs: {
     const key = argument.reduced ? argument.reducedValue : argument.value;
     if (key.kind !== 'string' && key.kind !== 'string-name') return undefined;
     const declared = inputs.projectSettings.get(key.value);
-    return declared === undefined ? registeredSettingTypes().get(key.value) : variantTypeOfValue(declared);
+    const type = declared === undefined ? registeredSettingTypes().get(key.value) : variantTypeOfValue(declared);
+    const value = projectSettingValue(inputs.projectSettings, key.value);
+    if (type !== undefined && value !== undefined) settings.set(node.id, { key: key.value, value });
+    return type;
   };
   const typeOf = (id: number): string | undefined => {
     const known = typed.get(id);
@@ -123,5 +161,8 @@ export function typeProjectSettingValues(inputs: {
   if (claim === undefined) return [];
   return [...typed.entries()]
     .sort(([left], [right]) => left - right)
-    .map(([nodeId, builtinType]) => ({ nodeId, builtinType, evidenceClaimIds: [claim] }));
+    .map(([nodeId, builtinType]) => {
+      const setting = settings.get(nodeId);
+      return { nodeId, builtinType, ...(setting === undefined ? {} : { setting }), evidenceClaimIds: [claim] };
+    });
 }

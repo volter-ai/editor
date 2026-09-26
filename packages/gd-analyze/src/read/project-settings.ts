@@ -113,12 +113,11 @@ export interface ProjectSettings {
   readonly resolvedSettings: ReadonlyMap<string, ResolvedSetting>;
   /** Every authored ProjectSettings key plus every pinned registered default this reader knows. */
   readonly projectSettings: ReadonlyMap<string, GodotValue>;
+  /** Only the keys `project.godot` authors, as written. */
+  readonly authoredSettings: ReadonlyMap<string, GodotValue>;
 }
 
-function allProjectSettings(
-  file: GodotTextFile,
-  resolved: ReadonlyMap<string, ResolvedSetting>,
-): ReadonlyMap<string, GodotValue> {
+function authoredProjectSettings(file: GodotTextFile): ReadonlyMap<string, GodotValue> {
   const values = new Map<string, GodotValue>();
   for (const [key, value] of Object.entries(file.leading)) values.set(key, value);
   for (const section of file.sections) {
@@ -126,6 +125,14 @@ function allProjectSettings(
       values.set(`${section.kind}/${key}`, value);
     }
   }
+  return values;
+}
+
+function allProjectSettings(
+  file: GodotTextFile,
+  resolved: ReadonlyMap<string, ResolvedSetting>,
+): ReadonlyMap<string, GodotValue> {
+  const values = new Map(authoredProjectSettings(file));
   for (const [key, setting] of resolved) {
     if (!values.has(key)) values.set(key, setting.value);
   }
@@ -530,6 +537,7 @@ export function readProjectSettings(file: GodotTextFile): ProjectSettings {
     rendering: readRendering(file, major),
     resolvedSettings,
     projectSettings: allProjectSettings(file, resolvedSettings),
+    authoredSettings: authoredProjectSettings(file),
     ...(physicsFps === undefined ? {} : { physicsFps }),
     ...(physicsInterpolation === undefined ? {} : { physicsInterpolation }),
     gravity2D: readGravity2D(file),

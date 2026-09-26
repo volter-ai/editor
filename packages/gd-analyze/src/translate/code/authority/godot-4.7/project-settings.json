@@ -1,0 +1,82 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/project-settings"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "ProjectSettings",
+        "member": "get_setting",
+        "kind": "native-member",
+        "signature": "hash:223050753"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/project-settings",
+        "exportName": "get_setting",
+        "localName": "ProjectSettings_get_setting",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-ProjectSettings.get_setting"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-ProjectSettings.get_setting",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000ProjectSettings\u0000get_setting\u0000hash:223050753",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/config/project_settings.cpp",
+        "sourceSymbol": "ProjectSettings.get_setting",
+        "sourceLine": 1408
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a933791eab9b4bec31fe34ac7ea3bd05599001f07819e068222f0d1189da562a",
+        "callsite": "res://probe.gd _init() get_setting-physics-3d-default_gravity get_setting-physics-3d-default_gravity_vector get_setting-physics-2d-default_gravity get_setting-physics-2d-default_gravity_vector get_setting-display-window-size-viewport_width get_setting-application-run-disable_stdout get_setting-rendering-environment-defaults-default_clear_color get_setting-application-config-name get_setting-physics-common-physics_ticks_per_second get_setting-absent-default",
+        "observedOutputSha256": "fb7c843dbf74ebcd14ad8c3fd523c6ccd3f6254d2fd16adc21766c382192c4fc"
+      },
+      "target": {
+        "implementationSha256": "0116bf4682937bd3e65e609a6a75ae35d8f1432c1111c2a09e432abc683b0793",
+        "callsite": "lib/godot-compat/project-settings.ts get_setting",
+        "observedOutputSha256": "75be6b124258fe0e360bdb1e513b4ce314ea6c5605e49da517b10d0c1028ef46"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a1d23163ce8592eca5036255b1a097dda218e00eef077c4f33e747d8af8047aa"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "project-settings",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-ProjectSettings.get_setting",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a933791eab9b4bec31fe34ac7ea3bd05599001f07819e068222f0d1189da562a",
+      "implementationSha256": "0116bf4682937bd3e65e609a6a75ae35d8f1432c1111c2a09e432abc683b0793"
+    }
+  ]
+}

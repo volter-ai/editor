@@ -351,6 +351,68 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
     };
   };
 
+  const program = inputs.program;
+  const within = (inner: GodotBoundNode, outer: GodotBoundNode): boolean =>
+    (inner.startLine > outer.startLine || (inner.startLine === outer.startLine && inner.startColumn >= outer.startColumn)) &&
+    (inner.endLine < outer.endLine || (inner.endLine === outer.endLine && inner.endColumn <= outer.endColumn));
+  /** The classes an `or` of `name is Class` tests admits, or undefined for any other condition. */
+  const testedClasses = (id: number, name: string): string[] | undefined => {
+    const node = nodes.get(id);
+    if (node?.kind === 'TYPE_TEST') {
+      const operand = nodes.get(node.operand);
+      if (operand?.kind !== 'IDENTIFIER' || operand.name !== name) return undefined;
+      const tested = node.testDatatype;
+      return tested.kind === 'NATIVE' && !tested.metaType && tested.nativeType !== '' ? [tested.nativeType] : undefined;
+    }
+    if (node?.kind === 'BINARY_OPERATOR' && node.variantOperatorId === 21) {
+      const left = testedClasses(node.leftOperand, name);
+      const right = testedClasses(node.rightOperand, name);
+      return left === undefined || right === undefined ? undefined : [...left, ...right];
+    }
+    return undefined;
+  };
+  /**
+   * A dynamic call on a local inside the true branch of `if local is A or local is B:` that does
+   * not assign the local: Godot runs the branch only when the object's class is one of those
+   * (`OPCODE_TYPE_TEST_NATIVE`), so the member is ClassDB's selection for each, when all agree.
+   */
+  const narrowedSelection = (
+    baseId: number,
+    member: string,
+  ): ReturnType<typeof select> | undefined => {
+    const base = nodes.get(baseId);
+    if (base?.kind !== 'IDENTIFIER' || (base.source !== 'LOCAL_VARIABLE' && base.source !== 'FUNCTION_PARAMETER')) {
+      return undefined;
+    }
+    for (const node of program.nodes) {
+      if (node.kind !== 'IF') continue;
+      const block = nodes.get(node.trueBlock);
+      if (block === undefined || !within(base, block)) continue;
+      const classes = testedClasses(node.condition, base.name);
+      if (classes === undefined) continue;
+      const reassigned = program.nodes.some((candidate) => {
+        if (candidate.kind !== 'ASSIGNMENT' || !within(candidate, block)) return false;
+        const assignee = nodes.get(candidate.assignee);
+        return assignee?.kind === 'IDENTIFIER' && assignee.name === base.name;
+      });
+      if (reassigned) continue;
+      const rule = inputs.claim('type-test-narrowing');
+      if (rule === undefined) return 'type-test-narrowing has no live evidence';
+      const selections = classes.map((name) => select({ kind: 'native', name, claims: [rule] }, member));
+      const first = selections[0];
+      if (first === undefined) continue;
+      if (typeof first === 'string') return first;
+      const agree = selections.every(
+        (entry) =>
+          typeof entry !== 'string' &&
+          entry.target.owner === first.target.owner &&
+          entry.target.signatureHash === first.target.signatureHash,
+      );
+      return agree ? first : `${member} selects different declarations for ${classes.join(', ')}`;
+    }
+    return undefined;
+  };
+
   const untypedReasons = new Map<number, string>();
   // A dynamic call is typed on demand, so a call whose receiver is another dynamic call's result
   // types that call first, whatever their node ids.
@@ -366,7 +428,8 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
       untypedReasons.set(call.id, 'a dynamic call without an attribute receiver');
       return undefined;
     }
-    const selected = select(typeOf(callee.base), call.functionName);
+    const narrowed = narrowedSelection(callee.base, call.functionName);
+    const selected = narrowed ?? select(typeOf(callee.base), call.functionName);
     if (typeof selected === 'string') {
       untypedReasons.set(call.id, selected);
       return undefined;

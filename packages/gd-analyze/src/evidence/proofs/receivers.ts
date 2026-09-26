@@ -6,6 +6,9 @@
  * `typeCallReceivers` produced on the same project. A call on a node that carries a script must
  * stay untyped (Godot calls the script first).
  *
+ * Calls inside `if n is A or n is B:` are typed by the narrowed classes (`type-test-narrowing`):
+ * each class's ClassDB selection, when they agree.
+ *
  * The project nests instanced scenes and an imported `.glb` child path (the platformer's
  * `Enemy/Skeleton` shape): the fixture's `enemy.glb`, imported by the official editor first.
  */
@@ -55,6 +58,16 @@ const CHAINED = [
   ['self', 'get_position'],
 ] as const;
 
+/**
+ * Dynamic calls on a local inside `if n is A or n is B:` (`type-test-narrowing`): [classes, member].
+ * Godot runs the branch only for those classes; each selects the member through ClassDB.
+ */
+const NARROWED = [
+  [['RigidBody3D', 'CharacterBody3D'], 'get_rid'],
+  [['StaticBody3D'], 'get_collision_layer'],
+  [['OmniLight3D', 'SpotLight3D'], 'get_param'],
+] as const;
+
 const argumentsOf = (member: string): string => (member === 'get_param' ? '0' : '');
 
 const files: Readonly<Record<string, string>> = {
@@ -74,6 +87,16 @@ func typed_calls() -> void:
 ${CALLS.map(([nodePath, member]) => `\t$${nodePath}.${member}(${argumentsOf(member)})`).join('\n')}
 ${CHAINED.map(([base, member]) => `\t${base}.${member}()`).join('\n')}
 
+func narrowed(n: Node) -> void:
+${NARROWED.map(([classes, member]) => `\tif ${classes.map((name) => `n is ${name}`).join(' or ')}:\n\t\tn.${member}(${argumentsOf(member)})`).join('\n')}
+
+func agreed(classes: Array, member: String) -> String:
+\tvar owner := declaring(classes[0], member)
+\tfor cls in classes:
+\t\tif declaring(cls, member) != owner:
+\t\t\treturn "disagree"
+\treturn owner
+
 func declaring(cls: String, member: String) -> String:
 \tvar current := cls
 \twhile current != "":
@@ -91,6 +114,10 @@ ${CALLS.map(
 ${CHAINED.map(
   ([base, member], index) =>
     `\tvar chained_${String(index)} = ${base}\n\tvar chained_class_${String(index)} = chained_${String(index)}.get_class() if typeof(chained_${String(index)}) == TYPE_OBJECT else type_string(typeof(chained_${String(index)}))\n\trows.append([${JSON.stringify(base)}, ${JSON.stringify(member)}, chained_class_${String(index)}, declaring(chained_class_${String(index)}, ${JSON.stringify(member)}) if typeof(chained_${String(index)}) == TYPE_OBJECT else chained_class_${String(index)}, false])`,
+).join('\n')}
+${NARROWED.map(
+  ([classes, member]) =>
+    `\trows.append([${JSON.stringify(classes.join('|'))}, ${JSON.stringify(member)}, ${JSON.stringify(classes.join('|'))}, agreed(${JSON.stringify(classes)}, ${JSON.stringify(member)}), false])`,
 ).join('\n')}
 \tprint("RECEIVERS " + JSON.stringify(rows))
 \tget_tree().quit()
@@ -235,7 +262,23 @@ export function measureReceiverProof(tools: GodotProofTools): readonly GodotProo
         declaring: typed === undefined ? 'untyped' : typed.target.owner,
       };
     });
-    const target = [...pathTarget, ...chainedTarget];
+    const narrowedTarget = NARROWED.map(([classes, member]) => {
+      const call = program.nodes.find((node) => {
+        if (node.kind !== 'CALL' || node.functionName !== member) return false;
+        const callee = program.nodes[node.callee];
+        if (callee?.kind !== 'SUBSCRIPT') return false;
+        const base = program.nodes[callee.base];
+        return base?.kind === 'IDENTIFIER' && base.name === 'n';
+      });
+      const typed = call === undefined ? undefined : main.callReceivers.find((entry) => entry.nodeId === call.id);
+      return {
+        path: classes.join('|'),
+        member,
+        nodeClass: classes.join('|'),
+        declaring: typed === undefined ? 'untyped' : typed.target.owner,
+      };
+    });
+    const target = [...pathTarget, ...chainedTarget, ...narrowedTarget];
 
     // Native: the running scene.
     const run = spawnSync(officialBinary, ['--headless', '--path', temp], {

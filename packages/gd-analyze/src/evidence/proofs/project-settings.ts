@@ -2,13 +2,15 @@
  * The setting-type proof (`project-setting-type`): official Godot's
  * `type_string(typeof(ProjectSettings.get_setting(key)))` for each literal key main.gd reads, and of
  * each operator over such values, against the type `typeProjectSettingValues` gave the same call or
- * operator. The keys cover a value `project.godot` declares (of another type than the registered
+ * operator; for each call, the value Godot returns (`var_to_str`) against the value the analysis
+ * fixed for it. The keys cover a value `project.godot` declares (of another type than the registered
  * default's), registered defaults of several types, and a key with neither (stays untyped).
  */
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
+import { parseSettingValueText } from '../../analyze/project-setting-types';
 import {
   GODOT_PROJECT_SETTING_IMPLEMENTATION_FILES,
   godotAnalysisAuthority,
@@ -66,7 +68,7 @@ func _ready() -> void:
 \tvar rows: Array = []
 ${EXPRESSIONS.map(
   (expression, index) =>
-    `\tvar value_${String(index)} = ${expression}\n\trows.append(type_string(typeof(value_${String(index)})))`,
+    `\tvar value_${String(index)} = ${expression}\n\trows.append([type_string(typeof(value_${String(index)})), var_to_str(value_${String(index)})])`,
 ).join('\n')}
 \tprint("SETTINGS " + JSON.stringify(rows))
 \tget_tree().quit()
@@ -123,7 +125,10 @@ export function measureProjectSettingProof(tools: GodotProofTools): readonly God
       });
       if (variable?.kind !== 'VARIABLE') throw new Error(`main.gd has no value_${String(index)}`);
       const typed = main.settingTypes.find((entry) => entry.nodeId === variable.initializer);
-      return typed === undefined ? 'untyped' : typed.builtinType;
+      // The value project facts fix, for a `get_setting` call itself (an operator's is computed).
+      return typed === undefined
+        ? ['untyped', null]
+        : [typed.builtinType, typed.setting === undefined ? null : typed.setting.value];
     });
 
     const run = spawnSync(officialBinary, ['--headless', '--path', temp], {
@@ -134,10 +139,20 @@ export function measureProjectSettingProof(tools: GodotProofTools): readonly God
     if (run.error !== undefined || line === undefined) {
       throw new Error(`native setting probe failed: ${run.error?.message ?? ''}\n${run.stdout}\n${run.stderr}`);
     }
-    const nativeTypes = JSON.parse(line.slice('SETTINGS '.length)) as string[];
+    const nativeRows = JSON.parse(line.slice('SETTINGS '.length)) as [string, string][];
     // A value no project fact fixes stays untyped: Godot returns `null` for an undeclared,
-    // unregistered key, which the analysis must not claim a type for.
-    const native = nativeTypes.map((type) => (type === 'Nil' ? 'untyped' : type));
+    // unregistered key, which the analysis must not claim a type for. A `get_setting` call's value
+    // is read back through the same text syntax the analysis reads project values in.
+    const native = nativeRows.map(([type, text], index) =>
+      type === 'Nil'
+        ? ['untyped', null]
+        : [
+            type,
+            EXPRESSIONS[index]?.startsWith('ProjectSettings.get_setting(') && !EXPRESSIONS[index]?.includes(') ')
+              ? (parseSettingValueText(text) ?? null)
+              : null,
+          ],
+    );
     const nativeJson = JSON.stringify(canonical(native));
     const targetJson = JSON.stringify(canonical(target));
     const comparison = JSON.stringify({ native: nativeJson, target: targetJson, equal: nativeJson === targetJson });

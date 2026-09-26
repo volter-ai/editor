@@ -1486,6 +1486,19 @@ export function lowerOfficialExpression(
           ) {
             if (calleeNode.kind === 'SUBSCRIPT' && calleeNode.isAttribute) {
               const receiverNode = context.node(calleeNode.base, calleeNode);
+              if (
+                receiverNode.kind === 'IDENTIFIER' &&
+                receiverNode.source === 'NATIVE_CLASS' &&
+                target.target.use.kind === 'call' &&
+                target.target.use.sourceReceiver === 'absent'
+              ) {
+                // An engine singleton's method (`Input.is_action_pressed`): the singleton is the
+                // one object of its class (`Engine::get_singleton_object`), so its binding takes
+                // the arguments alone and the singleton identifier lowers to nothing.
+                const singleton = context.structural(receiverNode, 'singleton', [], 'singleton');
+                const result = boundCallWithoutReceiver(context, node, target, args);
+                return { ...result, requirements: [...requirements, ...singleton, ...result.requirements] };
+              }
               const result = boundInstanceCall(
                 context,
                 node,

@@ -1139,7 +1139,7 @@ export function bindGodotProject(
       ...callReceiverFacts(program, attachments),
       settingTypes: typeProjectSettingValues({
         program,
-        projectSettings: decoded.projectSettings,
+        projectSettings: decoded.authoredSettings,
         apiDump: apiDump.parsed,
         claim: () => analysisEvidence.liveClaim('project-setting-type'),
       }),

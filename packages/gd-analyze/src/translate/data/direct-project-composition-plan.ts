@@ -1,3 +1,4 @@
+import type { GodotValue } from '../../read/godot-value';
 import type {
   BoundGodotLifecycleEntry,
   BoundGodotProject,
@@ -73,11 +74,26 @@ export interface DirectGodotSourceModulePlan {
   readonly targetPath: string;
 }
 
+/** A project setting's value as the translated project holds it (the compat value it builds). */
+export type DirectGodotSettingValue =
+  | { readonly kind: 'number'; readonly value: number }
+  | { readonly kind: 'bool'; readonly value: boolean }
+  | { readonly kind: 'string'; readonly value: string }
+  | { readonly kind: 'Vector2' | 'Vector3' | 'Color'; readonly components: readonly number[] };
+
+/** A setting the project's scripts read by literal key, at the value project facts fix for it. */
+export interface DirectGodotProjectSettingPlan {
+  readonly key: string;
+  readonly value: DirectGodotSettingValue;
+}
+
 export interface DirectGodotProjectCompositionPlan {
   readonly version: typeof DIRECT_GODOT_COMPOSITION_PLAN_VERSION;
   readonly snapshotDigest: string;
   readonly sourceRevision: string;
   readonly mainScene: string;
+  /** The settings the world loads before any script runs. */
+  readonly projectSettings: readonly DirectGodotProjectSettingPlan[];
   readonly sourceModules: readonly DirectGodotSourceModulePlan[];
   readonly scenes: readonly DirectGodotSceneDocumentPlan[];
   readonly scriptAutoloads: readonly DirectGodotScriptAutoloadPlan[];
@@ -487,6 +503,50 @@ function validateAutoloadReferences(
   }
 }
 
+/** A setting value as the compat value it builds; undefined for a type not translated. */
+export function directGodotSettingValue(value: GodotValue): DirectGodotSettingValue | undefined {
+  switch (value.kind) {
+    case 'number':
+      return { kind: 'number', value: value.value };
+    case 'bool':
+      return { kind: 'bool', value: value.value };
+    case 'string':
+      return { kind: 'string', value: value.value };
+    case 'ctor': {
+      const arity = { Vector2: [2], Vector3: [3], Color: [3, 4] }[value.name as 'Vector2' | 'Vector3' | 'Color'];
+      if (arity === undefined || !arity.includes(value.args.length)) return undefined;
+      const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
+      if (!components.every((entry): entry is number => entry !== undefined)) return undefined;
+      return { kind: value.name as 'Vector2' | 'Vector3' | 'Color', components };
+    }
+    default:
+      return undefined;
+  }
+}
+
+/** The settings scripts read by literal key (`project-setting-type`), each once. */
+function projectSettings(
+  project: BoundGodotProject,
+  diagnostics: DirectGodotCompositionDiagnostic[],
+): readonly DirectGodotProjectSettingPlan[] {
+  const planned = new Map<string, DirectGodotProjectSettingPlan>();
+  for (const script of project.scripts) {
+    for (const entry of script.settingTypes) {
+      if (entry.setting === undefined || planned.has(entry.setting.key)) continue;
+      const value = directGodotSettingValue(entry.setting.value);
+      if (value === undefined) {
+        diagnostics.push({
+          at: `project.godot#${entry.setting.key}`,
+          message: `a ${entry.builtinType} setting value is not translated`,
+        });
+        continue;
+      }
+      planned.set(entry.setting.key, { key: entry.setting.key, value });
+    }
+  }
+  return [...planned.values()].sort((left, right) => left.key.localeCompare(right.key));
+}
+
 /** Pure join of already-accepted code and data plans; it performs no source read or emission. */
 export function planDirectGodotProjectComposition(
   project: BoundGodotProject,
@@ -543,6 +603,7 @@ export function planDirectGodotProjectComposition(
   const composedScenes = attachScriptInstances(project, scenes.scenes, instances, diagnostics);
   const autoloads = scriptAutoloads(project, modules, diagnostics);
   validateAutoloadReferences(instances, autoloads, diagnostics);
+  const settings = projectSettings(project, diagnostics);
   if (diagnostics.length > 0 || mainScene === undefined) {
     return { kind: 'refused-composition', diagnostics };
   }
@@ -553,6 +614,7 @@ export function planDirectGodotProjectComposition(
       snapshotDigest: project.snapshotDigest,
       sourceRevision: project.authority.revision,
       mainScene,
+      projectSettings: settings,
       sourceModules: plannedSourceModules,
       scenes: composedScenes,
       scriptAutoloads: autoloads,

@@ -65,6 +65,7 @@ export type GodotStructuralConstruct =
   | 'pass'
   | 'return'
   | 'self'
+  | 'singleton'
   | 'subscript-attribute'
   | 'subscript-element'
   | 'suite'

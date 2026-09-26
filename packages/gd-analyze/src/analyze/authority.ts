@@ -14,6 +14,7 @@ export type GodotAnalysisRuleId =
   | 'field-attachment-join'
   | 'scene-node-receiver'
   | 'classdb-method-selection'
+  | 'type-test-narrowing'
   | 'project-setting-type';
 
 export interface GodotAnalysisRule {

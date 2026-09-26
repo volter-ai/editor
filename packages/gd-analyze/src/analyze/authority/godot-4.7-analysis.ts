@@ -191,6 +191,11 @@ export const GODOT_4_7_RECEIVER_PROOF = provenRules(
   {
     'scene-node-receiver': { file: 'scene/main/node.cpp', symbol: 'Node::get_node_or_null', line: 1904 },
     'classdb-method-selection': { file: 'core/object/class_db.cpp', symbol: 'ClassDB::get_method', line: 1132 },
+    'type-test-narrowing': {
+      file: 'modules/gdscript/gdscript_vm.cpp',
+      symbol: 'OPCODE_TYPE_TEST_NATIVE (the branch runs only for those classes)',
+      line: 932,
+    },
   },
   {
     native: 'res://main.gd _ready()',

@@ -983,6 +983,7 @@ export function readGodotProjectDocuments(
     rendering: settings.rendering,
     resolvedSettings: settings.resolvedSettings,
     projectSettings: settings.projectSettings,
+    authoredSettings: settings.authoredSettings,
     autoloads,
     inputActions: settings.inputActions,
     globalClasses: settings.globalClasses,
