@@ -133,6 +133,11 @@ const sourceArchive = resolve(sourceArchiveArg);
 const outDir = resolve(
   argument('--out-dir') ?? join(PACKAGE_ROOT, '../../.vgai/tmp/godot-bound-exporter'),
 );
+// A pinned exporter is named by its digest; rebuilding over it would silently change the binary
+// a pin (and every builder using it) names. A new build goes to a new directory.
+if (existsSync(join(outDir, `godot-${versionArg}-bound-exporter-arm64`))) {
+  fail(`${outDir} already holds an exporter binary; build into a new --out-dir`);
+}
 const cacheDir = join(outDir, 'scons-cache');
 mkdirSync(cacheDir, { recursive: true });
 if (sha256(readFileSync(sourceArchive)) !== SOURCE_ARCHIVE_SHA256) {
