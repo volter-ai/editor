@@ -70,7 +70,7 @@
         "observedOutputSha256": "1cfb2d0d1bc4491c0e787464663fa2d730ef0e5908b1b9968642c2e8e7bd75e0"
       },
       "target": {
-        "implementationSha256": "1ac72b1f4a2601f15f948ba5e2f677a5cd5020e52b2d34305cd49371ff392dd2",
+        "implementationSha256": "f5e8e96f6fadbca35db50d6bae95b9b0b224b24d6a113d342b975c331090417d",
         "callsite": "lib/godot-compat/world-3d.ts get_space",
         "observedOutputSha256": "1cfb2d0d1bc4491c0e787464663fa2d730ef0e5908b1b9968642c2e8e7bd75e0"
       },
@@ -109,7 +109,7 @@
         "observedOutputSha256": "7e2ee10171a9510a94b0db9a280e508a86602a8ae8450eeb9b2130cefdd9f1c8"
       },
       "target": {
-        "implementationSha256": "1ac72b1f4a2601f15f948ba5e2f677a5cd5020e52b2d34305cd49371ff392dd2",
+        "implementationSha256": "f5e8e96f6fadbca35db50d6bae95b9b0b224b24d6a113d342b975c331090417d",
         "callsite": "lib/godot-compat/world-3d.ts get_direct_space_state",
         "observedOutputSha256": "7e2ee10171a9510a94b0db9a280e508a86602a8ae8450eeb9b2130cefdd9f1c8"
       },
@@ -136,7 +136,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "b0f7731fd9acd48a924e0a7086005314eb08a754c6600d173a7a204993041f76",
-      "implementationSha256": "1ac72b1f4a2601f15f948ba5e2f677a5cd5020e52b2d34305cd49371ff392dd2"
+      "implementationSha256": "f5e8e96f6fadbca35db50d6bae95b9b0b224b24d6a113d342b975c331090417d"
     },
     {
       "claimId": "godot-4.7-binding-World3D.get_direct_space_state",
@@ -144,7 +144,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "bc13d70be57649cdccac4c14275bf46a4885c32c969f504a597d15bca6fd871b",
-      "implementationSha256": "1ac72b1f4a2601f15f948ba5e2f677a5cd5020e52b2d34305cd49371ff392dd2"
+      "implementationSha256": "f5e8e96f6fadbca35db50d6bae95b9b0b224b24d6a113d342b975c331090417d"
     }
   ]
 }

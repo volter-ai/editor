@@ -18,6 +18,7 @@ import {
   GODOT_4_7_STRUCTURE_LIVENESS,
   GODOT_4_7_STRUCTURE_NODE_RULES,
   GODOT_4_7_STRUCTURE_PROPERTY_RULES,
+  GODOT_4_7_SIGNAL_RULES,
   GODOT_4_7_STRUCTURE_RULES,
 } from './authority/godot-4.7-scene-nodes';
 import {
@@ -41,6 +42,10 @@ export const GODOT_SCENE_STRUCTURE_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/node.ts',
   'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/node-3d.ts',
   'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/camera-3d.ts',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/signal.ts',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/react-lifecycle.tsx',
+  'packages/gd-analyze/src/translate/emit/direct-scene-lifecycle-syntax.ts',
+  'packages/gd-analyze/src/read/scene.ts',
 ] as const;
 
 /** Checked-in, exact-pin scene-node mapping authority for the selected official frontend. */
@@ -58,6 +63,7 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
       ? [...GODOT_4_7_SCENE_PROPERTY_RULES, ...GODOT_4_7_STRUCTURE_PROPERTY_RULES]
       : [],
     structureRules: supported ? GODOT_4_7_STRUCTURE_RULES : [],
+    signalRules: supported ? GODOT_4_7_SIGNAL_RULES : [],
     claims: supported ? [...GODOT_4_7_SCENE_NODE_CLAIMS, ...GODOT_4_7_STRUCTURE_CLAIMS] : [],
     liveness: supported
       ? [

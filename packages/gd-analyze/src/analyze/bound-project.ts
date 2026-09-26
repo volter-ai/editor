@@ -154,8 +154,23 @@ export interface BoundGodotSceneDocument {
   /** One normalized row per effective or unresolved authored node; no downstream tree walk. */
   readonly nodes: readonly BoundGodotSceneNode[];
   readonly connectionCount: number;
+  /** The document's `[connection]` lines, as authored. */
+  readonly connections: readonly BoundGodotSceneConnection[];
   readonly subResourceCount: number;
   readonly editablePaths: readonly string[];
+}
+
+/** One authored `[connection]`: `from`'s signal calls `method` on `to` (node paths in the document). */
+export interface BoundGodotSceneConnection {
+  readonly signal: string;
+  readonly from: string;
+  readonly to: string;
+  readonly method: string;
+  /** `Object::ConnectFlags` beyond `CONNECT_PERSIST`; 0 when only the default was saved. */
+  readonly flags: number;
+  /** Arguments bound onto (`binds`) or dropped from (`unbinds`) the call. */
+  readonly bindCount: number;
+  readonly unbinds: number;
 }
 
 export interface BoundGodotSceneNodeClass {
@@ -520,6 +535,15 @@ function boundDocuments(
             scriptFields,
           ),
           connectionCount: document.connections.length,
+          connections: document.connections.map((connection) => ({
+            signal: connection.signal,
+            from: connection.from,
+            to: connection.to,
+            method: connection.method,
+            flags: (connection.flags ?? 2) & ~2,
+            bindCount: connection.binds?.length ?? connection.bindCount ?? 0,
+            unbinds: connection.unbinds ?? 0,
+          })),
           subResourceCount: document.subResources.length,
           editablePaths: document.editablePaths,
         };

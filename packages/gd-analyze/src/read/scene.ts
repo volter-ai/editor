@@ -453,6 +453,7 @@ export function readSceneDocument(
     .filter((s) => s.kind === 'connection')
     .map((s): SignalConnection => {
       const unbinds = asNumber(s.attributes['unbinds']);
+      const flags = asNumber(s.attributes['flags']);
       const bindsValue = s.attributes['binds'];
       const binds = bindsValue?.kind === 'array' ? bindsValue.items : undefined;
       return {
@@ -462,6 +463,7 @@ export function readSceneDocument(
         method: asString(s.attributes['method']) ?? '',
         ...(binds === undefined ? {} : { binds }),
         ...(unbinds === undefined ? {} : { unbinds }),
+        ...(flags === undefined ? {} : { flags }),
       };
     });
 

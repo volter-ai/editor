@@ -47,12 +47,29 @@ export interface TargetGodotScenePropertyPlan {
   readonly evidenceClaimId: string;
 }
 
+/**
+ * An authored `[connection]`: when the scene mounts, `fromNodePath`'s signal (through its compat
+ * accessor) calls `method` on `toNodePath`'s script instance with the signal's arguments.
+ */
+export interface TargetGodotSceneConnectionPlan {
+  readonly signal: string;
+  readonly fromNodePath: string;
+  readonly toNodePath: string;
+  readonly method: string;
+  readonly accessor: { readonly module: string; readonly exportName: string; readonly named: boolean };
+  /** The signal's argument count, each passed on to the method. */
+  readonly arguments: number;
+  readonly evidenceClaimId: string;
+}
+
 export interface TargetGodotSceneDocumentPlan {
   readonly sourceResPath: string;
   readonly sourceDigest: string;
   readonly targetPath: string;
   readonly exportName: string;
   readonly root: TargetGodotSceneNodePlan;
+  /** Authored connections, in document order (the order `SceneState::instantiate` connects). */
+  readonly connections: readonly TargetGodotSceneConnectionPlan[];
 }
 
 export interface GodotSceneDocumentPlan {
@@ -187,6 +204,8 @@ function isResourceValue(value: GodotValue): boolean {
 interface PlanContext {
   /** Exported fields a script (and its script ancestors) declares: set by the field plan. */
   readonly scriptFields: (resPath: string) => ReadonlySet<string>;
+  /** Functions a script (and its script ancestors) declares. */
+  readonly scriptMethods: (resPath: string) => ReadonlySet<string>;
   readonly authority: GodotSceneNodeAuthorityResolver;
   readonly scenes: ReadonlyMap<string, BoundGodotSceneDocument>;
   readonly diagnostics: GodotSceneDocumentDiagnostic[];
@@ -399,9 +418,6 @@ function isInside(path: string, root: string): boolean {
 
 function planScene(context: PlanContext, scene: BoundGodotSceneDocument): TargetGodotSceneDocumentPlan | undefined {
   if (scene.sourceKind !== 'packed-scene') return undefined;
-  if (scene.connectionCount > 0) {
-    refuse(context, scene.resPath, 'signal connections are not planned', 'signal');
-  }
   if (!structure(context, scene.resPath, 'authored-order')) return undefined;
   // Instance roots: a node this document copied from another scene's root.
   const instanceRoots = new Map<string, BoundGodotSceneDocument>();
@@ -487,7 +503,8 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
     if (plannedNode === undefined) refused = true;
     else planned.push(plannedNode);
   }
-  if (refused) return undefined;
+  const connections = planConnections(context, scene, planned);
+  if (refused || connections === undefined) return undefined;
   const root = assembleSceneTree(context, scene, planned);
   if (root === undefined) return undefined;
   return {
@@ -496,7 +513,70 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
     targetPath: targetPath(scene.resPath),
     exportName: godotSceneExportName(scene.resPath),
     root,
+    connections,
   };
+}
+
+/**
+ * The document's connections (`SceneState::instantiate`, packed_scene.cpp:651): each between two
+ * native nodes this scene mounts, to a function of the target's script, from a signal whose class
+ * has a connection rule, with no binds, unbinds or flags beyond `CONNECT_PERSIST`.
+ */
+function planConnections(
+  context: PlanContext,
+  scene: BoundGodotSceneDocument,
+  planned: readonly TargetGodotSceneNodePlan[],
+): readonly TargetGodotSceneConnectionPlan[] | undefined {
+  const mounted = new Map(
+    planned.filter((node) => node.targetKind !== 'scene-instance').map((node) => [node.nodePath, node] as const),
+  );
+  const bound = new Map(scene.nodes.map((node) => [node.nodePath, node] as const));
+  let ok = true;
+  const result: TargetGodotSceneConnectionPlan[] = [];
+  for (const connection of scene.connections) {
+    const at = `${scene.resPath}#${connection.from}:${connection.signal}`;
+    const from = mounted.get(connection.from);
+    const to = mounted.get(connection.to);
+    const fromClass = bound.get(connection.from)?.class;
+    if (connection.flags !== 0 || connection.bindCount > 0 || connection.unbinds > 0) {
+      refuse(context, at, 'connection flags, binds or unbinds are not planned', 'signal', 'connection options');
+      ok = false;
+      continue;
+    }
+    if (from === undefined || to === undefined || fromClass === undefined) {
+      refuse(context, at, 'a connection with an end this scene does not mount natively is not planned', 'signal', 'connection end');
+      ok = false;
+      continue;
+    }
+    if (to.scriptResPath === undefined || !context.scriptMethods(to.scriptResPath).has(connection.method)) {
+      refuse(context, at, `the target has no script function ${connection.method}`, 'signal', 'connection target');
+      ok = false;
+      continue;
+    }
+    const rule = context.authority.signalRule(fromClass.nativeAncestry, connection.signal);
+    if (rule === undefined) {
+      refuse(
+        context,
+        at,
+        `${fromClass.nativeName}.${connection.signal} has no connection rule`,
+        'signal',
+        `${fromClass.nativeName}.${connection.signal}`,
+      );
+      ok = false;
+      continue;
+    }
+    context.evidence.add(rule.evidenceClaimId);
+    result.push({
+      signal: connection.signal,
+      fromNodePath: connection.from,
+      toNodePath: connection.to,
+      method: connection.method,
+      accessor: rule.accessor,
+      arguments: rule.arguments,
+      evidenceClaimId: rule.evidenceClaimId,
+    });
+  }
+  return ok ? result : undefined;
 }
 
 function assembleSceneTree(
@@ -548,6 +628,14 @@ export function planGodotSceneDocuments(
       const names = new Set<string>();
       for (const scriptPath of [resPath, ...(script?.inheritance.scriptAncestors ?? [])]) {
         for (const field of byScript.get(scriptPath)?.fields ?? []) names.add(field.name);
+      }
+      return names;
+    },
+    scriptMethods: (resPath) => {
+      const script = byScript.get(resPath);
+      const names = new Set<string>();
+      for (const scriptPath of [resPath, ...(script?.inheritance.scriptAncestors ?? [])]) {
+        for (const method of byScript.get(scriptPath)?.class.methods ?? []) names.add(method.name);
       }
       return names;
     },

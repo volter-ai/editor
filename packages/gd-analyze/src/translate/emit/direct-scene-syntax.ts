@@ -228,6 +228,111 @@ function moduleSpecifier(from: string, target: string): string {
   return relative.startsWith('.') ? relative : `./${relative}`;
 }
 
+/**
+ * Each authored connection, made once the scene's script instances exist (Godot connects while
+ * instantiating, before the scene enters the tree, packed_scene.cpp:682): the source entity's
+ * signal, through its compat accessor, calls the target instance's method with the signal's
+ * arguments. The scene's release disconnects it.
+ */
+function connectionStatements(
+  scene: DirectGodotProjectCompositionPlan['scenes'][number],
+  bindings: readonly DirectGodotSceneScriptBinding[],
+  nodeRefs: ReadonlyMap<string, string>,
+): { readonly make: readonly TargetTsStatement[]; readonly release: readonly TargetTsStatement[] } {
+  const make: TargetTsStatement[] = [];
+  const release: TargetTsStatement[] = [];
+  for (const [index, connection] of scene.connections.entries()) {
+    const fromRef = nodeRefs.get(connection.fromNodePath);
+    const target = bindings.find((binding) => binding.nodePath === connection.toNodePath);
+    if (fromRef === undefined || target === undefined) {
+      throw new Error(`${scene.sourceResPath}: connection ${connection.signal} has no mounted ends`);
+    }
+    const from = `$from_${String(index)}`;
+    const handle = `$connection_${String(index)}`;
+    const parameters = Array.from({ length: connection.arguments }, (_, argument) => `$argument_${String(argument)}`);
+    make.push(
+      {
+        kind: 'variable-statement',
+        declaration: 'const',
+        name: from,
+        initializer: {
+          kind: 'property-expression',
+          object: { kind: 'identifier-expression', name: fromRef },
+          property: 'current',
+        },
+      },
+      {
+        kind: 'if-statement',
+        condition: {
+          kind: 'binary-expression',
+          operator: '===',
+          left: { kind: 'identifier-expression', name: from },
+          right: { kind: 'literal-expression', value: null },
+        },
+        // biome-ignore lint/suspicious/noThenProperty: TargetTsSyntax names the source branch.
+        then: [
+          {
+            kind: 'throw-statement',
+            expression: {
+              kind: 'new-expression',
+              callee: { kind: 'identifier-expression', name: 'Error' },
+              arguments: [literal('Godot connection source node was not mounted.')],
+            },
+          },
+        ],
+      },
+      {
+        kind: 'variable-statement',
+        declaration: 'const',
+        name: handle,
+        initializer: {
+          kind: 'call-expression',
+          callee: {
+            kind: 'property-expression',
+            object: {
+              kind: 'call-expression',
+              callee: { kind: 'identifier-expression', name: connection.accessor.exportName },
+              arguments: [
+                { kind: 'identifier-expression', name: from },
+                ...(connection.accessor.named ? [literal(connection.signal)] : []),
+              ],
+            },
+            property: 'connect',
+          },
+          arguments: [
+            {
+              kind: 'arrow-expression',
+              parameters: parameters.map((name) => ({ name, type: { kind: 'keyword-type', keyword: 'any' } })),
+              body: {
+                kind: 'call-expression',
+                callee: {
+                  kind: 'property-expression',
+                  object: { kind: 'identifier-expression', name: `$instance_${String(target.index)}` },
+                  property: connection.method,
+                },
+                arguments: parameters.map((name) => ({ kind: 'identifier-expression', name })),
+              },
+            },
+          ],
+        },
+      },
+    );
+    release.push({
+      kind: 'expression-statement',
+      expression: {
+        kind: 'call-expression',
+        callee: {
+          kind: 'property-expression',
+          object: { kind: 'identifier-expression', name: handle },
+          property: 'disconnect',
+        },
+        arguments: [],
+      },
+    });
+  }
+  return { make, release };
+}
+
 function sceneSourceFile(
   project: DirectGodotProjectCompositionPlan,
   scene: DirectGodotProjectCompositionPlan['scenes'][number],
@@ -352,6 +457,13 @@ function sceneSourceFile(
       module: entry.module,
       namedBindings: [{ imported: entry.exportName, local: entry.exportName }],
     })),
+    ...[...new Map(scene.connections.map((connection) => [connection.accessor.exportName, connection.accessor])).values()].map(
+      (accessor) => ({
+        kind: 'import-statement' as const,
+        module: moduleSpecifier(scene.targetPath, `src/${accessor.module}.ts`),
+        namedBindings: [{ imported: accessor.exportName, local: accessor.exportName }],
+      }),
+    ),
     ...(adopted.length === 0
       ? []
       : [
@@ -572,7 +684,7 @@ function sceneSourceFile(
           ...adoption,
           ...(bindings.length === 0 || rootNodeRef === undefined
             ? []
-            : [directGodotSceneLifecycleEffect(bindings, rootNodeRef)]),
+            : [directGodotSceneLifecycleEffect(bindings, rootNodeRef, connectionStatements(scene, bindings, nodeRefs))]),
           { kind: 'return-statement', expression: nodeExpression(scene.root, emission, 'props') },
         ],
       },

@@ -185,6 +185,11 @@ function lifecycleBinding(binding: DirectGodotSceneScriptBinding): TargetTsExpre
 export function directGodotSceneLifecycleEffect(
   bindings: readonly DirectGodotSceneScriptBinding[],
   rootNodeRef: string,
+  /** Authored connections, made once every script instance exists; released with the scene. */
+  connections: { readonly make: readonly TargetTsStatement[]; readonly release: readonly TargetTsStatement[] } = {
+    make: [],
+    release: [],
+  },
 ): TargetTsStatement {
   return {
     kind: 'expression-statement',
@@ -198,6 +203,7 @@ export function directGodotSceneLifecycleEffect(
           parameters: [],
           body: [
             ...bindings.flatMap(bindingInitialization),
+            ...connections.make,
             {
               kind: 'return-statement',
               expression: {
@@ -212,12 +218,15 @@ export function directGodotSceneLifecycleEffect(
                     value: {
                       kind: 'arrow-expression',
                       parameters: [],
-                      body: bindings.map((binding) =>
-                        assignment(property(`$script_${binding.index}`, 'current'), {
-                          kind: 'literal-expression',
-                          value: null,
-                        }),
-                      ),
+                      body: [
+                        ...connections.release,
+                        ...bindings.map((binding) =>
+                          assignment(property(`$script_${binding.index}`, 'current'), {
+                            kind: 'literal-expression',
+                            value: null,
+                          }),
+                        ),
+                      ],
                     },
                   },
                 ],

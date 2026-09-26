@@ -5,8 +5,10 @@
  * `createRoot`, with a renderer stub; nothing is drawn) and read through compat.
  *
  * The project covers instanced scenes as components (nested, with a root override and a child the
- * instancing scene adds), a plain Node between Node3Ds, groups, authored order, Node3D transforms
- * and Camera3D with defaults and authored values.
+ * instancing scene adds), a plain Node between Node3Ds, groups, authored order, Node3D transforms,
+ * Camera3D with defaults and authored values, the class each node records, and authored
+ * `[connection]`s (Node `ready` and `tree_entered`), compared by the order the root's script sees
+ * its own callbacks and the connected calls.
  */
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
@@ -61,11 +63,33 @@ transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0.3, 0)
 
 [node name="Leaf" parent="Arm" instance=ExtResource("1_leaf")]
 `,
-  'main.tscn': `[gd_scene load_steps=2 format=3]
+  // The root's script records the order of its callbacks and of the connections authored below.
+  'main.gd': `extends Node3D
+
+var events: Array = []
+
+func _enter_tree() -> void:
+\tevents.append("main_enter_tree")
+
+func _ready() -> void:
+\tevents.append("main_ready")
+
+func _on_placed_ready() -> void:
+\tevents.append("placed_ready")
+
+func _on_cam_entered() -> void:
+\tevents.append("cam_tree_entered")
+
+func _on_main_ready() -> void:
+\tevents.append("main_ready_signal")
+`,
+  'main.tscn': `[gd_scene load_steps=3 format=3]
 
 [ext_resource type="PackedScene" path="res://prop.tscn" id="1_prop"]
+[ext_resource type="Script" path="res://main.gd" id="2_main"]
 
 [node name="Main" type="Node3D"]
+script = ExtResource("2_main")
 
 [node name="Plain" type="Node" parent="."]
 
@@ -89,6 +113,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.75)
 [node name="Prop2" parent="." instance=ExtResource("1_prop")]
 
 [node name="DefaultCam" type="Camera3D" parent="."]
+
+[connection signal="ready" from="Placed" to="." method="_on_placed_ready"]
+[connection signal="tree_entered" from="Placed/Cam" to="." method="_on_cam_entered"]
+[connection signal="ready" from="." to="." method="_on_main_ready"]
 `,
 };
 
@@ -129,7 +157,7 @@ func _initialize() -> void:
 func _process(_delta: float) -> bool:
 \tvar rows := []
 \t_walk(main, main, rows)
-\tprint("TREE " + JSON.stringify(rows))
+\tprint("TREE " + JSON.stringify({"tree": rows, "events": main.events}))
 \treturn true
 `;
 
@@ -152,7 +180,7 @@ const MOUNT = `import { createElement, act } from 'react';
 import * as THREE from 'three';
 import { createRoot, extend } from '@react-three/fiber';
 import { MainScene } from './src/scenes/main';
-import { is_in_group, godot_is_native, godot_node_is_spatial } from './src/lib/godot-compat/node';
+import { is_in_group, godot_is_native, godot_node_is_spatial, godot_node_object } from './src/lib/godot-compat/node';
 import { get_global_transform } from './src/lib/godot-compat/node-3d';
 import { get_fov, get_near, get_far } from './src/lib/godot-compat/camera-3d';
 
@@ -193,12 +221,14 @@ const walk = (path, object) => {
   rows.push(row);
   for (const child of object.children) walk(path === '.' ? child.name : path + '/' + child.name, child);
 };
-walk('.', holder.current.children[0]);
+const main = holder.current.children[0];
+walk('.', main);
+const events = [...godot_node_object(main).events];
 await act(async () => { root.unmount(); });
-console.log('TREE ' + JSON.stringify(rows));
+console.log('TREE ' + JSON.stringify({ tree: rows, events }));
 `;
 
-function mountedTree(out: string): unknown[] {
+function mountedTree(out: string): unknown {
   writeFileSync(path.join(out, 'gd-analyze-mount.mts'), MOUNT);
   const run = spawnSync(process.execPath, ['--import', 'tsx', 'gd-analyze-mount.mts'], {
     cwd: out,
@@ -209,7 +239,7 @@ function mountedTree(out: string): unknown[] {
   if (run.error !== undefined || line === undefined) {
     throw new Error(`mounting the emitted scene failed: ${run.error?.message ?? ''}\n${run.stdout}\n${run.stderr}`);
   }
-  return JSON.parse(line.slice('TREE '.length)) as unknown[];
+  return JSON.parse(line.slice('TREE '.length)) as unknown;
 }
 
 export async function measureSceneStructureProof(
@@ -264,7 +294,7 @@ export async function measureSceneStructureProof(
     if (run.error !== undefined || line === undefined) {
       throw new Error(`native scene probe failed: ${run.error?.message ?? ''}\n${run.stdout}\n${run.stderr}`);
     }
-    const native = JSON.parse(line.slice('TREE '.length)) as unknown[];
+    const native = JSON.parse(line.slice('TREE '.length)) as unknown;
     const nativeJson = JSON.stringify(canonical(native));
     const targetJson = JSON.stringify(canonical(target));
     const comparison = JSON.stringify({ native: nativeJson, target: targetJson, equal: nativeJson === targetJson });

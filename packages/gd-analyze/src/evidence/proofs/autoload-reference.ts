@@ -225,6 +225,8 @@ export function measureAutoloadReferenceProof(tools: GodotProofTools): readonly 
           createContext: () => ({}),
           useContext: () => ({ Globals: { current: globals } }),
           useRef: () => sceneRefs[sceneRefIndex++],
+          // The Node protocol's adoption of the mounted nodes; this proof reads autoload identity.
+          useLayoutEffect: () => undefined,
         };
       }
       if (specifier === 'react/jsx-runtime') return { jsx, jsxs: jsx };

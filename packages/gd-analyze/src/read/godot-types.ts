@@ -283,6 +283,11 @@ export interface SignalConnection {
   /** Godot 4 Callable.unbind count serialized on the connection. It removes arguments from the
    * end of the emitted signal tuple before invoking the method. Absent in Godot 3 documents. */
   readonly unbinds?: number;
+  /** `Object::ConnectFlags` authored beyond `CONNECT_PERSIST`, which the text writer omits
+   * (`resource_format_text.cpp:2111`); absent when only that default was saved. */
+  readonly flags?: number;
+  /** A binary scene's bound-argument count, whose values it does not decode (`binds` stays absent). */
+  readonly bindCount?: number;
 }
 
 /** One `.tscn`. */

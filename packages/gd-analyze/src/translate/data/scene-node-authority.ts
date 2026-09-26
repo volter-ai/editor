@@ -69,6 +69,26 @@ export function godotSceneStructureRuleKey(
   return [sourceRevision, 'scene-structure', id].join('\0');
 }
 
+/**
+ * An authored `[connection]` from a native class's signal: the composition site connects it by the
+ * compat accessor that exposes that signal on the node's entity (`accessor(entity)` or, `named`,
+ * `accessor(entity, signal)`), to the target script instance's method, when the scene mounts.
+ */
+export interface GodotSceneSignalRule {
+  readonly sourceRevision: string;
+  /** The native class that declares the signal (the API dump's `signals`). */
+  readonly ownerClass: string;
+  readonly signal: string;
+  readonly accessor: { readonly module: string; readonly exportName: string; readonly named: boolean };
+  /** The signal's declared argument count (the API dump's), passed on to the method. */
+  readonly arguments: number;
+  readonly evidenceClaimId: string;
+}
+
+export function godotSceneSignalRuleKey(sourceRevision: string, ownerClass: string, signal: string): string {
+  return [sourceRevision, 'scene-connection', ownerClass, signal].join('\0');
+}
+
 export interface GodotScenePropertyRule {
   readonly sourceRevision: string;
   readonly nativeCanonicalIdentity: string;
@@ -90,6 +110,7 @@ export interface GodotSceneNodeAuthority {
   readonly placementRules: readonly GodotScenePlacementRule[];
   readonly propertyRules: readonly GodotScenePropertyRule[];
   readonly structureRules: readonly GodotSceneStructureRule[];
+  readonly signalRules: readonly GodotSceneSignalRule[];
   readonly claims: readonly SemanticClaimRecord[];
   readonly liveness: readonly GodotSceneNodeClaimLiveness[];
 }
@@ -200,6 +221,7 @@ export class GodotSceneNodeAuthorityResolver {
   readonly #placementRules: ReadonlyMap<string, GodotScenePlacementRule>;
   readonly #propertyRules: ReadonlyMap<string, GodotScenePropertyRule>;
   readonly #structureRules: ReadonlyMap<string, GodotSceneStructureRule>;
+  readonly #signalRules: ReadonlyMap<string, GodotSceneSignalRule>;
   readonly #registry: SemanticClaimRegistry;
   readonly #liveness: ReadonlyMap<string, GodotSceneNodeClaimLiveness>;
 
@@ -221,6 +243,35 @@ export class GodotSceneNodeAuthorityResolver {
       structure.set(key, rule);
     }
     this.#structureRules = structure;
+    const signals = new Map<string, GodotSceneSignalRule>();
+    for (const rule of authority.signalRules) {
+      const key = godotSceneSignalRuleKey(rule.sourceRevision, rule.ownerClass, rule.signal);
+      if (signals.has(key)) throw new Error(`duplicate Godot scene connection rule: ${key}`);
+      signals.set(key, rule);
+    }
+    this.#signalRules = signals;
+  }
+
+  /**
+   * The live connection rule for a signal of a node whose native ancestry (nearest first) is
+   * given: the rule of the nearest class that has one; undefined when none has live evidence.
+   */
+  signalRule(ancestry: readonly string[], signal: string): GodotSceneSignalRule | undefined {
+    for (const ownerClass of ancestry) {
+      const key = godotSceneSignalRuleKey(this.sourceRevision, ownerClass, signal);
+      const rule = this.#signalRules.get(key);
+      if (rule === undefined) continue;
+      const liveness = this.#liveness.get(rule.evidenceClaimId);
+      if (liveness === undefined) {
+        throw new Error(`Godot scene connection claim has no liveness: ${rule.evidenceClaimId}`);
+      }
+      const claim = this.#registry.claim(rule.evidenceClaimId, liveness);
+      if (claim.layer !== 'translate-data' || claim.canonicalIdentity !== key) {
+        throw new Error(`Godot scene connection claim does not prove its rule: ${rule.evidenceClaimId}`);
+      }
+      return rule;
+    }
+    return undefined;
   }
 
   /** A live structure rule, or undefined when the rule has no live evidence. */

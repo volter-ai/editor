@@ -13,10 +13,12 @@ import {
   type GodotSceneNodeRule,
   type GodotScenePlacementRule,
   type GodotScenePropertyRule,
+  type GodotSceneSignalRule,
   type GodotSceneStructureRule,
   godotSceneNodeRuleKey,
   godotScenePlacementRuleKey,
   godotScenePropertyRuleKey,
+  godotSceneSignalRuleKey,
   godotSceneStructureRuleKey,
 } from '../scene-node-authority';
 
@@ -306,6 +308,28 @@ export const GODOT_4_7_STRUCTURE_RULES: readonly (GodotSceneStructureRule & { re
   },
 ];
 
+/** Node signals the composition connects authored `[connection]`s from, through node.ts. */
+export const GODOT_4_7_SIGNAL_RULES: readonly (GodotSceneSignalRule & { readonly source: Source })[] = [
+  {
+    sourceRevision: REVISION,
+    ownerClass: 'Node',
+    signal: 'ready',
+    accessor: { module: 'lib/godot-compat/node', exportName: 'godot_node_ready_signal', named: false },
+    arguments: 0,
+    evidenceClaimId: 'godot-4.7-scene-connection-node-ready',
+    source: { file: 'scene/resources/packed_scene.cpp', symbol: 'SceneState::instantiate (connections)', line: 682 },
+  },
+  {
+    sourceRevision: REVISION,
+    ownerClass: 'Node',
+    signal: 'tree_entered',
+    accessor: { module: 'lib/godot-compat/node', exportName: 'godot_node_tree_signal', named: true },
+    arguments: 0,
+    evidenceClaimId: 'godot-4.7-scene-connection-node-tree-entered',
+    source: { file: 'scene/resources/packed_scene.cpp', symbol: 'SceneState::instantiate (connections)', line: 682 },
+  },
+];
+
 function structureClaim(canonicalIdentity: string, claimId: string, source: Source): SemanticClaimRecord {
   return {
     registryVersion: 1,
@@ -332,7 +356,7 @@ function structureClaim(canonicalIdentity: string, claimId: string, source: Sour
       observedOutputSha256: STRUCTURE_IDENTITIES.observed,
     },
     comparison: {
-      comparator: 'canonical tree (names, classes, global transform bits, groups, camera) exact equality',
+      comparator: 'canonical tree (names, classes, global transform bits, groups, camera) and connection-call order exact equality',
       tolerance: 'exact',
       resultSha256: STRUCTURE_IDENTITIES.comparison,
     },
@@ -353,6 +377,9 @@ export const GODOT_4_7_STRUCTURE_CLAIMS: readonly SemanticClaimRecord[] = [
   ),
   ...GODOT_4_7_STRUCTURE_RULES.map((rule) =>
     structureClaim(godotSceneStructureRuleKey(rule.sourceRevision, rule.id), rule.evidenceClaimId, rule.source),
+  ),
+  ...GODOT_4_7_SIGNAL_RULES.map((rule) =>
+    structureClaim(godotSceneSignalRuleKey(rule.sourceRevision, rule.ownerClass, rule.signal), rule.evidenceClaimId, rule.source),
   ),
 ];
 

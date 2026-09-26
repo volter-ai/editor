@@ -571,7 +571,7 @@ function readSceneDocumentFromBundle(
     const to = connCursor.next(); // :1736
     const signal = connCursor.next(); // :1737
     const method = connCursor.next(); // :1738
-    connCursor.next(); // flags, :1739 — Godot's CONNECT_* bitmask; no consumer here
+    const flags = connCursor.next(); // :1739, Godot's CONNECT_* bitmask
     const bindCount = connCursor.next(); // :1740
     for (let b = 0; b < bindCount; b++) connCursor.next(); // :1743
     const unbinds = bundle.version >= 3 ? connCursor.next() : undefined; // :1745-1747
@@ -581,6 +581,8 @@ function readSceneDocumentFromBundle(
       to: endpointPath(to, bundle, nodePathOfIndex, resPath),
       method: nameAt(bundle, method, resPath, `connection ${i}`),
       ...(unbinds === undefined ? {} : { unbinds }),
+      ...(flags === 2 ? {} : { flags }),
+      ...(bindCount === 0 ? {} : { bindCount }),
     });
   }
 

@@ -3,8 +3,10 @@
  * official binary and bound exporter, rewrite the identities of each proof that agrees, then
  * re-run every evidence case file (compat modules, then language rules).
  */
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import * as path from 'node:path';
 import { enterEvidenceMeasurement } from '../godot-frontend/implementation-liveness';
 import {
   type GodotProofIdentities,
@@ -26,8 +28,10 @@ import { measureSceneStructureProof } from './proofs/scene-structure';
 import {
   GODOT_4_7_OFFICIAL_EXECUTABLE_SHA256,
   godotEvidenceCaseNames,
-  runEvidence,
 } from './run-evidence';
+
+/** The production CLI, which runs one case file (`gd-analyze evidence <name>`). */
+const CLI = path.resolve(import.meta.dirname, '..', 'cli.ts');
 
 /** Upstream authorities first; the lifecycle proof mounts a DOM on the process, so it runs last. */
 const PROOFS: readonly (readonly [
@@ -97,15 +101,33 @@ export async function refreshEvidence(tools: GodotProofTools): Promise<number> {
       process.stdout.write(`${measurement.name}: agrees, refreshed ${changed.join(', ')}\n`);
     }
   }
-  // Then every case file: compat modules, then the language rules lowered through them.
+  // Then every case file: compat modules, then the language rules lowered through them. Each runs
+  // in its own process, as `gd-analyze evidence <name>` does: compat modules hold module-level
+  // state (the tree, a physics world), and one case file's state must not reach the next's.
   for (const name of await godotEvidenceCaseNames()) {
-    try {
-      if ((await runEvidence(name, tools.officialBinary, tools.exporterBinary)) !== 0) failed.push(name);
-    } catch (error) {
+    const run = spawnSync(
+      process.execPath,
+      [
+        ...process.execArgv,
+        CLI,
+        'evidence',
+        name,
+        '--official-binary',
+        tools.officialBinary,
+        '--bound-exporter-binary',
+        tools.exporterBinary,
+      ],
+      { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 },
+    );
+    const summary = run.stdout
+      .split('\n')
+      .filter((line) => line.startsWith('gd-analyze evidence') || line.startsWith('all ') || / disagree|failed|refused/.test(line))
+      .slice(0, 6)
+      .join('\n');
+    process.stdout.write(`${summary}\n`);
+    if (run.status !== 0) {
       failed.push(name);
-      process.stdout.write(
-        `${name}: the case file failed; nothing written\n  ${error instanceof Error ? error.message : String(error)}\n`,
-      );
+      process.stdout.write(`${name}: the case file failed; nothing written\n  ${run.stderr.split('\n').slice(0, 6).join('\n  ')}\n`);
     }
   }
   if (failed.length > 0) {
