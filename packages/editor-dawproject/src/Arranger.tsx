@@ -8,6 +8,10 @@
  *   double-click a lane     a new one-bar `<Clip>` at that bar
  *   Delete / Backspace      the selected clip, with everything in it
  *   Cmd/Ctrl+D              the selected clip duplicated right after itself
+ *   double-click markers    a new `<Marker>` at that bar, after the piece's last one
+ *   drag a marker           moves it by whole bars
+ *   double-click a marker   renames it in place (Enter writes, Escape leaves it)
+ *   Delete on a marker      takes it out
  *
  * A gesture that rewrites several elements (a clip and its notes) is ONE whole-file edit and ONE
  * undo entry, built from the source's own tree (`source-notes.ts`); when any element it must
@@ -15,7 +19,7 @@
  */
 
 import { beatAt, formatAt } from '@volter/dawproject/notation';
-import type { Piece, PieceClip, PieceTrack } from '@volter/dawproject/piece';
+import type { Piece, PieceClip, PieceMarker, PieceTrack } from '@volter/dawproject/piece';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react';
 import type { EngineState } from './preview-engine';
@@ -214,6 +218,7 @@ export function Arranger(props: {
   const beginClip = (kind: ClipGesture['kind'], clip: PieceClip, event: ReactPointerEvent): void => {
     event.stopPropagation();
     props.onSelectClip(clip.id);
+    setSelectedMarker(null);
     (event.currentTarget as Element).setPointerCapture(event.pointerId);
     setGesture({ kind, clip, startX: event.clientX, bars: kind === 'move' ? 0 : Math.round(clip.duration / beatsPerBar) });
   };
@@ -288,6 +293,86 @@ export function Arranger(props: {
     );
   };
 
+  // MARKERS: `<Marker at name>`, children of the `<Project>`. The one selected (clicked last)
+  // is what Delete takes out, before any clip.
+  const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState<string | null>(null);
+  const markerDrag = useRef<{ marker: PieceMarker; startX: number; time: number } | null>(null);
+  const [markerShown, setMarkerShown] = useState<{ id: string; time: number } | null>(null);
+  useEffect(() => setMarkerShown(null), [piece]);
+  const markerRefusal = (marker: PieceMarker, prop: string): string | null =>
+    setRefusal(writes.index, marker.oid, prop, marker.oid ? (piece.oidCounts.get(marker.oid) ?? 0) : 0);
+
+  const addMarker = (event: ReactMouseEvent<HTMLDivElement>): void => {
+    if (event.target !== event.currentTarget) return;
+    const bar = Math.max(0, Math.floor((event.clientX - event.currentTarget.getBoundingClientRect().left) / barPx));
+    const names = new Set(piece.markers.map((marker) => marker.name));
+    let number = piece.markers.length + 1;
+    while (names.has(`Section ${number}`)) number++;
+    const snippet = `<Marker at="${formatAt(bar * beatsPerBar, beatsPerBar, { bar: true })}" name="Section ${number}" />`;
+    const own = (oid: string | null): oid is string => oid !== null && (piece.oidCounts.get(oid) ?? 0) === 1;
+    const last = piece.markers.at(-1);
+    const after = last ? (own(last.oid) ? last.oid : null) : own(piece.transport.oid) ? piece.transport.oid : null;
+    if (!after) {
+      writes.onMessage(last ? 'The last marker is generated, so a new one has no single place to go after it.' : 'This piece has no <Transport> of its own to put a marker after.');
+      return;
+    }
+    writes.onMessage(null);
+    writeStruct(after, 'create-sibling', snippet).then((write) => {
+      if (write) recordStructWrite('Add Marker', write, { index: writes.index, pieceFile: writes.file, documentId: writes.documentId }, writes.onMessage);
+    }, say);
+  };
+
+  const beginMarker = (marker: PieceMarker, event: ReactPointerEvent): void => {
+    event.stopPropagation();
+    setSelectedMarker(marker.id);
+    if (markerRefusal(marker, 'at')) return;
+    (event.currentTarget as Element).setPointerCapture(event.pointerId);
+    markerDrag.current = { marker, startX: event.clientX, time: marker.time };
+  };
+  const moveMarker = (event: ReactPointerEvent): void => {
+    const current = markerDrag.current;
+    if (!current) return;
+    const time = Math.max(0, Math.round((current.marker.time + (event.clientX - current.startX) / pxPerBeat) / beatsPerBar) * beatsPerBar);
+    if (time === current.time) return;
+    markerDrag.current = { ...current, time };
+    setMarkerShown({ id: current.marker.id, time });
+  };
+  const endMarker = (): void => {
+    const current = markerDrag.current;
+    markerDrag.current = null;
+    if (!current || current.time === current.marker.time || !current.marker.oid) {
+      setMarkerShown(null);
+      return;
+    }
+    setProps('Move Marker', writes.index, current.marker.oid, { at: formatAt(current.time, beatsPerBar, { bar: true }) }, resource).catch((error: unknown) => {
+      setMarkerShown(null);
+      say(error);
+    });
+  };
+  const startRename = (marker: PieceMarker): void => {
+    const why = markerRefusal(marker, 'name');
+    if (why) writes.onMessage(why);
+    else setRenaming(marker.id);
+  };
+  const rename = (marker: PieceMarker, name: string): void => {
+    setRenaming(null);
+    container.current?.focus({ preventScroll: true });
+    if (!marker.oid || name === marker.name || name.trim() === '') return;
+    setProps('Rename Marker', writes.index, marker.oid, { name }, resource).catch(say);
+  };
+  const deleteMarker = (marker: PieceMarker): void => {
+    if (!marker.oid || (piece.oidCounts.get(marker.oid) ?? 0) !== 1) {
+      writes.onMessage('This marker is generated: it has no element of its own to delete.');
+      return;
+    }
+    writes.onMessage(null);
+    setSelectedMarker(null);
+    writeStruct(marker.oid, 'delete').then((write) => {
+      if (write) recordStructWrite('Delete Marker', write, { index: writes.index, pieceFile: writes.file, documentId: writes.documentId }, writes.onMessage);
+    }, say);
+  };
+
   const selected = piece.tracks.flatMap((track) => track.clips.map((clip) => ({ clip, track }))).find(({ clip }) => clip.id === props.selectedClip) ?? null;
 
   const deleteClip = (): void => {
@@ -330,7 +415,9 @@ export function Arranger(props: {
     if (event.key === 'Delete' || event.key === 'Backspace') {
       event.preventDefault();
       event.stopPropagation();
-      deleteClip();
+      const marker = piece.markers.find((candidate) => candidate.id === selectedMarker);
+      if (marker) deleteMarker(marker);
+      else deleteClip();
     } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'd') {
       event.preventDefault();
       event.stopPropagation();
@@ -437,15 +524,60 @@ export function Arranger(props: {
             </span>
           ))}
         </div>
-        <div style={{ height: MARKER_H, position: 'relative', borderBottom: `1px solid ${themeVars.boundary.default}` }}>
-          {piece.markers.map((marker) => (
-            <span
-              key={marker.id}
-              style={{ position: 'absolute', left: marker.time * pxPerBeat, top: 1, padding: '0 4px', fontSize: 10, background: themeVars.surface.raised, borderLeft: `2px solid ${themeVars.semantic.warning}`, whiteSpace: 'nowrap' }}
-            >
-              {marker.name}
-            </span>
-          ))}
+        <div
+          data-marker-strip=""
+          title="Double-click to add a marker"
+          onDoubleClick={addMarker}
+          onPointerMove={moveMarker}
+          onPointerUp={endMarker}
+          style={{ height: MARKER_H, position: 'relative', borderBottom: `1px solid ${themeVars.boundary.default}` }}
+        >
+          {piece.markers.map((marker) => {
+            const time = markerShown?.id === marker.id ? markerShown.time : marker.time;
+            const style: CSSProperties = {
+              position: 'absolute',
+              left: time * pxPerBeat,
+              top: 1,
+              padding: '0 4px',
+              fontSize: 10,
+              background: themeVars.surface.raised,
+              borderLeft: `2px solid ${themeVars.semantic.warning}`,
+              outline: marker.id === selectedMarker ? `1px solid ${themeVars.content.primary}` : 'none',
+              whiteSpace: 'nowrap',
+              cursor: 'grab',
+              touchAction: 'none',
+            };
+            return renaming === marker.id ? (
+              <input
+                key={marker.id}
+                data-marker-name={marker.id}
+                defaultValue={marker.name}
+                autoFocus
+                onFocus={(event) => event.currentTarget.select()}
+                onKeyDown={(event) => {
+                  event.stopPropagation();
+                  if (event.key === 'Enter') rename(marker, event.currentTarget.value);
+                  else if (event.key === 'Escape') rename(marker, marker.name);
+                }}
+                onBlur={() => setRenaming(null)}
+                style={{ ...style, width: 110, height: MARKER_H - 4, color: themeVars.content.primary, border: 'none' }}
+              />
+            ) : (
+              <span
+                key={marker.id}
+                data-marker={marker.name}
+                title={markerRefusal(marker, 'at') ?? `${marker.name} · bar ${formatAt(marker.time, beatsPerBar, { bar: true })}`}
+                onPointerDown={(event) => beginMarker(marker, event)}
+                onDoubleClick={(event) => {
+                  event.stopPropagation();
+                  startRename(marker);
+                }}
+                style={style}
+              >
+                {marker.name}
+              </span>
+            );
+          })}
         </div>
         {piece.tracks.map((track, index) => (
           <div
