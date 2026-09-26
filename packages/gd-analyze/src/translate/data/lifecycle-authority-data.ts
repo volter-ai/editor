@@ -1,4 +1,7 @@
-import { monorepoImplementationDigest } from '../../godot-frontend/implementation-liveness';
+import {
+  monorepoImplementationDigest,
+  withLiveImplementation,
+} from '../../godot-frontend/implementation-liveness';
 import type { GodotSourceAuthority } from '../../godot-frontend/source-authority';
 import {
   GODOT_4_7_CODE_SEED_API_DUMP_SHA256,
@@ -45,13 +48,14 @@ export function godotLifecycleAuthority(source: GodotSourceAuthority): GodotLife
     projectStartupRules: supported ? GODOT_4_7_PROJECT_STARTUP_RULES : [],
     claims: supported ? GODOT_4_7_LIFECYCLE_CLAIMS : [],
     liveness: supported
-      ? GODOT_4_7_LIFECYCLE_LIVENESS.map((entry) => ({
-          ...entry,
-          implementationSha256:
+      ? GODOT_4_7_LIFECYCLE_LIVENESS.flatMap((entry) =>
+          withLiveImplementation(
+            [entry],
             entry.claimId === 'godot-4.7-project-autoload-startup'
               ? monorepoImplementationDigest(GODOT_PROJECT_STARTUP_IMPLEMENTATION_FILES)
               : monorepoImplementationDigest(GODOT_LIFECYCLE_IMPLEMENTATION_FILES),
-        }))
+          ),
+        )
       : [],
   };
 }

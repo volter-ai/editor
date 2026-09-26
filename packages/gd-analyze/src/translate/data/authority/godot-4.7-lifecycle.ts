@@ -1,3 +1,7 @@
+import {
+  GODOT_4_7_PROOF_REPRODUCTION_COMMAND,
+  godotProofIdentities,
+} from '../../../godot-frontend/proof-identities';
 import type { SemanticClaimRecord } from '../../../godot-frontend/semantic-claims';
 import {
   GODOT_4_7_CODE_SEED_API_DUMP_SHA256,
@@ -12,22 +16,16 @@ import {
   godotProjectStartupRuleKey,
 } from '../lifecycle-authority';
 
-export const GODOT_4_7_LIFECYCLE_INPUT_SHA256 =
-  '8f566d5c5b2ebfaa56d80728fa7adbfc6fdab1625c722e801834183555b52ffc' as const;
-export const GODOT_4_7_LIFECYCLE_IMPLEMENTATION_SHA256 =
-  '58505e75e82e819484bd0295347e83d5b9c4edc1819486c770b62198160f1e67' as const;
-export const GODOT_4_7_LIFECYCLE_OBSERVED_OUTPUT_SHA256 =
-  '032b7edb685f1c285377304b6b45295d75b3f11d72796edd9a721aff6f4bd6bf' as const;
-export const GODOT_4_7_LIFECYCLE_COMPARISON_SHA256 =
-  '3ee7ed023a2ac788c0016628f35db4666ef94a396fc1f0172dc3658b65259e24' as const;
-export const GODOT_4_7_PROJECT_STARTUP_INPUT_SHA256 =
-  'd8a0d1883af6a7621b1e0fa5d3916e5405d02661e2fd84e6ca1d26417a29431e' as const;
-export const GODOT_4_7_PROJECT_STARTUP_IMPLEMENTATION_SHA256 =
-  'dada429d74889ea855cfb5e0c5d9d2d4ef3949a2bb9bc885a3852240e9545726' as const;
-export const GODOT_4_7_PROJECT_STARTUP_OBSERVED_OUTPUT_SHA256 =
-  'cd2c86e002601654a8f957ee1da726ff5c0296e70bba697f45a5fb9d9434de1b' as const;
-export const GODOT_4_7_PROJECT_STARTUP_COMPARISON_SHA256 =
-  'f6e03d5ef93421b43dde2dce2c53a4df7ea314445bfdf0eedeca0bd902a0ee1b' as const;
+const LIFECYCLE_IDENTITIES = godotProofIdentities('lifecycle');
+export const GODOT_4_7_LIFECYCLE_INPUT_SHA256 = LIFECYCLE_IDENTITIES.input;
+export const GODOT_4_7_LIFECYCLE_IMPLEMENTATION_SHA256 = LIFECYCLE_IDENTITIES.implementation;
+export const GODOT_4_7_LIFECYCLE_OBSERVED_OUTPUT_SHA256 = LIFECYCLE_IDENTITIES.observed;
+export const GODOT_4_7_LIFECYCLE_COMPARISON_SHA256 = LIFECYCLE_IDENTITIES.comparison;
+const PROJECT_STARTUP_IDENTITIES = godotProofIdentities('project-startup');
+export const GODOT_4_7_PROJECT_STARTUP_INPUT_SHA256 = PROJECT_STARTUP_IDENTITIES.input;
+export const GODOT_4_7_PROJECT_STARTUP_IMPLEMENTATION_SHA256 = PROJECT_STARTUP_IDENTITIES.implementation;
+export const GODOT_4_7_PROJECT_STARTUP_OBSERVED_OUTPUT_SHA256 = PROJECT_STARTUP_IDENTITIES.observed;
+export const GODOT_4_7_PROJECT_STARTUP_COMPARISON_SHA256 = PROJECT_STARTUP_IDENTITIES.comparison;
 
 export const GODOT_4_7_LIFECYCLE_RULES: readonly GodotLifecycleRule[] = [
   {
@@ -47,16 +45,7 @@ export const GODOT_4_7_PROJECT_STARTUP_RULES: readonly GodotProjectStartupRule[]
   },
 ];
 
-const reproductionCommand = [
-  'npm',
-  'run',
-  'godot-direct-composition-proof',
-  '-w',
-  '@volter/gd-analyze',
-  '--',
-  '--official-binary',
-  '.vgai/tmp/godot-4.7-stable/Godot.app/Contents/MacOS/Godot',
-] as const;
+const reproductionCommand = GODOT_4_7_PROOF_REPRODUCTION_COMMAND;
 
 const hierarchyClaims: readonly SemanticClaimRecord[] = GODOT_4_7_LIFECYCLE_RULES.map((rule) => ({
   registryVersion: 1,

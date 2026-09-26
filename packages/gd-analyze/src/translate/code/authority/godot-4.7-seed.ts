@@ -1,3 +1,7 @@
+import {
+  GODOT_4_7_PROOF_REPRODUCTION_COMMAND,
+  godotProofIdentities,
+} from '../../../godot-frontend/proof-identities';
 import type { SemanticClaimRecord } from '../../../godot-frontend/semantic-claims';
 import type { GodotCodeClaimLiveness } from '../authority';
 import {
@@ -13,14 +17,11 @@ export const GODOT_4_7_CODE_SEED_API_DUMP_SHA256 =
   '53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943' as const;
 export const GODOT_4_7_CODE_SEED_NATIVE_EXECUTABLE_SHA256 =
   '445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f' as const;
-export const GODOT_4_7_CODE_SEED_INPUT_SHA256 =
-  '6a4c7bfb02cb3f0f2791e18120a16dde30cf7d4d847ea93001bc51b5f33b1727' as const;
-export const GODOT_4_7_CODE_SEED_IMPLEMENTATION_SHA256 =
-  'c67ef03ea4a1338955a8fc9b660aaeac5abfce940408f1a92dccae9ac6586aa4' as const;
-export const GODOT_4_7_CODE_SEED_OBSERVED_OUTPUT_SHA256 =
-  'dc60e632a90329ccfd34fbe904d94704dbbb6669575185e26389854ff64139c3' as const;
-export const GODOT_4_7_CODE_SEED_COMPARISON_SHA256 =
-  '9600eeca5b28a40860a3f9476be0fb8bf21a223a567371509a7669525fc0feeb' as const;
+const CODE_SEED_IDENTITIES = godotProofIdentities('code-seed');
+export const GODOT_4_7_CODE_SEED_INPUT_SHA256 = CODE_SEED_IDENTITIES.input;
+export const GODOT_4_7_CODE_SEED_IMPLEMENTATION_SHA256 = CODE_SEED_IDENTITIES.implementation;
+export const GODOT_4_7_CODE_SEED_OBSERVED_OUTPUT_SHA256 = CODE_SEED_IDENTITIES.observed;
+export const GODOT_4_7_CODE_SEED_COMPARISON_SHA256 = CODE_SEED_IDENTITIES.comparison;
 
 const INT_VALUE =
   'BUILTIN|ANNOTATED_EXPLICIT|int|int|||||constant|writable|instance|concrete|sync|[]';
@@ -94,18 +95,7 @@ export const GODOT_4_7_CODE_SEED_DATATYPES: readonly GodotDatatypeRuleEntry[] = 
   },
 ];
 
-const reproductionCommand = [
-  'npm',
-  'run',
-  'godot-code-authority-seed-proof',
-  '-w',
-  '@volter/gd-analyze',
-  '--',
-  '--exporter-binary',
-  '.vgai/tmp/godot-bound-exporter/godot-4.7-bound-exporter-arm64',
-  '--official-binary',
-  '.vgai/tmp/godot-4.7-stable/Godot.app/Contents/MacOS/Godot',
-] as const;
+const reproductionCommand = GODOT_4_7_PROOF_REPRODUCTION_COMMAND;
 
 function claim(
   claimId: string,

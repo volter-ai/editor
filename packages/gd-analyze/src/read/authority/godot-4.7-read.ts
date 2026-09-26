@@ -1,3 +1,7 @@
+import {
+  GODOT_4_7_PROOF_REPRODUCTION_COMMAND,
+  godotProofIdentities,
+} from '../../godot-frontend/proof-identities';
 import type { SemanticClaimRecord } from '../../godot-frontend/semantic-claims';
 import { type GodotReadClaimLiveness, type GodotReadRule, godotReadRuleKey } from '../authority';
 
@@ -6,16 +10,13 @@ const API_DUMP_SHA256 = '53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458
 const NATIVE_EXECUTABLE_SHA256 =
   '445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f' as const;
 
-// These exact pins are refreshed only by scripts/prove-read-authority.ts. A changed reader is a
+// These exact pins are refreshed only by `gd-analyze evidence --refresh`. A changed reader is a
 // stale authority until the official 4.7 executable produces the same observation again.
-export const GODOT_4_7_READ_INPUT_SHA256 =
-  'e985c1c90d96810aec031ce311cbb6f3fda48a5badbede0037aebaa334150482' as const;
-export const GODOT_4_7_READ_IMPLEMENTATION_SHA256 =
-  '5a1c6251e2cc5277b314c055d42b73c52cc70a3961ff3f3590aae8b7afb07d73' as const;
-export const GODOT_4_7_READ_OBSERVED_OUTPUT_SHA256 =
-  '1f3e05ab579d7aca6e57482fa53967b8df6c659fbadd558915ee0b62938cc4bf' as const;
-export const GODOT_4_7_READ_COMPARISON_SHA256 =
-  '94ef8325da5585ee675cca989005a7a8a748651edcc847171c047374be73a09c' as const;
+const READ_IDENTITIES = godotProofIdentities('read');
+export const GODOT_4_7_READ_INPUT_SHA256 = READ_IDENTITIES.input;
+export const GODOT_4_7_READ_IMPLEMENTATION_SHA256 = READ_IDENTITIES.implementation;
+export const GODOT_4_7_READ_OBSERVED_OUTPUT_SHA256 = READ_IDENTITIES.observed;
+export const GODOT_4_7_READ_COMPARISON_SHA256 = READ_IDENTITIES.comparison;
 
 export const GODOT_4_7_READ_RULES: readonly GodotReadRule[] = [
   {
@@ -40,16 +41,7 @@ export const GODOT_4_7_READ_RULES: readonly GodotReadRule[] = [
   },
 ];
 
-const reproductionCommand = [
-  'npm',
-  'run',
-  'godot-read-proof',
-  '-w',
-  '@volter/gd-analyze',
-  '--',
-  '--official-binary',
-  '.vgai/tmp/godot-4.7-stable/Godot.app/Contents/MacOS/Godot',
-] as const;
+const reproductionCommand = GODOT_4_7_PROOF_REPRODUCTION_COMMAND;
 
 const sources: Readonly<
   Record<GodotReadRule['id'], Readonly<{ file: string; symbol: string; line: number }>>

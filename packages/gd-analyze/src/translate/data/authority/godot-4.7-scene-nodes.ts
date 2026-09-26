@@ -1,3 +1,7 @@
+import {
+  GODOT_4_7_PROOF_REPRODUCTION_COMMAND,
+  godotProofIdentities,
+} from '../../../godot-frontend/proof-identities';
 import type { SemanticClaimRecord } from '../../../godot-frontend/semantic-claims';
 import {
   GODOT_4_7_CODE_SEED_API_DUMP_SHA256,
@@ -14,14 +18,11 @@ import {
   godotScenePropertyRuleKey,
 } from '../scene-node-authority';
 
-export const GODOT_4_7_SCENE_NODE_INPUT_SHA256 =
-  '7a0e61b5b23c75d7bc298b82991dee4b55725c98b5e2813f3deda8e105556954' as const;
-export const GODOT_4_7_SCENE_NODE_IMPLEMENTATION_SHA256 =
-  'a928e000611539ab6e6fe2c4274043d4017c73d7aa94eadddc7e486f2c1a8af4' as const;
-export const GODOT_4_7_SCENE_NODE_OBSERVED_OUTPUT_SHA256 =
-  'b895dba02a62435021a6eb96d7cb06e6d44a0a9f03f353fc0b125586cef46428' as const;
-export const GODOT_4_7_SCENE_NODE_COMPARISON_SHA256 =
-  '31d421ccdb7e0d90f2002f2feea551c6e1c3bd796a34c453954238bcfe6f09b3' as const;
+const SCENE_NODES_IDENTITIES = godotProofIdentities('scene-nodes');
+export const GODOT_4_7_SCENE_NODE_INPUT_SHA256 = SCENE_NODES_IDENTITIES.input;
+export const GODOT_4_7_SCENE_NODE_IMPLEMENTATION_SHA256 = SCENE_NODES_IDENTITIES.implementation;
+export const GODOT_4_7_SCENE_NODE_OBSERVED_OUTPUT_SHA256 = SCENE_NODES_IDENTITIES.observed;
+export const GODOT_4_7_SCENE_NODE_COMPARISON_SHA256 = SCENE_NODES_IDENTITIES.comparison;
 
 const NODE_3D_IDENTITY = `${GODOT_4_7_CODE_SEED_SOURCE_REVISION}\0ClassDB\0Node3D`;
 
@@ -70,18 +71,7 @@ export const GODOT_4_7_SCENE_PROPERTY_RULES: readonly GodotScenePropertyRule[] =
   },
 ];
 
-const reproductionCommand = [
-  'npm',
-  'run',
-  'godot-scene-node-proof',
-  '-w',
-  '@volter/gd-analyze',
-  '--',
-  '--exporter-binary',
-  '.vgai/tmp/godot-bound-exporter/godot-4.7-bound-exporter-arm64',
-  '--official-binary',
-  '.vgai/tmp/godot-4.7-stable/Godot.app/Contents/MacOS/Godot',
-] as const;
+const reproductionCommand = GODOT_4_7_PROOF_REPRODUCTION_COMMAND;
 
 function claim(rule: GodotSceneNodeRule): SemanticClaimRecord {
   return {

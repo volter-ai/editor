@@ -1,3 +1,7 @@
+import {
+  GODOT_4_7_PROOF_REPRODUCTION_COMMAND,
+  godotProofIdentities,
+} from '../../../godot-frontend/proof-identities';
 import type { SemanticClaimRecord } from '../../../godot-frontend/semantic-claims';
 import {
   GODOT_4_7_CODE_SEED_API_DUMP_SHA256,
@@ -7,14 +11,11 @@ import {
 import type { GodotFieldValueClaimLiveness, GodotFieldValueRule } from '../field-value-authority';
 import { godotFieldValueRuleKey } from '../field-value-authority';
 
-export const GODOT_4_7_FIELD_VALUE_INPUT_SHA256 =
-  '25188a4001d0db11d5ca3e34ac976697770e623b6a369584e9b7faa9035415ca' as const;
-export const GODOT_4_7_FIELD_VALUE_IMPLEMENTATION_SHA256 =
-  'c99aa59e3017970772dc174ffafcf3743b43ee230beb8bb9ea67d28c6a162901' as const;
-export const GODOT_4_7_FIELD_VALUE_OBSERVED_OUTPUT_SHA256 =
-  '68e939e023069b2bb650cf6ac8b6fab29454891067926ff7b4b5211ad821cdb1' as const;
-export const GODOT_4_7_FIELD_VALUE_COMPARISON_SHA256 =
-  '65a64b1f3953c5ef5c06bbfce1a39ffa41a297cddd380663e3c2a3ba43cf3a24' as const;
+const FIELD_VALUES_IDENTITIES = godotProofIdentities('field-values');
+export const GODOT_4_7_FIELD_VALUE_INPUT_SHA256 = FIELD_VALUES_IDENTITIES.input;
+export const GODOT_4_7_FIELD_VALUE_IMPLEMENTATION_SHA256 = FIELD_VALUES_IDENTITIES.implementation;
+export const GODOT_4_7_FIELD_VALUE_OBSERVED_OUTPUT_SHA256 = FIELD_VALUES_IDENTITIES.observed;
+export const GODOT_4_7_FIELD_VALUE_COMPARISON_SHA256 = FIELD_VALUES_IDENTITIES.comparison;
 
 const MUTABLE_INT =
   'BUILTIN|ANNOTATED_EXPLICIT|int|int|||||mutable|writable|instance|concrete|sync|[]';
@@ -56,18 +57,7 @@ export const GODOT_4_7_FIELD_VALUE_RULES: readonly GodotFieldValueRule[] = [
   },
 ];
 
-const reproductionCommand = [
-  'npm',
-  'run',
-  'godot-field-value-proof',
-  '-w',
-  '@volter/gd-analyze',
-  '--',
-  '--exporter-binary',
-  '.vgai/tmp/godot-bound-exporter/godot-4.7-bound-exporter-arm64',
-  '--official-binary',
-  '.vgai/tmp/godot-4.7-stable/Godot.app/Contents/MacOS/Godot',
-] as const;
+const reproductionCommand = GODOT_4_7_PROOF_REPRODUCTION_COMMAND;
 
 function claim(rule: GodotFieldValueRule): SemanticClaimRecord {
   return {

@@ -1,4 +1,8 @@
 import {
+  GODOT_4_7_PROOF_REPRODUCTION_COMMAND,
+  godotProofIdentities,
+} from '../../../godot-frontend/proof-identities';
+import {
   BOUND_GODOT_AUTOLOAD_REFERENCE_CLAIM_ID,
   boundGodotAutoloadReferenceCanonicalIdentity,
 } from '../../../analyze/bound-autoload-references';
@@ -11,14 +15,11 @@ import {
   GODOT_4_7_CODE_SEED_SOURCE_REVISION,
 } from './godot-4.7-seed';
 
-export const GODOT_4_7_AUTOLOAD_REFERENCE_INPUT_SHA256 =
-  'dbc0b83584a02bbd82e8649c50685aa55cde9f725f8e1ee137e2ac6971ecfb16' as const;
-export const GODOT_4_7_AUTOLOAD_REFERENCE_IMPLEMENTATION_SHA256 =
-  '72d17a013b0c9fd19d70f7f53df02bf2f300caa6467158455c7e178b7e8f1a35' as const;
-export const GODOT_4_7_AUTOLOAD_REFERENCE_OBSERVED_OUTPUT_SHA256 =
-  '2f5302b341be7f84e789420e4ae41c7942001c9659a550adedd3d082a7fdcd94' as const;
-export const GODOT_4_7_AUTOLOAD_REFERENCE_COMPARISON_SHA256 =
-  'c8e41273f85a17ee811c7e24dfdd75dff228975244dca5f780b443c5a42c13a6' as const;
+const AUTOLOAD_REFERENCE_IDENTITIES = godotProofIdentities('autoload-reference');
+export const GODOT_4_7_AUTOLOAD_REFERENCE_INPUT_SHA256 = AUTOLOAD_REFERENCE_IDENTITIES.input;
+export const GODOT_4_7_AUTOLOAD_REFERENCE_IMPLEMENTATION_SHA256 = AUTOLOAD_REFERENCE_IDENTITIES.implementation;
+export const GODOT_4_7_AUTOLOAD_REFERENCE_OBSERVED_OUTPUT_SHA256 = AUTOLOAD_REFERENCE_IDENTITIES.observed;
+export const GODOT_4_7_AUTOLOAD_REFERENCE_COMPARISON_SHA256 = AUTOLOAD_REFERENCE_IDENTITIES.comparison;
 
 export const GODOT_4_7_AUTOLOAD_REFERENCE_RULES: readonly GodotCodeRuleEntry[] = [
   {
@@ -60,18 +61,7 @@ export const GODOT_4_7_AUTOLOAD_REFERENCE_RULES: readonly GodotCodeRuleEntry[] =
   },
 ];
 
-const reproductionCommand = [
-  'npm',
-  'run',
-  'godot-autoload-reference-proof',
-  '-w',
-  '@volter/gd-analyze',
-  '--',
-  '--exporter-binary',
-  '.vgai/tmp/godot-bound-exporter/godot-4.7-bound-exporter-arm64',
-  '--official-binary',
-  '.vgai/tmp/godot-4.7-stable/Godot.app/Contents/MacOS/Godot',
-] as const;
+const reproductionCommand = GODOT_4_7_PROOF_REPRODUCTION_COMMAND;
 
 const analysisClaim: SemanticClaimRecord = {
   registryVersion: 1,

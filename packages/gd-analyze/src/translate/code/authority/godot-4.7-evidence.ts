@@ -29,7 +29,7 @@ export function compatModuleFile(module: string): string {
  */
 export function godot47EvidenceFiles(): readonly GodotEvidenceFile[] {
   return readdirSync(GODOT_4_7_EVIDENCE_DIR)
-    .filter((name) => name.endsWith('.json'))
+    .filter((name) => name.endsWith('.json') && !name.startsWith('proof-'))
     .sort()
     .map((name) => {
       const file = JSON.parse(

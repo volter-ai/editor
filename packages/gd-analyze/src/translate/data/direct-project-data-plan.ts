@@ -156,7 +156,7 @@ function applyFrozenDependencyDeclarations(
     const frozenNames = Object.keys(frozenRoot[field] ?? {}).sort();
     if (JSON.stringify(plannedNames) !== JSON.stringify(frozenNames)) {
       throw new Error(
-        `frozen package-lock.json ${field} names do not match planned capability requirements`,
+        `frozen package-lock.json ${field} names do not match planned capability requirements: planned-only [${plannedNames.filter((name) => !frozenNames.includes(name)).join(', ')}], frozen-only [${frozenNames.filter((name) => !plannedNames.includes(name)).join(', ')}]`,
       );
     }
     if (frozenRoot[field] === undefined) delete planned[field];

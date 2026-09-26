@@ -1,3 +1,7 @@
+import {
+  GODOT_4_7_PROOF_REPRODUCTION_COMMAND,
+  godotProofIdentities,
+} from '../../../godot-frontend/proof-identities';
 import type { GodotBoundNode } from '../../../godot-frontend/bound-program';
 import type { SemanticClaimRecord } from '../../../godot-frontend/semantic-claims';
 import type { GodotCodeClaimLiveness } from '../authority';
@@ -16,14 +20,11 @@ import {
   GODOT_4_7_CODE_SEED_SOURCE_REVISION,
 } from './godot-4.7-seed';
 
-export const GODOT_4_7_LANGUAGE_INPUT_SHA256 =
-  'bbc626d02b14f5c883d334917991e4dab852f8fc74d968105e0cf0fb122c2299' as const;
-export const GODOT_4_7_LANGUAGE_IMPLEMENTATION_SHA256 =
-  'c67ef03ea4a1338955a8fc9b660aaeac5abfce940408f1a92dccae9ac6586aa4' as const;
-export const GODOT_4_7_LANGUAGE_OBSERVED_OUTPUT_SHA256 =
-  '5a92f266ea9d2faf0b5b7e43300c77009f74b8cb11a9083c70fa5efca0e4a59c' as const;
-export const GODOT_4_7_LANGUAGE_COMPARISON_SHA256 =
-  '0c6bb22e4623492d56cb80a0c2aa7157035ddfd142df6fea536fe1f64a0586ff' as const;
+const LANGUAGE_IDENTITIES = godotProofIdentities('language');
+export const GODOT_4_7_LANGUAGE_INPUT_SHA256 = LANGUAGE_IDENTITIES.input;
+export const GODOT_4_7_LANGUAGE_IMPLEMENTATION_SHA256 = LANGUAGE_IDENTITIES.implementation;
+export const GODOT_4_7_LANGUAGE_OBSERVED_OUTPUT_SHA256 = LANGUAGE_IDENTITIES.observed;
+export const GODOT_4_7_LANGUAGE_COMPARISON_SHA256 = LANGUAGE_IDENTITIES.comparison;
 
 const CI = 'BUILTIN|ANNOTATED_EXPLICIT|int|int|||||constant|writable|instance|concrete|sync|[]';
 const MI = 'BUILTIN|ANNOTATED_EXPLICIT|int|int|||||mutable|writable|instance|concrete|sync|[]';
@@ -238,18 +239,7 @@ export const GODOT_4_7_LANGUAGE_DATATYPES: readonly GodotDatatypeRuleEntry[] =
     evidenceClaimId: definition.id,
   }));
 
-const reproductionCommand = [
-  'npm',
-  'run',
-  'godot-code-authority-language-proof',
-  '-w',
-  '@volter/gd-analyze',
-  '--',
-  '--exporter-binary',
-  '.vgai/tmp/godot-bound-exporter/godot-4.7-bound-exporter-arm64',
-  '--official-binary',
-  '.vgai/tmp/godot-4.7-stable/Godot.app/Contents/MacOS/Godot',
-] as const;
+const reproductionCommand = GODOT_4_7_PROOF_REPRODUCTION_COMMAND;
 
 interface SourceCitation {
   readonly file: string;

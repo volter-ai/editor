@@ -1,5 +1,4 @@
 /** The single public Godot compiler CLI: one import pipeline plus its whole-project sweep. */
-import { runEvidence } from './evidence/run-evidence';
 import { importGodotProject } from './import-project';
 import { runClosure } from './report/closure';
 import { runSweep } from './sweep';
@@ -22,6 +21,11 @@ const USAGE = `usage: gd-analyze <command> [options]
            Run evidence/godot-4.7/<class>.cases.ts in the official Godot 4.7 binary (headless)
            and through its compat module in Node; on full agreement write the binding rows and
            semantic claims to src/translate/code/authority/godot-4.7/<class>.json.
+
+  evidence --refresh --official-binary <path> --bound-exporter-binary <path>
+           Run every authority's native/target proof; where they agree, rewrite that
+           proof's identities (authority/godot-4.7/proof-<name>.json). A disagreeing proof
+           is named and nothing is written for it.
 `;
 
 function fail(message: string): never {
@@ -85,10 +89,16 @@ export async function runCli(argv: readonly string[]): Promise<number> {
     );
   }
   if (command === 'evidence') {
-    const positional = positionals(rest, ['--official-binary']);
+    const positional = positionals(rest, ['--official-binary', '--bound-exporter-binary']);
     const binary = optionValue(rest, '--official-binary');
-    if (positional.length !== 1) fail('evidence needs exactly one Godot class');
     if (binary === undefined) fail('evidence needs --official-binary <path>');
+    if (rest.includes('--refresh')) {
+      if (positional.length !== 0) fail('evidence --refresh takes no class');
+      const { refreshEvidence } = await import('./evidence/refresh');
+      return refreshEvidence({ officialBinary: binary, exporterBinary: requiredExporter(rest) });
+    }
+    if (positional.length !== 1) fail('evidence needs exactly one Godot class');
+    const { runEvidence } = await import('./evidence/run-evidence');
     return runEvidence(positional[0] as string, binary);
   }
   fail(`unknown command "${command}"`);

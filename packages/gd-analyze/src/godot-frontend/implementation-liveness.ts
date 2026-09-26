@@ -29,10 +29,27 @@ export function monorepoImplementationDigest(relativePaths: readonly string[]): 
   return implementationDigest(MONOREPO_ROOT, relativePaths);
 }
 
+let measuringEvidence = false;
+
+/**
+ * Enter evidence measurement for the rest of this process. `gd-analyze evidence --refresh` runs
+ * the pipeline to measure the very claims the pipeline checks, so while measuring, an authority
+ * keeps its recorded implementation digest instead of the live one: a changed implementation is
+ * measured, not refused. The import command refuses to run in a measuring process.
+ */
+export function enterEvidenceMeasurement(): void {
+  measuringEvidence = true;
+}
+
+export function measuringEvidenceActive(): boolean {
+  return measuringEvidence;
+}
+
 /** Replace a checked-in self-assertion with the digest of the code actually executing now. */
 export function withLiveImplementation<T extends SemanticClaimLiveness>(
   rows: readonly T[],
   implementationSha256: string,
 ): readonly T[] {
+  if (measuringEvidence) return rows;
   return rows.map((row) => ({ ...row, implementationSha256 }));
 }
