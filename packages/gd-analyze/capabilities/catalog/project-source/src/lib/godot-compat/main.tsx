@@ -19,6 +19,7 @@ import { godot_camera_3d_draw } from './camera-3d';
 import { godot_canvas_draw } from './canvas-item';
 import { godot_font_default, godot_font_default_url, godot_font_load } from './font';
 import { godot_main_timer_sync_init } from './main-timer-sync';
+import { godot_resource_loader_settled } from './resource-loader';
 import { godot_main_iteration, godot_tree_set_root } from './scene-tree';
 import { godot_viewport_attach_input, godot_viewport_attach_renderer } from './viewport';
 import {
@@ -81,7 +82,8 @@ export function GodotMain({ children }: PropsWithChildren) {
   useEffect(() => {
     let live = true;
     const font = fetch(godot_font_default_url()).then((response) => response.arrayBuffer());
-    void Promise.all([RAPIER.init(), font]).then(([, bytes]) => {
+    // The scenes' imported resources (textures, …) load before any scene is instantiated.
+    void Promise.all([RAPIER.init(), font, godot_resource_loader_settled()]).then(([, bytes]) => {
       if (!live) return;
       godot_font_default(godot_font_load(new Uint8Array(bytes)));
       setWorld(new RAPIER.World({ x: 0, y: 0, z: 0 }));

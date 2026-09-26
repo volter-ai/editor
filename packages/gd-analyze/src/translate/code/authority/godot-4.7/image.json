@@ -1,0 +1,490 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/image"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Image",
+        "member": "get_width",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/image",
+        "exportName": "get_width",
+        "localName": "Image_get_width",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Image.get_width"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Image",
+        "member": "get_height",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/image",
+        "exportName": "get_height",
+        "localName": "Image_get_height",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Image.get_height"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Image",
+        "member": "get_format",
+        "kind": "native-member",
+        "signature": "hash:3847873762"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/image",
+        "exportName": "get_format",
+        "localName": "Image_get_format",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Image.get_format"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Image",
+        "member": "has_mipmaps",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/image",
+        "exportName": "has_mipmaps",
+        "localName": "Image_has_mipmaps",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Image.has_mipmaps"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Image",
+        "member": "get_mipmap_count",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/image",
+        "exportName": "get_mipmap_count",
+        "localName": "Image_get_mipmap_count",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Image.get_mipmap_count"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Image",
+        "member": "get_pixel",
+        "kind": "native-member",
+        "signature": "hash:2165839948"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/image",
+        "exportName": "get_pixel",
+        "localName": "Image_get_pixel",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Image.get_pixel"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Image",
+        "member": "get_data",
+        "kind": "native-member",
+        "signature": "hash:2362200018"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/image",
+        "exportName": "get_data",
+        "localName": "Image_get_data",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Image.get_data"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Image.get_width",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Image\u0000get_width\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/io/image.cpp",
+        "sourceSymbol": "Image.get_width",
+        "sourceLine": 472
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f9f687558b2974fcacca1d0d85ad819d2dff0324a75715843c552aef153f3295",
+        "callsite": "res://probe.gd _init() get_width-0-8x8 get_width-0-7x5 get_width-0-1x6 get_width-0-16x1 get_width-0-13x9 get_width-1-8x8 get_width-1-7x5 get_width-1-1x6 get_width-1-16x1 get_width-1-13x9 get_width-4-8x8 get_width-4-7x5 get_width-4-1x6 get_width-4-16x1 get_width-4-13x9 get_width-5-8x8 get_width-5-7x5 get_width-5-1x6 get_width-5-16x1 get_width-5-13x9",
+        "observedOutputSha256": "1ffd5d524170826d39b747b87a10bdcdc9807a35497314df8b8577ea1d2a0e7d"
+      },
+      "target": {
+        "implementationSha256": "1362fbabc8e786567c971cc50c0e8a248b3d7d8abd9364a271c20af3fedc8dac",
+        "callsite": "lib/godot-compat/image.ts get_width",
+        "observedOutputSha256": "1ffd5d524170826d39b747b87a10bdcdc9807a35497314df8b8577ea1d2a0e7d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f901cd779bb1bffed0bd61fe4da30d7014f557d2d64c177a2d80011cb83d35ba"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "image",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Image.get_height",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Image\u0000get_height\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/io/image.cpp",
+        "sourceSymbol": "Image.get_height",
+        "sourceLine": 476
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4dda98b13af85f51d4e1a3c1f92ab785d36a2f4cfba8961f2d2b9e3837aba25b",
+        "callsite": "res://probe.gd _init() get_height-0-8x8 get_height-0-7x5 get_height-0-1x6 get_height-0-16x1 get_height-0-13x9 get_height-1-8x8 get_height-1-7x5 get_height-1-1x6 get_height-1-16x1 get_height-1-13x9 get_height-4-8x8 get_height-4-7x5 get_height-4-1x6 get_height-4-16x1 get_height-4-13x9 get_height-5-8x8 get_height-5-7x5 get_height-5-1x6 get_height-5-16x1 get_height-5-13x9",
+        "observedOutputSha256": "640554026e63bef2028197187fb45efd9e42731c56c183aca21a58821a51f945"
+      },
+      "target": {
+        "implementationSha256": "1362fbabc8e786567c971cc50c0e8a248b3d7d8abd9364a271c20af3fedc8dac",
+        "callsite": "lib/godot-compat/image.ts get_height",
+        "observedOutputSha256": "640554026e63bef2028197187fb45efd9e42731c56c183aca21a58821a51f945"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "25b3954d4f502acbeac93e3105a75046fd6aab45044f441f66f5bad031cbdcd1"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "image",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Image.get_format",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Image\u0000get_format\u0000hash:3847873762",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/io/image.cpp",
+        "sourceSymbol": "Image.get_format",
+        "sourceLine": 864
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "43da5107a655ce95c39962d182aec9cb86ca8ef0919283da6b9ece0923703a72",
+        "callsite": "res://probe.gd _init() get_format-0-8x8 get_format-0-7x5 get_format-0-1x6 get_format-0-16x1 get_format-0-13x9 get_format-1-8x8 get_format-1-7x5 get_format-1-1x6 get_format-1-16x1 get_format-1-13x9 get_format-4-8x8 get_format-4-7x5 get_format-4-1x6 get_format-4-16x1 get_format-4-13x9 get_format-5-8x8 get_format-5-7x5 get_format-5-1x6 get_format-5-16x1 get_format-5-13x9",
+        "observedOutputSha256": "1f1c12620108389680ccf3a196434429a2472c77ab8c1d370fcb2d2b73c95b4c"
+      },
+      "target": {
+        "implementationSha256": "1362fbabc8e786567c971cc50c0e8a248b3d7d8abd9364a271c20af3fedc8dac",
+        "callsite": "lib/godot-compat/image.ts get_format",
+        "observedOutputSha256": "1f1c12620108389680ccf3a196434429a2472c77ab8c1d370fcb2d2b73c95b4c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "582b7c153509df6a224884029a672b603402652414496345c200e7da870ad396"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "image",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Image.has_mipmaps",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Image\u0000has_mipmaps\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/io/image.cpp",
+        "sourceSymbol": "Image.has_mipmaps",
+        "sourceLine": 484
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2fcd1bcfc473d3e54bb7805fa6a4f5e0e70e125c6b4a503d849f26e4e0ace480",
+        "callsite": "res://probe.gd _init() has_mipmaps-0-8x8 has_mipmaps-generated-0-8x8 has_mipmaps-0-7x5 has_mipmaps-generated-0-7x5 has_mipmaps-0-1x6 has_mipmaps-generated-0-1x6 has_mipmaps-0-16x1 has_mipmaps-generated-0-16x1 has_mipmaps-0-13x9 has_mipmaps-generated-0-13x9 has_mipmaps-1-8x8 has_mipmaps-generated-1-8x8 has_mipmaps-1-7x5 has_mipmaps-generated-1-7x5 has_mipmaps-1-1x6 has_mipmaps-generated-1-1x6 has_mipmaps-1-16x1 has_mipmaps-generated-1-16x1 has_mipmaps-1-13x9 has_mipmaps-generated-1-13x9 has_mipmaps-4-8x8 has_mipmaps-generated-4-8x8 has_mipmaps-4-7x5 has_mipmaps-generated-4-7x5 has_mipmaps-4-1x6 has_mipmaps-generated-4-1x6 has_mipmaps-4-16x1 has_mipmaps-generated-4-16x1 has_mipmaps-4-13x9 has_mipmaps-generated-4-13x9 has_mipmaps-5-8x8 has_mipmaps-generated-5-8x8 has_mipmaps-5-7x5 has_mipmaps-generated-5-7x5 has_mipmaps-5-1x6 has_mipmaps-generated-5-1x6 has_mipmaps-5-16x1 has_mipmaps-generated-5-16x1 has_mipmaps-5-13x9 has_mipmaps-generated-5-13x9",
+        "observedOutputSha256": "c87657a14884675ea28c355f48d0547cbc68c4b710df0b483fb8f20a65f67c3f"
+      },
+      "target": {
+        "implementationSha256": "1362fbabc8e786567c971cc50c0e8a248b3d7d8abd9364a271c20af3fedc8dac",
+        "callsite": "lib/godot-compat/image.ts has_mipmaps",
+        "observedOutputSha256": "c87657a14884675ea28c355f48d0547cbc68c4b710df0b483fb8f20a65f67c3f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8fbc86e579f283c294de4c947e6b03a682b1ec5050f330a96b8c22b05e1cf9d9"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "image",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Image.get_mipmap_count",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Image\u0000get_mipmap_count\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/io/image.cpp",
+        "sourceSymbol": "Image.get_mipmap_count",
+        "sourceLine": 488
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e1f51b8721b8940d349a0e7582c445c432562b1369102969ab2dab0636444095",
+        "callsite": "res://probe.gd _init() get_mipmap_count-0-8x8 mipmaps-0-8x8 get_mipmap_count-0-7x5 mipmaps-0-7x5 get_mipmap_count-0-1x6 mipmaps-0-1x6 get_mipmap_count-0-16x1 mipmaps-0-16x1 get_mipmap_count-0-13x9 mipmaps-0-13x9 get_mipmap_count-1-8x8 mipmaps-1-8x8 get_mipmap_count-1-7x5 mipmaps-1-7x5 get_mipmap_count-1-1x6 mipmaps-1-1x6 get_mipmap_count-1-16x1 mipmaps-1-16x1 get_mipmap_count-1-13x9 mipmaps-1-13x9 get_mipmap_count-4-8x8 mipmaps-4-8x8 get_mipmap_count-4-7x5 mipmaps-4-7x5 get_mipmap_count-4-1x6 mipmaps-4-1x6 get_mipmap_count-4-16x1 mipmaps-4-16x1 get_mipmap_count-4-13x9 mipmaps-4-13x9 get_mipmap_count-5-8x8 mipmaps-5-8x8 get_mipmap_count-5-7x5 mipmaps-5-7x5 get_mipmap_count-5-1x6 mipmaps-5-1x6 get_mipmap_count-5-16x1 mipmaps-5-16x1 get_mipmap_count-5-13x9 mipmaps-5-13x9",
+        "observedOutputSha256": "a5b4eeeef883d882d6664692309132b769f815cfddf86cfc44789a80dee2f107"
+      },
+      "target": {
+        "implementationSha256": "1362fbabc8e786567c971cc50c0e8a248b3d7d8abd9364a271c20af3fedc8dac",
+        "callsite": "lib/godot-compat/image.ts get_mipmap_count",
+        "observedOutputSha256": "a5b4eeeef883d882d6664692309132b769f815cfddf86cfc44789a80dee2f107"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a1686702b4f4cfddcafd19123216e4d914948e48bfaf0df37a62d724584affdb"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "image",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Image.get_pixel",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Image\u0000get_pixel\u0000hash:2165839948",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/io/image.cpp",
+        "sourceSymbol": "Image.get_pixel",
+        "sourceLine": 3687
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2748359ec17db71960433d29d84df6da9d0f6aa515d847fbe68e97eaae6c1716",
+        "callsite": "res://probe.gd _init() get_pixel-0-8x8 get_pixel-0-7x5 get_pixel-0-1x6 get_pixel-0-16x1 get_pixel-0-13x9 get_pixel-1-8x8 get_pixel-1-7x5 get_pixel-1-1x6 get_pixel-1-16x1 get_pixel-1-13x9 get_pixel-4-8x8 get_pixel-4-7x5 get_pixel-4-1x6 get_pixel-4-16x1 get_pixel-4-13x9 get_pixel-5-8x8 get_pixel-5-7x5 get_pixel-5-1x6 get_pixel-5-16x1 get_pixel-5-13x9",
+        "observedOutputSha256": "bf210b9adf523e192f33d40db5dbb5681a7acb7b26cdc78ebfb82186991a6fc0"
+      },
+      "target": {
+        "implementationSha256": "1362fbabc8e786567c971cc50c0e8a248b3d7d8abd9364a271c20af3fedc8dac",
+        "callsite": "lib/godot-compat/image.ts get_pixel",
+        "observedOutputSha256": "77aaf7d6a9d86583354b168eb242d9f9bf1a8da911fdf776409e215623247142"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a8db8d22ce9552fe867bb3f4b5d84af0c1134cc2cacbd44c64120cc840552220"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "image",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Image.get_data",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Image\u0000get_data\u0000hash:2362200018",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/io/image.cpp",
+        "sourceSymbol": "Image.get_data",
+        "sourceLine": 2380
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c253afe7d7aaed9e1e6e31c458b5fdc1e0a58b83c2a2953f92c151eb6de8bfc9",
+        "callsite": "res://probe.gd _init() get_data-processed-0-8x8 get_data-processed-0-7x5 get_data-processed-0-1x6 get_data-processed-0-16x1 get_data-processed-0-13x9 get_data-processed-1-8x8 get_data-processed-1-7x5 get_data-processed-1-1x6 get_data-processed-1-16x1 get_data-processed-1-13x9 get_data-processed-4-8x8 get_data-processed-4-7x5 get_data-processed-4-1x6 get_data-processed-4-16x1 get_data-processed-4-13x9 get_data-processed-5-8x8 get_data-processed-5-7x5 get_data-processed-5-1x6 get_data-processed-5-16x1 get_data-processed-5-13x9",
+        "observedOutputSha256": "95da5389d9b5886f86965a67912077b4b9a9f6b56c5fff900ee34bd5e6cb229b"
+      },
+      "target": {
+        "implementationSha256": "1362fbabc8e786567c971cc50c0e8a248b3d7d8abd9364a271c20af3fedc8dac",
+        "callsite": "lib/godot-compat/image.ts get_data",
+        "observedOutputSha256": "95da5389d9b5886f86965a67912077b4b9a9f6b56c5fff900ee34bd5e6cb229b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f2df74d007e49113d74e13d644768b8b7c898667bb783b114854d17c2230b86e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "image",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Image.get_width",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f9f687558b2974fcacca1d0d85ad819d2dff0324a75715843c552aef153f3295",
+      "implementationSha256": "1362fbabc8e786567c971cc50c0e8a248b3d7d8abd9364a271c20af3fedc8dac"
+    },
+    {
+      "claimId": "godot-4.7-binding-Image.get_height",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4dda98b13af85f51d4e1a3c1f92ab785d36a2f4cfba8961f2d2b9e3837aba25b",
+      "implementationSha256": "1362fbabc8e786567c971cc50c0e8a248b3d7d8abd9364a271c20af3fedc8dac"
+    },
+    {
+      "claimId": "godot-4.7-binding-Image.get_format",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "43da5107a655ce95c39962d182aec9cb86ca8ef0919283da6b9ece0923703a72",
+      "implementationSha256": "1362fbabc8e786567c971cc50c0e8a248b3d7d8abd9364a271c20af3fedc8dac"
+    },
+    {
+      "claimId": "godot-4.7-binding-Image.has_mipmaps",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2fcd1bcfc473d3e54bb7805fa6a4f5e0e70e125c6b4a503d849f26e4e0ace480",
+      "implementationSha256": "1362fbabc8e786567c971cc50c0e8a248b3d7d8abd9364a271c20af3fedc8dac"
+    },
+    {
+      "claimId": "godot-4.7-binding-Image.get_mipmap_count",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e1f51b8721b8940d349a0e7582c445c432562b1369102969ab2dab0636444095",
+      "implementationSha256": "1362fbabc8e786567c971cc50c0e8a248b3d7d8abd9364a271c20af3fedc8dac"
+    },
+    {
+      "claimId": "godot-4.7-binding-Image.get_pixel",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2748359ec17db71960433d29d84df6da9d0f6aa515d847fbe68e97eaae6c1716",
+      "implementationSha256": "1362fbabc8e786567c971cc50c0e8a248b3d7d8abd9364a271c20af3fedc8dac"
+    },
+    {
+      "claimId": "godot-4.7-binding-Image.get_data",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c253afe7d7aaed9e1e6e31c458b5fdc1e0a58b83c2a2953f92c151eb6de8bfc9",
+      "implementationSha256": "1362fbabc8e786567c971cc50c0e8a248b3d7d8abd9364a271c20af3fedc8dac"
+    }
+  ]
+}

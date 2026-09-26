@@ -11,12 +11,26 @@
  * shader's own polynomial approximation of sRGB (`scene.glsl:2398`, `tonemap_inc.glsl:22`), and
  * three receives that linear color as it is. What the shaded lighting looks like beside Godot's is
  * judged visually.
+ *
+ * Of the material's textures the albedo texture is drawn: three's `map`, decoded from sRGB by the
+ * GPU as Godot's `source_color` sampler is, sampled with the filter the material's `texture_filter`
+ * selects in the Compatibility renderer (`drivers/gles3/storage/texture_storage.h:255`, the
+ * default `use_nearest_mipmap_filter` off; anisotropy is not bound) and wrapped by its
+ * `FLAG_USE_TEXTURE_REPEAT`. The other texture slots are stored and not drawn.
  */
 
 import {
   AdditiveBlending,
   type Blending,
+  ClampToEdgeWrapping,
   FrontSide,
+  LinearFilter,
+  LinearMipmapLinearFilter,
+  NearestFilter,
+  NearestMipmapLinearFilter,
+  RepeatWrapping,
+  SRGBColorSpace,
+  type Texture,
   type Material,
   MeshBasicMaterial,
   MeshStandardMaterial,
@@ -28,6 +42,13 @@ import {
 import { construct as color, type Color } from './color';
 
 const f32 = Math.fround;
+
+/** `BaseMaterial3D::Flags` (`material.h:255`): `FLAG_USE_TEXTURE_REPEAT` is 16, of 25. */
+const FLAG_USE_TEXTURE_REPEAT = 16;
+const FLAG_MAX = 25;
+/** `BaseMaterial3D::TextureParam` (`material.h:147`): 19 slots, the albedo's first. */
+const TEXTURE_ALBEDO = 0;
+const TEXTURE_MAX = 19;
 
 /** `BaseMaterial3D::Feature` (`material.h:209`): `FEATURE_EMISSION` is 0. */
 const FEATURE_EMISSION = 0;
@@ -43,6 +64,9 @@ export interface BaseMaterial3D {
   transparency: number;
   blend_mode: number;
   shading_mode: number;
+  flags: boolean[];
+  textures: (Texture | null)[];
+  texture_filter: number;
 }
 
 const THREE_MATERIAL = new WeakMap<BaseMaterial3D, Material>();
@@ -64,6 +88,11 @@ export function godot_base_material_3d_initial(): BaseMaterial3D {
     transparency: 0,
     blend_mode: 0,
     shading_mode: 1,
+    // `flags[FLAG_USE_TEXTURE_REPEAT] = true` (`material.cpp:3977`).
+    flags: Array.from({ length: FLAG_MAX }, (_, flag) => flag === FLAG_USE_TEXTURE_REPEAT),
+    textures: new Array<Texture | null>(TEXTURE_MAX).fill(null),
+    // `TEXTURE_FILTER_LINEAR_WITH_MIPMAPS` (`material.h:572`).
+    texture_filter: 3,
   };
 }
 
@@ -83,6 +112,37 @@ function srgbToLinear(value: number): number {
   return f32(value * f32(f32(value * f32(f32(value * 0.305306011) + 0.682171111)) + 0.012522878));
 }
 
+const MAPS = new WeakMap<Texture, Map<string, Texture>>();
+
+/**
+ * The albedo texture as the material samples it: one three texture per sampler state over the
+ * same image (`gl_set_filter`, `gl_set_repeat`; mipmaps only when the image has them).
+ */
+function sampledMap(texture: Texture, filter: number, repeat: boolean): Texture {
+  const key = `${String(filter)}:${String(repeat)}`;
+  let variants = MAPS.get(texture);
+  if (variants === undefined) {
+    variants = new Map();
+    MAPS.set(texture, variants);
+  }
+  let map = variants.get(key);
+  if (map === undefined) {
+    map = texture.clone();
+    map.source = texture.source;
+    variants.set(key, map);
+  }
+  const mipmapped = texture.mipmaps !== undefined && texture.mipmaps.length > 1;
+  const nearest = filter === 0 || filter === 2 || filter === 4;
+  map.magFilter = nearest ? NearestFilter : LinearFilter;
+  map.minFilter = filter <= 1 || !mipmapped ? map.magFilter : nearest ? NearestMipmapLinearFilter : LinearMipmapLinearFilter;
+  map.wrapS = repeat ? RepeatWrapping : ClampToEdgeWrapping;
+  map.wrapT = map.wrapS;
+  map.colorSpace = SRGBColorSpace;
+  map.generateMipmaps = false;
+  map.needsUpdate = true;
+  return map;
+}
+
 /** The parameters onto a three material of the class the shading mode selects. */
 function apply(self: BaseMaterial3D, target: Material): void {
   const shaded = target as MeshStandardMaterial;
@@ -97,6 +157,9 @@ function apply(self: BaseMaterial3D, target: Material): void {
   target.alphaTest = self.transparency === 2 ? 0.5 : 0;
   target.blending = blending(self.blend_mode);
   target.side = FrontSide;
+  const albedo = self.textures[TEXTURE_ALBEDO] ?? null;
+  (target as MeshStandardMaterial).map =
+    albedo === null ? null : sampledMap(albedo, self.texture_filter, self.flags[FLAG_USE_TEXTURE_REPEAT] === true);
   if (target instanceof MeshStandardMaterial) {
     target.metalness = self.metallic;
     target.roughness = self.roughness;
@@ -296,4 +359,57 @@ export function set_shading_mode(self: BaseMaterial3D, mode: number): void {
  */
 export function get_shading_mode(self: BaseMaterial3D): number {
   return self.shading_mode;
+}
+
+/**
+ * @godot BaseMaterial3D.set_flag
+ * @source scene/resources/material.cpp:2459
+ */
+export function set_flag(self: BaseMaterial3D, flag: number, enabled: boolean): void {
+  if (flag < 0 || flag >= FLAG_MAX) return;
+  self.flags[flag] = enabled;
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_flag
+ * @source scene/resources/material.cpp:2488
+ */
+export function get_flag(self: BaseMaterial3D, flag: number): boolean {
+  return flag >= 0 && flag < FLAG_MAX ? self.flags[flag] === true : false;
+}
+
+/**
+ * @godot BaseMaterial3D.set_texture
+ * @source scene/resources/material.cpp:2508
+ */
+export function set_texture(self: BaseMaterial3D, param: number, texture: Texture | null): void {
+  if (param < 0 || param >= TEXTURE_MAX) return;
+  self.textures[param] = texture;
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_texture
+ * @source scene/resources/material.cpp:2523
+ */
+export function get_texture(self: BaseMaterial3D, param: number): Texture | null {
+  return param >= 0 && param < TEXTURE_MAX ? (self.textures[param] ?? null) : null;
+}
+
+/**
+ * @godot BaseMaterial3D.set_texture_filter
+ * @source scene/resources/material.cpp:2538
+ */
+export function set_texture_filter(self: BaseMaterial3D, filter: number): void {
+  self.texture_filter = filter;
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_texture_filter
+ * @source scene/resources/material.cpp:2543
+ */
+export function get_texture_filter(self: BaseMaterial3D): number {
+  return self.texture_filter;
 }

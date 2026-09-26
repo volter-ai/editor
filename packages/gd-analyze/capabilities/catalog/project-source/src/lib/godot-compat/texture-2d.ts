@@ -10,9 +10,11 @@
  */
 
 import type { Texture } from 'three';
+import type { Image } from './image';
 import { construct as vector2, type Vector2 } from './vector2';
 
 const SIZES = new WeakMap<Texture, () => readonly [number, number]>();
+const IMAGES = new WeakMap<Texture, () => Image | null>();
 const LISTENERS = new WeakMap<Texture, Set<() => void>>();
 
 /**
@@ -91,4 +93,24 @@ export function get_height(self: Texture): number {
 export function get_size(self: Texture): Vector2 {
   const [width, height] = sizeOf(self);
   return vector2(width, height);
+}
+
+/**
+ * Gives a texture its class's image (`get_image`, virtual in Texture2D).
+ *
+ * @godot Texture2D (protocol)
+ * @source scene/resources/texture.cpp:37
+ */
+export function godot_texture_2d_image(texture: Texture, image: () => Image | null): void {
+  IMAGES.set(texture, image);
+}
+
+/**
+ * The texture's image; null for a texture without one (`Texture2D::get_image`).
+ *
+ * @godot Texture2D.get_image
+ * @source scene/resources/compressed_texture.cpp:243
+ */
+export function get_image(self: Texture): Image | null {
+  return IMAGES.get(self)?.() ?? null;
 }

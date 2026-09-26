@@ -1,6 +1,7 @@
-import type { MeshStandardMaterial } from 'three';
+import type { MeshStandardMaterial, Texture } from 'three';
 import * as B from '../../capabilities/catalog/project-source/src/lib/godot-compat/base-material-3d';
 import * as C from '../../capabilities/catalog/project-source/src/lib/godot-compat/color';
+import * as P from '../../capabilities/catalog/project-source/src/lib/godot-compat/placeholder-texture-2d';
 import * as S from '../../capabilities/catalog/project-source/src/lib/godot-compat/standard-material-3d';
 import type { GodotEvidenceCase, GodotEvidenceCaseFile } from '../../src/evidence/case';
 import { gd } from './literals';
@@ -134,6 +135,69 @@ c.cases.push(
     return B.godot_base_material_3d_three(m).blending;
   }),
 );
+
+// Flags, texture slots and the texture filter, read back.
+for (const [flag, enabled] of [[16, false], [16, true], [1, true], [99, true]] as const) {
+  c.add(`set_flag-${String(flag)}-${String(enabled)}`, 'set_flag', ['var m := StandardMaterial3D.new()', `m.set_flag(${String(flag)}, ${String(enabled)})`, `return m.get_flag(${String(flag)})`], () => {
+    const m = S.construct();
+    B.set_flag(m, flag, enabled);
+    return B.get_flag(m, flag);
+  });
+}
+for (const flag of [16, 0, 24]) {
+  c.add(`get_flag-default-${String(flag)}`, 'get_flag', [`return StandardMaterial3D.new().get_flag(${String(flag)})`], () => B.get_flag(S.construct(), flag));
+}
+for (const filter of [0, 1, 2, 5]) {
+  c.add(`set_texture_filter-${String(filter)}`, 'set_texture_filter', ['var m := StandardMaterial3D.new()', `m.set_texture_filter(${String(filter)})`, 'return m.get_texture_filter()'], () => {
+    const m = S.construct();
+    B.set_texture_filter(m, filter);
+    return B.get_texture_filter(m);
+  });
+}
+c.add('get_texture_filter-default', 'get_texture_filter', ['return StandardMaterial3D.new().get_texture_filter()'], () => B.get_texture_filter(S.construct()));
+for (const param of [0, 2, 18, 19]) {
+  c.add(`set_texture-${String(param)}`, 'set_texture', ['var m := StandardMaterial3D.new()', 'var t := PlaceholderTexture2D.new()', `m.set_texture(${String(param)}, t)`, `return [m.get_texture(${String(param)}) == t, m.get_texture(0) == t]`], () => {
+    const m = S.construct();
+    const t = P.godot_placeholder_texture_2d_new();
+    B.set_texture(m, param, t);
+    return [B.get_texture(m, param) === t, B.get_texture(m, 0) === t];
+  });
+}
+c.add('get_texture-default', 'get_texture', ['return StandardMaterial3D.new().get_texture(0) == null'], () => B.get_texture(S.construct(), 0) === null);
+
+// The albedo texture's sampler (`gl_set_filter`/`gl_set_repeat`, texture_storage.h:255): three's
+// GL constants for each filter and repeat flag, over an image with mipmaps and one without.
+const SAMPLER = { file: 'drivers/gles3/storage/texture_storage.h', symbol: 'Texture::gl_set_filter / gl_set_repeat', line: 255 };
+const GL = { NEAREST: 9728, LINEAR: 9729, NEAREST_MIPMAP_LINEAR: 9986, LINEAR_MIPMAP_LINEAR: 9987, REPEAT: 10497, CLAMP_TO_EDGE: 33071 };
+const threeGl: Readonly<Record<number, number>> = { 1003: GL.NEAREST, 1006: GL.LINEAR, 1005: GL.NEAREST_MIPMAP_LINEAR, 1008: GL.LINEAR_MIPMAP_LINEAR, 1000: GL.REPEAT, 1001: GL.CLAMP_TO_EDGE };
+for (const mipmapped of [true, false]) {
+  for (const [filter, min, mag] of [
+    [0, GL.NEAREST, GL.NEAREST],
+    [1, GL.LINEAR, GL.LINEAR],
+    [2, mipmapped ? GL.NEAREST_MIPMAP_LINEAR : GL.NEAREST, GL.NEAREST],
+    [3, mipmapped ? GL.LINEAR_MIPMAP_LINEAR : GL.LINEAR, GL.LINEAR],
+  ] as const) {
+    for (const repeat of [true, false]) {
+      c.cases.push({
+        id: `three-sampler-${String(filter)}-${String(repeat)}-${mipmapped ? 'mipmaps' : 'single'}`,
+        symbol: { kind: 'native-member', owner: 'BaseMaterial3D', member: 'set_texture_filter' },
+        gdscript: '',
+        target: () => {
+          const m = S.construct();
+          const t = P.godot_placeholder_texture_2d_new();
+          if (mipmapped) t.mipmaps = [{}, {}] as never;
+          B.set_texture(m, 0, t);
+          B.set_texture_filter(m, filter);
+          B.set_flag(m, 16, repeat);
+          const map = shaded(m).map as Texture;
+          return [threeGl[map.minFilter], threeGl[map.magFilter], threeGl[map.wrapS], threeGl[map.wrapT], map.colorSpace].join(',');
+        },
+        comparator: 'render-mapping',
+        fact: { value: [min, mag, repeat ? GL.REPEAT : GL.CLAMP_TO_EDGE, repeat ? GL.REPEAT : GL.CLAMP_TO_EDGE, 'srgb'].join(','), source: SAMPLER },
+      });
+    }
+  }
+}
 
 const EVIDENCE: GodotEvidenceCaseFile = { godotClass: 'BaseMaterial3D', compatModule: 'lib/godot-compat/base-material-3d', cases: c.cases };
 export default EVIDENCE;

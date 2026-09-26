@@ -4,6 +4,7 @@ import type {
   BoundGodotImportedBone,
   BoundGodotSceneDocument,
   BoundGodotSceneNode,
+  BoundGodotTextureDocument,
 } from '../../analyze/bound-project';
 import type { GodotValue } from '../../read/godot-value';
 import { isImportedResourceId } from '../../read/instance-expansion';
@@ -100,8 +101,39 @@ export interface TargetGodotSceneResourcePlan {
   readonly key: string;
   readonly className: string;
   readonly construct: GodotCompatExport;
+  /** An imported file the constructor loads: its copied URL and the importer options it applies. */
+  readonly load?: TargetGodotImportedLoad;
   readonly setters: readonly TargetGodotSceneSetterPlan[];
   readonly evidenceClaimId: string;
+}
+
+/** An imported image as `CompressedTexture2D`'s load receives it (`compat/compressed-texture-2d`). */
+export interface TargetGodotImportedLoad {
+  readonly sourceResPath: string;
+  readonly options: { readonly fixAlphaBorder: boolean; readonly premultAlpha: boolean; readonly mipmaps: boolean };
+}
+
+/**
+ * The importer options of an imported image this translation applies on the page, or why it does
+ * not: only lossless compression, the identity channel map, no normal-map, HDR or size processing.
+ * An absent option is the importer's default (`resource_importer_texture.cpp:230`).
+ */
+function textureLoad(texture: BoundGodotTextureDocument): TargetGodotImportedLoad | string {
+  const params = texture.importParams;
+  if ((params.compressMode ?? 0) !== 0) return `compress/mode=${String(params.compressMode)} is not lossless`;
+  if (params.channelRemap !== undefined && params.channelRemap.join() !== '0,1,2,3') return 'a channel remap is not applied';
+  if (params.normalMapInvertY === true || params.normalMap === 1) return 'normal-map processing is not applied';
+  if (params.hdrClampExposure === true) return 'HDR exposure clamping is not applied';
+  if ((params.sizeLimit ?? 0) !== 0) return 'a size limit is not applied';
+  if (params.mipmapsGenerate === true && (params.roughnessMode ?? 0) > 1) return 'roughness mipmaps are not generated';
+  return {
+    sourceResPath: texture.resPath,
+    options: {
+      fixAlphaBorder: params.fixAlphaBorder ?? true,
+      premultAlpha: params.premultAlpha ?? false,
+      mipmaps: params.mipmapsGenerate ?? false,
+    },
+  };
 }
 
 export interface TargetGodotScenePropertyPlan {
@@ -380,6 +412,21 @@ function planResource(
   }
   if (document.planned.has(key)) return document.planned.get(key) === null ? undefined : key;
   document.planned.set(key, null);
+  // An image the texture importer imports: a `CompressedTexture2D` loaded from its copied file.
+  const texture = data === undefined ? context.project?.documents.textures.find((entry) => `ext:${entry.resPath}` === key) : undefined;
+  if (texture !== undefined) {
+    const load = textureLoad(texture);
+    const rule = context.authority.resourceRule('CompressedTexture2D');
+    if (typeof load === 'string' || rule === undefined) {
+      refuse(context, at, typeof load === 'string' ? `${key}: ${load}` : 'no live resource rule constructs CompressedTexture2D', 'resource', 'CompressedTexture2D');
+      return undefined;
+    }
+    context.evidence.add(rule.evidenceClaimId);
+    const planned = { key, className: 'CompressedTexture2D', construct: rule.construct, load, setters: [], evidenceClaimId: rule.evidenceClaimId };
+    document.planned.set(key, planned);
+    document.order.push(planned);
+    return key;
+  }
   if (data === undefined) {
     refuse(context, at, `${key} is not a resource this scene or a .tres declares`, 'resource', 'external resource');
     return undefined;

@@ -156,6 +156,49 @@ export interface ImportSidecar {
   /** `wavefront_obj`'s closed importer record. Kept typed so no emitter reads serialized
    * `[params]` dictionaries or mistakes a sidecar for the imported Mesh bytes. */
   readonly objParams?: GodotObjImportParams;
+  /** Godot 4's `texture` importer options (`editor/import/resource_importer_texture.cpp:230`). */
+  readonly textureImport?: GodotTextureImportParams;
+}
+
+/**
+ * The Godot 4 `texture` importer's `[params]` that decide the imported image
+ * (`ResourceImporterTexture::import`, `resource_importer_texture.cpp:700`): compression, mipmaps,
+ * channel remap and processing. Absent keys stay absent.
+ */
+export interface GodotTextureImportParams {
+  readonly compressMode?: number;
+  readonly mipmapsGenerate?: boolean;
+  readonly mipmapsLimit?: number;
+  readonly normalMap?: number;
+  readonly roughnessMode?: number;
+  readonly channelRemap?: readonly [number, number, number, number];
+  readonly fixAlphaBorder?: boolean;
+  readonly premultAlpha?: boolean;
+  readonly normalMapInvertY?: boolean;
+  readonly hdrAsSrgb?: boolean;
+  readonly hdrClampExposure?: boolean;
+  readonly sizeLimit?: number;
+}
+
+function readTextureImportParams(properties: Readonly<Record<string, GodotValue>> | undefined): GodotTextureImportParams | undefined {
+  if (properties === undefined) return undefined;
+  const remap = ['red', 'green', 'blue', 'alpha'].map((channel) => asNumber(properties[`process/channel_remap/${channel}`]));
+  return {
+    ...withKey('compressMode', asNumber(properties['compress/mode'])),
+    ...withKey('mipmapsGenerate', boolOf(properties['mipmaps/generate'])),
+    ...withKey('mipmapsLimit', asNumber(properties['mipmaps/limit'])),
+    ...withKey('normalMap', asNumber(properties['compress/normal_map'])),
+    ...withKey('roughnessMode', asNumber(properties['roughness/mode'])),
+    ...(remap.every((entry): entry is number => entry !== undefined)
+      ? { channelRemap: [remap[0]!, remap[1]!, remap[2]!, remap[3]!] as const }
+      : {}),
+    ...withKey('fixAlphaBorder', boolOf(properties['process/fix_alpha_border'])),
+    ...withKey('premultAlpha', boolOf(properties['process/premult_alpha'])),
+    ...withKey('normalMapInvertY', boolOf(properties['process/normal_map_invert_y'])),
+    ...withKey('hdrAsSrgb', boolOf(properties['process/hdr_as_srgb'])),
+    ...withKey('hdrClampExposure', boolOf(properties['process/hdr_clamp_exposure'])),
+    ...withKey('sizeLimit', asNumber(properties['process/size_limit'])),
+  };
 }
 
 export interface GodotObjImportParams {
@@ -385,6 +428,7 @@ export function readImportSidecar(file: GodotTextFile): ImportSidecar {
     : undefined;
   const storeInSubdirValue = params?.properties['external_files/store_in_subdir'];
   const textureFlags = readTextureFlags(params?.properties);
+  const textureImport = importer === 'texture' ? readTextureImportParams(params?.properties) : undefined;
   const objParams = importer === 'wavefront_obj'
     ? readObjImportParams(remap?.properties ?? {}, params?.properties ?? {})
     : undefined;
@@ -398,6 +442,7 @@ export function readImportSidecar(file: GodotTextFile): ImportSidecar {
     ...(externalMaterials === undefined ? {} : { externalMaterials }),
     ...(storeInSubdirValue?.kind === 'bool' ? { storeInSubdir: storeInSubdirValue.value } : {}),
     ...(textureFlags === undefined ? {} : { textureFlags }),
+    ...(textureImport === undefined ? {} : { textureImport }),
     ...(cubemapArrangement === undefined ? {} : { cubemapArrangement }),
     ...(bitmapThreshold === undefined ? {} : { bitmapThreshold }),
     ...(bitmapCreateFrom === undefined ? {} : { bitmapCreateFrom }),

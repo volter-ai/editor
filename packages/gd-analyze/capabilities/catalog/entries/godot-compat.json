@@ -19,6 +19,7 @@
     "src/lib/godot-compat/collision-object-3d.ts",
     "src/lib/godot-compat/collision-shape-3d.ts",
     "src/lib/godot-compat/color.ts",
+    "src/lib/godot-compat/compressed-texture-2d.ts",
     "src/lib/godot-compat/concave-polygon-shape-3d.ts",
     "src/lib/godot-compat/container.ts",
     "src/lib/godot-compat/control.ts",
@@ -34,6 +35,7 @@
     "src/lib/godot-compat/geometry-instance-3d.ts",
     "src/lib/godot-compat/global-scope.ts",
     "src/lib/godot-compat/h-box-container.ts",
+    "src/lib/godot-compat/image.ts",
     "src/lib/godot-compat/input-event-mouse.ts",
     "src/lib/godot-compat/input-event-screen-drag.ts",
     "src/lib/godot-compat/input-event-screen-touch.ts",
@@ -72,6 +74,7 @@
     "src/lib/godot-compat/react-lifecycle.tsx",
     "src/lib/godot-compat/rect2.ts",
     "src/lib/godot-compat/rendering-server.ts",
+    "src/lib/godot-compat/resource-loader.ts",
     "src/lib/godot-compat/rigid-body-3d.ts",
     "src/lib/godot-compat/scene-tree-timer.ts",
     "src/lib/godot-compat/scene-tree.ts",
@@ -103,7 +106,9 @@
   "packageJson": {
     "dependencies": {
       "@dimforge/rapier3d-compat": "^0.14.0",
+      "@jsquash/webp": "^1.5.0",
       "@react-three/fiber": "^9.6.1",
+      "fast-png": "^8.0.0",
       "fontkit": "^2.0.4",
       "linebreak": "^1.1.0",
       "react": "^19.2.4",
@@ -118,5 +123,5 @@
   "requires": [],
   "skills": [],
   "title": "Godot compat (backends for a ported game)",
-  "version": "0.855.0"
+  "version": "0.856.0"
 }

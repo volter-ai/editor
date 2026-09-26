@@ -111,7 +111,7 @@ function jsonExpression(value: unknown): TargetTsExpression {
   return { kind: 'literal-expression', value: value as string | number | boolean | null };
 }
 
-/** An imported model's asset URL: the `.glb` copied beside the app (`public/godot/…`). */
+/** An imported file's asset URL: the file (a `.glb`, an image) copied beside the app (`public/godot/…`). */
 export function godotImportedModelUrl(resPath: string): string {
   return `/godot/${resPath.slice('res://'.length)}`;
 }
@@ -555,7 +555,20 @@ function sceneSourceFile(
         initializer: {
           kind: 'call-expression' as const,
           callee: { kind: 'identifier-expression' as const, name: `${resource.className}_construct` },
-          arguments: [],
+          // An imported file's resource loads it from its copy beside the app, with its importer options.
+          arguments:
+            resource.load === undefined
+              ? []
+              : [
+                  { kind: 'literal-expression' as const, value: godotImportedModelUrl(resource.load.sourceResPath) },
+                  {
+                    kind: 'object-expression' as const,
+                    properties: Object.entries(resource.load.options).map(([key, value]) => ({
+                      key,
+                      value: { kind: 'literal-expression' as const, value },
+                    })),
+                  },
+                ],
         },
       },
       ...resource.setters.map((setter) => setterCall(setter, { kind: 'identifier-expression', name }, resourceNames)),

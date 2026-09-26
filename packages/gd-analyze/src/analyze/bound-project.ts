@@ -24,6 +24,7 @@ import type {
 import { walkSceneNodes } from '../read/godot-types';
 import type { GodotValue } from '../read/godot-value';
 import { indexParsedSceneScriptAttachments } from '../read/scene-attachment-index';
+import type { GodotTextureImportParams } from '../read/import-sidecar';
 import type { GodotProjectSnapshot, GodotProjectSnapshotEntry } from '../snapshot/project-snapshot';
 import { GodotProjectSnapshotReader } from '../snapshot/project-snapshot-reader';
 import type { GodotToolchainApiDumpSnapshot } from '../snapshot/toolchain-snapshot';
@@ -41,7 +42,7 @@ import {
   bindGodotScriptSingletonReferences,
 } from './bound-autoload-references';
 
-export const BOUND_GODOT_PROJECT_VERSION = 3 as const;
+export const BOUND_GODOT_PROJECT_VERSION = 4 as const;
 
 export interface BoundGodotSourceScript {
   readonly resPath: string;
@@ -277,6 +278,16 @@ export interface BoundGodotResourceDocument {
 export interface BoundGodotProjectDocuments {
   readonly scenes: readonly BoundGodotSceneDocument[];
   readonly resources: readonly BoundGodotResourceDocument[];
+  /** Images Godot's `texture` importer imports: the source bytes and the importer's options. */
+  readonly textures: readonly BoundGodotTextureDocument[];
+}
+
+/** An image imported as a `CompressedTexture2D` (`[remap] importer="texture"`). */
+export interface BoundGodotTextureDocument {
+  readonly resPath: string;
+  readonly sourceDigest: string;
+  readonly bytes: Uint8Array;
+  readonly importParams: GodotTextureImportParams;
 }
 
 export interface BoundGodotScriptMethod {
@@ -619,6 +630,23 @@ function boundDocuments(
           subResourceCount: document.subResources.length,
           editablePaths: document.editablePaths,
         };
+      }),
+    ),
+    textures: unique(
+      'texture',
+      decoded.imports.flatMap((sidecar) => {
+        if (sidecar.importer !== 'texture' || sidecar.resourceType !== 'CompressedTexture2D') return [];
+        if (sidecar.sourceFile === undefined || sidecar.textureImport === undefined) return [];
+        const entry = snapshot.entryByResPath(sidecar.sourceFile);
+        if (entry?.entryType !== 'file' || entry.digest === undefined) return [];
+        return [
+          {
+            resPath: sidecar.sourceFile,
+            sourceDigest: entry.digest,
+            bytes: snapshot.bytesByResPath(sidecar.sourceFile),
+            importParams: sidecar.textureImport,
+          },
+        ];
       }),
     ),
     resources: unique(

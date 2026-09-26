@@ -66,6 +66,27 @@
         },
         "evidenceClaimId": "godot-4.7-binding-Texture2D.get_size"
       }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Texture2D",
+        "member": "get_image",
+        "kind": "native-member",
+        "signature": "hash:4190603485"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/texture-2d",
+        "exportName": "get_image",
+        "localName": "Texture2D_get_image",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Texture2D.get_image"
+      }
     }
   ],
   "rules": [],
@@ -91,7 +112,7 @@
         "observedOutputSha256": "154a701051b096869b405138cb906f477e280b329192e946f80264ce137d7d9d"
       },
       "target": {
-        "implementationSha256": "9076718dd3b53f52228eebf19806b328ae7cbd6f3a59675d91e306376ad54f59",
+        "implementationSha256": "d2971a9a492adf03645413f2e3e061678074144e86d532d552fe438b1977e3c7",
         "callsite": "lib/godot-compat/texture-2d.ts get_width",
         "observedOutputSha256": "154a701051b096869b405138cb906f477e280b329192e946f80264ce137d7d9d"
       },
@@ -130,7 +151,7 @@
         "observedOutputSha256": "8dc644e8b0e971dcdad2f4bbc3fabbb23f05a98ccc48c7d424cc68c866ac2068"
       },
       "target": {
-        "implementationSha256": "9076718dd3b53f52228eebf19806b328ae7cbd6f3a59675d91e306376ad54f59",
+        "implementationSha256": "d2971a9a492adf03645413f2e3e061678074144e86d532d552fe438b1977e3c7",
         "callsite": "lib/godot-compat/texture-2d.ts get_height",
         "observedOutputSha256": "8dc644e8b0e971dcdad2f4bbc3fabbb23f05a98ccc48c7d424cc68c866ac2068"
       },
@@ -169,7 +190,7 @@
         "observedOutputSha256": "aaff10779e5ae9f2186761308dd07b89767b33c962411ee9584f187924007b5f"
       },
       "target": {
-        "implementationSha256": "9076718dd3b53f52228eebf19806b328ae7cbd6f3a59675d91e306376ad54f59",
+        "implementationSha256": "d2971a9a492adf03645413f2e3e061678074144e86d532d552fe438b1977e3c7",
         "callsite": "lib/godot-compat/texture-2d.ts get_size",
         "observedOutputSha256": "aaff10779e5ae9f2186761308dd07b89767b33c962411ee9584f187924007b5f"
       },
@@ -177,6 +198,45 @@
         "comparator": "typed float64-bit JSON: exact",
         "tolerance": "exact",
         "resultSha256": "364e22732aec049da0444ddfdf535b411288b368633ab0675772386637df5723"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "texture-2d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Texture2D.get_image",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Texture2D\u0000get_image\u0000hash:4190603485",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/compressed_texture.cpp",
+        "sourceSymbol": "Texture2D.get_image",
+        "sourceLine": 243
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3252088d2527dfaabe328406b9adae8c463d3567ce8c70439032428db870abf7",
+        "callsite": "res://probe.gd _init() get_image-placeholder",
+        "observedOutputSha256": "7cecf50c206ee7bcdce8df30bb7a7674da7669bcef00c280463197acac67dfee"
+      },
+      "target": {
+        "implementationSha256": "d2971a9a492adf03645413f2e3e061678074144e86d532d552fe438b1977e3c7",
+        "callsite": "lib/godot-compat/texture-2d.ts get_image",
+        "observedOutputSha256": "7cecf50c206ee7bcdce8df30bb7a7674da7669bcef00c280463197acac67dfee"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "4bfe34082e7fe68631009b196590350b2db6f7d09d2360c45d946d107cd4032c"
       },
       "reproductionCommand": [
         "npx",
@@ -196,7 +256,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "bde50e56b151f4c98bafa7f992cf207ed561f43555ed1645ec9d94281d7f9b8c",
-      "implementationSha256": "9076718dd3b53f52228eebf19806b328ae7cbd6f3a59675d91e306376ad54f59"
+      "implementationSha256": "d2971a9a492adf03645413f2e3e061678074144e86d532d552fe438b1977e3c7"
     },
     {
       "claimId": "godot-4.7-binding-Texture2D.get_height",
@@ -204,7 +264,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "05299e7c72aae13c93fe64882fd398a321e17d5ea6a4d3c2b73defdc720d6590",
-      "implementationSha256": "9076718dd3b53f52228eebf19806b328ae7cbd6f3a59675d91e306376ad54f59"
+      "implementationSha256": "d2971a9a492adf03645413f2e3e061678074144e86d532d552fe438b1977e3c7"
     },
     {
       "claimId": "godot-4.7-binding-Texture2D.get_size",
@@ -212,7 +272,15 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "def70343d35a98e3a39c5ecd757c8a44635358d9b88f380efe1111370e30c619",
-      "implementationSha256": "9076718dd3b53f52228eebf19806b328ae7cbd6f3a59675d91e306376ad54f59"
+      "implementationSha256": "d2971a9a492adf03645413f2e3e061678074144e86d532d552fe438b1977e3c7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Texture2D.get_image",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3252088d2527dfaabe328406b9adae8c463d3567ce8c70439032428db870abf7",
+      "implementationSha256": "d2971a9a492adf03645413f2e3e061678074144e86d532d552fe438b1977e3c7"
     }
   ]
 }

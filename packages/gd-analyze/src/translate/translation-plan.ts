@@ -57,6 +57,16 @@ function importedModels(project: BoundGodotProject, composition: DirectGodotProj
   });
 }
 
+/** The images the scenes load as imported textures: copied beside the app, as the models are. */
+function importedTextures(project: BoundGodotProject, composition: DirectGodotProjectCompositionPlan) {
+  const paths = new Set(
+    composition.scenes.flatMap((scene) => scene.resources.flatMap((resource) => (resource.load === undefined ? [] : [resource.load.sourceResPath]))),
+  );
+  return project.documents.textures
+    .filter((texture) => paths.has(texture.resPath))
+    .map((texture) => ({ resPath: texture.resPath, sourceDigest: texture.sourceDigest, bytes: texture.bytes }));
+}
+
 function validateInputClosure(
   project: BoundGodotProject,
   composition: DirectGodotProjectCompositionPlan,
@@ -67,7 +77,7 @@ function validateInputClosure(
     ...composition.sourceModules.map((module) => module.sourceResPath.slice('res://'.length)),
     ...sceneModules.modules.map((module) => module.sourceResPath.slice('res://'.length)),
     // An imported model is copied beside the app; its `.import` sidecar is what imported it.
-    ...importedModels(project, composition).flatMap((model) => {
+    ...[...importedModels(project, composition), ...importedTextures(project, composition)].flatMap((model) => {
       const relative = model.resPath.slice('res://'.length);
       return [relative, `${relative}.import`];
     }),
@@ -142,7 +152,7 @@ export function assembleGodotTranslationPlan(
       sceneModules,
       projectData,
       toolchain.capabilityCopies,
-      importedModels(project, composition),
+      [...importedModels(project, composition), ...importedTextures(project, composition)],
     );
   } catch (error) {
     return {

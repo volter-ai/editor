@@ -38,6 +38,11 @@ import {
   GODOT_4_7_UI_RESOURCE_RULES,
 } from './authority/godot-4.7-scene-ui';
 import {
+  GODOT_4_7_TEXTURE_CLAIMS,
+  GODOT_4_7_TEXTURE_LIVENESS,
+  GODOT_4_7_TEXTURE_RESOURCE_RULES,
+} from './authority/godot-4.7-scene-textures';
+import {
   GODOT_4_7_PHYSICS_CLAIMS,
   GODOT_4_7_PHYSICS_LIVENESS,
   GODOT_4_7_PHYSICS_NODE_RULES,
@@ -135,6 +140,25 @@ export const GODOT_SCENE_UI_IMPLEMENTATION_FILES = [
   ].map((file) => `${COMPAT}/${file}`),
 ] as const;
 
+/** What the scene-textures proof runs: the texture reader, planning, emission, the image compat. */
+export const GODOT_SCENE_TEXTURE_IMPLEMENTATION_FILES = [
+  'packages/gd-analyze/src/read/import-sidecar.ts',
+  'packages/gd-analyze/src/analyze/bound-project.ts',
+  'packages/gd-analyze/src/translate/data/scene-document-plan.ts',
+  'packages/gd-analyze/src/translate/data/scene-setters.ts',
+  'packages/gd-analyze/src/translate/emit/direct-scene-syntax.ts',
+  'packages/gd-analyze/src/translate/translation-plan.ts',
+  ...[
+    'image.ts',
+    'compressed-texture-2d.ts',
+    'resource-loader.ts',
+    'texture-2d.ts',
+    'base-material-3d.ts',
+    'texture-rect.ts',
+    'sprite-2d.ts',
+  ].map((file) => `${COMPAT}/${file}`),
+] as const;
+
 /** What the scene-imported proof runs: the importer model, planning, emission, packed-scene. */
 export const GODOT_SCENE_IMPORTED_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/src/read/gltf-godot-scene.ts',
@@ -212,7 +236,7 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
       : [],
     signalRules: supported ? [...GODOT_4_7_SIGNAL_RULES, ...GODOT_4_7_PHYSICS_SIGNAL_RULES] : [],
     resourceRules: supported
-      ? [...GODOT_4_7_RENDER_RESOURCE_RULES, ...GODOT_4_7_UI_RESOURCE_RULES, ...GODOT_4_7_PHYSICS_RESOURCE_RULES]
+      ? [...GODOT_4_7_RENDER_RESOURCE_RULES, ...GODOT_4_7_UI_RESOURCE_RULES, ...GODOT_4_7_PHYSICS_RESOURCE_RULES, ...GODOT_4_7_TEXTURE_RESOURCE_RULES]
       : [],
     claims: supported
       ? [
@@ -222,6 +246,7 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...GODOT_4_7_UI_CLAIMS,
           ...GODOT_4_7_IMPORTED_CLAIMS,
           ...GODOT_4_7_PHYSICS_CLAIMS,
+          ...GODOT_4_7_TEXTURE_CLAIMS,
         ]
       : [],
     liveness: supported
@@ -249,6 +274,10 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...withLiveImplementation(
             GODOT_4_7_PHYSICS_LIVENESS,
             monorepoImplementationDigest(GODOT_SCENE_PHYSICS_IMPLEMENTATION_FILES),
+          ),
+          ...withLiveImplementation(
+            GODOT_4_7_TEXTURE_LIVENESS,
+            monorepoImplementationDigest(GODOT_SCENE_TEXTURE_IMPLEMENTATION_FILES),
           ),
         ]
       : [],
