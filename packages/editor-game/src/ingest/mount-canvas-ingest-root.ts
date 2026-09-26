@@ -60,10 +60,10 @@ import { recordRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import type { MeasuredLoop } from '../host/same-realm-loop-gate';
 import { projectContractSystemAdapters } from '../runtime/adapter/ingest/contract-system-adapters';
 import type { RenderDebugWiring } from '../runtime/dev/render-debug-adapter';
-import type { IngestGame2D } from '@volter/game-runtime/pixi/ingest';
-import { INGEST_GAME_2D_LOAD_ERROR_NAME, mountIngestGame2D } from '@volter/game-runtime/pixi/ingest';
-import { createPhysics2DRegistry } from '@volter/game-runtime/pixi/physics-registry';
-import { installPixiRenderPassBracket } from '@volter/game-runtime/pixi/render-pass-bracket';
+import type { IngestGame2D } from '../runtime/pixi/ingest';
+import { INGEST_GAME_2D_LOAD_ERROR_NAME, mountIngestGame2D } from '../runtime/pixi/ingest';
+import { createPhysics2DRegistry } from '../runtime/pixi/physics-registry';
+import { installPixiRenderPassBracket } from '../runtime/pixi/render-pass-bracket';
 import {
   composePhysicsAdapters2D,
   createPhysicsAdapter2D,
@@ -587,7 +587,7 @@ async function mountCanvasIngestRootInner(
   }
 
   // The captured `Application` — the game's own, trapped on its first render
-  // (`@volter/game-runtime/pixi/scene-capture`). Two things hang off it, and neither is
+  // (`@volter/editor-game/runtime/pixi/scene-capture`). Two things hang off it, and neither is
   // available anywhere else.
   const app = mount.capture.captured?.app as Application | undefined;
 

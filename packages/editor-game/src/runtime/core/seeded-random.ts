@@ -26,7 +26,7 @@
  * stay orthogonal; only the generator function itself is shared).
  */
 
-import { createMulberry32 } from '../runtime/render-seed';
+import { createMulberry32 } from '../render-seed';
 import { createGameScopedSlot } from './game-scoped-slot';
 
 /** The name `ctx.random()` (called with no `.stream(...)`) draws from. */

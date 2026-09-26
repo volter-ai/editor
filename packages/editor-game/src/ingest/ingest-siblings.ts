@@ -59,7 +59,7 @@ import { sourceWriteBackendIfPrimed } from '@volter/editor-sdk/kit/ui-source/tie
 import { DomAuthoringAdapter } from '../react/dom-authoring-adapter';
 import { ReactRootAuthoringAdapter, walkOidTree } from '../react/react-world-authoring-adapter';
 import { beginProjectMountEpoch } from '@volter/editor-sdk/session/project-module-url';
-import { createPhysics2DRegistry } from '@volter/game-runtime/pixi/physics-registry';
+import { createPhysics2DRegistry } from '../runtime/pixi/physics-registry';
 import { createPhysicsAdapter2D } from '../runtime/pixi/system-adapters';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { declaredRoots } from '@volter/editor-project/adapter/manifest-interpreter';

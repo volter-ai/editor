@@ -31,7 +31,7 @@
  * runtime.
  */
 
-import type { Transform2DValue } from '@volter/game-runtime/pixi/authoring';
+import type { Transform2DValue } from '../../runtime/pixi/authoring';
 import type { Transform } from '@volter/editor-project/adapter';
 
 /** Quaternion (xyzw) about Z ⇄ scalar radians — the one mapping both canvas

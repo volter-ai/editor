@@ -30,12 +30,12 @@ import {
   spaceVar,
   themeVars,
 } from '@volter/editor-sdk/widgets';
-import { buildChromeTrace } from '@volter/game-runtime/dev/chrome-trace';
+import { buildChromeTrace } from '../runtime/dev/chrome-trace';
 import type {
   PerformanceFrame,
   PerformanceProfiler,
   PerformanceSnapshot,
-} from '@volter/game-runtime/dev/performance-profiler';
+} from '../runtime/dev/performance-profiler';
 import type { RenderMemorySnapshot } from '../runtime/dev/render-memory';
 import { useEffect, useRef, useState } from 'react';
 import { createMainThreadBusySampler, type MainThreadBusySampler } from './main-thread-busy';

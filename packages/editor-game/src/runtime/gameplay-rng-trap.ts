@@ -20,7 +20,7 @@
  * contract (the design doc is explicit about this — "warn, never throw").
  */
 
-import { createGameScopedSlot } from '../core/game-scoped-slot';
+import { createGameScopedSlot } from './core/game-scoped-slot';
 
 export interface GameplayRngTrap {
   /** Wrap `Math.random` for the duration of one frame — call at frame start. */

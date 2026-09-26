@@ -16,7 +16,7 @@
  * three silent timeouts each, against a session every reader called healthy.
  *
  * The defect the fix closed was a quadratic name derivation
- * (`@vgai/game-runtime/pixi/authoring`). The defect THIS closes is that nothing anywhere
+ * (`@volter/editor-game/runtime/pixi/authoring`). The defect THIS closes is that nothing anywhere
  * could say which of play's eight steps the page was in — the relay knows only
  * that it asked, the tab table knows only that the tab exists, and the page
  * itself, being wedged, is the one party that cannot speak.

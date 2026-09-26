@@ -52,12 +52,8 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@dimforge/rapier2d-compat": "^0.14.0",
     "@pixi/react": "8.0.5",
-    "@volter/threejs-runtime": "0.5.66",
-    "loglayer": "^9.1.0",
     "pixi.js": "^8.6.0",
-    "three": "^0.180.0",
     "zod": "^4.3.6"
   },
   "peerDependencies": {

@@ -16,7 +16,7 @@
  * and the plain capture/frame shapes — never the WebGL2 instrument itself.
  */
 
-import type { PerformanceFrame } from '@volter/game-runtime/dev/performance-profiler';
+import type { PerformanceFrame } from '../../runtime/dev/performance-profiler';
 import type {
   FrameCapture,
   FrameCaptureDrawCall,

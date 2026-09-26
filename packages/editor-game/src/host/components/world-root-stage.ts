@@ -27,8 +27,8 @@ import {
   type StudioPreset,
 } from '@volter/editor-sdk/kit/viewport-presentation';
 import { themeVars } from '@volter/editor-sdk/widgets';
-import { createPerformanceProfiler } from '@volter/game-runtime/dev/performance-profiler';
-import { createWebGLGpuTimer } from '@volter/game-runtime/dev/webgl-gpu-timer';
+import { createPerformanceProfiler } from '../../runtime/dev/performance-profiler';
+import { createWebGLGpuTimer } from '../../runtime/dev/webgl-gpu-timer';
 import type { AuthoringAdapter, Transform } from '@volter/editor-project/adapter';
 import { markHostRenderer } from '@volter/editor-threejs/viewport/renderer-ownership';
 import { applyWorldRendererConfig } from '@volter/threejs-runtime/adapter/renderer-config';

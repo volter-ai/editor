@@ -115,6 +115,7 @@
     "draco3d": "^1.5.7",
     "esbuild-wasm": "0.25.12",
     "fastnoise-lite": "^1.1.1",
+    "loglayer": "^9.1.0",
     "mediabunny": "1.56.2",
     "meshoptimizer": "^1.2.0",
     "three": "^0.180.0",

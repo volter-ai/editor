@@ -1,7 +1,7 @@
 import { faVolumeHigh, faVolumeXmark } from '@fortawesome/free-solid-svg-icons';
 import { userLocalSection, writeUserLocalSection } from '@volter/editor-sdk/kit/user-local-state';
 import { AnchoredMenu, Button, EditorIcon, Inline, MenuItem } from '@volter/editor-sdk/widgets';
-import type { PerformanceSnapshot } from '@volter/game-runtime/dev/performance-profiler';
+import type { PerformanceSnapshot } from '../../runtime/dev/performance-profiler';
 import type { AudioAdapter, AudioMeterFrame } from '@volter/editor-project/adapter';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {

@@ -22,7 +22,7 @@ import type {
   AudioMeterHandle,
   AudioRecordingHandle,
 } from '@volter/editor-project/adapter/system-adapter';
-import type { AudioContext as GameAudio } from '@volter/game-runtime/setup/setup-audio';
+import type { AudioContext as GameAudio } from '../setup/setup-audio';
 
 /**
  * First-party `AudioAdapter` over the engine's master-gain bus

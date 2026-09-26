@@ -34,7 +34,7 @@
  * five WebGL2 draw entry points on whatever real context it is handed and knows
  * nothing about three — so it is reused verbatim over the captured Pixi
  * renderer's own `gl`. The bracket is the renderer's own published seam, its
- * `prerender`/`postrender` runners (`@volter/game-runtime/pixi/render-pass-bracket`).
+ * `prerender`/`postrender` runners (`@volter/editor-game/runtime/pixi/render-pass-bracket`).
  *
  * What is NOT there is per-draw attribution, and it is absent for a structural
  * reason rather than a missing patch point: three calls `onBeforeRender` on the
@@ -70,7 +70,7 @@ import {
 } from '../runtime/dev/render-debug-adapter';
 import { collectRenderMemory } from '../runtime/dev/render-memory';
 import { createWebGLFrameCapture } from '../runtime/dev/webgl-frame-capture';
-import { pixiRenderingContext } from '@volter/game-runtime/pixi/render-pass-bracket';
+import { pixiRenderingContext } from '../runtime/pixi/render-pass-bracket';
 import type { ObservationDeclaration } from '@volter/editor-project/adapter/adapter-module';
 import type { VgaiGameSystems } from '@volter/editor-project/adapter/ingest/game-contract';
 import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';

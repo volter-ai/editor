@@ -595,7 +595,6 @@ const LAZY_RUNTIME_CRAWL_SPECIFIERS: readonly string[] = [
   '@volter/threejs-runtime/asset-parse-error',
   '@volter/threejs-runtime/loader',
   '@volter/game-runtime/data/data-asset',
-  '@volter/game-runtime/runtime/mount-game',
 ];
 
 /**

@@ -76,7 +76,7 @@ import {
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { registerWorkspaceDocumentRestorer } from '@volter/editor-sdk/kit/workspace-document-restore';
 import { registerWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-utility-registry';
-import { fitPresentation } from '@volter/game-runtime/runtime/presentation';
+import { fitPresentation } from '../../runtime/presentation';
 import { Button, fontMono, fontSizeVar, spaceVar } from '@volter/editor-sdk/widgets';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { STORY_ARGS_SECTION_ICON } from './story-args-section';

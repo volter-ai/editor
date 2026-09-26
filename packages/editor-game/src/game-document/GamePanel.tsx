@@ -27,7 +27,7 @@ import {
   fitPresentation,
   type PresentedSize,
   resolvePresentedSize,
-} from '@volter/game-runtime/runtime/presentation';
+} from '../runtime/presentation';
 import {
   type ReactNode,
   useCallback,

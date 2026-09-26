@@ -23,7 +23,7 @@
 
 import { editorHost } from '@volter/editor-sdk/host';
 import { Button, fontSizeVar, spaceVar, themeVars } from '@volter/editor-sdk/widgets';
-import { meterPercent } from '@volter/game-runtime/adapter/audio-meter';
+import { meterPercent } from '../runtime/adapter/audio-meter';
 import type { AudioAdapter, AudioDebugEvent, AudioMeterFrame } from '@volter/editor-project/adapter';
 import { useEffect, useReducer, useRef, useState } from 'react';
 import {

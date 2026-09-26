@@ -39,10 +39,10 @@ import {
   type RenderDebugWiring,
 } from '../../runtime/dev/render-debug-adapter';
 import { collectRenderMemory } from '../../runtime/dev/render-memory';
-import { RENDER_SUBMIT_PHASE } from '@volter/game-runtime/dev/render-vitals';
+import { RENDER_SUBMIT_PHASE } from '../../runtime/dev/render-vitals';
 import { createWebGLFrameCapture } from '../../runtime/dev/webgl-frame-capture';
 import { getDebugRegistry } from '../../runtime/debug-registry';
-import { devBuildEnabled } from '@volter/game-runtime/runtime/dev-build';
+import { devBuildEnabled } from '../../runtime/dev-build';
 import type { GameThreeHostContext } from '../../runtime/host-context';
 import type * as React from 'react';
 import type { ComponentType, PropsWithChildren } from 'react';

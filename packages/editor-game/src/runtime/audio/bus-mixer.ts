@@ -126,7 +126,7 @@ export function createAudioBusMixer(options: AudioBusMixerOptions): AudioBusMixe
           `audio bus ${JSON.stringify(name)} already routes into ` +
             `${existing.parent === undefined ? 'the destination' : JSON.stringify(existing.parent)}` +
             `; it cannot also route into ${JSON.stringify(parent)}. Routing is decided when a bus ` +
-            'is created (see packages/game-runtime/src/audio/bus-mixer.ts).',
+            'is created (see packages/editor-game/src/runtime/audio/bus-mixer.ts).',
         );
       }
       return existing.node;

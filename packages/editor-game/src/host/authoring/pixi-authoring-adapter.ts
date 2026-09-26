@@ -34,7 +34,7 @@ import {
   AuthoringAdapter2D,
   type CanvasIdentity,
   type Transform2DValue,
-} from '@volter/game-runtime/pixi/authoring';
+} from '../../runtime/pixi/authoring';
 import type {
   AssetDropContext,
   AssetDropProvider,
@@ -347,7 +347,7 @@ const ORIGIN_UNWRITABLE_REASON =
  * from the one this prebuilt shell bundles — so a real `Sprite` from the world
  * fails `instanceof Sprite` here and every selected sprite would silently read
  * as a pivot node. The engine's own 2D authoring walk already refuses class
- * identity for the same reason (`@volter/game-runtime/pixi/authoring`'s `kindOf` keys on the
+ * identity for the same reason (`@volter/editor-game/runtime/pixi/authoring`'s `kindOf` keys on the
  * constructor NAME); asking for the two fields the anchor question is actually
  * about is the same move without depending on a name a minifier may mangle.
  *

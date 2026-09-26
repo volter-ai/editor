@@ -35,7 +35,7 @@ import {
   type RootInstance,
 } from './game';
 import { createInputRouter, type RouterAdapterRoot } from './input-router';
-import type { PlaytestContext } from '@volter/game-runtime/runtime/playtest';
+import type { PlaytestContext } from './playtest';
 import { installRenderControlHarness, isRenderModeRequested } from './render-control';
 
 /**

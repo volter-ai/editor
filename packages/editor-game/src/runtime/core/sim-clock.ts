@@ -104,20 +104,11 @@
  *
  * ## Deliberately absent
  *
- *  - **No `every`/`repeat`/interval — that is `core/countdown-timer.ts`.**
- *    This header used to say an `after` re-arming itself was "three lines the
- *    game owns"; it is three lines that DRIFT, because re-arming schedules the
- *    next fire from the moment the callback ran, so every long frame
- *    permanently lengthens the interval. A repeating interval needs
- *    overshoot carry and multi-fire on a big step to keep its event count
- *    right, and it is stepped by its owner rather than by the clock. Both
- *    belong to a countdown object, not to a sim-time one-shot.
- *  - **No end-of-frame command queue — that is
- *    `core/deferred-commands.ts`.** `after(0, fn)` looks like one (the flush
- *    below does run at the tail of the frame that scheduled it) and is not:
- *    it holds the work forever across a pause, it has no subject identity, and
- *    a command it schedules during a flush waits a whole extra frame. See that
- *    module's header for all three.
+ *  - **No `every`/`repeat`/interval.** An `after` that re-arms itself DRIFTS:
+ *    re-arming schedules the next fire from the moment the callback ran, so
+ *    every long frame permanently lengthens the interval.
+ *  - **No end-of-frame command queue.** `after(0, fn)` looks like one and is
+ *    not: it holds the work forever across a pause and has no subject identity.
  *  - **No fiber kernel, no coroutine emulation, no `task.spawn`.** Calling an
  *    `async function` *is* `task.spawn` — the language already has it.
  *  - **No wall clock.** This module reads no system timer and creates no

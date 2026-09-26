@@ -34,7 +34,7 @@ import type {
   AuthoringAdapter2D,
   Overlay2D,
   Transform2DValue,
-} from '@volter/game-runtime/pixi/authoring';
+} from '../../runtime/pixi/authoring';
 import type { PhysicsAdapter2D } from '../../runtime/pixi/system-adapters';
 import type {
   ComponentInstanceApplyResult,

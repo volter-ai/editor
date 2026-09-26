@@ -36,7 +36,7 @@
 
 import { SystemPhase } from './core/types';
 import type { Game, GameInternal, RootFrameHooks } from './game';
-import { RENDER_MODE_QUERY_PARAM } from '@volter/game-runtime/runtime/render-seed';
+import { RENDER_MODE_QUERY_PARAM } from './render-seed';
 
 /** Per-subsystem readiness verdict (I2 AC: "Runtime reports asset, shader,
  *  font, sequence, Tone, and scene readiness"). `not-applicable` is the

@@ -25,7 +25,7 @@ import type {
   TickStampedEvent,
 } from '@volter/editor-project/adapter/system-adapter';
 import { z } from 'zod';
-import { createGameScopedSlot } from '@volter/game-runtime/core/game-scoped-slot';
+import { createGameScopedSlot } from './core/game-scoped-slot';
 import type { GameLoopLiveness } from './core/types';
 import type { Game } from './game';
 

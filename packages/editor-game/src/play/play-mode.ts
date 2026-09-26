@@ -95,9 +95,9 @@ import {
 import { markGameCssScope } from '@volter/editor-sdk/session/game-css-scope';
 import type { EntrypointSelectionOverride } from '@volter/editor-sdk/session/project-module-url';
 import { isEditorLanePath } from '@volter/editor-sdk/session/tool-contribution-convention';
-import { getSeededRandom, type SeededRandom } from '@volter/game-runtime/core/seeded-random';
-import { _engineLogActive } from '@volter/game-runtime/dev/logger';
-import type { PerformanceProfiler } from '@volter/game-runtime/dev/performance-profiler';
+import { getSeededRandom, type SeededRandom } from '../runtime/core/seeded-random';
+import { _engineLogActive } from '../runtime/dev/logger';
+import type { PerformanceProfiler } from '../runtime/dev/performance-profiler';
 import type { GameSession } from '../runtime/create-runtime';
 import {
   type DebugVirtualInputTarget,
@@ -105,7 +105,7 @@ import {
   type RunTicksOptions,
 } from '../runtime/debug-registry';
 import type { GameLoop, RootInstance } from '../runtime/game';
-import type { PlaytestContext } from '@volter/game-runtime/runtime/playtest';
+import type { PlaytestContext } from '../runtime/playtest';
 import { runTicksWhenSettled } from '../runtime/run-ticks-settled';
 import {
   type AuthoringAdapter,
@@ -717,7 +717,7 @@ async function installPlayRootAuthoring(
       const stage = mounted.substrate.root as import('pixi.js').Container;
       const [physicsRegistry, physicsAdapters, pixiAuthoring, pixiWriteTarget, canvasRuntime] =
         await Promise.all([
-          import('@volter/game-runtime/pixi/physics-registry'),
+          import('../runtime/pixi/physics-registry'),
           import('../runtime/pixi/system-adapters'),
           import('../host/authoring/pixi-authoring-adapter'),
           import('../host/authoring/pixi-live-write-target'),
