@@ -18,7 +18,7 @@ npx tsx packages/gd-analyze/src/cli.ts cohort-report \
   --cache-dir /external/scratch/godot-cohort-cache --json \
   > /external/scratch/godot-cohort.json
 
-npm run cohort-progress -w @vgai/gd-analyze -- \
+npm run cohort-progress -w @volter/gd-analyze -- \
   /external/scratch/godot-cohort.json \
   /external/scratch/godot-coverage-history \
   --engine-revision "$(git rev-parse HEAD)" \

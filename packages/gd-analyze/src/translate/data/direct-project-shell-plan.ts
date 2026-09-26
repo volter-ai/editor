@@ -1,13 +1,13 @@
 import {
   mergeAdapterRegionIncludes,
   type RegionIncludeAddition,
-} from '../../../../create-vgai-project/src/adapter-region-merge.js';
+} from '../../../../game-editor/node/scaffold/adapter-region-merge.js';
 import type {
   GodotImportToolchainSnapshot,
   GodotToolchainFileArtifact,
 } from '../../snapshot/toolchain-snapshot';
 
-const TEMPLATE_PREFIX = 'packages/editor/template/';
+const TEMPLATE_PREFIX = 'packages/game-editor/template/';
 
 export type DirectGodotProjectShellFilePlan =
   | {

@@ -102,7 +102,7 @@ export interface Vec3 {
  * entry by entry in the generated fixture; this table is never the only witness to itself.
  *
  * ONE other copy exists in the repo and it is deliberate: `GODOT_ORTHO_BASES` in
- * `packages/editor/catalog/project-source/src/lib/godot-compat/basis.ts`, the RUNTIME's. The two
+ * `packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/basis.ts`, the RUNTIME's. The two
  * cannot be one table — this is the compiler, and the translator must not import capability
  * source, because a user's port owns and edits its copied `src/lib/godot-compat/`. Same numbers,
  * same column convention, each citing the other. Do not add a third: the runtime's four consumers

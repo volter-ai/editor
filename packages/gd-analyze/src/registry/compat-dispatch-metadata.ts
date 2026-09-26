@@ -170,7 +170,7 @@ function parseGeneratedDispatch(source: string): ReadonlyMap<string, CompatDispa
 
 function dispatchSourcePath(major: 3 | 4, surface: CompatDispatchSurface): string {
   return fileURLToPath(new URL(
-    `../../../editor/catalog/project-source/src/lib/godot-compat/object-dispatch-${major}-${surface}.ts`,
+    `../../capabilities/catalog/project-source/src/lib/godot-compat/object-dispatch-${major}-${surface}.ts`,
     import.meta.url,
   ));
 }
@@ -227,7 +227,7 @@ function declarationSlice(source: string, variable: string): string | undefined 
 
 function parseExternalDispatch(): ReadonlyMap<string, CompatDispatchMemberMetadata> {
   const source = readFileSync(fileURLToPath(new URL(
-    '../../../editor/catalog/project-source/src/lib/godot-compat/external-native-extensions.ts',
+    '../../capabilities/catalog/project-source/src/lib/godot-compat/external-native-extensions.ts',
     import.meta.url,
   )), 'utf8');
   const table = new Map<string, CompatDispatchMemberMetadata>();

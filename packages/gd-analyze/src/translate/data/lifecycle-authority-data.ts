@@ -20,7 +20,7 @@ export const GODOT_LIFECYCLE_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/src/translate/emit/direct-autoload-syntax.ts',
   'packages/gd-analyze/src/translate/emit/direct-scene-syntax.ts',
   'packages/gd-analyze/src/translate/emit/direct-scene-lifecycle-syntax.ts',
-  'packages/editor/catalog/project-source/src/lib/godot-compat/node-process.ts',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/node-process.ts',
 ] as const;
 
 export const GODOT_PROJECT_STARTUP_IMPLEMENTATION_FILES = [
@@ -28,8 +28,8 @@ export const GODOT_PROJECT_STARTUP_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/src/translate/emit/direct-autoload-syntax.ts',
   'packages/gd-analyze/src/translate/emit/direct-project-world-syntax.ts',
   'packages/gd-analyze/src/translate/emit/direct-scene-lifecycle-syntax.ts',
-  'packages/editor/catalog/project-source/src/lib/godot-compat/node-process.ts',
-  'packages/editor/catalog/project-source/src/lib/godot-compat/react-lifecycle.tsx',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/node-process.ts',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/react-lifecycle.tsx',
 ] as const;
 
 /** Checked-in exact-pin lifecycle authority for generated native scene composition. */

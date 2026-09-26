@@ -25,7 +25,7 @@ import {
   rotated,
   VECTOR2_ZERO,
   vec2,
-} from '../../editor/catalog/project-source/src/lib/godot-compat/vector2';
+} from '../capabilities/catalog/project-source/src/lib/godot-compat/vector2';
 import {
   cross3,
   dot3,
@@ -40,7 +40,7 @@ import {
   VECTOR3_UP,
   VECTOR3_ZERO,
   vec3,
-} from '../../editor/catalog/project-source/src/lib/godot-compat/variant-3d';
+} from '../capabilities/catalog/project-source/src/lib/godot-compat/variant-3d';
 
 const SOURCE_REVISION = '5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88';
 const OFFICIAL_EXECUTABLE_SHA256 =
@@ -52,8 +52,8 @@ const PACKAGE_DIR = resolve(SCRIPT_DIR, '..');
 const REPO_ROOT = resolve(PACKAGE_DIR, '../..');
 const EVIDENCE_PATH = join(PACKAGE_DIR, 'vendor/compat-evidence/godot-4.7-vector2-vector3.json');
 const IMPLEMENTATION_PATHS = [
-  'packages/editor/catalog/project-source/src/lib/godot-compat/variant.ts',
-  'packages/editor/catalog/project-source/src/lib/godot-compat/variant-3d.ts',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/variant.ts',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/variant-3d.ts',
 ] as const;
 
 const MEMBERS = [

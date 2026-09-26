@@ -45,7 +45,7 @@ const reproductionCommand = [
   'run',
   'godot-read-proof',
   '-w',
-  '@vgai/gd-analyze',
+  '@volter/gd-analyze',
   '--',
   '--official-binary',
   '.vgai/tmp/godot-4.7-stable/Godot.app/Contents/MacOS/Godot',

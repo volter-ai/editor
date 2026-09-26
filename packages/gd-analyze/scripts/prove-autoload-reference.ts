@@ -103,7 +103,7 @@ const IMPLEMENTATION_FILES = [
   'packages/gd-analyze/src/translate/emit/direct-scene-lifecycle-syntax.ts',
   'packages/gd-analyze/src/translate/emit/direct-scene-syntax.ts',
   'packages/gd-analyze/src/translate/emit/target-ts-printer.ts',
-  'packages/editor/catalog/project-source/src/lib/godot-compat/react-lifecycle.tsx',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/react-lifecycle.tsx',
 ] as const;
 
 function sha256(value: Uint8Array | string): string {

@@ -7,10 +7,6 @@
     "types": ["node", "vite/client"],
     "jsx": "react-jsx",
     "baseUrl": ".",
-    "paths": {
-      "@vgai/engine/*": ["../engine/src/*"],
-      "@engine/*": ["../engine/src/*"]
-    },
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noFallthroughCasesInSwitch": true,
@@ -38,7 +34,7 @@
   //
   // Generated projects validate with their own scaffolded configuration during `gd-analyze import`;
   // this package config deliberately does not compile committed generated outputs.
-  "files": ["../engine/src/types-n8ao.d.ts"],
+  "files": ["../threejs-runtime/src/types-n8ao.d.ts"],
   "include": ["src", "scripts", "test"],
   "exclude": ["test/fixtures"]
 }

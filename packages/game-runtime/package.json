@@ -6,7 +6,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "description": "THE GAME SHIPPED TWIN: what a shipped game carries because it is a GAME \u2014 the host game loop and phase runner, the mount and its adapter registry, input, audio, the dev instruments, data assets and their Vite plugin, the React bindings, the Pixi canvas substrate, and the R3F mount that puts a three.js world inside that host.",
+  "description": "THE GAME SHIPPED TWIN: what a shipped game carries because it is a GAME — the host game loop and phase runner, the mount and its adapter registry, input, audio, the dev instruments, data assets and their Vite plugin, the React bindings, the Pixi canvas substrate, and the R3F mount that puts a three.js world inside that host.",
   "keywords": [
     "vgai",
     "game-engine",
@@ -65,6 +65,7 @@
     "zod": "^4.3.6"
   },
   "peerDependencies": {
+    "@react-three/drei": "^10.7.7",
     "@react-three/fiber": ">=9",
     "@react-three/rapier": ">=2",
     "react": ">=18",
@@ -72,6 +73,9 @@
     "vite": ">=6"
   },
   "peerDependenciesMeta": {
+    "@react-three/drei": {
+      "optional": true
+    },
     "@react-three/fiber": {
       "optional": true
     },

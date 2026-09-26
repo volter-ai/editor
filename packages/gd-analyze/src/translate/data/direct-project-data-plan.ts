@@ -1,7 +1,7 @@
 import {
   capabilityStampPath,
   planCapabilityPackageJson,
-} from '../../../../create-vgai-project/src/catalog.js';
+} from '../../../../game-editor/node/scaffold/catalog.js';
 import type { BoundGodotProject } from '../../analyze/bound-project';
 import type { GodotImportToolchainSnapshot } from '../../snapshot/toolchain-snapshot';
 import type { DirectGodotProjectCompositionPlan } from './direct-project-composition-plan';
@@ -14,7 +14,7 @@ import { planFrozenPackageLock } from './package-lock-plan';
 
 export const DIRECT_GODOT_PROJECT_DATA_PLAN_VERSION = 5 as const;
 
-const TEMPLATE_PREFIX = 'packages/editor/template/';
+const TEMPLATE_PREFIX = 'packages/game-editor/template/';
 const DEFAULT_WINDOW = { width: 1024, height: 600 } as const;
 
 export type DirectJsonValue =
@@ -67,11 +67,11 @@ export interface DirectGodotProjectDataPlan {
   };
   readonly requirements: {
     readonly engine: {
-      readonly packageName: '@vgai/engine';
+      readonly packageName: '@volter/game-runtime';
       readonly version: string;
       readonly packageJsonDigest: string;
       readonly sourceBuild?: { readonly sha: string; readonly dirty: boolean };
-      readonly entryPoint: '@vgai/engine/world3d-react';
+      readonly entryPoint: '@volter/game-runtime/world3d-react';
     };
     readonly packages: readonly DirectGodotPackageRequirement[];
     readonly capabilities: readonly DirectGodotCapabilityRequirement[];
@@ -173,28 +173,21 @@ function plannedPackageManifest(
   ) as MutablePackageManifest;
   manifest.name = slugify(project.projectName);
   manifest.dependencies ??= {};
-  manifest.dependencies['@vgai/engine'] = `^${installedPackageVersion(toolchain, '@vgai/engine')}`;
+  manifest.dependencies['@volter/game-runtime'] = `^${installedPackageVersion(toolchain, '@volter/game-runtime')}`;
   manifest.devDependencies ??= {};
-  for (const name of [
-    '@vgai/live',
-    '@vgai/sdk',
-    '@vgai/editor-sdk',
-    '@vgai/editor',
-    '@vgai/cli',
-    '@vgai/p2p-colyseus',
-  ] as const) {
-    if (manifest.devDependencies[name] !== undefined) {
-      manifest.devDependencies[name] = `^${installedPackageVersion(toolchain, name)}`;
+  // The template names the product's packages; each is pinned to the installed build.
+  for (const field of [manifest.dependencies, manifest.devDependencies]) {
+    for (const name of Object.keys(field)) {
+      if (name.startsWith('@volter/')) field[name] = `^${installedPackageVersion(toolchain, name)}`;
     }
   }
   manifest.scripts = {
-    vgai: 'vgai',
-    dev: 'npm run vgai -- edit .',
+    vgai: 'volter-game-editor',
+    dev: 'volter-game-editor edit .',
     'dev:standalone': 'vite',
     build: 'vite build',
     preview: 'vite preview',
     typecheck: 'tsc --noEmit',
-    validate: 'npm run vgai -- validate .',
   };
   delete manifest.vgai;
   const merged = planCapabilityPackageJson(
@@ -376,7 +369,7 @@ export function planDirectGodotProjectData(
       toolchain.importPackageLockBytes,
     );
     const packageLock = JSON.parse(packageLockText) as PackageLockDocument;
-    const engineVersion = installedPackageVersion(toolchain, '@vgai/engine');
+    const engineVersion = installedPackageVersion(toolchain, '@volter/game-runtime');
     return {
       kind: 'accepted-project-data',
       plan: {
@@ -385,7 +378,7 @@ export function planDirectGodotProjectData(
         toolchainDigest: toolchain.digest,
         worldModule: worldModule(composition),
         manifest: {
-          $schema: './node_modules/@vgai/engine/schemas/vgai-project.schema.json',
+          $schema: './node_modules/@volter/editor-project/schemas/vgai-project.schema.json',
           manifestVersion: 2,
           name: project.projectName,
           appId: appId(project.projectName),
@@ -401,13 +394,13 @@ export function planDirectGodotProjectData(
         evidence,
         requirements: {
           engine: {
-            packageName: '@vgai/engine',
+            packageName: '@volter/game-runtime',
             version: engineVersion,
             packageJsonDigest: toolchain.enginePackageJsonDigest,
             ...(toolchain.engineSource === undefined
               ? {}
               : { sourceBuild: { ...toolchain.engineSource } }),
-            entryPoint: '@vgai/engine/world3d-react',
+            entryPoint: '@volter/game-runtime/world3d-react',
           },
           packages: packageRequirements(packageManifest, packageLock),
           capabilities: capabilityRequirements(toolchain),

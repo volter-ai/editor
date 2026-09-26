@@ -42,18 +42,18 @@ import {
   aabbWithSize,
   copyAabb,
   type GodotAabb,
-} from '../../editor/catalog/project-source/src/lib/godot-compat/aabb';
+} from '../capabilities/catalog/project-source/src/lib/godot-compat/aabb';
 import {
   aabbIntersectsPlane,
   aabbIntersectsRay,
   aabbIntersectsSegment,
-} from '../../editor/catalog/project-source/src/lib/godot-compat/aabb-intersections';
+} from '../capabilities/catalog/project-source/src/lib/godot-compat/aabb-intersections';
 import {
   aabbEquals,
   aabbIn,
   aabbIsZero,
   aabbTransformInverse,
-} from '../../editor/catalog/project-source/src/lib/godot-compat/aabb-operators';
+} from '../capabilities/catalog/project-source/src/lib/godot-compat/aabb-operators';
 
 const SOURCE_REVISION = '5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88';
 const OFFICIAL_EXECUTABLE_SHA256 =
@@ -64,9 +64,9 @@ const PACKAGE_DIR = resolve(SCRIPT_DIR, '..');
 const REPO_ROOT = resolve(PACKAGE_DIR, '../..');
 const EVIDENCE_PATH = join(PACKAGE_DIR, 'vendor/compat-evidence/godot-4.7-aabb.json');
 const IMPLEMENTATION_PATHS = [
-  'packages/editor/catalog/project-source/src/lib/godot-compat/aabb.ts',
-  'packages/editor/catalog/project-source/src/lib/godot-compat/aabb-intersections.ts',
-  'packages/editor/catalog/project-source/src/lib/godot-compat/aabb-operators.ts',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/aabb.ts',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/aabb-intersections.ts',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/aabb-operators.ts',
 ] as const;
 
 type Encoded = string | boolean | null | Encoded[] | { readonly [key: string]: Encoded };

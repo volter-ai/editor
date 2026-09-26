@@ -1,0 +1,42 @@
+{
+  "description": "The PORT RUNTIME copied into every translated Godot project: its InputManager and deterministic random stream, imperative Control store, R3F/Pixi scheduler that brackets input before translated process callbacks, shared SceneTree lifecycle traversal, mounted-world/audio/physics slots, source-equivalent postprocessing passes, shared native assembly for inert prefab-preview contexts, and static debug/system declaration used by the current observation door. It is separate from godot-compat because compat binds Godot-shaped calls to native library objects and owns no scheduler or project singleton, while this capability owns the port's mounted machinery. Module scope is project scope under the copied-capability model. The translator emits only project-specific actions, effect/resource/autoload/Control literals, scene structure, and lifecycle bindings that attach that scene to these exports; it never synthesizes this shared executable behavior.",
+  "files": [
+    "src/lib/codecs/fastlz.ts",
+    "src/lib/godot-runtime/index.ts",
+    "src/lib/godot-runtime/input-rig.tsx",
+    "src/lib/godot-runtime/observation.ts",
+    "src/lib/godot-runtime/packed-array-codecs.ts",
+    "src/lib/godot-runtime/physics-system.ts",
+    "src/lib/godot-runtime/postprocessing.tsx",
+    "src/lib/godot-runtime/preview-context.ts",
+    "src/lib/godot-runtime/runtime.ts",
+    "src/lib/godot-runtime/scene-lifecycle.ts"
+  ],
+  "id": "godot-runtime",
+  "packageJson": {
+    "dependencies": {
+      "@dimforge/rapier2d-compat": "^0.14.0",
+      "@dimforge/rapier3d-compat": "^0.14.0",
+      "@hpcc-js/wasm-zstd": "^1.15.0",
+      "@pixi/react": "8.0.5",
+      "@react-three/fiber": "^9.6.1",
+      "brotli-dec-wasm": "^2.3.2",
+      "pako": "^3.0.1",
+      "pixi.js": "^8.6.0",
+      "postprocessing": "^6.38.0",
+      "react": "^19.2.4",
+      "three": "^0.180.0"
+    }
+  },
+  "regions": {
+    "three": [
+      "src/lib/godot-runtime/**/*.tsx"
+    ]
+  },
+  "requires": [
+    "godot-compat"
+  ],
+  "skills": [],
+  "title": "Godot port runtime (mounted machinery of a ported game)",
+  "version": "0.7.15"
+}

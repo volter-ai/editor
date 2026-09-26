@@ -9,11 +9,11 @@ import { createElement, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import ts from 'typescript';
-import { mountGodotScriptTree } from '../../editor/catalog/project-source/src/lib/godot-compat/node-process';
+import { mountGodotScriptTree } from '../capabilities/catalog/project-source/src/lib/godot-compat/node-process';
 import {
   GodotProjectStartup,
   useGodotScriptTreeAttachment,
-} from '../../editor/catalog/project-source/src/lib/godot-compat/react-lifecycle';
+} from '../capabilities/catalog/project-source/src/lib/godot-compat/react-lifecycle';
 import { bindGodotProject } from '../src/analyze/bound-project';
 import { captureGodotBoundProgram } from '../src/godot-frontend/run-bound-program';
 import {
@@ -222,7 +222,7 @@ function lifecycleImplementationDigest(): string {
       'packages/gd-analyze/src/translate/emit/direct-autoload-syntax.ts',
       'packages/gd-analyze/src/translate/emit/direct-scene-syntax.ts',
       'packages/gd-analyze/src/translate/emit/direct-scene-lifecycle-syntax.ts',
-      'packages/editor/catalog/project-source/src/lib/godot-compat/node-process.ts',
+      'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/node-process.ts',
     ]
       .sort()
       .map((relative) => `${relative}\0${sha256(readFileSync(path.join(monorepo, relative)))}`)
@@ -238,8 +238,8 @@ function startupImplementationDigest(): string {
       'packages/gd-analyze/src/translate/emit/direct-autoload-syntax.ts',
       'packages/gd-analyze/src/translate/emit/direct-project-world-syntax.ts',
       'packages/gd-analyze/src/translate/emit/direct-scene-lifecycle-syntax.ts',
-      'packages/editor/catalog/project-source/src/lib/godot-compat/node-process.ts',
-      'packages/editor/catalog/project-source/src/lib/godot-compat/react-lifecycle.tsx',
+      'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/node-process.ts',
+      'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/react-lifecycle.tsx',
     ]
       .sort()
       .map((relative) => `${relative}\0${sha256(readFileSync(path.join(monorepo, relative)))}`)

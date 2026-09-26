@@ -1,0 +1,50 @@
+{
+  "description": "2D sprite kit, both crafts into one atlas. VECTOR: SVG rigs posed by phase, Illustrator construction verbs (offset, booleans, smooth, roundCorners, mirrorX, hue ramps, rim light), contact-sheet previews, and an opt-in native Pixi projection for joints gameplay must keep live. PIXEL: an indexed grid with drawing verbs (line, rect, ellipse, flood fill, mirror, wrap-shift, auto-outline, ramp shade, dither, replace colour), 8x nearest-neighbour/onion-skin/frame-diff/self-tiling previews, and live grid textures for art the game erodes while it plays. Both bake headlessly with resvg through maxrects packing to a standard spritesheet, against the same cycle-set contracts, and play on the game-time AnimatedSprite runtime.",
+  "files": [
+    "src/lib/sprite/atlas.ts",
+    "src/lib/sprite/billboard-3d.ts",
+    "src/lib/sprite/cycles.ts",
+    "src/lib/sprite/live-rig.tsx",
+    "src/lib/sprite/pixel-atlas.ts",
+    "src/lib/sprite/pixel-grid.ts",
+    "src/lib/sprite/pixel-preview.ts",
+    "src/lib/sprite/preview.ts",
+    "src/lib/sprite/raster.ts",
+    "src/lib/sprite/runtime.ts",
+    "src/lib/sprite/svg-rig.ts",
+    "src/lib/sprite/verbs.ts",
+    "src/tools/sprite-bake.tool.ts",
+    "src/contributions/sprite-lab.document.tsx",
+    "src/contributions/sprite-lab/stage.ts",
+    "src/contributions/sprite-lab/subjects.ts",
+    "src/contributions/sprite-lab/timeline.ts"
+  ],
+  "id": "sprite",
+  "packageJson": {
+    "dependencies": {
+      "@pixi/react": "8.0.5",
+      "pixi.js": "^8.6.0",
+      "three": "^0.180.0"
+    },
+    "devDependencies": {
+      "@resvg/resvg-js": "^2.6.2",
+      "clipper2-js": "^1.2.4",
+      "maxrects-packer": "^2.7.3"
+    },
+    "vgaiTools": [
+      "./src/tools/sprite-bake.tool.ts"
+    ]
+  },
+  "regions": {
+    "canvas": [
+      "src/lib/sprite/**/*.tsx"
+    ]
+  },
+  "requires": [],
+  "skills": [
+    "vgai-2d-assets",
+    "vgai-pixel-art"
+  ],
+  "title": "Sprite kit",
+  "version": "0.3.8"
+}

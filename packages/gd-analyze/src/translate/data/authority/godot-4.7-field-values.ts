@@ -61,7 +61,7 @@ const reproductionCommand = [
   'run',
   'godot-field-value-proof',
   '-w',
-  '@vgai/gd-analyze',
+  '@volter/gd-analyze',
   '--',
   '--exporter-binary',
   '.vgai/tmp/godot-bound-exporter/godot-4.7-bound-exporter-arm64',

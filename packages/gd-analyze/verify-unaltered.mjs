@@ -22,7 +22,7 @@
  * loud.
  *
  * Usage:  node packages/gd-analyze/verify-unaltered.mjs
- *         npm run verify-unaltered -w @vgai/gd-analyze
+ *         npm run verify-unaltered -w @volter/gd-analyze
  *
  * Optional diagnostic root. Ordinary verification runs never set it:
  *   VGAI_GD_FIXTURES_ROOT — where the locks and fixture trees are read from

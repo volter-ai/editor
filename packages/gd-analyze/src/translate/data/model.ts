@@ -39,7 +39,7 @@ export const COMPAT_DIR = 'lib/godot-compat';
  * or library produced the node. A ported scene is a component instance in the
  * editor for the same reason a hand-written one is, not because it is a port.
  */
-export const HIERARCHY_MARKS_MODULE = '@vgai/engine/adapter/hierarchy-marks';
+export const HIERARCHY_MARKS_MODULE = '@volter/threejs-runtime/adapter/hierarchy-marks';
 
 /**
  * The HOST's transform-authority convention (`@engine/adapter/body-marks`),
@@ -51,7 +51,7 @@ export const HIERARCHY_MARKS_MODULE = '@vgai/engine/adapter/hierarchy-marks';
  * gizmo move the BODY — without which a transform edit is a value the next step
  * discards.
  */
-export const BODY_MARKS_MODULE = '@vgai/engine/adapter/body-marks';
+export const BODY_MARKS_MODULE = '@volter/threejs-runtime/adapter/body-marks';
 
 /** One emitted file: a project-relative POSIX path and its complete text. */
 export interface EmittedFile {

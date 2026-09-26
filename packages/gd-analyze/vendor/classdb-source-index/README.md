@@ -19,7 +19,7 @@ any extracted C++/header tree whose audited aggregate SHA-256 is not
 Regenerate from an extracted copy of that source revision:
 
 ```bash
-npm --workspace @vgai/gd-analyze run generate-classdb-source-index -- /path/to/godot-source
+npm --workspace @volter/gd-analyze run generate-classdb-source-index -- /path/to/godot-source
 ```
 
 Then audit the row/precision changes, update `AUDITED_MANIFEST_SHA256` in

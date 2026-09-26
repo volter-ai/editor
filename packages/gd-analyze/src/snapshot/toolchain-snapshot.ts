@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url';
 import {
   type EngineSourceState,
   readEngineSourceState,
-} from '../../../create-vgai-project/src/baseline.js';
-import { type CatalogEntry, readCatalog } from '../../../create-vgai-project/src/catalog.js';
+} from '../../../game-editor/node/scaffold/baseline.js';
+import { type CatalogEntry, readCatalog } from '../../../game-editor/node/scaffold/catalog.js';
 import { type GodotApiDump, parseGodotApiDump } from '../analyze/api-dump';
 import type { GodotAnalysisAuthority } from '../analyze/authority';
 import { godotAnalysisAuthority } from '../analyze/authority-data';
@@ -32,9 +32,9 @@ export const GODOT_TOOLCHAIN_SNAPSHOT_VERSION = 16 as const;
 
 const PACKAGE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const MONO_ROOT = path.resolve(PACKAGE_DIR, '..', '..');
-const DEFAULT_CATALOG_DIR = path.join(MONO_ROOT, 'packages', 'editor', 'catalog');
-const DEFAULT_TEMPLATE_DIR = path.join(MONO_ROOT, 'packages', 'editor', 'template');
-const DEFAULT_ENGINE_PACKAGE = path.join(MONO_ROOT, 'packages', 'engine', 'package.json');
+const DEFAULT_CATALOG_DIR = path.join(PACKAGE_DIR, 'capabilities', 'catalog');
+const DEFAULT_TEMPLATE_DIR = path.join(MONO_ROOT, 'packages', 'game-editor', 'template');
+const DEFAULT_ENGINE_PACKAGE = path.join(MONO_ROOT, 'packages', 'game-runtime', 'package.json');
 const DEFAULT_PACKAGE_LOCK = path.join(MONO_ROOT, 'package-lock.json');
 const DEFAULT_IMPORT_PACKAGE_LOCK = path.join(PACKAGE_DIR, 'toolchain', 'package-lock.json');
 const DEFAULT_NODE_MODULES = path.join(MONO_ROOT, 'node_modules');
@@ -314,7 +314,7 @@ function scaffoldArtifacts(
       continue;
     }
     add(
-      path.posix.join('packages', 'editor', 'template', relativeFile),
+      path.posix.join('packages', 'game-editor', 'template', relativeFile),
       readFileSync(path.join(templateDir, ...relativeFile.split('/'))),
     );
   }

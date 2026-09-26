@@ -53,7 +53,7 @@ const sourceFile = (
 ): TargetTsSourceFile => ({ syntaxVersion: TARGET_TS_SYNTAX_VERSION, sourcePath, statements });
 
 function mainImports(): readonly TargetTsStatement[] {
-  const mountModule = '@vgai/engine/runtime/mount-game';
+  const mountModule = '@volter/game-runtime/runtime/mount-game';
   return [
     {
       kind: 'import-statement',
@@ -72,7 +72,7 @@ function mainImports(): readonly TargetTsStatement[] {
     },
     {
       kind: 'import-statement',
-      module: '@vgai/engine/world3d-react',
+      module: '@volter/game-runtime/world3d-react',
       namedBindings: [{ imported: 'r3fRootFactory', local: 'r3fRootFactory' }],
     },
     {
@@ -276,7 +276,7 @@ export function directViteConfigSyntax(): TargetTsSourceFile {
               },
               {
                 key: 'exclude',
-                value: array([lit('@vgai/engine/runtime/mount-game')]),
+                value: array([lit('@volter/game-runtime/runtime/mount-game')]),
               },
             ]),
           },

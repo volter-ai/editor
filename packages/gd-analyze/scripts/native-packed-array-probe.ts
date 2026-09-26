@@ -20,7 +20,7 @@ import { deflate, gzip, inflate, ungzip } from 'pako';
 import {
   fastLzCompress,
   fastLzDecompress,
-} from '../../editor/catalog/project-source/src/lib/codecs/fastlz';
+} from '../capabilities/catalog/project-source/src/lib/codecs/fastlz';
 import {
   godotPackedFloat,
   godotPackedInt,
@@ -60,10 +60,10 @@ import {
   packedVector2Array,
   packedVector3Array,
   packedVector4Array,
-} from '../../editor/catalog/project-source/src/lib/godot-compat/packed-array';
-import type { GodotPackedArrayCodecs } from '../../editor/catalog/project-source/src/lib/godot-compat/packed-array-binary';
-import { packedArrayToByteArray } from '../../editor/catalog/project-source/src/lib/godot-compat/packed-array-binary';
-import { godotPackedByteArrayCall } from '../../editor/catalog/project-source/src/lib/godot-compat/packed-array-call';
+} from '../capabilities/catalog/project-source/src/lib/godot-compat/packed-array';
+import type { GodotPackedArrayCodecs } from '../capabilities/catalog/project-source/src/lib/godot-compat/packed-array-binary';
+import { packedArrayToByteArray } from '../capabilities/catalog/project-source/src/lib/godot-compat/packed-array-binary';
+import { godotPackedByteArrayCall } from '../capabilities/catalog/project-source/src/lib/godot-compat/packed-array-call';
 
 const SOURCE_REVISION = '5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88';
 const OFFICIAL_EXECUTABLE_SHA256 =
@@ -74,12 +74,12 @@ const PACKAGE_DIR = resolve(SCRIPT_DIR, '..');
 const REPO_ROOT = resolve(PACKAGE_DIR, '../..');
 const EVIDENCE_PATH = join(PACKAGE_DIR, 'vendor/compat-evidence/godot-4.7-packed-array.json');
 const IMPLEMENTATION_PATHS = [
-  'packages/editor/catalog/project-source/src/lib/codecs/fastlz.ts',
-  'packages/editor/catalog/project-source/src/lib/godot-compat/packed-array.ts',
-  'packages/editor/catalog/project-source/src/lib/godot-compat/packed-array-binary.ts',
-  'packages/editor/catalog/project-source/src/lib/godot-compat/packed-array-call.ts',
-  'packages/editor/catalog/project-source/src/lib/godot-compat/godot-variant-marshals.ts',
-  'packages/editor/catalog/project-source/src/lib/godot-runtime/packed-array-codecs.ts',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/codecs/fastlz.ts',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/packed-array.ts',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/packed-array-binary.ts',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/packed-array-call.ts',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/godot-variant-marshals.ts',
+  'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-runtime/packed-array-codecs.ts',
 ] as const;
 
 type Encoded = string | boolean | Encoded[] | { readonly [key: string]: Encoded };
