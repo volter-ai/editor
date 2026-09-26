@@ -8,6 +8,7 @@ import { readPiece } from '@volter/dawproject/piece';
 import { createPieceRoot } from '@volter/dawproject/render';
 import type { ComponentType } from 'react';
 import { checkPiece } from './checks';
+import { SoundBankLoader } from 'spessasynth_core';
 import { measureLoop, nullResidualDb } from './measure';
 import { assignChannels, audibleTracks, mixLoop, mixOneShot, pieceToMidi, type RenderedLoop, renderChannels, seamRatio } from './render-offline';
 import type { DynamicsReport, ImpulseResponse } from './mix/offline-mix';
@@ -51,8 +52,6 @@ export async function renderPiece({
     root.unmount();
 
     const beatsPerBar = piece.transport.beatsPerBar;
-    const problems: string[] = [...checkPiece(piece).problems];
-
     const assignments = assignChannels(piece);
     if (assignments.size === 0) throw new Error('No track has a soundfont device; there is nothing to render.');
     // Every bank a soundfont device names, read from the project.
@@ -62,6 +61,8 @@ export async function renderPiece({
       const bytes = readFileSync(resolve(project, path));
       bank.set(path, bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
     }
+    // The checks, with every note tested against the samples its bank has.
+    const problems: string[] = [...checkPiece(piece, new Map([...bank].map(([path, bytes]) => [path, SoundBankLoader.fromArrayBuffer(bytes)]))).problems];
     // Impulse responses the piece's convolution devices name, read from the project.
     const irs = new Map<string, ImpulseResponse>();
     for (const track of piece.tracks) {
