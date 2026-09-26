@@ -3,7 +3,8 @@
   "files": [
     "src/lib/godot-compat/node-process.ts",
     "src/lib/godot-compat/react-lifecycle.tsx",
-    "src/lib/godot-compat/signal.ts"
+    "src/lib/godot-compat/signal.ts",
+    "src/lib/godot-compat/vector3.ts"
   ],
   "id": "godot-compat",
   "packageJson": {
@@ -19,5 +20,5 @@
   "requires": [],
   "skills": [],
   "title": "Godot compat (backends for a ported game)",
-  "version": "0.840.0"
+  "version": "0.841.0"
 }
