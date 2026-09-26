@@ -169,6 +169,7 @@ export type {
   NetPeer,
   NetPlayerIdentity,
   NetRates,
+  NetTypeTraffic,
   NetServerConfig,
   NetworkingAdapter,
   PhysicsAdapter,

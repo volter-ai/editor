@@ -166,6 +166,17 @@ export class VgaiGameSkew extends Disposable {
 		this.exitImmersive();
 
 		this._register(this.editorService.onDidActiveEditorChange(() => this.syncPaneActive()));
+		// Focus moving between the editor area and the views does not change the active editor, so
+		// the answer is re-read on every focus change in the window.
+		const onFocus = () => this.syncPaneActive();
+		this.layoutService.mainContainer.ownerDocument.addEventListener('focusin', onFocus, true);
+		this.layoutService.mainContainer.ownerDocument.addEventListener('focusout', onFocus, true);
+		this._register({
+			dispose: () => {
+				this.layoutService.mainContainer.ownerDocument.removeEventListener('focusin', onFocus, true);
+				this.layoutService.mainContainer.ownerDocument.removeEventListener('focusout', onFocus, true);
+			},
+		});
 		this.syncPaneActive();
 		// Inspector presentation changes its content, not native view visibility.
 		// Only a view command or the temporary Play/Zen layout may hide the pane.
@@ -190,9 +201,17 @@ export class VgaiGameSkew extends Disposable {
 
 	/** THE ACTIVE EDITOR, not DOM focus — see the header's point 3. `activeEditorPane` is the
 	 *  pane of the ACTIVE GROUP, so typing into Monaco in the group beside the stage makes this
-	 *  false while a click anywhere inside our own pane keeps it true. */
+	 *  false while a click anywhere inside our own pane keeps it true. A view outside the editor
+	 *  area holding focus (a panel's field, the terminal, the side bar) takes the keyboard too:
+	 *  focusing one does not change the active editor, and a person typing into the Network
+	 *  inspector's Send field was pressing keys in the running game. A click into the game's
+	 *  canvas moves focus to the document body, which is none of those parts. */
 	private syncPaneActive(): void {
-		this.bridge.setPaneActive(this.editorService.activeEditorPane?.getId() === this.ids.pane);
+		const viewHoldsFocus =
+			this.layoutService.hasFocus(Parts.PANEL_PART) ||
+			this.layoutService.hasFocus(Parts.SIDEBAR_PART) ||
+			this.layoutService.hasFocus(Parts.AUXILIARYBAR_PART);
+		this.bridge.setPaneActive(this.editorService.activeEditorPane?.getId() === this.ids.pane && !viewHoldsFocus);
 	}
 
 	private enterImmersive(): void {

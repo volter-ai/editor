@@ -82,6 +82,10 @@ export interface NetworkCapabilityMap {
   /** The adapter can SET the local identity (`setPlayerIdentity`) — the
    *  inspector shows an EDITABLE name field. Implies `identity`. */
   identitySettable: boolean;
+  /** Traffic per message type (`getTrafficByType`). */
+  traffic: boolean;
+  /** Sending a message into the room as this client (`sendMessage`). */
+  send: boolean;
 }
 
 export function deriveNetworkCapabilities(
@@ -103,6 +107,8 @@ export function deriveNetworkCapabilities(
     stats: typeof adapter.getReplicationStats === 'function',
     identity: typeof adapter.getPlayerIdentity === 'function',
     identitySettable: typeof adapter.setPlayerIdentity === 'function',
+    traffic: typeof adapter.getTrafficByType === 'function',
+    send: typeof adapter.sendMessage === 'function',
   };
 }
 

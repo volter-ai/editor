@@ -118,6 +118,7 @@ import type {
   DocumentProbeStep,
   ProbedElement,
 } from '@volter/editor-sdk/document-probe';
+import { surfaceHoldsKeyboard } from '@volter/editor-sdk/kit/surface-keyboard';
 import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activeWorkspaceDocument,
@@ -891,19 +892,23 @@ function acceptStep(step: DocumentProbeStep): Scope {
 
 export async function runDocumentProbe(step: DocumentProbeStep): Promise<DocumentProbeResult> {
   const scope = acceptStep(step);
-  // WHILE THE GAME IS THE ACTIVE DOCUMENT, THIS DOOR READS AND CLICKS ONLY. Every event it
-  // dispatches bubbles to \`window\`, where the game listens when its document is active: a key,
-  // a typed string, a paste or a drag in any scope (the game's header, the rail, the outliner)
+  // WHILE THE GAME HEARS THE KEYBOARD, THIS DOOR READS AND CLICKS ONLY. Every event it dispatches
+  // bubbles to \`window\`, where the game's own listeners pass the same gate this reads
+  // (\`surfaceHoldsKeyboard\`, \`gated-globals.ts\`): while the Game document is active and no view
+  // outside the editor area holds focus, a key, a typed string, a paste or a drag in any scope
   // would drive the game with synthetic input, which is what refusing the Game document protects.
+  // With focus in a view (a field of the Network inspector, the rail), the game hears none of it.
   if (
     activeWorkspaceDocumentId() === GAME_DOCUMENT_ID &&
+    surfaceHoldsKeyboard() &&
     step.action !== 'query' &&
     step.action !== 'click' &&
     step.action !== 'select'
   ) {
     throw new Error(
-      `'${step.action}' is refused while the Game document is active: its events bubble to the game. ` +
-        "Query, click and select still work; drive the game through the game's own doors.",
+      `'${step.action}' is refused while the Game document holds the keyboard: its events would ` +
+        "reach the game. Query, click and select still work; click into a view's field first, or " +
+        "drive the game through the game's own doors.",
     );
   }
   const where = { name: scope.name, id: scope.id, title: scope.title };

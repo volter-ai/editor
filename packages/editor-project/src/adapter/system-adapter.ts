@@ -226,6 +226,15 @@ export interface NetMessageEvent {
 /** Send/receive rates for the inspector's sparklines (W3b). The byte fields
  *  are OPTIONAL capabilities-within-the-capability: an implementer omits a
  *  direction it cannot measure (never reports a fabricated 0). */
+/** One message type's traffic, both directions. */
+export interface NetTypeTraffic {
+  type: string;
+  countIn: number;
+  countOut: number;
+  bytesIn: number;
+  bytesOut: number;
+}
+
 export interface NetRates {
   msgsInPerSec: number;
   msgsOutPerSec: number;
@@ -313,6 +322,12 @@ export interface NetworkingAdapter {
    *  a seat label — ONLY when a real implementer provides it, falling back to a
    *  generic label otherwise. */
   getPlayerIdentity?(): NetPlayerIdentity | undefined;
+  /** Traffic per message type since the connection opened, both directions — state and patches
+   *  included as their own rows (Godot's network profiler tables). */
+  getTrafficByType?(): NetTypeTraffic[];
+  /** Send `payload` to the room as this client, under message type `type` (Colyseus Monitor's
+   *  Send), so a server handler can be exercised from the inspector. */
+  sendMessage?(type: string, payload: unknown): void;
   /** Optional capability, PAIRED with {@link getPlayerIdentity}: set the local
    *  player's identity through the game's OWN multiplayer mechanism. The editor
    *  renders an editable name field ONLY when a real implementer provides this

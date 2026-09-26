@@ -17,8 +17,8 @@
  * of each observed room.
  */
 
-import { unpack } from '@colyseus/msgpackr';
-import { decode, type Iterator } from '@colyseus/schema';
+import { pack, unpack } from '@colyseus/msgpackr';
+import { decode, encode, type Iterator } from '@colyseus/schema';
 import { SchemaSerializer } from '@colyseus/sdk';
 import type {
   ConnectionState,
@@ -97,6 +97,7 @@ interface Mirror {
   patches: number;
   patchBytes: number;
   types: Map<string, MutableType>;
+  socket: WebSocket;
 }
 
 const mirrors: Mirror[] = [];
@@ -272,6 +273,7 @@ function attach(socket: WebSocket, url: string): void {
     patches: 0,
     patchBytes: 0,
     types: new Map(),
+    socket,
   };
   mirrors.push(mirror);
   socket.addEventListener('message', (event: MessageEvent) => {
@@ -423,6 +425,25 @@ export const observedGameNetwork: NetworkingAdapter = {
     return log.filter((event) => event.seq > sinceSeq);
   },
   getRates: rates,
+  sendMessage(type: string, payload: unknown): void {
+    const mirror = current();
+    if (!mirror || mirror.state !== 'connected') throw new Error('No room is connected to send into.');
+    // The SDK's own framing (`Room.send`): the ROOM_DATA code, the type, then the msgpack payload.
+    const head = new Uint8Array(1 + 5 + type.length * 3);
+    head[0] = ROOM_DATA;
+    const it: Iterator = { offset: 1 };
+    encode.string(head as unknown as Parameters<typeof encode.string>[0], type, it);
+    const body = payload === undefined ? new Uint8Array(0) : new Uint8Array(pack(payload));
+    const frame = new Uint8Array(it.offset + body.byteLength);
+    frame.set(head.subarray(0, it.offset));
+    frame.set(body, it.offset);
+    // Through the game's own socket, so the send is observed and logged like any other.
+    mirror.socket.send(frame);
+  },
+  getTrafficByType() {
+    const mirror = current();
+    return mirror ? [...mirror.types.values()].map(({ type, countIn, countOut, bytesIn, bytesOut }) => ({ type, countIn, countOut, bytesIn, bytesOut })) : [];
+  },
   getServerConfig() {
     const mirror = current();
     if (!mirror) return null;

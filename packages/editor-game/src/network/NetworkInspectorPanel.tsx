@@ -38,6 +38,7 @@ import type {
   ConnectionState,
   NetConditioning,
   NetMessageEvent,
+  NetTypeTraffic,
   NetworkingAdapter,
 } from '@volter/editor-project/adapter';
 import { memo, useEffect, useReducer, useRef, useState } from 'react';
@@ -551,6 +552,9 @@ export function NetworkInspectorPanel() {
         </AbsentNote>
       )}
 
+      {caps.traffic ? <TrafficTable rows={adapter.getTrafficByType?.() ?? []} /> : null}
+      {caps.send ? <SendControls adapter={adapter} /> : null}
+
       {/* Body: state tree | message log */}
       <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
         <div
@@ -640,6 +644,97 @@ export function NetworkInspectorPanel() {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Traffic per message type, both directions — Godot's network profiler reads a game's RPCs and
+ * its synchronizers as two tables of counts and sizes; a Colyseus room's are its messages and its
+ * state sync, which arrive here as rows of one table (`state`, `patch`, and each message type).
+ */
+function TrafficTable({ rows }: { rows: readonly NetTypeTraffic[] }) {
+  const cell = { padding: `0 ${spaceVar[3]}`, textAlign: 'right' as const, whiteSpace: 'nowrap' as const };
+  const bytes = (value: number) => (value >= 1024 ? `${(value / 1024).toFixed(1)} KiB` : `${value} B`);
+  return (
+    <div
+      data-testid="net-traffic"
+      style={{ maxHeight: 132, overflow: 'auto', borderBottom: `1px solid ${themeVars.boundary.default}` }}
+    >
+      {rows.length === 0 ? (
+        <AbsentNote>No traffic yet.</AbsentNote>
+      ) : (
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: fontSizeVar.sm, ...MONO }}>
+          <thead>
+            <tr style={{ color: themeVars.content.muted }}>
+              <th style={{ ...cell, textAlign: 'left' }}>Type</th>
+              <th style={cell}>In</th>
+              <th style={cell}>Bytes in</th>
+              <th style={cell}>Out</th>
+              <th style={cell}>Bytes out</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.type} data-testid="net-traffic-row">
+                <td style={{ ...cell, textAlign: 'left' }}>{row.type}</td>
+                <td style={cell}>{row.countIn || '-'}</td>
+                <td style={cell}>{row.countIn ? bytes(row.bytesIn) : '-'}</td>
+                <td style={cell}>{row.countOut || '-'}</td>
+                <td style={cell}>{row.countOut ? bytes(row.bytesOut) : '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Send a message into the room as this client — Colyseus Monitor's Send (a message type and a
+ * JSON payload), so a server handler can be exercised without writing game code for it.
+ */
+function SendControls({ adapter }: { adapter: NetworkingAdapter }) {
+  const [type, setType] = useState('');
+  const [payload, setPayload] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const send = () => {
+    try {
+      const value = payload.trim() === '' ? undefined : (JSON.parse(payload) as unknown);
+      adapter.sendMessage?.(type, value);
+      setError(null);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : String(caught));
+    }
+  };
+  return (
+    <div
+      data-testid="net-send"
+      style={{ display: 'flex', gap: spaceVar[2], alignItems: 'center', padding: spaceVar[2] }}
+    >
+      <TextInput
+        data-testid="net-send-type"
+        placeholder="Message type"
+        value={type}
+        onChange={(event) => setType(event.target.value)}
+        style={{ width: 140 }}
+      />
+      <TextInput
+        data-testid="net-send-payload"
+        placeholder='Payload (JSON), e.g. {"x": 1}'
+        value={payload}
+        onChange={(event) => setPayload(event.target.value)}
+        style={{ flex: 1, minWidth: 80 }}
+      />
+      <Button type="button" variant="ghost" data-testid="net-send-button" disabled={type.trim() === ''} onClick={send}>
+        Send
+      </Button>
+      {error ? (
+        <span data-testid="net-send-error" style={{ color: themeVars.semantic.danger, fontSize: fontSizeVar.sm }}>
+          {error}
+        </span>
+      ) : null}
     </div>
   );
 }
