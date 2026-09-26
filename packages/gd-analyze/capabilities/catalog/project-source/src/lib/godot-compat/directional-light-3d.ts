@@ -27,6 +27,29 @@ export function godot_directional_light_3d_mount(self: DirectionalLight): void {
   godot_light_3d_mount(self, { 9: 100, 13: 0.8, 14: 2, 20: 100000, 3: 1 });
 }
 
+const SHADOW_MODE = new WeakMap<DirectionalLight, number>();
+
+/**
+ * Three draws a directional light's shadow into one orthographic map, Godot's
+ * `SHADOW_ORTHOGONAL`; the PSSM split modes draw into that one map as well.
+ *
+ * @godot DirectionalLight3D.set_shadow_mode
+ * @source scene/3d/light_3d.cpp:531
+ */
+export function set_shadow_mode(self: DirectionalLight, mode: number): void {
+  SHADOW_MODE.set(self, mode);
+}
+
+/**
+ * `SHADOW_PARALLEL_4_SPLITS` until set (`light_3d.cpp:620`).
+ *
+ * @godot DirectionalLight3D.get_shadow_mode
+ * @source scene/3d/light_3d.cpp:537
+ */
+export function get_shadow_mode(self: DirectionalLight): number {
+  return SHADOW_MODE.get(self) ?? 2;
+}
+
 /**
  * @godot DirectionalLight3D.set_sky_mode
  * @source scene/3d/light_3d.cpp:550

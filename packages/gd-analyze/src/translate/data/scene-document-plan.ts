@@ -680,7 +680,7 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
     if (plannedNode === undefined) refused = true;
     else planned.push(plannedNode);
   }
-  const connections = planConnections(context, scene, planned);
+  const connections = planConnections(context, scene, planned, instanceRoots);
   if (refused || connections === undefined) return undefined;
   const root = assembleSceneTree(context, scene, planned);
   if (root === undefined) return undefined;
@@ -700,10 +700,36 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
  * native nodes this scene mounts, to a function of the target's script, from a signal whose class
  * has a connection rule, with no binds, unbinds or flags beyond `CONNECT_PERSIST`.
  */
+/** Whether a connection is one an instanced scene authors, copied into this document with it. */
+function representedByInstance(
+  connection: BoundGodotSceneDocument['connections'][number],
+  instanceRoots: ReadonlyMap<string, BoundGodotSceneDocument>,
+): boolean {
+  const relative = (nodePath: string, root: string): string | undefined =>
+    nodePath === root ? '.' : nodePath.startsWith(`${root}/`) ? nodePath.slice(root.length + 1) : undefined;
+  for (const [root, instanced] of instanceRoots) {
+    const from = relative(connection.from, root);
+    const to = relative(connection.to, root);
+    if (from === undefined || to === undefined) continue;
+    return instanced.connections.some(
+      (own) =>
+        own.signal === connection.signal &&
+        own.method === connection.method &&
+        own.from === from &&
+        own.to === to &&
+        own.flags === connection.flags &&
+        own.bindCount === connection.bindCount &&
+        own.unbinds === connection.unbinds,
+    );
+  }
+  return false;
+}
+
 function planConnections(
   context: PlanContext,
   scene: BoundGodotSceneDocument,
   planned: readonly TargetGodotSceneNodePlan[],
+  instanceRoots: ReadonlyMap<string, BoundGodotSceneDocument>,
 ): readonly TargetGodotSceneConnectionPlan[] | undefined {
   const mounted = new Map(
     planned.filter((node) => node.targetKind !== 'scene-instance').map((node) => [node.nodePath, node] as const),
@@ -712,6 +738,8 @@ function planConnections(
   let ok = true;
   const result: TargetGodotSceneConnectionPlan[] = [];
   for (const connection of scene.connections) {
+    // The instanced scene's component makes its own connections.
+    if (representedByInstance(connection, instanceRoots)) continue;
     const at = `${scene.resPath}#${connection.from}:${connection.signal}`;
     const from = mounted.get(connection.from);
     const to = mounted.get(connection.to);

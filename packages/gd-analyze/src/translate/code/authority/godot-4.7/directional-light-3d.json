@@ -45,6 +45,48 @@
         },
         "evidenceClaimId": "godot-4.7-binding-DirectionalLight3D.set_sky_mode"
       }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "DirectionalLight3D",
+        "member": "get_shadow_mode",
+        "kind": "native-member",
+        "signature": "hash:2765228544"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/directional-light-3d",
+        "exportName": "get_shadow_mode",
+        "localName": "DirectionalLight3D_get_shadow_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-DirectionalLight3D.get_shadow_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "DirectionalLight3D",
+        "member": "set_shadow_mode",
+        "kind": "native-member",
+        "signature": "hash:1261211726"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/directional-light-3d",
+        "exportName": "set_shadow_mode",
+        "localName": "DirectionalLight3D_set_shadow_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-DirectionalLight3D.set_shadow_mode"
+      }
     }
   ],
   "rules": [],
@@ -70,7 +112,7 @@
         "observedOutputSha256": "6c5816c98b868d9b78f9a4bd2b1f282d9298b992f2e115ef1c34fe1d81783689"
       },
       "target": {
-        "implementationSha256": "d6bb78ff4983a17d897540785cf3d64c1ad127e857df55c19ae6039c76d32ff7",
+        "implementationSha256": "9a655e467fc41cfffb16f84a38048ae7b8dbfb7d0d10e041e92dd5646728fcb3",
         "callsite": "lib/godot-compat/directional-light-3d.ts get_sky_mode",
         "observedOutputSha256": "6c5816c98b868d9b78f9a4bd2b1f282d9298b992f2e115ef1c34fe1d81783689"
       },
@@ -109,7 +151,7 @@
         "observedOutputSha256": "3e0f40a980d3368b309bf12cd6a279754876ef005bb75eddb6b2d64aba18897b"
       },
       "target": {
-        "implementationSha256": "d6bb78ff4983a17d897540785cf3d64c1ad127e857df55c19ae6039c76d32ff7",
+        "implementationSha256": "9a655e467fc41cfffb16f84a38048ae7b8dbfb7d0d10e041e92dd5646728fcb3",
         "callsite": "lib/godot-compat/directional-light-3d.ts set_sky_mode",
         "observedOutputSha256": "3e0f40a980d3368b309bf12cd6a279754876ef005bb75eddb6b2d64aba18897b"
       },
@@ -117,6 +159,84 @@
         "comparator": "typed float64-bit JSON: exact, render-mapping",
         "tolerance": "exact",
         "resultSha256": "2fcd1513f48ca2d0a6b1e54df58cda5d9d903ec3c913bfbab13d526d295fb24e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "directional-light-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-DirectionalLight3D.get_shadow_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000DirectionalLight3D\u0000get_shadow_mode\u0000hash:2765228544",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/light_3d.cpp",
+        "sourceSymbol": "DirectionalLight3D.get_shadow_mode",
+        "sourceLine": 537
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6e64492a7e84eb407b33ad0c02629161fab36ed09a57df65c4c451a165f5b662",
+        "callsite": "res://probe.gd _init() get_shadow_mode-default",
+        "observedOutputSha256": "a391ca69f188f995cbf30a50fcf9fc2758184fcedc8c87ffd1ebda2a648d2683"
+      },
+      "target": {
+        "implementationSha256": "9a655e467fc41cfffb16f84a38048ae7b8dbfb7d0d10e041e92dd5646728fcb3",
+        "callsite": "lib/godot-compat/directional-light-3d.ts get_shadow_mode",
+        "observedOutputSha256": "a391ca69f188f995cbf30a50fcf9fc2758184fcedc8c87ffd1ebda2a648d2683"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3179248a9a57a936662e759453e14402c4a4282aeba47c960807127418d9ced7"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "directional-light-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-DirectionalLight3D.set_shadow_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000DirectionalLight3D\u0000set_shadow_mode\u0000hash:1261211726",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/light_3d.cpp",
+        "sourceSymbol": "DirectionalLight3D.set_shadow_mode",
+        "sourceLine": 531
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5582ca1de9cfe0e5d4d5bf641ae2f04744bab59fc6deb903828a328b78deed6b",
+        "callsite": "res://probe.gd _init() set_shadow_mode-orthogonal",
+        "observedOutputSha256": "d249db1a482a4e575e2bfdd58f1b8dfa879aa828b7d33119f7468abb1e15cadd"
+      },
+      "target": {
+        "implementationSha256": "9a655e467fc41cfffb16f84a38048ae7b8dbfb7d0d10e041e92dd5646728fcb3",
+        "callsite": "lib/godot-compat/directional-light-3d.ts set_shadow_mode",
+        "observedOutputSha256": "d249db1a482a4e575e2bfdd58f1b8dfa879aa828b7d33119f7468abb1e15cadd"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0d292430c1f83fcaf09e66251d3d83d233c5a35778f3a1d4d19d0be1e522311a"
       },
       "reproductionCommand": [
         "npx",
@@ -136,7 +256,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "36a839d82f367af699057d94842f50321c2227255daaacd049267fee075fca2b",
-      "implementationSha256": "d6bb78ff4983a17d897540785cf3d64c1ad127e857df55c19ae6039c76d32ff7"
+      "implementationSha256": "9a655e467fc41cfffb16f84a38048ae7b8dbfb7d0d10e041e92dd5646728fcb3"
     },
     {
       "claimId": "godot-4.7-binding-DirectionalLight3D.set_sky_mode",
@@ -144,7 +264,23 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "2d6f343680bd8886ec109bb38702cffe942c06ff97c119d808f102bfc68e4edd",
-      "implementationSha256": "d6bb78ff4983a17d897540785cf3d64c1ad127e857df55c19ae6039c76d32ff7"
+      "implementationSha256": "9a655e467fc41cfffb16f84a38048ae7b8dbfb7d0d10e041e92dd5646728fcb3"
+    },
+    {
+      "claimId": "godot-4.7-binding-DirectionalLight3D.get_shadow_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6e64492a7e84eb407b33ad0c02629161fab36ed09a57df65c4c451a165f5b662",
+      "implementationSha256": "9a655e467fc41cfffb16f84a38048ae7b8dbfb7d0d10e041e92dd5646728fcb3"
+    },
+    {
+      "claimId": "godot-4.7-binding-DirectionalLight3D.set_shadow_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5582ca1de9cfe0e5d4d5bf641ae2f04744bab59fc6deb903828a328b78deed6b",
+      "implementationSha256": "9a655e467fc41cfffb16f84a38048ae7b8dbfb7d0d10e041e92dd5646728fcb3"
     }
   ]
 }

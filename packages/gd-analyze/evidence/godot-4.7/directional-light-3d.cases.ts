@@ -17,6 +17,12 @@ for (const mode of [1, 2]) {
     return D.get_sky_mode(l);
   });
 }
+c.add('get_shadow_mode-default', 'get_shadow_mode', ['return DirectionalLight3D.new().get_shadow_mode()'], () => D.get_shadow_mode(directional()));
+c.add('set_shadow_mode-orthogonal', 'set_shadow_mode', ['var l := DirectionalLight3D.new()', 'l.set_shadow_mode(0)', 'return l.get_shadow_mode()'], () => {
+  const l = directional();
+  D.set_shadow_mode(l, 0);
+  return D.get_shadow_mode(l);
+});
 const mapping = (
   id: string,
   member: string,
