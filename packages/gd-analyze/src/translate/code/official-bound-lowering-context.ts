@@ -1,3 +1,4 @@
+import type { BoundGodotCallReceiver } from '../../analyze/call-receivers';
 import type { GodotBoundNode, GodotBoundScript } from '../../godot-frontend/bound-program';
 import type { SemanticClaimLayer } from '../../godot-frontend/semantic-claims';
 import { safeIdent } from '../target-names';
@@ -135,6 +136,9 @@ export class LoweringContext {
     readonly evidence: GodotCodeEvidenceResolver,
     readonly classIdentifier: string,
     readonly autoloads: ReadonlyMap<number, OfficialBoundAutoloadCandidate>,
+    /** Dynamic calls analysis typed from project facts, and why the rest stayed untyped. */
+    readonly callReceivers: ReadonlyMap<number, BoundGodotCallReceiver> = new Map(),
+    readonly untypedCalls: ReadonlyMap<number, string> = new Map(),
   ) {
     const allocated = new Set([classIdentifier, ...bindings.targetLocalNames()]);
     const lexicalNames = new Map<string, string>();

@@ -403,6 +403,8 @@ function lowerScript(
     evidence,
     className(source),
     autoloadCandidates(project, source),
+    new Map(source.callReceivers.map((entry) => [entry.nodeId, entry] as const)),
+    new Map(source.untypedCalls.map((entry) => [entry.nodeId, entry.reason] as const)),
   );
   if (root.abstract) {
     context.refuse(root, 'abstract script classes need a target declaration recipe');

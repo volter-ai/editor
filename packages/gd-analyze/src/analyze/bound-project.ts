@@ -27,6 +27,11 @@ import { GodotProjectSnapshotReader } from '../snapshot/project-snapshot-reader'
 import type { GodotToolchainApiDumpSnapshot } from '../snapshot/toolchain-snapshot';
 import type { GodotApiClass, GodotApiDump } from './api-dump';
 import type { GodotAnalysisAuthority, GodotAnalysisRuleId } from './authority';
+import {
+  type BoundGodotCallReceiver,
+  type BoundGodotUntypedCall,
+  typeCallReceivers,
+} from './call-receivers';
 import { GodotAnalysisAuthorityResolver } from './authority';
 import {
   type BoundGodotScriptSingletonReference,
@@ -52,6 +57,10 @@ export interface BoundGodotSourceScript {
   readonly lifecycle: readonly BoundGodotLifecycleEntry[];
   /** Official declarations joined to attachment-specific initialization inputs. */
   readonly fields: readonly BoundGodotScriptField[];
+  /** Dynamic calls whose receiver class the project fixes, with Godot's runtime selection. */
+  readonly callReceivers: readonly BoundGodotCallReceiver[];
+  /** Dynamic calls left untyped, each with the reason; lowering refuses them where they stand. */
+  readonly untypedCalls: readonly BoundGodotUntypedCall[];
 }
 
 export interface BoundGodotScriptFieldAttachmentValue {
@@ -273,6 +282,15 @@ class AnalysisEvidence {
     const claimId = this.resolver.require(id).claimId;
     this.claimIds.add(claimId);
     return claimId;
+  }
+
+  /** The rule's live claim, or undefined when the rule has no live evidence (the join refuses). */
+  liveClaim(id: GodotAnalysisRuleId): string | undefined {
+    try {
+      return this.require(id);
+    } catch {
+      return undefined;
+    }
   }
 }
 
@@ -937,6 +955,18 @@ export function bindGodotProject(
       className: targetClass.fqcn,
     });
   }
+  // Which script sits at an exact scene node, and the method names it (and its script ancestors)
+  // declares: a dynamic call on that node reaches the script before ClassDB.
+  const scriptMethodsByNode = new Map<string, Set<string>>();
+  for (const [resPath, rows] of attachmentsByScript) {
+    const names = new Set<string>();
+    for (const scriptPath of [resPath, ...(inheritance.get(resPath)?.scriptAncestors ?? [])]) {
+      for (const method of classes.get(scriptPath)?.methods ?? []) names.add(method.name);
+    }
+    for (const row of rows) {
+      scriptMethodsByNode.set(`${row.documentPath}\0${row.nodePath ?? '.'}`, names);
+    }
+  }
   const scripts = code.scripts.map((program): BoundGodotSourceScript => {
     const entry = snapshot.entryByResPath(program.resPath);
     if (
@@ -958,6 +988,21 @@ export function bindGodotProject(
       sceneNodes.byKey,
       analysisEvidence,
     );
+    const callReceiverFacts = (
+      bound: GodotBoundScript,
+      placed: readonly BoundGodotScriptAttachment[],
+    ): Pick<BoundGodotSourceScript, 'callReceivers' | 'untypedCalls'> => {
+      const typed = typeCallReceivers({
+        program: bound,
+        attachments: placed,
+        read: decoded,
+        apiDump: apiDump.parsed,
+        scriptMethodsAt: (documentPath, nodePath) =>
+          scriptMethodsByNode.get(`${documentPath}\0${nodePath}`),
+        claim: (rule) => analysisEvidence.liveClaim(rule),
+      });
+      return { callReceivers: typed.receivers, untypedCalls: typed.untyped };
+    };
     return {
       resPath: program.resPath,
       sourceDigest: entry.digest,
@@ -975,6 +1020,7 @@ export function bindGodotProject(
       ),
       lifecycle: lifecycleEntries(program.resPath, scriptInheritance, classes, analysisEvidence),
       fields: scriptFields(program, attachments, analysisEvidence),
+      ...callReceiverFacts(program, attachments),
     };
   });
   const projectClasses: BoundProjectSceneClass[] = scripts.flatMap((script) => {

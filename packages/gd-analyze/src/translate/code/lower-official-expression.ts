@@ -474,12 +474,27 @@ function callSymbol(
       return { ...base, kind: 'builtin-member' };
     case 'script-self':
     case 'script-class':
-    case 'dynamic':
       return undefined;
+    case 'dynamic':
+    case 'unresolved': {
+      const typed = context.callReceivers.get(node.id);
+      if (typed === undefined) {
+        if (target.kind === 'dynamic' && !context.untypedCalls.has(node.id)) return undefined;
+        return context.refuse(
+          node,
+          `dynamic call ${node.functionName}: ${context.untypedCalls.get(node.id) ?? 'receiver is untyped'}`,
+        );
+      }
+      return {
+        sourceRevision: context.sourceRevision,
+        kind: typed.target.kind,
+        owner: typed.target.owner,
+        member: typed.target.member,
+        signature: typed.target.signatureHash === 0 ? 'unhashed' : `hash:${String(typed.target.signatureHash)}`,
+      };
+    }
     case 'super':
       return context.refuse(node, 'super calls require resolved class ancestry');
-    case 'unresolved':
-      return context.refuse(node, 'official compiler left this call target unresolved');
     default:
       return target.kind satisfies never;
   }

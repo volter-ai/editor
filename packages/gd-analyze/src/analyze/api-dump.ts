@@ -71,6 +71,8 @@ export interface GodotApiMethod {
    *  what Godot 3 spells. */
   readonly return_type: string;
   readonly is_virtual: boolean;
+  /** Godot 4's method-bind hash, the identity the official compiler records for a selected call. */
+  readonly hash?: number;
   readonly arguments: readonly {
     readonly name: string;
     readonly type: string;
@@ -627,6 +629,7 @@ function normalizeGodot4Class(
         name: entry['name'],
         return_type: returnType,
         is_virtual: entry['is_virtual'] === true,
+        ...(typeof entry['hash'] === 'number' ? { hash: entry['hash'] } : {}),
         arguments: argumentsOf(entry, `${at}.${entry['name']}`),
       };
     }),
@@ -707,6 +710,7 @@ function parseGodot4ApiDump(raw: unknown): GodotApiDump {
           name: method['name'],
           return_type: returnType ?? 'void',
           is_virtual: false,
+          ...(typeof method['hash'] === 'number' ? { hash: method['hash'] } : {}),
           arguments: argumentsOf(method, `${at}.${method['name']}`),
         };
       }),

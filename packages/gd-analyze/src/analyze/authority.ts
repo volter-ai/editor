@@ -11,7 +11,9 @@ export type GodotAnalysisRuleId =
   | 'script-inheritance'
   | 'lifecycle-selection'
   | 'scene-class-resolution'
-  | 'field-attachment-join';
+  | 'field-attachment-join'
+  | 'scene-node-receiver'
+  | 'classdb-method-selection';
 
 export interface GodotAnalysisRule {
   readonly id: GodotAnalysisRuleId;
