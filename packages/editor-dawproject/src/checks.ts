@@ -17,6 +17,10 @@
  */
 
 import type { Piece } from '@volter/dawproject/piece';
+import type { BasicSoundBank } from 'spessasynth_core';
+import { articulationPrograms } from './articulations';
+import { soundingKeys } from './bank-coverage';
+import { formatPitch } from '@volter/dawproject/notation';
 
 /** Practical ranges (MIDI), by General MIDI program. Unlisted programs are not range-checked. */
 const RANGES: Record<number, readonly [number, number, string]> = {
@@ -50,7 +54,11 @@ export interface PieceChecks {
   readonly parallels: number;
 }
 
-export function checkPiece(piece: Piece): PieceChecks {
+/**
+ * `banks` (by the project path a device's `params.bank` names), when given, adds the check that
+ * matters most for a sampled instrument: every note has a sample in the patch that plays it.
+ */
+export function checkPiece(piece: Piece, banks?: ReadonlyMap<string, BasicSoundBank>): PieceChecks {
   const { beatsPerBar } = piece.transport;
   const problems: string[] = [];
   const barBeat = (beat: number): string =>
@@ -93,6 +101,50 @@ export function checkPiece(piece: Piece): PieceChecks {
         if (!note.artic || !TECHNIQUES.has(note.artic) || typeof mapped[note.artic] === 'number' || reported.has(note.artic)) continue;
         reported.add(note.artic);
         problems.push(`${track.name}: ${note.artic} at ${barBeat(note.start)} has no patch (its device's params.articulations names none), so it plays as a sustained note`);
+      }
+    }
+  }
+
+  // Every note sounds: its pitch is covered by the patch it plays on (its articulation's, or the
+  // device's program), in the bank the device names.
+  if (banks) {
+    const patchOf = articulationPrograms(piece);
+    for (const track of piece.tracks) {
+      const device = track.channel?.devices.find((candidate) => candidate.plugin === 'soundfont');
+      const path = device?.params['bank'];
+      if (!device || typeof path !== 'string') continue;
+      const bank = banks.get(path);
+      if (!bank) continue;
+      const drums = device.params['drums'] === true;
+      const bankNumber = typeof device.params['bankNumber'] === 'number' ? device.params['bankNumber'] : 0;
+      const baseProgram = typeof device.params['program'] === 'number' ? device.params['program'] : 0;
+      const cache = new Map<number, Set<number> | null>();
+      const missing = new Map<number, { pitches: Set<number>; first: number }>();
+      for (const clip of track.clips) {
+        for (const note of clip.notes) {
+          const program = drums ? baseProgram : (patchOf.get(track.id)?.(note.artic) ?? baseProgram);
+          if (!cache.has(program)) cache.set(program, soundingKeys(bank, bankNumber, program, drums));
+          const keys = cache.get(program);
+          if (keys === null) {
+            if (!missing.has(-1 - program)) missing.set(-1 - program, { pitches: new Set(), first: note.start });
+            continue;
+          }
+          if (keys && !keys.has(note.pitch)) {
+            const entry = missing.get(program) ?? { pitches: new Set<number>(), first: note.start };
+            entry.pitches.add(note.pitch);
+            missing.set(program, entry);
+          }
+        }
+      }
+      for (const [program, { pitches, first }] of missing) {
+        if (program < 0) {
+          problems.push(`${track.name}: ${path} has no ${drums ? 'drum kit' : 'preset'} at ${drums ? '' : `bank ${bankNumber} `}program ${-1 - program}, so its notes (from ${barBeat(first)}) play whatever the synthesizer falls back to`);
+          continue;
+        }
+        const keys = [...(cache.get(program) ?? [])].sort((a, b) => a - b);
+        problems.push(
+          `${track.name}: no sample plays ${[...pitches].sort((a, b) => a - b).map((pitch) => formatPitch(pitch)).join(', ')} on program ${program} of ${path} (it sounds ${formatPitch(keys[0]!)}–${formatPitch(keys[keys.length - 1]!)}${keys.length !== keys[keys.length - 1]! - keys[0]! + 1 ? ', with gaps' : ''}); those notes are silent, first at ${barBeat(first)}`,
+        );
       }
     }
   }
