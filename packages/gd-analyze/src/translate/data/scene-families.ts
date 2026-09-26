@@ -147,6 +147,21 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_collision_mask',
     'godot_grid_map_set_data',
   ],
+  // The libraries are `libraries/NAME`; the tracks' bindings are resolved at import (`scene-animation.ts`).
+  AnimationPlayer: [
+    'set_meta:*',
+    'godot_animation_mixer_set_library:*',
+    'set_active',
+    'set_deterministic',
+    'set_reset_on_save_enabled',
+    'set_callback_mode_process',
+    'set_callback_mode_method',
+    'set_callback_mode_discrete',
+    'set_autoplay',
+    'set_auto_capture',
+    'set_default_blend_time',
+    'set_speed_scale',
+  ],
   AudioStreamPlayer3D: [
     ...AUDIO_PLAYER,
     'set_attenuation_model',
@@ -194,6 +209,7 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   ArrayMesh: [],
   CompressedTexture2D: [],
   MeshLibrary: [],
+  AnimationLibrary: [],
   LabelSettings: [
     'set_line_spacing',
     'set_paragraph_spacing',

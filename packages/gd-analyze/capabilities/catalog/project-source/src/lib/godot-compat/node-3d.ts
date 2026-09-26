@@ -604,6 +604,17 @@ function fromTransform(t: Transform3D): Local {
   return { basis: fromBasis(t.basis), origin: toV3(t.origin) };
 }
 
+/**
+ * `Basis::get_euler(order)` (`core/math/basis.cpp:456`) of a basis, by default in `EULER_ORDER_YXZ`
+ * (`Quaternion::get_euler`'s default, `core/math/quaternion.h`).
+ *
+ * @godot Node3D (protocol)
+ * @source core/math/basis.cpp:456
+ */
+export function godot_node_3d_basis_euler(value: Basis, order = EULER_YXZ): Vector3 {
+  return vector3(...getEuler(fromBasis(value), order));
+}
+
 // --- Node3D members.
 
 /**

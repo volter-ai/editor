@@ -34,6 +34,7 @@ import type {
   TargetTsStatement,
 } from '../code/target-ts-syntax';
 import type { DirectGodotSceneNodePlan } from '../data/direct-project-composition-plan';
+import { godotAnimationLibraryDataPath } from '../data/scene-animation';
 import { godotArrayMeshDataPath, godotGridMapDataPath, godotMeshLibraryDataPath } from '../data/scene-families';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 
@@ -441,6 +442,7 @@ const GODOT_ELEMENTS: Readonly<Record<string, readonly [module: string, three: s
   AudioStreamPlayer3D: ['audio-stream-player-3d', 'Group'],
   GridMap: ['grid-map', 'Group'],
   CPUParticles3D: ['cpu-particles-3d', 'Group'],
+  AnimationPlayer: ['animation-player', 'Group'],
 };
 
 /** A Godot property's prop name: `anchor_left` is `anchorLeft`, `stream_0/stream` `stream0Stream`. */
@@ -485,6 +487,7 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
   if (resource === undefined) throw new Error(`${key}: a resource the scene does not plan`);
   if (resource.className === 'CompressedTexture2D') return textureHook(emission, resource);
   if (resource.className === 'MeshLibrary') return libraryLocal(emission, resource);
+  if (resource.className === 'AnimationLibrary') return animationLibraryLocal(emission, resource);
   const existing = emission.hookLocals.get(key);
   if (existing !== undefined) return existing;
   if (resource.className === 'AudioStreamWAV') {
@@ -751,12 +754,74 @@ function libraryLocal(emission: FamilyEmission, resource: TargetGodotSceneResour
   return declareShared(emission, resource.key, stemOf(resource.key), made, [...new Set(uses)]);
 }
 
+/** An AnimationLibrary: its data file loaded once, at module level (`godot_animation_library_load`). */
+function animationLibraryLocal(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan): string {
+  const existing = emission.shared.get(resource.key);
+  if (existing !== undefined) return existing;
+  if (resource.animations === undefined) throw new Error(`${resource.key}: an AnimationLibrary without animations`);
+  const data = dataImport(emission, godotAnimationLibraryDataPath(emission.targetPath, resource.key), `${stemOf(resource.key)} animations`);
+  const made: TargetTsExpression = {
+    kind: 'call-expression',
+    callee: identifier(useCompat(emission, 'animation-library', 'godot_animation_library_load')),
+    arguments: [identifier(data)],
+  };
+  return declareShared(emission, resource.key, `${stemOf(resource.key)} library`, made, []);
+}
+
+/**
+ * An AnimationPlayer's track bindings, declared once at module level: each value track's setter
+ * (with its index) or script field and each method track's native methods, by track path.
+ */
+function animationBindingsLocal(emission: FamilyEmission, node: DirectGodotSceneNodePlan): string | undefined {
+  const plan = node.animation;
+  if (plan === undefined || (plan.values.length === 0 && plan.methods.length === 0)) return undefined;
+  const compat = (binding: { readonly module: string; readonly exportName: string; readonly localName: string }) =>
+    identifier(useCompat(emission, binding.module.replace(/^lib\/godot-compat\//u, ''), binding.exportName, binding.localName));
+  const values: TargetTsObjectProperty[] = plan.values.map(({ path: trackPath, binding }) => ({
+    key: trackPath,
+    value: {
+      kind: 'object-expression',
+      properties:
+        'field' in binding
+          ? [{ key: 'field', value: literal(binding.field) }]
+          : [{ key: 'set', value: compat(binding.setter) }, ...(binding.index === undefined ? [] : [{ key: 'index', value: { kind: 'literal-expression' as const, value: binding.index } }])],
+    },
+  }));
+  const byPath = new Map<string, TargetTsObjectProperty[]>();
+  for (const { path: trackPath, method, binding } of plan.methods) {
+    const list = byPath.get(trackPath) ?? [];
+    list.push({ key: method, value: compat(binding) });
+    byPath.set(trackPath, list);
+  }
+  const local = freshLocal(emission, `${node.name} bindings`);
+  emission.statics.push({
+    kind: 'variable-statement',
+    declaration: 'const',
+    name: local,
+    initializer: {
+      kind: 'object-expression',
+      properties: [
+        ...(values.length === 0 ? [] : [{ key: 'values', value: { kind: 'object-expression' as const, properties: values } }]),
+        ...(byPath.size === 0
+          ? []
+          : [{ key: 'methods', value: { kind: 'object-expression' as const, properties: [...byPath].map(([key, properties]) => ({ key, value: { kind: 'object-expression' as const, properties } })) } }]),
+      ],
+    },
+  });
+  return local;
+}
+
 /** A compat element's props for a node's authored properties (a GridMap's `data` its cells file). */
 function elementProps(emission: FamilyEmission, nodePath: string, setters: readonly TargetGodotSceneSetterPlan[]): TargetTsJsxAttribute[] {
-  const own = setters.filter((setter) => setter.setter.exportName !== 'set_meta');
+  // A mixer's libraries, one `libraries` prop by name (`libraries/NAME`, `AnimationMixer::_set`).
+  const libraries = setters.filter((setter) => setter.setter.exportName === 'godot_animation_mixer_set_library');
+  const own = setters.filter((setter) => setter.setter.exportName !== 'set_meta' && setter.setter.exportName !== 'godot_animation_mixer_set_library');
   // The node's metadata entries, one `meta` prop (`Object::_set`, `metadata/NAME`).
   const meta = setters.filter((setter) => setter.setter.exportName === 'set_meta');
   return [
+    ...(libraries.length === 0
+      ? []
+      : [attribute('libraries', { kind: 'object-expression', properties: libraries.map((setter) => ({ key: String(setter.index), value: propValue(emission, setter.value) })) })]),
     ...own.flatMap((setter) =>
       setter.setter.exportName === 'godot_grid_map_set_data'
         ? [attribute('data', identifier(dataImport(emission, godotGridMapDataPath(emission.targetPath, nodePath), `${nodePath === '.' ? 'grid' : nodePath} cells`)))]
@@ -828,7 +893,9 @@ export function familyElement(
     // Godot's layout and drawing are compat's: the element states the node's properties as props, in
     // the scene's order.
     const tag = useCompat(emission, godot[0], `Godot${className}`);
-    return { tag, attributes: elementProps(emission, node.nodePath, node.setters), children: [] };
+    // A mixer's track bindings come first: its libraries and autoplay are set after them.
+    const bindings = animationBindingsLocal(emission, node);
+    return { tag, attributes: [...(bindings === undefined ? [] : [attribute('bindings', identifier(bindings))]), ...elementProps(emission, node.nodePath, node.setters)], children: [] };
   }
   switch (className) {
     case 'ReflectionProbe': {

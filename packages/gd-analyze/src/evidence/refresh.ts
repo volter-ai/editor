@@ -31,6 +31,7 @@ import { measureScenePhysicsProof } from './proofs/scene-physics';
 import { measureSceneIdiomaticProof } from './proofs/scene-idiomatic';
 import { measureSceneStructureProof } from './proofs/scene-structure';
 import { measureSceneAudioProof } from './proofs/scene-audio';
+import { measureSceneAnimationProof } from './proofs/scene-animation';
 import { measureSceneGridMapProof } from './proofs/scene-gridmap';
 import { measureSceneParticlesProof } from './proofs/scene-particles';
 import { measureSceneMeshesProof } from './proofs/scene-meshes';
@@ -63,6 +64,7 @@ const PROOFS: readonly (readonly [
   ['scene-audio', measureSceneAudioProof],
   ['scene-gridmap', measureSceneGridMapProof],
   ['scene-particles', measureSceneParticlesProof],
+  ['scene-animation', measureSceneAnimationProof],
   ['scene-imported', measureSceneImportedProof],
   ['scene-physics', measureScenePhysicsProof],
   ['scene-idiomatic', measureSceneIdiomaticProof],

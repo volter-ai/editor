@@ -19,6 +19,13 @@ import {
   godotFamilyCarriesResource,
   godotFamilyRefusal,
 } from './scene-families';
+import {
+  type TargetGodotAnimationBindingsPlan,
+  type TargetGodotAnimationLibraryPlan,
+  godotAnimationData,
+  godotResolveNodePath,
+  godotTrackPath,
+} from './scene-animation';
 import { type SceneSetterLookup, type TargetSceneValue, targetSceneValue } from './scene-setters';
 import {
   type GodotCompatExport,
@@ -64,6 +71,8 @@ export interface TargetGodotSceneNodePlan {
   readonly unique?: true;
   /** Authored properties without a JSX rule: their setters' calls on the entity at mount, in order. */
   readonly setters: readonly TargetGodotSceneSetterPlan[];
+  /** An AnimationPlayer's tracks resolved against the scene: the bindings its mixer receives. */
+  readonly animation?: TargetGodotAnimationBindingsPlan;
   readonly children: readonly TargetGodotSceneNodePlan[];
   readonly evidenceClaimId: string;
   readonly placementEvidenceClaimId?: string;
@@ -116,6 +125,8 @@ export interface TargetGodotSceneResourcePlan {
   readonly mesh?: TargetGodotArrayMeshPlan;
   /** A `MeshLibrary`'s items (`item/N/…`, `MeshLibrary::_set`), their meshes and shapes planned. */
   readonly library?: TargetGodotMeshLibraryPlan;
+  /** An `AnimationLibrary`'s animations (`_data`, `AnimationLibrary::_set_data`) as data. */
+  readonly animations?: TargetGodotAnimationLibraryPlan;
   readonly setters: readonly TargetGodotSceneSetterPlan[];
   readonly evidenceClaimId: string;
 }
@@ -516,6 +527,15 @@ function planResource(
     document.order.push(planned);
     return key;
   }
+  if (data.type === 'AnimationLibrary') {
+    const animations = animationLibraryPlan(context, `${at}(${key})`, data, nestedScope);
+    if (animations === undefined) return undefined;
+    context.evidence.add(rule.evidenceClaimId);
+    const planned = { key, className: data.type, construct: rule.construct, animations, setters: [], evidenceClaimId: rule.evidenceClaimId };
+    document.planned.set(key, planned);
+    document.order.push(planned);
+    return key;
+  }
   if (data.type === 'MeshLibrary') {
     const library = meshLibraryPlan(context, `${at}(${key})`, data, nestedScope);
     if (library === undefined) return undefined;
@@ -564,6 +584,158 @@ function transformArgs(value: GodotValue | undefined): readonly number[] | undef
   if (value?.kind !== 'ctor' || (value.name !== 'Transform3D' && value.name !== 'Transform') || value.args.length !== 12) return undefined;
   const args = numbers(value.args);
   return args?.map(f32);
+}
+
+/**
+ * An `AnimationLibrary` as data (`AnimationLibrary::_set_data`, `animation_library.cpp:148`): its
+ * `_data` names each animation, a resource of the same document, read as its data file writes it.
+ */
+function animationLibraryPlan(context: PlanContext, at: string, data: BoundGodotResourceData, scope: string): TargetGodotAnimationLibraryPlan | undefined {
+  for (const [name, value] of Object.entries(data.properties)) {
+    if (name === '_data' || name === 'resource_name' || (name === 'script' && value.kind === 'null')) continue;
+    refuse(context, `${at}.${name}`, `AnimationLibrary.${name} is not translated`, 'property', `AnimationLibrary.${name}`);
+    return undefined;
+  }
+  const entries = data.properties['_data'];
+  if (entries !== undefined && entries.kind !== 'dict') {
+    refuse(context, at, 'AnimationLibrary._data is not a dictionary', 'resource', 'AnimationLibrary');
+    return undefined;
+  }
+  const animations: { name: string; animation: ReturnType<typeof godotAnimationData> & object }[] = [];
+  for (const item of entries?.entries ?? []) {
+    const reference = referenceOf(item.value);
+    const document = context.document;
+    const resources = scope === '' ? document?.scene.subResources : context.project?.documents.resources.find((entry) => entry.resPath === scope)?.subResources;
+    const resource = reference?.reference === 'sub' ? resources?.find((entry) => String(entry.id) === reference.id) : undefined;
+    if (resource === undefined || resource.type !== 'Animation') {
+      refuse(context, `${at}/${item.key}`, 'an animation that is not a sub-resource of its document', 'resource', 'Animation');
+      return undefined;
+    }
+    const animation = godotAnimationData(resource);
+    if (typeof animation === 'string') {
+      refuse(context, `${at}/${item.key}`, animation, 'resource', 'Animation');
+      return undefined;
+    }
+    animations.push({ name: item.key, animation });
+  }
+  return { animations };
+}
+
+/**
+ * A mixer's tracks resolved against this scene (`AnimationMixer::_update_caches`,
+ * `animation_mixer.cpp:651`): from the root node (`..`, the mixer's parent), each value track's
+ * node and property (a script's field, else the class's setter) and each method track's node and
+ * the native methods its keys call (a script's own function is called by name); a 3D track names a
+ * Node3D. Null when a track does not resolve.
+ */
+function animationBindings(
+  context: PlanContext,
+  node: BoundGodotSceneNode,
+  setters: readonly TargetGodotSceneSetterPlan[],
+): TargetGodotAnimationBindingsPlan | undefined | null {
+  const at = `${node.documentPath}#${node.nodePath}`;
+  const scene = context.document?.scene;
+  const lookup = context.setters;
+  if (scene === undefined || lookup?.method === undefined) {
+    refuse(context, at, 'no binding lookup for animation tracks', 'property', 'AnimationMixer tracks');
+    return null;
+  }
+  const base = godotResolveNodePath(node.nodePath, '..');
+  const values = new Map<string, TargetGodotAnimationBindingsPlan['values'][number]['binding']>();
+  const methods = new Map<string, TargetGodotAnimationBindingsPlan['methods'][number]>();
+  let ok = true;
+  const fail = (where: string, message: string, subject: string): void => {
+    refuse(context, where, message, 'property', subject);
+    ok = false;
+  };
+  for (const setter of setters) {
+    if (setter.setter.exportName !== 'godot_animation_mixer_set_library' || setter.value.kind !== 'resource') continue;
+    const library = context.document?.planned.get(setter.value.key)?.animations;
+    for (const { name, animation } of library?.animations ?? []) {
+      for (const track of animation.tracks) {
+        if (!track.enabled) continue;
+        const where = `${at}(${name}:${track.path})`;
+        const { node: nodePath, subnames } = godotTrackPath(track.path);
+        const targetPath = base === undefined ? undefined : godotResolveNodePath(base, nodePath === '' ? '.' : nodePath);
+        const target = scene.nodes.find((candidate) => candidate.nodePath === targetPath);
+        if (target === undefined) {
+          fail(where, 'a track path that names no node of this scene', 'AnimationMixer track path');
+          continue;
+        }
+        const className = target.class.nativeName;
+        if (track.type === 'value') {
+          if (subnames.length !== 1) {
+            fail(where, 'a value track without one property subname', 'AnimationMixer track path');
+            continue;
+          }
+          const property = subnames[0] as string;
+          if (values.has(track.path)) continue;
+          if (target.scriptResPath !== undefined && context.scriptFields(target.scriptResPath).has(property)) {
+            values.set(track.path, { field: property });
+            continue;
+          }
+          const found = lookup(className, property);
+          if (typeof found === 'string') {
+            fail(where, found, `${className}.${property}`);
+            continue;
+          }
+          context.bindingEvidence.add(found.evidenceClaimId);
+          values.set(track.path, {
+            setter: { module: found.module, exportName: found.exportName, localName: found.localName },
+            ...(found.index === undefined ? {} : { index: found.index }),
+          });
+        } else if (track.type === 'method') {
+          if (subnames.length > 0) {
+            fail(where, 'a method track on a resource', 'AnimationMixer track path');
+            continue;
+          }
+          for (const [, , key] of track.keys) {
+            const method = (key as { readonly method: string }).method;
+            const id = `${track.path}\0${method}`;
+            if (methods.has(id)) continue;
+            // `Object::callp` tries the script instance first (`object.cpp:760`).
+            if (target.scriptResPath !== undefined && context.scriptMethods(target.scriptResPath).has(method)) continue;
+            const found = lookup.method(className, method);
+            if (typeof found === 'string') {
+              fail(where, found, `${className}.${method}`);
+              continue;
+            }
+            context.bindingEvidence.add(found.evidenceClaimId);
+            methods.set(id, { path: track.path, method, binding: { module: found.module, exportName: found.exportName, localName: found.localName } });
+          }
+        } else if (subnames.length > 0 || !target.class.nativeAncestry.includes('Node3D')) {
+          fail(where, subnames.length > 0 ? 'a bone track is not translated' : 'a transform track on a node that is not a Node3D', 'AnimationMixer track path');
+        }
+      }
+    }
+  }
+  if (!ok) return null;
+  return { values: [...values].map(([path, binding]) => ({ path, binding })), methods: [...methods.values()] };
+}
+
+/**
+ * A mixer's `libraries/NAME` (`AnimationMixer::_set`, `animation_mixer.cpp:84`): the library under
+ * that name, which compat's `godot_animation_mixer_set_library` sets.
+ */
+function mixerLibrary(context: PlanContext, at: string, name: string, value: GodotValue): TargetGodotSceneSetterPlan | undefined {
+  const rule = context.authority.rule(`${context.authority.sourceRevision}\0ClassDB\0AnimationPlayer`);
+  if (rule === undefined) {
+    refuse(context, at, 'no live scene-node evidence for AnimationPlayer', 'node-family', 'AnimationPlayer');
+    return undefined;
+  }
+  const target = setterValue(context, at, 'AnimationMixer.libraries', value, '');
+  if (target === undefined) return undefined;
+  if (target.kind !== 'resource' || context.document?.planned.get(target.key)?.className !== 'AnimationLibrary') {
+    refuse(context, at, 'a library that is not an AnimationLibrary', 'resource', 'AnimationMixer.libraries');
+    return undefined;
+  }
+  return {
+    propertyName: `libraries/${name}`,
+    setter: { module: 'lib/godot-compat/animation-mixer', exportName: 'godot_animation_mixer_set_library', localName: 'godot_animation_mixer_set_library' },
+    index: name,
+    value: target,
+    evidenceClaimId: rule.evidenceClaimId,
+  };
 }
 
 /**
@@ -769,6 +941,14 @@ function planProperties(
   let refused = false;
   for (const [propertyName, value] of Object.entries(properties)) {
     const at = `${node.documentPath}#${node.nodePath}.${propertyName}`;
+    // A mixer's `libraries/NAME` (`AnimationMixer::_set`, animation_mixer.cpp:84): a library, no setter's.
+    const library = /^libraries\/(.*)$/u.exec(propertyName);
+    if (library !== null && node.class.nativeAncestry.includes('AnimationMixer') && setters !== undefined) {
+      const planned = mixerLibrary(context, at, library[1] as string, value);
+      if (planned === undefined) refused = true;
+      else setters.push(planned);
+      continue;
+    }
     // A GridMap's `data` (`GridMap::_set`, grid_map.cpp:64): its cells, no setter's.
     if (propertyName === 'data' && node.class.nativeAncestry.includes('GridMap') && setters !== undefined) {
       const cells = gridMapData(context, at, value);
@@ -914,6 +1094,8 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
     refuse(context, at, unstated, 'property', `${node.class.nativeName}.${unstated.split(' ')[0] ?? ''}`);
     return undefined;
   }
+  const animation = node.class.nativeAncestry.includes('AnimationMixer') ? animationBindings(context, node, setters) : undefined;
+  if (animation === null) return undefined;
   return {
     nodePath: node.nodePath,
     ...(placed.parentNodePath === undefined ? {} : { parentNodePath: placed.parentNodePath }),
@@ -925,6 +1107,7 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
     classes: node.class.nativeAncestry,
     ...(unique ? { unique: true as const } : {}),
     setters,
+    ...(animation === undefined ? {} : { animation }),
     children: [],
     evidenceClaimId: rule.evidenceClaimId,
     ...(placed.evidenceClaimId === undefined ? {} : { placementEvidenceClaimId: placed.evidenceClaimId }),

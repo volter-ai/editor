@@ -36,6 +36,7 @@ const INTERPOLATION_NEAREST = 0;
 const INTERPOLATION_LINEAR = 1;
 /** `Animation::UpdateMode` (`animation.h:68`). */
 const UPDATE_DISCRETE = 1;
+const UPDATE_CAPTURE = 2;
 /** `Animation::LoopMode` (`animation.h:74`). */
 const LOOP_NONE = 0;
 const LOOP_LINEAR = 1;
@@ -481,6 +482,118 @@ function rangeIndices(keys: readonly AnimationKey[], fromTime: number, toTime: n
   else for (let i = to; i >= from; i -= 1) out.push(i);
 }
 
+// --- The `changed` signal and the resource as its file states it.
+
+const CHANGED = new WeakMap<Animation, Set<() => void>>();
+
+/** `Resource::emit_changed`, which every mutator below calls as Godot's does. */
+function emitChanged(self: Animation): void {
+  for (const listener of [...(CHANGED.get(self) ?? [])]) listener();
+}
+
+/**
+ * Listens for the animation's `changed` signal (an AnimationLibrary relays it to its mixers).
+ *
+ * @godot Animation (protocol)
+ * @source core/io/resource.cpp:217
+ */
+export function godot_animation_connect_changed(self: Animation, listener: () => void): () => void {
+  let listeners = CHANGED.get(self);
+  if (listeners === undefined) {
+    listeners = new Set();
+    CHANGED.set(self, listeners);
+  }
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+/**
+ * Whether a value track captures (`UPDATE_CAPTURE`, `animation.cpp:163`); capture playback is not
+ * transcribed.
+ *
+ * @godot Animation (protocol)
+ * @source scene/resources/animation.cpp:163
+ */
+export function godot_animation_capture_included(self: Animation): boolean {
+  return self.tracks.some((t) => t.type === TYPE_VALUE && t.update_mode === UPDATE_CAPTURE);
+}
+
+/** A key's value as a data file writes it: a number, a bool, a `Vector3`/`Quaternion`, or a method call. */
+export type GodotAnimationKeyData =
+  | number
+  | boolean
+  | { readonly Vector3: readonly [number, number, number] }
+  | { readonly Quaternion: readonly [number, number, number, number] }
+  | { readonly method: string; readonly args: readonly unknown[] };
+
+/** An animation as the translation's data file writes it (`data/scene-families.ts`). */
+export interface GodotAnimationData {
+  readonly length: number;
+  readonly loopMode: number;
+  readonly step: number;
+  readonly tracks: readonly {
+    readonly type: 'value' | 'position_3d' | 'rotation_3d' | 'scale_3d' | 'method';
+    readonly path: string;
+    readonly interp: number;
+    readonly loopWrap: boolean;
+    readonly enabled: boolean;
+    readonly imported: boolean;
+    readonly update: number;
+    /** Time, transition and value per key, in the order the file writes them. */
+    readonly keys: readonly (readonly [number, number, GodotAnimationKeyData])[];
+  }[];
+}
+
+const TRACK_TYPE = { value: TYPE_VALUE, position_3d: TYPE_POSITION_3D, rotation_3d: TYPE_ROTATION_3D, scale_3d: TYPE_SCALE_3D, method: TYPE_METHOD } as const;
+
+function keyValue(value: GodotAnimationKeyData): unknown {
+  if (typeof value === 'number' || typeof value === 'boolean') return value;
+  if ('Vector3' in value) return vector3(...value.Vector3);
+  if ('Quaternion' in value) return quaternion(...value.Quaternion);
+  return { method: value.method, args: [...value.args] };
+}
+
+/**
+ * An animation as its file states it (`Animation::_set`, `animation.cpp:59`): `length`,
+ * `loop_mode`, `step`, then each track's type, path, interpolation, loop wrap, imported and enabled
+ * flags and keys. A value track's keys are set as written, their times and transitions `real_t`
+ * (`:252`), unsorted; a 3D track's are its packed `real_t`s; a method track's are inserted in time
+ * order, then given the written transitions by index (`:313`).
+ *
+ * @godot Animation (protocol)
+ * @source scene/resources/animation.cpp:59
+ */
+export function godot_animation_from_data(data: GodotAnimationData): Animation {
+  const self = construct();
+  self.length = Math.max(data.length, 0.001);
+  self.loop_mode = data.loopMode;
+  self.step = f32(data.step);
+  for (const track of data.tracks) {
+    const keys: AnimationKey[] = [];
+    if (track.type === 'method') {
+      // Inserted as `track_insert_key` does, then each transition set by index (`:329`).
+      for (const [time, , value] of track.keys) insert(keys, { time: f32(time), transition: 1, value: keyValue(value) });
+      track.keys.forEach(([, transition], index) => {
+        const key = keys[index];
+        if (key !== undefined) key.transition = f32(transition);
+      });
+    } else {
+      for (const [time, transition, value] of track.keys) keys.push({ time: f32(time), transition: f32(transition), value: keyValue(value) });
+    }
+    self.tracks.push({
+      type: TRACK_TYPE[track.type],
+      path: track.path,
+      interpolation: track.interp,
+      loop_wrap: track.loopWrap,
+      imported: track.imported,
+      enabled: track.enabled,
+      update_mode: track.update,
+      keys,
+    });
+  }
+  return self;
+}
+
 // --- ClassDB members.
 
 /**
@@ -501,6 +614,7 @@ export function add_track(self: Animation, type: number, at_position = -1): numb
   if (!SUPPORTED_TYPES.has(type)) throw new Error(`godot-compat: Animation track type ${type} is not transcribed.`);
   const at = at_position < 0 || at_position >= self.tracks.length ? self.tracks.length : at_position;
   self.tracks.splice(at, 0, { type, path: '', interpolation: INTERPOLATION_LINEAR, loop_wrap: true, imported: false, enabled: true, update_mode: 0, keys: [] });
+  emitChanged(self);
   return at;
 }
 
@@ -528,7 +642,9 @@ export function track_get_type(self: Animation, track: number): number {
  */
 export function track_set_path(self: Animation, track: number, path: string): void {
   const t = trackAt(self, track);
-  if (t !== undefined) t.path = String(path);
+  if (t === undefined) return;
+  t.path = String(path);
+  emitChanged(self);
 }
 
 /**
@@ -555,7 +671,9 @@ export function find_track(self: Animation, path: string, type: number): number 
  */
 export function track_set_interpolation_type(self: Animation, track: number, interpolation: number): void {
   const t = trackAt(self, track);
-  if (t !== undefined) t.interpolation = interpolation;
+  if (t === undefined) return;
+  t.interpolation = interpolation;
+  emitChanged(self);
 }
 
 /**
@@ -572,7 +690,9 @@ export function track_get_interpolation_type(self: Animation, track: number): nu
  */
 export function track_set_interpolation_loop_wrap(self: Animation, track: number, interpolation: boolean): void {
   const t = trackAt(self, track);
-  if (t !== undefined) t.loop_wrap = interpolation;
+  if (t === undefined) return;
+  t.loop_wrap = interpolation;
+  emitChanged(self);
 }
 
 /**
@@ -589,7 +709,9 @@ export function track_get_interpolation_loop_wrap(self: Animation, track: number
  */
 export function value_track_set_update_mode(self: Animation, track: number, mode: number): void {
   const t = trackAt(self, track);
-  if (t !== undefined && t.type === TYPE_VALUE) t.update_mode = mode;
+  if (t === undefined || t.type !== TYPE_VALUE) return;
+  t.update_mode = mode;
+  emitChanged(self);
 }
 
 /**
@@ -607,7 +729,9 @@ export function value_track_get_update_mode(self: Animation, track: number): num
  */
 export function track_set_enabled(self: Animation, track: number, enabled: boolean): void {
   const t = trackAt(self, track);
-  if (t !== undefined) t.enabled = enabled;
+  if (t === undefined) return;
+  t.enabled = enabled;
+  emitChanged(self);
 }
 
 /**
@@ -649,13 +773,20 @@ export function track_insert_key(self: Animation, track: number, time: number, k
   if (t.type === TYPE_METHOD) {
     const d = key as ReadonlyMap<unknown, unknown>;
     if (!(d instanceof Map) || typeof d.get('method') !== 'string' || !Array.isArray(d.get('args'))) return -1;
-    return insert(t.keys, { time, transition: f32(transition), value: { method: d.get('method') as string, args: d.get('args') as unknown[] } });
+    const at = insert(t.keys, { time, transition: f32(transition), value: { method: d.get('method') as string, args: d.get('args') as unknown[] } });
+    emitChanged(self);
+    return at;
   }
-  if (t.type === TYPE_VALUE) return insert(t.keys, { time, transition: f32(transition), value: key });
+  if (t.type === TYPE_VALUE) {
+    const at = insert(t.keys, { time, transition: f32(transition), value: key });
+    emitChanged(self);
+    return at;
+  }
   const wanted = t.type === TYPE_ROTATION_3D ? 'Quaternion' : 'Vector3';
   if (kindOf(key) !== wanted) return -1;
   const at = insert(t.keys, { time, transition: 1, value: key });
   (t.keys[at] as AnimationKey).transition = f32(transition);
+  emitChanged(self);
   return at;
 }
 
@@ -791,6 +922,7 @@ export function method_track_get_params(self: Animation, track: number, key_idx:
  */
 export function set_length(self: Animation, time_sec: number): void {
   self.length = Math.max(time_sec, 0.001);
+  emitChanged(self);
 }
 
 /**
@@ -807,6 +939,7 @@ export function get_length(self: Animation): number {
  */
 export function set_loop_mode(self: Animation, loop_mode: number): void {
   self.loop_mode = loop_mode;
+  emitChanged(self);
 }
 
 /**
@@ -823,6 +956,7 @@ export function get_loop_mode(self: Animation): number {
  */
 export function set_step(self: Animation, size_sec: number): void {
   self.step = f32(size_sec);
+  emitChanged(self);
 }
 
 /**

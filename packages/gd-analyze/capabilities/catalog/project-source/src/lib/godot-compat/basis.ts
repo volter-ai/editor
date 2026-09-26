@@ -9,6 +9,7 @@
  * intermediate is rounded with `Math.fround` where the C++ rounds it.
  */
 
+import { length_squared as quaternionLengthSquared, type Quaternion } from './quaternion';
 import { construct as vector3, dot, op_multiply as vector3Multiply, type Vector3 } from './vector3';
 
 const f32 = Math.fround;
@@ -85,6 +86,34 @@ export function construct(
   if (args.length === 1) return fromColumns(args[0].x, args[0].y, args[0].z);
   if (args.length === 2) return axisAngle(args[0], args[1]);
   return fromColumns(vector3(args[0]), vector3(args[1]), vector3(args[2]));
+}
+
+/**
+ * `Basis(Quaternion)`: `Basis::set_quaternion` (`core/math/basis.cpp:829`), in `real_t`.
+ *
+ * @godot Basis (protocol)
+ * @source core/math/basis.cpp:829
+ */
+export function godot_basis_from_quaternion(q: Quaternion): Basis {
+  const d = quaternionLengthSquared(q);
+  const s = f32(2 / d);
+  const xs = f32(q.x * s);
+  const ys = f32(q.y * s);
+  const zs = f32(q.z * s);
+  const wx = f32(q.w * xs);
+  const wy = f32(q.w * ys);
+  const wz = f32(q.w * zs);
+  const xx = f32(q.x * xs);
+  const xy = f32(q.x * ys);
+  const xz = f32(q.x * zs);
+  const yy = f32(q.y * ys);
+  const yz = f32(q.y * zs);
+  const zz = f32(q.z * zs);
+  return fromRows(
+    vector3(f32(1 - f32(yy + zz)), f32(xy - wz), f32(xz + wy)),
+    vector3(f32(xy + wz), f32(1 - f32(xx + zz)), f32(yz - wx)),
+    vector3(f32(xz - wy), f32(yz + wx), f32(1 - f32(xx + yy))),
+  );
 }
 
 /**

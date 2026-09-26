@@ -22,8 +22,14 @@ export interface SceneSetterBinding {
   readonly evidenceClaimId: string;
 }
 
-/** The setter an authored property of a node or resource of `className` calls, or why none. */
-export type SceneSetterLookup = (className: string, property: string) => SceneSetterBinding | string;
+/**
+ * The setter an authored property of a node or resource of `className` calls, or why none; and
+ * (`method`) the compat binding of a native method a node of `className` has, as an animation's
+ * method track calls it.
+ */
+export type SceneSetterLookup = ((className: string, property: string) => SceneSetterBinding | string) & {
+  readonly method?: (className: string, method: string) => SceneSetterBinding | string;
+};
 
 /**
  * `MeshInstance3D::_set` (`scene/3d/mesh_instance_3d.cpp:59`): `surface_material_override/N` is
@@ -81,7 +87,31 @@ export function sceneSetterLookup(
     }
     return result;
   };
-  return (className, property) => {
+  const bind = (owner: string, member: string, hash: number): SceneSetterBinding | string => {
+    const symbol = {
+      sourceRevision: resolver.sourceRevision,
+      kind: 'native-member' as const,
+      owner,
+      member,
+      signature: hash === 0 ? 'unhashed' : `hash:${String(hash)}`,
+    };
+    const target = resolver.bindings.resolve(symbol);
+    if (target.kind === 'refusal-binding') return target.reason;
+    if (target.kind !== 'compat-binding' || target.use.kind !== 'call' || target.use.sourceReceiver !== 'first-argument') {
+      return `${owner}.${member} is not a compat call on its receiver`;
+    }
+    try {
+      resolver.evidence.claim(target.evidenceClaimId, 'binding', godotOfficialSymbolKey(symbol));
+    } catch (error) {
+      return error instanceof Error ? error.message : String(error);
+    }
+    return { module: target.module, exportName: target.exportName, localName: target.localName, evidenceClaimId: target.evidenceClaimId };
+  };
+  const lookupMethod = (className: string, name: string): SceneSetterBinding | string => {
+    const selected = method(className, name);
+    return selected === undefined ? `${className} has no method ${name}` : bind(selected.owner, name, selected.hash);
+  };
+  const lookup = (className: string, property: string): SceneSetterBinding | string => {
     const ancestry = ancestryOf(className);
     let owner: string | undefined;
     let setter: string | undefined;
@@ -136,31 +166,11 @@ export function sceneSetterLookup(
     // methods: it has no hash.
     const selected = method(owner, setter) ?? (setter.startsWith('_') ? { owner, hash: 0 } : undefined);
     if (selected === undefined) return `${owner} has no method ${setter}`;
-    const symbol = {
-      sourceRevision: resolver.sourceRevision,
-      kind: 'native-member' as const,
-      owner: selected.owner,
-      member: setter,
-      signature: selected.hash === 0 ? 'unhashed' : `hash:${String(selected.hash)}`,
-    };
-    const target = resolver.bindings.resolve(symbol);
-    if (target.kind === 'refusal-binding') return target.reason;
-    if (target.kind !== 'compat-binding' || target.use.kind !== 'call' || target.use.sourceReceiver !== 'first-argument') {
-      return `${selected.owner}.${setter} is not a compat call on its receiver`;
-    }
-    try {
-      resolver.evidence.claim(target.evidenceClaimId, 'binding', godotOfficialSymbolKey(symbol));
-    } catch (error) {
-      return error instanceof Error ? error.message : String(error);
-    }
-    return {
-      module: target.module,
-      exportName: target.exportName,
-      localName: target.localName,
-      ...(index === undefined ? {} : { index }),
-      evidenceClaimId: target.evidenceClaimId,
-    };
+    const bound = bind(selected.owner, setter, selected.hash);
+    if (typeof bound === 'string') return bound;
+    return { module: bound.module, exportName: bound.exportName, localName: bound.localName, ...(index === undefined ? {} : { index }), evidenceClaimId: bound.evidenceClaimId };
   };
+  return Object.assign(lookup, { method: lookupMethod });
 }
 
 /** An authored value as the composition passes it to a setter. */

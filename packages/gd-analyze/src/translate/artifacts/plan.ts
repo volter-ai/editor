@@ -11,6 +11,7 @@ import {
   directGodotSettingsJson,
 } from '../emit/direct-project-world-syntax';
 import type { DirectGodotSceneModulePlan } from '../data/direct-scene-module-plan';
+import { godotAnimationLibraryDataPath } from '../data/scene-animation';
 import {
   godotArrayMeshData,
   godotArrayMeshDataPath,
@@ -119,7 +120,7 @@ function modelDataArtifacts(composition: DirectGodotProjectCompositionPlan): rea
   return [...written.values()];
 }
 
-/** Each `ArrayMesh`'s and `MeshLibrary`'s data file, once however many scenes use it, and each GridMap's cells. */
+/** Each `ArrayMesh`'s, `MeshLibrary`'s and `AnimationLibrary`'s data file, once however many scenes use it, and each GridMap's cells. */
 function meshDataArtifacts(composition: DirectGodotProjectCompositionPlan): readonly GodotPlannedArtifact[] {
   const written = new Map<string, GodotPlannedArtifact>();
   for (const scene of composition.scenes) {
@@ -128,6 +129,10 @@ function meshDataArtifacts(composition: DirectGodotProjectCompositionPlan): read
       if (resource.mesh !== undefined) {
         const file = godotArrayMeshDataPath(scene.targetPath, resource.key);
         if (!written.has(file)) written.set(file, projectDataJsonArtifact(file, godotArrayMeshData(resource.mesh) as unknown as DirectJsonValue, [scene.sourceResPath]));
+      }
+      if (resource.animations !== undefined) {
+        const file = godotAnimationLibraryDataPath(scene.targetPath, resource.key);
+        if (!written.has(file)) written.set(file, projectDataJsonArtifact(file, resource.animations as unknown as DirectJsonValue, [scene.sourceResPath]));
       }
       if (resource.library !== undefined) {
         const file = godotMeshLibraryDataPath(scene.targetPath, resource.key);

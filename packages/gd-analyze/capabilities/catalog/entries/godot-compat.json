@@ -3,6 +3,9 @@
   "files": [
     "src/lib/godot-compat/LICENSE.OpenSans.txt",
     "src/lib/godot-compat/OpenSans_SemiBold.woff2",
+    "src/lib/godot-compat/animation-library.ts",
+    "src/lib/godot-compat/animation-mixer.ts",
+    "src/lib/godot-compat/animation-player.ts",
     "src/lib/godot-compat/animation.ts",
     "src/lib/godot-compat/area-3d.ts",
     "src/lib/godot-compat/array-mesh.ts",
@@ -143,5 +146,5 @@
   "requires": [],
   "skills": [],
   "title": "Godot compat (backends for a ported game)",
-  "version": "0.864.0"
+  "version": "0.865.0"
 }
