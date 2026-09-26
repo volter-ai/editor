@@ -23,11 +23,25 @@
  */
 
 import type { Object3D } from 'three';
-import { godot_canvas_item_is, godot_canvas_item_mount, godot_canvas_item_parent, get_global_transform, is_visible, is_set_as_top_level, is_visible_in_tree } from './canvas-item';
+import {
+  get_global_transform,
+  get_global_transform_with_canvas,
+  get_transform,
+  godot_canvas_item_canvas_transform,
+  godot_canvas_item_is,
+  godot_canvas_item_layer_number,
+  godot_canvas_item_layer_of,
+  godot_canvas_item_mount,
+  godot_canvas_item_parent,
+  is_set_as_top_level,
+  is_visible,
+  is_visible_in_tree,
+} from './canvas-item';
 import { godot_node_adopt, godot_node_entity, godot_node_tree_signal, is_inside_tree } from './node';
 import { godot_message_queue_push } from './object';
 import { construct as rect2, type Rect2 } from './rect2';
-import { get_size as viewportSize } from './sub-viewport';
+import { get_size as subViewportSize } from './sub-viewport';
+import { get_size as windowSize, godot_window_has_size } from './window';
 import { basis_xform, construct as transform2d, get_scale as transformScale, affine_inverse, op_multiply as xform, type Transform2D } from './transform-2d';
 import { construct as vector2, type Vector2 } from './vector2';
 
@@ -66,6 +80,10 @@ const PRESET_FULL_RECT = 15;
 const PRESET_MODE_MINSIZE = 0;
 const PRESET_MODE_KEEP_WIDTH = 1;
 const PRESET_MODE_KEEP_HEIGHT = 2;
+
+/** `Control::MouseFilter` (`scene/gui/control.h:89`). */
+const MOUSE_FILTER_STOP = 0;
+const MOUSE_FILTER_IGNORE = 2;
 
 /** `CMP_EPSILON` (`core/math/math_defs.h:50`), as `real_t`. */
 const CMP_EPSILON = f32(0.00001);
@@ -111,6 +129,10 @@ interface ControlState {
   updatingLastMaximumSize: boolean;
   maximumSizeValid: boolean;
   pendingSort: boolean;
+  mouseFilter: number;
+  /** The script's `_gui_input` and the class's own `gui_input`. */
+  guiInput: ((event: unknown) => void) | undefined;
+  nativeGuiInput: ((event: unknown) => void) | undefined;
 }
 
 const CONTROLS = new WeakMap<Object3D, ControlState>();
@@ -165,6 +187,9 @@ export function godot_control_mount(entity: Object3D, classes: readonly string[]
     updatingLastMaximumSize: false,
     maximumSizeValid: false,
     pendingSort: false,
+    mouseFilter: MOUSE_FILTER_STOP,
+    guiInput: undefined,
+    nativeGuiInput: undefined,
   });
   godot_node_tree_signal(entity, 'tree_entered').connect(() => enteredTree(entity));
   godot_node_tree_signal(entity, 'tree_exiting').connect(() => exitingTree(entity));
@@ -346,7 +371,7 @@ function parentAnchorableRect(entity: Object3D): Rect2 {
   if (parent !== null) return CONTROLS.has(parent) ? rect2(vector2(), (CONTROLS.get(parent) as ControlState).sizeCache) : rect2();
   const viewport = viewportOf(entity);
   if (viewport === null) return rect2();
-  const size = viewportSize(viewport);
+  const size = godot_window_has_size(viewport) ? windowSize(viewport) : subViewportSize(viewport);
   return rect2(0, 0, size.x, size.y);
 }
 
@@ -1182,4 +1207,133 @@ export function godot_control_bound_minimum_size(entity: Object3D): Vector2 {
  */
 export function godot_control_maximum_size(entity: Object3D): Vector2 {
   return combinedMaximumSize(CONTROLS.get(entity) as ControlState);
+}
+
+// --- GUI input.
+
+/**
+ * An index outside the three filters fails and is ignored.
+ *
+ * @godot Control.set_mouse_filter
+ * @source scene/gui/control.cpp:2554
+ */
+export function set_mouse_filter(self: object, p_filter: number): void {
+  if (p_filter < 0 || p_filter > 2) return;
+  stateOf(self, 'set_mouse_filter').mouseFilter = p_filter;
+}
+
+/**
+ * @godot Control.get_mouse_filter
+ * @source scene/gui/control.cpp:2571
+ */
+export function get_mouse_filter(self: object): number {
+  return stateOf(self, 'get_mouse_filter').mouseFilter;
+}
+
+/**
+ * The node's `_gui_input` (a script's) and `gui_input` (its class's) handlers.
+ *
+ * @godot Control (protocol)
+ * @source scene/gui/control.cpp:2518
+ */
+export function godot_control_set_gui_input(entity: Object3D, handlers: { readonly script?: (event: unknown) => void; readonly native?: (event: unknown) => void }): void {
+  const state = CONTROLS.get(entity) as ControlState;
+  if (handlers.script !== undefined) state.guiInput = handlers.script;
+  if (handlers.native !== undefined) state.nativeGuiInput = handlers.native;
+}
+
+/** `Rect2(Point2(), get_size()).has_point` (`Control::has_point`, `control.cpp:2545`). */
+function hasPoint(state: ControlState, point: Vector2): boolean {
+  return point.x >= 0 && point.y >= 0 && point.x < state.sizeCache.x && point.y < state.sizeCache.y;
+}
+
+/** `_gui_find_control_at_pos` (`viewport.cpp:1844`): the last child first, then the node itself. */
+function findAt(entity: Object3D, point: Vector2, parentXform: Transform2D): Object3D | null {
+  if (!is_visible(entity)) return null;
+  const matrix = xform(parentXform, get_transform(entity));
+  if (f32(f32(matrix.x.x * matrix.y.y) - f32(matrix.x.y * matrix.y.x)) === 0) return null;
+  const children = entity.children;
+  for (let i = children.length - 1; i >= 0; i -= 1) {
+    const child = children[i] as Object3D;
+    if (!godot_canvas_item_is(child, 'CanvasItem') || is_set_as_top_level(child)) continue;
+    const found = findAt(child, point, matrix);
+    if (found !== null) return found;
+  }
+  const state = CONTROLS.get(entity);
+  if (state === undefined || state.mouseFilter === MOUSE_FILTER_IGNORE) return null;
+  return hasPoint(state, xform(affine_inverse(matrix), point)) ? entity : null;
+}
+
+/**
+ * `Viewport::gui_find_control` (`viewport.cpp:1816`): the viewport's root Controls (those with no
+ * Control above them in their canvas item chain, and top-level ones), by canvas layer then tree
+ * order, tried from the last; the first Control under the point that takes the mouse.
+ *
+ * @godot Control (protocol)
+ * @source scene/main/viewport.cpp:1816
+ */
+export function godot_control_find(viewport: Object3D, point: Vector2): Object3D | null {
+  const roots: { readonly entity: Object3D; readonly layer: number }[] = [];
+  const visit = (node: Object3D, underControl: boolean): void => {
+    for (const child of node.children) {
+      if ((child as { readonly isScene?: boolean }).isScene === true) continue;
+      const control = CONTROLS.has(child);
+      const item = godot_canvas_item_is(child, 'CanvasItem');
+      if (control && is_inside_tree(child) && (!underControl || is_set_as_top_level(child))) {
+        const layer = godot_canvas_item_layer_of(child);
+        roots.push({ entity: child, layer: layer === null ? 0 : godot_canvas_item_layer_number(layer) });
+      }
+      visit(child, item ? underControl || control : false);
+    }
+  };
+  visit(viewport, false);
+  const ordered = roots.map((root, index) => ({ ...root, index })).sort((a, b) => (a.layer === b.layer ? a.index - b.index : a.layer - b.layer));
+  for (let i = ordered.length - 1; i >= 0; i -= 1) {
+    const root = (ordered[i] as (typeof ordered)[number]).entity;
+    if (!is_visible_in_tree(root)) continue;
+    const parent = godot_canvas_item_parent(root);
+    const base = parent !== null ? get_global_transform_with_canvas(parent) : godot_canvas_item_canvas_transform(root);
+    const found = findAt(root, point, base);
+    if (found !== null) return found;
+  }
+  return null;
+}
+
+/**
+ * `Viewport::_gui_call_input` (`viewport.cpp:1740`): the Control and then its parents get the
+ * event, each in its own space, until one that stops the mouse takes a pointer event, the event is
+ * handled, or a top-level item is reached. `move` gives the event in a parent's space.
+ *
+ * @godot Control (protocol)
+ * @source scene/main/viewport.cpp:1740
+ */
+export function godot_control_call_gui_input(
+  control: Object3D,
+  event: unknown,
+  pointer: boolean,
+  move: (event: unknown, transform: Transform2D) => unknown,
+  handled: () => boolean,
+  setHandled: () => void,
+): void {
+  let ev = event;
+  let item: Object3D | null = control;
+  while (item !== null) {
+    const state = CONTROLS.get(item);
+    if (state !== undefined) {
+      if (state.mouseFilter !== MOUSE_FILTER_IGNORE) {
+        // `Control::_call_gui_input` (`control.cpp:2518`): the script's, then the class's.
+        if (!handled()) state.guiInput?.(ev);
+        if (is_inside_tree(item) && !handled()) state.nativeGuiInput?.(ev);
+      }
+      if (!is_inside_tree(item) || is_set_as_top_level(item)) break;
+      if (state.mouseFilter === MOUSE_FILTER_STOP && pointer) {
+        setHandled();
+        break;
+      }
+    }
+    if (handled()) break;
+    if (is_set_as_top_level(item)) break;
+    ev = move(ev, get_transform(item));
+    item = godot_canvas_item_parent(item);
+  }
 }

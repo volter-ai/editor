@@ -23,6 +23,7 @@ import {
   get_stretch_ratio,
   get_theme_constant,
   get_v_size_flags,
+  set_mouse_filter,
   update_minimum_size,
 } from './control';
 import { godot_node_entity } from './node';
@@ -196,6 +197,8 @@ export function godot_box_container_mount(entity: Object3D, classes: readonly st
     themeChanged: (box) => update_minimum_size(box),
     themeConstants: { separation: 4 },
   });
+  // All containers let the mouse pass (`Container::Container`, `container.cpp:280`).
+  set_mouse_filter(entity, 1);
 }
 
 function stateOf(self: object, member: string): BoxState {

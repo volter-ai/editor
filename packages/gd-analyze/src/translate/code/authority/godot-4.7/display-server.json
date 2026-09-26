@@ -1,0 +1,82 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/display-server"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "DisplayServer",
+        "member": "is_touchscreen_available",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/display-server",
+        "exportName": "is_touchscreen_available",
+        "localName": "DisplayServer_is_touchscreen_available",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-DisplayServer.is_touchscreen_available"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-DisplayServer.is_touchscreen_available",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000DisplayServer\u0000is_touchscreen_available\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "platform/web/display_server_web.cpp",
+        "sourceSymbol": "DisplayServer.is_touchscreen_available",
+        "sourceLine": 782
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d1addd6bda3e7ca51a0026646e9a8a827417d86d50e4facdc15e6daabc4f0b4e",
+        "callsite": "cited platform/web/js/libs/library_godot_display.js:556",
+        "observedOutputSha256": "a0ba9b0eb8e9a53ee41162ced308f4392ca32f36a36c9c43e271f99f25fc0bae"
+      },
+      "target": {
+        "implementationSha256": "4feb14f90b3d957ea49269cee98236825184dcae3bc310c9cdd664668fab3f3f",
+        "callsite": "lib/godot-compat/display-server.ts is_touchscreen_available",
+        "observedOutputSha256": "a0ba9b0eb8e9a53ee41162ced308f4392ca32f36a36c9c43e271f99f25fc0bae"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: web-platform-fact",
+        "tolerance": "exact",
+        "resultSha256": "974a772b46729ee95568d1c261eed93ba355daad9d262c53787d998afc00cb4e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "display-server",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-DisplayServer.is_touchscreen_available",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d1addd6bda3e7ca51a0026646e9a8a827417d86d50e4facdc15e6daabc4f0b4e",
+      "implementationSha256": "4feb14f90b3d957ea49269cee98236825184dcae3bc310c9cdd664668fab3f3f"
+    }
+  ]
+}

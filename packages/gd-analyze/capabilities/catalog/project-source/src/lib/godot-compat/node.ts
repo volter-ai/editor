@@ -38,9 +38,13 @@ export interface GodotNodeProcessMethods {
   readonly process?: boolean;
   readonly physicsProcess?: boolean;
   readonly input?: boolean;
+  readonly shortcutInput?: boolean;
   readonly unhandledInput?: boolean;
   readonly unhandledKeyInput?: boolean;
 }
+
+/** The input callbacks, as `Viewport::push_input` calls them (`scene/main/scene_tree.cpp:1475`). */
+export type GodotInputKind = 'input' | 'shortcutInput' | 'unhandledInput' | 'unhandledKeyInput';
 
 /**
  * One generated script attachment seated on its native entity: the script instance (`owner`) and
@@ -54,6 +58,10 @@ export interface GodotScriptLifecycleBinding {
   readonly exitTree?: () => void;
   readonly process?: (delta: number) => void;
   readonly physicsProcess?: (delta: number) => void;
+  readonly input?: (event: unknown) => void;
+  readonly shortcutInput?: (event: unknown) => void;
+  readonly unhandledInput?: (event: unknown) => void;
+  readonly unhandledKeyInput?: (event: unknown) => void;
 }
 
 interface NodeState {
@@ -70,8 +78,11 @@ interface NodeState {
   process: boolean;
   physicsProcess: boolean;
   input: boolean;
+  shortcutInput: boolean;
   unhandledInput: boolean;
   unhandledKeyInput: boolean;
+  /** A node class's own `input()` (and the like) after the script's, as a native class overrides them. */
+  internalInput: Partial<Record<GodotInputKind, (event: unknown) => void>>;
   processMode: number;
   processPriority: number;
   physicsProcessPriority: number;
@@ -120,8 +131,10 @@ function fresh(): NodeState {
     process: false,
     physicsProcess: false,
     input: false,
+    shortcutInput: false,
     unhandledInput: false,
     unhandledKeyInput: false,
+    internalInput: {},
     processMode: PROCESS_MODE_INHERIT,
     processPriority: 0,
     physicsProcessPriority: 0,
@@ -201,6 +214,10 @@ export function godot_node_adopt(
     state.methods = Object.freeze({
       process: binding.process !== undefined,
       physicsProcess: binding.physicsProcess !== undefined,
+      input: binding.input !== undefined,
+      shortcutInput: binding.shortcutInput !== undefined,
+      unhandledInput: binding.unhandledInput !== undefined,
+      unhandledKeyInput: binding.unhandledKeyInput !== undefined,
     });
     NATIVE_OF_OWNER.set(binding.owner, entity);
   }
@@ -455,6 +472,7 @@ function propagateExitTree(entity: object): void {
 
 function initializeProcessing(state: NodeState): void {
   if (state.methods.input === true) state.input = true;
+  if (state.methods.shortcutInput === true) state.shortcutInput = true;
   if (state.methods.unhandledInput === true) state.unhandledInput = true;
   if (state.methods.unhandledKeyInput === true) state.unhandledKeyInput = true;
   if (state.methods.process === true) state.process = true;
@@ -928,4 +946,117 @@ export function mountGodotScriptForest(
  */
 export function mountGodotScriptTree(root: object, bindings: readonly GodotScriptLifecycleBinding[]): () => void {
   return mountGodotScriptForest([root], bindings);
+}
+
+// --- Input processing.
+
+/**
+ * @godot Node.set_process_input
+ * @source scene/main/node.cpp:1255
+ */
+export function set_process_input(self: object, enable: boolean): void {
+  nodeState(self, 'set_process_input').input = Boolean(enable);
+}
+
+/**
+ * @godot Node.is_processing_input
+ * @source scene/main/node.cpp:1273
+ */
+export function is_processing_input(self: object): boolean {
+  return nodeState(self, 'is_processing_input').input;
+}
+
+/**
+ * @godot Node.set_process_shortcut_input
+ * @source scene/main/node.cpp:1277
+ */
+export function set_process_shortcut_input(self: object, enable: boolean): void {
+  nodeState(self, 'set_process_shortcut_input').shortcutInput = Boolean(enable);
+}
+
+/**
+ * @godot Node.is_processing_shortcut_input
+ * @source scene/main/node.cpp:1294
+ */
+export function is_processing_shortcut_input(self: object): boolean {
+  return nodeState(self, 'is_processing_shortcut_input').shortcutInput;
+}
+
+/**
+ * @godot Node.set_process_unhandled_input
+ * @source scene/main/node.cpp:1298
+ */
+export function set_process_unhandled_input(self: object, enable: boolean): void {
+  nodeState(self, 'set_process_unhandled_input').unhandledInput = Boolean(enable);
+}
+
+/**
+ * @godot Node.is_processing_unhandled_input
+ * @source scene/main/node.cpp:1315
+ */
+export function is_processing_unhandled_input(self: object): boolean {
+  return nodeState(self, 'is_processing_unhandled_input').unhandledInput;
+}
+
+/**
+ * @godot Node.set_process_unhandled_key_input
+ * @source scene/main/node.cpp:1319
+ */
+export function set_process_unhandled_key_input(self: object, enable: boolean): void {
+  nodeState(self, 'set_process_unhandled_key_input').unhandledKeyInput = Boolean(enable);
+}
+
+/**
+ * @godot Node.is_processing_unhandled_key_input
+ * @source scene/main/node.cpp:1336
+ */
+export function is_processing_unhandled_key_input(self: object): boolean {
+  return nodeState(self, 'is_processing_unhandled_key_input').unhandledKeyInput;
+}
+
+/**
+ * Sets a node class's own input handler of `kind` (the `input()` a native class overrides), run
+ * after the script's while the event is unhandled.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:3564
+ */
+export function godot_node_set_internal_input(entity: object, kind: GodotInputKind, handler: ((event: unknown) => void) | undefined): void {
+  const internal = stateOf(entity).internalInput;
+  if (handler === undefined) delete internal[kind];
+  else internal[kind] = handler;
+}
+
+/**
+ * The nodes under `root` whose `kind` processing is on, in the order `SceneTree::_call_input_pause`
+ * calls them: the group's tree order, from the last (`scene/main/scene_tree.cpp:1461`).
+ *
+ * @godot Node (protocol)
+ * @source scene/main/scene_tree.cpp:1430
+ */
+export function godot_node_input_receivers(root: object, kind: GodotInputKind): object[] {
+  const found: object[] = [];
+  const visit = (entity: object): void => {
+    const state = NODE.get(entity);
+    if (state !== undefined && state.insideTree && state[kind]) found.push(entity);
+    for (const child of childEntities(entity)) visit(child);
+  };
+  visit(root);
+  return found.reverse();
+}
+
+/**
+ * `Node::_call_input` and its siblings (`scene/main/node.cpp:3564`): a node that can process gets
+ * the script's callback, then, while the event is unhandled and the node inside the tree, the
+ * class's own. `handled` reads the viewport's state.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:3564
+ */
+export function godot_node_call_input(entity: object, kind: GodotInputKind, event: unknown, handled: () => boolean): void {
+  const state = NODE.get(entity);
+  if (state === undefined || !state.insideTree || !state[kind] || !processModeAllows(entity, state, false)) return;
+  state.binding?.[kind]?.(event);
+  if (!state.insideTree || handled()) return;
+  state.internalInput[kind]?.(event);
 }

@@ -1,5 +1,6 @@
 import type { GodotEvidenceCase, GodotEvidenceCaseFile } from '../../src/evidence/case';
 import { type Op, type Segment, TREE_PROBE_HELPERS, treeCase } from './tree-timeline';
+import { inputCase, type Op as InputOp } from './input-tree';
 
 const cases: GodotEvidenceCase[] = [];
 function add(id: string, member: string, segments: readonly Segment[], owner = 'Node'): void {
@@ -55,6 +56,35 @@ add('reset_physics_interpolation', 'reset_physics_interpolation', [now({ new: 'a
 add('is_node_ready', 'is_node_ready', [now({ new: 'a' }, { read: ['node_ready', 'a'] }, { add: 'a' }, { read: ['node_ready', 'a'] })]);
 add('request_ready', 'request_ready', [now({ new: 'a' }, { new: 'p', kind: 'node' }, { add: 'p' }, { add: 'a', to: 'p' }, { remove: 'a', from: 'p' }, { requestReady: 'a' }, { add: 'a', to: 'p' }, { remove: 'a', from: 'p' }, { add: 'a', to: 'p' })]);
 add('deferred-order', 'add_child', [now(...TREE, { deferred: 'b', what: 'one' }, { add: 'a' }, { deferred: 'a', what: 'two' }, { log: 'end-of-body' }), proc({ free: 'c' }, { deferred: 'c', what: 'after-free' })]);
+
+// Input processing: a script's input callbacks turn their processing on at ready; the flags gate
+// which nodes each stage of push_input calls.
+for (const [setter, getter, callback] of [
+  ['set_process_input', 'is_processing_input', 'input'],
+  ['set_process_shortcut_input', 'is_processing_shortcut_input', 'shortcut_input'],
+  ['set_process_unhandled_input', 'is_processing_unhandled_input', 'unhandled_input'],
+  ['set_process_unhandled_key_input', 'is_processing_unhandled_key_input', 'unhandled_key_input'],
+] as const) {
+  const ops: InputOp[] = [
+    { node: 'plain', kind: 'Node' },
+    { read: getter, on: 'plain' },
+    { node: 'scripted', kind: 'Node', script: { [callback]: false } },
+    { read: getter, on: 'scripted' },
+    { event: { key: 70, pressed: true } },
+    { call: setter, on: 'scripted', args: [false] },
+    { read: getter, on: 'scripted' },
+    { event: { key: 70, pressed: false } },
+    { call: setter, on: 'plain', args: [true] },
+    { read: getter, on: 'plain' },
+    { call: setter, on: 'scripted', args: [true] },
+    { event: { key: 71, pressed: true } },
+    { event: { key: 71, pressed: false } },
+  ];
+  for (const member of [setter, getter]) {
+    const built = inputCase(ops);
+    cases.push({ id: `${member}-input`, symbol: { kind: 'native-member', owner: 'Node', member }, gdscript: built.gdscript, target: built.target, comparator: 'exact' });
+  }
+}
 
 const NODE_EVIDENCE: GodotEvidenceCaseFile = {
   kind: 'node',

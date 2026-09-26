@@ -249,8 +249,58 @@ function updateActionCache(actionName: string, state: ActionState): void {
   }
 }
 
+/** `InputEvent::DEVICE_ID_EMULATION` (`core/input/input_event.h:64`). */
+const DEVICE_ID_EMULATION = -1;
+
+let dispatchFunction: ((event: InputEventRecord) => void) | undefined;
+/** `emulate_mouse_from_touch`: `input_devices/pointing/emulate_mouse_from_touch`, on by default (`main/main.cpp:3666`). */
+let emulateMouseFromTouch = true;
+/** `mouse_from_touch_index`: the touch the emulated mouse follows, or -1. */
+let mouseFromTouchIndex = -1;
+
+/**
+ * Sets `event_dispatch_function`, which each parsed event reaches after the action state: the
+ * display server's, calling the root window's `_window_input` (`platform/web/display_server_web.cpp:1106`).
+ *
+ * @godot Input (protocol)
+ * @source core/input/input.cpp:1648
+ */
+export function godot_input_set_dispatch(dispatch: ((event: InputEventRecord) => void) | undefined, emulateMouse = true): void {
+  dispatchFunction = dispatch;
+  emulateMouseFromTouch = emulateMouse;
+  mouseFromTouchIndex = -1;
+}
+
+/**
+ * `Input::_parse_input_event_impl` (`core/input/input.cpp:801`): a screen touch or drag first
+ * parses the mouse event it emulates (the first touch drives the mouse), then the event updates
+ * the action state and is dispatched.
+ */
+function parseImpl(event: InputEventRecord, emulated = false): void {
+  if (!emulated && emulateMouseFromTouch && event.type === 'screen_touch') {
+    let translate = false;
+    if (event.pressed) {
+      if (mouseFromTouchIndex === -1) {
+        translate = true;
+        mouseFromTouchIndex = event.index;
+      }
+    } else if (event.index === mouseFromTouchIndex) {
+      translate = true;
+      mouseFromTouchIndex = -1;
+    }
+    if (translate) {
+      parseImpl({ type: 'mouse_button', device: DEVICE_ID_EMULATION, position: event.position, pressed: event.pressed, canceled: event.canceled === true, button_index: 1 }, true);
+    }
+  }
+  if (!emulated && emulateMouseFromTouch && event.type === 'screen_drag' && event.index === mouseFromTouchIndex) {
+    parseImpl({ type: 'mouse_motion', device: DEVICE_ID_EMULATION, position: event.position }, true);
+  }
+  parseActions(event);
+  dispatchFunction?.(event);
+}
+
 /** The action part of `Input::_parse_input_event_impl` (`core/input/input.cpp:1005`). */
-function parseImpl(event: InputEventRecord): void {
+function parseActions(event: InputEventRecord): void {
   for (const actionName of inputMap.keys()) {
     const status = actionStatus(event, actionName, false);
     if (status === undefined) continue;

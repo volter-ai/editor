@@ -10,7 +10,7 @@
 
 import type { Object3D, Texture } from 'three';
 import { godot_canvas_item_self_filter } from './canvas-item';
-import { godot_control_mount, get_size, update_minimum_size } from './control';
+import { godot_control_mount, get_size, set_mouse_filter, update_minimum_size } from './control';
 import { godot_node_entity } from './node';
 import { construct as rect2, type Rect2 } from './rect2';
 import { godot_texture_2d_connect_changed, godot_texture_2d_disconnect_changed, get_height, get_size as textureSize, get_width } from './texture-2d';
@@ -99,6 +99,8 @@ export function godot_texture_rect_mount(entity: Object3D): void {
     // `NOTIFICATION_RESIZED` (`texture_rect.cpp:122`).
     resized: (node) => update_minimum_size(node),
   });
+  // `set_mouse_filter(MOUSE_FILTER_PASS)` (`texture_rect.cpp:300`).
+  set_mouse_filter(entity, 1);
 }
 
 /**

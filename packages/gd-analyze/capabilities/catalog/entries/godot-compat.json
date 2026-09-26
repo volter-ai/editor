@@ -13,6 +13,7 @@
     "src/lib/godot-compat/camera-3d.ts",
     "src/lib/godot-compat/canvas-item.ts",
     "src/lib/godot-compat/canvas-layer.ts",
+    "src/lib/godot-compat/canvas-texture.ts",
     "src/lib/godot-compat/capsule-shape-3d.ts",
     "src/lib/godot-compat/character-body-3d.ts",
     "src/lib/godot-compat/collision-object-3d.ts",
@@ -25,6 +26,7 @@
     "src/lib/godot-compat/cylinder-mesh.ts",
     "src/lib/godot-compat/dictionary.ts",
     "src/lib/godot-compat/directional-light-3d.ts",
+    "src/lib/godot-compat/display-server.ts",
     "src/lib/godot-compat/engine.ts",
     "src/lib/godot-compat/float.ts",
     "src/lib/godot-compat/font.ts",
@@ -41,6 +43,7 @@
     "src/lib/godot-compat/label.ts",
     "src/lib/godot-compat/light-3d.ts",
     "src/lib/godot-compat/mesh-instance-3d.ts",
+    "src/lib/godot-compat/node-2d.ts",
     "src/lib/godot-compat/node-3d.ts",
     "src/lib/godot-compat/node.ts",
     "src/lib/godot-compat/object.ts",
@@ -72,12 +75,14 @@
     "src/lib/godot-compat/signal.ts",
     "src/lib/godot-compat/sphere-mesh.ts",
     "src/lib/godot-compat/sphere-shape-3d.ts",
+    "src/lib/godot-compat/sprite-2d.ts",
     "src/lib/godot-compat/standard-material-3d.ts",
     "src/lib/godot-compat/static-body-3d.ts",
     "src/lib/godot-compat/string.ts",
     "src/lib/godot-compat/sub-viewport.ts",
     "src/lib/godot-compat/texture-2d.ts",
     "src/lib/godot-compat/texture-rect.ts",
+    "src/lib/godot-compat/touch-screen-button.ts",
     "src/lib/godot-compat/transform-2d.ts",
     "src/lib/godot-compat/transform-3d.ts",
     "src/lib/godot-compat/vector2.ts",
@@ -86,6 +91,7 @@
     "src/lib/godot-compat/vector3i.ts",
     "src/lib/godot-compat/viewport.ts",
     "src/lib/godot-compat/visual-instance-3d.ts",
+    "src/lib/godot-compat/window.ts",
     "src/lib/godot-compat/world-3d.ts"
   ],
   "id": "godot-compat",
@@ -107,5 +113,5 @@
   "requires": [],
   "skills": [],
   "title": "Godot compat (backends for a ported game)",
-  "version": "0.851.0"
+  "version": "0.852.0"
 }

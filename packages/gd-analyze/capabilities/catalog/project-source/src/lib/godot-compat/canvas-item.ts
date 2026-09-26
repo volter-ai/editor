@@ -145,6 +145,28 @@ export function godot_canvas_item_layer_of(entity: Object3D): Object3D | null {
 }
 
 /**
+ * A canvas layer's `layer`, which orders the viewport's root Controls (`CanvasItem::get_canvas_layer`).
+ *
+ * @godot CanvasItem (protocol)
+ * @source scene/main/canvas_item.cpp:1700
+ */
+export function godot_canvas_item_layer_number(layer: Object3D): number {
+  return LAYERS.get(layer)?.layer(layer) ?? 0;
+}
+
+/**
+ * `CanvasItem::get_canvas_transform` (`canvas_item.cpp:1647`): the canvas layer's final transform,
+ * else the viewport's canvas transform (the identity: the host never moves the root canvas).
+ *
+ * @godot CanvasItem (protocol)
+ * @source scene/main/canvas_item.cpp:1647
+ */
+export function godot_canvas_item_canvas_transform(entity: Object3D): Transform2D {
+  const layer = godot_canvas_item_layer_of(entity);
+  return layer === null ? transform2d() : (LAYERS.get(layer) as CanvasLayerLink).finalTransform(layer);
+}
+
+/**
  * `parent_visible_in_tree` as `NOTIFICATION_ENTER_TREE` sets it and visibility propagation keeps
  * it (`canvas_item.cpp:383`): outside the tree false; under a canvas item, that item's
  * `is_visible_in_tree()`; under a canvas layer, the layer's `is_visible()`; else the viewport, a

@@ -22,6 +22,7 @@ import {
   get_theme_constant,
   godot_control_maximum_size,
   godot_control_mount,
+  set_mouse_filter,
   set_v_size_flags,
   update_minimum_size,
 } from './control';
@@ -175,6 +176,8 @@ export function godot_label_mount(entity: Object3D): void {
     draw,
     themeConstants: { line_spacing: 3, paragraph_spacing: 0 },
   });
+  // `set_mouse_filter(MOUSE_FILTER_IGNORE)` (`label.cpp:1529`).
+  set_mouse_filter(entity, 2);
   set_v_size_flags(entity, SIZE_SHRINK_CENTER);
 }
 

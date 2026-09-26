@@ -1,0 +1,150 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/canvas-texture"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CanvasTexture",
+        "member": "set_diffuse_texture",
+        "kind": "native-member",
+        "signature": "hash:4051416890"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/canvas-texture",
+        "exportName": "set_diffuse_texture",
+        "localName": "CanvasTexture_set_diffuse_texture",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CanvasTexture.set_diffuse_texture"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CanvasTexture",
+        "member": "get_diffuse_texture",
+        "kind": "native-member",
+        "signature": "hash:3635182373"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/canvas-texture",
+        "exportName": "get_diffuse_texture",
+        "localName": "CanvasTexture_get_diffuse_texture",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CanvasTexture.get_diffuse_texture"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CanvasTexture.set_diffuse_texture",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CanvasTexture\u0000set_diffuse_texture\u0000hash:4051416890",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/canvas_item.cpp",
+        "sourceSymbol": "CanvasTexture.set_diffuse_texture",
+        "sourceLine": 1915
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f25c68da591d559fa2ef4daa2e95a3f2a9345b6a824609e0ee8b18bb9137570f",
+        "callsite": "res://probe.gd _init() set_diffuse_texture-sizes",
+        "observedOutputSha256": "b6978c551cffe5c6a76946677c749fcc002b88632f9d9b71b548e022c4e2504e"
+      },
+      "target": {
+        "implementationSha256": "e0570654e8f1d2ea30bd72ba103d8a06b601f665f50c4119f4dedf5829d26422",
+        "callsite": "lib/godot-compat/canvas-texture.ts set_diffuse_texture",
+        "observedOutputSha256": "e18a04edcafa1c32b1d0e669ed51be7a8023c2ba8af9e74c1ffee6d8a0382d08"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "94e4351233e71b3bf143de035b7a25a7f96bde8a3f55723fa2f48b5454d53077"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "canvas-texture",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CanvasTexture.get_diffuse_texture",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CanvasTexture\u0000get_diffuse_texture\u0000hash:3635182373",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/canvas_item.cpp",
+        "sourceSymbol": "CanvasTexture.get_diffuse_texture",
+        "sourceLine": 1926
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5d12425ea3121f21988fcaaa6359b267093643352efcee0c60fabec6d435dfa0",
+        "callsite": "res://probe.gd _init() get_diffuse_texture-sizes",
+        "observedOutputSha256": "af1519fbea6ca1a993a27c9140cd286f06a3260dead1e9957a31a65307ea2902"
+      },
+      "target": {
+        "implementationSha256": "e0570654e8f1d2ea30bd72ba103d8a06b601f665f50c4119f4dedf5829d26422",
+        "callsite": "lib/godot-compat/canvas-texture.ts get_diffuse_texture",
+        "observedOutputSha256": "f7343fea5097dfcf32e966b31f50f4aeefb89c05f0f49ff2129cde5542525eb4"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "206d494492b3df302ed4d43ed555d3736dc9226c608fb2abb5b47bec45106039"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "canvas-texture",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-CanvasTexture.set_diffuse_texture",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f25c68da591d559fa2ef4daa2e95a3f2a9345b6a824609e0ee8b18bb9137570f",
+      "implementationSha256": "e0570654e8f1d2ea30bd72ba103d8a06b601f665f50c4119f4dedf5829d26422"
+    },
+    {
+      "claimId": "godot-4.7-binding-CanvasTexture.get_diffuse_texture",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5d12425ea3121f21988fcaaa6359b267093643352efcee0c60fabec6d435dfa0",
+      "implementationSha256": "e0570654e8f1d2ea30bd72ba103d8a06b601f665f50c4119f4dedf5829d26422"
+    }
+  ]
+}

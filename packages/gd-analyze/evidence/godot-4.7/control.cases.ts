@@ -283,5 +283,23 @@ for (const member of ['add_theme_constant_override', 'remove_theme_constant_over
   add(`${member}-theme`, member, THEME);
 }
 
+// The mouse filter is stored as set; an index outside the three filters is ignored.
+for (const member of ['set_mouse_filter', 'get_mouse_filter']) {
+  add(`${member}-filter`, member, [
+    {
+      ops: [
+        { node: 'm', kind: 'Control' },
+        { read: 'get_mouse_filter', on: 'm' },
+        { call: 'set_mouse_filter', on: 'm', args: [int(1)] },
+        { read: 'get_mouse_filter', on: 'm' },
+        { call: 'set_mouse_filter', on: 'm', args: [int(2)] },
+        { read: 'get_mouse_filter', on: 'm' },
+        { call: 'set_mouse_filter', on: 'm', args: [int(5)] },
+        { read: 'get_mouse_filter', on: 'm' },
+      ],
+    },
+  ]);
+}
+
 const EVIDENCE: GodotEvidenceCaseFile = { kind: 'node', godotClass: 'Control', compatModule: 'lib/godot-compat/control', cases };
 export default EVIDENCE;

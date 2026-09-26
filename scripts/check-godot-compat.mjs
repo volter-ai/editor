@@ -244,7 +244,8 @@ function checkEntry(files) {
  * onto the web platform (`PhysicsServer3D.space_get_direct_state` over the Rapier world): no
  * protocol export, so it can never grow into a server reimplementation. It binds onto a library,
  * so it imports one: an npm package, itself or through a compat module it imports that does
- * (`rendering-server.ts` reaches three through `viewport.ts`, which holds the renderer). And it
+ * (`rendering-server.ts` reaches three through `viewport.ts`, which holds the renderer), or onto
+ * the browser itself, whose globals it reads (`display-server.ts` reads `window`). And it
  * carries no more than the protocol it transcribes: at most SERVER_CODE_LINES lines of code.
  */
 function serverBinding(file, name) {
@@ -291,9 +292,12 @@ function reachesLibrary(file) {
     });
 }
 
+/** Whether the module's code reads a browser global it binds onto. */
+const readsBrowser = (text) => /\b(window|document|navigator)\b/u.test(stripComments(text));
+
 function checkServerBinding(file, text) {
-  if (!reachesLibrary(file)) {
-    report(file, 1, 'a server-named BINDING must import the library it binds onto (an npm package, or a compat module that imports it)');
+  if (!reachesLibrary(file) && !readsBrowser(text)) {
+    report(file, 1, 'a server-named BINDING must import the library it binds onto (an npm package, or a compat module that imports it) or read the browser global it binds onto');
   }
   const code = stripComments(text).split('\n').filter((line) => line.trim() !== '').length;
   if (code > SERVER_CODE_LINES) {
