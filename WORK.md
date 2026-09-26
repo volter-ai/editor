@@ -291,18 +291,16 @@ Open, with what closes each:
   offline null of the two (+1.6 dB at equal level) is not yet a clean reading: in an
   OfflineAudioContext the worklet stayed silent after the preview's channel setup, so the
   instrument has to be settled before its number means anything.
-- Sampled instruments: a listening judgement. VS Chamber Orchestra 2 Community Edition (CC0)
-  builds as 20 banks, one per instrument, 66 patches (`scripts/vsco2-ce`, into
-  `~/.volter/banks/vsco2-ce`, byte-reproducible), through the one engine the editor and the
-  export share. A track plays the bank its device names, `articulations` sends a note's `artic`
-  (staccato, pizzicato, tremolo) to the patch that recorded it, and the drum channel's program
-  chooses the kit. Harbor with every instrument moved to it, each track's level matched to the
-  General MIDI render to 0.0 dB, waits for a listen: `music-probe/out/ab/gm/harbor.ogg` against
-  `out/ab/orchestra/harbor-orchestra.ogg`, and so does a cue written for it end to end
-  (`src/music/tidewatch.tsx`: Explore and Battle loops, `out/tidewatch/sections/`, with the
-  `victory.tsx` stinger in `out/victory`). The banks are SF3 (218 MB for the library, round-robin
-  members included; an editor tab holding nine grows by about 425 MB, against 1.2 GB
-  uncompressed), and repeated notes step through a patch's round-robin recordings.
+- Sampled instruments: decided without a listen (Aaron's rule, relayed 2026-09-26: a question
+  whose answer can be guessed is not waited on). VS Chamber Orchestra 2 Community Edition
+  (CC0) is the finished palette and the General MIDI SoundFont the sketch palette, as the skill
+  teaches: VSCO is recorded orchestral instruments with their own articulations and round-robin
+  repetitions, which a General MIDI preset has none of; no listening test was run, and a
+  listening verdict against it reopens this. The evidence a listener would use stays in the probe:
+  `music-probe/out/ab/gm/harbor.ogg` against `out/ab/orchestra/harbor-orchestra.ogg` (levels
+  matched to 0.0 dB), and Tidewatch and Victory on the orchestra. The library builds as 20 banks,
+  66 patches (`scripts/vsco2-ce`, into `~/.volter/banks/vsco2-ce`, byte-reproducible; SF3,
+  218 MB with round-robin members; an editor tab holding nine grows by about 425 MB).
 - A section loop's audio equals its bars in the whole piece only where the synthesizer's
   state does not depend on what it played before: events match to the sample, and a pass
   preceded by the same music is bit-identical. In the probe piece, section A′ nulls against
