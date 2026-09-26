@@ -1165,10 +1165,13 @@ export function addCapabilities(options: AddCapabilitiesOptions): CatalogAddRepo
     if (assetMerge?.changed) {
       writeFileSync(join(projectDir, ASSET_MANIFEST_FILE), assetMerge.bytes);
     }
+    // The packages before the adapter: a finder the adapter now selects lives in a package this
+    // add declares, and an editor that reads the adapter first looks for it in a package the
+    // project does not declare yet (its modules answered 403 until the next request).
+    if (packageMerge?.changed) writeFileSync(join(projectDir, 'package.json'), packageMerge.bytes);
     if (adapterMerge?.changed) {
       writeFileSync(join(projectDir, ADAPTER_MODULE_FILE), adapterMerge.bytes);
     }
-    if (packageMerge?.changed) writeFileSync(join(projectDir, 'package.json'), packageMerge.bytes);
     for (const file of toWrite.filter(isContribution)) write(file);
     for (const stamp of stamps) write(stamp);
   }
