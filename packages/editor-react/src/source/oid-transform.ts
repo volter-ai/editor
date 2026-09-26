@@ -1370,6 +1370,21 @@ function reactFragmentNames(sf: ts.SourceFile): Set<string> {
  * into game DOM. That preserves per-instance source identity without inserting
  * a wrapper into the native tree. Returns the transformed code + index entries.
  */
+/** Whether any JSX (an element, a self-closing element or a fragment) appears under `node`. */
+function containsJsx(node: ts.Node): boolean {
+  let found = false;
+  const visit = (child: ts.Node): void => {
+    if (found) return;
+    if (ts.isJsxElement(child) || ts.isJsxSelfClosingElement(child) || ts.isJsxFragment(child)) {
+      found = true;
+      return;
+    }
+    ts.forEachChild(child, visit);
+  };
+  ts.forEachChild(node, visit);
+  return found;
+}
+
 export function transformSource(
   code: string,
   file: string,
@@ -1464,8 +1479,14 @@ export function transformSource(
   const pushComponent = (
     name: string | undefined,
     parameters: ts.NodeArray<ts.ParameterDeclaration> | undefined,
+    body: ts.Node,
   ): boolean => {
     if (!name || !/^[A-Z]/.test(name) || !parameters) return false;
+    // A capitalised function that renders no JSX is not a component, whatever its name: a table
+    // helper like `const PATCH = (key) => ({ key, … })` had its parameter rewritten into props
+    // destructuring and received an object of its string's characters. Nothing in it is stamped,
+    // and it consumes no transport props, so it is left as written.
+    if (!containsJsx(body)) return false;
     // Component membership participates in the stable OID signature on every
     // JSX dialect. Three/Canvas callsites inject the transport props, while
     // every project component consumes them: a component declared on a DOM
@@ -1505,14 +1526,14 @@ export function transformSource(
   const visit = (node: ts.Node): void => {
     let pushed = false;
     if (ts.isFunctionDeclaration(node) && node.name)
-      pushed = pushComponent(node.name.text, node.parameters);
+      pushed = pushComponent(node.name.text, node.parameters, node);
     else if (
       ts.isVariableDeclaration(node) &&
       ts.isIdentifier(node.name) &&
       node.initializer &&
       (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer))
     ) {
-      pushed = pushComponent(node.name.text, node.initializer.parameters);
+      pushed = pushComponent(node.name.text, node.initializer.parameters, node.initializer);
     }
 
     if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
