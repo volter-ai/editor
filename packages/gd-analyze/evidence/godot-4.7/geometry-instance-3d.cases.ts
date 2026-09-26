@@ -1,4 +1,4 @@
-import { Mesh } from 'three';
+import { Mesh, MeshStandardMaterial } from 'three';
 import * as G from '../../capabilities/catalog/project-source/src/lib/godot-compat/geometry-instance-3d';
 import type { GodotEvidenceCaseFile } from '../../src/evidence/case';
 import { gd } from './literals';
@@ -34,5 +34,29 @@ for (const [setter, getter, value] of [
   });
   c.add(`${getter}-default`, getter, [`return MeshInstance3D.new().${getter}()`], () => (G[getter] as (self: object) => number)(mounted()));
 }
+// Transparency, clamped, and (`render-mapping`) the three material it leaves as it is: the
+// Compatibility renderer, the web's, never reads the instance's `force_alpha`.
+for (const value of [0.25, 1.5, -0.5, 1]) {
+  c.add(`set_transparency-${String(value)}`, 'set_transparency', ['var n := MeshInstance3D.new()', `n.set_transparency(${gd(value)})`, 'return n.get_transparency()'], () => {
+    const n = mounted();
+    G.set_transparency(n, value);
+    return G.get_transparency(n);
+  });
+}
+c.add('get_transparency-default', 'get_transparency', ['return MeshInstance3D.new().get_transparency()'], () => G.get_transparency(mounted()));
+c.cases.push({
+  id: 'three-set_transparency-material',
+  symbol: { kind: 'native-member', owner: 'GeometryInstance3D', member: 'set_transparency' },
+  gdscript: '',
+  target: () => {
+    const material = new MeshStandardMaterial();
+    const n = new Mesh(undefined, material);
+    G.godot_geometry_instance_3d_mount(n);
+    G.set_transparency(n, 0.6);
+    return [material.opacity, material.transparent, n.visible].join(',');
+  },
+  comparator: 'render-mapping',
+  fact: { value: '1,false,true', source: { file: 'drivers/gles3/rasterizer_scene_gles3.cpp', symbol: 'RasterizerSceneGLES3::_fill_render_list (force_alpha is never the instance transparency)', line: 1479 } },
+});
 const EVIDENCE: GodotEvidenceCaseFile = { godotClass: 'GeometryInstance3D', compatModule: 'lib/godot-compat/geometry-instance-3d', cases: c.cases };
 export default EVIDENCE;

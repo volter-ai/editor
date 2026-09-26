@@ -10,6 +10,8 @@
  * object. A scene's mesh states its casting as three's `castShadow`, which the setting reads back
  * until a script sets it.
  *
+ * Its transparency is stored and read back; the Compatibility renderer (the web's) does not draw it.
+ *
  * Its visibility range is the Compatibility renderer's cull (`renderer_scene_cull.cpp:2835`): a scene
  * writes it as `<GodotVisibilityRange>` around the node's element, three's `LOD`, which the renderer
  * updates for each camera before drawing.
@@ -47,6 +49,33 @@ export function set_cast_shadows_setting(self: Object3D, setting: number): void 
  */
 export function get_cast_shadows_setting(self: Object3D): number {
   return SETTING.get(self) ?? (self.castShadow ? 1 : 0);
+}
+
+// --- Transparency: stored, and drawn as the web's renderer draws it.
+
+const TRANSPARENCY = new WeakMap<object, number>();
+
+/**
+ * Clamped to [0, 1] (`visual_instance_3d.cpp:243`). The renderer's geometry instance keeps it as
+ * `force_alpha = 1 - transparency` (`renderer_geometry_instance.cpp:110`), which only the
+ * RenderingDevice renderers' shaders read; the Compatibility renderer, the web's
+ * (`rendering_method.web`, `main/main.cpp:2644`), never reads it (`rasterizer_scene_gles3.cpp:1479`):
+ * the geometry draws as its materials say, so three's material is left as it is.
+ *
+ * @godot GeometryInstance3D.set_transparency
+ * @source scene/3d/visual_instance_3d.cpp:242
+ */
+export function set_transparency(self: object, transparency: number): void {
+  const value = Math.fround(transparency);
+  TRANSPARENCY.set(self, Number.isNaN(value) ? value : Math.min(Math.max(value, 0), 1));
+}
+
+/**
+ * @godot GeometryInstance3D.get_transparency
+ * @source scene/3d/visual_instance_3d.cpp:248
+ */
+export function get_transparency(self: object): number {
+  return TRANSPARENCY.get(self) ?? 0;
 }
 
 // --- Visibility range: `RendererSceneCull::_visibility_range_check`, as the Compatibility renderer draws it.
