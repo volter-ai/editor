@@ -2,7 +2,7 @@
  * Render-mapping cases for the canvas drawn onto the page: a small tree mounted through compat,
  * drawn into a jsdom document by `godot_canvas_draw`, read back as the elements' styles.
  */
-import { JSDOM } from 'jsdom';
+import { createRequire } from 'node:module';
 import { Group, type Object3D, Scene } from 'three';
 import * as CI from '../../capabilities/catalog/project-source/src/lib/godot-compat/canvas-item';
 import * as CL from '../../capabilities/catalog/project-source/src/lib/godot-compat/canvas-layer';
@@ -10,6 +10,9 @@ import * as C from '../../capabilities/catalog/project-source/src/lib/godot-comp
 import * as N from '../../capabilities/catalog/project-source/src/lib/godot-compat/node';
 import * as ST from '../../capabilities/catalog/project-source/src/lib/godot-compat/scene-tree';
 import * as SV from '../../capabilities/catalog/project-source/src/lib/godot-compat/sub-viewport';
+
+// jsdom ships no type declarations; the one constructor these cases use.
+const { JSDOM } = createRequire(import.meta.url)('jsdom') as { readonly JSDOM: new (html: string) => { readonly window: Window } };
 
 export interface Drawn {
   readonly viewport: Object3D;

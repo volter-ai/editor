@@ -140,7 +140,7 @@ export function godot_control_mount(entity: Object3D, classes: readonly string[]
     drawTransform,
     size: (node) => (CONTROLS.get(node) as ControlState).sizeCache,
     visibilityChanged,
-    draw: virtuals.draw,
+    ...(virtuals.draw === undefined ? {} : { draw: virtuals.draw }),
   });
   CONTROLS.set(entity, {
     anchor: [0, 0, 0, 0],

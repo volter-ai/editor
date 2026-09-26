@@ -419,7 +419,7 @@ function elementOf(entity: Object3D, document: Document): HTMLElement {
   let element = ELEMENTS.get(entity);
   if (element === undefined) {
     element = document.createElement('div');
-    element.dataset.godot = entity.name;
+    element.dataset['godot'] = entity.name;
     ELEMENTS.set(entity, element);
   }
   return element;
@@ -430,7 +430,7 @@ function viewportCanvas(root: HTMLElement): HTMLElement {
   let canvas = CANVASES.get(root);
   if (canvas === undefined) {
     canvas = root.ownerDocument.createElement('div');
-    canvas.dataset.godot = '';
+    canvas.dataset['godot'] = '';
     canvas.style.position = 'absolute';
     canvas.style.left = '0px';
     canvas.style.top = '0px';
@@ -468,7 +468,7 @@ export function godot_canvas_item_self_filter(entity: Object3D, element: HTMLEle
  */
 export function godot_canvas_draw(viewport: Object3D, root: HTMLElement): void {
   const document = root.ownerDocument;
-  root.dataset.godotRoot = '';
+  root.dataset['godotRoot'] = '';
   const touched = new Set<HTMLElement>();
   const own = viewportCanvas(root);
   own.style.transform = '';
