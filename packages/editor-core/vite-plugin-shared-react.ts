@@ -77,6 +77,14 @@ import { fileURLToPath } from 'node:url';
 import { EDITOR_LANE_DIRS } from '@volter/editor-sdk/session/tool-contribution-convention';
 import type { Plugin } from 'vite';
 
+/** What this plugin uses of a Vite environment's dependency optimizer (not a public Vite type). */
+interface DepsOptimizer {
+  readonly options: { readonly exclude?: readonly string[] };
+  readonly metadata: { readonly optimized: Record<string, unknown>; readonly discovered: Record<string, unknown> };
+  registerMissingImport(id: string, resolved: string): unknown;
+  getOptimizedDepId(info: unknown): string;
+}
+
 /**
  * The published specifiers, and the rollup chunk NAME each appears under.
  *
@@ -582,6 +590,19 @@ export function sharedReactPlugin({
       if (!hasOwnDoorway(source)) {
         const dependency = dependencyFile(source, stripQuery(importer!));
         if (dependency?.esm) return markEditorTree(dependency.file);
+        // A CommonJS dependency reaches the browser only as the optimizer's ES module. Vite
+        // registers a missing one itself for source importers but never for an importer under
+        // node_modules, which is where every installed contribution package lives: its CommonJS
+        // imports (typescript, react-reconciler/constants) were served raw and failed to link.
+        // Registered here as Vite registers one: the optimizer prebundles it (reloading the page
+        // if it was not ready) and the import resolves to the bundle.
+        const optimizer = (this as unknown as { environment?: { depsOptimizer?: DepsOptimizer } }).environment?.depsOptimizer;
+        const excluded = optimizer?.options.exclude ?? [];
+        const bareName = source.startsWith('@') ? source.split('/').slice(0, 2).join('/') : source.split('/')[0]!;
+        if (dependency && optimizer && !excluded.includes(source) && !excluded.includes(bareName)) {
+          const info = optimizer.metadata.optimized[source] ?? optimizer.metadata.discovered[source] ?? optimizer.registerMissingImport(source, dependency.file);
+          return optimizer.getOptimizedDepId(info);
+        }
         if (dependency && !reportedCommonJs.has(source)) {
           reportedCommonJs.add(source);
           this.warn(
