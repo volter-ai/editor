@@ -42,7 +42,7 @@ import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { inspectorPresentationOverride } from '@volter/editor-sdk/kit/inspector-presentation';
 import { matchedInspectorSections } from '@volter/editor-sdk/kit/inspector-section-registry';
 import { liveCoverage } from '@volter/editor-sdk/kit/live-session-registry';
-import { documentContributionForKind } from '../tool-loader';
+import { documentContributionForKind } from '@volter/editor-sdk/kit/tool-loader';
 import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activeWorkspaceDocument,

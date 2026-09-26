@@ -55,7 +55,7 @@
 import { reactStoryBoardLayout } from '@volter/editor-sdk/kit/authoring/react-story-board';
 import { drawBitmapLabel } from '@volter/editor-sdk/kit/bitmap-label';
 import { observeCanvasMount } from '@volter/editor-sdk/kit/canvas-frames';
-import { type CaptureOptions, capturePlayComposite } from '../composite-screenshot';
+import { type CaptureOptions, capturePlayComposite } from '@volter/editor-sdk/kit/composite-screenshot';
 import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import {
   type ComposedProjectStory,

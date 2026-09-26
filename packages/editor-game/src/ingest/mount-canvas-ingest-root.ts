@@ -473,7 +473,7 @@ async function mountCanvasIngestRootInner(
     markGameCssScope(hostEl);
     const scopedCssProject = getCurrentProject();
     if (scopedCssProject) {
-      const { ensureScopedGameStyles } = await import('@volter/editor-core/scoped-game-css');
+      const { ensureScopedGameStyles } = await import('@volter/editor-sdk/kit/scoped-game-css');
       await ensureScopedGameStyles(scopedCssProject.rootPath);
     }
   }

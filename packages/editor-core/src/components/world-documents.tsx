@@ -24,7 +24,7 @@ import {
   type DesignTimeRootDescriptor,
   designTimeRootDescriptors,
   mountDesignTimeLayers,
-} from '../authoring/design-time-layers';
+} from '@volter/editor-sdk/kit/authoring/design-time-layers';
 import { INVALID_MANIFEST_SURFACE } from '@volter/editor-sdk/kit/authoring/edit-mode-authoring';
 import {
   getMountFailureReports,

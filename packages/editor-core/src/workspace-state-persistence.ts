@@ -77,7 +77,7 @@ import {
   subscribeViewportPresentation,
   viewPresentationSnapshot,
 } from '@volter/editor-sdk/kit/viewport-presentation';
-import { projectAdapterFacet, waitForProjectAdapter } from './project-adapter';
+import { projectAdapterFacet, waitForProjectAdapter } from '@volter/editor-sdk/kit/project-adapter';
 import {
   preloadProjectLocalState,
   projectLocalSection,
@@ -85,7 +85,7 @@ import {
   writeProjectLocalSection,
 } from '@volter/editor-sdk/kit/project-local-state';
 import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
-import { refreshProjectToolContributions } from './tool-loader';
+import { refreshProjectToolContributions } from '@volter/editor-sdk/kit/tool-loader';
 import { PINNED_ASYNC_DOCUMENT_IDS } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activateWorkspaceDocument,
@@ -109,7 +109,7 @@ import {
   isEditorWorkspaceId,
   setEditorWorkspace,
   workspaceApplies,
-} from './workspace-presets';
+} from '@volter/editor-sdk/kit/workspace-presets';
 
 interface WorkspaceRestoreEpoch {
   readonly generation: number;

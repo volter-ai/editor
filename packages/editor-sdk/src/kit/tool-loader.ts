@@ -870,10 +870,20 @@ export function extractProjectToolContribution(
 // The product registers once at module evaluation. A loader-only HMR update
 // must retain that composition; otherwise package specifiers fall through to
 // project-relative /@fs/ URLs and every bundled contribution fails to load.
+// Vite's HMR context when a dev server serves this module; the SDK carries no bundler types.
+const hot = (
+  import.meta as ImportMeta & {
+    hot?: {
+      data: Record<string, unknown>;
+      dispose(callback: (data: Record<string, unknown>) => void): void;
+      on(event: string, callback: (data: { file: string }) => void): void;
+    };
+  }
+).hot;
 const bundledPackageLoaders: Map<string, () => Promise<unknown>> =
-  import.meta.hot?.data['bundledPackageLoaders'] ?? new Map();
-if (import.meta.hot) {
-  import.meta.hot.dispose((data) => {
+  (hot?.data['bundledPackageLoaders'] as Map<string, () => Promise<unknown>> | undefined) ?? new Map();
+if (hot) {
+  hot.dispose((data) => {
     data['bundledPackageLoaders'] = bundledPackageLoaders;
   });
 }
@@ -1870,8 +1880,8 @@ function teachingNote(message: string): void {
   console.warn(message);
 }
 
-if (import.meta.hot) {
-  import.meta.hot.on('vgai:script-update', (data: { file: string }) => {
+if (hot) {
+  hot.on('vgai:script-update', (data: { file: string }) => {
     if (!isEditorLanePath(data.file)) return;
     void refreshProjectToolContributions();
   });

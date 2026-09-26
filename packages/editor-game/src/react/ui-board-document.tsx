@@ -29,7 +29,7 @@ import {
   designTimeRootDescriptors,
   projectStoryBoardDescriptor,
   rememberedPortableStory,
-} from '@volter/editor-core/authoring/design-time-layers';
+} from '@volter/editor-sdk/kit/authoring/design-time-layers';
 import type { ComponentBoardContext } from '@volter/editor-sdk/kit/component-board-registry';
 import { RootDocumentContent } from '@volter/editor-core/components/world-documents';
 import type { DocumentPreviewSource } from '@volter/editor-sdk/kit/document-preview-source';

@@ -12,17 +12,17 @@ import {
   getSelectedAsset,
   subscribeAssetSelection,
 } from '@volter/editor-sdk/kit/asset-selection';
-import { notify } from '../editor-notifications';
-import { beginPageWork } from '../play-boot-phase';
+import { notify } from '@volter/editor-sdk/kit/editor-notifications';
+import { beginPageWork } from '@volter/editor-sdk/kit/play-boot-phase';
 import type { ProjectToolCatalogEntry } from '@volter/editor-sdk/kit/project-tools';
 import {
   subscribeToolContributionPlay,
   toolContributionPlay,
   toolContributionPlayKey,
 } from '@volter/editor-sdk/kit/tool-contribution-play';
-import { getToolContributionClient } from '../tool-loader';
+import { getToolContributionClient } from '@volter/editor-sdk/kit/tool-loader';
 import { toolContributionSurfaces } from '@volter/editor-sdk/kit/components/ToolContributionSurfaces';
-import { ToolErrorBoundary } from './ToolHost';
+import { ToolErrorBoundary } from '@volter/editor-sdk/kit/components/ToolHost';
 
 function selectedAsset(): ToolContributionAsset | null {
   const asset = getSelectedAsset();

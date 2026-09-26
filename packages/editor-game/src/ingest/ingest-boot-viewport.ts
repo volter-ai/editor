@@ -16,8 +16,8 @@
  */
 
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { projectAdapterFacet } from '@volter/editor-core/project-adapter';
-import { sceneDocumentId } from '@volter/editor-core/scene-document-plan';
+import { projectAdapterFacet } from '@volter/editor-sdk/kit/project-adapter';
+import { sceneDocumentId } from '@volter/editor-sdk/kit/scene-document-plan';
 import { CANVAS_SCENE_DOCUMENT_ID, SCENE_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activateWorkspaceDocument,

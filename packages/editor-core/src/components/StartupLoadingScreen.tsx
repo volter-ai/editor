@@ -1,5 +1,5 @@
 import { EDITOR_BRAND } from '@volter/editor-sdk/session/editor-brand';
-import { VgaiLogo } from './VgaiLogo';
+import { VgaiLogo } from '@volter/editor-sdk/kit/components/VgaiLogo';
 
 /**
  * How long the wait has been going on, once it has stopped being instant.

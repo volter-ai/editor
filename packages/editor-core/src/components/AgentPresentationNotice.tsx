@@ -9,7 +9,7 @@
 
 import { useEffect, useSyncExternalStore } from 'react';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { dismissNotification, notify } from '../editor-notifications';
+import { dismissNotification, notify } from '@volter/editor-sdk/kit/editor-notifications';
 import {
   clearEditorPresentationNotice,
   editorPresentationNotice,

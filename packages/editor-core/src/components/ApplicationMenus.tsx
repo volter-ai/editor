@@ -25,7 +25,7 @@ import {
   deleteSelection,
   duplicateSelection,
   pasteSelection,
-} from '../editor-hotkeys';
+} from '@volter/editor-sdk/kit/editor-hotkeys';
 import { useEditorStore, useHistoryCommandSnapshot, useHistoryCommands } from '@volter/editor-sdk/kit/editor-runtime';
 import { editorKeymapsVersion, subscribeEditorKeymap } from '@volter/editor-sdk/kit/keymap-presets';
 import {
@@ -38,8 +38,8 @@ import {
 } from '../learn-links';
 import { getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/project-manager';
 import { getProjectTools, subscribeProjectTools } from '@volter/editor-sdk/kit/project-tools';
-import { getSurfaceToolContributions, subscribeToolContributions } from '../tool-loader';
-import { openUndoHistory } from '../workspace-aux-commands';
+import { getSurfaceToolContributions, subscribeToolContributions } from '@volter/editor-sdk/kit/tool-loader';
+import { openUndoHistory } from '@volter/editor-sdk/kit/workspace-aux-commands';
 import { CORE_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-utilities';
 import {
   showWorkspaceStaticPanel,
@@ -54,11 +54,11 @@ import {
   subscribeEditorWorkspace,
   subscribeEditorWorkspaces,
   workspaceApplies,
-} from '../workspace-presets';
-import { subscribeWorkspaceStyles, workspaceStylesVersion } from '../workspace-style';
+} from '@volter/editor-sdk/kit/workspace-presets';
+import { subscribeWorkspaceStyles, workspaceStylesVersion } from '@volter/editor-sdk/kit/workspace-style';
 import { toggleConsoleUtility } from '@volter/editor-sdk/kit/workspace-utility-commands';
-import { openProjectToolsDocument } from './project-tool-documents';
-import { openToolDocument } from './tool-documents';
+import { openProjectToolsDocument } from '@volter/editor-sdk/kit/components/project-tool-documents';
+import { openToolDocument } from '@volter/editor-sdk/kit/components/tool-documents';
 
 type MenuId = 'edit' | 'view' | 'window' | 'debug' | 'tools' | 'help';
 

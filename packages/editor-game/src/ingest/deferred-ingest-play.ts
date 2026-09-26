@@ -39,8 +39,8 @@ import {
   type ProjectAdapterFacet,
   projectAdapterFacet,
   subscribeProjectAdapter,
-} from '@volter/editor-core/project-adapter';
-import { sceneTabRow } from '@volter/editor-core/scene-document-plan';
+} from '@volter/editor-sdk/kit/project-adapter';
+import { sceneTabRow } from '@volter/editor-sdk/kit/scene-document-plan';
 import { ingestRoots } from '@volter/editor-project/adapter/manifest-interpreter';
 import { activeIngest } from './active-ingest';
 import {

@@ -45,7 +45,7 @@ import {
 import { confirmAssetAction } from '../asset-workflow/asset-workflow-quality';
 import { previewAssetAudio, stopAssetAudioPreview } from '@volter/editor-sdk/kit/asset-workflow/audio-preview-player';
 import { invalidateFolderPreviews } from '../asset-workflow/folder-preview';
-import { PROJECT_ASSET_COMMANDS } from '../asset-workflow/project-asset-commands';
+import { PROJECT_ASSET_COMMANDS } from '@volter/editor-sdk/kit/asset-workflow/project-asset-commands';
 import { projectLocalSection, writeProjectLocalSection } from '@volter/editor-sdk/kit/project-local-state';
 
 /** The browser's view state is the project's own (`kit/project-local-state`), like its layout. */
@@ -89,10 +89,10 @@ import { hierarchyNodesBreadthFirst } from '@volter/editor-sdk/kit/hierarchy-wal
 import { isEditableTarget, setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { assetThumbnailRenderer } from '@volter/editor-sdk/kit/asset-thumbnails';
 import { object3DDocumentWritePolicy } from '@volter/editor-sdk/kit/object3d-document-write-policy';
-import { projectAdapterFacet, subscribeProjectAdapter } from '../project-adapter';
+import { projectAdapterFacet, subscribeProjectAdapter } from '@volter/editor-sdk/kit/project-adapter';
 import { documentViewport } from '@volter/editor-sdk/kit/document-viewports';
 import { getStorageBackend } from '@volter/editor-sdk/kit/storage/index';
-import { getGlobalToolContributions, subscribeToolContributions } from '../tool-loader';
+import { getGlobalToolContributions, subscribeToolContributions } from '@volter/editor-sdk/kit/tool-loader';
 import { reportUnacceptedAssetDrop, showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import {
   type AvailableWorkspaceDocument,
@@ -100,7 +100,7 @@ import {
   openAvailableWorkspaceDocument,
   subscribeAvailableWorkspaceDocuments,
 } from '@volter/editor-sdk/kit/workspace-available-documents';
-import { planSceneDocument } from '../scene-document-plan';
+import { planSceneDocument } from '@volter/editor-sdk/kit/scene-document-plan';
 import {
   activeWorkspaceDocumentId,
   subscribeWorkspaceDocuments,

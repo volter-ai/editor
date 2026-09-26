@@ -10,8 +10,8 @@ import {
   Quality,
   WebMOutputFormat,
 } from 'mediabunny';
-import type { CaptureOptions } from '@volter/editor-core/composite-screenshot';
-import { createImageSnapshotCache, drawPlayCompositeFrame } from '@volter/editor-core/composite-screenshot';
+import type { CaptureOptions } from '@volter/editor-sdk/kit/composite-screenshot';
+import { createImageSnapshotCache, drawPlayCompositeFrame } from '@volter/editor-sdk/kit/composite-screenshot';
 
 /**
  * Opus in the SAME WebM `Output` the video track already uses — the whole

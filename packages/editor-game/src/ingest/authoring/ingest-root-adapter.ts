@@ -32,7 +32,7 @@ import {
   type SameRealmLoopVerdict,
   verifySameRealmLoopControl,
 } from '../../host/same-realm-loop-gate';
-import { ensureScopedGameStyles } from '@volter/editor-core/scoped-game-css';
+import { ensureScopedGameStyles } from '@volter/editor-sdk/kit/scoped-game-css';
 import { resolveThreeIngestRuntimeForEditor } from '../../host/three-ingest-runtime';
 import type { OidEntry } from '@volter/editor-react/source/oid-transform';
 import { createHttpSourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/source-write-backend';

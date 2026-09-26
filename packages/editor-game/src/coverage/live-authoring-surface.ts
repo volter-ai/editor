@@ -9,9 +9,9 @@ import {
   type CapabilityCoverageReport,
   deriveCapabilityCoverage,
 } from '../host/coverage/capability-coverage';
-import { projectAdapterFacet } from '@volter/editor-core/project-adapter';
+import { projectAdapterFacet } from '@volter/editor-sdk/kit/project-adapter';
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
-import { authoringSurfaceFromTable } from '@volter/editor-core/scene-document-plan';
+import { authoringSurfaceFromTable } from '@volter/editor-sdk/kit/scene-document-plan';
 import { projectStoriesReady } from '@volter/editor-sdk/kit/stories/story-registry';
 import { availableWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-available-documents';
 import { openWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-document-registry';

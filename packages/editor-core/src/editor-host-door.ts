@@ -21,9 +21,9 @@ import {
 import { activeDocumentSourcePath, activeSaveDestination } from '@volter/editor-sdk/kit/authoring/shell-document-ops';
 import { availabilityTickVersion, subscribeAvailabilityTick } from '@volter/editor-sdk/kit/availability-tick';
 import { setWorkerCallMeter } from '@volter/editor-sdk/kit/worker-call-metrics';
-import { beginPageWork } from './play-boot-phase';
+import { beginPageWork } from '@volter/editor-sdk/kit/play-boot-phase';
 import { onCommandDispatched } from './command-dispatch';
-import { openToolDocument } from './components/tool-documents';
+import { openToolDocument } from '@volter/editor-sdk/kit/components/tool-documents';
 import { onSessionSample } from './coverage/session-vitals';
 import {
   documentContextFor,
@@ -32,8 +32,8 @@ import {
 } from '@volter/editor-sdk/kit/document-context-registry';
 import { openRegisteredDocumentAsync } from '@volter/editor-sdk/kit/document-open-registry';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { resolvedProjectDocumentTable } from './project-adapter';
-import { notify } from './editor-notifications';
+import { resolvedProjectDocumentTable } from '@volter/editor-sdk/kit/project-adapter';
+import { notify } from '@volter/editor-sdk/kit/editor-notifications';
 import { registerEditorStateFacet } from '@volter/editor-sdk/kit/editor-state-facets';
 import { setFilesProvider } from '@volter/editor-sdk/kit/files/file-provider';
 import { projectFiles } from '@volter/editor-sdk/kit/files/project-files';
@@ -54,7 +54,7 @@ import {
   registeredKeyActions,
   subscribeKeyActions,
 } from '@volter/editor-sdk/kit/key-actions';
-import { bindKeyActions } from './editor-hotkeys';
+import { bindKeyActions } from '@volter/editor-sdk/kit/editor-hotkeys';
 import {
   activeEditorKeymap,
   editorKeymaps,

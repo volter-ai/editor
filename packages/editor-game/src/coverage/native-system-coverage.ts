@@ -29,7 +29,7 @@
  */
 
 import { getActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
-import { mountedRootSubjects } from '@volter/editor-core/authoring/mounted-root-subjects';
+import { mountedRootSubjects } from '@volter/editor-sdk/kit/authoring/mounted-root-subjects';
 import {
   type CapabilityCoverageReport,
   deriveCapabilityCoverage,

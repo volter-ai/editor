@@ -42,7 +42,7 @@
  */
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { importIngestAdapterModule, ingestAdapterModulePath } from '../src/host/ingest/registry';
-import { registerAdapterDefinitionSource } from '@volter/editor-core/project-adapter';
+import { registerAdapterDefinitionSource } from '@volter/editor-sdk/kit/project-adapter';
 import { editorHost } from '@volter/editor-sdk/host';
 import { autoLaunchIngest } from '../src/ingest/mount-ingest-root';
 import { threeStoreForHost } from '@volter/editor-threejs/kit/three-state';

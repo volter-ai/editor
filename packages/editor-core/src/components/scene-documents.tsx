@@ -1,8 +1,8 @@
 /** Scene-table navigation delegates rendering to installed document owners. */
 import { openRegisteredDocument } from '@volter/editor-sdk/kit/document-open-registry';
 import { shellStoreForHost } from '@volter/editor-sdk/kit/shell-store-door';
-import { projectAdapterFacet, type ResolvedDocumentTable, subscribeProjectAdapter } from '../project-adapter';
-import { planSceneDocument, sceneTabRow } from '../scene-document-plan';
+import { projectAdapterFacet, type ResolvedDocumentTable, subscribeProjectAdapter } from '@volter/editor-sdk/kit/project-adapter';
+import { planSceneDocument, sceneTabRow } from '@volter/editor-sdk/kit/scene-document-plan';
 import { openAvailableWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-available-documents';
 import { activateWorkspaceDocument, setWorkspaceDocumentTitle } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { rootDocumentId } from '../world-document-routing';

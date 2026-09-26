@@ -41,9 +41,9 @@ import {
   isEditorWorkspaceId,
   setEditorWorkspace,
   whenEditorWorkspaceApplied,
-} from './workspace-presets';
+} from '@volter/editor-sdk/kit/workspace-presets';
 import { WORKSPACE_STATIC_PANELS, type WorkspaceStaticPanelKind } from '@volter/editor-sdk/kit/workspace-static-panels';
-import { applyWorkspaceStyle, workspaceStyles } from './workspace-style';
+import { applyWorkspaceStyle, workspaceStyles } from '@volter/editor-sdk/kit/workspace-style';
 import {
   availableWorkspaceUtilities,
   subscribeWorkspaceUtilities,
@@ -79,14 +79,14 @@ async function captureLiveCanvasFrame(
  * from cache. `captureLiveCanvasFrame` above is the precedent this transcribes.
  */
 async function captureComposite(
-  ...args: Parameters<typeof import('./composite-screenshot').capturePlayComposite>
+  ...args: Parameters<typeof import('@volter/editor-sdk/kit/composite-screenshot').capturePlayComposite>
 ) {
-  const { capturePlayComposite } = await import('./composite-screenshot');
+  const { capturePlayComposite } = await import('@volter/editor-sdk/kit/composite-screenshot');
   return capturePlayComposite(...args);
 }
 
 async function projectToolContributions() {
-  return import('./tool-loader');
+  return import('@volter/editor-sdk/kit/tool-loader');
 }
 
 /**

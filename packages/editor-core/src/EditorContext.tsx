@@ -9,7 +9,7 @@ import { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { EditorSession } from '@volter/editor-sdk/kit/history/editor-session';
 import { bootstrapProject } from '@volter/editor-sdk/kit/initial-project';
 import { installObject3DDocumentWritePolicy } from '@volter/editor-sdk/kit/object3d-document-write-policy';
-import { startProjectAdapterLoad } from './project-adapter';
+import { startProjectAdapterLoad } from '@volter/editor-sdk/kit/project-adapter';
 import { startProjectDeclarationRefresh } from './project-declaration-refresh';
 import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { startProjectSessionReset } from './project-session-reset';

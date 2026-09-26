@@ -148,7 +148,7 @@ import {
 } from '@volter/editor-sdk/kit/authoring/world-session-state';
 import { collaborationSnapshot, connectCollaboration } from '@volter/editor-sdk/kit/collaboration-client';
 import { openRegisteredDocument } from '@volter/editor-sdk/kit/document-open-registry';
-import { deleteSelection, duplicateSelection } from '../editor-hotkeys';
+import { deleteSelection, duplicateSelection } from '@volter/editor-sdk/kit/editor-hotkeys';
 import { EDITOR_PARTICIPANT_ID } from '@volter/editor-sdk/kit/editor-presence';
 import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import {
@@ -207,7 +207,7 @@ import { CHILD_CAP } from '@volter/editor-sdk/kit/hierarchy-rows';
 import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { focusedStageStore } from '@volter/editor-sdk/kit/stage-context';
-import { editorPaintedRegions, subscribeEditorTheme } from '../theme-preference';
+import { editorPaintedRegions, subscribeEditorTheme } from '@volter/editor-sdk/kit/theme-preference';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import {
   subscribeWorkspaceDocuments,

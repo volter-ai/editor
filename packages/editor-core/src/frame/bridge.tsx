@@ -36,7 +36,7 @@ import { preloadUserLocalState } from '@volter/editor-sdk/kit/user-local-state';
 import { loadProductNames, productDisplayName } from '@volter/editor-sdk/kit/product-command';
 import '../editor-styles.css';
 import '../authoring/instance-source-menu-register';
-import { activeProduct } from '../active-product';
+import { activeProduct } from '@volter/editor-sdk/kit/active-product';
 import '../authoring/prefab-instance-inspector-section';
 import '../authoring/null-inspection-subjects';
 import { editorHost } from '@volter/editor-sdk/host';
@@ -79,7 +79,7 @@ import {
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { installEditorHostDoor, setOutputProvider } from '../editor-host-door';
 import { getProjectDefinePath } from '@volter/editor-sdk/kit/editor-mode';
-import { type EditorNotification, setNotificationDelegate } from '../editor-notifications';
+import { type EditorNotification, setNotificationDelegate } from '@volter/editor-sdk/kit/editor-notifications';
 import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import { clearHierarchyHeaderSlot, setHierarchyHeaderSlot } from '../hierarchy-header-slot';
 import { useActiveInspection } from '../inspection/use-active-inspection';
@@ -105,16 +105,16 @@ import { useSharedViewRestore } from '../shared-view-restore';
 import { installStaleChunkRecovery } from '../stale-chunk-recovery';
 import { installStoryLane } from '../stories/story-lane';
 import { notifySurfaceKeyboard, setSurfaceKeyboardProbe } from '@volter/editor-sdk/kit/surface-keyboard';
-import { preloadEditorThemeLibrary } from '../theme-library';
+import { preloadEditorThemeLibrary } from '@volter/editor-sdk/kit/theme-library';
 import {
   editorPaletteSnapshot,
   installEditorTheme,
   subscribeEditorTheme,
-} from '../theme-preference';
+} from '@volter/editor-sdk/kit/theme-preference';
 import { lookColorCustomizations } from './look-colors';
 import { primeSourceWriteRuntime } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
 import { installViteErrorSurface } from '../vite-error-surface';
-import { activeWorkspaceAreas, subscribeWorkspaceAreas } from '../workspace-areas';
+import { activeWorkspaceAreas, subscribeWorkspaceAreas } from '@volter/editor-sdk/kit/workspace-areas';
 import {
   activateWorkspaceDocument,
   activeWorkspaceDocument,
@@ -132,7 +132,7 @@ import {
   installWorkspaceHostCommands,
   setActiveWorkspaceStaticPanel,
 } from '@volter/editor-sdk/kit/workspace-host-commands';
-import { notifyEditorWorkspaceApplied, setEditorWorkspace } from '../workspace-presets';
+import { notifyEditorWorkspaceApplied, setEditorWorkspace } from '@volter/editor-sdk/kit/workspace-presets';
 import {
   installWorkspaceStatePersistence,
   waitForWorkspaceStateRestore,

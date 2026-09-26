@@ -8,8 +8,8 @@ import {
   subscribeAccount,
 } from '@volter/editor-sdk/kit/account-client';
 import { toolContributionSurfaces } from '@volter/editor-sdk/kit/components/ToolContributionSurfaces';
-import { ToolErrorBoundary } from '@volter/editor-core/components/ToolHost';
-import { openToolDocument } from '@volter/editor-core/components/tool-documents';
+import { ToolErrorBoundary } from '@volter/editor-sdk/kit/components/ToolHost';
+import { openToolDocument } from '@volter/editor-sdk/kit/components/tool-documents';
 import {
   subscribeToolContributionPlay,
   toolContributionPlay,
@@ -20,7 +20,7 @@ import {
   getGlobalToolContributions,
   getToolContributionClient,
   subscribeToolContributions,
-} from '@volter/editor-core/tool-loader';
+} from '@volter/editor-sdk/kit/tool-loader';
 import {
   closeWorkspaceDocument,
   openWorkspaceDocument,

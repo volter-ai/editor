@@ -33,12 +33,12 @@ import {
   projectAdapterFacet,
   type ResolvedDocumentTable,
   subscribeProjectAdapter,
-} from '../project-adapter';
+} from '@volter/editor-sdk/kit/project-adapter';
 import {
   documentContributionForKind,
   getGlobalToolContributions,
   subscribeToolContributions,
-} from '../tool-loader';
+} from '@volter/editor-sdk/kit/tool-loader';
 import { waitUntil } from '@volter/editor-sdk/kit/wait-until';
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import {
@@ -49,7 +49,7 @@ import {
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { registerWorkspaceDocumentRestorer } from '@volter/editor-sdk/kit/workspace-document-restore';
 import { openAssetDocument } from '@volter/editor-sdk/kit/components/asset-documents';
-import { ToolHost } from './ToolHost';
+import { ToolHost } from '@volter/editor-sdk/kit/components/ToolHost';
 
 const PREFIX = 'document:';
 

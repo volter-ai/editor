@@ -7,8 +7,8 @@ import {
   activeWorkspaceDocumentSelection,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { activeWorkspaceStaticPanel, activeWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-host-commands';
-import { activeEditorWorkspace } from './workspace-presets';
-import { activeWorkspaceStyleId } from './workspace-style';
+import { activeEditorWorkspace } from '@volter/editor-sdk/kit/workspace-presets';
+import { activeWorkspaceStyleId } from '@volter/editor-sdk/kit/workspace-style';
 
 /** Inverse of `revealUtility` (editor-view-presentation.ts): map the live
  *  utility id back into `@volter/editor-sdk`'s public link vocabulary — one of

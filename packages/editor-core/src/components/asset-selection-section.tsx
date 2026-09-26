@@ -35,7 +35,7 @@ import {
   sidecarPathForSheet,
   splitSpritesheetAssetPath,
 } from '@volter/editor-sdk/kit/asset-workflow/pixi-spritesheet';
-import { PROJECT_ASSET_COMMANDS } from '../asset-workflow/project-asset-commands';
+import { PROJECT_ASSET_COMMANDS } from '@volter/editor-sdk/kit/asset-workflow/project-asset-commands';
 import {
   contentEntryForComponent,
   contentEntrySourceRegistryVersion,
@@ -52,7 +52,7 @@ import {
   getAssetInspectorToolContributions,
   getGlobalToolContributions,
   subscribeToolContributions,
-} from '../tool-loader';
+} from '@volter/editor-sdk/kit/tool-loader';
 import { activeWorkspaceDocumentSelection } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { AssetInspectorToolSection } from './AssetInspectorToolSection';
 import { ModelThumbnail, TypedAssetThumbnail } from '@volter/editor-sdk/kit/components/asset-thumbnails';

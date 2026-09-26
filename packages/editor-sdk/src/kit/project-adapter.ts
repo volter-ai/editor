@@ -74,13 +74,13 @@
  * navigation, is the second and is a later rung.
  */
 
-import type { EntrypointSource, FinderInput, ProjectComponentRef } from '@editor/finders';
+import type { EntrypointSource, FinderInput, ProjectComponentRef } from './finders/index';
 import {
   type FinderResult,
   type ProjectSourceFile,
   registerContributedFinder,
   runFinderSelection,
-} from '@editor/finders';
+} from './finders/index';
 import { fsImportPath } from '@volter/editor-sdk/session/project-module-url';
 import type {
   AdapterDefinition,

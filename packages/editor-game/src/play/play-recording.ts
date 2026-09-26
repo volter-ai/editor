@@ -37,7 +37,7 @@
  * recorder's stream never sees, so nothing about the evidence changes.
  */
 
-import { isRootCanvas } from '@volter/editor-core/composite-screenshot';
+import { isRootCanvas } from '@volter/editor-sdk/kit/composite-screenshot';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import {
   type GameplayRecordingCapture,

@@ -17,7 +17,7 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
-import { activeProduct } from '../active-product';
+import { activeProduct } from '@volter/editor-sdk/kit/active-product';
 import { BUNDLED_EDITOR_VERSION } from '../build-identity';
 import {
   contributedChromeVersion,
@@ -34,7 +34,7 @@ import {
   subscribeEditorWorkspace,
   subscribeEditorWorkspaces,
   workspaceApplies,
-} from '../workspace-presets';
+} from '@volter/editor-sdk/kit/workspace-presets';
 import {
   activeChromeRegions,
   chromeRegionsVersion,

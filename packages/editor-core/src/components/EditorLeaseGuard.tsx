@@ -72,7 +72,7 @@ import {
   reduceLeasePoll,
 } from '@volter/editor-sdk/kit/editor-lease';
 import { publishEditorLeaseView } from '@volter/editor-sdk/kit/editor-lease-view';
-import { dismissNotification, notify } from '../editor-notifications';
+import { dismissNotification, notify } from '@volter/editor-sdk/kit/editor-notifications';
 import { connectEvents, readControlChannelState } from '@volter/editor-sdk/kit/editor-presence';
 import { clearSessionOrphanRecord, writeSessionOrphanRecord } from '../session-orphan-record';
 import { clearSessionEnded, markSessionEnded } from '@volter/editor-sdk/kit/session-tombstone';

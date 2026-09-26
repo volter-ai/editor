@@ -12,7 +12,7 @@ import {
   CaptureLayerError,
   capturePlayComposite,
   sampleFlatness,
-} from '@volter/editor-core/composite-screenshot';
+} from '@volter/editor-sdk/kit/composite-screenshot';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { presentationSurface } from '@volter/editor-sdk/kit/presentation-surface';
 import type { EditorCommandMessage, EditorCommandResult } from '@volter/editor-sdk/commands';

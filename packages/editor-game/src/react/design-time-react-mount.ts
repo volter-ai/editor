@@ -58,11 +58,11 @@
 import type {
   DesignTimeRootDescriptor,
   LayerMountResult,
-} from '@volter/editor-core/authoring/design-time-layers';
+} from '@volter/editor-sdk/kit/authoring/design-time-layers';
 import {
   rememberedPortableStory,
   rememberPortableStory,
-} from '@volter/editor-core/authoring/design-time-layers';
+} from '@volter/editor-sdk/kit/authoring/design-time-layers';
 import type { DesignTimeMountContext } from '@volter/editor-sdk/kit/authoring/design-time-mount-registry';
 import { formatMountFailureMessage } from '@volter/editor-sdk/kit/mount-failure-report';
 import type { ReactStoryBoardSelectionIntent } from '@volter/editor-sdk/kit/authoring/react-story-board';
@@ -81,7 +81,7 @@ import {
 } from '../host/react-mount-runtime';
 import { activeRealmServices } from '../host/realm-services';
 import { resolveReactAdapterRootComponent } from '../host/roots/react-root';
-import { scopedGameStylesState } from '@volter/editor-core/scoped-game-css';
+import { scopedGameStylesState } from '@volter/editor-sdk/kit/scoped-game-css';
 import { componentIdentityName } from '@volter/editor-sdk/kit/stories/compose-project-stories';
 import { mountIsolatedStory } from '@volter/editor-core/stories/StoryPreviewMount';
 import {

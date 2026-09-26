@@ -51,7 +51,7 @@ import type { RootDeclaration } from '@volter/editor-project/adapter/binding';
 import { declaredRoots } from '@volter/editor-project/adapter/manifest-interpreter';
 import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@volter/editor-project/manifest/load';
 import { adjudicateThreeEntry } from './entry-adjudication';
-import { projectAdapterDefinition } from '@volter/editor-core/project-adapter';
+import { projectAdapterDefinition } from '@volter/editor-sdk/kit/project-adapter';
 import { activeRealmServices, type RealmServices } from './realm-services';
 import { resolveModuleAdapter } from './roots/module-root';
 import { resolveDomAdapter, resolveIngestReactAdapter } from './roots/react-root';

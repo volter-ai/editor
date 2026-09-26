@@ -23,7 +23,7 @@ import {
   projectAdapterWaitNarration,
   subscribeProjectAdapter,
   waitForProjectAdapter,
-} from '../project-adapter';
+} from '@volter/editor-sdk/kit/project-adapter';
 import {
   activateWorkspaceDocument,
   closeWorkspaceDocument,

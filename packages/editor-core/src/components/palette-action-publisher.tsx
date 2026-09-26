@@ -16,7 +16,7 @@
  * items for an unchanged list would be churn the frame can see.
  */
 import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
-import { buildEntityActions, buildStaticActions, type EditorAction } from '../action-registry';
+import { buildEntityActions, buildStaticActions, type EditorAction } from '@volter/editor-sdk/kit/action-registry';
 import { buildBoardOpenActions } from '../board-open-actions';
 import {
   contributedActions,
@@ -30,9 +30,9 @@ import { useEditorStore, useHistoryCommandSnapshot, useHistoryCommands } from '@
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import type { HistoryCommandSnapshot, HistoryCommands } from '@volter/editor-sdk/kit/history/history-commands';
 import { editorKeymapsVersion, shortcutFor, subscribeEditorKeymap } from '@volter/editor-sdk/kit/keymap-presets';
-import { subscribeWorkspaceStyles, workspaceStylesVersion } from '../workspace-style';
-import { buildProjectToolActions } from './project-tool-documents';
-import { buildToolActions } from './tool-documents';
+import { subscribeWorkspaceStyles, workspaceStylesVersion } from '@volter/editor-sdk/kit/workspace-style';
+import { buildProjectToolActions } from '@volter/editor-sdk/kit/components/project-tool-documents';
+import { buildToolActions } from '@volter/editor-sdk/kit/components/tool-documents';
 
 /**
  * Every action the palette would list, in the order it groups them. Reads

@@ -30,8 +30,8 @@
  * not reach past this door into the kit's registries — that would be a product
  * doing a package's job (rule 3).
  */
-import { setActiveProduct } from '../active-product';
-import { type BundledPackageContribution, setBundledPackageContributions } from '../tool-loader';
+import { setActiveProduct } from '@volter/editor-sdk/kit/active-product';
+import { type BundledPackageContribution, setBundledPackageContributions } from '@volter/editor-sdk/kit/tool-loader';
 import { mountEditor } from './bridge';
 
 /** What a product's entry declares. Every field is a decision only a product

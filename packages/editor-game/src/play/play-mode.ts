@@ -53,7 +53,7 @@ import {
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { GAME_SURFACE_CONTAINMENT_CSS } from '../host/game-realm-page';
 import { reclaimGameRealm } from '../host/game-realm-reclaim';
-import { toolContributionRecording } from '@volter/editor-core/gameplay-sessions';
+import { toolContributionRecording } from '@volter/editor-sdk/kit/gameplay-sessions';
 import {
   clearGameSurface,
   currentGameRealmMountId,
@@ -73,7 +73,7 @@ import {
   endPlayBoot,
   markPlayBootPhase,
   type PlayBootPhase,
-} from '@volter/editor-core/play-boot-phase';
+} from '@volter/editor-sdk/kit/play-boot-phase';
 import { presentationSurface } from '@volter/editor-sdk/kit/presentation-surface';
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import {

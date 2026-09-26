@@ -52,7 +52,7 @@ import {
   type WriteResolution,
 } from '@volter/editor-sdk/kit/write-pipe';
 import { componentStatesProvider } from '@volter/editor-sdk/kit/component-states-registry';
-import { openProjectToolDocument } from '@volter/editor-core/components/project-tool-documents';
+import { openProjectToolDocument } from '@volter/editor-sdk/kit/components/project-tool-documents';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import {

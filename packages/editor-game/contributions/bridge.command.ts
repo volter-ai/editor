@@ -27,7 +27,7 @@ import {
   startGameplayRecording,
   stopGameplayRecording,
 } from '../src/host/gameplay-recording';
-import { captureGameplayReplay, exportGameplayReplay } from '@volter/editor-core/gameplay-replay';
+import { captureGameplayReplay, exportGameplayReplay } from '@volter/editor-sdk/kit/gameplay-replay';
 import type { CommandContribution } from '@volter/editor-sdk/commands';
 import { handleBridgeCall } from '../src/bridge/call';
 import { hasLiveDebugPlane } from '../src/bridge/dispatch';

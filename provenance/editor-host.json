@@ -14,12 +14,12 @@
     },
     {
       "source": "packages/editor/src/action-registry.ts",
-      "path": "packages/editor-core/src/action-registry.ts",
+      "path": "packages/editor-sdk/src/kit/action-registry.ts",
       "sha256": "fd4c2dfa7c95caac79e3c38b0c4247f51e6f6dfa129245f9cf6f97812463daf4"
     },
     {
       "source": "packages/editor/src/active-product.ts",
-      "path": "packages/editor-core/src/active-product.ts",
+      "path": "packages/editor-sdk/src/kit/active-product.ts",
       "sha256": "a7396e893928ab384b99727f66a5762450af523abdc8cad9b5a6fa84521d41eb"
     },
     {
@@ -109,7 +109,7 @@
     },
     {
       "source": "packages/editor/src/api/themes.ts",
-      "path": "packages/editor-core/src/api/themes.ts",
+      "path": "packages/editor-sdk/src/kit/api/themes.ts",
       "sha256": "99145ca32e7a86033b4c2a776cfa53da2786c8c75cbc3519b29d25b7bf6e3304"
     },
     {
@@ -259,7 +259,7 @@
     },
     {
       "source": "packages/editor/src/asset-workflow/project-asset-commands.ts",
-      "path": "packages/editor-core/src/asset-workflow/project-asset-commands.ts",
+      "path": "packages/editor-sdk/src/kit/asset-workflow/project-asset-commands.ts",
       "sha256": "f007f7efd455ac64e4643adb00bfe1fd65db8af51d440598f5d1aabd567e4ad5"
     },
     {
@@ -354,7 +354,7 @@
     },
     {
       "source": "packages/editor/src/authoring/design-time-layers.ts",
-      "path": "packages/editor-core/src/authoring/design-time-layers.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/design-time-layers.ts",
       "sha256": "72897ccf1523ce23cbfb7c88ef844329432ecd53e1b472c48978c1c1aaa1cd3c"
     },
     {
@@ -409,7 +409,7 @@
     },
     {
       "source": "packages/editor/src/authoring/mounted-root-subjects.ts",
-      "path": "packages/editor-core/src/authoring/mounted-root-subjects.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/mounted-root-subjects.ts",
       "sha256": "b8e1b933a6f0e467b62318df2b83d92afd0cdfcc250a2cd8ad147db624424849"
     },
     {
@@ -809,7 +809,7 @@
     },
     {
       "source": "packages/editor/src/components/GameplaySessionTimeline.tsx",
-      "path": "packages/editor-core/src/components/GameplaySessionTimeline.tsx",
+      "path": "packages/editor-sdk/src/kit/components/GameplaySessionTimeline.tsx",
       "sha256": "d3dca0e7c6a391c3451a826436380890f6d5dddbf74db03afefe5a6b3457177d"
     },
     {
@@ -844,7 +844,7 @@
     },
     {
       "source": "packages/editor/src/components/InspectorToolSection.tsx",
-      "path": "packages/editor-core/src/components/InspectorToolSection.tsx",
+      "path": "packages/editor-sdk/src/kit/components/InspectorToolSection.tsx",
       "sha256": "dc92f9469f092c1aa258569a462b4d6b09571936fae924f75a4c972c1860819a"
     },
     {
@@ -954,7 +954,7 @@
     },
     {
       "source": "packages/editor/src/components/ToolHost.tsx",
-      "path": "packages/editor-core/src/components/ToolHost.tsx",
+      "path": "packages/editor-sdk/src/kit/components/ToolHost.tsx",
       "sha256": "be6aeb22f5b1f3f525d10b7d2b84ca5e706d0e85b51a4ad6335773d3c0662358"
     },
     {
@@ -989,7 +989,7 @@
     },
     {
       "source": "packages/editor/src/components/VgaiLogo.tsx",
-      "path": "packages/editor-core/src/components/VgaiLogo.tsx",
+      "path": "packages/editor-sdk/src/kit/components/VgaiLogo.tsx",
       "sha256": "e770216dc27028b32c25ef4bce559721eeaed7085c8a900a4028a28ba006c8c1"
     },
     {
@@ -1044,7 +1044,7 @@
     },
     {
       "source": "packages/editor/src/components/account-documents.tsx",
-      "path": "packages/editor-core/src/components/account-documents.tsx",
+      "path": "packages/editor-sdk/src/kit/components/account-documents.tsx",
       "sha256": "273844d42e6e65b3716f153da7df3da69df9d1166712eac174a9b9f3868ef798"
     },
     {
@@ -1244,7 +1244,7 @@
     },
     {
       "source": "packages/editor/src/components/project-tool-documents.tsx",
-      "path": "packages/editor-core/src/components/project-tool-documents.tsx",
+      "path": "packages/editor-sdk/src/kit/components/project-tool-documents.tsx",
       "sha256": "89781a24b15063e2f969e57767f6d135536c60d3767aa82775ad413f64b44d35"
     },
     {
@@ -1279,12 +1279,12 @@
     },
     {
       "source": "packages/editor/src/components/tool-documents.tsx",
-      "path": "packages/editor-core/src/components/tool-documents.tsx",
+      "path": "packages/editor-sdk/src/kit/components/tool-documents.tsx",
       "sha256": "adee9ede986a412d716328eb0deb047685a91ecc0bf1a0b86ad42aedb19e9f12"
     },
     {
       "source": "packages/editor/src/components/tool-schema-form.tsx",
-      "path": "packages/editor-core/src/components/tool-schema-form.tsx",
+      "path": "packages/editor-sdk/src/kit/components/tool-schema-form.tsx",
       "sha256": "f67e6de0577c03a9f44174a248b5535c5aaee6db966832ab4e9e18583e6d671b"
     },
     {
@@ -1334,7 +1334,7 @@
     },
     {
       "source": "packages/editor/src/composite-screenshot.ts",
-      "path": "packages/editor-core/src/composite-screenshot.ts",
+      "path": "packages/editor-sdk/src/kit/composite-screenshot.ts",
       "sha256": "83ac0ad9186b025712cf9cebb70bfbf8d37dc483bdc2532cc2b6fa09fee82ed0"
     },
     {
@@ -1464,7 +1464,7 @@
     },
     {
       "source": "packages/editor/src/editor-hotkeys.ts",
-      "path": "packages/editor-core/src/editor-hotkeys.ts",
+      "path": "packages/editor-sdk/src/kit/editor-hotkeys.ts",
       "sha256": "47cfa97b94fb8c2119ca4d448f4123605bb6c682b377b025361f7ac3e2c7a05e"
     },
     {
@@ -1484,7 +1484,7 @@
     },
     {
       "source": "packages/editor/src/editor-notifications.ts",
-      "path": "packages/editor-core/src/editor-notifications.ts",
+      "path": "packages/editor-sdk/src/kit/editor-notifications.ts",
       "sha256": "d4f6b6ce7eaa777f4d292cd08524b984533dcb1ba944670aef6160714f41c8bb"
     },
     {
@@ -1569,12 +1569,12 @@
     },
     {
       "source": "packages/editor/src/finders/index.ts",
-      "path": "packages/editor-core/src/finders/index.ts",
+      "path": "packages/editor-sdk/src/kit/finders/index.ts",
       "sha256": "2469c2642b7488a49b71d1bbd3097d108be2b881c1278ae4ffdc2cc112413cb2"
     },
     {
       "source": "packages/editor/src/finders/scenes-from-entrypoint-selection.ts",
-      "path": "packages/editor-core/src/finders/scenes-from-entrypoint-selection.ts",
+      "path": "packages/editor-sdk/src/kit/finders/scenes-from-entrypoint-selection.ts",
       "sha256": "edf05a7a1156fa38ff40165edc040c264934827de3d4158aa29e725902565f13"
     },
     {
@@ -1589,7 +1589,7 @@
     },
     {
       "source": "packages/editor/src/gameplay-dom-recording.ts",
-      "path": "packages/editor-core/src/gameplay-dom-recording.ts",
+      "path": "packages/editor-sdk/src/kit/gameplay-dom-recording.ts",
       "sha256": "b5751ba18524f8295723f124ca04fd239ad43f7e5ea0db23627c9e33cc1372a9"
     },
     {
@@ -1599,17 +1599,17 @@
     },
     {
       "source": "packages/editor/src/gameplay-replay.ts",
-      "path": "packages/editor-core/src/gameplay-replay.ts",
+      "path": "packages/editor-sdk/src/kit/gameplay-replay.ts",
       "sha256": "85f12eb61f5b7988420a2b07f17610d14395ed3ca4586ef0adda87b2734cce62"
     },
     {
       "source": "packages/editor/src/gameplay-session-time.ts",
-      "path": "packages/editor-core/src/gameplay-session-time.ts",
+      "path": "packages/editor-sdk/src/kit/gameplay-session-time.ts",
       "sha256": "fe1a26275fc60153e80ad2b608ff5bcafaa7ca7150ef749701ab8038d61be03f"
     },
     {
       "source": "packages/editor/src/gameplay-sessions.ts",
-      "path": "packages/editor-core/src/gameplay-sessions.ts",
+      "path": "packages/editor-sdk/src/kit/gameplay-sessions.ts",
       "sha256": "b64738403e08632d38ba8a3398a961054389f6dbe61092867877ddaaaee17545"
     },
     {
@@ -1924,12 +1924,12 @@
     },
     {
       "source": "packages/editor/src/palettes/maya.palette.json",
-      "path": "packages/editor-core/src/palettes/maya.palette.json",
+      "path": "packages/editor-sdk/src/kit/palettes/maya.palette.json",
       "sha256": "2e4b9d55b1cd96e53d42cc7aa23d52392aa4e3fe5bbce4cfc66a9f59ce684748"
     },
     {
       "source": "packages/editor/src/palettes/substance.palette.json",
-      "path": "packages/editor-core/src/palettes/substance.palette.json",
+      "path": "packages/editor-sdk/src/kit/palettes/substance.palette.json",
       "sha256": "23bfbc53eb535b478c7ad51faab57d07d5db0ac217640ecf736d139b69443bf4"
     },
     {
@@ -1944,7 +1944,7 @@
     },
     {
       "source": "packages/editor/src/play-boot-phase.ts",
-      "path": "packages/editor-core/src/play-boot-phase.ts",
+      "path": "packages/editor-sdk/src/kit/play-boot-phase.ts",
       "sha256": "60fba6cb4610c6145781ad47b66117be8a2c1b2117d2829e50dca6263b43591a"
     },
     {
@@ -1954,7 +1954,7 @@
     },
     {
       "source": "packages/editor/src/project-adapter.ts",
-      "path": "packages/editor-core/src/project-adapter.ts",
+      "path": "packages/editor-sdk/src/kit/project-adapter.ts",
       "sha256": "1312e3577116d001f7f40f9fc19990a8b51a85ef201a88acae5f6339f18d687e"
     },
     {
@@ -2049,7 +2049,7 @@
     },
     {
       "source": "packages/editor/src/scene-document-plan.ts",
-      "path": "packages/editor-core/src/scene-document-plan.ts",
+      "path": "packages/editor-sdk/src/kit/scene-document-plan.ts",
       "sha256": "7fb1b2e403851fd10e25a2fc6dcf07dbf0d7e7d4cf3afd1eb18a4e22c8d14387"
     },
     {
@@ -2069,7 +2069,7 @@
     },
     {
       "source": "packages/editor/src/scoped-game-css.ts",
-      "path": "packages/editor-core/src/scoped-game-css.ts",
+      "path": "packages/editor-sdk/src/kit/scoped-game-css.ts",
       "sha256": "b6076a287b6e9d38c01de972d428ee3ad8d7b2ace932c4700ec714edcf199eea"
     },
     {
@@ -2199,12 +2199,12 @@
     },
     {
       "source": "packages/editor/src/stories/prefabs-finder.ts",
-      "path": "packages/editor-core/src/stories/prefabs-finder.ts",
+      "path": "packages/editor-sdk/src/kit/stories/prefabs-finder.ts",
       "sha256": "cd0eb1f15d64aba74444a8464152d3278ed1dc1ffe417d09c645b43247b362ce"
     },
     {
       "source": "packages/editor/src/stories/prefabs-from-stories.ts",
-      "path": "packages/editor-core/src/stories/prefabs-from-stories.ts",
+      "path": "packages/editor-sdk/src/kit/stories/prefabs-from-stories.ts",
       "sha256": "892c0a4946cd3b1980791c9a0b0b4248fce4a354b7b9a858b9043a0df8058b5c"
     },
     {
@@ -2324,12 +2324,12 @@
     },
     {
       "source": "packages/editor/src/theme-library.ts",
-      "path": "packages/editor-core/src/theme-library.ts",
+      "path": "packages/editor-sdk/src/kit/theme-library.ts",
       "sha256": "0ff68c845eccae81d80512a087aae4a8b3db0482a5a10a6de96470837218bfa3"
     },
     {
       "source": "packages/editor/src/theme-preference.ts",
-      "path": "packages/editor-core/src/theme-preference.ts",
+      "path": "packages/editor-sdk/src/kit/theme-preference.ts",
       "sha256": "24da4af40153d61caffbdf94527a3916ca776480c37d4cee08a449d7a7933de1"
     },
     {
@@ -2389,7 +2389,7 @@
     },
     {
       "source": "packages/editor/src/tool-loader.ts",
-      "path": "packages/editor-core/src/tool-loader.ts",
+      "path": "packages/editor-sdk/src/kit/tool-loader.ts",
       "sha256": "557dbce8431898199829fd41de594e5926b9d4f78f046f1bec5b152796ec1755"
     },
     {
@@ -2524,12 +2524,12 @@
     },
     {
       "source": "packages/editor/src/workspace-areas.ts",
-      "path": "packages/editor-core/src/workspace-areas.ts",
+      "path": "packages/editor-sdk/src/kit/workspace-areas.ts",
       "sha256": "f56643496207704f9b4743dcb64e1d736f3bdb699678311c95d6608f749318c5"
     },
     {
       "source": "packages/editor/src/workspace-aux-commands.ts",
-      "path": "packages/editor-core/src/workspace-aux-commands.ts",
+      "path": "packages/editor-sdk/src/kit/workspace-aux-commands.ts",
       "sha256": "894d361f16d988f8710b32b25ed15fe0e73182a0efb3417e36f0d7e61927cd52"
     },
     {
@@ -2574,7 +2574,7 @@
     },
     {
       "source": "packages/editor/src/workspace-presets.ts",
-      "path": "packages/editor-core/src/workspace-presets.ts",
+      "path": "packages/editor-sdk/src/kit/workspace-presets.ts",
       "sha256": "b7f134afb5b03888639682097c4113802f96f5590a0db8dd3aade956eefc37ff"
     },
     {
@@ -2599,7 +2599,7 @@
     },
     {
       "source": "packages/editor/src/workspace-style.ts",
-      "path": "packages/editor-core/src/workspace-style.ts",
+      "path": "packages/editor-sdk/src/kit/workspace-style.ts",
       "sha256": "e3b62f4f91d15eada640e7140374b99e722f4c9f0c49e3154930e8b30cde8d88"
     },
     {

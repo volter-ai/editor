@@ -4,8 +4,8 @@
  * installer can be unit-tested without pulling Pixi/Three into jsdom.
  */
 
-import { projectAdapterFacet } from '@volter/editor-core/project-adapter';
-import { isolationTabsReplaceGenericScene } from '@volter/editor-core/scene-document-plan';
+import { projectAdapterFacet } from '@volter/editor-sdk/kit/project-adapter';
+import { isolationTabsReplaceGenericScene } from '@volter/editor-sdk/kit/scene-document-plan';
 import { CANVAS_SCENE_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activateWorkspaceDocument,

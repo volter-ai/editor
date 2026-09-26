@@ -86,8 +86,8 @@ import {
   remountLiveSelection,
   subscribeLiveSessions,
 } from '@volter/editor-sdk/kit/live-session-registry';
-import { setPlayBootPhaseReporter } from './play-boot-phase';
-import { projectAdapterFacet, subscribeProjectAdapter } from './project-adapter';
+import { setPlayBootPhaseReporter } from '@volter/editor-sdk/kit/play-boot-phase';
+import { projectAdapterFacet, subscribeProjectAdapter } from '@volter/editor-sdk/kit/project-adapter';
 import { getProjectModuleSplitReports } from '@volter/editor-sdk/kit/project-module-split';
 import { onSessionEndedChange, sessionEndedRefusal, sessionEndedState } from '@volter/editor-sdk/kit/session-tombstone';
 import { prepareSessionClose } from './session-close';
@@ -151,7 +151,7 @@ import {
   presentEditorView,
   revealStaticPanel,
 } from './editor-view-presentation';
-import { toolGameplaySessions } from './gameplay-sessions';
+import { toolGameplaySessions } from '@volter/editor-sdk/kit/gameplay-sessions';
 import {
   InspectionRemovalUnavailableError,
   inspectActiveSubject,
@@ -162,7 +162,7 @@ import {
 import { measuredReadinessWarning, readinessFacet } from '@volter/editor-sdk/kit/readiness';
 import { deriveReportedPlayState } from './reported-play-state';
 import { openLiveSceneEntry } from './scene-live-open';
-import { editorMaterialSnapshot, setEditorMaterialPreference } from './theme-preference';
+import { editorMaterialSnapshot, setEditorMaterialPreference } from '@volter/editor-sdk/kit/theme-preference';
 import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activateWorkspaceDocument,
@@ -178,14 +178,14 @@ import {
   isEditorWorkspaceId,
   setEditorWorkspace,
   whenEditorWorkspaceApplied,
-} from './workspace-presets';
+} from '@volter/editor-sdk/kit/workspace-presets';
 import {
   activeWorkspaceStyleId,
   applyWorkspaceStyle,
   workspaceStyleDifferences,
   workspaceStyles,
-} from './workspace-style';
-import { documentContributionForKind } from './tool-loader';
+} from '@volter/editor-sdk/kit/workspace-style';
+import { documentContributionForKind } from '@volter/editor-sdk/kit/tool-loader';
 import { toggleConsoleUtility } from '@volter/editor-sdk/kit/workspace-utility-commands';
 import { worldAdoptionFacet } from './world-adoption';
 

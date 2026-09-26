@@ -36,13 +36,13 @@ import type {
   CompositeFrame,
   ImageSnapshotCache,
   OverlayFrameCache,
-} from '@volter/editor-core/composite-screenshot';
+} from '@volter/editor-sdk/kit/composite-screenshot';
 import {
   createImageSnapshotCache,
   createOverlayFrameCache,
   drawPlayCompositeFrame,
   isRootCanvas,
-} from '@volter/editor-core/composite-screenshot';
+} from '@volter/editor-sdk/kit/composite-screenshot';
 import {
   abortGameplayRecordingSink,
   appendGameplayRecordingChunk,
@@ -50,8 +50,8 @@ import {
   finishGameplayRecordingSink,
   type GameplayRecordingSink,
 } from '@volter/editor-sdk/kit/editor-api';
-import { type GameplayDomRecording, startGameplayDomRecording } from '@volter/editor-core/gameplay-dom-recording';
-import { publishToolContributionRecording } from '@volter/editor-core/gameplay-sessions';
+import { type GameplayDomRecording, startGameplayDomRecording } from '@volter/editor-sdk/kit/gameplay-dom-recording';
+import { publishToolContributionRecording } from '@volter/editor-sdk/kit/gameplay-sessions';
 import { createRecordingPreviewEncoder } from './recording-preview';
 
 export interface GameplayRecordingStartOptions {

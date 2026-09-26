@@ -1,7 +1,7 @@
 /** Palette actions over discoverable component canvases, including closed tabs.
  * The registry retains the board descriptor; opening does not create another board. */
 
-import type { EditorAction } from './action-registry';
+import type { EditorAction } from '@volter/editor-sdk/kit/action-registry';
 import {
   availableWorkspaceDocuments,
   openAvailableWorkspaceDocument,

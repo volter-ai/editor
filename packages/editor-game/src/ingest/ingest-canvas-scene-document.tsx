@@ -29,7 +29,7 @@ import { RootSelectionOverlay } from '@volter/editor-sdk/kit/components/RootSele
 import { SurfaceStateOverlay } from '@volter/editor-sdk/kit/components/SurfaceStateOverlay';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { liveDocumentContainer } from '@volter/editor-sdk/kit/live-document';
-import { projectAdapterFacet } from '@volter/editor-core/project-adapter';
+import { projectAdapterFacet } from '@volter/editor-sdk/kit/project-adapter';
 import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import { explainSurface } from '@volter/editor-sdk/kit/surface-state';
 import {
