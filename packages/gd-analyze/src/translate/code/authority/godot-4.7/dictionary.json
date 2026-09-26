@@ -1,0 +1,354 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/dictionary"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Dictionary",
+        "member": "Dictionary",
+        "kind": "builtin-constructor",
+        "signature": "unhashed"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/dictionary",
+        "exportName": "construct",
+        "localName": "Dictionary_construct",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Dictionary.Dictionary"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Dictionary",
+        "member": "is_empty",
+        "kind": "builtin-member",
+        "signature": "hash:3918633141"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/dictionary",
+        "exportName": "is_empty",
+        "localName": "Dictionary_is_empty",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Dictionary.is_empty"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Dictionary",
+        "member": "keys",
+        "kind": "builtin-member",
+        "signature": "hash:4144163970"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/dictionary",
+        "exportName": "keys",
+        "localName": "Dictionary_keys",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Dictionary.keys"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Dictionary",
+        "member": "has",
+        "kind": "builtin-member",
+        "signature": "hash:3680194679"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/dictionary",
+        "exportName": "has",
+        "localName": "Dictionary_has",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Dictionary.has"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Dictionary",
+        "member": "erase",
+        "kind": "builtin-member",
+        "signature": "hash:1776646889"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/dictionary",
+        "exportName": "erase",
+        "localName": "Dictionary_erase",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Dictionary.erase"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Dictionary.Dictionary",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-constructor\u0000Dictionary\u0000Dictionary\u0000unhashed",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/dictionary.cpp",
+        "sourceSymbol": "Dictionary.Dictionary",
+        "sourceLine": 760
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2d3e86fda58a72eab30d4e8e3f58cdc134761271a57602a5d3819b805f4857c4",
+        "callsite": "res://probe.gd _init() construct-empty construct-from-empty construct-from-strings construct-from-ints construct-from-mixed construct-from-shares",
+        "observedOutputSha256": "450bd02ea0c020bc03ffeecd2c200dc0bb9acad209aae413696e0caca0c23aab"
+      },
+      "target": {
+        "implementationSha256": "ba3ff5af8d2136988fd5f31a20c206c288f7488b59cdf23db7650cb86c8ba7fa",
+        "callsite": "lib/godot-compat/dictionary.ts construct",
+        "observedOutputSha256": "450bd02ea0c020bc03ffeecd2c200dc0bb9acad209aae413696e0caca0c23aab"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "80a7c1f6a3ed31e4de249c0d06e4fe2a69ed096e2daadf5d44bbc519f5532dd2"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "dictionary",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Dictionary.is_empty",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Dictionary\u0000is_empty\u0000hash:3918633141",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/dictionary.cpp",
+        "sourceSymbol": "Dictionary.is_empty",
+        "sourceLine": 216
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "05fcef23c7146ac7a1666216e2a3205a776dc38a0ceb7662286f1273b8ffd941",
+        "callsite": "res://probe.gd _init() is_empty-empty is_empty-strings is_empty-ints is_empty-mixed",
+        "observedOutputSha256": "bb7ee525ded4a934b3228731d6bbd9575509821c0cbe5438fbceb762b3b84a27"
+      },
+      "target": {
+        "implementationSha256": "ba3ff5af8d2136988fd5f31a20c206c288f7488b59cdf23db7650cb86c8ba7fa",
+        "callsite": "lib/godot-compat/dictionary.ts is_empty",
+        "observedOutputSha256": "bb7ee525ded4a934b3228731d6bbd9575509821c0cbe5438fbceb762b3b84a27"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "be3aacd4e9c58a57c5d8319771e85a4234ffa0570547492b4230646c7a75b1ea"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "dictionary",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Dictionary.keys",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Dictionary\u0000keys\u0000hash:4144163970",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/dictionary.cpp",
+        "sourceSymbol": "Dictionary.keys",
+        "sourceLine": 386
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e2d9e6b0365b8ce9a118009801f0edcdab382e1d7849e106e49e4fbccdb3d0e0",
+        "callsite": "res://probe.gd _init() keys-empty keys-strings keys-ints keys-mixed keys-order-after-erase",
+        "observedOutputSha256": "947fa82d5e3861526479af4bc373b964480e2fc86f30cb58bb97c5701a08077c"
+      },
+      "target": {
+        "implementationSha256": "ba3ff5af8d2136988fd5f31a20c206c288f7488b59cdf23db7650cb86c8ba7fa",
+        "callsite": "lib/godot-compat/dictionary.ts keys",
+        "observedOutputSha256": "947fa82d5e3861526479af4bc373b964480e2fc86f30cb58bb97c5701a08077c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "84ecab2986a6b7cc2a58390b8014ab795248a0d7cdd3e644e9d7a6d6af0cfba8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "dictionary",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Dictionary.has",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Dictionary\u0000has\u0000hash:3680194679",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/dictionary.cpp",
+        "sourceSymbol": "Dictionary.has",
+        "sourceLine": 220
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "aee994fc99729605e22da63399ce5987a8bb4b93b41d9c185eb8e1f43580d8b0",
+        "callsite": "res://probe.gd _init() has-empty-string-a has-empty-name-a has-empty-string-z has-empty-int-3 has-empty-int-0 has-empty-true has-empty-null has-strings-string-a has-strings-name-a has-strings-string-z has-strings-int-3 has-strings-int-0 has-strings-true has-strings-null has-ints-string-a has-ints-name-a has-ints-string-z has-ints-int-3 has-ints-int-0 has-ints-true has-ints-null has-mixed-string-a has-mixed-name-a has-mixed-string-z has-mixed-int-3 has-mixed-int-0 has-mixed-true has-mixed-null",
+        "observedOutputSha256": "f2e373d8af06c4f55a93725bee38c6532bbafd83618b9b672fa5f1cd8e458c83"
+      },
+      "target": {
+        "implementationSha256": "ba3ff5af8d2136988fd5f31a20c206c288f7488b59cdf23db7650cb86c8ba7fa",
+        "callsite": "lib/godot-compat/dictionary.ts has",
+        "observedOutputSha256": "f2e373d8af06c4f55a93725bee38c6532bbafd83618b9b672fa5f1cd8e458c83"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "733d68a3aff2facfe597f8d5673e28a4964e0d0c21582720b2f37dc86061f2b8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "dictionary",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Dictionary.erase",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Dictionary\u0000erase\u0000hash:1776646889",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/dictionary.cpp",
+        "sourceSymbol": "Dictionary.erase",
+        "sourceLine": 248
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1e7e6dbe30401893d254b20c8da8b44a71862234ffef156ac2826cdc2eac6fe9",
+        "callsite": "res://probe.gd _init() erase-result-empty-string-a erase-rest-empty-string-a erase-result-empty-name-a erase-rest-empty-name-a erase-result-empty-string-z erase-rest-empty-string-z erase-result-empty-int-3 erase-rest-empty-int-3 erase-result-empty-int-0 erase-rest-empty-int-0 erase-result-empty-true erase-rest-empty-true erase-result-empty-null erase-rest-empty-null erase-result-strings-string-a erase-rest-strings-string-a erase-result-strings-name-a erase-rest-strings-name-a erase-result-strings-string-z erase-rest-strings-string-z erase-result-strings-int-3 erase-rest-strings-int-3 erase-result-strings-int-0 erase-rest-strings-int-0 erase-result-strings-true erase-rest-strings-true erase-result-strings-null erase-rest-strings-null erase-result-ints-string-a erase-rest-ints-string-a erase-result-ints-name-a erase-rest-ints-name-a erase-result-ints-string-z erase-rest-ints-string-z erase-result-ints-int-3 erase-rest-ints-int-3 erase-result-ints-int-0 erase-rest-ints-int-0 erase-result-ints-true erase-rest-ints-true erase-result-ints-null erase-rest-ints-null erase-result-mixed-string-a erase-rest-mixed-string-a erase-result-mixed-name-a erase-rest-mixed-name-a erase-result-mixed-string-z erase-rest-mixed-string-z erase-result-mixed-int-3 erase-rest-mixed-int-3 erase-result-mixed-int-0 erase-rest-mixed-int-0 erase-result-mixed-true erase-rest-mixed-true erase-result-mixed-null erase-rest-mixed-null erase-shared",
+        "observedOutputSha256": "ee4dc664633dc60d8dc00be677e72da0d33e35718d62447bb5002ac2e5bf8681"
+      },
+      "target": {
+        "implementationSha256": "ba3ff5af8d2136988fd5f31a20c206c288f7488b59cdf23db7650cb86c8ba7fa",
+        "callsite": "lib/godot-compat/dictionary.ts erase",
+        "observedOutputSha256": "ee4dc664633dc60d8dc00be677e72da0d33e35718d62447bb5002ac2e5bf8681"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6322d2ef791af089984d5d9c830443a506cf93cfdfb6e836590ab4444683b163"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "dictionary",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Dictionary.Dictionary",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2d3e86fda58a72eab30d4e8e3f58cdc134761271a57602a5d3819b805f4857c4",
+      "implementationSha256": "ba3ff5af8d2136988fd5f31a20c206c288f7488b59cdf23db7650cb86c8ba7fa"
+    },
+    {
+      "claimId": "godot-4.7-binding-Dictionary.is_empty",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "05fcef23c7146ac7a1666216e2a3205a776dc38a0ceb7662286f1273b8ffd941",
+      "implementationSha256": "ba3ff5af8d2136988fd5f31a20c206c288f7488b59cdf23db7650cb86c8ba7fa"
+    },
+    {
+      "claimId": "godot-4.7-binding-Dictionary.keys",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e2d9e6b0365b8ce9a118009801f0edcdab382e1d7849e106e49e4fbccdb3d0e0",
+      "implementationSha256": "ba3ff5af8d2136988fd5f31a20c206c288f7488b59cdf23db7650cb86c8ba7fa"
+    },
+    {
+      "claimId": "godot-4.7-binding-Dictionary.has",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "aee994fc99729605e22da63399ce5987a8bb4b93b41d9c185eb8e1f43580d8b0",
+      "implementationSha256": "ba3ff5af8d2136988fd5f31a20c206c288f7488b59cdf23db7650cb86c8ba7fa"
+    },
+    {
+      "claimId": "godot-4.7-binding-Dictionary.erase",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1e7e6dbe30401893d254b20c8da8b44a71862234ffef156ac2826cdc2eac6fe9",
+      "implementationSha256": "ba3ff5af8d2136988fd5f31a20c206c288f7488b59cdf23db7650cb86c8ba7fa"
+    }
+  ]
+}
