@@ -1398,6 +1398,17 @@ export class EditorViewport {
     this._auxRotateControls.setMode('rotate');
     this._activeGizmo = this.transformControls;
     const wireGizmo = (gizmoControls: TransformControls): void => {
+      // THE DRAG PLANE AS THE HOVER LEFT IT. The plane a drag intersects (`TransformControlsPlane`)
+      // turns to the hovered axis only when the helper next updates its matrices, a render away,
+      // and `pointerDown` reads it as it stands; a press within a frame of its hover (a quick
+      // flick onto an arrow, a touch, whose hover runs inside the press) started on the plane of
+      // no axis, which faces the camera, and the object moved by that plane's foreshortened
+      // offset: measured on a fresh model, 1.24 m where the cursor asked for 2.78 m.
+      const pressed = gizmoControls.pointerDown.bind(gizmoControls);
+      gizmoControls.pointerDown = (pointer) => {
+        gizmoControls.getHelper().updateMatrixWorld(true);
+        pressed(pointer);
+      };
       // Enable all layers on the internal raycaster so it can pick gizmo parts on EDITOR_LAYER
       gizmoControls.getRaycaster().layers.enableAll();
       gizmoControls.addEventListener('dragging-changed', (event) => {
