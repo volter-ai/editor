@@ -1,6 +1,6 @@
 /**
  * The editor's mount of a `canvas` root whose entry module DEFAULT-EXPORTS a
- * React component. This is the ONE first-party canvas mount:
+ * React component — the world a game's own boot renders with `@pixi/react`:
  *
  * ```tsx
  * export default function World() {
@@ -8,12 +8,18 @@
  * }
  * ```
  *
- * The world is an ordinary `@pixi/react` app. Everything vgai-shaped stays at
- * the entry module's STATIC surface (`export { debug, systems } from
- * './commands'`) and on the host's side of the seam; no vgai runtime context
- * ever enters the React tree. The host advances Pixi's real (never-started)
- * ticker on GAME time, wires the game-scoped input seams from outside
- * (`../runtime/game-input-seams.ts`), and renders the entry bare.
+ * The world is an ordinary `@pixi/react` app. The editor renders it bare,
+ * advances Pixi's real (never-started) ticker on GAME time, and wires the
+ * game-scoped input seams from outside the tree
+ * (`@volter/game-runtime/runtime/game-input-seams`).
+ *
+ * WHOSE REACT, RECONCILER AND PIXI. The entry's hooks resolve `react`,
+ * `@pixi/react` and `pixi.js` through the project's module graph, so the root
+ * that renders it must be built with the same instances: {@link CanvasRuntime}
+ * is handed in by `canvas-entry-runtime.ts`, which takes them from the canvas
+ * doorway under the packaged runtime and loads its own otherwise. Only types
+ * are imported here, so a three-only project's editor bundle never carries
+ * the Pixi renderer.
  *
  * ## The loop contract
  *
@@ -37,15 +43,31 @@
  * itself.
  */
 
-import { createRoot, extend } from '@pixi/react';
+import type * as PixiReact from '@pixi/react';
 import type { MountedCanvasRoot, MountedCanvasSubstrate, RootAdapter } from '@volter/editor-project/adapter';
-import type { GameCanvasHostContext } from '../runtime/host-context';
 import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
+import { getDebugRegistry } from '@volter/game-runtime/runtime/debug-registry';
+import {
+  DEFAULT_INPUT_MAP_PATH,
+  wireGameInputSeams,
+} from '@volter/game-runtime/runtime/game-input-seams';
+import type { GameCanvasHostContext } from '@volter/game-runtime/runtime/host-context';
+import type * as PIXI from 'pixi.js';
 import type { Application, ApplicationOptions, Container } from 'pixi.js';
-import * as PIXI from 'pixi.js';
-import { type ComponentType, createElement, Fragment, useEffect, useLayoutEffect } from 'react';
-import { getDebugRegistry } from '../runtime/debug-registry';
-import { DEFAULT_INPUT_MAP_PATH, wireGameInputSeams } from '../runtime/game-input-seams';
+import type * as React from 'react';
+import type { ComponentType } from 'react';
+
+/** The React, `@pixi/react` and `pixi.js` a canvas world is mounted with — the ones its own
+ *  hooks resolve. */
+export interface CanvasRuntime {
+  readonly createElement: typeof React.createElement;
+  readonly Fragment: typeof React.Fragment;
+  readonly useEffect: typeof React.useEffect;
+  readonly useLayoutEffect: typeof React.useLayoutEffect;
+  readonly createRoot: typeof PixiReact.createRoot;
+  readonly extend: typeof PixiReact.extend;
+  readonly pixi: typeof PIXI;
+}
 
 /** How long `mount()` waits for the tree's first commit before failing loudly
  *  rather than hanging (and wedging every root declared after this one, since
@@ -65,7 +87,7 @@ const MOUNTED_CANVASES = new WeakSet<HTMLCanvasElement>();
 
 /** `@pixi/react`'s reconciler-root handle. Its `Root` type is internal (the
  *  package exports the FUNCTION, not the type), so name it off the function. */
-type PixiReactRoot = ReturnType<typeof createRoot>;
+type PixiReactRoot = ReturnType<typeof PixiReact.createRoot>;
 
 interface CanvasEntryModuleExports {
   /** The one shape: the world IS a component. */
@@ -98,7 +120,12 @@ function isCanvasRootAdapter(candidate: unknown): candidate is RootAdapter<'canv
  * rendering into the host's own canvas — never a second canvas, never a
  * second `requestAnimationFrame` loop.
  */
-function canvasWorldAdapter(id: string, component: ComponentType): RootAdapter<'canvas'> {
+function canvasWorldAdapter(
+  id: string,
+  component: ComponentType,
+  runtime: CanvasRuntime,
+): RootAdapter<'canvas'> {
+  const { createElement, Fragment, useEffect, useLayoutEffect, createRoot, extend } = runtime;
   const content = createElement(component);
 
   return {
@@ -132,7 +159,7 @@ function canvasWorldAdapter(id: string, component: ComponentType): RootAdapter<'
       MOUNTED_CANVASES.add(canvas);
 
       // The catalogue is module-global and starts empty; this is idempotent.
-      extend(PIXI as unknown as Parameters<typeof extend>[0]);
+      extend(runtime.pixi as unknown as Parameters<typeof extend>[0]);
 
       let resolveCommitted!: () => void;
       const committed = new Promise<void>((resolve) => {
@@ -343,9 +370,10 @@ function canvasWorldAdapter(id: string, component: ComponentType): RootAdapter<'
 export function resolveCanvasEntryAdapter(
   entryModule: unknown,
   rootId: string,
+  runtime: CanvasRuntime,
 ): RootAdapter<'canvas'> | null {
   const mod = entryModule as CanvasEntryModuleExports | undefined;
   if (isCanvasRootAdapter(mod?.adapter)) return mod.adapter;
-  if (typeof mod?.default === 'function') return canvasWorldAdapter(rootId, mod.default);
+  if (typeof mod?.default === 'function') return canvasWorldAdapter(rootId, mod.default, runtime);
   return null;
 }

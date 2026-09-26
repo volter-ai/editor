@@ -25,13 +25,13 @@ import type { Game } from './game';
  * the type said they could, so "what may a root do to its Game?" had no
  * answer short of "everything".
  *
- * The four doors, each with its verified consumer:
+ * The three doors, each with its verified consumer:
  *
  *  1. **Input-map load** — `runtime/game-input-seams.ts` calls
  *     `game.loadInputMap(path)` (and reads `game.input`/`game.loop.fixedDt`)
  *     from every three and canvas mount.
  *  2. **Debug-registry access** — `getDebugRegistry(host.game)`
- *     (`r3f-root.tsx` in the editor, `pixi-react-root-factory`); the registry is keyed by
+ *     (`r3f-root.tsx` and `canvas-root.tsx` in the editor); the registry is keyed by
  *     Game IDENTITY, which is why this handle is the Game and not a projection
  *     of it.
  *  3. **The profiler toggle** — `host.game.profiler` (`r3f-root.tsx`).

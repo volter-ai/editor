@@ -193,11 +193,10 @@ async function resolveThreeRoot(
 /**
  * A canvas root is source-as-truth exactly like a three root: its `entry` is a
  * TSX world file, and what that file EXPORTS is adjudicated in ONE place —
- * `resolveCanvasEntryAdapter` (`@volter/game-runtime/canvas-react`, reached through the
- * realm so the packaged runtime takes it from the PROJECT's graph), the same
- * function the standalone mount path uses. Keeping the adjudication there
- * rather than here is what stops the editor and the standalone build from
- * disagreeing about what a world file means.
+ * `resolveCanvasEntryAdapter` (`roots/canvas-root.tsx`, reached through the
+ * realm so the packaged runtime mounts with the PROJECT's graph), shared by
+ * Play and the design-time layer so the two never disagree about what a world
+ * file means.
  */
 async function resolveCanvasRoot(
   root: ResolvedAdapterRoot,

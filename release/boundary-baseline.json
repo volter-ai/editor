@@ -27,8 +27,6 @@
  "runtime-editor  packages/game-runtime/src/adapter/ingest/observation-debug-adapter.ts -> @volter/editor-project/adapter/system-adapter",
  "runtime-editor  packages/game-runtime/src/adapter/native-debug-module.ts -> @volter/editor-project/adapter/ingest/game-contract",
  "runtime-editor  packages/game-runtime/src/adapter/native-debug-module.ts -> @volter/editor-project/adapter/native-entry-surface",
- "runtime-editor  packages/game-runtime/src/canvas-react/pixi-react-root-factory.tsx -> @volter/editor-project/adapter",
- "runtime-editor  packages/game-runtime/src/canvas-react/pixi-react-root-factory.tsx -> @volter/editor-project/adapter/system-adapter",
  "runtime-editor  packages/game-runtime/src/core/types.ts -> @volter/editor-project/core/system-phase",
  "runtime-editor  packages/game-runtime/src/dev/instruments.ts -> @volter/editor-project/adapter/system-adapter",
  "runtime-editor  packages/game-runtime/src/dev/render-debug-adapter.ts -> @volter/editor-project/adapter/system-adapter",

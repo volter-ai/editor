@@ -13,11 +13,6 @@
  * three-only bundle never pays for react or the Pixi reconciler.
  *
  * Surface:
- *  - `resolveCanvasEntryAdapter` — what a canvas entry module MEANS: a
- *    default-exported component, mounted as a first-party `surface: "canvas"` root under the host's gated loop. The world's vgai
- *    surface is its entry module's static exports
- *    (`export { debug, systems } from './commands'`), connected by the host at
- *    mount.
  *  - `PixiPrimitive` / `adoptNow` — the canvas surface's `<primitive object={…}>`:
  *    render a container the game already owns, and place a spawn in the
  *    display tree ahead of the commit that renders it.
@@ -29,4 +24,3 @@
  */
 
 export { adoptNow, PixiPrimitive, type PixiPrimitiveProps } from './pixi-primitive';
-export { resolveCanvasEntryAdapter } from './pixi-react-root-factory';

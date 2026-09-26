@@ -94,10 +94,10 @@
  *
  * ### `/__vgai-canvas-runtime` (`CANVAS_DOORWAY`)
  *
- * `src/authoring/canvas-design-mount.ts` and `src/binding-resolver.ts` are
- * SHELL modules. A bare `await import('@vgai/game-runtime/canvas-react')` there built the
- * adapter — and thus called `createRoot` and `extend` — with the SHELL's
- * copies, then rendered the PROJECT's world component inside it. Measured on a
+ * The editor's canvas root mount (`editor-game/src/host/roots/canvas-root.tsx`)
+ * is SHELL code. Built with the shell's own `@pixi/react`, it called
+ * `createRoot` and `extend` with the SHELL's copies, then rendered the
+ * PROJECT's world component inside it. Measured on a
  * packaged build against `examples/retro-shooter`:
  *
  *   Invalid hook call … more than one copy of React in the same app   (×12)
@@ -282,7 +282,8 @@ export const CANVAS_DOORWAY: ModuleDoorway = {
   path: CANVAS_RUNTIME_PATH,
   rows: [
     { from: 'pixi.js', namespace: 'projectPixi' },
-    { from: '@volter/game-runtime/canvas-react', names: ['resolveCanvasEntryAdapter'] },
+    { from: 'react', names: ['createElement', 'Fragment', 'useEffect', 'useLayoutEffect'] },
+    { from: '@pixi/react', names: ['createRoot as createPixiRoot', 'extend as extendPixi'] },
   ],
 };
 

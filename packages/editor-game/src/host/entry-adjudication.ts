@@ -20,9 +20,9 @@
  * told which lane and which file, and that is the caller's knowledge, not
  * this function's.
  *
- * `entry-adjudication-single-owner.test.ts` is the tripwire; the canvas lane
- * has its own single owner in the engine (`resolveCanvasEntryAdapter`, reached
- * through `canvas-entry-runtime.ts`) and is not adjudicated here.
+ * The canvas lane has its own single owner (`roots/canvas-root.tsx`'s
+ * `resolveCanvasEntryAdapter`, reached through `canvas-entry-runtime.ts`) and
+ * is not adjudicated here.
  */
 
 import type { RootAdapter } from '@volter/editor-project/adapter';
