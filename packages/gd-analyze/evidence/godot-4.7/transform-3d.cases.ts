@@ -74,6 +74,31 @@ for (const [originName, origin] of ORIGINS) {
   );
 }
 
+const ROTATED: readonly [Triple, Triple, Triple] = [[0.36, 0.48, -0.8], [-0.8, 0.6, 0], [0.48, 0.64, 0.6]];
+const SINGULAR: readonly [Triple, Triple, Triple] = [[1, 2, 3], [2, 4, 6], [0, 1, 0]];
+for (const [basisName, axes] of [
+  ['general', GENERAL],
+  ['rotated', ROTATED],
+  ['singular', SINGULAR],
+] as const) {
+  for (const [originName, origin] of ORIGINS) {
+    const gt = `Transform3D(${gb(...axes)}, ${gv(origin)})`;
+    const tt = () => T.construct(tb(...axes), tv(origin));
+    c.add(`affine_inverse-${basisName}-${originName}`, c.member('affine_inverse'), `${gt}.affine_inverse()`, () => T.affine_inverse(tt()));
+    for (const [pointName, point] of ORIGINS) {
+      c.add(`op_multiply-${basisName}-${originName}-vector-${pointName}`, c.operator('OP_MULTIPLY', 'Vector3'), `${gt} * ${gv(point)}`, () =>
+        T.op_multiply(tt(), tv(point)),
+      );
+    }
+    c.add(
+      `op_multiply-${basisName}-${originName}-transform`,
+      c.operator('OP_MULTIPLY', 'Transform3D'),
+      `${gt} * Transform3D(${gb(...ROTATED)}, ${gv([0.5, -1.5, 2.25])})`,
+      () => T.op_multiply(tt(), T.construct(tb(...ROTATED), tv([0.5, -1.5, 2.25]))),
+    );
+  }
+}
+
 const TRANSFORM3D_EVIDENCE: GodotEvidenceCaseFile = {
   godotClass: 'Transform3D',
   compatModule: 'lib/godot-compat/transform-3d',

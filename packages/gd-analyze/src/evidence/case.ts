@@ -45,8 +45,13 @@ export interface GodotEvidenceSymbol {
  * Godot delegates to the platform C library (`Math::sin` is `std::sin`), whose result Godot does
  * not fix across its platforms; never for anything Godot computes itself. The claim records the
  * measured maximum distance.
+ * `float32-geometry`: every float is a 32-bit value within 8 float32 epsilons (2^-20) of the native
+ * one, scaled by the native magnitude when it exceeds 1. Only for a single-precision geometric
+ * result whose formula is transcribed but whose operand order Godot takes from a construction the
+ * compat module names as a bounded deviation (which corner of a convex hull face Godot lists
+ * first); never where Godot's operand order is transcribed. The claim records the measured maximum.
  */
-export type GodotEvidenceComparator = 'exact' | 'float32-ulp' | 'platform-libm';
+export type GodotEvidenceComparator = 'exact' | 'float32-ulp' | 'platform-libm' | 'float32-geometry';
 
 export interface GodotEvidenceCase {
   readonly id: string;

@@ -92,7 +92,7 @@ type Encoded =
   | { readonly t: 'float'; readonly v: string }
   | { readonly t: 'String' | 'StringName'; readonly v: string }
   | { readonly t: 'Vector3'; readonly x: string; readonly y: string; readonly z: string }
-  | { readonly t: 'Array' | 'PackedStringArray'; readonly v: readonly Encoded[] }
+  | { readonly t: 'Array' | 'PackedStringArray' | 'PackedVector3Array'; readonly v: readonly Encoded[] }
   | { readonly t: 'Dictionary'; readonly v: readonly (readonly [Encoded, Encoded])[] }
   | StructuredEncoded
   | { readonly t: 'unsupported'; readonly type: string };
@@ -183,6 +183,8 @@ function encodeAs(type: string, value: unknown): Encoded {
       return Array.isArray(value) && value.every((entry) => typeof entry === 'string')
         ? { t: type, v: value.map((entry: string): Encoded => ({ t: 'String', v: entry })) }
         : unsupported(value);
+    case 'PackedVector3Array':
+      return Array.isArray(value) ? { t: type, v: value.map((entry: unknown): Encoded => encodeTarget(entry)) } : unsupported(value);
     default: {
       if (!isStructured(type) || typeof value !== 'object' || value === null || Array.isArray(value)) {
         return unsupported(value);
@@ -298,6 +300,11 @@ func _enc(value: Variant) -> Dictionary:
 \t\t\tfor item in value:
 \t\t\t\tstrings.append({"t": "String", "v": item})
 \t\t\treturn {"t": "PackedStringArray", "v": strings}
+\t\tTYPE_PACKED_VECTOR3_ARRAY:
+\t\t\tvar vectors: Array = []
+\t\t\tfor item in value:
+\t\t\t\tvectors.append(_enc(item))
+\t\t\treturn {"t": "PackedVector3Array", "v": vectors}
 \treturn {"t": "unsupported", "type": type_string(typeof(value))}
 `;
 
@@ -435,7 +442,7 @@ function floatPairs(native: Encoded, target: Encoded): (readonly [number, number
     const other = target as typeof native;
     return (['x', 'y', 'z'] as const).map((axis) => [bitsFloat(native[axis]), bitsFloat(other[axis])] as const);
   }
-  if (native.t === 'Array' || native.t === 'PackedStringArray') {
+  if (native.t === 'Array' || native.t === 'PackedStringArray' || native.t === 'PackedVector3Array') {
     const other = target as typeof native;
     return native.v.flatMap((entry, index) => floatPairs(entry, other.v[index] as Encoded));
   }
@@ -480,6 +487,16 @@ function measuredTolerance(
     }
     return `platform C library: within 1 float64 ulp; measured max ${String(largest)} ulp over ${String(rows.length)} cases`;
   }
+  if (comparators.includes('float32-geometry')) {
+    let largest = 0;
+    for (const [native, target] of rows) {
+      for (const [left, right] of floatPairs(native, target)) {
+        if (Number.isNaN(left) || Number.isNaN(right)) continue;
+        largest = Math.max(largest, Math.abs(left - right) / Math.max(1, Math.abs(left)));
+      }
+    }
+    return `single-precision geometry with an untranscribed operand order: within 2^-20 of max(1, |native|); measured max ${String(largest)} over ${String(rows.length)} cases`;
+  }
   return comparators.includes('float32-ulp') ? '1 float32 ulp' : 'exact';
 }
 
@@ -492,6 +509,7 @@ function floatsAgree(nativeHex: string, targetHex: string, comparator: GodotEvid
   if (comparator === 'exact') return nativeHex === targetHex;
   if (comparator === 'platform-libm') return float64UlpDistance(native, target) <= 1n;
   if (Math.fround(native) !== native || Math.fround(target) !== target) return false;
+  if (comparator === 'float32-geometry') return Math.abs(native - target) <= 2 ** -20 * Math.max(1, Math.abs(native));
   return Math.abs(float32OrderedBits(native) - float32OrderedBits(target)) <= 1;
 }
 
@@ -516,7 +534,8 @@ function valuesAgree(native: Encoded, target: Encoded, comparator: GodotEvidence
       );
     }
     case 'Array':
-    case 'PackedStringArray': {
+    case 'PackedStringArray':
+    case 'PackedVector3Array': {
       const other = target as typeof native;
       return (
         native.v.length === other.v.length &&
@@ -556,6 +575,7 @@ function readable(value: Encoded): string {
       return `Vector3(${String(bitsFloat(value.x))}, ${String(bitsFloat(value.y))}, ${String(bitsFloat(value.z))}) [${value.x} ${value.y} ${value.z}]`;
     case 'Array':
     case 'PackedStringArray':
+    case 'PackedVector3Array':
       return `${value.t}[${value.v.map(readable).join(', ')}]`;
     case 'Dictionary':
       return `{${value.v.map(([key, item]) => `${readable(key)}: ${readable(item)}`).join(', ')}}`;
@@ -617,8 +637,9 @@ function compatExports(moduleSource: string): CompatExport[] {
       sourceLine: Number(source[2]),
     });
   }
-  const exported = [...moduleSource.matchAll(/^export\s+(?:function|const)\s+([A-Za-z_$][\w$]*)/gm)];
-  if (exported.length !== found.length) {
+  // A TypeScript overload set is one export: its signatures repeat the name.
+  const exported = new Set([...moduleSource.matchAll(/^export\s+(?:function|const)\s+([A-Za-z_$][\w$]*)/gm)].map((m) => m[1]));
+  if (exported.size !== found.length) {
     throw new Error('every compat export needs a doc comment carrying @godot and @source');
   }
   return found;

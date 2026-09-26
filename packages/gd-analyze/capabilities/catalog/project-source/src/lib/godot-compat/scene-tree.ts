@@ -42,6 +42,21 @@ const clock = {
   reload: undefined as (() => void) | undefined,
 };
 let timers: SceneTreeTimer[] = [];
+let physicsServer: { readonly flush: () => void; readonly step: (delta: number) => void; readonly transforms: () => void } | undefined;
+
+/**
+ * The physics server's two calls in each physics step, which the world binding registers:
+ * `sync` + `flush_queries` before `SceneTree::physics_process`, and `step` after it
+ * (`main/main.cpp:4986`, `:5031`); and `transforms`, called where the SceneTree delivers the
+ * deferred `NOTIFICATION_TRANSFORM_CHANGED` that sends collision objects' transforms to the server
+ * (`flush_transform_notifications`, `scene/main/scene_tree.cpp:200`).
+ *
+ * @godot SceneTree (protocol)
+ * @source main/main.cpp:4986
+ */
+export function godot_tree_physics_server(server: { readonly flush: () => void; readonly step: (delta: number) => void; readonly transforms: () => void } | undefined): void {
+  physicsServer = server;
+}
 const deleteQueue: object[] = [];
 
 /**
@@ -121,7 +136,12 @@ function treeOrder(): object[] {
 function processNodes(physics: boolean): void {
   const listed = treeOrder()
     .map((entity, order) => ({ entity, order, info: godot_node_processing(entity) }))
-    .filter((entry) => entry.info !== undefined && entry.info.insideTree && (physics ? entry.info.physicsProcess : entry.info.process));
+    .filter(
+      (entry) =>
+        entry.info !== undefined &&
+        entry.info.insideTree &&
+        (physics ? entry.info.physicsProcess || entry.info.internalPhysics !== undefined : entry.info.process),
+    );
   listed.sort((a, b) => {
     const pa = physics ? (a.info?.physicsProcessPriority ?? 0) : (a.info?.processPriority ?? 0);
     const pb = physics ? (b.info?.physicsProcessPriority ?? 0) : (b.info?.processPriority ?? 0);
@@ -131,6 +151,7 @@ function processNodes(physics: boolean): void {
     const info = godot_node_processing(entity);
     if (info === undefined || !info.insideTree || !info.canProcess) continue;
     if (physics) {
+      info.internalPhysics?.(clock.physicsTime);
       if (info.physicsProcess) info.binding?.physicsProcess?.(clock.physicsTime);
     } else if (info.process) {
       info.binding?.process?.(clock.processTime);
@@ -170,13 +191,18 @@ export function godot_tree_physics_step(delta: number): void {
   clock.inPhysics = true;
   clock.physicsFrames += 1;
   godot_input_frame(clock.physicsFrames, clock.processFrames, true);
+  physicsServer?.flush();
   clock.currentFrame += 1;
+  physicsServer?.transforms();
   clock.physicsTime = delta;
   physicsFrame.emit();
   processNodes(true);
   godot_message_queue_flush();
   processTimers(delta, true);
+  physicsServer?.transforms();
   flushDeleteQueue();
+  godot_message_queue_flush();
+  physicsServer?.step(delta);
   godot_message_queue_flush();
   clock.inPhysics = false;
   godot_input_frame(clock.physicsFrames, clock.processFrames, false);
@@ -196,13 +222,16 @@ export function godot_tree_frame(delta: number): void {
   clock.processTime = delta;
   processFrame.emit();
   godot_message_queue_flush();
+  physicsServer?.transforms();
   processNodes(false);
   godot_message_queue_flush();
+  physicsServer?.transforms();
   if (clock.reloadPending) {
     clock.reloadPending = false;
     clock.reload?.();
   }
   processTimers(delta, false);
+  physicsServer?.transforms();
   flushDeleteQueue();
   godot_message_queue_flush();
   clock.processFrames += 1;

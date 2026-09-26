@@ -6,12 +6,13 @@
  * revision `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`: a `Basis` and a `Vector3 origin`.
  */
 
-import { type Basis, construct as basis } from './basis';
+import { type Basis, construct as basis, inverse as basisInverse, op_multiply as basisMultiply } from './basis';
 import {
   construct as vector3,
   cross,
   is_zero_approx,
   normalized,
+  op_add,
   op_negate,
   op_subtract,
   UP,
@@ -122,4 +123,31 @@ export function with_basis(self: Transform3D, value: Basis): Transform3D {
  */
 export function with_origin(self: Transform3D, value: Vector3): Transform3D {
   return make(self.basis, value);
+}
+
+/**
+ * `Transform3D::affine_invert` on a copy (`core/math/transform_3d.cpp:35`): the basis inverted,
+ * then the origin is `basis.xform(-origin)`.
+ *
+ * @godot Transform3D.affine_inverse
+ * @source core/math/transform_3d.cpp:40
+ */
+export function affine_inverse(self: Transform3D): Transform3D {
+  const inverted = basisInverse(self.basis);
+  return make(inverted, basisMultiply(inverted, op_negate(self.origin)));
+}
+
+/**
+ * `Transform3D * Vector3` is `xform`: the basis rows dotted with the vector plus the origin
+ * (`core/math/transform_3d.h:177`). `Transform3D * Transform3D` is `origin = xform(p.origin)`, then
+ * `basis *= p.basis` (`core/math/transform_3d.cpp:185`).
+ *
+ * @godot Transform3D.OP_MULTIPLY
+ * @source core/math/transform_3d.cpp:190
+ */
+export function op_multiply(left: Transform3D, right: Vector3): Vector3;
+export function op_multiply(left: Transform3D, right: Transform3D): Transform3D;
+export function op_multiply(left: Transform3D, right: Vector3 | Transform3D): Vector3 | Transform3D {
+  if ('basis' in right) return make(basisMultiply(left.basis, right.basis), op_multiply(left, right.origin));
+  return op_add(basisMultiply(left.basis, right), left.origin);
 }

@@ -1,0 +1,82 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/physics-direct-space-state-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsDirectSpaceState3D",
+        "member": "intersect_ray",
+        "kind": "native-member",
+        "signature": "hash:3957970750"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-direct-space-state-3d",
+        "exportName": "intersect_ray",
+        "localName": "PhysicsDirectSpaceState3D_intersect_ray",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsDirectSpaceState3D.intersect_ray"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsDirectSpaceState3D.intersect_ray",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsDirectSpaceState3D\u0000intersect_ray\u0000hash:3957970750",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/godot_physics_3d/godot_space_3d.cpp",
+        "sourceSymbol": "PhysicsDirectSpaceState3D.intersect_ray",
+        "sourceLine": 110
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "fb2f8714e89dd215ea77696399f51a8afa6a76784525a4f44cb080c0f410a8a7",
+        "callsite": "res://probe.gd _init() box-down box-up box-side box-diagonal box-miss box-short sphere-down sphere-up sphere-side sphere-diagonal sphere-miss sphere-short capsule-down capsule-up capsule-side capsule-diagonal capsule-miss capsule-short convex-down convex-up convex-side convex-diagonal convex-miss convex-short concave-down concave-up concave-side concave-diagonal concave-miss concave-short rotated-box offset-shape nearest-of-two masks-and-layers exclude areas from-inside moved-body disabled-shape removed-body concave-terrain concave-backface convex-octahedron convex-prism rotated-capsule-and-sphere moved-same-frame added-same-frame",
+        "observedOutputSha256": "d9d7b6a403cfa9a62a854c0ad57192b3d7ebec80d8d30430d7cc4c578a8557bd"
+      },
+      "target": {
+        "implementationSha256": "38afb10d3b8f560eab772e5d58aaa9246c2cb15879d7cf5a8bd3557b4c07269e",
+        "callsite": "lib/godot-compat/physics-direct-space-state-3d.ts intersect_ray",
+        "observedOutputSha256": "56efec0d730a378e954f5ef29935d9559ef3d97faa4f0794d89bb165947733a7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact, float32-geometry",
+        "tolerance": "single-precision geometry with an untranscribed operand order: within 2^-20 of max(1, |native|); measured max 5.364418029785156e-7 over 47 cases",
+        "resultSha256": "549b0eb71d222be9393b5797ac76dbce1a6bda08d4660b4cb5943cf70b30eb02"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-direct-space-state-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-PhysicsDirectSpaceState3D.intersect_ray",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "fb2f8714e89dd215ea77696399f51a8afa6a76784525a4f44cb080c0f410a8a7",
+      "implementationSha256": "38afb10d3b8f560eab772e5d58aaa9246c2cb15879d7cf5a8bd3557b4c07269e"
+    }
+  ]
+}

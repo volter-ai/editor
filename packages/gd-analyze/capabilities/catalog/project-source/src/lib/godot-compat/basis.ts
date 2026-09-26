@@ -101,15 +101,58 @@ export function scaled(self: Basis, p_scale: Vector3): Basis {
   );
 }
 
+/** `rows[r1][c1] * rows[r2][c2] - rows[r1][c2] * rows[r2][c1]` (`core/math/basis.cpp:36`). */
+function cofac(self: Basis, row1: 0 | 1 | 2, col1: 0 | 1 | 2, row2: 0 | 1 | 2, col2: 0 | 1 | 2): number {
+  const at = (r: 0 | 1 | 2, c: 0 | 1 | 2): number => row(self, r)[(['x', 'y', 'z'] as const)[c]];
+  return f32(f32(at(row1, col1) * at(row2, col2)) - f32(at(row1, col2) * at(row2, col1)));
+}
+
+/**
+ * `Basis::invert` on a copy (`core/math/basis.cpp:39`): the cofactor matrix over the determinant.
+ * Under `MATH_CHECKS` a zero determinant fails before writing, so the copy comes back unchanged.
+ *
+ * @godot Basis.inverse
+ * @source core/math/basis.cpp:211
+ */
+export function inverse(self: Basis): Basis {
+  const co0 = cofac(self, 1, 1, 2, 2);
+  const co1 = cofac(self, 1, 2, 2, 0);
+  const co2 = cofac(self, 1, 0, 2, 1);
+  const r0 = row(self, 0);
+  const det = f32(f32(f32(r0.x * co0) + f32(r0.y * co1)) + f32(r0.z * co2));
+  if (det === 0) return self;
+  const s = f32(1 / det);
+  return fromRows(
+    vector3(f32(co0 * s), f32(cofac(self, 0, 2, 2, 1) * s), f32(cofac(self, 0, 1, 1, 2) * s)),
+    vector3(f32(co1 * s), f32(cofac(self, 0, 0, 2, 2) * s), f32(cofac(self, 0, 2, 1, 0) * s)),
+    vector3(f32(co2 * s), f32(cofac(self, 0, 1, 2, 0) * s), f32(cofac(self, 0, 0, 1, 1) * s)),
+  );
+}
+
+/** `tdotx`/`tdoty`/`tdotz`: a column dotted with `v` (`core/math/basis.h:116`). */
+function tdot(column: Vector3, v: Vector3): number {
+  return f32(f32(f32(column.x * v.x) + f32(column.y * v.y)) + f32(column.z * v.z));
+}
+
 /**
  * `Basis * Vector3` is `xform`: a dot per row (`core/math/basis.h:336`), registered as
  * `OperatorEvaluatorXForm<Vector3, Basis, Vector3>` (`core/variant/variant_op.cpp:336`).
+ * `Basis * Basis` is the matrix product, each entry `right.tdot{x,y,z}(rows[i])`
+ * (`core/math/basis.h:281`).
  *
  * @godot Basis.OP_MULTIPLY
  * @source core/math/basis.h:336
  */
-export function op_multiply(left: Basis, right: Vector3): Vector3 {
-  return vector3(dot(row(left, 0), right), dot(row(left, 1), right), dot(row(left, 2), right));
+export function op_multiply(left: Basis, right: Vector3): Vector3;
+export function op_multiply(left: Basis, right: Basis): Basis;
+export function op_multiply(left: Basis, right: Vector3 | Basis): Vector3 | Basis {
+  if ('x' in right && typeof right.x === 'number') {
+    const v = right as Vector3;
+    return vector3(dot(row(left, 0), v), dot(row(left, 1), v), dot(row(left, 2), v));
+  }
+  const m = right as Basis;
+  const product = (r: Vector3): Vector3 => vector3(tdot(m.x, r), tdot(m.y, r), tdot(m.z, r));
+  return fromRows(product(row(left, 0)), product(row(left, 1)), product(row(left, 2)));
 }
 
 /**

@@ -110,7 +110,10 @@ function checkExports(file, text) {
   const declaration =
     /^export\s+(?:default\s+)?(?:async\s+)?(?:function\*?\s*([A-Za-z_$][\w$]*)?|class\s+([A-Za-z_$][\w$]*)|const\s+([A-Za-z_$][\w$]*)\s*(?::[^=]+)?=\s*(?:async\s+)?(?:function\b|\([^)]*\)\s*(?::[^=]+)?=>|[A-Za-z_$][\w$]*\s*=>|<))/gmu;
   for (const match of text.matchAll(declaration)) {
-    exported.push({ name: match[1] ?? match[2] ?? match[3] ?? 'default', index: match.index });
+    const name = match[1] ?? match[2] ?? match[3] ?? 'default';
+    // A TypeScript overload set is one export; its first signature carries the doc.
+    if (exported.some((entry) => entry.name === name)) continue;
+    exported.push({ name, index: match.index });
   }
   // `export { a, b }` of local functions: check the local declaration's doc.
   for (const match of text.matchAll(/^export\s*\{([^}]*)\}\s*(?!\s*from)(?:;|$)/gmu)) {
@@ -236,11 +239,32 @@ function checkEntry(files) {
   for (const file of listed) if (!onDisk.has(file)) report(ENTRY, 1, `files lists ${file}, which is not on disk`);
 }
 
+/**
+ * A server-named module is allowed only as a BINDING whose every export is a Godot member bound
+ * onto the web platform (`PhysicsServer3D.space_get_direct_state` over the Rapier world): no
+ * protocol export, so it can never grow into a server reimplementation.
+ */
+function serverBinding(file, name) {
+  if (FORBIDDEN_NAME.test(name.replace(/server/gu, ''))) return false;
+  const text = readFileSync(file, 'utf8');
+  if (!/^\s*\*\s*@role\s+BINDING\b/mu.test(text)) return false;
+  const values = [...text.matchAll(/^export\s+(?:async\s+)?(?:function|const|class|let)\s+[A-Za-z_$]/gmu)];
+  return (
+    values.length > 0 &&
+    values.every((match) => {
+      const doc = docBefore(text, match.index) ?? '';
+      return /@godot\s+[A-Z][A-Za-z0-9]*\.[A-Za-z_]\w*/u.test(doc) && !/@godot\s+\S+\s+\(protocol\)/u.test(doc);
+    })
+  );
+}
+
 const files = walk(COMPAT);
 for (const file of files) {
   const name = path.basename(file);
   const forbidden = FORBIDDEN_NAME.exec(name);
-  if (forbidden !== null) report(file, 1, `file name contains "${forbidden[0]}": no server, RenderingDevice, XR, *Extension, dispatch or ClassDB module`);
+  if (forbidden !== null && !(forbidden[0] === 'server' && SOURCE_FILE.test(name) && serverBinding(file, name))) {
+    report(file, 1, `file name contains "${forbidden[0]}": no server, RenderingDevice, XR, *Extension, dispatch or ClassDB module (a server-named module must be a BINDING whose every export is a Godot member)`);
+  }
   if (!SOURCE_FILE.test(name)) continue;
   const text = readFileSync(file, 'utf8');
   const tokens = tokenize(text);

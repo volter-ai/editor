@@ -1,0 +1,218 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/geometry-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Geometry3D",
+        "member": "segment_intersects_sphere",
+        "kind": "native-member",
+        "signature": "hash:4080141172"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/geometry-3d",
+        "exportName": "segment_intersects_sphere",
+        "localName": "Geometry3D_segment_intersects_sphere",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Geometry3D.segment_intersects_sphere"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Geometry3D",
+        "member": "segment_intersects_cylinder",
+        "kind": "native-member",
+        "signature": "hash:2361316491"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/geometry-3d",
+        "exportName": "segment_intersects_cylinder",
+        "localName": "Geometry3D_segment_intersects_cylinder",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Geometry3D.segment_intersects_cylinder"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Geometry3D",
+        "member": "segment_intersects_triangle",
+        "kind": "native-member",
+        "signature": "hash:1718655448"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/geometry-3d",
+        "exportName": "segment_intersects_triangle",
+        "localName": "Geometry3D_segment_intersects_triangle",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Geometry3D.segment_intersects_triangle"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Geometry3D.segment_intersects_sphere",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Geometry3D\u0000segment_intersects_sphere\u0000hash:4080141172",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/core_bind.cpp",
+        "sourceSymbol": "Geometry3D.segment_intersects_sphere",
+        "sourceLine": 1236
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a9a7aca6e3b653873a2818c35a35fdc8a10d9a5905166434255643e99efaad2a",
+        "callsite": "res://probe.gd _init() segment_intersects_sphere-down-origin segment_intersects_sphere-down-offset segment_intersects_sphere-across-x-origin segment_intersects_sphere-across-x-offset segment_intersects_sphere-across-z-origin segment_intersects_sphere-across-z-offset segment_intersects_sphere-diagonal-origin segment_intersects_sphere-diagonal-offset segment_intersects_sphere-grazing-origin segment_intersects_sphere-grazing-offset segment_intersects_sphere-short-origin segment_intersects_sphere-short-offset segment_intersects_sphere-inside-origin segment_intersects_sphere-inside-offset segment_intersects_sphere-degenerate-origin segment_intersects_sphere-degenerate-offset segment_intersects_sphere-decimals-origin segment_intersects_sphere-decimals-offset segment_intersects_sphere-off-axis-origin segment_intersects_sphere-off-axis-offset",
+        "observedOutputSha256": "00fe454ee056bfcb3be92fef572d68e75b1567beed2f61ab0405205296d4673c"
+      },
+      "target": {
+        "implementationSha256": "f98bb60f1543aa947b7dfb2ec9aff17c4f405a225454ab642154e4fb6ceaa06f",
+        "callsite": "lib/godot-compat/geometry-3d.ts segment_intersects_sphere",
+        "observedOutputSha256": "00fe454ee056bfcb3be92fef572d68e75b1567beed2f61ab0405205296d4673c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a2b499793d53181f82f9f1cd4187817220a3f317e2f92c0e0ba377de03b09732"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "geometry-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Geometry3D.segment_intersects_cylinder",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Geometry3D\u0000segment_intersects_cylinder\u0000hash:2361316491",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/core_bind.cpp",
+        "sourceSymbol": "Geometry3D.segment_intersects_cylinder",
+        "sourceLine": 1249
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "925c4d4398870c99b3b549f7d6700dbd9ecfccba13b9c9561cc540fbe29df79f",
+        "callsite": "res://probe.gd _init() segment_intersects_cylinder-down-2-0.5 segment_intersects_cylinder-down-1-1.5 segment_intersects_cylinder-down-0.3-0.7 segment_intersects_cylinder-across-x-2-0.5 segment_intersects_cylinder-across-x-1-1.5 segment_intersects_cylinder-across-x-0.3-0.7 segment_intersects_cylinder-across-z-2-0.5 segment_intersects_cylinder-across-z-1-1.5 segment_intersects_cylinder-across-z-0.3-0.7 segment_intersects_cylinder-diagonal-2-0.5 segment_intersects_cylinder-diagonal-1-1.5 segment_intersects_cylinder-diagonal-0.3-0.7 segment_intersects_cylinder-grazing-2-0.5 segment_intersects_cylinder-grazing-1-1.5 segment_intersects_cylinder-grazing-0.3-0.7 segment_intersects_cylinder-short-2-0.5 segment_intersects_cylinder-short-1-1.5 segment_intersects_cylinder-short-0.3-0.7 segment_intersects_cylinder-inside-2-0.5 segment_intersects_cylinder-inside-1-1.5 segment_intersects_cylinder-inside-0.3-0.7 segment_intersects_cylinder-degenerate-2-0.5 segment_intersects_cylinder-degenerate-1-1.5 segment_intersects_cylinder-degenerate-0.3-0.7 segment_intersects_cylinder-decimals-2-0.5 segment_intersects_cylinder-decimals-1-1.5 segment_intersects_cylinder-decimals-0.3-0.7 segment_intersects_cylinder-off-axis-2-0.5 segment_intersects_cylinder-off-axis-1-1.5 segment_intersects_cylinder-off-axis-0.3-0.7",
+        "observedOutputSha256": "fe44e68fab814117c1fc27d9169a19dda4eed5423a37adde69239df87cbdd2bc"
+      },
+      "target": {
+        "implementationSha256": "f98bb60f1543aa947b7dfb2ec9aff17c4f405a225454ab642154e4fb6ceaa06f",
+        "callsite": "lib/godot-compat/geometry-3d.ts segment_intersects_cylinder",
+        "observedOutputSha256": "fe44e68fab814117c1fc27d9169a19dda4eed5423a37adde69239df87cbdd2bc"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "2a07e0ffa8030cd2124e03a5d04d766b43d83fefc831037048cb3c641a332e78"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "geometry-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Geometry3D.segment_intersects_triangle",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Geometry3D\u0000segment_intersects_triangle\u0000hash:1718655448",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/core_bind.cpp",
+        "sourceSymbol": "Geometry3D.segment_intersects_triangle",
+        "sourceLine": 1227
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b1a3613a6f9416ad0b985c08d55eee0349e94267e15fba0043f78d863eec9984",
+        "callsite": "res://probe.gd _init() segment_intersects_triangle-down-floor segment_intersects_triangle-down-tilted segment_intersects_triangle-down-wall segment_intersects_triangle-across-x-floor segment_intersects_triangle-across-x-tilted segment_intersects_triangle-across-x-wall segment_intersects_triangle-across-z-floor segment_intersects_triangle-across-z-tilted segment_intersects_triangle-across-z-wall segment_intersects_triangle-diagonal-floor segment_intersects_triangle-diagonal-tilted segment_intersects_triangle-diagonal-wall segment_intersects_triangle-grazing-floor segment_intersects_triangle-grazing-tilted segment_intersects_triangle-grazing-wall segment_intersects_triangle-short-floor segment_intersects_triangle-short-tilted segment_intersects_triangle-short-wall segment_intersects_triangle-inside-floor segment_intersects_triangle-inside-tilted segment_intersects_triangle-inside-wall segment_intersects_triangle-degenerate-floor segment_intersects_triangle-degenerate-tilted segment_intersects_triangle-degenerate-wall segment_intersects_triangle-decimals-floor segment_intersects_triangle-decimals-tilted segment_intersects_triangle-decimals-wall segment_intersects_triangle-off-axis-floor segment_intersects_triangle-off-axis-tilted segment_intersects_triangle-off-axis-wall",
+        "observedOutputSha256": "ccb6dc40038a83374834c1887a8bcfdb6e6dbbe0c77e38f73ac7f82f0511d12f"
+      },
+      "target": {
+        "implementationSha256": "f98bb60f1543aa947b7dfb2ec9aff17c4f405a225454ab642154e4fb6ceaa06f",
+        "callsite": "lib/godot-compat/geometry-3d.ts segment_intersects_triangle",
+        "observedOutputSha256": "ccb6dc40038a83374834c1887a8bcfdb6e6dbbe0c77e38f73ac7f82f0511d12f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3500b156d4af20c85c82bedf74db70214173ff331842d7216e4439af4169daa7"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "geometry-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Geometry3D.segment_intersects_sphere",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a9a7aca6e3b653873a2818c35a35fdc8a10d9a5905166434255643e99efaad2a",
+      "implementationSha256": "f98bb60f1543aa947b7dfb2ec9aff17c4f405a225454ab642154e4fb6ceaa06f"
+    },
+    {
+      "claimId": "godot-4.7-binding-Geometry3D.segment_intersects_cylinder",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "925c4d4398870c99b3b549f7d6700dbd9ecfccba13b9c9561cc540fbe29df79f",
+      "implementationSha256": "f98bb60f1543aa947b7dfb2ec9aff17c4f405a225454ab642154e4fb6ceaa06f"
+    },
+    {
+      "claimId": "godot-4.7-binding-Geometry3D.segment_intersects_triangle",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b1a3613a6f9416ad0b985c08d55eee0349e94267e15fba0043f78d863eec9984",
+      "implementationSha256": "f98bb60f1543aa947b7dfb2ec9aff17c4f405a225454ab642154e4fb6ceaa06f"
+    }
+  ]
+}

@@ -76,6 +76,7 @@ interface NodeState {
   processPriority: number;
   physicsProcessPriority: number;
   ready: SignalHandle<[]>;
+  internalPhysics: ((delta: number) => void) | undefined;
 }
 
 const NODE = new WeakMap<object, NodeState>();
@@ -117,6 +118,7 @@ function fresh(): NodeState {
     processPriority: 0,
     physicsProcessPriority: 0,
     ready: createSignal<[]>(),
+    internalPhysics: undefined,
   };
 }
 
@@ -220,6 +222,7 @@ export function godot_node_processing(entity: object): {
   readonly canProcess: boolean;
   readonly processPriority: number;
   readonly physicsProcessPriority: number;
+  readonly internalPhysics: ((delta: number) => void) | undefined;
 } | undefined {
   const state = NODE.get(entity);
   if (state === undefined) return undefined;
@@ -231,7 +234,40 @@ export function godot_node_processing(entity: object): {
     canProcess: processModeAllows(entity, state, false),
     processPriority: state.processPriority,
     physicsProcessPriority: state.physicsProcessPriority,
+    internalPhysics: state.internalPhysics,
   };
+}
+
+/**
+ * Sets (or clears) a node class's internal physics processing, which runs before the node's own
+ * `_physics_process` in the same pass (`NOTIFICATION_INTERNAL_PHYSICS_PROCESS`,
+ * `scene/main/scene_tree.cpp:1219`).
+ *
+ * @godot Node (protocol)
+ * @source scene/main/scene_tree.cpp:1219
+ */
+export function godot_node_set_internal_physics(entity: object, process: ((delta: number) => void) | undefined): void {
+  stateOf(entity).internalPhysics = process;
+}
+
+/**
+ * The Godot object of an entity: its script instance when one is bound, else the entity.
+ *
+ * @godot Node (protocol)
+ * @source core/object/object.h:813
+ */
+export function godot_node_object(entity: object): object {
+  return objectOf(entity);
+}
+
+/**
+ * The native entity of a Godot object (a script instance or the entity itself).
+ *
+ * @godot Node (protocol)
+ * @source core/object/object.h:813
+ */
+export function godot_node_entity(object: object): object {
+  return NATIVE_OF_OWNER.get(object) ?? object;
 }
 
 /**

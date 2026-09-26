@@ -66,6 +66,15 @@ for (const [name, x, y, z] of BASES) {
   }
 }
 
+for (const [name, x, y, z] of [...BASES, ['singular', [1, 2, 3], [2, 4, 6], [0, 1, 0]] as const]) {
+  c.add(`inverse-${name}`, c.member('inverse'), `${gb(x, y, z)}.inverse()`, () => B.inverse(tb(x, y, z)));
+  for (const [otherName, ox, oy, oz] of BASES) {
+    c.add(`op_multiply-${name}-basis-${otherName}`, c.operator('OP_MULTIPLY', 'Basis'), `${gb(x, y, z)} * ${gb(ox, oy, oz)}`, () =>
+      B.op_multiply(tb(x, y, z), tb(ox, oy, oz)),
+    );
+  }
+}
+
 const BASIS_EVIDENCE: GodotEvidenceCaseFile = {
   godotClass: 'Basis',
   compatModule: 'lib/godot-compat/basis',
