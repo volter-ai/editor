@@ -102,6 +102,7 @@ const PANEL_OWNED_PROPS = new Set([
   'scale-y',
   'label',
   'visible',
+  'skew',
 ]);
 /** Props the drop snippet writes itself. */
 const DROP_SNIPPET_PROPS = new Set(['x', 'y', 'name', 'children']);
@@ -616,6 +617,38 @@ export function createSourceCanvasWriteTarget(
 
   /** One prop edit. Answers whether a byte reached the entry TSX; every
    *  refusal has already named itself on the console before it returns. */
+  /** Godot's Node2D Skew, one axis in degrees: Pixi's `skew` point in radians, written whole. */
+  const writeSkew = async (id: string, axis: 'x' | 'y', degrees: number): Promise<boolean> => {
+    const display = a2d.displayObject(id);
+    const oid = oidOf(id);
+    if (!display || !oid || !backend?.writeProp || !Number.isFinite(degrees)) return false;
+    const before = { x: display.skew.x, y: display.skew.y };
+    const radians = (degrees * Math.PI) / 180;
+    const next = { x: axis === 'x' ? radians : before.x, y: axis === 'y' ? radians : before.y };
+    display.skew.set(next.x, next.y);
+    notify();
+    const res = await backend.writeProp(
+      oid,
+      'skew',
+      // Radians to six places, so a typed angle reads back as typed (four places lose 0.003°).
+      `{ x: ${String(Number(next.x.toFixed(6)))}, y: ${String(Number(next.y.toFixed(6)))} }`,
+      { addIfMissing: true, allowShapeUpgrade: true },
+    );
+    if (!res.changed && (res.dynamic || res.error)) {
+      display.skew.set(before.x, before.y);
+      notify();
+      // biome-ignore lint/suspicious/noConsole: a refused write must say why
+      console.warn(
+        `[canvas-source ${entryPath}] skew write refused for oid "${oid}": ` +
+          `${res.dynamic ? 'dynamic expression (guarded)' : res.error} — reverting.`,
+      );
+      return false;
+    }
+    await refreshSourceState();
+    notify();
+    return res.changed;
+  };
+
   const writeJsxProp = async (
     id: string,
     path: string,
@@ -1576,6 +1609,13 @@ export function createSourceCanvasWriteTarget(
         { path: 'visible', label: 'Visible', type: 'boolean', group: 'Visibility' },
       ];
       const attrs = attrsOf(id) ?? [];
+      // Godot's Node2D Skew, in its Transform group; a skew the source computes is shown, not edited.
+      const skewAttr = attrs.find((attr) => attr.name === 'skew');
+      const skewFixed = skewAttr ? !skewAttr.isLiteral : false;
+      props.push(
+        { path: 'skew.x', label: 'Skew X (deg)', type: 'number', group: 'Transform', readonly: skewFixed },
+        { path: 'skew.y', label: 'Skew Y (deg)', type: 'number', group: 'Transform', readonly: skewFixed },
+      );
       const declared = declaredPropsOf(id);
       const attrByName = new Map(attrs.map((attr) => [attr.name, attr]));
       const names = [
@@ -1614,6 +1654,9 @@ export function createSourceCanvasWriteTarget(
       if (echoed !== undefined) return echoed;
       if (path === 'name') return display.label ?? '';
       if (path === 'visible') return display.visible;
+      if (path === 'skew.x' || path === 'skew.y') {
+        return Number((((path === 'skew.x' ? display.skew.x : display.skew.y) * 180) / Math.PI).toFixed(4));
+      }
       if (!path.startsWith('jsx.')) return undefined;
       return propValue(attrsOf(id), declaredPropsOf(id), path.slice(4));
     },
@@ -1622,6 +1665,13 @@ export function createSourceCanvasWriteTarget(
     // edit, awaited. A path this target owns no prop for performed no write and
     // returns nothing.
     set(id: string, path: string, value: unknown): void | Promise<WriteAck> {
+      if (path === 'skew.x' || path === 'skew.y') {
+        return piped(
+          () => writeSkew(id, path === 'skew.x' ? 'x' : 'y', Number(value)),
+          undefined,
+          destinationOf(id),
+        );
+      }
       const prop =
         path === 'name'
           ? 'label'

@@ -69,6 +69,7 @@ import {
 import { authoringDestination, provenanceForNode } from '../authoring/provenance';
 import { InspectorStoriesSection } from '../components/InspectorStoriesSection';
 import { InspectorTransformSection } from '../components/InspectorTransformSection';
+import { InspectorFieldsSection } from '../components/InspectorFieldsSection';
 import {
   InspectorCanvasPreviewBody,
   InspectorComponentPreviewBody,
@@ -704,7 +705,13 @@ export function composeInspectionSubject(input: ComposeInspectionInput): Inspect
   }
 
   const transformDimensions = transformDimensionsFor(adapter, nodeId);
-  if (!claimed.has(TRANSFORM_SECTION_ID) && transformDimensions !== null) {
+  // A descriptor group named `Transform` (a 2D node's Skew) is the Transform section's own rows,
+  // drawn under its channels as Godot's Node2D does, not a second block of the same name.
+  const transformSectionDrawn = !claimed.has(TRANSFORM_SECTION_ID) && transformDimensions !== null;
+  const transformRows = transformSectionDrawn
+    ? (groups.find((group) => group.name === 'Transform')?.properties ?? [])
+    : [];
+  if (transformSectionDrawn) {
     const transform = adapter.transforms?.get(nodeId) ?? IDENTITY_TRANSFORM;
     // Measured by the node's medium on the ONE node the reader selected (the
     // hierarchy row's detail deliberately asks the cheap question instead).
@@ -828,8 +835,9 @@ export function composeInspectionSubject(input: ComposeInspectionInput): Inspect
               : {}),
           },
         },
-        render: () =>
+        render: () => [
           createElement(InspectorTransformSection, {
+            key: 'channels',
             dimensions: transformDimensions,
             transform,
             readOnly: !adapter.capabilities.transform,
@@ -852,6 +860,10 @@ export function composeInspectionSubject(input: ComposeInspectionInput): Inspect
               onEdit();
             },
           }),
+          ...(transformRows.length > 0
+            ? [createElement(InspectorFieldsSection, { key: 'rows', fields: transformRows, io })]
+            : []),
+        ],
       },
     });
   }
@@ -874,6 +886,7 @@ export function composeInspectionSubject(input: ComposeInspectionInput): Inspect
       });
     }
     groups.forEach((group, index) => {
+      if (transformRows.length > 0 && group.name === 'Transform') return;
       // A group is one owner's block (a component, a wrapper tag) and
       // collapses like Transform does — the same affordance, because it is
       // the same kind of thing. A wrapper like `<RigidBody>` can declare 40+
