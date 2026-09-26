@@ -193,9 +193,9 @@ Remaining:
    and Clear NavMesh removes it. Contributed application-menu items (`workspace.menu`) are palette
    entries too ("Debug: Bake NavMesh"), because under the Code-OSS frame the editor draws no
    menubar of its own; the workbench's native menubar does not carry them yet.
-6. **Input gating.** A game's own `InputManager` takes the realm gate (measured on `arena`: during
-   Play with a Model document active, a held W no longer reaches `gameInput`; with the Game tab
-   focused it does), and the document door refuses synthetic key, type, paste and drag while the
+6. **Input gating.** A game's own input listeners take the realm gate (measured on `arena`, then
+   on its engine input manager: during Play with a Model document active, a held W no longer
+   reached `gameInput`; with the Game tab focused it did; its own store is not re-measured), and the document door refuses synthetic key, type, paste and drag while the
    Game document is active. Virtual input through the game's own debug door
    (`native-debug-module.ts`, `game.input.*`) is delivered whatever the focus, by ruling: the gate
    keeps a person's keystrokes aimed at another document out of a running game, and a call to the
