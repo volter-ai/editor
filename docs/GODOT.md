@@ -306,6 +306,26 @@ export function MainScene() {
 }
 ```
 
+**Where the rollout stands.** These are emitted in the idiomatic shape, with the old
+setter-at-mount path deleted:
+
+- nodes, transforms, instanced scenes (as prefabs), scripts through `useGodotScript`, and autoloads;
+- fixed bodies and box colliders on `@react-three/rapier`, driven by compat's physics through one
+  Rapier (0.19.2) stepped by Godot's clock;
+- primitive meshes as three's geometries, ArrayMesh as a `<bufferGeometry>` from a data file,
+  StandardMaterial3D as `<meshStandardMaterial>`/`<meshBasicMaterial>`, textures through
+  `useGodotTexture`, lights, and the camera;
+- canvas items, Label3D and audio players as compat JSX components with literal props
+  (`<GodotLabel …/>`, `<GodotAudioStreamPlayer3D …/>`), through `useGodotElement`.
+
+A resource Godot shares between nodes is one object in the output, declared once and referenced
+by each user, because a script that mutates it changes every user. Named render deviations:
+`colour-quantization`, `primitive-geometry`, `primitive-uv`, `sphere-pole-u`,
+`cylinder-uv-layout`, `uv-origin`, `light-direction`, `shadow-mapping`, `transform-decomposition`
+and `disabled-scale-omitted`. A GridMap is its cells' collision object: a `<GodotGridMap>` with
+one declared fixed body. Still to carry over: dynamic, kinematic and character bodies, areas,
+the other shapes and raycasts (in progress); then animation.
+
 What follows from the ruling:
 
 - **A family maps to three's idiom first.** A primitive mesh is three's matching geometry with
