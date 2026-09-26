@@ -1,0 +1,348 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/plane"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Plane",
+        "member": "Plane",
+        "kind": "builtin-constructor",
+        "signature": "unhashed"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/plane",
+        "exportName": "construct",
+        "localName": "Plane_construct",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Plane.Plane"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Plane",
+        "member": "intersects_ray",
+        "kind": "builtin-member",
+        "signature": "hash:2048133369"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/plane",
+        "exportName": "intersects_ray",
+        "localName": "Plane_intersects_ray",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Plane.intersects_ray"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Plane",
+        "member": "normal",
+        "kind": "builtin-member-set",
+        "signature": "set"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/plane",
+        "exportName": "with_normal",
+        "localName": "Plane_with_normal",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Plane.normal.set"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Plane",
+        "member": "d",
+        "kind": "builtin-member-set",
+        "signature": "set"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/plane",
+        "exportName": "with_d",
+        "localName": "Plane_with_d",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Plane.d.set"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [
+    {
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "sourceDatatype": "BUILTIN:Plane",
+      "targetType": {
+        "kind": "type-reference",
+        "name": "Plane",
+        "arguments": []
+      },
+      "typeImport": {
+        "module": "lib/godot-compat/plane",
+        "exportName": "Plane"
+      },
+      "evidenceClaimId": "godot-4.7-datatype-Plane"
+    }
+  ],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Plane.Plane",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-constructor\u0000Plane\u0000Plane\u0000unhashed",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/plane.h",
+        "sourceSymbol": "Plane.Plane",
+        "sourceLine": 120
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "faac4b140d614574a3daa57f847cfbf94f2a7e6d8541346e3140d1a27e30e7d6",
+        "callsite": "res://probe.gd _init() construct-empty construct-normal-d-ground construct-normal-ground construct-copy-ground construct-normal-point-ground construct-abcd-ground construct-normal-d-raised construct-normal-raised construct-copy-raised construct-normal-point-raised construct-abcd-raised construct-normal-d-tilted construct-normal-tilted construct-copy-tilted construct-normal-point-tilted construct-abcd-tilted construct-normal-d-decimals construct-normal-decimals construct-copy-decimals construct-normal-point-decimals construct-abcd-decimals construct-normal-d-zero construct-normal-zero construct-copy-zero construct-normal-point-zero construct-abcd-zero construct-points-triangle construct-points-decimals construct-points-colinear",
+        "observedOutputSha256": "24a23ef3a95522dd54e940a2aad0f36bdfef7f79ddcd364c8506520191203f34"
+      },
+      "target": {
+        "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6",
+        "callsite": "lib/godot-compat/plane.ts construct",
+        "observedOutputSha256": "76d3501fb59befb1ed70c8ae8647ff7932a52c00d44e66350aed6b32f15cf034"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "dd0795f49ee62aacf55e41c4eaf897bb4cfe9411716e49e8adc8fc92ea07d149"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "plane",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Plane.intersects_ray",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Plane\u0000intersects_ray\u0000hash:2048133369",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/plane.cpp",
+        "sourceSymbol": "Plane.intersects_ray",
+        "sourceLine": 103
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "23736517ef59b4ef2b7f962ac0586da49ccb4a01ba7896354b771cb218080104",
+        "callsite": "res://probe.gd _init() intersects_ray-ground-down intersects_ray-ground-up-from-below intersects_ray-ground-away intersects_ray-ground-parallel intersects_ray-ground-nearly-parallel intersects_ray-ground-slanted intersects_ray-ground-on-plane intersects_ray-ground-just-behind intersects_ray-ground-long intersects_ray-raised-down intersects_ray-raised-up-from-below intersects_ray-raised-away intersects_ray-raised-parallel intersects_ray-raised-nearly-parallel intersects_ray-raised-slanted intersects_ray-raised-on-plane intersects_ray-raised-just-behind intersects_ray-raised-long intersects_ray-tilted-down intersects_ray-tilted-up-from-below intersects_ray-tilted-away intersects_ray-tilted-parallel intersects_ray-tilted-nearly-parallel intersects_ray-tilted-slanted intersects_ray-tilted-on-plane intersects_ray-tilted-just-behind intersects_ray-tilted-long intersects_ray-decimals-down intersects_ray-decimals-up-from-below intersects_ray-decimals-away intersects_ray-decimals-parallel intersects_ray-decimals-nearly-parallel intersects_ray-decimals-slanted intersects_ray-decimals-on-plane intersects_ray-decimals-just-behind intersects_ray-decimals-long intersects_ray-zero-down intersects_ray-zero-up-from-below intersects_ray-zero-away intersects_ray-zero-parallel intersects_ray-zero-nearly-parallel intersects_ray-zero-slanted intersects_ray-zero-on-plane intersects_ray-zero-just-behind intersects_ray-zero-long",
+        "observedOutputSha256": "92453a79533dbad359424bf0aed015ecaa3c5d36684162d5d829848ed63b32c8"
+      },
+      "target": {
+        "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6",
+        "callsite": "lib/godot-compat/plane.ts intersects_ray",
+        "observedOutputSha256": "92453a79533dbad359424bf0aed015ecaa3c5d36684162d5d829848ed63b32c8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "664686f4ef41c57831db629c3663764e201ac526986c2487ddc9442ceed88be6"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "plane",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Plane.normal.set",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member-set\u0000Plane\u0000normal\u0000set",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/plane.h",
+        "sourceSymbol": "Plane.normal",
+        "sourceLine": 42
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "92ea41bc2d73ac73326aacba05cd3e6ca8ddf573b4ef188d7b7e126de84d045b",
+        "callsite": "res://probe.gd _init() with_normal-ground with_normal-raised with_normal-tilted with_normal-decimals with_normal-zero",
+        "observedOutputSha256": "a8ea31429a41a99655d4e59e74b921adb0970de12176e412853d57931f164112"
+      },
+      "target": {
+        "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6",
+        "callsite": "lib/godot-compat/plane.ts with_normal",
+        "observedOutputSha256": "56566eaa8ebc1382b441a5d9ea3ce61b5383204c00b6c25601e35f062044be8e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0819847229673b84aef012346ab120b88e9b5659d733545d42c0f8e2f771d8e3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "plane",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Plane.d.set",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member-set\u0000Plane\u0000d\u0000set",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/plane.h",
+        "sourceSymbol": "Plane.d",
+        "sourceLine": 43
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a8f1bf37826636ebb69c3440df41722b0a36534c18d9f5a734e0ceadb2345622",
+        "callsite": "res://probe.gd _init() with_d-ground with_d-raised with_d-tilted with_d-decimals with_d-zero",
+        "observedOutputSha256": "ee7852ce0c0b2a8531bcc3b06ceb5fbf5f4a22f3eaaa01f04a8b632ab8ef8f74"
+      },
+      "target": {
+        "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6",
+        "callsite": "lib/godot-compat/plane.ts with_d",
+        "observedOutputSha256": "9101483b6ed3c63ef661ccd8ca64435a12e01bd58d3537cfe4dd599a55ce8d5b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "851ec463deb6221496000ff89fde93198d0775247bdc1f88aac8cb9cbf7e7840"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "plane",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-datatype-Plane",
+      "layer": "translate-code",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000datatype\u0000BUILTIN:Plane",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/variant.h",
+        "sourceSymbol": "Variant::PLANE",
+        "sourceLine": 115
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ed6b15b6c3ed3ebf253e1690e32688f6a7de47d4e0136f8e877f4624c0f9253b",
+        "callsite": "res://probe.gd _init() every case",
+        "observedOutputSha256": "fbd6ef95703eec79acb814fe60e1520948362ab024a9816f31127cd8859cf6a1"
+      },
+      "target": {
+        "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6",
+        "callsite": "lib/godot-compat/plane.ts Plane",
+        "observedOutputSha256": "109453a3e0dd4333e36db82de4ce8240b2f7b5592339bed387414380ea38fb2a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8154acbeff2f294221b8ea9fed90c930e037140c4c0d48adaac22db28aaf8849"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "plane",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Plane.Plane",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "faac4b140d614574a3daa57f847cfbf94f2a7e6d8541346e3140d1a27e30e7d6",
+      "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6"
+    },
+    {
+      "claimId": "godot-4.7-binding-Plane.intersects_ray",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "23736517ef59b4ef2b7f962ac0586da49ccb4a01ba7896354b771cb218080104",
+      "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6"
+    },
+    {
+      "claimId": "godot-4.7-binding-Plane.normal.set",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "92ea41bc2d73ac73326aacba05cd3e6ca8ddf573b4ef188d7b7e126de84d045b",
+      "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6"
+    },
+    {
+      "claimId": "godot-4.7-binding-Plane.d.set",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a8f1bf37826636ebb69c3440df41722b0a36534c18d9f5a734e0ceadb2345622",
+      "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6"
+    },
+    {
+      "claimId": "godot-4.7-datatype-Plane",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ed6b15b6c3ed3ebf253e1690e32688f6a7de47d4e0136f8e877f4624c0f9253b",
+      "implementationSha256": "7a61f87a29516279c7405670d133d141b11ba14c9c4fe7c096aa62049f854ce6"
+    }
+  ]
+}

@@ -4,6 +4,7 @@
     "src/lib/godot-compat/basis.ts",
     "src/lib/godot-compat/color.ts",
     "src/lib/godot-compat/node-process.ts",
+    "src/lib/godot-compat/plane.ts",
     "src/lib/godot-compat/react-lifecycle.tsx",
     "src/lib/godot-compat/signal.ts",
     "src/lib/godot-compat/transform-2d.ts",
