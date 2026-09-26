@@ -1,6 +1,7 @@
 import { DirectionalLight, Group, Object3D, PointLight } from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { Scene } from 'three';
+import * as AT from '../../capabilities/catalog/project-source/src/lib/godot-compat/animation-tree';
 import * as BOX from '../../capabilities/catalog/project-source/src/lib/godot-compat/box-shape-3d';
 import * as CS from '../../capabilities/catalog/project-source/src/lib/godot-compat/collision-shape-3d';
 import { add_child, godot_node_adopt } from '../../capabilities/catalog/project-source/src/lib/godot-compat/node';
@@ -174,6 +175,15 @@ rule('indexed-member-read', 'SUBSCRIPT', 'subscript-element:indexed-member', [B,
   symbol: 'VariantIndexedSetGet (struct built-ins)',
   line: 847,
 });
+// A literal parameter path subscripted on an AnimationTree (`tree[&"parameters/…"]`, read or
+// written): `Object::get`/`set`, which the tree answers from its parameters.
+for (const index of ['StringName', 'String']) {
+  rule(`animation-tree-parameter-${index}`, 'SUBSCRIPT', 'subscript-element:tree-parameter', ['NATIVE:AnimationTree', `BUILTIN:${index}`], '', { kind: 'binding' }, {
+    file: 'scene/animation/animation_tree.cpp',
+    symbol: 'AnimationTree::_set / AnimationTree::_get',
+    line: 1057,
+  });
+}
 rule('member-read-builtin', 'SUBSCRIPT', 'subscript-attribute', [B], B, structural('subscript-attribute'), {
   file: COMPILER,
   symbol: 'GDScriptCompiler::_parse_expression SUBSCRIPT',
@@ -1224,6 +1234,47 @@ script = ExtResource("1_cases")
 [node name="C" type="Node" parent="A"]
 `;
 
+const TREE_SOURCE = `class_name TreeCases
+extends Node
+
+@onready var _tree := $Tree as AnimationTree
+
+
+func parameters() -> Array:
+\tvar before: Array = [_tree[&"parameters/mix/blend_amount"], _tree["parameters/slow/scale"]]
+\t_tree[&"parameters/mix/blend_amount"] = 0.25
+\t_tree["parameters/slow/scale"] = 2
+\tvar state: int = 1
+\t_tree[&"parameters/x/current_delta"] = state
+\tbefore.append(_tree[&"parameters/mix/blend_amount"])
+\tbefore.append(_tree["parameters/slow/scale"])
+\tbefore.append(_tree[&"parameters/x/current_delta"])
+\treturn before
+`;
+
+const TREE_SCENE = `[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://tree_cases.gd" id="1_cases"]
+
+[sub_resource type="AnimationNodeAnimation" id="Node_x"]
+
+[sub_resource type="AnimationNodeTimeScale" id="Node_slow"]
+
+[sub_resource type="AnimationNodeBlend2" id="Node_mix"]
+
+[sub_resource type="AnimationNodeBlendTree" id="Tree_root"]
+nodes/x/node = SubResource("Node_x")
+nodes/slow/node = SubResource("Node_slow")
+nodes/mix/node = SubResource("Node_mix")
+node_connections = [&"output", 0, &"mix", &"mix", 0, &"x", &"mix", 1, &"slow"]
+
+[node name="Root" type="Node"]
+script = ExtResource("1_cases")
+
+[node name="Tree" type="AnimationTree" parent="."]
+tree_root = SubResource("Tree_root")
+`;
+
 const TAGGED_SOURCE = `class_name Tagged
 extends Node3D
 
@@ -1669,6 +1720,38 @@ cases.push({
   comparator: 'exact',
 });
 
+cases.push({
+  id: 'animation-tree-parameters',
+  className: 'TreeCases',
+  call: '',
+  instance: {
+    scene: 'tree_cases.tscn',
+    steps: ['$ready', 'parameters'],
+    native: () => {
+      const root = nativeNode('Root', NODE);
+      const tree = nativeNode('Tree', ['AnimationTree', 'AnimationMixer', ...NODE], root);
+      AT.godot_animation_tree_mount(tree);
+      AT.set_tree_root(
+        tree,
+        AT.godot_animation_node_load({
+          type: 'blend-tree',
+          nodes: [
+            { name: 'x', node: { type: 'animation', animation: '' } },
+            { name: 'slow', node: { type: 'time-scale' } },
+            { name: 'mix', node: { type: 'blend2' } },
+          ],
+          connections: [['output', 0, 'mix'], ['mix', 0, 'x'], ['mix', 1, 'slow']],
+        }),
+      );
+      return root;
+    },
+    adopt: (instance, native) => {
+      godot_node_adopt(native as object, { binding: { owner: instance } });
+    },
+  },
+  comparator: 'exact',
+});
+
 const GDSCRIPT_EVIDENCE: GodotLanguageEvidenceFile = {
   kind: 'language',
   className: 'GDScriptCases',
@@ -1683,14 +1766,17 @@ const GDSCRIPT_EVIDENCE: GodotLanguageEvidenceFile = {
     { file: 'derived_tagged.gd', className: 'DerivedTagged', source: DERIVED_TAGGED_SOURCE },
     { file: 'type_cases.gd', className: 'TypeCases', source: TYPE_SOURCE },
     { file: 'ray_cases.gd', className: 'RayCases', source: RAY_SOURCE },
+    { file: 'tree_cases.gd', className: 'TreeCases', source: TREE_SOURCE },
   ],
   scenes: [
     { file: 'main.tscn', source: NODE3D_SCENE },
     { file: 'node_path_cases.tscn', source: NODE_PATH_SCENE },
     { file: 'type_cases.tscn', source: TYPE_SCENE },
     { file: 'ray_cases.tscn', source: RAY_SCENE },
+    { file: 'tree_cases.tscn', source: TREE_SCENE },
   ],
   compatModules: [
+    'lib/godot-compat/animation-tree',
     'lib/godot-compat/array',
     'lib/godot-compat/basis',
     'lib/godot-compat/dictionary',

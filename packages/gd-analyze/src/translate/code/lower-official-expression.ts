@@ -411,6 +411,35 @@ function nativeEntity(value: LoweredExpression): LoweredExpression {
   };
 }
 
+/**
+ * A subscript on an AnimationTree (`tree[&"parameters/run/blend_amount"]`): `Object::set`/`get`,
+ * which the tree answers from its parameters (`AnimationTree::_set`/`_get`, animation_tree.cpp:1057).
+ * The path must be a literal naming a parameter, resolved here to compat's parameter protocol; any
+ * other index refuses by name. Undefined for a subscript on another base.
+ */
+function treeParameter(
+  context: LoweringContext,
+  node: GodotBoundNode,
+): { readonly baseNode: GodotBoundNode; readonly indexNode: GodotBoundNode; readonly path: string } | undefined {
+  if (node.kind !== 'SUBSCRIPT' || node.isAttribute) return undefined;
+  const baseNode = context.node(node.base, node);
+  if (baseNode.datatype.kind !== 'NATIVE' || baseNode.datatype.metaType || baseNode.datatype.nativeType !== 'AnimationTree') return undefined;
+  const indexNode = context.node(node.index, node);
+  const value = indexNode.kind === 'LITERAL' ? indexNode.value : undefined;
+  const path = value?.kind === 'string' || value?.kind === 'string-name' ? value.value : undefined;
+  if (path === undefined) return context.refuse(node, 'an AnimationTree subscript whose path is not a literal');
+  // A parameter of a node compat transcribes (`animation-tree.ts`'s `parametersOf`).
+  if (!/^parameters\/(.+\/)?(blend_amount|scale|backward|current_length|current_position|current_delta)$/u.test(path)) {
+    return context.refuse(node, `an AnimationTree subscript of ${path}, which is not a parameter of a transcribed node`);
+  }
+  return { baseNode, indexNode, path };
+}
+
+/** Compat's tree parameter protocol (`animation-tree.ts`): its import. */
+function treeProtocol(name: string): OfficialBoundLoweringRequirement {
+  return { kind: 'compat-import-requirement', module: 'lib/godot-compat/animation-tree', imported: name, local: name, typeOnly: false };
+}
+
 function nativeObjectType(node: GodotBoundNode): boolean {
   return node.datatype.kind === 'NATIVE' && !node.datatype.metaType;
 }
@@ -537,6 +566,23 @@ function assignablePlace(
   node: GodotBoundNode,
   lower: (context: LoweringContext, node: GodotBoundNode) => LoweredExpression,
 ): AssignablePlace {
+  const parameter = treeParameter(context, node);
+  if (parameter !== undefined) {
+    const rule = context.selectRule(node, ['subscript-element:tree-parameter'], [parameter.baseNode, parameter.indexNode], ['binding'], false);
+    const object = materialize(context, nativeEntity(lower(context, parameter.baseNode)));
+    const name: TargetTsExpression = { kind: 'literal-expression', value: parameter.path };
+    const call = (callee: string, args: readonly TargetTsExpression[]): TargetTsExpression => ({
+      kind: 'call-expression',
+      callee: { kind: 'identifier-expression', name: callee },
+      arguments: [...args],
+    });
+    return {
+      before: object.before,
+      read: call('godot_animation_tree_parameter', [object.value, name]),
+      write: (value) => call('godot_animation_tree_set_parameter', [object.value, name, value]),
+      requirements: [...rule.requirements, ...object.requirements, treeProtocol('godot_animation_tree_parameter'), treeProtocol('godot_animation_tree_set_parameter')],
+    };
+  }
   const attributeTarget = valueAttributeTarget(context, node);
   // The native base's own property as the base of a member write (`transform.basis = b`): read
   // through its getter, written back through its setter.
@@ -762,7 +808,7 @@ function assignment(
 ): LoweredExpression {
   const place =
     inheritedNativePlace(context, targetNode, combine !== undefined) ??
-    (valueAttributeTarget(context, targetNode) !== undefined
+    (valueAttributeTarget(context, targetNode) !== undefined || treeParameter(context, targetNode) !== undefined
       ? assignablePlace(context, targetNode, lower)
       : undefined);
   if (place !== undefined) {
@@ -1553,6 +1599,20 @@ export function lowerOfficialExpression(
               span: span(context.script, node),
             }),
             requirements,
+          );
+        }
+        const parameter = treeParameter(context, node);
+        if (parameter !== undefined) {
+          const rule = context.selectRule(node, ['subscript-element:tree-parameter'], [parameter.baseNode, parameter.indexNode], ['binding'], false);
+          return compose(
+            context,
+            [nativeEntity(base)],
+            ([object]) => ({
+              kind: 'call-expression',
+              callee: { kind: 'identifier-expression', name: 'godot_animation_tree_parameter' },
+              arguments: [object as TargetTsExpression, { kind: 'literal-expression', value: parameter.path }],
+            }),
+            [...rule.requirements, treeProtocol('godot_animation_tree_parameter')],
           );
         }
         const indexNode = context.node(node.index, node);

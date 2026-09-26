@@ -601,6 +601,33 @@ export function godot_animation_tree_get(self: object, name: string): number | b
   return state.properties.get(String(name))?.value;
 }
 
+/**
+ * `tree[path]` in a script (`Object::get`, answered by `AnimationTree::_get`): a path that is not a
+ * parameter is GDScript's invalid access (`gdscript_vm.cpp:1167`).
+ *
+ * @godot AnimationTree (protocol)
+ * @source scene/animation/animation_tree.cpp:1090
+ */
+export function godot_animation_tree_parameter(self: object, path: string): number | boolean {
+  const value = godot_animation_tree_get(self, path);
+  if (value === undefined) throw new Error(`Invalid access to property or key '${path}' on a base object of type 'AnimationTree'.`);
+  return value;
+}
+
+/**
+ * `tree[path] = value` in a script (`Object::set`, answered by `AnimationTree::_set`): a path the
+ * tree does not set (not a parameter, or read-only inside the tree) is GDScript's invalid
+ * assignment (`gdscript_vm.cpp:1059`).
+ *
+ * @godot AnimationTree (protocol)
+ * @source scene/animation/animation_tree.cpp:1057
+ */
+export function godot_animation_tree_set_parameter(self: object, path: string, value: number | boolean): void {
+  if (!godot_animation_tree_set(self, path, value)) {
+    throw new Error(`Invalid assignment of property or key '${path}' with value of type '${typeof value === 'boolean' ? 'bool' : 'float'}' on a base object of type 'AnimationTree'.`);
+  }
+}
+
 // --- The scene's element.
 
 const PROPS = new Map<string, GodotElementProp<Object3D>>([
