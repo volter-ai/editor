@@ -109,6 +109,16 @@ editor's Freeze writes it out, or run
 Before rewriting a section, read what the person changed (`git diff`, `git log -p`): change
 only what you were asked to, and leave their edits where they put them.
 
+## Offer alternatives, scoped
+
+When the person asks for another take on part of the music ("try the bridge melody another
+way"), change only that region and offer choices rather than replacing their version: write each
+alternative as a copy of the track (`Flute (alt 2)`) with `mute` on its channel, holding only
+the region you were asked about. They compare in the mixer by soloing one track at a time,
+and keep one; then fold the kept notes back into the original track and delete the copies.
+Two or three alternatives that differ in one clear way each (contour, rhythm, register) are
+worth more than many that differ a little.
+
 ## Checks you run without ears
 
 After every stage, and fix what they report:
