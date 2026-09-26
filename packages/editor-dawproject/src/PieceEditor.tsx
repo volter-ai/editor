@@ -26,7 +26,7 @@ import { useLivePiece } from './live-piece';
 import { Devices } from './Devices';
 import { Mixer } from './Mixer';
 import { type EngineState, PreviewEngine, trackVoices } from './preview-engine';
-import { applySource, propRefusal, readSource, readSourceIndex, recordStructWrite, type SourceIndex, writeProps, writeStruct } from './source-index';
+import { applySource, propRefusal, readSource, readSourceIndex, recordStructWrite, restoreProps, type SourceIndex, writeProps, writeStruct } from './source-index';
 
 const HEADER_W = 190;
 const LANE_H = 44;
@@ -575,17 +575,18 @@ function PianoRoll(props: {
     }
     setPending((prev) => new Map(prev).set(note.id, { time, pitch }));
     const oid = note.oid;
-    writeProps(oid, props_).then(
+    const label = props_['pitch'] && !props_['at'] ? 'Transpose Note' : 'Move Note';
+    writeProps(oid, props_, before).then(
       () => {
         // One entry on the workbench's one undo stack (Cmd+Z, the Edit menu): undo writes the
         // literals the note had, redo the ones the gesture wrote, through the same source route.
         editorHost().history.record({
           id: globalThis.crypto?.randomUUID?.() ?? `note-${Date.now()}`,
-          label: props_['pitch'] && !props_['at'] ? 'Transpose Note' : 'Move Note',
+          label,
           resources: [props.file],
           document: props.documentId,
-          undo: () => writeProps(oid, before).then(() => true, () => false),
-          redo: () => writeProps(oid, props_).then(() => true, () => false),
+          undo: () => restoreProps(label, oid, props_, before).catch(() => false),
+          redo: () => restoreProps(label, oid, before, props_).catch(() => false),
         });
       },
       (error: unknown) => {
@@ -643,15 +644,15 @@ function PianoRoll(props: {
     const written = index.get(oid)?.authoredProps?.find((candidate) => candidate.name === 'vel')?.valueText ?? null;
     const before = written === null ? null : Number(written);
     setVelPending((prev) => new Map(prev).set(note.id, vel));
-    writeProps(oid, { vel }).then(
+    writeProps(oid, { vel }, { vel: before }).then(
       () =>
         editorHost().history.record({
           id: globalThis.crypto?.randomUUID?.() ?? `vel-${Date.now()}`,
           label: 'Set Velocity',
           resources: [props.file],
           document: props.documentId,
-          undo: () => writeProps(oid, { vel: before }).then(() => true, () => false),
-          redo: () => writeProps(oid, { vel }).then(() => true, () => false),
+          undo: () => restoreProps('Set Velocity', oid, { vel }, { vel: before }).catch(() => false),
+          redo: () => restoreProps('Set Velocity', oid, { vel: before }, { vel }).catch(() => false),
         }),
       (error: unknown) => {
         setVelPending((prev) => {

@@ -58,34 +58,81 @@ export function propRefusal(
  * Write each prop's new literal onto the element, adding the attribute when the element does not
  * write it yet; `null` takes the attribute off (the element's default applies again). Resolves
  * `true` when the source changed.
+ *
+ * Props are written one request each. When one fails after others were written, those are put
+ * back (`previous`, the literals the element wrote before) and the failure is thrown, so a gesture
+ * is never left half-written with no undo entry (a note move keeping its new position and losing
+ * its new pitch).
  */
-export async function writeProps(oid: string, props: Readonly<Record<string, Literal | null>>): Promise<boolean> {
+export async function writeProps(
+  oid: string,
+  props: Readonly<Record<string, Literal | null>>,
+  previous?: Readonly<Record<string, Literal | null>>,
+): Promise<boolean> {
   let changed = false;
-  for (const [prop, value] of Object.entries(props)) {
-    // A number is written as a number; a string as the text between an attribute's quotes
-    // (`at="9:2.5"`), which is what the JSX writer replaces for a string attribute.
-    const text = typeof value === 'number' ? formatNumber(value) : typeof value === 'boolean' ? String(value) : value;
-    const body = { oid, prop, value: text, addIfMissing: true, ...sourceMutationAttribution() };
-    const response = await fetch('/__ui-source/prop', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    if (response.status === 409) {
-      await handleProjectMutationFailure(response, {
-        label: `Set ${prop}`,
-        attempted: {},
-        reapply: () => writeProps(oid, { [prop]: value }).then(() => undefined),
-      });
-      return changed;
+  const written: string[] = [];
+  try {
+    for (const [prop, value] of Object.entries(props)) {
+      if (await writeProp(oid, prop, value)) changed = true;
+      written.push(prop);
     }
-    const answer = (await response.json()) as { changed?: boolean; dynamic?: boolean; error?: string; revision?: number };
-    if (!response.ok || answer.error) throw new Error(answer.error ?? `Writing ${prop} failed (${response.status}).`);
-    if (answer.dynamic) throw new Error(`\`${prop}\` is computed in the source and was not written.`);
-    if (typeof answer.revision === 'number') setCollaborationRevision(answer.revision);
-    changed = changed || answer.changed === true;
+  } catch (error) {
+    if (previous && written.length > 0) {
+      for (const prop of written) await writeProp(oid, prop, previous[prop] ?? null).catch(() => undefined);
+      throw new Error(`${error instanceof Error ? error.message : String(error)} The change's other parts were put back.`);
+    }
+    throw error;
   }
   return changed;
+}
+
+async function writeProp(oid: string, prop: string, value: Literal | null): Promise<boolean> {
+  // A number is written as a number; a string as the text between an attribute's quotes
+  // (`at="9:2.5"`), which is what the JSX writer replaces for a string attribute.
+  const text = typeof value === 'number' ? formatNumber(value) : typeof value === 'boolean' ? String(value) : value;
+  const body = { oid, prop, value: text, addIfMissing: true, ...sourceMutationAttribution() };
+  const response = await fetch('/__ui-source/prop', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (response.status === 409) {
+    await handleProjectMutationFailure(response, {
+      label: `Set ${prop}`,
+      attempted: {},
+      reapply: () => writeProp(oid, prop, value).then(() => undefined),
+    });
+    throw new Error(`\`${prop}\` was not written: the piece changed underneath it.`);
+  }
+  const answer = (await response.json()) as { changed?: boolean; dynamic?: boolean; error?: string; revision?: number };
+  if (!response.ok || answer.error) throw new Error(answer.error ?? `Writing ${prop} failed (${response.status}).`);
+  if (answer.dynamic) throw new Error(`\`${prop}\` is computed in the source and was not written.`);
+  if (typeof answer.revision === 'number') setCollaborationRevision(answer.revision);
+  return answer.changed === true;
+}
+
+/**
+ * Undo or redo a prop edit: write `next` only while the element still writes `expected` (read
+ * fresh from the source index), so an edit made since, by the person or the agent, is never
+ * overwritten by an old undo entry. A refusal is said in the editor's notifications.
+ */
+export async function restoreProps(
+  label: string,
+  oid: string,
+  expected: Readonly<Record<string, Literal | null>>,
+  next: Readonly<Record<string, Literal | null>>,
+): Promise<boolean> {
+  const index = await readSourceIndex();
+  for (const [prop, value] of Object.entries(expected)) {
+    const now = writtenLiteral(index, oid, prop);
+    const same = typeof value === 'number' && typeof now === 'number' ? Math.abs(value - now) < 1e-9 : now === value;
+    if (!same) {
+      editorHost().notify({ tone: 'warning', title: `“${label}” was not undone: \`${prop}\` has changed since (it is now ${now === null ? 'unwritten' : String(now)}).` });
+      return false;
+    }
+  }
+  await writeProps(oid, next, expected);
+  return true;
 }
 
 /** A beat or pitch as source text, rounded to a millionth so float noise never reaches the file. */
@@ -238,15 +285,15 @@ export async function setProps(
 ): Promise<void> {
   const before: Record<string, Literal | null> = {};
   for (const prop of Object.keys(props)) before[prop] = writtenLiteral(index, oid, prop);
-  const changed = await writeProps(oid, props);
+  const changed = await writeProps(oid, props, before);
   if (!changed) return;
   editorHost().history.record({
     id: globalThis.crypto?.randomUUID?.() ?? `${label}-${Date.now()}`,
     label,
     resources: [resource.file],
     document: resource.documentId,
-    undo: () => writeProps(oid, before).then(() => true, () => false),
-    redo: () => writeProps(oid, props).then(() => true, () => false),
+    undo: () => restoreProps(label, oid, props, before).catch(() => false),
+    redo: () => restoreProps(label, oid, before, props).catch(() => false),
   });
 }
 
