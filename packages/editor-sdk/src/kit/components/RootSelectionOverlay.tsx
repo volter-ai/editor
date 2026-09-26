@@ -1192,7 +1192,7 @@ function computeD1Affordances(
   return { selectedSingleRect, measureLines, positionBadge, showPositionBadge, parentRect };
 }
 
-function ViewportPickMenu({
+export function ViewportPickMenu({
   state,
   adapter,
   onClose,

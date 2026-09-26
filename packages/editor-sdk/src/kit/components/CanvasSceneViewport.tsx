@@ -1,9 +1,11 @@
 import {
   faBorderAll,
+  faBullseye,
   faCheck,
   faCrosshairs,
   faHand,
   faLayerGroup,
+  faListUl,
   faLock,
   faLockOpen,
   faRulerCombined,
@@ -55,6 +57,16 @@ import {
 import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { ToolStrip } from '@volter/editor-sdk/kit/components/Toolbar';
 import { TransientHintOverlay } from '@volter/editor-sdk/kit/components/TransientHint';
+import { ViewportPickMenu } from '@volter/editor-sdk/kit/components/RootSelectionOverlay';
+import {
+  EDGE_SNAP_THRESHOLD_PX,
+  frameForId,
+  rectFrame,
+  rectForId,
+  snapPointToFrame,
+  spatialHandlesForId,
+} from '@volter/editor-sdk/kit/components/world-overlay-gestures';
+import { pickCandidates } from '@volter/editor-sdk/kit/authoring/layered-pick';
 
 interface Bounds {
   x: number;
@@ -486,7 +498,15 @@ export function CanvasSceneControls({
   useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
   const showGrid = viewGridVisible(documentId);
   const pose = useSyncExternalStore(view.subscribe, view.get, view.get);
-  const [mode, setMode] = useState<'pan' | 'ruler' | null>(null);
+  // The mode is the view's, so it survives the remount a source write causes (Godot's stays on).
+  const [mode, setModeState] = useState<CanvasSceneMode | null>(() => sceneModes.get(view) ?? null);
+  const setMode = useCallback(
+    (next: CanvasSceneMode | null) => {
+      sceneModes.set(view, next);
+      setModeState(next);
+    },
+    [view],
+  );
 
   const zoomAroundCenter = useCallback(
     (requestedZoom: number) => {
@@ -580,7 +600,15 @@ export function CanvasSceneControls({
        *  which a user watching the board does not read (pass 65). */}
       <TransientHintOverlay />
       <ToolStrip dimensions="2d" />
-      {mode ? <CanvasSceneModeLayer mode={mode} view={view} containerRef={containerRef} onExit={() => setMode(null)} /> : null}
+      {mode ? (
+        <CanvasSceneModeLayer
+          mode={mode}
+          view={view}
+          adapter={adapter}
+          containerRef={containerRef}
+          onExit={() => setMode(null)}
+        />
+      ) : null}
       <FloatingToolbar
         label="2D scene display"
         className="vgai-viewport-toolbar vgai-viewport-toolbar-right"
@@ -599,6 +627,26 @@ export function CanvasSceneControls({
         <Button aria-label="Frame all" variant="ghost" size="comfortable" onClick={frameScene}>
           Frame all
         </Button>
+        <Tooltip text="List Select: click to list the selectable nodes there">
+          <IconButton
+            aria-label="List Select mode"
+            aria-pressed={mode === 'list'}
+            size="comfortable"
+            onClick={() => setMode(mode === 'list' ? null : 'list')}
+          >
+            <EditorIcon icon={faListUl} size="md" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip text="Pivot: click or drag to put the selected node's pivot there">
+          <IconButton
+            aria-label="Pivot mode"
+            aria-pressed={mode === 'pivot'}
+            size="comfortable"
+            onClick={() => setMode(mode === 'pivot' ? null : 'pivot')}
+          >
+            <EditorIcon icon={faBullseye} size="md" />
+          </IconButton>
+        </Tooltip>
         <Tooltip text="Pan (Space-drag pans in any mode)">
           <IconButton
             aria-label="Pan mode"
@@ -785,19 +833,27 @@ function CanvasSceneLockButton({ adapter, selected }: { adapter: AuthoringAdapte
  * drags the view with the primary button; Ruler draws the drag as a line and reads its length in
  * world units and its angle. Escape leaves the mode.
  */
+/** Godot's 2D modes beside the transform tools: Pan, Ruler, List Select and Pivot. */
+type CanvasSceneMode = 'pan' | 'ruler' | 'list' | 'pivot';
+const sceneModes = new WeakMap<RootViewController, CanvasSceneMode | null>();
+
 function CanvasSceneModeLayer({
   mode,
   view,
+  adapter,
   containerRef,
   onExit,
 }: {
-  mode: 'pan' | 'ruler';
+  mode: CanvasSceneMode;
   view: RootViewController;
+  adapter: AuthoringAdapter | undefined;
   containerRef: RefObject<HTMLDivElement | null>;
   onExit: () => void;
 }) {
+  const store = useEditorStore();
   const pose = useSyncExternalStore(view.subscribe, view.get, view.get);
   const [measure, setMeasure] = useState<{ from: { x: number; y: number }; to: { x: number; y: number } } | null>(null);
+  const [pick, setPick] = useState<{ x: number; y: number; ids: readonly string[] } | null>(null);
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onExit();
@@ -812,9 +868,50 @@ function CanvasSceneModeLayer({
     const y = clientY - (box?.top ?? 0);
     return { x: (x - now.x) / now.zoom, y: (y - now.y) / now.zoom };
   };
+  /** Where the pivot goes for a point: snapped to its node's sides and centre as a dragged pivot is. */
+  const pivotPoint = (id: string, point: { x: number; y: number }, free: boolean) => {
+    const choice = store.smartSnap;
+    if (!adapter || free || !choice.enabled || (!choice.sides && !choice.center)) return point;
+    const rect = rectForId(adapter, id);
+    const frame = frameForId(adapter, id) ?? (rect ? rectFrame(rect) : null);
+    if (!frame) return point;
+    return snapPointToFrame(point, frame, choice.sides, choice.center, EDGE_SNAP_THRESHOLD_PX / Math.max(view.get().zoom, 0.01));
+  };
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return;
     event.preventDefault();
+    if (mode === 'list') {
+      // Godot's List Select: every selectable node under the click, to choose from.
+      const ids = pickCandidates(store, event.clientX, event.clientY, adapter ? { adapter } : {});
+      setPick(ids.length > 0 ? { x: event.clientX, y: event.clientY, ids } : null);
+      return;
+    }
+    if (mode === 'pivot') {
+      const selected = store.selectedEntityIds;
+      const id = selected.size === 1 && adapter ? [...selected][0]! : null;
+      const provider = id && adapter ? spatialHandlesForId(adapter, id) : null;
+      const handle = id
+        ? provider
+            ?.layers(id)
+            .find((layer) => layer.category === 'origin')
+            ?.handles.find((h) => h.writable)
+        : undefined;
+      if (!id || !provider || !handle) return;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      const at = (next: { clientX: number; clientY: number; altKey: boolean }) => {
+        const point = pivotPoint(id, worldAt(next.clientX, next.clientY), next.altKey);
+        return [point.x, point.y, 0] as const;
+      };
+      provider.preview(id, handle.id, at(event));
+      const move = (next: PointerEvent) => provider.preview(id, handle.id, at(next));
+      const end = (last: PointerEvent) => {
+        window.removeEventListener('pointermove', move);
+        void provider.commit(id, handle.id, at(last));
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', end, { once: true });
+      return;
+    }
     event.currentTarget.setPointerCapture(event.pointerId);
     const start = { clientX: event.clientX, clientY: event.clientY, pose: view.get() };
     const from = worldAt(event.clientX, event.clientY);
@@ -848,8 +945,9 @@ function CanvasSceneModeLayer({
       data-vgai-canvas-navigation-ignore="true"
       onPointerDown={onPointerDown}
       // Above the selection hit layer (z50), below the viewport toolbars.
-      style={{ position: 'absolute', inset: 0, zIndex: 60, cursor: mode === 'pan' ? 'grab' : 'crosshair' }}
+      style={{ position: 'absolute', inset: 0, zIndex: 60, cursor: mode === 'pan' ? 'grab' : mode === 'list' ? 'context-menu' : 'crosshair' }}
     >
+      {pick && adapter ? <ViewportPickMenu state={pick} adapter={adapter} onClose={() => setPick(null)} /> : null}
       {a && b ? (
         <>
           <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>

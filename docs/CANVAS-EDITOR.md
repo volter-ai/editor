@@ -78,10 +78,11 @@ the tool strip and snap control are the kit's `Toolbar.tsx`. Walked on a `canvas
 | Toggle 2D grid | View › Grid | a shortcut to the menu's switch |
 | Frame all, Frame selection | View › Frame Selection | present; Frame all has no exact home |
 | Zoom widget: Center view, zoom out, percentage (resets to 100%), zoom in | zoom widget: Center View, −, %, + | partial: our Center view puts the game's viewport rectangle in the middle of the pane at the current zoom (walked: its centre landed on the pane's, 888, 319), but Godot's own Center View target was not read from the installed product, so the behaviour is unverified against it; the scene zooms from 2% to 3200% |
+| List Select mode: a click lists the selectable nodes there; Pivot mode: a click or drag puts the selected node's pivot there, snapped as V is. Both beside Pan and Ruler, and a mode stays on through the remount its own write causes | List Select, Pivot | present (walked: List Select on Target listed Block; Pivot 1.5 units inside Target's turned right side with smart snap wrote `pivot={{ x: 60, y: 0 }}` and x 752.655, y 448.7655, and the mode stayed lit). Partial: Pivot's Shift (a temporary pivot) has no counterpart |
 | Pan mode (hand), and middle-drag, right-drag, Space-drag in any mode; wheel zooms at the cursor | Pan mode and Pan View | present (walked: a drag in Pan mode moved the origin 80 px) |
 | Ruler mode: a drag reads its length in world units, its angle and its Δx, Δy | Ruler mode | present (walked before the Δ readout: 100 screen px at 153% read "65.5 px · 0.0°") |
 | Alt-hover measurement between the selection and another node | Figma's measurement | present |
-| Stationary right-click: Add Container, Sprite, Text or Graphics at the point, a child of the selected node or else of the scene's root, the point snapped as a move is; Alt+right-click: the nodes under the pointer | RMB and Alt+RMB; List Select mode | present (walked: with nothing selected, Add Container wrote `<pixiContainer label="Container" x={935} y={484} />` inside the scene's root, the click at world (934.50, 484.22); Alt+right-click on Target listed Block). Partial: no List Select mode button; the Add list is the source lane's four kinds, where Godot opens its full Create Node dialog; a right-drag pans, where Godot pans with the middle button |
+| Stationary right-click: Add Container, Sprite, Text or Graphics at the point, a child of the selected node or else of the scene's root, the point snapped as a move is; Alt+right-click: the nodes under the pointer | RMB and Alt+RMB; List Select mode | present (walked: with nothing selected, Add Container wrote `<pixiContainer label="Container" x={935} y={484} />` inside the scene's root, the click at world (934.50, 484.22); Alt+right-click on Target listed Block). Partial: the Add list is the source lane's four kinds, where Godot opens its full Create Node dialog; a right-drag pans, where Godot pans with the middle button |
 | Lock / Unlock selected node (toolbar), a shortcut to the hierarchy's lock | Lock | partial: the button toggles the lock (walked), which lasts the session; Godot saves it in the scene and draws a lock gizmo |
 | Group / Ungroup selected node (toolbar), `grouped` beside `locked` | Group | present for the session (walked: with the root grouped, a click on a child selected the root; ungrouped, the child) |
 | The selection frame turned with a rotated node: its eight handles on the node's own box, the rotate handle above its own top edge, its own size in the label; a handle resizes along the node's axes with the opposite corner held | Select mode's frame on a rotated node | present (walked: a turned 120×120 square resized to 153×139, `scale={{ x: 1.2746, y: 1.161 }}`, its NW corner still at the same pixel after the write) |
@@ -94,10 +95,9 @@ Select as the handle mode, rotation and scale snap under their own toggles, Shif
 scaling, Center View and a wider zoom, the ruler's Δx and Δy, Group, and the grid's step and
 offset with Snap to Other Nodes, Snap Relative and Use Pixel Snap, Alt-drag move, and V with the
 pivot snapping to its node's sides and centre, Configure Snap's fields, and right-click's Add Node
-with Alt+right-click's list.
+with Alt+right-click's list, and the List Select and Pivot modes.
 
-1. No List Select or Pivot mode button.
-2. Lock and Group last only the session; Godot saves them in the scene with a gizmo.
-3. The View menu's Grid submenu, Helpers, Gizmos and Preview items; Skew in the Inspector.
-4. The `2D` board against Figma: the layers list for its frames and the zoom menu; its zoom sits
+1. Lock and Group last only the session; Godot saves them in the scene with a gizmo.
+2. The View menu's Grid submenu, Helpers, Gizmos and Preview items; Skew in the Inspector.
+3. The `2D` board against Figma: the layers list for its frames and the zoom menu; its zoom sits
    bottom-right where Figma's sits at the top of the properties panel.
