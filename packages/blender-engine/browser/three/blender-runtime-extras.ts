@@ -414,6 +414,10 @@ export class ExtrasOverlay {
     const lines = this.lines(segments, color, opacity, new THREE.Matrix4());
     lines.matrixAutoUpdate = true;
     lines.position.copy(at);
+    // Sized by its first draw: until then it has no size to be picked by, and no bounds to be
+    // culled by.
+    lines.scale.setScalar(0);
+    lines.frustumCulled = false;
     this.onDraw(lines, (renderer, camera) => this.face(lines, renderer, camera, true));
     return lines;
   }

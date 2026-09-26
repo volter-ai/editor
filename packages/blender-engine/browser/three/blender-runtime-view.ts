@@ -996,6 +996,9 @@ export class BlenderRuntimeView {
     this.weightRoot.name = 'BlenderWeights';
     this.cursorRoot.name = 'Blender3DCursor';
     this.cameraExtrasRoot.name = 'BlenderCameraExtras';
+    // The extras are picked as the objects they draw (`userData.vgaiPicksAs` on each part).
+    for (const root of [this.cameraExtrasRoot, this.lightExtrasRoot, this.emptyExtrasRoot])
+      root.userData['vgaiPickable'] = true;
     this.lightExtrasRoot.name = 'BlenderLightExtras';
     this.emptyExtrasRoot.name = 'BlenderEmptyExtras';
   }

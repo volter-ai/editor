@@ -1313,10 +1313,17 @@ export function Object3DDocumentViewport({
           // overlay itself (a Blender camera's wire, a light's icon) marks each part with the
           // object it stands for (`userData.vgaiPicksAs`), and the nearer hit wins, as Blender's
           // pick over its whole drawing does.
-          for (const hit of raycaster.intersectObjects(viewport.visibleHelpers(), true)) {
+          // Only helpers that say they can be picked (`userData.vgaiPickable`) are asked, and a
+          // part is hit only where it is shown (three's raycast reads layers, not `visible`).
+          const pickable = viewport.visibleHelpers().filter((helper) => helper.userData['vgaiPickable'] === true);
+          for (const hit of raycaster.intersectObjects(pickable, true)) {
             let proxy: THREE.Object3D | null = null;
-            for (let object: THREE.Object3D | null = hit.object; object && !proxy; object = object.parent)
-              proxy = (object.userData['vgaiPicksAs'] as THREE.Object3D | undefined) ?? null;
+            let shown = true;
+            for (let object: THREE.Object3D | null = hit.object; object; object = object.parent) {
+              if (!object.visible) shown = false;
+              proxy ??= (object.userData['vgaiPicksAs'] as THREE.Object3D | undefined) ?? null;
+            }
+            if (!shown) continue;
             const id = proxy ? idOf(proxy) : null;
             if (!id) continue;
             if (!nearest || hit.distance < nearest.distance) nearest = { distance: hit.distance, id };
