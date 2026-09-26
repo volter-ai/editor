@@ -207,7 +207,11 @@ tolerance records the measured maximum:
 - `physics-trajectory` is a bounded deviation for integrated rigid-body motion from another
   solver.
 
-A derived quantity (velocity from position change) is compared through what it derives from.
+A derived quantity (velocity from position change) is compared through what it derives from. A
+bounded deviation names, in the claim, each value the substituted library decides (for example
+"contact points: Godot 2 / Rapier 1, capsule side on box"). Its bound is justified from the
+geometry, never set at the measurement. A claim's identity covers every compat module its
+cases ran, transitively, so an edit to a shared module makes every claim that used it stale.
 
 **Physics.** Rapier holds the world, bodies, broad phase, collision detection and rigid
 dynamics. Compat keeps Godot's protocol above it: `move_and_slide` and `move_and_collide`
@@ -309,6 +313,24 @@ Node3D and Camera3D, 724 cases, exact.
 - **Host duties the composition site performs:** feed input events and frame stamps to `input.ts`;
   call `SubViewport.set_size` on the viewport's Scene when the canvas resizes; mount Camera3D with
   Godot's defaults (fov 75, near 0.05, far 4000).
+
+## The canvas: Controls, Node2D and text
+
+Each canvas node (Control, Node2D) is a non-spatial three `Group`, so the Node tree needs no
+second kind of entity. Its layout is Godot's own, transcribed from `control.cpp` and the
+container classes and recomputed at the moments Godot recomputes it. It is drawn by
+`godot_canvas_draw(viewport, root)`: one absolutely placed DOM element per item, layers stacked
+by `layer`, Control origins snapped to whole pixels as Godot does, `modulate` as an sRGB colour
+filter. The DOM is only where the item is drawn; CSS never lays anything out.
+
+Text is measured as Godot's web export measures it, by its own text server. That is computed
+from the font file's own metrics and kerning. A shaping difference (ligatures, complex
+scripts) is a recorded `font-shaping` deviation. The browser draws the glyphs inside Godot's
+computed rectangle.
+
+Input reaches nodes as Godot delivers it: `Viewport.push_input` runs `_input`, then the GUI,
+then shortcut, unhandled-key and unhandled input, in reverse tree order, and stops at
+`set_input_as_handled`. It is fed the same event records `Input` receives.
 
 ## Node families
 
