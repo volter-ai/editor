@@ -1967,6 +1967,26 @@ export class EditorViewport {
     },
   ]);
 
+  /**
+   * Called as a click on the navigation gizmo turns the view to an axis, newest first, until one
+   * answers `true`: the owner of the view's projection (a document's session; else the
+   * viewport's own), which Blender's `view3d.view_axis` makes orthographic under Auto Perspective.
+   */
+  private readonly _axisViewListeners: (() => boolean)[] = [
+    () => {
+      if (activeKeymapNavigation().autoPerspective) this.setProjection('orthographic');
+      return true;
+    },
+  ];
+
+  onAxisView(listener: () => boolean): () => void {
+    this._axisViewListeners.push(listener);
+    return () => {
+      const at = this._axisViewListeners.indexOf(listener);
+      if (at !== -1) this._axisViewListeners.splice(at, 1);
+    };
+  }
+
   /** Called as a person's rotate drag begins, before its first step (a pan or a zoom is not
    *  one): where Blender's rotate operator ensures its projection. */
   onRotateStart(listener: () => void): () => void {
@@ -3702,7 +3722,9 @@ export class EditorViewport {
       this.freeCamera.position
         .copy(this.orbitControls.target)
         .add(dir.multiplyScalar(this._snapDist));
-      this.freeCamera.lookAt(this.orbitControls.target);
+      // The whole orientation turns, roll with it; the orbit's next re-aim keeps it on `up`.
+      this.freeCamera.quaternion.copy(qt);
+      this.freeCamera.up.set(0, 1, 0).applyQuaternion(qt);
 
       if (t >= 1) this._snapAnimating = false;
     }
@@ -4738,15 +4760,17 @@ export class EditorViewport {
 
     const dirIdx = getUserData(hits[0]!.object, 'vcDirIdx') as number;
     const targetDir = VC_DIRS[dirIdx]!;
+    // Whoever owns the view's projection answers for an axis view first (Blender's
+    // `view3d.view_axis`, which the gizmo's balls run: orthographic under Auto Perspective).
+    for (const listener of [...this._axisViewListeners].reverse()) if (listener()) break;
 
-    // Set up slerp animation
-    const startDir = new THREE.Vector3()
-      .subVectors(this.freeCamera.position, this.orbitControls.target)
-      .normalize();
-
+    // The view turns to the axis's own orientation, with no roll: Top's screen up is the world's
+    // -Z, Bottom's +Z, the rest the world's up (`ED_view3d_quat_from_axis_view`, roll 0).
+    const up =
+      targetDir.y > 0.5 ? new THREE.Vector3(0, 0, -1) : targetDir.y < -0.5 ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0);
     this._snapDist = this.freeCamera.position.distanceTo(this.orbitControls.target);
-    this._snapQ1.setFromUnitVectors(new THREE.Vector3(0, 0, 1), startDir);
-    this._snapQ2.setFromUnitVectors(new THREE.Vector3(0, 0, 1), targetDir);
+    this._snapQ1.copy(this.freeCamera.quaternion);
+    this._snapQ2.setFromRotationMatrix(new THREE.Matrix4().lookAt(targetDir, new THREE.Vector3(), up));
     this._snapStartTime = performance.now();
     this._snapAnimating = true;
 

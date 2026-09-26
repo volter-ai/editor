@@ -212,9 +212,20 @@ export class Object3DDocumentSession {
     // exactly where it is: no snap-back, no two writers fighting for the pose.
     viewport.orbitControls.addEventListener('start', this.cancelLookForHuman);
     this.unsubscribeRotateStart = viewport.onRotateStart(this.autoPerspective);
+    this.unsubscribeAxisView = viewport.onAxisView(this.axisView);
   }
 
   private readonly unsubscribeRotateStart: () => void;
+  private readonly unsubscribeAxisView: () => void;
+
+  /** The navigation gizmo turning the view to an axis: out of a camera view at the camera's pose
+   *  (Blender's `view_axis` leaves it), and orthographic under Auto Perspective. */
+  private readonly axisView = (): boolean => {
+    this.leaveCameraView(false);
+    this.settleFlight('superseded');
+    if (activeKeymapNavigation().autoPerspective) this.setProjection('orthographic');
+    return true;
+  };
 
   /** Auto Perspective, where the keymap states it (`KeymapNavigation.autoPerspective`): a rotate
    *  that starts from an orthographic view still down an axis draws in perspective. */
@@ -1481,6 +1492,7 @@ export class Object3DDocumentSession {
     this.settleFlight('closed');
     this.viewport.orbitControls.removeEventListener('start', this.cancelLookForHuman);
     this.unsubscribeRotateStart();
+    this.unsubscribeAxisView();
     this.unsubscribeSelectionTheme();
     this.clearDiagnosticPresentation();
     this.clearBoneSelectionHighlight();
