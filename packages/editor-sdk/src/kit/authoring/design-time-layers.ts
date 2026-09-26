@@ -315,6 +315,9 @@ function applyPanTransform(layer: HTMLElement): void {
  * portable CSF preview. Play and edit roots never coexist, but neither does
  * Play permanently destroy the authoring surface.
  */
+/** Each world's latest layer mount, until it has settled (and, when superseded, been disposed). */
+const settlingMounts = new Map<string, Promise<void>>();
+
 export function mountDesignTimeLayers(
   container: HTMLElement,
   composite: CompositeAuthoringAdapter,
@@ -529,10 +532,21 @@ export function mountDesignTimeLayers(
     // Wrapped so a mount that throws SYNCHRONOUSLY (an implementation that
     // is not itself `async`) still lands in the boundary path below rather
     // than escaping this call.
-    const mountPromise: Promise<LayerMountResult> = (async () =>
-      registered.mount(candidate, layer, context))();
+    // ONE WORLD, ONE MOUNT AT A TIME. A stack torn down while its mount is in
+    // flight disposes that mount only when it resolves, and a successor stack
+    // opens the same world meanwhile: measured on a canvas project (the
+    // authoring session rebuilds its documents once after boot), the second
+    // mount's adapter found the world's history journal still driven by the
+    // first ("already has a driver") and the Scene never left "Loading". So a
+    // mount starts after the previous one for its world has settled and been
+    // disposed.
+    const previous = settlingMounts.get(candidate.worldId);
+    const mountPromise: Promise<LayerMountResult> = (async () => {
+      if (previous) await previous;
+      return registered.mount(candidate, layer, context);
+    })();
 
-    mountPromise
+    const settled: Promise<void> = mountPromise
       .then((result) => {
         if (torndown || playTeardownDone || mountEpochs.get(candidate.worldId) !== epoch) {
           result.dispose();
@@ -613,6 +627,10 @@ export function mountDesignTimeLayers(
         });
         store.notifyIngestEdit();
       });
+    settlingMounts.set(candidate.worldId, settled);
+    void settled.then(() => {
+      if (settlingMounts.get(candidate.worldId) === settled) settlingMounts.delete(candidate.worldId);
+    });
   }
   orderedCandidates.forEach((candidate, i) => {
     mountCandidate(candidate, i);

@@ -78,6 +78,7 @@
       "./contributions/unity.view.ts",
       "./contributions/unreal.style.ts",
       "./contributions/unreal.view.ts",
+      "./contributions/canvas/design-time-mount.service.ts",
       "./contributions/react/component-board.service.ts",
       "./contributions/react/design-time-mount.service.ts",
       "./contributions/react/react-inspector.service.ts",
