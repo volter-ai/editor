@@ -35,8 +35,13 @@ const release = registerStartingPresentation('model', {
       auto: null,
       tone: { mapper: 'none', exposure: 1 },
     },
+    // X-Ray per shading type, read back from Blender 5.2's factory View3DShading: Solid's off at
+    // 0.5 (`show_xray`, `xray_alpha`), Wireframe's on at 0 (`show_xray_wireframe`,
+    // `xray_alpha_wireframe`) — a wireframe with no surface.
+    xray: { enabled: false, alpha: 0.5 },
   },
   modes: {
+    wireframe: { xray: { enabled: true, alpha: 0 } },
     // MATERIAL PREVIEW: the scene lit by a world studio light alone, Forest at strength 1 and
     // rotation 0, fixed in the world, drawn over the viewport's own colour, in AgX. Read from
     // Blender 5.2's factory View3DShading: `studio_light` Default (forest.exr),

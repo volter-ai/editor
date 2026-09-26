@@ -1259,6 +1259,7 @@ export function Object3DDocumentViewport({
                 host.session.selectionOutlineEnabled =
                   !shared && selectionOutlineRef.current && presentation.overlays.selection.outline;
                 host.session.selectionOriginsEnabled = !shared && presentation.overlays.selection.origins;
+                host.session.setXray(presentation.xray);
               }
               invalidateStages();
             };

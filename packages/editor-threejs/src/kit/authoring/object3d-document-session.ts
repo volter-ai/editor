@@ -1,5 +1,5 @@
 import { createPerformanceProfiler } from '@volter/editor-sdk/kit/performance-profiler';
-import { resetViewPresentation } from '@volter/editor-sdk/kit/viewport-presentation';
+import { resetViewPresentation, type ViewportXray } from '@volter/editor-sdk/kit/viewport-presentation';
 import { invalidateStages } from '@volter/editor-sdk/kit/stage-invalidation';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { viewportCaptureOutputPass } from '@volter/editor-threejs/capture/output-pass';
@@ -112,6 +112,9 @@ const INITIAL_PRESENTATION: Object3DDocumentPresentationState = {
  * Live presentation controls for one native Object3D document. The model
  * graph remains truth; this session owns only editor chrome and diagnostics.
  */
+/** The wire of an unselected object in the wireframe overlay: dark on the light clay body. */
+const TOPOLOGY_WIRE_COLOR = 0x11161d;
+
 export class Object3DDocumentSession {
   readonly profiler = createPerformanceProfiler();
   private readonly shading = new ViewportShadingRenderer();
@@ -1102,7 +1105,7 @@ export class Object3DDocumentSession {
         // written. Off is also the truer read: Blender's wireframe shading
         // shows the far side too, and the far side is half the topology.
         new THREE.LineBasicMaterial({
-          color: 0x11161d,
+          color: TOPOLOGY_WIRE_COLOR,
           toneMapped: false,
           transparent: true,
           opacity: 0.85,
@@ -1132,9 +1135,22 @@ export class Object3DDocumentSession {
       this.clearTopologyOverlay();
       this.buildTopologyOverlay();
     }
+    // A selected object's wires wear the selection's colour, the active one the active colour, as
+    // Blender's wireframe overlay does; the rest the wire's own.
+    const colors = nativeSelectionColors(this.renderer.domElement);
+    const active = this.selectedObjects.at(-1) ?? null;
+    const within = (object: THREE.Object3D, owner: THREE.Object3D): boolean => {
+      for (let at: THREE.Object3D | null = object; at; at = at.parent) if (at === owner) return true;
+      return false;
+    };
     for (const { line, source } of this.topologyFollowers) {
       line.matrixWorld.copy(source.matrixWorld);
       line.visible = source.visible;
+      const material = line.material as THREE.LineBasicMaterial;
+      const isActive = active !== null && within(source, active);
+      const isSelected = isActive || this.selectedObjects.some((owner) => within(source, owner));
+      const color = isActive ? (colors.active?.visible ?? colors.visible) : isSelected ? colors.visible : null;
+      material.color.setHex(color ?? TOPOLOGY_WIRE_COLOR);
     }
   }
 
@@ -1327,6 +1343,22 @@ export class Object3DDocumentSession {
     }
     if (mode === 'wireframe' && this.topologyOverlay) {
       this.syncTopologyOverlay();
+      if (this.xray.enabled && this.xray.alpha <= 0) {
+        // X-RAY AT NO ALPHA: the wires alone, every surface left out of the draw.
+        const hidden: THREE.Object3D[] = [];
+        this.root.traverse((object) => {
+          if ((object as THREE.Mesh).isMesh && object.visible) {
+            object.visible = false;
+            hidden.push(object);
+          }
+        });
+        try {
+          renderSolid(camera);
+        } finally {
+          for (const object of hidden) object.visible = true;
+        }
+        return;
+      }
       // Clay bodies, not the triangle-wireframe swap: the overlay IS the wire,
       // and the solid form behind it is what occludes the far side.
       this.shading.render(
@@ -1567,6 +1599,15 @@ export class Object3DDocumentSession {
   private selectionOutlineWanted = true;
 
   /** Whether the view draws its selected objects' origins (`overlays.selection.origins`). */
+  /** The view's X-ray for its current draw mode (`ViewportModePresentation.xray`). */
+  private xray: ViewportXray = { enabled: false, alpha: 1 };
+
+  setXray(xray: ViewportXray): void {
+    if (this.xray.enabled === xray.enabled && this.xray.alpha === xray.alpha) return;
+    this.xray = xray;
+    invalidateStages();
+  }
+
   set selectionOriginsEnabled(value: boolean) {
     if (value === (this.selectionOrigins !== null)) return;
     if (value) {

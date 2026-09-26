@@ -191,10 +191,22 @@ export interface ViewportWorld {
   readonly handedness: 'right' | 'left';
 }
 
-/** One draw mode's lighting and backdrop. */
+/**
+ * X-RAY: surfaces drawn see-through at `alpha`, the edges behind them showing (Blender's shading
+ * X-Ray, kept per shading type: Solid off at 0.5, Wireframe on at 0 — no surface at all). The
+ * stage draws an enabled X-ray at alpha 0 by leaving the surfaces out of the draw; a partial
+ * alpha is drawn opaque.
+ */
+export interface ViewportXray {
+  readonly enabled: boolean;
+  readonly alpha: number;
+}
+
+/** One draw mode's lighting, backdrop and X-ray. */
 export interface ViewportModePresentation {
   readonly lighting: ViewportLighting;
   readonly backdrop: ViewportBackdrop;
+  readonly xray: ViewportXray;
 }
 
 /** A view's whole presentation, resolved. */
@@ -260,6 +272,7 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
     tone: { mapper: 'aces', exposure: 1 },
   },
   backdrop: { source: 'fill', color: '#3d3d3d', opacity: 0, blur: 0 },
+  xray: { enabled: false, alpha: 1 },
   overlays: {
     grid: { visible: true, majorEvery: 10, planes: { xz: true, xy: false, yz: false } },
     selection: { outline: true, wire: false, box: false, origins: false },
@@ -526,7 +539,11 @@ export function viewPresentation(viewId: string): ViewportPresentation {
  *  resolves without a bound view (a capture, a preview). */
 export function resolvePresentation(layers: readonly PresentationLayer[]): ViewportPresentation {
   const drawMode = layers.reduce<ViewportDrawMode>((mode, layer) => layer.drawMode ?? mode, KIT_PRESENTATION.drawMode);
-  let mode: ViewportModePresentation = { lighting: KIT_PRESENTATION.lighting, backdrop: KIT_PRESENTATION.backdrop };
+  let mode: ViewportModePresentation = {
+    lighting: KIT_PRESENTATION.lighting,
+    backdrop: KIT_PRESENTATION.backdrop,
+    xray: KIT_PRESENTATION.xray,
+  };
   let overlays: ViewportOverlays = KIT_PRESENTATION.overlays;
   let interaction: ViewportInteraction = KIT_PRESENTATION.interaction;
   let world: ViewportWorld = KIT_PRESENTATION.world;
@@ -538,7 +555,7 @@ export function resolvePresentation(layers: readonly PresentationLayer[]): Viewp
     if (layer.interaction) interaction = deepMerge(interaction, layer.interaction);
     if (layer.world) world = deepMerge(world, layer.world);
   }
-  return { drawMode, lighting: mode.lighting, backdrop: mode.backdrop, overlays, interaction, world };
+  return { drawMode, lighting: mode.lighting, backdrop: mode.backdrop, xray: mode.xray, overlays, interaction, world };
 }
 
 // ---- Change notification ------------------------------------------------------------------------
