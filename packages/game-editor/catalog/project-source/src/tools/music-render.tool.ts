@@ -1,5 +1,5 @@
 import { basename, posix } from 'node:path';
-import { renderPiece } from '@volter/editor-dawproject/render-piece';
+import { renderPieceInChildProcess } from '@volter/editor-dawproject/render-piece';
 import { defineTool } from '@volter/editor-sdk/tools/registry';
 import { z } from 'zod';
 
@@ -49,13 +49,15 @@ export const tool = defineTool({
     if (!ctx.projectRoot) throw new Error('project.music.render requires a project root.');
     if (!ctx.projectOutputs) throw new Error('Music rendering requires a project output writer.');
     const out = input.out ?? `public/music/${basename(input.piece, '.tsx')}`;
-    const rendered = await renderPiece({
+    // In its own process: a render holds a thread for as long as it takes, and the editor's
+    // session process must keep answering the workbench meanwhile.
+    const rendered = await renderPieceInChildProcess({
       projectRoot: ctx.projectRoot,
       piecePath: input.piece,
-      ...(ctx.loadProjectModule ? { loadModule: ctx.loadProjectModule } : {}),
       target: input.target,
       sections: input.sections,
       oneShot: input.oneShot,
+      ...(ctx.signal ? { signal: ctx.signal } : {}),
     });
     const output = await ctx.projectOutputs.write(rendered.files.map((file) => ({
       path: posix.join(out, file.path),

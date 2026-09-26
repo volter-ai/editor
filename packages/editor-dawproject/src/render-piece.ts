@@ -1,8 +1,9 @@
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { basename, join, resolve } from 'node:path';
+import { createRequire } from 'node:module';
+import { basename, dirname, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { perform } from '@volter/dawproject/perform';
 import { readPiece } from '@volter/dawproject/piece';
 import { createPieceRoot } from '@volter/dawproject/render';
@@ -23,6 +24,74 @@ export interface RenderPieceOptions {
   target?: 'console' | 'portable' | number;
   sections?: boolean;
   oneShot?: boolean;
+}
+
+export interface RenderedFile {
+  readonly path: string;
+  readonly bytes: Uint8Array;
+  readonly mediaType: string;
+}
+
+const MEDIA_TYPES: Record<string, string> = { wav: 'audio/wav', ogg: 'audio/ogg', m4a: 'audio/mp4', mid: 'audio/midi', json: 'application/json' };
+
+/** Every file under a render folder, by its path in it. */
+function renderedFiles(directory: string, prefix = ''): RenderedFile[] {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = prefix + entry.name;
+    return entry.isDirectory()
+      ? renderedFiles(join(directory, entry.name), `${path}/`)
+      : [{ path, bytes: readFileSync(join(directory, entry.name)), mediaType: MEDIA_TYPES[path.split('.').pop()!]! }];
+  });
+}
+
+/**
+ * `renderPiece` in its own Node process: this package's `render-piece` CLI under `tsx`, with the
+ * project's tsconfig (a piece compiles with the project's JSX runtime), into a temporary folder
+ * read back and removed. A render is seconds to minutes of synthesis and mixing on one thread;
+ * inside the editor's session process it stalled everything the session serves, the
+ * workbench's own connection included (it timed out during a 52 s render). `signal` stops it.
+ */
+export async function renderPieceInChildProcess(
+  options: Omit<RenderPieceOptions, 'loadModule'> & { readonly signal?: AbortSignal },
+): Promise<{ files: RenderedFile[]; report: Record<string, unknown> }> {
+  const project = resolve(options.projectRoot);
+  const fromProject = createRequire(join(project, 'package.json'));
+  const tsxDir = dirname(fromProject.resolve('tsx/package.json'));
+  const tsxBin = (JSON.parse(readFileSync(join(tsxDir, 'package.json'), 'utf8')) as { bin: string | Record<string, string> }).bin;
+  const cli = join(dirname(fileURLToPath(import.meta.url)), '..', 'scripts', 'render-piece.ts');
+  const out = mkdtempSync(join(tmpdir(), 'render-piece-'));
+  try {
+    const target = options.target ?? 'portable';
+    const args = [
+      join(tsxDir, typeof tsxBin === 'string' ? tsxBin : (tsxBin['tsx'] ?? Object.values(tsxBin)[0]!)),
+      '--tsconfig', join(project, 'tsconfig.json'),
+      cli, project, options.piecePath, '--out', out, '--target', String(target),
+      ...(options.sections ? ['--sections'] : []),
+      ...(options.oneShot ? ['--one-shot'] : []),
+    ];
+    await new Promise<void>((done, fail) => {
+      const child = spawn(process.execPath, args, { cwd: project, stdio: ['ignore', 'ignore', 'pipe'] });
+      let stderr = '';
+      child.stderr.on('data', (chunk: Buffer) => {
+        stderr = (stderr + chunk.toString()).slice(-4000);
+      });
+      const abort = (): void => {
+        child.kill();
+      };
+      options.signal?.addEventListener('abort', abort, { once: true });
+      child.once('error', fail);
+      child.once('close', (code, signal) => {
+        options.signal?.removeEventListener('abort', abort);
+        if (code === 0) done();
+        else fail(new Error(options.signal?.aborted ? 'The render was cancelled.' : `The render failed (${signal ?? `exit ${code}`}): ${stderr.trim()}`));
+      });
+    });
+    const files = renderedFiles(out);
+    const report = JSON.parse(Buffer.from(files.find((file) => file.path === 'report.json')!.bytes).toString('utf8')) as Record<string, unknown>;
+    return { files, report };
+  } finally {
+    rmSync(out, { recursive: true, force: true });
+  }
 }
 
 /** Render a complete output batch without writing into the project. */
@@ -262,17 +331,7 @@ export async function renderPiece({
     };
     writeFileSync(join(out, 'report.json'), `${JSON.stringify(report, null, 2)}\n`);
 
-    const mediaTypes: Record<string, string> = { wav: 'audio/wav', ogg: 'audio/ogg', m4a: 'audio/mp4', mid: 'audio/midi', json: 'application/json' };
-    const files: { path: string; bytes: Uint8Array; mediaType: string }[] = [];
-    function collect(directory: string, prefix = ''): void {
-      for (const entry of readdirSync(directory, { withFileTypes: true })) {
-        const path = prefix + entry.name;
-        if (entry.isDirectory()) collect(join(directory, entry.name), `${path}/`);
-        else files.push({ path, bytes: readFileSync(join(directory, entry.name)), mediaType: mediaTypes[path.split('.').pop()!]! });
-      }
-    }
-    collect(out);
-    return { files, report };
+    return { files: renderedFiles(out), report };
   } finally {
     rmSync(out, { recursive: true, force: true });
   }
