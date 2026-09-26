@@ -33,6 +33,7 @@ CLIs, under `tsx`:
 | `scripts/check-piece.ts` | Clip bounds, whole bars, instrument ranges, parallel fifths and octaves, re-strikes |
 | `scripts/view-piece.ts` | Every part beat by beat over a bar range; a generated note is marked `~` |
 | `scripts/freeze-clip.ts` | Rewrites a clip's generated notes and lanes into literal elements, in place |
+| `scripts/sfz-to-sf2.ts` | Builds a SoundFont bank from SFZ instruments, so a sampled library plays through the same engine; each track plays the bank its device names |
 | `scripts/import-midi.ts`, `export-musicxml.ts`, `export-dawproject.ts` | Interchange |
 
 AGPL-3.0-only.

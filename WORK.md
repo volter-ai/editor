@@ -219,11 +219,14 @@ Open, with what closes each:
   offline null of the two (+1.6 dB at equal level) is not yet a clean reading: in an
   OfflineAudioContext the worklet stayed silent after the preview's channel setup, so the
   instrument has to be settled before its number means anything.
-- Sampled instruments beyond the General MIDI SoundFont. Found: sfizz's own WebAudio build
-  (`sfztools/sfizz-webaudio`, GitHub only, last pushed 2024-06); no SFZ engine on npm, no native
-  sfizz on the box. Proposed, not yet measured: sfizz's WASM in both the preview's worklet and the
-  export (one engine, as SpessaSynth is today), checked against a native sfizz render of the same
-  notes, with a CC0 library (VSCO 2 Community Edition) so a game can ship its renders freely.
+- Sampled instruments. `sfz-to-sf2` converts SFZ instruments into a SoundFont bank the one
+  engine plays in the editor and the export (no second engine: sfizz's browser build is a 2021
+  fork, and Polyphone's Homebrew cask is disabled), and a track now plays the bank its device
+  names. First unit: VSCO 2 Community Edition's violin section and flute (sustain, vibrato);
+  Harbor rendered with only its flute moved to that bank, level-matched to within 0.5 dB,
+  awaits a listening judgement (`music-probe/out/ab/gm` against `out/ab/vsco`). What follows it:
+  `artic` choosing an articulation's own patch (staccato, pizzicato, tremolo) instead of a
+  shortened sustain, the rest of the library converted, and how a game project gets the bank.
 - A section loop's audio equals its bars in the whole piece only where the synthesizer's
   state does not depend on what it played before: events match to the sample, and a pass
   preceded by the same music is bit-identical. In the probe piece, section A′ nulls against
