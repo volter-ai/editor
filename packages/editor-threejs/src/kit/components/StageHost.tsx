@@ -1612,8 +1612,17 @@ export function Object3DDocumentViewport({
           // from when the document states none.
           const viewCamera = viewPresentation(documentId).camera;
           viewport.setFieldOfView(viewCamera.fov);
-          if (!openingFrame) viewport.focusOn(source.root);
           const stated = openingViewRef.current;
+          const statedDirection = cameraX !== undefined && cameraY !== undefined && cameraZ !== undefined;
+          if (!stated && !statedDirection) {
+            // Along the view's own opening direction, at the distance the camera stands.
+            const target = viewport.orbitControls.target;
+            const distance = viewport.camera.position.distanceTo(target);
+            viewport.camera.position
+              .copy(target)
+              .addScaledVector(new THREE.Vector3(...viewCamera.opening).normalize(), distance);
+          }
+          if (!openingFrame) viewport.focusOn(source.root);
           if (stated) {
             const target = new THREE.Vector3(...stated.target);
             const direction = new THREE.Vector3(...stated.direction).normalize();
@@ -1623,15 +1632,10 @@ export function Object3DDocumentViewport({
             viewport.camera.up.set(0, 1, 0);
             if (stated.up) viewport.camera.up.set(...stated.up);
             viewport.orbitControls.target.copy(target);
-          } else {
+          } else if (statedDirection) {
             const box = openingFrame ?? contentWorldBounds(source.root);
-            // Nothing to fit yet (content that arrives later): a metre cube at the origin stands in.
-            if (box.isEmpty()) box.set(new THREE.Vector3(-0.5, -0.5, -0.5), new THREE.Vector3(0.5, 0.5, 0.5));
             const center = box.getCenter(new THREE.Vector3());
-            const direction =
-              cameraX !== undefined && cameraY !== undefined && cameraZ !== undefined
-                ? new THREE.Vector3(cameraX, cameraY, cameraZ).normalize()
-                : new THREE.Vector3(...viewCamera.opening).normalize();
+            const direction = new THREE.Vector3(cameraX, cameraY, cameraZ).normalize();
             const distance =
               perspectiveDistanceToFitBox(box, viewport.camera, direction) *
               Math.min(10, Math.max(0.1, openingFit ?? 1));

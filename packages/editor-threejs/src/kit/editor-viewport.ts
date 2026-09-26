@@ -3781,6 +3781,11 @@ export class EditorViewport {
     if (fov.degrees === this._fieldOfView.degrees && fov.axis === this._fieldOfView.axis) return;
     const halfAngle = (degrees: number) => Math.tan(THREE.MathUtils.degToRad(degrees * 0.5));
     const before = halfAngle(this.camera.fov);
+    // The region's shape as it is now: a stage may state its view before the first resize.
+    if (this._canvas.clientWidth > 0 && this._canvas.clientHeight > 0) {
+      this._viewportAspect = this._canvas.clientWidth / this._canvas.clientHeight;
+      this.camera.aspect = this._viewportAspect;
+    }
     this._fieldOfView = fov;
     this.camera.fov = stageVerticalFovDegrees(this._viewportAspect, fov);
     this.camera.updateProjectionMatrix();

@@ -200,7 +200,7 @@ export interface ViewportWorld {
  *  - `smaller`: Unity's (`kDefaultPerspectiveFov` 60, vertical when the view is wider than tall,
  *    `SceneView.GetVerticalFOV`).
  * `opening` is the direction from the pivot to the eye when a document states none, in the
- * stage's Y-up frame.
+ * stage's Y-up frame; a document stage opens along it (the world stage keeps its own framing).
  */
 export interface ViewportCamera {
   readonly fov: { readonly degrees: number; readonly axis: 'vertical' | 'horizontal' | 'larger' | 'smaller' };
