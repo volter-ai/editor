@@ -56,6 +56,8 @@ const PARAMS: Readonly<Record<string, readonly NumberSpec[]>> = {
     { key: 'seed', label: 'seed', min: 1, max: 9999, fallback: 1, integer: true },
   ],
 };
+/** A patch number an articulation plays on (`articulations.staccato`, …). */
+const PATCH = (key: string): NumberSpec => ({ key, label: key, min: 0, max: 127, fallback: 0, integer: true });
 const BAND: readonly NumberSpec[] = [
   { key: 'freq', label: 'freq', min: 20, max: 20000, fallback: 1000, unit: 'Hz', log: true },
   { key: 'gain', label: 'gain', min: -24, max: 24, fallback: 0, unit: 'dB' },
@@ -107,7 +109,9 @@ export function Devices(props: Context & { readonly track: PieceTrack | null }) 
 function DeviceCard(props: Context & { readonly device: PieceDevice }) {
   const { device } = props;
   const specs = PARAMS[device.plugin] ?? [];
-  const known = new Set([...specs.map((spec) => spec.key), 'bands']);
+  const known = new Set([...specs.map((spec) => spec.key), 'bands', 'articulations']);
+  const articulations = device.params['articulations'];
+  const patches = articulations && typeof articulations === 'object' && !Array.isArray(articulations) ? Object.entries(articulations) : [];
   const bands = Array.isArray(device.params['bands']) ? (device.params['bands'] as readonly Record<string, unknown>[]) : null;
   const others = Object.entries(device.params).filter(([key]) => !known.has(key));
   return (
@@ -130,6 +134,10 @@ function DeviceCard(props: Context & { readonly device: PieceDevice }) {
               <NumberParam key={spec.key} path={`params.bands.${i}.${spec.key}`} spec={spec} value={band[spec.key]} {...props} />
             ))}
           </div>
+        ))}
+        {patches.length > 0 ? <div style={{ ...small, borderTop: `1px solid ${themeVars.boundary.default}`, paddingTop: 3 }}>articulation patches</div> : null}
+        {patches.map(([artic, program]) => (
+          <NumberParam key={artic} path={`params.articulations.${artic}`} spec={PATCH(artic)} value={program} {...props} />
         ))}
         {others.map(([key, value]) =>
           typeof value === 'boolean' ? (

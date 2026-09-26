@@ -195,8 +195,22 @@ export function projectPath(index: SourceIndex, pieceFile: string, absolute: str
  */
 export function setRefusal(index: SourceIndex, oid: string | null, prop: string, renderedCount: number): string | null {
   if (!oid || renderedCount !== 1) return propRefusal(index, oid, prop, renderedCount);
-  const authored = index.get(oid)?.authoredProps?.find((candidate) => candidate.name === prop);
-  return authored && !authored.literal ? propRefusal(index, oid, prop, renderedCount) : null;
+  const entry = index.get(oid);
+  const authoredProps = entry?.authoredProps ?? [];
+  const authored = authoredProps.find((candidate) => candidate.name === prop);
+  if (authored) return authored.literal ? null : propRefusal(index, oid, prop, renderedCount);
+  // A member (`params.articulations.staccato`) can be added only inside an object written as a
+  // literal: the index lists an object literal's members under its dotted name, and none under a
+  // prop written as an expression (`params={VIOLINS}`), whose value lives elsewhere.
+  const dot = prop.lastIndexOf('.');
+  if (dot < 0) return null;
+  const parent = prop.slice(0, dot);
+  const parentAuthored = authoredProps.find((candidate) => candidate.name === parent);
+  const hasMembers = authoredProps.some((candidate) => candidate.name.startsWith(`${parent}.`));
+  if (parentAuthored && !hasMembers && !parentAuthored.valueText.trim().startsWith('{')) {
+    return `Computed: \`${parent}={${parentAuthored.valueText}}\` at ${entry!.file}:${entry!.line}. Edit the expression, or write it as an object here.`;
+  }
+  return parentAuthored || hasMembers ? null : setRefusal(index, oid, parent, renderedCount);
 }
 
 /** The literal the element writes for `prop` now, or `null` when it writes none. */
