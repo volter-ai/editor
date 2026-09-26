@@ -1256,8 +1256,10 @@ export function Object3DDocumentViewport({
               host.viewport?.setNavigation(presentation.overlays.navigation);
               host.viewport?.setGridVisible(presentation.overlays.grid.visible);
               if (host.session) {
+                // An X-ray with no surface draws no outline: the selection is its wires' colour.
+                const surfaceless = presentation.xray.enabled && presentation.xray.alpha <= 0;
                 host.session.selectionOutlineEnabled =
-                  !shared && selectionOutlineRef.current && presentation.overlays.selection.outline;
+                  !shared && selectionOutlineRef.current && presentation.overlays.selection.outline && !surfaceless;
                 host.session.selectionOriginsEnabled = !shared && presentation.overlays.selection.origins;
                 host.session.setXray(presentation.xray);
               }

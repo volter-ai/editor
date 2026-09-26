@@ -1967,6 +1967,8 @@ export class EditorViewport {
       if ((camera as THREE.OrthographicCamera).isOrthographicCamera) {
         (camera as THREE.OrthographicCamera).zoom = dolly.zoom0 / factor;
         (camera as THREE.OrthographicCamera).updateProjectionMatrix();
+        // The orbit reports a change of pose, not of zoom.
+        this.orbitControls.dispatchEvent({ type: 'change' });
       } else {
         camera.position.copy(this.orbitControls.target).addScaledVector(dolly.offset, factor);
       }
@@ -2130,6 +2132,8 @@ export class EditorViewport {
     if ((camera as THREE.OrthographicCamera).isOrthographicCamera) {
       (camera as THREE.OrthographicCamera).zoom /= factor;
       (camera as THREE.OrthographicCamera).updateProjectionMatrix();
+      // The orbit reports a change of pose, not of zoom.
+      this.orbitControls.dispatchEvent({ type: 'change' });
     } else {
       const target = this.orbitControls.target;
       camera.position.sub(target).multiplyScalar(factor).add(target);

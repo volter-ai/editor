@@ -267,8 +267,13 @@ export class Object3DDocumentSession {
     this.settleFlight('human');
   };
 
+  /** The look's selection colours, read when the theme changes (not per frame: the read resolves
+   *  computed styles). */
+  private selectionColors: ReturnType<typeof nativeSelectionColors> | null = null;
+
   private readonly syncSelectionTheme = (): void => {
-    const color = nativeSelectionColors(this.renderer.domElement).visible;
+    this.selectionColors = nativeSelectionColors(this.renderer.domElement);
+    const color = this.selectionColors.visible;
     if (this.selectionOutline) {
       setThreeSelectionOutlineColors(
         this.selectionOutline,
@@ -1136,8 +1141,11 @@ export class Object3DDocumentSession {
       this.buildTopologyOverlay();
     }
     // A selected object's wires wear the selection's colour, the active one the active colour, as
-    // Blender's wireframe overlay does; the rest the wire's own.
-    const colors = nativeSelectionColors(this.renderer.domElement);
+    // Blender's wireframe overlay does; the rest the wire's own. The active object is the
+    // selection's last, the shell's own rule (`EditorShellStore.selectedEntityId`), which a
+    // Blender document keeps by publishing its active object last.
+    this.selectionColors ??= nativeSelectionColors(this.renderer.domElement);
+    const colors = this.selectionColors;
     const active = this.selectedObjects.at(-1) ?? null;
     const within = (object: THREE.Object3D, owner: THREE.Object3D): boolean => {
       for (let at: THREE.Object3D | null = object; at; at = at.parent) if (at === owner) return true;
@@ -1344,18 +1352,24 @@ export class Object3DDocumentSession {
     if (mode === 'wireframe' && this.topologyOverlay) {
       this.syncTopologyOverlay();
       if (this.xray.enabled && this.xray.alpha <= 0) {
-        // X-RAY AT NO ALPHA: the wires alone, every surface left out of the draw.
-        const hidden: THREE.Object3D[] = [];
+        // X-RAY AT NO ALPHA: the wires alone, every surface left out of the draw. The surfaces'
+        // MATERIALS stand down, not the meshes, whose children (lines, points, other objects)
+        // still draw, as every wire does in Blender's.
+        const hidden = new Set<THREE.Material>();
         this.root.traverse((object) => {
-          if ((object as THREE.Mesh).isMesh && object.visible) {
-            object.visible = false;
-            hidden.push(object);
+          const mesh = object as THREE.Mesh;
+          if (!mesh.isMesh) return;
+          for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+            if (material?.visible) {
+              material.visible = false;
+              hidden.add(material);
+            }
           }
         });
         try {
           renderSolid(camera);
         } finally {
-          for (const object of hidden) object.visible = true;
+          for (const material of hidden) material.visible = true;
         }
         return;
       }
