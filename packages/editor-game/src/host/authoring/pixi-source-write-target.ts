@@ -217,6 +217,10 @@ export function createSourceCanvasWriteTarget(
   const dynamicPaths = new Set<string>();
   /** Pre-gesture 2D poses, one per id currently under a drag. */
   const editStarts = new Map<string, Transform2DValue>();
+  const pendingOrigins = new Map<
+    string,
+    { kind: 'pivot' | 'anchor'; value: readonly [number, number]; before: readonly [number, number] }
+  >();
   let commitQueue = Promise.resolve();
 
   const oidOf = (id: string): string | null => {
@@ -464,10 +468,16 @@ export function createSourceCanvasWriteTarget(
     const channels = (['position', 'rotation', 'scale'] as const).filter((channel) =>
       transform2DChanged(channel, before, after),
     );
-    if (channels.length === 0) return false;
+    // A moved origin (pivot or anchor) is written with the position that compensates it.
+    const origin = pendingOrigins.get(id);
+    pendingOrigins.delete(id);
+    if (channels.length === 0 && !origin) return false;
 
-    const revert = (channel: TransformChannel): void => {
-      if (channel === 'position') a2d.setTransform(id, { position: before.position });
+    const revert = (channel: TransformChannel | 'origin'): void => {
+      if (channel === 'origin') {
+        const display = a2d.displayObject(id) as (Container & Record<string, unknown>) | null;
+        if (display && origin) display[origin.kind] = { x: origin.before[0], y: origin.before[1] };
+      } else if (channel === 'position') a2d.setTransform(id, { position: before.position });
       else if (channel === 'rotation') a2d.setTransform(id, { rotation: before.rotation });
       else a2d.setTransform(id, { scale: before.scale });
       notify();
@@ -495,7 +505,7 @@ export function createSourceCanvasWriteTarget(
     const instance = componentIdentityOf(id);
     const channelBlocked = (channel: TransformChannel): boolean =>
       componentOwnedChannel(id, channel, attrs, after);
-    const writes: Array<{ channel: TransformChannel; prop: string; value: string }> = [];
+    const writes: Array<{ channel: TransformChannel | 'origin'; prop: string; value: string }> = [];
     for (const channel of channels) {
       if (channelBlocked(channel)) {
         dynamicPaths.add(`${id}|${channel}`);
@@ -532,6 +542,16 @@ export function createSourceCanvasWriteTarget(
       }
       for (const write of plan.writes) writes.push({ channel, ...write });
     }
+    if (origin) {
+      if (instance && channelBlocked('position')) revert('origin');
+      else {
+        writes.push({
+          channel: 'origin',
+          prop: origin.kind,
+          value: `{ x: ${formatSourceNumber(origin.value[0])}, y: ${formatSourceNumber(origin.value[1])} }`,
+        });
+      }
+    }
     if (writes.length === 0) return false;
 
     let persisted = false;
@@ -543,7 +563,8 @@ export function createSourceCanvasWriteTarget(
           // must not need a trip to the text editor.
           addIfMissing: true,
           // `scale={1.5}` becomes `scale={{ x, y }}` when a gesture makes it non-uniform.
-          ...(write.prop === 'scale' ? { allowShapeUpgrade: true } : {}),
+          // The same for an origin authored as one number (`pivot={60}`).
+          ...(write.prop === 'scale' || write.channel === 'origin' ? { allowShapeUpgrade: true } : {}),
         });
         if (res.changed) {
           persisted = true;
@@ -1467,6 +1488,21 @@ export function createSourceCanvasWriteTarget(
 
     beginTransformEdit(id: string): void {
       if (!editStarts.has(id)) editStarts.set(id, read2D(id));
+    },
+
+    /**
+     * Mid-gesture origin write — see {@link CanvasWriteTarget.writeOrigin}. The live object moves
+     * now; the `pivot`/`anchor` prop is written at `endTransformEdit`, in the same gesture as the
+     * position that compensates it.
+     */
+    writeOrigin(id: string, kind: 'pivot' | 'anchor', value: readonly [number, number]): void {
+      const display = a2d.displayObject(id) as (Container & Record<string, unknown>) | null;
+      const current = display?.[kind] as { x?: unknown; y?: unknown } | undefined;
+      if (!display || typeof current?.x !== 'number' || typeof current.y !== 'number') return;
+      const before = pendingOrigins.get(id)?.before ?? ([current.x, current.y] as const);
+      display[kind] = { x: value[0], y: value[1] };
+      pendingOrigins.set(id, { kind, value, before });
+      notify();
     },
 
     writeTransform(id: string, next: Transform2DValue): void {

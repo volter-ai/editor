@@ -68,7 +68,7 @@ the tool strip and snap control are the kit's `Toolbar.tsx`. Walked on a `canvas
 | Hierarchy panel | Scene dock | selection walked (container › Square); visibility not walked |
 | Inspector (Transform: x, y, rotation, scale) | Inspector | writes the source's JSX attribute; undo restores it |
 | Move, Rotate, Scale | Move, Rotate, Scale modes | present |
-| Select, with the box's eight handles and the rotate handle | Select mode, which shows the handles | present: on the 2D surface Select is the handle mode, lit when a scene opens, and the strip has no separate Transform button (walked: Select lit on a fresh open and armed 8 handles). Cmd (Ctrl)-drag rotates the selected node about its pivot and Cmd+Alt-drag scales it, wherever the press lands (walked: a Cmd-drag took Target from 0.5 to 1.1958 rad). Alt+Drag move and V (pivot) have no counterpart; our Alt bypasses snap |
+| Select, with the box's eight handles and the rotate handle | Select mode, which shows the handles | present: on the 2D surface Select is the handle mode, lit when a scene opens, and the strip has no separate Transform button (walked: Select lit on a fresh open and armed 8 handles). Cmd (Ctrl)-drag rotates the selected node about its pivot and Cmd+Alt-drag scales it, wherever the press lands (walked: a Cmd-drag took Target from 0.5 to 1.1958 rad). Alt-drag moves the selected node from wherever the press lands, snapping as a plain move does (walked: a press off Target moved it +24, +15). V puts the selected node's pivot under the pointer, its position compensating so the content stays put, written to source as `pivot={{ x, y }}` (walked on Block: the pivot handle landed at the pointer and the box did not move); the pivot handle's own drag now writes on a source-backed canvas too. Partial: V does not snap the pivot, where Godot's snaps it to the node's sides and centre |
 | Shift while resizing from a corner, or on the Scale gizmo | Scale mode's "Shift: Scale proportionally" | present (walked: a Shift-held SE box drag wrote `scale={1.2}`, and Shift on the gizmo's x handle `scale={1.625}`) |
 | Toggle smart snap | Smart snap | present: a move aligns the box's sides or centre to the parent, other nodes' sides and centres, and guides (walked: on writes 580 against a neighbour's edge, off writes the free 581.5) |
 | Toggle snap (Grid Snap in 2D), Snap settings | grid snap, Snapping Options, Configure Snap | the grid step (8 px) and offset, which the drawn grid follows; Use Rotation Snap, Use Scale Snap, Snap Relative (off) and Use Pixel Snap (on) as Godot keeps them; Smart Snapping's Snap to Parent, Other Nodes and Guides. Walked: step 8 wrote (728, 432); step 10 with offset x 3 wrote (723, 440), the grid redrawn at 10; a free move wrote whole pixels (724, 435); Snap Relative from (724, 435) wrote (748, 451). Other Nodes' own switch is not walked. Partial: Node Anchor has no row (a Pixi node has no anchors); Node Sides and Node Center snap a pivot, which waits on V; Configure Snap's Primary Line Every and the rotation and scale offsets have no field; pixel snap rounds even under a rotated parent, where Godot's does not |
@@ -92,14 +92,13 @@ the tool strip and snap control are the kit's `Toolbar.tsx`. Walked on a `canvas
 Judged against the references by an independent reviewer on 2026-09-26, ranked. Now present:
 Select as the handle mode, rotation and scale snap under their own toggles, Shift for proportional
 scaling, Center View and a wider zoom, the ruler's Δx and Δy, Group, and the grid's step and
-offset with Snap to Other Nodes, Snap Relative and Use Pixel Snap.
+offset with Snap to Other Nodes, Snap Relative and Use Pixel Snap, Alt-drag move, and V.
 
-1. Godot's Alt+Drag move and V (pivot) in Select; our Alt bypasses snap.
-2. Snapping's Node Sides and Node Center (they snap a pivot, after V) and Configure Snap's primary
-   line and rotation and scale offsets.
-3. Right-click: Godot's RMB adds a node at the point and Alt+RMB lists the nodes there; ours lists on
+1. Snapping's Node Sides and Node Center (they snap the pivot V and the pivot handle place) and
+   Configure Snap's primary line and rotation and scale offsets.
+2. Right-click: Godot's RMB adds a node at the point and Alt+RMB lists the nodes there; ours lists on
    RMB. No List Select or Pivot button.
-4. Lock and Group last only the session; Godot saves them in the scene with a gizmo.
-5. The View menu's Grid submenu, Helpers, Gizmos and Preview items; Skew in the Inspector.
-6. The `2D` board against Figma: the layers list for its frames and the zoom menu; its zoom sits
+3. Lock and Group last only the session; Godot saves them in the scene with a gizmo.
+4. The View menu's Grid submenu, Helpers, Gizmos and Preview items; Skew in the Inspector.
+5. The `2D` board against Figma: the layers list for its frames and the zoom menu; its zoom sits
    bottom-right where Figma's sits at the top of the properties panel.

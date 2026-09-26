@@ -1386,6 +1386,8 @@ export function RootSelectionOverlay({
   // handlers (same "ref mirrors state" convention `marqueeRef`/`textEditRef`
   // already use in this file).
   const spaceHeldRef = useRef(false);
+  /** Where the pointer last hovered this surface (client px), for V; null once it leaves. */
+  const hoverClientRef = useRef<{ x: number; y: number } | null>(null);
   const [spaceHeld, setSpaceHeld] = useState(false);
   // The active space-drag pan gesture, or `null` between drags — kept
   // SEPARATE from `dragRef`/`gestureRef` (mutually exclusive per pointer
@@ -1927,7 +1929,8 @@ export function RootSelectionOverlay({
             moveDx,
             moveDy,
             store.snapEnabled,
-            e.altKey,
+            // On the 2D surface Alt is Godot's move modifier, so it never frees the move.
+            false,
             // A native (2D) origin steps on the scene's grid, not the 3D translate step; Snap
             // Relative steps from where the node started instead.
             store.snap2D.step,
@@ -1945,7 +1948,7 @@ export function RootSelectionOverlay({
             gesture.context,
             gesture.moveAxis,
             // Alignment is smart snapping's, beside the grid's step (Godot's two toggles).
-            !store.smartSnap.enabled || e.altKey,
+            !store.smartSnap.enabled,
             EDGE_SNAP_THRESHOLD_PX / Math.max(pan.zoom, 0.01),
             {
               x: nativeGuides.filter((guide) => guide.axis === 'x').map((guide) => guide.value),
@@ -2044,6 +2047,40 @@ export function RootSelectionOverlay({
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [eyedropperActive]);
+
+  // Godot's V on a native 2D surface: put the selected node's pivot where the pointer is. The pivot
+  // is the owner's `origin` spatial handle, committed the way its own drag commits (one edit).
+  useEffect(() => {
+    if (!transformModeAware) return;
+    const onKeyDown = (e: KeyboardEvent): void => {
+      if (e.key.toLowerCase() !== 'v' || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target;
+      if (
+        t instanceof HTMLInputElement ||
+        t instanceof HTMLTextAreaElement ||
+        t instanceof HTMLSelectElement ||
+        (t instanceof HTMLElement && t.isContentEditable)
+      ) {
+        return;
+      }
+      const at = hoverClientRef.current;
+      const selected = store.selectedEntityIds;
+      if (!at || selected.size !== 1 || gestureRef.current || spatialDragRef.current) return;
+      const id = [...selected][0]!;
+      const provider = spatialHandlesForId(adapter, id);
+      const handle = provider
+        ?.layers(id)
+        .find((layer) => layer.category === 'origin')
+        ?.handles.find((h) => h.writable);
+      if (!provider || !handle) return;
+      e.preventDefault();
+      const local = toHostLocal(at.x, at.y);
+      void provider.commit(id, handle.id, [local.x, local.y, 0]);
+      bumpGesture();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [adapter, store, transformModeAware, toHostLocal, bumpGesture]);
 
   // D4 (spec27 §8 "space-pan" row) — the Space-held ARM SWITCH for the pan
   // gesture below (`onPointerDown`'s own early branch). A raw `window`
@@ -2174,8 +2211,11 @@ export function RootSelectionOverlay({
       // The drag SUBJECT is the nearest selected ancestor of the deep pick
       // (usually the pick itself) — see `nearestSelectedAncestor`'s doc
       // comment. `hitAtDown` keeps the deep pick for click-select on release.
-      const moveSubject =
-        hitAtDown !== null
+      // Godot's Alt+Drag moves the selected node wherever the press lands.
+      const altMove = transformModeAware && e.altKey && store.selectedEntityIds.size === 1;
+      const moveSubject = altMove
+        ? [...store.selectedEntityIds][0]!
+        : hitAtDown !== null
           ? nearestSelectedAncestor(adapter, hitAtDown, store.selectedEntityIds)
           : null;
       const moveCandidate: DragState['moveCandidate'] =
@@ -2327,6 +2367,7 @@ export function RootSelectionOverlay({
         setEyedropperPreview({ ...local, color: sampleColorAt(e.clientX, e.clientY) });
         return;
       }
+      hoverClientRef.current = { x: e.clientX, y: e.clientY };
       const gesture = gestureRef.current;
       if (gesture) {
         applyGesturePatch(gesture, e);
@@ -2438,6 +2479,7 @@ export function RootSelectionOverlay({
   );
 
   const onPointerLeave = useCallback(() => {
+    hoverClientRef.current = null;
     if (!scopedAdapter) viewportEditorControls()?.clearHover();
     setEditorControlCursor(null);
     setHoverId(null);
