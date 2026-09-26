@@ -70,7 +70,7 @@
         "observedOutputSha256": "99daec82387dad94b14d26afbf891031cca617114f2e6ed8cc8c46620e3ad319"
       },
       "target": {
-        "implementationSha256": "f0a313e210e349f6dc82a6783835a71ae0c4cb52914f176f95b0baef79263a12",
+        "implementationSha256": "0741eb28819c1097b55f986eec2aeb59be7ae6c265293dffd49d778f645163b7",
         "callsite": "lib/godot-compat/sphere-shape-3d.ts get_radius",
         "observedOutputSha256": "99daec82387dad94b14d26afbf891031cca617114f2e6ed8cc8c46620e3ad319"
       },
@@ -109,7 +109,7 @@
         "observedOutputSha256": "8348a2de2c75e1248fc612986f2ec290fa3837702b1bce0d341ab9d0cf52500a"
       },
       "target": {
-        "implementationSha256": "f0a313e210e349f6dc82a6783835a71ae0c4cb52914f176f95b0baef79263a12",
+        "implementationSha256": "0741eb28819c1097b55f986eec2aeb59be7ae6c265293dffd49d778f645163b7",
         "callsite": "lib/godot-compat/sphere-shape-3d.ts set_radius",
         "observedOutputSha256": "8348a2de2c75e1248fc612986f2ec290fa3837702b1bce0d341ab9d0cf52500a"
       },
@@ -136,7 +136,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "0f5fde61e8c615689409f6a007f1af52744c7d370e66ede34bd97899b3802571",
-      "implementationSha256": "f0a313e210e349f6dc82a6783835a71ae0c4cb52914f176f95b0baef79263a12"
+      "implementationSha256": "0741eb28819c1097b55f986eec2aeb59be7ae6c265293dffd49d778f645163b7"
     },
     {
       "claimId": "godot-4.7-binding-SphereShape3D.set_radius",
@@ -144,7 +144,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "4ceb30b17bcd817477b54fae6aa18091a6e03d301d5f10ead20ee88f09313f28",
-      "implementationSha256": "f0a313e210e349f6dc82a6783835a71ae0c4cb52914f176f95b0baef79263a12"
+      "implementationSha256": "0741eb28819c1097b55f986eec2aeb59be7ae6c265293dffd49d778f645163b7"
     }
   ]
 }

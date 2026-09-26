@@ -4,7 +4,7 @@ import { type Op, PHYSICS_PROBE_HELPERS, physicsCase, type Segment } from './phy
 const cases: GodotEvidenceCase[] = [];
 function add(id: string, member: string, segments: readonly Segment[]): void {
   const built = physicsCase(segments);
-  cases.push({ id, symbol: { kind: 'native-member', owner: 'RayCast3D', member }, gdscript: built.gdscript, target: built.target, comparator: 'exact' });
+  cases.push({ id, symbol: { kind: 'native-member', owner: 'RayCast3D', member }, gdscript: built.gdscript, target: built.target, comparator: 'rapier-geometry' });
 }
 const read = (tag: string): Op => ({ read: ['raycast', tag] });
 const phys = (...ops: Op[]): Segment => ({ await: 'physics', ops });

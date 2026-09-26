@@ -2,7 +2,7 @@ import type { GodotEvidenceCase, GodotEvidenceCaseFile, GodotEvidenceComparator 
 import { type Op, PHYSICS_PROBE_HELPERS, physicsCase, type Segment } from './physics-timeline';
 
 const cases: GodotEvidenceCase[] = [];
-function add(id: string, member: string, segments: readonly Segment[], comparator: GodotEvidenceComparator = 'exact'): void {
+function add(id: string, member: string, segments: readonly Segment[], comparator: GodotEvidenceComparator = 'rapier-geometry'): void {
   const built = physicsCase(segments);
   cases.push({ id, symbol: { kind: 'native-member', owner: 'PhysicsBody3D', member }, gdscript: built.gdscript, target: built.target, comparator });
 }

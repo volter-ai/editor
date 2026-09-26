@@ -2,28 +2,25 @@
  * @godot-class PhysicsDirectSpaceState3D
  * @role BINDING
  *
- * Godot 4.7's `PhysicsDirectSpaceState3D.intersect_ray`, transcribed from GodotPhysics3D (the
- * pinned default 3D engine, `modules/godot_physics_3d/godot_space_3d.cpp:110`, revision
- * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) over the Rapier world: Rapier's broad phase gathers
- * the colliders whose bounds meet the segment's, Godot's filter admits them (layer against mask,
- * bodies/areas, exclusions), and each shape's own segment and point tests (`shape-3d.ts`) run in
- * the shape's local space through Godot's single-precision transforms. The nearest hit along the
- * ray wins; a shape containing the start is skipped, or with `hit_from_inside` is hit there.
- * Godot visits candidates in its broad phase's order; here they are visited in the order the
- * collision objects entered the world, which decides only between two equally near hits.
+ * Godot 4.7's `PhysicsDirectSpaceState3D.intersect_ray` (`modules/godot_physics_3d/godot_space_3d.cpp:110`,
+ * revision `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) on Rapier's rays. Godot's query semantics
+ * are kept: the filter (layer against mask, bodies/areas, exclusions), a shape containing the start
+ * skipped or, with `hit_from_inside`, hit there with a zero normal; a concave shape's back faces
+ * passed through unless both its `backface_collision` and the query's `hit_back_faces` allow them
+ * (Rapier reports a front-face hit as its face index plus the triangle count); the nearest hit along
+ * the ray; Godot's Dictionary. Candidates are those Rapier's broad phase finds on the segment's
+ * bounds, visited in the order the collision objects entered the world (this decides only between
+ * equally near hits).
+ *
+ * Bounded deviation (`rapier-geometry`): the hit point and normal are Rapier's ray cast, not
+ * GodotPhysics3D's per-shape segment tests; they differ by float32 rounding on boxes, spheres and
+ * faces and by Rapier's convex-cast tolerance on capsules and convex hulls (measured per claim).
  */
 
-import type { Collider } from '@dimforge/rapier3d-compat';
-import {
-  type CollisionShapeEntry,
-  godot_collision_object_object,
-  godot_collision_object_of_collider,
-  godot_collision_object_state,
-  godot_collision_objects,
-} from './collision-object-3d';
+import { type Collider, Ray, ShapeType, type TriMesh } from '@dimforge/rapier3d-compat';
+import { godot_collision_object_object, godot_collision_object_of_collider, godot_collision_object_state, godot_collision_objects } from './collision-object-3d';
 import type { PhysicsRayQueryParameters3D } from './physics-ray-query-parameters-3d';
-import { godot_shape_3d_intersect_point, godot_shape_3d_intersect_segment } from './shape-3d';
-import { op_multiply as transform, type Transform3D } from './transform-3d';
+import { godot_shape_3d_backface } from './shape-3d';
 import { construct as vector3, dot, normalized, op_subtract, type Vector3 } from './vector3';
 import type { PhysicsDirectSpaceState3D } from './world-3d';
 
@@ -35,11 +32,6 @@ function admits(entity: object, query: PhysicsRayQueryParameters3D): boolean {
   if (state === undefined || (state.layer & query.collision_mask) === 0) return false;
   if (state.kind === 'area' ? !query.collide_with_areas : !query.collide_with_bodies) return false;
   return !query.exclude.includes(entity);
-}
-
-/** `Basis::xform_inv`: the columns dotted with the vector (`core/math/basis.h:343`). */
-function basisXformInv(basis: Transform3D['basis'], v: Vector3): Vector3 {
-  return vector3(dot(basis.x, v), dot(basis.y, v), dot(basis.z, v));
 }
 
 /** The admitted shapes whose Rapier bounds meet the segment's, in world order. */
@@ -58,16 +50,43 @@ function candidates(self: PhysicsDirectSpaceState3D, begin: Vector3, end: Vector
       return true;
     },
   );
-  const found: { entity: object; index: number; entry: CollisionShapeEntry; transform: Transform3D; inverse: Transform3D }[] = [];
+  const found: { entity: object; index: number; collider: Collider; backface: boolean }[] = [];
   for (const [entity, state] of godot_collision_objects()) {
     if (!admits(entity, query)) continue;
     state.colliders.forEach((entry, index) => {
       if (entry.inBroadphase && entry.collider !== undefined && near.has(entry.collider.handle)) {
-        found.push({ entity, index, entry, transform: state.transform, inverse: state.inverse });
+        found.push({ entity, index, collider: entry.collider, backface: godot_shape_3d_backface(entry.shape) });
       }
     });
   }
   return found;
+}
+
+/** The nearest front-facing (or admitted back-facing) Rapier hit of the segment on one collider. */
+function castOn(collider: Collider, begin: Vector3, end: Vector3, backFaces: boolean) {
+  const dir = { x: end.x - begin.x, y: end.y - begin.y, z: end.z - begin.z };
+  const concave = collider.shape.type === ShapeType.TriMesh;
+  const triangles = concave ? ((collider.shape as TriMesh).indices?.length ?? 0) / 3 : 0;
+  let from = 0;
+  for (let attempt = 0; attempt < 64; attempt += 1) {
+    const ray = new Ray({ x: begin.x + dir.x * from, y: begin.y + dir.y * from, z: begin.z + dir.z * from }, dir);
+    const hit = collider.castRayAndGetNormal(ray, 1 - from, false);
+    if (hit === null) return undefined;
+    const toi = from + hit.timeOfImpact;
+    const feature = hit.featureId ?? -1;
+    if (concave && feature < triangles && !backFaces) {
+      // A back face is passed through (`GodotFaceShape3D::intersect_segment`, `godot_shape_3d.cpp:1240`).
+      from = toi + 1e-6;
+      continue;
+    }
+    const point = ray.pointAt(hit.timeOfImpact);
+    return {
+      point: vector3(point.x, point.y, point.z),
+      normal: vector3(hit.normal.x, hit.normal.y, hit.normal.z),
+      face: concave ? feature % triangles : -1,
+    };
+  }
+  return undefined;
 }
 
 /**
@@ -85,28 +104,19 @@ export function intersect_ray(self: PhysicsDirectSpaceState3D, parameters: Physi
   let min_d = f32(1e10);
   let best: { point: Vector3; normal: Vector3; face: number; entity: object; index: number } | undefined;
   for (const candidate of candidates(self, begin, end, parameters)) {
-    // `get_shape_inv_transform(shape_idx) * get_inv_transform()`.
-    const inv_xform = transform(candidate.entry.localInverse, candidate.inverse);
-    const local_from = transform(inv_xform, begin);
-    const local_to = transform(inv_xform, end);
-    if (godot_shape_3d_intersect_point(candidate.entry.shape, local_from)) {
+    const concave = candidate.collider.shape.type === ShapeType.TriMesh;
+    // A concave shape has no inside (`GodotConcavePolygonShape3D::intersect_point`).
+    if (!concave && candidate.collider.containsPoint(begin)) {
       if (!parameters.hit_from_inside) continue;
       best = { point: begin, normal: vector3(), face: -1, entity: candidate.entity, index: candidate.index };
       break;
     }
-    const hit = godot_shape_3d_intersect_segment(candidate.entry.shape, local_from, local_to, parameters.hit_back_faces);
+    const hit = castOn(candidate.collider, begin, end, candidate.backface && parameters.hit_back_faces);
     if (hit === undefined) continue;
-    const point = transform(transform(candidate.transform, candidate.entry.local), hit.point);
-    const ld = dot(normal, point);
+    const ld = dot(normal, hit.point);
     if (ld < min_d) {
       min_d = ld;
-      best = {
-        point,
-        normal: normalized(basisXformInv(inv_xform.basis, hit.normal)),
-        face: hit.face,
-        entity: candidate.entity,
-        index: candidate.index,
-      };
+      best = { ...hit, entity: candidate.entity, index: candidate.index };
     }
   }
   const result = new Map<string, unknown>();
@@ -121,5 +131,3 @@ export function intersect_ray(self: PhysicsDirectSpaceState3D, parameters: Physi
   result.set('rid', best.entity);
   return result;
 }
-
-export type { Vector3 };

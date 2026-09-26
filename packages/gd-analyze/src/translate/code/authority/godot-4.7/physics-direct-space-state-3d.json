@@ -44,19 +44,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "fb2f8714e89dd215ea77696399f51a8afa6a76784525a4f44cb080c0f410a8a7",
+        "inputSha256": "25c8d224353a34ba353e1ccdf15d31019035f262cd553c2d5f570eb59e3ef8e0",
         "callsite": "res://probe.gd _init() box-down box-up box-side box-diagonal box-miss box-short sphere-down sphere-up sphere-side sphere-diagonal sphere-miss sphere-short capsule-down capsule-up capsule-side capsule-diagonal capsule-miss capsule-short convex-down convex-up convex-side convex-diagonal convex-miss convex-short concave-down concave-up concave-side concave-diagonal concave-miss concave-short rotated-box offset-shape nearest-of-two masks-and-layers exclude areas from-inside moved-body disabled-shape removed-body concave-terrain concave-backface convex-octahedron convex-prism rotated-capsule-and-sphere moved-same-frame added-same-frame",
-        "observedOutputSha256": "d9d7b6a403cfa9a62a854c0ad57192b3d7ebec80d8d30430d7cc4c578a8557bd"
+        "observedOutputSha256": "c6847e97260a28ef1117bf34b0e6d2950b1f145bf81803c21df6652cbe7fa819"
       },
       "target": {
-        "implementationSha256": "fc7a8213f1824d9a45ef4d883299190c327d444d18baf957eee64a52f5a09033",
+        "implementationSha256": "c45140154c1b37c1226631273e4396fef7e11544fc7c37b3d6bf7cc5b46e66f9",
         "callsite": "lib/godot-compat/physics-direct-space-state-3d.ts intersect_ray",
-        "observedOutputSha256": "56efec0d730a378e954f5ef29935d9559ef3d97faa4f0794d89bb165947733a7"
+        "observedOutputSha256": "630325db4f126500f9c2fa3f6984cd8bcec73eedab1365948aeceb4794e8561d"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact, float32-geometry",
-        "tolerance": "single-precision geometry with an untranscribed operand order: within 2^-20 of max(1, |native|); measured max 5.364418029785156e-7 over 47 cases",
-        "resultSha256": "549b0eb71d222be9393b5797ac76dbce1a6bda08d4660b4cb5943cf70b30eb02"
+        "comparator": "typed float64-bit JSON: rapier-geometry",
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.02904123067855835 over 47 cases",
+        "resultSha256": "827a117c2814e4aa70545a25d658092e66a6acccee9edba4c2f3c6b85b506c81"
       },
       "reproductionCommand": [
         "npx",
@@ -75,8 +75,8 @@
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "fb2f8714e89dd215ea77696399f51a8afa6a76784525a4f44cb080c0f410a8a7",
-      "implementationSha256": "fc7a8213f1824d9a45ef4d883299190c327d444d18baf957eee64a52f5a09033"
+      "inputSha256": "25c8d224353a34ba353e1ccdf15d31019035f262cd553c2d5f570eb59e3ef8e0",
+      "implementationSha256": "c45140154c1b37c1226631273e4396fef7e11544fc7c37b3d6bf7cc5b46e66f9"
     }
   ]
 }

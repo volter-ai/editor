@@ -70,7 +70,7 @@
         "observedOutputSha256": "99e97d2880f21d699dcff01d4e23da5c383b4e91209974f125454e01c29529aa"
       },
       "target": {
-        "implementationSha256": "ee405c763d6cbb3f04320d2244f0d62a55015c4912a6157886bf1d176623c013",
+        "implementationSha256": "6e53dad9442dd8e772315bf5319878777cba405b20dbc228c1c1ce2ddf32ba2b",
         "callsite": "lib/godot-compat/convex-polygon-shape-3d.ts get_points",
         "observedOutputSha256": "99e97d2880f21d699dcff01d4e23da5c383b4e91209974f125454e01c29529aa"
       },
@@ -109,7 +109,7 @@
         "observedOutputSha256": "912629a5551a41f9922ab637c7e767d037856fe5eb3d7e644fca2d69319174a5"
       },
       "target": {
-        "implementationSha256": "ee405c763d6cbb3f04320d2244f0d62a55015c4912a6157886bf1d176623c013",
+        "implementationSha256": "6e53dad9442dd8e772315bf5319878777cba405b20dbc228c1c1ce2ddf32ba2b",
         "callsite": "lib/godot-compat/convex-polygon-shape-3d.ts set_points",
         "observedOutputSha256": "912629a5551a41f9922ab637c7e767d037856fe5eb3d7e644fca2d69319174a5"
       },
@@ -136,7 +136,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "a12a6fcffb0e27e37c11fccb1064e1aa042c224141da5cae2d1e00fcca2fc265",
-      "implementationSha256": "ee405c763d6cbb3f04320d2244f0d62a55015c4912a6157886bf1d176623c013"
+      "implementationSha256": "6e53dad9442dd8e772315bf5319878777cba405b20dbc228c1c1ce2ddf32ba2b"
     },
     {
       "claimId": "godot-4.7-binding-ConvexPolygonShape3D.set_points",
@@ -144,7 +144,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "52e71a45c2339e799d890de9b70a01dbe4e337f0c20d03b751c87efd657bc0b5",
-      "implementationSha256": "ee405c763d6cbb3f04320d2244f0d62a55015c4912a6157886bf1d176623c013"
+      "implementationSha256": "6e53dad9442dd8e772315bf5319878777cba405b20dbc228c1c1ce2ddf32ba2b"
     }
   ]
 }

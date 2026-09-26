@@ -50,21 +50,15 @@ export interface GodotEvidenceSymbol {
  * Godot delegates to the platform C library (`Math::sin` is `std::sin`), whose result Godot does
  * not fix across its platforms; never for anything Godot computes itself. The claim records the
  * measured maximum distance.
- * `float32-geometry`: every float is a 32-bit value within 8 float32 epsilons (2^-20) of the native
- * one, scaled by the native magnitude when it exceeds 1. Only for a single-precision geometric
- * result whose formula is transcribed but whose operand order Godot takes from a construction the
- * compat module names as a bounded deviation (which corner of a convex hull face Godot lists
- * first); never where Godot's operand order is transcribed. The claim records the measured maximum.
- * `safe-margin`: every float within 0.001, a physics body's default safe margin, of the native one.
- * Only for a kinematic body's place where GodotPhysics3D sums contacts in the order its BVH returns
- * them, which depends on the broad phase's history rather than on the scene (the same frames
- * resolve differently natively after other cases ran): test_body_motion places a body only to
- * within its margin. Flags, normals and velocities in such a case still agree; never for anything
- * the scene alone decides. The claim records the measured maximum.
  * `physics-trajectory`: every float within 0.1 of the native one. Only for a rigid body in contact,
  * whose contact resolution is Rapier's solver rather than GodotPhysics3D's (the bounded deviation
  * rigid-body-3d.ts names), over cases of at most two seconds; never for kinematic bodies, queries
  * or a body in free flight. The claim records the measured maximum.
+ * `rapier-geometry`: every float within 0.05 of the native one. Only for query and kinematic results
+ * whose contact points, normals, depths and cast fractions are Rapier's queries rather than
+ * GodotPhysics3D's narrow phase (the bounded deviation the compat module names), and the positions
+ * and velocities that follow from them; stable facts (hit or not, floor or wall, signal sets) in
+ * such a case still agree exactly as integers and booleans. The claim records the measured maximum.
  * `web-platform-fact`: the value Godot's web export gives where it differs from the native binary's
  * platform (the rendering method): the case's `fact`, cited to the web platform's code path, stands
  * in for the native run, and the target must equal it exactly.
@@ -76,9 +70,8 @@ export type GodotEvidenceComparator =
   | 'exact'
   | 'float32-ulp'
   | 'platform-libm'
-  | 'float32-geometry'
-  | 'safe-margin'
   | 'physics-trajectory'
+  | 'rapier-geometry'
   | 'web-platform-fact'
   | 'render-mapping';
 

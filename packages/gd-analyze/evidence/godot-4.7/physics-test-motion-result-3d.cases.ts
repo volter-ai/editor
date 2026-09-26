@@ -35,7 +35,7 @@ const cases: GodotEvidenceCase[] = [
   symbol: { kind: 'native-member', owner: 'PhysicsTestMotionResult3D', member },
   gdscript: built.gdscript,
   target: built.target,
-  comparator: 'exact',
+  comparator: 'rapier-geometry',
 }));
 
 const EVIDENCE: GodotEvidenceCaseFile = {

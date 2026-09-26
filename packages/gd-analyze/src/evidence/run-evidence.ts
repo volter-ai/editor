@@ -510,6 +510,16 @@ function measuredTolerance(
     }
     return `platform C library: within 1 float64 ulp; measured max ${String(largest)} ulp over ${String(rows.length)} cases`;
   }
+  if (comparators.includes('rapier-geometry')) {
+    let largest = 0;
+    for (const [native, target] of rows) {
+      for (const [left, right] of floatPairs(native, target)) {
+        if (Number.isNaN(left) || Number.isNaN(right)) continue;
+        largest = Math.max(largest, Math.abs(left - right));
+      }
+    }
+    return `Rapier's query geometry: within 0.05; measured max ${String(largest)} over ${String(rows.length)} cases`;
+  }
   if (comparators.includes('physics-trajectory')) {
     let largest = 0;
     for (const [native, target] of rows) {
@@ -519,26 +529,6 @@ function measuredTolerance(
       }
     }
     return `rigid body in contact, Rapier's solver: within 0.1; measured max ${String(largest)} over ${String(rows.length)} cases`;
-  }
-  if (comparators.includes('safe-margin')) {
-    let largest = 0;
-    for (const [native, target] of rows) {
-      for (const [left, right] of floatPairs(native, target)) {
-        if (Number.isNaN(left) || Number.isNaN(right)) continue;
-        largest = Math.max(largest, Math.abs(left - right));
-      }
-    }
-    return `kinematic place in a broad-phase order Godot's BVH history decides: within 0.001 (the safe margin); measured max ${String(largest)} over ${String(rows.length)} cases`;
-  }
-  if (comparators.includes('float32-geometry')) {
-    let largest = 0;
-    for (const [native, target] of rows) {
-      for (const [left, right] of floatPairs(native, target)) {
-        if (Number.isNaN(left) || Number.isNaN(right)) continue;
-        largest = Math.max(largest, Math.abs(left - right) / Math.max(1, Math.abs(left)));
-      }
-    }
-    return `single-precision geometry with an untranscribed operand order: within 2^-20 of max(1, |native|); measured max ${String(largest)} over ${String(rows.length)} cases`;
   }
   return comparators.includes('float32-ulp') ? '1 float32 ulp' : 'exact';
 }
@@ -555,9 +545,8 @@ function floatsAgree(nativeHex: string, targetHex: string, comparator: GodotEvid
   if (comparator === 'exact' || FACT_COMPARATORS.has(comparator)) return nativeHex === targetHex;
   if (comparator === 'platform-libm') return float64UlpDistance(native, target) <= 1n;
   if (Math.fround(native) !== native || Math.fround(target) !== target) return false;
+  if (comparator === 'rapier-geometry') return Math.abs(native - target) <= 0.05;
   if (comparator === 'physics-trajectory') return Math.abs(native - target) <= 0.1;
-  if (comparator === 'safe-margin') return Math.abs(native - target) <= 0.001;
-  if (comparator === 'float32-geometry') return Math.abs(native - target) <= 2 ** -20 * Math.max(1, Math.abs(native));
   return Math.abs(float32OrderedBits(native) - float32OrderedBits(target)) <= 1;
 }
 

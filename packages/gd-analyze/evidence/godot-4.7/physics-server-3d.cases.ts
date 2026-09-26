@@ -4,7 +4,7 @@ import { type Op, PHYSICS_PROBE_HELPERS, physicsCase, type Segment, type Triple 
 const cases: GodotEvidenceCase[] = [];
 function add(id: string, member: string, segments: readonly Segment[]): void {
   const built = physicsCase(segments);
-  cases.push({ id, symbol: { kind: 'singleton-member', owner: 'PhysicsServer3D', member }, gdscript: built.gdscript, target: built.target, comparator: 'exact' });
+  cases.push({ id, symbol: { kind: 'singleton-member', owner: 'PhysicsServer3D', member }, gdscript: built.gdscript, target: built.target, comparator: 'rapier-geometry' });
 }
 add('space_get_direct_state', 'space_get_direct_state', [
   { ops: [{ body: 'a', kind: 'static', shapes: [{ shape: { box: [2, 1, 2] } }] }, { read: ['ray', [0, 10, 0], [0, -10, 0]] }] },

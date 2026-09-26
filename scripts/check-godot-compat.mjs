@@ -242,7 +242,10 @@ function checkEntry(files) {
 /**
  * A server-named module is allowed only as a BINDING whose every export is a Godot member bound
  * onto the web platform (`PhysicsServer3D.space_get_direct_state` over the Rapier world): no
- * protocol export, so it can never grow into a server reimplementation.
+ * protocol export, so it can never grow into a server reimplementation. It binds onto a library,
+ * so it imports one: an npm package, itself or through a compat module it imports that does
+ * (`rendering-server.ts` reaches three through `viewport.ts`, which holds the renderer). And it
+ * carries no more than the protocol it transcribes: at most SERVER_CODE_LINES lines of code.
  */
 function serverBinding(file, name) {
   if (FORBIDDEN_NAME.test(name.replace(/server/gu, ''))) return false;
@@ -256,6 +259,82 @@ function serverBinding(file, name) {
       return /@godot\s+[A-Z][A-Za-z0-9]*\.[A-Za-z_]\w*/u.test(doc) && !/@godot\s+\S+\s+\(protocol\)/u.test(doc);
     })
   );
+}
+
+/**
+ * The largest protocol a server binding carries is `GodotSpace3D::test_body_motion` with its
+ * `_rest_cbk_result` (`modules/godot_physics_3d/godot_space_3d.cpp:454-512,652-1031`, Godot 4.7):
+ * 320 lines of code, comments and blank lines dropped. A transcription of it is no longer than its
+ * source; a server module past that holds more than the protocol (its own geometry or solver).
+ */
+const SERVER_CODE_LINES = 320;
+
+const specifiers = (text) =>
+  [...stripComments(text).matchAll(/(?:\bfrom\s*|\bimport\s*\(?\s*)(['"])([^'"]+)\1/gu)].map((match) => match[2]);
+const isPackage = (spec) => !spec.startsWith('.') && !spec.startsWith('node:');
+
+/** Whether the module imports an npm package, directly or through a compat module it imports. */
+function reachesLibrary(file) {
+  const direct = specifiers(readFileSync(file, 'utf8'));
+  if (direct.some(isPackage)) return true;
+  return direct
+    .filter((spec) => spec.startsWith('.'))
+    .some((spec) => {
+      const resolved = ['.ts', '.tsx', '.js', '.mjs'].map((ext) => path.resolve(path.dirname(file), spec + ext)).find((candidate) => {
+        try {
+          return statSync(candidate).isFile();
+        } catch {
+          return false;
+        }
+      });
+      return resolved !== undefined && specifiers(readFileSync(resolved, 'utf8')).some(isPackage);
+    });
+}
+
+function checkServerBinding(file, text) {
+  if (!reachesLibrary(file)) {
+    report(file, 1, 'a server-named BINDING must import the library it binds onto (an npm package, or a compat module that imports it)');
+  }
+  const code = stripComments(text).split('\n').filter((line) => line.trim() !== '').length;
+  if (code > SERVER_CODE_LINES) {
+    report(file, 1, `a server-named BINDING has ${code} lines of code, over ${SERVER_CODE_LINES} (the largest protocol a server binding transcribes): geometry and solvers are the library's`);
+  }
+}
+
+/**
+ * The narrow phase is the physics library's: no compat function, method, class or variable is named
+ * for a collision algorithm (GJK, EPA, SAT, support mappings, closest points, Minkowski sums,
+ * simplices).
+ */
+const NARROW_PHASE_WORD = /^(gjk|epa|sat|support|supports|minkowski|simplex)$/u;
+const CLOSEST_POINTS = /closest_?points?/iu;
+const words = (name) =>
+  name
+    .replace(/([a-z0-9])([A-Z])/gu, '$1_$2')
+    .replace(/([A-Z]+)([A-Z][a-z])/gu, '$1_$2')
+    .toLowerCase()
+    .split(/[_$]+/u)
+    .filter(Boolean);
+const NOT_A_METHOD = new Set(['if', 'for', 'while', 'switch', 'catch', 'function', 'return', 'with']);
+
+function checkNarrowPhaseNames(file, text) {
+  const code = stripComments(text);
+  const declared = [
+    ...[...code.matchAll(/\b(?:function\*?|class|const|let|var)\s+([A-Za-z_$][\w$]*)/gu)].map((m) => ({ name: m[1], index: m.index })),
+    ...[...code.matchAll(/^\s*(?:(?:static|private|public|protected|readonly|async|get|set)\s+)*([A-Za-z_$][\w$]*)\s*(?:<[^>]*>)?\([^)]*\)\s*(?::[^{;=]+)?\{/gmu)]
+      .filter((m) => !NOT_A_METHOD.has(m[1]))
+      .map((m) => ({ name: m[1], index: m.index })),
+    // Destructured bindings: `const { a, b } =` / `const [a, b] =`.
+    ...[...code.matchAll(/\b(?:const|let|var)\s*[{[]([^}\]]*)[}\]]\s*=/gu)].flatMap((m) =>
+      m[1].split(',').map((part) => ({ name: part.split(':').pop().split('=')[0].trim(), index: m.index })),
+    ),
+  ];
+  for (const { name, index } of declared) {
+    if (!name) continue;
+    if (words(name).some((word) => NARROW_PHASE_WORD.test(word)) || CLOSEST_POINTS.test(name)) {
+      report(file, lineOf(code, index), `${name} is named for a narrow-phase algorithm: collision detection is the physics library's, compat binds its queries`);
+    }
+  }
 }
 
 const files = walk(COMPAT);
@@ -273,6 +352,8 @@ for (const file of files) {
   checkImports(file, tokens);
   checkTokens(file, text);
   checkClassDispatch(file, tokens);
+  checkNarrowPhaseNames(file, text);
+  if (forbidden?.[0] === 'server') checkServerBinding(file, text);
 }
 checkEntry(files);
 

@@ -4,7 +4,7 @@ import { type Op, PHYSICS_PROBE_HELPERS, physicsCase, type Segment, type Triple 
 const cases: GodotEvidenceCase[] = [];
 function add(id: string, member: string, segments: readonly Segment[]): void {
   const built = physicsCase(segments);
-  cases.push({ id, symbol: { kind: 'native-member', owner: 'CollisionShape3D', member }, gdscript: built.gdscript, target: built.target, comparator: 'exact' });
+  cases.push({ id, symbol: { kind: 'native-member', owner: 'CollisionShape3D', member }, gdscript: built.gdscript, target: built.target, comparator: 'rapier-geometry' });
 }
 const ray = (x: number): Op => ({ read: ['ray', [x, 10, 0.1] as Triple, [x, -10, 0.1] as Triple] });
 const BODY: Op = { body: 'a', kind: 'static', shapes: [{ shape: { box: [1, 1, 1] } }, { shape: { sphere: 0.5 }, at: [3, 0, 0] }] };

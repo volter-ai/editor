@@ -2,7 +2,7 @@ import type { GodotEvidenceCase, GodotEvidenceCaseFile, GodotEvidenceComparator 
 import { type Op, PHYSICS_PROBE_HELPERS, physicsCase, type Segment, type Triple } from './physics-timeline';
 
 const cases: GodotEvidenceCase[] = [];
-function add(id: string, member: string, segments: readonly Segment[], comparator: GodotEvidenceComparator = 'exact'): void {
+function add(id: string, member: string, segments: readonly Segment[], comparator: GodotEvidenceComparator = 'rapier-geometry'): void {
   const built = physicsCase(segments);
   cases.push({ id, symbol: { kind: 'native-member', owner: 'CharacterBody3D', member }, gdscript: built.gdscript, target: built.target, comparator });
 }
@@ -26,13 +26,12 @@ add('move_and_slide-jump', 'move_and_slide', [
 ]);
 // Against a wall and the floor at once, the recovery sums the contacts of both in the order
 // GodotPhysics3D's BVH returns them, which depends on the broad phase's history (the same frames
-// run after other cases resolve a frame differently natively): the position agrees within the safe
-// margin, every flag, normal and velocity exactly.
+// run after other cases resolve a frame differently natively).
 add(
   'move_and_slide-wall-slide',
   'move_and_slide',
   [{ ops: [FLOOR, player([0, 0.9, 0]), { body: 'wall', kind: 'static', shapes: [{ shape: { box: [1, 4, 20] } }], at: [2, 2, 0] }] }, ...frames(40, () => [5, 0, 3], 'charState')],
-  'safe-margin',
+  'rapier-geometry',
 );
 add('move_and_slide-ceiling', 'move_and_slide', [
   { ops: [FLOOR, player([0, 0.9, 0]), { body: 'roof', kind: 'static', shapes: [{ shape: { box: [10, 1, 10] } }], at: [0, 3, 0] }] },

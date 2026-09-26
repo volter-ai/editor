@@ -2,9 +2,9 @@ import type { GodotEvidenceCase, GodotEvidenceCaseFile } from '../../src/evidenc
 import { type Op, PHYSICS_PROBE_HELPERS, physicsCase, type Segment } from './physics-timeline';
 
 const cases: GodotEvidenceCase[] = [];
-function add(id: string, member: string, segments: readonly Segment[]): void {
+function add(id: string, member: string, segments: readonly Segment[], comparator: GodotEvidenceCase['comparator'] = 'exact'): void {
   const built = physicsCase(segments);
-  cases.push({ id, symbol: { kind: 'native-member', owner: 'Area3D', member }, gdscript: built.gdscript, target: built.target, comparator: 'exact' });
+  cases.push({ id, symbol: { kind: 'native-member', owner: 'Area3D', member }, gdscript: built.gdscript, target: built.target, comparator });
 }
 const phys = (...ops: Op[]): Segment => ({ await: 'physics', ops });
 const proc = (...ops: Op[]): Segment => ({ await: 'process', ops });
@@ -40,7 +40,8 @@ add('area-moved-and-masked', 'has_overlapping_bodies', [
   phys({ mask: 'coin', value: 2 }, mark('masked')),
   ...frames(3, { read: ['overlapping', 'coin'] }),
 ]);
-// A platformer pickup: a character walks through a coin (a moving kinematic body is active).
+// A platformer pickup: a character walks through a coin (a moving kinematic body is active). The
+// overlap sets and signals are exact; the character's positions follow Rapier's contacts.
 add('character-walks-through', 'get_overlapping_bodies', [
   {
     ops: [
@@ -51,7 +52,7 @@ add('character-walks-through', 'get_overlapping_bodies', [
     ],
   },
   ...Array.from({ length: 40 }, (): Segment => ({ await: 'physics', ops: [{ slide: 'player', velocity: [6, -0.1, 0] }, { read: ['charPosition', 'player'] }, { read: ['overlapping', 'coin'] }] })),
-]);
+], 'rapier-geometry');
 add('set_monitoring', 'set_monitoring', [
   { ops: [COIN, { body: 'box', kind: 'static', shapes: [{ shape: { sphere: 0.3 } }], at: [0, 1, 0] }, { watch: 'coin' }] },
   ...frames(3, { read: ['overlapping', 'coin'] }),

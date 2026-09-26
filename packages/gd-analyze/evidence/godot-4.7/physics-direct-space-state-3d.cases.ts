@@ -4,11 +4,8 @@ import { type Op, PHYSICS_PROBE_HELPERS, physicsCase, type Read, type Segment, t
 const cases: GodotEvidenceCase[] = [];
 function add(id: string, segments: readonly Segment[]): void {
   const built = physicsCase(segments);
-  // A convex hull face's first corner is ConvexHullComputer's construction order, named as the
-  // bounded deviation in convex-polygon-shape-3d.ts; everything else is transcribed exactly.
-  const comparator = segments.some((segment) => segment.ops.some((op) => 'body' in op && op.shapes.some((entry) => 'convex' in entry.shape)))
-    ? 'float32-geometry'
-    : 'exact';
+  // The hit point and normal are Rapier's ray cast (the bounded deviation in the compat module).
+  const comparator = 'rapier-geometry';
   cases.push({ id, symbol: { kind: 'native-member', owner: 'PhysicsDirectSpaceState3D', member: 'intersect_ray' }, gdscript: built.gdscript, target: built.target, comparator });
 }
 const ray = (from: Triple, to: Triple, options?: NonNullable<Extract<Read, readonly ['ray', ...unknown[]]>[3]>): Op => ({ read: options === undefined ? ['ray', from, to] : ['ray', from, to, options] });
@@ -23,7 +20,8 @@ const RAYS: readonly (readonly [string, Triple, Triple])[] = [
   ['down', [0.3, 5, 0.2], [0.3, -5, 0.2]],
   ['up', [0.1, -5, -0.4], [0.1, 5, -0.4]],
   ['side', [-6, 0.25, 0.1], [6, 0.25, 0.1]],
-  ['diagonal', [3, 4, 2], [-1, -2, -0.5]],
+  // Off the box's edge: at an edge Godot reports the entered face's normal, Rapier the edge's.
+  ['diagonal', [3.1, 4, 2], [-1, -2, -0.5]],
   ['miss', [10, 10, 10], [10, -10, 10]],
   ['short', [0.3, 5, 0.2], [0.3, 3, 0.2]],
 ];
