@@ -114,12 +114,12 @@
       "target": {
         "implementationSha256": "aa1c3b15e0ebb0d994355dab83efdcf4fc703075e79476a208bf6c4a2e5289ba",
         "callsite": "lib/godot-compat/physics-body-3d.ts add_collision_exception_with",
-        "observedOutputSha256": "e642b8f63f95a69ee322207d3e7023a5f1ad05edc0444dd0af7f7533ab15ddba"
+        "observedOutputSha256": "0420d94807e5a0da35f7803c45f2546a74239160b0751462ef482a7958ac000e"
       },
       "comparison": {
         "comparator": "typed float64-bit JSON: physics-trajectory, rapier-geometry",
-        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.04609572887420654 over 2 cases",
-        "resultSha256": "db00d84f71617849db5054bde288a4a105851e4a9a2fbb608954b0bbf4b02027"
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.046095848083496094 over 2 cases",
+        "resultSha256": "6fbaeff28ba82f503d95e847bf21218117af5d137852e2c01a080dd683acba36"
       },
       "reproductionCommand": [
         "npx",
@@ -231,12 +231,12 @@
       "target": {
         "implementationSha256": "aa1c3b15e0ebb0d994355dab83efdcf4fc703075e79476a208bf6c4a2e5289ba",
         "callsite": "lib/godot-compat/physics-body-3d.ts set_axis_lock",
-        "observedOutputSha256": "00f9ca74ffa1839dfc91d7ec511b203841c108afc509d77018d113654402288b"
+        "observedOutputSha256": "f30c9b6958ca5a8cb6bfd383fdda90b1577ed934663e691c59d69efecd8c2e42"
       },
       "comparison": {
         "comparator": "typed float64-bit JSON: physics-trajectory",
-        "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.006553828716278076 over 2 cases",
-        "resultSha256": "d7314af654ecce6be6eb9cd7262120f8d6ba24dcaf65fed26fe9e82fe614be11"
+        "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.00650671124458313 over 2 cases",
+        "resultSha256": "785785d2c906caa187172b0d7338c44ca59372e8af768dc8a83762830814deb2"
       },
       "reproductionCommand": [
         "npx",

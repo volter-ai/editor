@@ -9,6 +9,14 @@
 
 import type { PointLight } from 'three';
 import { godot_light_3d_mount } from './light-3d';
+import { godot_node_class_reader } from './node';
+
+const OMNI_LIGHT_3D = Object.freeze(['OmniLight3D', 'Light3D', 'VisualInstance3D', 'Node3D', 'Node', 'Object']);
+
+// A scene's `<pointLight>` is an OmniLight3D.
+godot_node_class_reader((entity) =>
+  (entity as { readonly isPointLight?: boolean }).isPointLight === true && (entity as { readonly name?: string }).name !== '' ? OMNI_LIGHT_3D : undefined,
+);
 
 /**
  * An omni light as `OmniLight3D()` creates it (`light_3d.cpp:661`): Light3D's parameters.
