@@ -23,7 +23,11 @@ const DOT = 7;
 
 /** The range a lane's values live in: pitch bend is bipolar, a controller 0…1, tempo in BPM. */
 function rangeOf(target: string): readonly [number, number] {
-  return target === 'pitchbend' ? [-1, 1] : target === 'tempo' ? [20, 240] : [0, 1];
+  if (target === 'pitchbend' || target === 'pan') return [-1, 1];
+  if (target === 'tempo') return [20, 240];
+  // A track's mixer lanes are in dB: the fader's travel, as the mixer draws it.
+  if (target === 'volume' || target.startsWith('send:')) return [-60, 6];
+  return [0, 1];
 }
 
 export function AutomationLane(props: {

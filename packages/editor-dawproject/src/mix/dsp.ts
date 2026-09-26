@@ -209,6 +209,30 @@ export function pan(signal: Stereo, position: number): void {
   }
 }
 
+/** `pan` with a position per sample (a Web Audio StereoPannerNode's a-rate `pan`). */
+export function panEach(signal: Stereo, positions: Float32Array): void {
+  const [left, right] = signal;
+  for (let i = 0; i < left.length; i++) {
+    const x = Math.max(-1, Math.min(1, positions[i]!));
+    const l = left[i]!;
+    const r = right[i]!;
+    if (x <= 0) {
+      const p = ((x + 1) * Math.PI) / 2;
+      left[i] = l + r * Math.cos(p);
+      right[i] = r * Math.sin(p);
+    } else {
+      const p = (x * Math.PI) / 2;
+      left[i] = l * Math.cos(p);
+      right[i] = r + l * Math.sin(p);
+    }
+  }
+}
+
+/** `gain` with a factor per sample. */
+export function gainEach(signal: Stereo, factors: Float32Array): void {
+  for (const channel of signal) for (let i = 0; i < channel.length; i++) channel[i] = channel[i]! * factors[i]!;
+}
+
 export function gain(signal: Stereo, factor: number): void {
   for (const channel of signal) for (let i = 0; i < channel.length; i++) channel[i] = channel[i]! * factor;
 }

@@ -120,6 +120,11 @@ spiccato, pizzicato and staccato repeat without the machine-gun sound.
   next unless one says `hold`. In `<Transport>`, `<Points target="tempo">` takes BPM.
 - `<Device plugin="humanize" params={{ timingMs: 14, velocity: 0.05, seed: 3 }} />`: seeded,
   so every render is the same.
+- A lane in a TRACK (a `<Points>` child of `<Track>`, outside its clips) automates the track's
+  mixer across the whole arrangement: `target="volume"` and `target="send:Hall"` in dB,
+  `target="pan"` −1…1, points at absolute `bar:beat`. It overrides the channel's static level
+  while it plays, in the editor and in the render alike; a swell, a duck under a stinger, a
+  pan sweep.
 
 ## Worked pieces
 

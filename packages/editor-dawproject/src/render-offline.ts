@@ -142,6 +142,8 @@ export interface RenderedChannels {
   readonly loopSeconds: number;
   readonly channels: readonly [Float32Array, Float32Array][];
   readonly irs: ReadonlyMap<string, ImpulseResponse>;
+  /** Where the render's first sample falls in the piece (a section starts at its marker). */
+  readonly startSecond: number;
 }
 
 /** One thing the synth does, at one sample: a note, a controller, a channel's setup. */
@@ -338,7 +340,7 @@ export async function renderChannels(
     event.apply(synth);
   }
   renderTo(total);
-  return { piece, sampleRate, loopSeconds, channels, irs };
+  return { piece, sampleRate, loopSeconds, channels, irs, startSecond: perform(piece).secondsAt(window?.fromBeat ?? 0) };
 }
 
 /**
@@ -348,7 +350,8 @@ export async function renderChannels(
 export function mixLoop(rendered: RenderedChannels, only?: ReadonlySet<string>, dynamics?: (report: DynamicsReport) => void): RenderedLoop {
   const { piece, sampleRate, loopSeconds, irs } = rendered;
   const channelOf = new Map([...assignChannels(piece)].map(([trackId, assignment]) => [trackId, assignment.channel]));
-  const [left, right] = mix(piece, { channels: rendered.channels, channelOf, sampleRate, irs, ...(only ? { only } : {}), ...(dynamics ? { dynamics } : {}) });
+  const timeline = { startSecond: rendered.startSecond, loopSeconds, beatAt: perform(piece).beatAt };
+  const [left, right] = mix(piece, { channels: rendered.channels, channelOf, sampleRate, irs, timeline, ...(only ? { only } : {}), ...(dynamics ? { dynamics } : {}) });
   const loopSamples = Math.round(loopSeconds * sampleRate);
   const start = loopSamples;
   const outLeft = left.slice(start, start + loopSamples);
@@ -370,7 +373,9 @@ export function mixLoop(rendered: RenderedChannels, only?: ReadonlySet<string>, 
 export function mixOneShot(rendered: RenderedChannels, only?: ReadonlySet<string>, dynamics?: (report: DynamicsReport) => void): RenderedLoop {
   const { piece, sampleRate, irs } = rendered;
   const channelOf = new Map([...assignChannels(piece)].map(([id, assignment]) => [id, assignment.channel]));
-  const [left, right] = mix(piece, { channels: rendered.channels, channelOf, sampleRate, irs, ...(only ? { only } : {}), ...(dynamics ? { dynamics } : {}) });
+  // One pass and its tail run on in piece time: no fold.
+  const timeline = { startSecond: rendered.startSecond, loopSeconds: 0, beatAt: perform(piece).beatAt };
+  const [left, right] = mix(piece, { channels: rendered.channels, channelOf, sampleRate, irs, timeline, ...(only ? { only } : {}), ...(dynamics ? { dynamics } : {}) });
   const fade = Math.min(Math.round(0.01 * sampleRate), left.length);
   for (const channel of [left, right]) {
     for (let i = 0; i < fade; i++) channel[channel.length - fade + i]! *= (fade - 1 - i) / Math.max(1, fade - 1);

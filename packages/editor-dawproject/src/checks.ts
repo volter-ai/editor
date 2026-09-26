@@ -27,6 +27,7 @@ import type { BasicSoundBank } from 'spessasynth_core';
 import { articulationPrograms } from './articulations';
 import { soundingKeys } from './bank-coverage';
 import { validBands } from './mix/dsp';
+import { mixTarget } from './mix/automation';
 import { formatPitch } from '@volter/dawproject/notation';
 
 /** Practical ranges (MIDI), by General MIDI program. Unlisted programs are not range-checked. */
@@ -185,6 +186,16 @@ export function checkPiece(piece: Piece, banks?: ReadonlyMap<string, BasicSoundB
       const skipped = count - validBands(bands).length;
       if (skipped > 0) {
         problems.push(`${track.name}: ${skipped} of the equalizer's ${count} bands ${skipped === 1 ? 'is' : 'are'} not played (each needs a type of highPass, lowPass, lowShelf, highShelf or bell, a freq above 0, and a q above 0 if it has one)`);
+      }
+    }
+    for (const lane of track.lanes) {
+      const target = mixTarget(lane.target);
+      if (!target) {
+        problems.push(`${track.name}: a track lane's target "${lane.target}" is none of volume, pan or send:<bus>, so it moves nothing (a controller lane belongs inside a clip)`);
+      } else if (target.kind === 'send' && !(track.channel?.sends ?? []).some((send) => send.to === target.to)) {
+        problems.push(`${track.name}: its "${lane.target}" lane automates a send the track does not have; add <Send to="${target.to}"> to its channel`);
+      } else if (target.kind === 'pan' && lane.points.some((point) => point.value < -1 || point.value > 1)) {
+        problems.push(`${track.name}: its pan lane has values outside −1…1; they are clamped`);
       }
     }
     if (track.channel?.solo && track.channel.role !== 'regular') {

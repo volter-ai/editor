@@ -10,7 +10,8 @@
  */
 import type { Piece, PieceTrack } from '@volter/dawproject/piece';
 import { convolve, prepareIr } from './convolve';
-import { Biquad, Compressor, compressorParams, dbToGain, gain, Limiter, pan, type Stereo, validBands } from './dsp';
+import { automationCurve, laneFor, mixTarget } from './automation';
+import { Biquad, Compressor, compressorParams, dbToGain, gain, gainEach, Limiter, pan, panEach, type Stereo, validBands } from './dsp';
 
 export interface ImpulseResponse {
   readonly channels: readonly Float32Array[];
@@ -29,6 +30,12 @@ export interface MixInputs {
   readonly only?: ReadonlySet<string>;
   /** Told what each compressor and limiter did: its most gain reduction, and a compressor's loudest input. */
   readonly dynamics?: (report: DynamicsReport) => void;
+  /**
+   * Where each sample falls in the piece, for the tracks' mixer automation: sample `i` is at
+   * piece-second `startSecond + (i / sampleRate) mod loopSeconds`, and `beatAt` maps a second to
+   * the beat a lane is written in. Without it the static levels apply throughout.
+   */
+  readonly timeline?: { readonly startSecond: number; readonly loopSeconds: number; readonly beatAt: (second: number) => number };
 }
 
 export interface DynamicsReport {
@@ -115,6 +122,30 @@ export function stripLevels(piece: Piece, track: PieceTrack, soloed = soloActive
 export function mix(piece: Piece, inputs: MixInputs): Stereo {
   const length = inputs.channels[0]?.[0].length ?? 0;
   const silence = (): Stereo => [new Float32Array(length), new Float32Array(length)];
+  // A strip parameter a track automates, per sample (`automation.ts`); null where it is static.
+  const envelope = (track: PieceTrack, target: string): Float32Array | null => {
+    const timeline = inputs.timeline;
+    const lane = timeline ? laneFor(track, target) : undefined;
+    const parsed = mixTarget(target);
+    if (!timeline || !lane || !parsed) return null;
+    const curve = automationCurve(lane, parsed, timeline.beatAt);
+    const out = new Float32Array(length);
+    for (let i = 0; i < length; i++) {
+      const offset = i / inputs.sampleRate;
+      out[i] = curve.at(timeline.startSecond + (timeline.loopSeconds > 0 ? offset % timeline.loopSeconds : offset));
+    }
+    return out;
+  };
+  const fader = (track: PieceTrack, signal: Stereo, level: number): void => {
+    const automated = envelope(track, 'volume');
+    if (automated) gainEach(signal, automated);
+    else gain(signal, level);
+  };
+  const panStage = (track: PieceTrack, signal: Stereo, position: number): void => {
+    const automated = envelope(track, 'pan');
+    if (automated) panEach(signal, automated);
+    else pan(signal, position);
+  };
   const master = silence();
   const busInput = new Map<string, Stereo>();
   const soloed = soloActive(piece);
@@ -123,7 +154,14 @@ export function mix(piece: Piece, inputs: MixInputs): Stereo {
       if (send.pre !== pre) return;
       const bus = busInput.get(send.to) ?? silence();
       busInput.set(send.to, bus);
-      addInto(bus, signal, levels[index] ?? 0);
+      const automated = (levels[index] ?? 0) === 0 ? null : envelope(track, `send:${send.to}`);
+      if (automated) {
+        for (let ch = 0; ch < 2; ch++) {
+          const t = bus[ch]!;
+          const s = signal[ch]!;
+          for (let i = 0; i < t.length; i++) t[i] = t[i]! + s[i]! * automated[i]!;
+        }
+      } else addInto(bus, signal, levels[index] ?? 0);
     });
   };
   // Instrument tracks.
@@ -137,8 +175,8 @@ export function mix(piece: Piece, inputs: MixInputs): Stereo {
     if (!source) continue;
     const signal = runDevices(track, copy(source), inputs);
     sendTo(track, levels.sends, signal, true);
-    gain(signal, levels.fader);
-    pan(signal, levels.pan);
+    fader(track, signal, levels.fader);
+    panStage(track, signal, levels.pan);
     sendTo(track, levels.sends, signal, false);
     addInto(master, signal);
   }
@@ -150,8 +188,8 @@ export function mix(piece: Piece, inputs: MixInputs): Stereo {
     const input = busInput.get(track.name);
     if (!input) continue;
     const signal = runDevices(track, input, inputs);
-    gain(signal, levels.fader);
-    pan(signal, levels.pan);
+    fader(track, signal, levels.fader);
+    panStage(track, signal, levels.pan);
     addInto(master, signal);
   }
   // The master strip: its devices, fader (silent when muted) and pan.
@@ -160,7 +198,7 @@ export function mix(piece: Piece, inputs: MixInputs): Stereo {
   const levels = stripLevels(piece, masterTrack, soloed);
   if (!levels.sounding) return silence();
   const out = runDevices(masterTrack, master, inputs);
-  gain(out, levels.fader);
-  pan(out, levels.pan);
+  fader(masterTrack, out, levels.fader);
+  panStage(masterTrack, out, levels.pan);
   return out;
 }

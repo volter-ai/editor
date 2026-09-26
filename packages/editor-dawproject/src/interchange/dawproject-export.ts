@@ -66,6 +66,8 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
 
   out(1, '<Structure>');
   const trackIds = new Map<string, string>();
+  /** Each track's mixer parameters by lane target (`volume`, `pan`, `send:<bus>`): what a lane's Target names. */
+  const paramIds = new Map<string, Map<string, string>>();
   // Every channel's id first, so a send can name the bus it feeds wherever that bus is listed.
   const channelIds = new Map<string, string>();
   for (const track of piece.tracks) {
@@ -107,18 +109,26 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
       out(4, '</Devices>');
     }
     out(4, `<Mute${attrs({ id: id(), name: 'Mute', value: channel?.mute ?? false })}/>`);
-    out(4, `<Pan${attrs({ id: id(), name: 'Pan', unit: 'normalized', value: beats(((channel?.pan ?? 0) + 1) / 2), min: 0, max: 1 })}/>`);
+    const params = new Map<string, string>();
+    paramIds.set(track.id, params);
+    const panId = id();
+    params.set('pan', panId);
+    out(4, `<Pan${attrs({ id: panId, name: 'Pan', unit: 'normalized', value: beats(((channel?.pan ?? 0) + 1) / 2), min: 0, max: 1 })}/>`);
     const sends = (channel?.sends ?? []).filter((send) => busIds.has(send.to));
     if (sends.length > 0) {
       out(4, '<Sends>');
       for (const send of sends) {
         out(5, `<Send${attrs({ id: id(), name: `Send to ${send.to}`, destination: busIds.get(send.to), type: send.pre ? 'pre' : 'post' })}>`);
-        out(6, `<Volume${attrs({ id: id(), name: 'Volume', unit: 'linear', value: beats(10 ** (send.level / 20)), min: 0, max: 2 })}/>`);
+        const sendVolumeId = id();
+        params.set(`send:${send.to}`, sendVolumeId);
+        out(6, `<Volume${attrs({ id: sendVolumeId, name: 'Volume', unit: 'linear', value: beats(10 ** (send.level / 20)), min: 0, max: 2 })}/>`);
         out(5, '</Send>');
       }
       out(4, '</Sends>');
     }
-    out(4, `<Volume${attrs({ id: id(), name: 'Volume', unit: 'linear', value: beats(10 ** ((channel?.volume ?? 0) / 20)), min: 0, max: 2 })}/>`);
+    const volumeId = id();
+    params.set('volume', volumeId);
+    out(4, `<Volume${attrs({ id: volumeId, name: 'Volume', unit: 'linear', value: beats(10 ** ((channel?.volume ?? 0) / 20)), min: 0, max: 2 })}/>`);
     out(3, '</Channel>');
     out(2, '</Track>');
   }
@@ -166,6 +176,19 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
       out(5, '</Clip>');
     }
     out(4, '</Clips>');
+    // The track's mixer automation, each lane on the parameter it moves (`<Target parameter>`).
+    for (const points of track.lanes) {
+      const parameter = paramIds.get(track.id)?.get(points.target);
+      if (!parameter) continue;
+      const pan = points.target === 'pan';
+      out(4, `<Points${attrs({ id: id(), unit: pan ? 'normalized' : 'linear' })}>`);
+      out(5, `<Target${attrs({ parameter })}/>`);
+      for (const point of [...points.points].sort((a, b) => a.time - b.time)) {
+        const value = pan ? (Math.max(-1, Math.min(1, point.value)) + 1) / 2 : 10 ** (point.value / 20);
+        out(5, `<RealPoint${attrs({ time: beats(point.time), value: beats(value), interpolation: point.hold ? 'hold' : 'linear' })}/>`);
+      }
+      out(4, '</Points>');
+    }
     out(3, '</Lanes>');
   }
   out(2, '</Lanes>');

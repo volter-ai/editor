@@ -20,6 +20,7 @@ import { projectModuleUrl } from '@volter/editor-sdk/contributions';
 import { readWav } from '../wav';
 import type { Piece, PieceTrack } from '@volter/dawproject/piece';
 import { prepareIr } from './convolve';
+import { AUTOMATION_GRID, automationCurve, laneFor, mixTarget } from './automation';
 import { biquadNode, validBands } from './dsp';
 import { soloActive, stripLevels } from './offline-mix';
 import workletUrl from './dynamics.worklet.ts?worker&url';
@@ -92,6 +93,8 @@ export class LiveMix {
   private connectedTo: AudioNode[] = [];
   private workletReady: Promise<void> | null = null;
   private readonly irCache = new Map<string, AudioBuffer>();
+  /** The automated parameters of the sounding graph, for the piece they were read from. */
+  private curves: { piece: Piece; beatAt: (second: number) => number; params: { param: AudioParam; curve: ReturnType<typeof automationCurve> }[] } | null = null;
 
   constructor(
     private readonly context: BaseAudioContext,
@@ -290,6 +293,7 @@ export class LiveMix {
     // graph is taken down, the new one reaches the destination and the source feeds it.
     this.detach();
     this.takeDown();
+    this.curves = null;
     this.graph = graph;
     graph.output?.connect(context.destination);
     this.connectSource(graph.heads);
@@ -314,12 +318,62 @@ export class LiveMix {
       const nodes = graph.strips.get(track.id);
       if (!nodes || !track.channel) continue;
       const levels = stripLevels(piece, track, soloed);
-      set(nodes.fader.gain, levels.fader);
-      set(nodes.panner.pan, levels.pan);
+      // An automated parameter follows its lane (`automate`); a silenced strip is silenced anyway.
+      const automated = (target: string, level: number): boolean => level !== 0 && levels.sounding && laneFor(track, target) !== undefined && mixTarget(target) !== null;
+      if (!automated('volume', levels.fader)) set(nodes.fader.gain, levels.fader);
+      if (!automated('pan', 1)) set(nodes.panner.pan, levels.pan);
       nodes.sends.forEach((send, index) => {
-        if (send) set(send.gain, levels.sends[index] ?? 0);
+        const to = track.channel?.sends[index]?.to ?? '';
+        if (send && !automated(`send:${to}`, levels.sends[index] ?? 0)) set(send.gain, levels.sends[index] ?? 0);
       });
     }
+  }
+
+  /** The automated strip parameters of the sounding graph for `piece`, each with its lane's curve. */
+  private automatedParams(piece: Piece, beatAt: (second: number) => number): { param: AudioParam; curve: ReturnType<typeof automationCurve> }[] {
+    const graph = this.graph;
+    if (!graph) return [];
+    if (this.curves?.piece === piece && this.curves.beatAt === beatAt) return this.curves.params;
+    const soloed = soloActive(piece);
+    const params: { param: AudioParam; curve: ReturnType<typeof automationCurve> }[] = [];
+    for (const track of piece.tracks) {
+      const nodes = graph.strips.get(track.id);
+      if (!nodes || !track.channel || track.lanes.length === 0) continue;
+      const levels = stripLevels(piece, track, soloed);
+      if (!levels.sounding) continue;
+      const add = (param: AudioParam | undefined, target: string): void => {
+        const lane = laneFor(track, target);
+        const parsed = mixTarget(target);
+        if (param && lane && parsed) params.push({ param, curve: automationCurve(lane, parsed, beatAt) });
+      };
+      add(levels.fader !== 0 ? nodes.fader.gain : undefined, 'volume');
+      add(nodes.panner.pan, 'pan');
+      track.channel.sends.forEach((send, index) => {
+        if ((levels.sends[index] ?? 0) !== 0) add(nodes.sends[index]?.gain, `send:${send.to}`);
+      });
+    }
+    this.curves = { piece, beatAt, params };
+    return params;
+  }
+
+  /**
+   * Schedule the tracks' mixer automation for one pass of playing time (`preview-engine`'s
+   * `passes`): each automated parameter set to its value where the pass begins, then a straight
+   * line to every grid value in it, exactly the lines the offline mix applies per sample.
+   */
+  automate(piece: Piece, beatAt: (second: number) => number, pass: { readonly offset: number; readonly from: number; readonly to: number }, at: (second: number) => number): void {
+    for (const { param, curve } of this.automatedParams(piece, beatAt)) {
+      param.setValueAtTime(curve.at(pass.from), at(pass.offset + pass.from));
+      for (let k = Math.floor(pass.from / AUTOMATION_GRID) + 1; k * AUTOMATION_GRID <= pass.to; k++) {
+        param.linearRampToValueAtTime(curve.grid(k), at(pass.offset + k * AUTOMATION_GRID));
+      }
+    }
+  }
+
+  /** Drop every scheduled automation value (the transport stopped or starts somewhere else). */
+  cancelAutomation(): void {
+    for (const { param } of this.curves?.params ?? []) param.cancelScheduledValues(0);
+    this.curves = null;
   }
 
   private takeDown(): void {

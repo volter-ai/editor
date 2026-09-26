@@ -24,11 +24,11 @@
 import { beatAt, beatsPerBarOf, formatAt } from '@volter/dawproject/notation';
 import type { Piece, PieceClip, PieceMarker, PieceTrack } from '@volter/dawproject/piece';
 import { themeVars } from '@volter/editor-sdk/widgets';
-import { type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, Fragment, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react';
 import ts from 'typescript';
 import { AutomationLane, LANE_H as TEMPO_H } from './AutomationLane';
 import type { EngineState } from './preview-engine';
-import { applySource, createElement, readSource, recordStructWrite, setProps, setRefusal, type SourceIndex, writeStruct } from './source-index';
+import { applySource, createElement, formatNumber, readSource, recordStructWrite, setProps, setRefusal, type SourceIndex, writeStruct } from './source-index';
 import { applyEdits, elementAt, indentOf, literalProp, parseSource, shiftClipEdits, SourceRefusal, type SourceElement } from './source-notes';
 
 const HEADER_W = 190;
@@ -449,6 +449,28 @@ export function Arranger(props: {
 
   // THE TEMPO LANE: a `<Points target="tempo">` in the `<Transport>`, one point at bar 1 holding
   // the transport's tempo, drawn and edited in the Tempo row from then on.
+  /** The mixer parameters a track can automate and has no lane for yet, with the level each starts at. */
+  const missingLanes = (track: PieceTrack): { target: string; value: number }[] => {
+    const channel = track.channel;
+    if (!channel) return [];
+    const all = [
+      { target: 'volume', value: channel.volume },
+      { target: 'pan', value: channel.pan },
+      ...channel.sends.map((send) => ({ target: `send:${send.to}`, value: send.level })),
+    ];
+    return all.filter((entry) => !track.lanes.some((lane) => lane.target === entry.target));
+  };
+  const addTrackLane = (track: PieceTrack, target: string): void => {
+    const start = missingLanes(track).find((entry) => entry.target === target);
+    if (!start || !track.oid || (piece.oidCounts.get(track.oid) ?? 0) !== 1) {
+      writes.onMessage(track.oid ? `${track.name} is generated: its lanes are written in its code.` : `${track.name} has no <Track> of its own.`);
+      return;
+    }
+    writes.onMessage(null);
+    container.current?.focus({ preventScroll: true });
+    const snippet = `<Points target="${target}"><Point at="1" value={${formatNumber(start.value)}} /></Points>`;
+    createElement(`Add ${target} Lane`, track.oid, 'child', snippet, { index: writes.index, pieceFile: writes.file, documentId: writes.documentId }, writes.onMessage).catch(say);
+  };
   const addTempoLane = (): void => {
     const transport = piece.transport;
     const entry = transport.oid ? writes.index.get(transport.oid) : undefined;
@@ -573,8 +595,8 @@ export function Arranger(props: {
           )}
         </div>
         {piece.tracks.map((track, index) => (
+          <Fragment key={track.id}>
           <div
-            key={track.id}
             data-track={track.name}
             onClick={() => props.onSelectTrack(track.id)}
             style={{
@@ -599,7 +621,30 @@ export function Arranger(props: {
             </div>
             <span style={{ ...small, color: track.channel?.mute ? themeVars.semantic.warning : themeVars.content.muted }}>M</span>
             <span style={{ ...small, color: track.channel?.solo ? themeVars.semantic.success : themeVars.content.muted }}>S</span>
+            {missingLanes(track).length > 0 ? (
+              <select
+                data-control="add-lane"
+                value=""
+                title="Automate a mixer parameter of this track across the arrangement"
+                onClick={(event) => event.stopPropagation()}
+                onChange={(event) => addTrackLane(track, event.target.value)}
+                style={{ ...small, width: 18, background: 'transparent', color: themeVars.content.muted, border: 'none' }}
+              >
+                <option value="">A</option>
+                {missingLanes(track).map((entry) => (
+                  <option key={entry.target} value={entry.target}>
+                    {entry.target}
+                  </option>
+                ))}
+              </select>
+            ) : null}
           </div>
+          {track.lanes.map((lane) => (
+            <div key={lane.id} data-lane-label={`${track.name}:${lane.target}`} style={{ height: TEMPO_H, display: 'flex', alignItems: 'center', padding: '0 8px 0 20px', borderBottom: `1px solid ${themeVars.boundary.default}`, ...small }}>
+              {lane.target}
+            </div>
+          ))}
+          </Fragment>
         ))}
         <button type="button" data-control="add-track" onClick={addTrack} title="Add an instrument track" style={{ ...button, margin: 6, fontSize: 11 }}>
           + Track
@@ -736,8 +781,8 @@ export function Arranger(props: {
           ) : null}
         </div>
         {piece.tracks.map((track, index) => (
+          <Fragment key={track.id}>
           <div
-            key={track.id}
             data-lane={track.name}
             onDoubleClick={(event) => addClip(track, event)}
             style={{ height: LANE_H, position: 'relative', borderBottom: `1px solid ${themeVars.boundary.default}` }}
@@ -764,6 +809,25 @@ export function Arranger(props: {
               );
             })}
           </div>
+          {track.lanes.map((lane) => (
+            <div key={lane.id} data-track-lane={`${track.name}:${lane.target}`} style={{ height: TEMPO_H, position: 'relative', borderBottom: `1px solid ${themeVars.boundary.default}` }}>
+              <AutomationLane
+                lane={lane}
+                piece={piece}
+                index={writes.index}
+                clipTime={0}
+                clipDuration={piece.length}
+                pxPerBeat={pxPerBeat}
+                snap={1}
+                width={width}
+                color={trackColor(track, index)}
+                pieceFile={writes.file}
+                documentId={writes.documentId}
+                onMessage={writes.onMessage}
+              />
+            </div>
+          ))}
+          </Fragment>
         ))}
         {/* The playhead while playing; while stopped, where Play will start. */}
         <span

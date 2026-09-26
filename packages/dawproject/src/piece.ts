@@ -51,7 +51,10 @@ export interface PiecePoint {
   readonly hold: boolean;
 }
 
-/** An automation lane: a controller (`cc11`), `pitchbend`, or `tempo` on the transport. */
+/**
+ * An automation lane: in a clip a controller (`cc11`) or `pitchbend`; on the transport `tempo`; on
+ * a track its mixer (`volume`, `pan`, `send:<bus>`).
+ */
 export interface PiecePoints {
   readonly id: string;
   readonly oid: string | null;
@@ -103,6 +106,11 @@ export interface PieceTrack {
   readonly color: string | null;
   readonly channel: PieceChannel | null;
   readonly clips: readonly PieceClip[];
+  /**
+   * The track's own automation across the arrangement (`<Points>` children of `<Track>`, outside
+   * any clip): `volume` and `send:<bus>` in dB, `pan` −1…1. Points in piece time.
+   */
+  readonly lanes: readonly PiecePoints[];
 }
 
 export interface PieceMarker {
@@ -188,6 +196,7 @@ export function readPiece(root: DawNode): Piece {
       const trackName = str(node.props['name']) ?? `Track ${tracks.length + 1}`;
       let channel: PieceChannel | null = null;
       const clips: PieceClip[] = [];
+      const trackLanes: PiecePoints[] = [];
       node.children.forEach((child, childIndex) => {
         if (child.type === 'Channel') {
           const role = str(child.props['role']);
@@ -240,9 +249,11 @@ export function readPiece(root: DawNode): Piece {
             .map((lane, laneIndex) => readLane(lane, `${clipId}:lane:${laneIndex}`, where));
           length = Math.max(length, time + duration);
           clips.push({ id: clipId, oid: child.oid, name: clipName, time, duration, notes, lanes });
+        } else if (child.type === 'Points') {
+          trackLanes.push(readLane(child, `${trackId}:lane:${childIndex}`, `<Track "${trackName}">`));
         }
       });
-      tracks.push({ id: trackId, oid: node.oid, name: trackName, color: str(node.props['color']), channel, clips });
+      tracks.push({ id: trackId, oid: node.oid, name: trackName, color: str(node.props['color']), channel, clips, lanes: trackLanes });
     }
   });
   return { transport: withTempo, tracks, markers, length, oidCounts };
