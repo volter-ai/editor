@@ -90,6 +90,7 @@
     "src/lib/godot-compat/ray-cast-3d.ts",
     "src/lib/godot-compat/react-lifecycle.tsx",
     "src/lib/godot-compat/rect2.ts",
+    "src/lib/godot-compat/reflection-probe.ts",
     "src/lib/godot-compat/rendering-server.ts",
     "src/lib/godot-compat/resource-loader.ts",
     "src/lib/godot-compat/rigid-body-3d.ts",

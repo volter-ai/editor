@@ -2,12 +2,15 @@
  * The scene-particles proof: CPUParticles3D systems as the platformer's scenes author them — a
  * bullet's trail (a sphere mesh with its material, no spread or gravity, a scale curve, a fading
  * colour ramp, no shadow) and a coin's burst (one shot, explosive, a sphere-surface emitter, a
- * plane mesh, a scale curve with its own limits, a three-point ramp with constant interpolation),
- * each with a fixed seed — instantiated in official Godot and stepped at a fixed 60 fps, each
- * system's multimesh buffer read after every frame (the headless renderer's `frame_pre_draw`
- * emitted by hand, since it draws nothing), against the components the production pipeline emits
- * for the same project, mounted in Node by @react-three/fiber, entered into compat's tree on the
- * same frame and stepped by its clock, each buffer read through compat.
+ * plane mesh whose material billboards the particles, takes their colour, culls nothing and fades
+ * by proximity, a scale curve with its own limits, a three-point ramp with constant interpolation),
+ * each with a fixed seed; the coin's glow (a quad whose material samples a GradientTexture2D,
+ * inside a visibility range) and a stage reflection probe — instantiated in official Godot and
+ * stepped at a fixed 60 fps, each system's multimesh buffer read after every frame (the headless
+ * renderer's `frame_pre_draw` emitted by hand, since it draws nothing), then each material, the
+ * glow's texture and range and the probe read back through Godot's getters; against the components
+ * the production pipeline emits for the same project, mounted in Node by @react-three/fiber,
+ * entered into compat's tree on the same frame and stepped by its clock, read through compat.
  */
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
@@ -122,6 +125,14 @@ proximity_fade_distance = 0.15
 
 [node name="Main" type="Node3D"]
 
+[node name="Probe" type="ReflectionProbe" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.28208, 1, -1)
+intensity = 0.5
+max_distance = 60.0
+size = Vector3(35.9516, 20, 52.5818)
+origin_offset = Vector3(0, -1.5, 0)
+box_projection = true
+
 [node name="Glow" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 visibility_range_begin = 3.0
@@ -205,6 +216,8 @@ func _run() -> void:
 \tvar t: GradientTexture2D = g.albedo_texture
 \tmaterials.append([t.get_width(), t.get_height(), t.fill, _bits(t.fill_from.x), _bits(t.fill_from.y), _bits(t.fill_to.x), _bits(t.fill_to.y), t.gradient.interpolation_mode, t.gradient.get_point_count()])
 \tmaterials.append([_bits(glow.visibility_range_begin), _bits(glow.visibility_range_begin_margin), glow.visibility_range_fade_mode])
+\tvar probe: ReflectionProbe = main.get_node("Probe")
+\tmaterials.append([_bits(probe.intensity), _bits(probe.max_distance), _bits(probe.size.x), _bits(probe.size.z), _bits(probe.origin_offset.y), probe.box_projection, probe.update_mode, _bits(probe.position.x)])
 \trows.append(materials)
 \tprint("PARTICLES " + JSON.stringify(rows))
 \tquit()
@@ -234,6 +247,8 @@ import * as G from './src/lib/godot-compat/geometry-instance-3d';
 import * as T from './src/lib/godot-compat/texture-2d';
 import * as GT from './src/lib/godot-compat/gradient-texture-2d';
 import * as GR from './src/lib/godot-compat/gradient';
+import * as R from './src/lib/godot-compat/reflection-probe';
+import * as N3 from './src/lib/godot-compat/node-3d';
 import * as N from './src/lib/godot-compat/node';
 import * as ST from './src/lib/godot-compat/scene-tree';
 
@@ -298,6 +313,10 @@ rows.push([
     return [T.get_width(map), T.get_height(map), GT.get_fill(t), bits(from.x), bits(from.y), bits(to.x), bits(to.y), GR.get_interpolation_mode(gradient), GR.get_point_count(gradient)];
   })(),
   [bits(G.get_visibility_range_begin(glow)), bits(G.get_visibility_range_begin_margin(glow)), G.get_visibility_range_fade_mode(glow)],
+  (() => {
+    const probe = main.getObjectByName('Probe');
+    return [bits(R.get_intensity(probe)), bits(R.get_max_distance(probe)), bits(R.get_size(probe).x), bits(R.get_size(probe).z), bits(R.get_origin_offset(probe).y), R.is_box_projection_enabled(probe), R.get_update_mode(probe), bits(N3.get_position(probe).x)];
+  })(),
 ]);
 await act(async () => { root.unmount(); });
 // The rows are larger than a pipe takes before the process exits: written to a file.

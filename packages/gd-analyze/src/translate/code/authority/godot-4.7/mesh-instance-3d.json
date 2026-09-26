@@ -87,6 +87,48 @@
         },
         "evidenceClaimId": "godot-4.7-binding-MeshInstance3D.get_surface_override_material"
       }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "MeshInstance3D",
+        "member": "set_skeleton_path",
+        "kind": "native-member",
+        "signature": "hash:1348162250"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/mesh-instance-3d",
+        "exportName": "set_skeleton_path",
+        "localName": "MeshInstance3D_set_skeleton_path",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-MeshInstance3D.set_skeleton_path"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "MeshInstance3D",
+        "member": "get_skeleton_path",
+        "kind": "native-member",
+        "signature": "hash:277076166"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/mesh-instance-3d",
+        "exportName": "get_skeleton_path",
+        "localName": "MeshInstance3D_get_skeleton_path",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-MeshInstance3D.get_skeleton_path"
+      }
     }
   ],
   "rules": [],
@@ -112,7 +154,7 @@
         "observedOutputSha256": "4082b1e3132e6d6443ae4014c831082cfbb375bfa019fb1ce88ab847061bdedc"
       },
       "target": {
-        "implementationSha256": "e18664eabe96d30db6d8b1d7f34206cc07c8e77e487f0e938f8b582a9116e03b",
+        "implementationSha256": "2c5033d049aa9aa3bd52c739d009e19374ef414d3596234bcebfe6c2871104d1",
         "callsite": "lib/godot-compat/mesh-instance-3d.ts get_mesh",
         "observedOutputSha256": "4082b1e3132e6d6443ae4014c831082cfbb375bfa019fb1ce88ab847061bdedc"
       },
@@ -151,7 +193,7 @@
         "observedOutputSha256": "4eafc29c4e203c51bc448cabe7d004e4d2ff7c42d47af2ac227bfffaf1edb3e1"
       },
       "target": {
-        "implementationSha256": "e18664eabe96d30db6d8b1d7f34206cc07c8e77e487f0e938f8b582a9116e03b",
+        "implementationSha256": "2c5033d049aa9aa3bd52c739d009e19374ef414d3596234bcebfe6c2871104d1",
         "callsite": "lib/godot-compat/mesh-instance-3d.ts set_mesh",
         "observedOutputSha256": "4eafc29c4e203c51bc448cabe7d004e4d2ff7c42d47af2ac227bfffaf1edb3e1"
       },
@@ -190,7 +232,7 @@
         "observedOutputSha256": "489e5c960a4c75e235299d698ccb51020a4e23317c720bfda3c7e62d36ec39e1"
       },
       "target": {
-        "implementationSha256": "e18664eabe96d30db6d8b1d7f34206cc07c8e77e487f0e938f8b582a9116e03b",
+        "implementationSha256": "2c5033d049aa9aa3bd52c739d009e19374ef414d3596234bcebfe6c2871104d1",
         "callsite": "lib/godot-compat/mesh-instance-3d.ts set_surface_override_material",
         "observedOutputSha256": "489e5c960a4c75e235299d698ccb51020a4e23317c720bfda3c7e62d36ec39e1"
       },
@@ -229,7 +271,7 @@
         "observedOutputSha256": "481a1d046de1dc47dd243763c26d101811ff05422f24051ae5f53b464e6d94e5"
       },
       "target": {
-        "implementationSha256": "e18664eabe96d30db6d8b1d7f34206cc07c8e77e487f0e938f8b582a9116e03b",
+        "implementationSha256": "2c5033d049aa9aa3bd52c739d009e19374ef414d3596234bcebfe6c2871104d1",
         "callsite": "lib/godot-compat/mesh-instance-3d.ts get_surface_override_material",
         "observedOutputSha256": "481a1d046de1dc47dd243763c26d101811ff05422f24051ae5f53b464e6d94e5"
       },
@@ -237,6 +279,84 @@
         "comparator": "typed float64-bit JSON: exact",
         "tolerance": "exact",
         "resultSha256": "89e33ba25ee6db30500bfc8239e4bb3f21a68fdb3471d029bfcb96055938539f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "mesh-instance-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-MeshInstance3D.set_skeleton_path",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000MeshInstance3D\u0000set_skeleton_path\u0000hash:1348162250",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/mesh_instance_3d.cpp",
+        "sourceSymbol": "MeshInstance3D.set_skeleton_path",
+        "sourceLine": 227
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6224867e86d589df6bfc5cb6d050afd4ea82296e3279e7e9e9c83d6031d34ede",
+        "callsite": "res://probe.gd _init() set_skeleton_path",
+        "observedOutputSha256": "10dea858132848d08a67defffdbcf40ab8ed60469f0c43464f889f176db9ab4d"
+      },
+      "target": {
+        "implementationSha256": "2c5033d049aa9aa3bd52c739d009e19374ef414d3596234bcebfe6c2871104d1",
+        "callsite": "lib/godot-compat/mesh-instance-3d.ts set_skeleton_path",
+        "observedOutputSha256": "10dea858132848d08a67defffdbcf40ab8ed60469f0c43464f889f176db9ab4d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "d7b929b1ea38b9110748422eb48c3dbfcbbd15835d9d2ea2e639e1739f055cc8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "mesh-instance-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-MeshInstance3D.get_skeleton_path",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000MeshInstance3D\u0000get_skeleton_path\u0000hash:277076166",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/mesh_instance_3d.cpp",
+        "sourceSymbol": "MeshInstance3D.get_skeleton_path",
+        "sourceLine": 235
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "84b87feef7f3ac210f065fbeaafd8f82d47ce13682551b1bcc1936374f9e73e8",
+        "callsite": "res://probe.gd _init() get_skeleton_path-default",
+        "observedOutputSha256": "2dee04716c4407c17a678630555e37c16f644460f730028c8eb4972c59d02125"
+      },
+      "target": {
+        "implementationSha256": "2c5033d049aa9aa3bd52c739d009e19374ef414d3596234bcebfe6c2871104d1",
+        "callsite": "lib/godot-compat/mesh-instance-3d.ts get_skeleton_path",
+        "observedOutputSha256": "2dee04716c4407c17a678630555e37c16f644460f730028c8eb4972c59d02125"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ef9ea083664870f24bbe7d18f15dfaba0c6dfef2a17114c7d84ba2da509cebea"
       },
       "reproductionCommand": [
         "npx",
@@ -256,7 +376,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "3ed57b2284def688f9883c0d7478bdc9daded0933f5ae4fea51f6ee664f18ac3",
-      "implementationSha256": "e18664eabe96d30db6d8b1d7f34206cc07c8e77e487f0e938f8b582a9116e03b"
+      "implementationSha256": "2c5033d049aa9aa3bd52c739d009e19374ef414d3596234bcebfe6c2871104d1"
     },
     {
       "claimId": "godot-4.7-binding-MeshInstance3D.set_mesh",
@@ -264,7 +384,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "e7a94b3b3e7ba521d23f6a54da7ecfe484dc6dc201c337b4034d48e1418234b1",
-      "implementationSha256": "e18664eabe96d30db6d8b1d7f34206cc07c8e77e487f0e938f8b582a9116e03b"
+      "implementationSha256": "2c5033d049aa9aa3bd52c739d009e19374ef414d3596234bcebfe6c2871104d1"
     },
     {
       "claimId": "godot-4.7-binding-MeshInstance3D.set_surface_override_material",
@@ -272,7 +392,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "84fde2a3a662c4c21366bfee8bc060b5249fbf032ead9669a11e350ddbcd6f91",
-      "implementationSha256": "e18664eabe96d30db6d8b1d7f34206cc07c8e77e487f0e938f8b582a9116e03b"
+      "implementationSha256": "2c5033d049aa9aa3bd52c739d009e19374ef414d3596234bcebfe6c2871104d1"
     },
     {
       "claimId": "godot-4.7-binding-MeshInstance3D.get_surface_override_material",
@@ -280,7 +400,23 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "dfcdfbb35b974ed09a45cabde6ff8426c2437aa9cf35998f519d84b1813bbae3",
-      "implementationSha256": "e18664eabe96d30db6d8b1d7f34206cc07c8e77e487f0e938f8b582a9116e03b"
+      "implementationSha256": "2c5033d049aa9aa3bd52c739d009e19374ef414d3596234bcebfe6c2871104d1"
+    },
+    {
+      "claimId": "godot-4.7-binding-MeshInstance3D.set_skeleton_path",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6224867e86d589df6bfc5cb6d050afd4ea82296e3279e7e9e9c83d6031d34ede",
+      "implementationSha256": "2c5033d049aa9aa3bd52c739d009e19374ef414d3596234bcebfe6c2871104d1"
+    },
+    {
+      "claimId": "godot-4.7-binding-MeshInstance3D.get_skeleton_path",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "84b87feef7f3ac210f065fbeaafd8f82d47ce13682551b1bcc1936374f9e73e8",
+      "implementationSha256": "2c5033d049aa9aa3bd52c739d009e19374ef414d3596234bcebfe6c2871104d1"
     }
   ]
 }

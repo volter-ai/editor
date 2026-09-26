@@ -698,11 +698,14 @@ export function nativeMethodLookup(apiDump: GodotApiDump): NativeMethodLookup {
 
 /**
  * Properties whose internal setter the dump leaves out of its methods and which only forward to a
- * public method, which a write calls: `Control::_set_global_position` is `set_global_position(p_point)`
- * (scene/gui/control.cpp:1492).
+ * public method, which a write calls: `Control::_set_position`, `_set_global_position` and
+ * `_set_size` are `set_position`, `set_global_position` and `set_size` of the value
+ * (scene/gui/control.cpp:1464, :1492, :1516; the last warns first in a debug build).
  */
 export const GODOT_FORWARDED_SETTERS: Readonly<Record<string, string>> = {
+  'Control.position': 'set_position',
   'Control.global_position': 'set_global_position',
+  'Control.size': 'set_size',
 };
 
 export function nativePropertyLookup(apiDump: GodotApiDump): NativePropertyLookup {

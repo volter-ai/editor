@@ -157,3 +157,26 @@ export function get_surface_override_material(self: Mesh, surface: number): Base
   if (surface < 0 || surface >= state.overrides.length) return null;
   return state.overrides[surface] ?? null;
 }
+
+const SKELETON = new WeakMap<Mesh, string>();
+
+/**
+ * The skeleton path, which skins the mesh only when it names a Skeleton3D and the mesh's surfaces
+ * carry bones (`_resolve_skeleton_path`, `mesh_instance_3d.cpp:184`); a scene's meshes are
+ * unskinned, so it draws nothing. A scene states it in the mesh's `userData.skeleton_path`.
+ *
+ * @godot MeshInstance3D.set_skeleton_path
+ * @source scene/3d/mesh_instance_3d.cpp:227
+ */
+export function set_skeleton_path(self: Mesh, path: string): void {
+  SKELETON.set(self, String(path));
+}
+
+/**
+ * @godot MeshInstance3D.get_skeleton_path
+ * @source scene/3d/mesh_instance_3d.cpp:235
+ */
+export function get_skeleton_path(self: Mesh): string {
+  const stated = (self.userData as Readonly<Record<string, unknown>>)['skeleton_path'];
+  return SKELETON.get(self) ?? (typeof stated === 'string' ? stated : '');
+}

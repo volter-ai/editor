@@ -37,5 +37,12 @@ c.add('get_surface_override_material-out-of-range', 'get_surface_override_materi
   M.set_mesh(n, S.construct());
   return M.get_surface_override_material(n, 3) === null;
 });
+// The stage's floor tiles name the GridMap as their skeleton: the path set and read back as text.
+c.add('set_skeleton_path', 'set_skeleton_path', ['var n := MeshInstance3D.new()', 'n.set_skeleton_path(NodePath("../GridMap"))', 'return String(n.get_skeleton_path())'], () => {
+  const n = new Mesh();
+  M.set_skeleton_path(n, '../GridMap');
+  return M.get_skeleton_path(n);
+});
+c.add('get_skeleton_path-default', 'get_skeleton_path', ['return String(MeshInstance3D.new().get_skeleton_path())'], () => M.get_skeleton_path(new Mesh()));
 const EVIDENCE: GodotEvidenceCaseFile = { godotClass: 'MeshInstance3D', compatModule: 'lib/godot-compat/mesh-instance-3d', cases: c.cases };
 export default EVIDENCE;

@@ -392,11 +392,17 @@ function collider(emission: Emission, node: DirectGodotSceneNodePlan, name: Targ
   }
 }
 
-/** A node's Godot-only state the Node protocol seeds from its `userData`: groups and `%Name`. */
+/**
+ * A node's Godot-only state the Node protocol seeds from its `userData`: groups and `%Name`; a
+ * MeshInstance3D's `skeleton` path, which draws nothing on the unskinned meshes a scene carries
+ * (`MeshInstance3D::_resolve_skeleton_path`, mesh_instance_3d.cpp:184; skinned surfaces refuse).
+ */
 function nodeData(node: DirectGodotSceneNodePlan): Record<string, unknown> {
+  const skeleton = setterValue(node.setters, 'set_skeleton_path');
   return {
     ...(node.groups.length === 0 ? {} : { groups: [...node.groups] }),
     ...(node.unique === true ? { unique_name_in_owner: true } : {}),
+    ...(skeleton?.kind === 'string' ? { skeleton_path: skeleton.value } : {}),
   };
 }
 
@@ -521,11 +527,12 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
   const at = `${emission.scene.sourceResPath}#${node.nodePath}`;
   const matrix = node.properties.find((entry) => entry.propertyName === 'transform')?.value;
   const name: TargetTsJsxAttribute = { kind: 'jsx-string-attribute', name: 'name', value: node.name };
-  // A camera or light draws with its scale removed (`disable_scale`, node_3d.cpp:655; set by
-  // Camera3D and Light3D): with no children and no script to read it back, its authored scale (the
-  // rounding a `.tscn` rotation carries) changes nothing, and the element states none.
+  // A camera, light or reflection probe draws with its scale removed (`disable_scale`,
+  // node_3d.cpp:655; set by Camera3D, Light3D and ReflectionProbe): with no children and no script
+  // to read it back, its authored scale (the rounding a `.tscn` rotation carries) changes nothing,
+  // and the element states none.
   const scaleless =
-    (className === 'Camera3D' || className === 'DirectionalLight3D' || className === 'OmniLight3D') &&
+    (className === 'Camera3D' || className === 'DirectionalLight3D' || className === 'OmniLight3D' || className === 'ReflectionProbe') &&
     node.children.length === 0 &&
     node.scriptInstance === undefined;
   // A node authored with position, rotation and scale (Godot's YXZ Euler) states them as they are.

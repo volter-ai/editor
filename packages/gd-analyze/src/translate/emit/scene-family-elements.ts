@@ -831,6 +831,17 @@ export function familyElement(
     return { tag, attributes: elementProps(emission, node.nodePath, node.setters), children: [] };
   }
   switch (className) {
+    case 'ReflectionProbe': {
+      // The game editor's reflections capability captures the probe (`reflection-probe.ts` maps its
+      // properties, by Godot name, to the capture's props).
+      const tag = useCompat(emission, 'lib:reflections/index', 'ReflectionProbe');
+      const props = useCompat(emission, 'reflection-probe', 'godot_reflection_probe_props');
+      const authored: TargetTsExpression = {
+        kind: 'object-expression',
+        properties: node.setters.map((setter) => ({ key: setter.propertyName, value: propValue(emission, setter.value) })),
+      };
+      return { tag, attributes: [{ kind: 'jsx-spread-attribute', value: { kind: 'call-expression', callee: identifier(props), arguments: [authored] } }], children: [] };
+    }
     case 'MeshInstance3D': {
       const set = node.setters;
       const layers = numberValue(setterValue(set, 'set_layer_mask')) ?? 1;
@@ -909,7 +920,7 @@ export function familyThreeType(className: string): string | undefined {
   const godot = GODOT_ELEMENTS[className];
   if (godot !== undefined) return godot[1];
   return (
-    { MeshInstance3D: 'Mesh', DirectionalLight3D: 'DirectionalLight', OmniLight3D: 'PointLight', Camera3D: 'PerspectiveCamera' } as Readonly<Record<string, string>>
+    { MeshInstance3D: 'Mesh', DirectionalLight3D: 'DirectionalLight', OmniLight3D: 'PointLight', Camera3D: 'PerspectiveCamera', ReflectionProbe: 'Group' } as Readonly<Record<string, string>>
   )[className];
 }
 
@@ -927,7 +938,8 @@ export function familyImports(emission: FamilyEmission): TargetTsStatement[] {
       : [{ kind: 'import-statement' as const, module: '@react-three/drei', namedBindings: [...emission.drei].sort().map((name) => ({ imported: name, local: name })) }]),
     ...[...emission.compat].map(([module, names]) => ({
       kind: 'import-statement' as const,
-      module: moduleSpecifier(emission.targetPath, `src/lib/godot-compat/${module}.ts`),
+      // `lib:` names another capability's module (`lib:reflections/index`), beside godot-compat.
+      module: moduleSpecifier(emission.targetPath, module.startsWith('lib:') ? `src/lib/${module.slice('lib:'.length)}.ts` : `src/lib/godot-compat/${module}.ts`),
       namedBindings: [...names].sort().map((name) => {
         const [imported, local] = name.split(' as ') as [string, string | undefined];
         return { imported, local: local ?? imported };

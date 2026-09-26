@@ -1,10 +1,11 @@
 /**
  * Particles: `CPUParticles3D` nodes (compat's `<GodotCPUParticles3D>`, its simulation transcribed,
  * drawing its mesh as an `InstancedMesh`), the `Curve` and `Gradient` resources their parameters
- * take, and the `GradientTexture2D` a material samples. Their own proof
- * (`src/evidence/proofs/scene-particles.ts`) instantiates particle systems in official Godot and
- * reads each one's multimesh buffer frame by frame and its material back, and a gradient texture's
- * image, against the emitted scene mounted in Node and stepped by compat's tree clock.
+ * take, the `GradientTexture2D` a material samples, and `ReflectionProbe` nodes (the game editor's
+ * reflections capability). Their own proof (`src/evidence/proofs/scene-particles.ts`) instantiates
+ * them in official Godot and reads each system's multimesh buffer frame by frame, its material,
+ * the gradient texture and the probe back, against the emitted scene mounted in Node and stepped by
+ * compat's tree clock.
  */
 import {
   GODOT_4_7_PROOF_REPRODUCTION_COMMAND,
@@ -38,6 +39,13 @@ export const GODOT_4_7_PARTICLE_NODE_RULES: readonly (GodotSceneNodeRule & { rea
     targetKind: 'three-group',
     evidenceClaimId: 'godot-4.7-scene-node-cpu-particles-3d',
     source: { file: 'scene/3d/cpu_particles_3d.cpp', symbol: 'CPUParticles3D::CPUParticles3D', line: 1812 },
+  },
+  {
+    sourceRevision: REVISION,
+    nativeCanonicalIdentity: identityOf('ReflectionProbe'),
+    targetKind: 'three-group',
+    evidenceClaimId: 'godot-4.7-scene-node-reflection-probe',
+    source: { file: 'scene/3d/reflection_probe.cpp', symbol: 'ReflectionProbe::ReflectionProbe', line: 308 },
   },
 ];
 

@@ -29,11 +29,18 @@ import type { GodotSceneNodeAuthority } from '../translate/data/scene-node-autho
 import { godotSceneNodeAuthority } from '../translate/data/scene-node-authority-data';
 import type { GodotProjectSnapshot } from './project-snapshot';
 
-export const GODOT_TOOLCHAIN_SNAPSHOT_VERSION = 17 as const;
+export const GODOT_TOOLCHAIN_SNAPSHOT_VERSION = 18 as const;
 
 const PACKAGE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const MONO_ROOT = path.resolve(PACKAGE_DIR, '..', '..');
 const DEFAULT_CATALOG_DIR = path.join(PACKAGE_DIR, 'capabilities', 'catalog');
+/**
+ * The game editor's own catalog, whose capabilities an import binds Godot nodes onto where one
+ * already does the node's job (`reflections` for ReflectionProbe).
+ */
+const DEFAULT_EDITOR_CATALOG_DIR = path.join(MONO_ROOT, 'packages', 'game-editor', 'catalog');
+/** The editor's capabilities every import carries, beside godot-compat. */
+const EDITOR_CAPABILITIES = ['reflections'] as const;
 const DEFAULT_TEMPLATE_DIR = path.join(MONO_ROOT, 'packages', 'game-editor', 'template');
 const DEFAULT_ENGINE_PACKAGE = path.join(MONO_ROOT, 'packages', 'game-runtime', 'package.json');
 const DEFAULT_PACKAGE_LOCK = path.join(MONO_ROOT, 'package-lock.json');
@@ -131,6 +138,7 @@ export interface GodotImportToolchainSnapshot extends GodotToolchainSnapshot {
 
 export interface CaptureGodotToolchainOptions {
   readonly catalogDir?: string;
+  readonly editorCatalogDir?: string;
   readonly templateDir?: string;
   readonly enginePackagePath?: string;
   readonly packageLockPath?: string;
@@ -165,26 +173,33 @@ export function captureGodotApiDumpSnapshot(
   return { fileName: authority.apiDumpFile, digest, bytes, parsed };
 }
 
-function selectedCapabilities(catalog: readonly CatalogEntry[]): readonly CatalogEntry[] {
-  const byId = new Map(catalog.map((entry) => [entry.id, entry]));
-  const selected: CatalogEntry[] = [];
+/** A selected capability and the catalog it is read from. */
+interface SelectedCapability {
+  readonly entry: CatalogEntry;
+  readonly catalogDir: string;
+}
+
+function selectedCapabilities(catalogDir: string, editorCatalogDir: string): readonly SelectedCapability[] {
+  const byId = new Map<string, SelectedCapability>();
+  for (const dir of [editorCatalogDir, catalogDir]) {
+    for (const entry of readCatalog(dir)) byId.set(entry.id, { entry, catalogDir: dir });
+  }
+  const selected: SelectedCapability[] = [];
   const visited = new Set<string>();
   const visit = (id: string): void => {
     if (visited.has(id)) return;
-    const entry = byId.get(id);
-    if (entry === undefined) throw new Error(`translation requires unknown capability ${id}`);
+    const found = byId.get(id);
+    if (found === undefined) throw new Error(`translation requires unknown capability ${id}`);
     visited.add(id);
-    for (const dependency of entry.requires) visit(dependency);
-    selected.push(entry);
+    for (const dependency of found.entry.requires) visit(dependency);
+    selected.push(found);
   };
   visit('godot-compat');
+  for (const id of EDITOR_CAPABILITIES) visit(id);
   return selected;
 }
 
-function capabilityCopies(
-  catalogDir: string,
-  capabilities: readonly CatalogEntry[],
-): readonly CapabilityCopyArtifact[] {
+function capabilityCopies(capabilities: readonly SelectedCapability[]): readonly CapabilityCopyArtifact[] {
   const copies = new Map<string, CapabilityCopyArtifact>();
   const add = (
     entry: CatalogEntry,
@@ -211,7 +226,7 @@ function capabilityCopies(
     }
     copies.set(destination, copy);
   };
-  for (const entry of capabilities) {
+  for (const { entry, catalogDir } of capabilities) {
     for (const relative of entry.files) {
       const catalogPath = path.posix.join('project-source', relative);
       add(entry, relative, readFileSync(path.join(catalogDir, catalogPath)), catalogPath);
@@ -256,8 +271,7 @@ function collectFiles(root: string, relativeRoot = ''): readonly string[] {
 }
 
 function catalogArtifacts(
-  catalogDir: string,
-  capabilities: readonly CatalogEntry[],
+  capabilities: readonly SelectedCapability[],
   copies: readonly CapabilityCopyArtifact[],
 ): readonly GodotToolchainFileArtifact[] {
   const artifacts = new Map<string, GodotToolchainFileArtifact>();
@@ -273,11 +287,8 @@ function catalogArtifacts(
     artifacts.set(normalized, { path: normalized, bytes, digest: sha256(bytes) });
   };
 
-  for (const capability of capabilities) {
-    add(
-      path.posix.join('catalog', 'entries', `${capability.id}.json`),
-      readFileSync(path.join(catalogDir, 'entries', `${capability.id}.json`)),
-    );
+  for (const { entry, catalogDir } of capabilities) {
+    add(path.posix.join('catalog', 'entries', `${entry.id}.json`), readFileSync(path.join(catalogDir, 'entries', `${entry.id}.json`)));
   }
   for (const copy of copies) {
     if (copy.origin.catalogPath.startsWith('project-source/')) {
@@ -285,8 +296,8 @@ function catalogArtifacts(
     }
   }
 
-  const templateDir = path.join(path.dirname(catalogDir), 'template');
-  for (const skill of [...new Set(capabilities.flatMap((entry) => entry.skills))].sort()) {
+  for (const [skill, catalogDir] of [...new Map(capabilities.flatMap(({ entry, catalogDir }) => entry.skills.map((skill) => [skill, catalogDir] as const)))].sort(([left], [right]) => left.localeCompare(right))) {
+    const templateDir = path.join(path.dirname(catalogDir), 'template');
     const relativeRoot = path.posix.join('.agents', 'skills', skill);
     const skillRoot = path.join(templateDir, ...relativeRoot.split('/'));
     for (const relativeFile of collectFiles(skillRoot, relativeRoot)) {
@@ -454,13 +465,14 @@ function captureToolchainSnapshot(
   frontend?: GodotToolchainFrontendSnapshot,
 ): GodotToolchainSnapshot {
   const catalogDir = options.catalogDir ?? DEFAULT_CATALOG_DIR;
+  const editorCatalogDir = options.editorCatalogDir ?? DEFAULT_EDITOR_CATALOG_DIR;
   const templateDir = options.templateDir ?? DEFAULT_TEMPLATE_DIR;
   const enginePackagePath = options.enginePackagePath ?? DEFAULT_ENGINE_PACKAGE;
   const packageLockPath = options.packageLockPath ?? DEFAULT_PACKAGE_LOCK;
   const importPackageLockPath = options.importPackageLockPath ?? DEFAULT_IMPORT_PACKAGE_LOCK;
   const nodeModulesDir = options.nodeModulesDir ?? DEFAULT_NODE_MODULES;
-  const catalog = readCatalog(catalogDir);
-  const capabilities = selectedCapabilities(catalog);
+  const selected = selectedCapabilities(catalogDir, editorCatalogDir);
+  const capabilities = selected.map(({ entry }) => entry);
   const enginePackageBytes = readFileSync(enginePackagePath);
   const workspacePackageLockBytes = readFileSync(packageLockPath);
   const importPackageLockBytes = readFileSync(importPackageLockPath);
@@ -474,8 +486,8 @@ function captureToolchainSnapshot(
   >;
   const packages = resolvedPackages(workspaceLock, ranges, engineDependencies);
   const linkedPackages = workspacePackages(workspaceLock, ranges);
-  const copies = capabilityCopies(catalogDir, capabilities);
-  const frozenCatalog = catalogArtifacts(catalogDir, capabilities, copies);
+  const copies = capabilityCopies(selected);
+  const frozenCatalog = catalogArtifacts(selected, copies);
   const frozenScaffold = scaffoldArtifacts(
     templateDir,
     nodeModulesDir,
@@ -661,7 +673,7 @@ export function materializeGodotScaffoldToolchain(
 /** Compatibility-free operational entrypoint for report/probe callers needing exact copy bytes. */
 export function planGodotCapabilityCopies(
   catalogDir: string = DEFAULT_CATALOG_DIR,
+  editorCatalogDir: string = DEFAULT_EDITOR_CATALOG_DIR,
 ): readonly CapabilityCopyArtifact[] {
-  const catalog = readCatalog(catalogDir);
-  return capabilityCopies(catalogDir, selectedCapabilities(catalog));
+  return capabilityCopies(selectedCapabilities(catalogDir, editorCatalogDir));
 }

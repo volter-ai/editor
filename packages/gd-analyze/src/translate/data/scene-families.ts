@@ -45,7 +45,7 @@ const AUDIO_PLAYER = ['set_meta:*', 'set_stream', 'set_volume_db', 'set_pitch_sc
 
 /** The setters (`name`, or `name:index` for one index of an indexed property) each family states. */
 const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
-  MeshInstance3D: ['set_mesh', 'set_surface_override_material:*', 'set_layer_mask', 'set_cast_shadows_setting', ...VISIBILITY_RANGE],
+  MeshInstance3D: ['set_mesh', 'set_surface_override_material:*', 'set_layer_mask', 'set_cast_shadows_setting', 'set_skeleton_path', ...VISIBILITY_RANGE],
   // Shadow max distance (9), fade start (13), normal bias (14), bias (15), blur (18): `shadow-mapping`.
   DirectionalLight3D: ['set_color', 'set_param:0', 'set_shadow', 'set_sky_mode', 'set_param:9', 'set_param:13', 'set_param:14', 'set_param:15', 'set_param:18', 'set_shadow_mode'],
   OmniLight3D: ['set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_shadow', 'set_param:15', 'set_param:18'],
@@ -114,6 +114,24 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_particle_flag:*',
     'set_cast_shadows_setting',
     ...VISIBILITY_RANGE,
+  ],
+  // The reflections capability's `<ReflectionProbe>` (`reflection-probe.ts`).
+  ReflectionProbe: [
+    'set_update_mode',
+    'set_intensity',
+    'set_blend_distance',
+    'set_max_distance',
+    'set_size',
+    'set_origin_offset',
+    'set_enable_box_projection',
+    'set_as_interior',
+    'set_enable_shadows',
+    'set_cull_mask',
+    'set_reflection_mask',
+    'set_mesh_lod_threshold',
+    'set_ambient_mode',
+    'set_ambient_color',
+    'set_ambient_color_energy',
   ],
   AudioStreamPlayer: AUDIO_PLAYER,
   // The cells are `data`; `cell_scale` has no collider scale and refuses.

@@ -205,6 +205,11 @@ export function targetSceneValue(value: GodotValue): TargetSceneValue | undefine
           ? { kind: 'resource', reference: value.name === 'SubResource' ? 'sub' : 'ext', id: String(id.value) }
           : undefined;
       }
+      // A NodePath as its path's text (`NodePath("../GridMap")`).
+      if (value.name === 'NodePath') {
+        const [text] = value.args;
+        return text?.kind === 'string' && value.args.length === 1 ? { kind: 'string', value: text.value } : undefined;
+      }
       if (value.name === 'PackedFloat32Array' || value.name === 'PackedColorArray') {
         const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
         if ((value.name === 'PackedColorArray' && components.length % 4 !== 0) || !components.every((entry): entry is number => entry !== undefined)) return undefined;
