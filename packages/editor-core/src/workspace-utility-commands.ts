@@ -4,7 +4,7 @@ import { getMountFailureReports, subscribeToMountFailures } from '@volter/editor
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { HistoryService } from '@volter/editor-sdk/kit/history/history-service';
 import { showWorkspaceUtility, toggleWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-host-commands';
-import { activeChromeRegions } from './workspace-regions';
+import { activeChromeRegions } from '@volter/editor-sdk/kit/workspace-regions';
 
 export const CONSOLE_UTILITY_ID = 'console';
 

@@ -40,7 +40,7 @@
 
 import { registerContributedActions } from '@volter/editor-sdk/kit/chrome-registry';
 import { registerContributedCommands } from '@volter/editor-sdk/kit/command-registry';
-import { registerComponentStatesSource } from '../component-states-registry';
+import { registerComponentStatesSource } from '@volter/editor-sdk/kit/component-states-registry';
 import { registerContentEntrySource } from '@volter/editor-sdk/kit/content-entry-source-registry';
 import { refreshProjectAdapter } from '../project-adapter';
 import { storyComponentContentSource } from './component-content-source';
@@ -49,7 +49,7 @@ import { startProjectStoryDiscovery } from './project-story-discovery';
 import { storyPaletteActions } from './story-actions';
 import { STORY_CAPTURE_COMMAND_SOURCE, storyCaptureCommands } from './story-capture-command';
 import { registerStoryOpener } from './story-opener';
-import { subscribeProjectStoryModules } from './story-registry';
+import { subscribeProjectStoryModules } from '@volter/editor-sdk/kit/stories/story-registry';
 
 /** Install the whole lane. Returns the teardown, in reverse order. */
 export function installStoryLane(): () => void {

@@ -61,7 +61,7 @@ import {
   type ComposedProjectStory,
   composeProjectStories,
   ensureProjectAnnotations,
-} from './compose-project-stories';
+} from '@volter/editor-sdk/kit/stories/compose-project-stories';
 import { getProjectStoryRegions } from '@volter/editor-sdk/kit/stories/project-story-regions';
 import { mountIsolatedStory } from './StoryPreviewMount';
 import { declaredStoryMedium } from '@volter/editor-sdk/kit/stories/story-declared-medium';
@@ -69,11 +69,11 @@ import {
   discoverProjectStories,
   loadProjectPreviewAnnotations,
   type StoryDiscoveryProject,
-} from './story-discovery';
+} from '@volter/editor-sdk/kit/stories/story-discovery';
 import { storyBoardPresentation } from './story-presentation';
-import { getProjectPreviewStories, whenProjectStoriesReady } from './story-registry';
+import { getProjectPreviewStories, whenProjectStoriesReady } from '@volter/editor-sdk/kit/stories/story-registry';
 import { isStoryMediumMismatch, storyThumbnailCapture } from '@volter/editor-sdk/kit/story-thumbnails';
-import type { ProjectPreviewStory } from './story-registry';
+import type { ProjectPreviewStory } from '@volter/editor-sdk/kit/stories/story-registry';
 
 type StoryPreviewComponent = ProjectPreviewStory['Component'];
 

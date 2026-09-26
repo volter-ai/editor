@@ -49,7 +49,7 @@ import {
   activeWorkspaceDocumentId,
   type WorkspaceDocumentSelection,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { activeChromeRegions } from '../workspace-regions';
+import { activeChromeRegions } from '@volter/editor-sdk/kit/workspace-regions';
 import { activeInspectionSurface } from './active-surface';
 import {
   composeInspectionSubject,

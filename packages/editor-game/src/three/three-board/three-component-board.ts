@@ -16,7 +16,7 @@ import {
   getStoryMediaPresence,
   subscribeStoryMediaPresence,
 } from '../../host/stories/story-media-presence';
-import { projectStoriesReady, subscribeProjectStoryModules } from '@volter/editor-core/stories/story-registry';
+import { projectStoriesReady, subscribeProjectStoryModules } from '@volter/editor-sdk/kit/stories/story-registry';
 import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 
 /** The tab reads `3D`, the peer of `Scene` and `UI` in the center strip. */

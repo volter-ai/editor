@@ -39,7 +39,7 @@ import {
   activeChromeRegions,
   chromeRegionsVersion,
   subscribeChromeRegions,
-} from '../workspace-regions';
+} from '@volter/editor-sdk/kit/workspace-regions';
 import { ApplicationMenus } from './ApplicationMenus';
 import { ChromeSlot } from './ChromeSlot';
 import { WorktreeSwitcher } from './WorktreeSwitcher';

@@ -51,15 +51,15 @@ import {
   type WriteAck,
   type WriteResolution,
 } from '@volter/editor-sdk/kit/write-pipe';
-import { componentStatesProvider } from '@volter/editor-core/component-states-registry';
+import { componentStatesProvider } from '@volter/editor-sdk/kit/component-states-registry';
 import { openProjectToolDocument } from '@volter/editor-core/components/project-tool-documents';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import {
   replaceProjectSource,
   withProjectSourceHistory,
-} from '@volter/editor-core/history/source-history-backend';
-import { warnGuessedFromText } from '@volter/editor-core/inference-diagnostics';
+} from '@volter/editor-sdk/kit/history/source-history-backend';
+import { warnGuessedFromText } from '@volter/editor-sdk/kit/inference-diagnostics';
 import {
   extractedHint,
   extractNoBackendHint,

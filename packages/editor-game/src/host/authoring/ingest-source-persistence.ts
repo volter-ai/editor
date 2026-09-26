@@ -35,7 +35,7 @@ import type {
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { editorIsAuthoring } from '@volter/editor-sdk/kit/editor-session-mode';
 import type { HistoryService } from '@volter/editor-sdk/kit/history/history-service';
-import { projectSourceAppliedChange } from '@volter/editor-core/history/source-history-backend';
+import { projectSourceAppliedChange } from '@volter/editor-sdk/kit/history/source-history-backend';
 import type { ResourceDriver, ResourceKey } from '@volter/editor-sdk/kit/history-types';
 import type { SourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/source-write-backend';
 import {

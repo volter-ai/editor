@@ -16,7 +16,7 @@
 
 import { z } from 'zod';
 import { prefabsFromStories, type StoryRegistration } from './prefabs-from-stories';
-import { getProjectStoryModules, isDeclaredDefaultStory } from './story-registry';
+import { getProjectStoryModules, isDeclaredDefaultStory } from '@volter/editor-sdk/kit/stories/story-registry';
 
 /** Every story the project's registry has composed, in the finder's
  *  vocabulary. */

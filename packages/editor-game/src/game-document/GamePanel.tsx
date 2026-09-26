@@ -14,7 +14,7 @@ import {
   getMountFailureReports,
   subscribeToMountFailures,
 } from '@volter/editor-sdk/kit/mount-failure-report';
-import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
+import { SurfaceStateOverlay } from '@volter/editor-sdk/kit/components/SurfaceStateOverlay';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import { getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/active-project';

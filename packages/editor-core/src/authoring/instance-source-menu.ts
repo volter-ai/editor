@@ -17,7 +17,7 @@
 
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import { registerHierarchyMenuItems } from '../hierarchy-menu-registry';
+import { registerHierarchyMenuItems } from '@volter/editor-sdk/kit/hierarchy-menu-registry';
 import {
   INSTANCE_SOURCE_LABELS,
   type InstanceSourceLocator,

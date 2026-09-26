@@ -18,7 +18,7 @@ import {
   getMountFailureReports,
   subscribeToMountFailures,
 } from '@volter/editor-sdk/kit/mount-failure-report';
-import { installCanvasSceneNavigation } from '@volter/editor-core/authoring/react-canvas-navigation';
+import { installCanvasSceneNavigation } from '@volter/editor-sdk/kit/authoring/react-canvas-navigation';
 import { createRootViewController } from '@volter/editor-sdk/kit/world-pan-state';
 import {
   CANVAS_SCENE_BACKGROUND,
@@ -26,7 +26,7 @@ import {
   CanvasSceneControls,
 } from '@volter/editor-core/components/CanvasSceneViewport';
 import { RootSelectionOverlay } from '@volter/editor-core/components/RootSelectionOverlay';
-import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
+import { SurfaceStateOverlay } from '@volter/editor-sdk/kit/components/SurfaceStateOverlay';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { liveDocumentContainer } from '@volter/editor-sdk/kit/live-document';
 import { projectAdapterFacet } from '@volter/editor-core/project-adapter';

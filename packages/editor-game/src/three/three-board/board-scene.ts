@@ -82,8 +82,8 @@ import {
   deriveStoryGroupPath,
   formatStoryGroupPath,
   storyGroupKey,
-} from '@volter/editor-core/stories/story-grouping';
-import { type ProjectStoryModule, pickComponentPreviewStory } from '@volter/editor-core/stories/story-registry';
+} from '@volter/editor-sdk/kit/stories/story-grouping';
+import { type ProjectStoryModule, pickComponentPreviewStory } from '@volter/editor-sdk/kit/stories/story-registry';
 import {
   lastStoryMountPhaseTiming,
   type MountedStoryObject3D,

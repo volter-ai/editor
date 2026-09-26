@@ -33,9 +33,9 @@ import {
   subscribeToolContributionPlay,
   toolContributionPlay,
   toolContributionPlayKey,
-} from '../tool-contribution-play';
+} from '@volter/editor-sdk/kit/tool-contribution-play';
 import { getToolContributionClient } from '../tool-loader';
-import { toolContributionSurfaces } from './ToolContributionSurfaces';
+import { toolContributionSurfaces } from '@volter/editor-sdk/kit/components/ToolContributionSurfaces';
 import { ToolErrorBoundary } from './ToolHost';
 
 export interface InspectorToolSectionProps {

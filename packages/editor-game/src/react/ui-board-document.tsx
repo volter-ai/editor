@@ -37,7 +37,7 @@ import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import {
   getProjectPreviewStories,
   subscribeProjectStoryModules,
-} from '@volter/editor-core/stories/story-registry';
+} from '@volter/editor-sdk/kit/stories/story-registry';
 import { UI_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import type { WorkspaceDocumentContentProps } from '@volter/editor-sdk/kit/workspace-document-registry';
 

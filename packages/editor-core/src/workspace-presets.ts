@@ -39,7 +39,7 @@ import { layoutPolicy, subscribeLayoutPolicy } from './layout-policy';
 import { projectDeclaresDocumentKind, projectMounts, subscribeProjectShape } from './project-shape';
 /** Imported arrangements may supply their own persistence identity. */
 import { setWorkspaceAreas } from './workspace-areas';
-import { setWorkspaceRegions } from './workspace-regions';
+import { setWorkspaceRegions } from '@volter/editor-sdk/kit/workspace-regions';
 
 export type EditorWorkspaceId = string;
 

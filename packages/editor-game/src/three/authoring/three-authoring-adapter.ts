@@ -77,7 +77,7 @@ import {
   type WriteAck,
   type WriteResolution,
 } from '@volter/editor-sdk/kit/write-pipe';
-import { componentStatesProvider } from '@volter/editor-core/component-states-registry';
+import { componentStatesProvider } from '@volter/editor-sdk/kit/component-states-registry';
 import {
   type ChannelValue,
   type CreationSiteLiteralReport,

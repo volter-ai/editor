@@ -1,5 +1,5 @@
 import { type ReactNode, useSyncExternalStore } from 'react';
-import { chromeRegionsKey, subscribeChromeRegions } from '../workspace-regions';
+import { chromeRegionsKey, subscribeChromeRegions } from '@volter/editor-sdk/kit/workspace-regions';
 
 /**
  * THE DOCUMENT SHELF — Blender's tool shelf (T), the host's second region

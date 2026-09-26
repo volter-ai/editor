@@ -63,7 +63,7 @@ import {
   rememberedPortableStory,
   rememberPortableStory,
 } from '@volter/editor-core/authoring/design-time-layers';
-import type { DesignTimeMountContext } from '@volter/editor-core/authoring/design-time-mount-registry';
+import type { DesignTimeMountContext } from '@volter/editor-sdk/kit/authoring/design-time-mount-registry';
 import { formatMountFailureMessage } from '@volter/editor-sdk/kit/mount-failure-report';
 import type { ReactStoryBoardSelectionIntent } from '@volter/editor-core/authoring/react-story-board';
 import { createReactStoryBoard } from '@volter/editor-core/authoring/react-story-board';
@@ -82,7 +82,7 @@ import {
 import { activeRealmServices } from '../host/realm-services';
 import { resolveReactAdapterRootComponent } from '../host/roots/react-root';
 import { scopedGameStylesState } from '@volter/editor-core/scoped-game-css';
-import { componentIdentityName } from '@volter/editor-core/stories/compose-project-stories';
+import { componentIdentityName } from '@volter/editor-sdk/kit/stories/compose-project-stories';
 import { mountIsolatedStory } from '@volter/editor-core/stories/StoryPreviewMount';
 import {
   createStoryPresentationIndex,
@@ -96,9 +96,9 @@ import {
   projectStoriesReady,
   refreshProjectStories,
   subscribeProjectStoryModules,
-} from '@volter/editor-core/stories/story-registry';
+} from '@volter/editor-sdk/kit/stories/story-registry';
 import { domStoryBoardMembers } from '@volter/editor-threejs/kit/stories/three-story-model';
-import { getDesignTokens } from '@volter/editor-core/ui-source/inspect';
+import { getDesignTokens } from '@volter/editor-sdk/kit/ui-source/inspect';
 import { tierSourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
 import { recordViewportFirstFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import { createAssetCache } from '@volter/threejs-runtime/assets';

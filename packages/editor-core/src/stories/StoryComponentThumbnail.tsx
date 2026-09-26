@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react';
 import type { ProjectComponentEntry } from '@volter/editor-sdk/kit/asset-workflow/project-content';
 import { TypedAssetThumbnail } from '../components/asset-thumbnails';
 import { waitForFirstViewportFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
-import type { ProjectPreviewStory } from './story-registry';
+import type { ProjectPreviewStory } from '@volter/editor-sdk/kit/stories/story-registry';
 import { type StoryThumbnailOptions, storyThumbnailCapture } from '@volter/editor-sdk/kit/story-thumbnails';
 
 /**

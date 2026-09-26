@@ -40,7 +40,7 @@ import {
   reportUndeclaredStoryMedium,
   type StoryMedium,
 } from '@volter/editor-sdk/kit/stories/story-declared-medium';
-import { getProjectStoryModules, subscribeProjectStoryModules } from '@volter/editor-core/stories/story-registry';
+import { getProjectStoryModules, subscribeProjectStoryModules } from '@volter/editor-sdk/kit/stories/story-registry';
 
 /** Which component boards the project's stories call for. */
 export interface StoryMediaPresence {

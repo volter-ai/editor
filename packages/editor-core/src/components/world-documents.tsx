@@ -33,7 +33,7 @@ import {
 import {
   installCanvasSceneNavigation,
   installReactCanvasNavigation,
-} from '../authoring/react-canvas-navigation';
+} from '@volter/editor-sdk/kit/authoring/react-canvas-navigation';
 import {
   REACT_DESIGN_CANVAS_COLOR,
   REACT_DESIGN_CANVAS_DOT,
@@ -82,7 +82,7 @@ import {
 } from './CanvasSceneViewport';
 import { ReactCanvasControls } from './ReactCanvasControls';
 import { RootSelectionOverlay } from './RootSelectionOverlay';
-import { SurfaceStateOverlay } from './SurfaceStateOverlay';
+import { SurfaceStateOverlay } from '@volter/editor-sdk/kit/components/SurfaceStateOverlay';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 
 /** The canvas root's world document reads `Scene`, exactly like a three

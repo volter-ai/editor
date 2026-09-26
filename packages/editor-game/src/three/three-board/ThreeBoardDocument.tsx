@@ -75,7 +75,7 @@ import {
   type ProjectStoryModule,
   subscribeProjectStoryModules,
   whenProjectStoriesReady,
-} from '@volter/editor-core/stories/story-registry';
+} from '@volter/editor-sdk/kit/stories/story-registry';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import {
   beginViewportBreakdown,

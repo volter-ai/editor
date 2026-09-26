@@ -28,14 +28,14 @@ import type {
   ComponentStatesContext,
   ComponentStatesRef,
   ComponentStatesSource,
-} from '../component-states-registry';
+} from '@volter/editor-sdk/kit/component-states-registry';
 import { openRegisteredDocument } from '@volter/editor-sdk/kit/document-open-registry';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import {
   ISOLATED_STORY_DOCUMENT_OPENER,
   THREE_STORY_DOCUMENT_OPENER,
 } from '@volter/editor-sdk/kit/story-document-openers';
-import { getComponentPreviewStories, type ProjectPreviewStory } from './story-registry';
+import { getComponentPreviewStories, type ProjectPreviewStory } from '@volter/editor-sdk/kit/stories/story-registry';
 
 function storiesFor(component: ComponentStatesRef): ProjectPreviewStory[] {
   return getComponentPreviewStories(component.name, component.sourcePath);

@@ -40,7 +40,7 @@ import {
 } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { beginAuthoringBootstrap } from './bootstrap-state';
 import { makeNoAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/no-authoring-adapter';
-import { BoundaryAuthoringAdapter, type BoundaryRootInfo } from './boundary-authoring-adapter';
+import { BoundaryAuthoringAdapter, type BoundaryRootInfo } from '@volter/editor-sdk/kit/authoring/boundary-authoring-adapter';
 import { emptyProjectAuthoring, setEmptyProjectAuthoring } from './empty-project-authoring';
 import {
   CompositeAuthoringAdapter,

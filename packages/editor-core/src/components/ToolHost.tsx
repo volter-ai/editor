@@ -41,7 +41,7 @@ import {
   subscribeToolContributionPlay,
   toolContributionPlay,
   toolContributionPlayKey,
-} from '../tool-contribution-play';
+} from '@volter/editor-sdk/kit/tool-contribution-play';
 import { getToolContributionClient, type SurfaceToolContribution } from '../tool-loader';
 
 // The analytics timeline is the play-session shell's — recordings, the
@@ -52,7 +52,7 @@ const GameplaySessionTimeline = lazy(() =>
   import('./GameplaySessionTimeline').then((m) => ({ default: m.GameplaySessionTimeline })),
 );
 
-import { toolContributionSurfaces } from './ToolContributionSurfaces';
+import { toolContributionSurfaces } from '@volter/editor-sdk/kit/components/ToolContributionSurfaces';
 
 interface ToolErrorBoundaryProps {
   /** Project-relative source file, shown in the crash message. */

@@ -18,7 +18,7 @@
  * unreachable stays unreachable with the game's own reason attached.
  */
 
-import { getProjectStoryModules } from './stories/story-registry';
+import { getProjectStoryModules } from '@volter/editor-sdk/kit/stories/story-registry';
 import type { DocumentEntry, SceneSource } from '@volter/editor-project/adapter/adapter-module';
 import type { ResolvedDocumentTable } from './project-adapter';
 

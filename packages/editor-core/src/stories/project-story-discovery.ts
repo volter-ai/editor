@@ -13,7 +13,7 @@ import { getCurrentProject, onProjectChange } from '../project-manager';
 import { subscribeProjectModuleChange } from '@volter/editor-sdk/kit/project-module-changes';
 import { waitForFirstViewportFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import { resetUndeclaredStoryMediumReports } from '@volter/editor-sdk/kit/stories/story-declared-medium';
-import { refreshProjectStories } from './story-registry';
+import { refreshProjectStories } from '@volter/editor-sdk/kit/stories/story-registry';
 
 /** Discover after the first authored frame, then re-discover on project
  * switches, CSF file add/remove events, and CONTENT writes to `src/**`.

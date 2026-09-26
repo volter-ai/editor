@@ -16,7 +16,7 @@ import {
   activeChromeRegions,
   chromeRegionsKey,
   subscribeChromeRegions,
-} from '@volter/editor-core/workspace-regions';
+} from '@volter/editor-sdk/kit/workspace-regions';
 import {
   AUDIO_METER_SEGMENTS,
   audioMeterSegmentCount,

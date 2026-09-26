@@ -28,7 +28,7 @@ import { workspaceHistoryService } from '@volter/editor-sdk/kit/components/works
 import { projectFiles } from '@volter/editor-sdk/kit/files/project-files';
 import { getProjectFileHistory } from '@volter/editor-sdk/kit/history/project-file-history';
 import { getProjectResourceHistoryBackend } from '@volter/editor-sdk/kit/history/project-root-history-backends';
-import { replaceProjectSource } from '../history/source-history-backend';
+import { replaceProjectSource } from '@volter/editor-sdk/kit/history/source-history-backend';
 import type {
   Object3DDocumentThumbnailFraming,
   Object3DDocumentWritePolicy,

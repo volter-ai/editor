@@ -1,5 +1,5 @@
 import { captureSizeFromCommand } from '@volter/editor-sdk/kit/capture-size';
-import { getProjectStoryModules } from './stories/story-registry';
+import { getProjectStoryModules } from '@volter/editor-sdk/kit/stories/story-registry';
 import {
   applyViewPreset,
   setViewPresentation,

@@ -43,7 +43,7 @@ import { channelFor } from '@volter/editor-sdk/kit/creation-site-edit';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { editorIsAuthoring } from '@volter/editor-sdk/kit/editor-session-mode';
 import type { HistoryService } from '@volter/editor-sdk/kit/history/history-service';
-import { withProjectSourceHistory } from '@volter/editor-core/history/source-history-backend';
+import { withProjectSourceHistory } from '@volter/editor-sdk/kit/history/source-history-backend';
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import type { OidEntry } from '@volter/editor-react/source/oid-transform';
 import { bodyPlacedChannel, physicsRefusal } from '@volter/editor-react/source/r3f-physics-binding';

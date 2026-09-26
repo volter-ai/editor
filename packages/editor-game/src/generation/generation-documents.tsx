@@ -7,14 +7,14 @@ import {
   contributionAccount,
   subscribeAccount,
 } from '@volter/editor-sdk/kit/account-client';
-import { toolContributionSurfaces } from '@volter/editor-core/components/ToolContributionSurfaces';
+import { toolContributionSurfaces } from '@volter/editor-sdk/kit/components/ToolContributionSurfaces';
 import { ToolErrorBoundary } from '@volter/editor-core/components/ToolHost';
 import { openToolDocument } from '@volter/editor-core/components/tool-documents';
 import {
   subscribeToolContributionPlay,
   toolContributionPlay,
   toolContributionPlayKey,
-} from '@volter/editor-core/tool-contribution-play';
+} from '@volter/editor-sdk/kit/tool-contribution-play';
 import {
   getGenerationResultContribution,
   getGlobalToolContributions,

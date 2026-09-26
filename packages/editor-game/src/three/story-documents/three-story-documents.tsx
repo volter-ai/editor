@@ -27,7 +27,7 @@
 
 import { Object3DDocumentViewport } from '@volter/editor-threejs/kit/components/Object3DDocumentViewport';
 import type { SourceDocumentAuthoringFactory } from '@volter/editor-threejs/kit/components/StageHost';
-import { SurfaceStateOverlay } from '@volter/editor-core/components/SurfaceStateOverlay';
+import { SurfaceStateOverlay } from '@volter/editor-sdk/kit/components/SurfaceStateOverlay';
 import { STANDARD_COMPONENT_CAMERA_DIRECTION } from '@volter/editor-threejs/kit/components/standard-viewport-dressing';
 import { registerDocumentOpener } from '@volter/editor-sdk/kit/document-open-registry';
 import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
@@ -37,7 +37,7 @@ import {
   STORY_ARGS_SECTION_TITLE,
 } from '@volter/editor-sdk/kit/inspection-model';
 import { registerInspectorSections } from '@volter/editor-sdk/kit/inspector-section-registry';
-import type { ComposedProjectStory } from '@volter/editor-core/stories/compose-project-stories';
+import type { ComposedProjectStory } from '@volter/editor-sdk/kit/stories/compose-project-stories';
 import {
   type MountedStoryViewportSource,
   mountedStoryViewportSource,
@@ -52,7 +52,7 @@ import {
 import {
   getProjectStoryModules,
   subscribeProjectStoryModules,
-} from '@volter/editor-core/stories/story-registry';
+} from '@volter/editor-sdk/kit/stories/story-registry';
 import {
   disposeStoryObject3D,
   mountStoryObject3D,

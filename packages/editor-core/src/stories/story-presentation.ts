@@ -20,7 +20,7 @@ import type {
   StoryPresentationInput,
   StoryPresentationTreeNode,
 } from '../authoring/story-board-presentation';
-import { deriveStoryGroupPath, formatStoryGroupPath } from './story-grouping';
+import { deriveStoryGroupPath, formatStoryGroupPath } from '@volter/editor-sdk/kit/stories/story-grouping';
 
 export type {
   ResolvedStoryPresentation,

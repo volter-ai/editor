@@ -54,13 +54,13 @@ import {
   STORY_DOCS_DOCUMENT_OPENER,
   THREE_STORY_DOCUMENT_OPENER,
 } from '@volter/editor-sdk/kit/story-document-openers';
-import { deriveStoryGroupPath } from './story-grouping';
+import { deriveStoryGroupPath } from '@volter/editor-sdk/kit/stories/story-grouping';
 import {
   ensureProjectStoryModule,
   getProjectStoryModules,
   projectStoriesReady,
   whenProjectStoriesReady,
-} from './story-registry';
+} from '@volter/editor-sdk/kit/stories/story-registry';
 
 /** The address a story opens under. */
 export const STORY_DOCUMENT_OPENER = 'story';

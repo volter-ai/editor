@@ -19,7 +19,7 @@ import {
   getStoryMediaPresence,
   subscribeStoryMediaPresence,
 } from '../host/stories/story-media-presence';
-import { projectStoriesReady, subscribeProjectStoryModules } from '@volter/editor-core/stories/story-registry';
+import { projectStoriesReady, subscribeProjectStoryModules } from '@volter/editor-sdk/kit/stories/story-registry';
 import { UI_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import { UI_COMPONENTS_TITLE } from './ui-board-title';
 

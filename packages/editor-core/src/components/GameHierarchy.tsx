@@ -173,7 +173,7 @@ import {
   OUTLINER_RENDER_OFF,
   OUTLINER_RENDER_ON,
 } from '../hierarchy-kind-icon';
-import { getHierarchyMenuItems } from '../hierarchy-menu-registry';
+import { getHierarchyMenuItems } from '@volter/editor-sdk/kit/hierarchy-menu-registry';
 import {
   flattenHierarchyRows,
   type HierarchyNodeRow,
@@ -218,7 +218,7 @@ import {
   type ChromeRegions,
   chromeRegionsKey,
   subscribeChromeRegions,
-} from '../workspace-regions';
+} from '@volter/editor-sdk/kit/workspace-regions';
 import { activateRootDocument } from '../world-document-routing';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { hierarchyRowMedia, subscribeHierarchyRowMedia } from '@volter/editor-sdk/kit/hierarchy-row-media';

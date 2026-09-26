@@ -14,7 +14,7 @@
 import { getActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { instanceSourceLocatorFor } from '@volter/editor-core/authoring/instance-source-menu';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
-import { registerHierarchyMenuItems } from '@volter/editor-core/hierarchy-menu-registry';
+import { registerHierarchyMenuItems } from '@volter/editor-sdk/kit/hierarchy-menu-registry';
 import {
   canExtractNode,
   EXTRACT_COMPONENT_LABEL,

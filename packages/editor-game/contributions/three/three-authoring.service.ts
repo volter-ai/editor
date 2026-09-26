@@ -26,7 +26,7 @@
  */
 
 import { setBaseAuthoringFactory } from '@volter/editor-sdk/kit/authoring/active-adapter';
-import { registerDesignTimeMount } from '@volter/editor-core/authoring/design-time-mount-registry';
+import { registerDesignTimeMount } from '@volter/editor-sdk/kit/authoring/design-time-mount-registry';
 import { queueEditModeRebuild } from '@volter/editor-core/authoring/edit-mode-authoring';
 import { authoringJournal } from '../../src/host/history/json-history-resource';
 import { oidThree } from '../../src/three/authoring/three-authoring-adapter';

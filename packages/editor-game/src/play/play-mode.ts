@@ -23,7 +23,7 @@ import {
   setInspectedInstance,
   updateInstanceSystems,
 } from '@volter/editor-sdk/kit/authoring/active-systems';
-import { BoundaryAuthoringAdapter } from '@volter/editor-core/authoring/boundary-authoring-adapter';
+import { BoundaryAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/boundary-authoring-adapter';
 import {
   CompositeAuthoringAdapter,
   type CompositeChild,
@@ -86,7 +86,7 @@ import { clearRootReadiness, recordRootReadiness } from '@volter/editor-sdk/kit/
 import { mountedStoryHasPixiContent } from '../host/stories/pixi-story-model';
 import { domHasRenderableContent, threeSceneHasRenderableContent } from '../host/surface-content';
 import { subscribeSurfaceKeyboard, surfaceHoldsKeyboard } from '@volter/editor-sdk/kit/surface-keyboard';
-import { publishToolContributionPlay } from '@volter/editor-core/tool-contribution-play';
+import { publishToolContributionPlay } from '@volter/editor-sdk/kit/tool-contribution-play';
 import { liveWorldId, presentThreeRoots } from '../host/viewport-root-presentation';
 import {
   cancelPendingWorkspacePlayUtilities,

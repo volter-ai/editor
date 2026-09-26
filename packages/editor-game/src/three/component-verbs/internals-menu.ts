@@ -26,7 +26,7 @@ import {
   revealedInternalsIds,
   toggleInternalsRevealed,
 } from '@volter/editor-sdk/kit/hierarchy-internals';
-import { registerHierarchyMenuItems } from '@volter/editor-core/hierarchy-menu-registry';
+import { registerHierarchyMenuItems } from '@volter/editor-sdk/kit/hierarchy-menu-registry';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 
 /** Menu capitalization follows the panel's Title Case idiom (`Rename`,

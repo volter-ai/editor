@@ -65,7 +65,7 @@ import { setActiveSystems, updateInstanceSystems } from '@volter/editor-sdk/kit/
 import {
   BoundaryAuthoringAdapter,
   type BoundaryRootInfo,
-} from '@volter/editor-core/authoring/boundary-authoring-adapter';
+} from '@volter/editor-sdk/kit/authoring/boundary-authoring-adapter';
 import type { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
 import {
   collaborationSnapshot,

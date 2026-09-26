@@ -319,7 +319,7 @@
     },
     {
       "source": "packages/editor/src/authoring/boundary-authoring-adapter.ts",
-      "path": "packages/editor-core/src/authoring/boundary-authoring-adapter.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/boundary-authoring-adapter.ts",
       "sha256": "dfe9b33b9e929669e0a2d719ddd484189c07f40892dce76c4e7d5ef22f3bee52"
     },
     {
@@ -359,7 +359,7 @@
     },
     {
       "source": "packages/editor/src/authoring/design-time-mount-registry.ts",
-      "path": "packages/editor-core/src/authoring/design-time-mount-registry.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/design-time-mount-registry.ts",
       "sha256": "5aec49aedfe57657c6f64bc309d80d87e9e842f8e9e34473a29c20b4d0582caa"
     },
     {
@@ -474,7 +474,7 @@
     },
     {
       "source": "packages/editor/src/authoring/react-canvas-navigation.ts",
-      "path": "packages/editor-core/src/authoring/react-canvas-navigation.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/react-canvas-navigation.ts",
       "sha256": "7220c4ab27b68ecca20de5611081fe5132fc478bb59130817895406937d1acf5"
     },
     {
@@ -669,7 +669,7 @@
     },
     {
       "source": "packages/editor/src/component-states-registry.ts",
-      "path": "packages/editor-core/src/component-states-registry.ts",
+      "path": "packages/editor-sdk/src/kit/component-states-registry.ts",
       "sha256": "1055c2ad4666fdb0bae00bc4bc75911d61eb1dca656a916c1fcf4b7188f9b1c6"
     },
     {
@@ -944,12 +944,12 @@
     },
     {
       "source": "packages/editor/src/components/SurfaceStateOverlay.tsx",
-      "path": "packages/editor-core/src/components/SurfaceStateOverlay.tsx",
+      "path": "packages/editor-sdk/src/kit/components/SurfaceStateOverlay.tsx",
       "sha256": "0da5bf3345f9ace7c34a095ae5ef248034e339d11b805d2a4b90cdf4f53c3991"
     },
     {
       "source": "packages/editor/src/components/ToolContributionSurfaces.tsx",
-      "path": "packages/editor-core/src/components/ToolContributionSurfaces.tsx",
+      "path": "packages/editor-sdk/src/kit/components/ToolContributionSurfaces.tsx",
       "sha256": "59bfa304b8e592130c2a6138338487cfad4baa3c9b7b369eb8ce991be0e25290"
     },
     {
@@ -1649,7 +1649,7 @@
     },
     {
       "source": "packages/editor/src/hierarchy-menu-registry.ts",
-      "path": "packages/editor-core/src/hierarchy-menu-registry.ts",
+      "path": "packages/editor-sdk/src/kit/hierarchy-menu-registry.ts",
       "sha256": "dee751cea6c47cc598f04ec62cc51c916451772fc7143d819d51a5e70fbb81c8"
     },
     {
@@ -1739,7 +1739,7 @@
     },
     {
       "source": "packages/editor/src/history/source-history-backend.ts",
-      "path": "packages/editor-core/src/history/source-history-backend.ts",
+      "path": "packages/editor-sdk/src/kit/history/source-history-backend.ts",
       "sha256": "d1dbadfd7a776727450652337651eaedeb5df173b392a50c62f2ca1f93eeaf33"
     },
     {
@@ -1764,7 +1764,7 @@
     },
     {
       "source": "packages/editor/src/inference-diagnostics.ts",
-      "path": "packages/editor-core/src/inference-diagnostics.ts",
+      "path": "packages/editor-sdk/src/kit/inference-diagnostics.ts",
       "sha256": "81317161272abfa0775646f6a06987bc17e40f6ace14b186b1367ab4e0c36449"
     },
     {
@@ -2189,7 +2189,7 @@
     },
     {
       "source": "packages/editor/src/stories/compose-project-stories.ts",
-      "path": "packages/editor-core/src/stories/compose-project-stories.ts",
+      "path": "packages/editor-sdk/src/kit/stories/compose-project-stories.ts",
       "sha256": "e947402e5aecdaf4261faa3ac7dbd04b89ec63f9cdcc2a7c07b779b2a4ef531c"
     },
     {
@@ -2239,7 +2239,7 @@
     },
     {
       "source": "packages/editor/src/stories/story-discovery.ts",
-      "path": "packages/editor-core/src/stories/story-discovery.ts",
+      "path": "packages/editor-sdk/src/kit/stories/story-discovery.ts",
       "sha256": "08f8f32f524ee3f6199f8cf24b6311e5ebaf9475f17bef0cabf52c188ae89849"
     },
     {
@@ -2254,7 +2254,7 @@
     },
     {
       "source": "packages/editor/src/stories/story-grouping.ts",
-      "path": "packages/editor-core/src/stories/story-grouping.ts",
+      "path": "packages/editor-sdk/src/kit/stories/story-grouping.ts",
       "sha256": "e4fa8d50f16d78cb3654cc466c03d7a1a91090d14e52df325e020bca9ef13dc3"
     },
     {
@@ -2284,7 +2284,7 @@
     },
     {
       "source": "packages/editor/src/stories/story-registry.ts",
-      "path": "packages/editor-core/src/stories/story-registry.ts",
+      "path": "packages/editor-sdk/src/kit/stories/story-registry.ts",
       "sha256": "9338bb0b46ed11409f19b4281b9bb2f63a619e4149a06c595f87c11efecf5742"
     },
     {
@@ -2384,7 +2384,7 @@
     },
     {
       "source": "packages/editor/src/tool-contribution-play.ts",
-      "path": "packages/editor-core/src/tool-contribution-play.ts",
+      "path": "packages/editor-sdk/src/kit/tool-contribution-play.ts",
       "sha256": "58da4f4afafc2666c36b362f2f5efd5462ea7276c3f801a50624f2e7f10eb090"
     },
     {
@@ -2419,7 +2419,7 @@
     },
     {
       "source": "packages/editor/src/ui-source/inspect.ts",
-      "path": "packages/editor-core/src/ui-source/inspect.ts",
+      "path": "packages/editor-sdk/src/kit/ui-source/inspect.ts",
       "sha256": "0c1544fadd582652660268cef3c3f9b33333abe007423077b485ccb5708d3342"
     },
     {
@@ -2579,7 +2579,7 @@
     },
     {
       "source": "packages/editor/src/workspace-regions.ts",
-      "path": "packages/editor-core/src/workspace-regions.ts",
+      "path": "packages/editor-sdk/src/kit/workspace-regions.ts",
       "sha256": "9b5e03f69f8988d4bcaf1934b96299f992e5b75530f7dd1d3a139725a7356532"
     },
     {

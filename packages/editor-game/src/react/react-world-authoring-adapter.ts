@@ -45,13 +45,13 @@ import {
 import { guideClientEdges } from '@volter/editor-core/components/board-guides';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import { withProjectSourceHistory } from '@volter/editor-core/history/source-history-backend';
+import { withProjectSourceHistory } from '@volter/editor-sdk/kit/history/source-history-backend';
 import { DomProjector, oidDomIdentity, projectOidDom } from '../host/projection/dom';
 import { storyArgPropertyDescriptors } from '../host/stories/story-arg-descriptors';
-import { storyDiscoveryUnavailable } from '@volter/editor-core/stories/story-discovery';
-import { deriveStoryGroupPath, formatStoryGroupPath } from '@volter/editor-core/stories/story-grouping';
+import { storyDiscoveryUnavailable } from '@volter/editor-sdk/kit/stories/story-discovery';
+import { deriveStoryGroupPath, formatStoryGroupPath } from '@volter/editor-sdk/kit/stories/story-grouping';
 import type { StoryPresentationIndex } from '@volter/editor-core/stories/story-presentation';
-import { subscribeProjectStoryModules } from '@volter/editor-core/stories/story-registry';
+import { subscribeProjectStoryModules } from '@volter/editor-sdk/kit/stories/story-registry';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import {
   browserOrInlineResolver,
@@ -68,7 +68,7 @@ import {
   getMatchedCssRules,
   getReactComponentName,
   type MatchableElement,
-} from '@volter/editor-core/ui-source/inspect';
+} from '@volter/editor-sdk/kit/ui-source/inspect';
 import type { ComponentPropSpec, OidEntry } from '@volter/editor-react/source/oid-transform';
 import { relativeImportSpecifier } from '@volter/editor-react/source/relative-import-specifier';
 import type { SourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/source-write-backend';

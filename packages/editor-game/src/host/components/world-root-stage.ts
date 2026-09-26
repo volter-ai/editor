@@ -57,7 +57,7 @@ import {
   beginAuthoringTransformEdit,
   endAuthoringTransformEdit,
 } from '@volter/editor-sdk/kit/authoring/consumer-actions';
-import { designTimeMountFor } from '@volter/editor-core/authoring/design-time-mount-registry';
+import { designTimeMountFor } from '@volter/editor-sdk/kit/authoring/design-time-mount-registry';
 import { attachProjectAuthoringStage } from '@volter/editor-core/authoring/project-authoring-session';
 import {
   isThreejsSurfaceVisible,
