@@ -249,6 +249,35 @@ component:
   `construct`, and a resource becomes its planned native object. A native property's value goes
   through the property rule of its node family.
 
+## Node, SceneTree and the composition site
+
+The design for the tree, set from what Node3D measured. The first native classes are proven:
+Node3D and Camera3D, 724 cases, exact.
+
+- **One native entity per Godot node.** A 3D node is the `THREE.Object3D` its JSX mounts, and a
+  Control is its DOM element. A plain `Node` in a 3D tree mounts as a `<group>` that compat marks
+  non-spatial: its matrix stays identity, and Node3D's parent rule skips it. A Node3D under it
+  therefore takes global = local, as in Godot.
+- **Transforms are handed over exact.** A mounted Node3D receives its authored `Transform3D` as
+  the Object3D's matrix (`matrixAutoUpdate` off), never as decomposed position, rotation and
+  scale props. Node3D's module owns the decomposition three reads.
+- **Tree structure is read, not kept.** A node's parent and children are the native links
+  (three's `parent`/`children`, the DOM's), and `get_node` walks names over them. Name, groups,
+  process mode, ready state and owner are Node PROTOCOL state in WeakMaps keyed by the entity.
+- **Runtime tree changes go through the generated scene's hierarchy authority.**
+  `PackedScene.instantiate()` returns that scene's factory. `add_child` of an instanced scene
+  renders it through the parent scene's React state, and `queue_free` removes it at the end of
+  the frame (Godot's deletion queue, in compat). A native node made with `Class.new()` attaches
+  imperatively to its parent's entity, which React never reconciles.
+- **SceneTree's clock is the host's.** The generated world runs Godot's frame order from R3F's
+  frame and a fixed physics step (`physics/common/physics_ticks_per_second`, default 60):
+  notifications, `_process`, `_physics_process`, deferred calls, timers (`create_timer`), tweens
+  and signals. Compat implements the ordering (`scene/main/scene_tree.cpp`) over those two
+  events and creates no loop of its own.
+- **Host duties the composition site performs:** feed input events and frame stamps to `input.ts`;
+  call `SubViewport.set_size` on the viewport's Scene when the canvas resizes; mount Camera3D with
+  Godot's defaults (fov 75, near 0.05, far 4000).
+
 ## Node families
 
 A scene node becomes native JSX in the generated scene component. The JSX element is its native
