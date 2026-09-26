@@ -2463,7 +2463,10 @@ export class EditorViewport {
     }
   }
 
+  /** A light the editor draws a helper for: not one whose document draws its own overlay
+   *  (`userData.vgaiOwnOverlay`, the way `vgaiOwnMaterial` keeps a material its owner's). */
   private _nativeLight(object: THREE.Object3D): THREE.Light | null {
+    if (object.userData['vgaiOwnOverlay']) return null;
     return (object as THREE.Light).isLight ? (object as THREE.Light) : null;
   }
 
@@ -2641,6 +2644,7 @@ export class EditorViewport {
   }
 
   private _nativeCamera(object: THREE.Object3D): THREE.Camera | null {
+    if (object.userData['vgaiOwnOverlay']) return null;
     if ((object as THREE.Camera).isCamera) return object as THREE.Camera;
     const owned = getUserData(object, '_camera');
     return owned?.isCamera ? owned : null;

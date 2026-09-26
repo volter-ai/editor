@@ -82,6 +82,9 @@ export interface HelperVisibility {
    * Cursor" operators place and snap. ON by default, as Blender draws it.
    */
   cursor: boolean;
+  /** EMPTIES — a scene's objects that are only a place (Blender's empties, drawn by its
+   *  overlay's extras as axes, arrows or a shape). ON by default, as Blender draws them. */
+  empties: boolean;
 }
 
 /**
@@ -251,6 +254,7 @@ export class ShellStore implements ShellDocumentState {
     skeletons: false,
     weights: false,
     cursor: true,
+    empties: true,
   };
 
   get transformMode(): TransformMode {

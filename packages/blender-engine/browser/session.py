@@ -525,6 +525,8 @@ def draw_camera(obj):
         "matrix": [[float(v) for v in row] for row in obj.matrix_world],
         # What the 3D View's camera view darkens outside the frame (`drawviewborder`).
         "passepartout": float(camera.passepartout_alpha) if camera.show_passepartout else 0.0,
+        # The size the overlay draws the camera at (`Camera.display_size`, `cam->drawsize`).
+        "display_size": float(camera.display_size),
     }
 
 
@@ -1402,6 +1404,11 @@ class Session:
         # THE VIEWPORT'S SUBJECT LINE and the units its grid step is named in: Blender composes
         # both from the scene, so they come from here (`_subject_line`).
         frame["subject"] = _subject_line(scene, view_layer)
+        # WHAT THE OVERLAY DRAWS FOR AN EMPTY (`overlay_empty.hh`): its display type and size.
+        frame["empties"] = {
+            obj.name: {"display": obj.empty_display_type, "size": float(obj.empty_display_size)}
+            for obj in scene.objects if obj.type == "EMPTY"
+        }
         frame["view"] = _saved_view()
         frame["units"] = {
             "system": scene.unit_settings.system,

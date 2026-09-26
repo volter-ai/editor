@@ -33,6 +33,7 @@ export const cameraDataSchema = z.object({
   shift_y: scalar,
   matrix: z.array(z.tuple([scalar, scalar, scalar, scalar])).length(4),
   passepartout: scalar.default(0),
+  display_size: scalar.default(1),
 });
 export type CameraData = z.infer<typeof cameraDataSchema>;
 

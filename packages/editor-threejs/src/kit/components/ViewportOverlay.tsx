@@ -133,6 +133,7 @@ function HelpersButton({ store }: { store: EditorShellStore }) {
     { key: 'skeletons' as const, label: 'Skeletons' },
     { key: 'weights' as const, label: 'Weights' },
     { key: 'cursor' as const, label: '3D Cursor' },
+    { key: 'empties' as const, label: 'Empties' },
   ];
 
   return (

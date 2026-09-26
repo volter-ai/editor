@@ -33,6 +33,7 @@ import {worldMedium, WorldVolumePass} from './blender-world-volume';
 import { BlenderTextureSamplers } from './blender-texture-samplers';
 import { WeightOverlay, weightsSchema } from './blender-runtime-weights';
 import { CursorOverlay, type CursorPlacement, cursorSchema } from './blender-runtime-cursor';
+import { emptySchema, ExtrasOverlay } from './blender-runtime-extras';
 import {
   type BlenderCameraView,
   blenderCameraView,
@@ -530,6 +531,8 @@ export const frameSchema = z
         aspect: z.number().finite().positive(),
       })
       .optional(),
+    /** Each empty's display type and size (`blender-runtime-extras.ts`). */
+    empties: z.record(z.string(), emptySchema).default({}),
     /** The 3D View the file saved (`session.py` `_saved_view`), null when it holds none. */
     view: z
       .object({
@@ -636,6 +639,8 @@ export class BlenderRuntimeView {
   private readonly armatureOverlay = new ArmatureOverlay();
   private readonly weightOverlay = new WeightOverlay();
   private readonly cursorOverlay = new CursorOverlay();
+  /** Blender's overlay extras: cameras, lights and empties (`blender-runtime-extras.ts`). */
+  private readonly extrasOverlay = new ExtrasOverlay();
   /** The two groups the stage is handed: the Helpers menu owns THEIR
    *  `visible`, and the inner group is what a RENDER stands down (an overlay
    *  is modeling chrome and never appears in a photograph — the same
@@ -643,6 +648,9 @@ export class BlenderRuntimeView {
   private readonly armatureRoot = new THREE.Group();
   private readonly weightRoot = new THREE.Group();
   private readonly cursorRoot = new THREE.Group();
+  private readonly cameraExtrasRoot = new THREE.Group();
+  private readonly lightExtrasRoot = new THREE.Group();
+  private readonly emptyExtrasRoot = new THREE.Group();
   private rendered = false;
   /** The camera the VIEWPORT is held in render lighting through (Blender's Rendered shading),
    *  or null when the viewport shows modeling lighting. See {@link holdRendered}. */
@@ -960,6 +968,9 @@ export class BlenderRuntimeView {
       [this.armatureRoot, this.armatureOverlay.group],
       [this.weightRoot, this.weightOverlay.group],
       [this.cursorRoot, this.cursorOverlay.group],
+      [this.cameraExtrasRoot, this.extrasOverlay.cameras],
+      [this.lightExtrasRoot, this.extrasOverlay.lights],
+      [this.emptyExtrasRoot, this.extrasOverlay.empties],
     ] as const) {
       group.matrixAutoUpdate = false;
       group.matrix.copy(this.root.matrix);
@@ -969,6 +980,9 @@ export class BlenderRuntimeView {
     this.armatureRoot.name = 'BlenderBones';
     this.weightRoot.name = 'BlenderWeights';
     this.cursorRoot.name = 'Blender3DCursor';
+    this.cameraExtrasRoot.name = 'BlenderCameraExtras';
+    this.lightExtrasRoot.name = 'BlenderLightExtras';
+    this.emptyExtrasRoot.name = 'BlenderEmptyExtras';
   }
 
   /**
@@ -1002,6 +1016,10 @@ export class BlenderRuntimeView {
       { kind: 'weights', object: this.weightRoot },
       // Blender's overlay popover's "3D Cursor" (`View3DOverlay.show_cursor`).
       { kind: 'cursor', object: this.cursorRoot },
+      // The overlay's extras, under the Helpers menu's own kinds (Blender's "Extras").
+      { kind: 'cameras', object: this.cameraExtrasRoot },
+      { kind: 'lights', object: this.lightExtrasRoot },
+      { kind: 'empties', object: this.emptyExtrasRoot },
     ];
   }
 
@@ -1249,6 +1267,20 @@ export class BlenderRuntimeView {
     );
     if (weightWarning !== null) warnings.push(weightWarning);
     this.cursorOverlay.apply(next.cursor);
+    const cameras: Record<string, z.infer<typeof cameraDataSchema>> = {};
+    for (const [name, data] of Object.entries(next.cameras)) {
+      const parsed = cameraDataSchema.safeParse(data);
+      if (parsed.success) cameras[name] = parsed.data;
+    }
+    this.extrasOverlay.apply({
+      objects: next.objects.filter((object) => object.visible),
+      active: next.active,
+      cameras,
+      lights: next.lights,
+      empties: next.empties,
+      sceneCamera: next.camera_view?.scene_camera ?? null,
+      renderAspect: next.camera_view?.aspect ?? 1,
+    });
     return warnings;
   }
 
@@ -1270,6 +1302,8 @@ export class BlenderRuntimeView {
     this.armatureOverlay.group.visible = !this.capturing;
     this.weightOverlay.group.visible = !this.capturing;
     this.cursorOverlay.group.visible = !this.capturing;
+    for (const group of [this.extrasOverlay.cameras, this.extrasOverlay.lights, this.extrasOverlay.empties])
+      group.visible = !this.capturing;
   }
 
   applyFrame(input: unknown) {
@@ -1693,6 +1727,9 @@ export class BlenderRuntimeView {
           previous.dispose();
         }
         if (light.parent !== object) object.add(light);
+        // Blender's overlay draws this light (`blender-runtime-extras.ts`); the editor's own
+        // light helper stands down for it.
+        light.userData['vgaiOwnOverlay'] = true;
         aimLight(light, object);
         this.lights.set(obj.light, light);
       }
@@ -1979,6 +2016,7 @@ export class BlenderRuntimeView {
     this.armatureOverlay.dispose();
     this.weightOverlay.dispose();
     this.cursorOverlay.dispose();
+    this.extrasOverlay.dispose();
     for (const material of this.workbenchMaterials.values()) material.dispose();
     this.workbenchMaterials.clear();
     this.frame = null;
