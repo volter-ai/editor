@@ -40,9 +40,10 @@ not a render.
 |---|---|---|
 | Header: connection, room name, room id, session, entities | Monitor's Room status line | present |
 | msgs and bytes in/out, with sparklines | Godot's Down/Up | present |
-| Traffic table (type; in and out counts and bytes) | Godot's RPC and synchronizer tables | partial: one row per message type (state and patches included); no breakdown by entity or schema, no count and size ranges |
+| Traffic table (type; in and out counts and bytes) | Godot's RPC table | present: one row per message type, state and patches included |
+| Entity table: each replicated entity (a root field, or a root collection's entry such as `players.<id>`), its syncs in (the state patches that changed it), the field changes they carried, and the size range of those patches | Godot's synchronizer table | present (walked: a sent `position` gave `players.xjVaf9lUT · 1 · 2 · 13 B`). Partial: Godot's Count and Size cells are pairs (`0 - 710`, `0 - 12`), which I read as incoming against outgoing, the size per sync (an inference from the frame, where the RPC table reads `710 (7 B)`); a Colyseus client sends no state, so ours counts incoming only, and a patch's bytes cannot be split between the entities it carried, so the size is the whole patch's |
 | State tree, its numbers, strings and booleans editable on the server | Monitor's State tab; Godot's Remote tree | partial: an edit goes through Monitor's `_editStateProperty` (walked: the player's `x` typed as 9 read 9 on the server); the tree is this client's copy; a key's × deletes it on the server through `_deleteStateProperty` (walked: deleting `orbs.orb_0` took the server's orbs from 6 to 5) |
-| Message log with Pause, Clear and a type filter | Godot's Start/Stop and Clear | partial: always recording (no Start/Stop, no Autostart); Clear resets the log and the Traffic totals (walked: 2 rows to 0) |
+| Start/Stop, Autostart, Clear, and the message log's type filter | Godot's profiler Start/Stop, Autostart and Clear | present: stopped, nothing is tallied (traffic, entities, log) while frames still pass; Autostart (kept per checkout) decides whether a run starts recording; Clear resets the log and both tables (walked: a send while stopped left every row unchanged and `position` read 2 out after three sends; with Autostart off a rerun started stopped with no rows; Clear, earlier, 2 rows to 0) |
 | Send as this client (type, JSON payload) | (neither reference: Monitor's Send goes from the server to a client) | into the room as this client (walked on a workbench carrying the focus gate: `position` with `{"x":3,"y":0,"z":2}` moved the player to (3, 2) on the server, and typing "dddddddd" into the field left the running game's player where it was) |
 | Ping, and its round trip | (neither reference; Unity's multiplayer tools show RTT) | present: the SDK's own PING frame through the game's socket (walked: 2 ms on loopback) |
 | Conditioner: latency and jitter, both directions, in order | Unity's network simulator | present; loss is stated as not simulated, because a WebSocket resends what it loses. Not walked: its fields are scrub controls the document door's drag does not move |
@@ -54,8 +55,9 @@ not a render.
 ## Gaps, the work order
 
 Judged against the references by an independent reviewer on 2026-09-26, ranked; Monitor's
-server-side acts, the Replication types and a Clear that resets Traffic are now present:
+server-side acts, the Replication types, a Clear that resets Traffic, the entity table, Start/Stop
+and Autostart are now present:
 
-1. Traffic by entity or schema with count and size ranges (Godot's profiler tables are per node and
-   per synchronizer).
-2. Start/Stop and Autostart for recording.
+1. The conditioner is not walked: its fields are scrub controls the document door's drag does not
+   move.
+

@@ -175,6 +175,7 @@ export type {
   NetServerInspection,
   NetServerRoom,
   NetTypeTraffic,
+  NetEntityTraffic,
   NetServerConfig,
   NetworkingAdapter,
   PhysicsAdapter,

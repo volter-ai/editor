@@ -90,6 +90,10 @@ export interface NetworkCapabilityMap {
   ping: boolean;
   /** The room server's own view (`inspectServer`). */
   server: boolean;
+  /** Traffic per replicated entity (`getTrafficByEntity`). */
+  entityTraffic: boolean;
+  /** Tallying that can be started and stopped (`isRecording`/`setRecording`). */
+  recording: boolean;
 }
 
 export function deriveNetworkCapabilities(
@@ -115,6 +119,8 @@ export function deriveNetworkCapabilities(
     send: typeof adapter.sendMessage === 'function',
     ping: typeof adapter.ping === 'function',
     server: typeof adapter.inspectServer === 'function',
+    entityTraffic: typeof adapter.getTrafficByEntity === 'function',
+    recording: typeof adapter.isRecording === 'function' && typeof adapter.setRecording === 'function',
   };
 }
 

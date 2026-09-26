@@ -18,7 +18,7 @@
  */
 
 import { pack, unpack } from '@colyseus/msgpackr';
-import { decode, encode, type Iterator } from '@colyseus/schema';
+import { type DataChange, decode, encode, type Iterator } from '@colyseus/schema';
 import { SchemaSerializer } from '@colyseus/sdk';
 import type {
   ConnectionState,
@@ -99,6 +99,7 @@ interface Mirror {
   patches: number;
   patchBytes: number;
   types: Map<string, MutableType>;
+  entities: Map<string, MutableEntity>;
   socket: WebSocket;
   /** When the last delayed frame is due, per direction: a later frame never overtakes it. */
   dueIn: number;
@@ -147,7 +148,67 @@ function roll(now: number): void {
   window0 = { start: now, msgsIn: 0, msgsOut: 0, bytesIn: 0, bytesOut: 0 };
 }
 
+interface MutableEntity {
+  path: string;
+  syncs: number;
+  changes: number;
+  patchBytesMin: number;
+  patchBytesMax: number;
+}
+
+/** Whether traffic and the log are tallied (Godot's profiler Start/Stop). */
+let recording = true;
+
+/** Each object of a decoded state by its path from the root: schema fields and collection entries. */
+function statePaths(state: unknown): Map<object, readonly string[]> {
+  const paths = new Map<object, readonly string[]>();
+  const visit = (value: unknown, path: readonly string[]): void => {
+    if (!value || typeof value !== 'object' || paths.has(value)) return;
+    paths.set(value, path);
+    const metadata = (value as { constructor?: Record<symbol, unknown> }).constructor?.[Symbol.metadata] as
+      | Record<string, unknown>
+      | undefined;
+    if (metadata) {
+      for (const key of Object.keys(metadata)) {
+        const name = /^\d+$/.test(key) ? (metadata[key] as { name?: string } | undefined)?.name : undefined;
+        if (name) visit((value as Record<string, unknown>)[name], [...path, name]);
+      }
+      return;
+    }
+    (value as { forEach?: (each: (child: unknown, key: unknown) => void) => void }).forEach?.((child, key) =>
+      visit(child, [...path, String(key)]),
+    );
+  };
+  visit(state, []);
+  return paths;
+}
+
+/** Tally one patch against the entities its changes touched: an entity is a root field, or an
+ *  entry of a root collection (`players.abc`). */
+function recordEntities(mirror: Mirror, changes: readonly DataChange[], size: number): void {
+  if (!recording || changes.length === 0) return;
+  const paths = statePaths(mirror.serializer?.getState());
+  const touched = new Map<string, number>();
+  for (const change of changes) {
+    const full = [...(paths.get(change.ref as object) ?? []), String(change.dynamicIndex ?? change.field)];
+    const entity = full.slice(0, full.length > 1 ? 2 : 1).join('.');
+    touched.set(entity, (touched.get(entity) ?? 0) + 1);
+  }
+  for (const [path, count] of touched) {
+    let entry = mirror.entities.get(path);
+    if (!entry) {
+      entry = { path, syncs: 0, changes: 0, patchBytesMin: size, patchBytesMax: size };
+      mirror.entities.set(path, entry);
+    }
+    entry.syncs += 1;
+    entry.changes += count;
+    entry.patchBytesMin = Math.min(entry.patchBytesMin, size);
+    entry.patchBytesMax = Math.max(entry.patchBytesMax, size);
+  }
+}
+
 function record(mirror: Mirror, direction: 'in' | 'out', type: string, size: number, payload?: unknown): void {
+  if (!recording) return;
   const now = Date.now();
   roll(now);
   if (direction === 'in') {
@@ -210,9 +271,15 @@ function observeIncoming(mirror: Mirror, bytes: Uint8Array): void {
       mirror.stateBytes = bytes.byteLength;
       record(mirror, 'in', 'state', bytes.byteLength);
     } else if (code === ROOM_STATE_PATCH) {
+      const decoder = mirror.serializer?.decoder;
+      let changes: readonly DataChange[] = [];
+      if (decoder) decoder.triggerChanges = (all) => (changes = all);
       mirror.serializer?.patch(bytes, it);
-      mirror.patches += 1;
-      mirror.patchBytes += bytes.byteLength;
+      recordEntities(mirror, changes, bytes.byteLength);
+      if (recording) {
+        mirror.patches += 1;
+        mirror.patchBytes += bytes.byteLength;
+      }
       record(mirror, 'in', 'patch', bytes.byteLength);
     } else if (code === ROOM_DATA) {
       const type = messageType(bytes, it);
@@ -300,6 +367,7 @@ function attach(socket: WebSocket, url: string): void {
     rttMs: null,
     stateBytes: 0,
     patches: 0,
+    entities: new Map(),
     patchBytes: 0,
     types: new Map(),
     socket,
@@ -636,6 +704,7 @@ export const observedGameNetwork: NetworkingAdapter = {
   clearTraffic(): void {
     for (const mirror of mirrors) {
       mirror.types.clear();
+      mirror.entities.clear();
       mirror.patches = 0;
       mirror.patchBytes = 0;
     }
@@ -647,6 +716,19 @@ export const observedGameNetwork: NetworkingAdapter = {
   getTrafficByType() {
     const mirror = current();
     return mirror ? [...mirror.types.values()].map(({ type, countIn, countOut, bytesIn, bytesOut }) => ({ type, countIn, countOut, bytesIn, bytesOut })) : [];
+  },
+  getTrafficByEntity() {
+    const mirror = current();
+    return mirror
+      ? [...mirror.entities.values()]
+          .map(({ path, syncs, changes, patchBytesMin, patchBytesMax }) => ({ path, syncs, changes, patchBytesMin, patchBytesMax }))
+          .sort((a, b) => b.syncs - a.syncs)
+      : [];
+  },
+  isRecording: () => recording,
+  setRecording(on: boolean): void {
+    recording = on;
+    notify();
   },
   getServerConfig() {
     const mirror = current();

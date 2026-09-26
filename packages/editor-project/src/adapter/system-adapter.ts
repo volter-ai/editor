@@ -235,6 +235,17 @@ export interface NetTypeTraffic {
   bytesOut: number;
 }
 
+/** One replicated entity's traffic (Godot's synchronizer table): the state patches that changed
+ *  it, the field changes they carried, and the size range of those patches, which carried other
+ *  entities too. `path` is the entity's place in the state (`players.abc`, `orbs.orb_1`). */
+export interface NetEntityTraffic {
+  path: string;
+  syncs: number;
+  changes: number;
+  patchBytesMin: number;
+  patchBytesMax: number;
+}
+
 export interface NetServerRoom {
   roomId: string;
   name: string;
@@ -356,6 +367,13 @@ export interface NetworkingAdapter {
   /** Traffic per message type since the connection opened, both directions — state and patches
    *  included as their own rows (Godot's network profiler tables). */
   getTrafficByType?(): NetTypeTraffic[];
+  /** Incoming state traffic per replicated entity since the connection opened (or the last
+   *  clear), ordered by syncs. */
+  getTrafficByEntity?(): NetEntityTraffic[];
+  /** Whether the traffic totals and the message log are counting (Godot's profiler Start/Stop);
+   *  stopped, frames still pass and the state still updates, but nothing is tallied. */
+  isRecording?(): boolean;
+  setRecording?(on: boolean): void;
   /** Send `payload` to the room as this client, under message type `type` (Colyseus Monitor's
    *  Send), so a server handler can be exercised from the inspector. */
   sendMessage?(type: string, payload: unknown): void;

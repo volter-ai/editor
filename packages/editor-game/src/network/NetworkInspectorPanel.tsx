@@ -27,6 +27,7 @@
 import { editorHost } from '@volter/editor-sdk/host';
 import {
   Button,
+  Checkbox,
   DisclosureIcon,
   fontSizeVar,
   NumberInput,
@@ -37,6 +38,7 @@ import {
 import type {
   ConnectionState,
   NetConditioning,
+  NetEntityTraffic,
   NetMessageEvent,
   NetServerInspection,
   NetTypeTraffic,
@@ -574,6 +576,8 @@ function NetworkHeader({
   );
 }
 
+const AUTOSTART_SECTION = 'networkProfilerAutostart';
+
 // --- The panel ------------------------------------------------------------
 
 export function NetworkInspectorPanel() {
@@ -583,6 +587,12 @@ export function NetworkInspectorPanel() {
   const adapterRef = useRef<NetworkingAdapter | null>(null);
   const [paused, setPaused] = useState(false);
   const [filter, setFilter] = useState('');
+  // Godot's Autostart: whether a game that starts running starts recording (kept per checkout).
+  const [autostart, setAutostart] = useState(
+    () => editorHost().projectLocalState.read<boolean>(AUTOSTART_SECTION) ?? true,
+  );
+  const autostartRef = useRef(autostart);
+  autostartRef.current = autostart;
   // The one message draft: sent as this client, or from the server to one client or all.
   const [draft, setDraft] = useState<MessageDraft>({ type: '', payload: '' });
 
@@ -592,6 +602,7 @@ export function NetworkInspectorPanel() {
       if (adapter !== adapterRef.current) {
         // New mount (or unmount): the old game's log/rate history is stale.
         adapterRef.current = adapter;
+        if (adapter) adapter.setRecording?.(autostartRef.current);
         logRef.current = new MessageLogModel();
         logRef.current.paused = paused;
         ratesRef.current = new RateHistory();
@@ -699,6 +710,7 @@ export function NetworkInspectorPanel() {
         />
       ) : null}
       {caps.traffic ? <TrafficTable rows={adapter.getTrafficByType?.() ?? []} /> : null}
+      {caps.entityTraffic ? <EntityTrafficTable rows={adapter.getTrafficByEntity?.() ?? []} /> : null}
       {caps.send ? <SendControls adapter={adapter} ping={caps.ping} draft={draft} setDraft={setDraft} /> : null}
 
       {/* Body: state tree | message log */}
@@ -747,18 +759,48 @@ export function NetworkInspectorPanel() {
                   padding: spaceVar[2],
                 }}
               >
-                <Button
-                  type="button"
-                  variant="ghost"
-                  data-testid="net-log-pause"
-                  onClick={() => {
-                    const next = !paused;
-                    logRef.current.paused = next;
-                    setPaused(next);
-                  }}
-                >
-                  {paused ? 'Resume' : 'Pause'}
-                </Button>
+                {caps.recording ? (
+                  // Godot's profiler Start/Stop: stopped, nothing is tallied (traffic, entities, log).
+                  <>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      data-testid="net-recording"
+                      aria-pressed={adapter.isRecording?.() === true}
+                      onClick={() => {
+                        adapter.setRecording?.(!adapter.isRecording?.());
+                        force();
+                      }}
+                    >
+                      {adapter.isRecording?.() ? 'Stop' : 'Start'}
+                    </Button>
+                    <label style={{ display: 'flex', gap: spaceVar[1], alignItems: 'center', whiteSpace: 'nowrap' }}>
+                      <Checkbox
+                        data-testid="net-autostart"
+                        checked={autostart}
+                        onChange={(event) => {
+                          const on = event.currentTarget.checked;
+                          editorHost().projectLocalState.write(AUTOSTART_SECTION, on);
+                          setAutostart(on);
+                        }}
+                      />
+                      Autostart
+                    </label>
+                  </>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    data-testid="net-log-pause"
+                    onClick={() => {
+                      const next = !paused;
+                      logRef.current.paused = next;
+                      setPaused(next);
+                    }}
+                  >
+                    {paused ? 'Resume' : 'Pause'}
+                  </Button>
+                )}
                 <Button
                   type="button"
                   variant="ghost"
@@ -808,6 +850,49 @@ export function NetworkInspectorPanel() {
  * its synchronizers as two tables of counts and sizes; a Colyseus room's are its messages and its
  * state sync, which arrive here as rows of one table (`state`, `patch`, and each message type).
  */
+/** Godot's synchronizer table, for a Colyseus room: each replicated entity's incoming syncs (the
+ *  patches that changed it), the field changes they carried, and the size range of those patches. */
+function EntityTrafficTable({ rows }: { rows: readonly NetEntityTraffic[] }) {
+  const cell = { padding: `0 ${spaceVar[3]}`, textAlign: 'right' as const, whiteSpace: 'nowrap' as const };
+  return (
+    <div
+      data-testid="net-entity-traffic"
+      style={{ maxHeight: 132, overflow: 'auto', borderBottom: `1px solid ${themeVars.boundary.default}` }}
+    >
+      {rows.length === 0 ? (
+        <AbsentNote>No state patches yet.</AbsentNote>
+      ) : (
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: fontSizeVar.sm, ...MONO }}>
+          <thead>
+            <tr style={{ color: themeVars.content.muted }}>
+              <th style={{ ...cell, textAlign: 'left' }}>Entity</th>
+              <th style={cell} title="State patches that changed it">Syncs in</th>
+              <th style={cell} title="Field changes those patches carried">Changes</th>
+              <th style={cell} title="Size range of those patches, which carried other entities too">
+                Patch size
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.path} data-testid="net-entity-traffic-row">
+                <td style={{ ...cell, textAlign: 'left' }}>{row.path}</td>
+                <td style={cell}>{row.syncs}</td>
+                <td style={cell}>{row.changes}</td>
+                <td style={cell}>
+                  {row.patchBytesMin === row.patchBytesMax
+                    ? `${row.patchBytesMin} B`
+                    : `${row.patchBytesMin} - ${row.patchBytesMax} B`}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
 function TrafficTable({ rows }: { rows: readonly NetTypeTraffic[] }) {
   const cell = { padding: `0 ${spaceVar[3]}`, textAlign: 'right' as const, whiteSpace: 'nowrap' as const };
   const bytes = (value: number) => (value >= 1024 ? `${(value / 1024).toFixed(1)} KiB` : `${value} B`);
