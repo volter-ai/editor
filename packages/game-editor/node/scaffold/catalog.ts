@@ -18,7 +18,7 @@ import {
 } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { resolveManifestPath } from '@volter/editor-project/manifest/locate';
-import { mergeAdapterRegionIncludes, type RegionIncludeAddition } from './adapter-region-merge.js';
+import { type FinderAddition, mergeAdapterFinders, mergeAdapterRegionIncludes, type RegionIncludeAddition } from './adapter-region-merge.js';
 
 export const PROJECT_CATALOG_DIR = join('.vgai', 'catalog');
 
@@ -81,6 +81,13 @@ export interface CatalogEntry {
    * are the stamps the default gets WRONG.
    */
   regions?: Partial<Record<CatalogSurface, string[]>>;
+  /**
+   * THE DOCUMENT FINDERS THIS CAPABILITY'S DOCUMENTS NEED, selected in the project's
+   * `vgai.adapter.ts` document table (`documents.find`) when it is added. Same reason as
+   * `regions`: the copied source works only once the adapter declares it, and a declaration
+   * left to the person was a step every project missed (music's pieces opened nowhere).
+   */
+  documents?: FinderAddition[];
   packageJson?: {
     dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
@@ -165,6 +172,9 @@ export interface CatalogAddReport {
    * into a red console somebody else has to bisect.
    */
   unplacedRegions: UnplacedCapabilityRegion[];
+  /** Document finders this project could not be given automatically, with why: the caller
+   *  prints each with the selection to add by hand. */
+  unplacedFinders: { capability: string; finder: FinderAddition; reason: string }[];
   writtenFiles: string[];
 }
 
@@ -277,6 +287,19 @@ function readCatalogEntry(path: string): CatalogEntry {
   if (assetPacks) manifest.assetPacks = assetPacks;
   const regions = readRegions(parsed['regions'], path);
   if (regions) manifest.regions = regions;
+  if (parsed['documents'] !== undefined) {
+    if (!Array.isArray(parsed['documents'])) throw new Error(`${path}: documents must be an array of finder selections`);
+    manifest.documents = parsed['documents'].map((entry, i) => {
+      if (!isRecord(entry) || typeof entry['finder'] !== 'string' || entry['finder'].length === 0) {
+        throw new Error(`${path}: documents[${i}] must be { finder, include? } with a non-empty finder name`);
+      }
+      const unknown = Object.keys(entry).filter((key) => key !== 'finder' && key !== 'include');
+      if (unknown.length > 0) throw new Error(`${path}: documents[${i}] has unknown keys: ${unknown.join(', ')}`);
+      return entry['include'] === undefined
+        ? { finder: entry['finder'] }
+        : { finder: entry['finder'], include: stringArray(entry['include'], `documents[${i}].include`, path) };
+    });
+  }
   assertJsxSurfacesDeclared(manifest, path);
   return manifest;
 }
@@ -978,6 +1001,38 @@ function mergedAdapterModule(
   return { bytes: Buffer.from(merge.text), changed: true, unplaced };
 }
 
+/**
+ * Select every added capability's `documents` finders in the project's own `vgai.adapter.ts`,
+ * over what the region merge produced (`regionMerge`), so both land as one write.
+ */
+function mergedAdapterFinders(
+  projectDir: string,
+  manifests: CatalogEntry[],
+  regionMerge: ReturnType<typeof mergedAdapterModule>,
+): { bytes: Buffer; changed: boolean; unplacedFinders: CatalogAddReport['unplacedFinders'] } | undefined {
+  const declaring = manifests.flatMap((manifest) => (manifest.documents ?? []).map((finder) => ({ capability: manifest.id, finder })));
+  if (declaring.length === 0) return regionMerge ? { bytes: regionMerge.bytes, changed: regionMerge.changed, unplacedFinders: [] } : undefined;
+  const path = join(projectDir, ADAPTER_MODULE_FILE);
+  if (!existsSync(path)) {
+    return {
+      bytes: regionMerge?.bytes ?? Buffer.alloc(0),
+      changed: regionMerge?.changed ?? false,
+      unplacedFinders: declaring.map((entry) => ({ ...entry, reason: `${path} does not exist` })),
+    };
+  }
+  const base = regionMerge?.changed ? regionMerge.bytes : readFileSync(path);
+  const merge = mergeAdapterFinders(base.toString('utf8'), declaring.map((entry) => entry.finder));
+  if (merge.kind === 'unreadable') {
+    return {
+      bytes: base,
+      changed: regionMerge?.changed ?? false,
+      unplacedFinders: declaring.map((entry) => ({ ...entry, reason: `${path} could not be edited automatically — ${merge.reason}` })),
+    };
+  }
+  if (merge.kind === 'unchanged') return { bytes: base, changed: regionMerge?.changed ?? false, unplacedFinders: [] };
+  return { bytes: Buffer.from(merge.text), changed: true, unplacedFinders: [] };
+}
+
 export function addCapabilities(options: AddCapabilitiesOptions): CatalogAddReport {
   const projectDir = resolve(options.projectDir);
   const catalogDir = resolve(options.catalogDir);
@@ -1032,7 +1087,8 @@ export function addCapabilities(options: AddCapabilitiesOptions): CatalogAddRepo
   const assetMerge = mergedAssetManifest(projectDir, ordered);
   // And again for the same reason: a capability the template already vendors
   // still owes the project its region declaration.
-  const adapterMerge = mergedAdapterModule(projectDir, ordered);
+  const regionMerge = mergedAdapterModule(projectDir, ordered);
+  const adapterMerge = mergedAdapterFinders(projectDir, ordered, regionMerge);
   const writtenFiles = toWrite.map((file) => file.relativePath);
   if (packageMerge?.changed) writtenFiles.push('package.json');
   if (assetMerge?.changed) writtenFiles.push(ASSET_MANIFEST_FILE);
@@ -1120,7 +1176,8 @@ export function addCapabilities(options: AddCapabilitiesOptions): CatalogAddRepo
   return {
     alreadyInstalled,
     declaredAssets: assetMerge?.declared ?? [],
-    unplacedRegions: adapterMerge?.unplaced ?? [],
+    unplacedRegions: regionMerge?.unplaced ?? [],
+    unplacedFinders: adapterMerge?.unplacedFinders ?? [],
     dependencyNames,
     dryRun: options.dryRun ?? false,
     installed: newManifests.map((manifest) => manifest.id),

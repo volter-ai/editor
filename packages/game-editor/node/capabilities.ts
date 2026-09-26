@@ -154,6 +154,11 @@ export function runCapabilityCommand(verb: CapabilityVerb, ids: string[], option
   }
   // A capability's JSX needs a region declaration in `vgai.adapter.ts`, or the
   // editor stamps the wrong source-id attribute on it.
+  for (const unplaced of report.unplacedFinders) {
+    const include = unplaced.finder.include ? `, include: [${unplaced.finder.include.map((glob) => `'${glob}'`).join(', ')}]` : '';
+    console.error(`Warning: ${unplaced.capability}'s documents are found by \`${unplaced.finder.finder}\`, but ${unplaced.reason}. ` +
+      `Until vgai.adapter.ts selects it in \`documents.find\` (\`{ finder: '${unplaced.finder.finder}'${include} }\`), none of them opens.`);
+  }
   for (const unplaced of report.unplacedRegions) {
     console.error(`Warning: ${unplaced.capability} renders on the \`${unplaced.surface}\` surface ` +
       `(${unplaced.globs.join(', ')}), but ${unplaced.reason}. The editor will report \`OID001\` for those files until this project declares them.`);

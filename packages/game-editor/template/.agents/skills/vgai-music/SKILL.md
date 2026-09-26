@@ -14,11 +14,13 @@ gesture they make rewrites the literal it touched in this same file.
 ## Set up once
 
 1. `npm run --silent vgai -- add music`: adds `@volter/dawproject` (the elements) and
-   `@volter/editor-dawproject` (the document, the renderer, the checks) and copies
-   `src/lib/music/music-player.ts`.
-2. In `vgai.adapter.ts`, add the finder to the document table:
-   `{ finder: 'piecesFromModules', include: ['src/music/**/*.tsx'] }`.
-3. The instruments are General MIDI presets of the MuseScore General SoundFont (MIT):
+   `@volter/editor-dawproject` (the document, the renderer, the checks), copies
+   `src/lib/music/music-player.ts` and the render tool, and selects the piece finder in
+   `vgai.adapter.ts` (`documents.find`: `{ finder: 'piecesFromModules', include:
+   ['src/music/**/*.tsx'] }`), so every piece under `src/music/` opens as a document. When the
+   adapter is not a literal `defineAdapter({ … })` table it cannot edit, it says so and prints
+   the selection to add by hand.
+2. The instruments are General MIDI presets of the MuseScore General SoundFont (MIT):
    `curl -L -o sounds/MuseScore_General.sf3 https://ftp.osuosl.org/pub/musescore/soundfont/MuseScore_General/MuseScore_General.sf3`
    (39.9 MB). A convolution reverb takes a stereo WAV impulse response at a project path.
 
