@@ -547,7 +547,8 @@ export class ExtrasOverlay {
       alphaTest: blends ? 0 : 0.05,
       toneMapped: false,
       depthTest: settings.depth === 'DEFAULT',
-      depthWrite: settings.depth === 'DEFAULT',
+      // Blender's blend pass tests depth and writes none (`images_blend_ps_`).
+      depthWrite: settings.depth === 'DEFAULT' && !blends,
     });
     material.color.setRGB(...settings.tint, THREE.LinearSRGBColorSpace);
     if (blends && behind) {

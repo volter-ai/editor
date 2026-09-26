@@ -219,8 +219,8 @@ export interface ToolObject3DAuthoringProps {
   readonly openingFit?: number;
   /**
    * THE OPENING VIEW STATED OUTRIGHT, for a document whose file saved one (a .blend's 3D View,
-   * where Blender opens it): the pivot, the direction from the pivot to the eye, the distance and
-   * the projection, in the stage's frame. The view's roll is not carried: the stage orbits a
+   * where Blender opens it): the pivot, the direction from the pivot to the eye, the distance, the
+   * projection and the lens, in the stage's frame. The view's roll is not carried: the stage orbits a
    * turntable about the world's up. In place of `cameraDirection` and `openingFit` when given; Frame still
    * fits.
    */
@@ -231,6 +231,9 @@ export interface ToolObject3DAuthoringProps {
     readonly up?: readonly [number, number, number];
     readonly distance: number;
     readonly projection?: 'perspective' | 'orthographic';
+    /** The view's lens in mm over a 36 mm sensor (Blender's `View3D.lens`); the stage's 50 when
+     *  omitted. */
+    readonly lens?: number;
   } | null;
   /**
    * Optional binding from live native clips back to ordinary project source.

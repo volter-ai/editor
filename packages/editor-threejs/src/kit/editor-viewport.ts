@@ -353,17 +353,19 @@ export interface EditorViewportOptions {
  * three's vertical `fov` cannot be a constant here.
  *
  * The angle is the view's own arithmetic (`BKE_camera_params_from_view3d`,
- * `BKE_camera_params_compute_viewplane`): the 36 mm sensor over the View's 50 mm lens
- * (`View3D.lens`, 50 at factory startup, read back from Blender 5.2), times the viewport's
+ * `BKE_camera_params_compute_viewplane`): the 36 mm sensor over the View's lens
+ * (`View3D.lens`, 50 at factory startup, read back from Blender 5.2; {@link EditorViewport.setLens}), times the viewport's
  * `CAMERA_PARAM_ZOOM_INIT_PERSP` of 2. The same zoom scales an orthographic view's
  * `dist * sensor / lens`, so the two projections agree at the pivot.
  */
-const STAGE_LENS_HORIZONTAL_FOV_DEG = THREE.MathUtils.radToDeg(2 * Math.atan((36 * 2) / (2 * 50)));
+const STAGE_LENS_MM = 50;
 
-/** three's fov is VERTICAL; Blender's lens angle is on the larger dimension. */
-export function stageVerticalFovDegrees(aspect: number): number {
+/** three's fov is VERTICAL; Blender's lens angle is on the larger dimension. `lens` is the view's
+ *  focal length in mm over the 36 mm sensor. */
+export function stageVerticalFovDegrees(aspect: number, lens = STAGE_LENS_MM): number {
   const safeAspect = Number.isFinite(aspect) && aspect > 0.01 ? aspect : 1;
-  const halfLensAngle = THREE.MathUtils.degToRad(STAGE_LENS_HORIZONTAL_FOV_DEG / 2);
+  const safeLens = Number.isFinite(lens) && lens > 0 ? lens : STAGE_LENS_MM;
+  const halfLensAngle = Math.atan((36 * 2) / (2 * safeLens));
   // Sensor fit AUTO: the angle belongs to the longer side.
   const halfVertical =
     safeAspect >= 1 ? Math.atan(Math.tan(halfLensAngle) / safeAspect) : halfLensAngle;
@@ -1098,6 +1100,8 @@ export class EditorViewport {
   private _projection: ThreeViewportProjection = 'perspective';
   private _pendingProjection: ThreeViewportProjection | null = null;
   private _viewportAspect = 1;
+  /** The view's lens in mm (`View3D.lens`); a document's saved view may state its own. */
+  private _lens = STAGE_LENS_MM;
   private _orthographicHeight = 10;
   private _cameraViewMode: CameraViewMode | null = null;
   private _orbitEnabledBeforeCameraView = true;
@@ -3502,6 +3506,20 @@ export class EditorViewport {
     this.orbitControls.update();
   }
 
+  /** The view's lens in mm over the 36 mm sensor (`View3D.lens`): the perspective angle and, at
+   *  the same distance, the orthographic view's size. */
+  setLens(lens: number): void {
+    if (!Number.isFinite(lens) || lens <= 0 || lens === this._lens) return;
+    const halfAngle = (fov: number) => Math.tan(THREE.MathUtils.degToRad(fov * 0.5));
+    const before = halfAngle(this.camera.fov);
+    this._lens = lens;
+    this.camera.fov = stageVerticalFovDegrees(this._viewportAspect, lens);
+    this.camera.updateProjectionMatrix();
+    // An orthographic view at the same distance scales with the lens, as Blender's does.
+    if (this._projection === 'orthographic') this._orthographicHeight *= halfAngle(this.camera.fov) / before;
+    this._applyOrthographicFrustum();
+  }
+
   /**
    * Move the camera to an arbitrary position/target/fov pose — the general
    * case `setViewPreset`/`focusOn` don't cover (an exact xyz position, not a
@@ -3530,7 +3548,7 @@ export class EditorViewport {
     this.camera.aspect = this._viewportAspect;
     // Blender holds the LENS, not the vertical angle: a wider panel sees no
     // more world sideways, a shorter one sees less vertically.
-    this.camera.fov = stageVerticalFovDegrees(this._viewportAspect);
+    this.camera.fov = stageVerticalFovDegrees(this._viewportAspect, this._lens);
     this.camera.updateProjectionMatrix();
     this._applyOrthographicFrustum();
     // A look-stated gizmo size is in PIXELS, so the conversion to three's

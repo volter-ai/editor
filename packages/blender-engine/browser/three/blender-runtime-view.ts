@@ -265,7 +265,11 @@ function loadPngTexture(png: Uint8Array): { texture: THREE.Texture; ready: Promi
   // `three/src/textures/Texture.js:274` (0.180.0), "this property has no
   // effect when using `ImageBitmap`. You need to configure the flip on bitmap
   // creation instead."
-  const decoding = createImageBitmap(blob, { imageOrientation: 'flipY' })
+  //
+  // Its alpha is asked for here too: the browser's `default` premultiplies (Chrome's does), and
+  // every reader of this texture takes the file's own texels, straight unless the image says it
+  // stores them premultiplied, which the reader then undoes.
+  const decoding = createImageBitmap(blob, { imageOrientation: 'flipY', premultiplyAlpha: 'none' })
     .then((bitmap) => {
       if (disposed) {
         bitmap.close();
@@ -542,6 +546,7 @@ export const frameSchema = z
         rotation: z.tuple([z.number(), z.number(), z.number(), z.number()]),
         distance: z.number().finite(),
         perspective: z.enum(['PERSP', 'ORTHO', 'CAMERA']),
+        lens: z.number().finite().positive().default(50),
       })
       .nullable()
       .optional(),
@@ -801,6 +806,7 @@ export class BlenderRuntimeView {
     readonly up: readonly [number, number, number];
     readonly distance: number;
     readonly projection: 'perspective' | 'orthographic';
+    readonly lens: number;
   } | null {
     const saved = this.frame?.view;
     if (!saved) return null;
@@ -814,6 +820,7 @@ export class BlenderRuntimeView {
       up: axis(new THREE.Vector3(0, 1, 0)).toArray(),
       distance: saved.distance,
       projection: saved.perspective === 'ORTHO' ? 'orthographic' : 'perspective',
+      lens: saved.lens,
     };
   }
 

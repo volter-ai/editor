@@ -763,7 +763,8 @@ def _saved_view():
     """The 3D View the file saved, which is where Blender opens it: the `Modeling` workspace's
     (this editor's Model workspace is Blender's Modeling), else the first 3D View any screen
     holds. `RegionView3D`'s pivot, rotation (view to world, `(w, x, y, z)`), distance and
-    projection (`PERSP`, `ORTHO`, or `CAMERA` for a view through the scene camera)."""
+    projection (`PERSP`, `ORTHO`, or `CAMERA` for a view through the scene camera), and the
+    `View3D`'s lens."""
     workspace = bpy.data.workspaces.get("Modeling")
     screens = list(workspace.screens) if workspace is not None else []
     screens.extend(bpy.data.screens)
@@ -771,8 +772,10 @@ def _saved_view():
         for area in screen.areas:
             if area.type != "VIEW_3D":
                 continue
-            region = area.spaces[0].region_3d
+            space = area.spaces[0]
+            region = space.region_3d
             return {
+                "lens": float(space.lens),
                 "location": [float(v) for v in region.view_location],
                 "rotation": [float(v) for v in region.view_rotation],
                 "distance": float(region.view_distance),

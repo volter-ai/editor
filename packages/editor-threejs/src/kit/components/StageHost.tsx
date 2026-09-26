@@ -1581,6 +1581,7 @@ export function Object3DDocumentViewport({
           if (!openingFrame) viewport.focusOn(source.root);
           const stated = openingViewRef.current;
           if (stated) {
+            if (stated.lens !== undefined) viewport.setLens(stated.lens);
             const target = new THREE.Vector3(...stated.target);
             const direction = new THREE.Vector3(...stated.direction).normalize();
             viewport.camera.position.copy(target).addScaledVector(direction, stated.distance);
