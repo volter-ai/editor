@@ -9,6 +9,8 @@ import type {
 } from '../../analyze/bound-project';
 import type { GodotApiDump } from '../../analyze/api-dump';
 import type { GodotBoundNode, GodotBoundScript } from '../../godot-frontend/bound-program';
+import type { GodotValue } from '../../read/godot-value';
+import { godotAnimationNodeData, godotAnimationTreeParameters } from '../data/scene-animation';
 import { safeIdent } from '../target-names';
 import type { GodotCodeEvidenceResolver } from './authority';
 import {
@@ -503,6 +505,32 @@ function refinedProgram(source: BoundGodotSourceScript): GodotBoundScript {
   };
 }
 
+/**
+ * The parameters of the AnimationTree at each scene node, where its `tree_root` is a blend graph of
+ * the same document the translation reads (`godotAnimationNodeData`).
+ */
+function treeParametersOf(
+  project: BoundGodotProject,
+  nodes: readonly { readonly documentPath: string; readonly pathInDocument: string }[],
+): readonly { readonly at: string; readonly parameters: ReadonlySet<string> }[] {
+  return nodes.flatMap(({ documentPath, pathInDocument }) => {
+    const document = project.documents.scenes.find((entry) => entry.resPath === documentPath);
+    const row = document?.nodes.find((entry) => entry.nodePath === pathInDocument);
+    const root = row?.authoredProperties['tree_root'];
+    if (document === undefined || root?.kind !== 'ctor' || root.name !== 'SubResource') return [];
+    const idOf = (value: GodotValue): string | undefined => {
+      if (value.kind !== 'ctor' || value.name !== 'SubResource') return undefined;
+      const [id] = value.args;
+      return id?.kind === 'string' ? id.value : id?.kind === 'number' ? String(id.value) : undefined;
+    };
+    const find = (value: GodotValue) => document.subResources.find((entry) => String(entry.id) === idOf(value));
+    const data = find(root);
+    const graph = data === undefined ? undefined : godotAnimationNodeData(data, find);
+    if (graph === undefined || typeof graph === 'string') return [];
+    return [{ at: `${documentPath}#${pathInDocument}`, parameters: godotAnimationTreeParameters(graph) }];
+  });
+}
+
 /** The member variables a project script and its script ancestors declare, or undefined. */
 function scriptMemberNames(project: BoundGodotProject, resPath: string): ReadonlySet<string> | undefined {
   const script = project.scripts.find((entry) => entry.resPath === resPath);
@@ -537,6 +565,7 @@ function lowerScript(
   readonly requirements: ClosedOfficialBoundRequirements;
 } {
   const script = refinedProgram(source);
+  const sceneNodes = new Map(source.refinedTypes.flatMap((entry) => (entry.sceneNodes === undefined ? [] : [[entry.nodeId, entry.sceneNodes] as const])));
   const root = script.nodes[script.rootNodeId];
   if (root?.kind !== 'CLASS') {
     throw new Error(`${script.resPath}: official root is not a CLASS node`);
@@ -564,6 +593,7 @@ function lowerScript(
     nativeBaseOf(project, source),
     nativeMethods,
     (resPath) => scriptMemberNames(project, resPath),
+    (nodeId) => treeParametersOf(project, sceneNodes.get(nodeId) ?? []),
   );
   if (root.abstract) {
     context.refuse(root, 'abstract script classes need a target declaration recipe');

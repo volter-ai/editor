@@ -1265,6 +1265,20 @@ export function bindGodotProject(
       },
     };
   };
+  // Member names some script assigns other than as its own declared member: `obj.name = …` (on any
+  // base, self included) or an inherited member by name (`refineDatatypes`' @onready members).
+  const assignedElsewhere = new Set<string>();
+  for (const program of code.scripts) {
+    for (const node of program.nodes) {
+      if (node.kind !== 'ASSIGNMENT') continue;
+      const assignee = program.nodes[node.assignee];
+      if (assignee?.kind === 'IDENTIFIER' && assignee.source === 'INHERITED_VARIABLE') assignedElsewhere.add(assignee.name);
+      if (assignee?.kind === 'SUBSCRIPT' && assignee.isAttribute) {
+        const attribute = program.nodes[assignee.attribute];
+        if (attribute?.kind === 'IDENTIFIER') assignedElsewhere.add(attribute.name);
+      }
+    }
+  }
   const onreadyField = (resPath: string): number | undefined => {
     const program = programsByPath.get(resPath);
     return program === undefined ? undefined : firstOnreadyField(program);
@@ -1339,6 +1353,7 @@ export function bindGodotProject(
         scriptAt: (documentPath, nodePath) => scriptByNode.get(`${documentPath}\0${nodePath}`),
         scriptInfo: refinedScriptInfo,
         claim: (rule) => analysisEvidence.liveClaim(rule),
+        assignedElsewhere: (member) => assignedElsewhere.has(member),
       }),
       settingTypes: typeProjectSettingValues({
         program,

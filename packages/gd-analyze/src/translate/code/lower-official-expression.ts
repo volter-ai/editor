@@ -432,6 +432,9 @@ function treeParameter(
   if (!/^parameters\/(.+\/)?(blend_amount|scale|backward|current_length|current_position|current_delta)$/u.test(path)) {
     return context.refuse(node, `an AnimationTree subscript of ${path}, which is not a parameter of a transcribed node`);
   }
+  // The tree the receiver is in each scene (`scene-node-receiver`): the path is one of its parameters.
+  const missing = context.treeParameters?.(baseNode.id).find((tree) => !tree.parameters.has(path));
+  if (missing !== undefined) return context.refuse(node, `${path} is not a parameter of the AnimationTree ${missing.at}`);
   return { baseNode, indexNode, path };
 }
 

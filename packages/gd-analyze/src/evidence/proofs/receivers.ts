@@ -74,8 +74,8 @@ const NARROWED = [
 
 /**
  * Expressions whose datatype the analysis fixes (`refineDatatypes`): scene nodes by `$Path`,
- * `%Unique` and `get_node` of a literal path (their class, or their script when they carry one),
- * and member reads on them (a native property's getter type, a script field's declared type).
+ * `%Unique`, `get_node` of a literal path and `@onready` members holding one (their class, or their
+ * script when they carry one), and member reads on them (a native property's getter type, a script field's declared type).
  */
 const REFINED = [
   '$Level/Door',
@@ -90,6 +90,11 @@ const REFINED = [
   '$Level.get_node("Door")',
   'get_node(^"Level/Inner/Lamp").omni_range',
   '$Level.get_node(^"Inner").get_node("Lamp").omni_range',
+  // `@onready` members nothing assigns again: the node each holds once ready.
+  'door',
+  'lamp',
+  'scripted_node',
+  'door.collision_layer',
 ] as const;
 
 /** The keys of \`intersect_ray\`'s result the analysis types. */
@@ -109,6 +114,10 @@ run/main_scene="res://main.tscn"
 renderer/rendering_method="gl_compatibility"
 `,
   'main.gd': `extends Node3D
+
+@onready var door = $Level/Door
+@onready var lamp := get_node("Level/Inner/Lamp") as Light3D
+@onready var scripted_node: Node3D = $Scripted
 
 func typed_calls() -> void:
 ${CALLS.map(([nodePath, member]) => `\t$${nodePath}.${member}(${argumentsOf(member)})`).join('\n')}

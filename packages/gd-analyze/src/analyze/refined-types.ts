@@ -5,7 +5,10 @@
  * - `scene-node-receiver`: `$Path` / `%Unique` is the node at that path in every scene the script
  *   is attached to (they must agree): its script class when it carries a script, else its class; so
  *   is `get_node(<literal relative path>)` on self or on a base whose scene path is known, at that
- *   base's path joined with the literal (`Node::get_node`, scene/main/node.cpp:1943).
+ *   base's path joined with the literal (`Node::get_node`, scene/main/node.cpp:1943). So is a
+ *   member `@onready var m = <such an expression>` (optionally `as T`) that nothing assigns again:
+ *   its initializer runs once, in the script's `@implicit_ready` as the node becomes ready
+ *   (modules/gdscript/gdscript_compiler.cpp:2409), so after that the member holds that node.
  * - `classdb-method-selection`: a member read on a typed object is the member's declared type: a
  *   script field's, else the native property's getter return type (`ClassDB::get_property`).
  * - `type-test-narrowing`: a local used where `local is T` has held (the true branch of the `if`,
@@ -27,6 +30,8 @@ export interface BoundGodotRefinedType {
   readonly datatype: GodotBoundDatatype;
   readonly rule: GodotAnalysisRuleId;
   readonly evidenceClaimIds: readonly string[];
+  /** A scene node's datatype (`scene-node-receiver`): the node in each scene the script is attached to. */
+  readonly sceneNodes?: readonly { readonly documentPath: string; readonly pathInDocument: string }[];
 }
 
 export interface RefinedScriptInfo {
@@ -47,6 +52,8 @@ export interface RefineInputs {
   readonly scriptAt: (documentPath: string, nodePath: string) => string | undefined;
   readonly scriptInfo: (resPath: string) => RefinedScriptInfo | undefined;
   readonly claim: (rule: GodotAnalysisRuleId) => string | undefined;
+  /** Whether any script of the project assigns a member of this name other than as its own (`obj.name = …`). */
+  readonly assignedElsewhere: (member: string) => boolean;
 }
 
 const BASE: Omit<GodotBoundDatatype, 'kind' | 'display' | 'builtinType' | 'nativeType' | 'enumType' | 'scriptPath' | 'className'> = {
@@ -227,12 +234,16 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
     return undefined;
   };
 
+  let sceneNodes: { readonly documentPath: string; readonly pathInDocument: string }[] = [];
+  /** The node at `path` in every attached scene, when they agree; `sceneNodes` holds where each is. */
   const sceneNode = (path: string): GodotBoundDatatype | undefined => {
+    sceneNodes = [];
     if (inputs.attachments.length === 0) return undefined;
     let agreed: GodotBoundDatatype | undefined;
     for (const attachment of inputs.attachments) {
       const resolved = resolveScenePath(scenes, attachment, path);
       if (typeof resolved === 'string') return undefined;
+      sceneNodes.push({ documentPath: resolved.documentPath, pathInDocument: resolved.pathInDocument });
       const script = inputs.scriptAt(resolved.documentPath, resolved.pathInDocument);
       const info = script === undefined ? undefined : inputs.scriptInfo(script);
       const type =
@@ -282,6 +293,41 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
   };
 
   /**
+   * The scene path an `@onready` member of this script holds once ready: its initializer names one
+   * statically (through an `as` cast), it has no setter and is not exported (an authored value is
+   * replaced as the node becomes ready), and no script assigns it again.
+   */
+  const onready = new Map<string, string | undefined>();
+  const onreadyPath = (name: string): string | undefined => {
+    if (onready.has(name)) return onready.get(name);
+    onready.set(name, undefined);
+    const root = nodes.get(program.rootNodeId);
+    if (root?.kind !== 'CLASS') return undefined;
+    const declaration = root.members
+      .map((member) => nodes.get(member))
+      .find((member) => member?.kind === 'VARIABLE' && (() => {
+        const identifier = nodes.get(member.identifier);
+        return identifier?.kind === 'IDENTIFIER' && identifier.name === name;
+      })());
+    if (declaration?.kind !== 'VARIABLE' || !declaration.onready || declaration.static || declaration.exported || declaration.setter >= 0) return undefined;
+    let initializer = nodes.get(declaration.initializer);
+    if (initializer?.kind === 'CAST') initializer = nodes.get(initializer.operand);
+    if (initializer === undefined || inputs.assignedElsewhere(name)) return undefined;
+    const reassigned = program.nodes.some((other) => {
+      if (other.kind !== 'ASSIGNMENT') return false;
+      const assignee = nodes.get(other.assignee);
+      if (assignee?.kind === 'IDENTIFIER') return assignee.name === name && assignee.source === 'MEMBER_VARIABLE';
+      if (assignee?.kind !== 'SUBSCRIPT' || !assignee.isAttribute) return false;
+      const attribute = nodes.get(assignee.attribute);
+      return attribute?.kind === 'IDENTIFIER' && attribute.name === name;
+    });
+    if (reassigned) return undefined;
+    const path = scenePathOf(initializer.id);
+    onready.set(name, path);
+    return path;
+  };
+
+  /**
    * The scene path an expression names, when it names one statically: `$Path` and `%Unique`, self,
    * and `get_node` of a literal relative path on either.
    */
@@ -289,6 +335,7 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
     const node = nodes.get(id);
     if (node?.kind === 'GET_NODE') return node.fullPath;
     if (node?.kind === 'SELF') return '.';
+    if (node?.kind === 'IDENTIFIER' && node.source === 'MEMBER_VARIABLE') return onreadyPath(node.name);
     if (node?.kind !== 'CALL' || node.compilerTarget.kind !== 'native-method' || node.compilerTarget.member !== 'get_node' || node.arguments.length !== 1) return undefined;
     const argument = nodes.get(node.arguments[0] as number);
     if (argument?.kind !== 'LITERAL') return undefined;
@@ -305,7 +352,9 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
     if (refined.has(id)) return refined.get(id) ?? undefined;
     refined.set(id, null);
     const node = nodes.get(id);
-    let result: { readonly datatype: GodotBoundDatatype; readonly rule: GodotAnalysisRuleId } | undefined;
+    let result:
+      | { readonly datatype: GodotBoundDatatype; readonly rule: GodotAnalysisRuleId; readonly sceneNodes?: BoundGodotRefinedType['sceneNodes'] }
+      | undefined;
     if (node?.kind === 'GET_NODE') {
       const own = node.datatype;
       const type = sceneNode(node.fullPath);
@@ -313,7 +362,7 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
         type !== undefined &&
         (own.kind === 'VARIANT' || (own.kind === 'NATIVE' && inherits(type.nativeType, own.nativeType) && (type.kind !== 'NATIVE' || type.nativeType !== own.nativeType)))
       ) {
-        result = { datatype: type, rule: 'scene-node-receiver' };
+        result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
       }
     } else if (node?.kind === 'CALL' && node.compilerTarget.kind === 'native-method' && node.compilerTarget.member === 'get_node') {
       const own = node.datatype;
@@ -323,7 +372,15 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
         type !== undefined &&
         (own.kind === 'VARIANT' || (own.kind === 'NATIVE' && inherits(type.nativeType, own.nativeType) && (type.kind !== 'NATIVE' || type.nativeType !== own.nativeType)))
       ) {
-        result = { datatype: type, rule: 'scene-node-receiver' };
+        result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
+      }
+    } else if (node?.kind === 'IDENTIFIER' && node.source === 'MEMBER_VARIABLE' && onreadyPath(node.name) !== undefined) {
+      // The member holds the node once ready; its declared type (the node's or an ancestor's) stays
+      // right, and the node's own class, script and place in the scene are what it holds.
+      const own = node.datatype;
+      const type = sceneNode(onreadyPath(node.name) as string);
+      if (type !== undefined && (own.kind === 'VARIANT' || (own.kind === 'NATIVE' && !own.metaType && inherits(type.nativeType, own.nativeType)))) {
+        result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
       }
     } else if (node?.kind === 'SUBSCRIPT' && node.isAttribute && (node.datatype.kind === 'VARIANT' || node.datatype.kind === 'UNRESOLVED')) {
       const base = datatypeOf(node.base);
@@ -389,7 +446,13 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
     if (result === undefined) return undefined;
     const claim = inputs.claim(result.rule);
     if (claim === undefined) return undefined;
-    const entry = { nodeId: id, datatype: result.datatype, rule: result.rule, evidenceClaimIds: [claim] };
+    const entry: BoundGodotRefinedType = {
+      nodeId: id,
+      datatype: result.datatype,
+      rule: result.rule,
+      evidenceClaimIds: [claim],
+      ...(result.sceneNodes === undefined ? {} : { sceneNodes: result.sceneNodes }),
+    };
     refined.set(id, entry);
     return entry;
   }

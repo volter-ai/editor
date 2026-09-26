@@ -204,6 +204,8 @@ export class LoweringContext {
     readonly nativeMethods?: NativeMethodLookup,
     /** The member variables a project script and its script ancestors declare. */
     readonly scriptMembers?: (resPath: string) => ReadonlySet<string> | undefined,
+    /** The AnimationTree a scene node expression holds in each scene, with its parameters, where its graph is known. */
+    readonly treeParameters?: (nodeId: number) => readonly { readonly at: string; readonly parameters: ReadonlySet<string> }[],
   ) {
     const allocated = new Set([classIdentifier, ...bindings.targetLocalNames()]);
     const lexicalNames = new Map<string, string>();

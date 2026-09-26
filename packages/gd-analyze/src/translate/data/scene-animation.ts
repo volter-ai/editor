@@ -291,6 +291,28 @@ export function godotAnimationNodeData(resource: BoundGodotResourceData, resolve
   }
 }
 
+/**
+ * The parameters an AnimationTree over this graph has, by full name (`parameters/run/blend_amount`),
+ * as compat's `animation-tree.ts` lists them (`parametersOf`, `updateProperties`): every node's
+ * `current_length`, `current_position` and `current_delta` (`AnimationNode::get_parameter_list`,
+ * animation_tree.cpp:54), an animation's `backward`, a Blend2's `blend_amount`, a TimeScale's
+ * `scale`; a blend tree's `output` and nodes under its path.
+ */
+export function godotAnimationTreeParameters(root: GodotAnimationNodeData): ReadonlySet<string> {
+  const names = new Set<string>();
+  const core = ['current_length', 'current_position', 'current_delta'];
+  const visit = (path: string, node: GodotAnimationNodeData | undefined): void => {
+    const own = node === undefined ? [] : node.type === 'animation' ? ['backward'] : node.type === 'blend2' ? ['blend_amount'] : node.type === 'time-scale' ? ['scale'] : [];
+    for (const name of [...core, ...own]) names.add(`${path}${name}`);
+    if (node?.type !== 'blend-tree') return;
+    // The tree's `output` node (`_initialize_node_tree`, animation_blend_tree.cpp:1934).
+    visit(`${path}output/`, undefined);
+    for (const entry of node.nodes) visit(`${path}${entry.name}/`, entry.node);
+  };
+  visit('parameters/', root);
+  return names;
+}
+
 /** Where a blend tree's data file is written, beside its scene. */
 export function godotAnimationTreeDataPath(sceneTargetPath: string, key: string): string {
   return godotAnimationLibraryDataPath(sceneTargetPath, key).replace(/\.animations\.json$/u, '.animation-tree.json');
