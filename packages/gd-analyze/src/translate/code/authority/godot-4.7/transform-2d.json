@@ -1,0 +1,416 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/transform-2d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Transform2D",
+        "member": "Transform2D",
+        "kind": "builtin-constructor",
+        "signature": "unhashed"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/transform-2d",
+        "exportName": "construct",
+        "localName": "Transform2D_construct",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Transform2D.Transform2D"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Transform2D",
+        "member": "get_scale",
+        "kind": "builtin-member",
+        "signature": "hash:2428350749"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/transform-2d",
+        "exportName": "get_scale",
+        "localName": "Transform2D_get_scale",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Transform2D.get_scale"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Transform2D",
+        "member": "x",
+        "kind": "builtin-member-set",
+        "signature": "set"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/transform-2d",
+        "exportName": "with_x",
+        "localName": "Transform2D_with_x",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Transform2D.x.set"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Transform2D",
+        "member": "y",
+        "kind": "builtin-member-set",
+        "signature": "set"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/transform-2d",
+        "exportName": "with_y",
+        "localName": "Transform2D_with_y",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Transform2D.y.set"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Transform2D",
+        "member": "origin",
+        "kind": "builtin-member-set",
+        "signature": "set"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/transform-2d",
+        "exportName": "with_origin",
+        "localName": "Transform2D_with_origin",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Transform2D.origin.set"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [
+    {
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "sourceDatatype": "BUILTIN:Transform2D",
+      "targetType": {
+        "kind": "type-reference",
+        "name": "Transform2D",
+        "arguments": []
+      },
+      "typeImport": {
+        "module": "lib/godot-compat/transform-2d",
+        "exportName": "Transform2D"
+      },
+      "evidenceClaimId": "godot-4.7-datatype-Transform2D"
+    }
+  ],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Transform2D.Transform2D",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-constructor\u0000Transform2D\u0000Transform2D\u0000unhashed",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/transform_2d.h",
+        "sourceSymbol": "Transform2D.Transform2D",
+        "sourceLine": 145
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0ee6faa6642529a64a5be4044825dc83b9accdc310aef54e9b4d0c82fa57a8a7",
+        "callsite": "res://probe.gd _init() construct-empty construct-axes-identity construct-copy-identity construct-axes-scaled construct-copy-scaled construct-axes-flipped construct-copy-flipped construct-axes-rotated construct-copy-rotated construct-axes-skewed construct-copy-skewed construct-axes-decimals construct-copy-decimals construct-axes-degenerate construct-copy-degenerate construct-axes-nan construct-copy-nan construct-axes-large construct-copy-large construct-rotation-0 construct-rotation-scale-skew-0-one-0 construct-rotation-scale-skew-0-one-0.2 construct-rotation-scale-skew-0-one--1 construct-rotation-scale-skew-0-mixed-0 construct-rotation-scale-skew-0-mixed-0.2 construct-rotation-scale-skew-0-mixed--1 construct-rotation-0.3 construct-rotation-scale-skew-0.3-one-0 construct-rotation-scale-skew-0.3-one-0.2 construct-rotation-scale-skew-0.3-one--1 construct-rotation-scale-skew-0.3-mixed-0 construct-rotation-scale-skew-0.3-mixed-0.2 construct-rotation-scale-skew-0.3-mixed--1 construct-rotation-1.5707963267948966 construct-rotation-scale-skew-1.5707963267948966-one-0 construct-rotation-scale-skew-1.5707963267948966-one-0.2 construct-rotation-scale-skew-1.5707963267948966-one--1 construct-rotation-scale-skew-1.5707963267948966-mixed-0 construct-rotation-scale-skew-1.5707963267948966-mixed-0.2 construct-rotation-scale-skew-1.5707963267948966-mixed--1 construct-rotation-3.141592653589793 construct-rotation-scale-skew-3.141592653589793-one-0 construct-rotation-scale-skew-3.141592653589793-one-0.2 construct-rotation-scale-skew-3.141592653589793-one--1 construct-rotation-scale-skew-3.141592653589793-mixed-0 construct-rotation-scale-skew-3.141592653589793-mixed-0.2 construct-rotation-scale-skew-3.141592653589793-mixed--1 construct-rotation--2 construct-rotation-scale-skew--2-one-0 construct-rotation-scale-skew--2-one-0.2 construct-rotation-scale-skew--2-one--1 construct-rotation-scale-skew--2-mixed-0 construct-rotation-scale-skew--2-mixed-0.2 construct-rotation-scale-skew--2-mixed--1 construct-rotation-100 construct-rotation-scale-skew-100-one-0 construct-rotation-scale-skew-100-one-0.2 construct-rotation-scale-skew-100-one--1 construct-rotation-scale-skew-100-mixed-0 construct-rotation-scale-skew-100-mixed-0.2 construct-rotation-scale-skew-100-mixed--1 construct-rotation-1e-8 construct-rotation-scale-skew-1e-8-one-0 construct-rotation-scale-skew-1e-8-one-0.2 construct-rotation-scale-skew-1e-8-one--1 construct-rotation-scale-skew-1e-8-mixed-0 construct-rotation-scale-skew-1e-8-mixed-0.2 construct-rotation-scale-skew-1e-8-mixed--1",
+        "observedOutputSha256": "d4c1451e95fda4c47ec9074fdbbcf387c570ce2c5202103b8881f61ae2e3ab16"
+      },
+      "target": {
+        "implementationSha256": "355537d6c8dd27cff441dbe8328ec555d588b0f57e2cc670126cc42cc49b4e75",
+        "callsite": "lib/godot-compat/transform-2d.ts construct",
+        "observedOutputSha256": "4f519094fe83c99223f5c4f91ec65cd421d673f3dc492c83979cfb7de4764f4f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "cd6e2bfe43b3937d8cfcd7cbb2cbd6e385ef262ea6cd6d1eafaea41ffcfe953d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "transform-2d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Transform2D.get_scale",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Transform2D\u0000get_scale\u0000hash:2428350749",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/transform_2d.cpp",
+        "sourceSymbol": "Transform2D.get_scale",
+        "sourceLine": 115
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3cb168f812ef4af2f0170ab2e96081a792da0223cff4996e045dfc9bf14fa532",
+        "callsite": "res://probe.gd _init() get_scale-identity get_scale-scaled get_scale-flipped get_scale-rotated get_scale-skewed get_scale-decimals get_scale-degenerate get_scale-nan get_scale-large get_scale-rotation-scale-skew-0-one-0 get_scale-rotation-scale-skew-0-one-0.2 get_scale-rotation-scale-skew-0-one--1 get_scale-rotation-scale-skew-0-mixed-0 get_scale-rotation-scale-skew-0-mixed-0.2 get_scale-rotation-scale-skew-0-mixed--1 get_scale-rotation-scale-skew-0.3-one-0 get_scale-rotation-scale-skew-0.3-one-0.2 get_scale-rotation-scale-skew-0.3-one--1 get_scale-rotation-scale-skew-0.3-mixed-0 get_scale-rotation-scale-skew-0.3-mixed-0.2 get_scale-rotation-scale-skew-0.3-mixed--1 get_scale-rotation-scale-skew-1.5707963267948966-one-0 get_scale-rotation-scale-skew-1.5707963267948966-one-0.2 get_scale-rotation-scale-skew-1.5707963267948966-one--1 get_scale-rotation-scale-skew-1.5707963267948966-mixed-0 get_scale-rotation-scale-skew-1.5707963267948966-mixed-0.2 get_scale-rotation-scale-skew-1.5707963267948966-mixed--1 get_scale-rotation-scale-skew-3.141592653589793-one-0 get_scale-rotation-scale-skew-3.141592653589793-one-0.2 get_scale-rotation-scale-skew-3.141592653589793-one--1 get_scale-rotation-scale-skew-3.141592653589793-mixed-0 get_scale-rotation-scale-skew-3.141592653589793-mixed-0.2 get_scale-rotation-scale-skew-3.141592653589793-mixed--1 get_scale-rotation-scale-skew--2-one-0 get_scale-rotation-scale-skew--2-one-0.2 get_scale-rotation-scale-skew--2-one--1 get_scale-rotation-scale-skew--2-mixed-0 get_scale-rotation-scale-skew--2-mixed-0.2 get_scale-rotation-scale-skew--2-mixed--1 get_scale-rotation-scale-skew-100-one-0 get_scale-rotation-scale-skew-100-one-0.2 get_scale-rotation-scale-skew-100-one--1 get_scale-rotation-scale-skew-100-mixed-0 get_scale-rotation-scale-skew-100-mixed-0.2 get_scale-rotation-scale-skew-100-mixed--1 get_scale-rotation-scale-skew-1e-8-one-0 get_scale-rotation-scale-skew-1e-8-one-0.2 get_scale-rotation-scale-skew-1e-8-one--1 get_scale-rotation-scale-skew-1e-8-mixed-0 get_scale-rotation-scale-skew-1e-8-mixed-0.2 get_scale-rotation-scale-skew-1e-8-mixed--1",
+        "observedOutputSha256": "54a77272078eeea73e72082400aa7304a2bfcd689330461d21f09c15e1deded7"
+      },
+      "target": {
+        "implementationSha256": "355537d6c8dd27cff441dbe8328ec555d588b0f57e2cc670126cc42cc49b4e75",
+        "callsite": "lib/godot-compat/transform-2d.ts get_scale",
+        "observedOutputSha256": "54a77272078eeea73e72082400aa7304a2bfcd689330461d21f09c15e1deded7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0f9e2c439c9f240f03b63eb3ea1dfd81e2363dda4dd6e2a65fba4e6cf1662326"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "transform-2d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Transform2D.x.set",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member-set\u0000Transform2D\u0000x\u0000set",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/transform_2d.h",
+        "sourceSymbol": "Transform2D.x",
+        "sourceLine": 58
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "7801eb5a3b0c8ee541809fac092a2c5ea883568a74971c2ba3e02b2c042d14ff",
+        "callsite": "res://probe.gd _init() with_x-identity with_x-scaled with_x-flipped with_x-rotated with_x-skewed with_x-decimals with_x-degenerate with_x-nan with_x-large",
+        "observedOutputSha256": "201997a574be18d13700e842a938f97ee4e2b540c9d597e55b91a1da8096c66a"
+      },
+      "target": {
+        "implementationSha256": "355537d6c8dd27cff441dbe8328ec555d588b0f57e2cc670126cc42cc49b4e75",
+        "callsite": "lib/godot-compat/transform-2d.ts with_x",
+        "observedOutputSha256": "c692bb788c530b66ad93e8dfa4629f1cefd1fc687b35aac307d71e4ad643eee5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "797273a2b515dd8ab7752130fbf35abd276208dd7975424e0988b13852de9f86"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "transform-2d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Transform2D.y.set",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member-set\u0000Transform2D\u0000y\u0000set",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/transform_2d.h",
+        "sourceSymbol": "Transform2D.y",
+        "sourceLine": 58
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d583e64593734a21ffbb46ebdd8b6a0590559a438811aa1e112ea9df49b9637f",
+        "callsite": "res://probe.gd _init() with_y-identity with_y-scaled with_y-flipped with_y-rotated with_y-skewed with_y-decimals with_y-degenerate with_y-nan with_y-large",
+        "observedOutputSha256": "aeed2c8c4e16531d8b86e375a81789b8b4e986b038a6860424afd01dc24dfe72"
+      },
+      "target": {
+        "implementationSha256": "355537d6c8dd27cff441dbe8328ec555d588b0f57e2cc670126cc42cc49b4e75",
+        "callsite": "lib/godot-compat/transform-2d.ts with_y",
+        "observedOutputSha256": "741afafc76da9cc4e13e5e29bf8914877eb327290f444af63babeea7b6320568"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7fdb3a24b0bcb4eac2bb1b834695d44a096bc68b70b14ecf8943b07dfd271c22"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "transform-2d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Transform2D.origin.set",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member-set\u0000Transform2D\u0000origin\u0000set",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/transform_2d.h",
+        "sourceSymbol": "Transform2D.origin",
+        "sourceLine": 58
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3f9d060c450eb141ad87b9c59011e0ea725791f3313f1a3f2becb1f996685575",
+        "callsite": "res://probe.gd _init() with_origin-identity with_origin-scaled with_origin-flipped with_origin-rotated with_origin-skewed with_origin-decimals with_origin-degenerate with_origin-nan with_origin-large",
+        "observedOutputSha256": "268119101092b6f8ac3dd8f71b8e648a5afbdd5a9a58e521d0a9893acd8888e8"
+      },
+      "target": {
+        "implementationSha256": "355537d6c8dd27cff441dbe8328ec555d588b0f57e2cc670126cc42cc49b4e75",
+        "callsite": "lib/godot-compat/transform-2d.ts with_origin",
+        "observedOutputSha256": "a0e0895905cb4323cd73ffc35dac97e26d70fd794992ed9d224ce860aa5262c7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "2ed31be2899b1f5c6deee8fff5fe7460eee4663ef62c255744a60ca1d3d537bf"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "transform-2d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-datatype-Transform2D",
+      "layer": "translate-code",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000datatype\u0000BUILTIN:Transform2D",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/variant.h",
+        "sourceSymbol": "Variant::TRANSFORM2D",
+        "sourceLine": 112
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d2bcc4fe889fbce515aec8b372b98425f11d7e8d6f0b31866c40aa35be22fce6",
+        "callsite": "res://probe.gd _init() every case",
+        "observedOutputSha256": "bce0ba20fa1bc93706e298f5f4a6547ec9c33d42c44f4effb92e2663ca61798a"
+      },
+      "target": {
+        "implementationSha256": "355537d6c8dd27cff441dbe8328ec555d588b0f57e2cc670126cc42cc49b4e75",
+        "callsite": "lib/godot-compat/transform-2d.ts Transform2D",
+        "observedOutputSha256": "b75b649bcbbc2b117226546adabde0520c933f9b770ac80beb573af94e974a0c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "42ceaa0a8a132603a14c6208ee7b179e866bff8ec56395d62c0715c606ccbae4"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "transform-2d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Transform2D.Transform2D",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0ee6faa6642529a64a5be4044825dc83b9accdc310aef54e9b4d0c82fa57a8a7",
+      "implementationSha256": "355537d6c8dd27cff441dbe8328ec555d588b0f57e2cc670126cc42cc49b4e75"
+    },
+    {
+      "claimId": "godot-4.7-binding-Transform2D.get_scale",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3cb168f812ef4af2f0170ab2e96081a792da0223cff4996e045dfc9bf14fa532",
+      "implementationSha256": "355537d6c8dd27cff441dbe8328ec555d588b0f57e2cc670126cc42cc49b4e75"
+    },
+    {
+      "claimId": "godot-4.7-binding-Transform2D.x.set",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "7801eb5a3b0c8ee541809fac092a2c5ea883568a74971c2ba3e02b2c042d14ff",
+      "implementationSha256": "355537d6c8dd27cff441dbe8328ec555d588b0f57e2cc670126cc42cc49b4e75"
+    },
+    {
+      "claimId": "godot-4.7-binding-Transform2D.y.set",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d583e64593734a21ffbb46ebdd8b6a0590559a438811aa1e112ea9df49b9637f",
+      "implementationSha256": "355537d6c8dd27cff441dbe8328ec555d588b0f57e2cc670126cc42cc49b4e75"
+    },
+    {
+      "claimId": "godot-4.7-binding-Transform2D.origin.set",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3f9d060c450eb141ad87b9c59011e0ea725791f3313f1a3f2becb1f996685575",
+      "implementationSha256": "355537d6c8dd27cff441dbe8328ec555d588b0f57e2cc670126cc42cc49b4e75"
+    },
+    {
+      "claimId": "godot-4.7-datatype-Transform2D",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d2bcc4fe889fbce515aec8b372b98425f11d7e8d6f0b31866c40aa35be22fce6",
+      "implementationSha256": "355537d6c8dd27cff441dbe8328ec555d588b0f57e2cc670126cc42cc49b4e75"
+    }
+  ]
+}
