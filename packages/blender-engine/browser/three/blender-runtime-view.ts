@@ -33,6 +33,7 @@ import {worldMedium, WorldVolumePass} from './blender-world-volume';
 import { BlenderTextureSamplers } from './blender-texture-samplers';
 import { WeightOverlay, weightsSchema } from './blender-runtime-weights';
 import { CursorOverlay, type CursorPlacement, cursorSchema } from './blender-runtime-cursor';
+import { DEFAULT_VIEWPORT_DISPLAY, workbenchMaterial } from './blender-workbench-material';
 
 const scalar = z.number().finite();
 const point = z.tuple([scalar, scalar, scalar]);
@@ -423,6 +424,12 @@ const materialSchema = z
      *  `blender-node-graph.ts`. The constants above still apply to every
      *  input the graph does not carry. */
     graph: materialGraphSchema.optional(),
+    /** The material's VIEWPORT DISPLAY (`Material.diffuse_color`, `roughness`, `metallic`), what
+     *  Blender's Solid shading colours it by (`blender-workbench-material.ts`). */
+    viewport: z
+      .object({ color: z.tuple([scalar, scalar, scalar, scalar]), roughness: scalar, metallic: scalar })
+      .strict()
+      .optional(),
   })
   .strict();
 /** THE FRAME CONTRACT, and the reason it is exported: the C++ export door
@@ -573,6 +580,10 @@ export class BlenderRuntimeView {
   private worldKey = 'null';
   /** A render photograph is being taken: the one state in which overlays stand down. */
   private capturing = false;
+  /** The stage draws Blender's Solid: surfaces wear Blender's own shading function
+   *  (`blender-workbench-material.ts`) over their viewport display. */
+  private workbench = false;
+  private readonly workbenchMaterials = new Map<string, THREE.Material>();
   private readonly fallback = new THREE.MeshPhysicalMaterial({ color: 0xb9bec6, roughness: 0.72 });
   /** Base Color images, by image name -- ONE texture per image however many
    *  materials read it, and the cache OWNS it: a material points at one and
@@ -891,6 +902,46 @@ export class BlenderRuntimeView {
     );
   }
 
+  /**
+   * BLENDER'S SOLID SHADING ON OR OFF: while on, every presented surface is drawn by Blender's
+   * Solid function over its material's viewport display; a render photograph, Material Preview
+   * and Rendered draw the authored materials.
+   */
+  setWorkbench(on: boolean): void {
+    if (on === this.workbench) return;
+    this.workbench = on;
+    this.applyWorkbench();
+    presenterChanged();
+  }
+
+  /** Each surface's material for the state: authored, or Solid's, derived from the frame every
+   *  time so a replaced node (the skin's) is never left wearing the other. */
+  private applyWorkbench(): void {
+    const solid = this.workbench && !this.rendered;
+    for (const obj of this.frame?.objects ?? []) {
+      if (obj.mesh === null || obj.volume) continue;
+      const mesh = this.objects.get(obj.id) as THREE.Mesh | undefined;
+      if (!mesh?.isMesh) continue;
+      const slots: readonly (string | null)[] = obj.materials.length ? obj.materials : [null];
+      const shown = slots.map((id) => {
+        const authored = id === null ? this.fallback : (this.materials.get(id) ?? this.fallback);
+        return solid ? this.workbenchFor(id, authored.side) : authored;
+      });
+      mesh.material = obj.materials.length ? shown : shown[0]!;
+    }
+  }
+
+  private workbenchFor(id: string | null, side: THREE.Side): THREE.Material {
+    const display = (id !== null ? this.frame?.materials[id]?.viewport : undefined) ?? DEFAULT_VIEWPORT_DISPLAY;
+    const key = `${display.color.join(',')}|${display.roughness}|${display.metallic}|${side}`;
+    let material = this.workbenchMaterials.get(key);
+    if (!material) {
+      material = workbenchMaterial(display, side);
+      this.workbenchMaterials.set(key, material);
+    }
+    return material;
+  }
+
   /** Whether the viewport is held in render lighting (Blender's Rendered shading). */
   renderedHeld(): boolean {
     return this.heldRendered !== null;
@@ -928,6 +979,7 @@ export class BlenderRuntimeView {
     else if (this.capturing || worldKey !== this.worldApplied) this.world.apply(this.root, this.frame?.world ?? null, camera);
     this.worldApplied = this.capturing ? null : worldKey;
     this.applyVisibility();
+    this.applyWorkbench();
     this.applyShadows(rendered, camera);
     // AFTER the applies, because they are what REGISTERS the work. Awaiting
     // first made every one of these a no-op on the first render: `apply` had
@@ -1523,6 +1575,7 @@ export class BlenderRuntimeView {
       this.frame = { ...this.frame, warnings: [...this.frame.warnings, ...overlayWarnings] };
     // Visibility is read off the frame, so it is applied once the frame stands.
     this.applyVisibility();
+    this.applyWorkbench();
     // Rendered shading follows the scene: the frame's new materials, lights and shadows, and its
     // World when that changed.
     if (this.heldRendered !== null && !this.capturing) this.report(this.applyRendered(true, this.heldRendered()));
@@ -1753,6 +1806,8 @@ export class BlenderRuntimeView {
     this.armatureOverlay.dispose();
     this.weightOverlay.dispose();
     this.cursorOverlay.dispose();
+    for (const material of this.workbenchMaterials.values()) material.dispose();
+    this.workbenchMaterials.clear();
     this.frame = null;
     this.retiredSessions.clear();
     this.submittedMeshes.clear();

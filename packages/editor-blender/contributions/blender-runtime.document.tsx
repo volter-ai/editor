@@ -29,7 +29,11 @@ import '../src/presentation';
 import { blenderModelView } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import type { ToolContributionProps, ToolDocumentToolbar } from '@volter/editor-sdk/contributions';
 import { editorHost } from '@volter/editor-sdk/host';
-import { subscribeViewportPresentation, viewPresentation } from '@volter/editor-sdk/kit/viewport-presentation';
+import {
+  DOCUMENT_STUDIO_PRESET,
+  subscribeViewportPresentation,
+  viewPresentation,
+} from '@volter/editor-sdk/kit/viewport-presentation';
 import {
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
@@ -246,8 +250,11 @@ function BlenderModelViewport({
         stopFrame = stage ? stage.onFrame(() => view.refreshRendered()) : null;
         framed = stage;
       }
-      const lit = viewPresentation(documentId).lighting.source === 'scene';
-      view.holdRendered(lit && stage ? drawCamera : null);
+      const { lighting } = viewPresentation(documentId);
+      view.holdRendered(lighting.source === 'scene' && stage ? drawCamera : null);
+      // BLENDER'S SOLID IS BLENDER'S OWN FUNCTION: while the stage lights by Blender's studio, the
+      // presenter draws every surface by it (`blender-workbench-material.ts`).
+      view.setWorkbench(lighting.source === 'studio' && lighting.studioPreset === DOCUMENT_STUDIO_PRESET.id);
     };
     apply();
     const stopPresentation = subscribeViewportPresentation(apply);
@@ -257,6 +264,7 @@ function BlenderModelViewport({
       stopStages();
       stopFrame?.();
       view.holdRendered(null);
+      view.setWorkbench(false);
     };
   }, [documentId]);
   /**

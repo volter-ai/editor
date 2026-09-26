@@ -1288,6 +1288,17 @@ class Session:
                 default_color = getattr(getattr(data, "color_attributes", None), "default_color_name", "")
                 if default_color:
                     row["default_color"] = default_color
+        # THE VIEWPORT DISPLAY of each material -- what Blender's Solid shading colours a surface
+        # by (`View3DShading.color_type` MATERIAL reads `Material.diffuse_color`, `roughness`,
+        # `metallic`; `workbench_world_light_lib.glsl`), not its node graph.
+        for entry in frame["materials"].values():
+            material = bpy.data.materials.get(entry.get("name", ""))
+            if material is not None:
+                entry["viewport"] = {
+                    "color": [float(v) for v in material.diffuse_color],
+                    "roughness": float(material.roughness),
+                    "metallic": float(material.metallic),
+                }
         frame["world"] = draw_world(scene)
         frame["cameras"] = {
             obj.name: draw_camera(obj) for obj in scene.objects if obj.type == "CAMERA"
