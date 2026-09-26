@@ -1,130 +1,125 @@
 {
-  "publishedAt": "2026-09-25",
-  "registry": "https://registry.npmjs.org",
-  "source": {
-    "repository": "https://github.com/volter-ai/editor",
-    "revision": "3009903",
-    "tag": "release-0.5.66-source",
-    "note": "The archives were packed from this tree; main carries it as aca7339 on top of one later commit (d0e8b27)."
+ "publishedAt": "2026-09-26",
+ "registry": "https://registry.npmjs.org",
+ "source": {
+  "repository": "https://github.com/volter-ai/editor",
+  "revision": "45190b7f",
+  "tag": "release-0.5.67-source",
+  "note": "The archives were packed from this tree: d265f35d with three release fixes on top (editor-threejs declares react-dom; installed contribution packages CommonJS imports prebundled). main carries each fix as its own commit."
+ },
+ "publication": "Sixteen of seventeen versions are live: every registry shasum matches its tested archive and every tarball downloaded with no credentials is byte-identical to it. @volter/model-editor 0.5.67 was accepted by npm publish and is held by the registry as a staged version (a republish answers 409 \"previously staged version\"; npm stage list shows nothing to approve), so the model editor latest stays 0.5.66. First publication of @volter/dawproject and @volter/editor-dawproject.",
+ "lists": [
+  "release/modeling.json",
+  "release/game.json"
+ ],
+ "workbenchReleases": {
+  "modeling": "model-editor-9ef15b1f345b-7b9222405623-darwin-arm64",
+  "game": "game-editor-9ef15b1f345b-e22708e88dca-darwin-arm64"
+ },
+ "checks": {
+  "release": "check:release and check:release:game pass",
+  "packedImports": "1169 files across 8 packages (modeling); 2318 files across 17 packages (game), after declaring the SDK CodeMirror imports and editor-threejs react-dom",
+  "servedModules": "served-bundle table matches the template and catalog (16 packages); runtime image carries every template and catalog dependency (36)"
+ },
+ "packedAcceptance": {
+  "game": "Runtime image installed from the seventeen archives with no workspace links; create linked it; a fresh empty game took add music under a live session (packages, player, render tool, skill, piece finder), opened the Harbor example from the package, rendered it through project.music.render with sections (32 files, no problems, -18 LUFS, each recorded in .vgai/provenance.json), and a note drag undid byte-identically; a game-template project played and rendered its scene. Found and fixed on the archives: the piece document failed on any install (CommonJS typescript and react-reconciler/constants served raw from node_modules).",
+  "modeling": "The eight archives installed with no links; a model project from the packed product opened cube.blend; a Blender edit moved Cube to x=1.5, undo returned it to 0 and redo to 1.5; console silent."
+ },
+ "installation": {
+  "initiallyEmptyCache": true,
+  "credentials": "none (env -i with a fresh HOME)",
+  "path": "npx -y @volter/game-editor@0.5.67 create reg-game installed the runtime image from the registry, downloaded the pinned game workbench anonymously (sha256 matches the pin), and started a session; add music, the Harbor example, a render through the tool with provenance and a drag with undo all worked from that install."
+ },
+ "audit": "The model editor installs with 0 vulnerabilities. The game runtime image reports 8 (5 low, 3 moderate), all through colyseus -> @colyseus/auth -> grant/request-oauth (uuid, elliptic via jwk-to-pem); no upstream fix exists.",
+ "limitations": [
+  "macOS Apple Silicon only.",
+  "See WORK.md for the game editor's remaining list."
+ ],
+ "packages": {
+  "@volter/blender-engine": {
+   "version": "0.1.9",
+   "shasum": "94e07e566e128f66ccbcce18f5638b30c8d55bdb",
+   "live": true
   },
-  "publication": "Fifteen new versions are live from one revision: every registry shasum matches its tested archive and every tarball downloaded with no credentials is byte-identical to it. @volter/game-editor, the largest, was reported by the registry as staged for several minutes while it processed, then went live without any approval. First publication of @volter/model-editor, @volter/editor-react and @volter/editor-xstate.",
-  "lists": [
-    "release/modeling.json",
-    "release/game.json"
-  ],
-  "workbenchReleases": {
-    "modeling": "model-editor-9ef15b1f345b-7b9222405623-darwin-arm64",
-    "game": "game-editor-9ef15b1f345b-e22708e88dca-darwin-arm64"
+  "@volter/dawproject": {
+   "version": "0.5.67",
+   "shasum": "d034a023c6cfe8e5fc920393e4eef3a3fcec059e",
+   "live": true
   },
-  "checks": {
-    "release": "check:release and check:release:game pass",
-    "packedImports": "1159 files across 8 packages (modeling); 2269 files across 15 packages (game)",
-    "servedModules": "served-bundle table matches the template and catalog (16 packages); runtime image carries every template and catalog dependency (33)"
+  "@volter/editor-blender": {
+   "version": "0.1.10",
+   "shasum": "19e865ac45bfeb86793c39cde65c951df1877799",
+   "live": true
   },
-  "packedAcceptance": {
-    "game": "Runtime image installed from the fifteen archives with no workspace links (571 packages); create linked it and installed nothing; HeroBox opened with no story or mount failures; the game played and rendered; an Inspector edit wrote src/scenes/MainScene.tsx and undo/redo round-tripped it; prebundled chunks import three through the stable doorway; the orbit hint is absent from the bundles.",
-    "modeling": "The eight archives installed with no links (435 packages, 0 vulnerabilities); cube.blend opened with no failures in the Blender look; a Blender edit moved Cube and editor undo/redo round-tripped it. Note: a read-only blender-execute also records a history step."
+  "@volter/editor-core": {
+   "version": "0.5.67",
+   "shasum": "b72b29853e0343d745bf2cf4ebdc89fb00739fc8",
+   "live": true
   },
-  "installation": {
-    "initiallyEmptyCache": true,
-    "credentials": "none (env -i with a fresh HOME and npm cache)",
-    "path": "npx -y @volter/game-editor@0.5.66 create fresh-game installed the runtime image from the registry, linked it, downloaded the pinned game workbench anonymously and started a session; npx -y @volter/model-editor@0.5.66 create my-models did the same for the model editor."
+  "@volter/editor-dawproject": {
+   "version": "0.5.67",
+   "shasum": "145dd44efcb5eea23e275fd6f6c451e474dc1153",
+   "live": true
   },
-  "audit": "The model editor installs with 0 vulnerabilities. The game runtime image reports 8 (5 low, 3 moderate), all through colyseus -> @colyseus/auth -> grant/request-oauth (uuid, elliptic via jwk-to-pem); no upstream fix exists.",
-  "limitations": [
-    "macOS Apple Silicon only.",
-    "See WORK.md for the game editor's remaining list."
-  ],
-  "packages": [
-    {
-      "name": "@volter/blender-engine",
-      "version": "0.1.8",
-      "shasum": "c223842f24df05a1d63f1c55520f3b0818be51b5",
-      "state": "published"
-    },
-    {
-      "name": "@volter/editor-blender",
-      "version": "0.1.9",
-      "shasum": "050b664cfd1f7636bfab31e56ac3e6704652e93b",
-      "state": "published"
-    },
-    {
-      "name": "@volter/editor-core",
-      "version": "0.5.66",
-      "shasum": "1021cdfe24f6403813d964713e9b3da6befe504c",
-      "state": "published"
-    },
-    {
-      "name": "@volter/editor-game",
-      "version": "0.5.66",
-      "shasum": "a31c1daa4d956aeaab35be3610b263c4e7438c03",
-      "state": "published"
-    },
-    {
-      "name": "@volter/editor-live",
-      "version": "0.5.66",
-      "shasum": "0acec8a332df01b760857c1b1fe7057323d69dea",
-      "state": "published"
-    },
-    {
-      "name": "@volter/editor-project",
-      "version": "0.5.66",
-      "shasum": "2a0e5f578980f78b8cb7c78f0e39a346a239650b",
-      "state": "published"
-    },
-    {
-      "name": "@volter/editor-react",
-      "version": "0.5.66",
-      "shasum": "e1142ebd1fcb109a4443f73a07666ed19398a0b6",
-      "state": "published"
-    },
-    {
-      "name": "@volter/editor-sdk",
-      "version": "0.5.66",
-      "shasum": "6a8efdd5e06aae9046a57e3ed46917e09102c100",
-      "state": "published"
-    },
-    {
-      "name": "@volter/editor-threejs",
-      "version": "0.5.66",
-      "shasum": "c3617754e4ba394692693069be34030bdbcd8739",
-      "state": "published"
-    },
-    {
-      "name": "@volter/editor-xstate",
-      "version": "0.5.66",
-      "shasum": "f4baee55f13d9d75c0bf2741e3fa2d16dc92a9bd",
-      "state": "published"
-    },
-    {
-      "name": "@volter/game-editor",
-      "version": "0.5.66",
-      "shasum": "42fca9b88e335204b8125f03e1d0e9fbe5863270",
-      "state": "published"
-    },
-    {
-      "name": "@volter/game-live",
-      "version": "0.5.66",
-      "shasum": "db75ae732433babae97c2df550381009854db30f",
-      "state": "published"
-    },
-    {
-      "name": "@volter/game-runtime",
-      "version": "0.5.66",
-      "shasum": "aabbdbf49e4baca5e62c8c9149ad4b073645f83f",
-      "state": "published"
-    },
-    {
-      "name": "@volter/model-editor",
-      "version": "0.5.66",
-      "shasum": "d06ce466e358c5f65c285fedfe59cabc9b84251d",
-      "state": "published"
-    },
-    {
-      "name": "@volter/threejs-runtime",
-      "version": "0.5.66",
-      "shasum": "c4755bd84b6907d5478296d115b860bb4b378e8d",
-      "state": "published"
-    }
-  ]
+  "@volter/editor-game": {
+   "version": "0.5.67",
+   "shasum": "6c0445f2adf8820a3d0594ee802bccbc4cf1813b",
+   "live": true
+  },
+  "@volter/editor-live": {
+   "version": "0.5.67",
+   "shasum": "efc2bf2d7575f0b10e67ca69d4063b0508d3e6af",
+   "live": true
+  },
+  "@volter/editor-project": {
+   "version": "0.5.67",
+   "shasum": "7230d62b2b8559d0f7ef76b3f50ad7af4319c4b8",
+   "live": true
+  },
+  "@volter/editor-react": {
+   "version": "0.5.67",
+   "shasum": "b68b5eb5fb66ca9d82a867152a7935a7217780bc",
+   "live": true
+  },
+  "@volter/editor-sdk": {
+   "version": "0.5.67",
+   "shasum": "a7fe09a3cbf466707785c086bba5b7c66b93eb96",
+   "live": true
+  },
+  "@volter/editor-threejs": {
+   "version": "0.5.67",
+   "shasum": "8f70b2c09ef5e699d6fb7b157dd5f3c575a8cdcf",
+   "live": true
+  },
+  "@volter/editor-xstate": {
+   "version": "0.5.67",
+   "shasum": "5b99c7a18c64acb93f65267f319ebfe3a2e48c81",
+   "live": true
+  },
+  "@volter/game-editor": {
+   "version": "0.5.67",
+   "shasum": "b156da3ef5f85476aa870286d39dc2572dc8bd80",
+   "live": true
+  },
+  "@volter/game-live": {
+   "version": "0.5.67",
+   "shasum": "396ff4a82d431dc2c224a022b96898e3467827fb",
+   "live": true
+  },
+  "@volter/game-runtime": {
+   "version": "0.5.67",
+   "shasum": "c7b123deaa478d254f3b86cbc3a58d5de1c3d94a",
+   "live": true
+  },
+  "@volter/model-editor": {
+   "version": "0.5.67",
+   "shasum": "971a5bc2acf4db480e664a88f8cae42d91f95a54",
+   "live": false
+  },
+  "@volter/threejs-runtime": {
+   "version": "0.5.67",
+   "shasum": "99ea73f38d5557bf7ec83676187d16a8f2429db0",
+   "live": true
+  }
+ }
 }

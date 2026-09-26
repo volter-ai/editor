@@ -1,14 +1,18 @@
 # Public release status
 
-Volter Editor 0.5.66 (editor-blender 0.1.9, blender-engine 0.1.8) is public on npm from the tag
-`release-0.5.66-source`, both lists ([release/modeling.json](release/modeling.json),
-[release/game.json](release/game.json)), with `@volter/model-editor`, `@volter/editor-react` and
-`@volter/editor-xstate` published for the first time. All fifteen versions are live: every registry digest matches
-its tested archive, and every tarball downloads without credentials byte-identical to it. `npx @volter/game-editor
-create` and `npx @volter/model-editor create` each installed from an empty npm cache with no credentials and
-downloaded their pinned workbench anonymously. The model editor installs with zero vulnerabilities; the game runtime image reports
-eight low and moderate ones, all through colyseus's auth dependencies, with no upstream fix
-([provenance/public-npm-release.json](provenance/public-npm-release.json)).
+Volter Editor 0.5.67 (editor-blender 0.1.10, blender-engine 0.1.9) is public on npm from the tag
+`release-0.5.67-source`, both lists ([release/modeling.json](release/modeling.json),
+[release/game.json](release/game.json)), with `@volter/dawproject` and `@volter/editor-dawproject` published for
+the first time, so `add music` works outside a checkout: `npx @volter/game-editor@0.5.67 create`, run with no
+credentials and a fresh home, installed from the registry, downloaded its workbench anonymously, took `add music`,
+opened the Harbor example, rendered it through `project.music.render` with provenance, and undid a note drag
+byte-identically. Sixteen of seventeen versions are live, each registry digest matching its tested archive and each
+tarball downloading without credentials byte-identical to it. `@volter/model-editor` 0.5.67 was accepted by
+`npm publish` and is held by the registry as a staged version (`npm stage list` shows nothing to approve), so the
+model editor's `latest` is still 0.5.66; its archive passed packed acceptance (cube.blend, a Blender edit, undo and
+redo). Packed acceptance found and fixed three defects the checkout could not show: the SDK's undeclared CodeMirror
+imports, editor-threejs's undeclared react-dom, and an installed contribution package's CommonJS imports served raw
+(the piece document failed on every install) ([provenance/public-npm-release.json](provenance/public-npm-release.json)).
 
 ## Game editor (branch `game-editor`)
 
