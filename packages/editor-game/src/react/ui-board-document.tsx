@@ -31,7 +31,7 @@ import {
   rememberedPortableStory,
 } from '@volter/editor-sdk/kit/authoring/design-time-layers';
 import type { ComponentBoardContext } from '@volter/editor-sdk/kit/component-board-registry';
-import { RootDocumentContent } from '@volter/editor-core/components/world-documents';
+import { RootDocumentContent } from '@volter/editor-sdk/kit/components/world-documents';
 import type { DocumentPreviewSource } from '@volter/editor-sdk/kit/document-preview-source';
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import {
@@ -48,7 +48,7 @@ const uiCanvasPreview: DocumentPreviewSource = {
     JSON.stringify(getProjectPreviewStories().map(({ id, modulePath }) => [id, modulePath])),
   subscribe: subscribeProjectStoryModules,
   capture: async ({ width, height }) => {
-    const { captureDomStoryBoardPreview } = await import('@volter/editor-core/stories/story-capture');
+    const { captureDomStoryBoardPreview } = await import('@volter/editor-sdk/kit/stories/story-capture');
     return captureDomStoryBoardPreview(width, height);
   },
 };

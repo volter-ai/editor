@@ -13,7 +13,7 @@ import { installUtilityAutoOpen } from '@volter/editor-sdk/kit/workspace-utility
 import { AgentPresentationNotice } from './AgentPresentationNotice';
 import { useCenterDocuments } from './CenterDocuments';
 import { ensureCoreUtilitiesRegistered } from '@volter/editor-sdk/kit/components/core-utilities';
-import { installKindDocumentRefresh } from './kind-documents';
+import { installKindDocumentRefresh } from '@volter/editor-sdk/kit/components/kind-documents';
 import { ProjectLayout } from './ProjectLayout';
 import { PaletteActionPublisher } from './palette-action-publisher';
 import { ensureCoreStatusContributionsRegistered } from '@volter/editor-sdk/kit/components/status-contributions';

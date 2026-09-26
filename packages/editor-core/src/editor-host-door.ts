@@ -22,9 +22,9 @@ import { activeDocumentSourcePath, activeSaveDestination } from '@volter/editor-
 import { availabilityTickVersion, subscribeAvailabilityTick } from '@volter/editor-sdk/kit/availability-tick';
 import { setWorkerCallMeter } from '@volter/editor-sdk/kit/worker-call-metrics';
 import { beginPageWork } from '@volter/editor-sdk/kit/play-boot-phase';
-import { onCommandDispatched } from './command-dispatch';
+import { onCommandDispatched } from '@volter/editor-sdk/kit/command-dispatch';
 import { openToolDocument } from '@volter/editor-sdk/kit/components/tool-documents';
-import { onSessionSample } from './coverage/session-vitals';
+import { onSessionSample } from '@volter/editor-sdk/kit/coverage/session-vitals';
 import {
   documentContextFor,
   notifyDocumentContextChanged,
@@ -103,14 +103,14 @@ import {
   writeProjectLocalSection,
 } from '@volter/editor-sdk/kit/project-local-state';
 import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
-import { onProjectReady } from './project-ready';
+import { onProjectReady } from '@volter/editor-sdk/kit/project-ready';
 import { projectMounts } from '@volter/editor-sdk/kit/project-shape';
 import { onSessionEndedChange } from '@volter/editor-sdk/kit/session-tombstone';
-import { onBeforeSessionClose } from './session-close';
+import { onBeforeSessionClose } from '@volter/editor-sdk/kit/session-close';
 import { setSettingsProvider, subscribeSettingsProvider } from '@volter/editor-sdk/kit/settings/settings-provider';
 import { getSetting, inspectSetting, setSetting, subscribeSettings } from '@volter/editor-sdk/kit/settings-store';
 import { onShellStoreChange, shellStoreForHost } from '@volter/editor-sdk/kit/shell-store-door';
-import { captureActiveEditorDocument } from './editor-view-presentation';
+import { captureActiveEditorDocument } from '@volter/editor-sdk/kit/editor-view-presentation';
 import { focusedStageContext } from '@volter/editor-sdk/kit/stage-context';
 import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {

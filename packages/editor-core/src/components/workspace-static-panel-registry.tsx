@@ -4,9 +4,9 @@ import { Component, type ComponentType, type ErrorInfo, type ReactNode } from 'r
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { WORKSPACE_STATIC_PANELS, type WorkspaceStaticPanelKind } from '@volter/editor-sdk/kit/workspace-static-panels';
 import { AssetBrowser, type AssetBrowserServices } from './AssetBrowser';
-import { ChromeSlot } from './ChromeSlot';
+import { ChromeSlot } from '@volter/editor-sdk/kit/components/ChromeSlot';
 import { GameHierarchy } from './GameHierarchy';
-import { Inspector } from './Inspector';
+import { Inspector } from '@volter/editor-sdk/kit/components/Inspector';
 
 export interface WorkspaceStaticPanelDependencies {
   readonly assets?: AssetBrowserServices;

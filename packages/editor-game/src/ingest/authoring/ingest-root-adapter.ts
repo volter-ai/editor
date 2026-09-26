@@ -37,7 +37,7 @@ import { resolveThreeIngestRuntimeForEditor } from '../../host/three-ingest-runt
 import type { OidEntry } from '@volter/editor-react/source/oid-transform';
 import { createHttpSourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/source-write-backend';
 import { serverRecordsSourceWrites } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
-import { clearWorldAdoption, worldAdoptionRecorder } from '@volter/editor-core/world-adoption';
+import { clearWorldAdoption, worldAdoptionRecorder } from '@volter/editor-sdk/kit/world-adoption';
 import { markGameCssScope } from '@volter/editor-sdk/session/game-css-scope';
 import type { MountedThreeRoot } from '@volter/editor-project/adapter';
 import {

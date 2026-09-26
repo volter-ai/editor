@@ -1,8 +1,8 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 import { SHELL_OBJECT3D_DOCUMENT_WRITE_POLICY } from './authoring/shell-object3d-document-write-policy';
 
-import { connectCommandListener } from './command-listener';
-import { startSceneDocuments } from './components/scene-documents';
+import { connectCommandListener } from '@volter/editor-sdk/kit/command-listener';
+import { startSceneDocuments } from '@volter/editor-sdk/kit/components/scene-documents';
 import { reportTabCensus } from '@volter/editor-sdk/kit/editor-presence';
 import { EditorRuntimeProvider, type EditorStats } from '@volter/editor-sdk/kit/editor-runtime';
 import { ShellStore } from '@volter/editor-sdk/kit/shell-store';

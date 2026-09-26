@@ -10,7 +10,7 @@ import {
   themeVars,
   zIndex,
 } from '@volter/editor-sdk/widgets';
-import { authoringAdapterKey } from '../authoring/adapter-key';
+import { authoringAdapterKey } from '@volter/editor-sdk/kit/authoring/adapter-key';
 
 /**
  * GameHierarchy — the ONE hierarchy panel (A2). Replaces the former pair of
@@ -185,7 +185,7 @@ import {
   clearHierarchyPanelSnapshot,
   type HierarchyPanelSnapshot,
   publishHierarchyPanelSnapshot,
-} from '../hierarchy-panel-view';
+} from '@volter/editor-sdk/kit/hierarchy-panel-view';
 import {
   ancestorPathKeys,
   HierarchyRowCache,
@@ -219,7 +219,7 @@ import {
   chromeRegionsKey,
   subscribeChromeRegions,
 } from '@volter/editor-sdk/kit/workspace-regions';
-import { activateRootDocument } from '../world-document-routing';
+import { activateRootDocument } from '@volter/editor-sdk/kit/world-document-routing';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { hierarchyRowMedia, subscribeHierarchyRowMedia } from '@volter/editor-sdk/kit/hierarchy-row-media';
 

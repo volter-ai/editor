@@ -15,9 +15,9 @@ import {
   editorPresentationNotice,
   editorPresentationNoticeVersion,
   subscribeEditorPresentationNotice,
-} from '../editor-presentation-notice';
+} from '@volter/editor-sdk/kit/editor-presentation-notice';
 import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
-import { presentEditorView } from '../editor-view-presentation';
+import { presentEditorView } from '@volter/editor-sdk/kit/editor-view-presentation';
 
 const NOTIFICATION_ID = 'agent-presented-view';
 

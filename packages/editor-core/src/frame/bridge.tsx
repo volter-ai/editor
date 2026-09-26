@@ -61,14 +61,14 @@ import { subscribeAdapterEditorConfiguration } from '@volter/editor-sdk/kit/adap
 import { AppRoot } from '../components/AppRoot';
 import { CompactInspectorCard } from '../components/CompactInspectorCard';
 import { GameHierarchy } from '../components/GameHierarchy';
-import { Inspector, InspectorShownAsCard } from '../components/Inspector';
-import { ProjectHeader } from '../components/ProjectHeader';
+import { Inspector, InspectorShownAsCard } from '@volter/editor-sdk/kit/components/Inspector';
+import { ProjectHeader } from '@volter/editor-sdk/kit/components/ProjectHeader';
 import { DocumentView } from '../components/ProjectLayout';
 import { WorkspaceDocumentSurface } from '../components/WorkspaceDocumentSurface';
 import { WorkspaceUtilitySurface } from '../components/WorkspaceUtilitySurface';
 import { WorkspaceStaticPanelSurface } from '../components/workspace-static-panel-registry';
 import { installEditorConsoleReporting } from '../console-sync';
-import { installSessionVitals } from '../coverage/session-vitals';
+import { installSessionVitals } from '@volter/editor-sdk/kit/coverage/session-vitals';
 import {
   invokePaletteAction,
   paletteActions,
@@ -82,7 +82,7 @@ import { getProjectDefinePath } from '@volter/editor-sdk/kit/editor-mode';
 import { type EditorNotification, setNotificationDelegate } from '@volter/editor-sdk/kit/editor-notifications';
 import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import { clearHierarchyHeaderSlot, setHierarchyHeaderSlot } from '../hierarchy-header-slot';
-import { useActiveInspection } from '../inspection/use-active-inspection';
+import { useActiveInspection } from '@volter/editor-sdk/kit/inspection/use-active-inspection';
 import { installLayoutPolicy } from '@volter/editor-sdk/kit/layout-policy';
 import {
   installPlayTransitionDock,
@@ -126,7 +126,7 @@ import {
   type WorkspaceDocumentDescriptor,
   workspaceDocumentRegistryVersion,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { reopenKindDocument } from '../components/kind-documents';
+import { reopenKindDocument } from '@volter/editor-sdk/kit/components/kind-documents';
 import { requestAvailableWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-available-documents';
 import {
   installWorkspaceHostCommands,

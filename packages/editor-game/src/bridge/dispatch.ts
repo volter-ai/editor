@@ -14,7 +14,7 @@ import {
   InstanceResolutionError,
   systemsForInstance,
 } from '@volter/editor-sdk/kit/authoring/active-systems';
-import { collectPlayRunPageErrors } from '@volter/editor-core/command-listener';
+import { collectPlayRunPageErrors } from '@volter/editor-sdk/kit/command-listener';
 import { gameContractEpoch } from '../host/coverage/game-contract-seam-evidence';
 import { recordLiveSeamEvidence } from '@volter/editor-sdk/kit/live-seam-evidence';
 import { systemAdapterEpoch } from '@volter/editor-sdk/kit/system-seam-evidence';

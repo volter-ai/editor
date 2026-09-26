@@ -26,7 +26,7 @@
  *  Defined in a DOM-free module so the Node-side Vite plugin can import the same
  *  constant — see `game-globals-prelude.ts`. Re-exported here for the browser
  *  callers that already reach for it alongside the proxies. */
-export { GAME_GLOBALS_PRELUDE } from '@volter/editor-core/game-globals-prelude';
+export { GAME_GLOBALS_PRELUDE } from '@volter/editor-sdk/kit/game-globals-prelude';
 
 import { installCreationSiteRecorder } from '@volter/editor-sdk/kit/creation-site-registry';
 import { setConsoleRealmAttribution } from '@volter/editor-sdk/kit/editor-console';

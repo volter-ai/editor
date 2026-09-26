@@ -65,7 +65,7 @@ import { hierarchyProjectionFromProjectConfig } from '@volter/editor-sdk/kit/hie
 import { type JournalSubject, playJournal } from '../host/history/json-history-resource';
 import { isEditableTarget, setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
 import { projectBootstrapSettled } from '@volter/editor-sdk/kit/initial-project';
-import { registerGameNullSubject } from '@volter/editor-core/inspection/game-subject';
+import { registerGameNullSubject } from '@volter/editor-sdk/kit/inspection/game-subject';
 import { fetchGameManifest } from '@volter/editor-sdk/kit/manifest-project';
 import { registerPerformanceSource } from '@volter/editor-sdk/kit/performance-sources';
 import {

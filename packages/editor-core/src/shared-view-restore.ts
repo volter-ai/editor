@@ -15,7 +15,7 @@ import { useEffect } from 'react';
 import { activeProjectKey } from '@volter/editor-sdk/kit/active-project';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import { presentEditorView } from './editor-view-presentation';
+import { presentEditorView } from '@volter/editor-sdk/kit/editor-view-presentation';
 import { waitForWorkspaceStateRestore } from './workspace-state-persistence';
 
 export function useSharedViewRestore(store: ShellStore): void {

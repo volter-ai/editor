@@ -13,7 +13,7 @@ import {
   openWorkspaceDocument,
   type WorkspaceDocumentContentProps,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { registerRootDocumentRoute } from '@volter/editor-core/world-document-routing';
+import { registerRootDocumentRoute } from '@volter/editor-sdk/kit/world-document-routing';
 import type { ReactNode } from 'react';
 import { activeIngest } from './active-ingest';
 

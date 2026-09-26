@@ -34,10 +34,10 @@ import { type ReactNode, useState } from 'react';
 import * as THREE from 'three';
 // Side-effect: registers the model-asset section contributions (Geometry,
 // Animation, Materials, Source) into the inspector-section registry.
-import '@volter/editor-core/authoring/model-asset-inspector-section';
+import '../three/authoring/model-asset-inspector-section';
 import { ingestCoverageSection } from '@volter/editor-sdk/kit/CapabilityCoverageSection';
 import { InspectionProjectionView } from '@volter/editor-sdk/kit/components/InspectionProjection';
-import { AuthoringInspectorSurface } from '@volter/editor-core/components/Inspector';
+import { AuthoringInspectorSurface } from '@volter/editor-sdk/kit/components/Inspector';
 import { deriveCapabilityCoverage } from '../host/coverage/capability-coverage';
 import { createAuthoringFixture } from '../host/design-system-stories/fixtures/authoring';
 import { StoryEditorRuntime, storyThreeStore } from '../host/design-system-stories/fixtures/editor-runtime';

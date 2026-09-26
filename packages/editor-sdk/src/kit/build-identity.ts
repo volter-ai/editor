@@ -1,7 +1,8 @@
 import type { EditorServerCompatibility } from '@volter/editor-sdk/session/editor-compatibility';
 import enginePackage from '@volter/editor-project/package.json';
 import { GAME_MANIFEST_VERSION } from '@volter/editor-project/manifest/schema';
-import editorPackage from '../package.json';
+// The kit's packages release in lockstep, so the SDK's version is the editor's.
+import editorPackage from '../../package.json';
 
 /** Build-time package identity shared by browser-only editor surfaces. */
 export const BUNDLED_EDITOR_VERSION = editorPackage.version;

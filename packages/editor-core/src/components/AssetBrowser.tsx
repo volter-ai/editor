@@ -117,8 +117,8 @@ import {
 import { SpritesheetSpriteView } from '@volter/editor-sdk/kit/components/asset-viewers/SpritesheetSpriteView';
 import { DocumentThumbnail } from './DocumentThumbnail';
 import { FolderPreviewTile } from './FolderPreviewTile';
-import { openKindDocument, uneditedKindAssetKind } from './kind-documents';
-import { openSceneTableEntry } from './scene-documents';
+import { openKindDocument, uneditedKindAssetKind } from '@volter/editor-sdk/kit/components/kind-documents';
+import { openSceneTableEntry } from '@volter/editor-sdk/kit/components/scene-documents';
 
 // --- Helpers ---
 

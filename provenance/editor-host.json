@@ -139,7 +139,7 @@
     },
     {
       "source": "packages/editor/src/asset-inspector-actions.ts",
-      "path": "packages/editor-core/src/asset-inspector-actions.ts",
+      "path": "packages/editor-sdk/src/kit/asset-inspector-actions.ts",
       "sha256": "36375ee4dd7600096761963d2b482a989e167d0afdf9ad5bc025ee63bdf2c83a"
     },
     {
@@ -154,7 +154,7 @@
     },
     {
       "source": "packages/editor/src/asset-selection-viewer-registry.ts",
-      "path": "packages/editor-core/src/asset-selection-viewer-registry.ts",
+      "path": "packages/editor-sdk/src/kit/asset-selection-viewer-registry.ts",
       "sha256": "837fb4c6cb91e3afadb519962abf8906dc1d744731ba017883d9e775175173fe"
     },
     {
@@ -304,7 +304,7 @@
     },
     {
       "source": "packages/editor/src/authoring/adapter-key.ts",
-      "path": "packages/editor-core/src/authoring/adapter-key.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/adapter-key.ts",
       "sha256": "c371017544bc2a063034766bff0f548205bb4f6747c4316a79bcbf9953a6f44c"
     },
     {
@@ -459,7 +459,7 @@
     },
     {
       "source": "packages/editor/src/authoring/project-authoring-session.ts",
-      "path": "packages/editor-core/src/authoring/project-authoring-session.ts",
+      "path": "packages/editor-sdk/src/kit/authoring/project-authoring-session.ts",
       "sha256": "9d8c8ce0ec0451701bb988798961b8290625c64fec363280d7ace9c71a86eec2"
     },
     {
@@ -599,7 +599,7 @@
     },
     {
       "source": "packages/editor/src/build-identity.ts",
-      "path": "packages/editor-core/src/build-identity.ts",
+      "path": "packages/editor-sdk/src/kit/build-identity.ts",
       "sha256": "465aa3bf8e692237e2f3732003c58ca30ff6fb25ec1ad12916a184ab876f463c"
     },
     {
@@ -634,7 +634,7 @@
     },
     {
       "source": "packages/editor/src/chrome-slot-registry.ts",
-      "path": "packages/editor-core/src/chrome-slot-registry.ts",
+      "path": "packages/editor-sdk/src/kit/chrome-slot-registry.ts",
       "sha256": "a79cceb7fbbbbca4806b989f38c88d430517828df4c91684a6cad971de81bcac"
     },
     {
@@ -649,12 +649,12 @@
     },
     {
       "source": "packages/editor/src/command-dispatch.ts",
-      "path": "packages/editor-core/src/command-dispatch.ts",
+      "path": "packages/editor-sdk/src/kit/command-dispatch.ts",
       "sha256": "5a4a3349fb5424952ddb77faf081a72c657237887ac91380506a52bfd5f3bdd6"
     },
     {
       "source": "packages/editor/src/command-listener.ts",
-      "path": "packages/editor-core/src/command-listener.ts",
+      "path": "packages/editor-sdk/src/kit/command-listener.ts",
       "sha256": "17a48699d3c5202bef315024e57050b3a58c609a567aa1373a12672f97a0e20a"
     },
     {
@@ -689,7 +689,7 @@
     },
     {
       "source": "packages/editor/src/components/ApplicationMenus.tsx",
-      "path": "packages/editor-core/src/components/ApplicationMenus.tsx",
+      "path": "packages/editor-sdk/src/kit/components/ApplicationMenus.tsx",
       "sha256": "cb28d83187a5e94b1486ed96f75672401ee416dc8be353d740aee0755f3e4c6a"
     },
     {
@@ -704,12 +704,12 @@
     },
     {
       "source": "packages/editor/src/components/AssetInspectorToolSection.tsx",
-      "path": "packages/editor-core/src/components/AssetInspectorToolSection.tsx",
+      "path": "packages/editor-sdk/src/kit/components/AssetInspectorToolSection.tsx",
       "sha256": "3e53336af1c43fd6b30eaf82a7bce788ac6e837fadcc319cd6ce3ac391720a9e"
     },
     {
       "source": "packages/editor/src/components/BoardRulers.tsx",
-      "path": "packages/editor-core/src/components/BoardRulers.tsx",
+      "path": "packages/editor-sdk/src/kit/components/BoardRulers.tsx",
       "sha256": "f0fe581f859488462cc872a8e861e637d972ca6ab4e07d23511e757cf643c158"
     },
     {
@@ -734,7 +734,7 @@
     },
     {
       "source": "packages/editor/src/components/ChromeSlot.tsx",
-      "path": "packages/editor-core/src/components/ChromeSlot.tsx",
+      "path": "packages/editor-sdk/src/kit/components/ChromeSlot.tsx",
       "sha256": "542b32775cf5ee72bc151fc3b2999c5824b16a32f2b9cd5b1b34e2251e6e4d9f"
     },
     {
@@ -819,7 +819,7 @@
     },
     {
       "source": "packages/editor/src/components/Inspector.tsx",
-      "path": "packages/editor-core/src/components/Inspector.tsx",
+      "path": "packages/editor-sdk/src/kit/components/Inspector.tsx",
       "sha256": "1c682649d141e0cc1f9c46d4db0253aedc0ddf0054b33926c6953c1c00edea33"
     },
     {
@@ -889,7 +889,7 @@
     },
     {
       "source": "packages/editor/src/components/ProjectHeader.tsx",
-      "path": "packages/editor-core/src/components/ProjectHeader.tsx",
+      "path": "packages/editor-sdk/src/kit/components/ProjectHeader.tsx",
       "sha256": "67af3f9a51169ae48cec8a00c889e746442895e75383650882e593a69836c28a"
     },
     {
@@ -899,7 +899,7 @@
     },
     {
       "source": "packages/editor/src/components/ReactCanvasControls.tsx",
-      "path": "packages/editor-core/src/components/ReactCanvasControls.tsx",
+      "path": "packages/editor-sdk/src/kit/components/ReactCanvasControls.tsx",
       "sha256": "bd7d9dcd84132d9e39d4c01055c5c8ef90a64180dff287d937c09d79c5d15ae3"
     },
     {
@@ -979,7 +979,7 @@
     },
     {
       "source": "packages/editor/src/components/VersionControlSection.tsx",
-      "path": "packages/editor-core/src/components/VersionControlSection.tsx",
+      "path": "packages/editor-sdk/src/kit/components/VersionControlSection.tsx",
       "sha256": "3f9a6b7c4b8556f9b6f5d442043dd74e1736d182fe148a9b5907b7489a16b211"
     },
     {
@@ -1039,7 +1039,7 @@
     },
     {
       "source": "packages/editor/src/components/WorktreeSwitcher.tsx",
-      "path": "packages/editor-core/src/components/WorktreeSwitcher.tsx",
+      "path": "packages/editor-sdk/src/kit/components/WorktreeSwitcher.tsx",
       "sha256": "b7672d364f98ffe0dfee8c2aa553d04b5165a235a42fbac45fedb106146fafc6"
     },
     {
@@ -1059,7 +1059,7 @@
     },
     {
       "source": "packages/editor/src/components/asset-selection-section.tsx",
-      "path": "packages/editor-core/src/components/asset-selection-section.tsx",
+      "path": "packages/editor-sdk/src/kit/components/asset-selection-section.tsx",
       "sha256": "d131c8101924926b751938f43e4a06120919e21e92d28ef9a8bc268a48421c09"
     },
     {
@@ -1204,12 +1204,12 @@
     },
     {
       "source": "packages/editor/src/components/inspector-selection.ts",
-      "path": "packages/editor-core/src/components/inspector-selection.ts",
+      "path": "packages/editor-sdk/src/kit/components/inspector-selection.ts",
       "sha256": "2850ee050df00168e96e120da58141f6bd2cb20ca9c30bb7f3310e441050a974"
     },
     {
       "source": "packages/editor/src/components/inspector-stories-gating.ts",
-      "path": "packages/editor-core/src/components/inspector-stories-gating.ts",
+      "path": "packages/editor-sdk/src/kit/components/inspector-stories-gating.ts",
       "sha256": "054221345aab2c9a78d6bffa17c74d90e821d71c6f8eb99d745b03f443da611b"
     },
     {
@@ -1224,7 +1224,7 @@
     },
     {
       "source": "packages/editor/src/components/kind-documents.tsx",
-      "path": "packages/editor-core/src/components/kind-documents.tsx",
+      "path": "packages/editor-sdk/src/kit/components/kind-documents.tsx",
       "sha256": "8ef7f2a45c9d0003b62b6a3389976f1c33198d2e81731a1cdd3e1b4baaaceabb"
     },
     {
@@ -1249,7 +1249,7 @@
     },
     {
       "source": "packages/editor/src/components/scene-documents.tsx",
-      "path": "packages/editor-core/src/components/scene-documents.tsx",
+      "path": "packages/editor-sdk/src/kit/components/scene-documents.tsx",
       "sha256": "8ee8721797dbc65b72c88b0777010eb77f9013bd6f6c973622dc7b15d7c366df"
     },
     {
@@ -1324,7 +1324,7 @@
     },
     {
       "source": "packages/editor/src/components/world-documents.tsx",
-      "path": "packages/editor-core/src/components/world-documents.tsx",
+      "path": "packages/editor-sdk/src/kit/components/world-documents.tsx",
       "sha256": "2308a482fd2b83ee5e4d50b9ab51ae04a48036aefe6c09687ba15bd4af68d533"
     },
     {
@@ -1359,7 +1359,7 @@
     },
     {
       "source": "packages/editor/src/coverage/canvas-reveal.ts",
-      "path": "packages/editor-core/src/coverage/canvas-reveal.ts",
+      "path": "packages/editor-sdk/src/kit/coverage/canvas-reveal.ts",
       "sha256": "4f84f4f94b6eea7b106ccedaa2d37e51bfb2341ac6e4bfebcdbf91674c37ba67"
     },
     {
@@ -1374,12 +1374,12 @@
     },
     {
       "source": "packages/editor/src/coverage/ontology-invariants.ts",
-      "path": "packages/editor-core/src/coverage/ontology-invariants.ts",
+      "path": "packages/editor-sdk/src/kit/coverage/ontology-invariants.ts",
       "sha256": "f6f5af81ce28358894525b22a441526460b5a2fd32f9375af75383daf869e36c"
     },
     {
       "source": "packages/editor/src/coverage/session-vitals.ts",
-      "path": "packages/editor-core/src/coverage/session-vitals.ts",
+      "path": "packages/editor-sdk/src/kit/coverage/session-vitals.ts",
       "sha256": "e41a1d7645d4908a0ad74bc16148864edbe36d33375a813fe44d89e00982ceee"
     },
     {
@@ -1399,7 +1399,7 @@
     },
     {
       "source": "packages/editor/src/delegate-harness-registry.ts",
-      "path": "packages/editor-core/src/delegate-harness-registry.ts",
+      "path": "packages/editor-sdk/src/kit/delegate-harness-registry.ts",
       "sha256": "cf3bde4303fe1f18a6cd1acb2bd2b1b63d06c59dfce5543113a9ee24a82805a9"
     },
     {
@@ -1429,7 +1429,7 @@
     },
     {
       "source": "packages/editor/src/editor-chrome-capture.ts",
-      "path": "packages/editor-core/src/editor-chrome-capture.ts",
+      "path": "packages/editor-sdk/src/kit/editor-chrome-capture.ts",
       "sha256": "146adc1cd8d28edbde57505555b0a86541a6bdf02da840ddc250af1d8f12e957"
     },
     {
@@ -1444,17 +1444,17 @@
     },
     {
       "source": "packages/editor/src/editor-current-view.ts",
-      "path": "packages/editor-core/src/editor-current-view.ts",
+      "path": "packages/editor-sdk/src/kit/editor-current-view.ts",
       "sha256": "8f985763119c4aa76afbe75d833d42731eb7fea206a1ab797addc49ac48aed2c"
     },
     {
       "source": "packages/editor/src/editor-document-probe.ts",
-      "path": "packages/editor-core/src/editor-document-probe.ts",
+      "path": "packages/editor-sdk/src/kit/editor-document-probe.ts",
       "sha256": "8327f2645ccbd48f8064f253aba7e65ec0ba79d4968a06efa02ccd0312bde04e"
     },
     {
       "source": "packages/editor/src/editor-git-client.ts",
-      "path": "packages/editor-core/src/editor-git-client.ts",
+      "path": "packages/editor-sdk/src/kit/editor-git-client.ts",
       "sha256": "a66943b3470408806e70c50e064ffbe1fdbc54e6697938c6923440f233628cef"
     },
     {
@@ -1499,7 +1499,7 @@
     },
     {
       "source": "packages/editor/src/editor-presentation-notice.ts",
-      "path": "packages/editor-core/src/editor-presentation-notice.ts",
+      "path": "packages/editor-sdk/src/kit/editor-presentation-notice.ts",
       "sha256": "ffd6254f8ce7b35bd7419e0f70aa8f345d9c47bc8fbc84b0a704b9e3ce07bf7b"
     },
     {
@@ -1539,7 +1539,7 @@
     },
     {
       "source": "packages/editor/src/editor-view-presentation.ts",
-      "path": "packages/editor-core/src/editor-view-presentation.ts",
+      "path": "packages/editor-sdk/src/kit/editor-view-presentation.ts",
       "sha256": "01c0bf3a2131fb61d367e41de7d4ff6aaecb3b0a63f04fed180d3844169fa5df"
     },
     {
@@ -1594,7 +1594,7 @@
     },
     {
       "source": "packages/editor/src/gameplay-export-state.ts",
-      "path": "packages/editor-core/src/gameplay-export-state.ts",
+      "path": "packages/editor-sdk/src/kit/gameplay-export-state.ts",
       "sha256": "cf68dcba0993b253e8e29acb2610369d24ea0d5bad729d3a5cba70dc0e64da9b"
     },
     {
@@ -1659,7 +1659,7 @@
     },
     {
       "source": "packages/editor/src/hierarchy-panel-view.ts",
-      "path": "packages/editor-core/src/hierarchy-panel-view.ts",
+      "path": "packages/editor-sdk/src/kit/hierarchy-panel-view.ts",
       "sha256": "f8eaae940221cda560ac6bd4d8932f41987ca2698919617f06f83f0529f5530f"
     },
     {
@@ -1774,12 +1774,12 @@
     },
     {
       "source": "packages/editor/src/inspection/active-subject.ts",
-      "path": "packages/editor-core/src/inspection/active-subject.ts",
+      "path": "packages/editor-sdk/src/kit/inspection/active-subject.ts",
       "sha256": "b4a6e47d71312b79d311e758482947908a7b2f9e677ced7ae61a515391451601"
     },
     {
       "source": "packages/editor/src/inspection/active-surface.ts",
-      "path": "packages/editor-core/src/inspection/active-surface.ts",
+      "path": "packages/editor-sdk/src/kit/inspection/active-surface.ts",
       "sha256": "4fee63a5a5ffab65537129d56822ce6e80b4641e3b0818ae8cae542f1025a03e"
     },
     {
@@ -1789,7 +1789,7 @@
     },
     {
       "source": "packages/editor/src/inspection/display.ts",
-      "path": "packages/editor-core/src/inspection/display.ts",
+      "path": "packages/editor-sdk/src/kit/inspection/display.ts",
       "sha256": "27db0c6aa510bc3b8f7cf0befe02e08514a3ebf7dca1f225702b84c588a26d7d"
     },
     {
@@ -1799,7 +1799,7 @@
     },
     {
       "source": "packages/editor/src/inspection/game-subject.ts",
-      "path": "packages/editor-core/src/inspection/game-subject.ts",
+      "path": "packages/editor-sdk/src/kit/inspection/game-subject.ts",
       "sha256": "a3d3ed982b5fd212de9ca285d95e983a11e2f55151f955781101625d8c89d907"
     },
     {
@@ -1814,12 +1814,12 @@
     },
     {
       "source": "packages/editor/src/inspection/serialize.ts",
-      "path": "packages/editor-core/src/inspection/serialize.ts",
+      "path": "packages/editor-sdk/src/kit/inspection/serialize.ts",
       "sha256": "1261e24f340334db47424a5b8ef0baf3787d9cee4de7c7ef3c107e490c52b36d"
     },
     {
       "source": "packages/editor/src/inspection/use-active-inspection.ts",
-      "path": "packages/editor-core/src/inspection/use-active-inspection.ts",
+      "path": "packages/editor-sdk/src/kit/inspection/use-active-inspection.ts",
       "sha256": "162ae12ed5703f98dab47e6d0cc9169e3faf7916617b75e009e23229953b5cca"
     },
     {
@@ -1864,7 +1864,7 @@
     },
     {
       "source": "packages/editor/src/learn-links.ts",
-      "path": "packages/editor-core/src/learn-links.ts",
+      "path": "packages/editor-sdk/src/kit/learn-links.ts",
       "sha256": "b70e78afd2c0bd2b308d1d0950ada4aafdbebdd80350b7824ea1654f423cad62"
     },
     {
@@ -1994,7 +1994,7 @@
     },
     {
       "source": "packages/editor/src/project-ready.ts",
-      "path": "packages/editor-core/src/project-ready.ts",
+      "path": "packages/editor-sdk/src/kit/project-ready.ts",
       "sha256": "13b4bc114794b3b921c5a7ed052e6743ed77ce68b15fbb1a69452042076eee11"
     },
     {
@@ -2039,7 +2039,7 @@
     },
     {
       "source": "packages/editor/src/reported-play-state.ts",
-      "path": "packages/editor-core/src/reported-play-state.ts",
+      "path": "packages/editor-sdk/src/kit/reported-play-state.ts",
       "sha256": "b42e5524dddfb281d9f020a9c9ff43ba706878be666d8b9bedf9f5eea9762cad"
     },
     {
@@ -2059,7 +2059,7 @@
     },
     {
       "source": "packages/editor/src/scene-live-open.ts",
-      "path": "packages/editor-core/src/scene-live-open.ts",
+      "path": "packages/editor-sdk/src/kit/scene-live-open.ts",
       "sha256": "48aff85b1e4de12c5e62bd19117b3e452c11ea08997ea02476ecc3a2e3c4cc60"
     },
     {
@@ -2129,7 +2129,7 @@
     },
     {
       "source": "packages/editor/src/state-report-deferral.ts",
-      "path": "packages/editor-core/src/state-report-deferral.ts",
+      "path": "packages/editor-sdk/src/kit/state-report-deferral.ts",
       "sha256": "ca1c78b28097fffe1c4d54cff98254b75d92bab62b761709f71e7c263d2cd818"
     },
     {
@@ -2174,7 +2174,7 @@
     },
     {
       "source": "packages/editor/src/stories/StoryPreviewMount.tsx",
-      "path": "packages/editor-core/src/stories/StoryPreviewMount.tsx",
+      "path": "packages/editor-sdk/src/kit/stories/StoryPreviewMount.tsx",
       "sha256": "86f711a2e0516e9a4a5b6bf2a0ed57feab9e38e19c0f3a1bd10e9f14287eecd3"
     },
     {
@@ -2229,7 +2229,7 @@
     },
     {
       "source": "packages/editor/src/stories/story-capture.ts",
-      "path": "packages/editor-core/src/stories/story-capture.ts",
+      "path": "packages/editor-sdk/src/kit/stories/story-capture.ts",
       "sha256": "d05bf0f48a882ba3b7081f501eb856083dd0b22bdf47f0f551081adbf24ce6de"
     },
     {
@@ -2619,12 +2619,12 @@
     },
     {
       "source": "packages/editor/src/world-adoption.ts",
-      "path": "packages/editor-core/src/world-adoption.ts",
+      "path": "packages/editor-sdk/src/kit/world-adoption.ts",
       "sha256": "c95aa6ee3eff4f4593968239b7188caa320ded89b9dbb9464a45219858c70a6f"
     },
     {
       "source": "packages/editor/src/world-document-routing.ts",
-      "path": "packages/editor-core/src/world-document-routing.ts",
+      "path": "packages/editor-sdk/src/kit/world-document-routing.ts",
       "sha256": "afeb0a6a1d641c3483d018540abd845aae79b7a7e0915237c09ba5601683db51"
     },
     {

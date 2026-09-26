@@ -29,7 +29,7 @@
  */
 
 import { getActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
-import { setGameplayExportActive } from '@volter/editor-core/gameplay-export-state';
+import { setGameplayExportActive } from '@volter/editor-sdk/kit/gameplay-export-state';
 import { stopGameplayRecording } from '../src/host/gameplay-recording';
 import { liveInstanceContainer } from '@volter/editor-sdk/kit/live-session-registry';
 import type { CommandContribution } from '@volter/editor-sdk/commands';

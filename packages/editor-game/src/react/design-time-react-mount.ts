@@ -83,7 +83,7 @@ import { activeRealmServices } from '../host/realm-services';
 import { resolveReactAdapterRootComponent } from '../host/roots/react-root';
 import { scopedGameStylesState } from '@volter/editor-sdk/kit/scoped-game-css';
 import { componentIdentityName } from '@volter/editor-sdk/kit/stories/compose-project-stories';
-import { mountIsolatedStory } from '@volter/editor-core/stories/StoryPreviewMount';
+import { mountIsolatedStory } from '@volter/editor-sdk/kit/stories/StoryPreviewMount';
 import {
   createStoryPresentationIndex,
   storyBoardPresentation,

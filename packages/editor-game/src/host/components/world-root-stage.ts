@@ -58,7 +58,7 @@ import {
   endAuthoringTransformEdit,
 } from '@volter/editor-sdk/kit/authoring/consumer-actions';
 import { designTimeMountFor } from '@volter/editor-sdk/kit/authoring/design-time-mount-registry';
-import { attachProjectAuthoringStage } from '@volter/editor-core/authoring/project-authoring-session';
+import { attachProjectAuthoringStage } from '@volter/editor-sdk/kit/authoring/project-authoring-session';
 import {
   isThreejsSurfaceVisible,
   resolveThreeViewportRootId,
@@ -71,7 +71,7 @@ import {
   installCameraAuthoringHost,
 } from '@volter/editor-threejs/kit/camera-authoring';
 import { registerPresentedCanvasFrame } from '../canvas-preview-frames';
-import { collectState } from '@volter/editor-core/command-listener';
+import { collectState } from '@volter/editor-sdk/kit/command-listener';
 import { getDownloadedAssetPath, getOnlineAssetFiles, reportEditorState } from '@volter/editor-sdk/kit/editor-api';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { isEditorPresentationActive } from '@volter/editor-sdk/kit/editor-presentation-activity';

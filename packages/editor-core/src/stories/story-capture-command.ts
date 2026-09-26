@@ -104,7 +104,7 @@ async function handle(cmd: EditorCommandMessage): Promise<EditorCommandResult> {
     if (typeof cameraChoice === 'string') return { ok: false, error: cameraChoice };
     const posedClip = parsePoseChoice(VERB, cmd['pose']);
     if (typeof posedClip === 'string') return { ok: false, error: posedClip };
-    const { captureProjectStoryVariants } = await import('./story-capture');
+    const { captureProjectStoryVariants } = await import('@volter/editor-sdk/kit/stories/story-capture');
     const capture = await captureProjectStoryVariants(getCurrentProject(), {
       modulePath,
       ...(story === undefined ? {} : { story }),

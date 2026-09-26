@@ -31,7 +31,7 @@ import { resetAvailableWorkspaceDocuments } from '@volter/editor-sdk/kit/workspa
 import { clearSelectedAsset } from '@volter/editor-sdk/kit/asset-selection';
 import { setActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { resetActiveSystemsForNewProject } from '@volter/editor-sdk/kit/authoring/active-systems';
-import { resetSessionVitalsForNewProject } from './coverage/session-vitals';
+import { resetSessionVitalsForNewProject } from '@volter/editor-sdk/kit/coverage/session-vitals';
 import { stopAllLiveSessions } from '@volter/editor-sdk/kit/live-session-registry';
 import { onProjectSessionEnd } from '@volter/editor-sdk/kit/project-manager';
 import { resetViewportActivationTimingsForNewProject } from '@volter/editor-sdk/kit/viewport-activation-timings';

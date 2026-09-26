@@ -31,7 +31,7 @@ import { scopeGameCss } from './server/scoped-game-css';
 // The DOM-free prelude module, NOT `src/gated-globals.ts`: this file is reachable
 // from `tsconfig.server.json` (via `server/dev.ts`), which compiles without the
 // DOM lib and so cannot see `window`/`document`/`EventListenerOrEventListenerObject`.
-import { gameGlobalsPrelude } from './src/game-globals-prelude';
+import { gameGlobalsPrelude } from '@volter/editor-sdk/kit/game-globals-prelude';
 import { EDITOR_TREE_QUERY } from './vite-plugin-shared-react';
 
 /**

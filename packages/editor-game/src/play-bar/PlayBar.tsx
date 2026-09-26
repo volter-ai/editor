@@ -4,7 +4,7 @@ import {
   startConfiguration,
   stopConfiguration,
 } from '../host/api/configurations';
-import { isGameplayExportActive, subscribeGameplayExport } from '@volter/editor-core/gameplay-export-state';
+import { isGameplayExportActive, subscribeGameplayExport } from '@volter/editor-sdk/kit/gameplay-export-state';
 import { PLAY_CONTROL_TEST_ID } from '../host/play-control-hook';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons';

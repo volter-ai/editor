@@ -24,7 +24,7 @@ import { EDITOR_BRAND } from '@volter/editor-sdk/session/editor-brand';
  */
 
 import type { ServerProjectFailureReport } from '@volter/editor-sdk/kit/boot-routing';
-import { BUNDLED_EDITOR_VERSION, BUNDLED_ENGINE_VERSION } from '../build-identity';
+import { BUNDLED_EDITOR_VERSION, BUNDLED_ENGINE_VERSION } from '@volter/editor-sdk/kit/build-identity';
 import { ErrorBanner, type ScreenError } from './ErrorBanner';
 import { VgaiLogo } from '@volter/editor-sdk/kit/components/VgaiLogo';
 
