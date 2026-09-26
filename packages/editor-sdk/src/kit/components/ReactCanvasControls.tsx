@@ -4,8 +4,18 @@ import {
   faMagnifyingGlassPlus,
   faRotate,
 } from '@fortawesome/free-solid-svg-icons';
-import { Button, EditorIcon, FloatingToolbar, IconButton, Select } from '@volter/editor-sdk/widgets';
-import { type RefObject, useCallback, useSyncExternalStore } from 'react';
+import {
+  AnchoredMenu,
+  Button,
+  EditorIcon,
+  FloatingToolbar,
+  IconButton,
+  MenuItem,
+  MenuSeparator,
+  Select,
+  TextInput,
+} from '@volter/editor-sdk/widgets';
+import { type RefObject, useCallback, useRef, useState, useSyncExternalStore } from 'react';
 import {
   fitReactStoryBoard,
   getReactStoryBoardViewport,
@@ -251,15 +261,12 @@ export function ReactCanvasControls({
         >
           <EditorIcon icon={faMagnifyingGlassMinus} size="md" />
         </IconButton>
-        <Button
-          variant="ghost"
-          aria-label="Reset zoom to 100%"
-          title="Reset zoom to 100%"
-          size="comfortable"
-          onClick={() => zoomAroundCenter(1)}
-        >
-          {Math.round(view.zoom * 100)}%
-        </Button>
+        <ZoomMenu
+          zoom={view.zoom}
+          zoomTo={zoomAroundCenter}
+          {...(hasStoryBoard ? { fit: fitBoard } : {})}
+          {...(!boardOnly && store.selectedEntityIds.size > 0 ? { toSelection: zoomToSelection } : {})}
+        />
         <IconButton
           aria-label="Zoom in"
           title="Zoom in"
@@ -279,6 +286,72 @@ export function ReactCanvasControls({
           </IconButton>
         )}
       </FloatingToolbar>
+    </>
+  );
+}
+
+/**
+ * Figma's zoom menu, opened from the zoom percentage: the zoom typed as a percentage, Zoom in and
+ * out, Zoom to fit, 50%, 100% and 200%, and Zoom to selection when there is one.
+ */
+function ZoomMenu({
+  zoom,
+  zoomTo,
+  fit,
+  toSelection,
+}: {
+  zoom: number;
+  zoomTo: (zoom: number) => void;
+  fit?: () => void;
+  toSelection?: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const act = (run: () => void) => () => {
+    run();
+    setOpen(false);
+  };
+  return (
+    <>
+      <Button
+        ref={triggerRef}
+        variant="ghost"
+        aria-label="Zoom"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        title="Zoom"
+        size="comfortable"
+        onClick={() => setOpen(!open)}
+      >
+        {Math.round(zoom * 100)}%
+      </Button>
+      {open && (
+        <AnchoredMenu anchorRef={triggerRef} align="end" clamp aria-label="Zoom" onDismiss={() => setOpen(false)}>
+          <div style={{ padding: '4px 8px' }}>
+            <TextInput
+              aria-label="Zoom percentage"
+              defaultValue={String(Math.round(zoom * 100))}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter') return;
+                const percent = Number.parseFloat(event.currentTarget.value);
+                if (Number.isFinite(percent) && percent > 0) {
+                  zoomTo(percent / 100);
+                  setOpen(false);
+                }
+              }}
+            />
+          </div>
+          <MenuSeparator />
+          <MenuItem onSelect={act(() => zoomTo(zoom * 1.2))}>Zoom in</MenuItem>
+          <MenuItem onSelect={act(() => zoomTo(zoom / 1.2))}>Zoom out</MenuItem>
+          {fit ? <MenuItem onSelect={act(fit)}>Zoom to fit</MenuItem> : null}
+          {toSelection ? <MenuItem onSelect={act(toSelection)}>Zoom to selection</MenuItem> : null}
+          <MenuSeparator />
+          {[0.5, 1, 2].map((preset) => (
+            <MenuItem key={preset} onSelect={act(() => zoomTo(preset))}>{`Zoom to ${preset * 100}%`}</MenuItem>
+          ))}
+        </AnchoredMenu>
+      )}
     </>
   );
 }

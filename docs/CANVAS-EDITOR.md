@@ -87,6 +87,8 @@ the tool strip and snap control are the kit's `Toolbar.tsx`. Walked on a `canvas
 | Group / Ungroup selected node (toolbar), `grouped` beside `locked` | Group | present, kept as the lock is (walked: with the root grouped, a click on a child selected the root; ungrouped, the child) |
 | The selection frame turned with a rotated node: its eight handles on the node's own box, the rotate handle above its own top edge, its own size in the label; a handle resizes along the node's axes with the opposite corner held | Select mode's frame on a rotated node | present (walked: a turned 120×120 square resized to 153×139, `scale={{ x: 1.2746, y: 1.161 }}`, its NW corner still at the same pixel after the write) |
 | The origin handle (the dot at a container's `pivot`, a sprite's `anchor`), dragged | Pivot mode ("Click to change object's pivot") | in the Pixi adapter's `spatialHandles`: the drag writes the origin and compensates `position` in one undo step; not walked here |
+| `2D` board: the zoom percentage opens a menu with the zoom typed as a percentage, Zoom in and out, Zoom to fit, Zoom to 50%, 100% and 200% | Figma's zoom menu | present (walked: 250 typed read 250%, Zoom to 50% read 50%, Zoom to fit framed the board). Partial: it sits in the board's floating bar at the bottom right, where Figma's sits at the top of the properties panel; Figma's view toggles in that menu (pixel preview, layout grids) have no counterpart |
+| `2D` board: its frames in a layers list | Figma's layers panel | missing: with the board active the outliner still lists the world; the board's frames have no authoring adapter to list them |
 
 ## Gaps, the work order
 
@@ -99,5 +101,5 @@ with Alt+right-click's list, the List Select and Pivot modes, Lock and Group kep
 menu's Grid states and Show Helpers, and Skew in the Inspector's Transform.
 
 1. The View menu's Position and Transformation gizmos and Preview items.
-2. The `2D` board against Figma: the layers list for its frames and the zoom menu; its zoom sits
-   bottom-right where Figma's sits at the top of the properties panel.
+2. The `2D` board against Figma: a layers list for its frames; its zoom sits bottom-right where
+   Figma's sits at the top of the properties panel.
