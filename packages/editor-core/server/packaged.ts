@@ -996,6 +996,15 @@ async function main(): Promise<void> {
     process.exit(0);
   }
   const vite = await createViteServer(resolvedViteConfig);
+  /** Let the dev server serve every root a project's packages resolve to: on opening a project,
+   *  and before a `/@fs/` request outside every allowed root (below). Add-only, like the boot
+   *  set. */
+  const allowServingRoots = (projectRoot: string): void => {
+    const allowed = vite.config.server.fs.allow;
+    for (const root of projectServingRoots(projectRoot)) {
+      if (!allowed.includes(root)) allowed.push(root);
+    }
+  };
 
   // 2. Mount editor API routes (/__editor/*). `engineRoot` identifies the
   //    running packaged editor for runtime capability checks.
@@ -1054,13 +1063,10 @@ async function main(): Promise<void> {
       console.log('[vgai-editor] project dependencies changed; reloaded project modules.');
     },
     onProjectOpened(newProjectPath: string) {
-      const allowed = vite.config.server.fs.allow;
       // The newly opened project's OWN install roots, not just its folder —
       // a project switched into at runtime has exactly the hoisting/symlink
       // shapes the boot-time set above exists for.
-      for (const root of projectServingRoots(newProjectPath)) {
-        if (!allowed.includes(root)) allowed.push(root);
-      }
+      allowServingRoots(newProjectPath);
       projectRoots.add(newProjectPath);
       vite.watcher.add(newProjectPath);
       currentProjectRoot = newProjectPath;
@@ -1084,6 +1090,20 @@ async function main(): Promise<void> {
   //    node_modules). `appType: 'custom'` means it calls `next()` instead of
   //    synthesizing an HTML/404 response for anything else, so requests for
   //    the editor's OWN app (`/`, `/assets/*`) fall through to step 4.
+  // A capability added under a live session (`add music`) declares a package whose root, in a
+  // checkout-linked game its `file:` folder, sits outside every root allowed at boot: its
+  // contributions answered 403 until the session restarted. The page asks for them as soon as
+  // package.json names them, ahead of any file watcher, so the roots are re-read from the
+  // project's package.json on the request itself, before Vite checks it.
+  app.use((req, _res, next) => {
+    const url = req.url ?? '';
+    if (url.startsWith('/@fs/')) {
+      const file = path.resolve(decodeURIComponent(url.slice('/@fs'.length).split('?')[0] ?? ''));
+      const allowed = vite.config.server.fs.allow;
+      if (!allowed.some((root) => file === root || file.startsWith(`${root}${path.sep}`))) allowServingRoots(currentProjectRoot);
+    }
+    next();
+  });
   app.use(vite.middlewares);
 
   // 3b. The Code-OSS frame's entry into this build (routes/served-modules.ts
