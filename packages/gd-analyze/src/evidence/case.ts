@@ -147,6 +147,20 @@ export interface GodotLanguageCase {
     readonly steps: readonly string[];
     /** The native entity the generated class is constructed on (its `$native`), when it has one. */
     readonly native?: () => unknown;
+    /**
+     * A scene file (by name) whose root carries the class: the native side instantiates it in
+     * place of `.new()`, so the instance has the scene's children; `native` builds the same tree.
+     */
+    readonly scene?: string;
+    /**
+     * Seats the constructed instance on its native tree as the composition site does (the Node
+     * protocol's adoption), given the generated classes by name for scripted children.
+     */
+    readonly adopt?: (
+      instance: object,
+      native: unknown,
+      classes: ReadonlyMap<string, new (native?: unknown) => object>,
+    ) => void;
   };
   readonly comparator: GodotEvidenceComparator;
 }

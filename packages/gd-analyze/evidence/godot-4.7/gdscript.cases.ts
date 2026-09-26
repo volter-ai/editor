@@ -1,4 +1,5 @@
-import { Object3D } from 'three';
+import { Group, Object3D } from 'three';
+import { add_child, godot_node_adopt } from '../../capabilities/catalog/project-source/src/lib/godot-compat/node';
 import * as V from '../../capabilities/catalog/project-source/src/lib/godot-compat/vector3';
 import type {
   GodotLanguageCase,
@@ -187,10 +188,50 @@ rule('script-equal', 'BINARY_OPERATOR', 'operator:OP_COMP_EQUAL:0', [CLASS, CLAS
   symbol: 'OperatorEvaluatorObjectEqual (identity)',
   line: 509,
 });
+rule('script-equal-object', 'BINARY_OPERATOR', 'operator:OP_COMP_EQUAL:0', [CLASS, NATIVE], B, { kind: 'binary', operator: '===' }, {
+  file: VARIANT_OP,
+  symbol: 'OperatorEvaluatorObjectEqual (identity)',
+  line: 509,
+});
+rule('script-equal-null', 'BINARY_OPERATOR', 'operator:OP_COMP_EQUAL:0', [CLASS, B], B, { kind: 'binary', operator: '===' }, {
+  file: VARIANT_OP,
+  symbol: 'OperatorEvaluatorObjectNil (null identity)',
+  line: 510,
+});
 rule('object-equal', 'BINARY_OPERATOR', 'operator:OP_COMP_EQUAL:0', [NATIVE, NATIVE], B, { kind: 'binary', operator: '===' }, {
   file: VARIANT_OP,
   symbol: 'OperatorEvaluatorObjectEqual (identity)',
   line: 509,
+});
+
+// ---------------------------------------------------------------------------------------------
+// The scene tree from script: `$Path`, type tests and casts on objects.
+
+rule('get-node', 'GET_NODE', 'get-node', [], NATIVE, structural('get-node'), {
+  file: COMPILER,
+  symbol: 'GDScriptCompiler::_parse_expression GET_NODE (Node.get_node on self)',
+  line: 744,
+});
+for (const [id, test, operand] of [
+  ['type-test-native-on-native', 'native', NATIVE],
+  ['type-test-native-on-script', 'native', CLASS],
+  ['type-test-script-on-native', 'script', NATIVE],
+] as const) {
+  rule(id, 'TYPE_TEST', `type-test:${test}`, [operand], B, structural('type-test'), {
+    file: 'modules/gdscript/gdscript_vm.cpp',
+    symbol: test === 'native' ? 'OPCODE_TYPE_TEST_NATIVE' : 'OPCODE_TYPE_TEST_SCRIPT',
+    line: test === 'native' ? 932 : 954,
+  });
+}
+rule('cast-native-on-native', 'CAST', 'cast:native', [NATIVE], NATIVE, structural('cast'), {
+  file: 'modules/gdscript/gdscript_vm.cpp',
+  symbol: 'OPCODE_CAST_TO_NATIVE',
+  line: 1656,
+});
+rule('cast-script-on-native', 'CAST', 'cast:script', [NATIVE], CLASS, structural('cast'), {
+  file: 'modules/gdscript/gdscript_vm.cpp',
+  symbol: 'OPCODE_CAST_TO_SCRIPT',
+  line: 1687,
 });
 
 // ---------------------------------------------------------------------------------------------
@@ -390,7 +431,7 @@ for (const id of ['member-constant-native', 'member-constant-class', 'member-var
 
 // An Array literal is a new JS array of its elements in source order, typed or not (a typed
 // array's element checks never fail on a well-typed program the analyzer accepted).
-for (let elements = 0; elements <= 3; elements += 1) {
+for (const elements of [0, 1, 2, 3, 5, 8]) {
   rule(
     `array-literal-${String(elements)}`,
     'ARRAY',
@@ -430,6 +471,19 @@ for (const [kind, type] of [
 rule('native-property-builtin', 'IDENTIFIER', 'member-identifier:native-property', [], B, { kind: 'binding' }, {
   file: 'core/object/object.cpp',
   symbol: 'Object::get / Object::set through ClassDB property accessors',
+  line: 243,
+});
+// A NodePath literal (`get_node("A/C")`'s argument, converted at compile time) is its path text,
+// which Node.get_node walks (godot-compat/node.ts).
+rule('literal-node-path', 'LITERAL', 'literal:opaque:reduced', [], 'BUILTIN:NodePath', structural('literal'), {
+  file: COMPILER,
+  symbol: 'GDScriptCompiler::_parse_expression LITERAL (NodePath constant)',
+  line: 229,
+});
+// A native object's property (`$A.name`) reads through its API-dump getter on the object.
+rule('native-property-read-builtin', 'SUBSCRIPT', 'subscript-attribute:native-property', [NATIVE], B, { kind: 'binding' }, {
+  file: 'core/object/object.cpp',
+  symbol: 'Object::get through ClassDB property accessors',
   line: 243,
 });
 // ClassDB integer constants and enum values are their values (the API dump states them).
@@ -979,6 +1033,115 @@ func get_derived_late() -> float:
 \treturn derived_late
 `;
 
+/** `$Path` and `get_node` on a scene the script's root carries. */
+const NODE_PATH_SOURCE = `class_name NodePathCases
+extends Node
+
+func name_a() -> StringName:
+\treturn $A.name
+
+func name_b() -> StringName:
+\treturn $A/B.name
+
+func name_c() -> StringName:
+\treturn get_node("A/C").name
+
+func name_quoted() -> StringName:
+\treturn $"A/B".name
+
+func same_node() -> bool:
+\treturn $A == get_node("A")
+
+func parent_of_b() -> bool:
+\treturn $A/B.get_parent() == $A
+`;
+
+const NODE_PATH_SCENE = `[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://node_path_cases.gd" id="1_cases"]
+
+[node name="Root" type="Node"]
+script = ExtResource("1_cases")
+
+[node name="A" type="Node" parent="."]
+
+[node name="B" type="Node" parent="A"]
+
+[node name="C" type="Node" parent="A"]
+`;
+
+const TAGGED_SOURCE = `class_name Tagged
+extends Node3D
+`;
+
+const DERIVED_TAGGED_SOURCE = `class_name DerivedTagged
+extends Tagged
+`;
+
+/** Type tests and casts over a scene of native and scripted nodes. */
+const TYPE_SOURCE = `class_name TypeCases
+extends Node3D
+
+func natives() -> Array:
+\tvar body: Node = $Body
+\tvar character: Node = $Character
+\tvar plain: Node = $Plain
+\tvar me: Node = self
+\treturn [body is RigidBody3D, body is PhysicsBody3D, body is CharacterBody3D, character is PhysicsBody3D, plain is Node3D, plain is Node, self is Node3D, me is RigidBody3D]
+
+func scripts() -> Array:
+\tvar tagged: Node = $Tagged
+\tvar derived: Node = $Derived
+\tvar body: Node = $Body
+\treturn [tagged is Tagged, derived is Tagged, tagged is DerivedTagged, derived is DerivedTagged, body is Tagged]
+
+func nulls() -> Array:
+\tvar nothing: Node = null
+\treturn [nothing is Node, nothing is Tagged]
+
+func casts() -> Array:
+\tvar body: Node = $Body
+\tvar tagged: Node = $Tagged
+\tvar derived: Node = $Derived
+\tvar nothing: Node = null
+\treturn [body as RigidBody3D == body, body as CharacterBody3D == null, derived as Tagged == derived, tagged as DerivedTagged == null, nothing as Node3D == null]
+`;
+
+const TYPE_SCENE = `[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://type_cases.gd" id="1_cases"]
+[ext_resource type="Script" path="res://tagged.gd" id="2_tagged"]
+[ext_resource type="Script" path="res://derived_tagged.gd" id="3_derived"]
+
+[node name="Root" type="Node3D"]
+script = ExtResource("1_cases")
+
+[node name="Body" type="RigidBody3D" parent="."]
+
+[node name="Character" type="CharacterBody3D" parent="."]
+
+[node name="Plain" type="Node" parent="."]
+
+[node name="Tagged" type="Node3D" parent="."]
+script = ExtResource("2_tagged")
+
+[node name="Derived" type="Node3D" parent="."]
+script = ExtResource("3_derived")
+`;
+
+/** A native node as the composition site adopts it: its kind and its Godot class chain. */
+function nativeNode(name: string, classes: readonly string[], parent?: Object3D): Object3D {
+  const entity = classes.includes('Node3D') ? new Object3D() : new Group();
+  entity.name = name;
+  godot_node_adopt(entity, { kind: classes.includes('Node3D') ? 'spatial' : 'node', classes });
+  if (parent !== undefined) add_child(parent, entity);
+  return entity;
+}
+
+const NODE = ['Node', 'Object'];
+const NODE3D = ['Node3D', ...NODE];
+const BODY3D = ['PhysicsBody3D', 'CollisionObject3D', ...NODE3D];
+
 // ---------------------------------------------------------------------------------------------
 // The cases.
 
@@ -1181,6 +1344,58 @@ cases.push({
   comparator: 'exact',
 });
 
+cases.push({
+  id: 'node-paths',
+  className: 'NodePathCases',
+  call: '',
+  instance: {
+    scene: 'node_path_cases.tscn',
+    steps: ['name_a', 'name_b', 'name_c', 'name_quoted', 'same_node', 'parent_of_b'],
+    native: () => {
+      const root = nativeNode('Root', NODE);
+      const a = nativeNode('A', NODE, root);
+      nativeNode('B', NODE, a);
+      nativeNode('C', NODE, a);
+      return root;
+    },
+    adopt: (instance, native) => {
+      godot_node_adopt(native as object, { binding: { owner: instance } });
+    },
+  },
+  comparator: 'exact',
+});
+cases.push({
+  id: 'type-tests-and-casts',
+  className: 'TypeCases',
+  call: '',
+  instance: {
+    scene: 'type_cases.tscn',
+    steps: ['natives', 'scripts', 'nulls', 'casts'],
+    native: () => {
+      const root = nativeNode('Root', NODE3D);
+      nativeNode('Body', ['RigidBody3D', ...BODY3D], root);
+      nativeNode('Character', ['CharacterBody3D', ...BODY3D], root);
+      nativeNode('Plain', NODE, root);
+      nativeNode('Tagged', NODE3D, root);
+      nativeNode('Derived', NODE3D, root);
+      return root;
+    },
+    adopt: (instance, native, classes) => {
+      const root = native as Object3D;
+      godot_node_adopt(root, { binding: { owner: instance } });
+      for (const [child, className] of [
+        ['Tagged', 'Tagged'],
+        ['Derived', 'DerivedTagged'],
+      ] as const) {
+        const entity = root.children.find((entry) => entry.name === child) as Object3D;
+        const Script = classes.get(className) as new (native?: unknown) => object;
+        godot_node_adopt(entity, { binding: { owner: new Script(entity) } });
+      }
+    },
+  },
+  comparator: 'exact',
+});
+
 const GDSCRIPT_EVIDENCE: GodotLanguageEvidenceFile = {
   kind: 'language',
   className: 'GDScriptCases',
@@ -1190,9 +1405,17 @@ const GDSCRIPT_EVIDENCE: GodotLanguageEvidenceFile = {
     { file: 'ready_cases.gd', className: 'ReadyCases', source: READY_SOURCE },
     { file: 'ready_derived.gd', className: 'ReadyDerived', source: DERIVED_SOURCE },
     { file: 'node3d_cases.gd', className: 'Node3DCases', source: NODE3D_SOURCE },
+    { file: 'node_path_cases.gd', className: 'NodePathCases', source: NODE_PATH_SOURCE },
+    { file: 'tagged.gd', className: 'Tagged', source: TAGGED_SOURCE },
+    { file: 'derived_tagged.gd', className: 'DerivedTagged', source: DERIVED_TAGGED_SOURCE },
+    { file: 'type_cases.gd', className: 'TypeCases', source: TYPE_SOURCE },
   ],
-  scenes: [{ file: 'main.tscn', source: NODE3D_SCENE }],
-  compatModules: ['lib/godot-compat/vector3', 'lib/godot-compat/node-3d'],
+  scenes: [
+    { file: 'main.tscn', source: NODE3D_SCENE },
+    { file: 'node_path_cases.tscn', source: NODE_PATH_SCENE },
+    { file: 'type_cases.tscn', source: TYPE_SCENE },
+  ],
+  compatModules: ['lib/godot-compat/vector3', 'lib/godot-compat/node-3d', 'lib/godot-compat/node'],
   rules,
   datatypes,
   cases,

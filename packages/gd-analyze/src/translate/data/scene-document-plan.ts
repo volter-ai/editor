@@ -30,6 +30,11 @@ export interface TargetGodotSceneNodePlan {
   readonly properties: readonly TargetGodotScenePropertyPlan[];
   /** Groups the Node protocol receives at mount, in authored order. */
   readonly groups: readonly string[];
+  /**
+   * The node's Godot class and native ancestors, nearest first, which the Node protocol records at
+   * mount (type tests read it); empty for an instance, whose component records its own root.
+   */
+  readonly classes: readonly string[];
   readonly children: readonly TargetGodotSceneNodePlan[];
   readonly evidenceClaimId: string;
   readonly placementEvidenceClaimId?: string;
@@ -321,6 +326,7 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
     ...(node.scriptResPath === undefined ? {} : { scriptResPath: node.scriptResPath }),
     properties,
     groups,
+    classes: node.class.nativeAncestry,
     children: [],
     evidenceClaimId: rule.evidenceClaimId,
     ...(placed.evidenceClaimId === undefined ? {} : { placementEvidenceClaimId: placed.evidenceClaimId }),
@@ -380,6 +386,7 @@ function planInstanceRoot(
     instance: { sourceResPath: instanced.resPath },
     properties,
     groups: [],
+    classes: [],
     children: [],
     evidenceClaimId: context.authority.structureRule('scene-instance')?.evidenceClaimId ?? '',
     ...(placed.evidenceClaimId === undefined ? {} : { placementEvidenceClaimId: placed.evidenceClaimId }),

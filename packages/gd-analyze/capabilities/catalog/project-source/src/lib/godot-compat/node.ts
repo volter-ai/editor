@@ -79,6 +79,8 @@ interface NodeState {
   treeEntered: SignalHandle<[]>;
   treeExiting: SignalHandle<[]>;
   internalPhysics: ((delta: number) => void) | undefined;
+  /** The node's Godot class and its native ancestors, nearest first, as the scene records it. */
+  classes: readonly string[] | undefined;
 }
 
 const NODE = new WeakMap<object, NodeState>();
@@ -122,6 +124,7 @@ function fresh(): NodeState {
     ready: createSignal<[]>(),
     treeEntered: createSignal<[]>(),
     treeExiting: createSignal<[]>(),
+    classes: undefined,
     internalPhysics: undefined,
   };
 }
@@ -171,10 +174,13 @@ export function godot_node_adopt(
     readonly kind?: 'node' | 'spatial';
     readonly binding?: Omit<GodotScriptLifecycleBinding, 'native'>;
     readonly authority?: NativeHierarchyAuthority;
+    /** The node's Godot class and its native ancestors, nearest first (`ClassDB` inheritance). */
+    readonly classes?: readonly string[];
   } = {},
 ): object {
   const state = stateOf(entity);
   if (options.kind !== undefined) state.kind = options.kind;
+  if (options.classes !== undefined) state.classes = Object.freeze([...options.classes]);
   if (options.authority !== undefined) state.authority = options.authority;
   if (options.binding !== undefined) {
     const binding = { ...options.binding, native: entity };
@@ -186,6 +192,75 @@ export function godot_node_adopt(
     NATIVE_OF_OWNER.set(binding.owner, entity);
   }
   return objectOf(entity);
+}
+
+/** The object a type test reads, or null; a freed object is an error, as in Godot. */
+function testedObject(value: unknown, test: string): object | null {
+  if ((typeof value !== 'object' || value === null) && typeof value !== 'function') return null;
+  const entity = NATIVE_OF_OWNER.get(value as object) ?? (value as object);
+  if (NODE.get(entity)?.freed === true) {
+    throw new Error(`godot-compat: Left operand of '${test}' is a previously freed instance.`);
+  }
+  return value as object;
+}
+
+/**
+ * `value is ScriptClass`: the object's script instance is the script or derives from it
+ * (`OPCODE_TYPE_TEST_SCRIPT`, which walks `get_base_script()`); the generated classes extend
+ * their base scripts' classes, so that is `instanceof`.
+ *
+ * @godot Node (protocol)
+ * @source modules/gdscript/gdscript_vm.cpp:954
+ */
+export function godot_is_script(value: unknown, script: abstract new (...args: never[]) => unknown): boolean {
+  const object = testedObject(value, 'is');
+  return object !== null && objectOf(object) instanceof script;
+}
+
+/**
+ * `value as ScriptClass`: the object when its script is the script or derives from it, else null
+ * (`OPCODE_CAST_TO_SCRIPT`).
+ *
+ * @godot Node (protocol)
+ * @source modules/gdscript/gdscript_vm.cpp:1687
+ */
+export function godot_as_script(value: unknown, script: abstract new (...args: never[]) => unknown): unknown {
+  const object = testedObject(value, 'as');
+  return object !== null && objectOf(object) instanceof script ? value : null;
+}
+
+/** The recorded Godot classes of an object's native entity; an unrecorded object is an error. */
+function classesOf(object: object, test: string): readonly string[] {
+  const entity = NATIVE_OF_OWNER.get(object) ?? object;
+  const classes = NODE.get(entity)?.classes;
+  if (classes === undefined) {
+    throw new Error(`godot-compat: '${test}' needs the Godot class of an object the scene did not record.`);
+  }
+  return classes;
+}
+
+/**
+ * `value is NativeClass`: `ClassDB::is_parent_class` of the object's class
+ * (`OPCODE_TYPE_TEST_NATIVE`), read from the class and ancestry the composition recorded.
+ *
+ * @godot Node (protocol)
+ * @source modules/gdscript/gdscript_vm.cpp:932
+ */
+export function godot_is_native(value: unknown, className: string): boolean {
+  const object = testedObject(value, 'is');
+  return object !== null && classesOf(object, 'is').includes(className);
+}
+
+/**
+ * `value as NativeClass`: the object when its class is the class or derives from it, else null
+ * (`OPCODE_CAST_TO_NATIVE`); null stays null.
+ *
+ * @godot Node (protocol)
+ * @source modules/gdscript/gdscript_vm.cpp:1656
+ */
+export function godot_as_native(value: unknown, className: string): unknown {
+  const object = testedObject(value, 'as');
+  return object === null || classesOf(object, 'as').includes(className) ? value : null;
 }
 
 /**

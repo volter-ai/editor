@@ -175,9 +175,12 @@ function nodeExpression(
   return { kind: 'jsx-element-expression', ...nodeElement(node, emission, forwardedProps) };
 }
 
-/** Nodes the Node protocol adopts at mount: plain Nodes (non-spatial) and nodes with groups. */
+/**
+ * Nodes the Node protocol adopts at mount: every native node, with its Godot class chain (a plain
+ * Node non-spatial) and its groups. An instance's component adopts its own nodes.
+ */
 function adoptedNodes(node: DirectGodotSceneNodePlan, result: DirectGodotSceneNodePlan[]): void {
-  if (node.targetKind === 'three-node' || node.groups.length > 0) result.push(node);
+  if (node.targetKind !== 'scene-instance') result.push(node);
   for (const child of node.children) adoptedNodes(child, result);
 }
 
@@ -261,7 +264,8 @@ function sceneSourceFile(
     instanceComponents: new Map([...instanceComponents].map(([resPath, entry]) => [resPath, entry.exportName])),
   };
     /** Godot adds a node's groups when the scene is instantiated, before it enters the tree
-   * (`SceneState::instantiate`, packed_scene.cpp:511); a plain Node is non-spatial from birth. */
+   * (`SceneState::instantiate`, packed_scene.cpp:511); a node's class, and a plain Node's being
+   * non-spatial, hold from its creation. */
   const adoption: readonly TargetTsStatement[] =
     adopted.length === 0
       ? []
@@ -286,24 +290,26 @@ function sceneSourceFile(
                       type: referenceType('Object3D'),
                     };
                     return [
-                      ...(node.targetKind === 'three-node'
-                        ? [
+                      {
+                        kind: 'expression-statement' as const,
+                        expression: {
+                          kind: 'call-expression' as const,
+                          callee: { kind: 'identifier-expression' as const, name: 'godot_node_adopt' },
+                          arguments: [
+                            entity,
                             {
-                              kind: 'expression-statement' as const,
-                              expression: {
-                                kind: 'call-expression' as const,
-                                callee: { kind: 'identifier-expression' as const, name: 'godot_node_adopt' },
-                                arguments: [
-                                  entity,
-                                  {
-                                    kind: 'object-expression' as const,
-                                    properties: [{ key: 'kind', value: literal('node') }],
-                                  },
-                                ],
-                              },
+                              kind: 'object-expression' as const,
+                              properties: [
+                                ...(node.targetKind === 'three-node' ? [{ key: 'kind', value: literal('node') }] : []),
+                                {
+                                  key: 'classes',
+                                  value: { kind: 'array-expression' as const, elements: node.classes.map((name) => literal(name)) },
+                                },
+                              ],
                             },
-                          ]
-                        : []),
+                          ],
+                        },
+                      },
                       ...node.groups.map((group) => ({
                         kind: 'expression-statement' as const,
                         expression: {
@@ -356,9 +362,7 @@ function sceneSourceFile(
               ...(adopted.some((node) => node.groups.length > 0)
                 ? [{ imported: 'add_to_group', local: 'add_to_group' }]
                 : []),
-              ...(adopted.some((node) => node.targetKind === 'three-node')
-                ? [{ imported: 'godot_node_adopt', local: 'godot_node_adopt' }]
-                : []),
+              { imported: 'godot_node_adopt', local: 'godot_node_adopt' },
             ],
           },
           {

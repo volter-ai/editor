@@ -26,6 +26,7 @@ import {
   type OfficialBoundLoweringDiagnostic,
   type ImplicitReadyChain,
   type NativeConstantLookup,
+  type NativeMethodLookup,
   type NativePropertyAccessor,
   type NativePropertyLookup,
   type OfficialBoundLoweringRequirement,
@@ -492,6 +493,7 @@ function lowerScript(
   evidence: GodotCodeEvidenceResolver,
   nativeProperties: NativePropertyLookup | undefined,
   nativeConstants: NativeConstantLookup | undefined,
+  nativeMethods: NativeMethodLookup | undefined,
 ): {
   readonly sourceFile: TargetTsSourceFile;
   readonly module: OfficialBoundScriptModulePlan;
@@ -523,6 +525,7 @@ function lowerScript(
     },
     nativeConstants,
     nativeBaseOf(project, source),
+    nativeMethods,
   );
   if (root.abstract) {
     context.refuse(root, 'abstract script classes need a target declaration recipe');
@@ -627,6 +630,18 @@ function collectRequirements(
  * states (`ClassDB::get_property`, which walks `inherits`); each accessor carries the method-bind
  * hash of the class that declares it, the identity a direct call to it binds by.
  */
+export function nativeMethodLookup(apiDump: GodotApiDump): NativeMethodLookup {
+  const classes = new Map(apiDump.classes.map((entry) => [entry.name, entry] as const));
+  return (className, name) => {
+    for (let current = classes.get(className); current !== undefined; ) {
+      const found = current.methods.find((entry) => entry.name === name);
+      if (found !== undefined) return { owner: current.name, name, hash: found.hash ?? 0 };
+      current = current.base_class === '' ? undefined : classes.get(current.base_class);
+    }
+    return undefined;
+  };
+}
+
 export function nativePropertyLookup(apiDump: GodotApiDump): NativePropertyLookup {
   const classes = new Map(apiDump.classes.map((entry) => [entry.name, entry] as const));
   const method = (className: string, name: string): NativePropertyAccessor | undefined => {
@@ -682,6 +697,7 @@ export function lowerOfficialBoundProgram(
   const resolved = new GodotCodeTranslationAuthorityResolver(authority);
   const nativeProperties = apiDump === undefined ? undefined : nativePropertyLookup(apiDump);
   const nativeConstants = apiDump === undefined ? undefined : nativeConstantLookup(apiDump);
+  const nativeMethods = apiDump === undefined ? undefined : nativeMethodLookup(apiDump);
   if (resolved.sourceRevision !== project.authority.revision) {
     throw new Error('official program and code authority must share one source revision');
   }
@@ -703,6 +719,7 @@ export function lowerOfficialBoundProgram(
         resolved.evidence,
         nativeProperties,
         nativeConstants,
+        nativeMethods,
       );
       sourceFiles.push(sourceFile);
       scriptModules.push(module);

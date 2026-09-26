@@ -152,7 +152,7 @@ const MOUNT = `import { createElement, act } from 'react';
 import * as THREE from 'three';
 import { createRoot, extend } from '@react-three/fiber';
 import { MainScene } from './src/scenes/main';
-import { is_in_group, godot_node_is_spatial } from './src/lib/godot-compat/node';
+import { is_in_group, godot_is_native, godot_node_is_spatial } from './src/lib/godot-compat/node';
 import { get_global_transform } from './src/lib/godot-compat/node-3d';
 import { get_fov, get_near, get_far } from './src/lib/godot-compat/camera-3d';
 
@@ -175,11 +175,13 @@ const gl = {
 const root = createRoot(canvas);
 await root.configure({ gl, size: { width: 640, height: 480, top: 0, left: 0 }, frameloop: 'never' });
 const holder = { current: null };
-await act(async () => { root.render(createElement(MainScene, { name: 'Main', ref: holder })); });
+// The scene component takes no ref (its props omit it); a holder group around it finds its root.
+await act(async () => { root.render(createElement('group', { ref: holder }, createElement(MainScene, { name: 'Main' }))); });
 const rows = [];
 const walk = (path, object) => {
   const spatial = godot_node_is_spatial(object);
-  const className = object.type === 'PerspectiveCamera' ? 'Camera3D' : spatial ? 'Node3D' : 'Node';
+  // The class the composition recorded, read through the Node protocol's type test.
+  const className = ['Camera3D', 'Node3D', 'Node'].find((name) => godot_is_native(object, name)) ?? 'none';
   const row = { path, class: className };
   if (spatial) {
     const t = get_global_transform(object);
@@ -191,7 +193,7 @@ const walk = (path, object) => {
   rows.push(row);
   for (const child of object.children) walk(path === '.' ? child.name : path + '/' + child.name, child);
 };
-walk('.', holder.current);
+walk('.', holder.current.children[0]);
 await act(async () => { root.unmount(); });
 console.log('TREE ' + JSON.stringify(rows));
 `;

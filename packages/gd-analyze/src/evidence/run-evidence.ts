@@ -363,7 +363,11 @@ function languageProbeSource(evidence: GodotLanguageEvidenceFile): string {
           : `\tr${String(index)}.append(o${String(index)}.${step}())\n`,
       )
       .join('');
-    return `\tvar o${String(index)} = load(${JSON.stringify(resPath)}).new()\n\tvar r${String(index)}: Array = []\n${steps}\to${String(index)}.free()\n\trows.append([${JSON.stringify(entry.id)}, _enc(r${String(index)})])\n`;
+    const construct =
+      entry.instance.scene === undefined
+        ? `load(${JSON.stringify(resPath)}).new()`
+        : `load(${JSON.stringify(`res://${entry.instance.scene}`)}).instantiate()`;
+    return `\tvar o${String(index)} = ${construct}\n\tvar r${String(index)}: Array = []\n${steps}\to${String(index)}.free()\n\trows.append([${JSON.stringify(entry.id)}, _enc(r${String(index)})])\n`;
   });
   return `extends SceneTree\n\n${PROBE_ENCODER}\nfunc _init() -> void:\n\tvar rows: Array = []\n${rows.join('')}\tprint(${JSON.stringify(OUTPUT_MARKER)} + JSON.stringify(rows))\n\tquit()\n`;
 }
@@ -1237,8 +1241,12 @@ async function runLanguageEvidence(
     const targetValues: unknown[] = evidence.cases.map((entry) => {
       const cls = classes.get(entry.className ?? evidence.className) as Record<string, unknown>;
       if (entry.instance !== undefined) {
-        const instance = new (cls as unknown as new (native?: unknown) => Record<string, unknown>)(
-          entry.instance.native?.(),
+        const native = entry.instance.native?.();
+        const instance = new (cls as unknown as new (native?: unknown) => Record<string, unknown>)(native);
+        entry.instance.adopt?.(
+          instance,
+          native,
+          classes as unknown as ReadonlyMap<string, new (native?: unknown) => object>,
         );
         return entry.instance.steps.map((step) => {
           const method = instance[step === '$ready' ? '_ready' : step];
@@ -1256,7 +1264,15 @@ async function runLanguageEvidence(
       return (fn as (...values: unknown[]) => unknown).apply(cls, [...args]);
     });
 
-    // Native: the same GDScript in the official binary.
+    // Native: the same GDScript in the official binary, after Godot's own import, which registers
+    // the scripts' global class names (`global_script_class_cache.cfg`) one script's types name.
+    const imported = spawnSync(officialBinary, ['--headless', '--path', project, '--import'], {
+      encoding: 'utf8',
+      timeout: 180_000,
+    });
+    if (imported.error !== undefined || imported.status !== 0) {
+      throw new Error(`official Godot --import failed: ${imported.error?.message ?? ''}\n${imported.stderr}`);
+    }
     const nativeRows = runNativeProbe(
       officialBinary,
       project,

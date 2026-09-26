@@ -806,12 +806,39 @@ function resolvedScriptPath(owner: string, candidate: string): string {
   return `res://${path.posix.normalize(path.posix.join(path.posix.dirname(owner.slice(6)), candidate))}`;
 }
 
-/** Read the official analyzer's already-selected base identity; never resolve a source name here. */
-function immediateBase(script: GodotBoundScript): BoundGodotImmediateBase {
+/**
+ * The project's global script classes: each script whose official root datatype names it with a
+ * `class_name` (`ScriptServer`'s global class list, which the editor's import registers). A name
+ * two scripts declare is left out.
+ */
+function globalScriptClasses(scripts: ReadonlyMap<string, GodotBoundScript>): ReadonlyMap<string, string> {
+  const found = new Map<string, string | null>();
+  for (const [resPath, script] of scripts) {
+    const root = script.nodes[script.rootNodeId];
+    if (root?.kind !== 'CLASS') continue;
+    const name = root.datatype.className;
+    if (root.datatype.scriptPath !== resPath || !/^[A-Za-z_]\w*$/.test(name)) continue;
+    found.set(name, found.has(name) ? null : resPath);
+  }
+  return new Map([...found].flatMap(([name, resPath]) => (resPath === null ? [] : [[name, resPath] as const])));
+}
+
+/**
+ * Read the official analyzer's already-selected base identity. The one name it leaves unresolved in
+ * the bound program is a global class name in `extends` (`extends Tagged`), which the analyzer
+ * resolves through the global class list (`GDScriptAnalyzer::resolve_class_inheritance`,
+ * modules/gdscript/gdscript_analyzer.cpp:469): that list is the project's `class_name` scripts.
+ */
+function immediateBase(
+  script: GodotBoundScript,
+  globalClasses: ReadonlyMap<string, string> = new Map(),
+): BoundGodotImmediateBase {
   const root = classRoot(script);
   const chain = root.extends.map((nodeId) => identifier(script, nodeId));
-  const selectedScript = chain.find((entry) => entry.datatype.scriptPath !== '')?.datatype
-    .scriptPath;
+  const globalBase =
+    chain.length === 1 && chain[0]?.datatype.kind === 'UNRESOLVED' ? globalClasses.get(chain[0].name) : undefined;
+  const selectedScript =
+    chain.find((entry) => entry.datatype.scriptPath !== '')?.datatype.scriptPath ?? globalBase;
   const authoredScript = root.extendsPath;
   if (selectedScript !== undefined || authoredScript !== '') {
     return {
@@ -836,6 +863,7 @@ function resolveInheritance(
 ): ReadonlyMap<string, BoundGodotScriptInheritance> {
   const resolved = new Map<string, BoundGodotScriptInheritance>();
   const resolving = new Set<string>();
+  const globalClasses = globalScriptClasses(scripts);
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: one dependency-directed ancestry walk with exhaustive terminal outcomes
   const visit = (resPath: string): BoundGodotScriptInheritance => {
     const known = resolved.get(resPath);
@@ -850,7 +878,7 @@ function resolveInheritance(
         evidenceClaimId,
       };
     }
-    const immediate = immediateBase(script);
+    const immediate = immediateBase(script, globalClasses);
     if (immediate.kind === 'native') {
       const result = {
         immediate,

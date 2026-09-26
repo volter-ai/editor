@@ -110,6 +110,10 @@ function literal(
         value.value.map((entry) => [literal(context, node, entry.key), literal(context, node, entry.value)] as const),
       );
     case 'opaque':
+      // A NodePath is its path text (`NodePath::operator String`), which Node.get_node walks.
+      if (value.type === 'NodePath') {
+        return { kind: 'literal-expression', value: value.text, span: span(context.script, node) };
+      }
       return context.refuse(node, `opaque bound literal ${value.type} has no target binding`);
     default:
       return value satisfies never;
@@ -957,6 +961,62 @@ function boundInstanceCall(
   };
 }
 
+/**
+ * The object type a type test or cast names: a script class (its generated class, imported) or a
+ * native class (its name, which the Node protocol reads against the class the scene recorded).
+ * A built-in type (`value is int`) is a Variant type test, not lowered here.
+ */
+function objectTypeTest(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  datatype: GodotBoundNode['datatype'],
+  operation: 'is' | 'cast',
+): {
+  readonly kind: 'script' | 'native';
+  readonly argument: TargetTsExpression;
+  readonly requirements: readonly OfficialBoundLoweringRequirement[];
+} {
+  const protocol = (name: string): OfficialBoundLoweringRequirement => ({
+    kind: 'compat-import-requirement',
+    module: 'lib/godot-compat/node',
+    imported: name,
+    local: name,
+    typeOnly: false,
+  });
+  if ((datatype.kind === 'CLASS' || datatype.kind === 'SCRIPT') && datatype.scriptPath !== '') {
+    const found = context.scriptClass?.(datatype.scriptPath);
+    if (found === undefined) {
+      return context.refuse(node, `${operation} ${datatype.display} names no generated script class`);
+    }
+    return {
+      kind: 'script',
+      argument: { kind: 'identifier-expression', name: found.name },
+      requirements: [
+        protocol(operation === 'is' ? 'godot_is_script' : 'godot_as_script'),
+        ...(found.module === undefined
+          ? []
+          : [
+              {
+                kind: 'project-import-requirement' as const,
+                module: found.module,
+                imported: found.name,
+                local: found.name,
+                typeOnly: false,
+              },
+            ]),
+      ],
+    };
+  }
+  if (datatype.kind === 'NATIVE' && datatype.nativeType !== '') {
+    return {
+      kind: 'native',
+      argument: { kind: 'literal-expression', value: datatype.nativeType },
+      requirements: [protocol(operation === 'is' ? 'godot_is_native' : 'godot_as_native')],
+    };
+  }
+  return context.refuse(node, `${operation} ${datatype.display} is not an object type test`);
+}
+
 export function lowerOfficialExpression(
   context: LoweringContext,
   node: GodotBoundNode,
@@ -1579,15 +1639,69 @@ export function lowerOfficialExpression(
           ],
         );
       }
-      case 'CAST':
-        return context.refuse(node, 'Godot runtime cast semantics need a typed binding');
-      case 'TYPE_TEST':
-        return context.refuse(node, 'Godot type-test semantics need a typed binding');
-      case 'GET_NODE':
-        return context.refuse(
-          node,
-          'node paths lower only after BoundGodotProject joins scene identity',
+      case 'CAST': {
+        // `value as T` on an object type: the value when its class or script is T, else null
+        // (`OPCODE_CAST_TO_NATIVE` / `OPCODE_CAST_TO_SCRIPT`), through the Node protocol.
+        const operandNode = context.node(node.operand, node);
+        const test = objectTypeTest(context, node, node.datatype, 'cast');
+        const requirements = context.structural(node, 'cast', [operandNode], `cast:${test.kind}`);
+        return compose(
+          context,
+          [lowerExpression(context, operandNode)],
+          ([value]) => ({
+            kind: 'call-expression',
+            callee: { kind: 'identifier-expression', name: test.kind === 'script' ? 'godot_as_script' : 'godot_as_native' },
+            arguments: [value as TargetTsExpression, test.argument],
+            span: span(context.script, node),
+          }),
+          [...requirements, ...test.requirements],
         );
+      }
+      case 'TYPE_TEST': {
+        // `value is T` on an object type (`OPCODE_TYPE_TEST_NATIVE` / `_SCRIPT`), through the Node
+        // protocol: the class the scene recorded for its entity, or its script instance's class.
+        const operandNode = context.node(node.operand, node);
+        const test = objectTypeTest(context, node, node.testDatatype, 'is');
+        const requirements = context.structural(node, 'type-test', [operandNode], `type-test:${test.kind}`);
+        return compose(
+          context,
+          [lowerExpression(context, operandNode)],
+          ([value]) => ({
+            kind: 'call-expression',
+            callee: { kind: 'identifier-expression', name: test.kind === 'script' ? 'godot_is_script' : 'godot_is_native' },
+            arguments: [value as TargetTsExpression, test.argument],
+            span: span(context.script, node),
+          }),
+          [...requirements, ...test.requirements],
+        );
+      }
+      case 'GET_NODE': {
+        // `$Path` is `get_node(NodePath("Path"))` on self (`GDScriptCompiler::_parse_expression`
+        // GET_NODE): the Node.get_node binding, the path a string the binding walks.
+        const requirements = context.structural(node, 'get-node', [], 'get-node');
+        const method = context.nativeMethod('Node', 'get_node');
+        if (method === undefined) return context.refuse(node, 'the API dump declares no Node.get_node');
+        const use = context.bindingUse(
+          {
+            sourceRevision: context.sourceRevision,
+            kind: 'native-member',
+            owner: method.owner,
+            member: method.name,
+            signature: method.hash === 0 ? 'unhashed' : `hash:${String(method.hash)}`,
+          },
+          node,
+        );
+        if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'first-argument') {
+          return context.refuse(node, `binding ${use.target.localName} does not take its receiver first`);
+        }
+        return expression(
+          bindingCall(context, node, use, [
+            selfNative(context, node),
+            { kind: 'literal-expression', value: node.fullPath },
+          ]),
+          [...requirements, ...use.requirements],
+        );
+      }
       case 'PRELOAD':
         return context.refuse(
           node,

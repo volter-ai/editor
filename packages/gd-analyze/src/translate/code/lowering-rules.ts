@@ -45,6 +45,7 @@ export type GodotStructuralConstruct =
   | 'bound-identifier'
   | 'break'
   | 'call'
+  | 'cast'
   | 'class'
   | 'constant'
   | 'continue'
@@ -53,6 +54,7 @@ export type GodotStructuralConstruct =
   | 'for-of'
   | 'for-range'
   | 'function'
+  | 'get-node'
   | 'if'
   | 'implicit-ready'
   | 'lambda'
@@ -68,6 +70,7 @@ export type GodotStructuralConstruct =
   | 'suite'
   | 'ternary'
   | 'type-default'
+  | 'type-test'
   | 'variable'
   | 'while';
 

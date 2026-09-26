@@ -120,7 +120,9 @@ const VALUE_STRUCTURAL_CONSTRUCTS: ReadonlySet<GodotStructuralConstruct> = new S
   'await',
   'bound-identifier',
   'call',
+  'cast',
   'dictionary-object-literal',
+  'get-node',
   'lambda',
   'literal',
   'local-identifier',
@@ -130,6 +132,7 @@ const VALUE_STRUCTURAL_CONSTRUCTS: ReadonlySet<GodotStructuralConstruct> = new S
   'subscript-element',
   'ternary',
   'type-default',
+  'type-test',
 ]);
 
 export interface NativePropertyAccessor {
@@ -158,6 +161,9 @@ export interface ImplicitReadyChain {
 }
 
 export type NativePropertyLookup = (className: string, property: string) => NativeProperty | undefined;
+
+/** A native class's method, found up the ancestry the API dump states, or undefined. */
+export type NativeMethodLookup = (className: string, method: string) => NativePropertyAccessor | undefined;
 
 /** A native class's integer constant or enum value, up the ancestry, or undefined. */
 export type NativeConstantLookup = (className: string, name: string) => number | undefined;
@@ -191,6 +197,7 @@ export class LoweringContext {
     readonly nativeConstants?: NativeConstantLookup,
     /** The native class the script's chain extends, when it does. */
     readonly nativeBase?: string,
+    readonly nativeMethods?: NativeMethodLookup,
   ) {
     const allocated = new Set([classIdentifier, ...bindings.targetLocalNames()]);
     const lexicalNames = new Map<string, string>();
@@ -231,6 +238,10 @@ export class LoweringContext {
 
   nativeConstant(className: string, name: string): number | undefined {
     return this.nativeConstants?.(className, name);
+  }
+
+  nativeMethod(className: string, method: string): NativePropertyAccessor | undefined {
+    return this.nativeMethods?.(className, method);
   }
 
   nativeProperty(className: string, property: string): NativeProperty | undefined {
