@@ -8,6 +8,11 @@
     "src/lib/godot-compat/color.ts",
     "src/lib/godot-compat/dictionary.ts",
     "src/lib/godot-compat/global-scope.ts",
+    "src/lib/godot-compat/input-event-mouse.ts",
+    "src/lib/godot-compat/input-event-screen-drag.ts",
+    "src/lib/godot-compat/input-event-screen-touch.ts",
+    "src/lib/godot-compat/input-event.ts",
+    "src/lib/godot-compat/input.ts",
     "src/lib/godot-compat/node-3d.ts",
     "src/lib/godot-compat/node-process.ts",
     "src/lib/godot-compat/packed-string-array.ts",
@@ -39,5 +44,5 @@
   "requires": [],
   "skills": [],
   "title": "Godot compat (backends for a ported game)",
-  "version": "0.843.0"
+  "version": "0.844.0"
 }

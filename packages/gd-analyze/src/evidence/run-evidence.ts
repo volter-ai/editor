@@ -113,6 +113,11 @@ interface StructuredEncoded {
 type Row = readonly [id: string, value: Encoded];
 
 interface CompatExport {
+  /**
+   * A protocol entry point the composition site calls (`@godot Input (protocol)`), not a Godot
+   * member: it is exercised by the cases' targets and has no binding.
+   */
+  readonly protocol: boolean;
   readonly exportName: string;
   readonly godotMember: string;
   readonly sourceFile: string;
@@ -305,9 +310,9 @@ function nodeProbeSource(cases: readonly GodotEvidenceCase[]): string {
   });
   const rows = cases.map(
     (entry, index) =>
-      `\tholder = Node.new()\n\troot.add_child(holder)\n\trows.append([${JSON.stringify(entry.id)}, _enc(_case_${String(index)}(holder))])\n\tholder.free()\n`,
+      `\tholder = Node.new()\n\troot.add_child(holder)\n\trows.append([${JSON.stringify(entry.id)}, _enc(await _case_${String(index)}(holder))])\n\tholder.free()\n`,
   );
-  return `extends SceneTree\n\n${PROBE_ENCODER}${functions.join('')}\nfunc _init() -> void:\n\tprocess_frame.connect(_run, CONNECT_ONE_SHOT)\n\nfunc _run() -> void:\n\tvar rows: Array = []\n\tvar holder: Node\n${rows.join('')}\tprint(${JSON.stringify(OUTPUT_MARKER)} + JSON.stringify(rows))\n\tquit()\n`;
+  return `extends SceneTree\n\n${PROBE_ENCODER}${functions.join('')}\nfunc _init() -> void:\n\tprocess_frame.connect(_run, CONNECT_ONE_SHOT)\n\n@warning_ignore("redundant_await")\nfunc _run() -> void:\n\tvar rows: Array = []\n\tvar holder: Node\n${rows.join('')}\tprint(${JSON.stringify(OUTPUT_MARKER)} + JSON.stringify(rows))\n\tquit()\n`;
 }
 
 function compatProbeSource(cases: readonly GodotEvidenceCase[]): string {
@@ -353,11 +358,12 @@ function runNativeProbe(
   project: string,
   probe: string,
   expected: number,
+  extraArguments: readonly string[] = [],
 ): Row[] {
   writeFileSync(path.join(project, 'probe.gd'), probe);
   const result = spawnSync(
     officialBinary,
-    ['--headless', '--path', project, '--script', 'res://probe.gd'],
+    ['--headless', ...extraArguments, '--path', project, '--script', 'res://probe.gd'],
     { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 },
   );
   rmSync(path.join(project, 'probe.gd'));
@@ -575,6 +581,7 @@ function compatExports(moduleSource: string): CompatExport[] {
       throw new Error(`compat export ${exportName} lacks @godot or @source`);
     }
     found.push({
+      protocol: /@godot\s+\S+\s+\(protocol\)/.test(doc),
       exportName,
       godotMember: godot,
       sourceFile: source[1] as string,
@@ -756,6 +763,7 @@ function bindingSymbol(
     case 'builtin-member-set':
       return { ...base, kind: 'builtin-member-set', signature: 'set' };
     case 'native-member':
+    case 'singleton-member':
       return {
         ...base,
         kind: 'native-member',
@@ -781,6 +789,7 @@ function bindingUse(kind: GodotEvidenceSymbol['kind']): GodotTargetBindingUse {
     case 'builtin-constructor':
     case 'builtin-operator':
     case 'utility-function':
+    case 'singleton-member':
       return { kind: 'call', sourceReceiver: 'absent' };
     case 'builtin-constant':
       return { kind: 'value' };
@@ -806,7 +815,7 @@ async function runCompatEvidence(
   ) {
     throw new Error(`${evidence.compatModule} does not export the type ${evidence.typeExport}`);
   }
-  const exports = compatExports(moduleSource);
+  const exports = compatExports(moduleSource).filter((entry) => !entry.protocol);
   const exportByMember = new Map(exports.map((entry) => [entry.godotMember, entry]));
   const covered = new Set<string>();
   for (const entry of evidence.cases) {
@@ -834,6 +843,7 @@ async function runCompatEvidence(
       temp,
       evidence.kind === 'node' ? nodeProbeSource(evidence.cases) : compatProbeSource(evidence.cases),
       evidence.cases.length,
+      evidence.kind === 'node' ? ['--fixed-fps', '60'] : [],
     );
   } finally {
     rmSync(temp, { recursive: true, force: true });
@@ -1201,7 +1211,7 @@ async function runLanguageEvidence(
 
 /** The case files `evidence --refresh` re-runs, in dependency order: compat modules first. */
 export function godotEvidenceCaseNames(): readonly string[] {
-  return ['vector3', 'vector2', 'vector2i', 'vector3i', 'basis', 'transform-3d', 'transform-2d', 'color', 'plane', 'rect2', 'string', 'array', 'dictionary', 'packed-string-array', 'callable', 'global-scope', 'node-3d', 'sub-viewport', 'camera-3d', 'language'];
+  return ['vector3', 'vector2', 'vector2i', 'vector3i', 'basis', 'transform-3d', 'transform-2d', 'color', 'plane', 'rect2', 'string', 'array', 'dictionary', 'packed-string-array', 'callable', 'global-scope', 'node-3d', 'sub-viewport', 'camera-3d', 'input-event', 'input-event-mouse', 'input-event-screen-touch', 'input-event-screen-drag', 'input', 'language'];
 }
 
 export async function runEvidence(

@@ -1,0 +1,150 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/input-event-screen-drag"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "InputEventScreenDrag",
+        "member": "get_index",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/input-event-screen-drag",
+        "exportName": "get_index",
+        "localName": "InputEventScreenDrag_get_index",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-InputEventScreenDrag.get_index"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "InputEventScreenDrag",
+        "member": "get_position",
+        "kind": "native-member",
+        "signature": "hash:3341600327"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/input-event-screen-drag",
+        "exportName": "get_position",
+        "localName": "InputEventScreenDrag_get_position",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-InputEventScreenDrag.get_position"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-InputEventScreenDrag.get_index",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000InputEventScreenDrag\u0000get_index\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/input/input_event.cpp",
+        "sourceSymbol": "InputEventScreenDrag.get_index",
+        "sourceLine": 1437
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "64212e48f55d54bda2b6a81a600819b9b2208d2385fe1759e3d820ec848f3793",
+        "callsite": "res://probe.gd _init() get_index-0 get_index-1 get_index-9",
+        "observedOutputSha256": "e56101c1269e916b3c53ce7740d98bf950a611bf2ce7042cb3181d8b511eaff4"
+      },
+      "target": {
+        "implementationSha256": "c305c10f29280f68e20896bb6ab0665d6a1f61d976dae321b630407d70325e84",
+        "callsite": "lib/godot-compat/input-event-screen-drag.ts get_index",
+        "observedOutputSha256": "e56101c1269e916b3c53ce7740d98bf950a611bf2ce7042cb3181d8b511eaff4"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c6bbb2d11f47040aafc43b4a9a6560f048937d14fdc780409e0dba7ae0e5b72f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "input-event-screen-drag",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-InputEventScreenDrag.get_position",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000InputEventScreenDrag\u0000get_position\u0000hash:3341600327",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/input/input_event.cpp",
+        "sourceSymbol": "InputEventScreenDrag.get_position",
+        "sourceLine": 1469
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9966e597751a397bf827dd045da95fe9252077613c9703c4da140a4c99d05ba3",
+        "callsite": "res://probe.gd _init() get_position-0 get_position-1 get_position-9",
+        "observedOutputSha256": "92612e422aaa0283a639f5311bb1c300680ac9b33ce3f9b5db26cca4264b1c49"
+      },
+      "target": {
+        "implementationSha256": "c305c10f29280f68e20896bb6ab0665d6a1f61d976dae321b630407d70325e84",
+        "callsite": "lib/godot-compat/input-event-screen-drag.ts get_position",
+        "observedOutputSha256": "92612e422aaa0283a639f5311bb1c300680ac9b33ce3f9b5db26cca4264b1c49"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "d32c7823a562cf858c93322becfab2352dc05e5d283dd46498f20cd2224beb16"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "input-event-screen-drag",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-InputEventScreenDrag.get_index",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "64212e48f55d54bda2b6a81a600819b9b2208d2385fe1759e3d820ec848f3793",
+      "implementationSha256": "c305c10f29280f68e20896bb6ab0665d6a1f61d976dae321b630407d70325e84"
+    },
+    {
+      "claimId": "godot-4.7-binding-InputEventScreenDrag.get_position",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9966e597751a397bf827dd045da95fe9252077613c9703c4da140a4c99d05ba3",
+      "implementationSha256": "c305c10f29280f68e20896bb6ab0665d6a1f61d976dae321b630407d70325e84"
+    }
+  ]
+}

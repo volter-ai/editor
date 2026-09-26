@@ -1,0 +1,82 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/input-event-mouse"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "InputEventMouse",
+        "member": "get_position",
+        "kind": "native-member",
+        "signature": "hash:3341600327"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/input-event-mouse",
+        "exportName": "get_position",
+        "localName": "InputEventMouse_get_position",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-InputEventMouse.get_position"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-InputEventMouse.get_position",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000InputEventMouse\u0000get_position\u0000hash:3341600327",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/input/input_event.cpp",
+        "sourceSymbol": "InputEventMouse.get_position",
+        "sourceLine": 688
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "7a6fc37cc1c2998e52822d54753b3f50211b2ca33cd3c1eb0fd5207f84ba4435",
+        "callsite": "res://probe.gd _init() get_position-mouse_button-0-0 get_position-mouse_motion-0-0 get_position-mouse_button-640.5-360.25 get_position-mouse_motion-640.5-360.25 get_position-mouse_button--12-1000000 get_position-mouse_motion--12-1000000 get_position-mouse_button-0.1-16777217 get_position-mouse_motion-0.1-16777217",
+        "observedOutputSha256": "1cf950a32793bd20e95a8e9013f5e15926005c5d1aa56ff4830c876d4ae55b3b"
+      },
+      "target": {
+        "implementationSha256": "a01313787c4150cf4454c0a4ea046666d9fd9cf91e5b5420a30ba4567d3c0c9b",
+        "callsite": "lib/godot-compat/input-event-mouse.ts get_position",
+        "observedOutputSha256": "1cf950a32793bd20e95a8e9013f5e15926005c5d1aa56ff4830c876d4ae55b3b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f00b39a764eca1480f053d483a73731f507bcbbbb6a86cb21e7fb7a75acf0d0d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "input-event-mouse",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-InputEventMouse.get_position",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "7a6fc37cc1c2998e52822d54753b3f50211b2ca33cd3c1eb0fd5207f84ba4435",
+      "implementationSha256": "a01313787c4150cf4454c0a4ea046666d9fd9cf91e5b5420a30ba4567d3c0c9b"
+    }
+  ]
+}

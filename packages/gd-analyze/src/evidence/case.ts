@@ -20,7 +20,12 @@ export type GodotEvidenceSymbolKind =
    * A native class's method (`Node3D.set_position`); owner is the class the API dump declares it
    * on, and the receiver is the call's first argument.
    */
-  | 'native-member';
+  | 'native-member'
+  /**
+   * A method of an engine singleton (`Input.is_action_pressed`), bound like a native member but
+   * with no receiver: lowering drops the singleton.
+   */
+  | 'singleton-member';
 
 export interface GodotEvidenceSymbol {
   readonly kind: GodotEvidenceSymbolKind;
@@ -61,7 +66,8 @@ export interface GodotEvidenceCaseFile {
    * `node`: each case is a function body with `holder`, a plain `Node` inside the running
    * SceneTree, under which it builds its node tree (so global transforms resolve); the probe runs
    * on the first frame and frees `holder` after each case. Its target builds the same tree of
-   * native entities.
+   * native entities. Node cases run with `--fixed-fps 60`, one physics step per main loop
+   * iteration, and may `await physics_frame` / `await process_frame` to step frames.
    */
   readonly kind?: 'compat' | 'node';
   /** The Godot class the compat module transcribes (`Vector3`). */

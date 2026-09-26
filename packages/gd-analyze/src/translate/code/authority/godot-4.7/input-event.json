@@ -1,0 +1,150 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/input-event"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "InputEvent",
+        "member": "is_pressed",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/input-event",
+        "exportName": "is_pressed",
+        "localName": "InputEvent_is_pressed",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-InputEvent.is_pressed"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "InputEvent",
+        "member": "get_device",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/input-event",
+        "exportName": "get_device",
+        "localName": "InputEvent_get_device",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-InputEvent.get_device"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-InputEvent.is_pressed",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000InputEvent\u0000is_pressed\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/input/input_event.cpp",
+        "sourceSymbol": "InputEvent.is_pressed",
+        "sourceLine": 82
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "8d47aed8633073bd259753eb394a8ef402fca69db87fc745d45dd51565551b2e",
+        "callsite": "res://probe.gd _init() is_pressed-key-pressed is_pressed-key-released is_pressed-key-device-zero is_pressed-mouse-pressed is_pressed-mouse-canceled is_pressed-motion is_pressed-joypad-button is_pressed-touch is_pressed-touch-canceled is_pressed-drag is_pressed-action",
+        "observedOutputSha256": "fb4eb34a4c4623fc491529db16d225d89b81d7a71e2e23df4635558b415dc188"
+      },
+      "target": {
+        "implementationSha256": "f9c1687bf13299e63bac38a494beef2f92385909b8ade2194abb1ef152f6c33f",
+        "callsite": "lib/godot-compat/input-event.ts is_pressed",
+        "observedOutputSha256": "fb4eb34a4c4623fc491529db16d225d89b81d7a71e2e23df4635558b415dc188"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "95bdd91b288d653eba6e5c1947aa74c2a9b6db89faa5d95d1f7935d972058a5d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "input-event",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-InputEvent.get_device",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000InputEvent\u0000get_device\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/input/input_event.cpp",
+        "sourceSymbol": "InputEvent.get_device",
+        "sourceLine": 46
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "736432c1f63251c211451fc081d34a2a26258b8d1f07d1c5518bdfc7e1861e2a",
+        "callsite": "res://probe.gd _init() get_device-key-pressed get_device-key-released get_device-key-device-zero get_device-mouse-pressed get_device-mouse-canceled get_device-motion get_device-joypad-button get_device-touch get_device-touch-canceled get_device-drag get_device-action",
+        "observedOutputSha256": "dc9db197ebe00efc07ff3f5e0abd5fa27aa49b497947090127d4477ec2eececd"
+      },
+      "target": {
+        "implementationSha256": "f9c1687bf13299e63bac38a494beef2f92385909b8ade2194abb1ef152f6c33f",
+        "callsite": "lib/godot-compat/input-event.ts get_device",
+        "observedOutputSha256": "dc9db197ebe00efc07ff3f5e0abd5fa27aa49b497947090127d4477ec2eececd"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a2beb717c1507144ab0f1374a182b76013ef078726a3c4e9cd343c928f3acf5f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "input-event",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-InputEvent.is_pressed",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "8d47aed8633073bd259753eb394a8ef402fca69db87fc745d45dd51565551b2e",
+      "implementationSha256": "f9c1687bf13299e63bac38a494beef2f92385909b8ade2194abb1ef152f6c33f"
+    },
+    {
+      "claimId": "godot-4.7-binding-InputEvent.get_device",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "736432c1f63251c211451fc081d34a2a26258b8d1f07d1c5518bdfc7e1861e2a",
+      "implementationSha256": "f9c1687bf13299e63bac38a494beef2f92385909b8ade2194abb1ef152f6c33f"
+    }
+  ]
+}
