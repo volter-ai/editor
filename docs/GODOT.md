@@ -198,6 +198,9 @@ them. `GeometryInstance3D.transparency` is stored and read back but draws nothin
 because the Compatibility renderer never reads the instance's `force_alpha`
 (`drivers/gles3/rasterizer_scene_gles3.cpp:1477`, and `rendering_method.web` is fixed to
 `gl_compatibility`, `main/main.cpp:2644`); the material keeps its opacity.
+A `Decal` likewise draws nothing: the Compatibility renderer's decal API is empty
+(`drivers/gles3/storage/texture_storage.cpp:2497`), so `<GodotDecal>` stores and reads back its
+parameters and bakes no geometry.
 
 **Comparators.** A claim compares native and target with one named comparator, and a
 tolerance records the measured maximum:
@@ -479,7 +482,7 @@ the output is plain library code (ARCHITECTURE.md rule 4):
 | `AudioStreamPlayer`, `AudioStreamPlayer3D` | Web Audio through three's `Audio`/`PositionalAudio` |
 | `CanvasLayer`, `Control`, `Label`, `TextureRect`, `HBoxContainer`, `Node2D`, `Sprite2D`, `TouchScreenButton` | non-spatial Groups laid out by Godot's own layout code and drawn into a DOM root (§The canvas). Landed: exact against official Godot, proven from a scene file by the `scene-ui` proof. Layout-mode and anchor setters, which have no hash in the API dump, are resolved from the scene file by name. |
 | Imported textures (PNG, lossless WebP), `ArrayMesh`, `Label3D`, `AudioStreamPlayer`/`AudioStreamPlayer3D` with WAV streams and randomizers | Landed in the pre-ruling output shape (proofs `scene-textures`, `scene-meshes`, `scene-audio`); their Godot-semantics modules carry over, their scene emission is redone in the idiomatic shape. Named deviations: `audio-compression`, `web-audio-attenuation`. Not yet: audio buses, sequential randomizer playback. GridMap waits on a ruling for static collision that is not a node. |
-| `GPUParticles3D`, `CPUParticles3D`, `GridMap`, `Decal`, `ReflectionProbe`, `CSGBox3D`, `Label3D`, `Sprite3D` | later units, in closure order |
+| `GPUParticles3D`, `CPUParticles3D`, `GridMap`, `ReflectionProbe`, `CSGBox3D`, `Label3D`, `Sprite3D` | later units, in closure order |
 
 ## Where it stands (2026-09-26, 03:30)
 
