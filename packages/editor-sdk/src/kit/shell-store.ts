@@ -253,6 +253,8 @@ export class ShellStore implements ShellDocumentState {
   protected _snapEnabled = false;
   protected _snapValues = { translate: 1, rotate: 15, scale: 0.25 };
   protected _snapToSurface = false;
+  protected _rotationSnap = false;
+  protected _scaleSnap = false;
   protected _smartSnap: SmartSnap = {
     enabled: false,
     parent: true,
@@ -301,6 +303,22 @@ export class ShellStore implements ShellDocumentState {
   }
   /** A 2D move's alignment to other things, beside the grid's step (Godot's Smart Snap and its
    *  Snapping Options targets; off by default there, every target on). */
+  /** A 2D rotate or scale stepping by its snap value, each its own switch (Godot's Snapping
+   *  Options: Use Rotation Snap, Use Scale Snap; both off by default). */
+  get rotationSnap(): boolean {
+    return this._rotationSnap;
+  }
+  get scaleSnap(): boolean {
+    return this._scaleSnap;
+  }
+  setRotationSnap(on: boolean): void {
+    this._rotationSnap = on;
+    this._notify();
+  }
+  setScaleSnap(on: boolean): void {
+    this._scaleSnap = on;
+    this._notify();
+  }
   get smartSnap(): Readonly<SmartSnap> {
     return this._smartSnap;
   }

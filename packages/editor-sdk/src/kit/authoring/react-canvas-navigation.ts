@@ -2,6 +2,10 @@ import { type RootPan, type RootViewController, sharedRootViewController } from 
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 4;
+/** A 2D scene zooms further both ways than a board: a pixel-art sprite is read at many times its
+ *  size, and a level wider than the screen is laid out from far above it. */
+export const SCENE_MIN_ZOOM = 0.02;
+export const SCENE_MAX_ZOOM = 32;
 const ZOOM_SENSITIVITY = 0.002;
 const SECONDARY_DRAG_THRESHOLD_PX = 4;
 
@@ -61,8 +65,8 @@ export function resolveReactCanvasWheel(view: RootPan, input: ReactCanvasWheelIn
 export function resolveCanvasSceneWheel(view: RootPan, input: ReactCanvasWheelInput): RootPan {
   const deltaY = deltaPixels(input.deltaY, input.deltaMode, input.bounds.height);
   const zoom = Math.min(
-    MAX_ZOOM,
-    Math.max(MIN_ZOOM, view.zoom * Math.exp(-deltaY * ZOOM_SENSITIVITY)),
+    SCENE_MAX_ZOOM,
+    Math.max(SCENE_MIN_ZOOM, view.zoom * Math.exp(-deltaY * ZOOM_SENSITIVITY)),
   );
   const pointerX = input.clientX - input.bounds.left;
   const pointerY = input.clientY - input.bounds.top;

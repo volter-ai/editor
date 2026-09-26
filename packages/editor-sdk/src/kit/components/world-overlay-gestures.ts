@@ -1783,6 +1783,27 @@ function handleFractions(pos: HandlePos): { s: number; t: number } {
   return { s, t };
 }
 
+/** A corner resize with its proportions kept: the rectangle scaled by the larger of its two
+ *  ratios, anchored at the opposite corner (Godot's Shift while scaling). */
+export function proportionalResize(
+  patch: Record<string, number>,
+  orig: RectLike,
+  pos: HandlePos,
+): Record<string, number> {
+  if (pos.length !== 2 || patch['width'] === undefined || patch['height'] === undefined) return patch;
+  if (!(orig.width > 0) || !(orig.height > 0)) return patch;
+  const ratio = Math.max(patch['width'] / orig.width, patch['height'] / orig.height);
+  const width = orig.width * ratio;
+  const height = orig.height * ratio;
+  return {
+    ...patch,
+    width,
+    height,
+    ...(pos.includes('w') ? { x: orig.x + orig.width - width } : {}),
+    ...(pos.includes('n') ? { y: orig.y + orig.height - height } : {}),
+  };
+}
+
 /** Where handle `pos` sits on the frame: its corners and the middles of its edges. */
 export function frameHandlePosition(frame: FrameCorners, pos: HandlePos): Point {
   const { s, t } = handleFractions(pos);
@@ -1812,12 +1833,15 @@ export function frameResizePatch(
   dx: number,
   dy: number,
   origin: Point,
+  proportional = false,
 ): { scaleXFactor: number; scaleYFactor: number; originX: number; originY: number } {
   const along = frameCoordinates(frame, { x: dx, y: dy });
   const fx = pos.includes('e') ? 1 + along.s : pos.includes('w') ? 1 - along.s : 1;
   const fy = pos.includes('s') ? 1 + along.t : pos.includes('n') ? 1 - along.t : 1;
-  const scaleX = Math.max(0.01, fx);
-  const scaleY = Math.max(0.01, fy);
+  // Shift keeps the proportions (Godot's "Shift: Scale proportionally"): the larger factor wins.
+  const uniform = Math.max(fx, fy);
+  const scaleX = Math.max(0.01, proportional && pos.length === 2 ? uniform : fx);
+  const scaleY = Math.max(0.01, proportional && pos.length === 2 ? uniform : fy);
   const held = handleFractions(pos);
   const anchor = framePoint(frame, 1 - held.s, 1 - held.t);
   const fromOrigin = frameCoordinates(frame, { x: anchor.x - origin.x, y: anchor.y - origin.y });

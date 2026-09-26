@@ -68,17 +68,18 @@ the tool strip and snap control are the kit's `Toolbar.tsx`. Walked on a `canvas
 | Hierarchy panel | Scene dock | selection walked (container › Square); visibility not walked |
 | Inspector (Transform: x, y, rotation, scale) | Inspector | writes the source's JSX attribute; undo restores it |
 | Move, Rotate, Scale | Move, Rotate, Scale modes | present |
-| Select (arms no handles) and Transform (all handles) | Select mode, which shows the handles | split: Godot's Select is our Transform; our Select has no Godot home. Godot's Cmd+Drag rotate, Alt+Drag move, Cmd+Alt+Drag scale and V (pivot) have no counterpart, and our Alt means "bypass snap" |
+| Select, with the box's eight handles and the rotate handle | Select mode, which shows the handles | present: on the 2D surface Select is the handle mode and the strip has no separate Transform button (walked: Select armed 8 handles). Godot's Cmd+Drag rotate, Alt+Drag move, Cmd+Alt+Drag scale and V (pivot) have no counterpart, and our Alt means "bypass snap" |
+| Shift while resizing from a corner | Scale mode's "Shift: Scale proportionally" | present (walked: a Shift-held SE drag wrote a uniform `scale={1.2}`) |
 | Toggle smart snap | Smart snap | present: a move aligns the box's sides or centre to the parent, other nodes' sides and centres, and guides (walked: on writes 580 against a neighbour's edge, off writes the free 581.5) |
-| Toggle snap (Grid Snap in 2D), Snap settings | grid snap, Snapping Options | the translate, rotate and scale steps, and Smart Snapping's targets (Parent, Node Sides, Node Center, Guides). Partial: one magnet applies all three steps, where Godot keeps Use Rotation Snap and Use Scale Snap as their own toggles (off); the translate step defaults to 1, Godot's grid to 8 px, with no offset; Sides and Center fold in Godot's separate Snap to Other Nodes; Node Anchor, Snap Relative and Use Pixel Snap have no row |
+| Toggle snap (Grid Snap in 2D), Snap settings | grid snap, Snapping Options | the translate, rotate and scale steps, and Smart Snapping's targets (Parent, Node Sides, Node Center, Guides). Use Rotation Snap and Use Scale Snap are their own toggles (off), as Godot keeps them; the magnet is the move step's. Partial: the translate step defaults to 1, Godot's grid to 8 px, with no offset; Sides and Center fold in Godot's separate Snap to Other Nodes; Node Anchor, Snap Relative and Use Pixel Snap have no row |
 | Rulers; guides dragged from them, moved, removed by right-click | rulers and guides | present |
 | View menu: Show Grid, Rulers, Guides, Origin, Viewport; Center Selection, Frame Selection, Clear Guides | View | partial: these items are present, each the view's own switch (walked through the menu's clicks); Godot's Grid submenu (Show When Snapping), Show Helpers, Gizmos and the Preview items are not. Our grid is on by default; Godot's frame shows none |
 | The game's viewport rectangle | View › Show Viewport | the manifest's `resolution` from the origin |
 | Toggle 2D grid | View › Grid | a shortcut to the menu's switch |
 | Frame all, Frame selection | View › Frame Selection | present; Frame all has no exact home |
-| Zoom widget: Frame selection, zoom out, percentage (resets to 100%), zoom in | zoom widget: Center View, −, %, + | partial: no Center View, and zoom is held to 10–400% |
+| Zoom widget: Center view, zoom out, percentage (resets to 100%), zoom in | zoom widget: Center View, −, %, + | present: Center view puts the game's viewport rectangle in the middle of the pane at the current zoom (walked: its centre landed on the pane's, 888, 319); the scene zooms from 2% to 3200%. Godot's own Center View target was not read from the installed product |
 | Pan mode (hand), and middle-drag, right-drag, Space-drag in any mode; wheel zooms at the cursor | Pan mode and Pan View | present (walked: a drag in Pan mode moved the origin 80 px) |
-| Ruler mode: a drag reads its length in world units and its angle | Ruler mode | present (walked: 100 screen px at 153% read "65.5 px · 0.0°") |
+| Ruler mode: a drag reads its length in world units, its angle and its Δx, Δy | Ruler mode | present (walked: 100 screen px at 153% read "65.5 px · 0.0°") |
 | Alt-hover measurement between the selection and another node | Figma's measurement | present |
 | Stationary right-click: the nodes under the pointer | Alt+RMB list; List Select mode | present on right-click, no mode button |
 | Lock / Unlock selected node (toolbar), a shortcut to the hierarchy's lock | Lock | partial: the button toggles the lock (walked), which lasts the session; Godot saves it in the scene and draws a lock gizmo |
@@ -88,19 +89,17 @@ the tool strip and snap control are the kit's `Toolbar.tsx`. Walked on a `canvas
 
 ## Gaps, the work order
 
-Judged against the references by an independent reviewer on 2026-09-26, ranked by what a person
-using the editor meets first:
+Judged against the references by an independent reviewer on 2026-09-26, ranked. Now present:
+Select as the handle mode, rotation and scale snap under their own toggles, Shift for proportional
+scaling, Center View and a wider zoom, the ruler's Δx and Δy, and Group.
 
-1. Select mode: Godot's Select shows the handles and moves, rotates and scales by modifier drags,
-   with V for the pivot; ours splits the handles into Transform, and Alt bypasses snap.
-2. Snapping: rotation and scale snap under their own toggles, the grid step at 8 px with an offset,
-   Snap to Other Nodes as its own target, Pixel Snap and Snap Relative.
+1. Godot's modifier drags in Select (Cmd rotate, Alt move, Cmd+Alt scale, V pivot); our Alt bypasses
+   snap.
+2. Snapping: the grid step at 8 px with an offset, Snap to Other Nodes as its own target, Pixel Snap
+   and Snap Relative.
 3. Right-click: Godot's RMB adds a node at the point and Alt+RMB lists the nodes there; ours lists on
    RMB. No List Select or Pivot button.
 4. Lock and Group last only the session; Godot saves them in the scene with a gizmo.
-5. The zoom widget's Center View, and zoom beyond 10–400%.
-6. The View menu's Grid submenu, Helpers, Gizmos and Preview items; Scale's Shift for proportional;
-   Skew in the Inspector; the ruler's dx/dy.
-7. The `2D` board against Figma: frames and zoom are present (walked); the layers list for its
-   frames and the zoom menu are not, and its zoom sits bottom-right where Figma's sits at the top of
-   the properties panel.
+5. The View menu's Grid submenu, Helpers, Gizmos and Preview items; Skew in the Inspector.
+6. The `2D` board against Figma: the layers list for its frames and the zoom menu; its zoom sits
+   bottom-right where Figma's sits at the top of the properties panel.

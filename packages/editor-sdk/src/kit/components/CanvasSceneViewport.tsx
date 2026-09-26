@@ -31,6 +31,7 @@ import {
   useSyncExternalStore,
 } from 'react';
 import { collectAllNodeIds } from '@volter/editor-sdk/kit/authoring/active-adapter';
+import { SCENE_MAX_ZOOM, SCENE_MIN_ZOOM } from '@volter/editor-sdk/kit/authoring/react-canvas-navigation';
 import {
   addCanvasSceneGuide,
   canvasSceneGuideRevision,
@@ -106,7 +107,7 @@ function frameBounds(
   const availableHeight = Math.max(1, container.clientHeight - 96);
   const zoom = Math.min(
     4,
-    Math.max(0.1, Math.min(availableWidth / bounds.width, availableHeight / bounds.height)),
+    Math.max(SCENE_MIN_ZOOM, Math.min(availableWidth / bounds.width, availableHeight / bounds.height)),
   );
   view.setView(
     container.clientWidth / 2 - (bounds.x + bounds.width / 2) * zoom,
@@ -490,7 +491,7 @@ export function CanvasSceneControls({
     (requestedZoom: number) => {
       const container = containerRef.current;
       if (!container) return;
-      const zoom = Math.min(4, Math.max(0.1, requestedZoom));
+      const zoom = Math.min(SCENE_MAX_ZOOM, Math.max(SCENE_MIN_ZOOM, requestedZoom));
       const cx = container.clientWidth / 2;
       const cy = container.clientHeight / 2;
       const worldX = (cx - pose.x) / pose.zoom;
@@ -518,6 +519,18 @@ export function CanvasSceneControls({
     if (!container) return;
     frameBounds(container, view, unionRects(rectsFor(store.selectedEntityIds)));
   }, [containerRef, rectsFor, store, view]);
+
+  // The zoom widget's first button (Godot's Center View): the game's viewport rectangle, or the
+  // origin when the project declares no resolution, in the middle of the pane at this zoom.
+  const centerView = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const now = view.get();
+    const resolution = getCurrentProject()?.config.resolution;
+    const cx = resolution ? resolution.width / 2 : 0;
+    const cy = resolution ? resolution.height / 2 : 0;
+    view.setView(container.clientWidth / 2 - cx * now.zoom, container.clientHeight / 2 - cy * now.zoom, now.zoom);
+  }, [containerRef, view]);
 
   const centerSelection = useCallback(() => {
     const container = containerRef.current;
@@ -621,11 +634,10 @@ export function CanvasSceneControls({
         data-vgai-canvas-navigation-ignore="true"
       >
         <IconButton
-          aria-label="Frame selection"
-          title="Frame selection"
+          aria-label="Center view"
+          title="Center view: the game's viewport in the middle of the pane, at this zoom"
           size="comfortable"
-          disabled={store.selectedEntityIds.size === 0}
-          onClick={frameSelection}
+          onClick={centerView}
         >
           <EditorIcon icon={faExpand} size="md" />
         </IconButton>
@@ -857,7 +869,7 @@ function CanvasSceneModeLayer({
               whiteSpace: 'nowrap',
             }}
           >
-            {`${length.toFixed(1)} px · ${angle.toFixed(1)}°`}
+            {`${length.toFixed(1)} px · ${angle.toFixed(1)}° · Δ ${(measure!.to.x - measure!.from.x).toFixed(1)}, ${(measure!.to.y - measure!.from.y).toFixed(1)}`}
           </div>
         </>
       ) : null}

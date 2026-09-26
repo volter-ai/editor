@@ -192,6 +192,17 @@ function SnapButton({
             />
             {dimensions === '2d' && (
               <>
+                {(
+                  [
+                    ['Use Rotation Snap', store.rotationSnap, () => store.setRotationSnap(!store.rotationSnap)],
+                    ['Use Scale Snap', store.scaleSnap, () => store.setScaleSnap(!store.scaleSnap)],
+                  ] as const
+                ).map(([label, on, toggle]) => (
+                  <Inline key={label} gap={2} align="center" role="menuitemcheckbox" aria-checked={on} onClick={toggle}>
+                    <Checkbox checked={on} readOnly />
+                    <Text>{label}</Text>
+                  </Inline>
+                ))}
                 <Text variant="caption" tone="muted">
                   Smart Snapping
                 </Text>
@@ -630,7 +641,7 @@ export function ToolStrip({
           onArm={() => (door ? door.begin(tool.mode) : requestTransformMode(store, tool.mode))}
         />
       ))}
-      {door ? null : (
+      {door || dimensions === '2d' ? null : (
         <ModeButton
           faIcon={editorIcons.tool.transform}
           action="transform.combined"

@@ -129,6 +129,7 @@ import {
   frameHandlePosition,
   frameIsTurned,
   frameResizePatch,
+  proportionalResize,
   computeResizeSnapGuides,
   computeRotatePatch,
   computeSpacingBands,
@@ -376,7 +377,9 @@ function transformArms(
   mode: string,
   part: 'translate' | 'rotate' | 'scale',
 ): boolean {
-  return !aware || mode === part || mode === 'combined';
+  // Godot's 2D Select mode is its handle mode: on a native 2D surface Select arms the box's
+  // handles as the combined tool does.
+  return !aware || mode === part || mode === 'combined' || mode === 'select';
 }
 
 function boxStyle(r: DOMRectLike, solid: boolean): React.CSSProperties {
@@ -1371,7 +1374,8 @@ export function RootSelectionOverlay({
   // A dedicated Move/Rotate/Scale tool draws its axis gizmo at the node's
   // origin; the combined tool draws handles on the selection's bounds, the way
   // Godot's Select tool and Figma's selection do.
-  const axisGizmos = transformModeAware && store.transformMode !== 'combined';
+  const axisGizmos =
+    transformModeAware && store.transformMode !== 'combined' && store.transformMode !== 'select';
   // True while the Space key is physically held (and not typing — see the
   // keydown/keyup effect below), the hold-to-pan gesture's arm switch.
   // `spaceHeldRef` mirrors the state for a synchronous read in the pointer
@@ -1872,7 +1876,7 @@ export function RootSelectionOverlay({
       let patch: Record<string, number>;
       if (gesture.kind === 'resize' && gesture.frame && gesture.frameOrigin) {
         // A turned node resizes along its own axes, its opposite corner held.
-        patch = frameResizePatch(gesture.frame, gesture.pos!, dx, dy, gesture.frameOrigin);
+        patch = frameResizePatch(gesture.frame, gesture.pos!, dx, dy, gesture.frameOrigin, e.shiftKey);
         setSnapGuides([]);
       } else if (gesture.kind === 'resize') {
         patch = computeResizePatch(
@@ -1884,6 +1888,9 @@ export function RootSelectionOverlay({
           e.altKey,
           gesture.context,
         );
+        // Shift keeps a corner resize's proportions (Godot's Scale mode, Figma's frame), where the
+        // box writes its position; a laid-out element's size alone is not anchored this way.
+        if (e.shiftKey && gesture.isPositioned) patch = proportionalResize(patch, gesture.origRect, gesture.pos!);
         // D1.b — the same edge-snap decision `computeResizePatch` just
         // applied to the patch, rendered as a guide (spec §6).
         setSnapGuides(
@@ -1901,7 +1908,8 @@ export function RootSelectionOverlay({
           gesture,
           dx,
           dy,
-          store.snapEnabled,
+          // A 2D scale steps under its own switch (Godot's Use Scale Snap), not the grid magnet.
+          store.scaleSnap,
           e.altKey,
           store.snapValues.scale,
         );
@@ -1964,7 +1972,8 @@ export function RootSelectionOverlay({
           gesture.center!,
           gesture.startLocal,
           local,
-          gesture.nativeOrigin ? !store.snapEnabled || e.altKey : e.altKey,
+          // A 2D rotation steps under its own switch (Godot's Use Rotation Snap).
+          gesture.nativeOrigin ? !store.rotationSnap || e.altKey : e.altKey,
           gesture.nativeOrigin ? store.snapValues.rotate : 15,
         );
       } else {
