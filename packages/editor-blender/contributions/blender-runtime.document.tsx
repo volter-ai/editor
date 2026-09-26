@@ -106,6 +106,31 @@ const cameraView = {
   camera: () => view.cameraViewCamera(),
   zoom: view.cameraViewZoom,
   pan: view.cameraViewPan,
+  // A LOCKED camera view moves the camera (`ED_view3d_camera_lock_sync`: its scale kept); the
+  // navigation's end is the one step Blender's history records.
+  setPose: (
+    camera: string,
+    position: readonly [number, number, number],
+    quaternion: readonly [number, number, number, number],
+    final: boolean,
+  ) => {
+    const { location, rotation } = view.blenderPose(position, quaternion);
+    return blenderExecute(
+      'from mathutils import Matrix, Quaternion, Vector\n' +
+        `import bpy\nobject = bpy.data.objects[${JSON.stringify(camera)}]\n` +
+        `object.matrix_world = Matrix.LocRotScale(Vector((${location.join(', ')})), ` +
+        `Quaternion((${rotation.join(', ')})), object.matrix_world.to_scale())`,
+      final,
+      'Lock Camera to View',
+    ).then(
+      (answer) => {
+        if (answer.error !== null)
+          editorHost().console.error(`Blender refused the camera's pose: ${answer.error}`, 'blender-camera');
+      },
+      (error: unknown) =>
+        editorHost().console.error(`The camera's pose was not written to Blender: ${String(error)}`, 'blender-camera'),
+    );
+  },
   view: (
     camera: string,
     region: { readonly width: number; readonly height: number },

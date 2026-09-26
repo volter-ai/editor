@@ -149,6 +149,9 @@ export const editorIcons = {
     camera: meshGlyph('viewport-camera', faVideo),
     /** …and the same button while looking through it (`VIEW_CAMERA`). */
     cameraView: meshGlyph('viewport-camera-view', faVideo),
+    /** A camera view locked to its camera (`VIEW_LOCKED`), and not (`VIEW_UNLOCKED`). */
+    cameraLocked: meshGlyph('viewport-camera-locked', faLock),
+    cameraUnlocked: meshGlyph('viewport-camera-unlocked', faLockOpen),
   },
   /**
    * Mesh-modeling operators — the shelf glyphs a modeling document shows

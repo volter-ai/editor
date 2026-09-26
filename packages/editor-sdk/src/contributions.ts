@@ -316,6 +316,18 @@ export interface ToolCameraViewSource {
     dy: number,
   ) => readonly [number, number];
   /**
+   * Move `camera` to a pose in the stage's frame (the eye, and its rotation looking down -Z),
+   * keeping its scale: what a LOCKED camera view does as it is navigated (Blender's
+   * `View3D.lock_camera`, `ED_view3d_camera_lock_sync`). `final` is the navigation's end, the
+   * one write a history records. Omit it and the view has no lock.
+   */
+  readonly setPose?: (
+    camera: string,
+    position: readonly [number, number, number],
+    quaternion: readonly [number, number, number, number],
+    final: boolean,
+  ) => void | Promise<void>;
+  /**
    * `camera`'s view on a region `width` × `height` pixels, at frame zoom `zoom` and pan
    * `offset`; null when that camera is gone.
    */
@@ -343,8 +355,9 @@ export interface ToolCameraView {
   readonly frame: { readonly left: number; readonly top: number; readonly width: number; readonly height: number };
   /** Outside the frame: its colour and opacity (0 draws none). */
   readonly passepartout: { readonly color: string; readonly opacity: number };
-  /** The frame's edge: a solid line under a dashed one, each a CSS colour. */
-  readonly border: { readonly solid: string; readonly dashed: string };
+  /** The frame's edge: a solid line under a dashed one, and the colour of the dashed box one
+   *  pixel outside them while the view is locked to the camera; each a CSS colour. */
+  readonly border: { readonly solid: string; readonly dashed: string; readonly locked: string };
 }
 
 /** One row of the viewport overlay's statistics block: Blender's label column

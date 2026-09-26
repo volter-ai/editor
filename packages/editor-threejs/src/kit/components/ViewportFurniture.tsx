@@ -454,6 +454,18 @@ export function ViewportFurniture({
             </IconButton>
           </Tooltip>
         ) : null}
+        {/* In a camera view, the lock that makes navigating it move the camera
+            (`View3D.lock_camera`): `VIEW_LOCKED` while it holds, `VIEW_UNLOCKED` otherwise. */}
+        {through && session?.cameraViewLocked() !== null ? (
+          <Tooltip text={session?.cameraViewLocked() ? 'Unlock the camera from the view' : 'Lock the camera to the view'}>
+            <IconButton size="comfortable" aria-label="Lock the camera to the view" onClick={() => session?.toggleCameraViewLock()}>
+              <EditorIcon
+                size="2xl"
+                icon={session?.cameraViewLocked() ? editorIcons.viewport.cameraLocked : editorIcons.viewport.cameraUnlocked}
+              />
+            </IconButton>
+          </Tooltip>
+        ) : null}
         {/* A camera view has its camera's projection, so the toggle stands down in it. */}
         {through ? null : (
         <Tooltip text={drawn === 'perspective' ? 'Orthographic' : 'Perspective'}>
@@ -476,7 +488,9 @@ export function ViewportFurniture({
         </Tooltip>
         )}
       </div>
-      {through && session ? <CameraFrame view={through} canvas={session.renderer.domElement} /> : null}
+      {through && session ? (
+        <CameraFrame view={through} canvas={session.renderer.domElement} locked={session.cameraViewLocked() === true} />
+      ) : null}
     </>
   );
 }
@@ -486,7 +500,7 @@ export function ViewportFurniture({
  * outside it at the camera's opacity, and one device pixel outside the frame a solid box (only
  * with a passepartout) under a dashed one (`dash_width` 6 at half, in device pixels).
  */
-function CameraFrame({ view, canvas }: { view: ToolCameraView; canvas: HTMLCanvasElement }) {
+function CameraFrame({ view, canvas, locked }: { view: ToolCameraView; canvas: HTMLCanvasElement; locked: boolean }) {
   const [host, setHost] = useState<HTMLDivElement | null>(null);
   // Positions are read from the layout, so a panel resize has to draw the frame again.
   const [, setLayout] = useState(0);
@@ -536,6 +550,20 @@ function CameraFrame({ view, canvas }: { view: ToolCameraView; canvas: HTMLCanva
             strokeDasharray={`${3 * px} ${3 * px}`}
             shapeRendering="crispEdges"
           />
+          {/* A locked view's outer box, one pixel outside ("not to confuse with object selection"). */}
+          {locked ? (
+            <rect
+              x={x - px}
+              y={y - px}
+              width={w + 2 * px}
+              height={h + 2 * px}
+              fill="none"
+              stroke={view.border.locked}
+              strokeWidth={px}
+              strokeDasharray={`${3 * px} ${3 * px}`}
+              shapeRendering="crispEdges"
+            />
+          ) : null}
         </svg>
       ) : null}
     </div>

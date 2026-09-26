@@ -159,7 +159,9 @@ export class Object3DDocumentSession {
       readonly up: THREE.Vector3;
       readonly projection: 'perspective' | 'orthographic';
     };
-    readonly release: () => void;
+    /** Undo the input the view holds: its own capture, or the lock's hand-over. */
+    release: () => void;
+    locked: boolean;
   } | null = null;
   private leaving = false;
   /** The view computed for one synchronous burst of readers (a frame asks a dozen times). */
@@ -654,9 +656,23 @@ export class Object3DDocumentSession {
     const region = this.captureAspect
       ? { width: this.captureAspect, height: 1 }
       : { width: canvas.clientWidth, height: canvas.clientHeight };
-    const key = `${through.camera}|${region.width}|${region.height}|${through.zoom}|${through.offset.join(',')}`;
+    // A LOCKED view is drawn from the free camera the navigation moves, ahead of the camera's
+    // own pose, which the engine confirms at the end of each gesture.
+    const free = this.viewport.camera;
+    const pose = through.locked
+      ? `${free.position.toArray().join(',')}|${free.quaternion.toArray().join(',')}`
+      : '';
+    const key = `${through.camera}|${region.width}|${region.height}|${through.zoom}|${through.offset.join(',')}|${pose}`;
     if (this.viewMemo?.key === key) return this.viewMemo.view;
-    const view = source.view(through.camera, region, through.zoom, through.offset);
+    const seen = source.view(through.camera, region, through.zoom, through.offset);
+    const view =
+      seen && through.locked
+        ? {
+            ...seen,
+            position: free.position.toArray() as [number, number, number],
+            quaternion: free.quaternion.toArray() as [number, number, number, number],
+          }
+        : seen;
     this.viewMemo = { key, view };
     queueMicrotask(() => {
       this.viewMemo = null;
@@ -694,9 +710,95 @@ export class Object3DDocumentSession {
         projection: this.state.projection,
       },
       release: this.captureCameraViewInput(),
+      locked: false,
     };
     this.notify();
     return true;
+  }
+
+  /** Whether the camera view is locked to its camera; null outside one, or where the document
+   *  cannot move its camera. */
+  cameraViewLocked(): boolean | null {
+    if (!this.through || !this.cameraViewSource?.setPose) return null;
+    return this.through.locked;
+  }
+
+  /**
+   * LOCK THE CAMERA TO THE VIEW (Blender's `View3D.lock_camera`, the navigation cluster's lock):
+   * navigating a locked camera view moves the camera. The orbit controls take the view from the
+   * camera's own pose about a pivot as far ahead as the view it left stood from its pivot; the
+   * view draws from where they put it, and the camera follows as they move — one write in
+   * flight at a time, the latest pose after it (`ED_view3d_camera_lock_sync`, which keeps the
+   * camera's scale). Unlocked, the view's own input comes back.
+   */
+  toggleCameraViewLock(): void {
+    const through = this.through;
+    const source = this.cameraViewSource;
+    if (!through || !source?.setPose) return;
+    through.release();
+    through.locked = !through.locked;
+    if (!through.locked) {
+      through.release = this.captureCameraViewInput();
+    } else {
+      const view = this.cameraView();
+      const controls = this.viewport.orbitControls;
+      const camera = this.viewport.camera;
+      if (view) {
+        const eye = new THREE.Vector3(...view.position);
+        const rotation = new THREE.Quaternion(...view.quaternion);
+        const distance = through.left.position.distanceTo(through.left.target);
+        camera.up.set(0, 1, 0);
+        camera.position.copy(eye);
+        camera.quaternion.copy(rotation);
+        controls.target.copy(eye).addScaledVector(new THREE.Vector3(0, 0, -1).applyQuaternion(rotation), distance);
+        controls.update();
+      }
+      const enabled = controls.enabled;
+      controls.enabled = true;
+      const name = through.camera;
+      // One write in flight; the latest pose after it, and the gesture's end as its own final
+      // write. A failed write is the source's to report (the session only keeps the chain going).
+      let writing = false;
+      let pending: boolean | null = null;
+      const write = (final: boolean): void => {
+        if (!this.through?.locked || this.through.camera !== name) return;
+        if (writing) {
+          pending = (pending ?? false) || final;
+          return;
+        }
+        writing = true;
+        pending = null;
+        void Promise.resolve(
+          source.setPose!(
+            name,
+            camera.position.toArray(),
+            camera.quaternion.toArray() as [number, number, number, number],
+            final,
+          ),
+        )
+          .catch(() => undefined)
+          .finally(() => {
+            writing = false;
+            if (pending !== null) write(pending);
+          });
+      };
+      const moved = (): void => {
+        invalidateStages();
+        this.notify();
+        write(false);
+      };
+      const ended = (): void => write(true);
+      controls.addEventListener('change', moved);
+      controls.addEventListener('end', ended);
+      through.release = () => {
+        controls.removeEventListener('change', moved);
+        controls.removeEventListener('end', ended);
+        controls.enabled = enabled;
+      };
+    }
+    this.viewMemo = null;
+    invalidateStages();
+    this.notify();
   }
 
   /** The camera view's frame zoom, or null outside one. */

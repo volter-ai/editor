@@ -151,6 +151,9 @@ const OUTLINER_ICON_NAMES = [
   // outside the camera view and `VIEW_CAMERA` in it, under names of OURS for the same reason.
   ['viewport-camera', 'view_camera_unselected'],
   ['viewport-camera-view', 'view_camera'],
+  // And, in a camera view, the lock to it: `VIEW_LOCKED` / `VIEW_UNLOCKED`.
+  ['viewport-camera-locked', 'view_locked'],
+  ['viewport-camera-unlocked', 'view_unlocked'],
 ];
 
 const TRACED = new URL('./blender.icons.traced.json', import.meta.url);

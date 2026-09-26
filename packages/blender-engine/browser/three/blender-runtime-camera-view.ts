@@ -41,9 +41,9 @@ export type CameraData = z.infer<typeof cameraDataSchema>;
 export const CAMERA_ZOOM = { opening: 0.5, min: 0.1657359312880714853, max: 44.9852813742385702928 } as const;
 
 /** Blender 5.2's default theme, read back from the installed Blender: the passepartout
- *  (`camera_passepartout`), the solid edge (the 3D View's `back`) and the dashed one
- *  (`view_overlay`). */
-const THEME = { passepartout: '#000000', back: '#3d3d3d', overlay: '#000000' } as const;
+ *  (`camera_passepartout`), the solid edge (the 3D View's `back`), the dashed one
+ *  (`view_overlay`) and a locked view's outer box (`TH_REDALERT`, the error state). */
+const THEME = { passepartout: '#000000', back: '#3d3d3d', overlay: '#000000', redalert: '#991616' } as const;
 
 /** `view_move` in a camera view: the pan after the pointer moves `dx`, `dy` (fractions of the
  *  region, down and right positive) at zoom factor `zoom`. */
@@ -76,7 +76,7 @@ export interface BlenderCameraView {
   readonly far: number;
   readonly frame: { readonly left: number; readonly top: number; readonly width: number; readonly height: number };
   readonly passepartout: { readonly color: string; readonly opacity: number };
-  readonly border: { readonly solid: string; readonly dashed: string };
+  readonly border: { readonly solid: string; readonly dashed: string; readonly locked: string };
 }
 
 /**
@@ -132,6 +132,6 @@ export function blenderCameraView(
       height: frameHeight,
     },
     passepartout: { color: THEME.passepartout, opacity: camera.passepartout },
-    border: { solid: THEME.back, dashed: THEME.overlay },
+    border: { solid: THEME.back, dashed: THEME.overlay, locked: THEME.redalert },
   };
 }

@@ -829,6 +829,21 @@ export class BlenderRuntimeView {
     return view.view_layer_cameras.find((name) => frame.cameras[name]) ?? null;
   }
 
+  /** A pose in the stage's frame back in Blender's: the location and the rotation `(w, x, y, z)`. */
+  blenderPose(
+    position: readonly [number, number, number],
+    quaternion: readonly [number, number, number, number],
+  ): { readonly location: [number, number, number]; readonly rotation: [number, number, number, number] } {
+    const toBlender = new THREE.Matrix4().copy(this.root.matrix).invert();
+    const pose = new THREE.Matrix4()
+      .compose(new THREE.Vector3(...position), new THREE.Quaternion(...quaternion), new THREE.Vector3(1, 1, 1))
+      .premultiply(toBlender);
+    const location = new THREE.Vector3();
+    const rotation = new THREE.Quaternion();
+    pose.decompose(location, rotation, new THREE.Vector3());
+    return { location: location.toArray(), rotation: [rotation.w, rotation.x, rotation.y, rotation.z] };
+  }
+
   /** The zoom a camera view opens at and keeps within (`blender-runtime-camera-view.ts`). */
   readonly cameraViewZoom = CAMERA_ZOOM;
   /** `view_move` in a camera view (`panCameraView`). */
