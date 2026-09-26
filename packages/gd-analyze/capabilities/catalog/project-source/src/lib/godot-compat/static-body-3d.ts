@@ -7,9 +7,9 @@
  * Rapier body (`collision-object-3d.ts`).
  */
 
-import { godot_collision_object_adopt, godot_collision_object_material } from './collision-object-3d';
+import { godot_collision_object_adopt, godot_collision_object_declarer, godot_collision_object_material } from './collision-object-3d';
 import { godot_node_entity } from './node';
-import type { PhysicsMaterial } from './physics-material';
+import { godot_physics_material_of, type PhysicsMaterial } from './physics-material';
 
 /**
  * Registers a node as a StaticBody3D (`PhysicsBody3D(PhysicsServer3D::BODY_MODE_STATIC)`).
@@ -40,3 +40,13 @@ export function set_physics_material_override(self: object, physics_material_ove
 export function get_physics_material_override(self: object): PhysicsMaterial | null {
   return MATERIAL.get(godot_node_entity(self)) ?? null;
 }
+
+// A fixed body the scene's JSX declares is a StaticBody3D; its material override is the one the
+// `userData` holds (its friction and bounce are its colliders' props).
+godot_collision_object_declarer('static', (entity, _body, data) => {
+  godot_static_body_3d_adopt(entity);
+  const material = data['physics_material_override'];
+  if (material === undefined) return new Set();
+  set_physics_material_override(entity, godot_physics_material_of(material as Readonly<Record<string, unknown>>));
+  return new Set(['physics_material_override']);
+});

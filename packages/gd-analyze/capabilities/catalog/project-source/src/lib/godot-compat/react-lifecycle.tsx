@@ -19,6 +19,7 @@ import {
   type Ref,
   type RefObject,
   useContext,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -32,6 +33,7 @@ import {
   mountGodotScriptTree,
 } from './node';
 import { godot_tree_root } from './scene-tree';
+import { godot_world_3d_declared_object } from './world-3d';
 
 export interface GodotScriptTreeAttachment {
   readonly root: object;
@@ -98,7 +100,9 @@ export function GodotProjectStartup({
     },
   };
 
-  useLayoutEffect(() => {
+  // After every descendant's effects: a `@react-three/rapier` body exists, and its object is known,
+  // only once its own effects have run.
+  useEffect(() => {
     const mounted = [...registrations.current].sort(
       (left, right) => left.sequence - right.sequence,
     );
@@ -151,6 +155,48 @@ export function useGodotScriptTreeAttachment<Native extends object>(
   }, []);
 }
 
+/**
+ * The node an element's ref holds: its object, or for a `@react-three/rapier` body (whose ref is
+ * the Rapier body) the body's object.
+ */
+function nodeOf(held: object | null): object | null {
+  if (held === null || (held as { readonly isObject3D?: boolean }).isObject3D === true) return held;
+  return godot_world_3d_declared_object(held) ?? null;
+}
+
+/** Each node's script instance, as `useGodotScript` makes it. */
+const SCRIPT_OF = new WeakMap<object, object>();
+
+/**
+ * A connection the scene authors (`[connection]`, made as the scene instantiates,
+ * `packed_scene.cpp:682`): the source node's signal, through its class's accessor, calls the
+ * method of the target node's script. It is made before the tree is entered (the target's script
+ * attached by a `useGodotScript` earlier in the same component, or in a child's), and released
+ * when the scene unmounts. Like the script attachments, it runs among the effects, once the
+ * `@react-three/rapier` bodies exist.
+ *
+ * @godot Node (protocol)
+ * @source scene/resources/packed_scene.cpp:682
+ */
+export function useGodotConnection<Name extends string, Args extends unknown[]>(
+  source: RefObject<object | null>,
+  signal: (self: object, name: Name) => { connect(callable: (...args: Args) => void): { disconnect(): void } },
+  name: Name,
+  target: RefObject<object | null>,
+  method: string,
+): void {
+  useEffect(() => {
+    const from = nodeOf(source.current);
+    const to = nodeOf(target.current);
+    if (from === null || to === null) throw new Error(`godot-compat: the nodes connected by ${name} were not mounted.`);
+    const instance = SCRIPT_OF.get(to) as Readonly<Record<string, unknown>> | undefined;
+    const callee = instance?.[method];
+    if (typeof callee !== 'function') throw new Error(`godot-compat: the target of ${name} has no script method ${method}.`);
+    const connection = signal(from, name).connect((...args: Args) => (callee as (...values: Args) => unknown).apply(instance, args));
+    return () => connection.disconnect();
+  }, []);
+}
+
 /** The virtual methods Godot calls on a script, by the binding slot each fills. */
 const LIFECYCLE_METHODS = [
   ['enterTree', '_enter_tree'],
@@ -183,10 +229,11 @@ export function useGodotScript<Instance extends object>(
   autoloads?: Readonly<Record<string, RefObject<object | null> | undefined>>,
 ): void {
   const startup = useContext(GodotStartupContext);
-  useLayoutEffect(() => {
-    const native = ref.current;
+  useEffect(() => {
+    const native = nodeOf(ref.current);
     if (native === null) throw new Error('godot-compat: the node a script attaches to was not mounted.');
     const instance = new Script(native);
+    SCRIPT_OF.set(native, instance);
     if (exported !== undefined) Object.assign(instance, exported);
     for (const [field, singleton] of Object.entries(autoloads ?? {})) {
       const value = singleton?.current;

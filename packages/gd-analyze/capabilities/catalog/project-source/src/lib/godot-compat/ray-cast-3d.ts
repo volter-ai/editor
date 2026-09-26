@@ -6,12 +6,15 @@
  * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`): a Node3D (an Object3D) whose internal physics
  * processing casts `intersect_ray` from its global origin to its global transform of
  * `target_position`, before its script's `_physics_process`. Its parameters and last result live in
- * `RAY`, keyed by the entity.
+ * `RAY`, keyed by the entity. Three has no ray node, so a scene declares one as the
+ * `<GodotRayCast3D>` element, a group with the ray's settings as props.
  */
 
-import type { Object3D } from 'three';
+import type { ThreeElements } from '@react-three/fiber';
+import { createElement, type Ref, useLayoutEffect, useRef } from 'react';
+import type { Group, Object3D } from 'three';
 import { godot_collision_object_state } from './collision-object-3d';
-import { godot_node_entity, godot_node_set_internal_physics, is_inside_tree } from './node';
+import { godot_node_class_reader, godot_node_entity, godot_node_set_internal_physics, is_inside_tree } from './node';
 import { get_global_transform } from './node-3d';
 import { intersect_ray } from './physics-direct-space-state-3d';
 import { godot_ray_query_new } from './physics-ray-query-parameters-3d';
@@ -39,6 +42,8 @@ interface RayState {
 }
 
 const RAY = new WeakMap<object, RayState>();
+const RAY_CAST_3D = Object.freeze(['RayCast3D', 'Node3D', 'Node', 'Object']);
+godot_node_class_reader((entity) => (RAY.has(entity) ? RAY_CAST_3D : undefined));
 
 function stateOf(object: object): RayState {
   const entity = godot_node_entity(object);
@@ -228,4 +233,57 @@ export function add_exception(self: object, node: object): void {
 export function force_raycast_update(self: object): void {
   const entity = godot_node_entity(self);
   if (is_inside_tree(entity)) update(entity, stateOf(entity));
+}
+
+/** A `<GodotRayCast3D>`'s props: a group's, and the ray's settings by their Godot names in camelCase. */
+export type GodotRayCast3DProps = Omit<ThreeElements['group'], 'ref'> & {
+  readonly ref?: Ref<Group>;
+  readonly enabled?: boolean;
+  readonly targetPosition?: readonly [number, number, number];
+  readonly collisionMask?: number;
+  readonly excludeParent?: boolean;
+  readonly collideWithAreas?: boolean;
+  readonly collideWithBodies?: boolean;
+  readonly hitFromInside?: boolean;
+  readonly hitBackFaces?: boolean;
+};
+
+/**
+ * A RayCast3D as a scene declares it: a group registered as the ray, its settings the element's.
+ *
+ * @godot RayCast3D (protocol)
+ * @source scene/3d/physics/ray_cast_3d.cpp:564
+ */
+export function GodotRayCast3D({
+  ref,
+  enabled,
+  targetPosition,
+  collisionMask,
+  excludeParent,
+  collideWithAreas,
+  collideWithBodies,
+  hitFromInside,
+  hitBackFaces,
+  ...group
+}: GodotRayCast3DProps) {
+  const own = useRef<Group>(null);
+  useLayoutEffect(() => {
+    const entity = own.current as Group;
+    if (!RAY.has(entity)) godot_ray_cast_3d_adopt(entity);
+    const state = RAY.get(entity) as RayState;
+    if (enabled !== undefined) set_enabled(entity, enabled);
+    if (targetPosition !== undefined) set_target_position(entity, vector3(...targetPosition));
+    if (collisionMask !== undefined) set_collision_mask(entity, collisionMask);
+    if (excludeParent !== undefined) set_exclude_parent_body(entity, excludeParent);
+    if (collideWithAreas !== undefined) set_collide_with_areas(entity, collideWithAreas);
+    if (collideWithBodies !== undefined) state.collideWithBodies = collideWithBodies;
+    if (hitFromInside !== undefined) state.hitFromInside = hitFromInside;
+    if (hitBackFaces !== undefined) state.hitBackFaces = hitBackFaces;
+  }, []);
+  const refs = (value: Group | null) => {
+    own.current = value;
+    if (typeof ref === 'function') ref(value);
+    else if (ref !== undefined && ref !== null) (ref as { current: Group | null }).current = value;
+  };
+  return createElement('group', { ...group, ref: refs });
 }

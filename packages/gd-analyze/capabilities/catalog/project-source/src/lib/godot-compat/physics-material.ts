@@ -98,3 +98,22 @@ export function set_absorbent(self: PhysicsMaterial, absorbent: boolean): void {
 export function is_absorbent(self: PhysicsMaterial): boolean {
   return self.absorbent;
 }
+
+/**
+ * A PhysicsMaterial of the properties a scene states, by their Godot names (a declared body's
+ * `userData.physics_material_override`); an unknown one fails by name.
+ *
+ * @godot PhysicsMaterial (protocol)
+ * @source scene/resources/physics_material.h:36
+ */
+export function godot_physics_material_of(data: Readonly<Record<string, unknown>>): PhysicsMaterial {
+  const material = construct();
+  for (const [key, value] of Object.entries(data)) {
+    if (key === 'friction') set_friction(material, Number(value));
+    else if (key === 'bounce') set_bounce(material, Number(value));
+    else if (key === 'rough') set_rough(material, Boolean(value));
+    else if (key === 'absorbent') set_absorbent(material, Boolean(value));
+    else throw new Error(`godot-compat: PhysicsMaterial has no property ${key}.`);
+  }
+  return material;
+}

@@ -12,7 +12,7 @@
  */
 
 import type { Object3D } from 'three';
-import { godot_collision_object_adopt, godot_collision_object_state } from './collision-object-3d';
+import { godot_collision_object_adopt, godot_collision_object_declarer, godot_collision_object_state } from './collision-object-3d';
 import { godot_tree_frames, godot_tree_process_delta } from './scene-tree';
 import { godot_node_entity, godot_node_tree_signal } from './node';
 import { get_global_transform, set_global_transform } from './node-3d';
@@ -937,3 +937,33 @@ export function set_up_direction(self: object, up_direction: Vector3): void {
   if (op_equal(up_direction, ZERO)) return;
   state.up_direction = normalized(up_direction);
 }
+
+/** The CharacterBody3D properties a scene states, by their Godot names, and their setters. */
+const CHARACTER_SEEDS: Readonly<Record<string, (entity: object, value: unknown) => void>> = {
+  velocity: (entity, value) => set_velocity(entity, vector3(...(value as [number, number, number]))),
+  safe_margin: (entity, value) => set_safe_margin(entity, Number(value)),
+  floor_stop_on_slope: (entity, value) => set_floor_stop_on_slope_enabled(entity, Boolean(value)),
+  floor_constant_speed: (entity, value) => set_floor_constant_speed_enabled(entity, Boolean(value)),
+  floor_block_on_wall: (entity, value) => set_floor_block_on_wall_enabled(entity, Boolean(value)),
+  slide_on_ceiling: (entity, value) => set_slide_on_ceiling_enabled(entity, Boolean(value)),
+  motion_mode: (entity, value) => set_motion_mode(entity, Number(value)),
+  max_slides: (entity, value) => set_max_slides(entity, Number(value)),
+  floor_max_angle: (entity, value) => set_floor_max_angle(entity, Number(value)),
+  floor_snap_length: (entity, value) => set_floor_snap_length(entity, Number(value)),
+  wall_min_slide_angle: (entity, value) => set_wall_min_slide_angle(entity, Number(value)),
+  up_direction: (entity, value) => set_up_direction(entity, vector3(...(value as [number, number, number]))),
+};
+
+// A position-based kinematic body the scene's JSX declares is a CharacterBody3D, which compat's
+// `move_and_slide` moves; its settings are the `userData`'s.
+godot_collision_object_declarer('character', (entity, _body, data) => {
+  godot_character_body_3d_adopt(entity);
+  const read = new Set<string>();
+  for (const [key, value] of Object.entries(data)) {
+    const seed = CHARACTER_SEEDS[key];
+    if (seed === undefined) continue;
+    seed(entity, value);
+    read.add(key);
+  }
+  return read;
+});

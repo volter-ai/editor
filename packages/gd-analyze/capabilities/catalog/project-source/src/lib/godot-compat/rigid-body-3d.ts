@@ -24,10 +24,11 @@
  * Rapier's. Area gravity and damping overrides are not transcribed.
  */
 
-import type { Collider, World } from '@dimforge/rapier3d-compat';
+import type { Collider, RigidBody, World } from '@dimforge/rapier3d-compat';
 import type { Object3D } from 'three';
 import {
   godot_collision_object_adopt,
+  godot_collision_object_declarer,
   godot_collision_object_material,
   godot_collision_object_object,
   godot_collision_object_of_collider,
@@ -40,7 +41,8 @@ import {
 import { godot_node_entity } from './node';
 import { get_global_transform, set_global_transform } from './node-3d';
 import { type BodyContact, type BodyServerState, godot_direct_body_state, type PhysicsDirectBodyState3D } from './physics-direct-body-state-3d';
-import type { PhysicsMaterial } from './physics-material';
+import { godot_physics_body_3d_declared_locks } from './physics-body-3d';
+import { godot_physics_material_of, type PhysicsMaterial } from './physics-material';
 import { get_setting } from './project-settings';
 import { type Basis, construct as basis, op_multiply as basisMultiply } from './basis';
 import { construct as transform3d, op_multiply as transformMultiply, type Transform3D } from './transform-3d';
@@ -553,3 +555,36 @@ export function set_physics_material_override(self: object, physics_material_ove
 export function get_physics_material_override(self: object): PhysicsMaterial | null {
   return stateOf(self, 'get_physics_material_override').material;
 }
+
+/**
+ * A dynamic body the scene's JSX declares is a RigidBody3D: its gravity scale and damping are the
+ * ones its Rapier body holds (`gravityScale`, `linearDamping`, `angularDamping` props, which compat
+ * takes over, since Godot integrates them), its axis locks the ones it enforces, and its mass,
+ * `lock_rotation`, custom integrator, contact reporting and material override the `userData`
+ * holds by their Godot names.
+ *
+ * @godot RigidBody3D (protocol)
+ * @source scene/3d/physics/rigid_body_3d.cpp:829
+ */
+function declareRigidBody(entity: object, body: RigidBody, data: Readonly<Record<string, unknown>>): ReadonlySet<string> {
+  godot_rigid_body_3d_adopt(entity);
+  const state = RIGID.get(entity) as RigidState;
+  state.gravity_scale = f32(body.gravityScale());
+  state.linear_damp = f32(body.linearDamping());
+  state.angular_damp = f32(body.angularDamping());
+  const read = new Set<string>();
+  for (const [key, value] of Object.entries(data)) {
+    if (key === 'mass') set_mass(entity, Number(value));
+    else if (key === 'lock_rotation') set_lock_rotation_enabled(entity, Boolean(value));
+    else if (key === 'custom_integrator') set_use_custom_integrator(entity, Boolean(value));
+    else if (key === 'contact_monitor') set_contact_monitor(entity, Boolean(value));
+    else if (key === 'max_contacts_reported') set_max_contacts_reported(entity, Number(value));
+    else if (key === 'physics_material_override') set_physics_material_override(entity, godot_physics_material_of(value as Readonly<Record<string, unknown>>));
+    else continue;
+    read.add(key);
+  }
+  godot_physics_body_3d_declared_locks(entity, body, !state.lock_rotation);
+  return read;
+}
+
+godot_collision_object_declarer('rigid', declareRigidBody);

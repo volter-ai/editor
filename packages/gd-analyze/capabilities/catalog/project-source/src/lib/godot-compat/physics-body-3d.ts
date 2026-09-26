@@ -10,6 +10,7 @@
  * (`collision-object-3d.ts`), whose integration holds the locked velocities at zero.
  */
 
+import type { RigidBody } from '@dimforge/rapier3d-compat';
 import type { Object3D } from 'three';
 import { godot_collision_object_exceptions, godot_collision_object_set_axis_lock, godot_collision_object_state } from './collision-object-3d';
 import { godot_node_entity } from './node';
@@ -110,4 +111,25 @@ export function set_axis_lock(self: object, axis: number, lock: boolean): void {
  */
 export function get_axis_lock(self: object, axis: number): boolean {
   return ((LOCKED.get(godot_node_entity(self)) ?? 0) & axis) !== 0;
+}
+
+/**
+ * A declared dynamic body's axis locks, as its Rapier body holds them (`enabledTranslations` and
+ * `enabledRotations` props): an axis whose effective inverse mass or inertia is zero is locked.
+ * `rotation` false leaves the angular axes to `lock_rotation`, which zeroes them all.
+ *
+ * @godot PhysicsBody3D (protocol)
+ * @source scene/3d/physics/physics_body_3d.cpp:192
+ */
+export function godot_physics_body_3d_declared_locks(entity: object, body: RigidBody, rotation: boolean): void {
+  body.recomputeMassPropertiesFromColliders();
+  const linear = body.effectiveInvMass();
+  const angular = body.effectiveWorldInvInertia();
+  const locks: [number, boolean][] = [
+    [1, linear.x === 0],
+    [2, linear.y === 0],
+    [4, linear.z === 0],
+  ];
+  if (rotation) locks.push([8, angular.m11 === 0], [16, angular.m22 === 0], [32, angular.m33 === 0]);
+  for (const [axis, lock] of locks) if (lock) set_axis_lock(entity, axis, true);
 }

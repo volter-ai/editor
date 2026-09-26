@@ -94,15 +94,33 @@ func _process(_delta: float) -> void:
 \telse:
 \t\tstatus.text = "Idle"
 `,
-  'main.tscn': `[gd_scene load_steps=4 format=3]
-
-[ext_resource type="Script" path="res://main.gd" id="1_main"]
+  // The floor and the ball are scenes of their own (the physics families are written only as
+  // idiomatic scenes), instanced by the main scene, whose Label is in the earlier shape.
+  'floor.tscn': `[gd_scene load_steps=2 format=3]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
 size = Vector3(10, 1, 10)
 
+[node name="Floor" type="StaticBody3D"]
+
+[node name="Shape" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_floor")
+`,
+  'ball.tscn': `[gd_scene load_steps=2 format=3]
+
 [sub_resource type="SphereShape3D" id="SphereShape3D_ball"]
 radius = 0.5
+
+[node name="Ball" type="RigidBody3D"]
+
+[node name="Shape" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_ball")
+`,
+  'main.tscn': `[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://floor.tscn" id="2_floor"]
+[ext_resource type="PackedScene" path="res://ball.tscn" id="3_ball"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -111,17 +129,11 @@ script = ExtResource("1_main")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 6)
 current = true
 
-[node name="Floor" type="StaticBody3D" parent="."]
+[node name="Floor" parent="." instance=ExtResource("2_floor")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 
-[node name="Shape" type="CollisionShape3D" parent="Floor"]
-shape = SubResource("BoxShape3D_floor")
-
-[node name="Ball" type="RigidBody3D" parent="."]
+[node name="Ball" parent="." instance=ExtResource("3_ball")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
-
-[node name="Shape" type="CollisionShape3D" parent="Ball"]
-shape = SubResource("SphereShape3D_ball")
 
 [node name="UI" type="CanvasLayer" parent="."]
 

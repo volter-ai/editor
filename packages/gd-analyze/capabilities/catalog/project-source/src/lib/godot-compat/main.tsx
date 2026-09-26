@@ -33,6 +33,11 @@ import {
   godot_window_set_size,
 } from './window';
 import { type GodotPhysicsHost, godot_world_3d_attach } from './world-3d';
+// The body classes the physics protocol makes of the bodies a scene declares register themselves.
+import './area-3d';
+import './character-body-3d';
+import './rigid-body-3d';
+import './static-body-3d';
 
 /** `OS_Web::get_ticks_usec`: the page's clock in whole microseconds. */
 const ticksUsec = (): number => Math.floor(performance.now() * 1000);

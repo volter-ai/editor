@@ -288,6 +288,27 @@ func _process(_delta: float) -> bool:
 \treturn true
 `;
 
+/** The named deviation's bound: a float32 rounding of a decomposed basis, well above its measure. */
+const TRANSFORM_TOLERANCE = 1e-6;
+
+const bitsValue = (hex: string): number => Buffer.from(hex, 'hex').readDoubleLE(0);
+
+/** Every node row's global transform, as numbers in row order. */
+function globals(rows: unknown): number[] {
+  return (rows as unknown[]).flatMap((row) =>
+    row !== null && typeof row === 'object' && 'global' in row ? ((row as { global: string[][] }).global.flat().map(bitsValue)) : [],
+  );
+}
+
+/** The rows without their global transforms. */
+function withoutGlobals(rows: unknown): unknown {
+  return (rows as unknown[]).map((row) => {
+    if (row === null || typeof row !== 'object' || !('global' in row)) return row;
+    const { global: _global, ...rest } = row as Record<string, unknown>;
+    return rest;
+  });
+}
+
 function inputDigest(): string {
   return sha256(
     Object.entries({ ...files, 'observe.gd': OBSERVE })
@@ -472,9 +493,19 @@ export async function measureScenePhysicsProof(tools: GodotProofTools): Promise<
       throw new Error(`native physics probe failed: ${run.error?.message ?? ''}\n${run.stdout}\n${run.stderr}`);
     }
     const native = JSON.parse(line.slice('PHYSICS '.length)) as unknown;
-    const nativeJson = JSON.stringify(canonical(native));
-    const targetJson = JSON.stringify(canonical(target));
-    const comparison = JSON.stringify({ native: nativeJson, target: targetJson, equal: nativeJson === targetJson });
+    // Each node's global transform is compared as the named `transform-decomposition` deviation
+    // (the scene writes position/rotation/scale, which compat reads back through three's
+    // quaternion); every other value exactly.
+    const nativeTransforms = globals(native);
+    const targetTransforms = globals(target);
+    const decomposition =
+      nativeTransforms.length === targetTransforms.length
+        ? nativeTransforms.reduce((worst, value, index) => Math.max(worst, Math.abs(value - (targetTransforms[index] as number))), 0)
+        : Number.POSITIVE_INFINITY;
+    const nativeJson = JSON.stringify(canonical(withoutGlobals(native)));
+    const targetJson = JSON.stringify(canonical(withoutGlobals(target)));
+    const agree = nativeJson === targetJson && decomposition <= TRANSFORM_TOLERANCE;
+    const comparison = JSON.stringify({ native: nativeJson, target: targetJson, tolerances: { 'transform-decomposition': TRANSFORM_TOLERANCE }, agree });
     return [
       {
         name: 'scene-physics',
@@ -484,8 +515,8 @@ export async function measureScenePhysicsProof(tools: GodotProofTools): Promise<
           observed: sha256(nativeJson),
           comparison: sha256(comparison),
         },
-        agree: nativeJson === targetJson,
-        detail: `native ${nativeJson}\ntarget ${targetJson}`,
+        agree,
+        detail: `deviations ${JSON.stringify({ 'transform-decomposition': decomposition })}\nnative ${nativeJson}\ntarget ${targetJson}`,
       },
     ];
   } finally {

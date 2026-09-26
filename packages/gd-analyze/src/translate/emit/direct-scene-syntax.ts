@@ -1,5 +1,5 @@
 import * as path from 'node:path';
-import { idiomaticSceneSourceFile } from './idiomatic-scene-syntax';
+import { idiomaticSceneSourceFile, idiomaticTransformAttributes } from './idiomatic-scene-syntax';
 import { type FamilyEmission, familyElement, familyEmission, familyImports } from './scene-family-elements';
 import { godotFamilyCarriesNode } from '../data/scene-families';
 import type {
@@ -95,6 +95,8 @@ interface SceneEmission {
   readonly nodeRefs: ReadonlyMap<string, string>;
   /** The generated component of each instanced scene, by source path. */
   readonly instanceComponents: ReadonlyMap<string, string>;
+  /** The instanced scenes written idiomatically: their prefab takes position, rotation and scale. */
+  readonly idiomaticInstances: ReadonlySet<string>;
   /** The module-level name of each resource the scene constructs, by plan key. */
   readonly resourceNames: ReadonlyMap<string, string>;
 }
@@ -234,10 +236,13 @@ function nodeElement(
             },
           ]),
       ...defaults,
-      // A carried family's element states its own properties; the transform is the scene's.
-      ...node.properties
-        .filter((property) => family === undefined || property.targetKind.startsWith('three-'))
-        .flatMap(directGodotScenePropertyAttributes),
+      // An idiomatic prefab states its transform as position, rotation and scale; a carried
+      // family's element states its own properties, the transform being the scene's.
+      ...(node.instance !== undefined && emission.idiomaticInstances.has(node.instance.sourceResPath)
+        ? idiomaticTransformAttributes(`${node.nodePath}`, node.properties.find((entry) => entry.propertyName === 'transform')?.value)
+        : node.properties
+            .filter((property) => family === undefined || property.targetKind.startsWith('three-'))
+            .flatMap(directGodotScenePropertyAttributes)),
       ...(forwardedProps === undefined
         ? []
         : [
@@ -622,6 +627,7 @@ function sceneSourceFile(
     resourceNames,
     nodeRefs,
     instanceComponents: new Map([...instanceComponents].map(([resPath, entry]) => [resPath, entry.exportName])),
+    idiomaticInstances: new Set(project.scenes.filter((candidate) => candidate.idiomatic === true).map((candidate) => candidate.sourceResPath)),
   };
   // The tree first: the carried families' elements register their loaders and imports.
   const rootExpression = nodeExpression(scene.root, emission, 'props');

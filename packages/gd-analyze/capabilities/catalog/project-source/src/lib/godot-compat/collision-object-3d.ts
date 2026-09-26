@@ -76,6 +76,12 @@ interface ObjectState {
   nodeTransform: Transform3D | undefined;
   /** The body's `physics_material_override`, or none (friction 1, bounce 0). */
   material: PhysicsMaterial | null;
+  /**
+   * The material is compat's to put on the colliders: always for a body compat creates; for one the
+   * JSX declares (whose colliders carry the material's friction and bounce as props) once a script
+   * sets another.
+   */
+  materialApplied: boolean;
   readonly exceptions: Set<object>;
   /** The server body's locked axes, `PhysicsServer3D::BodyAxis` bits (`GodotBody3D::locked_axis`). */
   lockedAxis: number;
@@ -120,6 +126,7 @@ export function godot_collision_object_adopt(entity: object, kind: CollisionObje
     linearVelocity: vector3(),
     nodeTransform: undefined,
     material: null,
+    materialApplied: true,
     exceptions: new Set(),
     lockedAxis: 0,
     rayPickable: true,
@@ -138,21 +145,75 @@ export function godot_collision_objects_reset(): void {
   DECLARED.clear();
 }
 
-const STATIC_BODY_3D = Object.freeze(['StaticBody3D', 'PhysicsBody3D', 'CollisionObject3D', 'Node3D', 'Node', 'Object']);
+/** Each declared body kind's Godot class, with its ancestry. */
+const DECLARED_CLASSES: Readonly<Record<CollisionObjectKind, readonly string[]>> = {
+  static: Object.freeze(['StaticBody3D', 'PhysicsBody3D', 'CollisionObject3D', 'Node3D', 'Node', 'Object']),
+  rigid: Object.freeze(['RigidBody3D', 'PhysicsBody3D', 'CollisionObject3D', 'Node3D', 'Node', 'Object']),
+  character: Object.freeze(['CharacterBody3D', 'PhysicsBody3D', 'CollisionObject3D', 'Node3D', 'Node', 'Object']),
+  area: Object.freeze(['Area3D', 'CollisionObject3D', 'Node3D', 'Node', 'Object']),
+};
 
-// A declared body's class is its collision object kind's.
-godot_node_class_reader((entity) => (DECLARED.has(entity) && OBJECT.get(entity)?.kind === 'static' ? STATIC_BODY_3D : undefined));
+godot_node_class_reader((entity) => {
+  const kind = DECLARED.has(entity) ? OBJECT.get(entity)?.kind : undefined;
+  return kind === undefined ? undefined : DECLARED_CLASSES[kind];
+});
 
-/** A declared body's Godot class, by its Rapier body type: a fixed body is a StaticBody3D. */
-function declaredKind(body: RigidBody): CollisionObjectKind {
-  if (body.bodyType() === RAPIER.RigidBodyType.Fixed) return 'static';
-  throw new Error(`godot-compat: a declared Rapier body of type ${String(body.bodyType())} has no Godot body class yet.`);
+/**
+ * A declared body's Godot class, by its Rapier body type: a fixed body with sensor colliders is an
+ * Area3D, any other fixed body a StaticBody3D, a dynamic body a RigidBody3D, a position-based
+ * kinematic body a CharacterBody3D.
+ */
+function declaredKind(body: RigidBody, colliders: readonly { readonly collider: Collider }[]): CollisionObjectKind {
+  const type = body.bodyType();
+  if (type === RAPIER.RigidBodyType.Fixed) return colliders.some((entry) => entry.collider.isSensor()) ? 'area' : 'static';
+  if (type === RAPIER.RigidBodyType.Dynamic) return 'rigid';
+  if (type === RAPIER.RigidBodyType.KinematicPositionBased) return 'character';
+  throw new Error(`godot-compat: a declared Rapier body of type ${String(type)} has no Godot body class.`);
+}
+
+/**
+ * What a declared body's class module does when compat meets it: registers the node as that class
+ * and seeds the class's Godot-only state, from the body (what Rapier holds) and from the object's
+ * `userData` (the properties Rapier has no form for, by their Godot names).
+ */
+export type CollisionObjectDeclarer = (entity: object, body: RigidBody, data: Readonly<Record<string, unknown>>) => ReadonlySet<string>;
+
+const DECLARERS = new Map<CollisionObjectKind, CollisionObjectDeclarer>();
+
+/**
+ * Registers a body class module's declarer for its kind; it returns the `userData` keys it read.
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source scene/3d/physics/collision_object_3d.cpp:718
+ */
+export function godot_collision_object_declarer(kind: CollisionObjectKind, declarer: CollisionObjectDeclarer): void {
+  DECLARERS.set(kind, declarer);
+}
+
+/** The `userData` keys every collision object reads: its layers and ray pickability. */
+function declareCollisionObject(entity: object, data: Readonly<Record<string, unknown>>): ReadonlySet<string> {
+  const read = new Set<string>();
+  if (data['collision_layer'] !== undefined) {
+    set_collision_layer(entity, Number(data['collision_layer']));
+    read.add('collision_layer');
+  }
+  if (data['collision_mask'] !== undefined) {
+    set_collision_mask(entity, Number(data['collision_mask']));
+    read.add('collision_mask');
+  }
+  if (data['input_ray_pickable'] !== undefined) {
+    set_ray_pickable(entity, Boolean(data['input_ray_pickable']));
+    read.add('input_ray_pickable');
+  }
+  return read;
 }
 
 /**
  * The bodies the scene's JSX declares, as the physics host lists them: a new one is registered as
- * the collision object its body type is, each of its colliders as a CollisionShape3D child
- * (`collision-shape-3d.ts`); one no longer listed was unmounted by React, and is forgotten.
+ * the class its body type makes it, its Godot-only state seeded (an unknown `userData` key fails
+ * by name), and each of its colliders as a CollisionShape3D child (`collision-shape-3d.ts`,
+ * with the shape settings the body's `userData.shapes` holds by collider name); one no longer
+ * listed was unmounted by React, and is forgotten.
  *
  * @godot CollisionObject3D (protocol)
  * @source scene/3d/physics/collision_object_3d.cpp:718
@@ -165,8 +226,22 @@ export function godot_collision_objects_declare(
     listed.add(object);
     const known = DECLARED.get(object);
     DECLARED.set(object, { body, colliders: new Map(colliders.map((entry) => [entry.object, entry.collider] as const)) });
-    if (known === undefined) godot_collision_object_adopt(object, declaredKind(body));
-    for (const entry of colliders) godot_collision_shape_3d_declare(entry.object, entry.collider);
+    const data = ((object as Object3D).userData ?? {}) as Readonly<Record<string, unknown>>;
+    const shapes = (data['shapes'] ?? {}) as Readonly<Record<string, Readonly<Record<string, unknown>>>>;
+    for (const entry of colliders) {
+      godot_collision_shape_3d_declare(entry.object, entry.collider, shapes[(entry.object as Object3D).name] ?? {});
+    }
+    if (known !== undefined) continue;
+    const kind = declaredKind(body, colliders);
+    const declarer = DECLARERS.get(kind);
+    if (declarer === undefined) throw new Error(`godot-compat: no module declares ${DECLARED_CLASSES[kind][0] ?? kind} bodies.`);
+    const read = new Set(['shapes', ...declarer(object, body, data), ...declareCollisionObject(object, data)]);
+    const state = OBJECT.get(object);
+    if (state !== undefined) state.materialApplied = false;
+    const unknown = Object.keys(data).find((key) => !read.has(key));
+    if (unknown !== undefined) {
+      throw new Error(`godot-compat: ${DECLARED_CLASSES[kind][0] ?? kind} has no property ${unknown} to seed from userData.`);
+    }
   }
   for (const object of [...DECLARED.keys()]) {
     if (listed.has(object)) continue;
@@ -356,8 +431,10 @@ function syncShapes(world: World, entity: object, state: ObjectState): void {
       state.moved = true;
     }
     if (declared !== undefined) {
-      // The scene's collider is the shape's: registered once, never rebuilt.
+      // The scene's collider is the shape's: registered once, never rebuilt; a disabled shape's
+      // collider is disabled (`set_shape_disabled`, `godot_collision_object_3d.cpp:72`).
       const collider = declared.colliders.get(child);
+      if (collider !== undefined && collider.isEnabled() === entry.disabled) collider.setEnabled(!entry.disabled);
       if (entry.collider === collider) continue;
       dropCollider(world, entry, false);
       if (collider === undefined) continue;
@@ -384,7 +461,7 @@ function syncShapes(world: World, entity: object, state: ObjectState): void {
     entry.key = key;
     ENTITY_OF_COLLIDER.set(entry.collider.handle, entity);
   }
-  applyMaterial(state);
+  if (state.materialApplied) applyMaterial(state);
 }
 
 /**
@@ -412,7 +489,9 @@ function applyMaterial(state: ObjectState): void {
  * @source scene/3d/physics/static_body_3d.cpp:56
  */
 export function godot_collision_object_material(entity: object, material: PhysicsMaterial | null): void {
-  stateOf(entity, 'set_physics_material_override').material = material;
+  const state = stateOf(entity, 'set_physics_material_override');
+  state.material = material;
+  state.materialApplied = true;
 }
 
 /**

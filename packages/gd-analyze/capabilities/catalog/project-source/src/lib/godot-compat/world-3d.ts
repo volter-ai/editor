@@ -156,6 +156,19 @@ export function godot_world_3d_attach(host: GodotPhysicsHost): World3D {
 }
 
 /**
+ * The object a declared Rapier body belongs to (the `<RigidBody>` element's object), once the
+ * physics host lists it.
+ *
+ * @godot World3D (protocol)
+ * @source scene/resources/3d/world_3d.cpp:52
+ */
+export function godot_world_3d_declared_object(body: object): object | undefined {
+  if (current === undefined) return undefined;
+  for (const entry of current.host.bodies()) if (entry.body === body) return entry.object;
+  return undefined;
+}
+
+/**
  * The attached World3D (a Node3D's `get_world_3d()` inside the main viewport).
  *
  * @godot World3D (protocol)

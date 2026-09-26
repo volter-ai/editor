@@ -1,11 +1,14 @@
 /**
  * Physics node families: collision shapes over shape resources, static, rigid and character
- * bodies, areas, ray casts and markers. Each node mounts as a three group made the collision
- * object its class creates by compat's physics protocol, which binds it to the Rapier world the
- * composition site attaches. Their own proof (`src/evidence/proofs/scene-physics.ts`) builds a
- * scene of them natively and reads each node back (global transforms, layers and masks, shapes
- * and their parameters, body settings, ray cast settings and a first physics frame's ray
- * results), against the emitted component mounted in Node and read through compat's getters.
+ * bodies, areas, ray casts and markers. They are written only in the idiomatic shape: a body is a
+ * `@react-three/rapier` `<RigidBody>` (fixed, dynamic, position-kinematic, or fixed with sensor
+ * colliders for an area) with its colliders, a ray cast and a marker compat's `<GodotRayCast3D>`
+ * and `<GodotMarker3D>`; compat's physics protocol meets the declared bodies in the world the
+ * composition site provides and drives them through their API. Their own proof
+ * (`src/evidence/proofs/scene-physics.ts`) builds a scene of them natively and reads each node back
+ * (global transforms, layers and masks, shapes and their parameters, body settings, ray cast
+ * settings and a first physics frame's ray results), against the emitted component mounted in
+ * Node and read through compat's getters.
  */
 import {
   GODOT_4_7_PROOF_REPRODUCTION_COMMAND,
@@ -35,19 +38,18 @@ type Source = Readonly<{ file: string; symbol: string; line: number }>;
 
 export const GODOT_4_7_PHYSICS_NODE_RULES: readonly (GodotSceneNodeRule & { readonly source: Source })[] = (
   [
-    ['CollisionShape3D', 'collision-shape-3d', 'godot_collision_shape_3d_adopt', 'scene/3d/physics/collision_shape_3d.cpp', 325],
-    ['StaticBody3D', 'static-body-3d', 'godot_static_body_3d_adopt', 'scene/3d/physics/static_body_3d.cpp', 251],
-    ['RigidBody3D', 'rigid-body-3d', 'godot_rigid_body_3d_adopt', 'scene/3d/physics/rigid_body_3d.cpp', 829],
-    ['CharacterBody3D', 'character-body-3d', 'godot_character_body_3d_adopt', 'scene/3d/physics/character_body_3d.cpp', 966],
-    ['Area3D', 'area-3d', 'godot_area_3d_adopt', 'scene/3d/physics/area_3d.cpp', 818],
-    ['RayCast3D', 'ray-cast-3d', 'godot_ray_cast_3d_adopt', 'scene/3d/physics/ray_cast_3d.cpp', 564],
-    ['Marker3D', 'marker-3d', undefined, 'scene/3d/marker_3d.cpp', 54],
+    ['CollisionShape3D', 'collision-shape-3d', 'scene/3d/physics/collision_shape_3d.cpp', 325],
+    ['StaticBody3D', 'static-body-3d', 'scene/3d/physics/static_body_3d.cpp', 251],
+    ['RigidBody3D', 'rigid-body-3d', 'scene/3d/physics/rigid_body_3d.cpp', 829],
+    ['CharacterBody3D', 'character-body-3d', 'scene/3d/physics/character_body_3d.cpp', 966],
+    ['Area3D', 'area-3d', 'scene/3d/physics/area_3d.cpp', 818],
+    ['RayCast3D', 'ray-cast-3d', 'scene/3d/physics/ray_cast_3d.cpp', 564],
+    ['Marker3D', 'marker-3d', 'scene/3d/marker_3d.cpp', 54],
   ] as const
-).map(([className, module, mount, file, line]) => ({
+).map(([className, module, file, line]) => ({
   sourceRevision: REVISION,
   nativeCanonicalIdentity: identityOf(className),
   targetKind: 'three-group' as const,
-  ...(mount === undefined ? {} : { mount: { module: `lib/godot-compat/${module}`, exportName: mount } }),
   evidenceClaimId: `godot-4.7-scene-node-${module}`,
   source: { file, symbol: `${className}::${className}`, line },
 }));
@@ -104,12 +106,12 @@ function physicsClaim(canonicalIdentity: string, claimId: string, source: Source
     },
     target: {
       implementationSha256: IDENTITIES.implementation,
-      callsite: 'emitted scene components mounted by @react-three/fiber over a Rapier world, read through compat getters',
+      callsite: 'emitted idiomatic scene components mounted by @react-three/fiber inside the <Physics> world, read through compat getters',
       observedOutputSha256: IDENTITIES.observed,
     },
     comparison: {
       comparator: 'canonical physics scene state (transforms, layers, shapes, settings, first-frame ray hits) equality',
-      tolerance: 'exact; ray hit points and normals (Rapier geometry) to 1e-4',
+      tolerance: 'exact; ray hit points and normals (Rapier geometry) to 1e-4; global transforms (transform-decomposition) to 1e-6',
       resultSha256: IDENTITIES.comparison,
     },
     reproductionCommand: GODOT_4_7_PROOF_REPRODUCTION_COMMAND,

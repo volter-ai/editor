@@ -22,7 +22,13 @@
  */
 
 import type { Collider } from '@dimforge/rapier3d-compat';
-import { godot_collision_object_adopt, godot_collision_object_state, godot_collision_object_touch, godot_collision_objects } from './collision-object-3d';
+import {
+  godot_collision_object_adopt,
+  godot_collision_object_declarer,
+  godot_collision_object_state,
+  godot_collision_object_touch,
+  godot_collision_objects,
+} from './collision-object-3d';
 import { godot_node_entity, godot_node_object, godot_node_tree_signal, is_inside_tree } from './node';
 import { createSignal, type GodotConnection, type GodotSignal, type SignalHandle } from './signal';
 import { godot_world_3d_physics_callbacks } from './world-3d';
@@ -55,6 +61,22 @@ interface AreaState {
 }
 
 const AREA = new Map<object, AreaState>();
+
+/**
+ * An area's body signals, made when a scene first connects one or when the area is registered,
+ * whichever is first: a scene connects while it instantiates (`packed_scene.cpp:682`), before the
+ * physics protocol meets a body its JSX declares.
+ */
+const SIGNALS = new WeakMap<object, { readonly bodyEntered: SignalHandle<[object]>; readonly bodyExited: SignalHandle<[object]> }>();
+
+function signalsOf(entity: object): { readonly bodyEntered: SignalHandle<[object]>; readonly bodyExited: SignalHandle<[object]> } {
+  let signals = SIGNALS.get(entity);
+  if (signals === undefined) {
+    signals = { bodyEntered: createSignal<[object]>(), bodyExited: createSignal<[object]>() };
+    SIGNALS.set(entity, signals);
+  }
+  return signals;
+}
 const ids = new WeakMap<object, number>();
 let nextId = 0;
 
@@ -194,8 +216,7 @@ export function godot_area_3d_adopt(entity: object): void {
     monitored: new Map(),
     bodies: new Map(),
     locked: false,
-    bodyEntered: createSignal<[object]>(),
-    bodyExited: createSignal<[object]>(),
+    ...signalsOf(entity),
   });
   godot_world_3d_physics_callbacks(flushAreas, stepAreas, undefined, 1);
 }
@@ -207,8 +228,8 @@ export function godot_area_3d_adopt(entity: object): void {
  * @source scene/3d/physics/area_3d.cpp:265
  */
 export function godot_area_3d_signal(self: object, name: 'body_entered' | 'body_exited'): GodotSignal<[object]> {
-  const state = stateOf(self, name);
-  return (name === 'body_entered' ? state.bodyEntered : state.bodyExited).signal;
+  const signals = signalsOf(godot_node_entity(self));
+  return (name === 'body_entered' ? signals.bodyEntered : signals.bodyExited).signal;
 }
 
 /**
@@ -272,3 +293,12 @@ export function has_overlapping_bodies(self: object): boolean {
 export function overlaps_body(self: object, body: object): boolean {
   return stateOf(self, 'overlaps_body').bodies.get(godot_node_entity(body))?.inTree ?? false;
 }
+
+// A fixed body with sensor colliders the scene's JSX declares is an Area3D; `monitoring` is the
+// `userData`'s. Its overlaps and signals are compat's (`flushAreas`), at Godot's flush.
+godot_collision_object_declarer('area', (entity, _body, data) => {
+  godot_area_3d_adopt(entity);
+  if (data['monitoring'] === undefined) return new Set();
+  set_monitoring(entity, Boolean(data['monitoring']));
+  return new Set(['monitoring']);
+});
