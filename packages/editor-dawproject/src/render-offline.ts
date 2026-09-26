@@ -128,7 +128,7 @@ export interface RenderedLoop {
   readonly loopSeconds: number;
 }
 
-/** Every MIDI channel of the piece rendered once, dry, for two passes and a tail. */
+/** Every MIDI channel of the piece rendered once, dry, for the requested passes and a tail. */
 export interface RenderedChannels {
   readonly piece: Piece;
   readonly sampleRate: number;
@@ -138,7 +138,7 @@ export interface RenderedChannels {
 }
 
 /**
- * Run the synth once over the whole piece (two passes and a tail), each MIDI channel into its own
+ * Run the synth once over the whole piece (two passes by default, plus a tail), each MIDI channel into its own
  * stereo buffer with the synth's own effects off. The mix and every stem are then mixed from these
  * buffers (`mixLoop`), so a stem is exactly its track's share of the mix.
  */
@@ -148,6 +148,7 @@ export async function renderChannels(
   sampleRate = 48_000,
   tailSeconds = 4,
   irs: ReadonlyMap<string, ImpulseResponse> = new Map(),
+  passes = 2,
 ): Promise<RenderedChannels> {
   const synth = new SpessaSynthProcessor(sampleRate, { eventsEnabled: false });
   synth.soundBankManager.addSoundBank(SoundBankLoader.fromArrayBuffer(soundBank), 'main');
@@ -159,10 +160,10 @@ export async function renderChannels(
   // The sequencer skips leading silence by default, which would slide a stem whose first note is
   // late (and a humanised mix by its first note's drift) off the piece's own clock.
   sequencer.skipToFirstNoteOn = false;
-  sequencer.loadNewSongList([pieceToMidi(piece, 2, undefined, true)]);
+  sequencer.loadNewSongList([pieceToMidi(piece, passes, undefined, true)]);
   sequencer.play();
   const loopSeconds = perform(piece).secondsAt(Math.max(1, piece.length));
-  const total = Math.ceil(sampleRate * (2 * loopSeconds + tailSeconds));
+  const total = Math.ceil(sampleRate * (passes * loopSeconds + tailSeconds));
   const channels = Array.from({ length: 16 }, () => [new Float32Array(total), new Float32Array(total)] as [Float32Array, Float32Array]);
   const effectsLeft = new Float32Array(total);
   const effectsRight = new Float32Array(total);
@@ -197,6 +198,18 @@ export function mixLoop(rendered: RenderedChannels, only?: ReadonlySet<string>):
     outRight[index] = (outRight[index] ?? 0) * Math.cos((t * Math.PI) / 2) + (right[before] ?? 0) * Math.sin((t * Math.PI) / 2);
   }
   return { sampleRate, left: outLeft, right: outRight, loopSeconds };
+}
+
+/** Mix a single pass and its entire tail, with a 10 ms fade to silence at the end. */
+export function mixOneShot(rendered: RenderedChannels, only?: ReadonlySet<string>): RenderedLoop {
+  const { piece, sampleRate, irs } = rendered;
+  const channelOf = new Map([...assignChannels(piece)].map(([id, assignment]) => [id, assignment.channel]));
+  const [left, right] = mix(piece, { channels: rendered.channels, channelOf, sampleRate, irs, ...(only ? { only } : {}) });
+  const fade = Math.min(Math.round(0.01 * sampleRate), left.length);
+  for (const channel of [left, right]) {
+    for (let i = 0; i < fade; i++) channel[channel.length - fade + i]! *= (fade - 1 - i) / Math.max(1, fade - 1);
+  }
+  return { sampleRate, left, right, loopSeconds: left.length / sampleRate };
 }
 
 /** Render one seamless loop of the piece (its channels, then the mix). */
