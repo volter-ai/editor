@@ -21,6 +21,8 @@ import type { Piece, PiecePoints } from './piece';
 
 export interface PerformedNote {
   readonly track: string;
+  /** The written start, in beats: which section a note belongs to (`start` may drift across it). */
+  readonly beat: number;
   readonly start: number;
   readonly end: number;
   readonly pitch: number;
@@ -156,6 +158,7 @@ export function perform(piece: Piece): Performance {
       const length = (writtenEnd - secondsAt(note.start)) * (shape?.length ?? 1) + (shape?.overlap ?? 0);
       return {
         track: track.id,
+        beat: note.start,
         start: Math.max(0, start),
         end: Math.max(0, start) + Math.max(0.02, length),
         pitch: note.pitch,

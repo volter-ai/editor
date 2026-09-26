@@ -68,7 +68,10 @@ export function audibleTracks(piece: Piece): Piece['tracks'] {
  */
 export function pieceToMidi(piece: Piece, passes = 1, only?: ReadonlySet<string>): MIDIBuilder {
   const performance = perform(piece);
-  const midi = new MIDIBuilder({ timeDivision: PPQ, initialTempo: piece.transport.tempo, name: 'piece', format: 1 });
+  // The tempo map as steps of a quarter beat: the file's tempo over each step is the map's average.
+  const bpmAt = (beat: number): number => (0.25 * 60) / (performance.secondsAt(beat + 0.25) - performance.secondsAt(beat));
+  // The initial tempo is the map's at beat 0, which a tempo lane point there sets, not the Transport.
+  const midi = new MIDIBuilder({ timeDivision: PPQ, initialTempo: bpmAt(0), name: 'piece', format: 1 });
   const assignments = assignChannels(piece);
   const audible = new Set(audibleTracks(piece).map((track) => track.id));
   const span = Math.max(1, piece.length);
@@ -77,7 +80,7 @@ export function pieceToMidi(piece: Piece, passes = 1, only?: ReadonlySet<string>
   for (let pass = 0; pass < passes; pass++) {
     let last = Number.NaN;
     for (let beat = 0; beat < span; beat += 0.25) {
-      const bpm = (0.25 * 60) / (performance.secondsAt(beat + 0.25) - performance.secondsAt(beat));
+      const bpm = bpmAt(beat);
       if (Number.isNaN(last) || Math.abs(bpm - last) > 0.05) {
         if (pass > 0 || beat > 0) midi.setTempo(Math.round((pass * span + beat) * PPQ), bpm);
         last = bpm;
@@ -140,7 +143,7 @@ export interface RenderedChannels {
 /** One thing the synth does, at one sample: a note, a controller, a channel's setup. */
 interface SynthEvent {
   readonly sample: number;
-  /** Among events on one sample: setup first, then controllers, note-offs, a note's patch, note-ons. */
+  /** Among events on one sample: setup first, then controllers, note-offs, then each note (its patch, then its note-on) in performance order. */
   readonly rank: number;
   readonly apply: (synth: SpessaSynthProcessor) => void;
 }
@@ -158,9 +161,10 @@ export interface BeatWindow {
  * controller and note at the sample its performed second falls on.
  *
  * A `window` is that stretch of the SAME performance, not a performance of a shorter piece: the
- * notes that start in it, played exactly as they are in the whole piece (the humanize drift is a
- * walk over the whole track, so a section performed on its own would drift differently), and each
- * controller's value at the window's start carried in.
+ * notes written in it, played exactly as they are in the whole piece (the humanize drift is a
+ * walk over the whole track, so a section performed on its own would drift differently; the
+ * round-robin turn is the whole piece's), and each controller's value at the window's start
+ * carried in.
  */
 function synthEvents(
   piece: Piece,
@@ -173,8 +177,10 @@ function synthEvents(
   const performance = perform(piece);
   const assignments = assignChannels(piece);
   const channelOf = new Map([...assignments].map(([trackId, assignment]) => [trackId, assignment.channel]));
-  const from = window ? performance.secondsAt(window.fromBeat) : 0;
-  const to = window ? performance.secondsAt(window.toBeat) : performance.secondsAt(Math.max(1, piece.length));
+  const fromBeat = window ? window.fromBeat : 0;
+  const toBeat = window ? window.toBeat : Math.max(1, piece.length);
+  const from = performance.secondsAt(fromBeat);
+  const to = performance.secondsAt(toBeat);
   const loopSeconds = to - from;
   const inWindow = (second: number): boolean => second >= from - 1e-9 && second < to - 1e-9;
   // Each controller's last value before the window, sounding from its first sample.
@@ -186,12 +192,17 @@ function synthEvents(
     if (!held || held.time <= control.time) carried.set(key, control);
   }
   const controls = [...[...carried.values()].map((control) => ({ ...control, time: 0 })), ...performance.controls.filter((control) => inWindow(control.time)).map((control) => ({ ...control, time: control.time - from }))];
-  const notes = performance.notes.filter((note) => inWindow(note.start)).map((note) => ({ ...note, start: note.start - from, end: note.end - from }));
+  // A section holds the notes WRITTEN in it: membership is the written beat, never the humanised
+  // second (a downbeat played a few ms early still belongs to the bar it is written on).
+  const notes = performance.notes
+    .filter((note) => note.beat >= fromBeat - 1e-9 && note.beat < toBeat - 1e-9)
+    .map((note) => ({ source: note, start: note.start - from, end: note.end - from }));
   const events: SynthEvent[] = [];
-  // Each note's bank and program where they change note by note (articulations, round robins).
+  // Each note's bank and program where they change note by note (articulations, round robins),
+  // over the WHOLE performance, as the preview numbers them: a window never restarts a round robin.
   const patchOf = notePatches(
     piece,
-    notes,
+    performance.notes,
     (track) => {
       const assignment = assignments.get(track);
       return assignment && assignment.channel !== DRUM_CHANNEL ? (bankOffset.get(assignment.bank) ?? 0) + assignment.bankNumber : null;
@@ -232,26 +243,29 @@ function synthEvents(
         events.push({ sample: at(control.time), rank: 1, apply: (synth) => synth.controllerChange(channel, controller as never, value) });
       }
     }
-    for (const note of notes) {
-      const channel = channelOf.get(note.track);
-      if (channel === undefined || !audible.has(note.track)) continue;
-      const velocity = Math.max(1, Math.min(127, Math.round(note.velocity * 127)));
-      const on = at(note.start);
-      const patch = patchOf.get(note);
-      if (patch) {
-        events.push({
-          sample: on,
-          rank: 2.5,
-          apply: (synth) => {
+    for (const { source, start, end } of notes) {
+      const channel = channelOf.get(source.track);
+      if (channel === undefined || !audible.has(source.track)) continue;
+      const velocity = Math.max(1, Math.min(127, Math.round(source.velocity * 127)));
+      const on = Math.max(0, at(start));
+      const patch = patchOf.get(source);
+      // The note's own patch, then the note, as ONE event: two notes on one sample each sound on
+      // their own patch, in performance order, as the preview schedules them.
+      events.push({
+        sample: on,
+        rank: 3,
+        apply: (synth) => {
+          if (patch) {
             synth.controllerChange(channel, 0 as never, patch.bankSelect);
             synth.programChange(channel, patch.program);
-          },
-        });
-      }
-      events.push({ sample: on, rank: 3, apply: (synth) => synth.noteOn(channel, note.pitch, velocity) });
-      events.push({ sample: Math.max(on + 1, at(note.end)), rank: 2, apply: (synth) => synth.noteOff(channel, note.pitch) });
+          }
+          synth.noteOn(channel, source.pitch, velocity);
+        },
+      });
+      events.push({ sample: Math.max(on + 1, at(end)), rank: 2, apply: (synth) => synth.noteOff(channel, source.pitch) });
     }
   }
+  // Array sort is stable: notes on one sample keep performance order.
   return { events: events.sort((a, b) => a.sample - b.sample || a.rank - b.rank), loopSeconds };
 }
 
@@ -286,10 +300,15 @@ export async function renderChannels(
     const bytes = soundBanks.get(path);
     if (!bytes) throw new Error(`The sound bank ${path} was not loaded.`);
     const bank = SoundBankLoader.fromArrayBuffer(bytes);
+    const highest = Math.max(0, ...bank.presets.map((preset) => preset.bankMSB).filter((msb) => msb < 128));
+    // A bank select is 0–127: a bank that would sit past it would collide with another's presets.
+    if (next + highest > 127) {
+      throw new Error(`Too many banks in one piece: ${path} would need bank selects ${next}–${next + highest}, past 127. Play fewer sound banks in this piece.`);
+    }
     synth.soundBankManager.addSoundBank(bank, path, next);
     bankOffset.set(path, next);
     bankPresets.set(path, bank.presets.map((preset) => ({ name: preset.name, bankMSB: preset.bankMSB, program: preset.program })));
-    next += Math.max(0, ...bank.presets.map((preset) => preset.bankMSB).filter((msb) => msb < 128)) + 1;
+    next += highest + 1;
   }
   await synth.processorInitialized;
   synth.setSystemParameter('autoAllocateVoices', true);
