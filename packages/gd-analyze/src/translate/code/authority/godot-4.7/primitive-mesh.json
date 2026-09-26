@@ -1,0 +1,218 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/primitive-mesh"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PrimitiveMesh",
+        "member": "get_mesh_arrays",
+        "kind": "native-member",
+        "signature": "hash:3995934104"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/primitive-mesh",
+        "exportName": "get_mesh_arrays",
+        "localName": "PrimitiveMesh_get_mesh_arrays",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PrimitiveMesh.get_mesh_arrays"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PrimitiveMesh",
+        "member": "set_flip_faces",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/primitive-mesh",
+        "exportName": "set_flip_faces",
+        "localName": "PrimitiveMesh_set_flip_faces",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PrimitiveMesh.set_flip_faces"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PrimitiveMesh",
+        "member": "get_flip_faces",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/primitive-mesh",
+        "exportName": "get_flip_faces",
+        "localName": "PrimitiveMesh_get_flip_faces",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PrimitiveMesh.get_flip_faces"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PrimitiveMesh.get_mesh_arrays",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PrimitiveMesh\u0000get_mesh_arrays\u0000hash:3995934104",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "PrimitiveMesh.get_mesh_arrays",
+        "sourceLine": 287
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5d13d57b7e9031b67b09c05f86c3b2eb4b4f9f94c7bccc7a61a838f496288152",
+        "callsite": "res://probe.gd _init() get_mesh_arrays-plane-default get_mesh_arrays-plane-default-flipped get_mesh_arrays-plane-subdivided get_mesh_arrays-plane-subdivided-flipped get_mesh_arrays-plane-orientation-0 get_mesh_arrays-plane-orientation-0-flipped get_mesh_arrays-plane-orientation-2 get_mesh_arrays-plane-orientation-2-flipped get_mesh_arrays-quad-default get_mesh_arrays-quad-default-flipped get_mesh_arrays-quad-sized get_mesh_arrays-quad-sized-flipped get_mesh_arrays-sphere-default get_mesh_arrays-sphere-default-flipped get_mesh_arrays-sphere-small get_mesh_arrays-sphere-small-flipped get_mesh_arrays-sphere-hemisphere get_mesh_arrays-sphere-hemisphere-flipped get_mesh_arrays-cylinder-default get_mesh_arrays-cylinder-default-flipped get_mesh_arrays-cylinder-cone get_mesh_arrays-cylinder-cone-flipped get_mesh_arrays-cylinder-open get_mesh_arrays-cylinder-open-flipped",
+        "observedOutputSha256": "425d26ba8047de742d5c86661d67e9364be70ea2c9e5663d224ffa1a775d3e25"
+      },
+      "target": {
+        "implementationSha256": "5de081a2dffa6628d5d5714d11dc2feff7ee32d71debd7bdbdf65990169ec5c1",
+        "callsite": "lib/godot-compat/primitive-mesh.ts get_mesh_arrays",
+        "observedOutputSha256": "425d26ba8047de742d5c86661d67e9364be70ea2c9e5663d224ffa1a775d3e25"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6c09e955473e6424a94492bd0254b1a5b9b6117add17cd03a39b0d877bb5582e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "primitive-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PrimitiveMesh.set_flip_faces",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PrimitiveMesh\u0000set_flip_faces\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "PrimitiveMesh.set_flip_faces",
+        "sourceLine": 304
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ce84449781c4109096b5562860af1ac8a0dd04e11b8d87561873bf7a2ba39c18",
+        "callsite": "res://probe.gd _init() set_flip_faces",
+        "observedOutputSha256": "1d02fc432cf45a011a7d77b751dd18f2a7f28712ffc0101d6a2043002095a369"
+      },
+      "target": {
+        "implementationSha256": "5de081a2dffa6628d5d5714d11dc2feff7ee32d71debd7bdbdf65990169ec5c1",
+        "callsite": "lib/godot-compat/primitive-mesh.ts set_flip_faces",
+        "observedOutputSha256": "1d02fc432cf45a011a7d77b751dd18f2a7f28712ffc0101d6a2043002095a369"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b21653e7f995b6a9b90c7698aebbc7ad6576a87177c8e878b3bca7f8687966fc"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "primitive-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PrimitiveMesh.get_flip_faces",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PrimitiveMesh\u0000get_flip_faces\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "PrimitiveMesh.get_flip_faces",
+        "sourceLine": 312
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4fbc93c60c76d1ef648ccd29dadc43218abd686575b8662857ac9344169199aa",
+        "callsite": "res://probe.gd _init() get_flip_faces-default",
+        "observedOutputSha256": "b65bbfea52c0185192353bc5fb2b172aa4ca72d2df6130bed784d139e9255a60"
+      },
+      "target": {
+        "implementationSha256": "5de081a2dffa6628d5d5714d11dc2feff7ee32d71debd7bdbdf65990169ec5c1",
+        "callsite": "lib/godot-compat/primitive-mesh.ts get_flip_faces",
+        "observedOutputSha256": "b65bbfea52c0185192353bc5fb2b172aa4ca72d2df6130bed784d139e9255a60"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e42fe9d920a902246c7429f88dcfa353b9d7ed1a8870d9d4072e4842bfc423ef"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "primitive-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-PrimitiveMesh.get_mesh_arrays",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5d13d57b7e9031b67b09c05f86c3b2eb4b4f9f94c7bccc7a61a838f496288152",
+      "implementationSha256": "5de081a2dffa6628d5d5714d11dc2feff7ee32d71debd7bdbdf65990169ec5c1"
+    },
+    {
+      "claimId": "godot-4.7-binding-PrimitiveMesh.set_flip_faces",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ce84449781c4109096b5562860af1ac8a0dd04e11b8d87561873bf7a2ba39c18",
+      "implementationSha256": "5de081a2dffa6628d5d5714d11dc2feff7ee32d71debd7bdbdf65990169ec5c1"
+    },
+    {
+      "claimId": "godot-4.7-binding-PrimitiveMesh.get_flip_faces",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4fbc93c60c76d1ef648ccd29dadc43218abd686575b8662857ac9344169199aa",
+      "implementationSha256": "5de081a2dffa6628d5d5714d11dc2feff7ee32d71debd7bdbdf65990169ec5c1"
+    }
+  ]
+}

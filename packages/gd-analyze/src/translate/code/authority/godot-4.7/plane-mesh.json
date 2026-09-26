@@ -1,0 +1,694 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/plane-mesh"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PlaneMesh",
+        "member": "get_size",
+        "kind": "native-member",
+        "signature": "hash:3341600327"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/plane-mesh",
+        "exportName": "get_size",
+        "localName": "PlaneMesh_get_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PlaneMesh.get_size"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PlaneMesh",
+        "member": "set_size",
+        "kind": "native-member",
+        "signature": "hash:743155724"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/plane-mesh",
+        "exportName": "set_size",
+        "localName": "PlaneMesh_set_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PlaneMesh.set_size"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PlaneMesh",
+        "member": "set_subdivide_width",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/plane-mesh",
+        "exportName": "set_subdivide_width",
+        "localName": "PlaneMesh_set_subdivide_width",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PlaneMesh.set_subdivide_width"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PlaneMesh",
+        "member": "get_subdivide_width",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/plane-mesh",
+        "exportName": "get_subdivide_width",
+        "localName": "PlaneMesh_get_subdivide_width",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PlaneMesh.get_subdivide_width"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PlaneMesh",
+        "member": "set_subdivide_depth",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/plane-mesh",
+        "exportName": "set_subdivide_depth",
+        "localName": "PlaneMesh_set_subdivide_depth",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PlaneMesh.set_subdivide_depth"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PlaneMesh",
+        "member": "get_subdivide_depth",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/plane-mesh",
+        "exportName": "get_subdivide_depth",
+        "localName": "PlaneMesh_get_subdivide_depth",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PlaneMesh.get_subdivide_depth"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PlaneMesh",
+        "member": "set_center_offset",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/plane-mesh",
+        "exportName": "set_center_offset",
+        "localName": "PlaneMesh_set_center_offset",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PlaneMesh.set_center_offset"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PlaneMesh",
+        "member": "get_center_offset",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/plane-mesh",
+        "exportName": "get_center_offset",
+        "localName": "PlaneMesh_get_center_offset",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PlaneMesh.get_center_offset"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PlaneMesh",
+        "member": "set_orientation",
+        "kind": "native-member",
+        "signature": "hash:2751399687"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/plane-mesh",
+        "exportName": "set_orientation",
+        "localName": "PlaneMesh_set_orientation",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PlaneMesh.set_orientation"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PlaneMesh",
+        "member": "get_orientation",
+        "kind": "native-member",
+        "signature": "hash:3227599250"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/plane-mesh",
+        "exportName": "get_orientation",
+        "localName": "PlaneMesh_get_orientation",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PlaneMesh.get_orientation"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PlaneMesh.get_size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PlaneMesh\u0000get_size\u0000hash:3341600327",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "PlaneMesh.get_size",
+        "sourceLine": 1540
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a1414cb94c890075f8cf4bc9beefe888e69f4d0193fc0fc2110aa31535e706b9",
+        "callsite": "res://probe.gd _init() get_size-default",
+        "observedOutputSha256": "60dbb23da55cbb5df720d49cc64a30aa5c638c6ae1523962b49b1bd72213a0ea"
+      },
+      "target": {
+        "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57",
+        "callsite": "lib/godot-compat/plane-mesh.ts get_size",
+        "observedOutputSha256": "60dbb23da55cbb5df720d49cc64a30aa5c638c6ae1523962b49b1bd72213a0ea"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c94432956411cf13f6183f4aaf2317e58daadfbaf9cd9dda4b3c1770a42f607c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "plane-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PlaneMesh.set_size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PlaneMesh\u0000set_size\u0000hash:743155724",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "PlaneMesh.set_size",
+        "sourceLine": 1531
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0c7e5f0b66fd565a5233309e036ef2ae444992e87a696591a0f02ddf24d5e069",
+        "callsite": "res://probe.gd _init() set_size",
+        "observedOutputSha256": "e2c3adb60c4903e3a8f90111d89c22cc7aaa9b1bceaa8172d4e92c6abbb31cf8"
+      },
+      "target": {
+        "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57",
+        "callsite": "lib/godot-compat/plane-mesh.ts set_size",
+        "observedOutputSha256": "e2c3adb60c4903e3a8f90111d89c22cc7aaa9b1bceaa8172d4e92c6abbb31cf8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "90b06167dc366b4bbf334622ecf4648c79006e2de06ba9b389d46f99713f0d2f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "plane-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PlaneMesh.set_subdivide_width",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PlaneMesh\u0000set_subdivide_width\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "PlaneMesh.set_subdivide_width",
+        "sourceLine": 1544
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c7dfb66a8838cdfcf4cb64f7562a6cde04623c94e090f476ab140bd6fae2d721",
+        "callsite": "res://probe.gd _init() set_subdivide_width-3 set_subdivide_width-0 set_subdivide_width--2",
+        "observedOutputSha256": "da19e5f93506f86e74c66f8036cff4b854b00d2c1438bc97ce5fe0ad18ef0444"
+      },
+      "target": {
+        "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57",
+        "callsite": "lib/godot-compat/plane-mesh.ts set_subdivide_width",
+        "observedOutputSha256": "da19e5f93506f86e74c66f8036cff4b854b00d2c1438bc97ce5fe0ad18ef0444"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "eccf68e8cca65e2393e23ef20f20df499517bcb0363d0be749a915b3f0a91952"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "plane-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PlaneMesh.get_subdivide_width",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PlaneMesh\u0000get_subdivide_width\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "PlaneMesh.get_subdivide_width",
+        "sourceLine": 1552
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b98fda7a87a208ce71e5994d0e739b85bcad0a9c453527d4885833897ffec93b",
+        "callsite": "res://probe.gd _init() get_subdivide_width-default",
+        "observedOutputSha256": "a692215c2d2940777949abd76e512b8405903eee8b0d52cf2ba5ade1f863b52e"
+      },
+      "target": {
+        "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57",
+        "callsite": "lib/godot-compat/plane-mesh.ts get_subdivide_width",
+        "observedOutputSha256": "a692215c2d2940777949abd76e512b8405903eee8b0d52cf2ba5ade1f863b52e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "286ab04b40160eb26031c4388f00209a77935e9b78d62172d40104b926ec05b5"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "plane-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PlaneMesh.set_subdivide_depth",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PlaneMesh\u0000set_subdivide_depth\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "PlaneMesh.set_subdivide_depth",
+        "sourceLine": 1556
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "82170fcf8fec85d50f38c06b33b8b978ae46174973fba843b1d979691c8ead0c",
+        "callsite": "res://probe.gd _init() set_subdivide_depth-3 set_subdivide_depth-0 set_subdivide_depth--2",
+        "observedOutputSha256": "4abfc78e9d96619ead4e68cbd1e6c64ec952571da568086ca43c62bfe3f8ec72"
+      },
+      "target": {
+        "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57",
+        "callsite": "lib/godot-compat/plane-mesh.ts set_subdivide_depth",
+        "observedOutputSha256": "4abfc78e9d96619ead4e68cbd1e6c64ec952571da568086ca43c62bfe3f8ec72"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ca0c1d2c3f0f6927b896843ebaedfda1484cf552d3a8807f568c0e57e0e2e5b4"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "plane-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PlaneMesh.get_subdivide_depth",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PlaneMesh\u0000get_subdivide_depth\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "PlaneMesh.get_subdivide_depth",
+        "sourceLine": 1564
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1b62fca17d74437c7db29a3743a5a2a79465298f44138ba5d890a436f30e86c8",
+        "callsite": "res://probe.gd _init() get_subdivide_depth-default",
+        "observedOutputSha256": "1cd2075f034b6a092cc8a8becd3e52f138a5b5e02e29027744f2c45df0eda41d"
+      },
+      "target": {
+        "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57",
+        "callsite": "lib/godot-compat/plane-mesh.ts get_subdivide_depth",
+        "observedOutputSha256": "1cd2075f034b6a092cc8a8becd3e52f138a5b5e02e29027744f2c45df0eda41d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "dfddd132fb9a98a68292181c25cca26336fe6d01413f2f19c5b08c0d0b67661b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "plane-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PlaneMesh.set_center_offset",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PlaneMesh\u0000set_center_offset\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "PlaneMesh.set_center_offset",
+        "sourceLine": 1568
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "48acb88b237b5a4bd829b36d3339bb0bb16cc13b5c1b1c0688603e19586d804a",
+        "callsite": "res://probe.gd _init() set_center_offset-set set_center_offset-approx",
+        "observedOutputSha256": "0f73f5dbc195e733fce2001868b422ad07f31c369cf35b195f10c244c3abbc62"
+      },
+      "target": {
+        "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57",
+        "callsite": "lib/godot-compat/plane-mesh.ts set_center_offset",
+        "observedOutputSha256": "0f73f5dbc195e733fce2001868b422ad07f31c369cf35b195f10c244c3abbc62"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "96e3e002b6a2e8d5ab8a943ad2d20d654ec13929e6a40739e0ab6939f162dee2"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "plane-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PlaneMesh.get_center_offset",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PlaneMesh\u0000get_center_offset\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "PlaneMesh.get_center_offset",
+        "sourceLine": 1576
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "46c104527600933ee6d109a31b6ad0df4eda6bc13cd040b7dc4829084cc83bea",
+        "callsite": "res://probe.gd _init() get_center_offset-default",
+        "observedOutputSha256": "23678b52f402565be26bfcef6ae2e86b087f13b5b94fc790d40d74a8cd337e41"
+      },
+      "target": {
+        "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57",
+        "callsite": "lib/godot-compat/plane-mesh.ts get_center_offset",
+        "observedOutputSha256": "23678b52f402565be26bfcef6ae2e86b087f13b5b94fc790d40d74a8cd337e41"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "00e7793396e75e801ce31e71de3335f9daeadb483dce83ff9119a13abe34657d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "plane-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PlaneMesh.set_orientation",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PlaneMesh\u0000set_orientation\u0000hash:2751399687",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "PlaneMesh.set_orientation",
+        "sourceLine": 1580
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "8643fa9e43ce1d9ec5da1c1e7efbc2f1433dafa72a42c58a628041fa54a13962",
+        "callsite": "res://probe.gd _init() set_orientation",
+        "observedOutputSha256": "78e5dfe16517c776f516aa919e97e05fbb5321d0f39f861b53618b762ab8b787"
+      },
+      "target": {
+        "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57",
+        "callsite": "lib/godot-compat/plane-mesh.ts set_orientation",
+        "observedOutputSha256": "78e5dfe16517c776f516aa919e97e05fbb5321d0f39f861b53618b762ab8b787"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "830d20f52c0fe2202bac84d21299b83657c7a0fa6208f44eba9320d2720ed277"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "plane-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PlaneMesh.get_orientation",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PlaneMesh\u0000get_orientation\u0000hash:3227599250",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "PlaneMesh.get_orientation",
+        "sourceLine": 1588
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "88d32f14745f263db60aa9964b75997e79eb30f699a94bcf76dae58a066ef7d4",
+        "callsite": "res://probe.gd _init() get_orientation-default",
+        "observedOutputSha256": "a1f83a1f8b78b35d5a4f0b74c25d650828d372212bdb22e97ae1d0ff9a8ba912"
+      },
+      "target": {
+        "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57",
+        "callsite": "lib/godot-compat/plane-mesh.ts get_orientation",
+        "observedOutputSha256": "a1f83a1f8b78b35d5a4f0b74c25d650828d372212bdb22e97ae1d0ff9a8ba912"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f0aece5fa4b1fad30e7f3dca4008cad70220a217e5c81efcd35ba53e44cabac5"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "plane-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-PlaneMesh.get_size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a1414cb94c890075f8cf4bc9beefe888e69f4d0193fc0fc2110aa31535e706b9",
+      "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57"
+    },
+    {
+      "claimId": "godot-4.7-binding-PlaneMesh.set_size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0c7e5f0b66fd565a5233309e036ef2ae444992e87a696591a0f02ddf24d5e069",
+      "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57"
+    },
+    {
+      "claimId": "godot-4.7-binding-PlaneMesh.set_subdivide_width",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c7dfb66a8838cdfcf4cb64f7562a6cde04623c94e090f476ab140bd6fae2d721",
+      "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57"
+    },
+    {
+      "claimId": "godot-4.7-binding-PlaneMesh.get_subdivide_width",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b98fda7a87a208ce71e5994d0e739b85bcad0a9c453527d4885833897ffec93b",
+      "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57"
+    },
+    {
+      "claimId": "godot-4.7-binding-PlaneMesh.set_subdivide_depth",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "82170fcf8fec85d50f38c06b33b8b978ae46174973fba843b1d979691c8ead0c",
+      "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57"
+    },
+    {
+      "claimId": "godot-4.7-binding-PlaneMesh.get_subdivide_depth",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1b62fca17d74437c7db29a3743a5a2a79465298f44138ba5d890a436f30e86c8",
+      "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57"
+    },
+    {
+      "claimId": "godot-4.7-binding-PlaneMesh.set_center_offset",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "48acb88b237b5a4bd829b36d3339bb0bb16cc13b5c1b1c0688603e19586d804a",
+      "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57"
+    },
+    {
+      "claimId": "godot-4.7-binding-PlaneMesh.get_center_offset",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "46c104527600933ee6d109a31b6ad0df4eda6bc13cd040b7dc4829084cc83bea",
+      "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57"
+    },
+    {
+      "claimId": "godot-4.7-binding-PlaneMesh.set_orientation",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "8643fa9e43ce1d9ec5da1c1e7efbc2f1433dafa72a42c58a628041fa54a13962",
+      "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57"
+    },
+    {
+      "claimId": "godot-4.7-binding-PlaneMesh.get_orientation",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "88d32f14745f263db60aa9964b75997e79eb30f699a94bcf76dae58a066ef7d4",
+      "implementationSha256": "1f49fa6a8eec1f2831f478052ac282b9a9f41d352e6a3dcbd696be44783cfb57"
+    }
+  ]
+}

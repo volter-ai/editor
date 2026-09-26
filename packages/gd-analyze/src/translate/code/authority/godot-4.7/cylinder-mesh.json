@@ -1,0 +1,966 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/cylinder-mesh"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CylinderMesh",
+        "member": "set_top_radius",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/cylinder-mesh",
+        "exportName": "set_top_radius",
+        "localName": "CylinderMesh_set_top_radius",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CylinderMesh.set_top_radius"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CylinderMesh",
+        "member": "get_top_radius",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/cylinder-mesh",
+        "exportName": "get_top_radius",
+        "localName": "CylinderMesh_get_top_radius",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CylinderMesh.get_top_radius"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CylinderMesh",
+        "member": "set_bottom_radius",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/cylinder-mesh",
+        "exportName": "set_bottom_radius",
+        "localName": "CylinderMesh_set_bottom_radius",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CylinderMesh.set_bottom_radius"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CylinderMesh",
+        "member": "get_bottom_radius",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/cylinder-mesh",
+        "exportName": "get_bottom_radius",
+        "localName": "CylinderMesh_get_bottom_radius",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CylinderMesh.get_bottom_radius"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CylinderMesh",
+        "member": "set_height",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/cylinder-mesh",
+        "exportName": "set_height",
+        "localName": "CylinderMesh_set_height",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CylinderMesh.set_height"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CylinderMesh",
+        "member": "get_height",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/cylinder-mesh",
+        "exportName": "get_height",
+        "localName": "CylinderMesh_get_height",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CylinderMesh.get_height"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CylinderMesh",
+        "member": "set_radial_segments",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/cylinder-mesh",
+        "exportName": "set_radial_segments",
+        "localName": "CylinderMesh_set_radial_segments",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CylinderMesh.set_radial_segments"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CylinderMesh",
+        "member": "get_radial_segments",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/cylinder-mesh",
+        "exportName": "get_radial_segments",
+        "localName": "CylinderMesh_get_radial_segments",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CylinderMesh.get_radial_segments"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CylinderMesh",
+        "member": "set_rings",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/cylinder-mesh",
+        "exportName": "set_rings",
+        "localName": "CylinderMesh_set_rings",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CylinderMesh.set_rings"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CylinderMesh",
+        "member": "get_rings",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/cylinder-mesh",
+        "exportName": "get_rings",
+        "localName": "CylinderMesh_get_rings",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CylinderMesh.get_rings"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CylinderMesh",
+        "member": "set_cap_top",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/cylinder-mesh",
+        "exportName": "set_cap_top",
+        "localName": "CylinderMesh_set_cap_top",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CylinderMesh.set_cap_top"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CylinderMesh",
+        "member": "is_cap_top",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/cylinder-mesh",
+        "exportName": "is_cap_top",
+        "localName": "CylinderMesh_is_cap_top",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CylinderMesh.is_cap_top"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CylinderMesh",
+        "member": "set_cap_bottom",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/cylinder-mesh",
+        "exportName": "set_cap_bottom",
+        "localName": "CylinderMesh_set_cap_bottom",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CylinderMesh.set_cap_bottom"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "CylinderMesh",
+        "member": "is_cap_bottom",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/cylinder-mesh",
+        "exportName": "is_cap_bottom",
+        "localName": "CylinderMesh_is_cap_bottom",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-CylinderMesh.is_cap_bottom"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CylinderMesh.set_top_radius",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CylinderMesh\u0000set_top_radius\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "CylinderMesh.set_top_radius",
+        "sourceLine": 1305
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e14eac3396a1a5fa9a4f41b850a7134317318889e66802030160e42ccada4a34",
+        "callsite": "res://probe.gd _init() set_top_radius-0.0 set_top_radius-0.5000001 set_top_radius-1.25",
+        "observedOutputSha256": "79afcd7cf79e4372f88bd7b0fbac21635b49b7f7cc78149a24066cd16ea628ce"
+      },
+      "target": {
+        "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058",
+        "callsite": "lib/godot-compat/cylinder-mesh.ts set_top_radius",
+        "observedOutputSha256": "79afcd7cf79e4372f88bd7b0fbac21635b49b7f7cc78149a24066cd16ea628ce"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f2172e1eaf611f5d5e5d7bd5e7b82a7846f6215f84457889fad1803997303fa7"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "cylinder-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CylinderMesh.get_top_radius",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CylinderMesh\u0000get_top_radius\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "CylinderMesh.get_top_radius",
+        "sourceLine": 1315
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a715e8279e57ddf8dedd1ff1694c41430c7a55f0871a33640fe9b1ab74c9db72",
+        "callsite": "res://probe.gd _init() get_top_radius-default",
+        "observedOutputSha256": "48912be387127d9b9e1bc9b59d86275c721922ff97084b35383fe17044b56f15"
+      },
+      "target": {
+        "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058",
+        "callsite": "lib/godot-compat/cylinder-mesh.ts get_top_radius",
+        "observedOutputSha256": "48912be387127d9b9e1bc9b59d86275c721922ff97084b35383fe17044b56f15"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b6b830070beb4c0216913bad2c858bbbfb6ce34274d5e07761b0f9236bdf895f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "cylinder-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CylinderMesh.set_bottom_radius",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CylinderMesh\u0000set_bottom_radius\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "CylinderMesh.set_bottom_radius",
+        "sourceLine": 1319
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "bfa9c033b198fb94f06f9b726da69f30204fbae3db472e2925567161b909d999",
+        "callsite": "res://probe.gd _init() set_bottom_radius-0.3 set_bottom_radius-0.1",
+        "observedOutputSha256": "ec10c98e61c75c3bf1ee1fed0120abf2f09b8df09fc4a9fab7991a6715e24531"
+      },
+      "target": {
+        "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058",
+        "callsite": "lib/godot-compat/cylinder-mesh.ts set_bottom_radius",
+        "observedOutputSha256": "ec10c98e61c75c3bf1ee1fed0120abf2f09b8df09fc4a9fab7991a6715e24531"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b7b5fed7897cbea11b9b8e563a4f031bbf3a90c0fd998cdd448358e235c07c0a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "cylinder-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CylinderMesh.get_bottom_radius",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CylinderMesh\u0000get_bottom_radius\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "CylinderMesh.get_bottom_radius",
+        "sourceLine": 1329
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c2399632eae11b7ed3541319169e35fe08474b28f917174ecccf456d455ddf57",
+        "callsite": "res://probe.gd _init() get_bottom_radius-default",
+        "observedOutputSha256": "295de66162a3f225809240bcfb14bc7b977ca382e4e77def70298099da2d92c5"
+      },
+      "target": {
+        "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058",
+        "callsite": "lib/godot-compat/cylinder-mesh.ts get_bottom_radius",
+        "observedOutputSha256": "295de66162a3f225809240bcfb14bc7b977ca382e4e77def70298099da2d92c5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "199455352d12f759b4740bb251e9aa0648e0f4282246fc367607c93f84485c50"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "cylinder-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CylinderMesh.set_height",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CylinderMesh\u0000set_height\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "CylinderMesh.set_height",
+        "sourceLine": 1333
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "7c3faf24bc5cc37eeb84b40626dedea9516fd8605f89fbd1d16c42bef8aeaa2f",
+        "callsite": "res://probe.gd _init() set_height-0.4 set_height-2.0000001 set_height-7.5",
+        "observedOutputSha256": "70bd9394b34814170350c6aab7e4230912499432b2b38477d5959f8c56d277ff"
+      },
+      "target": {
+        "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058",
+        "callsite": "lib/godot-compat/cylinder-mesh.ts set_height",
+        "observedOutputSha256": "70bd9394b34814170350c6aab7e4230912499432b2b38477d5959f8c56d277ff"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "cb8cee836c4b160d02a197d343f2bf3d6fa3077bf4cf082452ed857f178b868d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "cylinder-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CylinderMesh.get_height",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CylinderMesh\u0000get_height\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "CylinderMesh.get_height",
+        "sourceLine": 1343
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "45f679cf64ec121313c23aec430b4b1db079c0873ea1dbb8a13b09f3922ea82a",
+        "callsite": "res://probe.gd _init() get_height-default",
+        "observedOutputSha256": "996b95e9498a022f23d29249d77367c63fdd54a44cecbb603bf5a303c0c07f0f"
+      },
+      "target": {
+        "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058",
+        "callsite": "lib/godot-compat/cylinder-mesh.ts get_height",
+        "observedOutputSha256": "996b95e9498a022f23d29249d77367c63fdd54a44cecbb603bf5a303c0c07f0f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "dc30c8114f560de3cf4ee9f01c5765ac8a9dd0b1e091f5691cf2c93d07e1e657"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "cylinder-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CylinderMesh.set_radial_segments",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CylinderMesh\u0000set_radial_segments\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "CylinderMesh.set_radial_segments",
+        "sourceLine": 1347
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6c2286e792267a544c27a04b308bc4193d8d3c53134d97214b9dc65e27b03b3e",
+        "callsite": "res://probe.gd _init() set_radial_segments-12 set_radial_segments-3",
+        "observedOutputSha256": "cc7123acf0987a243ea7effdbaddd61bb31c1e50777c523959487036b2431fb5"
+      },
+      "target": {
+        "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058",
+        "callsite": "lib/godot-compat/cylinder-mesh.ts set_radial_segments",
+        "observedOutputSha256": "cc7123acf0987a243ea7effdbaddd61bb31c1e50777c523959487036b2431fb5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "fae8ae486f9a522702192a8b415aef50fad1daf2ed8d23562e5319707eb627b2"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "cylinder-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CylinderMesh.get_radial_segments",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CylinderMesh\u0000get_radial_segments\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "CylinderMesh.get_radial_segments",
+        "sourceLine": 1356
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "067b2ff89074b4cf0f22cf413400062779da3c14b390a5ed4850f3eb42e05672",
+        "callsite": "res://probe.gd _init() get_radial_segments-default",
+        "observedOutputSha256": "f9572d2023c4a0d75f05d902ffa1daa1f2ea686fbefb58693b614991fe3ccf79"
+      },
+      "target": {
+        "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058",
+        "callsite": "lib/godot-compat/cylinder-mesh.ts get_radial_segments",
+        "observedOutputSha256": "f9572d2023c4a0d75f05d902ffa1daa1f2ea686fbefb58693b614991fe3ccf79"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "25d9ed9e61a15397039088a8b0894168b5253bcc53a05db21a7e160f1a5e56c0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "cylinder-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CylinderMesh.set_rings",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CylinderMesh\u0000set_rings\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "CylinderMesh.set_rings",
+        "sourceLine": 1360
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "aec57bd56584ddc78614fa0b1372f6e48402b5f2c03f8492690455a2b0388d15",
+        "callsite": "res://probe.gd _init() set_rings-0 set_rings-2",
+        "observedOutputSha256": "9853378ff9fc350d20e8ff3a4bd3777bf1debbcd47d7d8b6e2de34c1a2a5f28c"
+      },
+      "target": {
+        "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058",
+        "callsite": "lib/godot-compat/cylinder-mesh.ts set_rings",
+        "observedOutputSha256": "9853378ff9fc350d20e8ff3a4bd3777bf1debbcd47d7d8b6e2de34c1a2a5f28c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "4974009dc18b40905624836b85c7e0b93d7f3d8bcb8c984e916628eb455cf05d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "cylinder-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CylinderMesh.get_rings",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CylinderMesh\u0000get_rings\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "CylinderMesh.get_rings",
+        "sourceLine": 1370
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ea85241f4137be4365e0bf86b2dd7d83f22e49c1ec7505934192ea98f7c62f9c",
+        "callsite": "res://probe.gd _init() get_rings-default",
+        "observedOutputSha256": "49df86b2104050386921cc3884568e68c28b50f10f1f0c2cbab3dfc94a75f036"
+      },
+      "target": {
+        "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058",
+        "callsite": "lib/godot-compat/cylinder-mesh.ts get_rings",
+        "observedOutputSha256": "49df86b2104050386921cc3884568e68c28b50f10f1f0c2cbab3dfc94a75f036"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c67c2b515c199eff4da1229f3c963fd4f36f3f4bc2f3b798c72da50a81d2ad93"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "cylinder-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CylinderMesh.set_cap_top",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CylinderMesh\u0000set_cap_top\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "CylinderMesh.set_cap_top",
+        "sourceLine": 1374
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2c9135f3d3222c95bd9dac3b988eeec8f03abba611796600fc08ecfb7dbcd31b",
+        "callsite": "res://probe.gd _init() set_cap_top",
+        "observedOutputSha256": "f938f70a18196767c38ae98ba11e01f941e1b95977c3dd138fceba311053491e"
+      },
+      "target": {
+        "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058",
+        "callsite": "lib/godot-compat/cylinder-mesh.ts set_cap_top",
+        "observedOutputSha256": "f938f70a18196767c38ae98ba11e01f941e1b95977c3dd138fceba311053491e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a8d6937609ee601b015f2346aff8ccea90cf3e6a48e9a9588ee95fd5606ccf60"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "cylinder-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CylinderMesh.is_cap_top",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CylinderMesh\u0000is_cap_top\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "CylinderMesh.is_cap_top",
+        "sourceLine": 1383
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "559efa93e200a33edde0c9c1a4d3a83d3303d65457e71358b53c5fedabe597fe",
+        "callsite": "res://probe.gd _init() is_cap_top-default",
+        "observedOutputSha256": "4e1dc13a79889507a5b8b1c328375dacec171e04520630bcd984f5b3315830d8"
+      },
+      "target": {
+        "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058",
+        "callsite": "lib/godot-compat/cylinder-mesh.ts is_cap_top",
+        "observedOutputSha256": "4e1dc13a79889507a5b8b1c328375dacec171e04520630bcd984f5b3315830d8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e66f3c8d46706d9f021e942707e02d77119f2f2af18c793652d0d6b757f6d72c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "cylinder-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CylinderMesh.set_cap_bottom",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CylinderMesh\u0000set_cap_bottom\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "CylinderMesh.set_cap_bottom",
+        "sourceLine": 1387
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f4529e0ee1481a2f3f7851a6ff5567b74846b5bcda5f3734ba213cb411587fbe",
+        "callsite": "res://probe.gd _init() set_cap_bottom",
+        "observedOutputSha256": "110152ae9d92b76fa254d08008dd5a1c5401fd9f3598f429276c23c2e69c4175"
+      },
+      "target": {
+        "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058",
+        "callsite": "lib/godot-compat/cylinder-mesh.ts set_cap_bottom",
+        "observedOutputSha256": "110152ae9d92b76fa254d08008dd5a1c5401fd9f3598f429276c23c2e69c4175"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "72dddb139a6ec9534cb96ec39b2f9dbcd08dbd2f67c894cf12c8bf41bdd3568b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "cylinder-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-CylinderMesh.is_cap_bottom",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000CylinderMesh\u0000is_cap_bottom\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "CylinderMesh.is_cap_bottom",
+        "sourceLine": 1396
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "36cf1df8636b3448bc8d94fb72317bb98bda6a78e1f34dd69e682b6d03e379c1",
+        "callsite": "res://probe.gd _init() is_cap_bottom-default",
+        "observedOutputSha256": "49c2883ae81e54fffacedb2567c5694c31fa790d50afe52efe73315bc3d4142f"
+      },
+      "target": {
+        "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058",
+        "callsite": "lib/godot-compat/cylinder-mesh.ts is_cap_bottom",
+        "observedOutputSha256": "49c2883ae81e54fffacedb2567c5694c31fa790d50afe52efe73315bc3d4142f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0ec9fde89aef3de709572b69c604431203f9cedd4a8d5451191a4f3e8b4f83d7"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "cylinder-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-CylinderMesh.set_top_radius",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e14eac3396a1a5fa9a4f41b850a7134317318889e66802030160e42ccada4a34",
+      "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058"
+    },
+    {
+      "claimId": "godot-4.7-binding-CylinderMesh.get_top_radius",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a715e8279e57ddf8dedd1ff1694c41430c7a55f0871a33640fe9b1ab74c9db72",
+      "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058"
+    },
+    {
+      "claimId": "godot-4.7-binding-CylinderMesh.set_bottom_radius",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "bfa9c033b198fb94f06f9b726da69f30204fbae3db472e2925567161b909d999",
+      "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058"
+    },
+    {
+      "claimId": "godot-4.7-binding-CylinderMesh.get_bottom_radius",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c2399632eae11b7ed3541319169e35fe08474b28f917174ecccf456d455ddf57",
+      "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058"
+    },
+    {
+      "claimId": "godot-4.7-binding-CylinderMesh.set_height",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "7c3faf24bc5cc37eeb84b40626dedea9516fd8605f89fbd1d16c42bef8aeaa2f",
+      "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058"
+    },
+    {
+      "claimId": "godot-4.7-binding-CylinderMesh.get_height",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "45f679cf64ec121313c23aec430b4b1db079c0873ea1dbb8a13b09f3922ea82a",
+      "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058"
+    },
+    {
+      "claimId": "godot-4.7-binding-CylinderMesh.set_radial_segments",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6c2286e792267a544c27a04b308bc4193d8d3c53134d97214b9dc65e27b03b3e",
+      "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058"
+    },
+    {
+      "claimId": "godot-4.7-binding-CylinderMesh.get_radial_segments",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "067b2ff89074b4cf0f22cf413400062779da3c14b390a5ed4850f3eb42e05672",
+      "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058"
+    },
+    {
+      "claimId": "godot-4.7-binding-CylinderMesh.set_rings",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "aec57bd56584ddc78614fa0b1372f6e48402b5f2c03f8492690455a2b0388d15",
+      "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058"
+    },
+    {
+      "claimId": "godot-4.7-binding-CylinderMesh.get_rings",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ea85241f4137be4365e0bf86b2dd7d83f22e49c1ec7505934192ea98f7c62f9c",
+      "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058"
+    },
+    {
+      "claimId": "godot-4.7-binding-CylinderMesh.set_cap_top",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2c9135f3d3222c95bd9dac3b988eeec8f03abba611796600fc08ecfb7dbcd31b",
+      "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058"
+    },
+    {
+      "claimId": "godot-4.7-binding-CylinderMesh.is_cap_top",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "559efa93e200a33edde0c9c1a4d3a83d3303d65457e71358b53c5fedabe597fe",
+      "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058"
+    },
+    {
+      "claimId": "godot-4.7-binding-CylinderMesh.set_cap_bottom",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f4529e0ee1481a2f3f7851a6ff5567b74846b5bcda5f3734ba213cb411587fbe",
+      "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058"
+    },
+    {
+      "claimId": "godot-4.7-binding-CylinderMesh.is_cap_bottom",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "36cf1df8636b3448bc8d94fb72317bb98bda6a78e1f34dd69e682b6d03e379c1",
+      "implementationSha256": "c6d0d28b528ee282af956ad49ca5ba6c52cdc0bf002060da564de1370cae2058"
+    }
+  ]
+}

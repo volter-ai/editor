@@ -1,0 +1,694 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/sphere-mesh"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SphereMesh",
+        "member": "set_radius",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sphere-mesh",
+        "exportName": "set_radius",
+        "localName": "SphereMesh_set_radius",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SphereMesh.set_radius"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SphereMesh",
+        "member": "get_radius",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sphere-mesh",
+        "exportName": "get_radius",
+        "localName": "SphereMesh_get_radius",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SphereMesh.get_radius"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SphereMesh",
+        "member": "set_height",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sphere-mesh",
+        "exportName": "set_height",
+        "localName": "SphereMesh_set_height",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SphereMesh.set_height"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SphereMesh",
+        "member": "get_height",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sphere-mesh",
+        "exportName": "get_height",
+        "localName": "SphereMesh_get_height",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SphereMesh.get_height"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SphereMesh",
+        "member": "set_radial_segments",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sphere-mesh",
+        "exportName": "set_radial_segments",
+        "localName": "SphereMesh_set_radial_segments",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SphereMesh.set_radial_segments"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SphereMesh",
+        "member": "get_radial_segments",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sphere-mesh",
+        "exportName": "get_radial_segments",
+        "localName": "SphereMesh_get_radial_segments",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SphereMesh.get_radial_segments"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SphereMesh",
+        "member": "set_rings",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sphere-mesh",
+        "exportName": "set_rings",
+        "localName": "SphereMesh_set_rings",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SphereMesh.set_rings"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SphereMesh",
+        "member": "get_rings",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sphere-mesh",
+        "exportName": "get_rings",
+        "localName": "SphereMesh_get_rings",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SphereMesh.get_rings"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SphereMesh",
+        "member": "set_is_hemisphere",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sphere-mesh",
+        "exportName": "set_is_hemisphere",
+        "localName": "SphereMesh_set_is_hemisphere",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SphereMesh.set_is_hemisphere"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SphereMesh",
+        "member": "get_is_hemisphere",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/sphere-mesh",
+        "exportName": "get_is_hemisphere",
+        "localName": "SphereMesh_get_is_hemisphere",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SphereMesh.get_is_hemisphere"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SphereMesh.set_radius",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SphereMesh\u0000set_radius\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "SphereMesh.set_radius",
+        "sourceLine": 2116
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "42aabf42f746aa059be8899e3e0ad7b1af0966f6c0ec3cfd1902f2f16e70b88e",
+        "callsite": "res://probe.gd _init() set_radius-0.3 set_radius-0.5000001 set_radius-0.001 set_radius-0.1",
+        "observedOutputSha256": "34bf274a610e750de21e217494034e6ca3fa19ef88caa11ba32717fcd57d67a3"
+      },
+      "target": {
+        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "callsite": "lib/godot-compat/sphere-mesh.ts set_radius",
+        "observedOutputSha256": "34bf274a610e750de21e217494034e6ca3fa19ef88caa11ba32717fcd57d67a3"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "4aa9c048ea9522d83733627bdbe17ce98d48c916271484b998a8ca5990ad9abc"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sphere-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SphereMesh.get_radius",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SphereMesh\u0000get_radius\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "SphereMesh.get_radius",
+        "sourceLine": 2125
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e4c57fc024e783324defcc4a043d9ed12474893119976eb49fcd025e9dd943be",
+        "callsite": "res://probe.gd _init() get_radius-default",
+        "observedOutputSha256": "99daec82387dad94b14d26afbf891031cca617114f2e6ed8cc8c46620e3ad319"
+      },
+      "target": {
+        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "callsite": "lib/godot-compat/sphere-mesh.ts get_radius",
+        "observedOutputSha256": "99daec82387dad94b14d26afbf891031cca617114f2e6ed8cc8c46620e3ad319"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3894e3882e09a356c2f761f5418f754915e9cbbb3d8cdc10b044ebd3f3a143d6"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sphere-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SphereMesh.set_height",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SphereMesh\u0000set_height\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "SphereMesh.set_height",
+        "sourceLine": 2129
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ea11f12518281e156f31e7da8d8fbeb3ba20a4f666b455f209b845926406be86",
+        "callsite": "res://probe.gd _init() set_height-2.5 set_height-1.0000001 set_height-0.1",
+        "observedOutputSha256": "67c7e38521a705aff31832b4ac0ce90fc2dfb674c70eba5eb8afee541988b6e6"
+      },
+      "target": {
+        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "callsite": "lib/godot-compat/sphere-mesh.ts set_height",
+        "observedOutputSha256": "67c7e38521a705aff31832b4ac0ce90fc2dfb674c70eba5eb8afee541988b6e6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a37bef3211d2cd1f560eaf3e8de4e1d8b036c2f681af02a9ded3e8d17a8197e0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sphere-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SphereMesh.get_height",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SphereMesh\u0000get_height\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "SphereMesh.get_height",
+        "sourceLine": 2138
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a84529cb2b35477e1cbba07abd969a7ad69357018ff9d5b16797527bb3ba54a1",
+        "callsite": "res://probe.gd _init() get_height-default",
+        "observedOutputSha256": "1f8508aa0baee038a2621b7198be448de2f698b0ca4ea403217f4ca5421c4dfb"
+      },
+      "target": {
+        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "callsite": "lib/godot-compat/sphere-mesh.ts get_height",
+        "observedOutputSha256": "1f8508aa0baee038a2621b7198be448de2f698b0ca4ea403217f4ca5421c4dfb"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b0e78e372014dc85ccfe17ada5c935f5c478c69ae8cd5d5778193e9674a0b87f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sphere-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SphereMesh.set_radial_segments",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SphereMesh\u0000set_radial_segments\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "SphereMesh.set_radial_segments",
+        "sourceLine": 2142
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6684bfc434eb3fc7d28b112b407085e641fbbe1bb80820682b42f75044baa6f6",
+        "callsite": "res://probe.gd _init() set_radial_segments-8 set_radial_segments-3 set_radial_segments-4 set_radial_segments-below-4-at-4",
+        "observedOutputSha256": "7a51a86388e0e58010d853710723f63db7d6b5b5c95fb0d0b01dd6183f50486b"
+      },
+      "target": {
+        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "callsite": "lib/godot-compat/sphere-mesh.ts set_radial_segments",
+        "observedOutputSha256": "7a51a86388e0e58010d853710723f63db7d6b5b5c95fb0d0b01dd6183f50486b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "83f63bcefb04cf8101dc74adc63a6dff17f835a03b4be535e607492319af94c1"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sphere-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SphereMesh.get_radial_segments",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SphereMesh\u0000get_radial_segments\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "SphereMesh.get_radial_segments",
+        "sourceLine": 2150
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "46325b8bebcfb6182a643a1f2f9bf66eae69ad2acf781b22c1095a31a85dd6b4",
+        "callsite": "res://probe.gd _init() get_radial_segments-default",
+        "observedOutputSha256": "f9572d2023c4a0d75f05d902ffa1daa1f2ea686fbefb58693b614991fe3ccf79"
+      },
+      "target": {
+        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "callsite": "lib/godot-compat/sphere-mesh.ts get_radial_segments",
+        "observedOutputSha256": "f9572d2023c4a0d75f05d902ffa1daa1f2ea686fbefb58693b614991fe3ccf79"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "25d9ed9e61a15397039088a8b0894168b5253bcc53a05db21a7e160f1a5e56c0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sphere-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SphereMesh.set_rings",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SphereMesh\u0000set_rings\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "SphereMesh.set_rings",
+        "sourceLine": 2154
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f809b13d95ddedb2a73bf19f79f5f074cc8f0c856a56fcc37acd786389fdbf33",
+        "callsite": "res://probe.gd _init() set_rings-5 set_rings-1",
+        "observedOutputSha256": "69d23e9f740fcee4782ae0d994f1ea3df1c73d6e482e551eed0e47d8b54cb6db"
+      },
+      "target": {
+        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "callsite": "lib/godot-compat/sphere-mesh.ts set_rings",
+        "observedOutputSha256": "69d23e9f740fcee4782ae0d994f1ea3df1c73d6e482e551eed0e47d8b54cb6db"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "25457933062256a8dfeb7cd713e0293d411b7b4bb3f194d2ad0cbc024f6010b4"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sphere-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SphereMesh.get_rings",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SphereMesh\u0000get_rings\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "SphereMesh.get_rings",
+        "sourceLine": 2163
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e2599c2b09767d420c7350fe419441011bafd26eba89922f1f43425015605b99",
+        "callsite": "res://probe.gd _init() get_rings-default",
+        "observedOutputSha256": "a6596944860e9050b1dc801523b0658bdba8b73cef9bf30277143a16b13d1b1e"
+      },
+      "target": {
+        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "callsite": "lib/godot-compat/sphere-mesh.ts get_rings",
+        "observedOutputSha256": "a6596944860e9050b1dc801523b0658bdba8b73cef9bf30277143a16b13d1b1e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1664358ec9262ba18cf27e5dcb5d778d7ef97543415df458f9c0ac35a9becd31"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sphere-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SphereMesh.set_is_hemisphere",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SphereMesh\u0000set_is_hemisphere\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "SphereMesh.set_is_hemisphere",
+        "sourceLine": 2167
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1a7dff05bf31cb2733f9ae500a0bbf96d30e08c4357c7e3c39397acc6909e5ac",
+        "callsite": "res://probe.gd _init() set_is_hemisphere",
+        "observedOutputSha256": "e1c0cf8dcff5ecdbf7e1d3c22ef33719f214ce202354565c4bc573afaabaa64a"
+      },
+      "target": {
+        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "callsite": "lib/godot-compat/sphere-mesh.ts set_is_hemisphere",
+        "observedOutputSha256": "e1c0cf8dcff5ecdbf7e1d3c22ef33719f214ce202354565c4bc573afaabaa64a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b9f767eec36c04c1bcbab02982a9223f1f0706a5b2a90f09ecfb302a4fedd361"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sphere-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SphereMesh.get_is_hemisphere",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SphereMesh\u0000get_is_hemisphere\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/3d/primitive_meshes.cpp",
+        "sourceSymbol": "SphereMesh.get_is_hemisphere",
+        "sourceLine": 2176
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1e8dfc683ab4bb935050873dc5d2f3e1afc8f7b5700591618d6f07ad58dcf347",
+        "callsite": "res://probe.gd _init() get_is_hemisphere-default",
+        "observedOutputSha256": "437ceb08ca0e6bdca0d150c5c7a557d9136c8a28ffa693045a6b3b32b9a405a9"
+      },
+      "target": {
+        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "callsite": "lib/godot-compat/sphere-mesh.ts get_is_hemisphere",
+        "observedOutputSha256": "437ceb08ca0e6bdca0d150c5c7a557d9136c8a28ffa693045a6b3b32b9a405a9"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "fc5f96b3c92ae966e4cfbfdbf2328cfea74ec525baefc7a0261ae114039b4155"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "sphere-mesh",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-SphereMesh.set_radius",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "42aabf42f746aa059be8899e3e0ad7b1af0966f6c0ec3cfd1902f2f16e70b88e",
+      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+    },
+    {
+      "claimId": "godot-4.7-binding-SphereMesh.get_radius",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e4c57fc024e783324defcc4a043d9ed12474893119976eb49fcd025e9dd943be",
+      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+    },
+    {
+      "claimId": "godot-4.7-binding-SphereMesh.set_height",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ea11f12518281e156f31e7da8d8fbeb3ba20a4f666b455f209b845926406be86",
+      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+    },
+    {
+      "claimId": "godot-4.7-binding-SphereMesh.get_height",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a84529cb2b35477e1cbba07abd969a7ad69357018ff9d5b16797527bb3ba54a1",
+      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+    },
+    {
+      "claimId": "godot-4.7-binding-SphereMesh.set_radial_segments",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6684bfc434eb3fc7d28b112b407085e641fbbe1bb80820682b42f75044baa6f6",
+      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+    },
+    {
+      "claimId": "godot-4.7-binding-SphereMesh.get_radial_segments",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "46325b8bebcfb6182a643a1f2f9bf66eae69ad2acf781b22c1095a31a85dd6b4",
+      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+    },
+    {
+      "claimId": "godot-4.7-binding-SphereMesh.set_rings",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f809b13d95ddedb2a73bf19f79f5f074cc8f0c856a56fcc37acd786389fdbf33",
+      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+    },
+    {
+      "claimId": "godot-4.7-binding-SphereMesh.get_rings",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e2599c2b09767d420c7350fe419441011bafd26eba89922f1f43425015605b99",
+      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+    },
+    {
+      "claimId": "godot-4.7-binding-SphereMesh.set_is_hemisphere",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1a7dff05bf31cb2733f9ae500a0bbf96d30e08c4357c7e3c39397acc6909e5ac",
+      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+    },
+    {
+      "claimId": "godot-4.7-binding-SphereMesh.get_is_hemisphere",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1e8dfc683ab4bb935050873dc5d2f3e1afc8f7b5700591618d6f07ad58dcf347",
+      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+    }
+  ]
+}

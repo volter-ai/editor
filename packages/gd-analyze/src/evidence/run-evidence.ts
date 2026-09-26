@@ -92,7 +92,7 @@ type Encoded =
   | { readonly t: 'float'; readonly v: string }
   | { readonly t: 'String' | 'StringName'; readonly v: string }
   | { readonly t: 'Vector3'; readonly x: string; readonly y: string; readonly z: string }
-  | { readonly t: 'Array' | 'PackedStringArray' | 'PackedVector3Array'; readonly v: readonly Encoded[] }
+  | { readonly t: 'Array' | PackedArrayType; readonly v: readonly Encoded[] }
   | { readonly t: 'Dictionary'; readonly v: readonly (readonly [Encoded, Encoded])[] }
   | StructuredEncoded
   | { readonly t: 'unsupported'; readonly type: string };
@@ -119,6 +119,18 @@ interface StructuredEncoded {
 }
 
 type Row = readonly [id: string, value: Encoded];
+
+/** Packed arrays, encoded element by element like an Array of their element type. */
+const PACKED_ARRAY_TYPES = [
+  'PackedStringArray',
+  'PackedVector3Array',
+  'PackedVector2Array',
+  'PackedFloat32Array',
+  'PackedInt32Array',
+] as const;
+type PackedArrayType = (typeof PACKED_ARRAY_TYPES)[number];
+const isPackedArrayType = (type: string): type is PackedArrayType =>
+  (PACKED_ARRAY_TYPES as readonly string[]).includes(type);
 
 interface CompatExport {
   /**
@@ -211,6 +223,11 @@ function encodeLike(native: Encoded, value: unknown): Encoded {
     if (!Array.isArray(value) || value.length !== native.v.length) return unsupported(value);
     return { t: 'Array', v: native.v.map((entry, index) => encodeLike(entry, value[index])) };
   }
+  if (isPackedArrayType(native.t) && native.t !== 'PackedStringArray') {
+    const packed = native as { readonly t: PackedArrayType; readonly v: readonly Encoded[] };
+    if (!Array.isArray(value) || value.length !== packed.v.length) return unsupported(value);
+    return { t: packed.t, v: packed.v.map((entry, index) => encodeLike(entry, value[index])) };
+  }
   if (native.t === 'Dictionary') {
     if (!(value instanceof Map) || value.size !== native.v.length) return unsupported(value);
     const entries = [...(value as Map<unknown, unknown>).entries()];
@@ -301,11 +318,11 @@ func _enc(value: Variant) -> Dictionary:
 \t\t\tfor item in value:
 \t\t\t\tstrings.append({"t": "String", "v": item})
 \t\t\treturn {"t": "PackedStringArray", "v": strings}
-\t\tTYPE_PACKED_VECTOR3_ARRAY:
-\t\t\tvar vectors: Array = []
+\t\tTYPE_PACKED_VECTOR3_ARRAY, TYPE_PACKED_VECTOR2_ARRAY, TYPE_PACKED_FLOAT32_ARRAY, TYPE_PACKED_INT32_ARRAY:
+\t\t\tvar entries: Array = []
 \t\t\tfor item in value:
-\t\t\t\tvectors.append(_enc(item))
-\t\t\treturn {"t": "PackedVector3Array", "v": vectors}
+\t\t\t\tentries.append(_enc(item))
+\t\t\treturn {"t": type_string(typeof(value)), "v": entries}
 \treturn {"t": "unsupported", "type": type_string(typeof(value))}
 `;
 
@@ -447,9 +464,10 @@ function floatPairs(native: Encoded, target: Encoded): (readonly [number, number
     const other = target as typeof native;
     return (['x', 'y', 'z'] as const).map((axis) => [bitsFloat(native[axis]), bitsFloat(other[axis])] as const);
   }
-  if (native.t === 'Array' || native.t === 'PackedStringArray' || native.t === 'PackedVector3Array') {
-    const other = target as typeof native;
-    return native.v.flatMap((entry, index) => floatPairs(entry, other.v[index] as Encoded));
+  if (native.t === 'Array' || isPackedArrayType(native.t)) {
+    const packed = native as { readonly v: readonly Encoded[] };
+    const other = target as typeof packed;
+    return packed.v.flatMap((entry, index) => floatPairs(entry, other.v[index] as Encoded));
   }
   if (native.t === 'Dictionary') {
     const other = target as typeof native;
@@ -543,7 +561,10 @@ function valuesAgree(native: Encoded, target: Encoded, comparator: GodotEvidence
     }
     case 'Array':
     case 'PackedStringArray':
-    case 'PackedVector3Array': {
+    case 'PackedVector3Array':
+    case 'PackedVector2Array':
+    case 'PackedFloat32Array':
+    case 'PackedInt32Array': {
       const other = target as typeof native;
       return (
         native.v.length === other.v.length &&
@@ -584,6 +605,9 @@ function readable(value: Encoded): string {
     case 'Array':
     case 'PackedStringArray':
     case 'PackedVector3Array':
+    case 'PackedVector2Array':
+    case 'PackedFloat32Array':
+    case 'PackedInt32Array':
       return `${value.t}[${value.v.map(readable).join(', ')}]`;
     case 'Dictionary':
       return `{${value.v.map(([key, item]) => `${readable(key)}: ${readable(item)}`).join(', ')}}`;
