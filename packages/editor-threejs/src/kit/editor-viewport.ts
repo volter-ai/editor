@@ -783,14 +783,14 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
           // (\`overlay_grid_vert.glsl\`, \`OVERLAY_GRID_STEPS_DRAW\` 3): the unit, the next step and
           // the one after, with f the level's fraction (\`uMinorFade\` is 1 - f). Level 0 is the
           // grid colour at alpha 1 - f, further faded as its cells shrink toward a pixel
-          // (\`smoothstep(step / 4, step / 64, pixel size)\`); level 1 is opaque and 1 - f of the
+          // (\`smoothstep(step / 4, step / 64, pixel size)\`, written in increasing order); level 1 is opaque and 1 - f of the
           // way to the emphasis colour; level 2 is the emphasis colour. A line on a higher level
           // is that level's.
           float top = alignedLine(p / (uMajorEvery * uMajorEvery));
           float middle = alignedLine(p / uMajorEvery);
           float bottom = alignedLine(p);
           float pixel = max(fwidth(world).x, fwidth(world).y);
-          float bottomAlpha = uMinorFade * smoothstep(uUnit * 0.25, uUnit * 0.015625, pixel);
+          float bottomAlpha = uMinorFade * (1.0 - smoothstep(uUnit * 0.015625, uUnit * 0.25, pixel));
           float emphasis = top > 0.5 ? 1.0 : middle > 0.5 ? uMinorFade : 0.0;
           // The theme's grid colour carries alpha 0x80 and its emphasis colour none, and the
           // two colours here were fitted to Blender's PERSPECTIVE frames, where four additive

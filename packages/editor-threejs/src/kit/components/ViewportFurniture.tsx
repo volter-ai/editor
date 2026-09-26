@@ -274,10 +274,12 @@ export function ViewportFurniture({
       element.removeEventListener('pointermove', move);
       element.removeEventListener('pointerup', end);
       element.removeEventListener('pointercancel', end);
+      element.removeEventListener('lostpointercapture', end);
     };
     element.addEventListener('pointermove', move);
     element.addEventListener('pointerup', end);
     element.addEventListener('pointercancel', end);
+    element.addEventListener('lostpointercapture', end);
   };
 
   const startPan = (event: ReactPointerEvent<HTMLButtonElement>): void => {
@@ -309,10 +311,12 @@ export function ViewportFurniture({
       element.removeEventListener('pointermove', move);
       element.removeEventListener('pointerup', end);
       element.removeEventListener('pointercancel', end);
+      element.removeEventListener('lostpointercapture', end);
     };
     element.addEventListener('pointermove', move);
     element.addEventListener('pointerup', end);
     element.addEventListener('pointercancel', end);
+    element.addEventListener('lostpointercapture', end);
   };
 
   return (

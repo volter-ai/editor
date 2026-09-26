@@ -523,6 +523,8 @@ def draw_camera(obj):
         "shift_x": float(camera.shift_x),
         "shift_y": float(camera.shift_y),
         "matrix": [[float(v) for v in row] for row in obj.matrix_world],
+        # What the 3D View's camera view darkens outside the frame (`drawviewborder`).
+        "passepartout": float(camera.passepartout_alpha) if camera.show_passepartout else 0.0,
     }
 
 
@@ -796,6 +798,7 @@ def _subject_line(scene, view_layer):
                 if ob.show_only_shape_key:
                     parts.append(" (Soloed)")
     return {
+        "frame": int(scene.frame_current),
         "body": "".join(parts),
         "markers": [[int(m.frame), m.name] for m in scene.timeline_markers],
     }
@@ -1379,6 +1382,15 @@ class Session:
             obj.name: draw_camera(obj) for obj in scene.objects if obj.type == "CAMERA"
         }
         frame["volumes"] = {}
+        # THE CAMERA A CAMERA VIEW LOOKS THROUGH (`view3d.view_camera`: the scene's, else a
+        # camera that is active, else the view layer's first) and the frame it draws, the
+        # render's shape with its pixel aspect.
+        render = scene.render
+        frame["camera_view"] = {
+            "scene_camera": scene.camera.name if scene.camera is not None else None,
+            "view_layer_cameras": [o.name for o in bpy.context.view_layer.objects if o.type == "CAMERA"],
+            "aspect": (render.resolution_x * render.pixel_aspect_x) / max(render.resolution_y * render.pixel_aspect_y, 1e-6),
+        }
         # THE 3D CURSOR, `Scene.cursor`: where Blender's own "to 3D Cursor"
         # operators place and snap, drawn by the tab as Blender's overlay does
         # (`overlay_cursor.hh`). Its MATRIX, because the overlay's axis lines

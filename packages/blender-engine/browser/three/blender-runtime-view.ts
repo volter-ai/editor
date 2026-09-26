@@ -514,6 +514,15 @@ export const frameSchema = z
     /** `Scene.cursor.matrix` (`blender-runtime-cursor.ts`); absent from an
      *  engine that does not report it. */
     cursor: cursorSchema.optional(),
+    /** What a camera view looks through (`session.py`): the scene's camera, the view layer's
+     *  cameras in order, and the render's shape with its pixel aspect. */
+    camera_view: z
+      .object({
+        scene_camera: z.string().nullable(),
+        view_layer_cameras: z.array(z.string()),
+        aspect: z.number().finite().positive(),
+      })
+      .optional(),
     /** The 3D View the file saved (`session.py` `_saved_view`), null when it holds none. */
     view: z
       .object({
@@ -527,7 +536,11 @@ export const frameSchema = z
     /** The viewport's subject line as Blender composes it (`draw_selected_name`), less the
      *  frame and its marker, with the scene's markers in list order. */
     subject: z
-      .object({ body: z.string(), markers: z.array(z.tuple([z.number().int(), z.string()])) })
+      .object({
+        frame: z.number().int(),
+        body: z.string(),
+        markers: z.array(z.tuple([z.number().int(), z.string()])),
+      })
       .optional(),
     /** `Scene.unit_settings`: the length system and scale the grid's step is named in. */
     units: z
@@ -788,11 +801,12 @@ export class BlenderRuntimeView {
   }
 
   /** The viewport's subject line at `frame`, `(1) Collection | Cube`: the engine's body with
-   *  the frame before it and that frame's marker after it; null before a frame or from an engine
-   *  that does not report it. */
-  subjectLine(frame: number): string | null {
+   *  the frame before it and that frame's marker after it; `frame` null is the scene's own
+   *  `frame_current`. Null before a frame or from an engine that does not report it. */
+  subjectLine(playhead: number | null): string | null {
     const subject = this.frame?.subject;
     if (subject === undefined) return null;
+    const frame = playhead ?? subject.frame;
     const marker = markerAt(subject.markers, frame);
     return `(${frame})${subject.body}${marker === null ? '' : ` <${marker}>`}`;
   }

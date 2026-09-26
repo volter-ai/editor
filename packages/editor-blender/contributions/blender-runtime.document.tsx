@@ -96,7 +96,10 @@ export const inspectorBuiltins: readonly string[] = [];
 const view = blenderModelView;
 /** THE SUBJECT LINE'S FRAME IS THE ONE ON SCREEN: the skin's playhead, which during playback
  *  runs ahead of `frame_current` (written once, on pause), as Blender's own `(frame)` does. */
-const subjectOfView = () => view.subjectLine(Math.floor(blenderSkin.frame()));
+const subjectOfView = () => {
+  const playhead = blenderSkin.playhead();
+  return view.subjectLine(playhead === null ? null : Math.floor(playhead));
+};
 const gridScale = (worldPerDevicePixel: number) => view.gridUnitName(worldPerDevicePixel);
 
 export default function BlenderModelDocument(props: ToolContributionProps) {
