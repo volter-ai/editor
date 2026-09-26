@@ -1,6 +1,6 @@
 /**
  * React composition boundary for Godot's Node lifecycle: generated scene components seat their
- * script attachments on the native hierarchy they mounted, and `node-process` applies Godot's
+ * script attachments on the native hierarchy they mounted, and `node.ts` applies Godot's
  * enter/ready/exit ordering in the host's own layout-effect phase.
  *
  * @godot-class Node
