@@ -8,6 +8,10 @@ export interface WorkspaceStorageProvider {
   get(key: string): string | undefined;
   /** `undefined` removes the key. */
   store(key: string, value: string | undefined): void;
+  /** Resolves once every change the workbench holds (its own layout included) has reached the
+   *  project's folder. The session's end waits on it: the server stops listening moments after
+   *  the page acknowledges, so a write left for the page's unload never lands. */
+  flush(): Promise<void>;
 }
 
 let provider: WorkspaceStorageProvider | null = null;

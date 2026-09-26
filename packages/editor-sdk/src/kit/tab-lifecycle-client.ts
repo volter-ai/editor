@@ -25,6 +25,7 @@
 
 import { editorDocumentTitle, editorMarkImg } from '@volter/editor-sdk/session/editor-brand';
 import { markSessionEnded } from './session-tombstone';
+import { workspaceStorageProvider } from './workspace-storage';
 
 /** How long `window.close()` gets to take effect before the fallback runs. */
 const CLOSE_FALLBACK_DELAY_MS = 300;
@@ -73,6 +74,29 @@ function handleYield(base: string, event: MessageEvent): void {
 // and repaint the notice under itself.
 let sessionEndHandled = false;
 
+/** How long the end waits for the project's workspace state to reach its folder: well inside
+ *  the server's own two-second wait for the acknowledgement below. */
+const WORKSPACE_FLUSH_BUDGET_MS = 1_200;
+
+/** The workbench's pending state, written to the project's folder before the page says it is
+ *  done: once acknowledged, the server stops listening, and a write left for the page's unload
+ *  arrives at nothing (measured: a panel hidden a second before `close` reopened shown). */
+function persistWorkspaceState(): Promise<void> {
+  const provider = workspaceStorageProvider();
+  if (!provider) return Promise.resolve();
+  let flushed: Promise<void>;
+  try {
+    flushed = provider.flush().catch(() => {});
+  } catch {
+    // A flush that cannot start must not cost the acknowledgement.
+    flushed = Promise.resolve();
+  }
+  return Promise.race([
+    flushed,
+    new Promise<void>((resolve) => setTimeout(resolve, WORKSPACE_FLUSH_BUDGET_MS)),
+  ]);
+}
+
 /**
  * THE PAGE'S ACKNOWLEDGEMENT — "I got `tab-close`, and everything it turns off
  * is already off."
@@ -118,15 +142,17 @@ function handleSessionEnded(base: string, identity: TabIdentity): void {
   // would let it go on impersonating a live editor reads this
   // (`session-tombstone.ts`).
   markSessionEnded('session-closed');
-  acknowledgeSessionEnd(base, identity);
-  closeOrFallback(() => {
-    document.title = editorDocumentTitle('Session ended');
-    document.body.innerHTML = `<style>
-      :root{color-scheme:dark;background:#101318;color:#e8edf3;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
-      body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 30%,#1c2a3a 0,#101318 52%,#0b0e13 100%)}
-      main{width:min(440px,100%);box-sizing:border-box;padding:34px;text-align:center;border:1px solid rgba(255,255,255,.1);border-radius:20px;background:rgba(23,28,35,.92);box-shadow:0 22px 60px rgba(0,0,0,.38)}
-      .brand-mark{width:68px;height:68px;margin:0 auto 20px}.brand-mark img{display:block;width:100%;height:100%}h1{margin:0 0 10px;font-size:22px}p{margin:0;color:#aeb9c6;font-size:14px;line-height:1.6}
-    </style><main><div class="brand-mark">${editorMarkImg()}</div><h1>Session ended</h1><p>This editor session has ended. You can close this tab.</p></main>`;
+  void persistWorkspaceState().then(() => {
+    acknowledgeSessionEnd(base, identity);
+    closeOrFallback(() => {
+      document.title = editorDocumentTitle('Session ended');
+      document.body.innerHTML = `<style>
+        :root{color-scheme:dark;background:#101318;color:#e8edf3;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
+        body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 30%,#1c2a3a 0,#101318 52%,#0b0e13 100%)}
+        main{width:min(440px,100%);box-sizing:border-box;padding:34px;text-align:center;border:1px solid rgba(255,255,255,.1);border-radius:20px;background:rgba(23,28,35,.92);box-shadow:0 22px 60px rgba(0,0,0,.38)}
+        .brand-mark{width:68px;height:68px;margin:0 auto 20px}.brand-mark img{display:block;width:100%;height:100%}h1{margin:0 0 10px;font-size:22px}p{margin:0;color:#aeb9c6;font-size:14px;line-height:1.6}
+      </style><main><div class="brand-mark">${editorMarkImg()}</div><h1>Session ended</h1><p>This editor session has ended. You can close this tab.</p></main>`;
+    });
   });
 }
 
