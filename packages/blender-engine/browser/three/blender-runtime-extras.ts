@@ -21,9 +21,9 @@
  * the view, a sun's direction line, an area light's square or disk, a spot's radius. A spot's
  * cone is not drawn.
  *
- * AN EMPTY is its display shape at its display size: plain axes, arrows (with their letters,
- * without the markers at their ends), a single arrow, a circle, a cube, a sphere or a cone. An
- * image empty is not drawn.
+ * AN EMPTY is its display shape at its display size: plain axes, arrows (with their letters and
+ * the markers at their ends), a single arrow, a circle, a cube, a sphere or a cone. An image
+ * empty is not drawn.
  */
 import * as THREE from 'three';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
@@ -444,6 +444,14 @@ export class ExtrasOverlay {
       const at = new THREE.Vector3(0, 0, 0);
       at.setComponent(axis, 1.25 * size);
       at.applyMatrix4(matrix);
+      // The marker at the axis's end: six diamonds, one inside the next (`axis_marker`, filled
+      // by its layers), facing the view.
+      const end = new THREE.Vector3(0, 0, 0);
+      end.setComponent(axis, size);
+      end.applyMatrix4(matrix);
+      const marker: Segments = [];
+      for (let layer = 1; layer <= 6; layer++) loop(marker, ring(0.007 * ((4 * layer) / 6) * length, 4));
+      this.empties.add(this.facing(marker, color, end));
       const name = AXIS_NAMES[axis]!;
       const out: Segments = [];
       for (let i = 0; i + 1 < name.length; i += 2) {
