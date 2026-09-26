@@ -299,6 +299,9 @@ export interface EditorViewportOptions {
   readonly authoring?: () => AuthoringAdapter;
   /** Document-local picking when this viewport is not the project viewport. */
   readonly pick?: (clientX: number, clientY: number) => string | null;
+  /** The camera the stage draws with, when that is not the viewport's own (a document session's
+   *  orthographic or camera view): screen tests such as the box select project through it. */
+  readonly drawCamera?: () => THREE.Camera;
   /** Only the one project viewport publishes the legacy global pick context. */
   readonly publishPickContext?: boolean;
   readonly onProjectionChange?: (projection: ThreeViewportProjection) => void;
@@ -1028,6 +1031,11 @@ export class EditorViewport {
   private _onInteractionDblClick: ((e: MouseEvent) => void) | undefined;
   private readonly _authoring: () => AuthoringAdapter;
   private readonly _pick: ((clientX: number, clientY: number) => string | null) | undefined;
+  private readonly _drawCamera: (() => THREE.Camera) | undefined;
+  /** The camera on screen: the stage's drawing camera where it states one, else the viewport's. */
+  private get _screenCamera(): THREE.Camera {
+    return this._drawCamera?.() ?? this.renderCamera;
+  }
   private readonly _standaloneAuthoring: boolean;
   private readonly _publishPickContext: boolean;
   private readonly _onlineAssetResolver: OnlineAssetResolver | undefined;
@@ -1217,6 +1225,7 @@ export class EditorViewport {
     this._authoring =
       options.authoring ?? (() => viewportAuthoringPolicy().activeAuthoring(this._store.shell));
     this._pick = options.pick;
+    this._drawCamera = options.drawCamera;
     this._standaloneAuthoring = options.authoring !== undefined;
     this._publishPickContext = options.publishPickContext ?? true;
     this._chromeInsetPx = options.chromeInsetPx ?? 0;
@@ -2085,6 +2094,9 @@ export class EditorViewport {
       // legacy empty-transform corner brackets over that presentation creates
       // two competing selection languages and obscures the draggable handle.
       if ([...this._constraintHelpers.values()].some((helper) => helper.presents(obj))) continue;
+      // Nor over an object whose document draws its overlay itself, selection colour included
+      // (`userData.vgaiOwnOverlay`: a Blender camera, light or empty).
+      if (obj.userData['vgaiOwnOverlay']) continue;
       add(
         `selection:${id}`,
         new SelectionBrackets(obj, {
@@ -3096,8 +3108,9 @@ export class EditorViewport {
     }
   };
 
-  private readonly _onAltOrbitRelease = (): void => {
-    if (this._modifiedZoom) {
+  private readonly _onAltOrbitRelease = (event?: PointerEvent): void => {
+    // The zoom is the middle button's gesture, and ends with that button's release.
+    if (this._modifiedZoom && (!event || event.type === 'pointercancel' || event.button === 1)) {
       this._modifiedZoom = false;
       this.applyKeymapNavigation();
     }
@@ -5606,7 +5619,7 @@ export class EditorViewport {
   private _projectToScreen(obj: THREE.Object3D): THREE.Vector2 {
     const pos = new THREE.Vector3();
     obj.getWorldPosition(pos);
-    pos.project(this.renderCamera);
+    pos.project(this._screenCamera);
     const rect = this._canvas.getBoundingClientRect();
     return new THREE.Vector2(
       ((pos.x + 1) / 2) * rect.width + rect.left,
@@ -5947,6 +5960,9 @@ export class EditorViewport {
         // case where the two differ.
         const touch = this._stageBoxSelect === 'touch';
         const rect = this._canvas.getBoundingClientRect();
+        // Through the camera on screen: an orthographic document view or a camera view draws with
+        // its own, and a rectangle means what the person sees.
+        const screenCamera = this._screenCamera;
         let inside = true;
         let minX = Number.POSITIVE_INFINITY;
         let maxX = Number.NEGATIVE_INFINITY;
@@ -5958,7 +5974,7 @@ export class EditorViewport {
             cornerIndex & 2 ? bounds.max.y : bounds.min.y,
             cornerIndex & 4 ? bounds.max.z : bounds.min.z,
           );
-          corner.project(this.camera);
+          corner.project(screenCamera);
           if (corner.z < -1 || corner.z > 1) {
             inside = false;
             if (!touch) break;

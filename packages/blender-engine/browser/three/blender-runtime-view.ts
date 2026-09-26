@@ -1736,6 +1736,10 @@ export class BlenderRuntimeView {
         this.objects.set(obj.id, object);
       }
       object.name = obj.name;
+      // A camera, a light and an empty are drawn by the overlay's extras, selection colour and
+      // all (`blender-runtime-extras.ts`); the editor's own marks for them stand down.
+      if (obj.type === 'CAMERA' || obj.type === 'LIGHT' || obj.type === 'EMPTY') object.userData['vgaiOwnOverlay'] = true;
+      else delete object.userData['vgaiOwnOverlay'];
       object.matrixAutoUpdate = false;
       object.matrix.set(...(obj.matrix.flat() as Parameters<THREE.Matrix4['set']>));
       if (obj.parent) {

@@ -1336,6 +1336,8 @@ export function Object3DDocumentViewport({
             renderer,
             authoring: () => host.adapter ?? adapter,
             pick,
+            // Asked only once the viewport stands (a box select), so `host.viewport` is set.
+            drawCamera: (): THREE.Camera => host.session?.camera() ?? host.viewport!.camera,
             publishPickContext: false,
             onProjectionChange: setProjection,
             // The same expression that places the DOM furniture, for the one

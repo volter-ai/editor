@@ -32,6 +32,7 @@ import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js
 import { z } from 'zod';
 import type { CameraData } from './blender-runtime-camera-view';
 import type { LightData } from './blender-runtime-lighting';
+import { presenterChanged } from './blender-presenter-change';
 
 const scalar = z.number().finite();
 /** `session.py`'s `frame["empties"]`. */
@@ -412,6 +413,7 @@ export class ExtrasOverlay {
       if (orthographic) camera.getWorldDirection(eye).negate().transformDirection(inverse);
       else eye.setFromMatrixPosition(camera.matrixWorld).applyMatrix4(inverse);
       const array = buffer.array as Float32Array;
+      let changed = false;
       for (let i = 0; i < 32; i++) {
         const p = points[i]!;
         // Each face spans the apex, this generator and a neighbour.
@@ -420,9 +422,15 @@ export class ExtrasOverlay {
         if (orthographic) toward.copy(eye);
         else toward.copy(eye).sub(p);
         const kept = n0.dot(toward) > 0 !== n1.dot(toward) > 0;
+        if ((array[i * 6 + 3] !== 0 || array[i * 6 + 5] !== 0) !== kept) changed = true;
         array.set([0, 0, 0, kept ? p.x : 0, kept ? p.y : 0, kept ? p.z : 0], i * 6);
       }
-      buffer.needsUpdate = true;
+      // The rewrite reaches the next draw; a stage that draws on demand has to be asked for it,
+      // or a view that stopped moving keeps the silhouette of the step before.
+      if (changed) {
+        buffer.needsUpdate = true;
+        presenterChanged();
+      }
     });
     return lines;
   }
