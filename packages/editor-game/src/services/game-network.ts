@@ -21,7 +21,7 @@ import { pack, unpack } from '@colyseus/msgpackr';
 import { type DataChange, decode, encode, type Iterator } from '@colyseus/schema';
 import { SchemaSerializer } from '@colyseus/sdk';
 import { editorHost } from '@volter/editor-sdk/host';
-import { getPlayStartedAt } from '../play/play-mode';
+import { getPlayStartedAt, isPlayModeActive } from '../play/play-mode';
 import type {
   ConnectionState,
   NetConditioning,
@@ -389,7 +389,7 @@ function attach(socket: WebSocket, url: string): void {
   // Autostart decides a RUN's recording once, at its first room socket; a reconnect inside the
   // same run keeps whatever Start or Stop the person chose.
   // Outside Play there is no run to key on: a socket opening with none live starts one.
-  const run = getPlayStartedAt();
+  const run = isPlayModeActive() ? getPlayStartedAt() : null;
   const idle = !mirrors.some((other) => other.state === 'connected' || other.state === 'connecting');
   if (run !== autostartedRun || (run === null && idle)) {
     autostartedRun = run;

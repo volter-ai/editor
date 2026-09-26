@@ -327,7 +327,8 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
       guides: true,
       origin: true,
       viewport: true,
-      gridWhenSnapping: false,
+      // Godot's 2D default (measured on 4.7.1: no grid until grid snap is on).
+      gridWhenSnapping: true,
       position: true,
       lock: true,
       group: true,

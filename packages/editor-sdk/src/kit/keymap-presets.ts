@@ -176,12 +176,9 @@ const VGAI_KEYMAP: EditorKeymapTable = Object.freeze({
   // Blender's own workspace cycle keys, and free in this registry.
   'workspace.cycleNext': [{ key: 'pagedown', mod: true }],
   'workspace.cyclePrevious': [{ key: 'pageup', mod: true }],
-  // UNBOUND HERE, DELIBERATELY: this editor's own four transform tools already
-  // hold T/W/E/R, and the Select tool arrived with the Blender look (whose
-  // keymap puts it on Blender's own `W`). An empty list is the table's way of
-  // saying a keymap binds nothing to an action, and the strip's button is the
-  // tool's other door.
-  'transform.select': [],
+  // Q, beside W/E/R: Godot's 2D Select (its 4.7.1 shortcut `canvas_item_editor/select_mode`)
+  // and Unreal's Select both sit there. The Blender look keeps Select on Blender's own `W`.
+  'transform.select': [{ key: 'q' }],
   'transform.combined': [{ key: 't' }],
   'transform.translate': [{ key: 'w' }],
   'transform.rotate': [{ key: 'e' }],

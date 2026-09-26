@@ -201,17 +201,95 @@ function depthOf(kind: CreatableKind, byKind: ReadonlyMap<string, CreatableKind>
   return depth;
 }
 
+/** The project's canvas components a drop can place: this editor's scenes, and the dialog's
+ *  custom classes. `null` while the index is being read. */
+function useCanvasComponents(enabled: boolean): {
+  components: readonly ProjectComponentEntry[] | null;
+  failure: string | null;
+} {
+  const [components, setComponents] = useState<readonly ProjectComponentEntry[] | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
+  useEffect(() => {
+    if (!enabled) return;
+    let live = true;
+    void listProjectComponents().then((listing) => {
+      if (!live) return;
+      if (!listing.ok) {
+        setFailure(listing.reason);
+        setComponents([]);
+        return;
+      }
+      setComponents(
+        listing.entries.filter((entry) => entry.surface === 'canvas' && entry.exported && entry.contentKind !== 'image'),
+      );
+    });
+    return () => {
+      live = false;
+    };
+  }, [enabled]);
+  return { components, failure };
+}
+
+const componentKey = (entry: ProjectComponentEntry): string => `component:${entry.path}#${entry.name}`;
+
+/** Place one project component at the press through the adapter's drop door. */
+function placeComponent(state: AddNodeHereState, entry: ProjectComponentEntry): string | null {
+  const drop = state.adapter.assetDrop;
+  if (!drop) return 'This surface places no components.';
+  const context = {
+    position: [state.at.x, state.at.y, 0] as const,
+    item: {
+      kind: 'component' as const,
+      name: entry.name,
+      sourcePath: entry.path,
+      exportKind: entry.defaultExport ? ('default' as const) : ('named' as const),
+      surface: entry.surface,
+    },
+  };
+  const target = state.parentId ?? '';
+  if (!drop.accepts(target, entry.path, context)) return `${entry.name} cannot be placed here.`;
+  void dropAuthoringAsset(state.adapter, target, entry.path, context);
+  return null;
+}
+
 function CreateNodeDialog({ state, onClose }: { state: AddNodeHereState; onClose: () => void }): ReactNode {
   const [search, setSearch] = useState('');
   const [history, setHistory] = useState<CreateHistory>(readHistory);
-  const byKind = useMemo(() => new Map(state.kinds.map((kind) => [kind.kind, kind])), [state.kinds]);
-  const matches = state.kinds.filter((kind) => kind.label.toLowerCase().includes(search.trim().toLowerCase()));
+  // Godot's Matches › Filters: Show Built-in and Show Custom (a project's own classes, here its
+  // canvas components); its Show Editor lists editor-only classes, which a Pixi project has none of.
+  const [filters, setFilters] = useState({ builtIn: true, custom: true });
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
+  const { components } = useCanvasComponents(Boolean(state.adapter.assetDrop));
+  const root = state.kinds.find((kind) => !kind.extends);
+  const custom: CreatableKind[] = (components ?? []).map((entry) => ({
+    kind: componentKey(entry),
+    label: entry.name,
+    ...(root ? { extends: root.kind } : {}),
+    description: `A project component, from ${entry.path}.`,
+  }));
+  const all = [...(filters.builtIn ? state.kinds : []), ...(filters.custom ? custom : [])];
+  const byKind = useMemo(
+    () => new Map([...state.kinds, ...custom].map((kind) => [kind.kind, kind])),
+    // biome-ignore lint/correctness/useExhaustiveDependencies: `custom` is derived from `components`
+    [state.kinds, components],
+  );
+  const matches = all.filter((kind) => kind.label.toLowerCase().includes(search.trim().toLowerCase()));
   const [selected, setSelected] = useState<string | null>(state.kinds[0]?.kind ?? null);
   const current = selected && matches.some((kind) => kind.kind === selected) ? selected : (matches[0]?.kind ?? null);
   const chosen = current ? byKind.get(current) : undefined;
   const create = (kind: string | null): void => {
     if (!kind) return;
-    void state.structure.create(kind, state.parentId ?? undefined, state.at).ack;
+    const entry = (components ?? []).find((candidate) => componentKey(candidate) === kind);
+    if (entry) {
+      const refused = placeComponent(state, entry);
+      if (refused) {
+        setFailure(refused);
+        return;
+      }
+    } else {
+      void state.structure.create(kind, state.parentId ?? undefined, state.at).ack;
+    }
     writeHistory({ ...history, recent: [kind, ...history.recent.filter((entry) => entry !== kind)].slice(0, 10) });
     onClose();
   };
@@ -241,7 +319,8 @@ function CreateNodeDialog({ state, onClose }: { state: AddNodeHereState; onClose
       ));
   return (
     <DialogFrame
-      title="Create New Node"
+      // Godot titles the dialog after the class every match descends from ("Create New CanvasItem").
+      title={`Create New ${root?.label ?? 'Node'}`}
       testId="canvas-create-node-dialog"
       onClose={onClose}
       footer={
@@ -276,6 +355,13 @@ function CreateNodeDialog({ state, onClose }: { state: AddNodeHereState; onClose
               onChange={(event) => setSearch(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === 'Enter') create(current);
+                // Up and Down walk the Matches from the search field, as Godot's do.
+                if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                  event.preventDefault();
+                  const at = matches.findIndex((kind) => kind.kind === current);
+                  const next = matches[Math.min(matches.length - 1, Math.max(0, at + (event.key === 'ArrowDown' ? 1 : -1)))];
+                  if (next) setSelected(next.kind);
+                }
               }}
               style={{ flex: 1 }}
             />
@@ -291,7 +377,40 @@ function CreateNodeDialog({ state, onClose }: { state: AddNodeHereState; onClose
               {current && history.favorites.includes(current) ? '★' : '☆'}
             </Button>
           </div>
-          <span style={muted}>Matches:</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={muted}>Matches:</span>
+            <span style={{ flex: 1 }} />
+            <Button
+              type="button"
+              variant="ghost"
+              data-testid="canvas-create-node-filters"
+              aria-haspopup="menu"
+              aria-expanded={filtersOpen}
+              onClick={() => setFiltersOpen(!filtersOpen)}
+            >
+              Filters
+            </Button>
+          </div>
+          {filtersOpen ? (
+            <div role="menu" data-testid="canvas-create-node-filter-menu" style={{ display: 'flex', gap: 12 }}>
+              {(
+                [
+                  ['builtIn', 'Show Built-in'],
+                  ['custom', 'Show Custom'],
+                ] as const
+              ).map(([key, label]) => (
+                <label key={key} role="menuitemcheckbox" aria-checked={filters[key]} style={{ display: 'flex', gap: 4 }}>
+                  <input
+                    type="checkbox"
+                    data-testid={`canvas-create-node-filter-${key}`}
+                    checked={filters[key]}
+                    onChange={() => setFilters({ ...filters, [key]: !filters[key] })}
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          ) : null}
           <div role="listbox" data-testid="canvas-create-node-matches" style={{ flex: 1, overflow: 'auto' }}>
             {matches.map((kind) => (
               <Row
@@ -307,6 +426,11 @@ function CreateNodeDialog({ state, onClose }: { state: AddNodeHereState; onClose
             ))}
           </div>
           <span style={muted}>Description:</span>
+          {failure ? (
+            <span data-testid="canvas-create-node-failure" style={muted}>
+              {failure}
+            </span>
+          ) : null}
           <div data-testid="canvas-create-node-description" style={{ minHeight: 36 }}>
             {chosen ? (
               <>
@@ -326,52 +450,22 @@ function CreateNodeDialog({ state, onClose }: { state: AddNodeHereState; onClose
 
 function InstantiateSceneDialog({ state, onClose }: { state: AddNodeHereState; onClose: () => void }): ReactNode {
   const [search, setSearch] = useState('');
-  const [scenes, setScenes] = useState<readonly ProjectComponentEntry[] | null>(null);
-  const [failure, setFailure] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
-  useEffect(() => {
-    let live = true;
-    void listProjectComponents().then((listing) => {
-      if (!live) return;
-      if (!listing.ok) {
-        setFailure(listing.reason);
-        setScenes([]);
-        return;
-      }
-      setScenes(
-        listing.entries.filter(
-          (entry) => entry.surface === 'canvas' && entry.exported && entry.contentKind !== 'image',
-        ),
-      );
-    });
-    return () => {
-      live = false;
-    };
-  }, []);
+  const { components: scenes, failure: listFailure } = useCanvasComponents(true);
+  const [placeFailure, setFailure] = useState<string | null>(null);
+  const failure = placeFailure ?? listFailure;
   const keyOf = (entry: ProjectComponentEntry) => `${entry.path}#${entry.name}`;
   const matches = (scenes ?? []).filter((entry) =>
     `${entry.name} ${entry.path}`.toLowerCase().includes(search.trim().toLowerCase()),
   );
   const current = matches.find((entry) => keyOf(entry) === selected) ?? matches[0] ?? null;
   const instantiate = (entry: ProjectComponentEntry | null): void => {
-    const drop = state.adapter.assetDrop;
-    if (!entry || !drop) return;
-    const context = {
-      position: [state.at.x, state.at.y, 0] as const,
-      item: {
-        kind: 'component' as const,
-        name: entry.name,
-        sourcePath: entry.path,
-        exportKind: entry.defaultExport ? ('default' as const) : ('named' as const),
-        surface: entry.surface,
-      },
-    };
-    const target = state.parentId ?? '';
-    if (!drop.accepts(target, entry.path, context)) {
-      setFailure(`${entry.name} cannot be placed here.`);
+    if (!entry) return;
+    const refused = placeComponent(state, entry);
+    if (refused) {
+      setFailure(refused);
       return;
     }
-    void dropAuthoringAsset(state.adapter, target, entry.path, context);
     onClose();
   };
   return (

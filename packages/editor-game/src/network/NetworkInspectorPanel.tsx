@@ -1065,21 +1065,60 @@ function PayloadNode({ value, onChange, depth }: { value: Json; onChange: (next:
   return <PayloadLeaf value={value} onChange={onChange} />;
 }
 
+type LeafType = 'string' | 'number' | 'boolean' | 'null';
+
+/** A leaf keeps its type, as Monitor's editor does, until its type picker changes it. */
 function PayloadLeaf({ value, onChange }: { value: Json; onChange: (next: Json) => void }) {
-  const shown = typeof value === 'string' ? value : JSON.stringify(value);
+  const type: LeafType =
+    value === null ? 'null' : typeof value === 'number' ? 'number' : typeof value === 'boolean' ? 'boolean' : 'string';
+  const shown = type === 'string' ? String(value) : JSON.stringify(value);
   const [text, setText] = useState(shown);
   useEffect(() => setText(shown), [shown]);
+  const as = (to: LeafType, raw: string): Json => {
+    if (to === 'null') return null;
+    if (to === 'boolean') return raw.trim() === 'true';
+    if (to === 'number') {
+      const n = Number(raw);
+      return Number.isFinite(n) ? n : 0;
+    }
+    return raw;
+  };
   return (
-    <TextInput
-      data-testid="net-payload-leaf"
-      value={text}
-      onChange={(event) => setText(event.target.value)}
-      onBlur={() => onChange(readLiteral(text))}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter') onChange(readLiteral(text));
-      }}
-      style={{ width: 120 }}
-    />
+    <span style={{ display: 'inline-flex', gap: 4 }}>
+      {type === 'boolean' ? (
+        <input
+          type="checkbox"
+          data-testid="net-payload-leaf-boolean"
+          checked={value === true}
+          onChange={(event) => onChange(event.currentTarget.checked)}
+        />
+      ) : type === 'null' ? (
+        <span style={{ color: themeVars.content.muted }}>null</span>
+      ) : (
+        <TextInput
+          data-testid="net-payload-leaf"
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+          onBlur={() => onChange(as(type, text))}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') onChange(as(type, text));
+          }}
+          style={{ width: 120 }}
+        />
+      )}
+      <select
+        data-testid="net-payload-leaf-type"
+        aria-label="Value type"
+        value={type}
+        onChange={(event) => onChange(as(event.currentTarget.value as LeafType, text))}
+      >
+        {(['string', 'number', 'boolean', 'null'] as const).map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </span>
   );
 }
 
