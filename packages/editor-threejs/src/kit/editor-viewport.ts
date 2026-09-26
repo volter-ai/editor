@@ -1877,7 +1877,9 @@ export class EditorViewport {
    */
   setGizmoCamera(camera: THREE.Camera | null): void {
     const target = camera ?? this.freeCamera;
-    for (const controls of this._allGizmos()) if (controls.camera !== target) controls.camera = target;
+    if (this.transformControls.camera === target) return;
+    for (const controls of this._allGizmos()) controls.camera = target;
+    this._applyGizmoSize();
   }
 
   /**
@@ -5051,7 +5053,9 @@ export class EditorViewport {
     const size =
       perThreeUnit === null
         ? 1
-        : this.freeCamera instanceof THREE.OrthographicCamera
+        : // By the camera the gizmos draw with (`setGizmoCamera`), whose projection decides
+          // TransformControls' own sizing.
+          (this.transformControls.camera as THREE.OrthographicCamera).isOrthographicCamera
           ? (4 * perThreeUnit) / height
           : perThreeUnit / (0.2375 * height);
     for (const controls of this._allGizmos()) controls.size = size;
