@@ -1,10 +1,20 @@
 import {
   faBorderAll,
+  faCheck,
   faExpand,
   faMagnifyingGlassMinus,
   faMagnifyingGlassPlus,
 } from '@fortawesome/free-solid-svg-icons';
-import { Button, EditorIcon, FloatingToolbar, IconButton, Tooltip } from '@volter/editor-sdk/widgets';
+import {
+  AnchoredMenu,
+  Button,
+  EditorIcon,
+  FloatingToolbar,
+  IconButton,
+  MenuItem,
+  MenuSeparator,
+  Tooltip,
+} from '@volter/editor-sdk/widgets';
 import type { AuthoringAdapter, DOMRectLike } from '@volter/editor-project/adapter';
 import {
   type PointerEvent as ReactPointerEvent,
@@ -20,6 +30,7 @@ import {
   addCanvasSceneGuide,
   canvasSceneGuideRevision,
   canvasSceneGuides,
+  clearCanvasSceneGuides,
   moveCanvasSceneGuide,
   removeCanvasSceneGuide,
   subscribeCanvasSceneGuides,
@@ -28,11 +39,14 @@ import type { RootViewController } from '@volter/editor-sdk/kit/world-pan-state'
 import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
 import {
   bindViewPresentation,
+  setViewDrafting,
   setViewGridVisible,
+  viewDrafting,
   subscribeViewportPresentation,
   viewGridVisible,
   viewportPresentationVersion,
 } from '@volter/editor-sdk/kit/viewport-presentation';
+import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { ToolStrip } from '@volter/editor-sdk/kit/components/Toolbar';
 import { TransientHintOverlay } from '@volter/editor-sdk/kit/components/TransientHint';
 
@@ -109,6 +123,8 @@ export function CanvasSceneBackdrop({ view, documentId }: { view: RootViewContro
   useEffect(() => bindViewPresentation(documentId, 'canvas'), [documentId]);
   useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
   const showGrid = viewGridVisible(documentId);
+  const drafting = viewDrafting(documentId);
+  const resolution = getCurrentProject()?.config.resolution;
   const pose = useSyncExternalStore(view.subscribe, view.get, view.get);
   useSyncExternalStore(
     useCallback((listener) => subscribeCanvasSceneGuides(view, listener), [view]),
@@ -143,40 +159,63 @@ export function CanvasSceneBackdrop({ view, documentId }: { view: RootViewContro
           }}
         />
       )}
-      <div
-        data-testid="canvas-scene-origin-y"
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          top: pose.y,
-          height: 1,
-          background: 'rgba(238, 91, 91, .8)',
-        }}
-      />
-      <div
-        data-testid="canvas-scene-origin-x"
-        style={{
-          position: 'absolute',
-          top: 0,
-          bottom: 0,
-          left: pose.x,
-          width: 1,
-          background: 'rgba(87, 199, 126, .8)',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          left: pose.x + 6,
-          top: pose.y + 6,
-          color: 'rgba(255,255,255,.68)',
-          font: '10px ui-monospace, SFMono-Regular, Menlo, monospace',
-        }}
-      >
-        0, 0
-      </div>
-      {guides.map((guide) => (
+      {drafting.viewport && resolution && resolution.width > 0 && resolution.height > 0 && (
+        // The game's viewport: the manifest's resolution from the origin, as Godot draws its
+        // project window size (View › Show Viewport).
+        <div
+          data-testid="canvas-scene-viewport-rect"
+          style={{
+            position: 'absolute',
+            left: pose.x,
+            top: pose.y,
+            width: resolution.width * pose.zoom,
+            height: resolution.height * pose.zoom,
+            boxSizing: 'border-box',
+            borderStyle: 'solid',
+            borderWidth: 1,
+            borderColor: 'rgba(160, 120, 255, .75)',
+          }}
+        />
+      )}
+      {drafting.origin && (
+        <>
+          <div
+            data-testid="canvas-scene-origin-y"
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              top: pose.y,
+              height: 1,
+              background: 'rgba(238, 91, 91, .8)',
+            }}
+          />
+          <div
+            data-testid="canvas-scene-origin-x"
+            style={{
+              position: 'absolute',
+              top: 0,
+              bottom: 0,
+              left: pose.x,
+              width: 1,
+              background: 'rgba(87, 199, 126, .8)',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              left: pose.x + 6,
+              top: pose.y + 6,
+              color: 'rgba(255,255,255,.68)',
+              font: '10px ui-monospace, SFMono-Regular, Menlo, monospace',
+            }}
+          >
+            0, 0
+          </div>
+        </>
+      )}
+      {drafting.guides &&
+        guides.map((guide) => (
         <div
           key={guide.id}
           data-testid={`canvas-scene-guide-${guide.axis}`}
@@ -228,8 +267,8 @@ export function CanvasSceneBackdrop({ view, documentId }: { view: RootViewContro
                 }),
           }}
         />
-      ))}
-      <CanvasSceneRulers view={view} />
+        ))}
+      {drafting.rulers && <CanvasSceneRulers view={view} />}
     </div>
   );
 }
@@ -474,6 +513,18 @@ export function CanvasSceneControls({
     frameBounds(container, view, unionRects(rectsFor(store.selectedEntityIds)));
   }, [containerRef, rectsFor, store, view]);
 
+  const centerSelection = useCallback(() => {
+    const container = containerRef.current;
+    const bounds = unionRects(rectsFor(store.selectedEntityIds));
+    if (!container || !bounds) return;
+    const now = view.get();
+    view.setView(
+      container.clientWidth / 2 - (bounds.x + bounds.width / 2) * now.zoom,
+      container.clientHeight / 2 - (bounds.y + bounds.height / 2) * now.zoom,
+      now.zoom,
+    );
+  }, [containerRef, rectsFor, store, view]);
+
   const frameScene = useCallback(() => {
     const container = containerRef.current;
     if (!container || !adapter) return;
@@ -527,6 +578,13 @@ export function CanvasSceneControls({
         <Button aria-label="Frame all" variant="ghost" size="comfortable" onClick={frameScene}>
           Frame all
         </Button>
+        <CanvasSceneViewMenu
+          documentId={documentId}
+          view={view}
+          hasSelection={store.selectedEntityIds.size > 0}
+          onCenterSelection={centerSelection}
+          onFrameSelection={frameSelection}
+        />
       </FloatingToolbar>
       <FloatingToolbar
         label="2D scene navigation"
@@ -568,6 +626,89 @@ export function CanvasSceneControls({
           <EditorIcon icon={faMagnifyingGlassPlus} size="md" />
         </IconButton>
       </FloatingToolbar>
+    </>
+  );
+}
+
+/**
+ * THE 2D VIEW MENU — Godot's 2D View menu, the home of what the view draws and where it looks:
+ * the grid, rulers, guides, origin and the game's viewport rectangle (each the view's own switch,
+ * `overlays` in its presentation), then Center Selection, Frame Selection and Clear Guides.
+ */
+function CanvasSceneViewMenu({
+  documentId,
+  view,
+  hasSelection,
+  onCenterSelection,
+  onFrameSelection,
+}: {
+  documentId: string;
+  view: RootViewController;
+  hasSelection: boolean;
+  onCenterSelection: () => void;
+  onFrameSelection: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
+  useSyncExternalStore(
+    useCallback((listener) => subscribeCanvasSceneGuides(view, listener), [view]),
+    useCallback(() => canvasSceneGuideRevision(view), [view]),
+  );
+  const drafting = viewDrafting(documentId);
+  const switches: readonly { label: string; on: boolean; toggle: () => void }[] = [
+    { label: 'Grid', on: viewGridVisible(documentId), toggle: () => setViewGridVisible(documentId, !viewGridVisible(documentId)) },
+    { label: 'Rulers', on: drafting.rulers, toggle: () => setViewDrafting(documentId, { rulers: !drafting.rulers }) },
+    { label: 'Guides', on: drafting.guides, toggle: () => setViewDrafting(documentId, { guides: !drafting.guides }) },
+    { label: 'Origin', on: drafting.origin, toggle: () => setViewDrafting(documentId, { origin: !drafting.origin }) },
+    { label: 'Viewport', on: drafting.viewport, toggle: () => setViewDrafting(documentId, { viewport: !drafting.viewport }) },
+  ];
+  const act = (run: () => void) => () => {
+    run();
+    setOpen(false);
+  };
+  return (
+    <>
+      <Button
+        ref={triggerRef}
+        aria-label="View"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        variant="ghost"
+        size="comfortable"
+        onClick={() => setOpen(!open)}
+      >
+        View
+      </Button>
+      {open && (
+        <AnchoredMenu anchorRef={triggerRef} align="end" clamp aria-label="2D view" onDismiss={() => setOpen(false)}>
+          {switches.map((entry) => (
+            <MenuItem
+              key={entry.label}
+              role="menuitemcheckbox"
+              aria-checked={entry.on}
+              // Godot's menu closes on a checked item too (`hide_on_checkable_item_selection`).
+              onSelect={act(entry.toggle)}
+            >
+              <span className="vgai-menu-check">{entry.on && <EditorIcon icon={faCheck} size="xs" />}</span>
+              {`Show ${entry.label}`}
+            </MenuItem>
+          ))}
+          <MenuSeparator />
+          <MenuItem disabled={!hasSelection} onSelect={act(onCenterSelection)}>
+            <span className="vgai-menu-check" />
+            Center Selection
+          </MenuItem>
+          <MenuItem disabled={!hasSelection} onSelect={act(onFrameSelection)}>
+            <span className="vgai-menu-check" />
+            Frame Selection
+          </MenuItem>
+          <MenuItem disabled={canvasSceneGuides(view).length === 0} onSelect={act(() => clearCanvasSceneGuides(view))}>
+            <span className="vgai-menu-check" />
+            Clear Guides
+          </MenuItem>
+        </AnchoredMenu>
+      )}
     </>
   );
 }

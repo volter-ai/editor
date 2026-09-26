@@ -159,6 +159,16 @@ export interface ViewportOverlays {
    *  floor, a Show toggle; the others show none). It lies at the content's lowest point, as
    *  Unreal's asset editors place theirs at the bottom of the mesh's bounds. */
   readonly floor: { readonly visible: boolean; readonly color: PresentationColor };
+  /** A 2D view's drafting marks, each a switch in Godot's 2D View menu (Show Rulers, Show Guides,
+   *  Show Origin, Show Viewport; all on by default there): the rulers along the view's edges, the
+   *  guides dragged from them, the origin's axis lines, and the game's viewport rectangle (the
+   *  manifest's `resolution` from the origin). */
+  readonly drafting: {
+    readonly rulers: boolean;
+    readonly guides: boolean;
+    readonly origin: boolean;
+    readonly viewport: boolean;
+  };
 }
 
 /** How the stage's tools behave (function, ARCHITECTURE.md rule 7): the tool its shelf opens
@@ -297,6 +307,7 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
     axes: 'floor',
     navigation: 'interactive',
     floor: { visible: false, color: '#2b3038' },
+    drafting: { rulers: true, guides: true, origin: true, viewport: true },
   },
   interaction: {
     bootTool: 'transform',
@@ -361,6 +372,15 @@ export function studioPresets(): readonly StudioPreset[] {
  */
 export function viewGridVisible(viewId: string): boolean {
   return viewPresentation(viewId).overlays.grid.visible;
+}
+
+/** A 2D view's drafting marks (`overlays.drafting`), read and switched like its grid. */
+export function viewDrafting(viewId: string): ViewportOverlays['drafting'] {
+  return viewPresentation(viewId).overlays.drafting;
+}
+
+export function setViewDrafting(viewId: string, choice: Partial<ViewportOverlays['drafting']>): void {
+  setViewPresentation(viewId, { overlays: { drafting: choice } });
 }
 
 export function setViewGridVisible(viewId: string, visible: boolean): void {

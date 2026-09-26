@@ -74,3 +74,11 @@ export function removeCanvasSceneGuide(view: RootViewController, id: string): vo
   state.guides = next;
   publish(state);
 }
+
+/** Remove every guide of this view (Godot's View › Clear Guides). */
+export function clearCanvasSceneGuides(view: RootViewController): void {
+  const state = stateFor(view);
+  if (state.guides.length === 0) return;
+  state.guides = [];
+  publish(state);
+}
