@@ -214,12 +214,6 @@ Remaining:
    and Clear NavMesh removes it. Contributed application-menu items (`workspace.menu`) are palette
    entries too ("Debug: Bake NavMesh"), because under the Code-OSS frame the editor draws no
    menubar of its own; the workbench's native menubar does not carry them yet.
-7. **Source mode's `.wasm?url` imports.** With `VOLTER_EDITOR_FROM_SOURCE=1`, editor-game's
-   asset-budget contributions (`asset-budget*.ts`) fail to load: they reach
-   `draco3d/draco_{en,de}coder.wasm?import&url`, which the session answers as the raw file
-   (`application/wasm`, Express) instead of Vite's URL module, so the page refuses it as a module
-   script (measured by importing each module of the graph in the page). Packaged sessions are
-   clean. Closes when a `?url` import of a `.wasm` answers `export default "<url>"` in source mode.
 6. **Input gating.** A game's own input listeners take the realm gate (measured on `arena`, then
    on its engine input manager: during Play with a Model document active, a held W no longer
    reached `gameInput`; with the Game tab focused it did; its own store is not re-measured), and the document door refuses synthetic key, type, paste and drag while the
@@ -228,6 +222,12 @@ Remaining:
    keeps a person's keystrokes aimed at another document out of a running game, and a call to the
    game's own `debug.input` is an agent's explicit act on that game, the same as `game.command`,
    which also runs whatever is focused.
+7. **Source mode's `.wasm?url` imports.** With `VOLTER_EDITOR_FROM_SOURCE=1`, editor-game's
+   asset-budget contributions (`asset-budget*.ts`) fail to load: they reach
+   `draco3d/draco_{en,de}coder.wasm?import&url`, which the session answers as the raw file
+   (`application/wasm`, Express) instead of Vite's URL module, so the page refuses it as a module
+   script (measured by importing each module of the graph in the page). Packaged sessions are
+   clean. Closes when a `?url` import of a `.wasm` answers `export default "<url>"` in source mode.
 
 ## Music: pieces as DAWproject components
 
