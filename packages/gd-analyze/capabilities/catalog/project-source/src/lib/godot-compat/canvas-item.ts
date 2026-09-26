@@ -21,22 +21,36 @@ import type { Object3D } from 'three';
 import { type Color, construct as color } from './color';
 import { godot_node_entity, is_inside_tree } from './node';
 import { construct as transform2d, op_multiply, type Transform2D } from './transform-2d';
+import type { Vector2 } from './vector2';
+
+/** What the class that places and draws a canvas item gives it. */
+export interface CanvasItemClass {
+  /** `get_transform()`. */
+  readonly transform: (entity: Object3D) => Transform2D;
+  /** The transform the item draws with (`canvas_item_set_transform`); `transform` by default. */
+  readonly drawTransform?: (entity: Object3D) => Transform2D;
+  /** The size of the item's box (a Control's size); none by default. */
+  readonly size?: (entity: Object3D) => Vector2;
+  /** `NOTIFICATION_VISIBILITY_CHANGED` and the `visibility_changed` signal's listeners. */
+  readonly visibilityChanged?: (entity: Object3D) => void;
+  /** `NOTIFICATION_DRAW`: the item's own drawing, into its element. */
+  readonly draw?: (entity: Object3D, element: HTMLElement) => void;
+}
 
 interface CanvasItemState {
   /** The item's Godot class and its native ancestors, nearest first. */
   readonly classes: readonly string[];
-  readonly transform: (entity: Object3D) => Transform2D;
+  readonly class: CanvasItemClass;
   visible: boolean;
   topLevel: boolean;
   modulate: Color;
   selfModulate: Color;
   zIndex: number;
   zRelative: boolean;
-  /** The class's `NOTIFICATION_VISIBILITY_CHANGED` and the `visibility_changed` signal's listeners. */
-  readonly visibilityChanged: ((entity: Object3D) => void) | undefined;
 }
 
 interface CanvasLayerLink {
+  readonly layer: (entity: Object3D) => number;
   readonly visible: (entity: Object3D) => boolean;
   readonly finalTransform: (entity: Object3D) => Transform2D;
 }
@@ -59,22 +73,16 @@ function stateOf(self: object, member: string): CanvasItemState {
 }
 
 /**
- * Makes `entity` a canvas item of `classes` (nearest first), placed by `transform` (the class's
- * `get_transform()`), with CanvasItem's defaults (`scene/main/canvas_item.h:96-121`).
+ * Makes `entity` a canvas item of `classes` (nearest first), placed and drawn as its class says,
+ * with CanvasItem's defaults (`scene/main/canvas_item.h:96-121`).
  *
  * @godot CanvasItem (protocol)
  * @source scene/main/canvas_item.cpp:1901
  */
-export function godot_canvas_item_mount(
-  entity: Object3D,
-  classes: readonly string[],
-  transform: (entity: Object3D) => Transform2D,
-  visibilityChanged?: (entity: Object3D) => void,
-): void {
+export function godot_canvas_item_mount(entity: Object3D, classes: readonly string[], itemClass: CanvasItemClass): void {
   ITEMS.set(entity, {
     classes: Object.freeze([...classes]),
-    transform,
-    visibilityChanged,
+    class: itemClass,
     visible: true,
     topLevel: false,
     modulate: color(1, 1, 1, 1),
@@ -119,16 +127,21 @@ export function godot_canvas_item_parent(entity: Object3D): Object3D | null {
 }
 
 /**
- * The canvas layer an item draws in: the nearest canvas-layer ancestor above its chain of canvas
- * items, or null for the viewport's own canvas (`CanvasItem::_enter_canvas`, `canvas_item.cpp:258`).
+ * The canvas layer an item draws in: its top parent item's, which is the nearest canvas layer above
+ * it before a viewport, or null for the viewport's own canvas (`CanvasItem::_enter_canvas`,
+ * `canvas_item.cpp:258`).
  *
  * @godot CanvasItem (protocol)
  * @source scene/main/canvas_item.cpp:258
  */
 export function godot_canvas_item_layer_of(entity: Object3D): Object3D | null {
-  let node: Object3D | null = entity;
-  while (node !== null && ITEMS.has(node)) node = node.parent;
-  return node !== null && LAYERS.has(node) ? node : null;
+  let item = entity;
+  for (let parent = godot_canvas_item_parent(item); parent !== null; parent = godot_canvas_item_parent(item)) item = parent;
+  for (let node: Object3D | null = item; node !== null; node = node.parent) {
+    if (LAYERS.has(node)) return node;
+    if ((node as { readonly isScene?: boolean }).isScene === true) return null;
+  }
+  return null;
 }
 
 /**
@@ -152,7 +165,7 @@ function parentVisibleInTree(entity: Object3D): boolean {
  * item that is itself visible handles the change in turn (`_propagate_visibility_changed`).
  */
 function handleVisibilityChange(entity: Object3D): void {
-  ITEMS.get(entity)?.visibilityChanged?.(entity);
+  ITEMS.get(entity)?.class.visibilityChanged?.(entity);
   for (const child of [...entity.children]) godot_canvas_item_propagate_visibility(child);
 }
 
@@ -182,7 +195,7 @@ export function set_visible(self: object, p_visible: boolean): void {
   state.visible = p_visible;
   const entity = entityOf(self);
   if (!parentVisibleInTree(entity)) {
-    state.visibilityChanged?.(entity);
+    state.class.visibilityChanged?.(entity);
     return;
   }
   handleVisibilityChange(entity);
@@ -314,7 +327,7 @@ export function is_set_as_top_level(self: object): boolean {
  * @source scene/main/canvas_item.cpp:1527
  */
 export function get_transform(self: object): Transform2D {
-  return stateOf(self, 'get_transform').transform(entityOf(self));
+  return stateOf(self, 'get_transform').class.transform(entityOf(self));
 }
 
 /**
@@ -327,7 +340,7 @@ export function get_transform(self: object): Transform2D {
 export function get_global_transform(self: object): Transform2D {
   const entity = entityOf(self);
   const state = stateOf(self, 'get_global_transform');
-  const own = state.transform(entity);
+  const own = state.class.transform(entity);
   const parent = godot_canvas_item_parent(entity);
   return parent === null ? own : op_multiply(get_global_transform(parent), own);
 }
@@ -347,4 +360,166 @@ export function get_global_transform_with_canvas(self: object): Transform2D {
   if (layer !== null) return op_multiply((LAYERS.get(layer) as CanvasLayerLink).finalTransform(layer), global);
   if (is_inside_tree(entity)) return op_multiply(transform2d(), global);
   return global;
+}
+
+// --- Drawing onto the page.
+
+const ELEMENTS = new WeakMap<Object3D, HTMLElement>();
+const CANVASES = new WeakMap<HTMLElement, HTMLElement>();
+const FILTERS = new WeakMap<HTMLElement, Map<string, string>>();
+let filterSerial = 0;
+
+/** CSS `matrix(a, b, c, d, e, f)` of a Transform2D: its columns and origin. */
+function matrix(transform: Transform2D): string {
+  return `matrix(${String(transform.x.x)}, ${String(transform.x.y)}, ${String(transform.y.x)}, ${String(transform.y.y)}, ${String(transform.origin.x)}, ${String(transform.origin.y)})`;
+}
+
+/**
+ * The CSS filter multiplying a drawing by `modulate` (an SVG `feColorMatrix` scaling each channel,
+ * in sRGB as the Compatibility renderer's 2D shader multiplies, `canvas.glsl`), or none for white.
+ */
+function colorFilter(root: HTMLElement, modulate: Color): string {
+  if (modulate.r === 1 && modulate.g === 1 && modulate.b === 1 && modulate.a === 1) return '';
+  let filters = FILTERS.get(root);
+  if (filters === undefined) {
+    filters = new Map();
+    FILTERS.set(root, filters);
+  }
+  const values = `${String(modulate.r)} 0 0 0 0 0 ${String(modulate.g)} 0 0 0 0 0 ${String(modulate.b)} 0 0 0 0 0 ${String(modulate.a)} 0`;
+  let id = filters.get(values);
+  if (id === undefined) {
+    const document = root.ownerDocument;
+    const namespace = 'http://www.w3.org/2000/svg';
+    let defs = root.querySelector(':scope > svg[data-godot-filters] > defs');
+    if (defs === null) {
+      const svg = document.createElementNS(namespace, 'svg');
+      svg.setAttribute('data-godot-filters', '');
+      svg.setAttribute('width', '0');
+      svg.setAttribute('height', '0');
+      svg.setAttribute('style', 'position:absolute');
+      defs = document.createElementNS(namespace, 'defs');
+      svg.appendChild(defs);
+      root.appendChild(svg);
+    }
+    id = `godot-modulate-${String((filterSerial += 1))}`;
+    const filter = document.createElementNS(namespace, 'filter');
+    filter.setAttribute('id', id);
+    filter.setAttribute('color-interpolation-filters', 'sRGB');
+    const colorMatrix = document.createElementNS(namespace, 'feColorMatrix');
+    colorMatrix.setAttribute('type', 'matrix');
+    colorMatrix.setAttribute('values', values);
+    filter.appendChild(colorMatrix);
+    defs.appendChild(filter);
+    filters.set(values, id);
+  }
+  return `url(#${id})`;
+}
+
+function elementOf(entity: Object3D, document: Document): HTMLElement {
+  let element = ELEMENTS.get(entity);
+  if (element === undefined) {
+    element = document.createElement('div');
+    element.dataset.godot = entity.name;
+    ELEMENTS.set(entity, element);
+  }
+  return element;
+}
+
+/** The viewport's own canvas (layer 0) inside `root`. */
+function viewportCanvas(root: HTMLElement): HTMLElement {
+  let canvas = CANVASES.get(root);
+  if (canvas === undefined) {
+    canvas = root.ownerDocument.createElement('div');
+    canvas.dataset.godot = '';
+    canvas.style.position = 'absolute';
+    canvas.style.left = '0px';
+    canvas.style.top = '0px';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.zIndex = '0';
+    canvas.style.pointerEvents = 'none';
+    CANVASES.set(root, canvas);
+  }
+  return canvas;
+}
+
+/**
+ * The filter a class applies to its own drawing only (`self_modulate`, `canvas_item_set_self_modulate`).
+ *
+ * @godot CanvasItem (protocol)
+ * @source scene/main/canvas_item.cpp:655
+ */
+export function godot_canvas_item_self_filter(entity: Object3D, element: HTMLElement): string {
+  const root = element.closest('[data-godot-root]') as HTMLElement | null;
+  return root === null ? '' : colorFilter(root, (ITEMS.get(entity) as CanvasItemState).selfModulate);
+}
+
+/**
+ * Draws a viewport's canvas items onto the page, under `root`: the viewport's own canvas and each
+ * canvas layer as a full-size element stacked by its layer (`z-index`) with the layer's final
+ * transform, each canvas item as an element in its parent item's (or its canvas's), placed by the
+ * transform it draws with (`transform-origin` at its top-left), sized as its box, hidden when not
+ * visible (with its children, as Godot hides them), its `modulate` a filter on it and its children,
+ * its `z_index` its stacking among its siblings, and its own drawing inside. Elements of nodes no
+ * longer in the viewport are removed. The host calls it each frame it renders.
+ *
+ * @godot CanvasItem (protocol)
+ * @source servers/rendering/renderer_canvas_cull.cpp:304
+ */
+export function godot_canvas_draw(viewport: Object3D, root: HTMLElement): void {
+  const document = root.ownerDocument;
+  root.dataset.godotRoot = '';
+  const touched = new Set<HTMLElement>();
+  const own = viewportCanvas(root);
+  own.style.transform = '';
+  root.appendChild(own);
+  touched.add(own);
+  const visit = (node: Object3D, container: HTMLElement, canvas: HTMLElement): void => {
+    for (const child of node.children) {
+      if ((child as { readonly isScene?: boolean }).isScene === true) continue;
+      const layer = LAYERS.get(child);
+      if (layer !== undefined) {
+        const element = elementOf(child, document);
+        element.style.position = 'absolute';
+        element.style.left = '0px';
+        element.style.top = '0px';
+        element.style.width = '100%';
+        element.style.height = '100%';
+        element.style.pointerEvents = 'none';
+        element.style.zIndex = String(layer.layer(child));
+        element.style.transformOrigin = '0px 0px';
+        element.style.transform = matrix(layer.finalTransform(child));
+        element.style.display = layer.visible(child) ? '' : 'none';
+        root.appendChild(element);
+        touched.add(element);
+        visit(child, element, element);
+        continue;
+      }
+      const state = ITEMS.get(child);
+      if (state === undefined) {
+        visit(child, canvas, canvas);
+        continue;
+      }
+      const element = elementOf(child, document);
+      const size = state.class.size?.(child);
+      element.style.position = 'absolute';
+      element.style.left = '0px';
+      element.style.top = '0px';
+      element.style.width = `${String(size?.x ?? 0)}px`;
+      element.style.height = `${String(size?.y ?? 0)}px`;
+      element.style.transformOrigin = '0px 0px';
+      element.style.transform = matrix((state.class.drawTransform ?? state.class.transform)(child));
+      element.style.display = state.visible ? '' : 'none';
+      element.style.zIndex = String(state.zIndex);
+      element.style.filter = colorFilter(root, state.modulate);
+      (state.topLevel ? canvas : container).appendChild(element);
+      touched.add(element);
+      state.class.draw?.(child, element);
+      visit(child, element, canvas);
+    }
+  };
+  visit(viewport, own, own);
+  for (const element of [...root.querySelectorAll<HTMLElement>('[data-godot]')]) {
+    if (!touched.has(element) && element.parentElement !== null && !element.hasAttribute('data-godot-content')) element.remove();
+  }
 }

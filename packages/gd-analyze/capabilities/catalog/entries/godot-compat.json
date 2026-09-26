@@ -49,6 +49,7 @@
     "src/lib/godot-compat/physics-server-3d.ts",
     "src/lib/godot-compat/physics-test-motion-parameters-3d.ts",
     "src/lib/godot-compat/physics-test-motion-result-3d.ts",
+    "src/lib/godot-compat/placeholder-texture-2d.ts",
     "src/lib/godot-compat/plane-mesh.ts",
     "src/lib/godot-compat/plane.ts",
     "src/lib/godot-compat/primitive-mesh.ts",
@@ -69,6 +70,8 @@
     "src/lib/godot-compat/static-body-3d.ts",
     "src/lib/godot-compat/string.ts",
     "src/lib/godot-compat/sub-viewport.ts",
+    "src/lib/godot-compat/texture-2d.ts",
+    "src/lib/godot-compat/texture-rect.ts",
     "src/lib/godot-compat/transform-2d.ts",
     "src/lib/godot-compat/transform-3d.ts",
     "src/lib/godot-compat/vector2.ts",
@@ -95,5 +98,5 @@
   "requires": [],
   "skills": [],
   "title": "Godot compat (backends for a ported game)",
-  "version": "0.849.0"
+  "version": "0.850.0"
 }

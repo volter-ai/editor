@@ -78,10 +78,14 @@ export interface ControlVirtuals {
   readonly desiredSize?: (entity: Object3D) => Vector2;
   /** A container's children sort (`NOTIFICATION_SORT_CHILDREN`); a Control with one is a Container. */
   readonly sort?: (entity: Object3D) => void;
+  /** The class's own `NOTIFICATION_RESIZED`, after Container's. */
+  readonly resized?: (entity: Object3D) => void;
   /** The class's own `NOTIFICATION_THEME_CHANGED`, after Control's and Container's. */
   readonly themeChanged?: (entity: Object3D) => void;
   /** The default theme's constants for the class (`scene/theme/default_theme.cpp`). */
   readonly themeConstants?: Readonly<Record<string, number>>;
+  /** `NOTIFICATION_DRAW`: the class's own drawing into its element. */
+  readonly draw?: (entity: Object3D, element: HTMLElement) => void;
 }
 
 interface ControlState {
@@ -131,7 +135,13 @@ function stateOf(self: object, member = 'Control'): ControlState {
  */
 export function godot_control_mount(entity: Object3D, classes: readonly string[], virtuals: ControlVirtuals = {}): void {
   godot_node_adopt(entity, { kind: 'node', classes });
-  godot_canvas_item_mount(entity, classes, godot_control_transform, visibilityChanged);
+  godot_canvas_item_mount(entity, classes, {
+    transform: godot_control_transform,
+    drawTransform,
+    size: (node) => (CONTROLS.get(node) as ControlState).sizeCache,
+    visibilityChanged,
+    draw: virtuals.draw,
+  });
   CONTROLS.set(entity, {
     anchor: [0, 0, 0, 0],
     offset: [0, 0, 0, 0],
@@ -395,7 +405,9 @@ function sizeChanged(entity: Object3D): void {
   for (const child of [...entity.children]) {
     if (CONTROLS.has(child) && godot_canvas_item_parent(child) === entity && is_inside_tree(child)) sizeChanged(child);
   }
-  if (approxSize && state.virtuals.sort !== undefined) queueSort(entity);
+  if (!approxSize) return;
+  if (state.virtuals.sort !== undefined) queueSort(entity);
+  state.virtuals.resized?.(entity);
 }
 
 /**
@@ -813,6 +825,18 @@ export function godot_control_transform(self: object): Transform2D {
   const internal = internalTransform(entity, state);
   const position = (CONTROLS.get(entity) as ControlState).posCache;
   return transform2d(internal.x, internal.y, vector2(f32(internal.origin.x + position.x), f32(internal.origin.y + position.y)));
+}
+
+/**
+ * `_update_canvas_item_transform` (`control.cpp:755`): the transform the node draws with, its origin
+ * snapped to whole pixels (`floor(origin + 0.5)`) when it is not rotated off a quarter turn, as the
+ * viewport's `snap_controls_to_pixels` (on by default, `scene/main/viewport.h:274`) asks.
+ */
+function drawTransform(entity: Object3D): Transform2D {
+  const transform = godot_control_transform(entity);
+  const state = CONTROLS.get(entity) as ControlState;
+  if (!is_inside_tree(entity) || !(Math.abs(f32(Math.sin(f32(state.rotation * 4)))) < f32(0.00001))) return transform;
+  return transform2d(transform.x, transform.y, vector2(Math.floor(f32(transform.origin.x + 0.5)), Math.floor(f32(transform.origin.y + 0.5))));
 }
 
 /**

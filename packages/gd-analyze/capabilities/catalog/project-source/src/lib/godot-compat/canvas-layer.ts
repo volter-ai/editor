@@ -46,7 +46,7 @@ function stateOf(self: object, member: string): CanvasLayerState {
 export function godot_canvas_layer_mount(entity: Object3D): void {
   const state: CanvasLayerState = { layer: 1, visible: true, offset: vector2(), rotation: 0, scale: vector2(1, 1), transform: transform2d() };
   LAYERS.set(entity, state);
-  godot_canvas_item_layer(entity, { visible: () => state.visible, finalTransform: () => state.transform });
+  godot_canvas_item_layer(entity, { layer: () => state.layer, visible: () => state.visible, finalTransform: () => state.transform });
 }
 
 /**
