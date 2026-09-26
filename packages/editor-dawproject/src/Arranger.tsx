@@ -12,6 +12,8 @@
  *   drag a marker           moves it by whole bars
  *   double-click a marker   renames it in place (Enter writes, Escape leaves it)
  *   Delete on a marker      takes it out
+ *   the Tempo row           the transport's tempo lane (`<Points target="tempo">`), edited as a
+ *                           clip's automation lane is; a piece without one gets a button adding it
  *
  * A gesture that rewrites several elements (a clip and its notes) is ONE whole-file edit and ONE
  * undo entry, built from the source's own tree (`source-notes.ts`); when any element it must
@@ -22,6 +24,8 @@ import { beatAt, beatsPerBarOf, formatAt } from '@volter/dawproject/notation';
 import type { Piece, PieceClip, PieceMarker, PieceTrack } from '@volter/dawproject/piece';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react';
+import ts from 'typescript';
+import { AutomationLane, LANE_H as TEMPO_H } from './AutomationLane';
 import type { EngineState } from './preview-engine';
 import { applySource, readSource, recordStructWrite, setProps, setRefusal, type SourceIndex, writeStruct } from './source-index';
 import { applyEdits, elementAt, indentOf, literalProp, parseSource, shiftClipEdits, SourceRefusal, type SourceElement } from './source-notes';
@@ -448,6 +452,37 @@ export function Arranger(props: {
     }, say);
   };
 
+  // THE TEMPO LANE: a `<Points target="tempo">` in the `<Transport>`, one point at bar 1 holding
+  // the transport's tempo, drawn and edited in the Tempo row from then on.
+  const addTempoLane = (): void => {
+    const transport = piece.transport;
+    const entry = transport.oid ? writes.index.get(transport.oid) : undefined;
+    if (!transport.oid || !entry || (piece.oidCounts.get(transport.oid) ?? 0) !== 1) {
+      writes.onMessage('This piece has no <Transport> of its own to hold a tempo lane.');
+      return;
+    }
+    writes.onMessage(null);
+    // The button goes once the lane exists: focus moves to the arranger first, or it would fall
+    // to the page and the workbench's Undo would no longer know which document it is in.
+    container.current?.focus({ preventScroll: true });
+    // Written into the file directly: a self-closing `<Transport />` opens to hold it.
+    rewriteFile('Add Tempo Lane', writes, (source) => {
+      const file = parseSource(source, writes.file);
+      const element = elementAt(file, entry.line, entry.col, 'Transport');
+      if (!element) throw new SourceRefusal('The source index has not caught up with the <Transport> yet; try again.');
+      const newline = source.includes('\r\n') ? '\r\n' : '\n';
+      const indent = indentOf(source, file, element);
+      const lane = `<Points target="tempo">${newline}${indent}    <Point at="1" value={${transport.tempo}} />${newline}${indent}  </Points>`;
+      if (ts.isJsxSelfClosingElement(element)) {
+        const attributes = source.slice(element.tagName.end, element.end - 2).trimEnd();
+        return `${source.slice(0, element.getStart(file))}<Transport${attributes}>${newline}${indent}  ${lane}${newline}${indent}</Transport>${source.slice(element.end)}`;
+      }
+      const close = element.closingElement.getStart(file);
+      const before = source.slice(0, close).trimEnd();
+      return `${before}${newline}${indent}  ${lane}${newline}${indent}${source.slice(close)}`;
+    }).catch(say);
+  };
+
   const selected = piece.tracks.flatMap((track) => track.clips.map((clip) => ({ clip, track }))).find(({ clip }) => clip.id === props.selectedClip) ?? null;
 
   const deleteClip = (): void => {
@@ -512,6 +547,14 @@ export function Arranger(props: {
     >
       <div style={{ width: HEADER_W, flex: 'none', position: 'sticky', left: 0, zIndex: 2, background: themeVars.surface.panel, borderRight: `1px solid ${themeVars.boundary.default}` }}>
         <div style={{ height: LOOP_H + RULER_H + MARKER_H, borderBottom: `1px solid ${themeVars.boundary.default}` }} />
+        <div style={{ height: TEMPO_H, display: 'flex', alignItems: 'center', gap: 6, padding: '0 8px', borderBottom: `1px solid ${themeVars.boundary.default}`, ...small }}>
+          Tempo
+          {piece.transport.tempoPoints ? null : (
+            <button type="button" data-control="add-tempo-lane" onClick={addTempoLane} title="Add a tempo lane holding the transport's tempo" style={{ ...button, fontSize: 10, padding: '0 6px' }}>
+              + Lane
+            </button>
+          )}
+        </div>
         {piece.tracks.map((track, index) => (
           <div
             key={track.id}
@@ -653,6 +696,24 @@ export function Arranger(props: {
               </span>
             );
           })}
+        </div>
+        <div data-tempo-row="" style={{ height: TEMPO_H, position: 'relative', borderBottom: `1px solid ${themeVars.boundary.default}` }}>
+          {piece.transport.tempoPoints ? (
+            <AutomationLane
+              lane={piece.transport.tempoPoints}
+              piece={piece}
+              index={writes.index}
+              clipTime={0}
+              clipDuration={piece.length}
+              pxPerBeat={pxPerBeat}
+              snap={1}
+              width={width}
+              color={themeVars.semantic.warning}
+              pieceFile={writes.file}
+              documentId={writes.documentId}
+              onMessage={writes.onMessage}
+            />
+          ) : null}
         </div>
         {piece.tracks.map((track, index) => (
           <div

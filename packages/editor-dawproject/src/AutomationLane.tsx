@@ -1,7 +1,8 @@
 /**
  * A CLIP'S AUTOMATION LANE under the piano roll, as Bitwig draws a note clip's expression lanes:
  * one `<Points target="cc11">` of the clip, its points joined by the ramps the performance plays
- * (`perform.ts` interpolates linearly; a `hold` point steps).
+ * (`perform.ts` interpolates linearly; a `hold` point steps). The arranger draws the transport's
+ * tempo lane with it too, over the whole piece (`clipTime` 0), its values in BPM.
  *
  *   drag a point          `at` and `value` on its `<Point>`
  *   double-click the lane a new `<Point>` in the `<Points>`, after the point before it in time
@@ -20,9 +21,9 @@ import { formatNumber, recordStructWrite, setProps, setRefusal, type SourceIndex
 export const LANE_H = 48;
 const DOT = 7;
 
-/** The range a lane's values live in: pitch bend is bipolar, a controller 0…1. */
+/** The range a lane's values live in: pitch bend is bipolar, a controller 0…1, tempo in BPM. */
 function rangeOf(target: string): readonly [number, number] {
-  return target === 'pitchbend' ? [-1, 1] : [0, 1];
+  return target === 'pitchbend' ? [-1, 1] : target === 'tempo' ? [20, 240] : [0, 1];
 }
 
 export function AutomationLane(props: {
