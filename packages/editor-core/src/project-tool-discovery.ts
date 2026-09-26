@@ -26,7 +26,24 @@
 import { connectToolFileEvents } from './asset-events';
 import { onProjectChange } from './project-manager';
 import { refreshProjectToolContributions } from './tool-loader';
-import { waitForFirstViewportFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
+import { viewportActivationInFlight, waitForFirstViewportFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
+
+/**
+ * How long the pass waits for an opening viewport to begin at all. An editor
+ * whose opening viewport is itself a contribution (the Model Editor's Blender
+ * document, and its model finder) has none that could begin before this pass
+ * loads it: waiting for its frame waited out the whole 5 s deadline on every
+ * first open (measured 2026-09-26 in browser-substrate's tab: contributions
+ * asked for 5.0 s after discovery began, Blender started after them).
+ */
+const OPENING_VIEWPORT_GRACE_MS = 750;
+
+/** Resolves when no viewport has begun activating by the grace; never otherwise. */
+function noOpeningViewport(): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(() => { if (!viewportActivationInFlight()) resolve(); }, OPENING_VIEWPORT_GRACE_MS);
+  });
+}
 
 async function refreshAfterOpeningViewport(): Promise<void> {
   // Contribution modules are executable UI, not an index. A plain startup
@@ -43,6 +60,7 @@ async function refreshAfterOpeningViewport(): Promise<void> {
     await Promise.race([
       waitForFirstViewportFrame(),
       new Promise<void>((resolve) => setTimeout(resolve, 5_000)),
+      noOpeningViewport(),
     ]);
   }
   await refreshProjectToolContributions();

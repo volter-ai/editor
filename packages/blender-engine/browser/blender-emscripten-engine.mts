@@ -41,6 +41,9 @@ import {
 } from './blender-engine.mts';
 import sessionPython from './session.py?raw';
 
+/** Blender's task scheduler threads in the browser (`--threads`). */
+const BLENDER_TASK_THREADS = 1;
+
 /** What the module factory is, in the only shape this file uses. */
 interface BlenderModule {
   FS: {
@@ -200,7 +203,14 @@ export async function startEmscriptenBlenderEngine(
     );
   };
   const module = await factory({
-    arguments: ['--background', '--factory-startup', '--python', SESSION_SCRIPT],
+    // One task thread, not one per core: in this build a thread that waits
+    // spins rather than sleeps, and one per core held all ten cores of the
+    // machine the editor ran on for as long as the session was open, the
+    // tab's own processes waiting behind them (measured 2026-09-26: 11
+    // threads at 100% each, idle; with --threads 1, the main thread alone).
+    // Parallel evaluation and renders run on the one thread until the build's
+    // wait sleeps.
+    arguments: ['--threads', String(BLENDER_TASK_THREADS), '--background', '--factory-startup', '--python', SESSION_SCRIPT],
     locateFile: (file: string) => artifactUrl(file),
     getPreloadedPackage: () => preloaded,
     instantiateWasm: (imports: WebAssembly.Imports, receive: (instance: WebAssembly.Instance, module: WebAssembly.Module) => void) => {

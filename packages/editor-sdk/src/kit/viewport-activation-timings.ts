@@ -628,6 +628,11 @@ function attachHiddenRelease(): void {
  * none), so the hidden case must resolve here or a backgrounded editor never
  * discovers the project's stories at all.
  */
+/** Whether a viewport's activation has begun and not yet presented its first frame. */
+export function viewportActivationInFlight(): boolean {
+  return activeBreakdown !== null;
+}
+
 export function waitForFirstViewportFrame(): Promise<void> {
   if (latest.size > 0) return Promise.resolve();
   if (typeof document !== 'undefined' && document.hidden) return Promise.resolve();
