@@ -9,14 +9,14 @@
 import { registerContributedCommands } from '@volter/editor-sdk/kit/command-registry';
 import { saveThumbnail } from '@volter/editor-sdk/kit/editor-api';
 import { registerHostHierarchyObjects } from '../host-hierarchy-objects';
-import { registerObject3DSurfaces } from '@volter/editor-sdk/kit/object3d-surfaces';
+import { registerContributionSurfaces } from '@volter/editor-sdk/kit/contribution-surfaces';
 import { registerRendererResourceCounts } from '@volter/editor-sdk/kit/renderer-resource-counts';
 import { interactiveViewportRendererCounts } from './three-viewport/interactive-renderer';
 import { inspectorPreviewRendererCounts } from '../viewport/preview-renderer';
 import { liveHostRendererCount } from '../viewport/renderer-ownership';
-import { lazy } from 'react';
 import type * as THREE from 'three';
 import { SHELL_VIEWPORT_AUTHORING_POLICY } from './authoring/shell-viewport-policy';
+import { Object3DAuthoringSurface, Object3DPreviewSurface } from './components/object3d-contribution-surfaces';
 import { registerThreeAssetViewers } from './components/asset-viewers/three-asset-viewers';
 import type { EditorStatePersistence } from './editor-shell-store';
 import { registerModelThumbnails } from './model-thumbnail';
@@ -45,9 +45,6 @@ const VIEW_STATE_PERSISTENCE: EditorStatePersistence = (hotData?.['viewStatePers
 };
 if (hotData) hotData['viewStatePersistence'] = VIEW_STATE_PERSISTENCE;
 
-const Preview = lazy(async () => ({ default: (await import('./components/ToolObject3DPreview')).ToolObject3DPreview }));
-const Authoring = lazy(async () => ({ default: (await import('./components/StageHost')).ToolObject3DAuthoring }));
-
 const NO_OBJECTS: ReadonlyMap<string, THREE.Object3D> = new Map();
 
 let installed: (() => void) | null = null;
@@ -56,7 +53,10 @@ let installed: (() => void) | null = null;
 export function ensureThreeIntegration(): () => void {
   if (installed) return installed;
   const stops = [
-    registerObject3DSurfaces({ Preview, Authoring }),
+    registerContributionSurfaces({
+      Object3DPreview: Object3DPreviewSurface,
+      Object3DAuthoring: Object3DAuthoringSurface,
+    }),
     registerContributedCommands('three-viewport', viewportCommands),
     registerThreeAssetViewers(),
     registerThreeInspectionMedia(),

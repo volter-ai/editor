@@ -1,54 +1,7 @@
-import type {
-  ToolAssetDocumentProps,
-  ToolContributionSurfaces,
-  ToolObject3DAuthoringProps,
-  ToolObject3DPreviewProps,
-} from '@volter/editor-sdk/contributions';
-import { Suspense, useEffect, useSyncExternalStore } from 'react';
-import { announceDocumentStage } from '@volter/editor-sdk/kit/document-viewports';
+import type { ToolAssetDocumentProps, ToolContributionSurfaces } from '@volter/editor-sdk/contributions';
+import { type ComponentType, useCallback, useSyncExternalStore } from 'react';
 import { AssetEditorSubject } from '@volter/editor-sdk/kit/components/AssetEditorShell';
-import { object3DSurfaces, subscribeObject3DSurfaces } from '@volter/editor-sdk/kit/object3d-surfaces';
-
-/** The Three integration's surfaces, once it has registered them (`kit/object3d-surfaces`). */
-function useObject3DSurfaces() {
-  return useSyncExternalStore(subscribeObject3DSurfaces, object3DSurfaces, object3DSurfaces);
-}
-
-/**
- * Lightweight contribution boundary: the kit renders the Three integration's
- * registered surface and imports no viewport, so ToolHost pulls no WebGL,
- * postprocessing or Model Asset modules into Node tools and tests.
- */
-export function ToolObject3DPreviewSurface(props: ToolObject3DPreviewProps) {
-  const surfaces = useObject3DSurfaces();
-  const fallback = <div style={{ minHeight: 240 }}>Loading 3D preview…</div>;
-  if (!surfaces) return fallback;
-  return (
-    <Suspense fallback={fallback}>
-      <surfaces.Preview {...props} />
-    </Suspense>
-  );
-}
-
-export function ToolObject3DAuthoringSurface(props: ToolObject3DAuthoringProps) {
-  // A CONTRIBUTED DOCUMENT'S STAGE ANNOUNCES ITSELF HERE, in the host's own
-  // surface, the moment the contribution renders it — long before the lazy
-  // implementation resolves and registers a session. This is what lets the
-  // `tool` and `document` addresses declare a readiness without the host
-  // knowing which contributions mount a stage: three Builder documents in the
-  // capability catalog do (`builder-document.tsx:66`) and nine other
-  // `workspace.document` contributions do not, and which is which belongs to
-  // the PROJECT, never to a list here.
-  useEffect(() => announceDocumentStage(props.documentId), [props.documentId]);
-  const surfaces = useObject3DSurfaces();
-  const fallback = <div style={{ minHeight: 240 }}>Loading 3D authoring surface…</div>;
-  if (!surfaces) return fallback;
-  return (
-    <Suspense fallback={fallback}>
-      <surfaces.Authoring {...props} />
-    </Suspense>
-  );
-}
+import { contributionSurface, subscribeContributionSurfaces } from '@volter/editor-sdk/kit/contribution-surfaces';
 
 /**
  * Registers the ordinary Asset Lab subject for a project-owned document. The
@@ -59,9 +12,38 @@ export function ToolAssetDocumentSurface(props: ToolAssetDocumentProps) {
   return <AssetEditorSubject {...props} />;
 }
 
-/** Stable dependency-injection value shared by every contribution mount. */
-export const toolContributionSurfaces: ToolContributionSurfaces = Object.freeze({
-  AssetDocument: ToolAssetDocumentSurface,
-  Object3DPreview: ToolObject3DPreviewSurface,
-  Object3DAuthoring: ToolObject3DAuthoringSurface,
-});
+const forwarders = new Map<string, ComponentType<object>>();
+
+/**
+ * Lightweight contribution boundary: the kit renders the surface a medium's integration
+ * registered under `name` (`kit/contribution-surfaces`) and imports no viewport, so ToolHost
+ * pulls no WebGL or model modules into Node tools and tests.
+ */
+function forwarder(name: string): ComponentType<object> {
+  const existing = forwarders.get(name);
+  if (existing) return existing;
+  function ContributionSurface(props: object) {
+    const read = useCallback(() => contributionSurface(name), []);
+    const Surface = useSyncExternalStore(subscribeContributionSurfaces, read, read) as ComponentType<object> | null;
+    if (!Surface) return <div style={{ minHeight: 240 }}>Loading {name}…</div>;
+    return <Surface {...props} />;
+  }
+  ContributionSurface.displayName = `ContributionSurface(${name})`;
+  forwarders.set(name, ContributionSurface);
+  return ContributionSurface;
+}
+
+/** Stable dependency-injection value shared by every contribution mount: the kit's own surfaces,
+ *  and a forwarder for each name a medium's integration adds. */
+export const toolContributionSurfaces: ToolContributionSurfaces = new Proxy(
+  Object.freeze({ AssetDocument: ToolAssetDocumentSurface }) as ToolContributionSurfaces,
+  {
+    get(target, name, receiver) {
+      // A surface is a component, named like one; `then`, `toJSON` and the rest stay absent.
+      if (typeof name !== 'string' || Reflect.has(target, name) || !/^[A-Z]/.test(name)) {
+        return Reflect.get(target, name, receiver);
+      }
+      return forwarder(name);
+    },
+  },
+);

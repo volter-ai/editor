@@ -57,7 +57,7 @@
  */
 
 import type { BlenderOutlinerRow } from '@volter/blender-engine/browser/rna';
-import type { ToolObject3DDocumentAuthoringFactory } from '@volter/editor-sdk/contributions';
+import type { ToolObject3DDocumentAuthoringFactory } from '@volter/editor-threejs/object3d-contributions';
 import { editorHost } from '@volter/editor-sdk/host';
 import type {
   AuthoringAdapter,

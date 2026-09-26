@@ -1,7 +1,4 @@
-import type {
-  ToolObject3DPreviewContext,
-  ToolObject3DPreviewExtension,
-} from '@volter/editor-sdk/contributions';
+import type { ToolObject3DPreviewContext, ToolObject3DPreviewExtension } from '../../../object3d-contributions';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';

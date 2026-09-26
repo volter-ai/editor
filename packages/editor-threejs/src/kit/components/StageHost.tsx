@@ -1,11 +1,6 @@
 import { optionalThreeStateOf, threeStateOf } from '../three-state';
 import { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import type {
-  ToolObject3DAuthoringProps,
-  ToolObject3DDocumentAuthoring,
-  ToolObject3DPreviewSource,
-  ToolViewportDressing,
-} from '@volter/editor-sdk/contributions';
+import type { ToolObject3DAuthoringProps, ToolObject3DDocumentAuthoring, ToolObject3DPreviewSource, ToolViewportDressing } from '../../object3d-contributions';
 import { invalidateStages, stageGeneration } from '@volter/editor-sdk/kit/stage-invalidation';
 import type { StageTransportSnapshot } from '@volter/editor-sdk/host';
 import { EditorIcon, editorIcons, IconButton, themeVars } from '@volter/editor-sdk/widgets';
@@ -39,7 +34,7 @@ import {
 import {
   registerObject3DDocumentSession,
 } from '../authoring/object3d-document-session-registry';
-import { Object3DGestureController } from '@volter/editor-sdk/kit/authoring/object3d-gesture-controller';
+import { Object3DGestureController } from '../authoring/object3d-gesture-controller';
 import { SourceObject3DAuthoringAdapter } from '../authoring/source-object3d-authoring-adapter';
 import { registerDesignTimeSurface } from '@volter/editor-sdk/kit/coverage/design-time-surfaces';
 import { DocumentRendererSession } from '@volter/editor-sdk/kit/document-renderer-session';

@@ -18,7 +18,7 @@
  * comment below for the measurement, and do not route a new control to
  * `viewport.*` without checking which side of that line it falls on.
  */
-import type { ToolCameraView, ToolViewportStatistic } from '@volter/editor-sdk/contributions';
+import type { ToolCameraView, ToolViewportStatistic } from '../../object3d-contributions';
 import {
   EditorIcon,
   editorIcons,

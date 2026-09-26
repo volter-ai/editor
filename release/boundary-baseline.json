@@ -13,7 +13,6 @@
  "kit-internal  packages/model-editor/vite.config.ts -> @volter/editor-core/build/product-contributions",
  "kit-internal  packages/model-editor/vite.config.ts -> @volter/editor-core/build/shared-react",
  "kit-internal  packages/model-editor/vite.config.ts -> @volter/editor-core/build/shared-three",
- "kit-media  packages/editor-sdk/src/contributions.ts -> three",
  "runtime-editor  packages/threejs-runtime/src/adapter/first-party-navigation-system.ts -> @volter/editor-project/adapter/system-adapter",
  "runtime-editor  packages/threejs-runtime/src/adapter/object3d-authoring-subject.ts -> @volter/editor-project/adapter/authoring",
  "runtime-editor  packages/threejs-runtime/src/adapter/rapier-physics-adapter.ts -> @volter/editor-project/adapter/system-adapter",

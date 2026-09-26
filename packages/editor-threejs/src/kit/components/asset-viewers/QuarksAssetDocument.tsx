@@ -1,4 +1,4 @@
-import type { ToolObject3DDocumentAuthoringFactory } from '@volter/editor-sdk/contributions';
+import type { ToolObject3DDocumentAuthoringFactory } from '../../../object3d-contributions';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import type {
   AuthoringAdapter,

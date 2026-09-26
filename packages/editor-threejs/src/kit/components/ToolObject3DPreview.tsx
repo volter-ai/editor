@@ -1,4 +1,4 @@
-import type { ToolObject3DPreviewProps } from '@volter/editor-sdk/contributions';
+import type { ToolObject3DPreviewProps } from '../../object3d-contributions';
 import { Object3DPreview } from './asset-viewers/Object3DPreview';
 
 /**

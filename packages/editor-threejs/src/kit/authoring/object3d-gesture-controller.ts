@@ -1,4 +1,4 @@
-import type { ToolObject3DGesture, ToolObject3DPointerEvent } from '@volter/editor-sdk/contributions';
+import type { ToolObject3DGesture, ToolObject3DPointerEvent } from '../../object3d-contributions';
 
 export interface Object3DGestureControllerOptions {
   readonly begin: (event: ToolObject3DPointerEvent) => ToolObject3DGesture | null;

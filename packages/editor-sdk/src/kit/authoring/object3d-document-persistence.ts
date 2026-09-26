@@ -4,10 +4,6 @@
  * ordering, checksum preflight, compensation, and canonical undo/redo.
  */
 
-import type {
-  ToolObject3DDocumentPersistence,
-  ToolObject3DDocumentState,
-} from '@volter/editor-sdk/contributions';
 import type { HistoryService } from '@volter/editor-sdk/kit/history/history-service';
 import {
   getProjectFileHistory,
@@ -18,16 +14,36 @@ import {
 import { getProjectResourceHistoryBackend } from '../history/project-root-history-backends';
 import { runWritePipe, type WriteAck, type WriteResolution } from '@volter/editor-sdk/kit/write-pipe';
 
-export interface OpenObject3DDocumentPersistenceOptions {
-  readonly binding: ToolObject3DDocumentPersistence;
-  readonly document: ToolObject3DDocumentState;
+/** One project-owned artifact participating in an Asset Lab commit. The document is whatever the
+ *  medium hands its serializers (Three's is `ToolObject3DDocumentState`). */
+export interface DocumentPersistenceResource<TDocument> {
+  /** Project-root-relative destination. */
+  readonly path: string;
+  /** MIME type recorded in canonical history. */
+  readonly contentType?: string;
+  /** `null` removes the file in the same atomic transaction. */
+  readonly serialize: (
+    document: TDocument,
+  ) => string | Uint8Array | null | Promise<string | Uint8Array | null>;
+}
+
+export interface DocumentPersistenceBinding<TDocument> {
+  /** Default undo/redo label. A completed gesture may supply a narrower one. */
+  readonly label?: string;
+  /** Non-empty, path-unique set of files owned by this document. */
+  readonly resources: readonly DocumentPersistenceResource<TDocument>[];
+}
+
+export interface OpenObject3DDocumentPersistenceOptions<TDocument = unknown> {
+  readonly binding: DocumentPersistenceBinding<TDocument>;
+  readonly document: TDocument;
   readonly history: HistoryService;
   readonly backend?: HistoryFileBackend;
 }
 
-async function serializeObject3DDocument(
-  binding: ToolObject3DDocumentPersistence,
-  document: ToolObject3DDocumentState,
+async function serializeObject3DDocument<TDocument>(
+  binding: DocumentPersistenceBinding<TDocument>,
+  document: TDocument,
 ): Promise<ProjectFileMutation[]> {
   if (binding.resources.length === 0) {
     throw new Error('An Object3D document persistence binding must own at least one resource.');
@@ -43,16 +59,16 @@ async function serializeObject3DDocument(
   return changes;
 }
 
-export interface Object3DDocumentPersistenceSession {
+export interface Object3DDocumentPersistenceSession<TDocument = unknown> {
   /** Commit through the one persistence pipe, and answer for THIS commit.
    *  `persisted: false` means the serializers produced the bytes already on
    *  disk and nothing moved — a real outcome, not a failure (a failure throws). */
-  commit(document: ToolObject3DDocumentState, label?: string): Promise<WriteAck>;
+  commit(document: TDocument, label?: string): Promise<WriteAck>;
 }
 
 /** Where an Asset Lab document's bytes go — the binding's own resource paths,
  *  which is the finest-grained honest answer this lane has. */
-function destinationOf(binding: ToolObject3DDocumentPersistence): string {
+function destinationOf<TDocument>(binding: DocumentPersistenceBinding<TDocument>): string {
   return binding.resources.map((resource) => resource.path).join(' + ');
 }
 
@@ -61,9 +77,9 @@ function destinationOf(binding: ToolObject3DDocumentPersistence): string {
  * document. Every later commit is checked against that mount-time baseline,
  * so a stale HMR module can never overwrite a newer sidecar on disk.
  */
-export async function openObject3DDocumentPersistence(
-  options: OpenObject3DDocumentPersistenceOptions,
-): Promise<Object3DDocumentPersistenceSession> {
+export async function openObject3DDocumentPersistence<TDocument>(
+  options: OpenObject3DDocumentPersistenceOptions<TDocument>,
+): Promise<Object3DDocumentPersistenceSession<TDocument>> {
   const { binding, document, history } = options;
   const files = getProjectFileHistory(
     history,

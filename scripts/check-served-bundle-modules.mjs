@@ -12,6 +12,7 @@ const packageOf = (specifier) =>
   specifier.startsWith('@') ? specifier.split('/').slice(0, 2).join('/') : specifier.split('/')[0];
 
 const imported = new Set();
+const typeOnly = new Set();
 const walk = (dir) => {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (entry.name === 'node_modules') continue;
@@ -20,11 +21,13 @@ const walk = (dir) => {
     else if (/\.(tsx?|mts|jsx?)$/.test(entry.name)) {
       // Statements only: the word "from" before a quote in prose or a message is not an import.
       const source = readFileSync(path, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
-      const statements = /^\s*(?:import|export)\b[^'"`;]*?\bfrom\s*["']([^"']+)["']|^\s*import\s*["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']/gm;
+      // A type-only statement is erased before a bundle runs: it asks the table for nothing, but
+      // a package a project names that way may still be imported for a value (`typeOnly`).
+      const statements = /^\s*(?:import|export)\b(\s+type\b)?[^'"`;]*?\bfrom\s*["']([^"']+)["']|^\s*import\s*["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']/gm;
       for (const match of source.matchAll(statements)) {
-        const specifier = match[1] ?? match[2] ?? match[3];
+        const specifier = match[2] ?? match[3] ?? match[4];
         if (/^(\.|\/|node:|virtual:)/.test(specifier) || !/^[@a-z][\w@.-]+/.test(specifier)) continue;
-        imported.add(packageOf(specifier));
+        (match[1] ? typeOnly : imported).add(packageOf(specifier));
       }
     }
   }
@@ -60,7 +63,7 @@ const NOT_SERVED = new Set([
 
 const missing = [...imported].filter((name) => !loaded.has(name) && !RUNTIME_PACKAGES.has(name) && !NOT_SERVED.has(name));
 const unused = [...loaded].filter(
-  (name) => !imported.has(name) && !name.startsWith('@volter/editor-sdk') && name !== '@editor/game-module-access',
+  (name) => !imported.has(name) && !typeOnly.has(name) && !name.startsWith('@volter/editor-sdk') && name !== '@editor/game-module-access',
 );
 if (missing.length || unused.length) {
   if (missing.length) console.error(`served-bundle table lacks what projects import: ${missing.sort().join(', ')}`);

@@ -172,7 +172,6 @@
     "./kit/authoring/consumer-actions": "./src/kit/authoring/consumer-actions.ts",
     "./kit/authoring/no-authoring-adapter": "./src/kit/authoring/no-authoring-adapter.ts",
     "./kit/authoring/object3d-document-persistence": "./src/kit/authoring/object3d-document-persistence.ts",
-    "./kit/authoring/object3d-gesture-controller": "./src/kit/authoring/object3d-gesture-controller.ts",
     "./kit/authoring/selection-scope": "./src/kit/authoring/selection-scope.ts",
     "./kit/authoring/world-session-state": "./src/kit/authoring/world-session-state.ts",
     "./kit/bitmap-label": "./src/kit/bitmap-label.ts",
@@ -239,7 +238,7 @@
     "./kit/workspace-host-commands": "./src/kit/workspace-host-commands.ts",
     "./kit/workspace-static-panels": "./src/kit/workspace-static-panels.ts",
     "./kit/workspace-status-registry": "./src/kit/workspace-status-registry.ts",
-    "./kit/object3d-surfaces": "./src/kit/object3d-surfaces.ts",
+    "./kit/contribution-surfaces": "./src/kit/contribution-surfaces.ts",
     "./kit/viewport-editor-controls": "./src/kit/viewport-editor-controls.ts",
     "./kit/renderer-resource-counts": "./src/kit/renderer-resource-counts.ts",
     "./kit/authoring/viewport-tool-owner": "./src/kit/authoring/viewport-tool-owner.ts",
@@ -471,7 +470,6 @@
     "@fortawesome/react-fontawesome": "^3.2.0",
     "@storybook/react": "10.6.0",
     "storybook": "10.6.0",
-    "@types/three": "^0.180.0",
     "mediabunny": "1.56.2",
     "postcss": "8.5.28",
     "rrweb": "2.1.6",
@@ -483,8 +481,7 @@
   },
   "peerDependencies": {
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "three": "^0.180.0"
+    "react-dom": "^19.0.0"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json"

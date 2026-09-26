@@ -727,13 +727,18 @@ function rewritePackageJson(
   pkg.dependencies = pkg.dependencies ?? {};
   for (const runtime of RUNTIME_PACKAGES)
     pkg.dependencies[runtime.name] = engineDependencySpec(monoRoot, runtime.name);
-  // `@volter/editor-live`, `@volter/game-live` and `@volter/editor-sdk`:
-  // devDependencies the template declares at a range. Rewritten to this
-  // distribution's own version like every runtime package: both live clients
-  // depend on `@volter/editor-sdk`, and capability source
+  // `@volter/editor-live`, `@volter/game-live`, `@volter/editor-sdk` and
+  // `@volter/editor-threejs`: devDependencies the template declares at a range.
+  // Rewritten to this distribution's own version like every runtime package:
+  // both live clients depend on `@volter/editor-sdk`, and capability source
   // (`src/tools/*.tool.ts`, editor contributions) imports `@volter/editor-sdk`
-  // directly, so they are declared together.
-  for (const name of ['@volter/editor-live', '@volter/game-live', '@volter/editor-sdk'] as const) {
+  // and Three's contribution types directly, so they are declared together.
+  for (const name of [
+    '@volter/editor-live',
+    '@volter/game-live',
+    '@volter/editor-sdk',
+    '@volter/editor-threejs',
+  ] as const) {
     if (pkg.devDependencies?.[name] !== undefined) {
       pkg.devDependencies[name] = engineDependencySpec(monoRoot, name);
     }

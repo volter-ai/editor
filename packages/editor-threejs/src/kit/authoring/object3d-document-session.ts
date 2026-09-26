@@ -28,7 +28,7 @@ import {
 import { styleEditorSkeletonHelper } from '../three-viewport/skeleton-helper';
 import { isEditorViewportShadingTarget } from '../viewport-shading-boundary';
 import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
-import type { ToolCameraView, ToolCameraViewSource } from '@volter/editor-sdk/contributions';
+import type { ToolCameraView, ToolCameraViewSource } from '../../object3d-contributions';
 
 export type Object3DDocumentViewMode = ViewportShadingMode | 'uv' | 'vertex-colors';
 
