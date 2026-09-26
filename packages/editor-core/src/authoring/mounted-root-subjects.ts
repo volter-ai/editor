@@ -23,6 +23,7 @@ import {
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { getAuthoringOverride } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
+import { emptyProjectAuthoring } from './empty-project-authoring';
 
 /** One mounted root, as this module needs to see it. Structural on purpose: the
  *  composite hands these over, and a test can build one by hand. */
@@ -126,7 +127,8 @@ export function mountedRootSubjects(): readonly MountedRootSubject[] {
     if (!documentSubject) return subjects;
     return [documentSubject, ...subjects.filter((subject) => subject.worldId !== documentRootId)];
   }
-  if (isBoundaryDisclosure(active)) return documentSubject ? [documentSubject] : [];
+  // A project that declares no roots wears a placeholder that says so; nothing is mounted.
+  if (isBoundaryDisclosure(active) || active === emptyProjectAuthoring()) return documentSubject ? [documentSubject] : [];
   // A bare (non-composite) active adapter still HAS a surface — a live ingest
   // session states its render substrate outright, and `IngestKind` and
   // `AdapterSurface` are the same three words by construction. Leaving this

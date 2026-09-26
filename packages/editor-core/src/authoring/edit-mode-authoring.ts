@@ -24,7 +24,6 @@ import { declaredRoots } from '@volter/editor-project/adapter/manifest-interpret
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { assertEditorServerAnswered } from '@volter/editor-sdk/kit/editor-server-response';
 import { sourceMutationAttribution } from '@volter/editor-sdk/kit/editor-session-attribution';
-import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { hierarchyProjectionFromProjectConfig } from '@volter/editor-sdk/kit/hierarchy-projection';
 import { getProjectFileHistory, type ProjectFileHistory } from '@volter/editor-sdk/kit/history/project-file-history';
 import { getManifestHistoryBackend } from '@volter/editor-sdk/kit/history/project-root-history-backends';
@@ -42,6 +41,7 @@ import {
 import { beginAuthoringBootstrap } from './bootstrap-state';
 import { makeNoAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/no-authoring-adapter';
 import { BoundaryAuthoringAdapter, type BoundaryRootInfo } from './boundary-authoring-adapter';
+import { emptyProjectAuthoring, setEmptyProjectAuthoring } from './empty-project-authoring';
 import {
   CompositeAuthoringAdapter,
   type CompositeChild,
@@ -462,8 +462,6 @@ export class ManifestAuthoring implements RootManifestProvider {
 }
 
 let _manifestAuthoring: ManifestAuthoring | null = null;
-/** The message a project with no roots shows, while it is installed. */
-let _emptyProjectAuthoring: AuthoringAdapter | null = null;
 
 /**
  * Build the composite over every declared world and install it as the active
@@ -564,12 +562,13 @@ export function installEditModeAuthoring(
   } else if (!hasAuthoringOverride()) {
     // A project that declares no roots has nothing to author yet, and the panels say
     // what would change that rather than the generic floor's "no authoring adapter".
-    _emptyProjectAuthoring = makeNoAuthoringAdapter(
+    const placeholder = makeNoAuthoringAdapter(
       store,
       'No world yet',
       'Declare a root in vgai.project.json',
     );
-    setActiveAuthoring(_emptyProjectAuthoring);
+    setEmptyProjectAuthoring(placeholder);
+    setActiveAuthoring(placeholder);
     store.notifyIngestEdit();
   }
 
@@ -584,10 +583,11 @@ export function exitEditModeAuthoring(installed?: CompositeAuthoringAdapter): vo
   if (installed && getAuthoringOverride() === installed) {
     setActiveAuthoring(null);
   }
-  if (_emptyProjectAuthoring && getAuthoringOverride() === _emptyProjectAuthoring) {
+  const placeholder = emptyProjectAuthoring();
+  if (placeholder && getAuthoringOverride() === placeholder) {
     setActiveAuthoring(null);
   }
-  _emptyProjectAuthoring = null;
+  setEmptyProjectAuthoring(null);
   _manifestAuthoring?.dispose();
   _manifestAuthoring = null;
 }
