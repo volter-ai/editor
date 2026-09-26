@@ -70,7 +70,7 @@
         "observedOutputSha256": "f76601ccc1216775e71ad5ee6d87f2092dd7a33b00e69f299b1639919577190b"
       },
       "target": {
-        "implementationSha256": "f402e3b18abe86283c333c58742c973bc132c82d3bccbd1c7a1b863e358afefc",
+        "implementationSha256": "bc1508646cca4f3d7899c0973a7af4be4649d8cf27a3167765200ce362da32ea",
         "callsite": "lib/godot-compat/static-body-3d.ts get_physics_material_override",
         "observedOutputSha256": "f76601ccc1216775e71ad5ee6d87f2092dd7a33b00e69f299b1639919577190b"
       },
@@ -109,7 +109,7 @@
         "observedOutputSha256": "1dfb293864379c0393bb9b39c0869c49f3049c465baffcbd0b5b8c226cda61cf"
       },
       "target": {
-        "implementationSha256": "f402e3b18abe86283c333c58742c973bc132c82d3bccbd1c7a1b863e358afefc",
+        "implementationSha256": "bc1508646cca4f3d7899c0973a7af4be4649d8cf27a3167765200ce362da32ea",
         "callsite": "lib/godot-compat/static-body-3d.ts set_physics_material_override",
         "observedOutputSha256": "ed5392d657b865b3a231770b789e0764b865366574c9b19653c7d01c8635fe0e"
       },
@@ -136,7 +136,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "07a2cc61eaf938967a6045ef33414c28f477f5b62a4a3f82b839556556be421e",
-      "implementationSha256": "f402e3b18abe86283c333c58742c973bc132c82d3bccbd1c7a1b863e358afefc"
+      "implementationSha256": "bc1508646cca4f3d7899c0973a7af4be4649d8cf27a3167765200ce362da32ea"
     },
     {
       "claimId": "godot-4.7-binding-StaticBody3D.set_physics_material_override",
@@ -144,7 +144,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "6eaa44cd0eb6c0945fe6b6a819fe650824923c40cc90796c9141c99b939be74a",
-      "implementationSha256": "f402e3b18abe86283c333c58742c973bc132c82d3bccbd1c7a1b863e358afefc"
+      "implementationSha256": "bc1508646cca4f3d7899c0973a7af4be4649d8cf27a3167765200ce362da32ea"
     }
   ]
 }

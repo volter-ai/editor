@@ -77,6 +77,10 @@ interface ObjectState {
   /** The body's `physics_material_override`, or none (friction 1, bounce 0). */
   material: PhysicsMaterial | null;
   readonly exceptions: Set<object>;
+  /** The server body's locked axes, `PhysicsServer3D::BodyAxis` bits (`GodotBody3D::locked_axis`). */
+  lockedAxis: number;
+  /** `input_ray_pickable` (`CollisionObject3D::ray_pickable`). */
+  rayPickable: boolean;
 }
 
 const OBJECT = new Map<object, ObjectState>();
@@ -112,6 +116,8 @@ export function godot_collision_object_adopt(entity: object, kind: CollisionObje
     nodeTransform: undefined,
     material: null,
     exceptions: new Set(),
+    lockedAxis: 0,
+    rayPickable: true,
   });
 }
 
@@ -589,6 +595,28 @@ export function godot_collision_object_synced(entity: object, transform: Transfo
 }
 
 /**
+ * Locks or unlocks a body axis on the server (`GodotBody3D::set_axis_lock`,
+ * `godot_body_3d.cpp:465`): the `BodyAxis` bit set or cleared.
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source modules/godot_physics_3d/godot_body_3d.cpp:465
+ */
+export function godot_collision_object_set_axis_lock(entity: object, axis: number, lock: boolean): void {
+  const state = stateOf(entity, 'set_axis_lock');
+  state.lockedAxis = lock ? state.lockedAxis | axis : state.lockedAxis & ~axis;
+}
+
+/**
+ * The server body's locked axes (`GodotBody3D::locked_axis`, `godot_body_3d.h:71`).
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source modules/godot_physics_3d/godot_body_3d.h:71
+ */
+export function godot_collision_object_locked_axes(entity: object): number {
+  return OBJECT.get(godot_node_entity(entity))?.lockedAxis ?? 0;
+}
+
+/**
  * Puts an area in the space's moved list (`set_monitor_callback`, `godot_area_3d.cpp:103`).
  *
  * @godot CollisionObject3D (protocol)
@@ -702,4 +730,20 @@ export function get_rid(self: object): object {
  */
 export function godot_collision_object_object(rid: object): object {
   return godot_node_object(rid);
+}
+
+/**
+ * @godot CollisionObject3D.set_ray_pickable
+ * @source scene/3d/physics/collision_object_3d.cpp:457
+ */
+export function set_ray_pickable(self: object, ray_pickable: boolean): void {
+  stateOf(self, 'set_ray_pickable').rayPickable = ray_pickable;
+}
+
+/**
+ * @godot CollisionObject3D.is_ray_pickable
+ * @source scene/3d/physics/collision_object_3d.cpp:462
+ */
+export function is_ray_pickable(self: object): boolean {
+  return stateOf(self, 'is_ray_pickable').rayPickable;
 }

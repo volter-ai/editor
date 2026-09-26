@@ -9,7 +9,8 @@
  * space's default damping plus its own, then accelerated by the space's default gravity times its
  * gravity scale, in single precision, and handed to Rapier (whose own gravity and damping are off
  * for it); Rapier's step solves the contacts and moves the body, and the velocity and transform
- * are read back. A custom integrator skips the integration. At the next `flush_queries` the body's
+ * are read back. A custom integrator skips the integration. A locked axis (`axis_lock_*`) has its
+ * velocity zeroed before the solve, and Rapier holds it fixed through it. At the next `flush_queries` the body's
  * state callback (`_body_state_changed`, `rigid_body_3d.cpp:170`) runs the node's
  * `_integrate_forces` with its `PhysicsDirectBodyState3D`, then syncs the node's transform and
  * velocities; contacts are reported from Rapier's contact manifolds when `max_contacts_reported`
@@ -30,6 +31,7 @@ import {
   godot_collision_object_material,
   godot_collision_object_object,
   godot_collision_object_of_collider,
+  godot_collision_object_locked_axes,
   godot_collision_object_state,
   godot_collision_object_moved,
   godot_collision_object_synced,
@@ -124,11 +126,22 @@ function integrateForces(world: World, delta: number): void {
       state.server.linear_velocity = op_add(op_multiply(state.server.linear_velocity, damp), op_multiply(op_multiply(force, inv_mass), step));
       state.server.angular_velocity = op_multiply(state.server.angular_velocity, angular_damp_new);
     }
+    // `integrate_velocities` zeroes the velocity along each locked axis (`godot_body_3d.cpp:685`);
+    // Rapier's step holds those axes fixed.
+    const locked = godot_collision_object_locked_axes(entity);
+    if (locked !== 0) {
+      const lv = state.server.linear_velocity;
+      const av = state.server.angular_velocity;
+      state.server.linear_velocity = vector3(locked & 1 ? 0 : lv.x, locked & 2 ? 0 : lv.y, locked & 4 ? 0 : lv.z);
+      state.server.angular_velocity = vector3(locked & 8 ? 0 : av.x, locked & 16 ? 0 : av.y, locked & 32 ? 0 : av.z);
+    }
     // Rapier integrates the velocity Godot's integration gave it, with its own gravity and damping off.
     body.setGravityScale(0, false);
     body.setLinearDamping(0);
     body.setAngularDamping(0);
-    body.lockRotations(state.lock_rotation, false);
+    body.setEnabledTranslations((locked & 1) === 0, (locked & 2) === 0, (locked & 4) === 0, false);
+    if (state.lock_rotation) body.lockRotations(true, false);
+    else body.setEnabledRotations((locked & 8) === 0, (locked & 16) === 0, (locked & 32) === 0, false);
     const colliders = object.colliders.map((entry) => entry.collider).filter((collider): collider is Collider => collider !== undefined);
     const volume = colliders.reduce((sum, collider) => sum + collider.volume(), 0);
     if (volume > 0) for (const collider of colliders) collider.setDensity(state.mass / volume);

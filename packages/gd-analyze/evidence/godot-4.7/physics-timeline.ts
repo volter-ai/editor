@@ -85,6 +85,10 @@ export type Op =
   | { readonly unexcept: string; readonly with: string }
   | { readonly rigid: string; readonly set: 'mass' | 'gravity_scale' | 'linear_velocity' | 'angular_velocity' | 'custom_integrator' | 'max_contacts_reported' | 'lock_rotation' | 'linear_damp' | 'contact_monitor'; readonly value: number | boolean | Triple }
   | { readonly impulse: string; readonly value: Triple }
+  /** `CollisionObject3D.input_ray_pickable`. */
+  | { readonly pickable: string; readonly on: boolean }
+  /** `PhysicsBody3D.set_axis_lock(axis, on)` (a `BodyAxis` bit). */
+  | { readonly axisLock: string; readonly axis: number; readonly on: boolean }
   /** A PhysicsMaterial as the body's `physics_material_override` (a static or rigid body). */
   | { readonly material: string; readonly friction: number; readonly bounce: number }
   /** A script whose `_integrate_forces` drives the body at `speed` along x and logs its direct state. */
@@ -111,6 +115,8 @@ export type Read =
   | readonly ['charGet', string, string]
   | readonly ['rigidState', string]
   | readonly ['rigidGet', string, string]
+  | readonly ['axisLock', string, number]
+  | readonly ['pickable', string]
   /** The friction and bounce of the body's material override, or -1 without one. */
   | readonly ['material', string]
   | readonly ['layer', string]
@@ -216,6 +222,10 @@ function gdRead(read: Read): string[] {
       return [`log.append([${v(read[1])}.position, ${v(read[1])}.linear_velocity, ${v(read[1])}.get_contact_count()])`];
     case 'rigidGet':
       return [`log.append(${v(read[1])}.${read[2]}())`];
+    case 'pickable':
+      return [`log.append(${v(read[1])}.is_ray_pickable())`];
+    case 'axisLock':
+      return [`log.append(${v(read[1])}.get_axis_lock(${String(read[2])}))`];
     case 'material':
       return [`log.append([${v(read[1])}.get_physics_material_override().get_friction(), ${v(read[1])}.get_physics_material_override().get_bounce()] if ${v(read[1])}.get_physics_material_override() != null else -1)`];
     case 'layer':
@@ -320,6 +330,8 @@ function gdOp(op: Op): string[] {
     return [`var ${m} := PhysicsMaterial.new()`, `${m}.friction = ${gd(op.friction)}`, `${m}.bounce = ${gd(op.bounce)}`, `${v(op.material)}.physics_material_override = ${m}`];
   }
   if ('impulse' in op) return [`${v(op.impulse)}.apply_central_impulse(${gv(op.value)})`];
+  if ('pickable' in op) return [`${v(op.pickable)}.input_ray_pickable = ${String(op.on)}`];
+  if ('axisLock' in op) return [`${v(op.axisLock)}.set_axis_lock(${String(op.axis)}, ${String(op.on)})`];
   if ('patrol' in op) {
     const source = [
       'extends RigidBody3D',
@@ -482,6 +494,12 @@ function target(segments: readonly Segment[]): () => unknown {
         case 'rigidGet':
           log.push((RB as unknown as Record<string, (c: object) => unknown>)[r[2]]?.(node(r[1])));
           return;
+        case 'pickable':
+          log.push(CO.is_ray_pickable(node(r[1])));
+          return;
+        case 'axisLock':
+          log.push(PB.get_axis_lock(node(r[1]), r[2]));
+          return;
         case 'material': {
           const b = node(r[1]);
           const m = CO.godot_collision_object_state(b)?.kind === 'rigid' ? RB.get_physics_material_override(b) : STATIC.get_physics_material_override(b);
@@ -615,6 +633,8 @@ function target(segments: readonly Segment[]): () => unknown {
         ]);
       }
       else if ('except' in op) PB.add_collision_exception_with(node(op.except), node(op.with));
+      else if ('axisLock' in op) PB.set_axis_lock(node(op.axisLock), op.axis, op.on);
+      else if ('pickable' in op) CO.set_ray_pickable(node(op.pickable), op.on);
       else if ('rigid' in op) {
         const b = node(op.rigid);
         const value = op.value;

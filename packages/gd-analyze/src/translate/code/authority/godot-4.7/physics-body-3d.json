@@ -45,6 +45,48 @@
         },
         "evidenceClaimId": "godot-4.7-binding-PhysicsBody3D.remove_collision_exception_with"
       }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsBody3D",
+        "member": "get_axis_lock",
+        "kind": "native-member",
+        "signature": "hash:2264617709"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-body-3d",
+        "exportName": "get_axis_lock",
+        "localName": "PhysicsBody3D_get_axis_lock",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsBody3D.get_axis_lock"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsBody3D",
+        "member": "set_axis_lock",
+        "kind": "native-member",
+        "signature": "hash:1787895195"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-body-3d",
+        "exportName": "set_axis_lock",
+        "localName": "PhysicsBody3D_set_axis_lock",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsBody3D.set_axis_lock"
+      }
     }
   ],
   "rules": [],
@@ -70,7 +112,7 @@
         "observedOutputSha256": "7dc84ce0ecbf98aa1c0506a678a656fa2a48eec5e30183cb6c6c316f32588c84"
       },
       "target": {
-        "implementationSha256": "3447ccc5c76c19269b6dfdc283eaf72111844d8b13805f922fba466b56956eb0",
+        "implementationSha256": "bbb25ff5b9ed2dce3147a2cf84d92e3705f51352719c3246975f0c0eb81a420f",
         "callsite": "lib/godot-compat/physics-body-3d.ts add_collision_exception_with",
         "observedOutputSha256": "e642b8f63f95a69ee322207d3e7023a5f1ad05edc0444dd0af7f7533ab15ddba"
       },
@@ -109,7 +151,7 @@
         "observedOutputSha256": "62505bba6873c4c96357727495cd13c0a854cc1c02c53562102a7978978aa494"
       },
       "target": {
-        "implementationSha256": "3447ccc5c76c19269b6dfdc283eaf72111844d8b13805f922fba466b56956eb0",
+        "implementationSha256": "bbb25ff5b9ed2dce3147a2cf84d92e3705f51352719c3246975f0c0eb81a420f",
         "callsite": "lib/godot-compat/physics-body-3d.ts remove_collision_exception_with",
         "observedOutputSha256": "0382b12fdf27cf534c04921f83e7d8b01725de39109643be7ac7c853b5f7c848"
       },
@@ -117,6 +159,84 @@
         "comparator": "typed float64-bit JSON: rapier-geometry",
         "tolerance": "Rapier's query geometry: within 0.05; measured max 0.00010986253619194031 over 1 cases",
         "resultSha256": "ff5761690ff469e406e66f34fd20e3a7558ab6cb2f800f37647a04ae0661ac91"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsBody3D.get_axis_lock",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsBody3D\u0000get_axis_lock\u0000hash:2264617709",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/physics_body_3d.cpp",
+        "sourceSymbol": "PhysicsBody3D.get_axis_lock",
+        "sourceLine": 201
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "299f0c0fc43201bc71a876a199480e4d9dc6ae463b581b42e12078f9dca2de8f",
+        "callsite": "res://probe.gd _init() get_axis_lock",
+        "observedOutputSha256": "16eb9bcead68482abf7d4603d40877172b53611e954ab083952f520cc7c4d052"
+      },
+      "target": {
+        "implementationSha256": "bbb25ff5b9ed2dce3147a2cf84d92e3705f51352719c3246975f0c0eb81a420f",
+        "callsite": "lib/godot-compat/physics-body-3d.ts get_axis_lock",
+        "observedOutputSha256": "16eb9bcead68482abf7d4603d40877172b53611e954ab083952f520cc7c4d052"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "aa595198df55b00421f37a793304082ed94347bba54562b1be48846a8adb578b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsBody3D.set_axis_lock",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsBody3D\u0000set_axis_lock\u0000hash:1787895195",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/physics_body_3d.cpp",
+        "sourceSymbol": "PhysicsBody3D.set_axis_lock",
+        "sourceLine": 192
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "86cacf8d290cb66bbb548d10e6b3ab14f18390f53425fba5f3c695474d4ccaa1",
+        "callsite": "res://probe.gd _init() set_axis_lock-free-flight set_axis_lock-angular",
+        "observedOutputSha256": "0f3bc56681bf244181b7301b954732c9d8f1eb78530ebc91b8eeac2fd31db780"
+      },
+      "target": {
+        "implementationSha256": "bbb25ff5b9ed2dce3147a2cf84d92e3705f51352719c3246975f0c0eb81a420f",
+        "callsite": "lib/godot-compat/physics-body-3d.ts set_axis_lock",
+        "observedOutputSha256": "7b848722c932e484456bcc6d344596f8ceab3560f9d09bcdda610e78a6179285"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: physics-trajectory",
+        "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.006506770849227905 over 2 cases",
+        "resultSha256": "b99151fd99b298d0eaf757b76ea47f83c53855fd819791dbb8c2d6b11350a0b2"
       },
       "reproductionCommand": [
         "npx",
@@ -136,7 +256,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "d32ce26328c4096f92823d20af1efbfe27d8159721a736060503d25713381638",
-      "implementationSha256": "3447ccc5c76c19269b6dfdc283eaf72111844d8b13805f922fba466b56956eb0"
+      "implementationSha256": "bbb25ff5b9ed2dce3147a2cf84d92e3705f51352719c3246975f0c0eb81a420f"
     },
     {
       "claimId": "godot-4.7-binding-PhysicsBody3D.remove_collision_exception_with",
@@ -144,7 +264,23 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "345ca2b1cf056fc19a0f6e802b978f5dedcc9778afb2f9021b81a225bd934174",
-      "implementationSha256": "3447ccc5c76c19269b6dfdc283eaf72111844d8b13805f922fba466b56956eb0"
+      "implementationSha256": "bbb25ff5b9ed2dce3147a2cf84d92e3705f51352719c3246975f0c0eb81a420f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsBody3D.get_axis_lock",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "299f0c0fc43201bc71a876a199480e4d9dc6ae463b581b42e12078f9dca2de8f",
+      "implementationSha256": "bbb25ff5b9ed2dce3147a2cf84d92e3705f51352719c3246975f0c0eb81a420f"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsBody3D.set_axis_lock",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "86cacf8d290cb66bbb548d10e6b3ab14f18390f53425fba5f3c695474d4ccaa1",
+      "implementationSha256": "bbb25ff5b9ed2dce3147a2cf84d92e3705f51352719c3246975f0c0eb81a420f"
     }
   ]
 }

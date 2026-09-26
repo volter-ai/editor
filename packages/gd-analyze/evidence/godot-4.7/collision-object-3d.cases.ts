@@ -51,6 +51,11 @@ add('set_collision_mask-rigid', 'set_collision_mask', [
   ...Array.from({ length: 60 }, (): Segment => ({ await: 'physics', ops: [{ read: ['rigidState', 'crate'] }] })),
 ], 'physics-trajectory');
 
+add('is_ray_pickable-default', 'is_ray_pickable', [{ ops: [BOX, { read: ['pickable', 'a'] }] }], 'exact');
+add('set_ray_pickable', 'set_ray_pickable', [
+  { ops: [BOX, { pickable: 'a', on: false }, { read: ['pickable', 'a'] }, { pickable: 'a', on: true }, { read: ['pickable', 'a'] }] },
+], 'exact');
+
 const EVIDENCE: GodotEvidenceCaseFile = {
   kind: 'node',
   godotClass: 'CollisionObject3D',
