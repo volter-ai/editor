@@ -676,7 +676,6 @@ function writeExampleReadme(
       'npm run vgai -- play        # verify Play mode\n' +
       'npm run typecheck\n' +
       'npm run validate-manifest\n' +
-      'npm run validate-assets\n' +
       '```\n\n' +
       'Coding agents start with `AGENTS.md`; MCP-compatible hosts discover the project-scoped server through `.mcp.json`.\n',
     'utf-8',

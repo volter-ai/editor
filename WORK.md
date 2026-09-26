@@ -158,10 +158,7 @@ Remaining:
    drag visibly holding a body (arena's moving bodies are kinematic), and a collider row: its one
    reader, the R3F source adapter, reads colliders only while its own store plays, and no
    document reached in this build showed one (the Scene during Play answers from a stopped
-   design store). Open: the `.inputmap.json` format's schema (`game-runtime/src/input/schema.ts`), which
-   nothing in the repository reads any more (the editor's `Game` has no input manager; a game's
-   session input door is its entry's `debug.input`, and a world without one refuses by name) and
-   only the template's `validate-asset-content.ts` checks; a canvas root has no design-time mount (the canvas package
+   design store). Open: a canvas root has no design-time mount (the canvas package
    stayed at vgai-engine's launch-scope tag); its Scene says so ("No Scene editor for …").
 2. **Animation seen from outside.** The editor finds a game's mixers through a served stamp on
    the project's own `new AnimationMixer(...)` and `useAnimations(...)` call sites

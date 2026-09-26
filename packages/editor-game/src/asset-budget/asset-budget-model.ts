@@ -288,7 +288,7 @@ const MANIFEST_NAME = 'vgai.project.json';
  * The manifest is the ONLY JSON document that owns asset references. An
  * `.inputmap.json` was scanned as one too, and could not be. `collectStringPaths`
  * below yields string VALUES only (action names are record KEYS — never
- * candidates), and every string value `InputMapFileSchema` admits is a binding
+ * candidates), and every string value an input map carries is a binding
  * `type` literal, a `KeyboardEvent.code`, a `direction`/`valueType` enum, or an
  * injected/touch `sourceId`; button/axis indexes are numbers. None of them is a
  * path, so the only value that could ever have resolved to an asset was a

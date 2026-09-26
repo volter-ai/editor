@@ -7,7 +7,7 @@ import { loadGameManifestFile } from '@volter/editor-project/manifest/load-file'
 // Usage: npx tsx validate-manifest.ts [manifestPath...]
 //
 // Single source of truth for game-manifest validation, shipped IN the
-// project template (mirrors validate-assets.ts) so every scaffolded game
+// project template so every scaffolded game
 // gets a working `npm run validate-manifest`. Validates each given
 // `vgai.project.json` path via `loadGameManifestFile` (parse -> cross-field
 // checks -> resolution) and prints the

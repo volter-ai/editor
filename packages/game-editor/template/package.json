@@ -15,7 +15,6 @@
     "preview": "vite preview",
     "postinstall": "node scripts/patch-drei-stats-gl.mjs",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.tools.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p server/tsconfig.json",
-    "validate-assets": "npx tsx validate-assets.ts .",
     "validate-manifest": "npx tsx validate-manifest.ts vgai.project.json",
     "check-idioms": "npx tsx check-idioms.ts .",
     "server": "npx tsx --tsconfig server/tsconfig.json server/main.ts"
