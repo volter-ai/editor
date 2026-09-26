@@ -322,7 +322,7 @@
         "observedOutputSha256": "79afcd7cf79e4372f88bd7b0fbac21635b49b7f7cc78149a24066cd16ea628ce"
       },
       "target": {
-        "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db",
+        "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0",
         "callsite": "lib/godot-compat/cylinder-mesh.ts set_top_radius",
         "observedOutputSha256": "79afcd7cf79e4372f88bd7b0fbac21635b49b7f7cc78149a24066cd16ea628ce"
       },
@@ -361,7 +361,7 @@
         "observedOutputSha256": "48912be387127d9b9e1bc9b59d86275c721922ff97084b35383fe17044b56f15"
       },
       "target": {
-        "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db",
+        "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0",
         "callsite": "lib/godot-compat/cylinder-mesh.ts get_top_radius",
         "observedOutputSha256": "48912be387127d9b9e1bc9b59d86275c721922ff97084b35383fe17044b56f15"
       },
@@ -400,7 +400,7 @@
         "observedOutputSha256": "ec10c98e61c75c3bf1ee1fed0120abf2f09b8df09fc4a9fab7991a6715e24531"
       },
       "target": {
-        "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db",
+        "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0",
         "callsite": "lib/godot-compat/cylinder-mesh.ts set_bottom_radius",
         "observedOutputSha256": "ec10c98e61c75c3bf1ee1fed0120abf2f09b8df09fc4a9fab7991a6715e24531"
       },
@@ -439,7 +439,7 @@
         "observedOutputSha256": "295de66162a3f225809240bcfb14bc7b977ca382e4e77def70298099da2d92c5"
       },
       "target": {
-        "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db",
+        "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0",
         "callsite": "lib/godot-compat/cylinder-mesh.ts get_bottom_radius",
         "observedOutputSha256": "295de66162a3f225809240bcfb14bc7b977ca382e4e77def70298099da2d92c5"
       },
@@ -478,7 +478,7 @@
         "observedOutputSha256": "70bd9394b34814170350c6aab7e4230912499432b2b38477d5959f8c56d277ff"
       },
       "target": {
-        "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db",
+        "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0",
         "callsite": "lib/godot-compat/cylinder-mesh.ts set_height",
         "observedOutputSha256": "70bd9394b34814170350c6aab7e4230912499432b2b38477d5959f8c56d277ff"
       },
@@ -517,7 +517,7 @@
         "observedOutputSha256": "996b95e9498a022f23d29249d77367c63fdd54a44cecbb603bf5a303c0c07f0f"
       },
       "target": {
-        "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db",
+        "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0",
         "callsite": "lib/godot-compat/cylinder-mesh.ts get_height",
         "observedOutputSha256": "996b95e9498a022f23d29249d77367c63fdd54a44cecbb603bf5a303c0c07f0f"
       },
@@ -556,7 +556,7 @@
         "observedOutputSha256": "cc7123acf0987a243ea7effdbaddd61bb31c1e50777c523959487036b2431fb5"
       },
       "target": {
-        "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db",
+        "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0",
         "callsite": "lib/godot-compat/cylinder-mesh.ts set_radial_segments",
         "observedOutputSha256": "cc7123acf0987a243ea7effdbaddd61bb31c1e50777c523959487036b2431fb5"
       },
@@ -595,7 +595,7 @@
         "observedOutputSha256": "f9572d2023c4a0d75f05d902ffa1daa1f2ea686fbefb58693b614991fe3ccf79"
       },
       "target": {
-        "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db",
+        "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0",
         "callsite": "lib/godot-compat/cylinder-mesh.ts get_radial_segments",
         "observedOutputSha256": "f9572d2023c4a0d75f05d902ffa1daa1f2ea686fbefb58693b614991fe3ccf79"
       },
@@ -634,7 +634,7 @@
         "observedOutputSha256": "9853378ff9fc350d20e8ff3a4bd3777bf1debbcd47d7d8b6e2de34c1a2a5f28c"
       },
       "target": {
-        "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db",
+        "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0",
         "callsite": "lib/godot-compat/cylinder-mesh.ts set_rings",
         "observedOutputSha256": "9853378ff9fc350d20e8ff3a4bd3777bf1debbcd47d7d8b6e2de34c1a2a5f28c"
       },
@@ -673,7 +673,7 @@
         "observedOutputSha256": "49df86b2104050386921cc3884568e68c28b50f10f1f0c2cbab3dfc94a75f036"
       },
       "target": {
-        "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db",
+        "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0",
         "callsite": "lib/godot-compat/cylinder-mesh.ts get_rings",
         "observedOutputSha256": "49df86b2104050386921cc3884568e68c28b50f10f1f0c2cbab3dfc94a75f036"
       },
@@ -712,7 +712,7 @@
         "observedOutputSha256": "f938f70a18196767c38ae98ba11e01f941e1b95977c3dd138fceba311053491e"
       },
       "target": {
-        "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db",
+        "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0",
         "callsite": "lib/godot-compat/cylinder-mesh.ts set_cap_top",
         "observedOutputSha256": "f938f70a18196767c38ae98ba11e01f941e1b95977c3dd138fceba311053491e"
       },
@@ -751,7 +751,7 @@
         "observedOutputSha256": "4e1dc13a79889507a5b8b1c328375dacec171e04520630bcd984f5b3315830d8"
       },
       "target": {
-        "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db",
+        "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0",
         "callsite": "lib/godot-compat/cylinder-mesh.ts is_cap_top",
         "observedOutputSha256": "4e1dc13a79889507a5b8b1c328375dacec171e04520630bcd984f5b3315830d8"
       },
@@ -790,7 +790,7 @@
         "observedOutputSha256": "110152ae9d92b76fa254d08008dd5a1c5401fd9f3598f429276c23c2e69c4175"
       },
       "target": {
-        "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db",
+        "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0",
         "callsite": "lib/godot-compat/cylinder-mesh.ts set_cap_bottom",
         "observedOutputSha256": "110152ae9d92b76fa254d08008dd5a1c5401fd9f3598f429276c23c2e69c4175"
       },
@@ -829,7 +829,7 @@
         "observedOutputSha256": "49c2883ae81e54fffacedb2567c5694c31fa790d50afe52efe73315bc3d4142f"
       },
       "target": {
-        "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db",
+        "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0",
         "callsite": "lib/godot-compat/cylinder-mesh.ts is_cap_bottom",
         "observedOutputSha256": "49c2883ae81e54fffacedb2567c5694c31fa790d50afe52efe73315bc3d4142f"
       },
@@ -856,7 +856,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "e14eac3396a1a5fa9a4f41b850a7134317318889e66802030160e42ccada4a34",
-      "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db"
+      "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0"
     },
     {
       "claimId": "godot-4.7-binding-CylinderMesh.get_top_radius",
@@ -864,7 +864,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "a715e8279e57ddf8dedd1ff1694c41430c7a55f0871a33640fe9b1ab74c9db72",
-      "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db"
+      "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0"
     },
     {
       "claimId": "godot-4.7-binding-CylinderMesh.set_bottom_radius",
@@ -872,7 +872,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "bfa9c033b198fb94f06f9b726da69f30204fbae3db472e2925567161b909d999",
-      "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db"
+      "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0"
     },
     {
       "claimId": "godot-4.7-binding-CylinderMesh.get_bottom_radius",
@@ -880,7 +880,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "c2399632eae11b7ed3541319169e35fe08474b28f917174ecccf456d455ddf57",
-      "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db"
+      "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0"
     },
     {
       "claimId": "godot-4.7-binding-CylinderMesh.set_height",
@@ -888,7 +888,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "7c3faf24bc5cc37eeb84b40626dedea9516fd8605f89fbd1d16c42bef8aeaa2f",
-      "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db"
+      "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0"
     },
     {
       "claimId": "godot-4.7-binding-CylinderMesh.get_height",
@@ -896,7 +896,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "45f679cf64ec121313c23aec430b4b1db079c0873ea1dbb8a13b09f3922ea82a",
-      "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db"
+      "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0"
     },
     {
       "claimId": "godot-4.7-binding-CylinderMesh.set_radial_segments",
@@ -904,7 +904,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "6c2286e792267a544c27a04b308bc4193d8d3c53134d97214b9dc65e27b03b3e",
-      "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db"
+      "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0"
     },
     {
       "claimId": "godot-4.7-binding-CylinderMesh.get_radial_segments",
@@ -912,7 +912,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "067b2ff89074b4cf0f22cf413400062779da3c14b390a5ed4850f3eb42e05672",
-      "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db"
+      "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0"
     },
     {
       "claimId": "godot-4.7-binding-CylinderMesh.set_rings",
@@ -920,7 +920,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "aec57bd56584ddc78614fa0b1372f6e48402b5f2c03f8492690455a2b0388d15",
-      "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db"
+      "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0"
     },
     {
       "claimId": "godot-4.7-binding-CylinderMesh.get_rings",
@@ -928,7 +928,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "ea85241f4137be4365e0bf86b2dd7d83f22e49c1ec7505934192ea98f7c62f9c",
-      "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db"
+      "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0"
     },
     {
       "claimId": "godot-4.7-binding-CylinderMesh.set_cap_top",
@@ -936,7 +936,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "2c9135f3d3222c95bd9dac3b988eeec8f03abba611796600fc08ecfb7dbcd31b",
-      "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db"
+      "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0"
     },
     {
       "claimId": "godot-4.7-binding-CylinderMesh.is_cap_top",
@@ -944,7 +944,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "559efa93e200a33edde0c9c1a4d3a83d3303d65457e71358b53c5fedabe597fe",
-      "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db"
+      "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0"
     },
     {
       "claimId": "godot-4.7-binding-CylinderMesh.set_cap_bottom",
@@ -952,7 +952,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "f4529e0ee1481a2f3f7851a6ff5567b74846b5bcda5f3734ba213cb411587fbe",
-      "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db"
+      "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0"
     },
     {
       "claimId": "godot-4.7-binding-CylinderMesh.is_cap_bottom",
@@ -960,7 +960,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "36cf1df8636b3448bc8d94fb72317bb98bda6a78e1f34dd69e682b6d03e379c1",
-      "implementationSha256": "79932933f389d8a5ed3f494edd608c38cf15ec0342d975e20c1cc5c7223d30db"
+      "implementationSha256": "26c2bade9e38af358b60d8a59b9453710bb8f37695c07d4b1ea2cb95129668c0"
     }
   ]
 }
