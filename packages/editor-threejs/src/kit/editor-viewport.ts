@@ -710,6 +710,7 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
       // The look's widths (`nativeViewportGrid`), applied with its colours.
       uLineWidth: { value: 1 },
       uMajorWidth: { value: 1 },
+      uAligned: { value: 0 },
       uMajorEvery: { value: 10 },
       uFadeStart: { value: (extent / 2) * 0.55 },
       uFadeEnd: { value: extent / 2 },
@@ -744,6 +745,7 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
       uniform float uOpacity;
       uniform float uLineWidth;
       uniform float uMajorWidth;
+      uniform float uAligned;
       uniform float uMajorEvery;
       uniform float uFadeStart;
       uniform float uFadeEnd;
@@ -767,9 +769,43 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
         vec2 cov = clamp(width * 0.5 - dist + 0.5, 0.0, 1.0);
         return max(cov.x, cov.y);
       }
+      // One device pixel, the one nearest the line, and no anti-aliasing: Blender's lines in an
+      // axis-aligned view (\`GRID_ALIGNED\`, which outputs no line-smoothing data for them).
+      float alignedLine(vec2 coord) {
+        vec2 dist = abs(fract(coord - 0.5) - 0.5) / max(fwidth(coord), vec2(1e-6));
+        return max(step(dist.x, 0.5), step(dist.y, 0.5));
+      }
       void main() {
         vec2 world = abs(uPlaneNormal.y) > 0.5 ? vWorld.xz : abs(uPlaneNormal.z) > 0.5 ? vWorld.xy : vWorld.zy;
         vec2 p = world / uUnit;
+        if (uAligned > 0.5) {
+          // BLENDER'S THREE LEVELS in an axis-aligned orthographic view
+          // (\`overlay_grid_vert.glsl\`, \`OVERLAY_GRID_STEPS_DRAW\` 3): the unit, the next step and
+          // the one after, with f the level's fraction (\`uMinorFade\` is 1 - f). Level 0 is the
+          // grid colour at alpha 1 - f, further faded as its cells shrink toward a pixel
+          // (\`smoothstep(step / 4, step / 64, pixel size)\`); level 1 is opaque and 1 - f of the
+          // way to the emphasis colour; level 2 is the emphasis colour. A line on a higher level
+          // is that level's.
+          float top = alignedLine(p / (uMajorEvery * uMajorEvery));
+          float middle = alignedLine(p / uMajorEvery);
+          float bottom = alignedLine(p);
+          float pixel = max(fwidth(world).x, fwidth(world).y);
+          float bottomAlpha = uMinorFade * smoothstep(uUnit * 0.25, uUnit * 0.015625, pixel);
+          float emphasis = top > 0.5 ? 1.0 : middle > 0.5 ? uMinorFade : 0.0;
+          // The theme's grid colour carries alpha 0x80 and its emphasis colour none, and the
+          // two colours here were fitted to Blender's PERSPECTIVE frames, where four additive
+          // passes (1 + 1/2 + 1/4 + 1/8) take that alpha to about 0.94. Drawn once, as an
+          // aligned view draws it, the grid colour keeps 0.502 / 0.941 of that. (Measured: the
+          // 10 cm lines +5 over the ground at 198 px per metre, predicted +5.4; the 1 m lines
+          // 89 against 88. The 0.94 is inferred from the passes, not read off a frame.)
+          float levelAlpha = (top > 0.5 || middle > 0.5 ? 1.0 : bottom * bottomAlpha) * mix(0.533, 1.0, emphasis);
+          float edge = 1.0 - smoothstep(uFadeStart * uReach, uFadeEnd * uReach, length(world - uCenter));
+          float alignedAlpha = levelAlpha * edge * uOpacity;
+          if (alignedAlpha <= 0.002) discard;
+          gl_FragColor = vec4(mix(uColor, uMajorColor, emphasis), alignedAlpha);
+          #include <colorspace_fragment>
+          return;
+        }
         vec2 pixelsPerMetre = 1.0 / max(fwidth(p), vec2(1e-6));
         float minorVisible = smoothstep(4.0, 14.0, min(pixelsPerMetre.x, pixelsPerMetre.y)) * uMinorFade;
         // Both levels reach FULL strength in their own colour, as Blender's
@@ -910,6 +946,14 @@ export class EditorViewport {
   private _axisLines: LineSegments2 | null = null;
   /** The world's vertical axis line, a child of {@link _axisLines} (see `_rebuildAxisLines`). */
   private _verticalAxisLine: LineSegments2 | null = null;
+  /** The look's axis-line width in device pixels (null: the editor's own), which an
+   *  axis-aligned view sets aside for one pixel. */
+  private _axisLineWidth: number | null = null;
+  /** A device-pixel width as `LineMaterial` takes it: CSS pixels, three keeping its viewport in
+   *  CSS units. The editor's own is 2 CSS. */
+  private _axisLineCss(device: number | null): number {
+    return device === null ? 2 : device / (this._renderer?.getPixelRatio() ?? 1);
+  }
   private _axesWanted = false;
   private _stageAxes: ViewportOverlays['axes'] = 'floor';
   /** The look's axis colours by WORLD axis (X, Y, Z), each `null` for the gizmo's own. */
@@ -3705,11 +3749,12 @@ export class EditorViewport {
     this._paintLookGrid();
     this._lookAxisHexes = [look.axisX, look.axisY, look.axisZ];
     if (this._axisLines) {
-      (this._axisLines.material as LineMaterial).linewidth = look.axisLineWidth ?? 2;
+      (this._axisLines.material as LineMaterial).linewidth = this._axisLineCss(look.axisLineWidth);
     }
     if (this._verticalAxisLine) {
-      (this._verticalAxisLine.material as LineMaterial).linewidth = look.axisLineWidth ?? 2;
+      (this._verticalAxisLine.material as LineMaterial).linewidth = this._axisLineCss(look.axisLineWidth);
     }
+    this._axisLineWidth = look.axisLineWidth;
     this._rebuildAxisLines();
     if (look.background !== null) {
       const current = this._scene.background;
@@ -3858,6 +3903,13 @@ export class EditorViewport {
     }
     uniforms['uUnit']!.value = unit;
     uniforms['uMinorFade']!.value = minorFade;
+    uniforms['uAligned']!.value = axis === -1 ? 0 : 1;
+    // Blender's axis lines in an aligned view are one pixel too (the same \`GRID_ALIGNED\` rule).
+    const axisWidth = this._axisLineCss(axis === -1 ? this._axisLineWidth : 1);
+    for (const line of [this._axisLines, this._verticalAxisLine]) {
+      const material = line?.material as LineMaterial | undefined;
+      if (material && material.linewidth !== axisWidth) material.linewidth = axisWidth;
+    }
   }
 
   /** Minor cells per major line (`overlays.grid.majorEvery`; Blender 10, Godot 8). */

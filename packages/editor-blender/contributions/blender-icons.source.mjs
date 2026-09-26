@@ -693,11 +693,30 @@ g('magnifying-glass', ring(7.1, 7.1, 3.7, 1.3) + cap(9.9, 9.9, 13.2, 13.2, 1.4))
 // and the round cap floated off as a separate lozenge at 16px — measured in
 // round 1's frame, where the navigation cluster showed a disc and a diamond.
 const zoomLens = (sign) => dot(7.1, 7.1, 4.25) + sign + cap(9.3, 9.3, 13.4, 13.4, 2);
-g(
-  'magnifying-glass-plus',
-  zoomLens(holeBar(7.1, 5.2, 7.1, 9, 1.1) + holeBar(5.2, 7.1, 9, 7.1, 1.1)),
-);
-g('magnifying-glass-minus', zoomLens(holeBar(5.2, 7.1, 9, 7.1, 1.1)));
+// THE PLUS IS ONE HOLE, a cross outline: two crossing hole bars wind the crossing twice, and
+// under nonzero fill that square paints lens-coloured again (the frame showed a pale centre).
+// Its arms are Blender's on `gizmo-select-box.png`'s cluster: 14 device px across a 26 px
+// lens, 2.2 px thick.
+const plusHole = (cx, cy, a, t) =>
+  poly(
+    [
+      [cx - t, cy - a],
+      [cx + t, cy - a],
+      [cx + t, cy - t],
+      [cx + a, cy - t],
+      [cx + a, cy + t],
+      [cx + t, cy + t],
+      [cx + t, cy + a],
+      [cx - t, cy + a],
+      [cx - t, cy + t],
+      [cx - a, cy + t],
+      [cx - a, cy - t],
+      [cx - t, cy - t],
+    ],
+    true,
+  );
+g('magnifying-glass-plus', zoomLens(plusHole(7.1, 7.1, 2.3, 0.36)));
+g('magnifying-glass-minus', zoomLens(holeBar(4.8, 7.1, 9.4, 7.1, 0.72)));
 g('ellipsis', dot(3.6, 8, 1.15) + dot(8, 8, 1.15) + dot(12.4, 8, 1.15));
 g('grip-lines', cap(3, 6.3, 13, 6.3, 1.2) + cap(3, 9.7, 13, 9.7, 1.2));
 g('grip-lines-vertical', cap(6.3, 3, 6.3, 13, 1.2) + cap(9.7, 3, 9.7, 13, 1.2));
@@ -1011,6 +1030,19 @@ const perspectiveGrid = () => {
   );
 };
 g('viewport-projection', perspectiveGrid());
+/*
+ * VIEW_ORTHO, the same toggle in an orthographic view: a flat square grid of three by three
+ * cells, as wide as the perspective trapezoid (32 device px on `gizmo-select-box.png`'s
+ * navigation capsule at 2x) and centred with it, its rules the trapezoid's weight.
+ */
+const orthographicGrid = () => {
+  const lo = 2.61;
+  const hi = 13.41;
+  const w = 0.74;
+  const at = [0, 1, 2, 3].map((i) => lo + ((hi - lo) * i) / 3);
+  return at.map((v) => cap(lo, v, hi, v, w) + cap(v, lo, v, hi, w)).join('');
+};
+g('viewport-orthographic', orthographicGrid());
 g(
   'list',
   dot(3.2, 4.4, 1) +

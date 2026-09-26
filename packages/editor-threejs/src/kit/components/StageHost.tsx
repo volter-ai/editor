@@ -1548,9 +1548,13 @@ export function Object3DDocumentViewport({
           const stated = openingViewRef.current;
           if (stated) {
             const target = new THREE.Vector3(...stated.target);
-            viewport.camera.position
-              .copy(target)
-              .add(new THREE.Vector3(...stated.direction).normalize().multiplyScalar(stated.distance));
+            const direction = new THREE.Vector3(...stated.direction).normalize();
+            viewport.camera.position.copy(target).addScaledVector(direction, stated.distance);
+            // The screen's up is the world's, the turntable the orbit keeps, except looking
+            // straight down or up the world's axis, where that says nothing and the view's own
+            // up does (a saved Top view).
+            if (stated.up && Math.abs(direction.dot(viewport.camera.up.set(0, 1, 0))) > 0.9999)
+              viewport.camera.up.set(...stated.up);
             viewport.orbitControls.target.copy(target);
           } else if (cameraX !== undefined && cameraY !== undefined && cameraZ !== undefined) {
             const box = openingFrame ?? contentWorldBounds(source.root);
@@ -1579,6 +1583,8 @@ export function Object3DDocumentViewport({
           host.session.selectionOutlineEnabled = !shared && selectionOutlineRef.current;
           // The view's presentation, now that the viewport and session exist to take it.
           host.applyPresentation?.();
+          // A saved view's projection is part of where the file opens.
+          if (openingViewRef.current?.projection === 'orthographic') host.session.setProjection('orthographic');
           if (!studioStage && background === undefined && host.dressing.backgroundTexture) {
             const session = host.session;
             host.cleanups.push(

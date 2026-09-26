@@ -736,7 +736,8 @@ def _refusal(node):
 def _saved_view():
     """The 3D View the file saved, which is where Blender opens it: the `Modeling` workspace's
     (this editor's Model workspace is Blender's Modeling), else the first 3D View any screen
-    holds. `RegionView3D`'s pivot, rotation (view to world, `(w, x, y, z)`) and distance."""
+    holds. `RegionView3D`'s pivot, rotation (view to world, `(w, x, y, z)`), distance and
+    projection (`PERSP`, `ORTHO`, or `CAMERA` for a view through the scene camera)."""
     workspace = bpy.data.workspaces.get("Modeling")
     screens = list(workspace.screens) if workspace is not None else []
     screens.extend(bpy.data.screens)
@@ -749,18 +750,21 @@ def _saved_view():
                 "location": [float(v) for v in region.view_location],
                 "rotation": [float(v) for v in region.view_rotation],
                 "distance": float(region.view_distance),
+                "perspective": region.view_perspective,
             }
     return None
 
 
 def _subject_line(scene, view_layer):
-    """The 3D Viewport's second overlay line, as `draw_selected_name` (`view3d_draw.cc`) writes it:
-    `(frame)`, then in Object Mode (or with nothing active) the active collection and a bar, then
+    """The 3D Viewport's second overlay line, as `draw_selected_name` (`view3d_draw.cc`) writes it,
+    less the two parts that follow the playhead: the tab draws `(frame)` and the marker on it
+    from the frame it is showing, which during playback is not `frame_current` (written once, on
+    pause). Here: in Object Mode (or with nothing active) the active collection and a bar, then
     the active object; outside Object Mode its data's name; the active edit or pose bone, or the
-    active shape key (` (Soloed)` when pinned); and the marker on the current frame. Blender tints
-    the line on a keyframe; that colour is not carried."""
-    frame = scene.frame_current
-    parts = ["(%d)" % frame]
+    active shape key (` (Soloed)` when pinned). The scene's markers go with it, in list order,
+    for `BKE_scene_find_marker_name`. Blender tints the line on a keyframe; that colour is not
+    carried, and the ` (Viewer)` suffix belongs to a viewer path this tab does not show."""
+    parts = []
     ob = view_layer.objects.active
     if ob is None or ob.mode == "OBJECT":
         # `BKE_collection_ui_name_get`: the master collection reads "Scene Collection", which is
@@ -791,10 +795,10 @@ def _subject_line(scene, view_layer):
                 parts.append(" : " + key.name)
                 if ob.show_only_shape_key:
                     parts.append(" (Soloed)")
-    marker = next((m.name for m in scene.timeline_markers if m.frame == frame), None)
-    if marker is not None:
-        parts.append(" <" + marker + ">")
-    return "".join(parts)
+    return {
+        "body": "".join(parts),
+        "markers": [[int(m.frame), m.name] for m in scene.timeline_markers],
+    }
 
 
 def _bone_shown(bone):

@@ -520,11 +520,15 @@ export const frameSchema = z
         location: z.tuple([z.number(), z.number(), z.number()]),
         rotation: z.tuple([z.number(), z.number(), z.number(), z.number()]),
         distance: z.number().finite(),
+        perspective: z.enum(['PERSP', 'ORTHO', 'CAMERA']),
       })
       .nullable()
       .optional(),
-    /** The viewport's subject line as Blender composes it (`draw_selected_name`). */
-    subject: z.string().optional(),
+    /** The viewport's subject line as Blender composes it (`draw_selected_name`), less the
+     *  frame and its marker, with the scene's markers in list order. */
+    subject: z
+      .object({ body: z.string(), markers: z.array(z.tuple([z.number().int(), z.string()])) })
+      .optional(),
     /** `Scene.unit_settings`: the length system and scale the grid's step is named in. */
     units: z
       .object({ system: z.enum(['NONE', 'METRIC', 'IMPERIAL']), scale_length: z.number().finite() })
@@ -532,6 +536,17 @@ export const frameSchema = z
   })
   .strict();
 type Frame = z.infer<typeof frameSchema>;
+
+/** `BKE_scene_find_marker_name`: the list walked from both ends at once, the front one asked
+ *  first, so of several markers on one frame the answer is not simply the first. */
+function markerAt(markers: readonly (readonly [number, string])[], frame: number): string | null {
+  for (let front = 0, back = markers.length - 1; front < markers.length && back >= 0; front++, back--) {
+    if (markers[front]![0] === frame) return markers[front]![1];
+    if (front === back) break;
+    if (markers[back]![0] === frame) return markers[back]![1];
+  }
+  return null;
+}
 
 /** Blender's length units, smallest first, with their display names (`unit.cc`
  *  `buMetricLenDef`, `buImperialLenDef`; nano- and picometres are compiled out there). */
@@ -745,28 +760,41 @@ export class BlenderRuntimeView {
   /**
    * WHERE BLENDER OPENS THIS FILE: its saved 3D View in the stage's frame — the pivot, the
    * direction from the pivot to the eye (the view's +Z, `view_rotation` turning view space into
-   * the world) and the distance. Null before a frame or when the file saved no 3D View.
+   * the world: RNA's inverse of `viewquat`), the screen's up (the view's +Y), the distance and
+   * the projection. A view saved through the scene camera opens in perspective along the same
+   * axis: looking through a camera is not a view this stage has. Null before a frame or when
+   * the file saved no 3D View.
    */
   savedView(): {
     readonly target: readonly [number, number, number];
     readonly direction: readonly [number, number, number];
+    readonly up: readonly [number, number, number];
     readonly distance: number;
+    readonly projection: 'perspective' | 'orthographic';
   } | null {
     const saved = this.frame?.view;
     if (!saved) return null;
     const [w, x, y, z] = saved.rotation;
+    const rotation = new THREE.Quaternion(x, y, z, w);
     const target = new THREE.Vector3(...saved.location).applyMatrix4(this.root.matrix);
-    const direction = new THREE.Vector3(0, 0, 1)
-      .applyQuaternion(new THREE.Quaternion(x, y, z, w))
-      .applyMatrix4(this.root.matrix)
-      .normalize();
-    return { target: target.toArray(), direction: direction.toArray(), distance: saved.distance };
+    const axis = (v: THREE.Vector3) => v.applyQuaternion(rotation).applyMatrix4(this.root.matrix).normalize();
+    return {
+      target: target.toArray(),
+      direction: axis(new THREE.Vector3(0, 0, 1)).toArray(),
+      up: axis(new THREE.Vector3(0, 1, 0)).toArray(),
+      distance: saved.distance,
+      projection: saved.perspective === 'ORTHO' ? 'orthographic' : 'perspective',
+    };
   }
 
-  /** The viewport's subject line, `(1) Collection | Cube`, as the engine composed it; null
-   *  before a frame or from an engine that does not report it. */
-  subjectLine(): string | null {
-    return this.frame?.subject ?? null;
+  /** The viewport's subject line at `frame`, `(1) Collection | Cube`: the engine's body with
+   *  the frame before it and that frame's marker after it; null before a frame or from an engine
+   *  that does not report it. */
+  subjectLine(frame: number): string | null {
+    const subject = this.frame?.subject;
+    if (subject === undefined) return null;
+    const marker = markerAt(subject.markers, frame);
+    return `(${frame})${subject.body}${marker === null ? '' : ` <${marker}>`}`;
   }
 
   /**

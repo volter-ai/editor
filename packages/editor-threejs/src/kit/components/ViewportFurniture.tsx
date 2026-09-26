@@ -89,15 +89,25 @@ function cameraSignature(viewport: EditorViewport, session: Object3DDocumentSess
   const position = viewport.camera.position;
   const target = viewport.orbitControls.target;
   const zoom = (camera as THREE.OrthographicCamera).isOrthographicCamera
-    ? orthographicWorldPerDevicePixel(camera as THREE.OrthographicCamera, viewport)
+    ? orthographicWorldPerDevicePixel(camera as THREE.OrthographicCamera, viewport, session)
     : 0;
   return [position.x, position.y, position.z, target.x, target.y, target.z, zoom].map((n) => n.toPrecision(6)).join(',');
 }
 
-/** World units across one device pixel of an orthographic view. */
-function orthographicWorldPerDevicePixel(camera: THREE.OrthographicCamera, viewport: EditorViewport): number {
+/** World units across one device pixel of an orthographic view: its height over the drawing
+ *  buffer's (the session's canvas, in device pixels), else the controls' element at the
+ *  display's ratio. */
+function orthographicWorldPerDevicePixel(
+  camera: THREE.OrthographicCamera,
+  viewport: EditorViewport,
+  session: Object3DDocumentSession | null,
+): number {
   const element = viewport.orbitControls.domElement;
-  const height = Math.max(1, (element?.clientHeight ?? 1) * (element?.ownerDocument.defaultView?.devicePixelRatio ?? 1));
+  const height = Math.max(
+    1,
+    session?.renderer.domElement.height ??
+      (element?.clientHeight ?? 1) * (element?.ownerDocument.defaultView?.devicePixelRatio ?? 1),
+  );
   return (camera.top - camera.bottom) / camera.zoom / height;
 }
 
@@ -233,19 +243,41 @@ export function ViewportFurniture({
   const drawnCamera = session?.camera() ?? viewport.renderCamera;
   const gridLine =
     gridScale && axis !== 'User' && (drawnCamera as THREE.OrthographicCamera).isOrthographicCamera
-      ? gridScale(orthographicWorldPerDevicePixel(drawnCamera as THREE.OrthographicCamera, viewport))
+      ? gridScale(orthographicWorldPerDevicePixel(drawnCamera as THREE.OrthographicCamera, viewport, session))
       : null;
 
-  const dolly = (factor: number): void => {
-    const camera = viewport.renderCamera;
-    if (camera instanceof THREE.OrthographicCamera) {
-      camera.zoom = Math.max(0.01, camera.zoom / factor);
-      camera.updateProjectionMatrix();
-      return;
-    }
+  // BLENDER'S MAGNIFIER IS A DRAG (`view3d.zoom` from the navigation gizmo, the factory
+  // `USER_ZOOM_DOLLY` style, `viewzoom_scale_value`): with `len` the pointer's height below the
+  // region's top plus 5, the distance is the one the drag started at times
+  // `2 * (len / len0 - 1) + 1` — down backs away, up closes in.
+  const startZoom = (event: ReactPointerEvent<HTMLButtonElement>): void => {
+    event.preventDefault();
+    const element = event.currentTarget;
+    element.setPointerCapture(event.pointerId);
+    const regionTop = viewport.orbitControls.domElement?.getBoundingClientRect().top ?? 0;
+    const lenOld = Math.max(5 + event.clientY - regionTop, 1);
+    const camera = viewport.camera;
     const target = viewport.orbitControls.target;
-    viewport.camera.position.sub(target).multiplyScalar(factor).add(target);
-    viewport.orbitControls.update();
+    const offset = camera.position.clone().sub(target);
+    const ortho = !session && viewport.renderCamera instanceof THREE.OrthographicCamera ? viewport.renderCamera : null;
+    const zoom0 = ortho?.zoom ?? 1;
+    const move = (moveEvent: PointerEvent): void => {
+      const lenNew = 5 + moveEvent.clientY - regionTop;
+      const factor = Math.max(0.01, 2 * (lenNew / lenOld - 1) + 1);
+      if (ortho) {
+        ortho.zoom = zoom0 / factor;
+        ortho.updateProjectionMatrix();
+      } else camera.position.copy(target).addScaledVector(offset, factor);
+      viewport.orbitControls.update();
+    };
+    const end = (): void => {
+      element.removeEventListener('pointermove', move);
+      element.removeEventListener('pointerup', end);
+      element.removeEventListener('pointercancel', end);
+    };
+    element.addEventListener('pointermove', move);
+    element.addEventListener('pointerup', end);
+    element.addEventListener('pointercancel', end);
   };
 
   const startPan = (event: ReactPointerEvent<HTMLButtonElement>): void => {
@@ -330,32 +362,13 @@ export function ViewportFurniture({
           </div>
         ) : null}
       </div>
-      {/* FIVE BUTTONS AGAINST BLENDER'S FOUR, and the count is decided, not
-          drifted (2026-09-19, measured against `modeling-edit-none.png`).
-          Blender draws zoom, hand, camera, grid in a 28 CSS capsule: glyph
-          boxes 16 CSS, pitch 30, ink 203. Our cell, gap, pitch and capsule
-          width are already those numbers exactly.
-
-          BLENDER'S CAMERA HAS NO ANALOGUE HERE and none is invented: a Model
-          document has no scene camera for it to toggle to.
-
-          BLENDER'S ONE MAGNIFIER IS A DRAG; OURS ARE TWO CLICKS, and two is
-          the honest shape for a click-only cluster. A drag carries the sign
-          in its axis, so one control can do both directions; a click has no
-          axis, so a single magnifier here could only ever zoom one way —
-          half a control. Driven through the camera's own state rather than
-          a DOM signature (the instrument that reported this pair dead once):
-          distance 11.459238 -> 9.167390 on Zoom in and exactly back to
-          11.459238 on Zoom out, so the two factors are exact reciprocals
-          (0.8, 1.25) and the pair round-trips to the float.
-
-          FRAME ALL IS A CONTROL BLENDER LACKS AND IT STAYS. Its home is the
-          document header's own view control (`Object3DDocumentToolbar`,
-          where the label even follows the selection), so on a Model document
-          this is a shortcut — but `StageHost` mounts this cluster on every
-          ready document host, including stages that carry no such header,
-          and there it is the only door onto framing. Deleting it to match a
-          picture would take the operation away from those. */}
+      {/* BLENDER'S NAVIGATION CLUSTER (`view3d_gizmo_navigate.cc`): Zoom and Pan, each a drag;
+          Camera; and the projection toggle, whose mark is the projection the view has. Cell,
+          gap, pitch and capsule width are Blender's (`modeling-edit-none.png`: glyph boxes 16
+          CSS, pitch 30, a 28 CSS capsule). Framing is not here: its home is the document
+          header's view control and the Home and numpad-period keys, as Blender's is its View
+          menu. The Camera button is not drawn yet: looking through a scene camera is not a
+          view this stage has. */}
       <div
         data-testid="viewport-navigation"
         role="toolbar"
@@ -387,30 +400,14 @@ export function ViewportFurniture({
           pointerEvents: 'auto',
         }}
       >
-        <Tooltip text="Zoom in">
-          <IconButton size="comfortable" aria-label="Zoom in" onClick={() => dolly(0.8)}>
+        <Tooltip text="Zoom (drag)">
+          <IconButton size="comfortable" aria-label="Zoom the view" onPointerDown={startZoom}>
             <EditorIcon size="2xl" icon={editorIcons.viewport.zoomIn} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip text="Zoom out">
-          <IconButton size="comfortable" aria-label="Zoom out" onClick={() => dolly(1.25)}>
-            <EditorIcon size="2xl" icon={editorIcons.viewport.zoomOut} />
           </IconButton>
         </Tooltip>
         <Tooltip text="Pan (drag)">
           <IconButton size="comfortable" aria-label="Pan the view" onPointerDown={startPan}>
             <EditorIcon size="2xl" icon={editorIcons.viewport.pan} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip text="Frame all">
-          <IconButton
-            size="comfortable"
-            aria-label="Frame all"
-            onClick={() => {
-              if (!session?.frame()) viewport.focusOn(viewport.orbitControls.object);
-            }}
-          >
-            <EditorIcon size="2xl" icon={editorIcons.viewport.frame} />
           </IconButton>
         </Tooltip>
         {/* THE PROJECTION THIS BUTTON MEANS IS THE STAGE'S, NOT THE
@@ -434,14 +431,18 @@ export function ViewportFurniture({
           <IconButton
             size="comfortable"
             aria-label="Toggle perspective and orthographic"
-            aria-pressed={drawn === 'orthographic'}
             onClick={() => {
               const next = drawn === 'perspective' ? 'orthographic' : 'perspective';
               if (session) session.setProjection(next);
               else viewport.setProjection(next);
             }}
           >
-            <EditorIcon size="2xl" icon={editorIcons.viewport.projection} />
+            {/* The mark names the projection the view HAS, as Blender's `VIEW_PERSPECTIVE` /
+                `VIEW_ORTHO` do; the button is never shown pressed. */}
+            <EditorIcon
+              size="2xl"
+              icon={drawn === 'orthographic' ? editorIcons.viewport.projectionOrthographic : editorIcons.viewport.projection}
+            />
           </IconButton>
         </Tooltip>
       </div>

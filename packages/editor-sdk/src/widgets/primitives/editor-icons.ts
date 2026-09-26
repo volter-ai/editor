@@ -142,6 +142,8 @@ export const editorIcons = {
      * stays as the drawing, so a set without this key paints what it painted.
      */
     projection: meshGlyph('viewport-projection', faBorderAll),
+    /** The same toggle in an orthographic view: Blender's flat grid (`VIEW_ORTHO`). */
+    projectionOrthographic: meshGlyph('viewport-orthographic', faBorderAll),
   },
   /**
    * Mesh-modeling operators — the shelf glyphs a modeling document shows

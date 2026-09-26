@@ -94,8 +94,9 @@ export const inspectorBuiltins: readonly string[] = [];
 // Timeline binds a skeleton into the same presented graph and there is exactly
 // one set of presented objects (`blender-runtime-skin.ts`).
 const view = blenderModelView;
-const subscribeView = (listener: () => void) => view.onChange(listener);
-const subjectOfView = () => view.subjectLine();
+/** THE SUBJECT LINE'S FRAME IS THE ONE ON SCREEN: the skin's playhead, which during playback
+ *  runs ahead of `frame_current` (written once, on pause), as Blender's own `(frame)` does. */
+const subjectOfView = () => view.subjectLine(Math.floor(blenderSkin.frame()));
 const gridScale = (worldPerDevicePixel: number) => view.gridUnitName(worldPerDevicePixel);
 
 export default function BlenderModelDocument(props: ToolContributionProps) {
@@ -170,7 +171,30 @@ function BlenderModelViewport({
     [],
   );
   const blend = document?.source?.path;
-  const subject = useSyncExternalStore(subscribeView, subjectOfView);
+  // Re-read on the engine's frames, the skin's publications and every drawn frame of this stage
+  // (playback moves the playhead with no publication); the snapshot is a string, so only a
+  // changed line re-renders.
+  const subscribeSubject = useCallback(
+    (listener: () => void) => {
+      const stopView = view.onChange(listener);
+      const stopSkin = blenderSkin.subscribe(listener);
+      let stopFrame: (() => void) | null = null;
+      const bind = (): void => {
+        stopFrame?.();
+        stopFrame = viewportStages().find((one) => one.documentId === documentId)?.onFrame(listener) ?? null;
+      };
+      bind();
+      const stopStages = onViewportStages(bind);
+      return () => {
+        stopView();
+        stopSkin();
+        stopStages();
+        stopFrame?.();
+      };
+    },
+    [documentId],
+  );
+  const subject = useSyncExternalStore(subscribeSubject, subjectOfView);
   /**
    * THE INSPECTION OVERLAYS ARE HELPERS, and the Helpers menu owns them
    * (WORK.md §Blender in the tab is Blender, "Inspection parity", I4).
@@ -359,11 +383,8 @@ function BlenderModelViewport({
       // "Inspection parity", I3).
       authoring={createBlenderOutlinerAuthoring}
       cameraDirection={[0.8187, 0.4458, 0.3617]}
-      // AND AS FAR BACK AS BLENDER'S STARTUP VIEW STANDS. The direction alone
-      // put the cube where Blender's is but FILLING the frame: the factory
-      // view is 18.39 units from a 2 m cube (`region_3d.view_distance` at
-      // `--factory-startup`), about a third of the size a bare fit gives, which
-      // is the number `openingFit` was written for and nothing was passing.
+      // FOR A FILE THAT SAVED NO 3D VIEW: Blender's factory Modeling direction, standing back
+      // three fits.
       openingFit={3}
       // WHERE BLENDER OPENS THE FILE: its own saved 3D View, when it holds one; the direction and
       // fit above are the fallback for a file that saved none.
