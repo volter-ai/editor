@@ -69,17 +69,13 @@ interface Bounds {
 export const CANVAS_SCENE_BACKGROUND = '#111214';
 
 /** Keep the drafting grid legible without divorcing it from world units.
- * Every visible interval is a power-of-two multiple/division of the canonical
- * 32-unit cell, so grid intersections never swim relative to authored points. */
-function adaptiveGridWorldSpacing(zoom: number): number {
-  let worldUnits = 32;
+ * Every visible interval is a power-of-two multiple/division of the base
+ * cell, so grid intersections never swim relative to authored points. */
+function adaptiveGridWorldSpacing(zoom: number, base = 32): number {
+  let worldUnits = base > 0 ? base : 32;
   while (worldUnits * zoom < 12) worldUnits *= 2;
   while (worldUnits * zoom > 48) worldUnits /= 2;
   return worldUnits;
-}
-
-function adaptiveGridSpacing(zoom: number): number {
-  return adaptiveGridWorldSpacing(zoom) * zoom;
 }
 
 function unionRects(rects: readonly DOMRectLike[]): Bounds | null {
@@ -137,8 +133,13 @@ export function CanvasSceneBackdrop({ view, documentId }: { view: RootViewContro
     useCallback(() => canvasSceneGuideRevision(view), [view]),
   );
   const guides = canvasSceneGuides(view);
-  const minor = adaptiveGridSpacing(pose.zoom);
+  // The grid is drawn at the snap step from its offset, as Godot's is: a snapped move lands on a
+  // drawn line (zoomed out far enough, every other line thins away by powers of two).
+  const grid = store.snap2D;
+  const minor = adaptiveGridWorldSpacing(pose.zoom, grid.step) * pose.zoom;
   const major = minor * 4;
+  const gridX = pose.x + grid.offsetX * pose.zoom;
+  const gridY = pose.y + grid.offsetY * pose.zoom;
   return (
     <div
       data-testid="canvas-scene-backdrop"
@@ -160,7 +161,7 @@ export function CanvasSceneBackdrop({ view, documentId }: { view: RootViewContro
               'linear-gradient(90deg, rgba(255,255,255,.075) 1px, transparent 1px),' +
               'linear-gradient(rgba(255,255,255,.14) 1px, transparent 1px),' +
               'linear-gradient(90deg, rgba(255,255,255,.14) 1px, transparent 1px)',
-            backgroundPosition: `${pose.x}px ${pose.y}px`,
+            backgroundPosition: `${gridX}px ${gridY}px`,
             backgroundSize: `${minor}px ${minor}px, ${minor}px ${minor}px, ${major}px ${major}px, ${major}px ${major}px`,
           }}
         />

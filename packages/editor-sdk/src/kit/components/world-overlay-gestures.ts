@@ -661,7 +661,7 @@ export function computeNativeMoveSnap(
     if (targets.parent && found.paddingBox.width > 0 && found.paddingBox.height > 0) {
       addRect(found.paddingBox, true, true);
     }
-    for (const sibling of found.siblingRects) addRect(sibling, targets.sides, targets.center);
+    if (targets.others) for (const sibling of found.siblingRects) addRect(sibling, true, true);
   }
   if (targets.guides) {
     for (const edge of [...(context?.guideEdges?.x ?? []), ...(authoredGuides.x ?? [])]) {
@@ -695,12 +695,11 @@ export function computeNativeMoveSnap(
 /** Which things a native 2D move aligns to (Godot's Smart Snapping targets). */
 export interface SmartSnapTargets {
   readonly parent: boolean;
-  readonly sides: boolean;
-  readonly center: boolean;
+  readonly others: boolean;
   readonly guides: boolean;
 }
 
-const ALL_SMART_SNAP_TARGETS: SmartSnapTargets = { parent: true, sides: true, center: true, guides: true };
+const ALL_SMART_SNAP_TARGETS: SmartSnapTargets = { parent: true, others: true, guides: true };
 
 /** {@link edgeSnapBox} with the box's centre as a third point that may align, for a move whose
  *  targets include centres. */

@@ -35,13 +35,22 @@ export type PlayEditRegime = 'ephemeral' | null;
 /** The authoring tool a view's gizmo arms. */
 export type TransformMode = 'select' | 'combined' | 'translate' | 'rotate' | 'scale';
 export type TransformSpace = 'world' | 'local';
-/** Smart snapping's switch and its targets: the parent's box, other nodes' sides and centres, and
- *  the view's guides. */
+/** A 2D scene's snapping options: the grid step and offset in scene pixels; `relative` steps from
+ *  where the node started rather than from the grid; `pixel` rounds a move to whole pixels. */
+export interface Snap2D {
+  readonly step: number;
+  readonly offsetX: number;
+  readonly offsetY: number;
+  readonly relative: boolean;
+  readonly pixel: boolean;
+}
+
+/** Smart snapping's switch and its targets: the parent's box, other nodes (their sides and
+ *  centres), and the view's guides. */
 export interface SmartSnap {
   readonly enabled: boolean;
   readonly parent: boolean;
-  readonly sides: boolean;
-  readonly center: boolean;
+  readonly others: boolean;
   readonly guides: boolean;
 }
 
@@ -254,12 +263,12 @@ export class ShellStore implements ShellDocumentState {
   protected _snapValues = { translate: 1, rotate: 15, scale: 0.25 };
   protected _snapToSurface = false;
   protected _rotationSnap = false;
+  protected _snap2D: Snap2D = { step: 8, offsetX: 0, offsetY: 0, relative: false, pixel: true };
   protected _scaleSnap = false;
   protected _smartSnap: SmartSnap = {
     enabled: false,
     parent: true,
-    sides: true,
-    center: true,
+    others: true,
     guides: true,
   };
   protected _preserveChildrenTransform = false;
@@ -305,6 +314,16 @@ export class ShellStore implements ShellDocumentState {
    *  Snapping Options targets; off by default there, every target on). */
   /** A 2D rotate or scale stepping by its snap value, each its own switch (Godot's Snapping
    *  Options: Use Rotation Snap, Use Scale Snap; both off by default). */
+  /** A 2D scene's snapping options beside the magnet (Godot's Snapping Options and Configure
+   *  Snap): the grid step a snapped move lands on and its offset (8 px, 0), Snap Relative (off) and
+   *  Use Pixel Snap (on). The drawn grid follows the step. */
+  get snap2D(): Readonly<Snap2D> {
+    return this._snap2D;
+  }
+  setSnap2D(choice: Partial<Snap2D>): void {
+    this._snap2D = { ...this._snap2D, ...choice };
+    this._notify();
+  }
   get rotationSnap(): boolean {
     return this._rotationSnap;
   }

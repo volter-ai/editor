@@ -71,7 +71,7 @@ the tool strip and snap control are the kit's `Toolbar.tsx`. Walked on a `canvas
 | Select, with the box's eight handles and the rotate handle | Select mode, which shows the handles | present: on the 2D surface Select is the handle mode, lit when a scene opens, and the strip has no separate Transform button (walked: Select lit on a fresh open and armed 8 handles). Cmd (Ctrl)-drag rotates the selected node about its pivot and Cmd+Alt-drag scales it, wherever the press lands (walked: a Cmd-drag took Target from 0.5 to 1.1958 rad). Alt+Drag move and V (pivot) have no counterpart; our Alt bypasses snap |
 | Shift while resizing from a corner, or on the Scale gizmo | Scale mode's "Shift: Scale proportionally" | present (walked: a Shift-held SE box drag wrote `scale={1.2}`, and Shift on the gizmo's x handle `scale={1.625}`) |
 | Toggle smart snap | Smart snap | present: a move aligns the box's sides or centre to the parent, other nodes' sides and centres, and guides (walked: on writes 580 against a neighbour's edge, off writes the free 581.5) |
-| Toggle snap (Grid Snap in 2D), Snap settings | grid snap, Snapping Options | the translate, rotate and scale steps, and Smart Snapping's targets (Parent, Node Sides, Node Center, Guides). Use Rotation Snap and Use Scale Snap are their own toggles (off), as Godot keeps them; the magnet is the move step's. Partial: the translate step defaults to 1, Godot's grid to 8 px, with no offset; Sides and Center fold in Godot's separate Snap to Other Nodes; Node Anchor, Snap Relative and Use Pixel Snap have no row |
+| Toggle snap (Grid Snap in 2D), Snap settings | grid snap, Snapping Options, Configure Snap | the grid step (8 px) and offset, which the drawn grid follows; Use Rotation Snap, Use Scale Snap, Snap Relative (off) and Use Pixel Snap (on) as Godot keeps them; Smart Snapping's Snap to Parent, Other Nodes and Guides. Walked: step 8 wrote (728, 432); step 10 with offset x 3 wrote (723, 440), the grid redrawn at 10; a free move wrote whole pixels (724, 435); Snap Relative from (724, 435) wrote (748, 451). Other Nodes' own switch is not walked. Partial: Node Anchor has no row (a Pixi node has no anchors); Node Sides and Node Center snap a pivot, which waits on V; Configure Snap's Primary Line Every and the rotation and scale offsets have no field; pixel snap rounds even under a rotated parent, where Godot's does not |
 | Rulers; guides dragged from them, moved, removed by right-click | rulers and guides | present |
 | View menu: Show Grid, Rulers, Guides, Origin, Viewport; Center Selection, Frame Selection, Clear Guides | View | partial: these items are present, each the view's own switch (walked through the menu's clicks); Godot's Grid submenu (Show When Snapping), Show Helpers, Gizmos and the Preview items are not. Our grid is on by default; Godot's frame shows none |
 | The game's viewport rectangle | View › Show Viewport | the manifest's `resolution` from the origin |
@@ -91,11 +91,12 @@ the tool strip and snap control are the kit's `Toolbar.tsx`. Walked on a `canvas
 
 Judged against the references by an independent reviewer on 2026-09-26, ranked. Now present:
 Select as the handle mode, rotation and scale snap under their own toggles, Shift for proportional
-scaling, Center View and a wider zoom, the ruler's Δx and Δy, and Group.
+scaling, Center View and a wider zoom, the ruler's Δx and Δy, Group, and the grid's step and
+offset with Snap to Other Nodes, Snap Relative and Use Pixel Snap.
 
 1. Godot's Alt+Drag move and V (pivot) in Select; our Alt bypasses snap.
-2. Snapping: the grid step at 8 px with an offset, Snap to Other Nodes as its own target, Pixel Snap
-   and Snap Relative.
+2. Snapping's Node Sides and Node Center (they snap a pivot, after V) and Configure Snap's primary
+   line and rotation and scale offsets.
 3. Right-click: Godot's RMB adds a node at the point and Alt+RMB lists the nodes there; ours lists on
    RMB. No List Select or Pivot button.
 4. Lock and Group last only the session; Godot saves them in the scene with a gizmo.

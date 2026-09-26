@@ -183,18 +183,56 @@ function SnapButton({
       {popoverOpen && (
         <EditorPopover className="vgai-snap-popover">
           <Stack gap={2}>
-            <Text variant="caption" tone="muted">
-              Translate
-            </Text>
-            <TextInput
-              type="number"
-              value={store.snapValues.translate}
-              step={0.25}
-              min={0.01}
-              onChange={(event) =>
-                store.setSnapValues({ translate: Number(event.target.value) || 1 })
-              }
-            />
+            {dimensions === '2d' ? (
+              // Godot's Configure Snap: the grid's step and offset, in pixels.
+              <>
+                <Text variant="caption" tone="muted">
+                  Grid Step (px)
+                </Text>
+                <TextInput
+                  type="number"
+                  aria-label="Grid step"
+                  value={store.snap2D.step}
+                  step={1}
+                  min={1}
+                  onChange={(event) => store.setSnap2D({ step: Number(event.target.value) || 8 })}
+                />
+                <Text variant="caption" tone="muted">
+                  Grid Offset (px)
+                </Text>
+                <Inline gap={1}>
+                  <TextInput
+                    type="number"
+                    aria-label="Grid offset x"
+                    value={store.snap2D.offsetX}
+                    step={1}
+                    onChange={(event) => store.setSnap2D({ offsetX: Number(event.target.value) || 0 })}
+                  />
+                  <TextInput
+                    type="number"
+                    aria-label="Grid offset y"
+                    value={store.snap2D.offsetY}
+                    step={1}
+                    onChange={(event) => store.setSnap2D({ offsetY: Number(event.target.value) || 0 })}
+                  />
+                </Inline>
+              </>
+            ) : (
+              <>
+                <Text variant="caption" tone="muted">
+                  Translate
+                </Text>
+                <TextInput
+                  type="number"
+                  value={store.snapValues.translate}
+                  step={0.25}
+                  min={0.01}
+                  onChange={(event) =>
+                    store.setSnapValues({ translate: Number(event.target.value) || 1 })
+                  }
+                />
+              </>
+            )}
             <Text variant="caption" tone="muted">
               Rotate (deg)
             </Text>
@@ -225,6 +263,8 @@ function SnapButton({
                   [
                     ['Use Rotation Snap', store.rotationSnap, () => store.setRotationSnap(!store.rotationSnap)],
                     ['Use Scale Snap', store.scaleSnap, () => store.setScaleSnap(!store.scaleSnap)],
+                    ['Snap Relative', store.snap2D.relative, () => store.setSnap2D({ relative: !store.snap2D.relative })],
+                    ['Use Pixel Snap', store.snap2D.pixel, () => store.setSnap2D({ pixel: !store.snap2D.pixel })],
                   ] as const
                 ).map(([label, on, toggle]) => (
                   <Inline key={label} gap={2} align="center" role="menuitemcheckbox" aria-checked={on} onClick={toggle}>
@@ -238,8 +278,7 @@ function SnapButton({
                 {(
                   [
                     ['parent', 'Snap to Parent'],
-                    ['sides', 'Snap to Node Sides'],
-                    ['center', 'Snap to Node Center'],
+                    ['others', 'Snap to Other Nodes'],
                     ['guides', 'Snap to Guides'],
                   ] as const
                 ).map(([target, label]) => (

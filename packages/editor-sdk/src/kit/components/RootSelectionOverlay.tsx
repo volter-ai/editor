@@ -814,8 +814,8 @@ interface MovePeer {
   readonly nativeOrigin?: { x: number; y: number };
 }
 
-function snapNativeTransform(value: number, enabled: boolean, step: number): number {
-  return enabled && step > 0 ? Math.round(value / step) * step : value;
+function snapNativeTransform(value: number, enabled: boolean, step: number, offset = 0): number {
+  return enabled && step > 0 ? Math.round((value - offset) / step) * step + offset : value;
 }
 
 function nativeScalePatch(
@@ -861,16 +861,17 @@ function nativeMovePatch(
   snapEnabled: boolean,
   altKey: boolean,
   translateStep: number,
+  offset: { readonly x: number; readonly y: number } = { x: 0, y: 0 },
 ): Record<string, number> {
   const origin = gesture.nativeOrigin;
   if (!origin) return {};
   const snap = snapEnabled && !altKey;
   return {
     ...(gesture.moveAxis !== 'y'
-      ? { originX: snapNativeTransform(origin.x + dx, snap, translateStep) }
+      ? { originX: snapNativeTransform(origin.x + dx, snap, translateStep, offset.x) }
       : {}),
     ...(gesture.moveAxis !== 'x'
-      ? { originY: snapNativeTransform(origin.y + dy, snap, translateStep) }
+      ? { originY: snapNativeTransform(origin.y + dy, snap, translateStep, offset.y) }
       : {}),
   };
 }
@@ -1927,7 +1928,12 @@ export function RootSelectionOverlay({
             moveDy,
             store.snapEnabled,
             e.altKey,
-            store.snapValues.translate,
+            // A native (2D) origin steps on the scene's grid, not the 3D translate step; Snap
+            // Relative steps from where the node started instead.
+            store.snap2D.step,
+            store.snap2D.relative
+              ? gesture.nativeOrigin
+              : { x: store.snap2D.offsetX, y: store.snap2D.offsetY },
           );
           const snapped = computeNativeMoveSnap(
             {
@@ -1947,8 +1953,10 @@ export function RootSelectionOverlay({
             },
             store.smartSnap,
           );
-          if (patch['originX'] !== undefined) patch['originX'] = snapped.position.x;
-          if (patch['originY'] !== undefined) patch['originY'] = snapped.position.y;
+          // Use Pixel Snap rounds what the move writes to whole pixels, snapped or free.
+          const pixel = (v: number): number => (store.snap2D.pixel ? Math.round(v) : v);
+          if (patch['originX'] !== undefined) patch['originX'] = pixel(snapped.position.x);
+          if (patch['originY'] !== undefined) patch['originY'] = pixel(snapped.position.y);
           setSnapGuides(snapped.guides);
         } else {
           patch = computeMovePatch(moveDx, moveDy, gesture.origRect, e.altKey, gesture.context);
