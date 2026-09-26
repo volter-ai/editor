@@ -116,7 +116,7 @@ export function isGameCssPath(file: string): boolean {
  * `html`/`body`/`*` rules cannot restyle the editor document. The sibling
  * of {@link shouldShadowGameGlobals} for stylesheets: first-party worlds
  * `import './style.css'`, which Vite injects as a page sheet unless this
- * transform contains it the same way `server/scoped-game-css.ts` contains
+ * transform contains it the same way `@volter/editor-sdk/session/scoped-game-css` contains
  * a declared ingest stylesheet.
  */
 export function shouldScopeGameCss(file: string, roots: Iterable<string>): boolean {

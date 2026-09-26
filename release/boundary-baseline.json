@@ -1,5 +1,4 @@
 [
- "kit-internal  packages/editor-game/src/host/game-realm-page.ts -> @volter/editor-core/game-css-scope-transform",
  "kit-internal  packages/game-editor/node/cli.ts -> @volter/editor-core/server/launcher/control",
  "kit-internal  packages/game-editor/node/cli.ts -> @volter/editor-core/server/launcher/launch",
  "kit-internal  packages/game-editor/node/cli.ts -> @volter/editor-core/server/launcher/session-verbs",

@@ -27,7 +27,7 @@ import { GAME_CSS_SCOPE_SELECTOR } from '@volter/editor-sdk/session/game-css-sco
 import type { Plugin } from 'vite';
 import { isRuntimeInputModule, shouldScopeGameCss, shouldShadowGameGlobals } from './server/game-globals-shadow';
 import { mountIdOf } from './server/project-module-instance';
-import { scopeGameCss } from './server/scoped-game-css';
+import { scopeGameCss } from '@volter/editor-sdk/session/scoped-game-css';
 // The DOM-free prelude module, NOT `src/gated-globals.ts`: this file is reachable
 // from `tsconfig.server.json` (via `server/dev.ts`), which compiles without the
 // DOM lib and so cannot see `window`/`document`/`EventListenerOrEventListenerObject`.

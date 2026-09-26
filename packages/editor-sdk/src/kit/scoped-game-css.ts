@@ -1,7 +1,7 @@
 /**
  * The client half of SCOPED GAME CSS — fetch the open project's page-level
  * stylesheet (already rewritten into `@scope ([data-vgai-game-styles])` by
- * `server/scoped-game-css.ts`), install it ONCE, and report honestly when
+ * `@volter/editor-sdk/session/scoped-game-css`), install it ONCE, and report honestly when
  * there is nothing to install.
  *
  * ONE `<style>` element per project, never one per surface. Every container

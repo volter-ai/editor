@@ -473,6 +473,7 @@
     "storybook": "10.6.0",
     "@types/three": "^0.180.0",
     "mediabunny": "1.56.2",
+    "postcss": "8.5.28",
     "rrweb": "2.1.6",
     "typescript": "^5.6.0",
     "undici": "^7.28.0",

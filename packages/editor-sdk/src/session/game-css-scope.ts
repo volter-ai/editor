@@ -3,7 +3,7 @@
  * an element.
  *
  * A game's page-level stylesheet is served rewritten into
- * `@scope ([data-vgai-game-styles]) { … }` (`server/scoped-game-css.ts`), so
+ * `@scope ([data-vgai-game-styles]) { … }` (`@volter/editor-sdk/session/scoped-game-css`), so
  * the attribute below is the entire contract between the two halves: the
  * server emits the selector, and every host container that owns a game's DOM
  * wears the attribute. Both sides import it from here rather than spelling it,

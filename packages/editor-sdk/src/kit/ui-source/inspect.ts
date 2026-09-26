@@ -321,7 +321,7 @@ function readRuleProperties(rule: StyleRuleLike): Record<string, string> {
  * `data-vite-dev-id` — a real source file Vite is serving), DESCENDING grouping
  * rules. Descent is the load-bearing half: the dev server wraps a project
  * stylesheet's whole body in `@scope ([data-vgai-game-styles]) { … }`
- * (server/scoped-game-css.ts), so in the served CSSOM every project rule is a
+ * (`@volter/editor-sdk/session/scoped-game-css`), so in the served CSSOM every project rule is a
  * grouping-rule CHILD — a top-level-only walk sees none of them, which is
  * exactly why the Cap-2 cascade route never fired for scoped game CSS. A
  * `@media` group is only entered when its condition currently HOLDS

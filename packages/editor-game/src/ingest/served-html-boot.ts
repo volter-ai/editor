@@ -27,7 +27,7 @@
  *    `document.body` (`setGameSurface`), absolutely positioned and full-size,
  *    so the transplanted body lands in a real box.
  *  - STYLE it. The root's `styles` manifest field serves the bundle's own
- *    stylesheet rewritten into `@scope` (`server/scoped-game-css.ts`), which is
+ *    stylesheet rewritten into `@scope` (`@volter/editor-sdk/session/scoped-game-css`), which is
  *    what turns `#root,body,html{width:100%;height:100%}` into a sized root
  *    without the editor seeing one of those rules. A `<link rel=stylesheet>` in
  *    the document is NOT auto-loaded here: an unscoped page sheet restyles the

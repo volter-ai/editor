@@ -599,7 +599,7 @@
     },
     {
       "source": "packages/editor/server/scoped-game-css.ts",
-      "path": "packages/editor-core/server/scoped-game-css.ts",
+      "path": "packages/editor-sdk/src/session/scoped-game-css.ts",
       "sha256": "94b2375f84928441cadfe0cf7c710358588892ae3b732b8c9a07c2e1d3a14979"
     },
     {
