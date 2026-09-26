@@ -97,6 +97,7 @@ import {
   transformSource,
 } from '../src/source/oid-transform';
 import { planDeleteStory, planRenameStory, planSaveStory } from '../src/source/plan-csf-story';
+import { writePropMember } from '../src/source/prop-member-writer';
 import { planComponentExtraction } from '../src/source/plan-extract-component';
 import { planComponentFork } from '../src/source/plan-fork-component';
 import { planCreateClassRule } from '../src/source/plan-named-style';
@@ -1004,6 +1005,13 @@ function handleProp(
   if (!entry) return { body: { changed: false, error: 'unknown oid' } };
   const src = readSettledSource(entry.file);
   const off = lineColToOffset(src, entry.line, entry.col);
+  // A dotted prop is one member of an object-literal prop (`params.threshold`): the index names
+  // members that way (`authoredProps`), and the member writer rewrites that literal alone.
+  if (prop.includes('.')) {
+    const member = writePropMember(src, off, prop.split('.'), value, { addIfMissing: body['addIfMissing'] === true });
+    if (member.changed) writeEditableSource(entry.file, member.code);
+    return { body: { changed: member.changed, dynamic: member.dynamic, file: entry.file } };
+  }
   // `value: null` is the REMOVAL sentinel, the same shape `/__ui-source/write`
   // uses for `removeStyle` (D-A3). Removing a prop attribute is how the
   // inspector reverts a prop to the component's declared default.

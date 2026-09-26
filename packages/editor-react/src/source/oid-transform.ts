@@ -11,6 +11,7 @@
  * an unrelated line keeps existing ids stable. The `data-oid` lives ONLY in the
  * transformed output, never on disk (the writer edits the original source instead).
  */
+import { isMemberLiteral, memberKey } from './prop-member-writer';
 import ts from 'typescript';
 import {
   environmentBindingsByElement,
@@ -87,8 +88,47 @@ function authoredPropsOf(
         valueText: initializer.expression?.getText(sourceFile) ?? '',
         literal: literalJsxExpression(initializer.expression),
       },
+      ...(initializer.expression ? objectMembersOf(name, initializer.expression, sourceFile) : []),
     ];
   });
+}
+
+/**
+ * The members of an object-literal prop, each as its own authored prop under a dotted name
+ * (`params.threshold`, `params.bands.0.gain` through an array inside the object), with its own
+ * `literal`: `params={{ bank: BANK, program: 48 }}` is computed as a whole, and its `program` is
+ * still a literal a gesture may rewrite (`prop-member-writer.ts`). A top-level array stays one
+ * prop (a position tuple is written whole).
+ */
+function objectMembersOf(
+  prefix: string,
+  expression: ts.Expression,
+  sourceFile: ts.SourceFile,
+): NonNullable<OidEntry['authoredProps']> {
+  let node = expression;
+  while (ts.isParenthesizedExpression(node) || ts.isAsExpression(node) || ts.isSatisfiesExpression(node)) node = node.expression;
+  const entries: NonNullable<OidEntry['authoredProps']> = [];
+  const visit = (name: string, value: ts.Expression): void => {
+    let inner = value;
+    while (ts.isParenthesizedExpression(inner) || ts.isAsExpression(inner) || ts.isSatisfiesExpression(inner)) inner = inner.expression;
+    if (ts.isObjectLiteralExpression(inner) || ts.isArrayLiteralExpression(inner)) {
+      walk(name, inner);
+      return;
+    }
+    entries.push({ name, valueText: value.getText(sourceFile), literal: isMemberLiteral(value) });
+  };
+  const walk = (name: string, container: ts.ObjectLiteralExpression | ts.ArrayLiteralExpression): void => {
+    if (ts.isArrayLiteralExpression(container)) {
+      container.elements.forEach((element, index) => visit(`${name}.${index}`, element));
+      return;
+    }
+    for (const property of container.properties) {
+      const key = memberKey(property);
+      if (key !== null && ts.isPropertyAssignment(property)) visit(`${name}.${key}`, property.initializer);
+    }
+  };
+  if (ts.isObjectLiteralExpression(node)) walk(prefix, node);
+  return entries;
 }
 
 /** Persistent oid store: signature -> oid (kept stable across re-transforms). */
