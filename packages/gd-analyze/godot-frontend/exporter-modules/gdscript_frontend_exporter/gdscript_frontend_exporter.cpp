@@ -3,6 +3,7 @@
 #include "build_identity.gen.h"
 
 #include "core/config/project_settings.h"
+#include "core/version.h"
 #include "core/object/class_db.h"
 #include "core/object/script_language.h"
 #include "modules/gdscript/gdscript.h"
@@ -291,10 +292,19 @@ Array encode_diagnostics(const List<GDScriptParser::ParserError> &p_errors) {
 	for (const GDScriptParser::ParserError &error : p_errors) {
 		Dictionary row;
 		row["message"] = error.message;
+#if GODOT_VERSION_MAJOR == 4 && GODOT_VERSION_MINOR < 7
+		// Godot 4.6 records a diagnostic at one position (`ParserError::line/column`); it is
+		// exported as the zero-width span it is.
+		row["startLine"] = error.line;
+		row["startColumn"] = error.column;
+		row["endLine"] = error.line;
+		row["endColumn"] = error.column;
+#else
 		row["startLine"] = error.start_line;
 		row["startColumn"] = error.start_column;
 		row["endLine"] = error.end_line;
 		row["endColumn"] = error.end_column;
+#endif
 		result.push_back(row);
 	}
 	return result;

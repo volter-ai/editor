@@ -571,7 +571,10 @@ export function captureGodotImportToolchainSnapshot(
   const fieldValueAuthority = godotFieldValueAuthority(authority);
   const sceneNodeAuthority = godotSceneNodeAuthority(authority);
   const lifecycleAuthority = godotLifecycleAuthority(authority);
-  const exporter = captureGodotBoundExporterSnapshot(options.boundExporterBinary);
+  const exporter = captureGodotBoundExporterSnapshot(
+    options.boundExporterBinary,
+    authority.officialSourcePatch,
+  );
   const pinned = authority.boundExporter;
   if (pinned === undefined) {
     throw new Error(`Godot ${authority.version}: no bound exporter build is pinned`);

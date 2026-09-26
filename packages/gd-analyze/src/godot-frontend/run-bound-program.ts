@@ -24,17 +24,18 @@ const MODULE_ROOT = path.join(
   PACKAGE_ROOT,
   'godot-frontend/exporter-modules/gdscript_frontend_exporter',
 );
-const OFFICIAL_SOURCE_PATCH = path.join(
-  PACKAGE_ROOT,
-  'godot-frontend/official-source-patches/4.7-selected-call-targets.patch',
-);
+const OFFICIAL_SOURCE_PATCHES = path.join(PACKAGE_ROOT, 'godot-frontend/official-source-patches');
+/** The patch the pinned 4.7 exporter is built with; a revision names its own in its authority. */
+export const DEFAULT_OFFICIAL_SOURCE_PATCH = '4.7-selected-call-targets.patch';
 const EXCLUDED_EXPORTER_FILES = new Set(['build_identity.gen.h']);
 
 function sha256(bytes: Buffer | string): string {
   return createHash('sha256').update(bytes).digest('hex');
 }
 
-export function godotBoundExporterSourceSha256(): string {
+export function godotBoundExporterSourceSha256(
+  officialSourcePatch: string = DEFAULT_OFFICIAL_SOURCE_PATCH,
+): string {
   const rows: string[] = [];
   const visit = (absolute: string): void => {
     const entry = statSync(absolute);
@@ -50,7 +51,7 @@ export function godotBoundExporterSourceSha256(): string {
     );
   };
   visit(MODULE_ROOT);
-  visit(OFFICIAL_SOURCE_PATCH);
+  visit(path.join(OFFICIAL_SOURCE_PATCHES, officialSourcePatch));
   return sha256(rows.sort().join('\n'));
 }
 
@@ -66,7 +67,10 @@ export interface GodotBoundExporterSnapshot {
 }
 
 /** Capture every byte the official frontend process will execute before translation begins. */
-export function captureGodotBoundExporterSnapshot(godotBinary: string): GodotBoundExporterSnapshot {
+export function captureGodotBoundExporterSnapshot(
+  godotBinary: string,
+  officialSourcePatch: string = DEFAULT_OFFICIAL_SOURCE_PATCH,
+): GodotBoundExporterSnapshot {
   const executableBytes = readFileSync(path.resolve(godotBinary));
   const captureScriptBytes = readFileSync(CAPTURE_SCRIPT);
   return {
@@ -75,7 +79,7 @@ export function captureGodotBoundExporterSnapshot(godotBinary: string): GodotBou
     executableSha256: sha256(executableBytes),
     captureScriptBytes,
     captureScriptSha256: sha256(captureScriptBytes),
-    exporterSourceSha256: godotBoundExporterSourceSha256(),
+    exporterSourceSha256: godotBoundExporterSourceSha256(officialSourcePatch),
   };
 }
 

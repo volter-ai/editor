@@ -25,6 +25,8 @@ export interface GodotSourceAuthority {
    * `identity.json` beside the executable; these are that file's digests. Absent means no
    * exporter is pinned, and import refuses.
    */
+  /** The official-source patch its exporter is built with (`godot-frontend/official-source-patches`). */
+  readonly officialSourcePatch?: string;
   readonly boundExporter?: {
     readonly executableSha256: string;
     readonly exporterSourceSha256: string;
@@ -87,12 +89,13 @@ export const GODOT_SOURCE_AUTHORITIES: Readonly<
       executableSha256: '445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f',
       reportedVersion: '4.7.stable.official.5b4e0cb0f',
     },
+    officialSourcePatch: '4.7-selected-call-targets.patch',
     boundExporter: {
-      executableSha256: 'b73109b21332762219075f657bd457a57dbc9ea9068080ea77db66d3d6f56f83',
-      exporterSourceSha256: 'd8052e0e7efed6480f0da1941b4578ab1dd40dbf9d1b842fa3479b7bd56e888b',
+      executableSha256: '5ea293ca807b8f8df01ecd4c29328511bd90c523066ad0175c50e882a178f0e4',
+      exporterSourceSha256: '192b7261de6f7e72f099b0e295fdca5881b5016538d7621ecb3162e4a9f9d5ce',
       sourceTreeSha256: 'b25d23ca60d7a9e99c2cccda9a5a1b2e736e6d0f79a8411d6647dafd4693cbec',
       buildOptions:
-        'platform=macos target=template_debug arch=arm64 dev_build=yes debug_symbols=no lto=none vulkan=no opengl3=no metal=no angle=no accesskit=no sdl=no disable_path_overrides=no modules_enabled_by_default=yes module_gdscript_enabled=yes module_gdscript_frontend_exporter_enabled=yes',
+        'platform=macos target=editor arch=arm64 dev_build=yes debug_symbols=no lto=none vulkan=no opengl3=no metal=no angle=no accesskit=no sdl=no disable_path_overrides=no modules_enabled_by_default=yes module_gdscript_enabled=yes module_gdscript_frontend_exporter_enabled=yes',
     },
   },
 };
@@ -113,6 +116,14 @@ export const GODOT_4_SOURCE_AUTHORITIES: Readonly<Record<'4.6' | '4.7', GodotSou
     officialEditor: {
       executableSha256: '974197a7e6663dba803ae97c3b2d987b77a37b6e70088400ecf0ccc591cbdfbc',
       reportedVersion: '4.6.stable.official.89cea1439',
+    },
+    officialSourcePatch: '4.6-selected-call-targets.patch',
+    boundExporter: {
+      executableSha256: '3c78473c33624019e64472e941e05a36ecef341512188e69589f08d179df94ce',
+      exporterSourceSha256: '68524f497586f0850589b029512829dc9945548989ddc237556f23c6a1167072',
+      sourceTreeSha256: '0bbc5b19dc29cfd69b020f58691dd710539c5e8717dc14082aa963a1be9f57f3',
+      buildOptions:
+        'platform=macos target=editor arch=arm64 dev_build=yes debug_symbols=no lto=none vulkan=no opengl3=no metal=no angle=no accesskit=no sdl=no disable_path_overrides=no modules_enabled_by_default=yes module_gdscript_enabled=yes module_gdscript_frontend_exporter_enabled=yes',
     },
     frontendFiles: GODOT_SOURCE_AUTHORITIES[4].frontendFiles,
     runtimeRoots: GODOT_SOURCE_AUTHORITIES[4].runtimeRoots,
