@@ -1159,6 +1159,9 @@ export function Object3DDocumentViewport({
           commit: commitProjectDocument,
         };
         projectAuthoring = authoring?.(authoringContext) ?? null;
+        // A document's own authoring is built over the default adapter (it is in the context), and
+        // publishes selection in its ids; a source authoring replaces it outright.
+        const presentationAdapter = projectAuthoring ? defaultAdapter : null;
         if (!projectAuthoring && sourceAuthoring) {
           projectAuthoring = sourceAuthoring({
             store,
@@ -1572,7 +1575,13 @@ export function Object3DDocumentViewport({
         store.setOrbitTarget(viewport.orbitControls.target);
         store.objectMap.clear();
         scene.traverse((object) => {
-          const id = adapter.hierarchy.idForObject3D?.(object);
+          // An object the project's adapter cannot name yet (a Blender document names its objects
+          // once the engine's outliner rows arrive, often after this bind) is indexed by the
+          // default adapter's id, the presentation space the project adapter publishes selection
+          // in, so picking and box select reach it from the first frame. The default adapter
+          // keeps this index in that space from then on (`SourceObject3DAuthoringAdapter`).
+          const id =
+            adapter.hierarchy.idForObject3D?.(object) ?? presentationAdapter?.hierarchy.idForObject3D?.(object);
           if (id) store.objectMap.set(id, object);
         });
         if (!host.session) {
