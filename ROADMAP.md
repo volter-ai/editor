@@ -100,11 +100,19 @@ Completion:
 
 Status: proposed; after the first launch, by the owner's launch rule
 Source: vgai-engine `docs/WORK.md` §The Godot lane is ARCHIVED, §The Roblox, Unity and Minecraft lanes are ARCHIVED (owner, 2026-09-19: "incomplete lines of work that won't go into this first launch") and §The launch-scope sweep (owner, 2026-09-20: "for later"). Each line is whole at a tag in `volter-ai/vgai-engine` and comes back from it, never re-derived:
-- the engine compatibility lanes, incomplete when archived (the owner's words), each an analyzer and runtime that brings a game from that engine into VGAI: Godot (`archive/godot-lane-2026-09-19`), Roblox (`archive/roblox-lane-2026-09-19`), Unity (`archive/unity-lane-2026-09-19`) and Minecraft (`archive/minecraft-lane-2026-09-19`)
+- the engine compatibility lanes, incomplete when archived (the owner's words), each an analyzer and runtime that brings a game from that engine into VGAI: Roblox (`archive/roblox-lane-2026-09-19`), Unity (`archive/unity-lane-2026-09-19`) and Minecraft (`archive/minecraft-lane-2026-09-19`); Godot has come back (§godot-lane)
 - the example games (`archive/examples-2026-09-19`); `arena` has already come back
 - the built capabilities held out of the first launch's scope (`archive/launch-scope-2026-09-20`), not unfinished work: several are back in this repository (game audio, the ingest door, collaboration, the asset library, the multiplayer template's Colyseus server); still only at the tag are the netcode, IK, ragdoll, terrain, HUD, sprite and stylized capabilities, the AI generation providers (Fal, Tripo, World Labs, OpenRouter) and the learn site
 Completion:
 - Each line is restored from its tag when the owner calls its turn, or is retired by the owner's word.
+
+## godot-lane: The Godot import lane
+
+Status: active (owner, 2026-09-25: the Godot lane's turn)
+Restored from vgai-engine `archive/godot-lane-2026-09-19` into `packages/gd-analyze`. The design, what was built and the order of work are [docs/GODOT.md](docs/GODOT.md). The compiler has the ruled shape but binds no Godot API; `godot-compat` is the pre-refactor dispatch-table compat, never conformed; one of the twelve corpus games is eligible, and its import stops on 46 read diagnostics.
+Completion:
+- A context-free reviewer passes all ten rows of vgai-engine `docs/ARCHITECTURE-CORE.md` §Migration compiler reference architecture on the lane.
+- Every game in the frozen corpus freshly translates from its pin, builds, boots in the game editor with a silent console, plays, and matches the native game side by side.
 
 ## public-game-release: The game editor's public release
 
