@@ -13,15 +13,15 @@
  * and refuses with the reason and the line that makes it.
  */
 
-import { formatAt, formatPitch, spelledFlat } from '@volter/dawproject/notation';
+import { formatAt, formatDuration, formatPitch, spelledFlat } from '@volter/dawproject/notation';
 import type { Piece, PieceClip, PieceNote, PieceTrack } from '@volter/dawproject/piece';
 import type { ToolNotice } from '@volter/editor-sdk/contributions';
 import { editorHost } from '@volter/editor-sdk/host';
 import { themeVars } from '@volter/editor-sdk/widgets';
-import { type CSSProperties, type PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLivePiece } from './live-piece';
 import { type EngineState, PreviewEngine, trackVoices } from './preview-engine';
-import { propRefusal, readSourceIndex, type SourceIndex, writeProps } from './source-index';
+import { projectPath, propRefusal, readSourceIndex, type SourceIndex, type StructWrite, writeProps, writeStruct } from './source-index';
 
 const HEADER_W = 190;
 const LANE_H = 44;
@@ -250,6 +250,7 @@ export function PieceEditor({
             onMessage={setMessage}
             file={file}
             documentId={documentId}
+            active={active}
           />
         ) : (
           <div style={{ padding: 16, ...small }}>No clips yet. Clips appear here as the piece gains them.</div>
@@ -420,6 +421,50 @@ function ClipBlock(props: {
   );
 }
 
+/**
+ * One entry on the workbench's undo stack for a structural write: undo puts back the whole file
+ * as it was, redo the file as the write left it, each only while the file is still exactly what
+ * the other left (a later edit by anyone, the agent included, makes the entry refuse rather than
+ * overwrite it).
+ */
+function recordStructWrite(
+  label: string,
+  write: StructWrite,
+  file: string | null,
+  documentId: string | null,
+  onMessage: (message: string | null) => void,
+): void {
+  if (file === null) {
+    onMessage(`“${label}” wrote ${write.file}, outside the project, so it cannot be undone here.`);
+    return;
+  }
+  const restore = async (expected: string, next: string): Promise<boolean> => {
+    const files = editorHost().files;
+    const current = await files.read(file);
+    if (current !== expected) {
+      let at = 0;
+      while (at < current.length && current[at] === expected[at]) at++;
+      const line = current.slice(0, at).split('\n').length;
+      onMessage(`${file} changed after “${label}” (line ${line} differs), so it was left as it is.`);
+      return false;
+    }
+    await files.write(file, next);
+    return true;
+  };
+  const fail = (error: unknown): boolean => {
+    onMessage(`“${label}” could not be undone: ${error instanceof Error ? error.message : String(error)}`);
+    return false;
+  };
+  editorHost().history.record({
+    id: globalThis.crypto?.randomUUID?.() ?? `struct-${Date.now()}`,
+    label,
+    resources: [file],
+    document: documentId,
+    undo: () => restore(write.newSource, write.prevSource).catch(fail),
+    redo: () => restore(write.prevSource, write.newSource).catch(fail),
+  });
+}
+
 interface Drag {
   readonly note: PieceNote;
   readonly startX: number;
@@ -439,6 +484,8 @@ function PianoRoll(props: {
   readonly onMessage: (message: string | null) => void;
   readonly file: string;
   readonly documentId: string | null;
+  /** Whether this document is the workbench's active editor: only then does Delete reach it. */
+  readonly active: boolean;
 }) {
   const { clip, color, piece, index, pxPerBeat } = props;
   // The gesture lives in a ref, read and written synchronously by every pointer event; the
@@ -451,6 +498,8 @@ function PianoRoll(props: {
     setDragState(next);
   };
   const [pending, setPending] = useState<ReadonlyMap<string, { time: number; pitch: number }>>(new Map());
+  const [selected, setSelected] = useState<string | null>(null);
+  const grid = useRef<HTMLDivElement | null>(null);
   const scroller = useRef<HTMLDivElement | null>(null);
   const pitches = clip.notes.map((note) => note.pitch);
   const high = Math.min(127, Math.max(...pitches, 72) + 5);
@@ -473,6 +522,7 @@ function PianoRoll(props: {
     }
     (event.target as Element).setPointerCapture(event.pointerId);
     props.onMessage(null);
+    setSelected(note.id);
     setDrag({ note, startX: event.clientX, startY: event.clientY, time: note.time, pitch: note.pitch });
   };
 
@@ -528,6 +578,69 @@ function PianoRoll(props: {
     );
   };
 
+  // Adding and removing notes are structural writes: a new literal `<Note>` in the clip's
+  // source, or the note's element taken out. A note's element must be its own (not one
+  // `.map()` renders many times); a new note goes after the literal note that precedes it in
+  // time, so the source stays in playing order, or at the end of the clip when none does.
+  const deleteNote = (note: PieceNote): void => {
+    if (!note.oid || (piece.oidCounts.get(note.oid) ?? 0) !== 1) {
+      props.onMessage(refusalFor(note, 'at') ?? 'This note has no source element of its own.');
+      return;
+    }
+    props.onMessage(null);
+    setSelected(null);
+    writeStruct(note.oid, 'delete').then(
+      (write) => {
+        if (write) recordStructWrite('Delete Note', write, projectPath(index, props.file, write.file), props.documentId, props.onMessage);
+      },
+      (error: unknown) => props.onMessage(error instanceof Error ? error.message : String(error)),
+    );
+  };
+
+  const addNote = (event: ReactMouseEvent): void => {
+    const box = grid.current?.getBoundingClientRect();
+    if (!box) return;
+    if (!clip.oid || (piece.oidCounts.get(clip.oid) ?? 0) !== 1) {
+      props.onMessage('This clip is generated: one <Clip> in the source renders it more than once, so a note has no single place to go.');
+      return;
+    }
+    const time = Math.max(0, Math.floor((event.clientX - box.left) / pxPerBeat / SNAP) * SNAP);
+    const pitch = Math.max(0, Math.min(127, high - Math.floor((event.clientY - box.top) / ROW_H)));
+    if (time >= clip.duration) return;
+    const literal = clip.notes.filter((note) => note.oid && (piece.oidCounts.get(note.oid) ?? 0) === 1 && refusalFor(note, 'at') === null);
+    const flats = literal.some((note) => spelledFlat(note.written.pitch));
+    const chosen = clip.notes.find((note) => note.id === selected);
+    const dur = chosen ? chosen.written.dur : formatDuration(1);
+    const snippet = `<Note at="${formatAt(clip.time + time, beatsPerBar)}" pitch="${formatPitch(pitch, flats)}" dur="${dur}" />`;
+    const before = literal.filter((note) => note.time <= time).sort((a, b) => a.time - b.time).at(-1);
+    props.onMessage(null);
+    const write = before?.oid ? writeStruct(before.oid, 'create-sibling', snippet) : writeStruct(clip.oid, 'create', snippet);
+    write.then(
+      (result) => {
+        if (result) recordStructWrite('Add Note', result, projectPath(index, props.file, result.file), props.documentId, props.onMessage);
+      },
+      (error: unknown) => props.onMessage(error instanceof Error ? error.message : String(error)),
+    );
+  };
+
+  const deleteRef = useRef<() => void>(() => {});
+  deleteRef.current = () => {
+    const note = clip.notes.find((candidate) => candidate.id === selected);
+    if (note) deleteNote(note);
+  };
+  useEffect(() => {
+    if (!props.active) return;
+    const onKey = (event: KeyboardEvent): void => {
+      const target = event.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
+      if (event.key !== 'Delete' && event.key !== 'Backspace') return;
+      event.preventDefault();
+      deleteRef.current();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [props.active]);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ padding: '3px 10px', ...small, borderBottom: `1px solid ${themeVars.boundary.default}` }}>
@@ -546,17 +659,21 @@ function PianoRoll(props: {
           })}
         </div>
         <div
+          ref={grid}
           style={{ position: 'relative', width, height: rows * ROW_H, flex: 'none' }}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
+          onDoubleClick={(event) => {
+            if (event.target === event.currentTarget || (event.target as HTMLElement).dataset['lane'] === 'row') addNote(event);
+          }}
         >
           {Array.from({ length: rows }, (_, row) => {
             const pitch = high - row;
             const black = [1, 3, 6, 8, 10].includes(pitch % 12);
-            return <div key={pitch} style={{ position: 'absolute', left: 0, right: 0, top: row * ROW_H, height: ROW_H, background: black ? themeVars.surface.inset : 'transparent', opacity: 0.6 }} />;
+            return <div key={pitch} data-lane="row" style={{ position: 'absolute', left: 0, right: 0, top: row * ROW_H, height: ROW_H, background: black ? themeVars.surface.inset : 'transparent', opacity: 0.6 }} />;
           })}
           {Array.from({ length: Math.ceil(Math.max(clip.duration, 4)) + 1 }, (_, beat) => (
-            <span key={beat} style={{ position: 'absolute', left: beat * pxPerBeat, top: 0, bottom: 0, width: 1, background: themeVars.boundary.default, opacity: beat % beatsPerBar === 0 ? 0.9 : 0.3 }} />
+            <span key={beat} style={{ position: 'absolute', left: beat * pxPerBeat, top: 0, bottom: 0, width: 1, pointerEvents: 'none', background: themeVars.boundary.default, opacity: beat % beatsPerBar === 0 ? 0.9 : 0.3 }} />
           ))}
           {clip.notes.map((note) => {
             const moving = drag?.note.id === note.id ? drag : null;
@@ -566,6 +683,7 @@ function PianoRoll(props: {
               <div
                 key={note.id}
                 onPointerDown={(event) => onPointerDown(note, event)}
+                onDoubleClick={() => deleteNote(note)}
                 title={refusal ?? `${note.written.pitch} · ${note.written.at} · ${note.written.dur} · vel ${note.vel}`}
                 style={{
                   position: 'absolute',
@@ -575,7 +693,7 @@ function PianoRoll(props: {
                   height: ROW_H - 2,
                   background: refusal ? 'transparent' : color,
                   opacity: refusal ? 0.75 : 0.35 + 0.65 * note.vel,
-                  border: refusal ? `1px dashed ${color}` : `1px solid ${themeVars.surface.panel}`,
+                  border: refusal ? `1px dashed ${color}` : `1px solid ${note.id === selected ? themeVars.content.primary : themeVars.surface.panel}`,
                   borderRadius: 2,
                   cursor: refusal ? 'not-allowed' : 'grab',
                   boxSizing: 'border-box',

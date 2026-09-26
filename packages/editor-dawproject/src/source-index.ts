@@ -83,3 +83,65 @@ export async function writeProps(oid: string, props: Readonly<Record<string, num
 export function formatNumber(value: number): string {
   return String(Math.round(value * 1e6) / 1e6);
 }
+
+/** What a structural write did to its file: the whole source before and after, for undo. */
+export interface StructWrite {
+  readonly file: string;
+  readonly prevSource: string;
+  readonly newSource: string;
+}
+
+/**
+ * A structural edit through `/__ui-source/struct`: `delete` the element, `create` a `snippet`
+ * as its last child, or `create-sibling` to put the `snippet` right after it. The same route
+ * the UI and scene editors add and remove elements through; its answer carries the whole file
+ * before and after, which is the undo.
+ */
+export async function writeStruct(
+  oid: string,
+  op: 'delete' | 'create' | 'create-sibling',
+  snippet?: string,
+): Promise<StructWrite | null> {
+  const body = { oid, op, ...(snippet === undefined ? {} : { snippet }), ...sourceMutationAttribution() };
+  const response = await fetch('/__ui-source/struct', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (response.status === 409) {
+    await handleProjectMutationFailure(response, {
+      label: op === 'delete' ? 'Delete Note' : 'Add Note',
+      attempted: {},
+      reapply: () => writeStruct(oid, op, snippet).then(() => undefined),
+    });
+    return null;
+  }
+  const answer = (await response.json()) as {
+    changed?: boolean;
+    error?: string;
+    revision?: number;
+    file?: string;
+    prevSource?: string;
+    newSource?: string;
+  };
+  if (!response.ok || answer.error) throw new Error(answer.error ?? `The ${op} failed (${response.status}).`);
+  if (typeof answer.revision === 'number') setCollaborationRevision(answer.revision);
+  if (!answer.changed || answer.file === undefined || answer.prevSource === undefined || answer.newSource === undefined) return null;
+  return { file: answer.file, prevSource: answer.prevSource, newSource: answer.newSource };
+}
+
+/**
+ * A source path as the project's files door names it. The JSX routes answer with absolute
+ * paths, the door takes project-relative ones; the piece's own file, known both ways (its
+ * document names it relative, the index absolute), gives the project's root. `null` for a file
+ * outside the project (an installed package's source).
+ */
+export function projectPath(index: SourceIndex, pieceFile: string, absolute: string): string | null {
+  const suffix = `/${pieceFile}`;
+  for (const entry of index.values()) {
+    if (!entry.file.endsWith(suffix)) continue;
+    const root = entry.file.slice(0, -pieceFile.length);
+    return absolute.startsWith(root) ? absolute.slice(root.length) : null;
+  }
+  return null;
+}
