@@ -1,11 +1,13 @@
 import {
   GODOT_4_7_PROOF_REPRODUCTION_COMMAND,
+  type GodotProofName,
   godotProofIdentities,
 } from '../../godot-frontend/proof-identities';
 import type { SemanticClaimRecord } from '../../godot-frontend/semantic-claims';
 import {
   type GodotAnalysisClaimLiveness,
   type GodotAnalysisRule,
+  type GodotAnalysisRuleId,
   godotAnalysisRuleKey,
 } from '../authority';
 
@@ -109,35 +111,36 @@ function claim(rule: GodotAnalysisRule): SemanticClaimRecord {
 export const GODOT_4_7_ANALYSIS_CLAIMS: readonly SemanticClaimRecord[] =
   GODOT_4_7_ANALYSIS_RULES.map(claim);
 
-// Receiver typing (`src/analyze/call-receivers.ts`) has its own proof: official Godot's
-// `get_node(path).get_class()` and ClassDB's declaring class for every call the analysis typed.
-const RECEIVER_IDENTITIES = godotProofIdentities('receivers');
-const RECEIVER_RULE_IDS = ['scene-node-receiver', 'classdb-method-selection'] as const;
+export const GODOT_4_7_ANALYSIS_LIVENESS: readonly GodotAnalysisClaimLiveness[] =
+  GODOT_4_7_ANALYSIS_CLAIMS.map((entry) => ({
+    claimId: entry.claimId,
+    sourceRevision: SOURCE_REVISION,
+    apiDumpSha256: API_DUMP_SHA256,
+    executableSha256: NATIVE_EXECUTABLE_SHA256,
+    inputSha256: GODOT_4_7_ANALYSIS_INPUT_SHA256,
+    implementationSha256: GODOT_4_7_ANALYSIS_IMPLEMENTATION_SHA256,
+  }));
 
-export const GODOT_4_7_RECEIVER_RULES: readonly GodotAnalysisRule[] = RECEIVER_RULE_IDS.map((id) => ({
-  id,
-  sourceRevision: SOURCE_REVISION,
-  evidenceClaimId: `godot-4.7-analysis-${id}`,
-}));
+type ProofSource = Readonly<{ file: string; symbol: string; line: number }>;
 
-const receiverSources: Readonly<
-  Record<(typeof RECEIVER_RULE_IDS)[number], Readonly<{ file: string; symbol: string; line: number }>>
-> = {
-  'scene-node-receiver': {
-    file: 'scene/main/node.cpp',
-    symbol: 'Node::get_node_or_null',
-    line: 1904,
-  },
-  'classdb-method-selection': {
-    file: 'core/object/class_db.cpp',
-    symbol: 'ClassDB::get_method',
-    line: 1132,
-  },
-};
-
-export const GODOT_4_7_RECEIVER_CLAIMS: readonly SemanticClaimRecord[] = GODOT_4_7_RECEIVER_RULES.map(
-  (rule) => {
-    const source = receiverSources[rule.id as (typeof RECEIVER_RULE_IDS)[number]];
+/** Claims for rules proven by their own proof (its identity set in `proof-<name>.json`). */
+function provenRules(
+  proof: GodotProofName,
+  sources: Readonly<Partial<Record<GodotAnalysisRuleId, ProofSource>>>,
+  callsites: { readonly native: string; readonly target: string; readonly comparator: string },
+): {
+  readonly rules: readonly GodotAnalysisRule[];
+  readonly claims: readonly SemanticClaimRecord[];
+  readonly liveness: readonly GodotAnalysisClaimLiveness[];
+} {
+  const identities = godotProofIdentities(proof);
+  const rules = (Object.keys(sources) as GodotAnalysisRuleId[]).map((id) => ({
+    id,
+    sourceRevision: SOURCE_REVISION,
+    evidenceClaimId: `godot-4.7-analysis-${id}`,
+  }));
+  const claims = rules.map((rule): SemanticClaimRecord => {
+    const source = sources[rule.id] as ProofSource;
     return {
       registryVersion: 1,
       claimId: rule.evidenceClaimId,
@@ -153,41 +156,64 @@ export const GODOT_4_7_RECEIVER_CLAIMS: readonly SemanticClaimRecord[] = GODOT_4
       native: {
         executableSha256: NATIVE_EXECUTABLE_SHA256,
         buildIdentity: 'Godot 4.7-stable official 5b4e0cb0f',
-        inputSha256: RECEIVER_IDENTITIES.input,
-        callsite: 'res://main.gd _ready()',
-        observedOutputSha256: RECEIVER_IDENTITIES.observed,
+        inputSha256: identities.input,
+        callsite: callsites.native,
+        observedOutputSha256: identities.observed,
       },
       target: {
-        implementationSha256: RECEIVER_IDENTITIES.implementation,
-        callsite: 'typeCallReceivers(inputs) through bindGodotProject',
-        observedOutputSha256: RECEIVER_IDENTITIES.observed,
+        implementationSha256: identities.implementation,
+        callsite: callsites.target,
+        observedOutputSha256: identities.observed,
       },
       comparison: {
-        comparator: 'canonical receiver typing exact equality',
+        comparator: callsites.comparator,
         tolerance: 'exact',
-        resultSha256: RECEIVER_IDENTITIES.comparison,
+        resultSha256: identities.comparison,
       },
       reproductionCommand,
     };
+  });
+  const liveness = claims.map((entry) => ({
+    claimId: entry.claimId,
+    sourceRevision: SOURCE_REVISION,
+    apiDumpSha256: API_DUMP_SHA256,
+    executableSha256: NATIVE_EXECUTABLE_SHA256,
+    inputSha256: identities.input,
+    implementationSha256: identities.implementation,
+  }));
+  return { rules, claims, liveness };
+}
+
+// Receiver typing (`src/analyze/call-receivers.ts`): official Godot's
+// `get_node(path).get_class()` and ClassDB's declaring class for every call the analysis typed.
+export const GODOT_4_7_RECEIVER_PROOF = provenRules(
+  'receivers',
+  {
+    'scene-node-receiver': { file: 'scene/main/node.cpp', symbol: 'Node::get_node_or_null', line: 1904 },
+    'classdb-method-selection': { file: 'core/object/class_db.cpp', symbol: 'ClassDB::get_method', line: 1132 },
+  },
+  {
+    native: 'res://main.gd _ready()',
+    target: 'typeCallReceivers(inputs) through bindGodotProject',
+    comparator: 'canonical receiver typing exact equality',
   },
 );
 
-export const GODOT_4_7_RECEIVER_LIVENESS: readonly GodotAnalysisClaimLiveness[] =
-  GODOT_4_7_RECEIVER_CLAIMS.map((entry) => ({
-    claimId: entry.claimId,
-    sourceRevision: SOURCE_REVISION,
-    apiDumpSha256: API_DUMP_SHA256,
-    executableSha256: NATIVE_EXECUTABLE_SHA256,
-    inputSha256: RECEIVER_IDENTITIES.input,
-    implementationSha256: RECEIVER_IDENTITIES.implementation,
-  }));
-
-export const GODOT_4_7_ANALYSIS_LIVENESS: readonly GodotAnalysisClaimLiveness[] =
-  GODOT_4_7_ANALYSIS_CLAIMS.map((entry) => ({
-    claimId: entry.claimId,
-    sourceRevision: SOURCE_REVISION,
-    apiDumpSha256: API_DUMP_SHA256,
-    executableSha256: NATIVE_EXECUTABLE_SHA256,
-    inputSha256: GODOT_4_7_ANALYSIS_INPUT_SHA256,
-    implementationSha256: GODOT_4_7_ANALYSIS_IMPLEMENTATION_SHA256,
-  }));
+// Setting types (`src/analyze/project-setting-types.ts`): official Godot's
+// `typeof(ProjectSettings.get_setting(key))` (and of operators over such values) against the types
+// the analysis gave the same calls.
+export const GODOT_4_7_PROJECT_SETTING_PROOF = provenRules(
+  'project-settings',
+  {
+    'project-setting-type': {
+      file: 'core/config/project_settings.cpp',
+      symbol: 'ProjectSettings::get_setting_with_override',
+      line: 415,
+    },
+  },
+  {
+    native: 'res://main.gd _ready()',
+    target: 'typeProjectSettingValues(inputs) through bindGodotProject',
+    comparator: 'canonical setting types exact equality',
+  },
+);

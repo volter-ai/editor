@@ -140,6 +140,12 @@ export interface GodotApiBuiltinClass {
   readonly operators: readonly string[];
   /** What `value[index]` yields (`Basis` → `Vector3`), where the type is indexable. */
   readonly indexingReturnType?: string;
+  /** Every operator overload: its spelling, right operand type (absent: unary) and result type. */
+  readonly operatorSignatures?: readonly {
+    readonly name: string;
+    readonly rightType?: string;
+    readonly returnType: string;
+  }[];
 }
 
 /**
@@ -731,6 +737,21 @@ function parseGodot4ApiDump(raw: unknown): GodotApiDump {
       ...(typeof entry['indexing_return_type'] === 'string'
         ? { indexingReturnType: entry['indexing_return_type'] }
         : {}),
+      operatorSignatures: optionalList(entry, 'operators', at).flatMap((operator) =>
+        isRecord(operator) &&
+        typeof operator['name'] === 'string' &&
+        typeof operator['return_type'] === 'string'
+          ? [
+              {
+                name: operator['name'],
+                ...(typeof operator['right_type'] === 'string'
+                  ? { rightType: operator['right_type'] }
+                  : {}),
+                returnType: operator['return_type'],
+              },
+            ]
+          : [],
+      ),
       operators: [
         ...new Set(
           optionalList(entry, 'operators', at).map((operator, index) => {

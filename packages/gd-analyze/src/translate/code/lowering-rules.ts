@@ -260,6 +260,11 @@ export class GodotCodeRuleResolver {
     const identity = godotBoundDatatypeIdentity(datatype);
     return (
       this.#datatypes.get(godotDatatypeType(identity)) ??
+      // A typed container (`Array[RID]`, `Dictionary[String, int]`) has its container's
+      // representation whatever its element types: `BUILTIN:Array[*]`.
+      (datatype.kind === 'BUILTIN' && datatype.containerTypes.length > 0
+        ? this.#datatypes.get(`BUILTIN:${datatype.builtinType}[*]`)
+        : undefined) ??
       this.#datatypes.get(godotDatatypeClass(identity))
     );
   }

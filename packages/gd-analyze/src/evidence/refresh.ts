@@ -18,6 +18,7 @@ import { measureFieldValueProof } from './proofs/field-values';
 import { measureLanguageProof } from './proofs/language';
 import { measureLifecycleProof } from './proofs/lifecycle';
 import type { GodotProofMeasurement, GodotProofTools } from './proofs/proof';
+import { measureProjectSettingProof } from './proofs/project-settings';
 import { measureReadProof } from './proofs/read';
 import { measureReceiverProof } from './proofs/receivers';
 import { measureSceneNodeProof } from './proofs/scene-nodes';
@@ -32,6 +33,7 @@ const PROOFS: readonly (readonly [string, (tools: GodotProofTools) => readonly G
   ['read', measureReadProof],
   ['analysis', measureAnalysisProof],
   ['receivers', measureReceiverProof],
+  ['project-settings', measureProjectSettingProof],
   ['field-values', measureFieldValueProof],
   ['scene-nodes', measureSceneNodeProof],
   ['code-seed', measureCodeSeedProof],

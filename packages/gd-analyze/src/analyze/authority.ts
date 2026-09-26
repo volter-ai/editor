@@ -13,7 +13,8 @@ export type GodotAnalysisRuleId =
   | 'scene-class-resolution'
   | 'field-attachment-join'
   | 'scene-node-receiver'
-  | 'classdb-method-selection';
+  | 'classdb-method-selection'
+  | 'project-setting-type';
 
 export interface GodotAnalysisRule {
   readonly id: GodotAnalysisRuleId;

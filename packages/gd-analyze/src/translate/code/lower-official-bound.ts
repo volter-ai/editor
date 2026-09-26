@@ -8,7 +8,7 @@ import type {
   BoundGodotSourceScript,
 } from '../../analyze/bound-project';
 import type { GodotApiDump } from '../../analyze/api-dump';
-import type { GodotBoundNode } from '../../godot-frontend/bound-program';
+import type { GodotBoundNode, GodotBoundScript } from '../../godot-frontend/bound-program';
 import { safeIdent } from '../target-names';
 import type { GodotCodeEvidenceResolver } from './authority';
 import {
@@ -450,6 +450,40 @@ export function implicitReadyChain(
   };
 }
 
+/**
+ * The official program with the Variant values analysis typed from project facts
+ * (`project-setting-type`) given that built-in type, so lowering selects rules and bindings for the
+ * value the call returns at run time. Every other node is the official frontend's, unchanged.
+ */
+function refinedProgram(source: BoundGodotSourceScript): GodotBoundScript {
+  if (source.settingTypes.length === 0) return source.program;
+  const types = new Map(source.settingTypes.map((entry) => [entry.nodeId, entry.builtinType] as const));
+  return {
+    ...source.program,
+    nodes: source.program.nodes.map((node) => {
+      const builtinType = types.get(node.id);
+      if (builtinType === undefined) return node;
+      return {
+        ...node,
+        datatype: {
+          ...node.datatype,
+          kind: 'BUILTIN',
+          typeSource: 'INFERRED',
+          display: builtinType,
+          builtinType,
+          nativeType: '',
+          enumType: '',
+          scriptPath: '',
+          className: '',
+          metaType: false,
+          containerTypes: [],
+          enumValues: [],
+        },
+      } as GodotBoundNode;
+    }),
+  };
+}
+
 function lowerScript(
   project: BoundGodotProject,
   source: BoundGodotSourceScript,
@@ -463,7 +497,7 @@ function lowerScript(
   readonly module: OfficialBoundScriptModulePlan;
   readonly requirements: ClosedOfficialBoundRequirements;
 } {
-  const script = source.program;
+  const script = refinedProgram(source);
   const root = script.nodes[script.rootNodeId];
   if (root?.kind !== 'CLASS') {
     throw new Error(`${script.resPath}: official root is not a CLASS node`);
@@ -494,7 +528,18 @@ function lowerScript(
     context.refuse(root, 'abstract script classes need a target declaration recipe');
   }
   if (source.inheritance.refusal !== undefined) context.refuse(root, source.inheritance.refusal);
-  const classRequirements = context.structural(root, 'class', [], 'class:concrete');
+  const classRequirements = [
+    ...context.structural(root, 'class', [], 'class:concrete'),
+    // The claims that typed Variant values from project facts (refinedProgram).
+    ...[...new Set(source.settingTypes.flatMap((entry) => entry.evidenceClaimIds))].map(
+      (claimId): OfficialBoundLoweringRequirement => ({
+        kind: 'evidence-requirement',
+        layer: 'analysis',
+        claimId,
+        canonicalIdentity: `${project.authority.revision}\0analyze\0project-setting-type`,
+      }),
+    ),
+  ];
   const base = source.inheritance.immediate;
   const carrierRoot = nativeCarrierRoot(project, source);
   const baseRequirements: readonly OfficialBoundLoweringRequirement[] =

@@ -1,3 +1,4 @@
+import { type BoundGodotTypedValue, typeProjectSettingValues } from './project-setting-types';
 import * as path from 'node:path';
 import type {
   GodotBoundClassNode,
@@ -61,6 +62,8 @@ export interface BoundGodotSourceScript {
   readonly callReceivers: readonly BoundGodotCallReceiver[];
   /** Dynamic calls left untyped, each with the reason; lowering refuses them where they stand. */
   readonly untypedCalls: readonly BoundGodotUntypedCall[];
+  /** Variant values the project fixes the type of (`project-setting-type`). */
+  readonly settingTypes: readonly BoundGodotTypedValue[];
 }
 
 export interface BoundGodotScriptFieldAttachmentValue {
@@ -1082,6 +1085,12 @@ export function bindGodotProject(
       ),
       fields: scriptFields(program, attachments, analysisEvidence),
       ...callReceiverFacts(program, attachments),
+      settingTypes: typeProjectSettingValues({
+        program,
+        projectSettings: decoded.projectSettings,
+        apiDump: apiDump.parsed,
+        claim: () => analysisEvidence.liveClaim('project-setting-type'),
+      }),
     };
   });
   const projectClasses: BoundProjectSceneClass[] = scripts.flatMap((script) => {

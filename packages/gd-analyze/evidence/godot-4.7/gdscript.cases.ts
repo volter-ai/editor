@@ -388,6 +388,19 @@ for (const id of ['member-constant-native', 'member-constant-class', 'member-var
   );
 }
 
+// An Array literal is a new JS array of its elements in source order, typed or not (a typed
+// array's element checks never fail on a well-typed program the analyzer accepted).
+for (let elements = 0; elements <= 3; elements += 1) {
+  rule(
+    `array-literal-${String(elements)}`,
+    'ARRAY',
+    'array-literal',
+    Array.from({ length: elements }, () => '*'),
+    '*',
+    structural('array-literal'),
+    { file: COMPILER, symbol: 'GDScriptCompiler::_parse_expression ARRAY', line: 505 },
+  );
+}
 // A Dictionary literal is an insertion-ordered JS Map (godot-compat/dictionary.ts); its keys and
 // values evaluate in source order.
 for (let entries = 0; entries <= 3; entries += 1) {
@@ -482,6 +495,10 @@ const datatypes: GodotLanguageDatatypeDefinition[] = [
   { id: 'datatype-script-class-type', sourceDatatype: 'CLASS:meta:*', targetType: { kind: 'type-reference', name: '$ScriptClass', arguments: [] }, source: { file: 'modules/gdscript/gdscript.h', symbol: 'GDScript (script class as a declared type)', line: 60 } },
   { id: 'datatype-variant', sourceDatatype: 'VARIANT:*', targetType: { kind: 'keyword-type', keyword: 'any' }, source: { file: 'core/variant/variant.h', symbol: 'Variant', line: 91 } },
   { id: 'datatype-dictionary', sourceDatatype: 'BUILTIN:Dictionary', targetType: { kind: 'type-reference', name: 'Map', arguments: [{ kind: 'keyword-type', keyword: 'unknown' }, { kind: 'keyword-type', keyword: 'unknown' }] }, source: { file: 'core/variant/dictionary.h', symbol: 'Dictionary', line: 45 } },
+  // Array is a JS array and Dictionary a JS Map (godot-compat/array.ts, dictionary.ts), typed or not.
+  { id: 'datatype-array', sourceDatatype: 'BUILTIN:Array', targetType: { kind: 'array-type', element: { kind: 'keyword-type', keyword: 'unknown' } }, source: { file: 'core/variant/array.h', symbol: 'Array', line: 49 } },
+  { id: 'datatype-typed-array', sourceDatatype: 'BUILTIN:Array[*]', targetType: { kind: 'array-type', element: { kind: 'keyword-type', keyword: 'unknown' } }, source: { file: 'core/variant/typed_array.h', symbol: 'TypedArray', line: 39 } },
+  { id: 'datatype-typed-dictionary', sourceDatatype: 'BUILTIN:Dictionary[*]', targetType: { kind: 'type-reference', name: 'Map', arguments: [{ kind: 'keyword-type', keyword: 'unknown' }, { kind: 'keyword-type', keyword: 'unknown' }] }, source: { file: 'core/variant/typed_dictionary.h', symbol: 'TypedDictionary', line: 39 } },
   { id: 'datatype-string', sourceDatatype: 'BUILTIN:String', targetType: { kind: 'keyword-type', keyword: 'string' }, source: { file: 'core/string/ustring.h', symbol: 'String', line: 247 } },
   { id: 'datatype-string-name', sourceDatatype: 'BUILTIN:StringName', targetType: { kind: 'keyword-type', keyword: 'string' }, source: { file: 'core/string/string_name.h', symbol: 'StringName', line: 42 } },
   { id: 'datatype-native', sourceDatatype: NATIVE, targetType: { kind: 'keyword-type', keyword: 'object' }, source: { file: 'core/object/object.h', symbol: 'Object', line: 590 } },
@@ -682,6 +699,17 @@ static func strings() -> String:
 
 static func string_name() -> StringName:
 \treturn &"take"
+
+static func typed_arrays() -> Array:
+\tvar ints: Array[int] = []
+\tvar vectors: Array[Vector3] = [Vector3(1.0, 2.0, 3.0)]
+\tvar words: Array[String] = ["a", "b"]
+\tvar plain: Array = [ints, vectors, words]
+\treturn plain
+
+static func typed_dictionary() -> Dictionary:
+\tvar d: Dictionary[String, int] = {"one": 1}
+\treturn d
 
 static func dictionary_empty() -> Dictionary:
 \treturn {}
@@ -1084,6 +1112,8 @@ add('dictionary-literal', 'dictionary_literal', '5', () => [5]);
 cases.push({ id: 'dictionary-constant', call: 'dictionary_constant', comparator: 'exact' });
 cases.push({ id: 'strings', call: 'strings', comparator: 'exact' });
 cases.push({ id: 'dictionary-empty', call: 'dictionary_empty', comparator: 'exact' });
+cases.push({ id: 'typed-arrays', call: 'typed_arrays', comparator: 'exact' });
+cases.push({ id: 'typed-dictionary', call: 'typed_dictionary', comparator: 'exact' });
 add('dictionary-one', 'dictionary_one', '7', () => [7]);
 cases.push({ id: 'string-name', call: 'string_name', comparator: 'exact' });
 for (const call of ['native_constants', 'while_call']) {
