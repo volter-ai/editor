@@ -2689,35 +2689,31 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
    * A mixed explicit+automatic body therefore degrades instead of binding a
    * source tag to the wrong native shape. */
   /**
-   * The physics adapter ONLY while a world is actually stepping.
+   * A body's live colliders or joints, read for the Inspector.
    *
-   * The physics slot refuses by name when no Rapier world is live, and that
-   * is right for its declared members: they are gesture-rate ACTIONS, so a
-   * fabricated empty would be a lie about a sim you just tried to edit. The
-   * two binding
-   * readers below break that premise — they run from `properties()`, which
-   * the Inspector calls on EVERY RENDER — so selecting a physics object in
-   * edit mode threw the refusal up through React and took the whole editor
-   * surface down with it, which then swallowed the edits the human was
-   * making (runhuman pass 96: added jump pads "didn't add", a delete "doesn't
-   * delete", both actually present after a reload).
-   *
-   * So the presence question is asked POSITIVELY, before the call. A binding
-   * ties a source tag to a LIVE native handle; with nothing stepping there
-   * are no handles, and none is the true answer rather than a refusal. Every
-   * gesture-rate call keeps going straight at the slot and stays loud.
+   * These run from `properties()`, which the Inspector calls on EVERY RENDER,
+   * so a physics adapter that refuses a read (no world live yet, a game's own
+   * adapter that throws) must yield no rows rather than take the editor surface
+   * down with it (runhuman pass 96: a throw here swallowed the edits the human
+   * was making). The design world's own `<Physics>` holds real colliders in
+   * Edit even though it never steps, so the read is not gated on Play, the way
+   * a selected body shows its collider in Unity's and Godot's editors.
    */
-  private steppingPhysics(): PhysicsAdapter | null {
-    if (this.store.shell.playState === 'stopped') return null;
-    return this.options.physics?.() ?? null;
+  private physicsRead<T>(read: (physics: PhysicsAdapter) => readonly T[] | undefined): T[] {
+    const physics = this.options.physics?.();
+    if (!physics) return [];
+    try {
+      return [...(read(physics) ?? [])];
+    } catch {
+      return [];
+    }
   }
 
   private colliderBindingsOf(id: string): ColliderSourceBinding[] {
     const rigidBodyOid = this.rigidBodyOidOf(id);
-    const physics = this.steppingPhysics();
-    if (!rigidBodyOid || !physics?.colliders) return [];
+    if (!rigidBodyOid) return [];
     const sourceOids = this.explicitColliderOids(rigidBodyOid);
-    const snapshots = [...physics.colliders(id)];
+    const snapshots = this.physicsRead((physics) => physics.colliders?.(id));
     if (sourceOids.length === 0 || sourceOids.length !== snapshots.length) return [];
     const bindings: ColliderSourceBinding[] = [];
     for (let index = 0; index < sourceOids.length; index += 1) {
@@ -2769,12 +2765,21 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
         : binding.sourceTag === 'CapsuleCollider'
           ? ['Half height', 'Radius']
           : ['Radius'];
+    const args = this.attrsOfOid(binding.sourceOid)?.find((attr) => attr.name === 'args');
+    const readonlyReason = binding.writable
+      ? null
+      : !this.writeBackend?.writeProp
+        ? 'Source writes are unavailable in this session.'
+        : !args?.isLiteral
+          ? `\`<${binding.sourceTag} args>\` is an expression in source, not a number list; edit it there.`
+          : 'This size is computed while the game runs; edit it in source.';
     return labels.map((label, index) => ({
       path: `${COLLIDER_ARG_PATH_PREFIX}${encodeURIComponent(binding.sourceOid)}.arg.${index}`,
       label,
       type: 'number' as const,
       group: humanizeIdentifier(binding.sourceTag),
       readonly: !binding.writable,
+      ...(readonlyReason ? { readonlyReason } : {}),
     }));
   }
 
@@ -2784,9 +2789,8 @@ export class R3fSourceAuthoringAdapter implements AuthoringAdapter {
   private jointBindingsOf(id: string): JointSourceBinding[] {
     const rigidBodyOid = this.rigidBodyOidOf(id);
     const entry = rigidBodyOid ? this.oidIndex.get(rigidBodyOid) : undefined;
-    const physics = this.steppingPhysics();
-    if (!rigidBodyOid || !entry?.jointBindings || !physics?.joints) return [];
-    const snapshots = [...physics.joints(id)];
+    if (!rigidBodyOid || !entry?.jointBindings) return [];
+    const snapshots = this.physicsRead((physics) => physics.joints?.(id));
     if (entry.jointBindings.length !== snapshots.length) return [];
     const result: JointSourceBinding[] = [];
     for (let index = 0; index < entry.jointBindings.length; index += 1) {

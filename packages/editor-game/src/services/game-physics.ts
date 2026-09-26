@@ -105,6 +105,23 @@ export function rapierContextFor(scene: THREE.Object3D): RapierContextValue | nu
   return null;
 }
 
+/**
+ * Resolves once a `<Physics>` world is mounted in the root rendering `scene`,
+ * or after `timeoutMs` without one. `<Physics>` suspends until Rapier's WASM
+ * loads, so a panel that read the body before then has to be told to read again.
+ */
+export function whenRapierWorldMounts(scene: THREE.Object3D, timeoutMs = 60_000): Promise<boolean> {
+  const started = performance.now();
+  return new Promise((resolve) => {
+    const check = (): void => {
+      if (rapierContextFor(scene)) return resolve(true);
+      if (performance.now() - started > timeoutMs) return resolve(false);
+      setTimeout(check, 250);
+    };
+    check();
+  });
+}
+
 /** The object carrying `nodeId` (the editor's `userData.entityId`) inside a body's subtree. */
 function entityObject(states: Iterable<RapierBodyState>, nodeId: string): THREE.Object3D | undefined {
   let found: THREE.Object3D | undefined;

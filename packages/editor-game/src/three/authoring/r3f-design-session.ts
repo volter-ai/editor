@@ -79,6 +79,7 @@ import {
 } from '@volter/editor-sdk/kit/module-fetch-diagnosis';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { withObservedPhysics } from '../../host/adapter-runtime-bindings';
+import { whenRapierWorldMounts } from '../../services/game-physics';
 import { adjudicateThreeEntry } from '../../host/entry-adjudication';
 import { onPlayTransitionSettled } from '@volter/editor-sdk/kit/live-transition';
 import { fetchRawGameManifest } from '@volter/editor-sdk/kit/manifest-project';
@@ -641,6 +642,11 @@ export async function mountR3FDesignSession(
       physics: () => nodeKeyedPhysics(designGame?.systemAdapters.physics),
     });
     composite.replaceChild(worldId, adapter);
+    // A body's colliders appear once the world's `<Physics>` has loaded Rapier;
+    // panels that already read it are told to read again.
+    void whenRapierWorldMounts(first.root.scene as THREE.Object3D).then((mounted) => {
+      if (mounted && !torndown) store.shell.notifyIngestEdit();
+    });
     // The hierarchy can become interactive as soon as the composite child is
     // replaced, while this async mount is still completing. Preserve a user
     // selection made in that window across enterPlayScene(), which clears the
