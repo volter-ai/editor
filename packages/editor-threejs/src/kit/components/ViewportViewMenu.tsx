@@ -78,7 +78,7 @@ export function ViewportViewMenu({
 
   const preset = (view: 'top' | 'front' | 'right'): void => {
     if (session) {
-      session.setViewPreset(view);
+      session.setViewPreset(view, 'view');
       return;
     }
     setThreeViewportProjection('orthographic');

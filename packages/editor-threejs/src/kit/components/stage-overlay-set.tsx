@@ -14,7 +14,11 @@ import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
-import { useViewportChrome } from '@volter/editor-sdk/kit/native-selection-style';
+import {
+  subscribeViewportPresentation,
+  viewPresentation,
+  viewportPresentationVersion,
+} from '@volter/editor-sdk/kit/viewport-presentation';
 import { CameraInfo } from './CameraInfo';
 import { StatsOverlay } from './StatsOverlay';
 import { TransientHintOverlay } from '@volter/editor-sdk/kit/components/TransientHint';
@@ -68,9 +72,10 @@ export function StageOverlaySet({
    *  toggles the prefab's grid and its readout reports the camera its reader
    *  is looking through. */
   const showsSelectionTools = threeSelectionToolsApply(ctx);
-  // The camera readout is the editor's own; a look whose target draws none leaves it off
-  // (`stage.chrome.readout`).
-  const stageChrome = useViewportChrome();
+  // The camera readout is the editor's own; a view whose target draws none leaves it off
+  // (`overlays.cameraReadout`).
+  useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion, viewportPresentationVersion);
+  const cameraReadout = viewPresentation(documentId).overlays.cameraReadout;
   return (
     <>
       {/* THE STAGE'S OWN KEYBOARD is no longer mounted here: this module is
@@ -82,7 +87,7 @@ export function StageOverlaySet({
       {showsSelectionTools ? (
         <>
           <ViewportOverlay store={stageStore} documentId={documentId} />
-          {stageChrome.readout ? <CameraInfo /> : null}
+          {cameraReadout ? <CameraInfo /> : null}
         </>
       ) : null}
       {ctx.surface === 'three' && stageStore.showStats && <StatsOverlay />}

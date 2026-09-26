@@ -335,8 +335,6 @@ export interface NativeViewportChrome {
   readonly viewName: 'text' | 'menu' | 'gizmo' | 'bar';
   readonly tools: 'shelf' | 'bar-start' | 'bar-end';
   readonly display: 'corner' | 'bar-start' | 'bar-end';
-  readonly navigation: boolean;
-  readonly readout: boolean;
 }
 
 /** The chrome's members as one string, a stable snapshot for `useSyncExternalStore`
@@ -348,15 +346,13 @@ export function nativeViewportChromeKey(element?: Element | null): string {
     '--vgai-viewport-chrome-view-name',
     '--vgai-viewport-chrome-tools',
     '--vgai-viewport-chrome-display',
-    '--vgai-viewport-chrome-navigation',
-    '--vgai-viewport-chrome-readout',
   ]
     .map((name) => themeToken(root, name))
     .join('|');
 }
 
 export function viewportChromeFromKey(key: string): NativeViewportChrome {
-  const [bar, viewName, tools, display, navigation, readout] = key.split('|');
+  const [bar, viewName, tools, display] = key.split('|');
   const bars = ['strip', 'pills'] as const;
   const names = ['menu', 'gizmo', 'bar'] as const;
   const places = ['bar-start', 'bar-end'] as const;
@@ -367,8 +363,6 @@ export function viewportChromeFromKey(key: string): NativeViewportChrome {
     viewName: pick(viewName, names, 'text'),
     tools: pick(tools, places, 'shelf'),
     display: pick(display, places, 'corner'),
-    navigation: navigation !== 'false',
-    readout: readout !== 'false',
   };
 }
 
@@ -376,13 +370,23 @@ export function nativeViewportChrome(element?: Element | null): NativeViewportCh
   return viewportChromeFromKey(nativeViewportChromeKey(element));
 }
 
+/** The key, read from the theme only when the theme changes: a stage's furniture re-renders on
+ *  every camera move, and the tokens are computed style. */
+let chromeKey: string | null = null;
 function subscribeViewportChrome(listener: () => void): () => void {
-  return subscribeNativeSelectionTheme(null, listener);
+  return subscribeNativeSelectionTheme(null, () => {
+    chromeKey = nativeViewportChromeKey();
+    listener();
+  });
+}
+function viewportChromeSnapshot(): string {
+  chromeKey ??= nativeViewportChromeKey();
+  return chromeKey;
 }
 
 /** The look's stage chrome, following a change of look. */
 export function useViewportChrome(): NativeViewportChrome {
-  const key = useSyncExternalStore(subscribeViewportChrome, nativeViewportChromeKey, nativeViewportChromeKey);
+  const key = useSyncExternalStore(subscribeViewportChrome, viewportChromeSnapshot, viewportChromeSnapshot);
   return useMemo(() => viewportChromeFromKey(key), [key]);
 }
 

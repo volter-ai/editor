@@ -33,9 +33,8 @@ export const style: StyleContribution = {
     stage: {
       // THE VIEWPORT'S OWN CHROME (`tuto_3d3.png`): the 3D editor's toolbar is a flush band
       // over the view, the tools at its start and the view's controls after them; inside the
-      // view only the "⋮ Perspective" pill at the top-left, which opens the view menu. No zoom
-      // and pan cluster, no camera readout.
-      chrome: { bar: 'strip', viewName: 'menu', tools: 'bar-start', display: 'bar-end', navigation: false, readout: false },
+      // view only the "⋮ Perspective" pill at the top-left, which opens the view menu.
+      chrome: { bar: 'strip', viewName: 'menu', tools: 'bar-start', display: 'bar-end' },
       // The stage's ring radius in CSS px. Godot's gizmo unit is `manipulator_gizmo_size` (80)
       // px on screen (`gizmo_scale = gizmo_size / dd`, `node_3d_editor_plugin.cpp`, at EDSCALE 1
       // in a viewport at least 400 px tall) and its ring stands at `GIZMO_CIRCLE_SIZE` 1.1 of

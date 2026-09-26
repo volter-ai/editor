@@ -55,6 +55,9 @@ export const view: ViewPreset = {
       },
     },
     overlays: {
+      // No zoom and pan buttons under the gizmo and no camera readout: the engine draws neither.
+      navigationControls: false,
+      cameraReadout: false,
       navigation: 'indicator',
       grid: {
         visible: false,

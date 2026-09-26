@@ -155,6 +155,11 @@ export interface ViewportOverlays {
   /** The navigation gizmo: `interactive` (a click turns the view to that axis — Blender's,
    *  Godot's, Unity's), `indicator` (drawn, not clicked — Unreal's axis triad) or `hidden`. */
   readonly navigation: 'interactive' | 'indicator' | 'hidden';
+  /** The zoom and pan buttons under the navigation gizmo (Blender's navigation cluster; the
+   *  game engines draw none), and the camera's position and target along the bottom (the
+   *  editor's own readout; no reference draws one). Where they sit is the look's. */
+  readonly navigationControls: boolean;
+  readonly cameraReadout: boolean;
   /** A floor under what the view shows, taking the preview sun's shadow (Unreal's preview
    *  floor, a Show toggle; the others show none). It lies at the content's lowest point, as
    *  Unreal's asset editors place theirs at the bottom of the mesh's bounds. */
@@ -306,6 +311,8 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
     selection: { outline: true, wire: false, box: false, origins: false },
     axes: 'floor',
     navigation: 'interactive',
+    navigationControls: true,
+    cameraReadout: true,
     floor: { visible: false, color: '#2b3038' },
     drafting: { rulers: true, guides: true, origin: true, viewport: true },
   },

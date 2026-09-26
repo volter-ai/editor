@@ -33,8 +33,8 @@ export const style: StyleContribution = {
     stage: {
       // THE LEVEL VIEWPORT'S OWN CHROME (`level-editor.png`): one row of rounded pills over the
       // view, the view's name ("Perspective") and the view mode ("Lit") at its start and the
-      // transform tools at its end. No zoom and pan cluster, no camera readout.
-      chrome: { bar: 'pills', viewName: 'bar', tools: 'bar-end', display: 'bar-start', navigation: false, readout: false },
+      // transform tools at its end.
+      chrome: { bar: 'pills', viewName: 'bar', tools: 'bar-end', display: 'bar-start' },
       // Unreal keeps its widget a constant size on screen; in `level-editor.png` the Move
       // arrows reach 85 to 100 px from the centre sphere. Fitted, not transcribed: the stage's
       // ring radius is this many CSS px, so the 0.85 tip below stands at 94 px.

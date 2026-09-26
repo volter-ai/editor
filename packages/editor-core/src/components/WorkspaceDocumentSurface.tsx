@@ -109,6 +109,17 @@ export function WorkspaceDocumentSurface({
   // (`workspace-surfaces.css`, "THE STAGE'S BAR"). The tools' place applies only where this
   // host draws them.
   const stageChrome = useViewportChrome();
+  // Only a 3D stage takes it (the one kind of document that registers a stage here), and not a
+  // backdrop world, whose overlays already clear the floating header by their own offset.
+  const placesStage = chrome && stage !== null && stage !== undefined && !backdrop;
+  // The transform tools alone move to the bar; a document's own shelf stays on its rail.
+  const toolsOnBar = placesStage && stageChrome.bar !== 'none' && stageChrome.tools !== 'shelf';
+  const transformTools =
+    driver === 'none' || !TransformTools ? null : (
+      <Suspense fallback={null}>
+        <TransformTools documentId={descriptor.id} />
+      </Suspense>
+    );
   return (
     <div
       className="vgai-dock-document"
@@ -137,30 +148,31 @@ export function WorkspaceDocumentSurface({
         className="vgai-dock-document-content"
         data-workspace-document-id={descriptor.id}
         data-workspace-view-id={viewId}
-        data-vgai-stage-bar={stageChrome.bar === 'none' ? undefined : stageChrome.bar}
-        data-vgai-stage-display={stageChrome.display}
-        data-vgai-stage-tools={driver === 'none' ? undefined : stageChrome.tools}
+        data-vgai-stage-bar={placesStage && stageChrome.bar !== 'none' ? stageChrome.bar : undefined}
+        data-vgai-stage-display={placesStage ? stageChrome.display : undefined}
+        data-vgai-stage-tools={placesStage && driver !== 'none' ? stageChrome.tools : undefined}
       >
         <Content documentId={descriptor.id} {...(viewId ? { viewId } : {})} active={active} />
         {/* THE STAGE'S BAR, when the look draws one: only its band; the controls it carries
             are placed over it by the stylesheet. */}
-        {chrome && stage && stageChrome.bar !== 'none' ? (
+        {placesStage && stageChrome.bar !== 'none' ? (
           <div className="vgai-stage-bar" data-form={stageChrome.bar} aria-hidden="true" />
         ) : null}
         {chrome && (
           <DocumentShelfRail documentId={descriptor.id}>
-            {driver !== 'none' || Shelf ? (
+            {(transformTools && !toolsOnBar) || Shelf ? (
               <>
-                {driver === 'none' || !TransformTools ? null : (
-                  <Suspense fallback={null}>
-                    <TransformTools documentId={descriptor.id} />
-                  </Suspense>
-                )}
+                {toolsOnBar ? null : transformTools}
                 {Shelf ? <Shelf documentId={descriptor.id} active={active} /> : null}
               </>
             ) : null}
           </DocumentShelfRail>
         )}
+        {chrome && toolsOnBar && transformTools ? (
+          <div className="vgai-stage-bar-tools" data-testid={`stage-bar-tools:${descriptor.id}`}>
+            {transformTools}
+          </div>
+        ) : null}
       </div>
     </div>
   );

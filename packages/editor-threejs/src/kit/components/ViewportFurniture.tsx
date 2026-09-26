@@ -40,6 +40,11 @@ import {
 } from '../editor-viewport';
 import { faBars, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 import { stageViewName } from './stage-view-name';
+import {
+  subscribeViewportPresentation,
+  viewPresentation,
+  viewportPresentationVersion,
+} from '@volter/editor-sdk/kit/viewport-presentation';
 import { ViewportViewMenu } from './ViewportViewMenu';
 import {
   lookDeclaresViewportColors,
@@ -206,6 +211,9 @@ export function ViewportFurniture({
   // Blender's, the zoom and pan cluster Blender's alone; Godot names the view in a pill that
   // opens the view menu, Unity under its scene gizmo.
   const chrome = useViewportChrome();
+  // Whether the zoom and pan buttons are drawn at all is the VIEW's (`overlays.navigationControls`).
+  useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion, viewportPresentationVersion);
+  const navigationControls = viewPresentation(documentId).overlays.navigationControls;
   if (!viewport) return null;
   // Blender's view text names the DIRECTION as well as the projection —
   // "Front Orthographic" on numpad 1 (`modeling-front-ortho.png`), "User
@@ -462,7 +470,7 @@ export function ViewportFurniture({
           header's view control and the Home and numpad-period keys, as Blender's is its View
           menu. The Camera button is not drawn yet: looking through a scene camera is not a
           view this stage has. */}
-      {chrome.navigation ? (
+      {navigationControls ? (
       <div
         data-testid="viewport-navigation"
         role="toolbar"
@@ -541,8 +549,9 @@ export function ViewportFurniture({
             </IconButton>
           </Tooltip>
         ) : null}
-        {/* A camera view has its camera's projection, so the toggle stands down in it. */}
-        {through ? null : (
+        {/* A camera view has its camera's projection, so the toggle stands down in it; and where
+            the look puts the view's name under the gizmo, that label is the toggle. */}
+        {through || chrome.viewName === 'gizmo' ? null : (
         <Tooltip text={drawn === 'perspective' ? 'Orthographic' : 'Perspective'}>
           <IconButton
             size="comfortable"

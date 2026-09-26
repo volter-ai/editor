@@ -372,6 +372,8 @@
   pointer-events: none;
 }
 .vgai-stage-bar[data-form="strip"] {
+  /* A toolbar band, not a see-through overlay: nothing under it is picked through it. */
+  pointer-events: auto;
   background: var(--vgai-surface-header);
   border-bottom: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
 }
@@ -397,53 +399,38 @@
   right: var(--vgai-space-2);
 }
 
-/* The transform tools on the bar: the shelf becomes a row at its start or end,
-   its tools the bar's control size. */
-.vgai-dock-document-content[data-vgai-stage-bar]:is([data-vgai-stage-tools="bar-start"], [data-vgai-stage-tools="bar-end"])
-  > .vgai-dock-document-shelf:not(:empty) {
-  --vgai-tool-size: var(--vgai-stage-bar-control);
-  --vgai-tool-width: var(--vgai-stage-bar-control);
+/* The transform tools on the bar (`.vgai-stage-bar-tools`, the host moves them there alone; a
+   document's own shelf stays on its rail): the strip's own row, at the bar's start or end. */
+.vgai-stage-bar-tools {
+  position: absolute;
   top: var(--vgai-stage-bar-inset);
-  width: auto;
-  flex-direction: row;
+  height: var(--vgai-stage-bar-control);
+  z-index: calc(var(--vgai-z-dropdown, 1000) - 1);
+  display: flex;
   align-items: center;
+  pointer-events: auto;
 }
-.vgai-dock-document-content[data-vgai-stage-bar]:is([data-vgai-stage-tools="bar-start"], [data-vgai-stage-tools="bar-end"])
-  > .vgai-dock-document-shelf
-  :is(.vgai-floating-toolbar, .vgai-floating-toolbar > *) {
-  flex-direction: row;
+.vgai-stage-bar-tools .vgai-viewport-toolbar {
+  position: static;
 }
-.vgai-dock-document-content[data-vgai-stage-bar]:is([data-vgai-stage-tools="bar-start"], [data-vgai-stage-tools="bar-end"])
-  > .vgai-dock-document-shelf
-  :is(.vgai-floating-toolbar, .vgai-document-shelf-tools)
-  > * + * {
-  margin-block-start: 0;
-  margin-inline-start: calc(-1 * var(--vgai-stroke-resting));
-}
-.vgai-dock-document-content[data-vgai-stage-bar][data-vgai-stage-tools="bar-start"] > .vgai-dock-document-shelf {
+.vgai-dock-document-content[data-vgai-stage-tools="bar-start"] > .vgai-stage-bar-tools {
   left: var(--vgai-space-2);
 }
-.vgai-dock-document-content[data-vgai-stage-bar][data-vgai-stage-tools="bar-end"] > .vgai-dock-document-shelf {
-  left: auto;
+.vgai-dock-document-content[data-vgai-stage-tools="bar-end"] > .vgai-stage-bar-tools {
   right: var(--vgai-space-2);
 }
 
-/* On a STRIP the controls are flat on the band, as Godot's and Unity's
-   toolbar buttons are; on PILLS each control is its own rounded pill. */
-.vgai-dock-document-content[data-vgai-stage-bar="strip"]:is([data-vgai-stage-tools="bar-start"], [data-vgai-stage-tools="bar-end"])
-  > .vgai-dock-document-shelf
-  .vgai-btn[data-variant="ghost"]:not([aria-pressed="true"]):not(:disabled) {
+/* On a STRIP the controls are flat on the band, as Godot's and Unity's toolbar buttons are; on
+   PILLS each control is its own rounded pill. */
+.vgai-dock-document-content[data-vgai-stage-bar="strip"] > .vgai-stage-bar-tools .vgai-floating-toolbar {
+  padding: 0;
+  border: 0;
   background: none;
-  border-color: transparent;
-}
-.vgai-dock-document-content[data-vgai-stage-bar="strip"]:is([data-vgai-stage-tools="bar-start"], [data-vgai-stage-tools="bar-end"])
-  > .vgai-dock-document-shelf[role="toolbar"]
-  > * {
   box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
-.vgai-dock-document-content[data-vgai-stage-bar="pills"]
-  .vgai-stage-display
-  > * {
+.vgai-dock-document-content[data-vgai-stage-bar="pills"] .vgai-stage-display > * {
   display: inline-flex;
   align-items: center;
   height: var(--vgai-stage-bar-control);
@@ -455,11 +442,14 @@
   .vgai-stage-display {
   gap: var(--vgai-space-2);
 }
-.vgai-dock-document-content[data-vgai-stage-bar="pills"]:is([data-vgai-stage-tools="bar-start"], [data-vgai-stage-tools="bar-end"])
-  > .vgai-dock-document-shelf:not(:empty) {
+.vgai-dock-document-content[data-vgai-stage-bar="pills"] > .vgai-stage-bar-tools .vgai-floating-toolbar {
+  height: var(--vgai-stage-bar-control);
+  padding-block: 0;
   padding-inline: var(--vgai-space-1);
+  border: 0;
   border-radius: var(--vgai-radius-full);
   background: var(--vgai-island-surface, var(--vgai-surface-overlay));
+  box-shadow: none;
 }
 
 /* THE VIEW'S NAME AS A PILL (`stage.chrome.viewName` `menu`, Godot's "⋮ Perspective"): the

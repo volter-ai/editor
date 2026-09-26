@@ -364,8 +364,7 @@ export interface StageContribution {
  * THE VIEWPORT'S OWN CHROME, as each target's viewport arranges it (read from the reference
  * frames, `docs/VIEWPORT-STAGE.md`): a look places the stage's controls, it never adds one.
  * Each member is independently optional; absent keeps the editor's own arrangement (Blender's:
- * the view text top-left, the tool shelf, the display controls in the top-right corner, the
- * zoom and pan cluster, the camera readout).
+ * the view text top-left, the tool shelf, the display controls in the top-right corner).
  *
  * - `bar`: a row across the stage's top. `strip` is a flush panel band (Godot's 3D toolbar,
  *   Unity's Scene view toolbar); `pills` is a row of rounded pills floating over the view
@@ -378,18 +377,15 @@ export interface StageContribution {
  *   bar's `bar-start` (Godot) or `bar-end` (Unreal).
  * - `display`: the display controls (shading, grid, helpers, lights) in the top-right
  *   `corner` or at the bar's `bar-start` (Unity, Unreal) or `bar-end` (Godot).
- * - `navigation`: whether the zoom and pan cluster under the navigation gizmo is drawn
- *   (Blender's only).
- * - `readout`: whether the camera's position and target are drawn at the bottom-left (the
- *   editor's own; no reference draws one).
+ *
+ * Whether the zoom and pan cluster and the camera readout are drawn at all is the view's
+ * (`overlays.navigationControls`, `overlays.cameraReadout`), not the look's.
  */
 export interface StageChromeContribution {
   readonly bar?: 'strip' | 'pills';
   readonly viewName?: 'text' | 'menu' | 'gizmo' | 'bar';
   readonly tools?: 'shelf' | 'bar-start' | 'bar-end';
   readonly display?: 'corner' | 'bar-start' | 'bar-end';
-  readonly navigation?: boolean;
-  readonly readout?: boolean;
 }
 
 /**

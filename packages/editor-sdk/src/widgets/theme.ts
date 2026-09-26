@@ -248,8 +248,6 @@ export interface EditorStage {
       readonly viewName?: 'text' | 'menu' | 'gizmo' | 'bar';
       readonly tools?: 'shelf' | 'bar-start' | 'bar-end';
       readonly display?: 'corner' | 'bar-start' | 'bar-end';
-      readonly navigation?: boolean;
-      readonly readout?: boolean;
     };
 }
 function numberToken(value: number | undefined): string {
@@ -2657,10 +2655,6 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     '--vgai-viewport-chrome-view-name': theme.stage?.chrome?.viewName ?? '',
     '--vgai-viewport-chrome-tools': theme.stage?.chrome?.tools ?? '',
     '--vgai-viewport-chrome-display': theme.stage?.chrome?.display ?? '',
-    '--vgai-viewport-chrome-navigation':
-      theme.stage?.chrome?.navigation === undefined ? '' : `${theme.stage.chrome.navigation}`,
-    '--vgai-viewport-chrome-readout':
-      theme.stage?.chrome?.readout === undefined ? '' : `${theme.stage.chrome.readout}`,
     // The widget classes. Unlike `viewport`, these are never emitted empty:
     // every one paints a control that must stay painted, so an absent group
     // resolves to the surface that call site already read.
