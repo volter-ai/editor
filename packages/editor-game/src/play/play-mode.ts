@@ -126,6 +126,7 @@ import { debugEventsToLogEntries } from './play-log-events';
 import { bindPlayRecordingStop, endPlayRecording } from './play-recording';
 import { createReactPlayAuthoringAdapter } from './react-play-live-authoring';
 import { onThreeStore } from '@volter/editor-threejs/kit/three-state';
+import { presentViewportRoots } from '@volter/editor-threejs/viewport-door';
 
 /** Context needed by the orchestrator (passed from the world root's stage). */
 export interface PlayModeContext {
@@ -1828,7 +1829,7 @@ async function enterPlayModeInner(
     // are the whole layout), Play still adopts its roots, so the hierarchy door and every
     // inspector reach the live objects exactly as they do beside a Scene tab.
     _instance.presentation =
-      editorHost().viewport.presentRoots(session.game.roots) ??
+      presentViewportRoots(session.game.roots) ??
       presentThreeRoots(store, session.game.roots);
     markPlayBootPhase('installing play authoring for each root');
     await installPlayRootAuthoring(

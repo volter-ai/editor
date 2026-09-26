@@ -19,13 +19,12 @@
  * package reads `@volter/editor-sdk/host`'s `viewport` member, which is this.
  */
 
-import type { EditorHostStage, EditorHostViewport, ViewportPresentation, ViewportRig } from '@volter/editor-sdk/host';
-import type { ViewportRoot } from '@volter/editor-sdk/host';
+import type { ViewportDoor, ViewportPresentation, ViewportRig, ViewportRoot, ViewportStage } from './viewport-api';
 import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
 
 type Presenter = (roots: readonly ViewportRoot[]) => ViewportPresentation | null;
 /** An editor-only helper object, typed by the host door it is shown through. */
-type HelperObject = Parameters<EditorHostViewport['setHelper']>[1];
+type HelperObject = Parameters<ViewportDoor['setHelper']>[1];
 type HelperSink = (kind: string, object: HelperObject) => void;
 
 interface Binding {
@@ -74,7 +73,7 @@ function stageStateFor(documentId: string): {
  *  binding's own set, which would strand them on a stage that stops being
  *  primary (or unmounts). */
 const primaryFrameListeners = new Set<(dtSeconds: number) => void>();
-const stageListeners = new Set<(stages: readonly EditorHostStage[]) => void>();
+const stageListeners = new Set<(stages: readonly ViewportStage[]) => void>();
 
 /** THE PRIMARY STAGE: presenting live roots > focused > first bound. */
 function primary(): Binding | null {
@@ -87,7 +86,7 @@ function primary(): Binding | null {
   return bound.values().next().value ?? null;
 }
 
-let stagesCache: readonly EditorHostStage[] | null = null;
+let stagesCache: readonly ViewportStage[] | null = null;
 
 function notifyStages(): void {
   stagesCache = null;
@@ -98,7 +97,7 @@ function notifyStages(): void {
 /** A stage door resolves its binding BY ID on every call, so a door held
  *  across that stage's remount keeps driving the live canvas rather than the
  *  disposed one. */
-function stageDoor(documentId: string, rig: ViewportRig): EditorHostStage {
+function stageDoor(documentId: string, rig: ViewportRig): ViewportStage {
   const state = stageStateFor(documentId);
   return {
     documentId,
@@ -197,7 +196,7 @@ export function onViewportFrame(fn: (dtSeconds: number) => void): () => void {
 }
 
 /** Every bound stage, in bind order. */
-export function viewportStages(): readonly EditorHostStage[] {
+export function viewportStages(): readonly ViewportStage[] {
   if (!stagesCache)
     stagesCache = [...bound.values()].map((binding) => stageDoor(binding.documentId, binding.rig));
   return stagesCache;
@@ -206,7 +205,7 @@ export function viewportStages(): readonly EditorHostStage[] {
 /**
  * WHICH HELPER KINDS A STAGE IS HOLDING — the kinds something has actually
  * shown on it through `setHelper` (`@volter/editor-sdk/host`,
- * `EditorHostStage.setHelper`), cleared ones excluded.
+ * `ViewportStage.setHelper`), cleared ones excluded.
  *
  * It exists because a 3D document's own OVERLAYS MENU must follow what the
  * document put there and nothing else (`Object3DDocumentToolbar`): Blender's
@@ -220,7 +219,7 @@ export function viewportStageHelperKinds(documentId: string): readonly string[] 
   return [...state.helpers].filter(([, object]) => object !== null).map(([kind]) => kind);
 }
 
-export function onViewportStages(fn: (stages: readonly EditorHostStage[]) => void): () => void {
+export function onViewportStages(fn: (stages: readonly ViewportStage[]) => void): () => void {
   stageListeners.add(fn);
   return () => {
     stageListeners.delete(fn);

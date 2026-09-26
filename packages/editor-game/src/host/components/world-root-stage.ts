@@ -26,7 +26,6 @@ import {
   registerStudioPreset,
   type StudioPreset,
 } from '@volter/editor-sdk/kit/viewport-presentation';
-import type { ViewportPresentation, ViewportRoot } from '@volter/editor-sdk/host';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { createPerformanceProfiler } from '@volter/game-runtime/dev/performance-profiler';
 import { createWebGLGpuTimer } from '@volter/game-runtime/dev/webgl-gpu-timer';
@@ -107,6 +106,7 @@ import { presentThreeRoots } from '../viewport-root-presentation';
 import { isEditorViewportShadingTarget } from '@volter/editor-threejs/kit/viewport-shading-boundary';
 import { downloadOnlineAssetWithHistory } from '@volter/editor-sdk/kit/components/asset-editor-persistence';
 import { bindStagePresenceMarkers } from '@volter/editor-threejs/kit/components/stage-presence-markers';
+import type { ViewportPresentation, ViewportRoot } from '@volter/editor-threejs/viewport-api';
 
 /** Everything the world root's stage hands its medium's design session: the stage's own three
  *  handles. The stage and the medium that registered for `three` agree on it; the kit's mount

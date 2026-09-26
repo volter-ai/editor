@@ -47,6 +47,7 @@ import { bindModelDocument, blenderExecute, openModelDocumentBlend } from '../ho
 import { BlenderObjectModeHeader } from './blender-header-menus';
 import { createBlenderOutlinerAuthoring } from './blender-outliner-authoring';
 import { blenderSkin } from './blender-runtime-skin';
+import { onViewportStages, viewportStages } from '@volter/editor-threejs/viewport-door';
 
 export const point = 'workspace.document';
 export const title = 'Blender Model';
@@ -181,18 +182,17 @@ function BlenderModelViewport({
    */
   useEffect(() => {
     if (!documentId) return;
-    const { viewport } = editorHost();
     const groups = view.overlayGroups();
     const apply = (): void => {
-      const stage = viewport.stages().find((one) => one.documentId === documentId);
+      const stage = viewportStages().find((one) => one.documentId === documentId);
       if (!stage) return;
       for (const { kind, object } of groups) stage.setHelper(kind, object);
     };
     apply();
-    const stop = viewport.onStages(apply);
+    const stop = onViewportStages(apply);
     return () => {
       stop();
-      const stage = viewport.stages().find((one) => one.documentId === documentId);
+      const stage = viewportStages().find((one) => one.documentId === documentId);
       for (const { kind } of groups) stage?.setHelper(kind, null);
     };
   }, [documentId]);
@@ -235,8 +235,7 @@ function BlenderModelViewport({
    */
   useEffect(() => {
     if (!documentId) return;
-    const { viewport } = editorHost();
-    const stageOf = () => viewport.stages().find((one) => one.documentId === documentId);
+    const stageOf = () => viewportStages().find((one) => one.documentId === documentId);
     let framed: ReturnType<typeof stageOf> = undefined;
     let stopFrame: (() => void) | null = null;
     // One getter for the life of the effect, so holding again is not a change; the stand-in is
@@ -258,7 +257,7 @@ function BlenderModelViewport({
     };
     apply();
     const stopPresentation = subscribeViewportPresentation(apply);
-    const stopStages = viewport.onStages(apply);
+    const stopStages = onViewportStages(apply);
     return () => {
       stopPresentation();
       stopStages();

@@ -33,7 +33,7 @@ export type EditorHelperType =
   | 'trigger-volumes'
   | 'skeletons'
   // A package's own helper kind, shown through the editor's viewport door
-  // (`host.viewport.setHelper`): the host lists the kinds it toggles by name,
+  // (the viewport door's `setViewportHelper`): the host lists the kinds it toggles by name,
   // any other follows the master Helpers toggle.
   | (string & {});
 

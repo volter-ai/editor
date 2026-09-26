@@ -248,7 +248,6 @@
     "./kit/stories/story-preview-component": "./src/kit/stories/story-preview-component.ts",
     "./kit/document-stage-sessions": "./src/kit/document-stage-sessions.ts",
     "./kit/hierarchy-row-media": "./src/kit/hierarchy-row-media.ts",
-    "./kit/host-hierarchy-objects": "./src/kit/host-hierarchy-objects.ts",
     "./kit/authoring/active-adapter": "./src/kit/authoring/active-adapter.ts",
     "./kit/authoring/layered-pick": "./src/kit/authoring/layered-pick.ts",
     "./kit/authoring/panel-authoring": "./src/kit/authoring/panel-authoring.ts",
@@ -266,7 +265,6 @@
     "./kit/stage-context": "./src/kit/stage-context.ts",
     "./kit/stage-store-registry": "./src/kit/stage-store-registry.ts",
     "./kit/transform-mode-request": "./src/kit/transform-mode-request.ts",
-    "./kit/viewport-door": "./src/kit/viewport-door.ts",
     "./kit/workspace-document-restore": "./src/kit/workspace-document-restore.ts",
     "./kit/play-camera-flight": "./src/kit/play-camera-flight.ts",
     "./kit/workspace-storage": "./src/kit/workspace-storage.ts"

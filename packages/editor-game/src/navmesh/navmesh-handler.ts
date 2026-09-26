@@ -11,18 +11,20 @@ import {
   navBakeBusy,
   resetNavMeshBaked,
 } from './navmesh-workflow-store';
+import { hostHierarchyObjects } from '@volter/editor-threejs/host-hierarchy-objects';
+import { setViewportHelper, viewportRig } from '@volter/editor-threejs/viewport-door';
 
 /**
  * The game skew's side of the Navigation verbs: bake/clear and the walkable
- * overlay tint, shown through the viewport door (`host.viewport.setHelper`,
+ * overlay tint, shown through the viewport door (`viewport-door`'s `setViewportHelper`,
  * kind `navmesh` — the Helpers menu's own toggle).
  *
  * Started by `contributions/navmesh.service.ts`, so its lifetime is the
  * contribution pass; it used to be a mount effect in the editor's scene panel,
  * which made a host panel the owner of a game-skew tool.
  *
- * It reads the authoring scene through `host.hierarchy.objects()` and the
- * viewport through `host.viewport.setHelper` / `.rig()`, but keeps the
+ * It reads the authoring scene through `host-hierarchy-objects` and the
+ * viewport through `viewport-door`'s `setViewportHelper` / `.rig()`, but keeps the
  * `@editor/authoring/active-systems` import for the adapter itself: the bake
  * collects the PRIMARY AUTHORING mount's walkable meshes, so the adapter it
  * bakes into must be that same mount's — `getActiveSystems()`. The door's
@@ -63,14 +65,14 @@ export function setupNavMeshHandlers(): () => void {
    */
   function collectNavigationIds(role: 'walkable' | 'obstacle'): Set<string> {
     const ids = new Set<string>();
-    for (const [id, obj] of editorHost().hierarchy.objects()) {
+    for (const [id, obj] of (hostHierarchyObjects()?.objects() ?? new Map<string, THREE.Object3D>())) {
       if (getUserData(obj, 'navRole') === role) ids.add(id);
     }
     return ids;
   }
 
   function clearPresentation(): void {
-    editorHost().viewport.setHelper('navmesh', null);
+    setViewportHelper('navmesh', null);
   }
 
   /** Follow late registration/replacement of the primary mounted adapter. A
@@ -101,7 +103,7 @@ export function setupNavMeshHandlers(): () => void {
     markNavMeshBaked();
     // The adapter builds its debug mesh against the editor's scene; without
     // a mounted viewport there is nothing to show it in.
-    const scene = editorHost().viewport.rig()?.scene;
+    const scene = viewportRig()?.scene;
     if (!scene) return;
     let debugMesh: THREE.Object3D | null = null;
     try {
@@ -114,7 +116,7 @@ export function setupNavMeshHandlers(): () => void {
     }
     if (debugMesh) {
       applyWalkableTint(debugMesh);
-      editorHost().viewport.setHelper('navmesh', debugMesh);
+      setViewportHelper('navmesh', debugMesh);
     }
   }
 
@@ -157,7 +159,7 @@ export function setupNavMeshHandlers(): () => void {
     // the bake; obstacles alone can't produce a mesh.
     const meshes: THREE.Mesh[] = [];
     for (const id of [...walkableIds, ...collectNavigationIds('obstacle')]) {
-      const obj = editorHost().hierarchy.objects().get(id);
+      const obj = (hostHierarchyObjects()?.objects() ?? new Map<string, THREE.Object3D>()).get(id);
       if (!obj) continue;
       obj.traverse((child) => {
         if ((child as THREE.Mesh).isMesh) meshes.push(child as THREE.Mesh);
@@ -188,11 +190,11 @@ export function setupNavMeshHandlers(): () => void {
     }
 
     boundNavigation = nav;
-    const scene = editorHost().viewport.rig()?.scene;
+    const scene = viewportRig()?.scene;
     const debugMesh = scene ? nav.debugMesh(scene) : null;
     if (debugMesh) {
       applyWalkableTint(debugMesh);
-      editorHost().viewport.setHelper('navmesh', debugMesh);
+      setViewportHelper('navmesh', debugMesh);
     }
 
     endNavBake(null);
@@ -215,7 +217,7 @@ export function setupNavMeshHandlers(): () => void {
       return;
     }
     try {
-      nav.clear(editorHost().viewport.rig()?.scene ?? new THREE.Scene());
+      nav.clear(viewportRig()?.scene ?? new THREE.Scene());
     } catch (error) {
       editorHost().console.error(`NavMesh clear failed: ${error}`, 'navigation');
       return;

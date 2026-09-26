@@ -3350,7 +3350,7 @@ export class EditorViewport {
 
   /**
    * Show (or clear with null) the editor-only helper of `kind` —
-   * `host.viewport.setHelper`'s implementation. The object joins the editor
+   * `setViewportHelper`'s implementation. The object joins the editor
    * scene as a scene-root helper (`editorHelper`, `editorHelperType = kind`)
    * and follows the Helpers menu's toggle for its kind.
    */

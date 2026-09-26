@@ -8,7 +8,7 @@
  */
 import { registerContributedCommands } from '@volter/editor-sdk/kit/command-registry';
 import { saveThumbnail } from '@volter/editor-sdk/kit/editor-api';
-import { registerHostHierarchyObjects } from '@volter/editor-sdk/kit/host-hierarchy-objects';
+import { registerHostHierarchyObjects } from '../host-hierarchy-objects';
 import { registerObject3DSurfaces } from '@volter/editor-sdk/kit/object3d-surfaces';
 import { registerRendererResourceCounts } from '@volter/editor-sdk/kit/renderer-resource-counts';
 import { interactiveViewportRendererCounts } from './three-viewport/interactive-renderer';

@@ -84,7 +84,7 @@ import {
   markViewportSegment,
   recordViewportFirstFrame,
 } from '@volter/editor-sdk/kit/viewport-activation-timings';
-import { bindViewportRig, runViewportFrame } from '@volter/editor-sdk/kit/viewport-door';
+import { bindViewportRig, runViewportFrame } from '../../viewport-door';
 import {
   notifyWorkspaceDocumentSelectionChanged,
   openWorkspaceDocuments,
@@ -1978,7 +1978,7 @@ export function Object3DDocumentViewport({
             // This host is ONE STAGE among the mounted 3D documents
             // (ARCHITECTURE-CORE §One stage), and it binds under the id of the
             // document it draws, so an SDK reader reaches THIS stage's rig,
-            // helper sink and frame loop through `host.viewport.stages()`.
+            // helper sink and frame loop through the viewport door's `viewportStages()`.
             // It presents no live roots yet — Play's adoption is the world
             // root's, and moves onto this host in unit 3 — so the presenter
             // declines every root rather than pretending to a subject.

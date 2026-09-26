@@ -43,7 +43,7 @@ import {
 import type { HelperVisibility } from '@volter/editor-sdk/kit/shell-store';
 import { object3DDocumentWritePolicy } from '@volter/editor-sdk/kit/object3d-document-write-policy';
 import { stageStore, stageStoresVersion, subscribeStageStores } from '@volter/editor-sdk/kit/stage-store-registry';
-import { viewportStageHelperKinds } from '@volter/editor-sdk/kit/viewport-door';
+import { viewportStageHelperKinds } from '../../viewport-door';
 import {
   type PresentationLayer,
   applyViewPreset,

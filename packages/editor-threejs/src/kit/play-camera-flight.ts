@@ -8,7 +8,7 @@
  * flight pacing rides the editor's own frame clock.
  */
 import { registerPlayCameraFlight, type LiveCameraLookup } from '@volter/editor-sdk/kit/play-camera-flight';
-import { onViewportFrame, viewportRig } from '@volter/editor-sdk/kit/viewport-door';
+import { onViewportFrame, viewportRig } from '../viewport-door';
 import * as THREE from 'three';
 import { threeStoreForHost } from './three-state';
 
@@ -245,7 +245,9 @@ function playTransitionFrame(): void {
   const flight = active.runtime;
 
   // Retarget to the live game camera once it exists (`track`).
-  const liveCamera = active.getLiveCamera?.() ?? null;
+  // The kit hands the lane's lookup over unread; only an `Object3D` is a camera to converge on.
+  const found = active.getLiveCamera?.() ?? null;
+  const liveCamera = (found as Partial<THREE.Object3D> | null)?.isObject3D ? (found as THREE.Object3D) : null;
   if (liveCamera) {
     liveCamera.getWorldPosition(_liveCamPos);
     liveCamera.getWorldQuaternion(_liveCamQuat);

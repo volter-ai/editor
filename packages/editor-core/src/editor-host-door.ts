@@ -112,14 +112,6 @@ import { getSetting, inspectSetting, setSetting, subscribeSettings } from '@volt
 import { onShellStoreChange, shellStoreForHost } from '@volter/editor-sdk/kit/shell-store-door';
 import { captureActiveEditorDocument } from './editor-view-presentation';
 import { focusedStageContext } from '@volter/editor-sdk/kit/stage-context';
-import {
-  onViewportFrame,
-  onViewportStages,
-  presentViewportRoots,
-  setViewportHelper,
-  viewportRig,
-  viewportStages,
-} from '@volter/editor-sdk/kit/viewport-door';
 import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activeWorkspaceDocument,
@@ -128,8 +120,6 @@ import {
   workspaceDocumentRegistryVersion,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { showWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-host-commands';
-import { hostHierarchyObjects } from '@volter/editor-sdk/kit/host-hierarchy-objects';
-import type { EditorHostHierarchy } from '@volter/editor-sdk/host';
 
 /**
  * THE ACTIVE DOCUMENT'S OWN INTERACTION MODE, if it has one.
@@ -151,7 +141,6 @@ function activeStageMode(): string | null {
   const mode: unknown = read.call(context);
   return typeof mode === 'string' ? mode : null;
 }
-const EMPTY_OBJECTS: ReturnType<EditorHostHierarchy['objects']> = new Map();
 
 let outputProvider: EditorHostOutput | null = null;
 
@@ -204,12 +193,6 @@ export function installEditorHostDoor(): void {
       coverage: liveCoverage,
     },
     viewport: {
-      rig: viewportRig,
-      presentRoots: presentViewportRoots,
-      onFrame: onViewportFrame,
-      setHelper: setViewportHelper,
-      stages: viewportStages,
-      onStages: onViewportStages,
       transition: {
         begin: beginLiveTransition,
         ready: notifyPlayTransitionGameReady,
@@ -219,8 +202,6 @@ export function installEditorHostDoor(): void {
       },
     },
     hierarchy: {
-      object: (id) => hostHierarchyObjects()?.object(id) ?? null,
-      objects: () => hostHierarchyObjects()?.objects() ?? EMPTY_OBJECTS,
       subscribe: (listener) => {
         const stopArrival = onShellStoreChange(listener);
         const stop = shellStoreForHost()?.subscribe(listener);
