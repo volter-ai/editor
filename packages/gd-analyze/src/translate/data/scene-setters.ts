@@ -33,7 +33,8 @@ export type SceneSetterLookup = (className: string, property: string) => SceneSe
  * their internal setters, bound in ClassDB: `Curve._data` (`scene/resources/curve.cpp:646`).
  */
 export const INTERNAL_PROPERTY_SETTERS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
-  Curve: { _data: '_set_data' },
+  // `curve.cpp:644`, `:646`.
+  Curve: { _limits: '_set_limits', _data: '_set_data' },
 };
 
 /** Properties whose internal setter forwards to a public method, which the write calls. */
@@ -176,6 +177,15 @@ export type TargetSceneValue =
   | { readonly kind: 'PackedVector3Array'; readonly components: readonly number[] }
   /** A `PackedInt32Array` (a GridMap's `data.cells`), the ints as written. */
   | { readonly kind: 'PackedInt32Array'; readonly components: readonly number[] }
+  /** A `PackedFloat32Array`, or a `PackedColorArray` as r, g, b, a per element. */
+  | { readonly kind: 'PackedFloat32Array' | 'PackedColorArray'; readonly components: readonly number[] }
+  /** An `AABB`: its position's then its size's components. */
+  | { readonly kind: 'AABB'; readonly components: readonly number[] }
+  /**
+   * An untyped `Array` of numbers and vectors (a Curve's `_data` and `_limits`), flat: a vector's
+   * components in its place.
+   */
+  | { readonly kind: 'Array'; readonly components: readonly number[] }
   /** A resource this document declares or references: `SubResource`/`ExtResource` by id. */
   | { readonly kind: 'resource'; readonly reference: 'sub' | 'ext'; readonly id: string };
 
@@ -198,16 +208,31 @@ export function targetSceneValue(value: GodotValue): TargetSceneValue | undefine
           ? { kind: 'resource', reference: value.name === 'SubResource' ? 'sub' : 'ext', id: String(id.value) }
           : undefined;
       }
+      if (value.name === 'PackedFloat32Array' || value.name === 'PackedColorArray') {
+        const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
+        if ((value.name === 'PackedColorArray' && components.length % 4 !== 0) || !components.every((entry): entry is number => entry !== undefined)) return undefined;
+        return { kind: value.name, components };
+      }
       if (value.name === 'PackedVector3Array') {
         const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
         if (components.length % 3 !== 0 || !components.every((entry): entry is number => entry !== undefined)) return undefined;
         return { kind: 'PackedVector3Array', components };
       }
-      const arity = { Vector2: [2], Vector3: [3], Color: [3, 4], Quaternion: [4] }[value.name as 'Vector2' | 'Vector3' | 'Color' | 'Quaternion'];
+      const arity = { Vector2: [2], Vector3: [3], Color: [3, 4], Quaternion: [4], AABB: [6] }[value.name as 'Vector2' | 'Vector3' | 'Color' | 'Quaternion' | 'AABB'];
       if (arity === undefined || !arity.includes(value.args.length)) return undefined;
       const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
       if (!components.every((entry): entry is number => entry !== undefined)) return undefined;
-      return { kind: value.name as 'Vector2' | 'Vector3' | 'Color' | 'Quaternion', components };
+      return { kind: value.name as 'Vector2' | 'Vector3' | 'Color' | 'Quaternion' | 'AABB', components };
+    }
+    case 'array': {
+      if (value.elementType !== undefined) return undefined;
+      const components: number[] = [];
+      for (const item of value.items) {
+        const flat = item.kind === 'number' ? [item.value] : item.kind === 'ctor' && (item.name === 'Vector2' || item.name === 'Vector3') ? item.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined)) : [undefined];
+        if (!flat.every((entry): entry is number => entry !== undefined)) return undefined;
+        components.push(...flat);
+      }
+      return { kind: 'Array', components };
     }
     default:
       return undefined;

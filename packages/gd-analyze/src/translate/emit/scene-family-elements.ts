@@ -412,6 +412,7 @@ const GODOT_ELEMENTS: Readonly<Record<string, readonly [module: string, three: s
   AudioStreamPlayer: ['audio-stream-player', 'Group'],
   AudioStreamPlayer3D: ['audio-stream-player-3d', 'Group'],
   GridMap: ['grid-map', 'Group'],
+  CPUParticles3D: ['cpu-particles-3d', 'Group'],
 };
 
 /** A Godot property's prop name: `anchor_left` is `anchorLeft`, `stream_0/stream` `stream0Stream`. */
@@ -724,10 +725,13 @@ function elementProps(emission: FamilyEmission, nodePath: string, setters: reado
   // The node's metadata entries, one `meta` prop (`Object::_set`, `metadata/NAME`).
   const meta = setters.filter((setter) => setter.setter.exportName === 'set_meta');
   return [
-    ...own.map((setter) =>
+    ...own.flatMap((setter) =>
       setter.setter.exportName === 'godot_grid_map_set_data'
-        ? attribute('data', identifier(dataImport(emission, godotGridMapDataPath(emission.targetPath, nodePath), `${nodePath === '.' ? 'grid' : nodePath} cells`)))
-        : attribute(godotPropName(setter.propertyName), propValue(emission, setter.value)),
+        ? [attribute('data', identifier(dataImport(emission, godotGridMapDataPath(emission.targetPath, nodePath), `${nodePath === '.' ? 'grid' : nodePath} cells`)))]
+        : // Particles draw their mesh as three draws a mesh: its geometry and its surface's material.
+          setter.setter.exportName === 'set_mesh' && setter.setter.module.endsWith('/cpu-particles-3d')
+          ? particleMesh(emission, resourceOf(emission, setter.value))
+          : [attribute(godotPropName(setter.propertyName), propValue(emission, setter.value))],
     ),
     ...(meta.length === 0
       ? []
@@ -750,6 +754,17 @@ export function familyInstanceProps(
   const same = (entry: TargetGodotSceneSetterPlan) =>
     own.some((mine) => mine.setter.exportName === entry.setter.exportName && mine.index === entry.index && JSON.stringify(mine.value) === JSON.stringify(entry.value) && (entry.value.kind !== 'resource' || entry.value.key.startsWith('ext:')));
   return elementProps(emission, node.nodePath, node.setters.filter((entry) => !same(entry)));
+}
+
+/** A particle system's mesh as the three geometry and material it draws, declared once in the module. */
+function particleMesh(emission: FamilyEmission, mesh: TargetGodotSceneResourcePlan | undefined): TargetTsJsxAttribute[] {
+  if (mesh === undefined) return [];
+  const surface = mesh.mesh?.surfaces[0]?.material;
+  const material = mesh.mesh === undefined ? resourceOf(emission, setterValue(mesh.setters, 'set_material')) : surface === undefined ? undefined : emission.resources.get(surface);
+  return [
+    attribute('geometry', identifier(sharedGeometry(emission, mesh))),
+    ...(material === undefined ? [] : [attribute('material', identifier(sharedMaterial(emission, material)))]),
+  ];
 }
 
 /** A carried node's element (tag, family props and resource children), or undefined for another class. */

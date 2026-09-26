@@ -24,6 +24,7 @@ export const GODOT_4_7_PROOF_NAMES = [
   'scene-meshes',
   'scene-audio',
   'scene-gridmap',
+  'scene-particles',
   'scene-imported',
   'scene-physics',
   'scene-idiomatic',

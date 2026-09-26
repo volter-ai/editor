@@ -39,6 +39,15 @@ for (const [name, entries] of [['scale', SCALE], ['shaped', SHAPED]] as const) {
     return entries.map((_, i) => K.get_point_position(k, i));
   });
 }
+// The enemy explosion's scale curve: limits 0 to 3, then points above the default range kept as authored.
+for (const [name, limits] of [['enemy', [0, 3, 0, 1]], ['reset', [0, 3]]] as const) {
+  c.add(`set-limits-${name}`, '_set_limits', ['var k := Curve.new()', `k._limits = [${limits.map(gd).join(', ')}]`, `k._data = ${gdData(SHAPED)}`, 'return [k.min_value, k.max_value, k.min_domain, k.max_domain, k.sample(0.5), k.sample_baked(0.5)]'], () => {
+    const k = K.construct();
+    K._set_limits(k, limits);
+    K._set_data(k, tsData(SHAPED));
+    return [K.get_min_value(k), K.get_max_value(k), k.min_domain, k.max_domain, K.sample(k, 0.5), K.sample_baked(k, 0.5)];
+  });
+}
 c.add('get_point_count', 'get_point_count', ['var k := Curve.new()', `k._data = ${gdData(SHAPED)}`, 'return k.get_point_count()'], () => {
   const k = K.construct();
   K._set_data(k, tsData(SHAPED));

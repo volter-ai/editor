@@ -18,7 +18,7 @@
  */
 
 import type { ReactElement } from 'react';
-import { Color as ThreeColor, Group, InstancedMesh, Matrix4, type Object3D } from 'three';
+import { type BufferGeometry, Color as ThreeColor, Group, InstancedMesh, type Material, Matrix4, type Object3D } from 'three';
 import { godot_base_material_3d_three } from './base-material-3d';
 import { type Color, construct as color } from './color';
 import { type Curve, godot_curve_ensure_default_setup, sample as curveSample } from './curve';
@@ -132,6 +132,10 @@ export interface CPUParticles3D {
   scale_curve: [Curve | null, Curve | null, Curve | null];
   gravity: Vector3;
   mesh: PrimitiveMesh | null;
+  /** The mesh as three draws it, when the scene states it as three's geometry and material. */
+  geometry: BufferGeometry | null;
+  material: Material | null;
+  cast_shadow: boolean;
   inv_emission_transform: T3;
   rng: RandomPCG;
   redraw: boolean;
@@ -606,19 +610,23 @@ const scratchColor = new ThreeColor();
  * colour as the instance colour where the material takes vertex colour as albedo (no alpha).
  */
 function draw(entity: object, s: CPUParticles3D): void {
-  if (s.mesh === null) return;
+  const geometry = s.geometry ?? (s.mesh === null ? null : godot_primitive_mesh_geometry(s.mesh));
+  if (geometry === null) return;
   const count = s.particles.length;
   if (s.drawn === null || s.drawn.count !== count) {
     if (s.drawn !== null) (entity as Object3D).remove(s.drawn);
-    const source = get_material(s.mesh);
-    const drawn = new InstancedMesh(godot_primitive_mesh_geometry(s.mesh), source === null ? undefined : godot_base_material_3d_three(source as never), count);
+    const source = s.mesh === null ? null : get_material(s.mesh);
+    const material = s.material ?? (source === null ? undefined : godot_base_material_3d_three(source as never));
+    const drawn = new InstancedMesh(geometry, material, count);
     drawn.frustumCulled = false;
+    drawn.castShadow = s.cast_shadow;
     godot_node_foreign(drawn);
     (entity as Object3D).add(drawn);
     s.drawn = drawn;
   }
   const drawn = s.drawn;
-  const colored = (drawn.material as { vertexColors?: boolean }).vertexColors === true;
+  // `vertex_color_use_as_albedo`, which three's instance colour always is: set only where Godot uses it.
+  const colored = (drawn.material as Material).userData['vertex_color_use_as_albedo'] === true;
   const d = s.data;
   for (let i = 0; i < count; i += 1) {
     const at = i * 20;
@@ -788,6 +796,9 @@ export function godot_cpu_particles_3d_adopt(entity: object): void {
     scale_curve: [null, null, null],
     gravity: vector3(0, -9.8, 0),
     mesh: null,
+    geometry: null,
+    material: null,
+    cast_shadow: true,
     inv_emission_transform: identity(),
     rng: godot_random_pcg_new(),
     redraw: false,
@@ -988,6 +999,8 @@ export function set_visibility_aabb(self: object, aabb: unknown): void {
 export function set_mesh(self: object, mesh: PrimitiveMesh | null): void {
   const s = stateOf(self, 'set_mesh');
   s.mesh = mesh;
+  s.geometry = null;
+  s.material = null;
   if (s.drawn !== null) (self as Object3D).remove(s.drawn);
   s.drawn = null;
 }
@@ -1203,6 +1216,33 @@ export function godot_cpu_particles_3d_buffer(self: object): Float32Array {
   return stateOf(self, 'buffer').pushed;
 }
 
+/**
+ * The mesh a scene states as three's geometry and its surface's material (`mesh` in Godot): what
+ * the particles draw.
+ *
+ * @godot CPUParticles3D (protocol)
+ * @source scene/3d/cpu_particles_3d.cpp:187
+ */
+export function godot_cpu_particles_3d_draw_with(self: object, geometry: BufferGeometry | undefined, material: Material | undefined): void {
+  const s = stateOf(self, 'mesh');
+  if (geometry !== undefined) s.geometry = geometry;
+  if (material !== undefined) s.material = material;
+  if (s.drawn !== null) (self as Object3D).remove(s.drawn);
+  s.drawn = null;
+}
+
+/**
+ * `cast_shadow` (`GeometryInstance3D::set_cast_shadows_setting`): any setting but off casts.
+ *
+ * @godot CPUParticles3D (protocol)
+ * @source scene/3d/visual_instance_3d.cpp:373
+ */
+export function godot_cpu_particles_3d_cast_shadow(self: object, setting: number): void {
+  const s = stateOf(self, 'cast_shadow');
+  s.cast_shadow = setting !== 0;
+  if (s.drawn !== null) s.drawn.castShadow = s.cast_shadow;
+}
+
 // The node's class, for a CPUParticles3D its JSX declares.
 const CPU_PARTICLES_3D = Object.freeze(['CPUParticles3D', 'GeometryInstance3D', 'VisualInstance3D', 'Node3D', 'Node', 'Object']);
 
@@ -1232,7 +1272,10 @@ const CPU_PARTICLES_3D_ELEMENT: GodotElementClass<Group> = {
     ['fixedFps', (self, value: number) => set_fixed_fps(self, value)],
     ['fractDelta', (self, value: boolean) => set_fractional_delta(self, value)],
     ['visibilityAabb', (self, value: unknown) => set_visibility_aabb(self, value)],
-    ['mesh', (self, value: PrimitiveMesh | null) => set_mesh(self, value)],
+    // The mesh as three's geometry and its surface material, as a scene states a drawn mesh.
+    ['geometry', (self, value: BufferGeometry) => godot_cpu_particles_3d_draw_with(self, value, undefined)],
+    ['material', (self, value: Material) => godot_cpu_particles_3d_draw_with(self, undefined, value)],
+    ['castShadow', (self, value: number) => godot_cpu_particles_3d_cast_shadow(self, value)],
     ['direction', (self, value: readonly [number, number, number]) => set_direction(self, vector3(...value))],
     ['spread', (self, value: number) => set_spread(self, value)],
     ['flatness', (self, value: number) => set_flatness(self, value)],

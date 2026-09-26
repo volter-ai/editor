@@ -157,6 +157,22 @@ export function _set_data(self: Curve, data: readonly unknown[]): void {
 }
 
 /**
+ * The value and domain ranges as the scene stores them (`_limits`: minimum and maximum value, then
+ * domain), without the setters' constraints; any other length resets them to 0 to 1.
+ *
+ * @godot Curve._set_limits
+ * @source scene/resources/curve.cpp:332
+ */
+export function _set_limits(self: Curve, limits: readonly number[]): void {
+  const [minValue, maxValue, minDomain, maxDomain] = limits.length === 4 ? limits.map(f32) : [0, 1, 0, 1];
+  self.min_value = minValue as number;
+  self.max_value = maxValue as number;
+  self.min_domain = minDomain as number;
+  self.max_domain = maxDomain as number;
+  self.dirty = true;
+}
+
+/**
  * Fewer points drop the last ones; more add points at the end of the domain (the first at its
  * start), each at value 0 clamped to the range.
  *
@@ -358,9 +374,9 @@ export function get_max_value(self: Curve): number {
 }
 
 /**
- * A Curve of the properties a scene states, set in the order given: `data` (`_data`: each point's
- * position as two numbers, its two tangents and two modes, flat), `pointCount`, the value range and
- * the bake resolution; an unknown one fails by name.
+ * A Curve of the properties a scene states, set in the order given: `limits` (`_limits`), `data`
+ * (`_data`: each point's position as two numbers, its two tangents and two modes, flat),
+ * `pointCount`, the value range and the bake resolution; an unknown one fails by name.
  *
  * @godot Curve (protocol)
  * @source scene/resources/curve.cpp:41
@@ -373,7 +389,8 @@ export function godot_curve_new(properties: Readonly<Record<string, unknown>> = 
       const entries: unknown[] = [];
       for (let i = 0; i + 6 <= flat.length; i += 6) entries.push(vector2(flat[i] as number, flat[i + 1] as number), flat[i + 2], flat[i + 3], flat[i + 4], flat[i + 5]);
       _set_data(self, entries);
-    } else if (property === 'pointCount') set_point_count(self, value as number);
+    } else if (property === 'limits') _set_limits(self, value as readonly number[]);
+    else if (property === 'pointCount') set_point_count(self, value as number);
     else if (property === 'minValue') set_min_value(self, value as number);
     else if (property === 'maxValue') set_max_value(self, value as number);
     else if (property === 'bakeResolution') set_bake_resolution(self, value as number);

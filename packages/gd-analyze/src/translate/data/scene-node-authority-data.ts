@@ -61,6 +61,12 @@ import {
   GODOT_4_7_AUDIO_RESOURCE_RULES,
 } from './authority/godot-4.7-scene-audio';
 import {
+  GODOT_4_7_PARTICLE_CLAIMS,
+  GODOT_4_7_PARTICLE_LIVENESS,
+  GODOT_4_7_PARTICLE_NODE_RULES,
+  GODOT_4_7_PARTICLE_RESOURCE_RULES,
+} from './authority/godot-4.7-scene-particles';
+import {
   GODOT_4_7_PHYSICS_CLAIMS,
   GODOT_4_7_PHYSICS_LIVENESS,
   GODOT_4_7_PHYSICS_NODE_RULES,
@@ -256,6 +262,21 @@ export const GODOT_SCENE_GRIDMAP_IMPLEMENTATION_FILES = [
   ].map((file) => `${COMPAT}/${file}`),
 ] as const;
 
+/** What the scene-particles proof runs: planning, emission, the particle, curve and gradient compat. */
+export const GODOT_SCENE_PARTICLES_IMPLEMENTATION_FILES = [
+  'packages/gd-analyze/src/analyze/bound-project.ts',
+  'packages/gd-analyze/src/translate/data/scene-document-plan.ts',
+  'packages/gd-analyze/src/translate/data/scene-setters.ts',
+  'packages/gd-analyze/src/translate/emit/direct-scene-syntax.ts',
+  'packages/gd-analyze/src/translate/data/scene-families.ts',
+  'packages/gd-analyze/src/translate/emit/scene-family-elements.ts',
+  'packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts',
+  'packages/gd-analyze/src/translate/artifacts/plan.ts',
+  ...['cpu-particles-3d.ts', 'random-pcg.ts', 'curve.ts', 'gradient.ts', 'react-lifecycle.tsx', 'node.ts', 'node-3d.ts', 'scene-tree.ts', 'primitive-mesh.ts', 'base-material-3d.ts'].map(
+    (file) => `${COMPAT}/${file}`,
+  ),
+] as const;
+
 /** What the scene-imported proof runs: the importer model, planning, emission, packed-scene. */
 export const GODOT_SCENE_IMPORTED_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/src/read/gltf-godot-scene.ts',
@@ -351,6 +372,7 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...GODOT_4_7_MESH_NODE_RULES,
           ...GODOT_4_7_AUDIO_NODE_RULES,
           ...GODOT_4_7_GRIDMAP_NODE_RULES,
+          ...GODOT_4_7_PARTICLE_NODE_RULES,
         ]
       : [],
     placementRules: supported ? GODOT_4_7_SCENE_PLACEMENT_RULES : [],
@@ -367,7 +389,7 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
       : [],
     signalRules: supported ? [...GODOT_4_7_SIGNAL_RULES, ...GODOT_4_7_PHYSICS_SIGNAL_RULES] : [],
     resourceRules: supported
-      ? [...GODOT_4_7_RENDER_RESOURCE_RULES, ...GODOT_4_7_UI_RESOURCE_RULES, ...GODOT_4_7_PHYSICS_RESOURCE_RULES, ...GODOT_4_7_TEXTURE_RESOURCE_RULES, ...GODOT_4_7_MESH_RESOURCE_RULES, ...GODOT_4_7_AUDIO_RESOURCE_RULES, ...GODOT_4_7_GRIDMAP_RESOURCE_RULES]
+      ? [...GODOT_4_7_RENDER_RESOURCE_RULES, ...GODOT_4_7_UI_RESOURCE_RULES, ...GODOT_4_7_PHYSICS_RESOURCE_RULES, ...GODOT_4_7_TEXTURE_RESOURCE_RULES, ...GODOT_4_7_MESH_RESOURCE_RULES, ...GODOT_4_7_AUDIO_RESOURCE_RULES, ...GODOT_4_7_GRIDMAP_RESOURCE_RULES, ...GODOT_4_7_PARTICLE_RESOURCE_RULES]
       : [],
     claims: supported
       ? [
@@ -381,6 +403,7 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...GODOT_4_7_MESH_CLAIMS,
           ...GODOT_4_7_AUDIO_CLAIMS,
           ...GODOT_4_7_GRIDMAP_CLAIMS,
+          ...GODOT_4_7_PARTICLE_CLAIMS,
           ...GODOT_4_7_IDIOMATIC_CLAIMS,
         ]
       : [],
@@ -429,6 +452,10 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...withLiveImplementation(
             GODOT_4_7_GRIDMAP_LIVENESS,
             monorepoImplementationDigest(GODOT_SCENE_GRIDMAP_IMPLEMENTATION_FILES),
+          ),
+          ...withLiveImplementation(
+            GODOT_4_7_PARTICLE_LIVENESS,
+            monorepoImplementationDigest(GODOT_SCENE_PARTICLES_IMPLEMENTATION_FILES),
           ),
         ]
       : [],
