@@ -219,14 +219,15 @@ Open, with what closes each:
   offline null of the two (+1.6 dB at equal level) is not yet a clean reading: in an
   OfflineAudioContext the worklet stayed silent after the preview's channel setup, so the
   instrument has to be settled before its number means anything.
-- Sampled instruments. `sfz-to-sf2` converts SFZ instruments into a SoundFont bank the one
-  engine plays in the editor and the export (no second engine: sfizz's browser build is a 2021
-  fork, and Polyphone's Homebrew cask is disabled), and a track now plays the bank its device
-  names. First unit: VSCO 2 Community Edition's violin section and flute (sustain, vibrato);
-  Harbor rendered with only its flute moved to that bank, level-matched to within 0.5 dB,
-  awaits a listening judgement (`music-probe/out/ab/gm` against `out/ab/vsco`). What follows it:
-  `artic` choosing an articulation's own patch (staccato, pizzicato, tremolo) instead of a
-  shortened sustain, the rest of the library converted, and how a game project gets the bank.
+- Sampled instruments: a listening judgement. VS Chamber Orchestra 2 Community Edition (CC0)
+  builds as 20 banks, one per instrument, 66 patches (`scripts/vsco2-ce`, into
+  `~/.volter/banks/vsco2-ce`, byte-reproducible), through the one engine the editor and the
+  export share. A track plays the bank its device names, `articulations` sends a note's `artic`
+  (staccato, pizzicato, tremolo) to the patch that recorded it, and the drum channel's program
+  chooses the kit. Harbor with every instrument moved to it, each track's level matched to the
+  General MIDI render to 0.0 dB, waits for a listen: `music-probe/out/ab/gm/harbor.ogg` against
+  `out/ab/orchestra/harbor-orchestra.ogg`. Not carried over: SFZ round robins (a SoundFont has
+  none; each set plays its first sample).
 - A section loop's audio equals its bars in the whole piece only where the synthesizer's
   state does not depend on what it played before: events match to the sample, and a pass
   preceded by the same music is bit-identical. In the probe piece, section A′ nulls against
