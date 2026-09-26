@@ -3,6 +3,7 @@
   "files": [
     "src/lib/godot-compat/array.ts",
     "src/lib/godot-compat/basis.ts",
+    "src/lib/godot-compat/callable.ts",
     "src/lib/godot-compat/color.ts",
     "src/lib/godot-compat/dictionary.ts",
     "src/lib/godot-compat/node-process.ts",

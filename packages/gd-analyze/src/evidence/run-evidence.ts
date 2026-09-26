@@ -1095,7 +1095,7 @@ async function runLanguageEvidence(
 
 /** The case files `evidence --refresh` re-runs, in dependency order: compat modules first. */
 export function godotEvidenceCaseNames(): readonly string[] {
-  return ['vector3', 'vector2', 'vector2i', 'vector3i', 'basis', 'transform-3d', 'transform-2d', 'color', 'plane', 'rect2', 'string', 'array', 'dictionary', 'packed-string-array', 'language'];
+  return ['vector3', 'vector2', 'vector2i', 'vector3i', 'basis', 'transform-3d', 'transform-2d', 'color', 'plane', 'rect2', 'string', 'array', 'dictionary', 'packed-string-array', 'callable', 'language'];
 }
 
 export async function runEvidence(
