@@ -8,6 +8,7 @@
  * record says who changed the piece.
  */
 
+import { editorHost } from '@volter/editor-sdk/host';
 import type { OidEntry } from '@volter/editor-sdk/source-authoring';
 import { handleProjectMutationFailure } from '@volter/editor-sdk/kit/source-conflict';
 import {
@@ -16,6 +17,9 @@ import {
 } from '@volter/editor-sdk/kit/editor-session-attribution';
 
 export type SourceIndex = ReadonlyMap<string, OidEntry>;
+
+/** A value a gesture writes into an attribute: `at="9:2"`, `vel={0.6}`, `mute={true}`. */
+export type Literal = number | string | boolean;
 
 export async function readSourceIndex(): Promise<SourceIndex> {
   const response = await fetch('/__ui-source/index');
@@ -54,12 +58,12 @@ export function propRefusal(
  * write it yet; `null` takes the attribute off (the element's default applies again). Resolves
  * `true` when the source changed.
  */
-export async function writeProps(oid: string, props: Readonly<Record<string, number | string | null>>): Promise<boolean> {
+export async function writeProps(oid: string, props: Readonly<Record<string, Literal | null>>): Promise<boolean> {
   let changed = false;
   for (const [prop, value] of Object.entries(props)) {
     // A number is written as a number; a string as the text between an attribute's quotes
     // (`at="9:2.5"`), which is what the JSX writer replaces for a string attribute.
-    const text = typeof value === 'number' ? formatNumber(value) : value;
+    const text = typeof value === 'number' ? formatNumber(value) : typeof value === 'boolean' ? String(value) : value;
     const body = { oid, prop, value: text, addIfMissing: true, ...sourceMutationAttribution() };
     const response = await fetch('/__ui-source/prop', {
       method: 'POST',
@@ -148,4 +152,52 @@ export function projectPath(index: SourceIndex, pieceFile: string, absolute: str
     return absolute.startsWith(root) ? absolute.slice(root.length) : null;
   }
   return null;
+}
+
+/**
+ * Why a gesture may not set `prop` on this element, or `null` when it may: the element must be
+ * the only node its source element rendered, and the prop, when written at all, a literal. An
+ * unwritten prop is fine: the write adds it.
+ */
+export function setRefusal(index: SourceIndex, oid: string | null, prop: string, renderedCount: number): string | null {
+  if (!oid || renderedCount !== 1) return propRefusal(index, oid, prop, renderedCount);
+  const authored = index.get(oid)?.authoredProps?.find((candidate) => candidate.name === prop);
+  return authored && !authored.literal ? propRefusal(index, oid, prop, renderedCount) : null;
+}
+
+/** The literal the element writes for `prop` now, or `null` when it writes none. */
+export function writtenLiteral(index: SourceIndex, oid: string, prop: string): Literal | null {
+  const authored = index.get(oid)?.authoredProps?.find((candidate) => candidate.name === prop);
+  if (!authored) return null;
+  const text = authored.valueText.trim();
+  if (text === '' || text === 'true') return true;
+  if (text === 'false') return false;
+  if (/^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/i.test(text)) return Number(text);
+  const quoted = /^(["'])(.*)\1$/s.exec(text);
+  return quoted ? (quoted[2] ?? '') : text;
+}
+
+/**
+ * Set props on one element as ONE undoable edit on the workbench's stack: undo writes back what
+ * the element wrote before (taking off an attribute it did not write), redo the new values.
+ */
+export async function setProps(
+  label: string,
+  index: SourceIndex,
+  oid: string,
+  props: Readonly<Record<string, Literal | null>>,
+  resource: { readonly file: string; readonly documentId: string | null },
+): Promise<void> {
+  const before: Record<string, Literal | null> = {};
+  for (const prop of Object.keys(props)) before[prop] = writtenLiteral(index, oid, prop);
+  const changed = await writeProps(oid, props);
+  if (!changed) return;
+  editorHost().history.record({
+    id: globalThis.crypto?.randomUUID?.() ?? `${label}-${Date.now()}`,
+    label,
+    resources: [resource.file],
+    document: resource.documentId,
+    undo: () => writeProps(oid, before).then(() => true, () => false),
+    redo: () => writeProps(oid, props).then(() => true, () => false),
+  });
 }

@@ -20,6 +20,7 @@ import { editorHost } from '@volter/editor-sdk/host';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLivePiece } from './live-piece';
+import { Mixer } from './Mixer';
 import { type EngineState, PreviewEngine, trackVoices } from './preview-engine';
 import { projectPath, propRefusal, readSourceIndex, type SourceIndex, type StructWrite, writeProps, writeStruct } from './source-index';
 
@@ -95,6 +96,8 @@ export function PieceEditor({
   const piece = live.piece;
   const [index, setIndex] = useState<SourceIndex>(new Map());
   const [selectedClip, setSelectedClip] = useState<string | null>(null);
+  // The lower pane, as Bitwig's: the selected clip's editor, or the mixer.
+  const [lower, setLower] = useState<'clip' | 'mix'>('clip');
   // Refusals and failed writes are events: they go to the host's notification cards, never into
   // this document's own chrome (ARCHITECTURE-CORE §Editor chrome, "Notices take VS Code's shape").
   const notifyRef = useRef(notify);
@@ -237,8 +240,29 @@ export function PieceEditor({
           voiceless={new Set([...voices].filter(([, voice]) => voice === null).map(([id]) => id))}
         />
       </div>
+      <div style={{ display: 'flex', gap: 2, padding: '2px 6px', borderBottom: `1px solid ${themeVars.boundary.default}` }}>
+        {(['clip', 'mix'] as const).map((pane) => (
+          <button
+            key={pane}
+            type="button"
+            data-pane={pane}
+            onClick={() => setLower(pane)}
+            style={{ ...button, padding: '0 10px', fontSize: 11, background: lower === pane ? themeVars.surface.inset : themeVars.surface.raised }}
+          >
+            {pane === 'clip' ? 'Clip' : 'Mix'}
+          </button>
+        ))}
+      </div>
       <div style={{ flex: '1 1 50%', minHeight: 160, overflow: 'auto' }}>
-        {clip ? (
+        {lower === 'mix' ? (
+          <Mixer
+            piece={piece}
+            index={index}
+            colorOf={(track) => trackColor(track, piece.tracks.indexOf(track))}
+            resource={{ file, documentId }}
+            onMessage={setMessage}
+          />
+        ) : clip ? (
           <PianoRoll
             key={clip.clip.id}
             clip={clip.clip}
