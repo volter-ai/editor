@@ -163,8 +163,9 @@ export function CanvasSceneBackdrop({ view, documentId }: { view: RootViewContro
         pointerEvents: 'none',
       }}
     >
-      {showGrid && (
+      {showGrid && (!drafting.gridWhenSnapping || store.snapEnabled) && (
         <div
+          data-testid="canvas-scene-grid"
           style={{
             position: 'absolute',
             inset: 0,
@@ -600,6 +601,7 @@ export function CanvasSceneControls({
        *  which a user watching the board does not read (pass 65). */}
       <TransientHintOverlay />
       <ToolStrip dimensions="2d" />
+      <CanvasSceneEditGizmos adapter={adapter} view={view} documentId={documentId} />
       {mode ? (
         <CanvasSceneModeLayer
           mode={mode}
@@ -725,6 +727,55 @@ export function CanvasSceneControls({
  * the grid, rulers, guides, origin and the game's viewport rectangle (each the view's own switch,
  * `overlays` in its presentation), then Center Selection, Frame Selection and Clear Guides.
  */
+/** Godot's lock and group gizmos: a mark at each locked or grouped node's corner, drawn over the
+ *  scene and never in the way of a click. */
+function CanvasSceneEditGizmos({
+  adapter,
+  view,
+  documentId,
+}: {
+  adapter: AuthoringAdapter | undefined;
+  view: RootViewController;
+  documentId: string;
+}) {
+  const pose = useSyncExternalStore(view.subscribe, view.get, view.get);
+  const subscribe = useCallback(
+    (listener: () => void) => adapter?.subscribe?.(listener) ?? (() => undefined),
+    [adapter],
+  );
+  const [revision, bump] = useState(0);
+  useEffect(() => subscribe(() => bump((n) => n + 1)), [subscribe]);
+  useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
+  const drafting = viewDrafting(documentId);
+  if (!adapter?.inspector || !adapter.rects || (!drafting.lock && !drafting.group)) return null;
+  const marks = collectAllNodeIds(adapter).flatMap((id) => {
+    const locked = drafting.lock && adapter.inspector?.get(id, 'locked') === true;
+    const grouped = drafting.group && adapter.inspector?.get(id, 'grouped') === true;
+    const rect = locked || grouped ? adapter.rects?.rect(id) : null;
+    return rect ? [{ id, locked, grouped, x: pose.x + rect.x * pose.zoom, y: pose.y + rect.y * pose.zoom }] : [];
+  });
+  return (
+    <div
+      data-testid="canvas-scene-edit-gizmos"
+      data-revision={revision}
+      style={{ position: 'absolute', inset: 0, zIndex: 55, pointerEvents: 'none', overflow: 'hidden' }}
+    >
+      {marks.map((mark) => (
+        <div
+          key={mark.id}
+          data-testid="canvas-scene-edit-gizmo"
+          data-locked={mark.locked}
+          data-grouped={mark.grouped}
+          style={{ position: 'absolute', left: mark.x + 2, top: mark.y + 2, display: 'flex', gap: 2, color: '#fff' }}
+        >
+          {mark.locked ? <EditorIcon icon={faLock} size="xs" /> : null}
+          {mark.grouped ? <EditorIcon icon={faLayerGroup} size="xs" /> : null}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function CanvasSceneViewMenu({
   documentId,
   view,
@@ -745,9 +796,32 @@ function CanvasSceneViewMenu({
     useCallback((listener) => subscribeCanvasSceneGuides(view, listener), [view]),
     useCallback(() => canvasSceneGuideRevision(view), [view]),
   );
+  const store = useEditorStore();
+  useSyncExternalStore(store.subscribe, store.getSnapshot);
   const drafting = viewDrafting(documentId);
+  const gridShown = viewGridVisible(documentId);
+  // Godot's Grid submenu: Show Grid, Show When Snapping, Hide Grid.
+  const gridStates: readonly { label: string; on: boolean; pick: () => void }[] = [
+    {
+      label: 'Show Grid',
+      on: gridShown && !drafting.gridWhenSnapping,
+      pick: () => {
+        setViewGridVisible(documentId, true);
+        setViewDrafting(documentId, { gridWhenSnapping: false });
+      },
+    },
+    {
+      label: 'Show Grid When Snapping',
+      on: gridShown && drafting.gridWhenSnapping,
+      pick: () => {
+        setViewGridVisible(documentId, true);
+        setViewDrafting(documentId, { gridWhenSnapping: true });
+      },
+    },
+    { label: 'Hide Grid', on: !gridShown, pick: () => setViewGridVisible(documentId, false) },
+  ];
   const switches: readonly { label: string; on: boolean; toggle: () => void }[] = [
-    { label: 'Grid', on: viewGridVisible(documentId), toggle: () => setViewGridVisible(documentId, !viewGridVisible(documentId)) },
+    { label: 'Show Helpers', on: store.showHelpers, toggle: () => store.toggleHelpers() },
     { label: 'Rulers', on: drafting.rulers, toggle: () => setViewDrafting(documentId, { rulers: !drafting.rulers }) },
     { label: 'Guides', on: drafting.guides, toggle: () => setViewDrafting(documentId, { guides: !drafting.guides }) },
     { label: 'Origin', on: drafting.origin, toggle: () => setViewDrafting(documentId, { origin: !drafting.origin }) },
@@ -772,6 +846,13 @@ function CanvasSceneViewMenu({
       </Button>
       {open && (
         <AnchoredMenu anchorRef={triggerRef} align="end" clamp aria-label="2D view" onDismiss={() => setOpen(false)}>
+          {gridStates.map((entry) => (
+            <MenuItem key={entry.label} role="menuitemradio" aria-checked={entry.on} onSelect={act(entry.pick)}>
+              <span className="vgai-menu-check">{entry.on && <EditorIcon icon={faCheck} size="xs" />}</span>
+              {entry.label}
+            </MenuItem>
+          ))}
+          <MenuSeparator />
           {switches.map((entry) => (
             <MenuItem
               key={entry.label}
@@ -781,7 +862,25 @@ function CanvasSceneViewMenu({
               onSelect={act(entry.toggle)}
             >
               <span className="vgai-menu-check">{entry.on && <EditorIcon icon={faCheck} size="xs" />}</span>
-              {`Show ${entry.label}`}
+              {entry.label.startsWith('Show ') ? entry.label : `Show ${entry.label}`}
+            </MenuItem>
+          ))}
+          <MenuSeparator />
+          {/* Godot's Gizmos submenu: the marks on locked and grouped nodes. */}
+          {(
+            [
+              ['lock', 'Lock Gizmo'],
+              ['group', 'Group Gizmo'],
+            ] as const
+          ).map(([key, label]) => (
+            <MenuItem
+              key={key}
+              role="menuitemcheckbox"
+              aria-checked={drafting[key]}
+              onSelect={act(() => setViewDrafting(documentId, { [key]: !drafting[key] }))}
+            >
+              <span className="vgai-menu-check">{drafting[key] && <EditorIcon icon={faCheck} size="xs" />}</span>
+              {label}
             </MenuItem>
           ))}
           <MenuSeparator />

@@ -73,7 +73,7 @@ the tool strip and snap control are the kit's `Toolbar.tsx`. Walked on a `canvas
 | Toggle smart snap | Smart snap | present: a move aligns the box's sides or centre to the parent, other nodes' sides and centres, and guides (walked: on writes 580 against a neighbour's edge, off writes the free 581.5) |
 | Toggle snap (Grid Snap in 2D), Snap settings | grid snap, Snapping Options, Configure Snap | Configure Snap's fields: the grid step (8 px) and offset, which the drawn grid follows, a primary line every 8 steps, the rotation step and offset, the scale step; Use Rotation Snap, Use Scale Snap, Snap Relative (off) and Use Pixel Snap (on) as Godot keeps them; Smart Snapping's Snap to Parent, Other Nodes, Node Sides, Node Center and Guides. Walked: step 8 wrote (728, 432); step 10 with offset x 3 wrote (723, 440), the grid redrawn at 10; a free move wrote whole pixels (724, 435); Snap Relative from (724, 435) wrote (748, 451). A snapped rotation lands the angle itself on the step from the offset, as Godot's does, and steps from the start only under Snap Relative (walked: a Cmd-drag from 28.6° wrote 75°, and with a 5° offset 65°); the primary lines drew every 8 steps. Other Nodes' own switch is not walked. Partial: Node Anchor has no row (a Pixi node has no anchors); the snapped angle is the one on screen, which is Godot's local rotation only when no parent is rotated; the scale step is shared with 3D (0.25, Godot's 0.1); pixel snap rounds even under a rotated parent, where Godot's does not |
 | Rulers; guides dragged from them, moved, removed by right-click | rulers and guides | present |
-| View menu: Show Grid, Rulers, Guides, Origin, Viewport; Center Selection, Frame Selection, Clear Guides | View | partial: these items are present, each the view's own switch (walked through the menu's clicks); Godot's Grid submenu (Show When Snapping), Show Helpers, Gizmos and the Preview items are not. Our grid is on by default; Godot's frame shows none |
+| View menu: Grid (Show, When Snapping, Hide), Show Helpers, Rulers, Guides, Origin, Viewport; Lock and Group gizmos; Center Selection, Frame Selection, Clear Guides | View | partial: these items are present, each the view's own switch (walked through the menu's clicks). The Grid submenu's three states are radio items (walked: When Snapping drew no grid with the magnet off and the grid with it on; Hide and Show), Show Helpers hides the pivot handle (walked), and the Gizmos submenu's Lock and Group draw a mark at each locked or grouped node's corner (walked: locking Target drew the lock at its corner; the switch removed it). Godot's Position and Transformation gizmos and the Preview items are not here; the submenus are flat groups in one menu. Our grid is on by default; Godot's frame shows none |
 | The game's viewport rectangle | View › Show Viewport | the manifest's `resolution` from the origin |
 | Toggle 2D grid | View › Grid | a shortcut to the menu's switch |
 | Frame all, Frame selection | View › Frame Selection | present; Frame all has no exact home |
@@ -95,9 +95,9 @@ Select as the handle mode, rotation and scale snap under their own toggles, Shif
 scaling, Center View and a wider zoom, the ruler's Δx and Δy, Group, and the grid's step and
 offset with Snap to Other Nodes, Snap Relative and Use Pixel Snap, Alt-drag move, and V with the
 pivot snapping to its node's sides and centre, Configure Snap's fields, and right-click's Add Node
-with Alt+right-click's list, and the List Select and Pivot modes.
+with Alt+right-click's list, the List Select and Pivot modes, Lock and Group kept per checkout with their gizmos, and the View
+menu's Grid states and Show Helpers.
 
-1. The lock and group gizmos Godot draws on the canvas.
-2. The View menu's Grid submenu, Helpers, Gizmos and Preview items; Skew in the Inspector.
-3. The `2D` board against Figma: the layers list for its frames and the zoom menu; its zoom sits
+1. The View menu's Position and Transformation gizmos and Preview items; Skew in the Inspector.
+2. The `2D` board against Figma: the layers list for its frames and the zoom menu; its zoom sits
    bottom-right where Figma's sits at the top of the properties panel.

@@ -167,12 +167,17 @@ export interface ViewportOverlays {
   /** A 2D view's drafting marks, each a switch in Godot's 2D View menu (Show Rulers, Show Guides,
    *  Show Origin, Show Viewport; all on by default there): the rulers along the view's edges, the
    *  guides dragged from them, the origin's axis lines, and the game's viewport rectangle (the
-   *  manifest's `resolution` from the origin). */
+   *  manifest's `resolution` from the origin). `gridWhenSnapping` is the Grid submenu's Show When
+   *  Snapping (the grid drawn only while the magnet is on); `lock` and `group` are the Gizmos
+   *  submenu's marks on locked and grouped nodes. */
   readonly drafting: {
     readonly rulers: boolean;
     readonly guides: boolean;
     readonly origin: boolean;
     readonly viewport: boolean;
+    readonly gridWhenSnapping: boolean;
+    readonly lock: boolean;
+    readonly group: boolean;
   };
 }
 
@@ -314,7 +319,15 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
     navigationControls: true,
     cameraReadout: true,
     floor: { visible: false, color: '#2b3038' },
-    drafting: { rulers: true, guides: true, origin: true, viewport: true },
+    drafting: {
+      rulers: true,
+      guides: true,
+      origin: true,
+      viewport: true,
+      gridWhenSnapping: false,
+      lock: true,
+      group: true,
+    },
   },
   interaction: {
     bootTool: 'transform',
