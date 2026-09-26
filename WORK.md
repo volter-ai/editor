@@ -122,10 +122,12 @@ Remaining:
    modules, so they leave by dissolving the package, unit 5, not by moving the kit). Remaining in
    unit 3: Blender's lens,
    opening direction, grid and axis colours become `@volter/editor-blender`'s specialization; the
-   Three- and Pixi-typed adapter contract leaves `@volter/editor-project`; the SDK's
-   `surfaces.Object3D*` and `host.viewport`/`host.hierarchy` doors still forward to what the Three
-   integration registers (project contributions mount the surfaces, so they stay on the contract
-   until those move to Three's exports); `packaged.ts`'s Blender prebundle exclusion. A W held
+   Three- and Pixi-typed adapter contract leaves `@volter/editor-project` (`hierarchy.object3D`,
+   a mounted Three root's scene and camera, navigation's `debugMesh`/`bake`), shaped with unit 5,
+   which rewrites the adapters a game writes against it; the SDK's `surfaces.Object3D*` stay on the
+   contribution contract, forwarding to what the Three integration registers, because project
+   contributions mount them (the authored viewport's own door, `viewport-door`, is already
+   `@volter/editor-threejs`'s); `packaged.ts`'s Blender prebundle exclusion. A W held
    during Play reports "keyboard action transform.translate did not run" from the workbench's own
    keybinding (`vgaiKeyboard.ts`).
 2. **Animation seen from outside.** The editor finds a game's mixers through a served stamp on
