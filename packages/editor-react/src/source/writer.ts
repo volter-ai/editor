@@ -1565,6 +1565,8 @@ export function removePropAttribute(
 export interface StructEditResult {
   code: string;
   changed: boolean;
+  /** Why an op that could not apply refused, when it can say. */
+  error?: string;
 }
 
 /** Expand a JSX element at `elementStart` to its full LINE block (leading whitespace on the
@@ -1809,6 +1811,19 @@ export function insertSiblingElement(
 ): StructEditResult {
   const trimmed = snippet.trim();
   if (!trimmed.startsWith('<')) return { code, changed: false };
+  // A sibling is legal only beside a JSX CHILD: an element whose text is preceded by a tag's `>`
+  // (not an arrow's `=>`) or an expression child's `}`. The lone element a component returns has no JSX parent, and a
+  // second element beside it is a syntax error, never an insert.
+  let before = elementStart - 1;
+  while (before >= 0 && /\s/.test(code[before]!)) before--;
+  const arrowBody = code[before] === '>' && code[before - 1] === '=';
+  if (before < 0 || arrowBody || (code[before] !== '>' && code[before] !== '}')) {
+    return {
+      code,
+      changed: false,
+      error: 'this element is not a JSX child (a lone returned element), so it can have no sibling.',
+    };
+  }
   const r = lineBlockRange(code, elementStart);
   if (!r) return { code, changed: false };
   const indent = code.slice(r.lineStart, elementStart).match(/^(\s*)/)?.[1] ?? '';

@@ -66,6 +66,7 @@ import type {
   FrameCorners,
   SpatialDragHandle,
   SpatialHandlesProvider,
+  StructureProvider,
 } from '@volter/editor-project/adapter';
 import {
   type DragEvent as ReactDragEvent,
@@ -1255,6 +1256,70 @@ function ViewportPickMenu({
   );
 }
 
+/** Godot's RMB on a 2D scene: the kinds this spot can hold, each created where the press landed
+ *  (a child of the selected node, else beside the scene's roots). */
+function ViewportAddMenu({
+  state,
+  onClose,
+}: {
+  state: {
+    x: number;
+    y: number;
+    at: { x: number; y: number };
+    parentId: string | null;
+    structure: StructureProvider;
+    kinds: readonly { kind: string; label: string }[];
+  };
+  onClose: () => void;
+}): React.ReactNode {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const onPointerDown = (event: PointerEvent) => {
+      if (!ref.current?.contains(event.target as Node)) onClose();
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [onClose]);
+
+  return (
+    <ThemeRootPortal>
+      <Menu
+        ref={ref}
+        aria-label="Add node here"
+        data-testid="viewport-add-menu"
+        style={{
+          position: 'fixed',
+          left: state.x,
+          top: state.y,
+          minWidth: 190,
+          maxWidth: 320,
+          zIndex: zIndex.dropdown,
+        }}
+      >
+        {state.kinds.map(({ kind, label }) => (
+          <MenuItem
+            key={kind}
+            data-testid="viewport-add-menu-item"
+            onSelect={() => {
+              void state.structure.create(kind, state.parentId ?? undefined, state.at).ack;
+              onClose();
+            }}
+          >
+            {`Add ${label}`}
+          </MenuItem>
+        ))}
+      </Menu>
+    </ThemeRootPortal>
+  );
+}
+
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: one cohesive overlay owns the shared pointer-state machine and its adapter-routed affordances
 export function RootSelectionOverlay({
   adapter: scopedAdapter,
@@ -1302,6 +1367,11 @@ export function RootSelectionOverlay({
     startClientY: number;
     moved: boolean;
   } | null>(null);
+  const [addMenu, setAddMenu] = useState<React.ComponentProps<typeof ViewportAddMenu>['state'] | null>(
+    null,
+  );
+  /** Opens Godot's Add Node menu at a client point; assigned once the host frame is known below. */
+  const openAddMenuRef = useRef<(clientX: number, clientY: number) => void>(() => undefined);
   const openPickMenuAt = useCallback(
     (clientX: number, clientY: number) => {
       const ids = pickCandidates(store, clientX, clientY, {
@@ -1340,7 +1410,9 @@ export function RootSelectionOverlay({
       // nothing, a moved press was navigation, and only a stationary release
       // is the overlap menu gesture.
       if (event.type === 'pointerup' && !press.moved) {
-        openPickMenuAt(event.clientX, event.clientY);
+        // Godot's 2D scene: RMB adds a node where it lands, Alt+RMB lists the nodes there.
+        if (transformModeAware && !event.altKey) openAddMenuRef.current(event.clientX, event.clientY);
+        else openPickMenuAt(event.clientX, event.clientY);
       }
     };
     window.addEventListener('pointermove', onPointerMove);
@@ -1351,7 +1423,7 @@ export function RootSelectionOverlay({
       window.removeEventListener('pointerup', finish);
       window.removeEventListener('pointercancel', finish);
     };
-  }, [openPickMenuAt]);
+  }, [openPickMenuAt, transformModeAware]);
 
   const onContextMenu = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
     // This event is prevention-only. Stationary-click versus pan is decided
@@ -1581,6 +1653,27 @@ export function RootSelectionOverlay({
     },
     [pan.x, pan.y, pan.zoom],
   );
+  openAddMenuRef.current = (clientX: number, clientY: number): void => {
+    // Godot's parent for a node added here: the selected node, else the scene's root.
+    const selected = store.selectedEntityIds;
+    const roots = adapter.hierarchy.roots();
+    const parentId =
+      selected.size === 1 ? [...selected][0]! : roots.length === 1 ? roots[0]!.id : null;
+    const structure = parentId ? structureForId(adapter, parentId) : (adapter.structure ?? null);
+    const kinds = structure?.creatableKinds?.(parentId) ?? [];
+    if (!structure || kinds.length === 0) {
+      setAddMenu(null);
+      return;
+    }
+    // The point snaps as a moved node's would: the grid when the magnet is on, then whole pixels.
+    const grid = store.snap2D;
+    const onGrid = (value: number, offset: number): number =>
+      store.snapEnabled && grid.step > 0 ? Math.round((value - offset) / grid.step) * grid.step + offset : value;
+    const point = toHostLocal(clientX, clientY);
+    const snapped = { x: onGrid(point.x, grid.offsetX), y: onGrid(point.y, grid.offsetY) };
+    const at = grid.pixel ? { x: Math.round(snapped.x), y: Math.round(snapped.y) } : snapped;
+    setAddMenu({ x: clientX, y: clientY, at, parentId, structure, kinds });
+  };
 
   const onAssetDragOver = useCallback(
     (event: ReactDragEvent<HTMLDivElement>) => {
@@ -2736,6 +2829,7 @@ export function RootSelectionOverlay({
         onDragOver={onAssetDragOver}
         onDrop={onAssetDrop}
       />
+      {addMenu ? <ViewportAddMenu state={addMenu} onClose={() => setAddMenu(null)} /> : null}
       {pickMenu ? (
         <ViewportPickMenu state={pickMenu} adapter={adapter} onClose={() => setPickMenu(null)} />
       ) : null}

@@ -563,8 +563,10 @@ export type StructuralClipboardOutcome = false | WriteAck | Promise<false | Writ
 
 export interface StructureProvider {
   /** Create a `kind` under `parentId`, answering with the new id AND this
-   *  creation's own write ack (see {@link StructuralIdWrite}). */
-  create(kind: string, parentId?: string): StructuralIdWrite;
+   *  creation's own write ack (see {@link StructuralIdWrite}). `at` places it: a
+   *  point in the frame this adapter's `rects` answer in (a 2D editor's "add node
+   *  where I clicked"); absent, the kind's own default place. */
+  create(kind: string, parentId?: string, at?: { readonly x: number; readonly y: number }): StructuralIdWrite;
   /**
    * Remove `id`. May optionally return an awaitable when the
    * underlying write is asynchronous (e.g. a react-world source-file edit) —

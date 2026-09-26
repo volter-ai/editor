@@ -750,7 +750,14 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
         this.target.provenance.source === 'source-code' && this.target.persistence !== undefined,
     };
     this.target.bind({ a2d: this.a2d, store, journal: opts.journal, notify: () => this.notify() });
-    this.structure = this.target.structure ?? this.liveStructure;
+    const structure = this.target.structure ?? this.liveStructure;
+    // A placed creation reaches the structure in the new node's PARENT's own space: the target
+    // writes `x`/`y` as authored, and only this adapter knows the frame `rects` answer in.
+    this.structure = {
+      ...structure,
+      create: (kind, parentId, at) =>
+        structure.create(kind, parentId, at ? this.pointInParent(parentId ?? null, at) : undefined),
+    };
     this.assetDrop =
       this.target.assetDrop ??
       ({
@@ -951,7 +958,7 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
   // degrade — a half-answer would be a menu item that silently does nothing.
 
   private readonly liveStructure: StructureProvider = {
-    create: (kind, parentId) => this.createStructuralNode(kind, parentId ?? null),
+    create: (kind, parentId, at) => this.createStructuralNode(kind, parentId ?? null, at),
     remove: (id) => this.removeStructuralNodes([id]),
     removeMany: (ids) => this.removeStructuralNodes(ids),
     duplicate: (id) => this.duplicateStructuralNode(id),
@@ -1031,7 +1038,22 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
    * same turn. The live-only report is the other half of the answer and rides
    * back in `ack` (see `StructuralIdWrite`) instead of being fired `void`.
    */
-  private createStructuralNode(kind: string, parentId: string | null): StructuralIdWrite {
+  /** A point in the `rects` frame, in the space of the container a new child of `parentId` joins. */
+  private pointInParent(
+    parentId: string | null,
+    at: { readonly x: number; readonly y: number },
+  ): { x: number; y: number } | undefined {
+    const parent = this.containerFor(parentId);
+    if (!parent || typeof parent.updateLocalTransform !== 'function') return undefined;
+    const local = this.localToRootMatrix(parent).clone().invert().apply({ x: at.x, y: at.y });
+    return { x: local.x, y: local.y };
+  }
+
+  private createStructuralNode(
+    kind: string,
+    parentId: string | null,
+    at?: { readonly x: number; readonly y: number },
+  ): StructuralIdWrite {
     const parent = this.containerFor(parentId);
     if (!parent) {
       return {
@@ -1047,6 +1069,7 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
       };
     }
     node.label = defaultLabelFor(kind);
+    if (at) node.position.set(at.x, at.y);
     const label = `Create ${node.label}`;
     this.structureHistory.track(parent);
     this.structureHistory.track(node);

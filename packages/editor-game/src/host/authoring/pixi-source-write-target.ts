@@ -1151,8 +1151,13 @@ export function createSourceCanvasWriteTarget(
     // The new element's oid is minted server-side on the remount, so the id
     // half is '' and the ack half is this creation's own piped write — handed
     // back rather than fired `void` (see `StructuralIdWrite`).
-    create: (kind, parentId) => {
-      const snippet = CREATE_SNIPPETS[kind];
+    create: (kind, parentId, at) => {
+      // `at` arrives in the new node's parent's own space (the adapter converts it).
+      const base = CREATE_SNIPPETS[kind];
+      const snippet =
+        base && at
+          ? base.replace(/\s*\/>$/, ` x={${formatSourceNumber(at.x)}} y={${formatSourceNumber(at.y)}} />`)
+          : base;
       // Nothing was attempted (the palette is empty in both cases), so there is
       // no write to ack.
       if (!snippet || !backend?.writeStruct) return { id: '', ack: undefined };
