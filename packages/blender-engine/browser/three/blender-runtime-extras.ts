@@ -11,9 +11,9 @@
  *
  * A CAMERA is its frame and the wires from the eye to its corners (`BKE_camera_view_frame_ex`
  * at the camera's display size, fitted to the render's shape), and a triangle over the frame,
- * filled for the scene's camera. Seen from its own eye (a camera view) its wires fall to points
- * and its frame on the view's border, and the triangle is not drawn, as Blender draws only the
- * frame there.
+ * filled for the scene's camera. The camera a camera view looks through is not drawn: its
+ * frame is the view's border, and Blender draws nothing else of it there; the triangle also
+ * hides from the camera's own eye.
  *
  * A LIGHT is a screen-sized icon at its origin — a diamond and a dashed ring inside a dashed
  * outer ring, sun rays for a sun — a line down to the floor with a mark where it lands, in the
@@ -92,6 +92,11 @@ export interface ExtrasInput {
   readonly empties: Readonly<Record<string, EmptyData>>;
   readonly sceneCamera: string | null;
   readonly renderAspect: number;
+  /** The camera a camera view is looking through, which is not drawn: the view's frame is its
+   *  border, and while a locked view is navigated the camera follows it a round trip behind. */
+  readonly lookingThrough: string | null;
+  /** The presented object an extra stands for, which a click on its drawing selects. */
+  readonly presented: (name: string) => THREE.Object3D | null;
 }
 
 export class ExtrasOverlay {
@@ -125,7 +130,8 @@ export class ExtrasOverlay {
           : object.type === 'LIGHT'
             ? THEME.light
             : THEME.empty;
-      const camera = object.type === 'CAMERA' ? input.cameras[object.name] : undefined;
+      const camera =
+        object.type === 'CAMERA' && object.name !== input.lookingThrough ? input.cameras[object.name] : undefined;
       const light = object.type === 'LIGHT' && object.light ? input.lights[object.light] : undefined;
       const empty = object.type === 'EMPTY' ? input.empties[object.name] : undefined;
       if (!camera && !light && !empty) continue;
@@ -139,7 +145,11 @@ export class ExtrasOverlay {
         camera ? [object.name === input.sceneCamera, input.renderAspect] : null,
       ]);
       const previous = this.drawn.get(object.name);
-      if (previous?.key === key) continue;
+      const stands = input.presented(object.name);
+      if (previous?.key === key) {
+        for (const part of previous.parts) part.userData['vgaiPicksAs'] = stands;
+        continue;
+      }
       if (previous) this.remove(previous.parts);
       const matrix = new THREE.Matrix4().set(...(object.matrix.flat() as Parameters<THREE.Matrix4['set']>));
       const group = camera ? this.cameras : light ? this.lights : this.empties;
@@ -147,7 +157,9 @@ export class ExtrasOverlay {
       if (camera) this.camera(camera, matrix, color, object.name === input.sceneCamera, input.renderAspect);
       else if (light) this.light(light, matrix, color);
       else if (empty) this.empty(empty, matrix, color);
-      this.drawn.set(object.name, { key, parts: group.children.filter((child) => !before.has(child)) });
+      const parts = group.children.filter((child) => !before.has(child));
+      for (const part of parts) part.userData['vgaiPicksAs'] = stands;
+      this.drawn.set(object.name, { key, parts });
     }
     for (const [name, entry] of this.drawn)
       if (!seen.has(name)) {

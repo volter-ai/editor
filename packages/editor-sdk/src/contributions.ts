@@ -315,6 +315,9 @@ export interface ToolCameraViewSource {
     dx: number,
     dy: number,
   ) => readonly [number, number];
+  /** Told the camera a camera view is looking through (null when none), so the document can
+   *  stand down its own drawing of it: the view's frame is its border. */
+  readonly showing?: (camera: string | null) => void;
   /**
    * Move `camera` to a pose in the stage's frame (the eye, and its rotation looking down -Z),
    * keeping its scale: what a LOCKED camera view does as it is navigated (Blender's

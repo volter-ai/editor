@@ -712,6 +712,7 @@ export class Object3DDocumentSession {
       release: this.captureCameraViewInput(),
       locked: false,
     };
+    source.showing?.(camera);
     this.notify();
     return true;
   }
@@ -747,7 +748,8 @@ export class Object3DDocumentSession {
         const eye = new THREE.Vector3(...view.position);
         const rotation = new THREE.Quaternion(...view.quaternion);
         const distance = through.left.position.distanceTo(through.left.target);
-        camera.up.set(0, 1, 0);
+        // The camera's own up, so a rolled camera keeps its roll (the controls re-aim by it).
+        camera.up.set(0, 1, 0).applyQuaternion(rotation);
         camera.position.copy(eye);
         camera.quaternion.copy(rotation);
         controls.target.copy(eye).addScaledVector(new THREE.Vector3(0, 0, -1).applyQuaternion(rotation), distance);
@@ -755,45 +757,57 @@ export class Object3DDocumentSession {
       }
       const enabled = controls.enabled;
       controls.enabled = true;
+      // No inertia: Blender's navigation stops where the gesture does, and so does the camera
+      // it moves — the gesture's end is the pose the history records.
+      const damping = controls.enableDamping;
+      controls.enableDamping = false;
       const name = through.camera;
       // One write in flight; the latest pose after it, and the gesture's end as its own final
       // write. A failed write is the source's to report (the session only keeps the chain going).
+      type Pose = { position: [number, number, number]; quaternion: [number, number, number, number]; final: boolean };
+      const snapshot = (final: boolean): Pose => ({
+        position: camera.position.toArray(),
+        quaternion: camera.quaternion.toArray() as [number, number, number, number],
+        final,
+      });
       let writing = false;
-      let pending: boolean | null = null;
-      const write = (final: boolean): void => {
-        if (!this.through?.locked || this.through.camera !== name) return;
+      let pending: Pose | null = null;
+      let moving = false;
+      const send = (pose: Pose): void => {
         if (writing) {
-          pending = (pending ?? false) || final;
+          // The latest pose waits, and a final one stays final.
+          pending = { ...pose, final: pose.final || (pending?.final ?? false) };
           return;
         }
         writing = true;
         pending = null;
-        void Promise.resolve(
-          source.setPose!(
-            name,
-            camera.position.toArray(),
-            camera.quaternion.toArray() as [number, number, number, number],
-            final,
-          ),
-        )
+        void Promise.resolve(source.setPose!(name, pose.position, pose.quaternion, pose.final))
           .catch(() => undefined)
           .finally(() => {
             writing = false;
-            if (pending !== null) write(pending);
+            if (pending) send(pending);
           });
       };
       const moved = (): void => {
+        moving = true;
         invalidateStages();
         this.notify();
-        write(false);
+        send(snapshot(false));
       };
-      const ended = (): void => write(true);
+      const ended = (): void => {
+        if (!moving) return;
+        moving = false;
+        send(snapshot(true));
+      };
       controls.addEventListener('change', moved);
       controls.addEventListener('end', ended);
       through.release = () => {
+        // A gesture cut short by leaving or unlocking still lands, as its last pose.
+        ended();
         controls.removeEventListener('change', moved);
         controls.removeEventListener('end', ended);
         controls.enabled = enabled;
+        controls.enableDamping = damping;
       };
     }
     this.viewMemo = null;
@@ -840,9 +854,10 @@ export class Object3DDocumentSession {
     const through = this.through;
     if (!through) return;
     const view = this.cameraView();
+    through.release();
     this.through = null;
     this.viewMemo = null;
-    through.release();
+    this.cameraViewSource?.showing?.(null);
     this.viewport.setGizmoCamera(null);
     const viewport = this.viewport;
     if (restore) {

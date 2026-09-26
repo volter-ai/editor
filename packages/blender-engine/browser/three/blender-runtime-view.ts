@@ -1282,12 +1282,29 @@ export class BlenderRuntimeView {
     );
     if (weightWarning !== null) warnings.push(weightWarning);
     this.cursorOverlay.apply(next.cursor);
+    this.applyExtras(next);
+    return warnings;
+  }
+
+  /** The camera a camera view is looking through, which the extras do not draw. */
+  private lookingThrough: string | null = null;
+
+  /** Told by the document which camera its stage's camera view is looking through. */
+  setCameraViewShowing(camera: string | null): void {
+    if (this.lookingThrough === camera) return;
+    this.lookingThrough = camera;
+    if (this.frame) this.applyExtras(this.frame);
+    presenterChanged();
+  }
+
+  private applyExtras(next: Frame): void {
     const cameras: Record<string, z.infer<typeof cameraDataSchema>> = {};
     for (const [name, data] of Object.entries(next.cameras)) {
       const parsed = cameraDataSchema.safeParse(data);
       if (parsed.success) cameras[name] = parsed.data;
     }
     this.extrasOverlay.apply({
+      lookingThrough: this.lookingThrough,
       objects: next.objects.filter((object) => object.visible),
       active: next.active,
       cameras,
@@ -1295,8 +1312,11 @@ export class BlenderRuntimeView {
       empties: next.empties,
       sceneCamera: next.camera_view?.scene_camera ?? null,
       renderAspect: next.camera_view?.aspect ?? 1,
+      presented: (name) => {
+        const row = next.objects.find((object) => object.name === name);
+        return row ? (this.objects.get(row.id) ?? null) : null;
+      },
     });
-    return warnings;
   }
 
   private applyVisibility(): void {

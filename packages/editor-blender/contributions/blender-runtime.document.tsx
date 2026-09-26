@@ -106,6 +106,7 @@ const cameraView = {
   camera: () => view.cameraViewCamera(),
   zoom: view.cameraViewZoom,
   pan: view.cameraViewPan,
+  showing: (camera: string | null) => view.setCameraViewShowing(camera),
   // A LOCKED camera view moves the camera (`ED_view3d_camera_lock_sync`: its scale kept); the
   // navigation's end is the one step Blender's history records.
   setPose: (

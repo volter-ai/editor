@@ -3438,6 +3438,12 @@ export class EditorViewport {
     this._helpers.set(kind, object);
   }
 
+  /** The helper groups on screen now (`setHelper`), for a pick that lets a helper stand for the
+   *  object it draws (`userData.vgaiPicksAs`). */
+  visibleHelpers(): THREE.Object3D[] {
+    return [...this._helpers.values()].filter((helper) => helper.visible && helper.parent !== null);
+  }
+
   /** Snap camera to a preset view direction, preserving current zoom distance. */
   setViewPreset(preset: 'top' | 'front' | 'right' | 'perspective'): void {
     if (this._projection === 'orthographic') this.setProjection('perspective');

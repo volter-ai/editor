@@ -1290,17 +1290,39 @@ export function Object3DDocumentViewport({
           );
           const raycaster = new THREE.Raycaster();
           raycaster.layers.enableAll();
+          // A drawn line is hit within a few pixels of it (`LineSegments2`'s own test).
+          (raycaster.params as { Line2?: { threshold: number } }).Line2 = { threshold: 4 };
           raycaster.setFromCamera(pointer, host.session?.camera() ?? viewport.camera);
-          for (const hit of raycaster.intersectObjects([...store.objectMap.values()], true)) {
-            if (isInEditorOwnedSubtree(hit.object)) continue;
-            let object: THREE.Object3D | null = hit.object;
-            while (object) {
+          const idOf = (start: THREE.Object3D | null): string | null => {
+            for (let object = start; object; object = object.parent) {
               const id = current.hierarchy.idForObject3D?.(object);
               if (id) return id;
-              object = object.parent;
+            }
+            return null;
+          };
+          let nearest: { distance: number; id: string } | null = null;
+          for (const hit of raycaster.intersectObjects([...store.objectMap.values()], true)) {
+            if (isInEditorOwnedSubtree(hit.object)) continue;
+            const id = idOf(hit.object);
+            if (id) {
+              nearest = { distance: hit.distance, id };
+              break;
             }
           }
-          return null;
+          // AN OBJECT DRAWN BY A HELPER is picked through it: a document that draws an object's
+          // overlay itself (a Blender camera's wire, a light's icon) marks each part with the
+          // object it stands for (`userData.vgaiPicksAs`), and the nearer hit wins, as Blender's
+          // pick over its whole drawing does.
+          for (const hit of raycaster.intersectObjects(viewport.visibleHelpers(), true)) {
+            let proxy: THREE.Object3D | null = null;
+            for (let object: THREE.Object3D | null = hit.object; object && !proxy; object = object.parent)
+              proxy = (object.userData['vgaiPicksAs'] as THREE.Object3D | undefined) ?? null;
+            const id = proxy ? idOf(proxy) : null;
+            if (!id) continue;
+            if (!nearest || hit.distance < nearest.distance) nearest = { distance: hit.distance, id };
+            break;
+          }
+          return nearest?.id ?? null;
         };
         if (!host.viewport) {
           host.viewport = new EditorViewport(canvas, host.scene, store, container, {

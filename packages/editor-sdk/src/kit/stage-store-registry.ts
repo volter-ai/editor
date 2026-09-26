@@ -49,6 +49,12 @@ export function stageStore(documentId: string | null): ShellStore | null {
   return documentId === null ? null : (stores.get(documentId)?.store ?? null);
 }
 
+/** The document whose stage runs on `store`, or null for a store no stage registered. */
+export function stageDocument(store: ShellStore): string | null {
+  for (const [documentId, registration] of stores) if (registration.store === store) return documentId;
+  return null;
+}
+
 /** `useSyncExternalStore` shape — a stage mounting or unmounting changes what
  *  `focusedStageStore()` answers, so a panel that reads it subscribes here. */
 export function subscribeStageStores(listener: () => void): () => void {
