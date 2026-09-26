@@ -36,6 +36,8 @@ export const style: StyleContribution = {
       // Unity's Tools overlay at the view's left; the view's name is the label under the scene
       // gizmo ("Persp"), which toggles the projection.
       chrome: { bar: 'strip', viewName: 'gizmo', tools: 'shelf', display: 'bar-start' },
+      // Unity's draw modes and its Gizmos menu (`NewEmptyScene_01.png`: `Shaded`, `Gizmos`).
+      words: { shading: { solid: 'Shaded', wireframe: 'Wireframe' }, helpers: 'Gizmos' },
       // A handle is 80 points on screen whatever the distance (`HandleUtility.GetHandleSize`,
       // `k_KHandleSize`), the radius of the rotate disc; the stage's ring radius is this many
       // CSS px. The documentation's frames are small Scene views at about half scale, so their

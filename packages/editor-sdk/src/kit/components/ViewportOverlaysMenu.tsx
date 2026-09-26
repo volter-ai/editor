@@ -1,5 +1,6 @@
 import { faCaretDown, faCheck, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import {
+  Button,
   EditorIcon,
   IconButton,
   Menu,
@@ -55,8 +56,13 @@ export function ViewportOverlaysMenu({
   choices,
   master,
   glyph,
+  word,
 }: {
   readonly label?: string;
+  /** The menu's name in the target's own words (Unreal's `Show`, Unity's `Gizmos`), drawn as
+   *  a word that opens the menu instead of the eye and its caret; its master switch stays the
+   *  menu's first item. */
+  readonly word?: string;
   readonly choices: readonly ViewportOverlayChoice[];
   readonly master?: { readonly enabled: boolean; readonly onToggle: () => void };
   /** Replaces the eye — a caller whose overlays have Blender's own mark. */
@@ -110,6 +116,24 @@ export function ViewportOverlaysMenu({
       ))}
     </Menu>
   ) : null;
+
+  if (word !== undefined) {
+    return (
+      <div ref={ref} className="vgai-viewport-popover-anchor">
+        <Button
+          variant="ghost"
+          size="comfortable"
+          aria-label={`Choose ${label.toLowerCase()}`}
+          aria-expanded={open}
+          onClick={() => setOpen(!open)}
+        >
+          {word}
+          <EditorIcon icon={faCaretDown} size="xs" />
+        </Button>
+        {menu}
+      </div>
+    );
+  }
 
   return (
     <div ref={ref} className="vgai-viewport-popover-anchor">

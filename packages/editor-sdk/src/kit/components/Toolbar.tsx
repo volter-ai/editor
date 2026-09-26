@@ -33,6 +33,7 @@ import {
 } from '@volter/editor-sdk/widgets';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useEditorStore } from '../editor-runtime';
+import { useViewportChrome } from '@volter/editor-sdk/kit/native-selection-style';
 import type { GizmoAnchor, PivotMode } from '@volter/editor-sdk/kit/shell-store';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import {
@@ -80,11 +81,15 @@ function SnapButton({
   dimensions = '3d',
   size = 'comfortable',
   variant = 'ghost',
+  showValues = false,
 }: {
   store: ShellStore;
   dimensions?: '2d' | '3d';
   size?: 'compact' | 'default' | 'comfortable';
   variant?: 'ghost' | 'secondary';
+  /** Draw the three steps themselves as the settings' trigger (Unreal's viewport row: the grid
+   *  step, the angle and the scale step), each opening the same settings. */
+  showValues?: boolean;
 }) {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -130,6 +135,30 @@ function SnapButton({
             <EditorIcon icon={faMagnet} size="md" />
           </IconButton>
         </Tooltip>
+        {showValues ? (
+          (
+            [
+              ['translate', editorIcons.tool.move, `${store.snapValues.translate}`],
+              ['rotate', editorIcons.tool.rotate, `${store.snapValues.rotate}°`],
+              ['scale', editorIcons.tool.scale, `${store.snapValues.scale}`],
+            ] as const
+          ).map(([channel, icon, value]) => (
+            <Tooltip key={channel} text="Snap Settings">
+              <Button
+                aria-label={`${channel} snap step`}
+                aria-haspopup="dialog"
+                aria-expanded={popoverOpen}
+                variant={variant}
+                size={size}
+                data-snap-step={channel}
+                onClick={() => setPopoverOpen(!popoverOpen)}
+              >
+                <EditorIcon icon={icon} size="xs" />
+                {value}
+              </Button>
+            </Tooltip>
+          ))
+        ) : (
         <Tooltip text="Snap Settings">
           <IconButton
             aria-label="Snap settings"
@@ -150,6 +179,7 @@ function SnapButton({
             <EditorIcon icon={faCaretDown} size="xs" />
           </IconButton>
         </Tooltip>
+        )}
       </SplitButtonGroup>
       {popoverOpen && (
         <EditorPopover className="vgai-snap-popover">
@@ -493,6 +523,8 @@ export function TransformHeaderControls({ store: stage }: { store?: ShellStore }
   const store = stage ?? shell;
   useSyncExternalStore(store.subscribe, store.getShellSnapshot ?? store.getSnapshot);
   useSyncExternalStore(subscribeEditorKeymap, activeEditorKeymap, activeEditorKeymap);
+  // On the look's bar (Unreal's row) the snap steps are shown, as Unreal's row shows them.
+  const onBar = useViewportChrome().transformControls === 'bar';
   return (
     <EditorToolbar
       compact
@@ -505,7 +537,7 @@ export function TransformHeaderControls({ store: stage }: { store?: ShellStore }
         <PivotButton store={store} />
         <AnchorButton store={store} />
       </SplitButtonGroup>
-      <SnapButton store={store} size="default" variant="secondary" />
+      <SnapButton store={store} size="default" variant="secondary" showValues={onBar} />
       <TransformOptionsButton store={store} />
     </EditorToolbar>
   );

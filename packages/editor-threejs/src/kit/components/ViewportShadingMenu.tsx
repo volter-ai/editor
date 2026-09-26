@@ -10,7 +10,7 @@ import {
   themeVars,
 } from '@volter/editor-sdk/widgets';
 import type { ViewportShadingMode } from '@volter/editor-threejs/render/viewport-shading';
-import { type ReactNode, useRef, useState } from 'react';
+import { type ReactNode, useMemo, useRef, useState } from 'react';
 
 export const viewportShadingModes: ReadonlyArray<{
   mode: ViewportShadingMode;
@@ -305,16 +305,23 @@ export function ViewportShadingMenu({
   mode,
   onChange,
   disabled = false,
+  words,
 }: {
   mode: ViewportShadingMode;
   onChange: (mode: ViewportShadingMode) => void;
   disabled?: boolean;
+  /** Each mode's name in the target's own words (the look's `stage.words.shading`). */
+  words?: Readonly<Partial<Record<string, string>>>;
 }) {
+  const choices = useMemo(
+    () => viewportShadingModes.map((choice) => ({ ...choice, label: words?.[choice.mode] ?? choice.label })),
+    [words],
+  );
   return (
     <ViewportDisplayModeMenu
       mode={mode}
       onChange={onChange}
-      choices={viewportShadingModes}
+      choices={choices}
       disabled={disabled}
     />
   );

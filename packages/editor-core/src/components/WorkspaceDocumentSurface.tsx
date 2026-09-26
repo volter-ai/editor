@@ -125,6 +125,26 @@ export function WorkspaceDocumentSurface({
         <TransformTools documentId={descriptor.id} />
       </Suspense>
     );
+  // THE BAR'S TWO GROUPS, each in a fixed order: the display controls (their slot; the stage's
+  // overlay portals them in), the transform tools, then the stage's transform controls
+  // (orientation, pivot, snap), which leave the header for the bar where the look puts them
+  // there (Unreal's and Godot's rows carry them after the tools).
+  const onBar = placesStage && stageChrome.bar !== 'none';
+  const displayEdge = !onBar || stageChrome.display === 'corner' ? null : stageChrome.display === 'bar-start' ? 'start' : 'end';
+  const toolsEdge = !toolsOnBar ? null : stageChrome.tools === 'bar-start' ? 'start' : 'end';
+  const controlsOnBar = onBar && stageChrome.transformControls === 'bar' && driver === 'gizmo' && TransformControls !== undefined;
+  const controlsEdge = !controlsOnBar ? null : (toolsEdge ?? displayEdge ?? 'start');
+  const barGroup = (edge: 'start' | 'end') => (
+    <div className="vgai-stage-bar-group" data-edge={edge}>
+      {displayEdge === edge ? <div className="vgai-stage-bar-slot" data-stage-bar-slot="display" /> : null}
+      {toolsEdge === edge ? transformTools : null}
+      {controlsEdge === edge && TransformControls ? (
+        <Suspense fallback={null}>
+          <TransformControls documentId={descriptor.id} />
+        </Suspense>
+      ) : null}
+    </div>
+  );
   return (
     <div
       className="vgai-dock-document"
@@ -139,7 +159,7 @@ export function WorkspaceDocumentSurface({
           island={backdrop && family === 'world'}
           assetPath={assetDocumentSpec(descriptor.id)?.assetPath}
           transformControls={
-            driver === 'gizmo' && TransformControls ? (
+            driver === 'gizmo' && TransformControls && !controlsOnBar ? (
               <Suspense fallback={null}>
                 <TransformControls documentId={descriptor.id} />
               </Suspense>
@@ -154,17 +174,17 @@ export function WorkspaceDocumentSurface({
         data-workspace-document-id={descriptor.id}
         data-workspace-view-id={viewId}
         data-vgai-stage-bar={placesStage && stageChrome.bar !== 'none' ? stageChrome.bar : undefined}
-        data-vgai-stage-display={placesStage ? stageChrome.display : undefined}
-        data-vgai-stage-tools={placesStage && driver !== 'none' ? stageChrome.tools : undefined}
         // Whether the shelf rail draws anything, so a control placed at the stage's left edge
         // (Godot's view pill) stands past it only when it is there.
         data-vgai-stage-rail={chrome && !shelfHidden && ((transformTools && !toolsOnBar) || Shelf) ? undefined : 'empty'}
       >
         <Content documentId={descriptor.id} {...(viewId ? { viewId } : {})} active={active} />
-        {/* THE STAGE'S BAR, when the look draws one: only its band; the controls it carries
-            are placed over it by the stylesheet. */}
-        {placesStage && stageChrome.bar !== 'none' ? (
-          <div className="vgai-stage-bar" data-form={stageChrome.bar} aria-hidden="true" />
+        {/* THE STAGE'S BAR, when the look draws one (`workspace-surfaces.css`, "THE STAGE'S BAR"). */}
+        {onBar ? (
+          <div className="vgai-stage-bar" data-form={stageChrome.bar} role="toolbar" aria-label="Viewport">
+            {barGroup('start')}
+            {barGroup('end')}
+          </div>
         ) : null}
         {chrome && (
           <DocumentShelfRail documentId={descriptor.id}>
@@ -176,11 +196,6 @@ export function WorkspaceDocumentSurface({
             ) : null}
           </DocumentShelfRail>
         )}
-        {chrome && toolsOnBar && transformTools ? (
-          <div className="vgai-stage-bar-tools" data-testid={`stage-bar-tools:${descriptor.id}`}>
-            {transformTools}
-          </div>
-        ) : null}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import { faBorderAll, faLightbulb } from '@fortawesome/free-solid-svg-icons';
 import { EditorIcon, FloatingToolbar, IconButton, Tooltip } from '@volter/editor-sdk/widgets';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
-import { memo, useEffect, useMemo, useReducer, useSyncExternalStore } from 'react';
+import { memo, useEffect, useMemo, useReducer, useState, useSyncExternalStore } from 'react';
 import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import {
   object3DDocumentSession,
@@ -25,8 +25,10 @@ import {
   viewportPresentationVersion,
 } from '@volter/editor-sdk/kit/viewport-presentation';
 import { ViewportShadingMenu } from './ViewportShadingMenu';
+import type { ViewportShadingMode } from '@volter/editor-threejs/render/viewport-shading';
 import { ViewportViewMenu } from './ViewportViewMenu';
-import { useViewportChrome } from '@volter/editor-sdk/kit/native-selection-style';
+import { useViewportChrome, useViewportWords } from '@volter/editor-sdk/kit/native-selection-style';
+import { createPortal } from 'react-dom';
 import { stageViewName } from './stage-view-name';
 
 /**
@@ -61,8 +63,24 @@ export function ViewportOverlay({
   // "Perspective" pill) leads these controls and opens the view menu; wherever the name opens
   // that menu itself (`bar`, `menu`) the camera icon is not drawn a second time.
   const chrome = useViewportChrome();
+  const words = useViewportWords();
   const namedView = chrome.viewName === 'bar' || chrome.viewName === 'menu';
-  return (
+  // ON THE LOOK'S BAR these controls sit in the bar's display slot, which the document's surface
+  // draws beside the tools (`WorkspaceDocumentSurface`); they are portalled there so the row
+  // flows as one. Found from this stage's own place in the page.
+  const [anchor, setAnchor] = useState<HTMLSpanElement | null>(null);
+  const findSlot = (): HTMLElement | null =>
+    anchor
+      ?.closest('.vgai-dock-document-content')
+      ?.querySelector<HTMLElement>(':scope > .vgai-stage-bar [data-stage-bar-slot="display"]') ?? null;
+  const slot = findSlot();
+  // The surface's bar can commit after this render (a change of look reaches both at once), so
+  // the slot is looked for again once the page has settled.
+  const [, reslot] = useReducer((value: number) => value + 1, 0);
+  useEffect(() => {
+    if (findSlot() !== slot) reslot();
+  });
+  const toolbar = (
     <FloatingToolbar
       label="Viewport display"
       className="vgai-viewport-toolbar vgai-viewport-toolbar-right vgai-stage-display"
@@ -84,15 +102,33 @@ export function ViewportOverlay({
           <EditorIcon icon={faBorderAll} size="md" />
         </IconButton>
       </Tooltip>
-      <HelpersButton store={store} />
+      <HelpersButton store={store} word={words.helpers} />
       <ViewportShadingMenu
-        mode={store.shadingMode}
-        onChange={(mode) => store.setShadingMode(mode)}
+        mode={sessionShading(session) ?? store.shadingMode}
+        // A document stage paints the mode its SESSION holds, and the store's is only what this
+        // menu shows: the session's `setMode` is what `set-shading-mode` drives, and writing the
+        // store alone relabelled the menu over an unchanged picture (measured under Unreal's look:
+        // "Wireframe" over the shaded box).
+        onChange={(mode) => (session ? session.setMode(mode) : store.setShadingMode(mode))}
+        words={words.shading}
       />
       {namedView ? null : <ViewportViewMenu shell={store.shell} documentId={documentId} />}
       <LightExplorerButton adapter={adapter} store={store} />
     </FloatingToolbar>
   );
+  return (
+    <>
+      <span ref={setAnchor} hidden />
+      {slot ? createPortal(toolbar, slot) : toolbar}
+    </>
+  );
+}
+
+/** The shading mode a document stage is painting, when it is one of the menu's (a Model
+ *  document's UV and vertex-colour views are its own toolbar's). */
+function sessionShading(session: ReturnType<typeof object3DDocumentSession>): ViewportShadingMode | null {
+  const mode = session?.presentation().mode;
+  return mode === undefined || mode === 'uv' || mode === 'vertex-colors' ? null : mode;
 }
 
 const NO_SESSION_SUBSCRIBE = () => () => {};
@@ -129,7 +165,7 @@ const LightExplorerButton = memo(function LightExplorerButton({
   );
 });
 
-function HelpersButton({ store }: { store: EditorShellStore }) {
+function HelpersButton({ store, word }: { store: EditorShellStore; word?: string | undefined }) {
   const helperTypes = [
     { key: 'bounds' as const, label: 'Bounds' },
     { key: 'lights' as const, label: 'Lights' },
@@ -153,6 +189,7 @@ function HelpersButton({ store }: { store: EditorShellStore }) {
   return (
     <ViewportOverlaysMenu
       label="Helpers"
+      {...(word !== undefined ? { word } : {})}
       master={{ enabled: store.shell.showHelpers, onToggle: () => store.shell.toggleHelpers() }}
       choices={helperTypes.map((helper) => ({
         id: helper.key,

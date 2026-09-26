@@ -346,13 +346,14 @@
   position: static;
 }
 
-/* THE STAGE'S BAR — the look's `stage.chrome` (`StageContribution.chrome` in
-   `editor-looks.ts`), carried on the content box by `WorkspaceDocumentSurface`:
-   a row across the stage's top holding the controls the look places there.
-   `strip` is a flush panel band (Godot's 3D toolbar, Unity's Scene toolbar);
-   `pills` a row of rounded pills over the view (Unreal's viewport toolbar).
-   Controls the look leaves off the bar (the shelf, a corner toolbar, the
-   view-name pill) start under it through `--vgai-viewport-overlay-top`. */
+/* THE STAGE'S BAR — the look's `stage.chrome` (`StageChromeContribution` in `editor-looks.ts`),
+   drawn by `WorkspaceDocumentSurface` as one row across the stage's top: a group at its start
+   and one at its end, each holding in order the display controls (portalled into their slot by
+   `ViewportOverlay`), the transform tools and the stage's transform controls, as the look
+   places them. `strip` is a flush panel band (Godot's 3D toolbar, Unity's Scene toolbar);
+   `pills` a row of rounded pills over the view (Unreal's viewport toolbar). Controls left off
+   the bar (the shelf, a corner toolbar, the view-name pill) start under it through
+   `--vgai-viewport-overlay-top`. */
 .vgai-dock-document-content[data-vgai-stage-bar] {
   --vgai-stage-bar-control: var(--vgai-control-comfortable-height, 28px);
   --vgai-stage-bar-inset: var(--vgai-space-1);
@@ -368,61 +369,42 @@
   left: 0;
   right: 0;
   height: var(--vgai-stage-bar-height);
-  z-index: calc(var(--vgai-z-dropdown, 1000) - 2);
+  padding-inline: var(--vgai-space-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--vgai-space-2);
+  z-index: calc(var(--vgai-z-dropdown, 1000) - 1);
   pointer-events: none;
 }
+/* A flush band is a toolbar, not a see-through overlay: nothing under it is picked through it.
+   Pills leave the view between them to the stage. */
 .vgai-stage-bar[data-form="strip"] {
-  /* A toolbar band, not a see-through overlay: nothing under it is picked through it. */
   pointer-events: auto;
   background: var(--vgai-surface-header);
   border-bottom: var(--vgai-stroke-resting) solid var(--vgai-structural-divider);
 }
-
-/* The display controls on the bar: at its start or its end, centred in it. */
-.vgai-dock-document-content[data-vgai-stage-bar]:is([data-vgai-stage-display="bar-start"], [data-vgai-stage-display="bar-end"])
-  .vgai-stage-display {
-  top: var(--vgai-stage-bar-inset);
-  height: var(--vgai-stage-bar-control);
-  padding: 0;
-  border: 0;
-  background: none;
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  align-items: center;
-}
-.vgai-dock-document-content[data-vgai-stage-bar][data-vgai-stage-display="bar-start"] .vgai-stage-display {
-  left: var(--vgai-space-2);
-  right: auto;
-}
-.vgai-dock-document-content[data-vgai-stage-bar][data-vgai-stage-display="bar-end"] .vgai-stage-display {
-  right: var(--vgai-space-2);
-}
-
-/* The transform tools on the bar (`.vgai-stage-bar-tools`, the host moves them there alone; a
-   document's own shelf stays on its rail): the strip's own row, at the bar's start or end. */
-.vgai-stage-bar-tools {
-  position: absolute;
-  top: var(--vgai-stage-bar-inset);
-  height: var(--vgai-stage-bar-control);
-  z-index: calc(var(--vgai-z-dropdown, 1000) - 1);
+.vgai-stage-bar-group {
   display: flex;
   align-items: center;
+  gap: var(--vgai-space-2);
+  min-width: 0;
   pointer-events: auto;
 }
-.vgai-stage-bar-tools .vgai-viewport-toolbar {
+.vgai-stage-bar-slot {
+  display: contents;
+}
+/* Every control the bar carries sits in its row, at the bar's control height. */
+.vgai-stage-bar .vgai-viewport-toolbar {
   position: static;
 }
-.vgai-dock-document-content[data-vgai-stage-tools="bar-start"] > .vgai-stage-bar-tools {
-  left: var(--vgai-space-2);
-}
-.vgai-dock-document-content[data-vgai-stage-tools="bar-end"] > .vgai-stage-bar-tools {
-  right: var(--vgai-space-2);
+.vgai-stage-bar :is(.vgai-floating-toolbar, .vgai-toolbar) {
+  height: var(--vgai-stage-bar-control);
+  align-items: center;
 }
 
-/* On a STRIP the controls are flat on the band, as Godot's and Unity's toolbar buttons are; on
-   PILLS each control is its own rounded pill. */
-.vgai-dock-document-content[data-vgai-stage-bar="strip"] > .vgai-stage-bar-tools .vgai-floating-toolbar {
+/* On a STRIP the controls are flat on the band, as Godot's and Unity's toolbar buttons are. */
+.vgai-stage-bar[data-form="strip"] :is(.vgai-floating-toolbar, .vgai-toolbar) {
   padding: 0;
   border: 0;
   background: none;
@@ -430,7 +412,16 @@
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-.vgai-dock-document-content[data-vgai-stage-bar="pills"] .vgai-stage-display > * {
+/* On PILLS each control, and each group of tools, is its own rounded pill (`level-editor.png`). */
+.vgai-stage-bar[data-form="pills"] :is(.vgai-floating-toolbar, .vgai-toolbar) {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  gap: var(--vgai-space-2);
+}
+.vgai-stage-bar[data-form="pills"] .vgai-stage-display > *,
+.vgai-stage-bar[data-form="pills"] .vgai-transform-header-controls > * {
   display: inline-flex;
   align-items: center;
   height: var(--vgai-stage-bar-control);
@@ -438,18 +429,13 @@
   border-radius: var(--vgai-radius-full);
   background: var(--vgai-island-surface, var(--vgai-surface-overlay));
 }
-.vgai-dock-document-content[data-vgai-stage-bar="pills"]:is([data-vgai-stage-display="bar-start"], [data-vgai-stage-display="bar-end"])
-  .vgai-stage-display {
-  gap: var(--vgai-space-2);
-}
-.vgai-dock-document-content[data-vgai-stage-bar="pills"] > .vgai-stage-bar-tools .vgai-floating-toolbar {
+.vgai-stage-bar[data-form="pills"] .vgai-viewport-toolbar-left {
+  display: inline-flex;
+  align-items: center;
   height: var(--vgai-stage-bar-control);
-  padding-block: 0;
   padding-inline: var(--vgai-space-1);
-  border: 0;
   border-radius: var(--vgai-radius-full);
   background: var(--vgai-island-surface, var(--vgai-surface-overlay));
-  box-shadow: none;
 }
 
 /* An empty rail leaves the stage's left edge to the controls the look puts there. */

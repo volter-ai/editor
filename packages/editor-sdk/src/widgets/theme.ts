@@ -248,8 +248,26 @@ export interface EditorStage {
       readonly viewName?: 'text' | 'menu' | 'gizmo' | 'bar';
       readonly tools?: 'shelf' | 'bar-start' | 'bar-end';
       readonly display?: 'corner' | 'bar-start' | 'bar-end';
+      readonly transformControls?: 'header' | 'bar';
+    };
+    /** `StageContribution.words`: the stage's controls in the target's own words. */
+    readonly words?: {
+      readonly shading?: Readonly<Partial<Record<string, string>>>;
+      readonly helpers?: string;
     };
 }
+/** The shading modes a look may name (`StageContribution.words.shading`). */
+export const STAGE_WORD_MODES = [
+  'solid',
+  'clay',
+  'unlit',
+  'wireframe',
+  'matcap',
+  'normals',
+  'overdraw',
+  'preview',
+  'rendered',
+] as const;
 function numberToken(value: number | undefined): string {
   return value === undefined ? '' : `${value}`;
 }
@@ -2655,6 +2673,12 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     '--vgai-viewport-chrome-view-name': theme.stage?.chrome?.viewName ?? '',
     '--vgai-viewport-chrome-tools': theme.stage?.chrome?.tools ?? '',
     '--vgai-viewport-chrome-display': theme.stage?.chrome?.display ?? '',
+    '--vgai-viewport-chrome-transform-controls': theme.stage?.chrome?.transformControls ?? '',
+    // THE STAGE'S WORDS (`StageContribution.words`), each empty where the look names none.
+    ...Object.fromEntries(
+      STAGE_WORD_MODES.map((mode) => [`--vgai-viewport-word-${mode}`, theme.stage?.words?.shading?.[mode] ?? '']),
+    ),
+    '--vgai-viewport-word-helpers': theme.stage?.words?.helpers ?? '',
     // The widget classes. Unlike `viewport`, these are never emitted empty:
     // every one paints a control that must stay painted, so an absent group
     // resolves to the surface that call site already read.

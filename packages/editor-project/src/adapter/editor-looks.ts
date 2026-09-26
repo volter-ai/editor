@@ -358,6 +358,8 @@ export interface StageContribution {
   /** THE STAGE'S OWN CHROME: which overlay controls the viewport carries and where. See
    *  {@link StageChromeContribution}; absent keeps the editor's own set. */
   readonly chrome?: StageChromeContribution;
+  /** The stage's controls in the target's words. See {@link StageWordsContribution}. */
+  readonly words?: StageWordsContribution;
 }
 
 /**
@@ -377,6 +379,9 @@ export interface StageContribution {
  *   bar's `bar-start` (Godot) or `bar-end` (Unreal).
  * - `display`: the display controls (shading, grid, helpers, lights) in the top-right
  *   `corner` or at the bar's `bar-start` (Unity, Unreal) or `bar-end` (Godot).
+ * - `transformControls`: the stage's transform controls (orientation, pivot, snap and its
+ *   values) in the document's `header` (the editor's own, Blender's) or on the `bar` after the
+ *   tools (Unreal's row: world/local, the snap values; Godot's: local space, snap).
  *
  * Whether the zoom and pan cluster and the camera readout are drawn at all is the view's
  * (`overlays.navigationControls`, `overlays.cameraReadout`), not the look's.
@@ -386,7 +391,30 @@ export interface StageChromeContribution {
   readonly viewName?: 'text' | 'menu' | 'gizmo' | 'bar';
   readonly tools?: 'shelf' | 'bar-start' | 'bar-end';
   readonly display?: 'corner' | 'bar-start' | 'bar-end';
+  readonly transformControls?: 'header' | 'bar';
 }
+
+/**
+ * THE STAGE'S CONTROLS IN THE TARGET'S OWN WORDS: what the shading menu calls each mode
+ * (Unreal's `Lit`, Unity's `Shaded`, Godot's `Display Normal` for the editor's `solid`) and
+ * what the helpers menu is called, drawn as a word where named (Unreal's `Show`, Unity's
+ * `Gizmos`). A mode or menu the look does not name keeps the editor's own word and mark.
+ */
+export interface StageWordsContribution {
+  readonly shading?: Readonly<Partial<Record<StageShadingModeId, string>>>;
+  readonly helpers?: string;
+}
+/** The stage's shading modes, by id (`@volter/editor-threejs` `viewport-shading`). */
+export type StageShadingModeId =
+  | 'solid'
+  | 'clay'
+  | 'unlit'
+  | 'wireframe'
+  | 'matcap'
+  | 'normals'
+  | 'overdraw'
+  | 'preview'
+  | 'rendered';
 
 /**
  * A glyph's CATEGORY — the colour channel a set may carry per glyph, painted
