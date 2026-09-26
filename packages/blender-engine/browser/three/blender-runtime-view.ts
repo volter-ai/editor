@@ -918,6 +918,7 @@ export class BlenderRuntimeView {
    *  time so a replaced node (the skin's) is never left wearing the other. */
   private applyWorkbench(): void {
     const solid = this.workbench && !this.rendered;
+    const used = new Set<string>();
     for (const obj of this.frame?.objects ?? []) {
       if (obj.mesh === null || obj.volume) continue;
       const mesh = this.objects.get(obj.id) as THREE.Mesh | undefined;
@@ -925,15 +926,22 @@ export class BlenderRuntimeView {
       const slots: readonly (string | null)[] = obj.materials.length ? obj.materials : [null];
       const shown = slots.map((id) => {
         const authored = id === null ? this.fallback : (this.materials.get(id) ?? this.fallback);
-        return solid ? this.workbenchFor(id, authored.side) : authored;
+        return solid ? this.workbenchFor(id, authored.side, used) : authored;
       });
       mesh.material = obj.materials.length ? shown : shown[0]!;
     }
+    // Released as soon as no surface wears it: a dragged viewport colour makes one per value.
+    for (const [key, material] of this.workbenchMaterials) {
+      if (used.has(key)) continue;
+      material.dispose();
+      this.workbenchMaterials.delete(key);
+    }
   }
 
-  private workbenchFor(id: string | null, side: THREE.Side): THREE.Material {
+  private workbenchFor(id: string | null, side: THREE.Side, used: Set<string>): THREE.Material {
     const display = (id !== null ? this.frame?.materials[id]?.viewport : undefined) ?? DEFAULT_VIEWPORT_DISPLAY;
     const key = `${display.color.join(',')}|${display.roughness}|${display.metallic}|${side}`;
+    used.add(key);
     let material = this.workbenchMaterials.get(key);
     if (!material) {
       material = workbenchMaterial(display, side);
