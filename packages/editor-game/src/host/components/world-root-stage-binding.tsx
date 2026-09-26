@@ -1,6 +1,6 @@
 /**
  * THE GAME'S WORLD-ROOT BINDING for the kit's stage host
- * (`@volter/editor-core/components/world-root-binding`): the world's surface,
+ * (`@volter/editor-threejs/kit/components/world-root-binding`): the world's surface,
  * its stage, and the overlays the stage shows only over a world.
  *
  * `Overlays` is the world-root half of vgai's `stage-overlay-set.tsx` — every

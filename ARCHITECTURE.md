@@ -81,18 +81,17 @@ Rules:
   on them. The actors are observed through a serving-side stamp on each machine the project
   declares; the game registers nothing. It replaced the inspect-only Behavior document, which
   read actors a game had to register.
-- `@volter/editor-game` imports kit internals from **37** files through 61 edges (156 files
-  before this work). The kit's shared modules live in `@volter/editor-sdk/kit/*` (registries, ids,
-  types, codecs, the console, the session's HTTP clients, the shell store, history, the composite
-  authoring adapter, the project boot, the story registry, the source-write backends); the kit
-  imports them from there too. Measured per import rather than as one union, most of what
-  `@volter/editor-game` reached closed over a handful of neutral modules, and those moved. What
-  remains is two kinds: the Play purpose (`scoped-game-css`, `composite-screenshot`,
-  `gameplay-*`, `play-boot-phase`, `world-adoption`, `world-document-routing`, the story
-  capture), which the kit itself still imports and which leaves by inverting each use into a door
-  the game registers into; and the large modules (`project-adapter`, `tool-loader`, the Inspector,
-  the command listener), which close over 30–90 of the kit's 196 modules.
-  `@volter/editor-core` exports `./*`, so nothing stops it.
+- `@volter/editor-game` imports nothing from `@volter/editor-core` (156 files did before this
+  work) and no longer depends on it. What it reaches of the kit is the SDK's published door,
+  `@volter/editor-sdk/kit/*`, where the kit's shared modules live and the kit imports them from:
+  registries, ids, types, codecs, the console, the session's HTTP clients, the shell store,
+  history, the composite authoring adapter, the project boot and adapter, the tool loader and
+  tool host, the story registry and capture, the Inspector, the command listener. Measured per
+  import, what the game reached closed over a handful of neutral modules at a time, and the kit
+  moved in dependency order. The Play purpose (`gameplay-*`, `play-boot-phase`,
+  `composite-screenshot`, `scoped-game-css`, world adoption and routing) moved with the modules
+  that close over it and so still lives in the kit, now at the SDK: the contribution contract
+  names gameplay sessions and play, and taking the rest out is an inversion per use.
 - The Three viewport is `@volter/editor-threejs`'s (unit 3): no module in `@volter/editor-core`
   imports three.js or `@volter/editor-threejs`, and Pixi's story and canvas captures are
   `@volter/editor-game`'s. The kit's one remaining media edge is the contribution

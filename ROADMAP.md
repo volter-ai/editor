@@ -38,7 +38,6 @@ done (`@volter/model-editor`; `release/boundary-baseline.json`); the Three viewp
 Completion:
 - Blender's viewport defaults are `@volter/editor-blender`'s specialization; the SDK's Object3D and viewport doors are Three's own exports.
 - Games are idiomatic (unit 5): the template and `arena` in plain libraries, the runtime framework retired into the ingest-style adapter.
-- `@volter/editor-game` imports no kit internals.
 
 ## game-editor-gaps: The game editor's remaining walks and gates
 
