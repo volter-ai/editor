@@ -216,7 +216,7 @@ const RUNTIME_POLICY = 'default' as const;
  * can, the refusal names each one with supercode's own reason and repair.
  */
 function harnessRefusal(harnesses: readonly HarnessChatHarness[]): string {
-  if (harnesses.length === 0) return 'Supercode reports no coding agents on this machine, so the Chat view has none to start.';
+  if (harnesses.length === 0) return 'Volter Harness reports no coding agents on this machine, so the Chat view has none to start.';
   const lines = harnesses.map((harness) => {
     const why = harness.reason ?? (harness.installed ? `not ready (${harness.auth})` : 'not installed');
     return `${harness.label}: ${why}${harness.repair ? ` — ${harness.repair}` : ''}`;
@@ -539,14 +539,14 @@ async function importSupercodePackages(engineRoot: string): Promise<{
     join(cwdSibling, 'client', 'client.mjs'),
   ];
   const [SupercodeHarnessClient, clientModule] = await Promise.all([
-    importOptional<SupercodeClientConstructor>('Supercode harness SDK', 'SupercodeHarnessClient', [
+    importOptional<SupercodeClientConstructor>('Volter Harness SDK', 'SupercodeHarnessClient', [
       ...moduleCandidate(process.env['SUPERCODE_SDK_PATH'], 'client.mjs'),
       '@volter-ai-dev/supercode-harness-sdk',
       join(sibling, 'typescript', 'client.mjs'),
       join(cwdSibling, 'typescript', 'client.mjs'),
     ]),
     importOptionalModule(
-      'Supercode headless client',
+      'Volter Harness headless client',
       [
         'SupercodeController',
         'assertSupercodeClientSnapshot',
@@ -592,7 +592,7 @@ async function importSupercodeController(engineRoot: string): Promise<{
     cwdSibling,
   ];
   const clientModule = await importOptionalModule(
-    'Supercode headless client',
+    'Volter Harness headless client',
     [
       'SupercodeController',
       'assertSupercodeClientSnapshot',
@@ -630,7 +630,7 @@ function findSourceLinkedSupercodeCommand(): string | undefined {
     if (existsSync(candidate) && statSync(candidate).isFile()) return candidate;
   }
   throw new Error(
-    `The source-linked Supercode SDK at ${clientRoot} has no built core binary. Run \`cargo build --bin supercode\` in ${sourceRoot}.`,
+    `The source-linked Volter Harness SDK at ${clientRoot} has no built core binary. Run \`cargo build --bin supercode\` in ${sourceRoot}.`,
   );
 }
 
@@ -822,7 +822,7 @@ function loading(
   serverInstanceId: string,
 ): HarnessChatSnapshot {
   return {
-    ...unavailable(workspace, 'Supercode is loading.', workspaceGeneration, serverInstanceId),
+    ...unavailable(workspace, 'Volter Harness is loading.', workspaceGeneration, serverInstanceId),
     status: 'loading' as const,
     error: null,
   };
@@ -859,7 +859,7 @@ export class HarnessChatService {
   private readonly bridgeListeners = new Set<() => void>();
   private lastSnapshot: HarnessChatSnapshot = unavailable(
     null,
-    'Supercode is loading.',
+    'Volter Harness is loading.',
     0,
     this.serverInstanceId,
   );
@@ -984,7 +984,7 @@ export class HarnessChatService {
     await this.ensureController();
     const host = this.remoteHost;
     if (!host) {
-      throw new Error(this.lastSnapshot.error?.message ?? 'Supercode is unavailable.');
+      throw new Error(this.lastSnapshot.error?.message ?? 'Volter Harness is unavailable.');
     }
     await host.dispatch(intent);
     this.capture();
@@ -1209,7 +1209,7 @@ export class HarnessChatService {
     try {
       await this.ensureController();
       const controller = this.controller;
-      if (!controller) throw new Error('Supercode is unavailable.');
+      if (!controller) throw new Error('Volter Harness is unavailable.');
       if (!this.managedRuntime || this.managedRuntime.closed) {
         // REOPENING A PROJECT RESUMES ITS LAST SESSION, it does not start a second one.
         // `vgai close` ends the runtime with the session, so without this every reopen
@@ -1254,7 +1254,7 @@ export class HarnessChatService {
       const runtimeId = this.managedRuntime?.handle?.runtime_id;
       if (!runtimeId) {
         throw new Error(
-          'Supercode started no agent runtime for this project, so the Chat view has nothing to attach to.',
+          'Volter Harness started no agent runtime for this project, so the Chat view has nothing to attach to.',
         );
       }
       const handoff = await mintFrontendHandoff({
@@ -1322,7 +1322,7 @@ export class HarnessChatService {
     this.managedRuntime = null;
     void handoff?.dispose();
     this.closing = controller
-      ? withTimeout(controller.close(), 2_500, 'Supercode shutdown').then(
+      ? withTimeout(controller.close(), 2_500, 'Volter Harness shutdown').then(
           () => undefined,
           () => undefined,
         )
@@ -1364,7 +1364,7 @@ export class HarnessChatService {
     try {
       controller = await this.createHeadlessController(workspace, autoObserve);
       if (this.closed || generation !== this.workspaceGeneration) {
-        await withTimeout(controller.close(), 2_500, 'Supercode shutdown').catch(() => undefined);
+        await withTimeout(controller.close(), 2_500, 'Volter Harness shutdown').catch(() => undefined);
         return;
       }
       this.workspace = workspace;
@@ -1389,7 +1389,7 @@ export class HarnessChatService {
           },
           onUnsupported: (intent) => {
             throw new Error(
-              `Supercode UI action is not available in this editor: ${intent.action}`,
+              `Volter Harness UI action is not available in this editor: ${intent.action}`,
             );
           },
         },
@@ -1397,7 +1397,7 @@ export class HarnessChatService {
       this.unsubscribe = controller.subscribe(() => this.capture());
       this.capture();
       const timeoutMs = this.options.initializeTimeoutMs ?? DEFAULT_INITIALIZE_TIMEOUT_MS;
-      await withTimeout(controller.initialize(), timeoutMs, 'Supercode initialization');
+      await withTimeout(controller.initialize(), timeoutMs, 'Volter Harness initialization');
       this.capture();
       this.scheduleDiscovery();
     } catch (error) {
@@ -1418,7 +1418,7 @@ export class HarnessChatService {
         this.options.onChange(this.snapshot());
       }
       if (controller) {
-        await withTimeout(controller.close(), 2_500, 'Supercode shutdown').catch(() => undefined);
+        await withTimeout(controller.close(), 2_500, 'Volter Harness shutdown').catch(() => undefined);
       }
     }
   }
@@ -1466,7 +1466,7 @@ export class HarnessChatService {
         this.options.sessionReconnectIdentity ?? module?.sessionReconnectIdentity;
       if (!sessionReconnectIdentity) {
         throw new Error(
-          'An injected Supercode controller must provide its sessionReconnectIdentity test seam.',
+          'An injected Volter Harness controller must provide its sessionReconnectIdentity test seam.',
         );
       }
       this.sessionIdentity = sessionReconnectIdentity;
@@ -1483,7 +1483,7 @@ export class HarnessChatService {
       if (this.options.createController) {
         return this.options.createController(client, workspace, { autoObserve });
       }
-      if (!module) throw new Error('Supercode controller could not be loaded.');
+      if (!module) throw new Error('Volter Harness controller could not be loaded.');
       this.assertSnapshot = module.assertSupercodeClientSnapshot;
       this.projectConversation = module.projectConversation;
       this.deriveTaskPlan = module.deriveTaskPlan;
@@ -1907,7 +1907,7 @@ export class HarnessChatService {
 
   async loadSessionForProjectWork(sessionKey: string): Promise<HeadlessLoadedSession> {
     await this.ensureController(false);
-    if (!this.controller) throw new Error('Supercode is unavailable.');
+    if (!this.controller) throw new Error('Volter Harness is unavailable.');
     return this.controller.loadSession(sessionKey);
   }
 }

@@ -1,6 +1,6 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer, request as httpRequest, type Server } from 'node:http';
-import { EDITOR_BRAND, editorAppIconSvg } from '@volter/editor-sdk/session/editor-brand';
+import { EDITOR_BRAND } from '@volter/editor-sdk/session/editor-brand';
 import type {
   ShareAccount,
   ShareAuditEvent,
@@ -536,7 +536,6 @@ function upstreamHeaders(
 const SHARE_PAGE_STYLES = `:root{color-scheme:dark}
 body{margin:0;display:grid;place-items:center;min-height:100vh;background:#111418;color:#c9d1d9;font:14px/1.5 system-ui,sans-serif}
 main{max-width:32rem;padding:28px 32px;border:1px solid #232a31;border-radius:12px;background:#171b20;text-align:center}
-.brand-mark{width:64px;height:64px;margin:0 auto 18px}.brand-mark svg{display:block;width:100%;height:100%}
 h1{margin:0 0 8px;font-size:18px;font-weight:600;color:#e6edf3}
 p{margin:6px 0}
 .subject{color:#8b949e}
@@ -577,9 +576,8 @@ function invitationSubject(display: ShareSessionDisplay | undefined): string {
 function sharePage(title: string, body: string, script: string): string {
   const fullTitle = `${title} — ${EDITOR_BRAND.name}`;
   const description = 'Open a shared Volter Editor session.';
-  const favicon = `data:image/svg+xml,${encodeURIComponent(editorAppIconSvg())}`;
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="${EDITOR_BRAND.themeColor}"><meta name="robots" content="noindex,nofollow"><meta name="description" content="${description}"><link rel="icon" type="image/svg+xml" href="${favicon}"><meta property="og:type" content="website"><meta property="og:site_name" content="${EDITOR_BRAND.name}"><meta property="og:title" content="${fullTitle}"><meta property="og:description" content="${description}"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="${fullTitle}"><meta name="twitter:description" content="${description}"><title>${fullTitle}</title><style>${SHARE_PAGE_STYLES}</style></head>
-<body><main><div class="brand-mark">${editorAppIconSvg()}</div>${body}</main><script>${script}</script></body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="${EDITOR_BRAND.themeColor}"><meta name="robots" content="noindex,nofollow"><meta name="description" content="${description}"><meta property="og:type" content="website"><meta property="og:site_name" content="${EDITOR_BRAND.name}"><meta property="og:title" content="${fullTitle}"><meta property="og:description" content="${description}"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="${fullTitle}"><meta name="twitter:description" content="${description}"><title>${fullTitle}</title><style>${SHARE_PAGE_STYLES}</style></head>
+<body><main>${body}</main><script>${script}</script></body></html>`;
 }
 
 function landing(display?: ShareSessionDisplay): string {

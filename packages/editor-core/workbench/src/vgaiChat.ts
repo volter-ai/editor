@@ -38,7 +38,7 @@ registerAction2(class extends Action2 {
 	constructor() { super({ id: 'volter.chat.openSession', title: localize2('openHarnessChat', 'Open Harness Conversation'), f1: false }); }
 	async run(accessor: ServicesAccessor, value: string): Promise<void> {
 		const resource = URI.parse(value);
-		if (resource.scheme !== 'supercode') { throw new Error('Expected a Supercode chat session.'); }
+		if (resource.scheme !== 'supercode') { throw new Error('Expected a Volter Harness chat session.'); }
 		await accessor.get(IChatWidgetService).openSession(resource, ChatViewPaneTarget);
 	}
 });

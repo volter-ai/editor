@@ -1,3 +1,5 @@
+<p align="center"><img src="https://brand.volter.ai/logo/volter-editor/svg?size=96" alt="Volter Editor"></p>
+
 # Volter Editor
 
 Volter Editor is this stack: a media-neutral editor kit built on Code-OSS, the
@@ -28,10 +30,10 @@ npx @volter/model-editor create my-models
 The command creates a modeling project, installs the pinned public workbench on
 first use, and opens the model editor.
 
-The Chat pane runs whichever coding agent Supercode finds installed and signed in
+The Chat pane runs whichever coding agent Volter Harness finds installed and signed in
 (Claude Code, Codex, Grok, Gemini and the others it supports), resuming the
 project's last conversation with the agent that held it. A machine with none can
-open the modeling surface, and the pane names each agent with Supercode's own
+open the modeling surface, and the pane names each agent with Volter Harness's own
 repair; this package does not install or authenticate any agent.
 
 To reopen the project later:

@@ -57,6 +57,8 @@ export interface ProductDefinition {
    *  declares none (`workspace-presets.ts`). */
   readonly workspace: string;
   readonly nativeMenus?: boolean;
+  /** The product's own logo, a brand.volter.ai URL (the repository bundles no brand art). */
+  readonly logo?: string;
 }
 
 /**
@@ -71,6 +73,7 @@ export function product(definition: ProductDefinition): { mountVgai: typeof moun
     look: definition.look,
     workspace: definition.workspace,
     nativeMenus: definition.nativeMenus,
+    logo: definition.logo,
   });
   setBundledPackageContributions(names.flatMap((name) => definition.packages[name] ?? []));
   return { mountVgai: mountEditor };

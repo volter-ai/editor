@@ -576,7 +576,7 @@ export function AccountDocument() {
            * the card (hub empty-state anatomy) — the card carries only the form. */}
           <div className="vgai-account-signin-hero">
             <span className="vgai-account-signin-mark" aria-hidden="true">
-              <VgaiLogo size={52} animation="static" />
+              <VgaiLogo size={52} />
             </span>
             <h1 className="vgai-account-signin-title">Sign in to Volter Editor</h1>
           </div>

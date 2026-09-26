@@ -46,7 +46,7 @@ export function StartupErrorScreen({ error, report, onRetry }: StartupErrorScree
         <header className="vgai-shell-header">
           <span className="vgai-shell-brand-static">
             <span className="vgai-shell-brand-mark" aria-hidden="true">
-              <VgaiLogo size={30} animation="static" />
+              <VgaiLogo size={30} />
             </span>
             <span className="vgai-shell-wordmark">{EDITOR_BRAND.name}</span>
           </span>

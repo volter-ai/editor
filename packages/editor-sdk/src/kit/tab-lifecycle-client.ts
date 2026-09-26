@@ -23,7 +23,7 @@
  *   teardown window — a reload is the same convergence by a blunter route.
  */
 
-import { editorAppIconSvg, editorDocumentTitle } from '@volter/editor-sdk/session/editor-brand';
+import { editorDocumentTitle, editorMarkImg } from '@volter/editor-sdk/session/editor-brand';
 import { markSessionEnded } from './session-tombstone';
 
 /** How long `window.close()` gets to take effect before the fallback runs. */
@@ -125,8 +125,8 @@ function handleSessionEnded(base: string, identity: TabIdentity): void {
       :root{color-scheme:dark;background:#101318;color:#e8edf3;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
       body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 30%,#1c2a3a 0,#101318 52%,#0b0e13 100%)}
       main{width:min(440px,100%);box-sizing:border-box;padding:34px;text-align:center;border:1px solid rgba(255,255,255,.1);border-radius:20px;background:rgba(23,28,35,.92);box-shadow:0 22px 60px rgba(0,0,0,.38)}
-      .brand-mark{width:68px;height:68px;margin:0 auto 20px}.brand-mark svg{display:block;width:100%;height:100%}h1{margin:0 0 10px;font-size:22px}p{margin:0;color:#aeb9c6;font-size:14px;line-height:1.6}
-    </style><main><div class="brand-mark">${editorAppIconSvg()}</div><h1>Session ended</h1><p>This editor session has ended. You can close this tab.</p></main>`;
+      .brand-mark{width:68px;height:68px;margin:0 auto 20px}.brand-mark img{display:block;width:100%;height:100%}h1{margin:0 0 10px;font-size:22px}p{margin:0;color:#aeb9c6;font-size:14px;line-height:1.6}
+    </style><main><div class="brand-mark">${editorMarkImg()}</div><h1>Session ended</h1><p>This editor session has ended. You can close this tab.</p></main>`;
   });
 }
 

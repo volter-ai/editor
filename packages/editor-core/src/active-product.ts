@@ -42,6 +42,8 @@ export interface ActiveProduct {
   readonly workspace: string;
   /** Use the workbench application menu instead of a second product menu. */
   readonly nativeMenus?: boolean | undefined;
+  /** The product's own logo URL; the kit shows its own when absent. */
+  readonly logo?: string | undefined;
 }
 
 let _product: ActiveProduct | null = null;
