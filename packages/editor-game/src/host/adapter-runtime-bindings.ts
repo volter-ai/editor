@@ -27,6 +27,8 @@ import {
 } from '@volter/editor-project/adapter/adapter-module';
 import type { ObservationBinding } from '@volter/editor-project/adapter/binding';
 import { adapterInputBinding, adapterObservations } from '@volter/editor-sdk/kit/adapter-observation';
+import { observedGameAudio } from '../services/game-audio';
+import type { NativeSystemsBinding } from '@volter/editor-project/adapter/native-entry-surface';
 
 const ADAPTER_REGISTRATION_ID = '__adapter__';
 const installedGames = new WeakSet<Game>();
@@ -50,6 +52,22 @@ function entryBindings<K extends 'entryDebug' | 'entrySystems'>(
     if (harvested) out.push(harvested as NonNullable<ObservationBinding[K]>);
   }
   return out;
+}
+
+/**
+ * A game that says nothing about its audio is heard through the editor's observer of the
+ * page's Web Audio (`services/game-audio.ts`), on every root, so each world's pause gate and the
+ * editor's mute reach the one page-wide adapter. A game whose roots declare audio, or its
+ * absence, has spoken for it and gets no observer beside its own.
+ */
+function withObservedAudio(game: Game, bindings: NativeSystemsBinding[]): NativeSystemsBinding[] {
+  if (bindings.some((binding) => binding.slots.audio || binding.absent.some((slot) => slot.slot === 'audio'))) {
+    return bindings;
+  }
+  return game.roots.map((root) => {
+    const own = bindings.find((binding) => binding.rootId === root.id);
+    return { rootId: root.id, slots: { ...own?.slots, audio: observedGameAudio }, absent: own?.absent ?? [] };
+  });
 }
 
 function installObservations(
@@ -275,7 +293,7 @@ function installInput(game: Game, registry: DebugRegistry, binding: AdapterInput
 export function installAdapterRuntimeBindings(game: Game): void {
   if (installedGames.has(game)) return;
   installNativeDebugBindings(game, entryBindings(game, 'entryDebug'));
-  installNativeSystemsBindings(game, entryBindings(game, 'entrySystems'));
+  installNativeSystemsBindings(game, withObservedAudio(game, entryBindings(game, 'entrySystems')));
   // The engine's universal instruments (time scale, pause/frame-step,
   // collider draw, frame time) — HOST-published, so every game gets them for
   // zero lines and no in-world mount. The disposer is deliberately dropped:
