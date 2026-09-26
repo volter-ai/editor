@@ -23,7 +23,9 @@ function writeNote(node: DawNode, meter: number, flats: boolean): string {
   props['at'] = position(props['at'], meter);
   props['pitch'] = typeof props['pitch'] === 'string' ? props['pitch'] : formatPitch(Number(props['pitch']), flats);
   props['dur'] = typeof props['dur'] === 'string' ? props['dur'] : formatDuration(Number(props['dur']));
-  return `<Note ${Object.entries(props).filter(([, value]) => value !== undefined).map(([name, value]) => attr(name, value)).join(' ')} />`;
+  // A graph mounted by the editor carries its serve-time stamps (`data-oid`): they are the
+  // served file's, never the source's.
+  return `<Note ${Object.entries(props).filter(([name, value]) => value !== undefined && !name.startsWith('data-')).map(([name, value]) => attr(name, value)).join(' ')} />`;
 }
 function nearestTrack(node: SourceElement): SourceElement | undefined {
   for (let parent = node.parent; parent; parent = parent.parent) {

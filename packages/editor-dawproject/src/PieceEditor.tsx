@@ -15,15 +15,17 @@
 
 import { formatAt, formatDuration, formatPitch, spelledFlat } from '@volter/dawproject/notation';
 import type { Piece, PieceClip, PieceNote, PieceTrack } from '@volter/dawproject/piece';
+import type { DawNode } from '@volter/dawproject/render';
 import type { ToolNotice } from '@volter/editor-sdk/contributions';
 import { editorHost } from '@volter/editor-sdk/host';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AutomationLane } from './AutomationLane';
+import { freezeClip } from './freeze-clip';
 import { useLivePiece } from './live-piece';
 import { Mixer } from './Mixer';
 import { type EngineState, PreviewEngine, trackVoices } from './preview-engine';
-import { propRefusal, readSourceIndex, recordStructWrite, type SourceIndex, writeProps, writeStruct } from './source-index';
+import { applySource, propRefusal, readSource, readSourceIndex, recordStructWrite, type SourceIndex, writeProps, writeStruct } from './source-index';
 
 const HEADER_W = 190;
 const LANE_H = 44;
@@ -269,6 +271,8 @@ export function PieceEditor({
             clip={clip.clip}
             color={trackColor(clip.track, clip.trackIndex)}
             trackName={clip.track.name}
+            clipNumber={clip.track.clips.indexOf(clip.clip) + 1}
+            graph={live.graph}
             piece={piece}
             index={index}
             pxPerBeat={pxPerBeat * 2}
@@ -459,6 +463,9 @@ function PianoRoll(props: {
   readonly clip: PieceClip;
   readonly color: string;
   readonly trackName: string;
+  /** The clip's place among its track's clips, from 1: how the freezer finds it. */
+  readonly clipNumber: number;
+  readonly graph: DawNode | null;
   readonly piece: Piece;
   readonly index: SourceIndex;
   readonly pxPerBeat: number;
@@ -670,6 +677,19 @@ function PianoRoll(props: {
     );
   };
 
+  // FREEZE: the clip's generated notes and lanes written out as literal elements, so a person
+  // can shape them by hand; the rule that generated them is left in the file, unused.
+  const generated =
+    clip.notes.some((note) => note.oid !== null && (piece.oidCounts.get(note.oid) ?? 0) > 1) ||
+    clip.lanes.some((lane) => lane.oid !== null && (piece.oidCounts.get(lane.oid) ?? 0) > 1);
+  const freeze = async (): Promise<void> => {
+    if (!props.graph) return;
+    const prevSource = await readSource(props.file);
+    const newSource = freezeClip(prevSource, props.graph, props.trackName, props.clipNumber);
+    if (!(await applySource(props.file, newSource, prevSource))) throw new Error(`${props.file} changed while freezing; try again.`);
+    recordStructWrite('Freeze Clip', { file: props.file, prevSource, newSource }, { index, pieceFile: props.file, documentId: props.documentId }, props.onMessage);
+  };
+
   const deleteRef = useRef<() => void>(() => {});
   deleteRef.current = () => {
     const note = clip.notes.find((candidate) => candidate.id === selected);
@@ -692,8 +712,26 @@ function PianoRoll(props: {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ padding: '3px 10px', ...small, borderBottom: `1px solid ${themeVars.boundary.default}` }}>
         <span style={{ color }}>{props.trackName}</span> · {clip.name ?? 'clip'} · bar {Math.floor(clip.time / beatsPerBar) + 1} · {clip.notes.length} notes
+        {generated ? (
+          <button
+            type="button"
+            data-control="freeze"
+            title="Write this clip's generated notes and lanes out as notes you can edit"
+            style={{ ...button, marginLeft: 8, padding: '0 8px', fontSize: 11 }}
+            onClick={() => {
+              // This button goes away once the clip has nothing generated left. Focus goes to the
+              // clip editor first, or it would fall to the page and the workbench's Undo would
+              // no longer know which document it is in.
+              scroller.current?.focus({ preventScroll: true });
+              props.onMessage(null);
+              freeze().catch((error: unknown) => props.onMessage(error instanceof Error ? error.message : String(error)));
+            }}
+          >
+            Freeze
+          </button>
+        ) : null}
       </div>
-      <div ref={scroller} style={{ flex: 1, overflow: 'auto' }}>
+      <div ref={scroller} tabIndex={-1} style={{ flex: 1, overflow: 'auto', outline: 'none' }}>
         <div style={{ display: 'flex', width: KEY_W + width }}>
         <div style={{ width: KEY_W, flex: 'none', position: 'sticky', left: 0, zIndex: 1, background: themeVars.surface.panel }}>
           {Array.from({ length: rows }, (_, row) => {

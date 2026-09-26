@@ -9,6 +9,7 @@
  */
 
 import { editorHost } from '@volter/editor-sdk/host';
+import { sha256Hex } from '@volter/editor-sdk/kit/bytes-codec';
 import type { OidEntry } from '@volter/editor-sdk/source-authoring';
 import { handleProjectMutationFailure } from '@volter/editor-sdk/kit/source-conflict';
 import {
@@ -92,6 +93,38 @@ export function formatNumber(value: number): string {
   return String(Math.round(value * 1e6) / 1e6);
 }
 
+/** The file as the source routes read it (settled on disk, not a workbench buffer). */
+export async function readSource(file: string): Promise<string> {
+  const response = await fetch('/__ui-source/read', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ file }),
+  });
+  const answer = (await response.json()) as { source?: string; error?: string };
+  if (!response.ok || typeof answer.source !== 'string') throw new Error(answer.error ?? `Reading ${file} failed (${response.status}).`);
+  return answer.source;
+}
+
+/**
+ * Replace a whole file through `/__ui-source/apply`, only while it is still exactly `expected`
+ * (the route compares digests). The door the source history's own whole-file inverses use: a
+ * server write, like every other gesture's, which the workbench sees as the file changing and
+ * which leaves its undo stack alone. Resolves `false` when the file has moved on.
+ */
+export async function applySource(file: string, source: string, expected: string): Promise<boolean> {
+  const ifMatchSha = await sha256Hex(new TextEncoder().encode(expected));
+  const response = await fetch('/__ui-source/apply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ file, source, ifMatchSha, ...sourceMutationAttribution() }),
+  });
+  const answer = (await response.json()) as { applied?: boolean; error?: string; revision?: number };
+  if (typeof answer.revision === 'number') setCollaborationRevision(answer.revision);
+  if (response.status === 409) return false;
+  if (!response.ok || !answer.applied) throw new Error(answer.error ?? `Writing ${file} failed (${response.status}).`);
+  return true;
+}
+
 /** What a structural write did to its file: the whole source before and after, for undo. */
 export interface StructWrite {
   readonly file: string;
@@ -145,6 +178,7 @@ export async function writeStruct(
  * outside the project (an installed package's source).
  */
 export function projectPath(index: SourceIndex, pieceFile: string, absolute: string): string | null {
+  if (!absolute.startsWith('/')) return absolute;
   const suffix = `/${pieceFile}`;
   for (const entry of index.values()) {
     if (!entry.file.endsWith(suffix)) continue;
@@ -221,17 +255,9 @@ export function recordStructWrite(
     return;
   }
   const restore = async (expected: string, next: string): Promise<boolean> => {
-    const files = editorHost().files;
-    const current = await files.read(file);
-    if (current !== expected) {
-      let at = 0;
-      while (at < current.length && current[at] === expected[at]) at++;
-      const line = current.slice(0, at).split('\n').length;
-      onMessage(`${file} changed after “${label}” (line ${line} differs), so it was left as it is.`);
-      return false;
-    }
-    await files.write(file, next);
-    return true;
+    if (await applySource(write.file, next, expected)) return true;
+    onMessage(`${file} changed after “${label}”, so it was left as it is.`);
+    return false;
   };
   const fail = (error: unknown): boolean => {
     onMessage(`“${label}” could not be undone: ${error instanceof Error ? error.message : String(error)}`);
