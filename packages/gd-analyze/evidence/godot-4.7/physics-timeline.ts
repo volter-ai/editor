@@ -404,7 +404,7 @@ function target(segments: readonly Segment[]): () => unknown {
   return () => {
     const log: unknown[] = [];
     const world = new RAPIER.World({ x: 0, y: -9.8, z: 0 });
-    W.godot_world_3d_attach(world);
+    W.godot_world_3d_attach(W.godot_world_3d_host(world));
     const root = new Scene();
     ST.godot_tree_set_root(root);
     const tree = ST.godot_tree();

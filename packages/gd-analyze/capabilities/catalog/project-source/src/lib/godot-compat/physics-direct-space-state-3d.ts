@@ -34,27 +34,17 @@ function admits(entity: object, query: PhysicsRayQueryParameters3D): boolean {
   return !query.exclude.includes(entity);
 }
 
-/** The admitted shapes whose Rapier bounds meet the segment's, in world order. */
-function candidates(self: PhysicsDirectSpaceState3D, begin: Vector3, end: Vector3, query: PhysicsRayQueryParameters3D) {
-  const near = new Set<Collider['handle']>();
-  const margin = 1e-3;
-  self.space.world.collidersWithAabbIntersectingAabb(
-    { x: (begin.x + end.x) / 2, y: (begin.y + end.y) / 2, z: (begin.z + end.z) / 2 },
-    {
-      x: Math.abs(end.x - begin.x) / 2 + margin,
-      y: Math.abs(end.y - begin.y) / 2 + margin,
-      z: Math.abs(end.z - begin.z) / 2 + margin,
-    },
-    (collider) => {
-      if (godot_collision_object_of_collider(collider) !== undefined) near.add(collider.handle);
-      return true;
-    },
-  );
+/**
+ * The admitted shapes in world order. Godot culls by the segment's bounds before intersecting each
+ * shape (`GodotSpace3D::intersect_ray`); the exact per-shape cast below answers the same, so every
+ * shape in the world is a candidate (Rapier's broad phase is current only after a step).
+ */
+function candidates(query: PhysicsRayQueryParameters3D) {
   const found: { entity: object; index: number; collider: Collider; backface: boolean }[] = [];
   for (const [entity, state] of godot_collision_objects()) {
     if (!admits(entity, query)) continue;
     state.colliders.forEach((entry, index) => {
-      if (entry.inBroadphase && entry.collider !== undefined && near.has(entry.collider.handle)) {
+      if (entry.inBroadphase && entry.collider !== undefined) {
         found.push({ entity, index, collider: entry.collider, backface: godot_shape_3d_backface(entry.shape) });
       }
     });
@@ -103,7 +93,7 @@ export function intersect_ray(self: PhysicsDirectSpaceState3D, parameters: Physi
   const normal = normalized(op_subtract(end, begin));
   let min_d = f32(1e10);
   let best: { point: Vector3; normal: Vector3; face: number; entity: object; index: number } | undefined;
-  for (const candidate of candidates(self, begin, end, parameters)) {
+  for (const candidate of candidates(parameters)) {
     const concave = candidate.collider.shape.type === ShapeType.TriMesh;
     // A concave shape has no inside (`GodotConcavePolygonShape3D::intersect_point`).
     if (!concave && candidate.collider.containsPoint(begin)) {

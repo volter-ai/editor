@@ -12,7 +12,7 @@
  * 64x64, so the canvas is too.
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { bindGodotProject } from '../../analyze/bound-project';
@@ -26,10 +26,9 @@ import { captureGodotImportToolchainSnapshot } from '../../snapshot/toolchain-sn
 import { GODOT_PROJECT_WORLD_IMPLEMENTATION_FILES } from '../../translate/data/lifecycle-authority-data';
 import { emitGodotTranslation } from '../../translate/emit';
 import { planGodotTranslation } from '../../translate/plan';
+import { linkEmittedNodeModules } from './emitted-node-modules';
 import { canonical, type GodotProofMeasurement, type GodotProofTools, sha256 } from './proof';
 
-const PACKAGE_ROOT = path.resolve(import.meta.dirname, '..', '..', '..');
-const MONOREPO_ROOT = path.resolve(PACKAGE_ROOT, '..', '..');
 
 /** The frames (iterations, from 1) the key goes down and up in, and the one whose start is read. */
 const PRESS = 5;
@@ -265,27 +264,6 @@ console.log('WORLD ' + JSON.stringify(state));
 process.exit(0);
 `;
 
-/** The emitted project's packages as gd-analyze resolves them (its own first), else the monorepo's. */
-function linkNodeModules(out: string): void {
-  const own = path.join(PACKAGE_ROOT, 'node_modules');
-  const shared = path.join(MONOREPO_ROOT, 'node_modules');
-  const target = path.join(out, 'node_modules');
-  mkdirSync(target);
-  const link = (name: string): void => {
-    const local = path.join(own, name);
-    symlinkSync(existsSync(local) ? local : path.join(shared, name), path.join(target, name));
-  };
-  for (const entry of readdirSync(shared)) {
-    if (entry.startsWith('.')) continue;
-    if (!entry.startsWith('@')) {
-      link(entry);
-      continue;
-    }
-    mkdirSync(path.join(target, entry));
-    for (const scoped of readdirSync(path.join(shared, entry))) link(`${entry}/${scoped}`);
-  }
-}
-
 function mountedWorld(out: string): unknown {
   writeFileSync(path.join(out, 'gd-analyze-mount.mts'), MOUNT);
   const run = spawnSync(process.execPath, ['--import', 'tsx', 'gd-analyze-mount.mts'], {
@@ -345,7 +323,7 @@ export async function measureProjectWorldProof(tools: GodotProofTools): Promise<
     const out = path.join(temp, 'out');
     mkdirSync(out);
     writeGodotTranslationArtifacts(emitGodotTranslation(translation), out);
-    linkNodeModules(out);
+    linkEmittedNodeModules(out);
     const target = mountedWorld(out) as Record<string, unknown>;
 
     writeFileSync(path.join(project, 'observe.gd'), OBSERVE);

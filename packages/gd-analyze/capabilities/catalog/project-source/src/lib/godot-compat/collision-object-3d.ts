@@ -25,7 +25,7 @@
 
 import RAPIER, { type Collider, type RigidBody, type World } from '@dimforge/rapier3d-compat';
 import type { Object3D } from 'three';
-import { godot_collision_shape_3d_of } from './collision-shape-3d';
+import { godot_collision_shape_3d_declare, godot_collision_shape_3d_of } from './collision-shape-3d';
 import { godot_node_entity, godot_node_is_freed, godot_node_object, is_inside_tree } from './node';
 import { get_global_transform, get_transform } from './node-3d';
 import { godot_physics_material_computed, type PhysicsMaterial } from './physics-material';
@@ -85,6 +85,11 @@ interface ObjectState {
 
 const OBJECT = new Map<object, ObjectState>();
 const ENTITY_OF_COLLIDER = new Map<number, object>();
+/**
+ * The bodies the scene's JSX declares (`@react-three/rapier`'s `<RigidBody>`), with their colliders
+ * by object: compat drives them through their API and never creates or removes them.
+ */
+const DECLARED = new Map<object, { readonly body: RigidBody; readonly colliders: ReadonlyMap<object, Collider> }>();
 
 function stateOf(object: object, member: string): ObjectState {
   const state = OBJECT.get(godot_node_entity(object));
@@ -130,6 +135,43 @@ export function godot_collision_object_adopt(entity: object, kind: CollisionObje
 export function godot_collision_objects_reset(): void {
   OBJECT.clear();
   ENTITY_OF_COLLIDER.clear();
+  DECLARED.clear();
+}
+
+/** A declared body's Godot class, by its Rapier body type: a fixed body is a StaticBody3D. */
+function declaredKind(body: RigidBody): CollisionObjectKind {
+  if (body.bodyType() === RAPIER.RigidBodyType.Fixed) return 'static';
+  throw new Error(`godot-compat: a declared Rapier body of type ${String(body.bodyType())} has no Godot body class yet.`);
+}
+
+/**
+ * The bodies the scene's JSX declares, as the physics host lists them: a new one is registered as
+ * the collision object its body type is, each of its colliders as a CollisionShape3D child
+ * (`collision-shape-3d.ts`); one no longer listed was unmounted by React, and is forgotten.
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source scene/3d/physics/collision_object_3d.cpp:718
+ */
+export function godot_collision_objects_declare(
+  bodies: Iterable<{ readonly object: object; readonly body: RigidBody; readonly colliders: readonly { readonly object: object; readonly collider: Collider }[] }>,
+): void {
+  const listed = new Set<object>();
+  for (const { object, body, colliders } of bodies) {
+    listed.add(object);
+    const known = DECLARED.get(object);
+    DECLARED.set(object, { body, colliders: new Map(colliders.map((entry) => [entry.object, entry.collider] as const)) });
+    if (known === undefined) godot_collision_object_adopt(object, declaredKind(body));
+    for (const entry of colliders) godot_collision_shape_3d_declare(entry.object, entry.collider);
+  }
+  for (const object of [...DECLARED.keys()]) {
+    if (listed.has(object)) continue;
+    const state = OBJECT.get(object);
+    if (state !== undefined) {
+      for (const entry of state.colliders) if (entry.collider !== undefined) ENTITY_OF_COLLIDER.delete(entry.collider.handle);
+    }
+    OBJECT.delete(object);
+    DECLARED.delete(object);
+  }
 }
 
 /**
@@ -214,10 +256,11 @@ function sameTransform(a: Transform3D, b: Transform3D): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
-function dropCollider(world: World, entry: CollisionShapeEntry): void {
+/** Unregisters a shape's collider, removing it from the world unless the scene declares it. */
+function dropCollider(world: World, entry: CollisionShapeEntry, owned: boolean): void {
   if (entry.collider === undefined) return;
   ENTITY_OF_COLLIDER.delete(entry.collider.handle);
-  world.removeCollider(entry.collider, false);
+  if (owned) world.removeCollider(entry.collider, false);
   entry.collider = undefined;
 }
 
@@ -236,12 +279,12 @@ function shapeChanged(state: ObjectState): void {
   state.moved = true;
 }
 
-function removeBody(world: World, state: ObjectState): void {
+function removeBody(world: World, entity: object, state: ObjectState): void {
   for (const entry of state.colliders) {
     if (entry.collider !== undefined) ENTITY_OF_COLLIDER.delete(entry.collider.handle);
   }
   state.colliders = [];
-  if (state.body !== undefined) world.removeRigidBody(state.body);
+  if (state.body !== undefined && !DECLARED.has(entity)) world.removeRigidBody(state.body);
   state.body = undefined;
 }
 
@@ -273,6 +316,7 @@ export function godot_collision_object_place(entity: object, global: Transform3D
  * set in place (`set_shape_disabled`, `:72`; `set_shape_transform`, `:60`).
  */
 function syncShapes(world: World, entity: object, state: ObjectState): void {
+  const declared = DECLARED.get(entity);
   const children = (entity as Object3D).children;
   const current = (entry: CollisionShapeEntry): boolean =>
     (entry.shapeNode as Object3D).parent === entity && !godot_node_is_freed(entry.shapeNode) && godot_collision_shape_3d_of(entry.shapeNode)?.shape === entry.shape;
@@ -281,7 +325,7 @@ function syncShapes(world: World, entity: object, state: ObjectState): void {
     if (current(entry)) continue;
     for (const later of state.colliders.slice(index)) later.inBroadphase = false;
     state.moved = true;
-    dropCollider(world, entry);
+    dropCollider(world, entry, declared === undefined);
     state.colliders.splice(index, 1);
     index -= 1;
   }
@@ -306,15 +350,26 @@ function syncShapes(world: World, entity: object, state: ObjectState): void {
       entry.localInverse = affine_inverse(local);
       state.moved = true;
     }
+    if (declared !== undefined) {
+      // The scene's collider is the shape's: registered once, never rebuilt.
+      const collider = declared.colliders.get(child);
+      if (entry.collider === collider) continue;
+      dropCollider(world, entry, false);
+      if (collider === undefined) continue;
+      collider.setActiveHooks(RAPIER.ActiveHooks.FILTER_CONTACT_PAIRS);
+      entry.collider = collider;
+      ENTITY_OF_COLLIDER.set(collider.handle, entity);
+      continue;
+    }
     const described = godot_shape_3d_collider(entry.shape);
     const key = `${described.key}|${JSON.stringify(entry.local)}|${state.kind}`;
     if (entry.disabled || described.desc === null) {
-      dropCollider(world, entry);
+      dropCollider(world, entry, true);
       continue;
     }
     if (entry.collider !== undefined && entry.key === key) continue;
     if (entry.collider !== undefined) state.moved = true;
-    dropCollider(world, entry);
+    dropCollider(world, entry, true);
     described.desc
       .setTranslation(entry.local.origin.x, entry.local.origin.y, entry.local.origin.z)
       .setRotation(rotationOf(entry.local))
@@ -366,7 +421,7 @@ export function godot_collision_object_material(entity: object, material: Physic
 export function godot_collision_objects_sync(world: World): void {
   for (const [entity, state] of OBJECT) {
     if (godot_node_is_freed(entity) || !is_inside_tree(entity)) {
-      removeBody(world, state);
+      removeBody(world, entity, state);
       if (godot_node_is_freed(entity)) OBJECT.delete(entity);
       continue;
     }
@@ -374,7 +429,7 @@ export function godot_collision_objects_sync(world: World): void {
     if (entering) {
       // Entering the world sends the transform at once (`_notification`, ENTER_WORLD), and the
       // space registers every shape (`GodotCollisionObject3D::_set_space`).
-      state.body = world.createRigidBody(bodyDesc(state.kind));
+      state.body = DECLARED.get(entity)?.body ?? world.createRigidBody(bodyDesc(state.kind));
       godot_collision_object_place(entity);
       state.moved = true;
     }
@@ -382,7 +437,6 @@ export function godot_collision_objects_sync(world: World): void {
     if (entering) updateShapes(state);
   }
   world.propagateModifiedBodyPositionsToColliders();
-  world.updateSceneQueries();
 }
 
 /**

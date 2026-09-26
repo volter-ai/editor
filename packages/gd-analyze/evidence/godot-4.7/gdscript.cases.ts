@@ -7,7 +7,7 @@ import { add_child, godot_node_adopt } from '../../capabilities/catalog/project-
 import { set_position } from '../../capabilities/catalog/project-source/src/lib/godot-compat/node-3d';
 import * as ST from '../../capabilities/catalog/project-source/src/lib/godot-compat/scene-tree';
 import { godot_static_body_3d_adopt } from '../../capabilities/catalog/project-source/src/lib/godot-compat/static-body-3d';
-import { godot_world_3d_attach } from '../../capabilities/catalog/project-source/src/lib/godot-compat/world-3d';
+import { godot_world_3d_attach, godot_world_3d_host } from '../../capabilities/catalog/project-source/src/lib/godot-compat/world-3d';
 import { godot_directional_light_3d_mount } from '../../capabilities/catalog/project-source/src/lib/godot-compat/directional-light-3d';
 import { godot_omni_light_3d_mount } from '../../capabilities/catalog/project-source/src/lib/godot-compat/omni-light-3d';
 import * as V from '../../capabilities/catalog/project-source/src/lib/godot-compat/vector3';
@@ -1547,7 +1547,7 @@ cases.push({
     tree: true,
     steps: ['ray_read'],
     native: () => {
-      godot_world_3d_attach(new RAPIER.World({ x: 0, y: 0, z: 0 }));
+      godot_world_3d_attach(godot_world_3d_host(new RAPIER.World({ x: 0, y: 0, z: 0 })));
       const world = new Scene();
       ST.godot_tree_set_root(world);
       const root = nativeNode('Root', NODE3D);

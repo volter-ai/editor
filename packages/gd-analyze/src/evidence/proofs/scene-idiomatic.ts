@@ -14,11 +14,14 @@
  * compat reads back from three's quaternion (`transform-decomposition`), the direction the sun
  * shines (Godot's -Z of its global basis; three's from the light toward its target,
  * `light-direction`), and the material colour's 8-bit quantization (`colour-quantization`). The
- * sun and camera state no scale (they draw with it removed, `disable_scale`), so their global
- * transforms carry the authored basis's rounding as the measured difference.
+ * sun and camera state no scale (they draw with it removed, `disable_scale`): their global
+ * transforms carry the authored basis's rounding as the measured difference, and the camera's
+ * `get_scale` the rounding itself (`disabled-scale-omitted`). Exact as well: a space query down
+ * onto the floor finds the StaticBody3D the scene declares as a `@react-three/rapier` body, its
+ * shape, and the hit.
  */
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { bindGodotProject } from '../../analyze/bound-project';
@@ -32,10 +35,9 @@ import { captureGodotImportToolchainSnapshot } from '../../snapshot/toolchain-sn
 import { GODOT_SCENE_IDIOMATIC_IMPLEMENTATION_FILES } from '../../translate/data/scene-node-authority-data';
 import { emitGodotTranslation } from '../../translate/emit';
 import { planGodotTranslation } from '../../translate/plan';
+import { linkEmittedNodeModules } from './emitted-node-modules';
 import { canonical, type GodotProofMeasurement, type GodotProofTools, sha256 } from './proof';
 
-const PACKAGE_ROOT = path.resolve(import.meta.dirname, '..', '..', '..');
-const MONOREPO_ROOT = path.resolve(PACKAGE_ROOT, '..', '..');
 
 const PRESS = 5;
 const RELEASE = 12;
@@ -43,6 +45,12 @@ const READ = 24;
 /** The measured deviations' bounds: float32 rounding of a decomposed transform, and 8-bit colour. */
 const TRANSFORM_TOLERANCE = 1e-6;
 const COLOUR_TOLERANCE = 0.5 / 255 + 1e-5;
+/**
+ * A camera or light with no children and no script states no scale: it draws without one
+ * (`disable_scale`), and the authored basis's scale is only the rounding its `.tscn` rotation
+ * carries, which `get_scale` alone still shows.
+ */
+const SCALE_TOLERANCE = 1e-3;
 
 const files: Readonly<Record<string, string>> = {
   'project.godot': `config_version=5
@@ -123,6 +131,9 @@ func _t(t: Transform3D) -> Array:
 func _v(v: Vector3) -> Array:
 \treturn [v.x, v.y, v.z]
 
+func _ray(hit: Dictionary) -> Array:
+\treturn [String(hit.collider.name), hit.shape, _f32(hit.position.y), _f32(hit.normal.y)]
+
 func _tb(t: Transform3D) -> Array:
 \tvar out := []
 \tfor value in _t(t):
@@ -173,11 +184,13 @@ func _physics_process(_delta: float) -> bool:
 \t\t"plane": [_f32(plane.size.x), _f32(plane.size.y), "face_y" if plane.orientation == PlaneMesh.FACE_Y else "other"],
 \t\t"collider": [_f32(box.size.x / 2), _f32(box.size.y / 2), _f32(box.size.z / 2), main.get_node("Floor").get_class()],
 \t\t"colour": _hex(albedo),
+\t\t"floor_ray": _ray(ball.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(1, 3, 1), Vector3(1, -3, 1)))),
 \t}
 \tvar measured := {
 \t\t"sun": _t(sun.global_transform),
 \t\t"camera": _t(camera.global_transform),
 \t\t"light": _v(-sun.global_transform.basis.z.normalized()),
+\t\t"camera_scale": _v(camera.scale),
 \t\t"albedo": [albedo.r, albedo.g, albedo.b],
 \t}
 \tprint("WORLD " + JSON.stringify({"exact": exact, "measured": measured}))
@@ -208,6 +221,10 @@ import { _roots, advance, createRoot, extend } from '@react-three/fiber';
 import World from './src/world';
 import * as N from './src/lib/godot-compat/node';
 import * as N3 from './src/lib/godot-compat/node-3d';
+import * as W3 from './src/lib/godot-compat/world-3d';
+import { intersect_ray } from './src/lib/godot-compat/physics-direct-space-state-3d';
+import { create as rayQuery } from './src/lib/godot-compat/physics-ray-query-parameters-3d';
+import { construct as vector3 } from './src/lib/godot-compat/vector3';
 import { godot_main_timer_sync_set_fixed_fps } from './src/lib/godot-compat/main-timer-sync';
 
 const bits = (value) => Buffer.from(new Float64Array([value]).buffer).toString('hex');
@@ -304,10 +321,16 @@ state = {
     plane: [f32(plane.width), f32(plane.height), facing],
     collider: [...half, floorClass],
     colour: '#' + colour.getHexString(),
+    // Compat's space query finds the floor body the JSX declares.
+    floor_ray: (() => {
+      const hit = intersect_ray(W3.get_direct_space_state(N3.get_world_3d(ball)), rayQuery(vector3(1, 3, 1), vector3(1, -3, 1)));
+      return [N.get_name(hit.get('collider')), hit.get('shape'), f32(hit.get('position').y), f32(hit.get('normal').y)];
+    })(),
   },
   measured: {
     sun: t(sun),
     camera: t(camera),
+    camera_scale: (() => { const s = N3.get_scale(camera); return [s.x, s.y, s.z]; })(),
     // Three's light shines from the light toward its target.
     light: (() => {
       sun.updateWorldMatrix(true, true);
@@ -323,26 +346,6 @@ await act(async () => { root.unmount(); });
 console.log('WORLD ' + JSON.stringify(state));
 process.exit(0);
 `;
-
-function linkNodeModules(out: string): void {
-  const own = path.join(PACKAGE_ROOT, 'node_modules');
-  const shared = path.join(MONOREPO_ROOT, 'node_modules');
-  const target = path.join(out, 'node_modules');
-  mkdirSync(target);
-  const link = (name: string): void => {
-    const local = path.join(own, name);
-    symlinkSync(existsSync(local) ? local : path.join(shared, name), path.join(target, name));
-  };
-  for (const entry of readdirSync(shared)) {
-    if (entry.startsWith('.')) continue;
-    if (!entry.startsWith('@')) {
-      link(entry);
-      continue;
-    }
-    mkdirSync(path.join(target, entry));
-    for (const scoped of readdirSync(path.join(shared, entry))) link(`${entry}/${scoped}`);
-  }
-}
 
 function mountedWorld(out: string): unknown {
   writeFileSync(path.join(out, 'gd-analyze-mount.mts'), MOUNT);
@@ -365,6 +368,7 @@ interface WorldState {
     readonly sun: readonly number[];
     readonly camera: readonly number[];
     readonly light: readonly number[];
+    readonly camera_scale: readonly number[];
     readonly albedo: readonly number[];
   };
 }
@@ -408,7 +412,7 @@ export async function measureSceneIdiomaticProof(tools: GodotProofTools): Promis
     const out = path.join(temp, 'out');
     mkdirSync(out);
     writeGodotTranslationArtifacts(emitGodotTranslation(translation), out);
-    linkNodeModules(out);
+    linkEmittedNodeModules(out);
     const target = mountedWorld(out) as WorldState;
 
     writeFileSync(path.join(project, 'observe.gd'), OBSERVE);
@@ -429,18 +433,21 @@ export async function measureSceneIdiomaticProof(tools: GodotProofTools): Promis
       ),
       'colour-quantization': maxDifference(native.measured.albedo, target.measured.albedo),
       'light-direction': maxDifference(native.measured.light, target.measured.light),
+      'disabled-scale-omitted': maxDifference(native.measured.camera_scale, target.measured.camera_scale),
     };
     const exactAgree = JSON.stringify(canonical(native.exact)) === JSON.stringify(canonical(target.exact));
     const agree =
       exactAgree &&
       deviations['transform-decomposition'] <= TRANSFORM_TOLERANCE &&
       deviations['light-direction'] <= TRANSFORM_TOLERANCE &&
+      deviations['disabled-scale-omitted'] <= SCALE_TOLERANCE &&
       deviations['colour-quantization'] <= COLOUR_TOLERANCE;
     const comparison = JSON.stringify({
       exact: canonical(native.exact),
       tolerances: {
         'transform-decomposition': TRANSFORM_TOLERANCE,
         'light-direction': TRANSFORM_TOLERANCE,
+        'disabled-scale-omitted': SCALE_TOLERANCE,
         'colour-quantization': COLOUR_TOLERANCE,
       },
       agree,

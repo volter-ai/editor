@@ -149,20 +149,26 @@ function integrateForces(world: World, delta: number): void {
     const w = state.server.angular_velocity;
     body.setLinvel({ x: v.x, y: v.y, z: v.z }, true);
     body.setAngvel({ x: w.x, y: w.y, z: w.z }, true);
-    const solved = stepContacts(world, object, state);
-    state.before = solved ? undefined : { transform: object.transform, velocity: v, angular: w };
+    state.before = { transform: object.transform, velocity: v, angular: w };
     state.awake = false;
     state.stepped = true;
   }
 }
 
 /**
- * The contacts the body reports for this step, from the contact graph as the step starts
- * (GodotPhysics3D sets up its pairs before it integrates, `godot_step_3d.cpp:225`), up to
- * `max_contacts_reported`, the deepest kept (`GodotBody3D::add_contact`, `godot_body_3d.cpp:352`),
- * and whether any contact is solved this step.
+ * The contacts the body reports for this step, up to `max_contacts_reported`, the deepest kept
+ * (`GodotBody3D::add_contact`, `godot_body_3d.cpp:352`), and whether any contact is solved this
+ * step. GodotPhysics3D sets up its pairs from the poses before it integrates
+ * (`godot_step_3d.cpp:225`); Rapier's step computes its contact graph from those same poses before
+ * it solves, so the graph read once the step has run is this step's, placed on the body's
+ * transform as the step began.
  */
-function stepContacts(world: World, object: NonNullable<ReturnType<typeof godot_collision_object_state>>, state: RigidState): boolean {
+function stepContacts(
+  world: World,
+  object: NonNullable<ReturnType<typeof godot_collision_object_state>>,
+  state: RigidState,
+  start: Transform3D,
+): boolean {
   let solved = false;
   const contacts: BodyContact[] = [];
   {
@@ -184,7 +190,7 @@ function stepContacts(world: World, object: NonNullable<ReturnType<typeof godot_
               if (distance > 0) continue;
               const local = flipped ? manifold.localContactPoint2(i) : manifold.localContactPoint1(i);
               if (local === null) continue;
-              const onBody = transformMultiply(transformMultiply(object.transform, entry.local), vector3(local.x, local.y, local.z));
+              const onBody = transformMultiply(transformMultiply(start, entry.local), vector3(local.x, local.y, local.z));
               const contact: BodyContact = { local_pos: onBody, local_normal: toward, depth: f32(-distance), local_shape, collider: otherEntity, collider_shape };
               if (contacts.length < state.max_contacts_reported) contacts.push(contact);
               else {
@@ -244,7 +250,12 @@ function readBack(world: World): void {
     // the linear velocity.
     const before = state.before;
     state.before = undefined;
-    if (before !== undefined) {
+    if (before === undefined) {
+      state.server.contacts = state.reporting;
+      continue;
+    }
+    const solved = stepContacts(world, object, state, before.transform);
+    if (!solved) {
       const moved = integrateVelocities(before.transform, before.velocity, before.angular, state.server.step, body.localCom());
       state.server.linear_velocity = before.velocity;
       state.server.angular_velocity = before.angular;

@@ -294,11 +294,6 @@ function moduleSpecifier(target: string): string {
   return relative.startsWith('.') ? relative : `./${relative}`;
 }
 
-/** Whether a scene holds a physics body, which `@react-three/rapier` writes. */
-function usesRapier(node: DirectGodotSceneNodePlan): boolean {
-  return node.classes.includes('CollisionObject3D') || node.children.some(usesRapier);
-}
-
 /** Project-specific native startup composition; all reusable lifecycle policy stays in compat. */
 export function emitDirectGodotWorldSyntax(
   composition: DirectGodotProjectCompositionPlan,
@@ -326,9 +321,6 @@ export function emitDirectGodotWorldSyntax(
       module: moduleSpecifier(scene.targetPath),
       namedBindings: sceneBindings,
     },
-    ...(composition.scenes.some((entry) => entry.idiomatic === true && usesRapier(entry.root))
-      ? [{ kind: 'import-statement' as const, module: '@react-three/rapier', namedBindings: [{ imported: 'Physics', local: 'Physics' }] }]
-      : []),
     {
       kind: 'import-statement',
       module: './lib/godot-compat/main',
@@ -452,17 +444,12 @@ export function emitDirectGodotWorldSyntax(
           ],
         };
   // `Main`'s loop around the startup transaction: the autoloads and the main scene enter the tree
-  // once the loop has made the root window.
-  // Scenes with `@react-three/rapier` bodies mount inside its `<Physics>`, paused: the SceneTree's
-  // clock steps physics.
-  const rapier = composition.scenes.some((entry) => entry.idiomatic === true && usesRapier(entry.root));
+  // once the loop has made the root window, inside the `<Physics>` world it provides.
   const worldExpression: TargetTsExpression = {
     kind: 'jsx-element-expression',
     tag: 'GodotMain',
     attributes: [],
-    children: rapier
-      ? [{ kind: 'jsx-element-child', tag: 'Physics', attributes: [{ kind: 'jsx-expression-attribute', name: 'paused', value: { kind: 'literal-expression', value: true } }], children: [startup] }]
-      : [startup],
+    children: [startup],
   };
   const data = projectDataLoad(composition);
   return {

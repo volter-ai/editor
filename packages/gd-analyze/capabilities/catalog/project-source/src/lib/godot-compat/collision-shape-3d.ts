@@ -5,10 +5,14 @@
  * Godot 4.7's `CollisionShape3D` (`scene/3d/physics/collision_shape_3d.cpp`, revision
  * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`): a Node3D child of a collision object that gives it a
  * shape at the child's local transform. Its entity is an Object3D; the shape and `disabled` live in
- * `SHAPE`, keyed by it. `collision-object-3d.ts` builds the Rapier collider from them.
+ * `SHAPE`, keyed by it. `collision-object-3d.ts` builds the Rapier collider from them, or, for a
+ * collider the scene's JSX declares (`<CuboidCollider>`), the shape is read from that collider.
  */
 
+import { type Collider, type Cuboid, ShapeType } from '@dimforge/rapier3d-compat';
+import { construct as box, set_size } from './box-shape-3d';
 import { godot_node_entity } from './node';
+import { construct as vector3 } from './vector3';
 
 interface ShapeState {
   shape: object | null;
@@ -35,6 +39,25 @@ function stateOf(object: object): ShapeState {
  */
 export function godot_collision_shape_3d_adopt(entity: object): void {
   stateOf(entity);
+}
+
+/**
+ * Registers a collider the scene's JSX declares as a CollisionShape3D, its shape the Godot shape
+ * the collider holds: a cuboid is a BoxShape3D of twice its half extents (`BoxShape3D` hands the
+ * server `size / 2`, `box_shape_3d.cpp:37`).
+ *
+ * @godot CollisionShape3D (protocol)
+ * @source scene/3d/physics/collision_shape_3d.cpp:192
+ */
+export function godot_collision_shape_3d_declare(entity: object, collider: Collider): void {
+  if (SHAPE.has(entity)) return;
+  if (collider.shape.type !== ShapeType.Cuboid) {
+    throw new Error(`godot-compat: a declared collider of Rapier shape ${String(collider.shape.type)} has no Godot shape yet.`);
+  }
+  const half = (collider.shape as Cuboid).halfExtents;
+  const shape = box();
+  set_size(shape, vector3(half.x * 2, half.y * 2, half.z * 2));
+  stateOf(entity).shape = shape;
 }
 
 /**

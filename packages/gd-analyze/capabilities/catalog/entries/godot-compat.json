@@ -114,7 +114,7 @@
   "id": "godot-compat",
   "packageJson": {
     "dependencies": {
-      "@dimforge/rapier3d-compat": "^0.14.0",
+      "@dimforge/rapier3d-compat": "0.19.2",
       "@jsquash/webp": "^1.5.0",
       "@react-three/fiber": "^9.6.1",
       "@react-three/rapier": "^2.2.0",

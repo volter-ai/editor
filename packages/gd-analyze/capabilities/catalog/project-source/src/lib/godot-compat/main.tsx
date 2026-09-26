@@ -4,7 +4,9 @@
  *
  * Godot 4.7's `Main` (`main/main.cpp`, revision `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) as the
  * web export runs it, over the R3F canvas the project renders into: `Main::setup2` loads the
- * default theme font and creates the physics server's default space; `Main::start` makes the
+ * default theme font and creates the physics server's default space, the world of the
+ * `@react-three/rapier` `<Physics>` this component provides to the scenes (the bodies their JSX
+ * declares live in it, and Godot's physics step is its only step); `Main::start` makes the
  * root window, whose size is the canvas's, and hands it the renderer and the page's input; each
  * animation frame is `OS_Web::main_loop_iterate` (`platform/web/os_web.cpp:78`): the page's
  * buffered keys delivered, one `Main::iteration`, the 3D viewport drawn with its current camera
@@ -12,9 +14,10 @@
  * module before this component mounts; the scenes it wraps enter the tree after it has run.
  */
 
-import RAPIER, { type World } from '@dimforge/rapier3d-compat';
+import type { Collider, RigidBody } from '@dimforge/rapier3d-compat';
 import { useFrame, useThree } from '@react-three/fiber';
-import { createElement, Fragment, type PropsWithChildren, Suspense, useEffect, useLayoutEffect, useState } from 'react';
+import { Physics, useRapier } from '@react-three/rapier';
+import { createElement, type PropsWithChildren, Suspense, useEffect, useLayoutEffect, useState } from 'react';
 import { godot_camera_3d_draw } from './camera-3d';
 import { godot_canvas_draw } from './canvas-item';
 import { godot_font_default, godot_font_default_url, godot_font_load } from './font';
@@ -29,21 +32,43 @@ import {
   godot_window_process_events,
   godot_window_set_size,
 } from './window';
-import { godot_world_3d_attach } from './world-3d';
+import { type GodotPhysicsHost, godot_world_3d_attach } from './world-3d';
 
 /** `OS_Web::get_ticks_usec`: the page's clock in whole microseconds. */
 const ticksUsec = (): number => Math.floor(performance.now() * 1000);
 
+/** The `<Physics>` context as compat's physics host: its world, its step, its declared bodies. */
+function usePhysicsHost(): GodotPhysicsHost {
+  const rapier = useRapier();
+  return {
+    world: rapier.world,
+    step: (delta) => rapier.step(delta),
+    filterContacts: (filter) => {
+      rapier.filterContactPairHooks.add({ current: (c1: number, c2: number) => filter(c1, c2) } as never);
+    },
+    bodies: () =>
+      [...rapier.rigidBodyStates.values()].map((state) => {
+        const body = state.rigidBody as RigidBody;
+        const colliders: { object: object; collider: Collider }[] = [];
+        for (const entry of rapier.colliderStates.values()) {
+          if (entry.worldParent === state.object) colliders.push({ object: entry.object, collider: entry.collider as Collider });
+        }
+        return { object: state.object, body, colliders };
+      }),
+  };
+}
+
 /** `Main::start` and each frame's iteration, on the canvas R3F renders into. */
-function GodotMainLoop({ world }: { readonly world: World }) {
+function GodotMainLoop() {
   const scene = useThree((state) => state.scene);
   const gl = useThree((state) => state.gl);
   const size = useThree((state) => state.size);
   const set = useThree((state) => state.set);
   const get = useThree((state) => state.get);
+  const host = usePhysicsHost();
   useLayoutEffect(() => {
     godot_tree_set_root(scene);
-    godot_world_3d_attach(world);
+    godot_world_3d_attach(host);
     const releaseRenderer = godot_viewport_attach_renderer(gl);
     const releaseInput = godot_window_attach_input(gl.domElement);
     const releaseDispatch = godot_viewport_attach_input(scene);
@@ -53,7 +78,7 @@ function GodotMainLoop({ world }: { readonly world: World }) {
       releaseInput();
       releaseRenderer();
     };
-  }, [scene, gl, world]);
+  }, [scene, gl, host.world]);
   useLayoutEffect(() => {
     godot_window_set_size(scene, godot_window_canvas_size(gl.domElement));
   }, [scene, gl, size]);
@@ -68,17 +93,18 @@ function GodotMainLoop({ world }: { readonly world: World }) {
 }
 
 /**
- * The project's main loop: once Rapier's module and the default theme font (the capability's own
- * `OpenSans_SemiBold.woff2`) are loaded, the default space is a Rapier world handed to World3D
- * (whose gravity is zero: the space's gravity and damping are compat's, from the project's
- * `physics/3d/default_*` settings), the root window takes the canvas, and `children` (the autoloads
- * and the main scene) mount after the loop has registered the tree root.
+ * The project's main loop: once the default theme font (the capability's own
+ * `OpenSans_SemiBold.woff2`) and the scenes' imported resources are loaded, it provides the
+ * `<Physics>` world (no gravity or damping of its own: the space's are compat's, from the
+ * project's `physics/3d/default_*` settings; paused, because compat's clock steps it once per
+ * Godot physics step), the root window takes the canvas, and `children` (the autoloads and the
+ * main scene) mount after the loop has registered the tree root.
  *
  * @godot Main (protocol)
  * @source main/main.cpp:4495
  */
 export function GodotMain({ children }: PropsWithChildren) {
-  const [world, setWorld] = useState<World | null>(null);
+  const [ready, setReady] = useState(false);
   useEffect(() => {
     let live = true;
     // The font file is measured by compat's text server and registered with the page as the
@@ -94,17 +120,26 @@ export function GodotMain({ children }: PropsWithChildren) {
         return bytes;
       });
     // The scenes' imported resources (textures, …) load before any scene is instantiated.
-    void Promise.all([RAPIER.init(), font, godot_resource_loader_settled()]).then(([, bytes]) => {
+    void Promise.all([font, godot_resource_loader_settled()]).then(([bytes]) => {
       if (!live) return;
       godot_font_default(godot_font_load(new Uint8Array(bytes)));
-      setWorld(new RAPIER.World({ x: 0, y: 0, z: 0 }));
+      setReady(true);
     });
     return () => {
       live = false;
     };
   }, []);
-  if (world === null) return null;
-  // The scenes may suspend while their own resources load (`@react-three/rapier`'s physics module):
-  // they mount, and enter the tree, together once they have.
-  return createElement(Fragment, null, createElement(GodotMainLoop, { world }), createElement(Suspense, { fallback: null }, children));
+  if (!ready) return null;
+  // `<Physics>` suspends while Rapier's module loads: the loop and the scenes mount, and enter the
+  // tree, together once it has.
+  return createElement(
+    Suspense,
+    { fallback: null },
+    createElement(
+      Physics,
+      { paused: true, timeStep: 'vary', interpolate: false, gravity: [0, 0, 0], colliders: false },
+      createElement(GodotMainLoop),
+      children,
+    ),
+  );
 }
