@@ -189,7 +189,9 @@ Remaining:
    nowhere clear to go. What fixes it is a layout that reserves that row.
 4. **The design skew** (`website`): the DOM root is read-only, the Pages list is empty, and a
    `page` has no document editor.
-5. **Unwalked instruments:** Network needs a networking adapter. Navmesh is walked on `arena`
+5. **Unwalked instruments:** Network needs a game that joins a room: the template ships the
+   Colyseus rooms but no client (`server/main.ts`), and the netcode capability is at the
+   launch-scope tag, so no networking adapter exists to walk it through. Navmesh is walked on `arena`
    with its level tagged `userData.navRole = 'walkable'` and a first-party navigation adapter in
    its `systems`: Debug > Bake NavMesh draws the walkable carpet over the floor, ramps and bridge,
    and Clear NavMesh removes it. Contributed application-menu items (`workspace.menu`) are palette
