@@ -18,9 +18,11 @@ const walk = (dir) => {
     const path = join(dir, entry.name);
     if (entry.isDirectory()) walk(path);
     else if (/\.(tsx?|mts|jsx?)$/.test(entry.name)) {
-      const source = readFileSync(path, 'utf8');
-      for (const match of source.matchAll(/(?:from\s*|import\s*\(\s*|import\s+)["']([^"']+)["']/g)) {
-        const specifier = match[1];
+      // Statements only: the word "from" before a quote in prose or a message is not an import.
+      const source = readFileSync(path, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+      const statements = /^\s*(?:import|export)\b[^'"`;]*?\bfrom\s*["']([^"']+)["']|^\s*import\s*["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']/gm;
+      for (const match of source.matchAll(statements)) {
+        const specifier = match[1] ?? match[2] ?? match[3];
         if (/^(\.|\/|node:|virtual:)/.test(specifier) || !/^[@a-z][\w@.-]+/.test(specifier)) continue;
         imported.add(packageOf(specifier));
       }
@@ -29,7 +31,10 @@ const walk = (dir) => {
 };
 walk(join(product, 'template'));
 walk(join(product, 'catalog/project-source'));
-// A capability's declared runtime dependencies are imports its project may make.
+// The template's and each capability's declared runtime dependencies are imports a project may make.
+for (const name of Object.keys(JSON.parse(readFileSync(join(product, 'template/package.json'), 'utf8')).dependencies ?? {})) {
+  imported.add(name);
+}
 for (const file of readdirSync(join(product, 'catalog/entries'))) {
   const entry = JSON.parse(readFileSync(join(product, 'catalog/entries', file), 'utf8'));
   for (const name of Object.keys(entry.packageJson?.dependencies ?? {})) imported.add(name);
