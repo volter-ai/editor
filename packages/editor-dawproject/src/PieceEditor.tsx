@@ -23,6 +23,7 @@ import { type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEve
 import { AutomationLane } from './AutomationLane';
 import { freezeClip } from './freeze-clip';
 import { useLivePiece } from './live-piece';
+import { Devices } from './Devices';
 import { Mixer } from './Mixer';
 import { type EngineState, PreviewEngine, trackVoices } from './preview-engine';
 import { applySource, propRefusal, readSource, readSourceIndex, recordStructWrite, type SourceIndex, writeProps, writeStruct } from './source-index';
@@ -99,8 +100,10 @@ export function PieceEditor({
   const piece = live.piece;
   const [index, setIndex] = useState<SourceIndex>(new Map());
   const [selectedClip, setSelectedClip] = useState<string | null>(null);
-  // The lower pane, as Bitwig's: the selected clip's editor, or the mixer.
-  const [lower, setLower] = useState<'clip' | 'mix'>('clip');
+  // The selected track (a header clicked, or the track of the clip clicked): what Devices shows.
+  const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
+  // The lower pane, as Bitwig's: the selected clip's editor, its track's devices, or the mixer.
+  const [lower, setLower] = useState<'clip' | 'devices' | 'mix'>('clip');
   // Refusals and failed writes are events: they go to the host's notification cards, never into
   // this document's own chrome (ARCHITECTURE-CORE §Editor chrome, "Notices take VS Code's shape").
   const notifyRef = useRef(notify);
@@ -239,12 +242,17 @@ export function PieceEditor({
           pxPerBeat={pxPerBeat}
           playhead={playhead}
           selectedClip={clip?.clip.id ?? null}
-          onSelectClip={setSelectedClip}
+          onSelectClip={(id) => {
+            setSelectedClip(id);
+            setSelectedTrack(piece.tracks.find((track) => track.clips.some((candidate) => candidate.id === id))?.id ?? null);
+          }}
+          selectedTrack={selectedTrack ?? clip?.track.id ?? null}
+          onSelectTrack={setSelectedTrack}
           voiceless={new Set([...voices].filter(([, voice]) => voice === null).map(([id]) => id))}
         />
       </div>
       <div style={{ display: 'flex', gap: 2, padding: '2px 6px', borderBottom: `1px solid ${themeVars.boundary.default}` }}>
-        {(['clip', 'mix'] as const).map((pane) => (
+        {(['clip', 'devices', 'mix'] as const).map((pane) => (
           <button
             key={pane}
             type="button"
@@ -252,12 +260,20 @@ export function PieceEditor({
             onClick={() => setLower(pane)}
             style={{ ...button, padding: '0 10px', fontSize: 11, background: lower === pane ? themeVars.surface.inset : themeVars.surface.raised }}
           >
-            {pane === 'clip' ? 'Clip' : 'Mix'}
+            {pane === 'clip' ? 'Clip' : pane === 'devices' ? 'Devices' : 'Mix'}
           </button>
         ))}
       </div>
       <div style={{ flex: '1 1 50%', minHeight: 160, overflow: 'auto' }}>
-        {lower === 'mix' ? (
+        {lower === 'devices' ? (
+          <Devices
+            piece={piece}
+            index={index}
+            track={piece.tracks.find((track) => track.id === selectedTrack) ?? clip?.track ?? null}
+            resource={{ file, documentId }}
+            onMessage={setMessage}
+          />
+        ) : lower === 'mix' ? (
           <Mixer
             piece={piece}
             index={index}
@@ -335,6 +351,8 @@ function Arranger(props: {
   readonly playhead: number | null;
   readonly selectedClip: string | null;
   readonly onSelectClip: (id: string) => void;
+  readonly selectedTrack: string | null;
+  readonly onSelectTrack: (id: string) => void;
   readonly voiceless: ReadonlySet<string>;
 }) {
   const { piece, totalBeats, pxPerBeat } = props;
@@ -346,7 +364,21 @@ function Arranger(props: {
       <div style={{ width: HEADER_W, flex: 'none', position: 'sticky', left: 0, zIndex: 2, background: themeVars.surface.panel, borderRight: `1px solid ${themeVars.boundary.default}` }}>
         <div style={{ height: RULER_H + MARKER_H, borderBottom: `1px solid ${themeVars.boundary.default}` }} />
         {piece.tracks.map((track, index) => (
-          <div key={track.id} style={{ height: LANE_H, display: 'flex', alignItems: 'center', gap: 6, padding: '0 8px', borderBottom: `1px solid ${themeVars.boundary.default}` }}>
+          <div
+            key={track.id}
+            data-track={track.name}
+            onClick={() => props.onSelectTrack(track.id)}
+            style={{
+              height: LANE_H,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '0 8px',
+              cursor: 'pointer',
+              borderBottom: `1px solid ${themeVars.boundary.default}`,
+              background: track.id === props.selectedTrack ? themeVars.surface.raised : 'transparent',
+            }}
+          >
             <span style={{ width: 4, alignSelf: 'stretch', margin: '6px 0', background: trackColor(track, index), borderRadius: 2 }} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.name}</div>
