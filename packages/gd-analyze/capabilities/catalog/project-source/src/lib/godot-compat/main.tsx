@@ -17,7 +17,7 @@
 import type { Collider, RigidBody } from '@dimforge/rapier3d-compat';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Physics, useRapier } from '@react-three/rapier';
-import { createElement, type PropsWithChildren, Suspense, useEffect, useLayoutEffect, useState } from 'react';
+import { createElement, Fragment, type PropsWithChildren, Suspense, useEffect, useLayoutEffect, useState } from 'react';
 import { godot_camera_3d_draw } from './camera-3d';
 import { godot_canvas_draw } from './canvas-item';
 import { godot_font_default, godot_font_default_url, godot_font_load } from './font';
@@ -135,11 +135,13 @@ export function GodotMain({ children }: PropsWithChildren) {
   return createElement(
     Suspense,
     { fallback: null },
-    createElement(
-      Physics,
-      { paused: true, timeStep: 'vary', interpolate: false, gravity: [0, 0, 0], colliders: false },
-      createElement(GodotMainLoop),
-      children,
-    ),
+    createElement(Physics, {
+      paused: true,
+      timeStep: 'vary',
+      interpolate: false,
+      gravity: [0, 0, 0],
+      colliders: false,
+      children: createElement(Fragment, null, createElement(GodotMainLoop), children),
+    }),
   );
 }
