@@ -15,8 +15,8 @@
  * declared `entry` is ever imported, so that entry point is never reached.
  */
 
-import type { MountedReactGame, ReactRootAdapter } from '@volter/game-runtime/runtime/create-runtime';
-import type { GameDomHostContext } from '@volter/game-runtime/runtime/host-context';
+import type { MountedReactGame, ReactRootAdapter } from '../../runtime/create-runtime';
+import type { GameDomHostContext } from '../../runtime/host-context';
 import type { ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';
 import type { ComponentType } from 'react';
 import type { RealmServices } from '../realm-services';

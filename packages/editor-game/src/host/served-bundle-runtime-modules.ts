@@ -103,8 +103,6 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   // the editor share one live module namespace.
   '@volter/threejs-runtime/adapter/constraint': () =>
     import('@volter/threejs-runtime/adapter/constraint'),
-  '@volter/game-runtime/adapter/first-party-audio-system': () =>
-    import('@volter/game-runtime/adapter/first-party-audio-system'),
   '@volter/threejs-runtime/adapter/first-party-navigation-system': () =>
     import('@volter/threejs-runtime/adapter/first-party-navigation-system'),
   '@volter/threejs-runtime/adapter/hierarchy-marks': () =>
@@ -126,11 +124,7 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   }),
   '@volter/game-runtime/data/curve': () => import('@volter/game-runtime/data/curve'),
   '@volter/game-runtime/data/data-asset': () => import('@volter/game-runtime/data/data-asset'),
-  '@volter/game-runtime/dev/instruments': () => import('@volter/game-runtime/dev/instruments'),
   '@volter/threejs-runtime/loader': () => import('@volter/threejs-runtime/loader'),
-  '@volter/game-runtime/runtime/debug-registry': () =>
-    import('@volter/game-runtime/runtime/debug-registry'),
-  '@volter/game-runtime/runtime/game': () => import('@volter/game-runtime/runtime/game'),
   // The mesh-kit's two library-backed modifiers. `src/lib/mesh/modifiers.ts` —
   // scaffolded into EVERY default project by the humanoid capability, and
   // present verbatim in the template and four examples — imports both at

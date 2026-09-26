@@ -2,7 +2,7 @@
  * Frame pacing — the accumulator/alpha arithmetic of the fixed-timestep loop,
  * extracted PURE.
  *
- * `core/game-loop.ts` owns the browser side (rAF, `visibilitychange`,
+ * `editor-game/src/runtime/core/game-loop.ts` owns the browser side (rAF, `visibilitychange`,
  * `performance.now`); this module owns the arithmetic, so the interesting
  * cases — a display frame that consumes zero substeps, a frame that hits the
  * substep ceiling, the spiral-of-death clamp, alpha's monotonic march across a
@@ -63,7 +63,7 @@ export function interpolationAlpha(accumulator: number, fixedDt: number): number
 
 /**
  * The one legal range for `GameLoop.timeScale`, and therefore the range any
- * instrument that DRIVES it must offer (`dev/instruments.ts`'s Time-scale
+ * instrument that DRIVES it must offer (`editor-game/src/runtime/dev/instruments.ts`'s Time-scale
  * slider reads exactly this — a second copy of `[0, 8]` in a control's bounds
  * is how a slider ends up able to request a value the loop then silently
  * refuses).
@@ -72,7 +72,7 @@ export const TIME_SCALE_RANGE = { min: 0, max: 8 } as const;
 
 /**
  * Clamp a requested time scale into {@link TIME_SCALE_RANGE}. Extracted from
- * `core/game-loop.ts`'s `set timeScale` (which still owns the out-of-range
+ * `editor-game/src/runtime/core/game-loop.ts`'s `set timeScale` (which still owns the out-of-range
  * console warning — this function only computes) so the loop and every reader
  * of the range agree by construction.
  *

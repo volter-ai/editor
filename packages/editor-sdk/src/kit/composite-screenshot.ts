@@ -21,7 +21,7 @@
  *
  * A canvas is only readable this late when its WebGL context was created with
  * `preserveDrawingBuffer: true`. Every canvas the vgai RUNTIME mounts sets it
- * (`@vgai/game-runtime/runtime/create-runtime`), so first-party play reads directly. A
+ * (`@volter/editor-game/runtime/create-runtime`), so first-party play reads directly. A
  * canvas an INGESTED game created is its own — racing-game's `<Canvas>` passes
  * no `gl` prop, so fiber's `false` default applies and this read returns black.
  * `CaptureOptions.canvasFrame` is the seam for that case: the caller hands back

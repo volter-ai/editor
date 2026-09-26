@@ -47,7 +47,7 @@ export function inputGatedError(action: string, reason: string | undefined): Ses
 }
 
 /** The exact `code` the engine's debug registry throws for an unknown
- *  command name (`packages/game-runtime/src/runtime/debug-registry.ts`) — not one
+ *  command name (`packages/editor-game/src/runtime/debug-registry.ts`) — not one
  *  of this client's OWN `SESSION_ERROR_CODES` above (it originates on the
  *  page side and crosses the bridge verbatim via `client.ts`'s `unwrap`),
  *  named here so `appendWarmSessionHint` below doesn't compare against a

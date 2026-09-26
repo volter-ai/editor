@@ -36,7 +36,7 @@ import type {
   PerformanceProfiler,
   PerformanceSnapshot,
 } from '@volter/game-runtime/dev/performance-profiler';
-import type { RenderMemorySnapshot } from '@volter/game-runtime/dev/render-memory';
+import type { RenderMemorySnapshot } from '../runtime/dev/render-memory';
 import { useEffect, useRef, useState } from 'react';
 import { createMainThreadBusySampler, type MainThreadBusySampler } from './main-thread-busy';
 

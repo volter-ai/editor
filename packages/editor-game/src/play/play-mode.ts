@@ -98,15 +98,15 @@ import { isEditorLanePath } from '@volter/editor-sdk/session/tool-contribution-c
 import { getSeededRandom, type SeededRandom } from '@volter/game-runtime/core/seeded-random';
 import { _engineLogActive } from '@volter/game-runtime/dev/logger';
 import type { PerformanceProfiler } from '@volter/game-runtime/dev/performance-profiler';
-import type { GameSession } from '@volter/game-runtime/runtime/create-runtime';
+import type { GameSession } from '../runtime/create-runtime';
 import {
   type DebugVirtualInputTarget,
   getDebugRegistry,
   type RunTicksOptions,
-} from '@volter/game-runtime/runtime/debug-registry';
-import type { GameLoop, RootInstance } from '@volter/game-runtime/runtime/game';
+} from '../runtime/debug-registry';
+import type { GameLoop, RootInstance } from '../runtime/game';
 import type { PlaytestContext } from '@volter/game-runtime/runtime/playtest';
-import { runTicksWhenSettled } from '@volter/game-runtime/runtime/run-ticks-settled';
+import { runTicksWhenSettled } from '../runtime/run-ticks-settled';
 import {
   type AuthoringAdapter,
   type InspectorProvider,
@@ -756,7 +756,7 @@ async function installPlayRootAuthoring(
       const [physicsRegistry, physicsAdapters, pixiAuthoring, pixiWriteTarget, canvasRuntime] =
         await Promise.all([
           import('@volter/game-runtime/pixi/physics-registry'),
-          import('@volter/game-runtime/pixi/system-adapters'),
+          import('../runtime/pixi/system-adapters'),
           import('../host/authoring/pixi-authoring-adapter'),
           import('../host/authoring/pixi-live-write-target'),
           import('../host/canvas-entry-runtime'),
@@ -1749,7 +1749,7 @@ async function enterPlayModeInner(
     // MEASURED at N=20000: the block that ate three command budgets started
     // here and ran for 199.5s with nothing anywhere able to name it.
     markPlayBootPhase('mounting the runtime roots');
-    const { mountManifestRoots } = await import('@volter/game-runtime/runtime/mount-manifest');
+    const { mountManifestRoots } = await import('../runtime/mount-manifest');
     session = await mountManifestRoots({
       manifest,
       container: gameContainer,
@@ -2022,7 +2022,7 @@ export async function mountAdditionalInstance(
   }
   markGameCssScope(container);
   setGameSurface(container, mountId);
-  const { mountManifestRoots } = await import('@volter/game-runtime/runtime/mount-manifest');
+  const { mountManifestRoots } = await import('../runtime/mount-manifest');
   const session = await mountManifestRoots({
     manifest,
     container,

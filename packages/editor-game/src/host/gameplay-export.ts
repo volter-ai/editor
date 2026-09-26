@@ -1,4 +1,3 @@
-import { pcmStats } from '@volter/game-runtime/audio/wav-encode';
 import type { OfflineAudioRenderer } from '@volter/editor-project/adapter';
 import {
   AudioBufferSource,
@@ -13,6 +12,23 @@ import {
 import type { CaptureOptions } from '@volter/editor-sdk/kit/composite-screenshot';
 import { createImageSnapshotCache, drawPlayCompositeFrame } from '@volter/editor-sdk/kit/composite-screenshot';
 
+/** RMS and peak over all channels and samples: evidence the track is sound, not an all-zero
+ *  buffer. */
+function pcmStats(channelData: readonly Float32Array[]): { rms: number; peak: number } {
+  let sumSquares = 0;
+  let peak = 0;
+  let count = 0;
+  for (const data of channelData) {
+    for (let i = 0; i < data.length; i++) {
+      const v = data[i] ?? 0;
+      sumSquares += v * v;
+      peak = Math.max(peak, Math.abs(v));
+      count++;
+    }
+  }
+  return { rms: count > 0 ? Math.sqrt(sumSquares / count) : 0, peak };
+}
+
 /**
  * Opus in the SAME WebM `Output` the video track already uses — the whole
  * audio decision of this module, written down because the alternative is what
@@ -25,14 +41,10 @@ import { createImageSnapshotCache, drawPlayCompositeFrame } from '@volter/editor
  * second container pipeline beside the first is how one export's timing,
  * metadata and codec support drift away from the other's.
  *
- * Consequently `audio/wav-encode.ts` is NOT used to make the track.
- * `encodeWav16` exists for the one place that genuinely needs a file on a
- * wire — `runtime/render-audio-control.ts` base64s a complete WAV across
- * `page.evaluate` to a Node capture driver. Here the `AudioBuffer` and the
- * muxer are in the same JS heap, so encoding to 16-bit WAV and handing the
- * bytes back to an encoder would quantize the samples for no reason at all.
- * `pcmStats` from that module IS used, for the non-silence evidence in the
- * result.
+ * The `AudioBuffer` and the muxer are in the same JS heap, so the samples go
+ * to the encoder as they are; encoding to 16-bit WAV on the way would quantize
+ * them for no reason at all. {@link pcmStats} gives the non-silence evidence in
+ * the result.
  *
  * Opus rather than a PCM track (Matroska can carry `A_PCM/INT/LIT`) because
  * WebM's normal audio codec is what every player and every `ffprobe` build
@@ -105,9 +117,8 @@ export interface GameplayExportResult {
 /** How the export gets sound: the world's own audio for the ABSOLUTE sim
  *  window the frame walk covers, rendered offline.
  *
- *  THE OFFSET TRAP, restated at the call site because it is the correctness
- *  argument of this whole path (`runtime/render-audio-control.ts` states it
- *  first): an offline render of `[10, 10.72)` schedules its first event at
+ *  THE OFFSET TRAP, stated at the call site because it is the correctness
+ *  argument of this whole path: an offline render of `[10, 10.72)` schedules its first event at
  *  LOCAL time 0, not absolute 10. `startSeconds` is where the paused run
  *  stands on its own canonical clock when frame 0 is captured; `render` is
  *  asked for `[startSeconds, startSeconds + frames / fps)` and must subtract

@@ -2,7 +2,7 @@
  * What a render-memory reading IS — the shape `SystemAdapters`'s memory door
  * answers with. The contract owns the shape; the measurement that fills it
  * walks a live three.js scene and is the game runtime's
- * (`@vgai/game-runtime/dev/render-memory`).
+ * (`@volter/editor-game/runtime/dev/render-memory`).
  */
 
 export interface RenderMemoryEntry {

@@ -1,7 +1,7 @@
 /**
  * The canvas surface's physics seam, keyed by the substrate's display object
  * (`D`, opaque by default). The implementer names its own display type
- * (`@volter/game-runtime/pixi/system-adapters` is `PhysicsAdapter2D<Container>`).
+ * (`@volter/editor-game/runtime/pixi/system-adapters` is `PhysicsAdapter2D<Container>`).
  */
 
 /**

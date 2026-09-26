@@ -10,7 +10,7 @@
  * application's own functions over its own stores. The READER that validates
  * one of these exports, and the adapter that projects it onto the session's
  * debug/input doors, are the game runtime's
- * (`@vgai/game-runtime/adapter/native-debug-module`).
+ * (`@volter/editor-game/runtime/adapter/native-debug-module`).
  */
 
 import type { ContractSystemEmptySlot } from './ingest/contract-system-slots';

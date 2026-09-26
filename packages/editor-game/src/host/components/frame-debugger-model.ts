@@ -20,7 +20,7 @@ import type { PerformanceFrame } from '@volter/game-runtime/dev/performance-prof
 import type {
   FrameCapture,
   FrameCaptureDrawCall,
-} from '@volter/game-runtime/dev/webgl-frame-capture';
+} from '../../runtime/dev/webgl-frame-capture';
 import type { RenderDebugAdapter } from '@volter/editor-project/adapter';
 
 /** Which optional render-debug capabilities the active adapter provides — the

@@ -23,7 +23,7 @@
  * ## This is NOT `SimClock`, and `after(0)` is not a substitute
  *
  * `core/sim-clock.ts` schedules on SIM TIME: `after(0, fn)` scheduled mid-frame
- * does land in that frame's tail flush (`runtime/game.ts` calls `flush(simT)`
+ * does land in that frame's tail flush (`editor-game/src/runtime/game.ts` calls `flush(simT)`
  * after every phase of every world), so the resemblance is real and worth
  * naming. Three things make it the wrong tool for deferral:
  *

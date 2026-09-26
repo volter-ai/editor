@@ -11,7 +11,7 @@
  * The world is an ordinary `@pixi/react` app. The editor renders it bare,
  * advances Pixi's real (never-started) ticker on GAME time, and wires the
  * game-scoped input seams from outside the tree
- * (`@volter/game-runtime/runtime/game-input-seams`).
+ * (`@volter/editor-game/runtime/game-input-seams`).
  *
  * WHOSE REACT, RECONCILER AND PIXI. The entry's hooks resolve `react`,
  * `@pixi/react` and `pixi.js` through the project's module graph, so the root
@@ -46,12 +46,12 @@
 import type * as PixiReact from '@pixi/react';
 import type { MountedCanvasRoot, MountedCanvasSubstrate, RootAdapter } from '@volter/editor-project/adapter';
 import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
-import { getDebugRegistry } from '@volter/game-runtime/runtime/debug-registry';
+import { getDebugRegistry } from '../../runtime/debug-registry';
 import {
   DEFAULT_INPUT_MAP_PATH,
   wireGameInputSeams,
-} from '@volter/game-runtime/runtime/game-input-seams';
-import type { GameCanvasHostContext } from '@volter/game-runtime/runtime/host-context';
+} from '../../runtime/game-input-seams';
+import type { GameCanvasHostContext } from '../../runtime/host-context';
 import type * as PIXI from 'pixi.js';
 import type { Application, ApplicationOptions, Container } from 'pixi.js';
 import type * as React from 'react';

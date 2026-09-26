@@ -301,7 +301,7 @@ export function systemsForInstance(mountId?: string): SystemAdapters {
 /**
  * The focused game's physics carrier AS A NODE-ID-KEYED ONE — `null` when the
  * slot holds a canvas mount's display-keyed carrier
- * (`@vgai/game-runtime/pixi/system-adapters`).
+ * (`@volter/editor-game/runtime/pixi/system-adapters`).
  *
  * That narrowing is the point rather than a formality: this registry is
  * game-scoped and surface-blind, so with a canvas game focused the slot really

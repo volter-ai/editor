@@ -19,28 +19,28 @@ import { hasUserData } from '@volter/threejs-runtime/ecs/user-data';
 import type { CollisionSystem } from '@volter/threejs-runtime/physics/collision-system';
 import type { PhysicsRegistry } from '@volter/threejs-runtime/physics/physics-registry';
 import type * as THREE from 'three';
-import type { createGameLoop } from '../core/game-loop';
+import type { createGameLoop } from './core/game-loop';
 import {
   createSeededRandom,
   DEFAULT_SEEDED_RANDOM_SEED,
   registerSeededRandom,
-} from '../core/seeded-random';
-import { createSimClock, registerSimClock, type SimClockInternal } from '../core/sim-clock';
-import { createSystemRunner, type SystemRunner } from '../core/system-runner';
-import { PHASE_ORDER, SystemPhase, type SystemPhaseName } from '../core/types';
-import { createPerformanceProfiler, type PerformanceProfiler } from '../dev/performance-profiler';
-import { InputManager } from '../input/input-manager';
+} from '@volter/game-runtime/core/seeded-random';
+import { createSimClock, registerSimClock, type SimClockInternal } from '@volter/game-runtime/core/sim-clock';
+import { createSystemRunner, type SystemRunner } from './core/system-runner';
+import { PHASE_ORDER, SystemPhase, type SystemPhaseName } from './core/types';
+import { createPerformanceProfiler, type PerformanceProfiler } from '@volter/game-runtime/dev/performance-profiler';
+import { InputManager } from '@volter/game-runtime/input/input-manager';
 // TYPE-ONLY (same rule as the pixi import above): this lives under `pixi/`,
 // but `game.ts` only ever names its TYPE.
-import type { Physics2DRegistry } from '../pixi/physics-registry';
+import type { Physics2DRegistry } from '@volter/game-runtime/pixi/physics-registry';
 import {
   createDebugRegistry,
   DebugError,
   type RunTicksOptions,
   registerDebugRegistry,
 } from './debug-registry';
-import { createGameplayRngTrap, registerGameplayRngTrapControl } from './gameplay-rng-trap';
-import type { PlaytestContext } from './playtest';
+import { createGameplayRngTrap, registerGameplayRngTrapControl } from '@volter/game-runtime/runtime/gameplay-rng-trap';
+import type { PlaytestContext } from '@volter/game-runtime/runtime/playtest';
 
 /** The one loop type — `createGameLoop`'s return shape (fixed-step sim,
  *  display-rate presentation). */

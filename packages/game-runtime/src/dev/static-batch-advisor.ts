@@ -12,7 +12,7 @@
  * ── THE DECISION IS PURE, THE SCHEDULE IS NOT ───────────────────────────────
  * {@link decideStaticBatchAdvisory} takes a draw-call count and two scan
  * reports and answers with an advisory or `null`. It reads no clock, no
- * scene, no console. `dev/register-render-vitals.ts` owns the impure half —
+ * scene, no console. `editor-game/src/runtime/dev/register-render-vitals.ts` owns the impure half —
  * when to scan, and warning once — because that is where the profiler
  * subscription already lives.
  *

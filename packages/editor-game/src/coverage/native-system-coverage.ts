@@ -38,7 +38,7 @@ import { measureNativeSystemAdapters } from '../host/coverage/system-adapter-cov
 import { liveCoverage } from '@volter/editor-sdk/kit/live-session-registry';
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import { toolContributionPlay } from '@volter/editor-sdk/kit/tool-contribution-play';
-import type { DeclaredSystemAbsence, Game } from '@volter/game-runtime/runtime/game';
+import type { DeclaredSystemAbsence, Game } from '../runtime/game';
 import { projectDependencyNames } from './live-project-verbs';
 
 /**

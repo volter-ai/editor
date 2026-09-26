@@ -34,9 +34,9 @@ import {
 import { createGameRuntime, type GameSession, type RootMountSpec } from './create-runtime';
 import { type DebugBridgeWindowTarget, maybeInstallDebugBridge } from './debug-bridge';
 import { getDebugRegistry } from './debug-registry';
-import { getGameplayRngTrapControl } from './gameplay-rng-trap';
-import type { PlaytestContext } from './playtest';
-import { RENDER_SEED_QUERY_PARAM } from './render-seed';
+import { getGameplayRngTrapControl } from '@volter/game-runtime/runtime/gameplay-rng-trap';
+import type { PlaytestContext } from '@volter/game-runtime/runtime/playtest';
+import { RENDER_SEED_QUERY_PARAM } from '@volter/game-runtime/runtime/render-seed';
 
 // ---------------------------------------------------------------------------
 // The `entries` contract

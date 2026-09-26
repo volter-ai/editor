@@ -12,7 +12,7 @@
 // types.
 //
 // Adapter surface values mirror `AdapterSurface` in
-// `packages/game-runtime/src/runtime/game.ts` (`'three' | 'canvas' | 'dom'`)
+// `packages/editor-game/src/runtime/game.ts` (`'three' | 'canvas' | 'dom'`)
 // by value, not by import. The adapter remains the sole root discriminator.
 
 import { z } from 'zod';

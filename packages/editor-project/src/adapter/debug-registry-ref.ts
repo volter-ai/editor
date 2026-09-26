@@ -2,7 +2,7 @@
  * The game-scoped debug registry AS THE SEAM SEES IT — a reference a binding
  * carries, and the one member the seam reads off it.
  *
- * The contract does not restate `@vgai/game-runtime/runtime/debug-registry`'s
+ * The contract does not restate `@volter/editor-game/runtime/debug-registry`'s
  * `DebugRegistry`: that interface names the game runtime's own vocabulary
  * (`DebugCtxSurface`, `InputManager`, `Game`, the run-ticks target), and
  * moving it here would put the game host's debugger inside the project

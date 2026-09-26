@@ -26,7 +26,7 @@
  *
  * ## Two forms, because sync and async are genuinely different here
  *
- * `Game.runTicks` is **synchronous** (`runtime/game.ts`): it runs N substeps in
+ * `Game.runTicks` is **synchronous** (`editor-game/src/runtime/game.ts`): it runs N substeps in
  * one straight-line loop. A `delay` continuation is a microtask, so under
  * `runTicks` — and under an offline export driven the same way — it does *not*
  * interleave between ticks; it runs when the caller's stack unwinds, after the
@@ -69,7 +69,7 @@
  * One clock per `Game`, shared by every world on it (`getSimClock(game)`); a
  * mount with no Game shell builds a private, mount-local one instead. Whoever
  * CREATED a clock disposes it: `GameInternal.dispose()` disposes the
- * game-scoped one — `runtime/create-runtime.ts` calls that after every root has
+ * game-scoped one — `editor-game/src/runtime/create-runtime.ts` calls that after every root has
  * torn down — and a root adapter disposes only its own mount-local fallback.
  * A per-root teardown must NEVER dispose the game-scoped clock: disposing one
  * world's `mounted` is a supported way to end a sub-session while the Game
@@ -168,7 +168,7 @@ export interface SimClock {
 
 /**
  * The runtime-facing half — NOT for game code. Split off the public
- * {@link SimClock} the same way `runtime/game.ts` splits `GameInternal` off
+ * {@link SimClock} the same way `editor-game/src/runtime/game.ts` splits `GameInternal` off
  * `Game`: game code only ever sees the public `SimClock`, so it cannot
  * reach `flush`/`dispose`.
  */
@@ -223,7 +223,7 @@ function assertSeconds(method: string, seconds: number): void {
 
 /**
  * Build the one sim clock a `Game` owns. See the module header for the
- * contract; `runtime/game.ts` is the only production caller.
+ * contract; `editor-game/src/runtime/game.ts` is the only production caller.
  */
 export function createSimClock(options: SimClockOptions): SimClockInternal {
   const disposeObject = options.dispose;

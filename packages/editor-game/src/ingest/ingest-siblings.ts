@@ -60,7 +60,7 @@ import { DomAuthoringAdapter } from '../react/dom-authoring-adapter';
 import { ReactRootAuthoringAdapter, walkOidTree } from '../react/react-world-authoring-adapter';
 import { beginProjectMountEpoch } from '@volter/editor-sdk/session/project-module-url';
 import { createPhysics2DRegistry } from '@volter/game-runtime/pixi/physics-registry';
-import { createPhysicsAdapter2D } from '@volter/game-runtime/pixi/system-adapters';
+import { createPhysicsAdapter2D } from '../runtime/pixi/system-adapters';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { declaredRoots } from '@volter/editor-project/adapter/manifest-interpreter';
 import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@volter/editor-project/manifest/load';

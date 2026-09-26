@@ -29,7 +29,7 @@ import type {
   DebugCommandInfo,
   TickStampedEvent,
 } from '@volter/editor-project/adapter/system-adapter';
-import { DebugError } from '../../runtime/debug-registry';
+import { DebugError } from '../../debug-registry';
 
 /**
  * Build a {@link DebugAdapter} over a declared system surface, or `null` when

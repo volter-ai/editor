@@ -50,7 +50,7 @@ import type {
   DebugCommandInfo,
   TickStampedEvent,
 } from '@volter/editor-project/adapter/system-adapter';
-import { DebugError } from '../../runtime/debug-registry';
+import { DebugError } from '../../debug-registry';
 
 /**
  * An adapter-declared read is DERIVED by the host-side table from the game's own

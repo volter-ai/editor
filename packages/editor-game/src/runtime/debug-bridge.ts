@@ -16,7 +16,7 @@
  */
 
 import type { DebugAdapter, TickStampedEvent } from '@volter/editor-project/adapter/system-adapter';
-import type { GameLoopLiveness } from '../core/types';
+import type { GameLoopLiveness } from './core/types';
 import { DebugError, type DebugRegistry, type RunTicksOptions } from './debug-registry';
 import { runTicksWhenSettled } from './run-ticks-settled';
 

@@ -11,7 +11,7 @@
  * The world is an ordinary R3F app. The editor renders it bare into a Fiber
  * root on the host's canvas and renderer, drives Fiber's `frameloop: 'never'`
  * scheduler from the game's own loop, and wires the game-scoped input seams
- * from outside the tree (`@volter/game-runtime/runtime/game-input-seams`).
+ * from outside the tree (`@volter/editor-game/runtime/game-input-seams`).
  *
  * WHOSE REACT AND FIBER. The entry's hooks resolve `react` and
  * `@react-three/fiber` through the project's module graph, so the root that
@@ -32,22 +32,22 @@ import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapt
 import {
   type RenderVitalsRegistration,
   registerRenderVitals,
-} from '@volter/game-runtime/dev/register-render-vitals';
+} from '../../runtime/dev/register-render-vitals';
 import {
   createRenderDebugAdapter,
   frameCaptureContextFor,
   type RenderDebugWiring,
-} from '@volter/game-runtime/dev/render-debug-adapter';
-import { collectRenderMemory } from '@volter/game-runtime/dev/render-memory';
+} from '../../runtime/dev/render-debug-adapter';
+import { collectRenderMemory } from '../../runtime/dev/render-memory';
 import { RENDER_SUBMIT_PHASE } from '@volter/game-runtime/dev/render-vitals';
-import { createWebGLFrameCapture } from '@volter/game-runtime/dev/webgl-frame-capture';
-import { getDebugRegistry } from '@volter/game-runtime/runtime/debug-registry';
+import { createWebGLFrameCapture } from '../../runtime/dev/webgl-frame-capture';
+import { getDebugRegistry } from '../../runtime/debug-registry';
 import { devBuildEnabled } from '@volter/game-runtime/runtime/dev-build';
 import {
   DEFAULT_INPUT_MAP_PATH,
   wireGameInputSeams,
-} from '@volter/game-runtime/runtime/game-input-seams';
-import type { GameThreeHostContext } from '@volter/game-runtime/runtime/host-context';
+} from '../../runtime/game-input-seams';
+import type { GameThreeHostContext } from '../../runtime/host-context';
 import type * as React from 'react';
 import type { ComponentType, PropsWithChildren } from 'react';
 

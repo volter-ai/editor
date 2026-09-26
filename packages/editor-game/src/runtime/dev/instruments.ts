@@ -51,9 +51,9 @@
 
 import { nodeKeyedPhysics } from '@volter/editor-project/adapter/system-adapter';
 import { z } from 'zod';
-import { clampTimeScale, TIME_SCALE_RANGE } from '../core/frame-pacing';
-import { getDebugRegistry } from '../runtime/debug-registry';
-import type { Game } from '../runtime/game';
+import { clampTimeScale, TIME_SCALE_RANGE } from '@volter/game-runtime/core/frame-pacing';
+import { getDebugRegistry } from '../debug-registry';
+import type { Game } from '../game';
 
 /** What shape an instrument's reading is, and what drives it. Data, not
  *  layout: a reader learns how to interpret and actuate an instrument without

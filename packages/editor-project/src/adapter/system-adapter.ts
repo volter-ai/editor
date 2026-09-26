@@ -542,8 +542,8 @@ export interface AudioAdapter {
    * a sim window instead, so identical `(start, end)` on an unchanged score
    * must return identical samples.
    *
-   * THE OFFSET TRAP (the contract `runtime/render-audio-control.ts`'s header
-   * states, quoted here because this is the other place implementers read):
+   * THE OFFSET TRAP (the gameplay export states it at its call site; quoted
+   * here because this is the other place implementers read):
    * an offline render of `[10, 10.72)` schedules its first event at LOCAL
    * time 0, not absolute 10. The caller reasons in canonical time, so the
    * implementation must subtract `start` from every scheduled event time.

@@ -51,7 +51,7 @@ import { captureLiveCanvasFrame } from './live-frames';
  *
  *  BOTH legs read a canvas, and a canvas is only readable after its frame when
  *  its WebGL context was created with `preserveDrawingBuffer: true`. Every
- *  canvas the vgai RUNTIME mounts sets it (`@volter/game-runtime/runtime/create-runtime`,
+ *  canvas the vgai RUNTIME mounts sets it (`@volter/editor-game/runtime/create-runtime`,
  *  D5 §1/§4); a canvas an INGESTED game created is the game's own and usually
  *  does not, which read as a silently BLACK screenshot over a perfectly
  *  healthy running game. {@link liveCanvasFrame} is the answer for that

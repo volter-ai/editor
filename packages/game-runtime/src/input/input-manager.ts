@@ -888,7 +888,7 @@ export class InputManager {
   }
 
   /** The names of all registered actions (the `game.input.actions` debug seam
-   *  enumerates these — `runtime/game-input-seams.ts`). */
+   *  enumerates these — `editor-game/src/runtime/game-input-seams.ts`). */
   actionNames(): string[] {
     return [...this.actions.keys()];
   }

@@ -22,7 +22,7 @@ import { stackOrder } from '@volter/editor-project/adapter/root-stacking';
 import { createAssetCache } from '@volter/threejs-runtime/assets';
 import { createHostRenderer } from '@volter/threejs-runtime/setup/setup-renderer';
 import * as THREE from 'three';
-import { createGameLoop } from '../core/game-loop';
+import { createGameLoop } from './core/game-loop';
 import { getDebugRegistry } from './debug-registry';
 // TYPE-ONLY: `create-runtime.ts` must never value-import `pixi.js` — a canvas
 // `RootMountSpec`'s `adapter` is supplied ALREADY-CONSTRUCTED by the caller, so
@@ -35,7 +35,7 @@ import {
   type RootInstance,
 } from './game';
 import { createInputRouter, type RouterAdapterRoot } from './input-router';
-import type { PlaytestContext } from './playtest';
+import type { PlaytestContext } from '@volter/game-runtime/runtime/playtest';
 import { installRenderControlHarness, isRenderModeRequested } from './render-control';
 
 /**

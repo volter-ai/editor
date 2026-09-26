@@ -7,7 +7,7 @@
 import { isolationImportUrl } from '@volter/editor-sdk/session/project-module-url';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { createPhysics2DRegistry } from '@volter/game-runtime/pixi/physics-registry';
-import { createPhysicsAdapter2D } from '@volter/game-runtime/pixi/system-adapters';
+import { createPhysicsAdapter2D } from '../../runtime/pixi/system-adapters';
 import { useEffect, useRef, useState } from 'react';
 import {
   type IsolatedPixiScreenCtor,

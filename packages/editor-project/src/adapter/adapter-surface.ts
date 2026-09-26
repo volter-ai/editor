@@ -7,7 +7,7 @@
  * `adapter/root-adapter.ts` already). This is a leaf module — it imports
  * nothing — so anything may import it with zero risk of a cycle.
  * `runtime/game.ts` re-exports this SAME type (`export type { AdapterSurface }`),
- * so no existing `import type { AdapterSurface } from '@vgai/game-runtime/runtime/game'` call site
+ * so no existing `import type { AdapterSurface } from '@volter/editor-game/runtime/game'` call site
  * needed to change.
  */
 export type AdapterSurface = 'three' | 'canvas' | 'dom';

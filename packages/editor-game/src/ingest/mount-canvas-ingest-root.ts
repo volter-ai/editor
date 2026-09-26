@@ -58,8 +58,8 @@ import { acquireLiveDocument, liveDocumentContainer } from '@volter/editor-sdk/k
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import { recordRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import type { MeasuredLoop } from '../host/same-realm-loop-gate';
-import { projectContractSystemAdapters } from '@volter/game-runtime/adapter/ingest/contract-system-adapters';
-import type { RenderDebugWiring } from '@volter/game-runtime/dev/render-debug-adapter';
+import { projectContractSystemAdapters } from '../runtime/adapter/ingest/contract-system-adapters';
+import type { RenderDebugWiring } from '../runtime/dev/render-debug-adapter';
 import type { IngestGame2D } from '@volter/game-runtime/pixi/ingest';
 import { INGEST_GAME_2D_LOAD_ERROR_NAME, mountIngestGame2D } from '@volter/game-runtime/pixi/ingest';
 import { createPhysics2DRegistry } from '@volter/game-runtime/pixi/physics-registry';
@@ -68,7 +68,7 @@ import {
   composePhysicsAdapters2D,
   createPhysicsAdapter2D,
   type PhysicsAdapter2D,
-} from '@volter/game-runtime/pixi/system-adapters';
+} from '../runtime/pixi/system-adapters';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter/authoring';
 import { readGameReady } from '@volter/editor-project/adapter/ingest/game-contract';
 import { displayKeyedPhysics } from '@volter/editor-project/adapter/system-adapter';
@@ -214,7 +214,7 @@ function rendererCanvasBelongsToHost(renderer: unknown, hostEl: HTMLElement): bo
  * The projection is the ONE validator: presence + typeof for the four members,
  * plus the keying check that makes a node-id-keyed declaration on this surface
  * `malformed` by name instead of a bound shape nothing here can call
- * (`@volter/game-runtime/adapter/ingest/contract-system-adapters`). Both verdicts reach
+ * (`@volter/editor-game/runtime/adapter/ingest/contract-system-adapters`). Both verdicts reach
  * the reader through the coverage row for `system.physics`, so a refusal here
  * is never silent.
  */

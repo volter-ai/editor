@@ -19,7 +19,7 @@ import { setEditModeAudio } from '@volter/editor-sdk/kit/authoring/active-system
 import {
   createAudioSystemAdapter,
   releaseAudioMeters,
-} from '@volter/game-runtime/adapter/first-party-audio-system';
+} from '../runtime/adapter/first-party-audio-system';
 import { setupAudio } from '@volter/game-runtime/setup/setup-audio';
 import * as THREE from 'three';
 

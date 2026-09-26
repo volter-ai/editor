@@ -21,7 +21,7 @@ import { systemAdapterEpoch } from '@volter/editor-sdk/kit/system-seam-evidence'
 import {
   HOLD_STARVED_NO_DRIVER_REASON,
   waitForHoldBudget,
-} from '@volter/game-runtime/runtime/debug-bridge';
+} from '../runtime/debug-bridge';
 import type { SystemAdapters } from '@volter/editor-project/adapter';
 import { activeIngestContract } from '../ingest/ingest-play-control';
 import { getPlayRuntimeAccess } from '../play/play-mode';
@@ -39,7 +39,7 @@ import { getPlayRuntimeAccess } from '../play/play-mode';
  *  game, so it never creates a play session at all, and what it publishes
  *  through `setActiveSystems` is the debug adapter projected from its own
  *  declared contract (`ingest-root-adapter.ts` →
- *  `@volter/game-runtime/adapter/ingest/contract-debug-adapter`). The question asked here is
+ *  `@volter/editor-game/runtime/adapter/ingest/contract-debug-adapter`). The question asked here is
  *  only ever "has a live mount published a plane", never who mounted it.
  *  `notPlayingResult()` stays the answer for the genuinely-no-world case. */
 export const hasLiveDebugPlane = (): boolean => getActiveSystems().debug != null;
@@ -109,7 +109,7 @@ function recordContractSystemUse(member: string, value: unknown, name?: string):
 
 /**
  * #140 — the generic session-wire dispatch table: the SAME method-name
- * surface `window.__vgai` exposes (`@volter/game-runtime/runtime/debug-bridge`'s
+ * surface `window.__vgai` exposes (`@volter/editor-game/runtime/debug-bridge`'s
  * `VgaiDebugHandle` — `state`/`stateAll`/`providers`/`commands`/`events`/
  * `snapshot`/`invoke`/`runTicks`/`input.*`), built from the SAME
  * registry-backed accessors the sibling

@@ -24,7 +24,7 @@
  * ## THE SEAM IT DRIVES, and why it is not a physics API
  *
  * `MountedThreeRoot.update(dt)` — the world's own host-driven tick, the exact
- * one `runFrameImpl` (`@vgai/game-runtime/runtime/game`) calls at play time. For an R3F
+ * one `runFrameImpl` (`@volter/editor-game/runtime/game`) calls at play time. For an R3F
  * world that is `editor-game/src/host/roots/r3f-root.tsx`'s `update()`: it runs the
  * engine phases and then `advance(elapsed, true, state)`, which under
  * `frameloop: 'never'` is what runs every `useFrame` subscriber.

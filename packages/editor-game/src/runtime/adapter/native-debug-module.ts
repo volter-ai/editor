@@ -29,8 +29,8 @@ import {
   type DebugRegistry,
   type DebugVirtualInputTarget,
   getDebugRegistry,
-} from '../runtime/debug-registry';
-import type { Game } from '../runtime/game';
+} from '../debug-registry';
+import type { Game } from '../game';
 import {
   CONTRACT_SYSTEM_SLOTS,
   type ContractSurface,

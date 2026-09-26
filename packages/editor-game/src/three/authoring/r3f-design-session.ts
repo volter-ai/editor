@@ -90,7 +90,7 @@ import type {
   RootAdapter,
   SystemAdapters,
 } from '@volter/editor-project/adapter';
-import type { GameThreeHostContext } from '@volter/game-runtime/runtime/host-context';
+import type { GameThreeHostContext } from '../../runtime/host-context';
 import type { ThreeMountedRoot } from '@volter/editor-threejs/adapter/three-contract';
 import { nodeKeyedPhysics } from '@volter/editor-project/adapter';
 import { declaredRoots, rootById } from '@volter/editor-project/adapter/manifest-interpreter';
@@ -101,11 +101,11 @@ import {
   type NativeSystemsBinding,
   nativeDebugBindingFromEntryModule,
   nativeSystemsBindingFromEntryModule,
-} from '@volter/game-runtime/adapter/native-debug-module';
+} from '../../runtime/adapter/native-debug-module';
 import { createAssetCache } from '@volter/threejs-runtime/assets';
-import { createGameLoop } from '@volter/game-runtime/core/game-loop';
-import { registerThreeRoot } from '@volter/game-runtime/runtime/create-runtime';
-import { createGame, type GameInternal } from '@volter/game-runtime/runtime/game';
+import { createGameLoop } from '../../runtime/core/game-loop';
+import { registerThreeRoot } from '../../runtime/create-runtime';
+import { createGame, type GameInternal } from '../../runtime/game';
 import {
   beginProjectMountEpoch,
   viteUpdateImportPath,

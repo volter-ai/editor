@@ -7,7 +7,7 @@
  * `composite-screenshot.ts` reads a game's canvas with `drawImage`, and that
  * only works on a WebGL canvas whose context was created with
  * `preserveDrawingBuffer: true`. Every canvas the vgai RUNTIME mounts sets it
- * (`@volter/game-runtime/runtime/create-runtime`), which is why the composite leg has always
+ * (`@volter/editor-game/runtime/create-runtime`), which is why the composite leg has always
  * worked for first-party play. An INGESTED game creates its own canvas: the
  * racing-game's `<Canvas>` passes no `gl` prop, so fiber's default
  * (`preserveDrawingBuffer: false`) applies, the browser discards the drawing

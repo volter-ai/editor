@@ -19,7 +19,7 @@ import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { fetchGameManifest } from '@volter/editor-sdk/kit/manifest-project';
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
-import type { GameSession, RootMountSpec } from '@volter/game-runtime/runtime/create-runtime';
+import type { GameSession, RootMountSpec } from '../runtime/create-runtime';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { declaredRoots, ingestRoots } from '@volter/editor-project/adapter/manifest-interpreter';
 import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@volter/editor-project/manifest/load';
@@ -93,7 +93,7 @@ export async function mountModuleRootRuntime(
   width: number,
   height: number,
 ): Promise<{ session: GameSession; specs: RootMountSpec[] }> {
-  const { createGameRuntime } = await import('@volter/game-runtime/runtime/create-runtime');
+  const { createGameRuntime } = await import('../runtime/create-runtime');
   const specs = await resolveAllRoots({ ...manifest, roots: [world] }, projectRoot);
   const session = await createGameRuntime({ container, roots: specs, width, height });
   return { session, specs };

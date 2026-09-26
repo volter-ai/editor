@@ -53,15 +53,15 @@
 
 import * as THREE from 'three';
 import { z } from 'zod';
-import type { DebugRegistry } from '../runtime/debug-registry';
-import type { PerformanceProfiler } from './performance-profiler';
-import { findByName, meshFamilies, sceneCensus, structuralBatchScan } from './render-census';
-import { createRenderVitals, type RenderVitals } from './render-vitals';
+import type { DebugRegistry } from '../debug-registry';
+import type { PerformanceProfiler } from '@volter/game-runtime/dev/performance-profiler';
+import { findByName, meshFamilies, sceneCensus, structuralBatchScan } from '@volter/game-runtime/dev/render-census';
+import { createRenderVitals, type RenderVitals } from '@volter/game-runtime/dev/render-vitals';
 import {
   ADVISOR_SETTLE_FRAMES,
   decideStaticBatchAdvisory,
   warnStaticBatchAdvisory,
-} from './static-batch-advisor';
+} from '@volter/game-runtime/dev/static-batch-advisor';
 
 /** The one provider name — spelled here, referenced everywhere else. */
 export const RENDER_VITALS_PROVIDER = 'render.vitals';

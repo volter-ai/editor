@@ -34,7 +34,7 @@
  */
 
 import type { HostGameHandle } from './host-context';
-import { getSeededRandom } from '../core/seeded-random';
+import { getSeededRandom } from '@volter/game-runtime/core/seeded-random';
 import type { DebugRegistry } from './debug-registry';
 
 /** The conventional input-map location every scaffolded project ships

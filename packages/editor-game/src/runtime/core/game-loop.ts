@@ -1,4 +1,4 @@
-import { clampTimeScale, paceFrame, TIME_SCALE_RANGE } from './frame-pacing';
+import { clampTimeScale, paceFrame, TIME_SCALE_RANGE } from '@volter/game-runtime/core/frame-pacing';
 import type { GameLoopConfig, GameLoopLiveness } from './types';
 
 /** A visible rAF chain that has produced no callback for this long is not

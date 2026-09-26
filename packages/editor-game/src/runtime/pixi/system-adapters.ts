@@ -1,6 +1,6 @@
 import type { PhysicsAdapter2D as PhysicsAdapter2DSeam } from '@volter/editor-project/adapter/physics-adapter-2d';
 import type { Container } from 'pixi.js';
-import type { Physics2DRegistry } from './physics-registry';
+import type { Physics2DRegistry } from '@volter/game-runtime/pixi/physics-registry';
 
 /** The canvas physics seam, keyed by Pixi's display object. */
 export type PhysicsAdapter2D = PhysicsAdapter2DSeam<Container>;

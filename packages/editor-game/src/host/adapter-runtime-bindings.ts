@@ -8,15 +8,15 @@
 import {
   installNativeDebugBindings,
   installNativeSystemsBindings,
-} from '@volter/game-runtime/adapter/native-debug-module';
-import { publishDevInstruments } from '@volter/game-runtime/dev/instruments';
+} from '../runtime/adapter/native-debug-module';
+import { publishDevInstruments } from '../runtime/dev/instruments';
 import {
   DebugError,
   type DebugRegistry,
   type DebugVirtualInputTarget,
   getDebugRegistry,
-} from '@volter/game-runtime/runtime/debug-registry';
-import type { Game } from '@volter/game-runtime/runtime/game';
+} from '../runtime/debug-registry';
+import type { Game } from '../runtime/game';
 import {
   ADAPTER_INPUT_VALUE_TYPES,
   type AdapterInputAction,

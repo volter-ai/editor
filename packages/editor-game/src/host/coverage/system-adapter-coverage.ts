@@ -46,7 +46,7 @@
  * no live session.
  */
 
-import type { DeclaredSystemAbsence } from '@volter/game-runtime/runtime/game';
+import type { DeclaredSystemAbsence } from '../../runtime/game';
 import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
 import {
   SYSTEM_ADAPTER_SLOTS,

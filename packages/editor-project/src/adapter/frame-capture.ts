@@ -2,7 +2,7 @@
  * What a WebGL frame capture IS — the reading `SystemAdapters`'s frame-capture
  * door answers with. The contract owns the shape; the instrument that records
  * it shadow-patches a live WebGL2 context and is the game runtime's
- * (`@vgai/game-runtime/dev/webgl-frame-capture`).
+ * (`@volter/editor-game/runtime/dev/webgl-frame-capture`).
  */
 
 /** The five WebGL2 draw entry points this instrument wraps. */

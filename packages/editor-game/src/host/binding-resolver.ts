@@ -41,9 +41,9 @@ import {
 import {
   nativeDebugBindingFromEntryModule,
   nativeSystemsBindingFromEntryModule,
-} from '@volter/game-runtime/adapter/native-debug-module';
-import type { RootMountSpec } from '@volter/game-runtime/runtime/create-runtime';
-import type { MountEntry } from '@volter/game-runtime/runtime/mount-manifest';
+} from '../runtime/adapter/native-debug-module';
+import type { RootMountSpec } from '../runtime/create-runtime';
+import type { MountEntry } from '../runtime/mount-manifest';
 import type { SurfaceAdapter } from '@volter/editor-project/adapter';
 import type { AdapterDefinition } from '@volter/editor-project/adapter/adapter-module';
 import { assertNever } from '@volter/editor-project/adapter/adapter-surface';

@@ -135,12 +135,12 @@ export function createSeededRandom(initialSeed: number): SeededRandom {
 }
 
 // ---------------------------------------------------------------------------
-// Game-scoped registry — mirrors `runtime/debug-registry.ts`'s
+// Game-scoped registry — mirrors `editor-game/src/runtime/debug-registry.ts`'s
 // `registerDebugRegistry`/`getDebugRegistry` game-slot pattern exactly, but
 // keyed on a bare `object` (not `Game`) so this module never needs to import
-// `runtime/game.ts` even as a type — `core/` stays independent of `runtime/`
+// `editor-game/src/runtime/game.ts` even as a type — `core/` stays independent of `runtime/`
 // except for the one explicit, documented `render-seed.ts` reuse above.
-// `createGame` (`runtime/game.ts`) is the one real registrant, passing itself
+// `createGame` (`editor-game/src/runtime/game.ts`) is the one real registrant, passing itself
 // (the `GameInternal` shell) as the key, exactly like it does for
 // `registerDebugRegistry(gameInternal, debugRegistry)`.
 // ---------------------------------------------------------------------------

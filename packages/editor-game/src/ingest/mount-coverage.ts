@@ -36,7 +36,7 @@ import {
 import {
   type ContractSurface,
   projectContractSystemAdapters,
-} from '@volter/game-runtime/adapter/ingest/contract-system-adapters';
+} from '../runtime/adapter/ingest/contract-system-adapters';
 import type { VgaiGameContract } from '@volter/editor-project/adapter/ingest/game-contract';
 import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
 import { activeIngest } from './active-ingest';
