@@ -238,7 +238,7 @@
         "observedOutputSha256": "34bf274a610e750de21e217494034e6ca3fa19ef88caa11ba32717fcd57d67a3"
       },
       "target": {
-        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71",
         "callsite": "lib/godot-compat/sphere-mesh.ts set_radius",
         "observedOutputSha256": "34bf274a610e750de21e217494034e6ca3fa19ef88caa11ba32717fcd57d67a3"
       },
@@ -277,7 +277,7 @@
         "observedOutputSha256": "99daec82387dad94b14d26afbf891031cca617114f2e6ed8cc8c46620e3ad319"
       },
       "target": {
-        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71",
         "callsite": "lib/godot-compat/sphere-mesh.ts get_radius",
         "observedOutputSha256": "99daec82387dad94b14d26afbf891031cca617114f2e6ed8cc8c46620e3ad319"
       },
@@ -316,7 +316,7 @@
         "observedOutputSha256": "67c7e38521a705aff31832b4ac0ce90fc2dfb674c70eba5eb8afee541988b6e6"
       },
       "target": {
-        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71",
         "callsite": "lib/godot-compat/sphere-mesh.ts set_height",
         "observedOutputSha256": "67c7e38521a705aff31832b4ac0ce90fc2dfb674c70eba5eb8afee541988b6e6"
       },
@@ -355,7 +355,7 @@
         "observedOutputSha256": "1f8508aa0baee038a2621b7198be448de2f698b0ca4ea403217f4ca5421c4dfb"
       },
       "target": {
-        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71",
         "callsite": "lib/godot-compat/sphere-mesh.ts get_height",
         "observedOutputSha256": "1f8508aa0baee038a2621b7198be448de2f698b0ca4ea403217f4ca5421c4dfb"
       },
@@ -394,7 +394,7 @@
         "observedOutputSha256": "7a51a86388e0e58010d853710723f63db7d6b5b5c95fb0d0b01dd6183f50486b"
       },
       "target": {
-        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71",
         "callsite": "lib/godot-compat/sphere-mesh.ts set_radial_segments",
         "observedOutputSha256": "7a51a86388e0e58010d853710723f63db7d6b5b5c95fb0d0b01dd6183f50486b"
       },
@@ -433,7 +433,7 @@
         "observedOutputSha256": "f9572d2023c4a0d75f05d902ffa1daa1f2ea686fbefb58693b614991fe3ccf79"
       },
       "target": {
-        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71",
         "callsite": "lib/godot-compat/sphere-mesh.ts get_radial_segments",
         "observedOutputSha256": "f9572d2023c4a0d75f05d902ffa1daa1f2ea686fbefb58693b614991fe3ccf79"
       },
@@ -472,7 +472,7 @@
         "observedOutputSha256": "69d23e9f740fcee4782ae0d994f1ea3df1c73d6e482e551eed0e47d8b54cb6db"
       },
       "target": {
-        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71",
         "callsite": "lib/godot-compat/sphere-mesh.ts set_rings",
         "observedOutputSha256": "69d23e9f740fcee4782ae0d994f1ea3df1c73d6e482e551eed0e47d8b54cb6db"
       },
@@ -511,7 +511,7 @@
         "observedOutputSha256": "a6596944860e9050b1dc801523b0658bdba8b73cef9bf30277143a16b13d1b1e"
       },
       "target": {
-        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71",
         "callsite": "lib/godot-compat/sphere-mesh.ts get_rings",
         "observedOutputSha256": "a6596944860e9050b1dc801523b0658bdba8b73cef9bf30277143a16b13d1b1e"
       },
@@ -550,7 +550,7 @@
         "observedOutputSha256": "e1c0cf8dcff5ecdbf7e1d3c22ef33719f214ce202354565c4bc573afaabaa64a"
       },
       "target": {
-        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71",
         "callsite": "lib/godot-compat/sphere-mesh.ts set_is_hemisphere",
         "observedOutputSha256": "e1c0cf8dcff5ecdbf7e1d3c22ef33719f214ce202354565c4bc573afaabaa64a"
       },
@@ -589,7 +589,7 @@
         "observedOutputSha256": "437ceb08ca0e6bdca0d150c5c7a557d9136c8a28ffa693045a6b3b32b9a405a9"
       },
       "target": {
-        "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954",
+        "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71",
         "callsite": "lib/godot-compat/sphere-mesh.ts get_is_hemisphere",
         "observedOutputSha256": "437ceb08ca0e6bdca0d150c5c7a557d9136c8a28ffa693045a6b3b32b9a405a9"
       },
@@ -616,7 +616,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "42aabf42f746aa059be8899e3e0ad7b1af0966f6c0ec3cfd1902f2f16e70b88e",
-      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+      "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71"
     },
     {
       "claimId": "godot-4.7-binding-SphereMesh.get_radius",
@@ -624,7 +624,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "e4c57fc024e783324defcc4a043d9ed12474893119976eb49fcd025e9dd943be",
-      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+      "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71"
     },
     {
       "claimId": "godot-4.7-binding-SphereMesh.set_height",
@@ -632,7 +632,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "ea11f12518281e156f31e7da8d8fbeb3ba20a4f666b455f209b845926406be86",
-      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+      "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71"
     },
     {
       "claimId": "godot-4.7-binding-SphereMesh.get_height",
@@ -640,7 +640,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "a84529cb2b35477e1cbba07abd969a7ad69357018ff9d5b16797527bb3ba54a1",
-      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+      "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71"
     },
     {
       "claimId": "godot-4.7-binding-SphereMesh.set_radial_segments",
@@ -648,7 +648,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "6684bfc434eb3fc7d28b112b407085e641fbbe1bb80820682b42f75044baa6f6",
-      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+      "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71"
     },
     {
       "claimId": "godot-4.7-binding-SphereMesh.get_radial_segments",
@@ -656,7 +656,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "46325b8bebcfb6182a643a1f2f9bf66eae69ad2acf781b22c1095a31a85dd6b4",
-      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+      "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71"
     },
     {
       "claimId": "godot-4.7-binding-SphereMesh.set_rings",
@@ -664,7 +664,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "f809b13d95ddedb2a73bf19f79f5f074cc8f0c856a56fcc37acd786389fdbf33",
-      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+      "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71"
     },
     {
       "claimId": "godot-4.7-binding-SphereMesh.get_rings",
@@ -672,7 +672,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "e2599c2b09767d420c7350fe419441011bafd26eba89922f1f43425015605b99",
-      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+      "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71"
     },
     {
       "claimId": "godot-4.7-binding-SphereMesh.set_is_hemisphere",
@@ -680,7 +680,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "1a7dff05bf31cb2733f9ae500a0bbf96d30e08c4357c7e3c39397acc6909e5ac",
-      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+      "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71"
     },
     {
       "claimId": "godot-4.7-binding-SphereMesh.get_is_hemisphere",
@@ -688,7 +688,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "1e8dfc683ab4bb935050873dc5d2f3e1afc8f7b5700591618d6f07ad58dcf347",
-      "implementationSha256": "be3da500c4f94e7c3c0dbcdef8bbcfbcc462a1e3aa415b48d6c7573476539954"
+      "implementationSha256": "e040dc5d0cd9d58b96be6eef94684c2741f948ddc90432fd84a7ece2d3651e71"
     }
   ]
 }
