@@ -118,7 +118,8 @@
   "peerDependencies": {
     "three": "^0.180.0",
     "vite": "^6.4.3",
-    "react": "^19.0.0"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "scripts": {
     "build": "node scripts/build-serving.mjs",
