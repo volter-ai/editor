@@ -71,6 +71,8 @@ export interface GodotEvidenceCaseFile {
    * iteration, and may `await physics_frame` / `await process_frame` to step frames.
    */
   readonly kind?: 'compat' | 'node';
+  /** GDScript functions a node probe's cases call, appended to the probe script. */
+  readonly probeHelpers?: string;
   /** The Godot class the compat module transcribes (`Vector3`). */
   readonly godotClass: string;
   /** The compat module, relative to the project-source catalog's `src/` (`lib/godot-compat/vector3`). */

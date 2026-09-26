@@ -9,8 +9,8 @@
  * `asinf`, `atan2f`) are the double result rounded to float.
  *
  * The receiver is the `THREE.Object3D` the generated scene mounted. Its parent Node3D is its three
- * parent (`Object3D.parent`), unless that is absent or a `THREE.Scene`, which stands for the
- * non-3D `Node`/viewport above the 3D tree. The native entity holds the LOCAL transform: `matrix`
+ * parent (`Object3D.parent`), unless that is absent, a `THREE.Scene` (the viewport above the 3D
+ * tree), or a plain `Node`'s group, which `node.ts` marks non-spatial. The native entity holds the LOCAL transform: `matrix`
  * holds `data.local_transform` exactly (every element a float32 value, `matrixAutoUpdate` off),
  * and `position`/`quaternion`/`scale` are decomposed from it for three's own readers. Godot state
  * no three object holds lives in `NODE3D`, keyed by the Object3D: the Euler rotation and scale
@@ -24,6 +24,7 @@
 
 import type { Object3D } from 'three';
 import { type Basis, construct as basis } from './basis';
+import { godot_node_is_spatial } from './node';
 import { type Transform3D, construct as transform3d } from './transform-3d';
 import { construct as vector3, type Vector3 } from './vector3';
 
@@ -430,10 +431,14 @@ function stateOf(object: Object3D): Node3DState {
   return state;
 }
 
-/** `data.parent`: the parent Node3D (`scene/3d/node_3d.cpp:157`). */
+/**
+ * `data.parent`: the parent cast to Node3D (`scene/3d/node_3d.cpp:157`); a `THREE.Scene` or an
+ * entity `node.ts` marks as a plain Node is not one, and the node then has no parent Node3D.
+ */
 function parentNode3D(object: Object3D): Object3D | null {
   const parent = object.parent;
   if (parent === null || (parent as { readonly isScene?: boolean }).isScene === true) return null;
+  if (!godot_node_is_spatial(parent)) return null;
   return parent;
 }
 

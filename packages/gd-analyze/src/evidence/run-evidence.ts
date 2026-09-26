@@ -311,7 +311,7 @@ func _enc(value: Variant) -> Dictionary:
  * Node cases run on the first frame, when the SceneTree root is inside the tree. Each case gets a
  * fresh `holder` Node under the root and frees it once its result is encoded.
  */
-function nodeProbeSource(cases: readonly GodotEvidenceCase[]): string {
+function nodeProbeSource(cases: readonly GodotEvidenceCase[], helpers = ''): string {
   const functions = cases.map((entry, index) => {
     const body = entry.gdscript.split('\n');
     return `\nfunc _case_${String(index)}(holder: Node) -> Variant:\n${body.map((line) => `\t${line}`).join('\n')}\n`;
@@ -320,7 +320,7 @@ function nodeProbeSource(cases: readonly GodotEvidenceCase[]): string {
     (entry, index) =>
       `\tholder = Node.new()\n\troot.add_child(holder)\n\trows.append([${JSON.stringify(entry.id)}, _enc(await _case_${String(index)}(holder))])\n\tholder.free()\n`,
   );
-  return `extends SceneTree\n\n${PROBE_ENCODER}${functions.join('')}\nfunc _init() -> void:\n\tprocess_frame.connect(_run, CONNECT_ONE_SHOT)\n\n@warning_ignore("redundant_await")\nfunc _run() -> void:\n\tvar rows: Array = []\n\tvar holder: Node\n${rows.join('')}\tprint(${JSON.stringify(OUTPUT_MARKER)} + JSON.stringify(rows))\n\tquit()\n`;
+  return `extends SceneTree\n\n${PROBE_ENCODER}${helpers}${functions.join('')}\nfunc _init() -> void:\n\tprocess_frame.connect(_run, CONNECT_ONE_SHOT)\n\n@warning_ignore("redundant_await")\nfunc _run() -> void:\n\tvar rows: Array = []\n\tvar holder: Node\n${rows.join('')}\tprint(${JSON.stringify(OUTPUT_MARKER)} + JSON.stringify(rows))\n\tquit()\n`;
 }
 
 function compatProbeSource(cases: readonly GodotEvidenceCase[]): string {
@@ -877,7 +877,7 @@ async function runCompatEvidence(
     nativeRows = runNativeProbe(
       officialBinary,
       temp,
-      evidence.kind === 'node' ? nodeProbeSource(evidence.cases) : compatProbeSource(evidence.cases),
+      evidence.kind === 'node' ? nodeProbeSource(evidence.cases, evidence.probeHelpers) : compatProbeSource(evidence.cases),
       evidence.cases.length,
       evidence.kind === 'node' ? ['--fixed-fps', '60'] : [],
     );

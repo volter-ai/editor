@@ -1,0 +1,354 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/scene-tree"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SceneTree",
+        "member": "create_timer",
+        "kind": "native-member",
+        "signature": "hash:2709170273"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/scene-tree",
+        "exportName": "create_timer",
+        "localName": "SceneTree_create_timer",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SceneTree.create_timer"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SceneTree",
+        "member": "get_root",
+        "kind": "native-member",
+        "signature": "hash:1757182445"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/scene-tree",
+        "exportName": "get_root",
+        "localName": "SceneTree_get_root",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SceneTree.get_root"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SceneTree",
+        "member": "get_frame",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/scene-tree",
+        "exportName": "get_frame",
+        "localName": "SceneTree_get_frame",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SceneTree.get_frame"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SceneTree",
+        "member": "queue_delete",
+        "kind": "native-member",
+        "signature": "hash:3975164845"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/scene-tree",
+        "exportName": "queue_delete",
+        "localName": "SceneTree_queue_delete",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SceneTree.queue_delete"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SceneTree",
+        "member": "reload_current_scene",
+        "kind": "native-member",
+        "signature": "hash:166280745"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/scene-tree",
+        "exportName": "reload_current_scene",
+        "localName": "SceneTree_reload_current_scene",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SceneTree.reload_current_scene"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SceneTree.create_timer",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SceneTree\u0000create_timer\u0000hash:2709170273",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/scene_tree.cpp",
+        "sourceSymbol": "SceneTree.create_timer",
+        "sourceLine": 1768
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a09f1a9402a1722e43630d6eba39bf203dcd0e2c5ce3ab23ccee4e376d5340f0",
+        "callsite": "res://probe.gd _init() create_timer-process-0 create_timer-physics-0 create_timer-process-0.001 create_timer-physics-0.001 create_timer-process-0.016666666666666666 create_timer-physics-0.016666666666666666 create_timer-process-0.05 create_timer-physics-0.05 create_timer-process-0.1 create_timer-physics-0.1 create_timer-from-physics create_timer-negative",
+        "observedOutputSha256": "7a1eb876104800c32558b7ab400ddbea92df1a3c877f8273b10dc61db23d1750"
+      },
+      "target": {
+        "implementationSha256": "e880ae59cf56cf5058d972f0353fb59df271dbc44dd76f5ac271b09f975210a3",
+        "callsite": "lib/godot-compat/scene-tree.ts create_timer",
+        "observedOutputSha256": "7a1eb876104800c32558b7ab400ddbea92df1a3c877f8273b10dc61db23d1750"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "2585d3ab258513dc5eedb8af819336c78307bca25e15f918f4456a8f3a4da6c2"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "scene-tree",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SceneTree.get_root",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SceneTree\u0000get_root\u0000hash:1757182445",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/scene_tree.cpp",
+        "sourceSymbol": "SceneTree.get_root",
+        "sourceLine": 357
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e366ea6623b397e05da8291b37dcf6649e192b13b5f203ac7357bb571b840dc5",
+        "callsite": "res://probe.gd _init() get_root",
+        "observedOutputSha256": "06d0bfe604a1a0f0f2691bf291dfab427a284e954169459497817215d55a7eca"
+      },
+      "target": {
+        "implementationSha256": "e880ae59cf56cf5058d972f0353fb59df271dbc44dd76f5ac271b09f975210a3",
+        "callsite": "lib/godot-compat/scene-tree.ts get_root",
+        "observedOutputSha256": "06d0bfe604a1a0f0f2691bf291dfab427a284e954169459497817215d55a7eca"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "871bf971f080b960c8362022323eb16fcd6dd6b6e3510663ada0af832acfa08f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "scene-tree",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SceneTree.get_frame",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SceneTree\u0000get_frame\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/scene_tree.cpp",
+        "sourceSymbol": "SceneTree.get_frame",
+        "sourceLine": 1551
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "fd094d7bb5fda9f3918a9ecdce22037a150a1cff069d439c4de3945876d108ca",
+        "callsite": "res://probe.gd _init() get_frame",
+        "observedOutputSha256": "75ca19d781506f3366696c0757488361d4e5ae0200c598cd23f4f52c1e0ce1c9"
+      },
+      "target": {
+        "implementationSha256": "e880ae59cf56cf5058d972f0353fb59df271dbc44dd76f5ac271b09f975210a3",
+        "callsite": "lib/godot-compat/scene-tree.ts get_frame",
+        "observedOutputSha256": "75ca19d781506f3366696c0757488361d4e5ae0200c598cd23f4f52c1e0ce1c9"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "12a5830ed49de36ebc76dbf937186e2260db54d9dbc168b393c2ccc84a84cd44"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "scene-tree",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SceneTree.queue_delete",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SceneTree\u0000queue_delete\u0000hash:3975164845",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/scene_tree.cpp",
+        "sourceSymbol": "SceneTree.queue_delete",
+        "sourceLine": 1638
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b2cbbff8927984dcedbc9477b05d36215b35b0a3528e39232609a103926587fa",
+        "callsite": "res://probe.gd _init() queue_delete",
+        "observedOutputSha256": "c60ff11c1b850d16003083892238d2e4aaea03ca9fd9e59e69b1745396999a8f"
+      },
+      "target": {
+        "implementationSha256": "e880ae59cf56cf5058d972f0353fb59df271dbc44dd76f5ac271b09f975210a3",
+        "callsite": "lib/godot-compat/scene-tree.ts queue_delete",
+        "observedOutputSha256": "c60ff11c1b850d16003083892238d2e4aaea03ca9fd9e59e69b1745396999a8f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "021c871ee0cc55f414c6e950e9d0b0e68b38bedcb61619aebaae5dd3acd6a2b0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "scene-tree",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SceneTree.reload_current_scene",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SceneTree\u0000reload_current_scene\u0000hash:166280745",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/scene_tree.cpp",
+        "sourceSymbol": "SceneTree.reload_current_scene",
+        "sourceLine": 1747
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c572f43c354b275b09061befe378d7c9a785434e3163711df6378d84e405b901",
+        "callsite": "res://probe.gd _init() reload_current_scene-without-scene",
+        "observedOutputSha256": "2070fee77f6c12286b3275a10afbccc2841379e8282c70037127f6c7895bbab5"
+      },
+      "target": {
+        "implementationSha256": "e880ae59cf56cf5058d972f0353fb59df271dbc44dd76f5ac271b09f975210a3",
+        "callsite": "lib/godot-compat/scene-tree.ts reload_current_scene",
+        "observedOutputSha256": "2070fee77f6c12286b3275a10afbccc2841379e8282c70037127f6c7895bbab5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "57a4a714c3d2c2b0997e64e2bc67c1cd3e8f4108ffdec5923d490e530a889122"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "scene-tree",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-SceneTree.create_timer",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a09f1a9402a1722e43630d6eba39bf203dcd0e2c5ce3ab23ccee4e376d5340f0",
+      "implementationSha256": "e880ae59cf56cf5058d972f0353fb59df271dbc44dd76f5ac271b09f975210a3"
+    },
+    {
+      "claimId": "godot-4.7-binding-SceneTree.get_root",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e366ea6623b397e05da8291b37dcf6649e192b13b5f203ac7357bb571b840dc5",
+      "implementationSha256": "e880ae59cf56cf5058d972f0353fb59df271dbc44dd76f5ac271b09f975210a3"
+    },
+    {
+      "claimId": "godot-4.7-binding-SceneTree.get_frame",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "fd094d7bb5fda9f3918a9ecdce22037a150a1cff069d439c4de3945876d108ca",
+      "implementationSha256": "e880ae59cf56cf5058d972f0353fb59df271dbc44dd76f5ac271b09f975210a3"
+    },
+    {
+      "claimId": "godot-4.7-binding-SceneTree.queue_delete",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b2cbbff8927984dcedbc9477b05d36215b35b0a3528e39232609a103926587fa",
+      "implementationSha256": "e880ae59cf56cf5058d972f0353fb59df271dbc44dd76f5ac271b09f975210a3"
+    },
+    {
+      "claimId": "godot-4.7-binding-SceneTree.reload_current_scene",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c572f43c354b275b09061befe378d7c9a785434e3163711df6378d84e405b901",
+      "implementationSha256": "e880ae59cf56cf5058d972f0353fb59df271dbc44dd76f5ac271b09f975210a3"
+    }
+  ]
+}

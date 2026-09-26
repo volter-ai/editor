@@ -2,7 +2,8 @@
  * Node cases describe a small scene as steps, printed as GDScript for the official binary and run
  * against three objects through compat exports for the target: the same tree, the same calls.
  */
-import { Object3D, PerspectiveCamera, Scene } from 'three';
+import { Group, Object3D, PerspectiveCamera, Scene } from 'three';
+import * as N from '../../capabilities/catalog/project-source/src/lib/godot-compat/node';
 import * as B from '../../capabilities/catalog/project-source/src/lib/godot-compat/basis';
 import * as T from '../../capabilities/catalog/project-source/src/lib/godot-compat/transform-3d';
 import * as V2 from '../../capabilities/catalog/project-source/src/lib/godot-compat/vector2';
@@ -51,7 +52,7 @@ function jsValue(value: Value): unknown {
 
 export type Step =
   /** A Node3D (or a Camera3D in a SubViewport of this pixel size) under `parent` or the holder. */
-  | { readonly node: string; readonly parent?: string; readonly camera?: readonly [number, number] }
+  | { readonly node: string; readonly parent?: string; readonly camera?: readonly [number, number]; readonly plain?: boolean }
   | { readonly call: string; readonly on: string; readonly args?: readonly Value[] };
 
 type Exports = Readonly<Record<string, (...args: never[]) => unknown>>;
@@ -76,7 +77,7 @@ export function scene(
         lines.push(`var ${step.node} := Camera3D.new()`);
         lines.push(`${step.node}_vp.add_child(${step.node})`);
       } else {
-        lines.push(`var ${step.node} := Node3D.new()`);
+        lines.push(`var ${step.node} := ${step.plain === true ? 'Node' : 'Node3D'}.new()`);
         lines.push(`${step.parent ?? 'holder'}.add_child(${step.node})`);
       }
     } else {
@@ -101,7 +102,8 @@ export function scene(
           viewport.add(camera);
           nodes.set(step.node, camera);
         } else {
-          const node = new Object3D();
+          const node = step.plain === true ? new Group() : new Object3D();
+          if (step.plain === true) N.godot_node_adopt(node, { kind: 'node' });
           (step.parent === undefined ? holder : (nodes.get(step.parent) as Object3D)).add(node);
           nodes.set(step.node, node);
         }

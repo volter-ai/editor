@@ -139,6 +139,11 @@ add('set_global_position-local', 'set_global_position', [...PARENT, { call: 'set
 add('set_global_position-grand', 'set_global_position', [...GRAND, { call: 'set_global_position', on: 'g', args: [v3(-4, 2, 9)] }], 'get_global_transform', 'g');
 add('set_global_basis-local', 'set_global_basis', [...PARENT, { call: 'set_global_basis', on: 'a', args: [basis([0, 0, 1], [0, 1, 0], [-1, 0, 0])] }], 'get_transform');
 
+// A plain Node between two Node3Ds: the lower one has no parent Node3D, so global = local.
+const PLAIN: Step[] = [...PARENT.slice(0, 4), { node: 'm', parent: 'p', plain: true }, { node: 'a', parent: 'm' }, { call: 'set_position', on: 'a', args: [v3(1, 2, 3)] }];
+for (const getter of ['get_global_transform', 'get_global_position'] as const) add(`plain-node-parent-${getter}`, getter, PLAIN, getter);
+add('plain-node-parent-set_global_position', 'set_global_position', [...PLAIN, { call: 'set_global_position', on: 'a', args: [v3(5, 5, 5)] }], 'get_transform');
+
 // top_level.
 for (const enabled of [true, false]) {
   const toggled: Step[] = [...GRAND, { call: 'set_as_top_level', on: 'a', args: [true] }, ...(enabled ? [] : [{ call: 'set_as_top_level', on: 'a', args: [false] } as Step])];

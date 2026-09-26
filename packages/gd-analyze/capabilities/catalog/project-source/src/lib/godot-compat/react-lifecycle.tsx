@@ -23,7 +23,7 @@ import {
   type GodotScriptLifecycleBinding,
   mountGodotScriptForest,
   mountGodotScriptTree,
-} from './node-process';
+} from './node';
 
 export interface GodotScriptTreeAttachment {
   readonly root: object;

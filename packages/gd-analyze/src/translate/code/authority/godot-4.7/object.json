@@ -1,0 +1,218 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/object"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Object",
+        "member": "call_deferred",
+        "kind": "native-member",
+        "signature": "hash:3400424181"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/object",
+        "exportName": "call_deferred",
+        "localName": "Object_call_deferred",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Object.call_deferred"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Object",
+        "member": "set_deferred",
+        "kind": "native-member",
+        "signature": "hash:3776071444"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/object",
+        "exportName": "set_deferred",
+        "localName": "Object_set_deferred",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Object.set_deferred"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Object",
+        "member": "is_queued_for_deletion",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/object",
+        "exportName": "is_queued_for_deletion",
+        "localName": "Object_is_queued_for_deletion",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Object.is_queued_for_deletion"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Object.call_deferred",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Object\u0000call_deferred\u0000hash:3400424181",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/object/object.cpp",
+        "sourceSymbol": "Object.call_deferred",
+        "sourceLine": 632
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1c029231a7e1227ca9376b5d398dd44ddff7e0b6953dab4be4c1e31c6c683d7c",
+        "callsite": "res://probe.gd _init() call_deferred-in-process-frame call_deferred-in-physics call_deferred-freed-target call_deferred-before-tree",
+        "observedOutputSha256": "2d4c756eac1cd8465e3fd48b66b10d1de36e93294d1d519df9f7fc73bd6bf07f"
+      },
+      "target": {
+        "implementationSha256": "b0b2556355c99a72b2d8616771fc543ae8e0f34de469bc2a3c6928cfe498d141",
+        "callsite": "lib/godot-compat/object.ts call_deferred",
+        "observedOutputSha256": "2d4c756eac1cd8465e3fd48b66b10d1de36e93294d1d519df9f7fc73bd6bf07f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "92188f12da1d3b0a0ceea6e2e23b6fcb456dc5cb3a4ac3b203e0bf997f8b02a2"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "object",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Object.set_deferred",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Object\u0000set_deferred\u0000hash:3776071444",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/object/object.cpp",
+        "sourceSymbol": "Object.set_deferred",
+        "sourceLine": 2002
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3de9a885c3990720ca21ee6b1e8768d4a0f31b809d345234614db601a3a2b973",
+        "callsite": "res://probe.gd _init() set_deferred",
+        "observedOutputSha256": "ac3c2e915435cb525332053e7f1900a1c628ab7bbb416a5b584dbd05a25ca412"
+      },
+      "target": {
+        "implementationSha256": "b0b2556355c99a72b2d8616771fc543ae8e0f34de469bc2a3c6928cfe498d141",
+        "callsite": "lib/godot-compat/object.ts set_deferred",
+        "observedOutputSha256": "ac3c2e915435cb525332053e7f1900a1c628ab7bbb416a5b584dbd05a25ca412"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "efe7b57645e383b54a27cbdcd61499f8d17b2140cda9458f1c968c28d92dc5be"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "object",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Object.is_queued_for_deletion",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Object\u0000is_queued_for_deletion\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/object/object.h",
+        "sourceSymbol": "Object.is_queued_for_deletion",
+        "sourceLine": 813
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "cc0facd6549a07139fe9f38a316e26e7555b5b909a005ec701ea90599d0eca6e",
+        "callsite": "res://probe.gd _init() is_queued_for_deletion",
+        "observedOutputSha256": "78094a77607ced80355f6154ded0844914f8775bb25f652866e8d1f49b3fbb69"
+      },
+      "target": {
+        "implementationSha256": "b0b2556355c99a72b2d8616771fc543ae8e0f34de469bc2a3c6928cfe498d141",
+        "callsite": "lib/godot-compat/object.ts is_queued_for_deletion",
+        "observedOutputSha256": "78094a77607ced80355f6154ded0844914f8775bb25f652866e8d1f49b3fbb69"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "683d7c20b16ae8adb9e47203a8c5218992da8480d27698cae73ead912eeb5b74"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "object",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Object.call_deferred",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1c029231a7e1227ca9376b5d398dd44ddff7e0b6953dab4be4c1e31c6c683d7c",
+      "implementationSha256": "b0b2556355c99a72b2d8616771fc543ae8e0f34de469bc2a3c6928cfe498d141"
+    },
+    {
+      "claimId": "godot-4.7-binding-Object.set_deferred",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3de9a885c3990720ca21ee6b1e8768d4a0f31b809d345234614db601a3a2b973",
+      "implementationSha256": "b0b2556355c99a72b2d8616771fc543ae8e0f34de469bc2a3c6928cfe498d141"
+    },
+    {
+      "claimId": "godot-4.7-binding-Object.is_queued_for_deletion",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "cc0facd6549a07139fe9f38a316e26e7555b5b909a005ec701ea90599d0eca6e",
+      "implementationSha256": "b0b2556355c99a72b2d8616771fc543ae8e0f34de469bc2a3c6928cfe498d141"
+    }
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/scene-tree-timer"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SceneTreeTimer",
+        "member": "get_time_left",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/scene-tree-timer",
+        "exportName": "get_time_left",
+        "localName": "SceneTreeTimer_get_time_left",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SceneTreeTimer.get_time_left"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "SceneTreeTimer",
+        "member": "set_time_left",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/scene-tree-timer",
+        "exportName": "set_time_left",
+        "localName": "SceneTreeTimer_set_time_left",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-SceneTreeTimer.set_time_left"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SceneTreeTimer.get_time_left",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SceneTreeTimer\u0000get_time_left\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/scene_tree.cpp",
+        "sourceSymbol": "SceneTreeTimer.get_time_left",
+        "sourceLine": 88
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1beb3ccf939176c6d365b6a02d23308ba3d6642e1f93f6f62c764696c6cc7c5c",
+        "callsite": "res://probe.gd _init() get_time_left",
+        "observedOutputSha256": "65ab55f4768d97377bba9a41f76b4c7382b4b6352a8b811991e4ea0aa3dfa3a0"
+      },
+      "target": {
+        "implementationSha256": "0abee93fb93e378e89354255289ac0c7bb201ef228a15f0d9d6621f8ae79848b",
+        "callsite": "lib/godot-compat/scene-tree-timer.ts get_time_left",
+        "observedOutputSha256": "65ab55f4768d97377bba9a41f76b4c7382b4b6352a8b811991e4ea0aa3dfa3a0"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "98b85cab5a153feb8259d53949167ef84ea9f1f014ed5a93031c6a85443f55f0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "scene-tree-timer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-SceneTreeTimer.set_time_left",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000SceneTreeTimer\u0000set_time_left\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/main/scene_tree.cpp",
+        "sourceSymbol": "SceneTreeTimer.set_time_left",
+        "sourceLine": 84
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9f929f39f1eac3133e5c2f09c04194b3c8e13ba3b45969c8cf24e631082cb887",
+        "callsite": "res://probe.gd _init() set_time_left",
+        "observedOutputSha256": "47270c8363d397cfc78b17ee6d3a9c494806f6f60cda8dadc166225f85d5a086"
+      },
+      "target": {
+        "implementationSha256": "0abee93fb93e378e89354255289ac0c7bb201ef228a15f0d9d6621f8ae79848b",
+        "callsite": "lib/godot-compat/scene-tree-timer.ts set_time_left",
+        "observedOutputSha256": "47270c8363d397cfc78b17ee6d3a9c494806f6f60cda8dadc166225f85d5a086"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f565dbdb87d2af7fd1a293011eb9a099320a39fe0247a1119c536098498e252b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "scene-tree-timer",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-SceneTreeTimer.get_time_left",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1beb3ccf939176c6d365b6a02d23308ba3d6642e1f93f6f62c764696c6cc7c5c",
+      "implementationSha256": "0abee93fb93e378e89354255289ac0c7bb201ef228a15f0d9d6621f8ae79848b"
+    },
+    {
+      "claimId": "godot-4.7-binding-SceneTreeTimer.set_time_left",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9f929f39f1eac3133e5c2f09c04194b3c8e13ba3b45969c8cf24e631082cb887",
+      "implementationSha256": "0abee93fb93e378e89354255289ac0c7bb201ef228a15f0d9d6621f8ae79848b"
+    }
+  ]
+}

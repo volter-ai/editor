@@ -11,7 +11,7 @@ import { createElement, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import ts from 'typescript';
-import { mountGodotScriptTree } from '../../../capabilities/catalog/project-source/src/lib/godot-compat/node-process';
+import { mountGodotScriptTree } from '../../../capabilities/catalog/project-source/src/lib/godot-compat/node';
 import {
   GodotProjectStartup,
   useGodotScriptTreeAttachment,

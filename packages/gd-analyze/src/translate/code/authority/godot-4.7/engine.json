@@ -1,0 +1,218 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/engine"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Engine",
+        "member": "get_process_frames",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/engine",
+        "exportName": "get_process_frames",
+        "localName": "Engine_get_process_frames",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Engine.get_process_frames"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Engine",
+        "member": "get_physics_frames",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/engine",
+        "exportName": "get_physics_frames",
+        "localName": "Engine_get_physics_frames",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Engine.get_physics_frames"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Engine",
+        "member": "is_in_physics_frame",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/engine",
+        "exportName": "is_in_physics_frame",
+        "localName": "Engine_is_in_physics_frame",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Engine.is_in_physics_frame"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Engine.get_process_frames",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Engine\u0000get_process_frames\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/config/engine.h",
+        "sourceSymbol": "Engine.get_process_frames",
+        "sourceLine": 139
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "8d598552652b7865d374e6d67d293f648e52cd81303eff971b4359e98423bc7d",
+        "callsite": "res://probe.gd _init() get_process_frames",
+        "observedOutputSha256": "8d1d1c6b6e6ca2a91ebe4aab517aa2a37b4d76e42697a72e5690f5b570f05bf0"
+      },
+      "target": {
+        "implementationSha256": "3ed97bff9b04b447df2f4572f09e32020a18d86f634e8c49856d733916b9fd88",
+        "callsite": "lib/godot-compat/engine.ts get_process_frames",
+        "observedOutputSha256": "8d1d1c6b6e6ca2a91ebe4aab517aa2a37b4d76e42697a72e5690f5b570f05bf0"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "73857b755c1ed3d9df52eb664db5bd88d556b8113972cd58f064c7316cdbd9ae"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "engine",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Engine.get_physics_frames",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Engine\u0000get_physics_frames\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/config/engine.h",
+        "sourceSymbol": "Engine.get_physics_frames",
+        "sourceLine": 138
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3779c5f6cf8475ac1e121e2d0ee0ecf3d90c65377e9823c7d04070153f9a8dd1",
+        "callsite": "res://probe.gd _init() get_physics_frames",
+        "observedOutputSha256": "658ee279a7f73420ff9bf3aebd1920ce46d674d61f1efc81ed5a13fdef7cac7c"
+      },
+      "target": {
+        "implementationSha256": "3ed97bff9b04b447df2f4572f09e32020a18d86f634e8c49856d733916b9fd88",
+        "callsite": "lib/godot-compat/engine.ts get_physics_frames",
+        "observedOutputSha256": "658ee279a7f73420ff9bf3aebd1920ce46d674d61f1efc81ed5a13fdef7cac7c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "41f16bdae528572f2c0fd66cef98092086a72c8a1e130ed28abb6cd9d4c10cd0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "engine",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Engine.is_in_physics_frame",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Engine\u0000is_in_physics_frame\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/config/engine.h",
+        "sourceSymbol": "Engine.is_in_physics_frame",
+        "sourceLine": 140
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "cf1cf24fd42681f0ee4fe3cffd94b78e19903f97183970e97d4f85115466bddb",
+        "callsite": "res://probe.gd _init() is_in_physics_frame",
+        "observedOutputSha256": "823e07a8a6f66980ac674f636c0be3b2306d2a49c2a3d02c7a12a2bfcf798b74"
+      },
+      "target": {
+        "implementationSha256": "3ed97bff9b04b447df2f4572f09e32020a18d86f634e8c49856d733916b9fd88",
+        "callsite": "lib/godot-compat/engine.ts is_in_physics_frame",
+        "observedOutputSha256": "823e07a8a6f66980ac674f636c0be3b2306d2a49c2a3d02c7a12a2bfcf798b74"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1cfc2407bed44a5053da0c01259e63a99707493e43300c10ccf649b5f6b953e3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "engine",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Engine.get_process_frames",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "8d598552652b7865d374e6d67d293f648e52cd81303eff971b4359e98423bc7d",
+      "implementationSha256": "3ed97bff9b04b447df2f4572f09e32020a18d86f634e8c49856d733916b9fd88"
+    },
+    {
+      "claimId": "godot-4.7-binding-Engine.get_physics_frames",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3779c5f6cf8475ac1e121e2d0ee0ecf3d90c65377e9823c7d04070153f9a8dd1",
+      "implementationSha256": "3ed97bff9b04b447df2f4572f09e32020a18d86f634e8c49856d733916b9fd88"
+    },
+    {
+      "claimId": "godot-4.7-binding-Engine.is_in_physics_frame",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "cf1cf24fd42681f0ee4fe3cffd94b78e19903f97183970e97d4f85115466bddb",
+      "implementationSha256": "3ed97bff9b04b447df2f4572f09e32020a18d86f634e8c49856d733916b9fd88"
+    }
+  ]
+}
