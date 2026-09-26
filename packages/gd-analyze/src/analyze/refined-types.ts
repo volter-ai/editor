@@ -109,6 +109,20 @@ function within(inner: GodotBoundNode, outer: GodotBoundNode): boolean {
   );
 }
 
+/**
+ * The keys `PhysicsDirectSpaceState3D::intersect_ray` fills in its result Dictionary and their
+ * Variant types (`servers/physics_server_3d.cpp:374`): `RayResult`'s `position`/`normal`
+ * (Vector3), `face_index`/`shape` (int) and `collider_id` (an ObjectID, stored as int). `collider`
+ * and `rid` are not typed.
+ */
+const RAY_RESULT_KEYS: Readonly<Record<string, string>> = {
+  position: 'Vector3',
+  normal: 'Vector3',
+  face_index: 'int',
+  shape: 'int',
+  collider_id: 'int',
+};
+
 /** `Variant::OP_AND` / `OP_OR` / `OP_NOT` (`core/variant/variant.h:566`). */
 const OP_AND = 20;
 const OP_OR = 21;
@@ -230,6 +244,41 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
     return agreed;
   };
 
+  /**
+   * Whether a local is the result of `intersect_ray`: declared, in the function that reads it, by
+   * `var name := <space state>.intersect_ray(...)` and never assigned again there.
+   */
+  const rayResult = (node: Extract<GodotBoundNode, { kind: 'IDENTIFIER' }>): boolean => {
+    if (node.source !== 'LOCAL_VARIABLE') return false;
+    const scope = program.nodes.find((candidate) => candidate.kind === 'FUNCTION' && within(node, candidate));
+    if (scope === undefined) return false;
+    const declarations = program.nodes.filter(
+      (candidate) =>
+        candidate.kind === 'VARIABLE' &&
+        within(candidate, scope) &&
+        (() => {
+          const identifier = nodes.get(candidate.identifier);
+          return identifier?.kind === 'IDENTIFIER' && identifier.name === node.name;
+        })(),
+    );
+    if (declarations.length !== 1) return false;
+    const declaration = declarations[0] as Extract<GodotBoundNode, { kind: 'VARIABLE' }>;
+    const initializer = nodes.get(declaration.initializer);
+    if (
+      initializer?.kind !== 'CALL' ||
+      initializer.compilerTarget.kind !== 'native-method' ||
+      initializer.compilerTarget.owner !== 'PhysicsDirectSpaceState3D' ||
+      initializer.compilerTarget.member !== 'intersect_ray'
+    ) {
+      return false;
+    }
+    return !program.nodes.some((other) => {
+      if (other.kind !== 'ASSIGNMENT' || !within(other, scope)) return false;
+      const assignee = nodes.get(other.assignee);
+      return assignee?.kind === 'IDENTIFIER' && assignee.name === node.name;
+    });
+  };
+
   function refine(id: number): BoundGodotRefinedType | undefined {
     if (refined.has(id)) return refined.get(id) ?? undefined;
     refined.set(id, null);
@@ -247,7 +296,17 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
     } else if (node?.kind === 'SUBSCRIPT' && node.isAttribute && (node.datatype.kind === 'VARIANT' || node.datatype.kind === 'UNRESOLVED')) {
       const base = datatypeOf(node.base);
       const attribute = nodes.get(node.attribute);
-      if (base !== undefined && attribute?.kind === 'IDENTIFIER') {
+      const baseNode = nodes.get(node.base);
+      const rayKey = attribute?.kind === 'IDENTIFIER' ? RAY_RESULT_KEYS[attribute.name] : undefined;
+      if (
+        base?.kind === 'BUILTIN' &&
+        base.builtinType === 'Dictionary' &&
+        baseNode?.kind === 'IDENTIFIER' &&
+        rayKey !== undefined &&
+        rayResult(baseNode)
+      ) {
+        result = { datatype: builtinDatatype(rayKey), rule: 'ray-result-schema' };
+      } else if (base !== undefined && attribute?.kind === 'IDENTIFIER') {
         const type = memberType(base, attribute.name);
         if (type !== undefined) result = { datatype: type, rule: 'classdb-method-selection' };
       }
@@ -275,6 +334,19 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
         if (returnType !== undefined && returnType !== 'Variant') {
           result = { datatype: builtinDatatype(returnType), rule: 'type-test-narrowing' };
         }
+      }
+    } else if (node?.kind === 'ASSIGNMENT' && node.operation === 'OP_NONE' && node.datatype.kind === 'VARIANT') {
+      // A plain assignment's value is the assigned value: typed by the rule that typed that value
+      // when it is the assignee's type.
+      const value = refine(node.assignedValue);
+      const assignee = datatypeOf(node.assignee);
+      if (
+        value !== undefined &&
+        value.datatype.kind === 'BUILTIN' &&
+        assignee?.kind === 'BUILTIN' &&
+        assignee.builtinType === value.datatype.builtinType
+      ) {
+        result = { datatype: value.datatype, rule: value.rule };
       }
     } else if (node?.kind === 'UNARY_OPERATOR' && node.variantOperatorId === OP_NOT && node.datatype.kind === 'VARIANT') {
       const operand = datatypeOf(node.operand);

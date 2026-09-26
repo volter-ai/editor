@@ -65,3 +65,14 @@ export function erase(self: Map<unknown, unknown>, p_key: unknown): boolean {
 export function keys(self: ReadonlyMap<unknown, unknown>): unknown[] {
   return [...self.keys()];
 }
+
+/**
+ * The key's value, else `default` (null); a named read of a key the dictionary holds
+ * (`Variant::get_named`, variant_setget.cpp:291) is this with the key's name.
+ *
+ * @godot Dictionary.get
+ * @source core/variant/dictionary.cpp:178
+ */
+export function get(self: ReadonlyMap<unknown, unknown>, key: unknown, fallback: unknown = null): unknown {
+  return self.has(key) ? self.get(key) : fallback;
+}

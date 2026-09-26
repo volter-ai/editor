@@ -184,6 +184,11 @@ export interface GodotLanguageCase {
      */
     readonly scene?: string;
     /**
+     * The native side adds the instance to the running tree (under the root) before its steps, so
+     * it is inside the tree and the viewport's world; `native` builds the target's tree and world.
+     */
+    readonly tree?: true;
+    /**
      * Seats the constructed instance on its native tree as the composition site does (the Node
      * protocol's adoption), given the generated classes by name for scripted children.
      */

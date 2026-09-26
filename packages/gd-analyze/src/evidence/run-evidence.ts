@@ -428,9 +428,12 @@ function languageProbeSource(evidence: GodotLanguageEvidenceFile): string {
       entry.instance.scene === undefined
         ? `load(${JSON.stringify(resPath)}).new()`
         : `load(${JSON.stringify(`res://${entry.instance.scene}`)}).instantiate()`;
-    return `\tvar o${String(index)} = ${construct}\n\tvar r${String(index)}: Array = []\n${steps}\to${String(index)}.free()\n\trows.append([${JSON.stringify(entry.id)}, _enc(r${String(index)})])\n`;
+    // An in-tree case runs once the tree has started: its instance enters, then a physics frame
+    // passes (the space takes its bodies), then its steps run.
+    const enter = entry.instance.tree === true ? `\troot.add_child(o${String(index)})\n\tawait physics_frame\n` : '';
+    return `\tvar o${String(index)} = ${construct}\n${enter}\tvar r${String(index)}: Array = []\n${steps}\to${String(index)}.free()\n\trows.append([${JSON.stringify(entry.id)}, _enc(r${String(index)})])\n`;
   });
-  return `extends SceneTree\n\n${PROBE_ENCODER}\nfunc _init() -> void:\n\tvar rows: Array = []\n${rows.join('')}\tprint(${JSON.stringify(OUTPUT_MARKER)} + JSON.stringify(rows))\n\tquit()\n`;
+  return `extends SceneTree\n\n${PROBE_ENCODER}\nfunc _initialize() -> void:\n\tvar rows: Array = []\n${rows.join('')}\tprint(${JSON.stringify(OUTPUT_MARKER)} + JSON.stringify(rows))\n\tquit()\n`;
 }
 
 const PROJECT_SOURCE = `config_version=5

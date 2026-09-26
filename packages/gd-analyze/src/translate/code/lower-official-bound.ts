@@ -664,13 +664,16 @@ function collectRequirements(
  */
 export function nativeMethodLookup(apiDump: GodotApiDump): NativeMethodLookup {
   const classes = new Map(apiDump.classes.map((entry) => [entry.name, entry] as const));
+  const builtins = new Map((apiDump.builtinClasses ?? []).map((entry) => [entry.name, entry] as const));
   return (className, name) => {
     for (let current = classes.get(className); current !== undefined; ) {
       const found = current.methods.find((entry) => entry.name === name);
       if (found !== undefined) return { owner: current.name, name, hash: found.hash ?? 0 };
       current = current.base_class === '' ? undefined : classes.get(current.base_class);
     }
-    return undefined;
+    // A built-in type's method (`Dictionary.get`).
+    const found = builtins.get(className)?.methods.find((entry) => entry.name === name);
+    return found === undefined ? undefined : { owner: className, name, hash: found.hash ?? 0 };
   };
 }
 

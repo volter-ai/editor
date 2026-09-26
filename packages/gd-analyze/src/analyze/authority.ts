@@ -15,7 +15,8 @@ export type GodotAnalysisRuleId =
   | 'scene-node-receiver'
   | 'classdb-method-selection'
   | 'type-test-narrowing'
-  | 'project-setting-type';
+  | 'project-setting-type'
+  | 'ray-result-schema';
 
 export interface GodotAnalysisRule {
   readonly id: GodotAnalysisRuleId;

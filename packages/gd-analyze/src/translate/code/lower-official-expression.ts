@@ -127,6 +127,20 @@ function expression(
   return { before: [], value, after: [], requirements };
 }
 
+/**
+ * The members a built-in's integer index reads, in index order (`variant_setget.cpp:847-857`):
+ * the numeric structs' components, and Basis's columns (`get_column`), each its member of that name.
+ */
+const INDEXED_MEMBERS: Readonly<Record<string, readonly string[]>> = {
+  Vector2: ['x', 'y'],
+  Vector2i: ['x', 'y'],
+  Vector3: ['x', 'y', 'z'],
+  Vector3i: ['x', 'y', 'z'],
+  Quaternion: ['x', 'y', 'z', 'w'],
+  Color: ['r', 'g', 'b', 'a'],
+  Basis: ['x', 'y', 'z'],
+};
+
 /** Settle one child before its next sibling when it carries post-value work. */
 function settle(context: LoweringContext, plan: LoweredExpression): LoweredExpression {
   if (plan.after.length === 0) return plan;
@@ -524,6 +538,10 @@ function assignablePlace(
   lower: (context: LoweringContext, node: GodotBoundNode) => LoweredExpression,
 ): AssignablePlace {
   const attributeTarget = valueAttributeTarget(context, node);
+  // The native base's own property as the base of a member write (`transform.basis = b`): read
+  // through its getter, written back through its setter.
+  const inherited = attributeTarget === undefined ? inheritedNativePlace(context, node, true) : undefined;
+  if (inherited !== undefined) return inherited;
   if (attributeTarget === undefined) {
     const target = prepareAssignmentTarget(context, node, lower);
     if (target.afterAssigned.length > 0) {
@@ -1320,6 +1338,32 @@ export function lowerOfficialExpression(
         const right = lowerExpression(context, rightNode);
         if (recipe.operator === '&&' || recipe.operator === '||' || recipe.operator === '??') {
           const settledLeft = settle(context, left);
+          if ((recipe.operator === '&&' || recipe.operator === '||') && (right.before.length > 0 || right.after.length > 0)) {
+            // A right operand that needs statements runs them only when GDScript evaluates it
+            // (the jump `and`/`or` compile to, `GDScriptCompiler::_parse_expression`): the result
+            // is the left value, replaced by the right one when the left does not decide it.
+            const settledRight = settle(context, right);
+            const name = context.temporary();
+            const read: TargetTsExpression = { kind: 'identifier-expression', name };
+            return {
+              before: [
+                ...settledLeft.before,
+                ...settledLeft.after,
+                { kind: 'variable-statement', declaration: 'let', name, initializer: settledLeft.value },
+                {
+                  kind: 'if-statement',
+                  condition: recipe.operator === '&&' ? read : { kind: 'unary-expression', operator: '!', operand: read },
+                  then: [
+                    ...settledRight.before,
+                    { kind: 'expression-statement', expression: { kind: 'assignment-expression', operator: '=', target: read, value: settledRight.value } },
+                  ],
+                },
+              ],
+              value: read,
+              after: [],
+              requirements: [...rule.requirements, ...settledLeft.requirements, ...settledRight.requirements],
+            };
+          }
           return {
             before: settledLeft.before,
             value: {
@@ -1463,6 +1507,39 @@ export function lowerOfficialExpression(
             );
           }
         }
+        if (
+          node.isAttribute &&
+          baseNode.datatype.kind === 'BUILTIN' &&
+          baseNode.datatype.builtinType === 'Dictionary' &&
+          node.datatype.kind !== 'VARIANT'
+        ) {
+          // `d.key` on a Dictionary whose key schema the analysis fixed (`ray-result-schema`) reads
+          // the key (`Variant::get_named`, variant_setget.cpp:291) through `Dictionary.get`. An
+          // untyped Dictionary's named read stays refused (no rule takes a Variant result).
+          const rule = context.selectRule(node, ['subscript-attribute:dictionary-key'], [baseNode], ['binding']);
+          const method = context.nativeMethod('Dictionary', 'get');
+          if (method === undefined) return context.refuse(node, 'the API dump has no Dictionary.get');
+          const use = context.bindingUse(
+            {
+              sourceRevision: context.sourceRevision,
+              kind: 'builtin-member',
+              owner: 'Dictionary',
+              member: 'get',
+              signature: method.hash === 0 ? 'unhashed' : `hash:${String(method.hash)}`,
+            },
+            node,
+          );
+          if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'first-argument') {
+            return context.refuse(node, `binding ${use.target.localName} does not take its receiver first`);
+          }
+          const key = officialBoundPropertyName(context, node.attribute, node);
+          return compose(
+            context,
+            [lowerExpression(context, baseNode)],
+            (values) => bindingCall(context, node, use, [...values, { kind: 'literal-expression', value: key }]),
+            [...rule.requirements, ...use.requirements],
+          );
+        }
         const base = lowerExpression(context, baseNode);
         if (node.isAttribute) {
           const requirements = context.structural(node, 'subscript-attribute', [baseNode]);
@@ -1479,6 +1556,25 @@ export function lowerOfficialExpression(
           );
         }
         const indexNode = context.node(node.index, node);
+        const indexed = baseNode.datatype.kind === 'BUILTIN' ? INDEXED_MEMBERS[baseNode.datatype.builtinType] : undefined;
+        if (indexed !== undefined && indexNode.kind === 'LITERAL' && indexNode.value.kind === 'int') {
+          // A built-in's constant in-range index reads the member at that place
+          // (`VariantIndexedSetGet_*`, variant_setget.cpp:847-857).
+          const member = indexed[Number(indexNode.value.value)];
+          if (member === undefined) return context.refuse(node, `index ${indexNode.value.value} is out of range`);
+          const rule = context.structural(node, 'subscript-element', [baseNode, indexNode], 'subscript-element:indexed-member');
+          return compose(
+            context,
+            [base],
+            ([object]) => ({
+              kind: 'property-expression',
+              object: object as TargetTsExpression,
+              property: member,
+              span: span(context.script, node),
+            }),
+            rule,
+          );
+        }
         const requirements = context.structural(node, 'subscript-element', [baseNode, indexNode]);
         return compose(
           context,

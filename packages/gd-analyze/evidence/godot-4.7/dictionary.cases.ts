@@ -27,6 +27,8 @@ for (const [name, gd, js] of DICTIONARIES) {
   c.add(`keys-${name}`, c.member('keys'), `${gd}.keys()`, () => D.keys(js()));
   for (const [keyName, gdKey, jsKey] of KEYS) {
     c.add(`has-${name}-${keyName}`, c.member('has'), `${gd}.has(${gdKey})`, () => D.has(js(), jsKey));
+    c.add(`get-${name}-${keyName}`, c.member('get'), `${gd}.get(${gdKey})`, () => D.get(js(), jsKey));
+    c.add(`get-default-${name}-${keyName}`, c.member('get'), `${gd}.get(${gdKey}, 7)`, () => D.get(js(), jsKey, 7));
     c.add(`erase-result-${name}-${keyName}`, c.member('erase'), `var d := ${gd}\nreturn d.erase(${gdKey})`, () => D.erase(js(), jsKey));
     c.add(`erase-rest-${name}-${keyName}`, c.member('erase'), `var d := ${gd}\nd.erase(${gdKey})\nreturn d`, () => {
       const d = js();

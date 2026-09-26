@@ -89,6 +89,9 @@ const REFINED = [
   '%Marker.gizmo_extents',
 ] as const;
 
+/** The keys of \`intersect_ray\`'s result the analysis types. */
+const RAY_KEYS = ['position', 'normal', 'face_index', 'shape', 'collider_id'] as const;
+
 const argumentsOf = (member: string): string => (member === 'get_param' ? '0' : '');
 
 const files: Readonly<Record<string, string>> = {
@@ -110,6 +113,11 @@ ${CHAINED.map(([base, member]) => `\t${base}.${member}()`).join('\n')}
 
 func refined_values() -> Array:
 \treturn [${REFINED.join(', ')}]
+
+# A ray's result Dictionary, read by its keys (\`ray-result-schema\`).
+func ray_values() -> Array:
+\tvar hit := get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(0, 10, 0), Vector3(0, -10, 0)))
+\treturn [${RAY_KEYS.map((key) => `hit.${key}`).join(', ')}]
 
 func narrowed(n: Node) -> void:
 ${NARROWED.map(([classes, member]) => `\tif ${classes.map((name) => `n is ${name}`).join(' or ')}:\n\t\tn.${member}(${argumentsOf(member)})`).join('\n')}
@@ -150,6 +158,11 @@ ${NARROWED.map(
 \t\telse:
 \t\t\trefined.append(type_string(typeof(value)))
 \trows.append(["refined", "", JSON.stringify(refined), "", false])
+\tawait get_tree().physics_frame
+\tvar ray := []
+\tfor value in ray_values():
+\t\tray.append(type_string(typeof(value)))
+\trows.append(["ray", "", JSON.stringify(ray), "", false])
 \tprint("RECEIVERS " + JSON.stringify(rows))
 \tget_tree().quit()
 `,
@@ -195,6 +208,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0)
 [ext_resource type="PackedScene" path="res://level.tscn" id="3_level"]
 [ext_resource type="Script" path="res://scripted.gd" id="4_scripted"]
 
+[sub_resource type="BoxShape3D" id="GroundBox"]
+size = Vector3(4, 1, 4)
+
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
 
@@ -212,6 +228,11 @@ script = ExtResource("4_scripted")
 
 [node name="Marker" type="Marker3D" parent="Level"]
 unique_name_in_owner = true
+
+[node name="Ground" type="StaticBody3D" parent="."]
+
+[node name="Box" type="CollisionShape3D" parent="Ground"]
+shape = SubResource("GroundBox")
 `,
 };
 
@@ -329,11 +350,23 @@ export function measureReceiverProof(tools: GodotProofTools): readonly GodotProo
       if (datatype.kind === 'NATIVE') return datatype.nativeType;
       return datatype.kind === 'ENUM' ? 'int' : datatype.builtinType;
     });
+    const rayArray = program.nodes.find(
+      (node) =>
+        node.kind === 'ARRAY' &&
+        node.elements.length === RAY_KEYS.length &&
+        node.elements.every((id) => program.nodes[id]?.kind === 'SUBSCRIPT'),
+    );
+    if (rayArray?.kind !== 'ARRAY') throw new Error('main.gd has no ray_values() array');
+    const rayTarget = rayArray.elements.map((id) => {
+      const datatype = main.refinedTypes.find((entry) => entry.nodeId === id)?.datatype;
+      return datatype === undefined ? 'untyped' : datatype.builtinType;
+    });
     const target = [
       ...pathTarget,
       ...chainedTarget,
       ...narrowedTarget,
       { path: 'refined', member: '', nodeClass: JSON.stringify(refinedTarget), declaring: '' },
+      { path: 'ray', member: '', nodeClass: JSON.stringify(rayTarget), declaring: '' },
     ];
 
     // Native: the running scene.

@@ -1,8 +1,17 @@
 import { DirectionalLight, Group, Object3D, PointLight } from 'three';
+import RAPIER from '@dimforge/rapier3d-compat';
+import { Scene } from 'three';
+import * as BOX from '../../capabilities/catalog/project-source/src/lib/godot-compat/box-shape-3d';
+import * as CS from '../../capabilities/catalog/project-source/src/lib/godot-compat/collision-shape-3d';
 import { add_child, godot_node_adopt } from '../../capabilities/catalog/project-source/src/lib/godot-compat/node';
+import { set_position } from '../../capabilities/catalog/project-source/src/lib/godot-compat/node-3d';
+import * as ST from '../../capabilities/catalog/project-source/src/lib/godot-compat/scene-tree';
+import { godot_static_body_3d_adopt } from '../../capabilities/catalog/project-source/src/lib/godot-compat/static-body-3d';
+import { godot_world_3d_attach } from '../../capabilities/catalog/project-source/src/lib/godot-compat/world-3d';
 import { godot_directional_light_3d_mount } from '../../capabilities/catalog/project-source/src/lib/godot-compat/directional-light-3d';
 import { godot_omni_light_3d_mount } from '../../capabilities/catalog/project-source/src/lib/godot-compat/omni-light-3d';
 import * as V from '../../capabilities/catalog/project-source/src/lib/godot-compat/vector3';
+import * as B3 from '../../capabilities/catalog/project-source/src/lib/godot-compat/basis';
 import type {
   GodotLanguageCase,
   GodotLanguageDatatypeDefinition,
@@ -151,6 +160,19 @@ rule('script-member-read', 'SUBSCRIPT', 'subscript-attribute', [CLASS], B, struc
   file: 'modules/gdscript/gdscript_vm.cpp',
   symbol: 'OPCODE_GET_NAMED (script instance member)',
   line: 1260,
+});
+// A named read on a Dictionary whose key schema the analysis fixed reads the key through
+// `Dictionary.get` (`Variant::get_named`); the result is the key's schema type.
+rule('dictionary-key-read', 'SUBSCRIPT', 'subscript-attribute:dictionary-key', [B], B, { kind: 'binding' }, {
+  file: 'core/variant/variant_setget.cpp',
+  symbol: 'Variant::get_named (Dictionary)',
+  line: 291,
+});
+// A built-in's constant integer index reads the member at that place (\`VariantIndexedSetGet_*\`).
+rule('indexed-member-read', 'SUBSCRIPT', 'subscript-element:indexed-member', [B, B], B, structural('subscript-element'), {
+  file: 'core/variant/variant_setget.cpp',
+  symbol: 'VariantIndexedSetGet (struct built-ins)',
+  line: 847,
 });
 rule('member-read-builtin', 'SUBSCRIPT', 'subscript-attribute', [B], B, structural('subscript-attribute'), {
   file: COMPILER,
@@ -517,6 +539,7 @@ for (const [id, receiver, result] of [
   ['native-property-read-builtin', NATIVE, B],
   ['native-property-read-builtin-on-script', CLASS, B],
   ['native-property-read-enum', NATIVE, ENUM],
+  ['native-property-read-native', NATIVE, NATIVE],
 ] as const) {
   rule(id, 'SUBSCRIPT', 'subscript-attribute:native-property', [receiver], result, { kind: 'binding' }, {
     file: 'core/object/object.cpp',
@@ -834,6 +857,21 @@ static func dictionary_one(n: int) -> Dictionary:
 static func dictionary_constant() -> Dictionary:
 \treturn TABLE
 
+# \`and\`/\`or\` whose right operand needs statements (a Dictionary call on a local), in \`elif\`.
+static func sequenced_logic(a: Dictionary, b: Dictionary) -> int:
+\tvar left := a
+\tvar right := b
+\tif left.is_empty() and right.is_empty():
+\t\treturn 1
+\telif not left.is_empty() and right.is_empty():
+\t\treturn 2
+\telif left.is_empty() or not right.is_empty():
+\t\treturn 3
+\treturn 4
+
+static func indexed_members(b: Basis, v: Vector3) -> Array:
+\treturn [b[0], b[1], b[2], v[0], v[2]]
+
 static func zero() -> float:
 \treturn 0.5
 
@@ -1053,6 +1091,10 @@ func nudge() -> Vector3:
 \tposition += Vector3(0.5, -0.25, 0.0)
 \treturn position
 
+func tilt() -> Transform3D:
+\ttransform.basis = Basis(transform.basis[0], 0.25) * transform.basis
+\treturn transform
+
 func explicit_self() -> Vector3:
 \treturn self.get_position()
 
@@ -1215,6 +1257,38 @@ script = ExtResource("3_derived")
 [node name="Sun" type="DirectionalLight3D" parent="."]
 `;
 
+// A ray's result read by its keys: `ray-result-schema` types them, and the named reads lower to
+// `Dictionary.get` (`dictionary-key-read`).
+const RAY_SOURCE = `class_name RayCases
+extends Node3D
+
+func ray_read() -> Array:
+\tvar space := get_world_3d().direct_space_state
+\tvar hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(0.25, 10.0, -0.5), Vector3(0.25, -10.0, -0.5)))
+\tvar lifted := Vector3.ZERO
+\tlifted = hit.position - Vector3(0.0, -1.0, 0.0)
+\treturn [hit.normal, hit.shape, hit.face_index, hit.collider_id == hit.collider_id, lifted.y > 1.0]
+`;
+
+const RAY_SCENE = `[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ray_cases.gd" id="1_cases"]
+
+[sub_resource type="BoxShape3D" id="Box"]
+size = Vector3(4, 1, 4)
+
+[node name="Root" type="Node3D"]
+script = ExtResource("1_cases")
+
+[node name="Ground" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+
+[node name="Box" type="CollisionShape3D" parent="Ground"]
+shape = SubResource("Box")
+`;
+
+await RAPIER.init();
+
 /** A native node as the composition site adopts it: its kind and its Godot class chain. */
 function nativeNode(name: string, classes: readonly string[], parent?: Object3D, entity: Object3D = classes.includes('Node3D') ? new Object3D() : new Group()): Object3D {
   entity.name = name;
@@ -1322,6 +1396,18 @@ add('compound-int', 'compound_int', '4', () => [4]);
 add('convert-int', 'convert_int', '3', () => [3]);
 add('declared-convert', 'declared_convert', '-2', () => [-2]);
 add('variant-into-float', 'variant_into_float', '2.75, 7', () => [2.75, 7]);
+add('indexed-members', 'indexed_members', 'Basis(Vector3(1, 2, 3), Vector3(4, 5, 6), Vector3(7, 8, 9)), Vector3(0.5, 1.5, 2.5)', () => [
+  B3.construct(V.construct(1, 2, 3), V.construct(4, 5, 6), V.construct(7, 8, 9)),
+  V.construct(0.5, 1.5, 2.5),
+]);
+for (const [name, a, b, ta, tb] of [
+  ['both-empty', '{}', '{}', {}, {}],
+  ['left-full', '{1: 2}', '{}', { 1: 2 }, {}],
+  ['right-full', '{}', '{3: 4}', {}, { 3: 4 }],
+  ['both-full', '{1: 2}', '{3: 4}', { 1: 2 }, { 3: 4 }],
+] as const) {
+  add(`sequenced-logic-${name}`, 'sequenced_logic', `${a}, ${b}`, () => [new Map(Object.entries(ta).map(([k, v]) => [Number(k), v])), new Map(Object.entries(tb).map(([k, v]) => [Number(k), v]))]);
+}
 cases.push({ id: 'early-return', call: 'early_return', comparator: 'exact' });
 add('variant-into-float-clamped', 'variant_into_float', '-0.5, 12', () => [-0.5, 12]);
 add('return-convert', 'return_convert', '9', () => [9]);
@@ -1412,7 +1498,7 @@ cases.push({
   className: 'Node3DCases',
   call: '',
   instance: {
-    steps: ['implicit_self', 'place', 'nudge', 'explicit_self', 'implicit_self'],
+    steps: ['implicit_self', 'place', 'nudge', 'explicit_self', 'implicit_self', 'tilt', 'tilt'],
     native: () => new Object3D(),
   },
   comparator: 'exact',
@@ -1444,6 +1530,36 @@ cases.push({
       const a = nativeNode('A', NODE, root);
       nativeNode('B', NODE, a);
       nativeNode('C', NODE, a);
+      return root;
+    },
+    adopt: (instance, native) => {
+      godot_node_adopt(native as object, { binding: { owner: instance } });
+    },
+  },
+  comparator: 'exact',
+});
+cases.push({
+  id: 'ray-result-keys',
+  className: 'RayCases',
+  call: '',
+  instance: {
+    scene: 'ray_cases.tscn',
+    tree: true,
+    steps: ['ray_read'],
+    native: () => {
+      godot_world_3d_attach(new RAPIER.World({ x: 0, y: 0, z: 0 }));
+      const world = new Scene();
+      ST.godot_tree_set_root(world);
+      const root = nativeNode('Root', NODE3D);
+      const ground = nativeNode('Ground', ['StaticBody3D', ...BODY3D], root);
+      godot_static_body_3d_adopt(ground);
+      set_position(ground, V.construct(0, 0.25, 0));
+      const box = nativeNode('Box', ['CollisionShape3D', ...NODE3D], ground);
+      CS.godot_collision_shape_3d_adopt(box);
+      const shape = BOX.construct();
+      BOX.set_size(shape, V.construct(4, 1, 4));
+      CS.set_shape(box, shape);
+      add_child(world, root);
       return root;
     },
     adopt: (instance, native) => {
@@ -1503,14 +1619,22 @@ const GDSCRIPT_EVIDENCE: GodotLanguageEvidenceFile = {
     { file: 'tagged.gd', className: 'Tagged', source: TAGGED_SOURCE },
     { file: 'derived_tagged.gd', className: 'DerivedTagged', source: DERIVED_TAGGED_SOURCE },
     { file: 'type_cases.gd', className: 'TypeCases', source: TYPE_SOURCE },
+    { file: 'ray_cases.gd', className: 'RayCases', source: RAY_SOURCE },
   ],
   scenes: [
     { file: 'main.tscn', source: NODE3D_SCENE },
     { file: 'node_path_cases.tscn', source: NODE_PATH_SCENE },
     { file: 'type_cases.tscn', source: TYPE_SCENE },
+    { file: 'ray_cases.tscn', source: RAY_SCENE },
   ],
   compatModules: [
     'lib/godot-compat/array',
+    'lib/godot-compat/basis',
+    'lib/godot-compat/dictionary',
+    'lib/godot-compat/physics-direct-space-state-3d',
+    'lib/godot-compat/physics-ray-query-parameters-3d',
+    'lib/godot-compat/transform-3d',
+    'lib/godot-compat/world-3d',
     'lib/godot-compat/engine',
     'lib/godot-compat/directional-light-3d',
     'lib/godot-compat/float',
