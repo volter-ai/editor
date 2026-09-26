@@ -120,6 +120,12 @@ export interface FamilyEmission {
   readonly compat: Map<string, Set<string>>;
   /** Statements at the top of the component: resource loaders, in first-use order. */
   readonly hooks: TargetTsStatement[];
+  /** Module-level resources (a Godot resource that loads nothing), in first-use order. */
+  readonly statics: TargetTsStatement[];
+  /** React hooks the component calls beside compat's (`useMemo`). */
+  readonly react: Set<string>;
+  /** Resource locals that load (hooks), whose users are made in the component too. */
+  readonly loaded: Set<string>;
   readonly hookLocals: Map<string, string>;
   /** Data files the scene imports, by module specifier: their local names. */
   readonly data: Map<string, string>;
@@ -140,6 +146,9 @@ export function familyEmission(
     ...(currentCamera === undefined ? {} : { currentCamera }),
     compat: new Map(),
     hooks: [],
+    statics: [],
+    react: new Set(),
+    loaded: new Set(),
     hookLocals: new Map(),
     data: new Map(),
     taken: new Set(),
@@ -196,6 +205,7 @@ function textureHook(
   if (existing !== undefined) return existing;
   const local = freshLocal(emission, path.posix.basename(load.sourceResPath).replace(/\.[^.]+$/u, ''));
   emission.hookLocals.set(key, local);
+  emission.loaded.add(local);
   emission.hooks.push({
     kind: 'variable-statement',
     declaration: 'const',
@@ -372,12 +382,127 @@ function material(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
   return element(unshaded ? 'meshBasicMaterial' : 'meshStandardMaterial', props);
 }
 
+/**
+ * The Godot classes written as compat elements (`useGodotElement`): their component, its module, and
+ * the three object it mounts (for a script's ref).
+ */
+const GODOT_ELEMENTS: Readonly<Record<string, readonly [module: string, three: string]>> = {
+  CanvasLayer: ['canvas-layer', 'Group'],
+  Control: ['control', 'Group'],
+  HBoxContainer: ['h-box-container', 'Group'],
+  Label: ['label', 'Group'],
+  TextureRect: ['texture-rect', 'Group'],
+  Node2D: ['node-2d', 'Group'],
+  Sprite2D: ['sprite-2d', 'Group'],
+  TouchScreenButton: ['touch-screen-button', 'Group'],
+  Label3D: ['label-3d', 'Mesh'],
+  AudioStreamPlayer: ['audio-stream-player', 'Group'],
+  AudioStreamPlayer3D: ['audio-stream-player-3d', 'Group'],
+};
+
+/** A Godot property's prop name: `anchor_left` is `anchorLeft`, `stream_0/stream` `stream0Stream`. */
+export function godotPropName(property: string): string {
+  return camelName(property.replace(/\//gu, '_'));
+}
+
+/** An authored value as a literal prop value: a built-in's components, a resource's local. */
+function propValue(emission: FamilyEmission, value: TargetGodotSceneValue): TargetTsExpression {
+  switch (value.kind) {
+    case 'number':
+    case 'bool':
+    case 'string':
+      return literal(value.value);
+    case 'null':
+      return literal(null);
+    case 'resource':
+      return identifier(resourceLocal(emission, value.key));
+    default:
+      return numbers(value.components);
+  }
+}
+
+/**
+ * A Godot resource a compat element receives, as a local: an imported image or sound loaded by its
+ * hook, another resource made by its class's constructor from the properties the scene states, at
+ * module level (shared by every instance of the scene, as Godot shares a scene's resources) or,
+ * when it holds a loaded resource, once in the component (`useMemo`).
+ */
+function resourceLocal(emission: FamilyEmission, key: string): string {
+  const resource = emission.resources.get(key);
+  if (resource === undefined) throw new Error(`${key}: a resource the scene does not plan`);
+  if (resource.className === 'CompressedTexture2D') return textureHook(emission, resource);
+  const existing = emission.hookLocals.get(key);
+  if (existing !== undefined) return existing;
+  if (resource.className === 'AudioStreamWAV') {
+    const load = resource.load;
+    if (load === undefined) throw new Error(`${key}: a sound that is not an imported file`);
+    const local = freshLocal(emission, path.posix.basename(load.sourceResPath).replace(/\.[^.]+$/u, ''));
+    emission.hookLocals.set(key, local);
+    emission.loaded.add(local);
+    emission.hooks.push({
+      kind: 'variable-statement',
+      declaration: 'const',
+      name: local,
+      initializer: {
+        kind: 'call-expression',
+        callee: identifier(useCompat(emission, 'audio-stream-wav', 'useGodotAudioStreamWav')),
+        arguments: [
+          literal(assetUrl(load.sourceResPath)),
+          { kind: 'object-expression', properties: Object.entries(load.options).map(([name, value]) => ({ key: name, value: literal(value) })) },
+        ],
+      },
+    });
+    return local;
+  }
+  const properties = resource.setters.map((setter) => ({ key: godotPropName(setter.propertyName), value: propValue(emission, setter.value) }));
+  const uses = properties.flatMap((property) => (property.value.kind === 'identifier-expression' && emission.loaded.has(property.value.name) ? [property.value.name] : []));
+  const local = freshLocal(emission, key.replace(/^.*[:/#]/u, '').replace(/_[A-Za-z0-9]{5}$/u, ''));
+  emission.hookLocals.set(key, local);
+  const constructor = useCompat(emission, resource.construct.module.replace(/^lib\/godot-compat\//u, ''), resource.construct.exportName);
+  const made: TargetTsExpression = {
+    kind: 'call-expression',
+    callee: identifier(constructor),
+    arguments: properties.length === 0 ? [] : [{ kind: 'object-expression', properties }],
+  };
+  if (uses.length === 0) {
+    emission.statics.push({ kind: 'variable-statement', declaration: 'const', name: local, initializer: made });
+    return local;
+  }
+  emission.loaded.add(local);
+  emission.react.add('useMemo');
+  emission.hooks.push({
+    kind: 'variable-statement',
+    declaration: 'const',
+    name: local,
+    initializer: {
+      kind: 'call-expression',
+      callee: identifier('useMemo'),
+      arguments: [
+        { kind: 'arrow-expression', parameters: [], body: made },
+        { kind: 'array-expression', elements: uses.map(identifier) },
+      ],
+    },
+  });
+  return local;
+}
+
 /** A carried node's element (tag, family props and resource children), or undefined for another class. */
 export function familyElement(
   emission: FamilyEmission,
   node: DirectGodotSceneNodePlan,
 ): { readonly tag: string; readonly attributes: readonly TargetTsJsxAttribute[]; readonly children: readonly TargetTsJsxChild[] } | undefined {
   const className = node.classes[0];
+  const godot = className === undefined ? undefined : GODOT_ELEMENTS[className];
+  if (godot !== undefined && className !== undefined) {
+    // Godot's layout and drawing are compat's: the element states the node's properties as props, in
+    // the scene's order.
+    const tag = useCompat(emission, godot[0], `Godot${className}`);
+    return {
+      tag,
+      attributes: node.setters.map((setter) => attribute(godotPropName(setter.propertyName), propValue(emission, setter.value))),
+      children: [],
+    };
+  }
   switch (className) {
     case 'MeshInstance3D': {
       const set = node.setters;
@@ -453,9 +578,21 @@ export function familyElement(
   }
 }
 
+/** The three object a carried node's element mounts, for a script's ref. */
+export function familyThreeType(className: string): string | undefined {
+  const godot = GODOT_ELEMENTS[className];
+  if (godot !== undefined) return godot[1];
+  return (
+    { MeshInstance3D: 'Mesh', DirectionalLight3D: 'DirectionalLight', OmniLight3D: 'PointLight', Camera3D: 'PerspectiveCamera' } as Readonly<Record<string, string>>
+  )[className];
+}
+
 /** The imports a scene's family elements need: compat, three constants and data files. */
 export function familyImports(emission: FamilyEmission): TargetTsStatement[] {
   return [
+    ...(emission.react.size === 0
+      ? []
+      : [{ kind: 'import-statement' as const, module: 'react', namedBindings: [...emission.react].sort().map((name) => ({ imported: name, local: name })) }]),
     ...(emission.three.size === 0
       ? []
       : [{ kind: 'import-statement' as const, module: 'three', namedBindings: [...emission.three].sort().map((name) => ({ imported: name, local: name })) }]),

@@ -22,6 +22,7 @@ import { type Color, construct as color } from './color';
 import { godot_node_entity, is_inside_tree } from './node';
 import { construct as transform2d, op_multiply, type Transform2D } from './transform-2d';
 import type { Vector2 } from './vector2';
+import type { GodotElementProp } from './react-lifecycle';
 
 /** What the class that places and draws a canvas item gives it. */
 export interface CanvasItemClass {
@@ -544,4 +545,21 @@ export function godot_canvas_draw(viewport: Object3D, root: HTMLElement): void {
   for (const element of [...root.querySelectorAll<HTMLElement>('[data-godot]')]) {
     if (!touched.has(element) && element.parentElement !== null && !element.hasAttribute('data-godot-content')) element.remove();
   }
+}
+
+/**
+ * CanvasItem's properties as a scene element states them (`useGodotElement`), by their setters.
+ *
+ * @godot CanvasItem (protocol)
+ * @source scene/main/canvas_item.cpp:1581
+ */
+export function godot_canvas_item_props(): (readonly [string, GodotElementProp<Object3D>])[] {
+  return [
+    ['visible', (entity, value: boolean) => set_visible(entity, value)],
+    ['modulate', (entity, value: readonly [number, number, number, number]) => set_modulate(entity, color(...value))],
+    ['selfModulate', (entity, value: readonly [number, number, number, number]) => set_self_modulate(entity, color(...value))],
+    ['topLevel', (entity, value: boolean) => set_as_top_level(entity, value)],
+    ['zIndex', (entity, value: number) => set_z_index(entity, value)],
+    ['zAsRelative', (entity, value: boolean) => set_z_as_relative(entity, value)],
+  ];
 }

@@ -44,6 +44,10 @@ import { get_size as subViewportSize, godot_sub_viewport_connect_size_changed } 
 import { get_size as windowSize, godot_window_connect_size_changed, godot_window_has_size } from './window';
 import { basis_xform, construct as transform2d, get_scale as transformScale, affine_inverse, op_multiply as xform, type Transform2D } from './transform-2d';
 import { construct as vector2, type Vector2 } from './vector2';
+import type { ReactElement } from 'react';
+import { Group } from 'three';
+import { godot_canvas_item_props } from './canvas-item';
+import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 
 const f32 = Math.fround;
 
@@ -1505,4 +1509,54 @@ export function is_force_pass_scroll_events(self: object): boolean {
  */
 export function godot_control_node_mount(entity: Object3D): void {
   godot_control_mount(entity, ['Control', 'CanvasItem', 'Node']);
+}
+
+/**
+ * Control's properties as a scene element states them, over CanvasItem's: the layout mode and
+ * anchors preset through their internal setters, each anchor and offset by its side.
+ *
+ * @godot Control (protocol)
+ * @source scene/gui/control.cpp:4902
+ */
+export function godot_control_props(): (readonly [string, GodotElementProp<Object3D>])[] {
+  const v2 = (value: readonly [number, number]) => vector2(...value);
+  return [
+    ...godot_canvas_item_props(),
+    ['customMinimumSize', (entity, value: readonly [number, number]) => set_custom_minimum_size(entity, v2(value))],
+    ['customMaximumSize', (entity, value: readonly [number, number]) => set_custom_maximum_size(entity, v2(value))],
+    ['layoutMode', (entity, value: number) => _set_layout_mode(entity, value)],
+    ['anchorsPreset', (entity, value: number) => _set_anchors_layout_preset(entity, value)],
+    ...(['Left', 'Top', 'Right', 'Bottom'] as const).flatMap((side, index): (readonly [string, GodotElementProp<Object3D>])[] => [
+      [`anchor${side}`, (entity, value: number) => _set_anchor(entity, index, value)],
+      [`offset${side}`, (entity, value: number) => set_offset(entity, index, value)],
+    ]),
+    ['growHorizontal', (entity, value: number) => set_h_grow_direction(entity, value)],
+    ['growVertical', (entity, value: number) => set_v_grow_direction(entity, value)],
+    ['rotation', (entity, value: number) => set_rotation(entity, value)],
+    ['scale', (entity, value: readonly [number, number]) => set_scale(entity, v2(value))],
+    ['pivotOffset', (entity, value: readonly [number, number]) => set_pivot_offset(entity, v2(value))],
+    ['sizeFlagsHorizontal', (entity, value: number) => set_h_size_flags(entity, value)],
+    ['sizeFlagsVertical', (entity, value: number) => set_v_size_flags(entity, value)],
+    ['sizeFlagsStretchRatio', (entity, value: number) => set_stretch_ratio(entity, value)],
+    ['mouseFilter', (entity, value: number) => set_mouse_filter(entity, value)],
+    ['mouseForcePassScrollEvents', (entity, value: boolean) => set_force_pass_scroll_events(entity, value)],
+  ];
+}
+
+const CONTROL = {
+  create: () => new Group(),
+  classes: ['Control', 'CanvasItem', 'Node', 'Object'],
+  spatial: false,
+  mount: godot_control_node_mount,
+  props: new Map(godot_control_props()),
+};
+
+/**
+ * A Control as a scene writes it: `<GodotControl layoutMode={3} anchorsPreset={15} />`.
+ *
+ * @godot Control (protocol)
+ * @source scene/gui/control.cpp:5161
+ */
+export function GodotControl(props: GodotElementProps<Group>): ReactElement {
+  return useGodotElement(CONTROL, props);
 }

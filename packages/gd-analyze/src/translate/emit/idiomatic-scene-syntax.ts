@@ -38,6 +38,7 @@ import {
   familyElement,
   familyEmission,
   familyImports,
+  familyThreeType,
   float32Literal,
   moduleSpecifier,
   numbers,
@@ -192,14 +193,6 @@ function scriptAttachment(emission: Emission, node: DirectGodotSceneNodePlan, th
   return [attribute('ref', { kind: 'identifier-expression', name: refName })];
 }
 
-/** The three class a carried node's element mounts, for its script's ref. */
-const THREE_TYPE: Readonly<Record<string, string>> = {
-  MeshInstance3D: 'Mesh',
-  DirectionalLight3D: 'DirectionalLight',
-  OmniLight3D: 'PointLight',
-  Camera3D: 'PerspectiveCamera',
-};
-
 function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): TargetTsJsxChild {
   const className = node.classes[0] as string;
   const at = `${emission.scene.sourceResPath}#${node.nodePath}`;
@@ -216,20 +209,17 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
     (entry) => !scaleless || entry.kind === 'jsx-spread-attribute' || entry.name !== 'scale',
   );
   const children = () => node.children.map((child) => nodeElement(emission, child));
+  // A carried family's element (`scene-family-elements.ts`).
+  const family = familyElement(emission.family, node);
+  if (family !== undefined) {
+    return element(family.tag, [name, ...scriptAttachment(emission, node, familyThreeType(className) as string), ...transform, ...family.attributes], [
+      ...family.children,
+      ...children(),
+    ]);
+  }
   switch (className) {
     case 'Node3D':
       return element('group', [name, ...scriptAttachment(emission, node, 'Group'), ...transform], children());
-    case 'MeshInstance3D':
-    case 'DirectionalLight3D':
-    case 'OmniLight3D':
-    case 'Camera3D': {
-      const family = familyElement(emission.family, node);
-      if (family === undefined) throw new Error(`${at}: no family element`);
-      return element(family.tag, [name, ...scriptAttachment(emission, node, THREE_TYPE[className] as string), ...transform, ...family.attributes], [
-        ...family.children,
-        ...children(),
-      ]);
-    }
     case 'StaticBody3D': {
       if (node.scriptInstance !== undefined) throw new Error(`${at}: a script on a static body is not written idiomatically yet`);
       emission.rapier.add('RigidBody');
@@ -271,8 +261,20 @@ function currentCamera(node: DirectGodotSceneNodePlan): { readonly first?: strin
 }
 
 /** The props an instancing scene hands the root, by the root element. */
-function rootPropsType(tag: string): { readonly type: TargetTsType; readonly children: boolean; readonly from?: { readonly module: string; readonly name: string } } {
+function rootPropsType(
+  tag: string,
+  targetPath: string,
+  three: string | undefined,
+): { readonly type: TargetTsType; readonly children: boolean; readonly from?: { readonly module: string; readonly name: string } } {
   const omitRef = (type: TargetTsType): TargetTsType => ({ kind: 'type-reference', name: 'Omit', arguments: [type, { kind: 'literal-type', value: 'ref' }] });
+  // A compat element's own props (`useGodotElement`).
+  if (tag.startsWith('Godot') && three !== undefined) {
+    return {
+      type: omitRef({ kind: 'type-reference', name: 'GodotElementProps', arguments: [{ kind: 'type-reference', name: three, arguments: [] }] }),
+      children: true,
+      from: { module: moduleSpecifier(targetPath, 'src/lib/godot-compat/react-lifecycle.tsx'), name: 'GodotElementProps' },
+    };
+  }
   if (tag === 'PerspectiveCamera') {
     return { type: { kind: 'type-reference', name: 'PerspectiveCameraProps', arguments: [] }, children: false, from: { module: '@react-three/drei', name: 'PerspectiveCameraProps' } };
   }
@@ -315,7 +317,9 @@ export function idiomaticSceneSourceFile(
   const node = nodeElement(emission, scene.root) as TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' };
   // An instancing scene's props (its name, transform, …) reach the root, and its children follow
   // the scene's own: the prefab form.
-  const props = rootPropsType(node.tag);
+  const rootThree = familyThreeType(scene.root.classes[0] ?? '');
+  if (node.tag.startsWith('Godot') && rootThree !== undefined) emission.three.add(rootThree);
+  const props = rootPropsType(node.tag, scene.targetPath, rootThree);
   const root: TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' } = {
     ...node,
     attributes: [...node.attributes, { kind: 'jsx-spread-attribute', value: { kind: 'identifier-expression', name: 'props' } }],
@@ -447,6 +451,7 @@ export function idiomaticSceneSourceFile(
     sourcePath: scene.targetPath,
     statements: [
       ...imports,
+      ...family.statics,
       ...autoloadContext,
       {
         kind: 'function-statement',

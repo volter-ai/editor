@@ -24,6 +24,9 @@ import { godot_camera_3d_of_viewport } from './camera-3d';
 import { godot_node_entity } from './node';
 import { get_global_transform } from './node-3d';
 import { godot_tree, godot_tree_root } from './scene-tree';
+import type { ReactElement } from 'react';
+import { Group } from 'three';
+import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 
 const f32 = Math.fround;
 
@@ -360,4 +363,38 @@ export function set_panning_strength(self: object, strength: number): void {
  */
 export function get_panning_strength(self: object): number {
   return spatialOf(self, 'get_panning_strength').panningStrength;
+}
+
+const AUDIO_STREAM_PLAYER_3D = {
+  create: () => new Group(),
+  classes: ['AudioStreamPlayer3D', 'Node3D', 'Node', 'Object'],
+  spatial: true,
+  mount: godot_audio_stream_player_3d_mount,
+  props: new Map<string, GodotElementProp<Object3D>>([
+    ...P.godot_audio_player_props({
+      stream: (entity, value: object | null) => set_stream(entity, value),
+      volumeDb: (entity, value: number) => set_volume_db(entity, value),
+      pitchScale: (entity, value: number) => set_pitch_scale(entity, value),
+      autoplay: (entity, value: boolean) => set_autoplay(entity, value),
+      maxPolyphony: (entity, value: number) => set_max_polyphony(entity, value),
+      bus: (entity, value: string) => set_bus(entity, value),
+    }),
+    ['attenuationModel', (entity, value: number) => set_attenuation_model(entity, value)],
+    ['unitSize', (entity, value: number) => set_unit_size(entity, value)],
+    ['maxDb', (entity, value: number) => set_max_db(entity, value)],
+    ['maxDistance', (entity, value: number) => set_max_distance(entity, value)],
+    ['panningStrength', (entity, value: number) => set_panning_strength(entity, value)],
+    ['dopplerTracking', (entity, value: number) => set_doppler_tracking(entity, value)],
+  ]),
+};
+
+/**
+ * An AudioStreamPlayer3D as a scene writes it: `<GodotAudioStreamPlayer3D stream={jump} unitSize={4} />`,
+ * its transform three's.
+ *
+ * @godot AudioStreamPlayer3D (protocol)
+ * @source scene/3d/audio_stream_player_3d.cpp:936
+ */
+export function GodotAudioStreamPlayer3D(props: GodotElementProps<Group>): ReactElement {
+  return useGodotElement(AUDIO_STREAM_PLAYER_3D, props);
 }

@@ -49,7 +49,7 @@
         "observedOutputSha256": "9e4d972b2bf9600cb3548c0ee5c050a1829747ed133dd9be7300c8f3e66a3e1e"
       },
       "target": {
-        "implementationSha256": "e84d8d5459f9d75ccd0fd535b2b41f11bc007cad46158e8e69d956643c88a1f5",
+        "implementationSha256": "d6e3fde5071f411751a60f078a22593d97c3638216f477dad865adfe146766a6",
         "callsite": "lib/godot-compat/placeholder-texture-2d.ts set_size",
         "observedOutputSha256": "9e4d972b2bf9600cb3548c0ee5c050a1829747ed133dd9be7300c8f3e66a3e1e"
       },
@@ -76,7 +76,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "bd43ca8e2b6016d9b8fab72fb3785cf7240d472fd8e0dc4ce10cf4bb86db20f6",
-      "implementationSha256": "e84d8d5459f9d75ccd0fd535b2b41f11bc007cad46158e8e69d956643c88a1f5"
+      "implementationSha256": "d6e3fde5071f411751a60f078a22593d97c3638216f477dad865adfe146766a6"
     }
   ]
 }

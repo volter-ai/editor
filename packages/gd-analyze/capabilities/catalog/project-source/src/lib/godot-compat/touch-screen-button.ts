@@ -24,6 +24,10 @@ import { get_height, get_width } from './texture-2d';
 import { affine_inverse, op_multiply as xform } from './transform-2d';
 import type { Vector2 } from './vector2';
 import { push_input } from './viewport';
+import type { ReactElement } from 'react';
+import { Group } from 'three';
+import { godot_node_2d_props } from './node-2d';
+import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 
 /** `TouchScreenButton::VisibilityMode` (`touch_screen_button.h:42`). */
 const VISIBILITY_TOUCHSCREEN_ONLY = 1;
@@ -284,4 +288,29 @@ export function set_passby_press(self: object, p_enable: boolean): void {
  */
 export function is_passby_press_enabled(self: object): boolean {
   return stateOf(self, 'is_passby_press_enabled').passby;
+}
+
+const TOUCH_SCREEN_BUTTON = {
+  create: () => new Group(),
+  classes: ['TouchScreenButton', 'Node2D', 'CanvasItem', 'Node', 'Object'],
+  spatial: false,
+  mount: godot_touch_screen_button_mount,
+  props: new Map<string, GodotElementProp<Object3D>>([
+    ...godot_node_2d_props(),
+    ['textureNormal', (entity, value: Texture | null) => set_texture_normal(entity, value)],
+    ['texturePressed', (entity, value: Texture | null) => set_texture_pressed(entity, value)],
+    ['passbyPress', (entity, value: boolean) => set_passby_press(entity, value)],
+    ['action', (entity, value: string) => set_action(entity, value)],
+    ['visibilityMode', (entity, value: number) => set_visibility_mode(entity, value)],
+  ]),
+};
+
+/**
+ * A TouchScreenButton as a scene writes it (`touch_screen_button.cpp:441`: its properties).
+ *
+ * @godot TouchScreenButton (protocol)
+ * @source scene/2d/physics/touch_screen_button.cpp:441
+ */
+export function GodotTouchScreenButton(props: GodotElementProps<Group>): ReactElement {
+  return useGodotElement(TOUCH_SCREEN_BUTTON, props);
 }

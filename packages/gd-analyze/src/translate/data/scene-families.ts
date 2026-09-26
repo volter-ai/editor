@@ -6,6 +6,29 @@
  */
 import type { TargetGodotArrayMeshPlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from './scene-document-plan';
 
+const CANVAS_ITEM = ['set_visible', 'set_modulate', 'set_self_modulate', 'set_as_top_level', 'set_z_index', 'set_z_as_relative'];
+const NODE_2D = [...CANVAS_ITEM, 'set_position', 'set_rotation', 'set_scale', 'set_skew'];
+const CONTROL = [
+  ...CANVAS_ITEM,
+  'set_custom_minimum_size',
+  'set_custom_maximum_size',
+  '_set_layout_mode',
+  '_set_anchors_layout_preset',
+  '_set_anchor:*',
+  'set_offset:*',
+  'set_h_grow_direction',
+  'set_v_grow_direction',
+  'set_rotation',
+  'set_scale',
+  'set_pivot_offset',
+  'set_h_size_flags',
+  'set_v_size_flags',
+  'set_stretch_ratio',
+  'set_mouse_filter',
+  'set_force_pass_scroll_events',
+];
+const AUDIO_PLAYER = ['set_stream', 'set_volume_db', 'set_pitch_scale', 'set_autoplay', 'set_max_polyphony', 'set_bus'];
+
 /** The setters (`name`, or `name:index` for one index of an indexed property) each family states. */
 const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   MeshInstance3D: ['set_mesh', 'set_surface_override_material:*', 'set_layer_mask', 'set_cast_shadows_setting'],
@@ -13,6 +36,44 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   OmniLight3D: ['set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_shadow'],
   // The lens (`fov`, `near`, `far`) is the node's JSX property rules; `current` is the default camera.
   Camera3D: ['set_current'],
+  // Compat elements (`useGodotElement`): the props their classes' tables declare.
+  CanvasLayer: ['set_layer', 'set_visible', 'set_offset', 'set_rotation', 'set_scale'],
+  Control: CONTROL,
+  HBoxContainer: [...CONTROL, 'set_alignment'],
+  Label: [...CONTROL, 'set_text', 'set_label_settings', 'set_horizontal_alignment', 'set_vertical_alignment', 'set_autowrap_mode'],
+  TextureRect: [...CONTROL, 'set_texture', 'set_expand_mode', 'set_stretch_mode', 'set_flip_h', 'set_flip_v'],
+  Node2D: NODE_2D,
+  Sprite2D: [...NODE_2D, 'set_texture', 'set_centered', 'set_offset', 'set_flip_h', 'set_flip_v', 'set_hframes', 'set_vframes', 'set_frame'],
+  TouchScreenButton: [...NODE_2D, 'set_texture_normal', 'set_texture_pressed', 'set_passby_press', 'set_action', 'set_visibility_mode'],
+  Label3D: [
+    'set_pixel_size',
+    'set_offset',
+    'set_billboard_mode',
+    'set_draw_flag:0',
+    'set_draw_flag:1',
+    'set_draw_flag:2',
+    'set_draw_flag:3',
+    'set_modulate',
+    'set_outline_modulate',
+    'set_text',
+    'set_font_size',
+    'set_outline_size',
+    'set_horizontal_alignment',
+    'set_vertical_alignment',
+    'set_line_spacing',
+    'set_autowrap_mode',
+    'set_width',
+  ],
+  AudioStreamPlayer: AUDIO_PLAYER,
+  AudioStreamPlayer3D: [
+    ...AUDIO_PLAYER,
+    'set_attenuation_model',
+    'set_unit_size',
+    'set_max_db',
+    'set_max_distance',
+    'set_panning_strength',
+    'set_doppler_tracking',
+  ],
 };
 
 const PRIMITIVE_PLANE = ['set_size', 'set_subdivide_width', 'set_subdivide_depth', 'set_orientation', 'set_material'];
@@ -39,6 +100,21 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   ],
   ArrayMesh: [],
   CompressedTexture2D: [],
+  LabelSettings: [
+    'set_line_spacing',
+    'set_paragraph_spacing',
+    'set_font_size',
+    'set_font_color',
+    'set_outline_size',
+    'set_outline_color',
+    'set_shadow_size',
+    'set_shadow_color',
+    'set_shadow_offset',
+  ],
+  PlaceholderTexture2D: ['set_size'],
+  CanvasTexture: ['set_diffuse_texture'],
+  AudioStreamWAV: [],
+  AudioStreamRandomizer: ['set_playback_mode', 'set_random_pitch', 'set_random_volume_offset_db', 'set_streams_count', 'set_stream:*', 'set_stream_probability_weight:*'],
 };
 
 /** Whether `className`'s nodes are written by a family's element. */

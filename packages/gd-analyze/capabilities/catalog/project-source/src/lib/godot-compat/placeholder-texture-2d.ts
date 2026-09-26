@@ -18,16 +18,22 @@ const SIZE = new WeakMap<Texture, Vector2>();
  * A new placeholder texture (`PlaceholderTexture2D.new()`), `Size2(1, 1)`
  * (`scene/resources/placeholder_textures.h:39`).
  *
+ * A scene states its `size` (`placeholder_textures.cpp:67`).
+ *
  * @godot PlaceholderTexture2D (protocol)
  * @source scene/resources/placeholder_textures.cpp:70
  */
-export function godot_placeholder_texture_2d_new(): Texture {
+export function godot_placeholder_texture_2d_new(properties: { readonly size?: readonly [number, number] } = {}): Texture {
   const texture = new Texture();
   SIZE.set(texture, vector2(1, 1));
   godot_texture_2d_size(texture, () => {
     const size = SIZE.get(texture) as Vector2;
     return [Math.trunc(size.x), Math.trunc(size.y)];
   });
+  for (const property of Object.keys(properties)) {
+    if (property !== 'size') throw new Error(`godot-compat: PlaceholderTexture2D has no ${property} property`);
+  }
+  if (properties.size !== undefined) set_size(texture, vector2(...properties.size));
   return texture;
 }
 

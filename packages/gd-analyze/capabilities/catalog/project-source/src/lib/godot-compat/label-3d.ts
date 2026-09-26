@@ -31,6 +31,9 @@ import { godot_message_queue_push } from './object';
 import { godot_visual_instance_3d_aabb } from './visual-instance-3d';
 import { construct as vector2, type Vector2 } from './vector2';
 import { construct as vector3, type Vector3 } from './vector3';
+import type { ReactElement } from 'react';
+import { Mesh as ThreeMesh } from 'three';
+import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 
 const f32 = Math.fround;
 
@@ -493,4 +496,40 @@ export function set_billboard_mode(self: object, mode: number): void {
  */
 export function get_billboard_mode(self: object): number {
   return stateOf(self, 'get_billboard_mode').billboard;
+}
+
+const LABEL_3D = {
+  create: () => new ThreeMesh(),
+  classes: ['Label3D', 'GeometryInstance3D', 'VisualInstance3D', 'Node3D', 'Node', 'Object'],
+  spatial: true,
+  mount: godot_label_3d_mount,
+  props: new Map<string, GodotElementProp<Mesh>>([
+    ['pixelSize', (entity, value: number) => set_pixel_size(entity, value)],
+    ['offset', (entity, value: readonly [number, number]) => set_offset(entity, vector2(...value))],
+    ['billboard', (entity, value: number) => set_billboard_mode(entity, value)],
+    ['shaded', (entity, value: boolean) => set_draw_flag(entity, 0, value)],
+    ['doubleSided', (entity, value: boolean) => set_draw_flag(entity, 1, value)],
+    ['noDepthTest', (entity, value: boolean) => set_draw_flag(entity, 2, value)],
+    ['fixedSize', (entity, value: boolean) => set_draw_flag(entity, 3, value)],
+    ['modulate', (entity, value: readonly [number, number, number, number]) => set_modulate(entity, color(...value))],
+    ['outlineModulate', (entity, value: readonly [number, number, number, number]) => set_outline_modulate(entity, color(...value))],
+    ['text', (entity, value: string) => set_text(entity, value)],
+    ['fontSize', (entity, value: number) => set_font_size(entity, value)],
+    ['outlineSize', (entity, value: number) => set_outline_size(entity, value)],
+    ['horizontalAlignment', (entity, value: number) => set_horizontal_alignment(entity, value)],
+    ['verticalAlignment', (entity, value: number) => set_vertical_alignment(entity, value)],
+    ['lineSpacing', (entity, value: number) => set_line_spacing(entity, value)],
+    ['autowrapMode', (entity, value: number) => set_autowrap_mode(entity, value)],
+    ['width', (entity, value: number) => set_width(entity, value)],
+  ]),
+};
+
+/**
+ * A Label3D as a scene writes it: `<GodotLabel3D text="…" fontSize={48} />`, its transform three's.
+ *
+ * @godot Label3D (protocol)
+ * @source scene/3d/label_3d.cpp:135
+ */
+export function GodotLabel3D(props: GodotElementProps<Mesh>): ReactElement {
+  return useGodotElement(LABEL_3D, props);
 }

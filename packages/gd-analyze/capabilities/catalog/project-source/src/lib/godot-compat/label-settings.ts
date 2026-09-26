@@ -27,12 +27,23 @@ export interface LabelSettings {
 }
 
 /**
- * A new `LabelSettings` with its defaults (`scene/resources/label_settings.h:53-65`).
+ * A new `LabelSettings` with its defaults (`scene/resources/label_settings.h:53-65`), then the
+ * properties a scene states (`label_settings.cpp:95`), by their setters in the order given.
  *
  * @godot LabelSettings (protocol)
  * @source scene/resources/label_settings.h:53
  */
-export function godot_label_settings_new(): LabelSettings {
+export function godot_label_settings_new(properties: Readonly<Record<string, unknown>> = {}): LabelSettings {
+  const self = made();
+  for (const [property, value] of Object.entries(properties)) {
+    const set = PROPS.get(property);
+    if (set === undefined) throw new Error(`godot-compat: LabelSettings has no ${property} property`);
+    set(self, value as never);
+  }
+  return self;
+}
+
+function made(): LabelSettings {
   return {
     lineSpacing: 3,
     paragraphSpacing: 0,
@@ -212,3 +223,15 @@ export function set_shadow_offset(self: LabelSettings, p_value: Vector2): void {
 export function get_shadow_offset(self: LabelSettings): Vector2 {
   return self.shadowOffset;
 }
+
+const PROPS = new Map<string, (self: LabelSettings, value: never) => void>([
+  ['lineSpacing', (self, value: number) => set_line_spacing(self, value)],
+  ['paragraphSpacing', (self, value: number) => set_paragraph_spacing(self, value)],
+  ['fontSize', (self, value: number) => set_font_size(self, value)],
+  ['fontColor', (self, value: readonly [number, number, number, number]) => set_font_color(self, color(...value))],
+  ['outlineSize', (self, value: number) => set_outline_size(self, value)],
+  ['outlineColor', (self, value: readonly [number, number, number, number]) => set_outline_color(self, color(...value))],
+  ['shadowSize', (self, value: number) => set_shadow_size(self, value)],
+  ['shadowColor', (self, value: readonly [number, number, number, number]) => set_shadow_color(self, color(...value))],
+  ['shadowOffset', (self, value: readonly [number, number]) => set_shadow_offset(self, vector2(...value))],
+]);

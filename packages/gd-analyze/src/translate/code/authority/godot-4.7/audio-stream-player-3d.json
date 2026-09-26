@@ -637,7 +637,7 @@
         "observedOutputSha256": "1e9c0b08396ab854db0ba663cb9df949d4b37cecec140a1be65488ee9c634da4"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts is_playing",
         "observedOutputSha256": "1e9c0b08396ab854db0ba663cb9df949d4b37cecec140a1be65488ee9c634da4"
       },
@@ -676,7 +676,7 @@
         "observedOutputSha256": "821247bb52a58751b03f27b45404b676650dda4c6b3274e4c6f2c3687ce36a78"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts play",
         "observedOutputSha256": "821247bb52a58751b03f27b45404b676650dda4c6b3274e4c6f2c3687ce36a78"
       },
@@ -715,7 +715,7 @@
         "observedOutputSha256": "7ee253c8ef134267df7618b28cc9abb19e8105391f4f7453de86917fa1b11fb1"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts stop",
         "observedOutputSha256": "7ee253c8ef134267df7618b28cc9abb19e8105391f4f7453de86917fa1b11fb1"
       },
@@ -754,7 +754,7 @@
         "observedOutputSha256": "491d03ff297f1731135f40a3bf046227d925db5376071d63aec908cba76e64b4"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts set_stream",
         "observedOutputSha256": "491d03ff297f1731135f40a3bf046227d925db5376071d63aec908cba76e64b4"
       },
@@ -793,7 +793,7 @@
         "observedOutputSha256": "8df6548fdd0d34e2b7e7222c9d9bae48cba0ce80f21d1fb7a8352257266e1bf4"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts get_playback_position",
         "observedOutputSha256": "8df6548fdd0d34e2b7e7222c9d9bae48cba0ce80f21d1fb7a8352257266e1bf4"
       },
@@ -832,7 +832,7 @@
         "observedOutputSha256": "e3e7a79cb8a1b2deb21cfc8c74eeafb21976cbf40a418b6454869a415193a2d5"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts set_autoplay",
         "observedOutputSha256": "e3e7a79cb8a1b2deb21cfc8c74eeafb21976cbf40a418b6454869a415193a2d5"
       },
@@ -871,7 +871,7 @@
         "observedOutputSha256": "bb6bba32f80c9d9127df30d7ff770f6ec8b10bfe6748160143f50fc068a8f048"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts set_playing",
         "observedOutputSha256": "bb6bba32f80c9d9127df30d7ff770f6ec8b10bfe6748160143f50fc068a8f048"
       },
@@ -910,7 +910,7 @@
         "observedOutputSha256": "f614274efada90708e41fb51ec8072b73db9ade66c6ed2ceac1312571a7de593"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts set_volume_db",
         "observedOutputSha256": "f614274efada90708e41fb51ec8072b73db9ade66c6ed2ceac1312571a7de593"
       },
@@ -949,7 +949,7 @@
         "observedOutputSha256": "c75c05eb71fa59516da78a671b148b912402ea64a76098403b80796650fa6afa"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts get_volume_db",
         "observedOutputSha256": "c75c05eb71fa59516da78a671b148b912402ea64a76098403b80796650fa6afa"
       },
@@ -988,7 +988,7 @@
         "observedOutputSha256": "40e50c6059a980ee4d0cf6de4ef038f7b4021afffdb0f4b88226838e595620fb"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts set_pitch_scale",
         "observedOutputSha256": "40e50c6059a980ee4d0cf6de4ef038f7b4021afffdb0f4b88226838e595620fb"
       },
@@ -1027,7 +1027,7 @@
         "observedOutputSha256": "009f7e91c73c7ad680cd2c65c099dc2888777a8dd7f0675e9f6d6bf0113c29d6"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts get_pitch_scale",
         "observedOutputSha256": "009f7e91c73c7ad680cd2c65c099dc2888777a8dd7f0675e9f6d6bf0113c29d6"
       },
@@ -1066,7 +1066,7 @@
         "observedOutputSha256": "4eb934a7e28aa27d65262c7f338619d38f22624ca9883d6e6b9e487b9d7c83e5"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts set_bus",
         "observedOutputSha256": "4eb934a7e28aa27d65262c7f338619d38f22624ca9883d6e6b9e487b9d7c83e5"
       },
@@ -1105,7 +1105,7 @@
         "observedOutputSha256": "f4d3ace140a82791f89808740b708832075f03cb126b47b49ace7371428df350"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts get_bus",
         "observedOutputSha256": "f4d3ace140a82791f89808740b708832075f03cb126b47b49ace7371428df350"
       },
@@ -1144,7 +1144,7 @@
         "observedOutputSha256": "4e7b3f084f6843c68f46ea22c79bf604e8768de472d529c6cda5b853fed6b8cf"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts is_autoplay_enabled",
         "observedOutputSha256": "4e7b3f084f6843c68f46ea22c79bf604e8768de472d529c6cda5b853fed6b8cf"
       },
@@ -1183,7 +1183,7 @@
         "observedOutputSha256": "5b7c78ad0dd37f8def760807e4aa7c01f21ccc28d6052900ec55202617f17eb4"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts set_max_polyphony",
         "observedOutputSha256": "5b7c78ad0dd37f8def760807e4aa7c01f21ccc28d6052900ec55202617f17eb4"
       },
@@ -1222,7 +1222,7 @@
         "observedOutputSha256": "da92c044935c82258b508ac6341b5841000030a9647cfc0f485564a4ae02cbac"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts get_max_polyphony",
         "observedOutputSha256": "da92c044935c82258b508ac6341b5841000030a9647cfc0f485564a4ae02cbac"
       },
@@ -1261,7 +1261,7 @@
         "observedOutputSha256": "4a1bccc0ac68ca615f46f0196e0bfbab33354c707579bdb89a110962ad2ac3e1"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts get_stream",
         "observedOutputSha256": "4a1bccc0ac68ca615f46f0196e0bfbab33354c707579bdb89a110962ad2ac3e1"
       },
@@ -1300,7 +1300,7 @@
         "observedOutputSha256": "c3590ce57f1be083a89a8a0aa57fb5810488feaa336a229508278e56ea11f34e"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts set_unit_size",
         "observedOutputSha256": "c3590ce57f1be083a89a8a0aa57fb5810488feaa336a229508278e56ea11f34e"
       },
@@ -1339,7 +1339,7 @@
         "observedOutputSha256": "293edc1d2cdaf678686c19654105648007767ebf914954a55c032aec21cf0253"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts get_unit_size",
         "observedOutputSha256": "293edc1d2cdaf678686c19654105648007767ebf914954a55c032aec21cf0253"
       },
@@ -1378,7 +1378,7 @@
         "observedOutputSha256": "492135304f794fba76e03860168e8de95e2a26cbf5b87c58364e44530cb258c1"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts set_max_db",
         "observedOutputSha256": "492135304f794fba76e03860168e8de95e2a26cbf5b87c58364e44530cb258c1"
       },
@@ -1417,7 +1417,7 @@
         "observedOutputSha256": "796cdfdf162057cb7cb38773b0fb3cd8261dfb8cdae4a171a52abf04b6025aaf"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts get_max_db",
         "observedOutputSha256": "796cdfdf162057cb7cb38773b0fb3cd8261dfb8cdae4a171a52abf04b6025aaf"
       },
@@ -1456,7 +1456,7 @@
         "observedOutputSha256": "4c37e99a4532ef208c0f78038877598611d8e7ec6c94c4c5c1b58c8b4662fe46"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts set_max_distance",
         "observedOutputSha256": "4c37e99a4532ef208c0f78038877598611d8e7ec6c94c4c5c1b58c8b4662fe46"
       },
@@ -1495,7 +1495,7 @@
         "observedOutputSha256": "7a933444ec79661fd9e1fde6992fa5d6226d818967756efb2a2b2da520628ccf"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts get_max_distance",
         "observedOutputSha256": "7a933444ec79661fd9e1fde6992fa5d6226d818967756efb2a2b2da520628ccf"
       },
@@ -1534,7 +1534,7 @@
         "observedOutputSha256": "d3943d733d694869f72da0b046625fc738a32ab55b6f72479515513e03faa875"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts set_attenuation_model",
         "observedOutputSha256": "d3943d733d694869f72da0b046625fc738a32ab55b6f72479515513e03faa875"
       },
@@ -1573,7 +1573,7 @@
         "observedOutputSha256": "37f9e1c10808077722d6b5fef22cc9285d388e56c53213893d9efe234998e5d5"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts get_attenuation_model",
         "observedOutputSha256": "37f9e1c10808077722d6b5fef22cc9285d388e56c53213893d9efe234998e5d5"
       },
@@ -1612,7 +1612,7 @@
         "observedOutputSha256": "492674abdd8fc901101ddd630bcf6f6afa637d2be31221a78ff3409ad9983760"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts set_doppler_tracking",
         "observedOutputSha256": "492674abdd8fc901101ddd630bcf6f6afa637d2be31221a78ff3409ad9983760"
       },
@@ -1651,7 +1651,7 @@
         "observedOutputSha256": "cbcc5f734c5faeeee4a64d4cfaf2f1d73790e051344e7721b8cd2d580a1f48cd"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts get_doppler_tracking",
         "observedOutputSha256": "cbcc5f734c5faeeee4a64d4cfaf2f1d73790e051344e7721b8cd2d580a1f48cd"
       },
@@ -1690,7 +1690,7 @@
         "observedOutputSha256": "706c54d02c425906e9118da6a311f1b2878ff5b0eeed1fc4c5c90bcc9060a6df"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts set_panning_strength",
         "observedOutputSha256": "706c54d02c425906e9118da6a311f1b2878ff5b0eeed1fc4c5c90bcc9060a6df"
       },
@@ -1729,7 +1729,7 @@
         "observedOutputSha256": "3fa6699d11c11573877c21222de2cc02dc7bddba2a81ef805fc15fc1ce524467"
       },
       "target": {
-        "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4",
+        "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc",
         "callsite": "lib/godot-compat/audio-stream-player-3d.ts get_panning_strength",
         "observedOutputSha256": "3fa6699d11c11573877c21222de2cc02dc7bddba2a81ef805fc15fc1ce524467"
       },
@@ -1756,7 +1756,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "016173dcc3441d442b781870d129db72f761648ccd56d3fcdc7939e067a66b2c",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.play",
@@ -1764,7 +1764,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "5db3ad3abe50871e16e93f281b6c9cb21322150dce3c38b4677bd8b06f936d99",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.stop",
@@ -1772,7 +1772,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "9e0d45de184d9c66da90a8b871ae1d5b0e6731e332b991898831dac89fd8aa8f",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.set_stream",
@@ -1780,7 +1780,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "7ad891326f915dc1541ccf0a2f40b8e29b7242f8946d45670e2c5ff747739e3d",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.get_playback_position",
@@ -1788,7 +1788,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "a0f623de7cdd0103ba91e42a7dc0eb237a56cece0af5351850f96d8d1fb6a72f",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.set_autoplay",
@@ -1796,7 +1796,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "b1cc646d2b1cf693d2c1053c703ebffcf662baed1dacca8e3fa9922ed066a003",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.set_playing",
@@ -1804,7 +1804,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "159f2d7be5a8c1e9d08e7c2d3bf994500ca11ac51916bb5a85617622203a5c90",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.set_volume_db",
@@ -1812,7 +1812,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "52299b2ab1dd319c7c69313b527faffa41c3ddb359c308083a96786bcc23d750",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.get_volume_db",
@@ -1820,7 +1820,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "3f14871ce0471765902d63f460c84ea287c9a9e22ed12501f8ab8d3d87e12556",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.set_pitch_scale",
@@ -1828,7 +1828,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "36fbe753b218b533eaa542d33f3e42c0acbb392c13067a6b970f54ee31245c42",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.get_pitch_scale",
@@ -1836,7 +1836,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "4bf88c859c4f55c6f4bfa06a011bb083bdedcc90bc1c0e7d4c862610aa73021b",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.set_bus",
@@ -1844,7 +1844,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "b76fa350ae207e9f2dfd6de65198e3aaef6d6a0da3d2d26cc5556854527a9427",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.get_bus",
@@ -1852,7 +1852,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "28f4f997a406dc8c3f4a6058650361be0c05bf5502a15be2e643bb6070545b73",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.is_autoplay_enabled",
@@ -1860,7 +1860,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "1ede5574d1076ab6b88e7885cf776aa0bf26c39e11283c09ff1cc44ae93d5006",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.set_max_polyphony",
@@ -1868,7 +1868,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "f7e031afe8a9a0d0d25fdc42f70660eb20969b63b32b81de96b997c6387f72cd",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.get_max_polyphony",
@@ -1876,7 +1876,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "1fcd6f08cd94c9d2d319e2e9e6c4b89d17c1f2113090c994610b75ef540de985",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.get_stream",
@@ -1884,7 +1884,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "436b674eea8e7b16b12c4dc5d1eaccfb2b66bfe589bd9652054ba8f0d39d7905",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.set_unit_size",
@@ -1892,7 +1892,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "0c11626d55b686ebbbb814ddb510b7c126a25bbc7a5544efbdb7054ea1553d97",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.get_unit_size",
@@ -1900,7 +1900,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "881d1a816a0c3413d1c02552ed8c75c9962d8db66b6340f5805789de741ceb38",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.set_max_db",
@@ -1908,7 +1908,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "a5874e525f4ba4b324efba3850284a9df7d7b0ecba3e5339fd62c88ace7aac85",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.get_max_db",
@@ -1916,7 +1916,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "0ba6792bfc7dfd45e82966fd00f8e9122841289b97622a2576301a58d34f581f",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.set_max_distance",
@@ -1924,7 +1924,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "0eb5c045648e16d90f328e690210814784dfb88b832b7ce61421dca1d6c18f62",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.get_max_distance",
@@ -1932,7 +1932,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "9ed8b843b0b56e9ac6eec180689bd74daea15fd2e4b0c27693315837fc7cb44b",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.set_attenuation_model",
@@ -1940,7 +1940,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "4351ca33f73fabf36396307de099890d88b68ad12884684af46b35b901d9ed20",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.get_attenuation_model",
@@ -1948,7 +1948,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "180760f2b29548aa4487e30a8b2312a5f487424b39d81e02b5edcb6b45a4fa79",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.set_doppler_tracking",
@@ -1956,7 +1956,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "934570aa4ace72e813865b40080664b0237a5053880580f981af12ff2ef6b04d",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.get_doppler_tracking",
@@ -1964,7 +1964,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "ccf8f893aa9f18a9e2cfe0138a6da41cfd7a6d811a0d3bb39dfb549fd04b8529",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.set_panning_strength",
@@ -1972,7 +1972,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "46667874cedd0cdb19882317a96e34deb571197d5a903749120e4802f84c1cb8",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     },
     {
       "claimId": "godot-4.7-binding-AudioStreamPlayer3D.get_panning_strength",
@@ -1980,7 +1980,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "17f6d62cd8a91fce976a49ec50b41b1f1bce61282d70e223ad2766894808e72a",
-      "implementationSha256": "181c3b06d4527adfb34c0863a7c8410be94cc83890315aff5d0535453b4c85a4"
+      "implementationSha256": "f1d89cbf6dc5592fac353c4ea300fee228138236e22f6b2669df557c2308f5dc"
     }
   ]
 }

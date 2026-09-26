@@ -36,7 +36,9 @@ export interface GodotEvidenceFile {
 }
 
 export function compatModuleFile(module: string): string {
-  return path.join(COMPAT_SOURCE_ROOT, `${module}.ts`);
+  const file = path.join(COMPAT_SOURCE_ROOT, `${module}.ts`);
+  // A module with JSX (`react-lifecycle.tsx`, `main.tsx`) is a `.tsx` file.
+  return existsSync(file) ? file : path.join(COMPAT_SOURCE_ROOT, `${module}.tsx`);
 }
 
 function sha256(bytes: Uint8Array | string): string {

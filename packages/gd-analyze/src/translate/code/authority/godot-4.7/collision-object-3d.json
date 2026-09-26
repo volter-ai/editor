@@ -378,12 +378,12 @@
       "target": {
         "implementationSha256": "6f7f02b875cb808f1cfb86bd6ac002f08e23151be8864f7aa23dae3a9584e965",
         "callsite": "lib/godot-compat/collision-object-3d.ts set_collision_mask",
-        "observedOutputSha256": "a2f580dce79704411013a0db155f2c067b853217ac38925a9675bb74aa578a61"
+        "observedOutputSha256": "a4e5fc8b0751a58f3ac000fea6819eb6a9c57965dedd56dbbf85ee5612cdb759"
       },
       "comparison": {
         "comparator": "typed float64-bit JSON: physics-trajectory, rapier-geometry",
-        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.046095848083496094 over 7 cases",
-        "resultSha256": "2406ccccd354e820ddfc075132eef710f565eeaae264fcdffcb5069139eb2c85"
+        "tolerance": "Rapier's query geometry: within 0.05; measured max 0.04609572887420654 over 7 cases",
+        "resultSha256": "7ad4338f9d098d3b91db8dce16db6728a245799e49d73e589c49ba092329a4c7"
       },
       "reproductionCommand": [
         "npx",

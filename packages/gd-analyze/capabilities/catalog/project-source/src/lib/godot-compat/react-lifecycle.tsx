@@ -14,13 +14,19 @@ import {
   createContext,
   createElement,
   type PropsWithChildren,
+  type ReactElement,
+  type ReactNode,
+  type Ref,
   type RefObject,
   useContext,
   useLayoutEffect,
   useRef,
+  useState,
 } from 'react';
+import type { Object3D } from 'three';
 import {
   type GodotScriptLifecycleBinding,
+  godot_node_adopt,
   godot_node_pending_children,
   mountGodotScriptForest,
   mountGodotScriptTree,
@@ -198,4 +204,62 @@ export function useGodotScript<Instance extends object>(
     if (startup !== null) return startup.register(attachment);
     return mountGodotScriptTree(native, [binding]);
   }, []);
+}
+
+/**
+ * A Godot element's props: the node's name, a ref (to the `Entity` it mounts, typed as the Object3D
+ * a script's ref holds), its children, and its Godot properties.
+ */
+export interface GodotElementProps<Entity extends Object3D> {
+  readonly name?: string;
+  readonly ref?: Ref<Entity> | Ref<Object3D>;
+  readonly children?: ReactNode;
+  readonly [property: string]: unknown;
+}
+
+/** A Godot property's prop: the setter it calls with the literal value the JSX states. */
+export type GodotElementProp<Entity> = (entity: Entity, value: never) => void;
+
+/** How a node class is written as a JSX element (`useGodotElement`). */
+export interface GodotElementClass<Entity extends Object3D> {
+  readonly create: () => Entity;
+  /** The class and its native ancestors, nearest first; a canvas or plain node is not spatial. */
+  readonly classes: readonly string[];
+  readonly spatial: boolean;
+  /** Makes the entity the node its class creates, before its properties. */
+  readonly mount: (entity: Entity) => void;
+  /** The class's properties, by the camel-case prop that states each. */
+  readonly props: ReadonlyMap<string, GodotElementProp<Entity>>;
+}
+
+/** Three's own transform props, which a spatial element hands its object. */
+const THREE_TRANSFORM = new Set(['position', 'rotation', 'scale', 'quaternion', 'matrix', 'matrixAutoUpdate']);
+
+/**
+ * A node of a Godot class the scene's JSX writes as an element (`<GodotLabel text="…" />`): its
+ * entity made as `SceneState::instantiate` makes the node (created, its class recorded, its
+ * authored properties set by their setters in the order the JSX states them, before it enters the
+ * tree), once, as the element first renders (a parent before its children); then mounted by R3F as
+ * that object. A prop the class does not declare is an error.
+ *
+ * @godot Node (protocol)
+ * @source scene/resources/packed_scene.cpp:400
+ */
+export function useGodotElement<Entity extends Object3D>(element: GodotElementClass<Entity>, props: GodotElementProps<Entity>): ReactElement {
+  const { name, ref, children, ...properties } = props;
+  const [entity] = useState(() => {
+    const made = element.create();
+    if (name !== undefined) made.name = name;
+    godot_node_adopt(made, { kind: element.spatial ? 'spatial' : 'node', classes: element.classes });
+    element.mount(made);
+    for (const [property, value] of Object.entries(properties)) {
+      if (element.spatial && THREE_TRANSFORM.has(property)) continue;
+      const set = element.props.get(property);
+      if (set === undefined) throw new Error(`godot-compat: ${element.classes[0] ?? 'a node'} has no ${property} prop`);
+      (set as (entity: Entity, value: unknown) => void)(made, value);
+    }
+    return made;
+  });
+  const transform = element.spatial ? Object.fromEntries(Object.entries(properties).filter(([property]) => THREE_TRANSFORM.has(property))) : {};
+  return createElement('primitive', { object: entity, ref, ...transform }, children);
 }

@@ -15,6 +15,10 @@ import { get_global_transform, godot_canvas_item_mount, godot_canvas_item_parent
 import { godot_node_adopt, godot_node_entity } from './node';
 import { affine_inverse, construct as transform2d, op_multiply as xform, type Transform2D } from './transform-2d';
 import { construct as vector2, type Vector2 } from './vector2';
+import type { ReactElement } from 'react';
+import { Group } from 'three';
+import { godot_canvas_item_props } from './canvas-item';
+import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 
 const f32 = Math.fround;
 
@@ -171,4 +175,38 @@ export function set_global_position(self: object, p_pos: Vector2): void {
  */
 export function godot_node_2d_node_mount(entity: Object3D): void {
   godot_node_2d_mount(entity, ['Node2D', 'CanvasItem', 'Node']);
+}
+
+/**
+ * Node2D's properties as a scene element states them, over CanvasItem's.
+ *
+ * @godot Node2D (protocol)
+ * @source scene/2d/node_2d.cpp:504
+ */
+export function godot_node_2d_props(): (readonly [string, GodotElementProp<Object3D>])[] {
+  return [
+    ...godot_canvas_item_props(),
+    ['position', (entity, value: readonly [number, number]) => set_position(entity, vector2(...value))],
+    ['rotation', (entity, value: number) => set_rotation(entity, value)],
+    ['scale', (entity, value: readonly [number, number]) => set_scale(entity, vector2(...value))],
+    ['skew', (entity, value: number) => set_skew(entity, value)],
+  ];
+}
+
+const NODE_2D = {
+  create: () => new Group(),
+  classes: ['Node2D', 'CanvasItem', 'Node', 'Object'],
+  spatial: false,
+  mount: godot_node_2d_node_mount,
+  props: new Map(godot_node_2d_props()),
+};
+
+/**
+ * A Node2D as a scene writes it: `<GodotNode2D position={[10, 20]} />`.
+ *
+ * @godot Node2D (protocol)
+ * @source scene/2d/node_2d.cpp:519
+ */
+export function GodotNode2D(props: GodotElementProps<Group>): ReactElement {
+  return useGodotElement(NODE_2D, props);
 }

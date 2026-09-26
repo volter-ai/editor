@@ -41,6 +41,10 @@ import type { LabelSettings } from './label-settings';
 import { godot_node_entity, is_inside_tree } from './node';
 import { construct as rect2, type Rect2 } from './rect2';
 import { construct as vector2, type Vector2 } from './vector2';
+import type { ReactElement } from 'react';
+import { Group } from 'three';
+import { godot_control_props } from './control';
+import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 
 /** `TextServer::AutowrapMode` (`servers/text/text_server.h:98`). */
 const AUTOWRAP_OFF = 0;
@@ -483,4 +487,29 @@ function draw(entity: Object3D, element: HTMLElement): void {
     node.textContent = text;
     svg.appendChild(node);
   }
+}
+
+const LABEL = {
+  create: () => new Group(),
+  classes: ['Label', 'Control', 'CanvasItem', 'Node', 'Object'],
+  spatial: false,
+  mount: godot_label_mount,
+  props: new Map<string, GodotElementProp<Object3D>>([
+    ...godot_control_props(),
+    ['text', (entity, value: string) => set_text(entity, value)],
+    ['labelSettings', (entity, value: LabelSettings | null) => set_label_settings(entity, value)],
+    ['horizontalAlignment', (entity, value: number) => set_horizontal_alignment(entity, value)],
+    ['verticalAlignment', (entity, value: number) => set_vertical_alignment(entity, value)],
+    ['autowrapMode', (entity, value: number) => set_autowrap_mode(entity, value)],
+  ]),
+};
+
+/**
+ * A Label as a scene writes it: `<GodotLabel text="Score: 12" horizontalAlignment={1} />`.
+ *
+ * @godot Label (protocol)
+ * @source scene/gui/label.cpp:1481
+ */
+export function GodotLabel(props: GodotElementProps<Group>): ReactElement {
+  return useGodotElement(LABEL, props);
 }

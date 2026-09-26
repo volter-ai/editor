@@ -17,6 +17,10 @@ import { godot_node_entity } from './node';
 import { construct as rect2, type Rect2 } from './rect2';
 import { get_height, get_width } from './texture-2d';
 import { construct as vector2, type Vector2 } from './vector2';
+import type { ReactElement } from 'react';
+import { Group } from 'three';
+import { godot_node_2d_props } from './node-2d';
+import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 
 const f32 = Math.fround;
 
@@ -284,4 +288,32 @@ export function get_rect(self: object): Rect2 {
     h = 1;
   }
   return rect2(x, y, w, h);
+}
+
+const SPRITE_2D = {
+  create: () => new Group(),
+  classes: ['Sprite2D', 'Node2D', 'CanvasItem', 'Node', 'Object'],
+  spatial: false,
+  mount: godot_sprite_2d_mount,
+  props: new Map<string, GodotElementProp<Object3D>>([
+    ...godot_node_2d_props(),
+    ['texture', (entity, value: Texture | null) => set_texture(entity, value)],
+    ['centered', (entity, value: boolean) => set_centered(entity, value)],
+    ['offset', (entity, value: readonly [number, number]) => set_offset(entity, vector2(...value))],
+    ['flipH', (entity, value: boolean) => set_flip_h(entity, value)],
+    ['flipV', (entity, value: boolean) => set_flip_v(entity, value)],
+    ['hframes', (entity, value: number) => set_hframes(entity, value)],
+    ['vframes', (entity, value: number) => set_vframes(entity, value)],
+    ['frame', (entity, value: number) => set_frame(entity, value)],
+  ]),
+};
+
+/**
+ * A Sprite2D as a scene writes it (`sprite_2d.cpp:537`: its properties).
+ *
+ * @godot Sprite2D (protocol)
+ * @source scene/2d/sprite_2d.cpp:537
+ */
+export function GodotSprite2D(props: GodotElementProps<Group>): ReactElement {
+  return useGodotElement(SPRITE_2D, props);
 }

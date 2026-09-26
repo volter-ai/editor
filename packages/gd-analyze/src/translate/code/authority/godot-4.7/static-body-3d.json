@@ -111,12 +111,12 @@
       "target": {
         "implementationSha256": "66f66145f120583a41f0bc1f1be9d88b4049476df3d7aed39f253538ceb63b0d",
         "callsite": "lib/godot-compat/static-body-3d.ts set_physics_material_override",
-        "observedOutputSha256": "5dfb0d7f8ac18e024114ced767ec029fceddac9f13a194085e1b544d332d1a81"
+        "observedOutputSha256": "d1cf0c1c5030f94da0c89f015501ff10b2e315896a37114740b6fd881c133771"
       },
       "comparison": {
         "comparator": "typed float64-bit JSON: physics-trajectory",
         "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.006176739931106567 over 1 cases",
-        "resultSha256": "ef7eb4d9af7147973f8367fe54fd854b4d57e11b6249f48bf63cef286f516677"
+        "resultSha256": "3e77d2412233835710d3b135e150efdd84fad8eaef3c32c87cfb5456266b4680"
       },
       "reproductionCommand": [
         "npx",

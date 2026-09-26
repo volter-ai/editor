@@ -20,6 +20,9 @@ import { get_length as streamLength, godot_audio_context, godot_audio_stream_sta
 import { godot_node_entity, godot_node_tree_signal, is_inside_tree } from './node';
 import { godot_tree } from './scene-tree';
 import { createSignal, type GodotSignal, type SignalHandle } from './signal';
+import type { ReactElement } from 'react';
+import { Group } from 'three';
+import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 
 const f32 = Math.fround;
 
@@ -322,4 +325,43 @@ export function set_max_polyphony(self: object, max_polyphony: number): void {
  */
 export function get_max_polyphony(self: object): number {
   return stateOf(self, 'get_max_polyphony').maxPolyphony;
+}
+
+/**
+ * The properties both audio players state (`audio_stream_player.cpp:283`), by their setters.
+ *
+ * @godot AudioStreamPlayer (protocol)
+ * @source scene/audio/audio_stream_player.cpp:283
+ */
+export function godot_audio_player_props(
+  setters: Readonly<Record<'stream' | 'volumeDb' | 'pitchScale' | 'autoplay' | 'maxPolyphony' | 'bus', (entity: Object3D, value: never) => void>>,
+): (readonly [string, GodotElementProp<Object3D>])[] {
+  return Object.entries(setters);
+}
+
+const AUDIO_STREAM_PLAYER = {
+  create: () => new Group(),
+  classes: ['AudioStreamPlayer', 'Node', 'Object'],
+  spatial: false,
+  mount: godot_audio_stream_player_mount,
+  props: new Map<string, GodotElementProp<Object3D>>(
+    godot_audio_player_props({
+      stream: (entity, value: object | null) => set_stream(entity, value),
+      volumeDb: (entity, value: number) => set_volume_db(entity, value),
+      pitchScale: (entity, value: number) => set_pitch_scale(entity, value),
+      autoplay: (entity, value: boolean) => set_autoplay(entity, value),
+      maxPolyphony: (entity, value: number) => set_max_polyphony(entity, value),
+      bus: (entity, value: string) => set_bus(entity, value),
+    }),
+  ),
+};
+
+/**
+ * An AudioStreamPlayer as a scene writes it: `<GodotAudioStreamPlayer stream={music} volumeDb={-6} />`.
+ *
+ * @godot AudioStreamPlayer (protocol)
+ * @source scene/audio/audio_stream_player.cpp:283
+ */
+export function GodotAudioStreamPlayer(props: GodotElementProps<Group>): ReactElement {
+  return useGodotElement(AUDIO_STREAM_PLAYER, props);
 }

@@ -61,10 +61,36 @@ function choose(self: AudioStreamRandomizer): object | null {
  * A new randomizer (`AudioStreamRandomizer.new()`): no streams, pitch and volume unrandomized,
  * random without repeats.
  *
+ * A scene states its properties (`audio_stream.cpp:768`), each pool entry as `stream<N>Stream` and
+ * `stream<N>Weight` (`stream_N/stream`, `stream_N/weight`), set in the order given.
+ *
  * @godot AudioStreamRandomizer (protocol)
  * @source servers/audio/audio_stream.cpp:788
  */
-export function godot_audio_stream_randomizer_new(): AudioStreamRandomizer {
+export function godot_audio_stream_randomizer_new(properties: Readonly<Record<string, unknown>> = {}): AudioStreamRandomizer {
+  const self = made();
+  for (const [property, value] of Object.entries(properties)) {
+    const entry = /^stream(\d+)(Stream|Weight)$/u.exec(property);
+    if (entry !== null) {
+      if (entry[2] === 'Stream') set_stream(self, Number(entry[1]), value as object | null);
+      else set_stream_probability_weight(self, Number(entry[1]), value as number);
+      continue;
+    }
+    const set = PROPS.get(property);
+    if (set === undefined) throw new Error(`godot-compat: AudioStreamRandomizer has no ${property} property`);
+    set(self, value as never);
+  }
+  return self;
+}
+
+const PROPS = new Map<string, (self: AudioStreamRandomizer, value: never) => void>([
+  ['playbackMode', (self, value: number) => set_playback_mode(self, value)],
+  ['randomPitch', (self, value: number) => set_random_pitch(self, value)],
+  ['randomVolumeOffsetDb', (self, value: number) => set_random_volume_offset_db(self, value)],
+  ['streamsCount', (self, value: number) => set_streams_count(self, value)],
+]);
+
+function made(): AudioStreamRandomizer {
   const self: AudioStreamRandomizer = { pool: [], randomPitch: 1, randomVolumeOffsetDb: 0, playbackMode: PLAYBACK_RANDOM_NO_REPEATS, lastPlayback: null };
   godot_audio_stream_register(self, {
     // `get_length` (`audio_stream.cpp:727`): the last chosen stream's.

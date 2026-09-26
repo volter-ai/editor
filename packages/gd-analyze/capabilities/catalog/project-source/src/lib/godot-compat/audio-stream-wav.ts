@@ -13,6 +13,7 @@
  * `audio-compression`); what is played is not compared.
  */
 
+import { use } from 'react';
 import { godot_audio_stream_register } from './audio-stream';
 import { godot_resource_loader_track } from './resource-loader';
 
@@ -285,4 +286,31 @@ export function get_loop_begin(self: AudioStreamWAV): number {
  */
 export function get_loop_end(self: AudioStreamWAV): number {
   return self.loopEnd;
+}
+
+const SCENE_LOADS = new Map<string, { readonly stream: AudioStreamWAV; readonly loaded: Promise<void> }>();
+
+/**
+ * A scene's imported `.wav`, as a component loads it: the stream of the copied file at `url`,
+ * imported with the importer's options once for every scene that uses it (Godot's resource cache),
+ * the component suspended until it is.
+ *
+ * @godot AudioStreamWAV (protocol)
+ * @source core/io/resource_loader.cpp:725
+ */
+export function useGodotAudioStreamWav(url: string, options: GodotWavImport): AudioStreamWAV {
+  const key = `${url}\0${JSON.stringify(options)}`;
+  let load = SCENE_LOADS.get(key);
+  if (load === undefined) {
+    const stream = godot_audio_stream_wav_new();
+    load = {
+      stream,
+      loaded: fetch(url)
+        .then((response) => response.arrayBuffer())
+        .then((buffer) => godot_audio_stream_wav_import(stream, new Uint8Array(buffer), options)),
+    };
+    SCENE_LOADS.set(key, load);
+  }
+  use(load.loaded);
+  return load.stream;
 }

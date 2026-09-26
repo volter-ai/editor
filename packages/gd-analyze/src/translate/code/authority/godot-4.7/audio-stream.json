@@ -49,7 +49,7 @@
         "observedOutputSha256": "5b303d1f2133961639798645ce3d7d392bc6c49dfac7374bb5f9037df037db74"
       },
       "target": {
-        "implementationSha256": "75da61a98321e82df2a7eeed5f3db1ae2b224de64f0f27607946fbc6f930c686",
+        "implementationSha256": "ed1eb3972fa59c4f1ada67d0411226a23135fe6a456eec9b1918229ef9573488",
         "callsite": "lib/godot-compat/audio-stream.ts get_length",
         "observedOutputSha256": "5b303d1f2133961639798645ce3d7d392bc6c49dfac7374bb5f9037df037db74"
       },
@@ -76,7 +76,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "b3e3ed775e0571622378fe6c6640cd36dca759f63c7d61deb1df9897bdc3f726",
-      "implementationSha256": "75da61a98321e82df2a7eeed5f3db1ae2b224de64f0f27607946fbc6f930c686"
+      "implementationSha256": "ed1eb3972fa59c4f1ada67d0411226a23135fe6a456eec9b1918229ef9573488"
     }
   ]
 }

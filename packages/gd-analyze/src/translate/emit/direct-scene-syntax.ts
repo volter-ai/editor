@@ -1035,6 +1035,7 @@ function sceneSourceFile(
       ...imports,
       ...renderImports,
       ...familyImports(family),
+      ...family.statics,
       ...resourceStatements,
       ...autoloadContextStatements,
       {

@@ -35,7 +35,6 @@ export const GODOT_4_7_MESH_NODE_RULES: readonly (GodotSceneNodeRule & { readonl
     sourceRevision: REVISION,
     nativeCanonicalIdentity: identityOf('Label3D'),
     targetKind: 'three-mesh',
-    mount: { module: 'lib/godot-compat/label-3d', exportName: 'godot_label_3d_mount' },
     evidenceClaimId: 'godot-4.7-scene-node-label-3d',
     source: { file: 'scene/3d/label_3d.cpp', symbol: 'Label3D::Label3D', line: 1082 },
   },

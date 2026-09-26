@@ -16,6 +16,9 @@ import { godot_canvas_item_layer, godot_canvas_item_propagate_visibility } from 
 import { godot_node_entity } from './node';
 import { construct as transform2d, type Transform2D } from './transform-2d';
 import { construct as vector2, type Vector2 } from './vector2';
+import type { ReactElement } from 'react';
+import { Group } from 'three';
+import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 
 const f32 = Math.fround;
 
@@ -187,4 +190,28 @@ export function get_transform(self: object): Transform2D {
  */
 export function get_final_transform(self: object): Transform2D {
   return stateOf(self, 'get_final_transform').transform;
+}
+
+const CANVAS_LAYER = {
+  create: () => new Group(),
+  classes: ['CanvasLayer', 'Node', 'Object'],
+  spatial: false,
+  mount: godot_canvas_layer_mount,
+  props: new Map<string, GodotElementProp<Object3D>>([
+    ['layer', (entity, value: number) => set_layer(entity, value)],
+    ['visible', (entity, value: boolean) => set_visible(entity, value)],
+    ['offset', (entity, value: readonly [number, number]) => set_offset(entity, vector2(...value))],
+    ['rotation', (entity, value: number) => set_rotation(entity, value)],
+    ['scale', (entity, value: readonly [number, number]) => set_scale(entity, vector2(...value))],
+  ]),
+};
+
+/**
+ * A CanvasLayer as a scene writes it: `<GodotCanvasLayer layer={2} />`.
+ *
+ * @godot CanvasLayer (protocol)
+ * @source scene/main/canvas_layer.cpp:343
+ */
+export function GodotCanvasLayer(props: GodotElementProps<Group>): ReactElement {
+  return useGodotElement(CANVAS_LAYER, props);
 }

@@ -17,10 +17,12 @@ const RELAYS = new WeakMap<Texture, () => void>();
 /**
  * A new canvas texture (`CanvasTexture.new()`), with no diffuse texture.
  *
+ * A scene states its `diffuse_texture` (`canvas_item.cpp:2075`).
+ *
  * @godot CanvasTexture (protocol)
  * @source scene/main/canvas_item.cpp:2009
  */
-export function godot_canvas_texture_new(): Texture {
+export function godot_canvas_texture_new(properties: { readonly diffuseTexture?: Texture | null } = {}): Texture {
   const texture = new Texture();
   DIFFUSE.set(texture, null);
   // `get_width`, `get_height` (`canvas_item.cpp:2009`): the diffuse texture's, else 1.
@@ -28,6 +30,10 @@ export function godot_canvas_texture_new(): Texture {
     const diffuse = DIFFUSE.get(texture) ?? null;
     return diffuse === null ? [1, 1] : [get_width(diffuse), get_height(diffuse)];
   });
+  for (const property of Object.keys(properties)) {
+    if (property !== 'diffuseTexture') throw new Error(`godot-compat: CanvasTexture has no ${property} property`);
+  }
+  if (properties.diffuseTexture !== undefined) set_diffuse_texture(texture, properties.diffuseTexture);
   return texture;
 }
 

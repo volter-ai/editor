@@ -15,6 +15,10 @@ import { godot_node_entity } from './node';
 import { construct as rect2, type Rect2 } from './rect2';
 import { godot_texture_2d_connect_changed, godot_texture_2d_disconnect_changed, get_height, get_size as textureSize, get_width } from './texture-2d';
 import { construct as vector2, type Vector2 } from './vector2';
+import type { ReactElement } from 'react';
+import { Group } from 'three';
+import { godot_control_props } from './control';
+import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 
 const f32 = Math.fround;
 
@@ -343,4 +347,29 @@ function draw(entity: Object3D, element: HTMLElement): void {
     content.style.backgroundPosition = '0px 0px';
   }
   content.style.filter = godot_canvas_item_self_filter(entity, element);
+}
+
+const TEXTURE_RECT = {
+  create: () => new Group(),
+  classes: ['TextureRect', 'Control', 'CanvasItem', 'Node', 'Object'],
+  spatial: false,
+  mount: godot_texture_rect_mount,
+  props: new Map<string, GodotElementProp<Object3D>>([
+    ...godot_control_props(),
+    ['texture', (entity, value: Texture | null) => set_texture(entity, value)],
+    ['expandMode', (entity, value: number) => set_expand_mode(entity, value)],
+    ['stretchMode', (entity, value: number) => set_stretch_mode(entity, value)],
+    ['flipH', (entity, value: boolean) => set_flip_h(entity, value)],
+    ['flipV', (entity, value: boolean) => set_flip_v(entity, value)],
+  ]),
+};
+
+/**
+ * A TextureRect as a scene writes it (`texture_rect.cpp:185`: its properties).
+ *
+ * @godot TextureRect (protocol)
+ * @source scene/gui/texture_rect.cpp:185
+ */
+export function GodotTextureRect(props: GodotElementProps<Group>): ReactElement {
+  return useGodotElement(TEXTURE_RECT, props);
 }
