@@ -1,0 +1,11 @@
+{
+  "packs": {
+    "mannequin": [
+      {
+        "key": "local:a7c5288306d9e98cb7dbdbd2",
+        "dest": "public/asset-library/local/ual1-standard-a7c52883/UAL1_Standard.glb",
+        "sha256": "69591853d817488edaa8fd9bf8fc1d821eaeaf789f8627b3cd23b41c4ed67997"
+      }
+    ]
+  }
+}

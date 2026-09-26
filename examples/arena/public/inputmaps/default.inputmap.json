@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "actions": {
+    "move_forward": { "bindings": [{ "type": "key", "code": "KeyW" }, { "type": "key", "code": "ArrowUp" }, { "type": "gamepad_axis", "axis": 1, "direction": "negative", "deadzone": 0.15 }] },
+    "move_backward": { "bindings": [{ "type": "key", "code": "KeyS" }, { "type": "key", "code": "ArrowDown" }, { "type": "gamepad_axis", "axis": 1, "direction": "positive", "deadzone": 0.15 }] },
+    "move_left": { "bindings": [{ "type": "key", "code": "KeyA" }, { "type": "key", "code": "ArrowLeft" }, { "type": "gamepad_axis", "axis": 0, "direction": "negative", "deadzone": 0.15 }] },
+    "move_right": { "bindings": [{ "type": "key", "code": "KeyD" }, { "type": "key", "code": "ArrowRight" }, { "type": "gamepad_axis", "axis": 0, "direction": "positive", "deadzone": 0.15 }] },
+    "move_stick": { "valueType": "vector2", "bindings": [{ "type": "gamepad_axis_pair", "xAxis": 0, "yAxis": 1, "deadzone": 0.15 }, { "type": "touch_stick", "sourceId": "move-stick" }] },
+    "look": { "valueType": "pointerDelta", "bindings": [{ "type": "mouse_move" }, { "type": "test_pointer_delta", "sourceId": "look" }] },
+    "look_stick": { "valueType": "vector2", "bindings": [{ "type": "gamepad_axis_pair", "xAxis": 2, "yAxis": 3, "deadzone": 0.15 }, { "type": "touch_stick", "sourceId": "look-stick" }] },
+    "jump": { "bindings": [{ "type": "key", "code": "Space" }, { "type": "gamepad_button", "button": 0 }] },
+    "sprint": { "bindings": [{ "type": "key", "code": "ShiftLeft" }, { "type": "gamepad_button", "button": 10 }] },
+    "fire": { "bindings": [{ "type": "mouse_button", "button": 0 }, { "type": "gamepad_button", "button": 7 }] },
+    "reload": { "bindings": [{ "type": "key", "code": "KeyR" }, { "type": "gamepad_button", "button": 2 }] },
+    "weapon_swap": { "bindings": [{ "type": "key", "code": "KeyQ" }, { "type": "gamepad_button", "button": 3 }] },
+    "perspective": { "bindings": [{ "type": "key", "code": "KeyV" }, { "type": "gamepad_button", "button": 11 }] },
+    "pause": { "bindings": [{ "type": "key", "code": "KeyP" }, { "type": "gamepad_button", "button": 9 }] },
+    "restart": { "bindings": [{ "type": "key", "code": "Enter" }, { "type": "gamepad_button", "button": 8 }] }
+  }
+}

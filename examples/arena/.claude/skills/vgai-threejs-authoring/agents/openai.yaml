@@ -1,0 +1,4 @@
+interface:
+  display_name: "VGAI Three.js Authoring"
+  short_description: "Build polished native Three.js scenes and assets"
+  default_prompt: "Use $vgai-threejs-authoring to build and visually refine native Three.js source without introducing a parallel scene model."

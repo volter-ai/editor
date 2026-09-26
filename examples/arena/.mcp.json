@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "vgai": {
+      "command": "npm",
+      "args": ["run", "vgai", "--", "mcp", "."]
+    }
+  }
+}
