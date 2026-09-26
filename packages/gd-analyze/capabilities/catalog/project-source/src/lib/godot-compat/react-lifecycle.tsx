@@ -29,9 +29,8 @@ import {
   type GodotScriptLifecycleBinding,
   godot_node_adopt,
   godot_node_pending_children,
+  godot_node_register_forest,
   godot_node_scene_root,
-  mountGodotScriptForest,
-  mountGodotScriptTree,
 } from './node';
 import { set_visible } from './node-3d';
 import { set_meta } from './object';
@@ -118,9 +117,11 @@ export function GodotProjectStartup({
       ...pending,
       ...outermostRoots(mounted).filter((root) => !pending.some((scene) => contains(scene, root))),
     ];
-    const releaseLifecycle = mountGodotScriptForest(
+    // React only registers the forest; the SceneTree enters it before its first iteration.
+    const releaseLifecycle = godot_node_register_forest(
       roots,
       mounted.flatMap((registration) => registration.bindings),
+      true,
     );
     return () => {
       releaseLifecycle();
@@ -135,7 +136,8 @@ export function GodotProjectStartup({
  * Seat one generated scene's retained script attachments on its native hierarchy.
  *
  * At project startup the enclosing batch owns notification ordering. A scene mounted later has no
- * enclosing startup context, so the same hook mounts its real native subtree immediately.
+ * enclosing startup context: it is registered, and enters the tree where a script adds it, or (React
+ * having placed it below the tree) at the start of the SceneTree's next iteration.
  *
  * @godot Node (protocol)
  * @source scene/main/node.cpp:341-362 (a node added to the tree enters, then readies, at once)
@@ -150,7 +152,7 @@ export function useGodotScriptTreeAttachment<Native extends object>(
     if (nativeRoot === null) return;
     const attachment = { root: nativeRoot, ...attach() };
     if (startup !== null) return startup.register(attachment);
-    const releaseLifecycle = mountGodotScriptTree(attachment.root, attachment.bindings);
+    const releaseLifecycle = godot_node_register_forest([attachment.root], attachment.bindings, false);
     return () => {
       releaseLifecycle();
       attachment.release();
@@ -234,8 +236,8 @@ const LIFECYCLE_METHODS = [
  * packed_scene.cpp:494), and its virtual methods (the ones the script or its base scripts define)
  * registered with the Node protocol, which calls them on the SceneTree's clock. `autoloads` are
  * the autoload singletons the script reads, each by its field, as the refs the world mounts them
- * into. At project startup the enclosing startup transaction enters the tree; a node mounted
- * later enters at once.
+ * into. At project startup the enclosing startup transaction registers it; a node mounted later
+ * registers alone. The SceneTree enters either (`godot_node_register_forest`).
  *
  * @godot Node (protocol)
  * @source scene/resources/packed_scene.cpp:494
@@ -267,7 +269,7 @@ export function useGodotScript<Instance extends object>(
     const binding = { native, owner: instance, ...slots } as GodotScriptLifecycleBinding;
     const attachment = { root: native, bindings: [binding], release: () => {} };
     if (startup !== null) return startup.register(attachment);
-    return mountGodotScriptTree(native, [binding]);
+    return godot_node_register_forest([native], [binding], false);
   }, []);
 }
 

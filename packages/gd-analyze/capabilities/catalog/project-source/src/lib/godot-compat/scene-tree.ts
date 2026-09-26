@@ -15,7 +15,7 @@
  */
 
 import { flush_buffered_events, godot_input_frame } from './input';
-import { godot_node_enter_root, godot_node_free, godot_node_is_freed, godot_node_processing, godot_node_set_queued } from './node';
+import { godot_node_enter_pending, godot_node_enter_root, godot_node_free, godot_node_is_freed, godot_node_processing, godot_node_set_queued } from './node';
 import { godot_main_timer_sync_advance, godot_main_timer_sync_fixed_fps } from './main-timer-sync';
 import { godot_message_queue_flush } from './object';
 import { get_setting } from './project-settings';
@@ -125,6 +125,10 @@ export function godot_tree_frames(): { readonly physics: number; readonly proces
 
 function openIteration(): void {
   if (clock.iterationOpen) return;
+  // What React mounted since the last iteration enters first: the project's startup forest
+  // (`Main::start` readies the main scene before the first iteration, `main/main.cpp:4764`), then
+  // scenes React placed below the tree.
+  godot_node_enter_pending();
   clock.iterationOpen = true;
   godot_input_frame(clock.physicsFrames, clock.processFrames, false);
   flush_buffered_events();

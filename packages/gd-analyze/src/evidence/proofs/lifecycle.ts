@@ -11,7 +11,10 @@ import { createElement, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import ts from 'typescript';
-import { mountGodotScriptTree } from '../../../capabilities/catalog/project-source/src/lib/godot-compat/node';
+import {
+  godot_node_enter_pending,
+  mountGodotScriptTree,
+} from '../../../capabilities/catalog/project-source/src/lib/godot-compat/node';
 import {
   GodotProjectStartup,
   useGodotScriptTreeAttachment,
@@ -688,6 +691,8 @@ export function measureLifecycleProof(tools: GodotProofTools): readonly GodotPro
           ),
         );
       });
+      // The SceneTree enters what React registered before its first iteration.
+      godot_node_enter_pending();
       flushSync(() => startupRoot.unmount());
     } finally {
       startupDom.window.close();

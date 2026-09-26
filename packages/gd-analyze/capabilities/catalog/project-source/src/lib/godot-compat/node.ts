@@ -1108,18 +1108,14 @@ export function godot_node_tree_signal(self: object, name: 'tree_entered' | 'tre
 // --- The mounted scene forest.
 
 /**
- * Seats generated script attachments on a mounted native tree and enters it: every root and its
- * subtree enter parent-first, then every root readies children-first, in the order given (autoloads,
- * then the main scene, as `Main::start` adds them to the root, `main/main.cpp:4495-4560`). The
- * release exits them in reverse.
+ * Seats generated script attachments on a mounted native tree without entering it: each node's
+ * class is recorded and each script binding adopted, as `SceneState::instantiate` makes the nodes
+ * and sets their scripts before anything enters the tree (`scene/resources/packed_scene.cpp:318`).
  *
  * @godot Node (protocol)
- * @source main/main.cpp:4495
+ * @source scene/resources/packed_scene.cpp:318
  */
-export function mountGodotScriptForest(
-  roots: readonly object[],
-  bindings: readonly GodotScriptLifecycleBinding[],
-): () => void {
+export function seatGodotScriptForest(roots: readonly object[], bindings: readonly GodotScriptLifecycleBinding[]): void {
   const owners = new Set<object>();
   const natives = new Set<object>();
   for (const binding of bindings) {
@@ -1147,17 +1143,109 @@ export function mountGodotScriptForest(
     const { native: entity, ...rest } = binding;
     godot_node_adopt(entity, { binding: rest });
   }
+}
+
+/** Exits, children in reverse first, the roots still inside the tree, last root first. */
+function exitRoots(roots: readonly object[]): void {
+  for (let index = roots.length - 1; index >= 0; index -= 1) {
+    const root = roots[index] as object;
+    if (stateOf(root).insideTree) propagateExitTree(root);
+  }
+}
+
+/**
+ * Seats generated script attachments on a mounted native tree and enters it at once: every root and
+ * its subtree enter parent-first, then every root readies children-first, in the order given. The
+ * release exits them in reverse.
+ *
+ * @godot Node (protocol)
+ * @source main/main.cpp:4495
+ */
+export function mountGodotScriptForest(
+  roots: readonly object[],
+  bindings: readonly GodotScriptLifecycleBinding[],
+): () => void {
+  seatGodotScriptForest(roots, bindings);
   for (const root of roots) propagateEnterTree(root);
   for (const root of roots) propagateReady(root);
   let mounted = true;
   return () => {
     if (!mounted) return;
     mounted = false;
-    for (let index = roots.length - 1; index >= 0; index -= 1) {
-      const root = roots[index] as object;
-      if (stateOf(root).insideTree) propagateExitTree(root);
-    }
+    exitRoots(roots);
   };
+}
+
+/**
+ * What React registered and the SceneTree has not yet entered: the project's startup forest (its
+ * roots enter as given, autoloads then the main scene) and scenes React mounted later.
+ */
+const PENDING: { readonly roots: readonly object[]; readonly startup: boolean }[] = [];
+
+/**
+ * Registers a mounted native forest (React's part: its nodes and script bindings are seated now);
+ * the SceneTree enters it at the start of its next iteration (`godot_node_enter_pending`). A
+ * `startup` forest is the project's (`Main::start` adds the autoloads, then the main scene, to the
+ * root, `main/main.cpp:4495-4764`): each root enters, then each readies. Any other forest enters
+ * where React placed it, below a node inside the tree; one React holds outside the tree (an
+ * instantiated scene) enters when a script adds it (`add_child`). The release exits what is still
+ * inside the tree, as the tree's teardown does (`SceneTree::finalize`, `scene_tree.cpp:629`).
+ *
+ * @godot Node (protocol)
+ * @source main/main.cpp:4764
+ */
+export function godot_node_register_forest(
+  roots: readonly object[],
+  bindings: readonly GodotScriptLifecycleBinding[],
+  startup: boolean,
+): () => void {
+  seatGodotScriptForest(roots, bindings);
+  const entry = { roots, startup };
+  PENDING.push(entry);
+  return () => {
+    const index = PENDING.indexOf(entry);
+    if (index >= 0) PENDING.splice(index, 1);
+    exitRoots(roots);
+  };
+}
+
+/**
+ * When `root` is not yet inside the tree but hangs below a node that is: the highest node between
+ * them (a container that is not a node is passed over) and that node.
+ */
+function enteringTop(root: object): { readonly top: object; readonly parent: object } | undefined {
+  if (NODE.get(root)?.insideTree === true) return undefined;
+  let top = root;
+  for (let parent = parentEntity(root); parent !== null; parent = parentEntity(parent)) {
+    if (NODE.get(parent)?.insideTree === true) return { top, parent };
+    if (!FOREIGN.has(parent) && (NODE.has(parent) || nameOf(parent) !== '')) top = parent;
+  }
+  return undefined;
+}
+
+/**
+ * Enters what React registered since the last iteration: the startup forest's roots enter, then
+ * ready; a later scene enters (and readies under a ready parent) from its top node below the tree,
+ * as `add_child` enters a child (`scene/main/node.cpp:341-362`). The SceneTree runs it before an
+ * iteration's first step.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:341
+ */
+export function godot_node_enter_pending(): void {
+  while (PENDING.length > 0) {
+    const { roots, startup } = PENDING.shift() as { readonly roots: readonly object[]; readonly startup: boolean };
+    if (startup) {
+      const entering = roots.filter((root) => NODE.get(root)?.insideTree !== true);
+      for (const root of entering) propagateEnterTree(root);
+      for (const root of entering) propagateReady(root);
+      continue;
+    }
+    for (const root of roots) {
+      const entering = enteringTop(root);
+      if (entering !== undefined) enterTree(entering.top, entering.parent);
+    }
+  }
 }
 
 /**
