@@ -670,6 +670,9 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
   private listeners = new Set<() => void>();
   private boxEditSessions = new Map<string, CanvasBoxEditSession>();
   private lockedIds = new Set<string>();
+  /** Godot's Group: a click on any node inside a grouped one selects the group. Session-local, as
+   *  the lock is. */
+  private groupedIds = new Set<string>();
 
   constructor(
     private readonly root: Container,
@@ -721,8 +724,10 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
     const surface = opts.surface;
     if (surface) {
       this.pickable = {
-        pick: (clientX, clientY) =>
-          this.projector.pick(clientX, clientY, (id) => this.isPickLocked(id)),
+        pick: (clientX, clientY) => {
+          const hit = this.projector.pick(clientX, clientY, (id) => this.isPickLocked(id));
+          return hit ? this.groupOf(hit) : hit;
+        },
         candidates: (clientX, clientY) =>
           this.projector.candidates(clientX, clientY, (id) => this.isPickLocked(id)),
       };
@@ -1505,12 +1510,19 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
     properties: (id) => [
       ...this.target.properties(id),
       { path: 'locked', label: 'Locked', type: 'boolean', group: 'Visibility' },
+      { path: 'grouped', label: 'Grouped', type: 'boolean', group: 'Visibility' },
     ],
-    get: (id, path) => (path === 'locked' ? this.lockedIds.has(id) : this.target.get(id, path)),
+    get: (id, path) =>
+      path === 'locked'
+        ? this.lockedIds.has(id)
+        : path === 'grouped'
+          ? this.groupedIds.has(id)
+          : this.target.get(id, path),
     set: (id, path, value) => {
-      if (path === 'locked') {
-        if (value === true) this.lockedIds.add(id);
-        else this.lockedIds.delete(id);
+      if (path === 'locked' || path === 'grouped') {
+        const set = path === 'locked' ? this.lockedIds : this.groupedIds;
+        if (value === true) set.add(id);
+        else set.delete(id);
         this.notify();
         return;
       }
@@ -1519,6 +1531,17 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
     },
     remove: (id, path) => this.target.remove?.(id, path),
   };
+
+  /** The outermost grouped node that contains `id`, or `id` itself when none does. */
+  private groupOf(id: string): string {
+    let group = id;
+    let current: string | null = id;
+    while (current) {
+      if (this.groupedIds.has(current)) group = current;
+      current = this.projector.node(current)?.parentId ?? null;
+    }
+    return group;
+  }
 
   private isPickLocked(id: string): boolean {
     let current: string | null = id;
@@ -1543,6 +1566,7 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
   dispose(): void {
     this.boxEditSessions.clear();
     this.lockedIds.clear();
+    this.groupedIds.clear();
     for (const object of this.watchedForStructure) {
       object.off('childAdded', this.onStructureChanged);
       object.off('childRemoved', this.onStructureChanged);

@@ -40,17 +40,22 @@ not a render.
 |---|---|---|
 | Header: connection, room name, room id, session, entities | Monitor's Room status line | present |
 | msgs and bytes in/out, with sparklines | Godot's Down/Up | present |
-| Traffic table (type; in and out counts and bytes) | Godot's RPC and synchronizer tables | present; state and patches are rows of the same table |
-| State tree, its numbers, strings and booleans editable on the server | Monitor's State tab; Godot's Remote tree | present: an edit goes through Monitor's `_editStateProperty` on the room server (walked: the player's `x` typed as 9 read 9 on the server) |
-| Message log with Pause, Clear and a type filter | Godot's Start/Stop and Clear | present, always recording |
-| Send (type, JSON payload) | Monitor's Send | into the room as this client (walked on a workbench carrying the focus gate: `position` with `{"x":3,"y":0,"z":2}` moved the player to (3, 2) on the server, and typing "dddddddd" into the field left the running game's player where it was) |
+| Traffic table (type; in and out counts and bytes) | Godot's RPC and synchronizer tables | partial: one row per message type (state and patches included); no breakdown by entity or schema, no count and size ranges |
+| State tree, its numbers, strings and booleans editable on the server | Monitor's State tab; Godot's Remote tree | partial: an edit goes through Monitor's `_editStateProperty` (walked: the player's `x` typed as 9 read 9 on the server); the tree is this client's copy, and Monitor's delete is not offered |
+| Message log with Pause, Clear and a type filter | Godot's Start/Stop and Clear | partial: always recording, and Pause and Clear touch the log only, not the Traffic totals |
+| Send as this client (type, JSON payload) | (neither reference: Monitor's Send goes from the server to a client) | into the room as this client (walked on a workbench carrying the focus gate: `position` with `{"x":3,"y":0,"z":2}` moved the player to (3, 2) on the server, and typing "dddddddd" into the field left the running game's player where it was) |
 | Ping, and its round trip | (neither reference; Unity's multiplayer tools show RTT) | present: the SDK's own PING frame through the game's socket (walked: 2 ms on loopback) |
 | Conditioner: latency and jitter, both directions, in order | Unity's network simulator | present; loss is stated as not simulated, because a WebSocket resends what it loses. Not walked: its fields are scrub controls the document door's drag does not move |
 | Server: rooms (name, id, clients, lock, age), connections, CPU, memory, state size; the current room's clients with Disconnect | Monitor's room list and Clients tab | present, read from Monitor's own API on the room server, which the editor's `server` configuration turns on (`VGAI_ROOM_MONITOR=1`; a production start leaves Monitor off). Walked: Disconnect took this client's connection to disconnected |
+| Player name (the adapter's identity, when it offers one) | (neither reference) | the Colyseus observer offers none, so it does not render |
 | Run configuration `play + server`, and the Instances picker of a compound | Godot's multiple-instance run | present |
 
 ## Gaps, the work order
 
-1. Send to one client from the server's side (Monitor's per-client Send), beside Send as this client.
-2. The schema's types beside the state tree (Godot's Replication panel shows what replicates; a
-   Colyseus schema states it in the server's code).
+Judged against the references by an independent reviewer on 2026-09-26, ranked:
+
+1. Monitor's server-side acts: Broadcast, Send to one client, Dispose a room, inspect another room,
+   delete a state key.
+2. A Replication view: which fields the schema syncs, and their types (Godot's Replication panel).
+3. Traffic by entity or schema with count and size ranges, and a Clear that resets it (Godot's two
+   profiler tables).

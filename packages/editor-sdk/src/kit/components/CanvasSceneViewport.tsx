@@ -3,6 +3,7 @@ import {
   faCheck,
   faExpand,
   faHand,
+  faLayerGroup,
   faLock,
   faLockOpen,
   faRulerCombined,
@@ -605,6 +606,7 @@ export function CanvasSceneControls({
           </IconButton>
         </Tooltip>
         <CanvasSceneLockButton adapter={adapter} selected={[...store.selectedEntityIds]} />
+        <CanvasSceneGroupButton adapter={adapter} selected={[...store.selectedEntityIds]} />
         <CanvasSceneViewMenu
           documentId={documentId}
           view={view}
@@ -860,5 +862,31 @@ function CanvasSceneModeLayer({
         </>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * Group the selected node with its children — Godot's 2D toolbar Group: a click on any node inside
+ * it then selects the group (`grouped`, beside `locked`; the hierarchy still reaches every child).
+ */
+function CanvasSceneGroupButton({ adapter, selected }: { adapter: AuthoringAdapter | undefined; selected: readonly string[] }) {
+  const id = selected.length === 1 ? selected[0]! : null;
+  const offered = id !== null && adapter?.inspector?.properties(id).some((property) => property.path === 'grouped') === true;
+  const grouped = id !== null && adapter?.inspector?.get(id, 'grouped') === true;
+  const label = grouped ? 'Ungroup selected node' : 'Group selected node with its children';
+  return (
+    <Tooltip text={id ? label : 'Select one node to group it'}>
+      <IconButton
+        aria-label={label}
+        aria-pressed={grouped}
+        size="comfortable"
+        disabled={!offered || !adapter?.inspector?.set}
+        onClick={() => {
+          if (id) adapter?.inspector?.set?.(id, 'grouped', !grouped);
+        }}
+      >
+        <EditorIcon icon={faLayerGroup} size="md" />
+      </IconButton>
+    </Tooltip>
   );
 }
