@@ -1,7 +1,8 @@
 {
   "description": "Music composed as code with the editor's DAW, delivered as mastered audio. Adds @volter/dawproject (a piece is a React component of DAWproject elements) and @volter/editor-dawproject (the piece document, the renderer and the checks), the vgai-music skill, and src/lib/music/music-player.ts, which plays a render's loops, section loops switched on the bar line, stems and stingers through the game's own Web Audio graph. Select the finder in vgai.adapter.ts: { finder: 'piecesFromModules', include: ['src/music/**/*.tsx'] }.",
   "files": [
-    "src/lib/music/music-player.ts"
+    "src/lib/music/music-player.ts",
+    "src/tools/music-render.tool.ts"
   ],
   "id": "music",
   "packageJson": {
@@ -15,5 +16,5 @@
     "vgai-music"
   ],
   "title": "Music (rendered pieces)",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }
