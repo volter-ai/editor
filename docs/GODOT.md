@@ -266,6 +266,75 @@ unrounded `cos`) produce 23 mismatches and write nothing. One finding: GDScript'
 generator merges `-0.0` into an earlier `0.0` constant in the same function
 (`gdscript_byte_codegen.h:107`), so each case runs in its own function.
 
+## The output is idiomatic three.js (owner ruling, 2026-09-26)
+
+The owner's words: "we're supposed to be writing idiomatic threejs while using godot compat
+runtime for the godot lib stuff."
+
+A translated game reads like a game written by hand in React Three Fiber, and the editor
+authors it like one. Scenes are ordinary JSX: transforms as `position`/`rotation`/`scale`
+props, geometry and materials as child elements with literal args, lights and cameras with
+three's own props, physics through `@react-three/rapier`'s components. Values are converted at
+import into three's units and written as literals. The godot-compat runtime is what the
+translated scripts call for Godot's API (`rotate_y`, `move_and_slide`, `Input`, signals,
+timers) and the frame clock that runs Godot's callbacks. It never builds or configures the
+scene the JSX already states.
+
+The same scene, as it must be emitted:
+
+```tsx
+export function MainScene() {
+  const ball = useRef<Mesh>(null);
+  useGodotScript(ball, Spin, { speed: 1.5 });   // script attachment: the runtime's one door
+  return (
+    <group name="Main">
+      <directionalLight name="Sun" position={[0, 4, 0]} rotation={[-Math.PI / 4, 0, 0]} intensity={3.77} />
+      <PerspectiveCamera name="Camera" makeDefault position={[0, 2, 6]} rotation={[-0.347, 0, 0]} fov={75} near={0.05} far={4000} />
+      <RigidBody name="Floor" type="fixed" colliders={false}>
+        <CuboidCollider args={[2, 0.1, 2]} />
+        <mesh name="Mesh">
+          <planeGeometry args={[4, 4]} />
+          <meshStandardMaterial color="#cc4d33" />
+        </mesh>
+      </RigidBody>
+      <mesh name="Ball" ref={ball} position={[0, 1, 0]}>
+        <sphereGeometry args={[0.5, 64, 32]} />
+        <meshStandardMaterial />
+      </mesh>
+    </group>
+  );
+}
+```
+
+What follows from the ruling:
+
+- **A family maps to three's idiom first.** A primitive mesh is three's matching geometry with
+  Godot's parameters. A material is three's material with converted colours. A light's energy
+  and range become three's intensity and distance, computed at import. Where three's geometry
+  or shading differs from Godot's (vertex order, UV seams, shading model), the difference is a
+  recorded `render-mapping` deviation, not a reason to build the object imperatively. Only a
+  Godot resource with no three equivalent becomes a compat component used as JSX (for example
+  `<GodotCylinderMesh .../>`), and it still reads as a React element.
+- **Compat reads the scene; it does not own it.** A Node3D's Godot transform is read from the
+  Object3D's own `position`, `quaternion` and `scale` (float32 at read). `matrixAutoUpdate`
+  stays on. Godot-only state (the euler/scale split, groups, process mode) lives in compat's
+  WeakMaps, seeded from the JSX. A body is the `RigidBody` the JSX declares, and compat's
+  physics protocol drives it through its API.
+- **Scripts attach through one hook.** An authored export value is a prop of that hook. `$Path`
+  lookups resolve over the mounted tree, so node names in JSX are Godot's names.
+- **Project data is data.** The input map and settings are JSON files the world imports, and
+  they hold only the actions the project defines or uses.
+- **Scripts stay as they are.** Classes over Godot API calls into compat are the ruling's "godot
+  compat runtime for the godot lib stuff".
+
+Audit against the ruling (2026-09-26): the emitted scenes contradict it throughout. Every node
+is adopted and configured in a `useLayoutEffect` through compat setters, resources are built at
+module scope through compat constructors, every transform is a `matrix` with
+`matrixAutoUpdate={false}`, bodies are compat-owned instead of `@react-three/rapier`, and
+`world.tsx` inlines all 91 built-in input actions. That list is the work order: the scene
+emitter and the families' scene rules are rewritten to this shape. It is proven first on the
+worked example above, then carried to each family.
+
 ## Scene structure
 
 What a `.tscn` says about structure, independent of any node class, lowers as follows. Each row
