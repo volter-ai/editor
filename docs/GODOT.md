@@ -193,6 +193,11 @@ delegates to the C library is the browser's (the `platform-libm` comparator). A 
 (`RenderingServer`, `PhysicsServer3D`, `DisplayServer`) may therefore have a module, but only for
 its public members: each is a `BINDING` onto three's renderer settings, Rapier or the browser,
 cited to the web platform's code path. It never reimplements the server.
+The same rule decides renderer features the Compatibility renderer ignores: they draw as it draws
+them. `GeometryInstance3D.transparency` is stored and read back but draws nothing on the web,
+because the Compatibility renderer never reads the instance's `force_alpha`
+(`drivers/gles3/rasterizer_scene_gles3.cpp:1477`, and `rendering_method.web` is fixed to
+`gl_compatibility`, `main/main.cpp:2644`); the material keeps its opacity.
 
 **Comparators.** A claim compares native and target with one named comparator, and a
 tolerance records the measured maximum:
