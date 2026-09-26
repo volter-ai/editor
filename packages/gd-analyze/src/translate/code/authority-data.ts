@@ -58,6 +58,10 @@ export const GODOT_AUTOLOAD_REFERENCE_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/src/translate/emit/direct-autoload-syntax.ts',
   'packages/gd-analyze/src/translate/emit/direct-scene-lifecycle-syntax.ts',
   'packages/gd-analyze/src/translate/emit/direct-scene-syntax.ts',
+  'packages/gd-analyze/src/translate/data/scene-families.ts',
+  'packages/gd-analyze/src/translate/emit/scene-family-elements.ts',
+  'packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts',
+  'packages/gd-analyze/src/translate/artifacts/plan.ts',
   'packages/gd-analyze/src/translate/emit/target-ts-printer.ts',
   'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/react-lifecycle.tsx',
 ] as const;

@@ -22,7 +22,7 @@ import { godot_node_duplicate_state } from './node';
  */
 export function godot_directional_light_3d_mount(self: DirectionalLight): void {
   godot_directional_light_3d_aim(self);
-  godot_light_3d_mount(self, { 9: 100, 13: 0.8, 14: 2, 20: 100000, 3: 1 });
+  godot_light_3d_mount(self);
 }
 
 const AIMED = new WeakSet<DirectionalLight>();

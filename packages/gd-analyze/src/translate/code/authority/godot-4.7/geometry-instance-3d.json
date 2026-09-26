@@ -70,7 +70,7 @@
         "observedOutputSha256": "39b8a1c16a0efd27c5f1d0186d15fd14fab724cfa2ea50183ce6e7fd151cab8d"
       },
       "target": {
-        "implementationSha256": "3292484751e6ee4639f4b01ee0353d3f32a3bdd0d583e0a10b1a96e2d1e2645d",
+        "implementationSha256": "b3d6cf1d1869bba38532d6adf557b5f64d7d6e8f03d3ac4dad1ad15d87562f9b",
         "callsite": "lib/godot-compat/geometry-instance-3d.ts get_cast_shadows_setting",
         "observedOutputSha256": "39b8a1c16a0efd27c5f1d0186d15fd14fab724cfa2ea50183ce6e7fd151cab8d"
       },
@@ -109,7 +109,7 @@
         "observedOutputSha256": "bdef47903b755fc6aa1f0a319d7f602503c6fd31ce9e3e2d326ae462d5909964"
       },
       "target": {
-        "implementationSha256": "3292484751e6ee4639f4b01ee0353d3f32a3bdd0d583e0a10b1a96e2d1e2645d",
+        "implementationSha256": "b3d6cf1d1869bba38532d6adf557b5f64d7d6e8f03d3ac4dad1ad15d87562f9b",
         "callsite": "lib/godot-compat/geometry-instance-3d.ts set_cast_shadows_setting",
         "observedOutputSha256": "bdef47903b755fc6aa1f0a319d7f602503c6fd31ce9e3e2d326ae462d5909964"
       },
@@ -136,7 +136,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "24ebd91bf01f62529490e50f86eafcc85100808d7ef0316341b9dd79cf239a09",
-      "implementationSha256": "3292484751e6ee4639f4b01ee0353d3f32a3bdd0d583e0a10b1a96e2d1e2645d"
+      "implementationSha256": "b3d6cf1d1869bba38532d6adf557b5f64d7d6e8f03d3ac4dad1ad15d87562f9b"
     },
     {
       "claimId": "godot-4.7-binding-GeometryInstance3D.set_cast_shadows_setting",
@@ -144,7 +144,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "298c5e426860cbb85e1cf36789f7f6a1bdd42f3bc60a0198f27ef26d2ea081aa",
-      "implementationSha256": "3292484751e6ee4639f4b01ee0353d3f32a3bdd0d583e0a10b1a96e2d1e2645d"
+      "implementationSha256": "b3d6cf1d1869bba38532d6adf557b5f64d7d6e8f03d3ac4dad1ad15d87562f9b"
     }
   ]
 }

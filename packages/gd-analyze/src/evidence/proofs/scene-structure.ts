@@ -182,7 +182,7 @@ const MOUNT = `import { createElement, act } from 'react';
 import * as THREE from 'three';
 import { createRoot, extend } from '@react-three/fiber';
 import { MainScene } from './src/scenes/main';
-import { is_in_group, godot_is_native, godot_node_is_spatial, godot_node_object } from './src/lib/godot-compat/node';
+import { get_children, get_name, is_in_group, godot_is_native, godot_node_is_spatial, godot_node_object } from './src/lib/godot-compat/node';
 import { get_global_transform } from './src/lib/godot-compat/node-3d';
 import { get_fov, get_near, get_far } from './src/lib/godot-compat/camera-3d';
 
@@ -221,7 +221,9 @@ const walk = (path, object) => {
   row.groups = GROUPS.filter((group) => is_in_group(object, group));
   if (className === 'Camera3D') row.camera = [bits(get_fov(object)), bits(get_near(object)), bits(get_far(object))];
   rows.push(row);
-  for (const child of object.children) walk(path === '.' ? child.name : path + '/' + child.name, child);
+  // The Node protocol's children: a container the JSX did not author as a node (drei's camera
+  // renders one) is not one.
+  for (const child of get_children(object)) walk(path === '.' ? get_name(child) : path + '/' + get_name(child), child);
 };
 const main = holder.current.children[0];
 walk('.', main);

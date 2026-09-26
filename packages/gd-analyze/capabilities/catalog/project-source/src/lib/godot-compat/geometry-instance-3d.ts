@@ -7,7 +7,8 @@
  * unless its setting is `SHADOW_CASTING_SETTING_OFF`, and every instance receives shadows (the
  * scene shader samples them for every lit surface), which three enables with `receiveShadow`.
  * `SHADOWS_ONLY` (cast, not drawn) draws in three as well: three draws no shadow for a hidden
- * object.
+ * object. A scene's mesh states its casting as three's `castShadow`, which the setting reads back
+ * until a script sets it.
  */
 
 import type { Object3D } from 'three';
@@ -40,5 +41,5 @@ export function set_cast_shadows_setting(self: Object3D, setting: number): void 
  * @source scene/3d/visual_instance_3d.cpp:379
  */
 export function get_cast_shadows_setting(self: Object3D): number {
-  return SETTING.get(self) ?? 1;
+  return SETTING.get(self) ?? (self.castShadow ? 1 : 0);
 }

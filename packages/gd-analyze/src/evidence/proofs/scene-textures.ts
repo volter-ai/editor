@@ -5,8 +5,10 @@
  * nearest without repeat), imported by official Godot and read back through Godot's getters (each
  * texture's image: width, height, format, mipmap count and the SHA-256 of every byte; each
  * material's filter and repeat flag), against the components the production pipeline emits for the
- * same project, mounted in Node by @react-three/fiber with the images fetched from their copies,
- * read through compat's getters.
+ * same project, mounted in Node by @react-three/fiber with the images fetched from their copies:
+ * a material's map read from three (its image through compat's texture registry, its sampler
+ * against the GL filters the Compatibility renderer sets for the material's filter), a canvas
+ * item's texture through compat's getters.
  */
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
@@ -133,11 +135,9 @@ import { createRequire } from 'node:module';
 import * as THREE from 'three';
 import { createRoot, extend } from '@react-three/fiber';
 import * as IMG from './src/lib/godot-compat/image';
-import * as B from './src/lib/godot-compat/base-material-3d';
 import * as T2D from './src/lib/godot-compat/texture-2d';
 import * as TR from './src/lib/godot-compat/texture-rect';
 import * as S from './src/lib/godot-compat/sprite-2d';
-import { get_surface_override_material } from './src/lib/godot-compat/mesh-instance-3d';
 import { godot_resource_loader_settled } from './src/lib/godot-compat/resource-loader';
 
 const require = createRequire(import.meta.url);
@@ -169,12 +169,19 @@ const root = createRoot(canvas);
 await root.configure({ gl, size: { width: 64, height: 64, top: 0, left: 0 }, frameloop: 'never' });
 const holder = { current: null };
 await act(async () => { root.render(createElement('group', { ref: holder }, createElement(MainScene, { name: 'Main' }))); });
+// The scene suspends while its materials' textures load.
+for (let wait = 0; wait < 1000 && holder.current.children.length === 0; wait += 1) {
+  await act(async () => { await new Promise((resolve) => setTimeout(resolve, 10)); });
+}
 const main = holder.current.children[0];
 const find = (name) => main.getObjectByName(name);
 const rows = {};
+const FILTER = { 1003: 'NEAREST', 1006: 'LINEAR', 1005: 'NEAREST_MIPMAP_LINEAR', 1008: 'LINEAR_MIPMAP_LINEAR', 1004: 'NEAREST_MIPMAP_NEAREST', 1007: 'LINEAR_MIPMAP_NEAREST' };
+const WRAP = { 1000: 'REPEAT', 1001: 'CLAMP_TO_EDGE' };
 for (const name of ['Tiles', 'Spark']) {
-  const m = get_surface_override_material(find(name), 0);
-  rows[name] = [B.get_texture_filter(m), B.get_flag(m, 16), image(B.get_texture(m, 0))];
+  // The sampler three was given, and the image its map holds.
+  const map = find(name).material.map;
+  rows[name] = [[FILTER[map.magFilter], FILTER[map.minFilter], WRAP[map.wrapS], WRAP[map.wrapT]], image(map)];
 }
 rows.Base = image(TR.get_texture(find('Base')));
 rows.Jump = image(S.get_texture(find('Jump')));
@@ -196,6 +203,19 @@ function mountedTextures(out: string): unknown {
     throw new Error(`mounting the emitted scene failed: ${run.error?.message ?? ''}\n${run.stdout}\n${run.stderr}`);
   }
   return JSON.parse(line.slice('TEXTURES '.length)) as unknown;
+}
+
+/**
+ * The GL filters and wraps the Compatibility renderer sets for a material's `texture_filter`
+ * (`TextureStorage::gl_set_filter`, `texture_storage.h:252`, `use_nearest_mip_filter` off) over an
+ * image of `mipmaps` levels, and its repeat flag (`gl_set_repeat`).
+ */
+function samplerOf(filter: number, mipmaps: number, repeat: boolean): readonly string[] {
+  const nearest = filter === 0 || filter === 2 || filter === 4;
+  const mag = nearest ? 'NEAREST' : 'LINEAR';
+  const min = filter <= 1 || mipmaps <= 1 ? mag : nearest ? 'NEAREST_MIPMAP_LINEAR' : 'LINEAR_MIPMAP_LINEAR';
+  const wrap = repeat ? 'REPEAT' : 'CLAMP_TO_EDGE';
+  return [mag, min, wrap, wrap];
 }
 
 export async function measureSceneTexturesProof(tools: GodotProofTools): Promise<readonly GodotProofMeasurement[]> {
@@ -260,8 +280,16 @@ export async function measureSceneTexturesProof(tools: GodotProofTools): Promise
     if (run.error !== undefined || line === undefined) {
       throw new Error(`native textures probe failed: ${run.error?.message ?? ''}\n${run.stdout}\n${run.stderr}`);
     }
-    const native = JSON.parse(line.slice('TEXTURES '.length)) as unknown;
-    const nativeJson = JSON.stringify(canonical(native));
+    const native = JSON.parse(line.slice('TEXTURES '.length)) as Readonly<Record<string, readonly unknown[]>>;
+    // A material's filter and repeat flag as the GL sampler the Compatibility renderer sets for it.
+    const expected = Object.fromEntries(
+      Object.entries(native).map(([name, row]) => {
+        if (name !== 'Tiles' && name !== 'Spark') return [name, row];
+        const [filter, repeat, image] = row as [number, boolean, readonly unknown[]];
+        return [name, [samplerOf(filter, (image[3] as number) + 1, repeat), image]];
+      }),
+    );
+    const nativeJson = JSON.stringify(canonical(expected));
     const targetJson = JSON.stringify(canonical(target));
     const comparison = JSON.stringify({ native: nativeJson, target: targetJson, equal: nativeJson === targetJson });
     return [

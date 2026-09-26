@@ -10,6 +10,7 @@ import {
   directGodotSettingsJson,
 } from '../emit/direct-project-world-syntax';
 import type { DirectGodotSceneModulePlan } from '../data/direct-scene-module-plan';
+import { godotArrayMeshData, godotArrayMeshDataPath } from '../data/scene-families';
 import { assetCopyArtifact } from './asset-copy';
 import { capabilityCopyArtifact } from './capability-copy';
 import { plannedArtifactIdentity, structuralDigest } from './identity';
@@ -91,6 +92,20 @@ function sourceArtifacts(
   return [...plannedCode, ...plannedScenes];
 }
 
+/** Each `ArrayMesh`'s data file, once however many scenes use it. */
+function meshDataArtifacts(composition: DirectGodotProjectCompositionPlan): readonly GodotPlannedArtifact[] {
+  const written = new Map<string, GodotPlannedArtifact>();
+  for (const scene of composition.scenes) {
+    for (const resource of scene.resources) {
+      if (resource.mesh === undefined) continue;
+      const file = godotArrayMeshDataPath(scene.targetPath, resource.key);
+      if (written.has(file)) continue;
+      written.set(file, projectDataJsonArtifact(file, godotArrayMeshData(resource.mesh) as unknown as DirectJsonValue, [scene.sourceResPath]));
+    }
+  }
+  return [...written.values()];
+}
+
 function projectArtifacts(
   plan: DirectGodotProjectDataPlan,
   composition: DirectGodotProjectCompositionPlan,
@@ -105,6 +120,7 @@ function projectArtifacts(
     ),
     projectDataJsonArtifact(DIRECT_GODOT_SETTINGS_PATH, directGodotSettingsJson(composition) as DirectJsonValue, sourcePaths),
     projectDataJsonArtifact(DIRECT_GODOT_INPUT_MAP_PATH, directGodotInputMapJson(composition) as DirectJsonValue, sourcePaths),
+    ...meshDataArtifacts(composition),
     projectDataJsonArtifact('vgai.project.json', plan.manifest, sourcePaths),
     projectDataJsonArtifact('package.json', plan.packageManifest, sourcePaths),
     projectDataJsonArtifact('package-lock.json', plan.packageLock, sourcePaths),

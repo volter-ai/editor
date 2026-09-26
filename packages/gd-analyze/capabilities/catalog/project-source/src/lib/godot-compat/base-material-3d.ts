@@ -35,11 +35,13 @@ import {
   MeshBasicMaterial,
   MeshStandardMaterial,
   MultiplyBlending,
+  NoColorSpace,
   LinearSRGBColorSpace,
   NormalBlending,
   SubtractiveBlending,
 } from 'three';
 import { construct as color, type Color } from './color';
+import { get_image, godot_texture_2d_image } from './texture-2d';
 
 const f32 = Math.fround;
 
@@ -118,8 +120,8 @@ const MAPS = new WeakMap<Texture, Map<string, Texture>>();
  * The albedo texture as the material samples it: one three texture per sampler state over the
  * same image (`gl_set_filter`, `gl_set_repeat`; mipmaps only when the image has them).
  */
-function sampledMap(texture: Texture, filter: number, repeat: boolean): Texture {
-  const key = `${String(filter)}:${String(repeat)}`;
+function sampledMap(texture: Texture, filter: number, repeat: boolean, flipY = false, srgb = true): Texture {
+  const key = `${String(filter)}:${String(repeat)}:${String(flipY)}:${String(srgb)}`;
   let variants = MAPS.get(texture);
   if (variants === undefined) {
     variants = new Map();
@@ -130,17 +132,33 @@ function sampledMap(texture: Texture, filter: number, repeat: boolean): Texture 
     map = texture.clone();
     map.source = texture.source;
     variants.set(key, map);
+    // The variant is the same texture resource: its image is the texture's.
+    godot_texture_2d_image(map, () => get_image(texture));
   }
+  map.flipY = flipY;
   const mipmapped = texture.mipmaps !== undefined && texture.mipmaps.length > 1;
   const nearest = filter === 0 || filter === 2 || filter === 4;
   map.magFilter = nearest ? NearestFilter : LinearFilter;
   map.minFilter = filter <= 1 || !mipmapped ? map.magFilter : nearest ? NearestMipmapLinearFilter : LinearMipmapLinearFilter;
   map.wrapS = repeat ? RepeatWrapping : ClampToEdgeWrapping;
   map.wrapT = map.wrapS;
-  map.colorSpace = SRGBColorSpace;
+  map.colorSpace = srgb ? SRGBColorSpace : NoColorSpace;
   map.generateMipmaps = false;
   map.needsUpdate = true;
   return map;
+}
+
+/**
+ * A texture sampled as a material of the scene samples it (its `texture_filter` and
+ * `FLAG_USE_TEXTURE_REPEAT`), for three's own geometry: three's UVs put their origin at the image's
+ * bottom row where Godot's put it at the top, so the image is uploaded flipped. A colour texture
+ * (`source_color`, the albedo) is decoded from sRGB; a data texture (roughness) is not.
+ *
+ * @godot BaseMaterial3D (protocol)
+ * @source drivers/gles3/storage/texture_storage.h:255
+ */
+export function godot_base_material_3d_scene_map(texture: Texture, filter: number, repeat: boolean, srgb = true): Texture {
+  return sampledMap(texture, filter, repeat, true, srgb);
 }
 
 /** The parameters onto a three material of the class the shading mode selects. */

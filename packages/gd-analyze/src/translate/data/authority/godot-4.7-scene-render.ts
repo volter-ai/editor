@@ -1,8 +1,9 @@
 /**
  * Render node families: mesh instances over primitive meshes and materials, directional and omni
- * lights. Their own proof (`src/evidence/proofs/scene-render.ts`) builds a scene of them natively
- * and reads each node back through Godot's getters (mesh arrays, material and light parameters),
- * against the emitted component mounted in Node and read through compat's getters.
+ * lights, written as three's own elements (`emit/scene-family-elements.ts`). Their own proof
+ * (`src/evidence/proofs/scene-render.ts`) builds a scene of them natively and reads each node back
+ * through Godot's getters (surface arrays, material and light parameters), against the emitted
+ * scene mounted in Node and read from its three objects.
  */
 import {
   GODOT_4_7_PROOF_REPRODUCTION_COMMAND,
@@ -35,7 +36,6 @@ export const GODOT_4_7_RENDER_NODE_RULES: readonly (GodotSceneNodeRule & { reado
     sourceRevision: REVISION,
     nativeCanonicalIdentity: identityOf('MeshInstance3D'),
     targetKind: 'three-mesh',
-    mount: { module: 'lib/godot-compat/geometry-instance-3d', exportName: 'godot_geometry_instance_3d_mount' },
     evidenceClaimId: 'godot-4.7-scene-node-mesh-instance-3d',
     source: { file: 'scene/3d/mesh_instance_3d.cpp', symbol: 'MeshInstance3D::MeshInstance3D', line: 951 },
   },
@@ -43,7 +43,6 @@ export const GODOT_4_7_RENDER_NODE_RULES: readonly (GodotSceneNodeRule & { reado
     sourceRevision: REVISION,
     nativeCanonicalIdentity: identityOf('DirectionalLight3D'),
     targetKind: 'three-directional-light',
-    mount: { module: 'lib/godot-compat/directional-light-3d', exportName: 'godot_directional_light_3d_mount' },
     evidenceClaimId: 'godot-4.7-scene-node-directional-light-3d',
     source: { file: 'scene/3d/light_3d.cpp', symbol: 'DirectionalLight3D::DirectionalLight3D', line: 612 },
   },
@@ -51,7 +50,6 @@ export const GODOT_4_7_RENDER_NODE_RULES: readonly (GodotSceneNodeRule & { reado
     sourceRevision: REVISION,
     nativeCanonicalIdentity: identityOf('OmniLight3D'),
     targetKind: 'three-point-light',
-    mount: { module: 'lib/godot-compat/omni-light-3d', exportName: 'godot_omni_light_3d_mount' },
     evidenceClaimId: 'godot-4.7-scene-node-omni-light-3d',
     source: { file: 'scene/3d/light_3d.cpp', symbol: 'OmniLight3D::OmniLight3D', line: 661 },
   },
@@ -122,12 +120,12 @@ function renderClaim(canonicalIdentity: string, claimId: string, source: Source)
     },
     target: {
       implementationSha256: RENDER_IDENTITIES.implementation,
-      callsite: 'emitted scene components mounted by @react-three/fiber, read through compat getters',
+      callsite: 'emitted idiomatic scene mounted by @react-three/fiber, read from its three geometries, materials and lights',
       observedOutputSha256: RENDER_IDENTITIES.observed,
     },
     comparison: {
-      comparator: 'canonical render state (mesh arrays, material and light parameters) exact equality',
-      tolerance: 'exact',
+      comparator: 'classes, layers, shadows, shape, material and light parameters exact; colours, surface arrays and light aim as named render mappings',
+      tolerance: 'colour-quantization 0.005, primitive-geometry and primitive-uv 1.5e-4, sphere-pole-u half a segment, light-direction 1e-6; cylinder-uv-layout recorded',
       resultSha256: RENDER_IDENTITIES.comparison,
     },
     reproductionCommand: GODOT_4_7_PROOF_REPRODUCTION_COMMAND,

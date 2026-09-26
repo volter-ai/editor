@@ -1,5 +1,7 @@
 import * as path from 'node:path';
 import { idiomaticSceneSourceFile } from './idiomatic-scene-syntax';
+import { type FamilyEmission, familyElement, familyEmission, familyImports } from './scene-family-elements';
+import { godotFamilyCarriesNode } from '../data/scene-families';
 import type {
   TargetTsExpression,
   TargetTsJsxAttribute,
@@ -88,6 +90,8 @@ export function directGodotScenePropertyAttributes(
 }
 
 interface SceneEmission {
+  /** The carried families' elements, their loaders and imports. */
+  readonly family: FamilyEmission;
   readonly nodeRefs: ReadonlyMap<string, string>;
   /** The generated component of each instanced scene, by source path. */
   readonly instanceComponents: ReadonlyMap<string, string>;
@@ -124,7 +128,11 @@ function nodeElement(
 ): TargetTsJsxElementShape {
   let tag: string;
   const defaults: TargetTsJsxAttribute[] = [];
-  switch (node.targetKind) {
+  const family = familyElement(emission.family, node);
+  if (family !== undefined) {
+    tag = family.tag;
+    defaults.push(...family.attributes);
+  } else switch (node.targetKind) {
     case 'three-group':
     case 'three-node':
       tag = 'group';
@@ -226,7 +234,10 @@ function nodeElement(
             },
           ]),
       ...defaults,
-      ...node.properties.flatMap(directGodotScenePropertyAttributes),
+      // A carried family's element states its own properties; the transform is the scene's.
+      ...node.properties
+        .filter((property) => family === undefined || property.targetKind.startsWith('three-'))
+        .flatMap(directGodotScenePropertyAttributes),
       ...(forwardedProps === undefined
         ? []
         : [
@@ -237,6 +248,7 @@ function nodeElement(
           ]),
     ],
     children: [
+      ...(family?.children ?? []),
       ...node.children.map((child) => ({
         kind: 'jsx-element-child' as const,
         ...nodeElement(child, emission),
@@ -523,11 +535,48 @@ function setterCall(
   };
 }
 
-/** Every setter the scene calls, on its nodes and on its resources. */
-function sceneSetters(scene: DirectGodotProjectCompositionPlan['scenes'][number]): TargetGodotSceneSetterPlan[] {
-  const result: TargetGodotSceneSetterPlan[] = scene.resources.flatMap((resource) => [...resource.setters]);
+/** Whether a node is written by a carried family's element, which states its properties itself. */
+function carried(node: DirectGodotSceneNodePlan): boolean {
+  return node.targetKind !== 'scene-instance' && node.targetKind !== 'imported-scene' && godotFamilyCarriesNode(node.classes[0] ?? '');
+}
+
+/**
+ * The resources the scene constructs: those a setter the scene calls receives (a carried family's
+ * element states its own), with the resources they receive in turn, in plan order.
+ */
+function constructedResources(scene: DirectGodotProjectCompositionPlan['scenes'][number]): DirectGodotProjectCompositionPlan['scenes'][number]['resources'] {
+  const byKey = new Map(scene.resources.map((resource) => [resource.key, resource] as const));
+  const used = new Set<string>();
+  const use = (setters: readonly TargetGodotSceneSetterPlan[]): void => {
+    for (const setter of setters) {
+      if (setter.value.kind !== 'resource' || used.has(setter.value.key)) continue;
+      used.add(setter.value.key);
+      const resource = byKey.get(setter.value.key);
+      if (resource === undefined) continue;
+      use(resource.setters);
+      for (const surface of resource.mesh?.surfaces ?? []) {
+        if (surface.material !== undefined && !used.has(surface.material)) {
+          used.add(surface.material);
+          use(byKey.get(surface.material)?.setters ?? []);
+        }
+      }
+    }
+  };
   const walk = (node: DirectGodotSceneNodePlan): void => {
-    result.push(...node.setters, ...(node.model?.overrides ?? []).flatMap((override) => [...override.setters]));
+    if (!carried(node)) use(node.setters);
+    for (const override of node.model?.overrides ?? []) use(override.setters);
+    for (const child of childNodes(node)) walk(child);
+  };
+  walk(scene.root);
+  return scene.resources.filter((resource) => used.has(resource.key));
+}
+
+/** Every setter the scene calls, on its nodes and on the resources it constructs. */
+function sceneSetters(scene: DirectGodotProjectCompositionPlan['scenes'][number]): TargetGodotSceneSetterPlan[] {
+  const result: TargetGodotSceneSetterPlan[] = constructedResources(scene).flatMap((resource) => [...resource.setters]);
+  const walk = (node: DirectGodotSceneNodePlan): void => {
+    if (!carried(node)) result.push(...node.setters);
+    result.push(...(node.model?.overrides ?? []).flatMap((override) => [...override.setters]));
     for (const child of childNodes(node)) walk(child);
   };
   walk(scene.root);
@@ -565,18 +614,23 @@ function sceneSourceFile(
       module: moduleSpecifier(scene.targetPath, target.targetPath),
     });
   }
-  const resourceNames = new Map(scene.resources.map((resource, index) => [resource.key, `$resource_${String(index)}`] as const));
+  const constructed = constructedResources(scene);
+  const resourceNames = new Map(constructed.map((resource, index) => [resource.key, `$resource_${String(index)}`] as const));
+  const family = familyEmission(scene.targetPath, scene.resources);
   const emission: SceneEmission = {
+    family,
     resourceNames,
     nodeRefs,
     instanceComponents: new Map([...instanceComponents].map(([resPath, entry]) => [resPath, entry.exportName])),
   };
+  // The tree first: the carried families' elements register their loaders and imports.
+  const rootExpression = nodeExpression(scene.root, emission, 'props');
     /** Godot adds a node's groups when the scene is instantiated, before it enters the tree
    * (`SceneState::instantiate`, packed_scene.cpp:511); a node's class, and a plain Node's being
    * non-spatial, hold from its creation. */
   // Resources: constructed once when the module is evaluated (a scene's resources are loaded with
   // it and shared by its instances), each authored property set by its setter.
-  const resourceStatements: TargetTsStatement[] = scene.resources.flatMap((resource) => {
+  const resourceStatements: TargetTsStatement[] = constructed.flatMap((resource) => {
     const name = resourceNames.get(resource.key) as string;
     return [
       {
@@ -624,12 +678,12 @@ function sceneSourceFile(
   const threeTypes = new Set<string>();
   const collectTypes = (node: DirectGodotSceneNodePlan): void => {
     const three = THREE_CLASS[node.targetKind];
-    if (three !== undefined && (node.mount !== undefined || node.setters.length > 0)) threeTypes.add(three);
+    if (three !== undefined && !carried(node) && (node.mount !== undefined || node.setters.length > 0)) threeTypes.add(three);
     for (const child of childNodes(node)) collectTypes(child);
   };
   collectTypes(scene.root);
   const renderImports: TargetTsStatement[] = [
-    ...scene.resources.map((resource) => [resource.construct.module, resource.construct.exportName, resource.className].join('\0')),
+    ...constructed.map((resource) => [resource.construct.module, resource.construct.exportName, resource.className].join('\0')),
   ]
     .filter((entry, index, all) => all.indexOf(entry) === index)
     .map((entry) => {
@@ -770,7 +824,7 @@ function sceneSourceFile(
                               },
                             },
                           ]),
-                      ...node.setters.map((setter) => setterCall(setter, nativeEntity(entity, node.targetKind), resourceNames)),
+                      ...(carried(node) ? [] : node.setters.map((setter) => setterCall(setter, nativeEntity(entity, node.targetKind), resourceNames))),
                     ];
                   }).concat(
                     // An instance root's overrides without a JSX rule: its setters, once the instanced
@@ -980,6 +1034,7 @@ function sceneSourceFile(
     statements: [
       ...imports,
       ...renderImports,
+      ...familyImports(family),
       ...resourceStatements,
       ...autoloadContextStatements,
       {
@@ -988,6 +1043,7 @@ function sceneSourceFile(
         modifiers: ['export'],
         parameters: [{ name: 'props', type: groupPropsType() }],
         body: [
+          ...family.hooks,
           ...(autoloadReferences.length === 0
             ? []
             : [
@@ -1058,7 +1114,7 @@ function sceneSourceFile(
           ...(bindings.length === 0 || rootNodeRef === undefined
             ? []
             : [directGodotSceneLifecycleEffect(bindings, rootNodeRef, connectionStatements(scene, bindings, nodeRefs))]),
-          { kind: 'return-statement', expression: nodeExpression(scene.root, emission, 'props') },
+          { kind: 'return-statement', expression: rootExpression },
         ],
       },
     ],

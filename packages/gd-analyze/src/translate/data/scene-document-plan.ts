@@ -11,6 +11,12 @@ import type { GodotValue } from '../../read/godot-value';
 import { ARRAY_MESH_PRIMITIVE } from '../../read/array-mesh';
 import { readGodot4Surfaces } from '../../read/godot4-surfaces';
 import { isImportedResourceId } from '../../read/instance-expansion';
+import {
+  godotArrayMeshRefusal,
+  godotFamilyCarriesNode,
+  godotFamilyCarriesResource,
+  godotFamilyRefusal,
+} from './scene-families';
 import { type SceneSetterLookup, type TargetSceneValue, targetSceneValue } from './scene-setters';
 import {
   type GodotCompatExport,
@@ -487,6 +493,11 @@ function planResource(
   if (data.type === 'ArrayMesh') {
     const mesh = arrayMeshPlan(context, `${at}(${key})`, data, nestedScope);
     if (mesh === undefined) return undefined;
+    const unjoined = godotArrayMeshRefusal(mesh);
+    if (unjoined !== undefined) {
+      refuse(context, `${at}(${key})`, `${unjoined} has no three geometry`, 'resource', 'ArrayMesh');
+      return undefined;
+    }
     context.evidence.add(rule.evidenceClaimId);
     const planned = { key, className: data.type, construct: rule.construct, mesh, setters: [], evidenceClaimId: rule.evidenceClaimId };
     document.planned.set(key, planned);
@@ -501,6 +512,11 @@ function planResource(
     else setters.push(setter);
   }
   if (!ok) return undefined;
+  const unstated = godotFamilyRefusal(data.type, 'resource', setters);
+  if (unstated !== undefined) {
+    refuse(context, `${at}(${key})`, unstated, 'property', `${data.type}.${unstated.split(' ')[0] ?? ''}`);
+    return undefined;
+  }
   context.evidence.add(rule.evidenceClaimId);
   const planned = { key, className: data.type, construct: rule.construct, setters, evidenceClaimId: rule.evidenceClaimId };
   document.planned.set(key, planned);
@@ -726,6 +742,11 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
   const groups = groupsOf(context, node);
   const placed = placement(context, node);
   if (!ok || rule === undefined || properties === undefined || groups === undefined || placed === undefined) {
+    return undefined;
+  }
+  const unstated = godotFamilyRefusal(node.class.nativeName, 'node', setters);
+  if (unstated !== undefined) {
+    refuse(context, at, unstated, 'property', `${node.class.nativeName}.${unstated.split(' ')[0] ?? ''}`);
     return undefined;
   }
   return {
@@ -1074,6 +1095,22 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
     resources: context.document.order,
     connections,
   };
+  // A Camera3D states `current` as the scene's default camera, which the camera first in tree order
+  // is anyway (`Camera3D::_notification`, camera_3d.cpp:195, makes the first to enter current); a
+  // later camera authored current has no element to say so.
+  const cameras: TargetGodotSceneNodePlan[] = [];
+  const findCameras = (node: TargetGodotSceneNodePlan): void => {
+    if (node.classes[0] === 'Camera3D') cameras.push(node);
+    for (const child of node.children) findCameras(child);
+  };
+  findCameras(root);
+  const laterCurrent = cameras.slice(1).find((camera) =>
+    camera.setters.some((entry) => entry.setter.exportName === 'set_current' && entry.value.kind === 'bool' && entry.value.value),
+  );
+  if (laterCurrent !== undefined) {
+    refuse(context, `${scene.resPath}#${laterCurrent.nodePath}.current`, 'a Camera3D current after the first in tree order', 'property', 'Camera3D.current');
+    return undefined;
+  }
   const idiomatic = idiomaticRefusal(document) === undefined && structure(context, scene.resPath, 'idiomatic-scene');
   return idiomatic ? { ...document, idiomatic: true } : document;
 }
@@ -1084,16 +1121,10 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
  */
 const IDIOMATIC_NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   Node3D: [],
-  MeshInstance3D: ['set_mesh', 'set_surface_override_material'],
-  DirectionalLight3D: ['set_param:0', 'set_color'],
-  Camera3D: ['set_fov', 'set_near', 'set_far', 'set_current'],
   StaticBody3D: [],
   CollisionShape3D: ['set_shape'],
 };
 const IDIOMATIC_RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
-  PlaneMesh: ['set_size'],
-  SphereMesh: ['set_radius', 'set_height', 'set_radial_segments', 'set_rings'],
-  StandardMaterial3D: ['set_albedo', 'set_metallic', 'set_roughness'],
   BoxShape3D: ['set_size'],
 };
 
@@ -1101,6 +1132,8 @@ const IDIOMATIC_RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = 
 export function idiomaticRefusal(plan: Omit<TargetGodotSceneDocumentPlan, 'idiomatic'>): string | undefined {
   if (plan.connections.length > 0) return 'connections';
   for (const resource of plan.resources) {
+    // A carried family's resource plans only with the properties its element states.
+    if (godotFamilyCarriesResource(resource.className)) continue;
     const allowed = IDIOMATIC_RESOURCE_SETTERS[resource.className];
     if (allowed === undefined) return `resource ${resource.className}`;
     const setter = resource.setters.find((entry) => !allowed.includes(entry.setter.exportName));
@@ -1109,14 +1142,16 @@ export function idiomaticRefusal(plan: Omit<TargetGodotSceneDocumentPlan, 'idiom
   const walk = (node: TargetGodotSceneNodePlan, parentClass: string | undefined): string | undefined => {
     const className = node.classes[0];
     if (className === undefined || node.instance !== undefined || node.model !== undefined) return `node ${node.nodePath}`;
-    const allowed = IDIOMATIC_NODE_SETTERS[className];
+    const carried = godotFamilyCarriesNode(className);
+    const allowed = carried ? [] : IDIOMATIC_NODE_SETTERS[className];
     if (allowed === undefined) return `class ${className}`;
     if (node.groups.length > 0 || node.unique === true || (node.placements ?? []).length > 0) return `node ${node.nodePath}`;
     if (className === 'CollisionShape3D' && parentClass !== 'StaticBody3D') return 'a collision shape outside a static body';
-    const property = node.properties.find((entry) => entry.propertyName !== 'transform');
+    const property = carried ? undefined : node.properties.find((entry) => entry.propertyName !== 'transform');
     if (property !== undefined) return `${className}.${property.propertyName}`;
     const setter = node.setters.find(
-      (entry) => !allowed.includes(entry.setter.exportName) && !allowed.includes(`${entry.setter.exportName}:${String(entry.index)}`),
+      (entry) =>
+        !carried && !allowed.includes(entry.setter.exportName) && !allowed.includes(`${entry.setter.exportName}:${String(entry.index)}`),
     );
     if (setter !== undefined) return `${className}.${setter.propertyName}`;
     for (const child of node.children) {

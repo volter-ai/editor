@@ -78,13 +78,48 @@ function srgbToLinear(value: number): number {
   return value < f32(0.04045) ? f32(value * f32(1 / 12.92)) : f32(Math.pow(f32((value + 0.055) * (1 / 1.055)), f32(2.4)));
 }
 
+/** `Color::linear_to_srgb` (`core/math/color.h:198`), in float. */
+function linearToSrgb(value: number): number {
+  return value < f32(0.0031308) ? f32(12.92 * value) : f32(f32(1.055 * f32(Math.pow(value, f32(1 / 2.4)))) - 0.055);
+}
+
+/**
+ * A light's parameters: its own once a script or a class constructor set them, else a scene's
+ * light read back from what its element states (energy from three's intensity, the colour from
+ * three's, an omni light's range and attenuation from its distance and decay, the shadow), over
+ * the parameters its class starts with.
+ */
 function stateOf(self: Light): LightState {
   let state = STATE.get(self);
   if (state === undefined) {
-    state = { color: color(1, 1, 1, 1), params: initialParams(), shadow: false, skyMode: 0 };
+    const params = classParams(self);
+    params[PARAM_ENERGY] = f32(self.intensity / Math.PI);
+    if (self instanceof PointLight) {
+      params[PARAM_RANGE] = f32(self.distance);
+      params[PARAM_ATTENUATION] = f32(self.decay);
+    }
+    state = {
+      color: color(linearToSrgb(self.color.r), linearToSrgb(self.color.g), linearToSrgb(self.color.b), 1),
+      params,
+      shadow: self.castShadow,
+      skyMode: 0,
+    };
     STATE.set(self, state);
   }
   return state;
+}
+
+/**
+ * The parameters a light's class starts with: Light3D's, and for a directional light shadow max
+ * distance 100, fade start 0.8, normal bias 2, intensity 100000 and specular 1 over them
+ * (`DirectionalLight3D::DirectionalLight3D`, `light_3d.cpp:612`).
+ */
+function classParams(self: Light): number[] {
+  const params = initialParams();
+  if ((self as { readonly isDirectionalLight?: boolean }).isDirectionalLight === true) {
+    for (const [param, value] of [[9, 100], [13, 0.8], [14, 2], [20, 100000], [3, 1]] as const) params[param] = f32(value);
+  }
+  return params;
 }
 
 function apply(self: Light, state: LightState): void {
@@ -103,14 +138,15 @@ function apply(self: Light, state: LightState): void {
 }
 
 /**
- * A light as its class creates it, with the parameters its constructor sets over Light3D's.
+ * A light as its class creates it: Light3D's parameters, and a directional light's own over them
+ * (`DirectionalLight3D::DirectionalLight3D`, `light_3d.cpp:612`).
  *
  * @godot Light3D (protocol)
  * @source scene/3d/light_3d.cpp:463
  */
-export function godot_light_3d_mount(self: Light, overrides: Readonly<Record<number, number>> = {}): void {
-  const state = stateOf(self);
-  for (const [param, value] of Object.entries(overrides)) state.params[Number(param)] = f32(value);
+export function godot_light_3d_mount(self: Light): void {
+  const state: LightState = { color: color(1, 1, 1, 1), params: classParams(self), shadow: false, skyMode: 0 };
+  STATE.set(self, state);
   apply(self, state);
 }
 

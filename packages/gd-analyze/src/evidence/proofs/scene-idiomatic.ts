@@ -317,7 +317,8 @@ state = {
     speed: N.godot_node_object(ball).speed,
     camera: [scene().__r3f?.root.getState().camera === camera, f32(camera.fov), f32(camera.near), f32(camera.far)],
     energy: f32(sun.intensity / Math.PI),
-    sphere: [f32(sphere.radius), sphere.widthSegments, sphere.heightSegments],
+    // Three's sphere has a band more than Godot's rings (Godot's builder makes rings + 2 rows).
+    sphere: [f32(sphere.radius), sphere.widthSegments, sphere.heightSegments - 1],
     plane: [f32(plane.width), f32(plane.height), facing],
     collider: [...half, floorClass],
     colour: '#' + colour.getHexString(),

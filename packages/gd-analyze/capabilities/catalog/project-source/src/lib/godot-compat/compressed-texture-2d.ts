@@ -19,7 +19,9 @@
  * image.
  */
 
+import { use } from 'react';
 import { DataTexture, RGBAFormat, type Texture, UnsignedByteType } from 'three';
+import { godot_base_material_3d_scene_map } from './base-material-3d';
 import { godot_image_decode, godot_image_fix_alpha_edges, godot_image_generate_mipmaps, godot_image_premultiply_alpha, type Image } from './image';
 import { godot_resource_loader_track } from './resource-loader';
 import { godot_texture_2d_emit_changed, godot_texture_2d_image, godot_texture_2d_size } from './texture-2d';
@@ -124,4 +126,40 @@ export function godot_compressed_texture_2d_load(url: string, options: GodotText
       .then((buffer) => godot_compressed_texture_2d_import(texture, new Uint8Array(buffer), options)),
   );
   return texture;
+}
+
+interface SceneLoad {
+  readonly texture: Texture;
+  readonly loaded: Promise<void>;
+}
+
+const SCENE_LOADS = new Map<string, SceneLoad>();
+
+/**
+ * A scene's imported image, as a component loads it: the texture of the copied file at `url`,
+ * imported with the importer's options once for every scene that uses it (Godot's resource cache),
+ * the component suspended until it is; with `sampler`, the variant a material samples.
+ *
+ * @godot CompressedTexture2D (protocol)
+ * @source core/io/resource_loader.cpp:725
+ */
+export function useGodotTexture(
+  url: string,
+  options: GodotTextureImport,
+  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb?: boolean },
+): Texture {
+  const key = `${url}\0${String(options.fixAlphaBorder)}:${String(options.premultAlpha)}:${String(options.mipmaps)}`;
+  let load = SCENE_LOADS.get(key);
+  if (load === undefined) {
+    const texture = godot_compressed_texture_2d_new();
+    load = {
+      texture,
+      loaded: fetch(url)
+        .then((response) => response.arrayBuffer())
+        .then((buffer) => godot_compressed_texture_2d_import(texture, new Uint8Array(buffer), options)),
+    };
+    SCENE_LOADS.set(key, load);
+  }
+  use(load.loaded);
+  return sampler === undefined ? load.texture : godot_base_material_3d_scene_map(load.texture, sampler.filter, sampler.repeat, sampler.srgb ?? true);
 }

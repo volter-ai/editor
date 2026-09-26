@@ -6,14 +6,10 @@
  * `@react-three/rapier` components, and each script attached by compat's `useGodotScript`. Node
  * names are Godot's, so `$Path` resolves over the mounted tree.
  *
- * The conversions (each a `render-mapping` the scene-idiomatic proof measures):
- * - a Transform3D is decomposed into position, XYZ Euler rotation and scale (a basis with shear has
- *   no such form and is refused by name);
- * - a light's energy is three's intensity times pi (three's physically based light units);
- * - a colour is its sRGB hex (8 bits a channel);
- * - a PlaneMesh is three's plane turned to face +Y as Godot's does; a SphereMesh three's sphere
- *   with Godot's radius, radial segments and rings;
- * - a BoxShape3D is a cuboid collider of half its size.
+ * The carried node families (meshes, materials, lights, cameras) are written by their elements
+ * (`scene-family-elements.ts`), with the conversions each names; a Transform3D is decomposed into
+ * position, XYZ Euler rotation and scale (a basis with shear has no such form and is refused by
+ * name); a BoxShape3D is a cuboid collider of half its size.
  */
 import * as path from 'node:path';
 import type {
@@ -33,35 +29,22 @@ import type {
 } from '../data/direct-project-composition-plan';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 import { directGodotSceneAutoloadContextName, directGodotSceneAutoloadReferences } from './direct-autoload-syntax';
+import {
+  attribute,
+  camelName,
+  componentsValue,
+  element,
+  type FamilyEmission,
+  familyElement,
+  familyEmission,
+  familyImports,
+  float32Literal,
+  moduleSpecifier,
+  numbers,
+  setterValue,
+  useCompat as familyUseCompat,
+} from './scene-family-elements';
 
-const f32 = Math.fround;
-
-/** The shortest decimal that reads back as this float32 value. */
-function float32Literal(value: number): number {
-  const single = f32(value);
-  if (Object.is(single, -0) || single === 0) return 0;
-  for (let digits = 1; digits <= 9; digits += 1) {
-    const candidate = Number(single.toPrecision(digits));
-    if (f32(candidate) === single) return candidate;
-  }
-  return single;
-}
-
-function literal(value: number | string | boolean | null): TargetTsExpression {
-  return { kind: 'literal-expression', value: typeof value === 'number' ? float32Literal(value) : value };
-}
-
-function numbers(values: readonly number[]): TargetTsExpression {
-  return { kind: 'array-expression', elements: values.map((value) => literal(value)) };
-}
-
-function attribute(name: string, value: TargetTsExpression): TargetTsJsxAttribute {
-  return { kind: 'jsx-expression-attribute', name, value };
-}
-
-function flag(name: string): TargetTsJsxAttribute {
-  return { kind: 'jsx-expression-attribute', name, value: { kind: 'literal-expression', value: true } };
-}
 
 /**
  * A Transform3D (the plan's column-major matrix) as `position`, XYZ `rotation` and `scale` props,
@@ -106,95 +89,26 @@ function transformAttributes(at: string, matrix: readonly number[] | undefined):
   return result;
 }
 
-/** A Godot colour's components as the sRGB hex three reads (`#rrggbb`). */
-function hexColor(components: readonly number[]): string {
-  const channel = (value: number) => Math.round(Math.min(Math.max(value, 0), 1) * 255).toString(16).padStart(2, '0');
-  return `#${components.slice(0, 3).map(channel).join('')}`;
-}
-
-function numberValue(value: TargetGodotSceneValue | undefined): number | undefined {
-  return value?.kind === 'number' ? value.value : undefined;
-}
-
-function componentsValue(value: TargetGodotSceneValue | undefined): readonly number[] | undefined {
-  return value !== undefined && 'components' in value ? value.components : undefined;
-}
-
-function setterValue(setters: readonly TargetGodotSceneSetterPlan[], exportName: string, index?: number): TargetGodotSceneValue | undefined {
-  return setters.find((entry) => entry.setter.exportName === exportName && (index === undefined || entry.index === index))?.value;
-}
-
 interface Emission {
   readonly scene: DirectGodotSceneDocumentPlan;
+  /** The carried families' elements, their loaders and imports (`scene-family-elements.ts`). */
+  readonly family: FamilyEmission;
   readonly resources: ReadonlyMap<string, TargetGodotSceneResourcePlan>;
   readonly three: Set<string>;
-  readonly drei: Set<string>;
   readonly rapier: Set<string>;
-  readonly compat: Map<string, Set<string>>;
   readonly scripts: Map<string, { readonly local: string; readonly module: string; readonly exportName: string }>;
   readonly hooks: TargetTsStatement[];
   readonly refNames: Set<string>;
   /** The scene's autoload context (`<Scene>Autoloads`), when its scripts read autoloads. */
   readonly autoloads: string | undefined;
-  /** The Camera3D Godot makes current: the authored current one, else the first in tree order. */
-  currentCamera: string | undefined;
 }
 
 function useCompat(emission: Emission, module: string, name: string): string {
-  const names = emission.compat.get(module) ?? new Set<string>();
-  names.add(name);
-  emission.compat.set(module, names);
-  return name;
+  return familyUseCompat(emission.family, module, name);
 }
 
 function resourceOf(emission: Emission, value: TargetGodotSceneValue | undefined): TargetGodotSceneResourcePlan | undefined {
   return value?.kind === 'resource' ? emission.resources.get(value.key) : undefined;
-}
-
-function element(tag: string, attributes: readonly TargetTsJsxAttribute[], children: readonly TargetTsJsxChild[] = []): TargetTsJsxChild {
-  return { kind: 'jsx-element-child', tag, attributes, children };
-}
-
-/** A mesh resource as three's geometry element. */
-function geometry(emission: Emission, resource: TargetGodotSceneResourcePlan): TargetTsJsxChild {
-  const set = resource.setters;
-  if (resource.className === 'PlaneMesh') {
-    const size = componentsValue(setterValue(set, 'set_size')) ?? [2, 2];
-    const face = useCompat(emission, 'plane-mesh', 'godot_plane_mesh_face_y');
-    return element('planeGeometry', [
-      attribute('args', numbers([size[0] as number, size[1] as number])),
-      attribute('onUpdate', { kind: 'identifier-expression', name: face }),
-    ]);
-  }
-  if (resource.className === 'SphereMesh') {
-    const radius = numberValue(setterValue(set, 'set_radius')) ?? 0.5;
-    const height = numberValue(setterValue(set, 'set_height')) ?? 1;
-    if (f32(height) !== f32(radius * 2)) throw new Error(`${resource.key}: a SphereMesh whose height is not its diameter has no three sphere`);
-    const radial = numberValue(setterValue(set, 'set_radial_segments')) ?? 64;
-    const rings = numberValue(setterValue(set, 'set_rings')) ?? 32;
-    return element('sphereGeometry', [attribute('args', numbers([radius, radial, rings]))]);
-  }
-  throw new Error(`${resource.key}: ${resource.className} has no idiomatic geometry`);
-}
-
-/** A StandardMaterial3D (or none: Godot's default material) as `<meshStandardMaterial>`. */
-function material(resource: TargetGodotSceneResourcePlan | undefined): TargetTsJsxChild {
-  if (resource === undefined) return element('meshStandardMaterial', []);
-  const set = resource.setters;
-  const albedo = componentsValue(setterValue(set, 'set_albedo'));
-  const metallic = numberValue(setterValue(set, 'set_metallic'));
-  const roughness = numberValue(setterValue(set, 'set_roughness'));
-  return element('meshStandardMaterial', [
-    ...(albedo === undefined ? [] : [attribute('color', literal(hexColor(albedo)))]),
-    ...(metallic === undefined ? [] : [attribute('metalness', literal(metallic))]),
-    ...(roughness === undefined ? [] : [attribute('roughness', literal(roughness))]),
-  ]);
-}
-
-function camelName(name: string): string {
-  const words = name.replace(/[^A-Za-z0-9]+/gu, ' ').trim().split(' ').filter((word) => word !== '');
-  const joined = words.map((word, index) => (index === 0 ? word.charAt(0).toLowerCase() + word.slice(1) : word.charAt(0).toUpperCase() + word.slice(1))).join('');
-  return /^[A-Za-z_$]/u.test(joined) ? joined : `node${joined}`;
 }
 
 function pascalName(file: string): string {
@@ -208,7 +122,8 @@ function scriptAttachment(emission: Emission, node: DirectGodotSceneNodePlan, th
   const script = node.scriptInstance;
   if (script === undefined) return [];
   let refName = camelName(node.name);
-  for (let n = 2; emission.refNames.has(refName); n += 1) refName = `${camelName(node.name)}${String(n)}`;
+  for (let n = 2; emission.family.taken.has(refName); n += 1) refName = `${camelName(node.name)}${String(n)}`;
+  emission.family.taken.add(refName);
   emission.refNames.add(refName);
   const cls = script.generatedClass;
   let local = emission.scripts.get(cls.modulePath + cls.exportName)?.local;
@@ -277,6 +192,14 @@ function scriptAttachment(emission: Emission, node: DirectGodotSceneNodePlan, th
   return [attribute('ref', { kind: 'identifier-expression', name: refName })];
 }
 
+/** The three class a carried node's element mounts, for its script's ref. */
+const THREE_TYPE: Readonly<Record<string, string>> = {
+  MeshInstance3D: 'Mesh',
+  DirectionalLight3D: 'DirectionalLight',
+  OmniLight3D: 'PointLight',
+  Camera3D: 'PerspectiveCamera',
+};
+
 function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): TargetTsJsxChild {
   const className = node.classes[0] as string;
   const at = `${emission.scene.sourceResPath}#${node.nodePath}`;
@@ -286,7 +209,7 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
   // Camera3D and Light3D): with no children and no script to read it back, its authored scale (the
   // rounding a `.tscn` rotation carries) changes nothing, and the element states none.
   const scaleless =
-    (className === 'Camera3D' || className === 'DirectionalLight3D') &&
+    (className === 'Camera3D' || className === 'DirectionalLight3D' || className === 'OmniLight3D') &&
     node.children.length === 0 &&
     node.scriptInstance === undefined;
   const transform = transformAttributes(at, matrix).filter(
@@ -296,42 +219,16 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
   switch (className) {
     case 'Node3D':
       return element('group', [name, ...scriptAttachment(emission, node, 'Group'), ...transform], children());
-    case 'MeshInstance3D': {
-      const mesh = resourceOf(emission, setterValue(node.setters, 'set_mesh'));
-      const override = resourceOf(emission, setterValue(node.setters, 'set_surface_override_material', 0));
-      const meshMaterial = mesh === undefined ? undefined : resourceOf(emission, setterValue(mesh.setters, 'set_material'));
-      return element('mesh', [name, ...scriptAttachment(emission, node, 'Mesh'), ...transform], [
-        ...(mesh === undefined ? [] : [geometry(emission, mesh), material(override ?? meshMaterial)]),
+    case 'MeshInstance3D':
+    case 'DirectionalLight3D':
+    case 'OmniLight3D':
+    case 'Camera3D': {
+      const family = familyElement(emission.family, node);
+      if (family === undefined) throw new Error(`${at}: no family element`);
+      return element(family.tag, [name, ...scriptAttachment(emission, node, THREE_TYPE[className] as string), ...transform, ...family.attributes], [
+        ...family.children,
         ...children(),
       ]);
-    }
-    case 'DirectionalLight3D': {
-      const energy = numberValue(setterValue(node.setters, 'set_param', 0)) ?? 1;
-      const color = componentsValue(setterValue(node.setters, 'set_color'));
-      return element('directionalLight', [
-        name,
-        ...scriptAttachment(emission, node, 'DirectionalLight'),
-        ...transform,
-        // Godot's light shines along its -Z; three's toward its target, which this aims.
-        attribute('onUpdate', {
-          kind: 'identifier-expression',
-          name: useCompat(emission, 'directional-light-3d', 'godot_directional_light_3d_aim'),
-        }),
-        attribute('intensity', literal(energy * Math.PI)),
-        ...(color === undefined ? [] : [attribute('color', literal(hexColor(color)))]),
-      ], children());
-    }
-    case 'Camera3D': {
-      emission.drei.add('PerspectiveCamera');
-      return element('PerspectiveCamera', [
-        name,
-        ...scriptAttachment(emission, node, 'PerspectiveCamera'),
-        ...(emission.currentCamera === node.nodePath ? [flag('makeDefault')] : []),
-        ...transform,
-        attribute('fov', literal(numberValue(setterValue(node.setters, 'set_fov')) ?? 75)),
-        attribute('near', literal(numberValue(setterValue(node.setters, 'set_near')) ?? 0.05)),
-        attribute('far', literal(numberValue(setterValue(node.setters, 'set_far')) ?? 4000)),
-      ], children());
     }
     case 'StaticBody3D': {
       if (node.scriptInstance !== undefined) throw new Error(`${at}: a script on a static body is not written idiomatically yet`);
@@ -355,12 +252,6 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
     default:
       throw new Error(`${at}: ${className} has no idiomatic element`);
   }
-}
-
-function moduleSpecifier(from: string, target: string): string {
-  const withoutExtension = target.replace(/\.[^.]+$/u, '');
-  const relative = path.posix.relative(path.posix.dirname(from), withoutExtension);
-  return relative.startsWith('.') ? relative : `./${relative}`;
 }
 
 /** The first Camera3D the scene holds, in tree order, or the one authored current. */
@@ -406,20 +297,20 @@ export function idiomaticSceneSourceFile(
     if (autoload === undefined) throw new Error(`${reference.name}: singleton ${reference.resPath} is absent from composition`);
     return autoload;
   });
+  // Godot makes the first camera to enter the viewport current when none is authored so: the
+  // main scene's first.
+  const current = cameras.authored ?? (scene.sourceResPath === project.mainScene ? cameras.first : undefined);
+  const family = familyEmission(scene.targetPath, scene.resources, current);
   const emission: Emission = {
     scene,
-    resources: new Map(scene.resources.map((resource) => [resource.key, resource] as const)),
+    family,
+    resources: family.resources,
     three: new Set(),
-    drei: new Set(),
     rapier: new Set(),
-    compat: new Map(),
     scripts: new Map(),
     hooks: [],
     refNames: new Set(),
     autoloads: autoloadReferences.length === 0 ? undefined : directGodotSceneAutoloadContextName(scene.exportName),
-    // Godot makes the first camera to enter the viewport current when none is authored so: the
-    // main scene's first.
-    currentCamera: cameras.authored ?? (scene.sourceResPath === project.mainScene ? cameras.first : undefined),
   };
   const node = nodeElement(emission, scene.root) as TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' };
   // An instancing scene's props (its name, transform, …) reach the root, and its children follow
@@ -466,7 +357,6 @@ export function idiomaticSceneSourceFile(
       },
     );
   }
-  const compatModule = (name: string) => moduleSpecifier(scene.targetPath, `src/lib/godot-compat/${name}.ts`);
   const reactNames = [
     ...(emission.autoloads === undefined ? [] : ['createContext', 'useContext']),
     ...(emission.refNames.size === 0 ? [] : ['useRef']),
@@ -491,17 +381,10 @@ export function idiomaticSceneSourceFile(
             typeOnly: true as const,
           },
         ]),
-    ...(emission.drei.size === 0
-      ? []
-      : [{ kind: 'import-statement' as const, module: '@react-three/drei', namedBindings: [...emission.drei].sort().map((name) => ({ imported: name, local: name })) }]),
     ...(emission.rapier.size === 0
       ? []
       : [{ kind: 'import-statement' as const, module: '@react-three/rapier', namedBindings: [...emission.rapier].sort().map((name) => ({ imported: name, local: name })) }]),
-    ...[...emission.compat].map(([module, names]) => ({
-      kind: 'import-statement' as const,
-      module: compatModule(module),
-      namedBindings: [...names].sort().map((name) => ({ imported: name, local: name })),
-    })),
+    ...familyImports(family),
     ...[...emission.scripts.values()].map((script) => ({
       kind: 'import-statement' as const,
       module: script.module,
@@ -570,7 +453,7 @@ export function idiomaticSceneSourceFile(
         name: scene.exportName,
         modifiers: ['export'],
         parameters: [{ name: 'props', type: props.type }],
-        body: [...emission.hooks, { kind: 'return-statement', expression: { ...root, kind: 'jsx-element-expression' } }],
+        body: [...family.hooks, ...emission.hooks, { kind: 'return-statement', expression: { ...root, kind: 'jsx-element-expression' } }],
       },
     ],
   };
