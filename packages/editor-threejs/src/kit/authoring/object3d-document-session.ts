@@ -941,7 +941,11 @@ export class Object3DDocumentSession {
       const buttons = controls.mouseButtons as Record<string, THREE.MOUSE | null | undefined>;
       let action = [buttons['LEFT'], buttons['MIDDLE'], buttons['RIGHT']][event.button] ?? null;
       const modified = event.ctrlKey || event.metaKey || event.shiftKey;
-      if (modified && action === THREE.MOUSE.ROTATE) action = THREE.MOUSE.PAN;
+      // Ctrl/Cmd on an orbiting middle button zooms (the viewport's own rule, Blender's
+      // Ctrl+MIDDLEMOUSE); Shift and the rest swap orbit and pan, as OrbitControls does.
+      if (event.button === 1 && (event.ctrlKey || event.metaKey) && action === THREE.MOUSE.ROTATE)
+        action = THREE.MOUSE.DOLLY;
+      else if (modified && action === THREE.MOUSE.ROTATE) action = THREE.MOUSE.PAN;
       else if (modified && action === THREE.MOUSE.PAN) action = THREE.MOUSE.ROTATE;
       if (action === THREE.MOUSE.ROTATE) {
         this.leaveCameraView(false);

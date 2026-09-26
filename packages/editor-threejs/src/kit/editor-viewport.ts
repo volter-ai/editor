@@ -3080,7 +3080,16 @@ export class EditorViewport {
     }
   }
 
+  /** A Ctrl/Cmd+middle drag under a keymap that orbits on the middle button zooms, as
+   *  Blender's does (`km_view3d`: `view3d.zoom` on Ctrl+MIDDLEMOUSE); OrbitControls would read
+   *  the modifier as pan. The middle button dollies for that one gesture. */
+  private _modifiedZoom = false;
+
   private readonly _onAltOrbitStart = (e: PointerEvent): void => {
+    if (e.button === 1 && (e.ctrlKey || e.metaKey) && activeKeymapNavigation().orbit === 'middle') {
+      this._modifiedZoom = true;
+      this.orbitControls.mouseButtons.MIDDLE = THREE.MOUSE.DOLLY;
+    }
     if (e.altKey && e.button === 0) {
       this._altDragOrbit = true;
       this.orbitControls.mouseButtons.LEFT = THREE.MOUSE.ROTATE;
@@ -3088,6 +3097,10 @@ export class EditorViewport {
   };
 
   private readonly _onAltOrbitRelease = (): void => {
+    if (this._modifiedZoom) {
+      this._modifiedZoom = false;
+      this.applyKeymapNavigation();
+    }
     if (this._altDragOrbit) {
       this._altDragOrbit = false;
       this.orbitControls.mouseButtons.LEFT = -1 as THREE.MOUSE;
