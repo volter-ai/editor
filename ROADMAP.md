@@ -40,10 +40,35 @@ Completion:
 
 ## game-editor-gaps: The game editor's remaining walks and gates
 
-Status: planned
+Status: active
 What `WORK.md` records as unwalked or ungated in the game editor.
 Completion:
-- Network is walked through a networking adapter.
+- A collider row is shown for a body in a running world, or the reason none can be is recorded.
+- `arena`'s port lives in a repository.
+
+## canvas-editor: A canvas (Pixi) root authored in the editor, at parity with its nearest products
+
+Status: active
+The owner brought the canvas lane back into scope (vgai-engine's `packages/canvas`, held at
+`archive/launch-scope-2026-09-20`). The bar for every UI capability is parity with its nearest real
+product, learned from that product's own UI: Figma for the design canvas, Godot's 2D editor for a game's
+2D scene. Each product's panel structure (every panel, what it owns, which controls are shortcuts to a
+home elsewhere) is written down, from the installed product, before any of ours is laid out.
+Completion:
+- A canvas root opens in Edit on a design surface and is authored through the same doors a `three` root is.
+- Every control of ours maps to its owner in the reference structure, and the surface is judged at parity with it.
+
+## netcode: A networked game observed and inspected in the editor, at parity with its nearest products
+
+Status: active
+The owner brought netcode back into scope (the catalog's `netcode` capability, held at
+`archive/launch-scope-2026-09-20`). The editor observes a game's own Colyseus client as it observes its Web
+Audio and its Rapier world, and the Network inspector is held to the same bar as the canvas editor: its
+nearest products (Colyseus Monitor, Godot's network profiler, Unity's multiplayer tools) are read from their
+own UI first.
+Completion:
+- A template game that joins a room is walked through the Network inspector: peers, replicated state, messages and rates.
+- Every control of ours maps to its owner in the reference structure, and the inspector is judged at parity with it.
 
 ## project-model-program: The project shape and settings layers on Code-OSS
 
@@ -55,7 +80,7 @@ Completion:
 
 ## design-skew: Design, a product skew
 
-Status: planned
+Status: planned (the owner took it after `canvas-editor` and `netcode`)
 Source: vgai-engine `docs/WORK.md` §Design. An editable page preview and a Figma-shaped canvas tab as the
 `website` preset; today its DOM root is read-only, its Pages list is empty, and a `page` has no document editor.
 The `pasteboard` capability its list needs is archived (`archive/launch-scope-2026-09-20`) and is restored first.
@@ -98,7 +123,7 @@ Status: proposed; after the first launch, by the owner's launch rule
 Source: vgai-engine `docs/WORK.md` §The Godot lane is ARCHIVED, §The Roblox, Unity and Minecraft lanes are ARCHIVED (owner, 2026-09-19: "incomplete lines of work that won't go into this first launch") and §The launch-scope sweep (owner, 2026-09-20: "for later"). Each line is whole at a tag in `volter-ai/vgai-engine` and comes back from it, never re-derived:
 - the engine compatibility lanes, incomplete when archived (the owner's words), each an analyzer and runtime that brings a game from that engine into VGAI: Godot (`archive/godot-lane-2026-09-19`), Roblox (`archive/roblox-lane-2026-09-19`), Unity (`archive/unity-lane-2026-09-19`) and Minecraft (`archive/minecraft-lane-2026-09-19`)
 - the example games (`archive/examples-2026-09-19`); `arena` has already come back
-- the built capabilities held out of the first launch's scope (`archive/launch-scope-2026-09-20`), not unfinished work: several are back in this repository (game audio, the ingest door, collaboration, the asset library, the multiplayer template's Colyseus server); still only at the tag are the netcode, IK, ragdoll, terrain, HUD, sprite and stylized capabilities, the AI generation providers (Fal, Tripo, World Labs, OpenRouter) and the learn site
+- the built capabilities held out of the first launch's scope (`archive/launch-scope-2026-09-20`), not unfinished work: several are back in this repository (game audio, the ingest door, collaboration, the asset library, the multiplayer template's Colyseus server); back in scope is the netcode (`netcode` above); still only at the tag are the IK, ragdoll, terrain, HUD, sprite and stylized capabilities, the AI generation providers (Fal, Tripo, World Labs, OpenRouter) and the learn site
 Completion:
 - Each line is restored from its tag when the owner calls its turn, or is retired by the owner's word.
 
