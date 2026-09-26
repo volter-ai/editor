@@ -302,6 +302,12 @@ export const GODOT_4_7_STRUCTURE_RULES: readonly (GodotSceneStructureRule & { re
   },
   {
     sourceRevision: REVISION,
+    id: 'unique-name',
+    evidenceClaimId: 'godot-4.7-scene-structure-unique-name',
+    source: { file: 'scene/main/node.cpp', symbol: 'Node::set_unique_name_in_owner', line: 2248 },
+  },
+  {
+    sourceRevision: REVISION,
     id: 'authored-order',
     evidenceClaimId: 'godot-4.7-scene-structure-order',
     source: { file: 'scene/resources/packed_scene.cpp', symbol: 'SceneState::instantiate (node order)', line: 186 },

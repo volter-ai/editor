@@ -65,19 +65,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "8c657d0cd64e6cd4111f8a7b3603559c1513e41c5c8b4bdeb547d7ca07b5e227",
+        "inputSha256": "b0f7731fd9acd48a924e0a7086005314eb08a754c6600d173a7a204993041f76",
         "callsite": "res://probe.gd _init() get_space",
         "observedOutputSha256": "1cfb2d0d1bc4491c0e787464663fa2d730ef0e5908b1b9968642c2e8e7bd75e0"
       },
       "target": {
-        "implementationSha256": "420b367474c76c0eaf1908d8e752de01cb6c62d8dbad4ecbed3eb6fb9ce51780",
+        "implementationSha256": "4534bc6339b178bb1c2fc85d8bc66855eb10d1f49ed2e25694b0ce9f9c76d954",
         "callsite": "lib/godot-compat/world-3d.ts get_space",
-        "observedOutputSha256": "acf95d3dad0a5801c9f904d010485a00ba785b114ccea5176f8f1bb69e911343"
+        "observedOutputSha256": "1cfb2d0d1bc4491c0e787464663fa2d730ef0e5908b1b9968642c2e8e7bd75e0"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: rapier-geometry",
-        "tolerance": "Rapier's query geometry: within 0.05; measured max 7.152557373046875e-7 over 1 cases",
-        "resultSha256": "1af18aa57558cc6bb747b6a01d6ab06e2e28114919918b917aae19d33cca1512"
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a47a3d0c577e9778b073897f8220631bae4d740a906f53b561410ace7d606ae7"
       },
       "reproductionCommand": [
         "npx",
@@ -104,19 +104,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "bd7938fc46df9dd6a1fab1c2db6ab3267422b01c9890fe495a7174025c46c2be",
+        "inputSha256": "bc13d70be57649cdccac4c14275bf46a4885c32c969f504a597d15bca6fd871b",
         "callsite": "res://probe.gd _init() get_direct_space_state",
         "observedOutputSha256": "7e2ee10171a9510a94b0db9a280e508a86602a8ae8450eeb9b2130cefdd9f1c8"
       },
       "target": {
-        "implementationSha256": "420b367474c76c0eaf1908d8e752de01cb6c62d8dbad4ecbed3eb6fb9ce51780",
+        "implementationSha256": "4534bc6339b178bb1c2fc85d8bc66855eb10d1f49ed2e25694b0ce9f9c76d954",
         "callsite": "lib/godot-compat/world-3d.ts get_direct_space_state",
-        "observedOutputSha256": "2912b78b1fc404caf9a2964eaf357a9c21121dca6f57337cfa2a17400f08c4e1"
+        "observedOutputSha256": "7e2ee10171a9510a94b0db9a280e508a86602a8ae8450eeb9b2130cefdd9f1c8"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: rapier-geometry",
-        "tolerance": "Rapier's query geometry: within 0.05; measured max 7.152557373046875e-7 over 1 cases",
-        "resultSha256": "14e3a1b78dbc34c9588e12c8e1b8d050331f6e99a4b764cb381b40ee49a4e443"
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "592c8605761624d006ad1debb35af6a19cccd1304891b1e8c216067f8b8fe951"
       },
       "reproductionCommand": [
         "npx",
@@ -135,16 +135,16 @@
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "8c657d0cd64e6cd4111f8a7b3603559c1513e41c5c8b4bdeb547d7ca07b5e227",
-      "implementationSha256": "420b367474c76c0eaf1908d8e752de01cb6c62d8dbad4ecbed3eb6fb9ce51780"
+      "inputSha256": "b0f7731fd9acd48a924e0a7086005314eb08a754c6600d173a7a204993041f76",
+      "implementationSha256": "4534bc6339b178bb1c2fc85d8bc66855eb10d1f49ed2e25694b0ce9f9c76d954"
     },
     {
       "claimId": "godot-4.7-binding-World3D.get_direct_space_state",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "bd7938fc46df9dd6a1fab1c2db6ab3267422b01c9890fe495a7174025c46c2be",
-      "implementationSha256": "420b367474c76c0eaf1908d8e752de01cb6c62d8dbad4ecbed3eb6fb9ce51780"
+      "inputSha256": "bc13d70be57649cdccac4c14275bf46a4885c32c969f504a597d15bca6fd871b",
+      "implementationSha256": "4534bc6339b178bb1c2fc85d8bc66855eb10d1f49ed2e25694b0ce9f9c76d954"
     }
   ]
 }

@@ -40,6 +40,8 @@ export interface TargetGodotSceneNodePlan {
   readonly classes: readonly string[];
   /** The protocol that makes the mounted entity the node its class creates. */
   readonly mount?: GodotCompatExport;
+  /** `unique_name_in_owner`: the scene root finds the node as `%Name`. */
+  readonly unique?: true;
   /** Authored properties without a JSX rule: their setters' calls on the entity at mount, in order. */
   readonly setters: readonly TargetGodotSceneSetterPlan[];
   readonly children: readonly TargetGodotSceneNodePlan[];
@@ -499,10 +501,16 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
   }
   const fields = node.scriptResPath === undefined ? new Set<string>() : context.scriptFields(node.scriptResPath);
   const setters: TargetGodotSceneSetterPlan[] = [];
+  // `unique_name_in_owner` registers the node with its owner (`Node::set_unique_name_in_owner`).
+  const uniqueValue = node.authoredProperties['unique_name_in_owner'];
+  const unique = uniqueValue?.kind === 'bool' && uniqueValue.value;
+  if (uniqueValue !== undefined && !structure(context, at, 'unique-name')) ok = false;
   const properties = planProperties(
     context,
     node,
-    Object.fromEntries(Object.entries(node.authoredProperties).filter(([name]) => !fields.has(name))),
+    Object.fromEntries(
+      Object.entries(node.authoredProperties).filter(([name]) => !fields.has(name) && name !== 'unique_name_in_owner'),
+    ),
     setters,
   );
   const groups = groupsOf(context, node);
@@ -520,6 +528,7 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
     groups,
     classes: node.class.nativeAncestry,
     ...(rule.mount === undefined ? {} : { mount: rule.mount }),
+    ...(unique ? { unique: true as const } : {}),
     setters,
     children: [],
     evidenceClaimId: rule.evidenceClaimId,

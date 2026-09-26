@@ -86,6 +86,8 @@ export type OfficialBoundLoweringRequirement =
 export interface OfficialBoundBindingUse {
   readonly target: Exclude<GodotTargetBinding, { readonly kind: 'refusal-binding' }>;
   readonly requirements: readonly OfficialBoundLoweringRequirement[];
+  /** An indexed property's accessor: the index it takes after the receiver (`ADD_PROPERTYI`). */
+  readonly index?: number;
 }
 
 export interface OfficialBoundAutoloadUse {
@@ -200,6 +202,8 @@ export class LoweringContext {
     /** The native class the script's chain extends, when it does. */
     readonly nativeBase?: string,
     readonly nativeMethods?: NativeMethodLookup,
+    /** The member variables a project script and its script ancestors declare. */
+    readonly scriptMembers?: (resPath: string) => ReadonlySet<string> | undefined,
   ) {
     const allocated = new Set([classIdentifier, ...bindings.targetLocalNames()]);
     const lexicalNames = new Map<string, string>();

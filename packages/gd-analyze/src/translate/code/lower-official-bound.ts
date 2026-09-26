@@ -457,11 +457,14 @@ export function implicitReadyChain(
  * value the call returns at run time. Every other node is the official frontend's, unchanged.
  */
 function refinedProgram(source: BoundGodotSourceScript): GodotBoundScript {
-  if (source.settingTypes.length === 0) return source.program;
+  if (source.settingTypes.length === 0 && source.refinedTypes.length === 0) return source.program;
   const types = new Map(source.settingTypes.map((entry) => [entry.nodeId, entry.builtinType] as const));
+  const refined = new Map(source.refinedTypes.map((entry) => [entry.nodeId, entry.datatype] as const));
   return {
     ...source.program,
     nodes: source.program.nodes.map((node) => {
+      const datatype = refined.get(node.id);
+      if (datatype !== undefined) return { ...node, datatype } as GodotBoundNode;
       const builtinType = types.get(node.id);
       if (builtinType === undefined) return node;
       return {
@@ -483,6 +486,25 @@ function refinedProgram(source: BoundGodotSourceScript): GodotBoundScript {
       } as GodotBoundNode;
     }),
   };
+}
+
+/** The member variables a project script and its script ancestors declare, or undefined. */
+function scriptMemberNames(project: BoundGodotProject, resPath: string): ReadonlySet<string> | undefined {
+  const script = project.scripts.find((entry) => entry.resPath === resPath);
+  if (script === undefined) return undefined;
+  const names = new Set<string>();
+  for (const path of [resPath, ...script.inheritance.scriptAncestors]) {
+    const program = project.scripts.find((entry) => entry.resPath === path)?.program;
+    const root = program?.nodes[program.rootNodeId];
+    if (program === undefined || root?.kind !== 'CLASS') return undefined;
+    for (const memberId of root.members) {
+      const member = program.nodes[memberId];
+      if (member?.kind !== 'VARIABLE' && member?.kind !== 'CONSTANT') continue;
+      const identifier = program.nodes[member.identifier];
+      if (identifier?.kind === 'IDENTIFIER') names.add(identifier.name);
+    }
+  }
+  return names;
 }
 
 function lowerScript(
@@ -526,6 +548,7 @@ function lowerScript(
     nativeConstants,
     nativeBaseOf(project, source),
     nativeMethods,
+    (resPath) => scriptMemberNames(project, resPath),
   );
   if (root.abstract) {
     context.refuse(root, 'abstract script classes need a target declaration recipe');
@@ -540,6 +563,15 @@ function lowerScript(
         layer: 'analysis',
         claimId,
         canonicalIdentity: `${project.authority.revision}\0analyze\0project-setting-type`,
+      }),
+    ),
+    // The claims that fixed datatypes the analyzer left open (refinedProgram).
+    ...[...new Map(source.refinedTypes.flatMap((entry) => entry.evidenceClaimIds.map((claimId) => [claimId, entry.rule] as const)))].map(
+      ([claimId, rule]): OfficialBoundLoweringRequirement => ({
+        kind: 'evidence-requirement',
+        layer: 'analysis',
+        claimId,
+        canonicalIdentity: `${project.authority.revision}\0analyze\0${rule}`,
       }),
     ),
   ];

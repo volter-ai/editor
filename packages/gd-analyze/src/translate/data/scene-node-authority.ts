@@ -82,7 +82,9 @@ export type GodotSceneStructureRuleId =
   | 'node-groups'
   | 'authored-order'
   /** An authored property without a JSX rule is its setter's bound call on the entity at mount. */
-  | 'property-setter';
+  | 'property-setter'
+  /** `unique_name_in_owner`: the node registers with its owner, which finds it as `%Name`. */
+  | 'unique-name';
 
 export interface GodotSceneStructureRule {
   readonly sourceRevision: string;

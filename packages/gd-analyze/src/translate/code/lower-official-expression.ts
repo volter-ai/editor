@@ -359,6 +359,44 @@ function builtinValueType(node: GodotBoundNode): boolean {
   );
 }
 
+/**
+ * Whether `member` on `node` is a native property of its object: the object is native, or a script
+ * instance whose script chain declares no such member (a script member is found first,
+ * `OPCODE_GET_NAMED`, modules/gdscript/gdscript_vm.cpp:1260).
+ */
+function nativeMemberReceiver(context: LoweringContext, node: GodotBoundNode, member: string): boolean {
+  if (nativeObjectType(node)) return true;
+  const datatype = node.datatype;
+  if ((datatype.kind !== 'CLASS' && datatype.kind !== 'SCRIPT') || datatype.metaType || datatype.scriptPath === '') return false;
+  const members = context.scriptMembers?.(datatype.scriptPath);
+  return members !== undefined && !members.has(member) && datatype.nativeType !== '';
+}
+
+/**
+ * An object value as the native entity compat's native members take (GODOT.md "Receivers are
+ * native"): a script instance's entity, or the object itself (`godot_node_entity`).
+ */
+function nativeEntity(value: LoweredExpression): LoweredExpression {
+  return {
+    ...value,
+    value: {
+      kind: 'call-expression',
+      callee: { kind: 'identifier-expression', name: 'godot_node_entity' },
+      arguments: [value.value],
+    },
+    requirements: [
+      ...value.requirements,
+      {
+        kind: 'compat-import-requirement',
+        module: 'lib/godot-compat/node',
+        imported: 'godot_node_entity',
+        local: 'godot_node_entity',
+        typeOnly: false,
+      },
+    ],
+  };
+}
+
 function nativeObjectType(node: GodotBoundNode): boolean {
   return node.datatype.kind === 'NATIVE' && !node.datatype.metaType;
 }
@@ -373,9 +411,6 @@ function nativeAccessorUse(
 ): OfficialBoundBindingUse | undefined {
   const found = context.nativeProperty(baseNode.datatype.nativeType, property);
   if (found === undefined) return undefined;
-  if (found.index !== undefined) {
-    return context.refuse(node, `${found.owner}.${property} is an indexed property; its accessors take the index`);
-  }
   const method = found[accessor];
   if (method === undefined) {
     return context.refuse(node, `${found.owner}.${property} has no ${accessor}`);
@@ -393,7 +428,9 @@ function nativeAccessorUse(
   if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'first-argument') {
     return context.refuse(node, `accessor binding ${use.target.localName} does not take its receiver first`);
   }
-  return use;
+  // An indexed property (`ADD_PROPERTYI`: `light_energy` is `set_param(PARAM_ENERGY, …)`) passes
+  // its index before the value (`Object::set` → `ClassDB::set_property`, core/object/class_db.cpp:1569).
+  return found.index === undefined ? use : { ...use, index: found.index };
 }
 
 /**
@@ -421,9 +458,6 @@ function selfNativeAccessor(
   if (base === undefined) return undefined;
   const found = context.nativeProperty(base, property);
   if (found === undefined) return undefined;
-  if (found.index !== undefined) {
-    return context.refuse(node, `${found.owner}.${property} is an indexed property; its accessors take the index`);
-  }
   const method = found[accessor];
   if (method === undefined) return context.refuse(node, `${found.owner}.${property} has no ${accessor}`);
   const use = context.bindingUse(
@@ -439,19 +473,24 @@ function selfNativeAccessor(
   if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'first-argument') {
     return context.refuse(node, `accessor binding ${use.target.localName} does not take its receiver first`);
   }
-  return use;
+  // An indexed property (`ADD_PROPERTYI`: `light_energy` is `set_param(PARAM_ENERGY, …)`) passes
+  // its index before the value (`Object::set` → `ClassDB::set_property`, core/object/class_db.cpp:1569).
+  return found.index === undefined ? use : { ...use, index: found.index };
 }
 
 function bindingCall(
   context: LoweringContext,
   node: GodotBoundNode,
-  use: OfficialBoundBindingUse,
+  use: OfficialBoundBindingUse & { readonly index?: number },
   args: readonly TargetTsExpression[],
 ): TargetTsExpression {
   return {
     kind: 'call-expression',
     callee: boundTargetExpression(use.target),
-    arguments: args,
+    arguments:
+      use.index === undefined
+        ? args
+        : [args[0] as TargetTsExpression, { kind: 'literal-expression', value: use.index }, ...args.slice(1)],
     span: span(context.script, node),
   };
 }
@@ -474,8 +513,9 @@ function valueAttributeTarget(
 ): { readonly baseNode: GodotBoundNode; readonly attribute: string } | undefined {
   if (node.kind !== 'SUBSCRIPT' || !node.isAttribute) return undefined;
   const baseNode = context.node(node.base, node);
-  if (!builtinValueType(baseNode) && !nativeObjectType(baseNode)) return undefined;
-  return { baseNode, attribute: officialBoundPropertyName(context, node.attribute, node) };
+  const attribute = officialBoundPropertyName(context, node.attribute, node);
+  if (!builtinValueType(baseNode) && !nativeMemberReceiver(context, baseNode, attribute)) return undefined;
+  return { baseNode, attribute };
 }
 
 function assignablePlace(
@@ -503,7 +543,7 @@ function assignablePlace(
     };
   }
   const { baseNode, attribute } = attributeTarget;
-  if (nativeObjectType(baseNode)) {
+  if (nativeMemberReceiver(context, baseNode, attribute)) {
     const getter = nativeAccessorUse(context, node, baseNode, attribute, 'getter');
     const setter = nativeAccessorUse(context, node, baseNode, attribute, 'setter');
     if (getter === undefined || setter === undefined) {
@@ -513,7 +553,7 @@ function assignablePlace(
       );
     }
     const rule = context.selectRule(node, ['subscript-attribute:native-property'], [baseNode], ['binding']);
-    const object = materialize(context, lower(context, baseNode));
+    const object = materialize(context, nativeEntity(lower(context, baseNode)));
     const read = materialize(context, expression(bindingCall(context, node, getter, [object.value])));
     return {
       before: [...object.before, ...read.before],
@@ -1408,7 +1448,7 @@ export function lowerOfficialExpression(
             [...rule.requirements, ...use.requirements],
           );
         }
-        if (node.isAttribute && nativeObjectType(baseNode)) {
+        if (node.isAttribute && nativeMemberReceiver(context, baseNode, officialBoundPropertyName(context, node.attribute, node))) {
           const property = officialBoundPropertyName(context, node.attribute, node);
           const getter = nativeAccessorUse(context, node, baseNode, property, 'getter');
           if (getter !== undefined) {
@@ -1417,7 +1457,7 @@ export function lowerOfficialExpression(
             ], ['binding']);
             return compose(
               context,
-              [lowerExpression(context, baseNode)],
+              [nativeEntity(lowerExpression(context, baseNode))],
               (values) => bindingCall(context, node, getter, values),
               [...rule.requirements, ...getter.requirements],
             );
@@ -1510,7 +1550,9 @@ export function lowerOfficialExpression(
                 node,
                 receiverNode.kind === 'SELF' && target.target.kind === 'compat-binding' && nativeMember
                   ? expression(selfNative(context, receiverNode), context.structural(receiverNode, 'self'))
-                  : lowerExpression(context, receiverNode),
+                  : target.target.kind === 'compat-binding' && nativeMember
+                    ? nativeEntity(lowerExpression(context, receiverNode))
+                    : lowerExpression(context, receiverNode),
                 target,
                 args,
               );

@@ -534,6 +534,15 @@ function sceneSourceFile(
           },
         ]),
   );
+  const rootEntity: TargetTsExpression = {
+    kind: 'as-expression',
+    expression: {
+      kind: 'property-expression',
+      object: { kind: 'identifier-expression', name: nodeRefs.get(scene.root.nodePath) ?? '$sceneRoot' },
+      property: 'current',
+    },
+    type: referenceType('Object3D'),
+  };
   const adoption: readonly TargetTsStatement[] =
     adopted.length === 0
       ? []
@@ -569,6 +578,12 @@ function sceneSourceFile(
                               kind: 'object-expression' as const,
                               properties: [
                                 ...(node.targetKind === 'three-node' ? [{ key: 'kind', value: literal('node') }] : []),
+                                // A scene's nodes are owned by its root (`SceneState::instantiate`,
+                                // packed_scene.cpp:570), which finds its unique ones as `%Name`.
+                                ...(node.nodePath === scene.root.nodePath
+                                  ? []
+                                  : [{ key: 'owner', value: rootEntity }]),
+                                ...(node.unique === true ? [{ key: 'unique', value: { kind: 'literal-expression' as const, value: true } }] : []),
                                 {
                                   key: 'classes',
                                   value: { kind: 'array-expression' as const, elements: node.classes.map((name) => literal(name)) },

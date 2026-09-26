@@ -88,7 +88,7 @@ export function variantTypeOfValue(value: GodotValue): string | undefined {
 }
 
 /** `Variant::Operator` values the bound program records, spelled as the API dump spells them. */
-const OPERATOR_SPELLING: Readonly<Record<number, string>> = {
+export const OPERATOR_SPELLING: Readonly<Record<number, string>> = {
   0: '==',
   1: '!=',
   2: '<',

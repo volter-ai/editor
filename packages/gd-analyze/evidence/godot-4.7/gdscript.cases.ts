@@ -1,5 +1,6 @@
-import { Group, Object3D } from 'three';
+import { Group, Object3D, PointLight } from 'three';
 import { add_child, godot_node_adopt } from '../../capabilities/catalog/project-source/src/lib/godot-compat/node';
+import { godot_omni_light_3d_mount } from '../../capabilities/catalog/project-source/src/lib/godot-compat/omni-light-3d';
 import * as V from '../../capabilities/catalog/project-source/src/lib/godot-compat/vector3';
 import type {
   GodotLanguageCase,
@@ -143,6 +144,13 @@ rule('builtin-constant', 'SUBSCRIPT', 'subscript-attribute:builtin-constant', []
   symbol: 'GDScriptAnalyzer::reduce_identifier_from_base builtin constant',
   line: 4084,
 });
+// A script instance's member variable read on another object (`t.level`): the generated
+// instance's field (`OPCODE_GET_NAMED` finds the script member before the native property).
+rule('script-member-read', 'SUBSCRIPT', 'subscript-attribute', [CLASS], B, structural('subscript-attribute'), {
+  file: 'modules/gdscript/gdscript_vm.cpp',
+  symbol: 'OPCODE_GET_NAMED (script instance member)',
+  line: 1260,
+});
 rule('member-read-builtin', 'SUBSCRIPT', 'subscript-attribute', [B], B, structural('subscript-attribute'), {
   file: COMPILER,
   symbol: 'GDScriptCompiler::_parse_expression SUBSCRIPT',
@@ -213,11 +221,16 @@ rule('object-equal', 'BINARY_OPERATOR', 'operator:OP_COMP_EQUAL:0', [NATIVE, NAT
 // ---------------------------------------------------------------------------------------------
 // The scene tree from script: `$Path`, type tests and casts on objects.
 
-rule('get-node', 'GET_NODE', 'get-node', [], NATIVE, structural('get-node'), {
-  file: COMPILER,
-  symbol: 'GDScriptCompiler::_parse_expression GET_NODE (Node.get_node on self)',
-  line: 744,
-});
+for (const [id, result] of [
+  ['get-node', NATIVE],
+  ['get-node-scripted', CLASS],
+] as const) {
+  rule(id, 'GET_NODE', 'get-node', [], result, structural('get-node'), {
+    file: COMPILER,
+    symbol: 'GDScriptCompiler::_parse_expression GET_NODE (Node.get_node on self)',
+    line: 744,
+  });
+}
 for (const [id, test, operand] of [
   ['type-test-native-on-native', 'native', NATIVE],
   ['type-test-native-on-script', 'native', CLASS],
@@ -443,7 +456,7 @@ for (const id of ['member-constant-native', 'member-constant-class', 'member-var
 
 // An Array literal is a new JS array of its elements in source order, typed or not (a typed
 // array's element checks never fail on a well-typed program the analyzer accepted).
-for (const elements of [0, 1, 2, 3, 5, 8]) {
+for (const elements of [0, 1, 2, 3, 5, 7, 8]) {
   rule(
     `array-literal-${String(elements)}`,
     'ARRAY',
@@ -492,12 +505,18 @@ rule('literal-node-path', 'LITERAL', 'literal:opaque:reduced', [], 'BUILTIN:Node
   symbol: 'GDScriptCompiler::_parse_expression LITERAL (NodePath constant)',
   line: 229,
 });
-// A native object's property (`$A.name`) reads through its API-dump getter on the object.
-rule('native-property-read-builtin', 'SUBSCRIPT', 'subscript-attribute:native-property', [NATIVE], B, { kind: 'binding' }, {
-  file: 'core/object/object.cpp',
-  symbol: 'Object::get through ClassDB property accessors',
-  line: 243,
-});
+// A native object's property (`$A.name`) reads through its API-dump getter on the object; so
+// does a script instance's, when its script declares no member of that name.
+for (const [id, receiver] of [
+  ['native-property-read-builtin', NATIVE],
+  ['native-property-read-builtin-on-script', CLASS],
+] as const) {
+  rule(id, 'SUBSCRIPT', 'subscript-attribute:native-property', [receiver], B, { kind: 'binding' }, {
+    file: 'core/object/object.cpp',
+    symbol: 'Object::get through ClassDB property accessors',
+    line: 243,
+  });
+}
 // ClassDB integer constants and enum values are their values (the API dump states them).
 for (const [name, result] of [
   ['enum', ENUM],
@@ -1106,6 +1125,8 @@ script = ExtResource("1_cases")
 
 const TAGGED_SOURCE = `class_name Tagged
 extends Node3D
+
+var level: int = 3
 `;
 
 const DERIVED_TAGGED_SOURCE = `class_name DerivedTagged
@@ -1132,6 +1153,25 @@ func scripts() -> Array:
 func nulls() -> Array:
 \tvar nothing: Node = null
 \treturn [nothing is Node, nothing is Tagged]
+
+func narrowed_members() -> Array:
+\tvar t: Node = $Tagged
+\tvar b: Node = $Body
+\tvar out := []
+\tif t is Tagged and t.level > 2:
+\t\tout.append(t.level)
+\tif b is Tagged and b.level > 2:
+\t\tout.append(-1)
+\tif t is Tagged:
+\t\tout.append(t.level + 1)
+\treturn out
+
+func scene_members() -> Array:
+\t$Tagged.position = Vector3(1.0, 2.0, 3.0)
+\t$Tagged.level = 7
+\t$Lamp.light_energy = 2.5
+\t$Lamp.omni_range = 7.0
+\treturn [$Tagged.position, $Tagged.transform.origin, $Tagged.level, $Body.name, $Lamp.light_energy, $Lamp.get_param(4), $Lamp.omni_range]
 
 func casts() -> Array:
 \tvar body: Node = $Body
@@ -1161,11 +1201,12 @@ script = ExtResource("2_tagged")
 
 [node name="Derived" type="Node3D" parent="."]
 script = ExtResource("3_derived")
+
+[node name="Lamp" type="OmniLight3D" parent="."]
 `;
 
 /** A native node as the composition site adopts it: its kind and its Godot class chain. */
-function nativeNode(name: string, classes: readonly string[], parent?: Object3D): Object3D {
-  const entity = classes.includes('Node3D') ? new Object3D() : new Group();
+function nativeNode(name: string, classes: readonly string[], parent?: Object3D, entity: Object3D = classes.includes('Node3D') ? new Object3D() : new Group()): Object3D {
   entity.name = name;
   godot_node_adopt(entity, { kind: classes.includes('Node3D') ? 'spatial' : 'node', classes });
   if (parent !== undefined) add_child(parent, entity);
@@ -1407,7 +1448,7 @@ cases.push({
   call: '',
   instance: {
     scene: 'type_cases.tscn',
-    steps: ['natives', 'scripts', 'nulls', 'casts'],
+    steps: ['natives', 'scripts', 'nulls', 'casts', 'narrowed_members', 'scene_members'],
     native: () => {
       const root = nativeNode('Root', NODE3D);
       nativeNode('Body', ['RigidBody3D', ...BODY3D], root);
@@ -1415,6 +1456,9 @@ cases.push({
       nativeNode('Plain', NODE, root);
       nativeNode('Tagged', NODE3D, root);
       nativeNode('Derived', NODE3D, root);
+      const lamp = new PointLight();
+      nativeNode('Lamp', ['OmniLight3D', 'Light3D', 'VisualInstance3D', ...NODE3D], root, lamp);
+      godot_omni_light_3d_mount(lamp);
       return root;
     },
     adopt: (instance, native, classes) => {
@@ -1457,6 +1501,7 @@ const GDSCRIPT_EVIDENCE: GodotLanguageEvidenceFile = {
     'lib/godot-compat/engine',
     'lib/godot-compat/float',
     'lib/godot-compat/global-scope',
+    'lib/godot-compat/light-3d',
     'lib/godot-compat/node',
     'lib/godot-compat/node-3d',
     'lib/godot-compat/vector3',

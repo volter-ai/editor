@@ -1,4 +1,5 @@
 import { type BoundGodotTypedValue, typeProjectSettingValues } from './project-setting-types';
+import { type BoundGodotRefinedType, type RefinedScriptInfo, refineDatatypes } from './refined-types';
 import * as path from 'node:path';
 import type {
   GodotBoundClassNode,
@@ -64,6 +65,8 @@ export interface BoundGodotSourceScript {
   readonly untypedCalls: readonly BoundGodotUntypedCall[];
   /** Variant values the project fixes the type of (`project-setting-type`). */
   readonly settingTypes: readonly BoundGodotTypedValue[];
+  /** Datatypes the project fixes where the analyzer left a node untyped (`refineDatatypes`). */
+  readonly refinedTypes: readonly BoundGodotRefinedType[];
 }
 
 export interface BoundGodotScriptFieldAttachmentValue {
@@ -1125,6 +1128,34 @@ export function bindGodotProject(
     return { nativeClass: root.className, scriptMethods: methods };
   };
   const programsByPath = new Map(code.scripts.map((program) => [program.resPath, program] as const));
+  const scriptByNode = new Map<string, string>();
+  for (const [resPath, rows] of attachmentsByScript) {
+    for (const row of rows) scriptByNode.set(`${row.documentPath}\0${row.nodePath ?? '.'}`, resPath);
+  }
+  /** A script's class name, native base, and its (and its ancestors') member variable types. */
+  const refinedScriptInfo = (resPath: string): RefinedScriptInfo | undefined => {
+    const fqcn = classes.get(resPath)?.fqcn;
+    const engineBase = inheritance.get(resPath)?.engineBase;
+    if (fqcn === undefined || engineBase === undefined) return undefined;
+    return {
+      className: fqcn.startsWith('res://') || fqcn.includes('::') ? '' : fqcn,
+      nativeBase: engineBase,
+      fieldType: (name) => {
+        for (const scriptPath of [resPath, ...(inheritance.get(resPath)?.scriptAncestors ?? [])]) {
+          const program = programsByPath.get(scriptPath);
+          const root = program?.nodes[program.rootNodeId];
+          if (program === undefined || root?.kind !== 'CLASS') continue;
+          for (const memberId of root.members) {
+            const member = program.nodes[memberId];
+            if (member?.kind !== 'VARIABLE') continue;
+            const identifier = program.nodes[member.identifier];
+            if (identifier?.kind === 'IDENTIFIER' && identifier.name === name) return member.datatype;
+          }
+        }
+        return undefined;
+      },
+    };
+  };
   const onreadyField = (resPath: string): number | undefined => {
     const program = programsByPath.get(resPath);
     return program === undefined ? undefined : firstOnreadyField(program);
@@ -1191,6 +1222,15 @@ export function bindGodotProject(
       ),
       fields: scriptFields(program, attachments, analysisEvidence),
       ...callReceiverFacts(program, attachments),
+      refinedTypes: refineDatatypes({
+        program,
+        attachments,
+        read: decoded,
+        apiDump: apiDump.parsed,
+        scriptAt: (documentPath, nodePath) => scriptByNode.get(`${documentPath}\0${nodePath}`),
+        scriptInfo: refinedScriptInfo,
+        claim: (rule) => analysisEvidence.liveClaim(rule),
+      }),
       settingTypes: typeProjectSettingValues({
         program,
         projectSettings: decoded.authoredSettings,

@@ -143,6 +143,26 @@ export function resolveScenePath(
     },
   ];
   if (path.startsWith('/')) return `absolute node path ${path} depends on the running tree`;
+  if (path.startsWith('%')) {
+    // `%Name`: the node the attachment's owner (the document root) owns with
+    // `unique_name_in_owner` (`Node::get_node_or_null`, scene/main/node.cpp:1943), whether it sits in
+    // this document's tree or is a line this document places under a node of a scene it instances.
+    const [unique, ...rest] = path.split('/');
+    const name = (unique as string).slice(1);
+    const isUnique = (properties: Readonly<Record<string, { readonly kind: string; readonly value?: unknown }>>) =>
+      properties['unique_name_in_owner']?.kind === 'bool' && properties['unique_name_in_owner'].value === true;
+    const found: string[] = [];
+    const visit = (node: SceneNode, nodePath: string): void => {
+      if (node.name === name && nodePath !== '.' && isUnique(node.properties)) found.push(nodePath);
+      for (const child of node.children) visit(child, childPath(nodePath, child.name));
+    };
+    visit(document.root, '.');
+    for (const line of document.unplacedNodes) {
+      if (line.name === name && isUnique(line.properties)) found.push(childPath(line.parentPath, line.name));
+    }
+    if (found.length !== 1) return `unique node ${unique} is ${found.length === 0 ? 'absent from' : 'ambiguous in'} ${attachment.documentPath}`;
+    return resolveScenePath(scenes, { documentPath: attachment.documentPath, nodePath: '.' }, [found[0], ...rest].join('/'));
+  }
   for (const segment of path.split('/')) {
     if (segment === '' || segment === '.') continue;
     if (segment === '..') {

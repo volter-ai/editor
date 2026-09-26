@@ -73,6 +73,7 @@ func _enter_tree() -> void:
 
 func _ready() -> void:
 \tevents.append("main_ready")
+\tevents.append(%Cam.name)
 
 func _on_placed_ready() -> void:
 \tevents.append("placed_ready")
@@ -100,6 +101,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0.2, 0.3)
 transform = Transform3D(0.36, 0.48, -0.8, -0.8, 0.6, 0, 0.48, 0.64, 0.6, 3.3, -2.2, 1.1)
 
 [node name="Cam" type="Camera3D" parent="Placed"]
+unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 5)
 fov = 60.0
 near = 0.1

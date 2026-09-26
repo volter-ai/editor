@@ -6,6 +6,10 @@
  * `typeCallReceivers` produced on the same project. A call on a node that carries a script must
  * stay untyped (Godot calls the script first).
  *
+ * The datatypes the analysis fixes (`scene-node-receiver`, `classdb-method-selection`): each
+ * `$Path` / `%Unique` node's class or script and its members' types, against Godot's
+ * `get_class()` / script path / `typeof` of the same values.
+ *
  * Calls inside `if n is A or n is B:` are typed by the narrowed classes (`type-test-narrowing`):
  * each class's ClassDB selection, when they agree.
  *
@@ -68,6 +72,22 @@ const NARROWED = [
   [['OmniLight3D', 'SpotLight3D'], 'get_param'],
 ] as const;
 
+/**
+ * Expressions whose datatype the analysis fixes (`refineDatatypes`): scene nodes by `$Path` and
+ * `%Unique` (their class, or their script when they carry one), and member reads on them (a
+ * native property's getter type, a script field's declared type).
+ */
+const REFINED = [
+  '$Level/Door',
+  '$Scripted',
+  '%Marker',
+  '$Level/Inner/Lamp.omni_range',
+  '$Level/Door.collision_layer',
+  '$Scripted.level',
+  '$Scripted.position',
+  '%Marker.gizmo_extents',
+] as const;
+
 const argumentsOf = (member: string): string => (member === 'get_param' ? '0' : '');
 
 const files: Readonly<Record<string, string>> = {
@@ -86,6 +106,9 @@ renderer/rendering_method="gl_compatibility"
 func typed_calls() -> void:
 ${CALLS.map(([nodePath, member]) => `\t$${nodePath}.${member}(${argumentsOf(member)})`).join('\n')}
 ${CHAINED.map(([base, member]) => `\t${base}.${member}()`).join('\n')}
+
+func refined_values() -> Array:
+\treturn [${REFINED.join(', ')}]
 
 func narrowed(n: Node) -> void:
 ${NARROWED.map(([classes, member]) => `\tif ${classes.map((name) => `n is ${name}`).join(' or ')}:\n\t\tn.${member}(${argumentsOf(member)})`).join('\n')}
@@ -119,10 +142,19 @@ ${NARROWED.map(
   ([classes, member]) =>
     `\trows.append([${JSON.stringify(classes.join('|'))}, ${JSON.stringify(member)}, ${JSON.stringify(classes.join('|'))}, agreed(${JSON.stringify(classes)}, ${JSON.stringify(member)}), false])`,
 ).join('\n')}
+\tvar refined := []
+\tfor value in refined_values():
+\t\tif typeof(value) == TYPE_OBJECT:
+\t\t\trefined.append(value.get_script().resource_path if value.get_script() != null else value.get_class())
+\t\telse:
+\t\t\trefined.append(type_string(typeof(value)))
+\trows.append(["refined", "", JSON.stringify(refined), "", false])
 \tprint("RECEIVERS " + JSON.stringify(rows))
 \tget_tree().quit()
 `,
   'scripted.gd': `extends Node3D
+
+var level: int = 3
 
 func shout() -> int:
 \treturn 1
@@ -171,6 +203,9 @@ script = ExtResource("1_main")
 
 [node name="Scripted" type="Node3D" parent="."]
 script = ExtResource("4_scripted")
+
+[node name="Marker" type="Marker3D" parent="Level"]
+unique_name_in_owner = true
 `,
 };
 
@@ -278,7 +313,22 @@ export function measureReceiverProof(tools: GodotProofTools): readonly GodotProo
         declaring: typed === undefined ? 'untyped' : typed.target.owner,
       };
     });
-    const target = [...pathTarget, ...chainedTarget, ...narrowedTarget];
+    // The datatype the analysis fixed for each element of refined_values()'s array.
+    const refinedArray = program.nodes.find((node) => node.kind === 'ARRAY' && node.elements.length === REFINED.length);
+    if (refinedArray?.kind !== 'ARRAY') throw new Error('main.gd has no refined_values() array');
+    const refinedTarget = refinedArray.elements.map((id) => {
+      const datatype = main.refinedTypes.find((entry) => entry.nodeId === id)?.datatype;
+      if (datatype === undefined) return 'untyped';
+      if (datatype.kind === 'CLASS' || datatype.kind === 'SCRIPT') return datatype.scriptPath;
+      if (datatype.kind === 'NATIVE') return datatype.nativeType;
+      return datatype.kind === 'ENUM' ? 'int' : datatype.builtinType;
+    });
+    const target = [
+      ...pathTarget,
+      ...chainedTarget,
+      ...narrowedTarget,
+      { path: 'refined', member: '', nodeClass: JSON.stringify(refinedTarget), declaring: '' },
+    ];
 
     // Native: the running scene.
     const run = spawnSync(officialBinary, ['--headless', '--path', temp], {

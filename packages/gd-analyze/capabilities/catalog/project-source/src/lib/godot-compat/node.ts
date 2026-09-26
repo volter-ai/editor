@@ -81,6 +81,10 @@ interface NodeState {
   internalPhysics: ((delta: number) => void) | undefined;
   /** The node's Godot class and its native ancestors, nearest first, as the scene records it. */
   classes: readonly string[] | undefined;
+  /** The scene root that owns the node (`Node::data.owner`), when a scene placed it. */
+  owner: object | undefined;
+  /** The nodes this node owns with `unique_name_in_owner`, by name (`owned_unique_nodes`). */
+  uniqueNodes: Map<string, object>;
 }
 
 const NODE = new WeakMap<object, NodeState>();
@@ -125,6 +129,8 @@ function fresh(): NodeState {
     treeEntered: createSignal<[]>(),
     treeExiting: createSignal<[]>(),
     classes: undefined,
+    owner: undefined,
+    uniqueNodes: new Map(),
     internalPhysics: undefined,
   };
 }
@@ -176,9 +182,16 @@ export function godot_node_adopt(
     readonly authority?: NativeHierarchyAuthority;
     /** The node's Godot class and its native ancestors, nearest first (`ClassDB` inheritance). */
     readonly classes?: readonly string[];
+    /** The scene root that owns the node; with `unique`, the owner finds it as `%Name`. */
+    readonly owner?: object;
+    readonly unique?: boolean;
   } = {},
 ): object {
   const state = stateOf(entity);
+  if (options.owner !== undefined) {
+    state.owner = options.owner;
+    if (options.unique === true) stateOf(options.owner).uniqueNodes.set(nameOf(entity), entity);
+  }
   if (options.kind !== undefined) state.kind = options.kind;
   if (options.classes !== undefined) state.classes = Object.freeze([...options.classes]);
   if (options.authority !== undefined) state.authority = options.authority;
@@ -523,8 +536,9 @@ export function get_parent(self: object): object | null {
 }
 
 /**
- * `NodePath` names over the native links: `.`, `..`, child names; an absolute path starts at the
- * root's name. Subnames (`:property`) and `%Unique` names are not transcribed.
+ * `NodePath` names over the native links: `.`, `..`, child names, `%Unique` names (the node's or
+ * its owner's unique nodes); an absolute path starts at the root's name. Subnames (`:property`) are
+ * not transcribed.
  *
  * @godot Node.get_node_or_null
  * @source scene/main/node.cpp:1904
@@ -550,7 +564,11 @@ export function get_node_or_null(self: object, path: string): unknown {
     } else if (current === null) {
       if (name === nameOf(root)) next = root;
     } else if (name.startsWith('%')) {
-      return null;
+      // The node's own unique nodes, else its owner's (`scene/main/node.cpp:1943`).
+      const unique = name.slice(1);
+      const owner = stateOf(current).owner;
+      next = stateOf(current).uniqueNodes.get(unique) ?? (owner === undefined ? undefined : stateOf(owner).uniqueNodes.get(unique)) ?? null;
+      if (next === null) return null;
     } else {
       next = childEntities(current).find((child) => NODE.has(child) && nameOf(child) === name) ?? null;
       if (next === null) return null;
