@@ -99,7 +99,7 @@ export function measureFieldValueProof(tools: GodotProofTools): readonly GodotPr
     );
     const nativeRun = spawnSync(officialBinary, ['--headless', '--path', temp], {
       encoding: 'utf8',
-      timeout: 30_000,
+      timeout: 120_000,
     });
     if (nativeRun.error !== undefined || nativeRun.status !== 0) {
       throw new Error(

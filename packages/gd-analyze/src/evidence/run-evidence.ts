@@ -1132,6 +1132,7 @@ async function runLanguageEvidence(
     writeFileSync(path.join(project, 'project.godot'), PROJECT_SOURCE);
     writeFileSync(path.join(project, 'main.tscn'), MAIN_SCENE);
     for (const script of evidence.scripts) writeFileSync(path.join(project, script.file), script.source);
+    for (const scene of evidence.scenes ?? []) writeFileSync(path.join(project, scene.file), scene.source);
 
     // Target: production code lowering over the official frontend's bound program.
     const snapshot = captureGodotProjectSnapshot(project);
@@ -1191,7 +1192,9 @@ async function runLanguageEvidence(
     const targetValues: unknown[] = evidence.cases.map((entry) => {
       const cls = classes.get(entry.className ?? evidence.className) as Record<string, unknown>;
       if (entry.instance !== undefined) {
-        const instance = new (cls as unknown as new () => Record<string, unknown>)();
+        const instance = new (cls as unknown as new (native?: unknown) => Record<string, unknown>)(
+          entry.instance.native?.(),
+        );
         return entry.instance.steps.map((step) => {
           const method = instance[step === '$ready' ? '_ready' : step];
           if (typeof method !== 'function') {
@@ -1250,6 +1253,7 @@ async function runLanguageEvidence(
     const inputSha256 = sha256(
       JSON.stringify({
         scripts: evidence.scripts,
+        scenes: evidence.scenes ?? [],
         cases: evidence.cases.map((entry) => ({
           id: entry.id,
           className: entry.className ?? evidence.className,

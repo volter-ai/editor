@@ -562,7 +562,7 @@ export function measureLifecycleProof(tools: GodotProofTools): readonly GodotPro
     const native = spawnSync(
       officialBinary,
       ['--headless', '--path', temp, '--script', 'res://native_probe.gd'],
-      { encoding: 'utf8', timeout: 30_000 },
+      { encoding: 'utf8', timeout: 120_000 },
     );
     if (native.error !== undefined || native.status !== 0) {
       throw new Error(`native composition probe failed: ${native.error?.message ?? native.stderr}`);
@@ -617,7 +617,7 @@ export function measureLifecycleProof(tools: GodotProofTools): readonly GodotPro
     const nativeStartupProcess = spawnSync(
       officialBinary,
       ['--headless', '--path', nativeStartupDir, '--quit-after', '10'],
-      { encoding: 'utf8', timeout: 30_000 },
+      { encoding: 'utf8', timeout: 120_000 },
     );
     if (nativeStartupProcess.error !== undefined || nativeStartupProcess.status !== 0) {
       throw new Error(

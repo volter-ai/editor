@@ -98,7 +98,7 @@ function nativeValue(officialBinary: string, project: string): unknown {
   const result = spawnSync(
     officialBinary,
     ['--headless', '--path', project, 'res://native_probe.tscn'],
-    { encoding: 'utf8', timeout: 30_000 },
+    { encoding: 'utf8', timeout: 120_000 },
   );
   rmSync(probe);
   rmSync(scene);

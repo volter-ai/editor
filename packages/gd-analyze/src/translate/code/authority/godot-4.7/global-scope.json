@@ -185,7 +185,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "sin",
-        "localName": "@GlobalScope_sin",
+        "localName": "GlobalScope_sin",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -206,7 +206,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "cos",
-        "localName": "@GlobalScope_cos",
+        "localName": "GlobalScope_cos",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -227,7 +227,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "acos",
-        "localName": "@GlobalScope_acos",
+        "localName": "GlobalScope_acos",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"

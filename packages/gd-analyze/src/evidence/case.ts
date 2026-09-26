@@ -111,7 +111,11 @@ export interface GodotLanguageCase {
    * of step results. A step names a method called with no arguments, or `$ready`: the native
    * `NOTIFICATION_READY`, which the target receives as its `_ready()`.
    */
-  readonly instance?: { readonly steps: readonly string[] };
+  readonly instance?: {
+    readonly steps: readonly string[];
+    /** The native entity the generated class is constructed on (its `$native`), when it has one. */
+    readonly native?: () => unknown;
+  };
   readonly comparator: GodotEvidenceComparator;
 }
 
@@ -130,6 +134,11 @@ export interface GodotLanguageEvidenceFile {
   readonly className: string;
   /** GDScript files, by file name in the project root. */
   readonly scripts: readonly { readonly file: string; readonly className: string; readonly source: string }[];
+  /**
+   * Scene files, by file name. A script attached to a scene node is a native carrier: its
+   * generated class holds the native entity it is attached to.
+   */
+  readonly scenes?: readonly { readonly file: string; readonly source: string }[];
   /** Compat modules the lowered cases import; their bytes join the implementation identity. */
   readonly compatModules: readonly string[];
   readonly rules: readonly GodotLanguageRuleDefinition[];

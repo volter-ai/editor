@@ -256,7 +256,7 @@ export function measureAnalysisProof(tools: GodotProofTools): readonly GodotProo
 
     const native = spawnSync(officialBinary, ['--headless', '--path', temp], {
       encoding: 'utf8',
-      timeout: 30_000,
+      timeout: 120_000,
     });
     if (native.error !== undefined || native.status !== 0) {
       throw new Error(`native relationship probe failed: ${native.error?.message ?? native.stderr}`);

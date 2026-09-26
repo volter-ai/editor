@@ -52,6 +52,7 @@ const CHAINED = [
   ['$Level/Door.get_global_transform()', 'orthonormalized'],
   ['$Level/Door.get_global_transform().basis[2]', 'normalized'],
   ['$Level/Door.get_global_transform().origin', 'length'],
+  ['self', 'get_position'],
 ] as const;
 
 const argumentsOf = (member: string): string => (member === 'get_param' ? '0' : '');
@@ -89,7 +90,7 @@ ${CALLS.map(
 ).join('\n')}
 ${CHAINED.map(
   ([base, member], index) =>
-    `\tvar chained_${String(index)} = ${base}\n\trows.append([${JSON.stringify(base)}, ${JSON.stringify(member)}, type_string(typeof(chained_${String(index)})), type_string(typeof(chained_${String(index)})), false])`,
+    `\tvar chained_${String(index)} = ${base}\n\tvar chained_class_${String(index)} = chained_${String(index)}.get_class() if typeof(chained_${String(index)}) == TYPE_OBJECT else type_string(typeof(chained_${String(index)}))\n\trows.append([${JSON.stringify(base)}, ${JSON.stringify(member)}, chained_class_${String(index)}, declaring(chained_class_${String(index)}, ${JSON.stringify(member)}) if typeof(chained_${String(index)}) == TYPE_OBJECT else chained_class_${String(index)}, false])`,
 ).join('\n')}
 \tprint("RECEIVERS " + JSON.stringify(rows))
 \tget_tree().quit()

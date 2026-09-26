@@ -1003,6 +1003,18 @@ export function bindGodotProject(
       scriptMethodsByNode.set(`${row.documentPath}\0${row.nodePath ?? '.'}`, names);
     }
   }
+  // `self`: the native class at the root of the script's chain, and the methods the chain
+  // declares (a script member is called before ClassDB's).
+  const selfReceiver = (resPath: string) => {
+    const chain = [resPath, ...(inheritance.get(resPath)?.scriptAncestors ?? [])];
+    const root = inheritance.get(chain[chain.length - 1] as string)?.immediate;
+    if (root?.kind !== 'native') return undefined;
+    const methods = new Set<string>();
+    for (const scriptPath of chain) {
+      for (const method of classes.get(scriptPath)?.methods ?? []) methods.add(method.name);
+    }
+    return { nativeClass: root.className, scriptMethods: methods };
+  };
   const programsByPath = new Map(code.scripts.map((program) => [program.resPath, program] as const));
   const onreadyField = (resPath: string): number | undefined => {
     const program = programsByPath.get(resPath);
@@ -1040,6 +1052,7 @@ export function bindGodotProject(
         apiDump: apiDump.parsed,
         scriptMethodsAt: (documentPath, nodePath) =>
           scriptMethodsByNode.get(`${documentPath}\0${nodePath}`),
+        self: selfReceiver(program.resPath),
         claim: (rule) => analysisEvidence.liveClaim(rule),
       });
       return { callReceivers: typed.receivers, untypedCalls: typed.untyped };

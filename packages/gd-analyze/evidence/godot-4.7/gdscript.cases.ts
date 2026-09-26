@@ -1,3 +1,4 @@
+import { Object3D } from 'three';
 import * as V from '../../capabilities/catalog/project-source/src/lib/godot-compat/vector3';
 import type {
   GodotLanguageCase,
@@ -144,6 +145,11 @@ rule('operator-builtin-binary', 'BINARY_OPERATOR', 'operator:variant-evaluate', 
   file: COMPILER,
   symbol: 'GDScriptCompiler::_parse_expression BINARY_OPERATOR',
   line: 867,
+});
+rule('compound-assignment-builtin', 'ASSIGNMENT', 'operator:variant-evaluate', [B, B], B, { kind: 'binding' }, {
+  file: COMPILER,
+  symbol: 'GDScriptCompiler::_parse_expression compound ASSIGNMENT (Variant operator)',
+  line: 1033,
 });
 rule('operator-builtin-unary', 'UNARY_OPERATOR', 'operator:variant-evaluate', [B], B, { kind: 'binding' }, {
   file: COMPILER,
@@ -406,6 +412,13 @@ for (const [kind, type] of [
     line: 229,
   });
 }
+// A property of the script's own native base (`position`) reads and writes through its API-dump
+// accessors on the instance's native entity (godot-compat receivers are native).
+rule('native-property-builtin', 'IDENTIFIER', 'member-identifier:native-property', [], B, { kind: 'binding' }, {
+  file: 'core/object/object.cpp',
+  symbol: 'Object::get / Object::set through ClassDB property accessors',
+  line: 243,
+});
 // ClassDB integer constants and enum values are their values (the API dump states them).
 for (const [name, result] of [
   ['enum', ENUM],
@@ -886,6 +899,33 @@ func toggle() -> bool:
 \treturn flag
 `;
 
+/** A script on a native base: its native properties and methods act on the attached entity. */
+const NODE3D_SOURCE = `class_name Node3DCases
+extends Node3D
+
+func place() -> Vector3:
+\tposition = Vector3(1.0, 2.0, 3.0)
+\treturn position
+
+func nudge() -> Vector3:
+\tposition += Vector3(0.5, -0.25, 0.0)
+\treturn position
+
+func explicit_self() -> Vector3:
+\treturn self.get_position()
+
+func implicit_self() -> Vector3:
+\treturn get_position()
+`;
+
+const NODE3D_SCENE = `[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://node3d_cases.gd" id="1_cases"]
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_cases")
+`;
+
 const READY_SOURCE = `class_name ReadyCases
 extends Node
 
@@ -1087,6 +1127,16 @@ cases.push({
   comparator: 'exact',
 });
 cases.push({
+  id: 'native-base-properties',
+  className: 'Node3DCases',
+  call: '',
+  instance: {
+    steps: ['implicit_self', 'place', 'nudge', 'explicit_self', 'implicit_self'],
+    native: () => new Object3D(),
+  },
+  comparator: 'exact',
+});
+cases.push({
   id: 'ready-order',
   className: 'ReadyCases',
   call: '',
@@ -1109,8 +1159,10 @@ const GDSCRIPT_EVIDENCE: GodotLanguageEvidenceFile = {
     { file: 'member_cases.gd', className: 'MemberCases', source: MEMBER_SOURCE },
     { file: 'ready_cases.gd', className: 'ReadyCases', source: READY_SOURCE },
     { file: 'ready_derived.gd', className: 'ReadyDerived', source: DERIVED_SOURCE },
+    { file: 'node3d_cases.gd', className: 'Node3DCases', source: NODE3D_SOURCE },
   ],
-  compatModules: ['lib/godot-compat/vector3'],
+  scenes: [{ file: 'main.tscn', source: NODE3D_SCENE }],
+  compatModules: ['lib/godot-compat/vector3', 'lib/godot-compat/node-3d'],
   rules,
   datatypes,
   cases,

@@ -60,13 +60,21 @@ export interface CallReceiverInputs {
   readonly apiDump: GodotApiDump;
   /** Scripts attached at an exact (document, node path), with the method names each declares. */
   readonly scriptMethodsAt: (documentPath: string, nodePath: string) => ReadonlySet<string> | undefined;
+  /** `self`'s native class and the script chain's own methods, when the chain has a native root. */
+  readonly self?: { readonly nativeClass: string; readonly scriptMethods: ReadonlySet<string> };
   /** The live claim for a rule, or undefined when the rule has no live evidence. */
   readonly claim: (rule: GodotAnalysisRuleId) => string | undefined;
 }
 
 type ReceiverType =
   | { readonly kind: 'builtin'; readonly name: string }
-  | { readonly kind: 'native'; readonly name: string; readonly claims: readonly string[] }
+  | {
+      readonly kind: 'native';
+      readonly name: string;
+      readonly claims: readonly string[];
+      /** Members a script on the receiver declares: Godot calls those, not ClassDB's. */
+      readonly scriptMembers?: ReadonlySet<string>;
+    }
   | { readonly kind: 'unknown'; readonly reason: string };
 
 export interface ResolvedSceneNode {
@@ -250,6 +258,9 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
         claims: [],
       };
     }
+    if (receiver.scriptMembers?.has(member) === true) {
+      return `${member} is a script member of the receiver`;
+    }
     const selection = inputs.claim('classdb-method-selection');
     if (selection === undefined) return 'classdb-method-selection has no live evidence';
     let current = classes.get(receiver.name);
@@ -296,6 +307,10 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
         agreed = resolved;
       }
       return typeOfName((agreed as ResolvedSceneNode).className, [rule]);
+    }
+    if (node.kind === 'SELF' && inputs.self !== undefined) {
+      // `self.member()`: the instance is its script chain over its native class.
+      return { kind: 'native', name: inputs.self.nativeClass, claims: [], scriptMembers: inputs.self.scriptMethods };
     }
     if (node.kind === 'SUBSCRIPT') {
       // A built-in's member (`transform.basis`) or index (`basis[2]`) has the type the API dump

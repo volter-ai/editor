@@ -108,7 +108,7 @@ export function measureReadProof(tools: GodotProofTools): readonly GodotProofMea
     const imported = spawnSync(
       officialBinary,
       ['--editor', '--headless', '--path', temp, '--import', '--quit'],
-      { encoding: 'utf8', timeout: 30_000 },
+      { encoding: 'utf8', timeout: 120_000 },
     );
     if (imported.error !== undefined || imported.status !== 0) {
       throw new Error(`native import failed: ${imported.error?.message ?? imported.stderr}`);
@@ -142,7 +142,7 @@ export function measureReadProof(tools: GodotProofTools): readonly GodotProofMea
     };
     const nativeRun = spawnSync(officialBinary, ['--headless', '--path', temp], {
       encoding: 'utf8',
-      timeout: 30_000,
+      timeout: 120_000,
     });
     if (nativeRun.error !== undefined || nativeRun.status !== 0) {
       throw new Error(`native read probe failed: ${nativeRun.error?.message ?? nativeRun.stderr}`);

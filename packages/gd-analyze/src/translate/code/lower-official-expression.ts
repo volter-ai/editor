@@ -389,6 +389,20 @@ function nativeAccessorUse(
   return use;
 }
 
+/**
+ * The script instance's own native entity, the receiver a native binding takes for `self`
+ * (godot-compat receivers are native, GODOT.md "Receivers are native"); the generated class holds
+ * it as `$native`.
+ */
+function selfNative(context: LoweringContext, node: GodotBoundNode): TargetTsExpression {
+  return {
+    kind: 'property-expression',
+    object: { kind: 'this-expression' },
+    property: '$native',
+    span: span(context.script, node),
+  };
+}
+
 /** A native property accessor of the script's own native base class. */
 function selfNativeAccessor(
   context: LoweringContext,
@@ -659,13 +673,11 @@ function inheritedNativePlace(
     ? selfNativeAccessor(context, targetNode, targetNode.name, 'getter')
     : undefined;
   const rule = context.selectRule(targetNode, ['member-identifier:native-property'], [], ['binding']);
-  const self: TargetTsExpression = { kind: 'this-expression' };
+  const self = selfNative(context, targetNode);
   return {
     before: [],
-    read:
-      getter === undefined
-        ? context.refuse(targetNode, 'a compound write needs the property getter')
-        : bindingCall(context, targetNode, getter, [self]),
+    // Read only by a compound write, which resolved the getter above.
+    read: getter === undefined ? self : bindingCall(context, targetNode, getter, [self]),
     write: (value) => bindingCall(context, targetNode, setter, [self, value]),
     requirements: [...rule.requirements, ...setter.requirements, ...(getter?.requirements ?? [])],
   };
@@ -996,7 +1008,7 @@ export function lowerOfficialExpression(
           if (getter !== undefined) {
             const rule = context.selectRule(node, ['member-identifier:native-property'], [], ['binding']);
             return expression(
-              bindingCall(context, node, getter, [{ kind: 'this-expression' }]),
+              bindingCall(context, node, getter, [selfNative(context, node)]),
               [...rule.requirements, ...getter.requirements],
             );
           }
@@ -1403,16 +1415,23 @@ export function lowerOfficialExpression(
           }
         }
         if (target !== undefined) {
+          const typedReceiver = context.callReceivers.get(node.id);
+          const nativeMember =
+            node.compilerTarget.kind === 'native-method' ||
+            typedReceiver?.target.kind === 'native-member';
           if (
             node.compilerTarget.kind === 'native-method' ||
-            node.compilerTarget.kind === 'builtin-member'
+            node.compilerTarget.kind === 'builtin-member' ||
+            typedReceiver !== undefined
           ) {
             if (calleeNode.kind === 'SUBSCRIPT' && calleeNode.isAttribute) {
               const receiverNode = context.node(calleeNode.base, calleeNode);
               const result = boundInstanceCall(
                 context,
                 node,
-                lowerExpression(context, receiverNode),
+                receiverNode.kind === 'SELF' && target.target.kind === 'compat-binding' && nativeMember
+                  ? expression(selfNative(context, receiverNode), context.structural(receiverNode, 'self'))
+                  : lowerExpression(context, receiverNode),
                 target,
                 args,
               );
@@ -1421,7 +1440,11 @@ export function lowerOfficialExpression(
             const result = boundInstanceCall(
               context,
               node,
-              expression({ kind: 'this-expression', span: span(context.script, node) }),
+              expression(
+                target.target.kind === 'compat-binding' && nativeMember
+                  ? selfNative(context, node)
+                  : { kind: 'this-expression', span: span(context.script, node) },
+              ),
               target,
               args,
             );
