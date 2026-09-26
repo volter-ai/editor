@@ -4,12 +4,22 @@ The editor for a `@volter/dawproject` piece. A project declares it as a
 dependency; its finder (`piecesFromModules`) makes every module that imports
 `@volter/dawproject` and default-exports a component a piece document.
 
-The document is laid out as Bitwig Studio's Arrange view: transport, arranger
-(tracks, clips, markers), and a lower pane that switches between the selected
+The document is laid out as Bitwig Studio's Arrange view: transport (play,
+editable tempo and meter, loop, metronome), arranger (tracks, clips, markers,
+a tempo row, a loop strip), and a lower pane that switches between the selected
 clip's editor (piano roll, velocity lane, one lane per `<Points>`, and Freeze,
 which writes a generated clip out as literal notes), the selected track's
 device chain (each device's `params`), and the mixer (a strip per channel:
 fader, pan, mute, solo, send levels).
+
+In the arranger, a clip moves with its notes and lanes, resizes, and is added,
+deleted and duplicated; markers are added, moved, renamed and deleted; a ruler
+click sets where Play starts; tracks, devices and sends are added. In the piano
+roll, notes are selected (click, Shift-click, marquee, Cmd+A), moved and
+resized together, snapped to a chosen grid, quantized, copied, cut, pasted,
+duplicated and given an articulation. A gesture on several elements is one
+whole-file edit and one undo entry, refused whole when any element it must
+rewrite is generated.
 
 Every gesture writes the piece's own source, through the same JSX routes the
 three.js and React lanes write through (`@volter/editor-react`): a drag writes

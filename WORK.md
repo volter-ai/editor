@@ -236,11 +236,16 @@ and loop seams, voicing, line statistics, figures shared with the folder's other
 on Harbor and Tidewatch its chords match the pieces' own chord tables in every bar.
 
 Open, with what closes each:
-- Bitwig's editing basics, in progress: in the piano roll, selection, group move, length, grid,
-  quantize, clipboard and articulation; in the arranger, clip move/resize/create/delete,
-  seek, loop region, metronome, markers, tempo and meter, the tempo lane, and adding tracks,
-  devices and sends. Each closes when its control, driven in the editor, writes what it means
-  and undoes byte-identically.
+- Bitwig's editing basics, landed and each driven through its own control on Harbor (source
+  diff read, undo byte-identical, generated targets refused whole): in the piano roll,
+  selection, group move, length, grid, quantize, clipboard, duplicate and articulation; in the
+  arranger, clip move/resize/create/delete/duplicate, seek, loop region, metronome, markers,
+  tempo and meter, the tempo row, and adding tracks, devices and sends. Open: the readings that
+  need the preview playing (the playhead jumping on a seek, wrapping inside the loop region,
+  the metronome's clicks, paste at the playhead) were not taken, since audio in the owner's tab
+  sounds through their speakers and an eval click grants no user activation; the loop's fold
+  (`passes`, `foldSecond`) is verified by reading only. Closes with a reading taken where the
+  audio is heard by no one (an audio context whose output is captured, not played).
 - Live against export, synth half. Read from `spessasynth_lib`'s processor: at the start of
   each 128-sample render quantum it applies every queued event whose time has passed, then
   renders the quantum, so each note the preview schedules sounds up to 2.67 ms after its
