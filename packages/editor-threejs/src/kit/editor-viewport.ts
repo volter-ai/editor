@@ -1032,7 +1032,9 @@ export class EditorViewport {
   private readonly _authoring: () => AuthoringAdapter;
   private readonly _pick: ((clientX: number, clientY: number) => string | null) | undefined;
   private readonly _drawCamera: (() => THREE.Camera) | undefined;
-  /** The camera on screen: the stage's drawing camera where it states one, else the viewport's. */
+  /** The camera on screen: the stage's drawing camera where it states one, else the viewport's.
+   *  Every screen test asks it (picks, the box select, vertex snap, handles, the ground plane);
+   *  fly mode and the grid's own alignment keep the viewport's cameras, which they move. */
   private get _screenCamera(): THREE.Camera {
     return this._drawCamera?.() ?? this.renderCamera;
   }
@@ -2323,7 +2325,7 @@ export class EditorViewport {
       ((e.clientX - rect.left) / rect.width) * 2 - 1,
       -((e.clientY - rect.top) / rect.height) * 2 + 1,
     );
-    this._constraintControlRaycaster.setFromCamera(pointer, this.renderCamera);
+    this._constraintControlRaycaster.setFromCamera(pointer, this._screenCamera);
     const hit = this._constraintControlRaycaster.intersectObjects(candidates, false)[0]?.object;
     if (!hit) return null;
     for (const helper of this._constraintHelpers.values()) {
@@ -2698,7 +2700,7 @@ export class EditorViewport {
       // Hidden/on-demand captures can draw before the next viewport tick, so
       // handles need their screen-constant scale at creation as well as during
       // the ordinary update loop.
-      for (const handle of visuals.handles) scaleSpatialHandle(handle, this.renderCamera);
+      for (const handle of visuals.handles) scaleSpatialHandle(handle, this._screenCamera);
       for (const root of visuals.roots) this._scene.add(root);
       this._spatialHandleRoots.push(...visuals.roots);
       this._spatialHandleMeshes.push(...visuals.handles);
@@ -2712,7 +2714,7 @@ export class EditorViewport {
       ((e.clientX - rect.left) / rect.width) * 2 - 1,
       -((e.clientY - rect.top) / rect.height) * 2 + 1,
     );
-    this._spatialHandleRaycaster.setFromCamera(pointer, this.renderCamera);
+    this._spatialHandleRaycaster.setFromCamera(pointer, this._screenCamera);
     const hit = this._spatialHandleRaycaster.intersectObjects(this._spatialHandleMeshes, false)[0];
     return (hit?.object as SpatialHandleMesh | undefined) ?? null;
   }
@@ -2723,7 +2725,7 @@ export class EditorViewport {
       ((e.clientX - rect.left) / rect.width) * 2 - 1,
       -((e.clientY - rect.top) / rect.height) * 2 + 1,
     );
-    this._spatialHandleRaycaster.setFromCamera(pointer, this.renderCamera);
+    this._spatialHandleRaycaster.setFromCamera(pointer, this._screenCamera);
     const point = new THREE.Vector3();
     if (!this._spatialHandleRaycaster.ray.intersectPlane(this._spatialHandleDragPlane, point)) {
       return null;
@@ -3605,7 +3607,7 @@ export class EditorViewport {
     for (const helper of this._reflectionProbeHelpers.values()) helper.update();
     for (const helper of this._triggerVolumeHelpers.values()) helper.update();
     for (const { helper } of this._cameraHelpers.values()) helper.update();
-    for (const handle of this._spatialHandleMeshes) scaleSpatialHandle(handle, this.renderCamera);
+    for (const handle of this._spatialHandleMeshes) scaleSpatialHandle(handle, this._screenCamera);
 
     this._enforceLodForcedLevels();
     this.alignGridToView(this.renderCamera, this._renderer?.domElement.width ?? 1);
@@ -4921,7 +4923,7 @@ export class EditorViewport {
     targets: { obj: THREE.Object3D; startPos: THREE.Vector3 }[],
   ): void {
     const entityPos = gizmoObj.position;
-    const projected = entityPos.clone().project(this.renderCamera);
+    const projected = entityPos.clone().project(this._screenCamera);
     const rect = this._canvas.getBoundingClientRect();
     const entityScreenX = ((projected.x + 1) / 2) * rect.width;
     const entityScreenY = ((-projected.y + 1) / 2) * rect.height;
@@ -4930,7 +4932,7 @@ export class EditorViewport {
     let bestVertex: THREE.Vector3 | null = null;
 
     for (const vert of this._vertexSnapTargets) {
-      const vs = vert.clone().project(this.renderCamera);
+      const vs = vert.clone().project(this._screenCamera);
       // Skip vertices behind camera
       if (vs.z > 1) continue;
       const vertScreenX = ((vs.x + 1) / 2) * rect.width;
@@ -4953,7 +4955,7 @@ export class EditorViewport {
       this._vertexSnapIndicator.position.copy(bestVertex);
       this._vertexSnapIndicator.visible = true;
       // Constant screen size for indicator
-      const dist = bestVertex.distanceTo(this.renderCamera.position);
+      const dist = bestVertex.distanceTo(this._screenCamera.position);
       this._vertexSnapIndicator.scale.setScalar(dist * 0.008);
     } else {
       this._vertexSnapIndicator.visible = false;
@@ -5792,7 +5794,7 @@ export class EditorViewport {
         this._transformEnabledBeforeHandleDrag = this.transformControls.enabled;
         this.orbitControls.enabled = false;
         for (const controls of this._allGizmos()) controls.enabled = false;
-        const cameraDirection = this.renderCamera.getWorldDirection(new THREE.Vector3());
+        const cameraDirection = this._screenCamera.getWorldDirection(new THREE.Vector3());
         this._spatialHandleDragPlane.setFromNormalAndCoplanarPoint(cameraDirection, mesh.position);
         this._spatialHandleDragOffset.set(0, 0, 0);
         const pointerPoint = this._spatialHandleWorldPoint(e);
@@ -6141,7 +6143,7 @@ export class EditorViewport {
       ((e.clientX - rect.left) / rect.width) * 2 - 1,
       -((e.clientY - rect.top) / rect.height) * 2 + 1,
     );
-    this.raycaster.setFromCamera(mouse, this.renderCamera);
+    this.raycaster.setFromCamera(mouse, this._screenCamera);
     const basis = presentationRegionBasis('three');
     this._groundPlane.set(
       basis.up === 'z' ? UP_Z : UP_Y,

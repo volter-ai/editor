@@ -608,6 +608,14 @@ export class Object3DDocumentSession {
 
   camera(): THREE.Camera {
     if (this.cameraOverride) return this.cameraOverride;
+    const drawn = this.drawnCamera();
+    // The gizmos size, face and pick against the camera on screen: this session's orthographic
+    // camera or its camera view, else the viewport's own.
+    this.viewport.setGizmoCamera(drawn === this.viewport.camera ? null : drawn);
+    return drawn;
+  }
+
+  private drawnCamera(): THREE.Camera {
     const through = this.through ? this.cameraView() : null;
     if (through) return this.throughCamera(through);
     // The camera went (deleted, renamed): the view leaves rather than hold the input on a frame
@@ -892,7 +900,6 @@ export class Object3DDocumentSession {
       camera.layers.mask = layers;
       camera.updateProjectionMatrix();
       camera.updateMatrixWorld(true);
-      this.viewport.setGizmoCamera(camera);
       return camera;
     }
     const camera = this.throughPerspective;
@@ -915,7 +922,6 @@ export class Object3DDocumentSession {
     );
     camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
     camera.updateMatrixWorld(true);
-    this.viewport.setGizmoCamera(camera);
     return camera;
   }
 
