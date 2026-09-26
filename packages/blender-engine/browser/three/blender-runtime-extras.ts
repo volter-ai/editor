@@ -117,6 +117,39 @@ export interface ExtrasInput {
   readonly image: (name: string) => { readonly texture: THREE.Texture; readonly width: number; readonly height: number } | null;
 }
 
+/**
+ * AN OVERLAY IS NEVER AN OCCLUDER. A pass that draws the whole scene under one override material
+ * (the selection outline's depth pass, `OutlineEffect`'s `DepthPass`) would have every overlay
+ * part write depth — the lines are meshes (`LineSegments2`), and an image empty drawn behind the
+ * scene is a quad in front of what it is behind — and so hide the outline of a selected object
+ * they stand before, which Blender's overlay never does. So a part leaves any draw whose scene
+ * carries an override material: collapsed before three reads its matrix, and put back as soon
+ * as that draw is done.
+ */
+function standDownInOverridePasses(object: THREE.Object3D): void {
+  if (!(object as THREE.Mesh).isMesh || object.userData['vgaiOverrideStandDown']) return;
+  object.userData['vgaiOverrideStandDown'] = true;
+  const own = object.onBeforeRender.bind(object);
+  const ownAfter = object.onAfterRender.bind(object);
+  const placed = new THREE.Matrix4();
+  let collapsed = false;
+  object.onBeforeRender = (renderer, scene, camera, geometry, material, group) => {
+    own(renderer, scene, camera, geometry, material, group);
+    if (!(scene as THREE.Scene).overrideMaterial) return;
+    placed.copy(object.matrixWorld);
+    object.matrixWorld.makeScale(0, 0, 0);
+    collapsed = true;
+  };
+  // Put back the moment that draw is done, so a pick between frames reads the part where it is.
+  object.onAfterRender = (renderer, scene, camera, geometry, material, group) => {
+    if (collapsed) {
+      object.matrixWorld.copy(placed);
+      collapsed = false;
+    }
+    ownAfter(renderer, scene, camera, geometry, material, group);
+  };
+}
+
 export class ExtrasOverlay {
   /** In Blender's frame; the view gives it the Blender → stage permutation. */
   readonly cameras = new THREE.Group();
@@ -180,7 +213,10 @@ export class ExtrasOverlay {
       else if (light) this.light(light, matrix, color, distances);
       else if (empty) this.empty(empty, matrix, color, picture);
       const parts = group.children.filter((child) => !before.has(child));
-      for (const part of parts) part.userData['vgaiPicksAs'] = stands;
+      for (const part of parts) {
+        part.userData['vgaiPicksAs'] = stands;
+        part.traverse(standDownInOverridePasses);
+      }
       this.drawn.set(object.name, { key, parts });
     }
     for (const [name, entry] of this.drawn)
