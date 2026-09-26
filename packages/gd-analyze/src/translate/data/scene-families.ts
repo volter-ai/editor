@@ -185,6 +185,8 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_metallic',
     'set_roughness',
     'set_feature:0',
+    'set_feature:4',
+    'set_anisotropy',
     'set_emission',
     'set_emission_energy_multiplier',
     'set_transparency',

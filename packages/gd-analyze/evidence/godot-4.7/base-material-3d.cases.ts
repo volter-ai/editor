@@ -1,4 +1,4 @@
-import type { MeshStandardMaterial, Texture } from 'three';
+import type { MeshPhysicalMaterial, MeshStandardMaterial, Texture } from 'three';
 import * as B from '../../capabilities/catalog/project-source/src/lib/godot-compat/base-material-3d';
 import * as C from '../../capabilities/catalog/project-source/src/lib/godot-compat/color';
 import * as P from '../../capabilities/catalog/project-source/src/lib/godot-compat/placeholder-texture-2d';
@@ -52,6 +52,7 @@ c.add('get_emission-default', 'get_emission', ['return StandardMaterial3D.new().
 for (const [feature, enabled] of [
   [0, true],
   [4, true],
+  [12, true],
   [99, true],
 ] as const) {
   c.add(`set_feature-${String(feature)}`, 'set_feature', ['var m := StandardMaterial3D.new()', `m.set_feature(${String(feature)}, ${String(enabled)})`, `return m.get_feature(${String(feature)})`], () => {
@@ -235,6 +236,38 @@ for (const value of [0.5, 0.001]) {
   });
 }
 c.add('get_proximity_fade_distance-default', 'get_proximity_fade_distance', ['return StandardMaterial3D.new().get_proximity_fade_distance()'], () => B.get_proximity_fade_distance(S.construct()));
+
+// Anisotropy: the coin's ratio and a negative one set and read back, and (`render-mapping`) the
+// physical material each draws as, cited to the scene shader's anisotropy (`material.cpp:1894`: the
+// default flowmap's direction is the tangent at full strength).
+for (const value of [1, -0.35]) {
+  c.add(`set_anisotropy-${gd(value)}`, 'set_anisotropy', ['var m := StandardMaterial3D.new()', `m.set_anisotropy(${gd(value)})`, 'return m.get_anisotropy()'], () => {
+    const m = S.construct();
+    B.set_anisotropy(m, value);
+    return B.get_anisotropy(m);
+  });
+}
+c.add('get_anisotropy-default', 'get_anisotropy', ['return StandardMaterial3D.new().get_anisotropy()'], () => B.get_anisotropy(S.construct()));
+const ANISOTROPY = { file: 'scene/resources/material.cpp', symbol: 'ANISOTROPY = anisotropy_ratio * anisotropy_tex.b; ANISOTROPY_FLOW = anisotropy_tex.rg * 2.0 - 1.0', line: 1903 };
+for (const [id, ratio, fact] of [
+  ['coin', 1, ['MeshPhysicalMaterial', 1, 0]],
+  ['across', -0.35, ['MeshPhysicalMaterial', f32(0.35), Math.PI / 2]],
+] as const) {
+  c.cases.push({
+    id: `three-anisotropy-${id}`,
+    symbol: { kind: 'native-member', owner: 'BaseMaterial3D', member: 'set_anisotropy' },
+    gdscript: '',
+    target: () => {
+      const m = S.construct();
+      B.set_feature(m, 4, true);
+      B.set_anisotropy(m, ratio);
+      const t = B.godot_base_material_3d_three(m) as MeshPhysicalMaterial;
+      return [t.type, t.anisotropy, t.anisotropyRotation].join(',');
+    },
+    comparator: 'render-mapping',
+    fact: { value: fact.join(','), source: ANISOTROPY },
+  });
+}
 
 const EVIDENCE: GodotEvidenceCaseFile = { godotClass: 'BaseMaterial3D', compatModule: 'lib/godot-compat/base-material-3d', cases: c.cases };
 export default EVIDENCE;

@@ -421,7 +421,21 @@ function material(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
   if (data.length > 0) props.push(attribute('userData', { kind: 'object-expression', properties: data }));
   // A billboard or vertex colour draws through Godot's vertex code (`godot_base_material_3d_scene_shader`).
   if (billboard !== 0 || boolValue(setterValue(set, 'set_flag', 1)) === true) props.push(attribute('onUpdate', identifier(useCompat(emission, 'base-material-3d', 'godot_base_material_3d_scene_shader'))));
-  return element(unshaded ? 'meshBasicMaterial' : 'meshStandardMaterial', props);
+  // Anisotropy (`FEATURE_ANISOTROPY`) draws on three's physical material (`godot_base_material_3d_anisotropy`).
+  const anisotropic = !unshaded && boolValue(setterValue(set, 'set_feature', 4)) === true;
+  if (anisotropic) {
+    const ratio = numberValue(setterValue(set, 'set_anisotropy')) ?? 0;
+    const { anisotropy, rotation } = godotAnisotropy(ratio);
+    props.push(attribute('anisotropy', literal(anisotropy)));
+    if (rotation !== 0) props.push(attribute('anisotropyRotation', literal(rotation)));
+  }
+  return element(unshaded ? 'meshBasicMaterial' : anisotropic ? 'meshPhysicalMaterial' : 'meshStandardMaterial', props);
+}
+
+/** `godot_base_material_3d_anisotropy` (`base-material-3d.ts`): the strength and the rotation from the tangent. */
+function godotAnisotropy(ratio: number): { readonly anisotropy: number; readonly rotation: number } {
+  const value = f32(ratio);
+  return { anisotropy: Math.abs(value), rotation: value < 0 ? Math.PI / 2 : 0 };
 }
 
 /**

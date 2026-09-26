@@ -35,6 +35,7 @@ import {
   type Texture,
   Material,
   MeshBasicMaterial,
+  MeshPhysicalMaterial,
   MeshStandardMaterial,
   MultiplyBlending,
   NoColorSpace,
@@ -55,9 +56,10 @@ const FLAG_MAX = 25;
 const TEXTURE_ALBEDO = 0;
 const TEXTURE_MAX = 19;
 
-/** `BaseMaterial3D::Feature` (`material.h:209`): `FEATURE_EMISSION` is 0. */
+/** `BaseMaterial3D::Feature` (`material.h:209`): `FEATURE_EMISSION` is 0, `FEATURE_ANISOTROPY` 4, of 13. */
 const FEATURE_EMISSION = 0;
-const FEATURE_MAX = 12;
+const FEATURE_ANISOTROPY = 4;
+const FEATURE_MAX = 13;
 
 export interface BaseMaterial3D {
   albedo: Color;
@@ -72,6 +74,7 @@ export interface BaseMaterial3D {
   flags: boolean[];
   textures: (Texture | null)[];
   texture_filter: number;
+  anisotropy: number;
   /** Drawn on three's own geometry (a scene's material): its maps' UV origin is three's. */
   sceneUv?: boolean;
 }
@@ -100,6 +103,7 @@ export function godot_base_material_3d_initial(): BaseMaterial3D {
     textures: new Array<Texture | null>(TEXTURE_MAX).fill(null),
     // `TEXTURE_FILTER_LINEAR_WITH_MIPMAPS` (`material.h:572`).
     texture_filter: 3,
+    anisotropy: 0,
   };
 }
 
@@ -204,6 +208,11 @@ function apply(self: BaseMaterial3D, target: Material): void {
     }
     target.emissiveIntensity = 1;
   }
+  if (target instanceof MeshPhysicalMaterial) {
+    const { anisotropy, rotation } = anisotropyOf(self);
+    target.anisotropy = anisotropy;
+    target.anisotropyRotation = rotation;
+  }
   target.needsUpdate = true;
 }
 
@@ -265,6 +274,11 @@ export function godot_base_material_3d_of(target: Material): BaseMaterial3D {
   if (data['vertex_color_is_srgb'] === true) self.flags[FLAG_SRGB_VERTEX_COLOR] = true;
   if (data['proximity_fade_enabled'] === true) extra.proximity_fade_enabled = true;
   if (typeof data['proximity_fade_distance'] === 'number') extra.proximity_fade_distance = f32(data['proximity_fade_distance']);
+  if (target instanceof MeshPhysicalMaterial || target.type === 'MeshPhysicalMaterial') {
+    const physical = target as MeshPhysicalMaterial;
+    self.features[FEATURE_ANISOTROPY] = true;
+    self.anisotropy = f32(physical.anisotropyRotation === 0 ? physical.anisotropy : -physical.anisotropy);
+  }
   self.sceneUv = true;
   THREE_MATERIAL.set(self, target);
   OF_THREE.set(target, self);
@@ -281,8 +295,9 @@ export function godot_base_material_3d_of(target: Material): BaseMaterial3D {
 export function godot_base_material_3d_three(self: BaseMaterial3D): Material {
   let target = THREE_MATERIAL.get(self);
   const unshaded = self.shading_mode === 0;
-  if (target === undefined || (target instanceof MeshBasicMaterial) !== unshaded) {
-    target = unshaded ? new MeshBasicMaterial() : new MeshStandardMaterial();
+  const physical = !unshaded && self.features[FEATURE_ANISOTROPY] === true;
+  if (target === undefined || (target instanceof MeshBasicMaterial) !== unshaded || (target instanceof MeshPhysicalMaterial) !== physical) {
+    target = unshaded ? new MeshBasicMaterial() : physical ? new MeshPhysicalMaterial() : new MeshStandardMaterial();
     THREE_MATERIAL.set(self, target);
   }
   apply(self, target);
@@ -764,4 +779,51 @@ export function set_proximity_fade_distance(self: BaseMaterial3D, distance: numb
  */
 export function get_proximity_fade_distance(self: BaseMaterial3D): number {
   return extraOf(self).proximity_fade_distance;
+}
+
+// --- Anisotropy.
+
+/**
+ * The scene shader's anisotropy (`material.cpp:1894`): `ANISOTROPY = anisotropy_ratio *
+ * flowmap.a`, its direction `flowmap.rg * 2 - 1`, the flowmap Godot's default anisotropy texture
+ * (`Color(1, 0.5, 1, 1)`, `texture_storage.cpp:176`) where none is set: the tangent's direction at
+ * full strength. Three's physical material takes a strength and a rotation from the tangent: a
+ * positive ratio is that strength along the tangent; a negative one stretches the highlight across
+ * it (`aspect = sqrt(1 - anisotropy * 0.9)`, `scene.glsl:1686`, greater than one), the rotation a
+ * quarter turn. Three's anisotropic GGX is the glTF extension's (roughness along the tangent
+ * mixed toward one) where Godot divides and multiplies by the aspect (`anisotropy-model`, a named
+ * deviation: the same stretched highlight, a different profile).
+ */
+function anisotropyOf(self: BaseMaterial3D): { readonly anisotropy: number; readonly rotation: number } {
+  const ratio = self.anisotropy;
+  return { anisotropy: Math.abs(ratio), rotation: ratio < 0 ? Math.PI / 2 : 0 };
+}
+
+/**
+ * Three's anisotropy for a material's parameters (`anisotropyOf`), as a scene states it.
+ *
+ * @godot BaseMaterial3D (protocol)
+ * @source scene/resources/material.cpp:1894
+ */
+export function godot_base_material_3d_anisotropy(ratio: number): { readonly anisotropy: number; readonly rotation: number } {
+  const self = godot_base_material_3d_initial();
+  self.anisotropy = f32(ratio);
+  return anisotropyOf(self);
+}
+
+/**
+ * @godot BaseMaterial3D.set_anisotropy
+ * @source scene/resources/material.cpp:2245
+ */
+export function set_anisotropy(self: BaseMaterial3D, anisotropy: number): void {
+  self.anisotropy = f32(anisotropy);
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_anisotropy
+ * @source scene/resources/material.cpp:2250
+ */
+export function get_anisotropy(self: BaseMaterial3D): number {
+  return self.anisotropy;
 }
