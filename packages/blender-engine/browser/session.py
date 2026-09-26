@@ -1404,6 +1404,12 @@ class Session:
         # THE VIEWPORT'S SUBJECT LINE and the units its grid step is named in: Blender composes
         # both from the scene, so they come from here (`_subject_line`).
         frame["subject"] = _subject_line(scene, view_layer)
+        # A LIGHT'S DISTANCES, for the overlay's direction line (`overlay_light.hh`: from
+        # `clipsta` to `att_dist` down the light's -Z, for a spot or an area light).
+        frame["light_distances"] = {
+            light.name: [float(light.shadow_buffer_clip_start), float(light.cutoff_distance)]
+            for light in bpy.data.lights
+        }
         # WHAT THE OVERLAY DRAWS FOR AN EMPTY (`overlay_empty.hh`): its display type and size.
         frame["empties"] = {
             obj.name: {"display": obj.empty_display_type, "size": float(obj.empty_display_size)}

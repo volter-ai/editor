@@ -531,6 +531,8 @@ export const frameSchema = z
         aspect: z.number().finite().positive(),
       })
       .optional(),
+    /** Each light datablock's clip start and cut-off distance (`blender-runtime-extras.ts`). */
+    light_distances: z.record(z.string(), z.tuple([z.number().finite(), z.number().finite()])).default({}),
     /** Each empty's display type and size (`blender-runtime-extras.ts`). */
     empties: z.record(z.string(), emptySchema).default({}),
     /** The 3D View the file saved (`session.py` `_saved_view`), null when it holds none. */
@@ -1308,6 +1310,7 @@ export class BlenderRuntimeView {
     }
     this.extrasOverlay.apply({
       lookingThrough: this.lookingThrough,
+      lightDistances: next.light_distances,
       objects: next.objects.filter((object) => object.visible),
       active: next.active,
       cameras,

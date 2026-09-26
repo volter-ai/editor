@@ -95,6 +95,8 @@ export interface ExtrasInput {
   /** The camera a camera view is looking through, which is not drawn: the view's frame is its
    *  border, and while a locked view is navigated the camera follows it a round trip behind. */
   readonly lookingThrough: string | null;
+  /** Each light datablock's clip start and cut-off distance, for the direction line. */
+  readonly lightDistances: Readonly<Record<string, readonly [number, number]>>;
   /** The presented object an extra stands for, which a click on its drawing selects. */
   readonly presented: (name: string) => THREE.Object3D | null;
 }
@@ -136,11 +138,13 @@ export class ExtrasOverlay {
       const empty = object.type === 'EMPTY' ? input.empties[object.name] : undefined;
       if (!camera && !light && !empty) continue;
       seen.add(object.name);
+      const distances = light && object.light ? (input.lightDistances[object.light] ?? null) : null;
       const key = JSON.stringify([
         object.matrix,
         color,
         camera,
         light,
+        distances,
         empty,
         camera ? [object.name === input.sceneCamera, input.renderAspect] : null,
       ]);
@@ -155,7 +159,7 @@ export class ExtrasOverlay {
       const group = camera ? this.cameras : light ? this.lights : this.empties;
       const before = new Set(group.children);
       if (camera) this.camera(camera, matrix, color, object.name === input.sceneCamera, input.renderAspect);
-      else if (light) this.light(light, matrix, color);
+      else if (light) this.light(light, matrix, color, distances);
       else if (empty) this.empty(empty, matrix, color);
       const parts = group.children.filter((child) => !before.has(child));
       for (const part of parts) part.userData['vgaiPicksAs'] = stands;
@@ -249,7 +253,7 @@ export class ExtrasOverlay {
   }
 
   /** `overlay_light.hh` with its icon, ground line and type shapes. */
-  private light(light: LightData, matrix: THREE.Matrix4, color: number): void {
+  private light(light: LightData, matrix: THREE.Matrix4, color: number, distances: readonly [number, number] | null): void {
     const origin = new THREE.Vector3().setFromMatrixPosition(matrix);
     // The ground line, from the light straight down to the floor, and its mark there.
     const ground: Segments = [];
@@ -282,6 +286,39 @@ export class ExtrasOverlay {
       else loop(world, [[sx, sy], [-sx, sy], [-sx, -sy], [sx, -sy]]);
     }
     if (world.length > 0) this.lights.add(this.lines(world, color, 1, matrix.clone()));
+    // The direction line of a spot or an area light (`light_append_direction_line`): down its
+    // -Z from the clip start to the cut-off, in world units whatever its scale, with a diamond
+    // at each end.
+    if (distances && (light.type === 'SPOT' || light.type === 'AREA')) {
+      const along = new THREE.Vector3(0, 0, -1).transformDirection(matrix);
+      const at = (distance: number) => origin.clone().addScaledVector(along, distance);
+      const [start, end] = distances;
+      const line: Segments = [];
+      seg(line, at(start).toArray(), at(end).toArray());
+      this.lights.add(this.lines(line, color, 1, new THREE.Matrix4()));
+      for (const distance of [start, end]) {
+        const diamond: Segments = [];
+        loop(diamond, ring(1.2, 4));
+        this.lights.add(this.screen(diamond, color, 1, at(distance)));
+      }
+    }
+    // THE SPOT'S CONE, ten units long (the overlay rescales the light's matrix by 10): the cap
+    // at the cone's angle, the blend's circle inside it, and of the cone's 32 generators only
+    // those on its silhouette from where it is seen, chosen each draw as the shader chooses them.
+    if (light.type === 'SPOT') {
+      const half = (light.spot_size ?? Math.PI / 4) / 2;
+      const a = Math.cos(half);
+      const b = light.spot_blend ?? 0.15;
+      const c = a * b - a - b;
+      const blend = Math.sqrt((a * a - a * a * c * c) / (c * c - a * a * c * c));
+      const sine = Math.sqrt(1 - a * a);
+      const cone = unscaled(matrix).multiply(new THREE.Matrix4().makeScale(10, 10, 10));
+      const caps: Segments = [];
+      loop(caps, ring(sine, 32), -a);
+      loop(caps, ring(sine * blend, 32), -a);
+      this.lights.add(this.lines(caps, color, 1, cone.clone()));
+      this.lights.add(this.silhouette(sine, a, color, cone));
+    }
     if ((light.type === 'POINT' || light.type === 'SPOT') && (light.radius ?? 0) > 0) {
       const circle: Segments = [];
       loop(circle, ring(light.radius!, 32));
@@ -350,6 +387,44 @@ export class ExtrasOverlay {
     const pose = matrix.clone().multiply(new THREE.Matrix4().makeScale(s, s, s));
     this.empties.add(this.lines(lines, color, 1, pose));
     if (empty.display === 'ARROWS') this.axisNames(matrix, s, color);
+  }
+
+  /** A spot cone's silhouette generators, re-chosen before each draw for the camera drawing it
+   *  (`overlay_extra_vert.glsl`, `VCLASS_LIGHT_SPOT_CONE`: a generator is kept where the two
+   *  faces beside it face opposite ways from the view). */
+  private silhouette(sine: number, cosine: number, color: number, cone: THREE.Matrix4): LineSegments2 {
+    // All 32 generators, allocated once and rewritten in place: three uploads a geometry before
+    // its draw hook runs, so a new one set there would never reach the GPU. A generator off the
+    // silhouette collapses to the apex. (The rewrite reaches the next frame's upload.)
+    const lines = this.lines(new Array<number>(32 * 6).fill(0), color, 1, cone);
+    lines.frustumCulled = false;
+    const buffer = (lines.geometry.getAttribute('instanceStart') as THREE.InterleavedBufferAttribute).data;
+    const points = ring(1, 32).map(([x, y]) => new THREE.Vector3(x * sine, y * sine, -cosine));
+    const eye = new THREE.Vector3();
+    const inverse = new THREE.Matrix4();
+    const n0 = new THREE.Vector3();
+    const n1 = new THREE.Vector3();
+    const toward = new THREE.Vector3();
+    this.onDraw(lines, (_renderer, camera) => {
+      inverse.copy(lines.matrixWorld).invert();
+      const orthographic = (camera as THREE.OrthographicCamera).isOrthographicCamera;
+      // The view, in the cone's own frame: toward the eye, or against the view's direction.
+      if (orthographic) camera.getWorldDirection(eye).negate().transformDirection(inverse);
+      else eye.setFromMatrixPosition(camera.matrixWorld).applyMatrix4(inverse);
+      const array = buffer.array as Float32Array;
+      for (let i = 0; i < 32; i++) {
+        const p = points[i]!;
+        // Each face spans the apex, this generator and a neighbour.
+        n0.crossVectors(p, points[(i + 31) % 32]!);
+        n1.crossVectors(points[(i + 1) % 32]!, p);
+        if (orthographic) toward.copy(eye);
+        else toward.copy(eye).sub(p);
+        const kept = n0.dot(toward) > 0 !== n1.dot(toward) > 0;
+        array.set([0, 0, 0, kept ? p.x : 0, kept ? p.y : 0, kept ? p.z : 0], i * 6);
+      }
+      buffer.needsUpdate = true;
+    });
+    return lines;
   }
 
   /** The arrows' X, Y and Z, drawn as lines facing the view at 1.25 of each axis. */
