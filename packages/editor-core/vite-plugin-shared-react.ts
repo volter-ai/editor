@@ -77,6 +77,21 @@ import { fileURLToPath } from 'node:url';
 import { EDITOR_LANE_DIRS } from '@volter/editor-sdk/session/tool-contribution-convention';
 import type { Plugin } from 'vite';
 
+const realPaths = new Map<string, string>();
+/** A file's real path (links resolved), cached; the path itself when it cannot be read. */
+function realPathOf(file: string): string {
+  let real = realPaths.get(file);
+  if (real === undefined) {
+    try {
+      real = realpathSync(file);
+    } catch {
+      real = file;
+    }
+    realPaths.set(file, real);
+  }
+  return real;
+}
+
 /** What this plugin uses of a Vite environment's dependency optimizer (not a public Vite type). */
 interface DepsOptimizer {
   readonly options: { readonly exclude?: readonly string[] };
@@ -599,7 +614,12 @@ export function sharedReactPlugin({
         const optimizer = (this as unknown as { environment?: { depsOptimizer?: DepsOptimizer } }).environment?.depsOptimizer;
         const excluded = optimizer?.options.exclude ?? [];
         const bareName = source.startsWith('@') ? source.split('/').slice(0, 2).join('/') : source.split('/')[0]!;
-        if (dependency && optimizer && !excluded.includes(source) && !excluded.includes(bareName)) {
+        // Only where Vite would not: an importer under node_modules. A checkout's own editor source
+        // (source mode) keeps Vite's own handling; registering its React libraries here bound them
+        // to the game's React and stalled the editor (measured: @fortawesome/react-fontawesome).
+        // By its REAL path: a checkout's packages are reached through a project's node_modules link.
+        const fromInstalled = realPathOf(stripQuery(importer!)).includes(`${path.sep}node_modules${path.sep}`);
+        if (dependency && optimizer && fromInstalled && !excluded.includes(source) && !excluded.includes(bareName)) {
           const info = optimizer.metadata.optimized[source] ?? optimizer.metadata.discovered[source] ?? optimizer.registerMissingImport(source, dependency.file);
           return optimizer.getOptimizedDepId(info);
         }
