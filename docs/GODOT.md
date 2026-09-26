@@ -186,6 +186,14 @@ outside a host event); imports of `@volter/editor-*` or of a sibling capability;
 lifecycle protocol the host's own events (R3F's frame, the Rapier step), and no Godot runtime
 package sits in between.
 
+**The target platform is Godot's web platform.** Where Godot's behaviour depends on the
+platform, a translated game gets the answer Godot's own web export gives:
+`RenderingServer.get_current_rendering_method()` is `"gl_compatibility"`, and a function Godot
+delegates to the C library is the browser's (the `platform-libm` comparator). A server singleton
+(`RenderingServer`, `PhysicsServer3D`, `DisplayServer`) may therefore have a module, but only for
+its public members: each is a `BINDING` onto three's renderer settings, Rapier or the browser,
+cited to the web platform's code path. It never reimplements the server.
+
 **Untyped code is typed by analysis, not dispatched at runtime.** `analyze` gives a receiver the
 type Godot itself guarantees there, and records the rule as evidence:
 

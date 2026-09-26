@@ -212,6 +212,13 @@ Dictionary encode_variant(const Variant &p_value) {
 		case Variant::FLOAT:
 			encoded["kind"] = "float";
 			encoded["value"] = String::num_real((double)p_value);
+			{
+				// num_real keeps about 14 significant digits; the exact double is its bit pattern.
+				const double value = (double)p_value;
+				uint64_t bits = 0;
+				memcpy(&bits, &value, sizeof(bits));
+				encoded["bits"] = String::num_uint64(bits, 16).lpad(16, "0");
+			}
 			break;
 		case Variant::STRING:
 			encoded["kind"] = "string";

@@ -1,7 +1,7 @@
 import { godotSourceAuthority } from './source-authority';
 
 export const GODOT_BOUND_PROGRAM_PROTOCOL = 'vgai.godot-bound-program' as const;
-export const GODOT_BOUND_PROGRAM_VERSION = 9 as const;
+export const GODOT_BOUND_PROGRAM_VERSION = 10 as const;
 export const GODOT_4_7_SOURCE_TREE_SHA256 =
   'b25d23ca60d7a9e99c2cccda9a5a1b2e736e6d0f79a8411d6647dafd4693cbec' as const;
 export const GODOT_4_7_SOURCE_ARCHIVE_SHA256 =
@@ -551,7 +551,18 @@ function boundVariant(value: unknown, at: string): GodotBoundVariant {
     exactKeys(row, ['kind', 'value'], at);
     return { kind, value: boolean(row['value'], `${at}.value`) };
   }
-  if (kind === 'int' || kind === 'float' || kind === 'string' || kind === 'string-name') {
+  if (kind === 'float') {
+    // The exact double is the exporter's bit pattern; `value` is Godot's shortened spelling.
+    // Downstream reads the decimal that round-trips to exactly those bits.
+    exactKeys(row, ['kind', 'value', 'bits'], at);
+    const bits = string(row['bits'], `${at}.bits`);
+    if (!/^[0-9a-f]{16}$/u.test(bits)) throw new Error(`${at}.bits is not a 64-bit pattern`);
+    const view = new DataView(new ArrayBuffer(8));
+    view.setBigUint64(0, BigInt(`0x${bits}`));
+    const exact = view.getFloat64(0);
+    return { kind, value: Object.is(exact, -0) ? '-0' : String(exact) };
+  }
+  if (kind === 'int' || kind === 'string' || kind === 'string-name') {
     exactKeys(row, ['kind', 'value'], at);
     return { kind, value: string(row['value'], `${at}.value`) };
   }

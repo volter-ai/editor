@@ -4,7 +4,7 @@ extends SceneTree
 # pinned Godot frontend and supplies every token, node, binding, type, and compiler outcome.
 
 const PROTOCOL := "vgai.godot-bound-program"
-const PROTOCOL_VERSION := 9
+const PROTOCOL_VERSION := 10
 
 var _out_path := ""
 var _binary_sha256 := ""
