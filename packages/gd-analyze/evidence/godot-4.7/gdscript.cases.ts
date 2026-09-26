@@ -510,7 +510,7 @@ rule('implicit-ready', 'CLASS', 'implicit-ready', [], '', structural('implicit-r
 });
 
 // Constructs an older exact rule already decides (seed and language-semantics authorities).
-for (const id of ['member-constant-native', 'member-constant-class', 'member-variable-class', 'member-variable-variant', 'member-constant-variant', 'variable-inferred-variant', 'while-bool', 'local-iterator-int', 'OP_NEGATIVE-int', 'assign-OP_SUBTRACTION-ii']) {
+for (const id of ['member-constant-native', 'member-constant-class', 'member-variable-variant', 'member-constant-variant', 'variable-inferred-variant', 'while-bool', 'local-iterator-int', 'OP_NEGATIVE-int', 'assign-OP_SUBTRACTION-ii']) {
   rules.splice(
     rules.findIndex((entry) => entry.id === id),
     1,
@@ -627,6 +627,7 @@ for (const [annotation, name] of [
     : [
         [NATIVE, 'native'],
         [ENUM, 'enum'],
+        [CLASS, 'class'],
       ]) as readonly (readonly [string, string])[]) {
     for (const declared of ['inferred', 'declared'] as const) {
       rules.push({
@@ -1289,6 +1290,14 @@ extends Tagged
 const TYPE_SOURCE = `class_name TypeCases
 extends Node3D
 
+# @onready members holding scene nodes (\`scene-node-receiver\`): a scripted node and a native one.
+@onready var _tagged = $Tagged
+@onready var _derived := $Derived
+@onready var _lamp := $Lamp as Light3D
+
+func onready_members() -> Array:
+\treturn [_tagged.level, _derived.level, _lamp.light_energy]
+
 func natives() -> Array:
 \tvar body: Node = $Body
 \tvar character: Node = $Character
@@ -1688,7 +1697,7 @@ cases.push({
   call: '',
   instance: {
     scene: 'type_cases.tscn',
-    steps: ['natives', 'scripts', 'nulls', 'casts', 'narrowed_members', 'narrowed_compound', 'scene_members'],
+    steps: ['$ready', 'onready_members', 'natives', 'scripts', 'nulls', 'casts', 'narrowed_members', 'narrowed_compound', 'scene_members'],
     native: () => {
       const root = nativeNode('Root', NODE3D);
       nativeNode('Body', ['RigidBody3D', ...BODY3D], root);
