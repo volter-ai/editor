@@ -1,6 +1,7 @@
 {
   "description": "Godot class semantics for imported games, transcribed from the pinned Godot 4.7 source. One module per Godot class, built-in type or singleton, named as Godot names it; each export is one Godot member by its Godot name with the native receiver first, citing the source it transcribes (@godot, @source). Receivers are the native entities the generated scene mounted (Three.js objects, Rapier bodies, DOM elements); Godot state no native object holds lives in a WeakMap keyed by that entity. There are no class-name dispatch tables, no Godot server modules and no frame loop, timer or scheduler of its own: the generated composition hands the lifecycle protocol the host's own events. scripts/check-godot-compat.mjs enforces this.",
   "files": [
+    "src/lib/godot-compat/basis.ts",
     "src/lib/godot-compat/node-process.ts",
     "src/lib/godot-compat/react-lifecycle.tsx",
     "src/lib/godot-compat/signal.ts",

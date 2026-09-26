@@ -40,6 +40,22 @@ function sha256(bytes: Uint8Array | string): string {
   return createHash('sha256').update(bytes).digest('hex');
 }
 
+/** Every compat module `module` imports, transitively, by relative specifier, sorted. */
+function compatImports(module: string): readonly string[] {
+  const found = new Set<string>();
+  const visit = (current: string): void => {
+    const source = readFileSync(compatModuleFile(current), 'utf8');
+    for (const match of source.matchAll(/from\s+'(\.{1,2}\/[^']+)'/g)) {
+      const next = path.posix.join(path.posix.dirname(current), match[1] as string);
+      if (next === module || found.has(next)) continue;
+      found.add(next);
+      visit(next);
+    }
+  };
+  visit(module);
+  return [...found].sort();
+}
+
 /**
  * The live identity of an implementation. `loweringDigest` is the digest of the code-lowering
  * files (authority-data's GODOT_CODE_IMPLEMENTATION_FILES), passed in to keep this module below it.
@@ -49,7 +65,16 @@ export function godotEvidenceImplementationDigest(
   loweringDigest: string,
 ): string {
   if (implementation.kind === 'compat-module') {
-    return sha256(readFileSync(compatModuleFile(implementation.module)));
+    const imported = compatImports(implementation.module);
+    const own = readFileSync(compatModuleFile(implementation.module));
+    // A module with no compat imports is its own bytes; one that imports others also runs theirs.
+    if (imported.length === 0) return sha256(own);
+    return sha256(
+      JSON.stringify([
+        [implementation.module, sha256(own)],
+        ...imported.map((module) => [module, sha256(readFileSync(compatModuleFile(module)))]),
+      ]),
+    );
   }
   return sha256(
     JSON.stringify([
