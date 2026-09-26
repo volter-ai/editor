@@ -261,12 +261,13 @@ Open, with what closes each:
   diff read, undo byte-identical, generated targets refused whole): in the piano roll,
   selection, group move, length, grid, quantize, clipboard, duplicate and articulation; in the
   arranger, clip move/resize/create/delete/duplicate, seek, loop region, metronome, markers,
-  tempo and meter, the tempo row, and adding tracks, devices and sends. Open: the readings that
-  need the preview playing (the playhead jumping on a seek, wrapping inside the loop region,
-  the metronome's clicks, paste at the playhead) were not taken, since audio in the owner's tab
-  sounds through their speakers and an eval click grants no user activation; the loop's fold
-  (`passes`, `foldSecond`) is verified by reading only. Closes with a reading taken where the
-  audio is heard by no one (an audio context whose output is captured, not played).
+  tempo and meter, the tempo row, and adding tracks, devices and sends. Playing, read in a
+  headless, muted tab hosting the session (`VGAI_NO_OPEN`, Chromium with `--mute-audio` and
+  `--autoplay-policy=no-user-gesture-required`): a ruler click at bar 10 while playing moved
+  the playhead from beat 5.3 to 36.6 and on; with a loop region of beats 8–16 a play from 0
+  ran into it and wrapped from 15.6 to 9.0; the metronome scheduled a blip every 0.75 s at
+  80 BPM, the downbeat at 1760 Hz against 1320, and none once off; a paste at playhead 14.32
+  wrote the note at 4:3.25 (the 1/16 grid) and undid byte-identically.
 - Live against export, synth half. Read from `spessasynth_lib`'s processor: at the start of
   each 128-sample render quantum it applies every queued event whose time has passed, then
   renders the quantum, so each note the preview schedules sounds up to 2.67 ms after its
