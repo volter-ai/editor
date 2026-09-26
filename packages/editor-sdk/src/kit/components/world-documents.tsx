@@ -53,6 +53,7 @@ import {
   subscribeComponentBoards,
 } from '@volter/editor-sdk/kit/component-board-registry';
 import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
+import { liveDocumentHeld } from '@volter/editor-sdk/kit/live-document';
 import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';
 import { explainSurface } from '@volter/editor-sdk/kit/surface-state';
 import { recordViewportFirstFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
@@ -539,7 +540,9 @@ export function installRootDocuments(
   const unsubscribePresence = subscribeComponentBoards(reconcileBoards);
 
   const firstInstalled = canvasRoot ? CANVAS_SCENE_DOCUMENT_ID : [...installedIds][0];
-  if (
+  if (liveDocumentHeld()) {
+    // Play started before this project's documents installed: they open behind the game.
+  } else if (
     !hasThreeRoot &&
     firstInstalled !== undefined &&
     (previouslyActive === null ||

@@ -7,6 +7,7 @@ import {
   WORKSPACE_DOCUMENT_KINDS,
   type WorkspaceDocumentDescriptor,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
+import { liveDocumentHeld } from '@volter/editor-sdk/kit/live-document';
 import { registerWorkspaceDocumentRestorer } from '@volter/editor-sdk/kit/workspace-document-restore';
 
 export interface AvailableWorkspaceDocument {
@@ -47,15 +48,16 @@ export function openAvailableWorkspaceDocument(id: string, activate = true): boo
   return true;
 }
 
+/** A document restored or opened by default while Play holds the game opens behind it. */
 function restoreAvailableDocuments(): void {
   for (const [id, active] of pending) {
-    if (openAvailableWorkspaceDocument(id, active)) pending.delete(id);
+    if (openAvailableWorkspaceDocument(id, active && !liveDocumentHeld())) pending.delete(id);
   }
   if (sessionStarted && !hasDocumentsRestoring && !defaultOpened) {
     const entry = documents.find((item) => item.default);
     if (entry) {
       defaultOpened = true;
-      openAvailableWorkspaceDocument(entry.descriptor.id);
+      openAvailableWorkspaceDocument(entry.descriptor.id, !liveDocumentHeld());
     }
   }
 }

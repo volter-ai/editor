@@ -126,6 +126,7 @@ import {
   type WorkspaceDocumentDescriptor,
   workspaceDocumentRegistryVersion,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
+import { liveDocumentHeld } from '@volter/editor-sdk/kit/live-document';
 import { reopenKindDocument } from '@volter/editor-sdk/kit/components/kind-documents';
 import { requestAvailableWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-available-documents';
 import {
@@ -1198,6 +1199,10 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
       else door.console.warn(message, 'editor');
     },
   };
+  // The frame's documents contribution reports the editor its native restoration chose BEFORE it
+  // subscribes (`vgaiDocuments.ts`'s constructor). That one report is the workbench's remembered
+  // focus, not a person's click, so a Play entered before the workbench booted keeps the game.
+  let frameSubscribed = false;
   const documents: VgaiDocumentsHandle = {
     whenRestored: waitForWorkspaceStateRestore,
     activeSource: () => {
@@ -1231,6 +1236,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
       }),
     activeId: () => activeWorkspaceDocument()?.descriptor.id ?? null,
     subscribe: (listener) => {
+      frameSubscribed = true;
       const registry = subscribeWorkspaceDocuments(listener);
       // The AREAS move on a workspace switch, and the registry is silent about that: the
       // documents it holds are the same objects, only the list that gives them a place and a
@@ -1242,6 +1248,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
       };
     },
     activate: (id, viewId) => {
+      if (!frameSubscribed && liveDocumentHeld()) return;
       if (viewId) setActiveWorkspaceDocumentView(id, viewId);
       else activateWorkspaceDocument(id);
     },

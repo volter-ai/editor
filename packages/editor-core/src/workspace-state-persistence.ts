@@ -86,6 +86,7 @@ import {
 } from '@volter/editor-sdk/kit/project-local-state';
 import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { refreshProjectToolContributions } from '@volter/editor-sdk/kit/tool-loader';
+import { liveDocumentHeld } from '@volter/editor-sdk/kit/live-document';
 import { PINNED_ASYNC_DOCUMENT_IDS } from '@volter/editor-sdk/kit/workspace-document-ids';
 import {
   activateWorkspaceDocument,
@@ -318,7 +319,7 @@ async function restoreOneDocument(
       const claimed = await restorer.restore({
         id: doc.id,
         state: doc.state,
-        active: doc.id === activeId,
+        active: doc.id === activeId && !liveDocumentHeld(),
         store,
       });
       if (claimed) return true;
@@ -330,16 +331,19 @@ async function restoreOneDocument(
 }
 
 /** Restore an active id now, or hand a stable async board id to the document
- * registry so its later project-owned registration completes the request. */
+ * registry so its later project-owned registration completes the request. A
+ * Play entered before the restore lands keeps the game in front: the restored
+ * document opens behind it. */
 function restoreActiveDocument(id: string | null): boolean {
   if (!id) return false;
-  if (openAvailableWorkspaceDocument(id)) return true;
+  const activate = !liveDocumentHeld();
+  if (openAvailableWorkspaceDocument(id, activate)) return true;
   if (PINNED_ASYNC_DOCUMENT_IDS.has(id)) {
     requestAvailableWorkspaceDocument(id);
-    restorePinnedWorkspaceDocumentActivation(id);
+    if (activate) restorePinnedWorkspaceDocumentActivation(id);
     return true;
   }
-  return activateWorkspaceDocument(id);
+  return activate && activateWorkspaceDocument(id);
 }
 
 /** Tell every registered kind the session is beginning, with its own session

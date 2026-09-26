@@ -158,8 +158,7 @@ Remaining:
    which the Rapier observer does not answer. Open: the `.inputmap.json` format and its
    `InputManager`, which only the editor's `Game`, the asset documents and the template's
    `validate-asset-content.ts` still use; a canvas root has no design-time mount (Edit waits on
-   "Loading Scene root"), and a Play issued in the instant a canvas project's session opens
-   stays playing with nothing mounted.
+   "Loading Scene root").
 2. **Animation seen from outside.** The editor finds a game's mixers through a served stamp on
    the project's own `new AnimationMixer(...)` and `useAnimations(...)` call sites
    (`@volter/editor-threejs/serving`); `status` reports them as `liveMixers` (walked on `arena`:
