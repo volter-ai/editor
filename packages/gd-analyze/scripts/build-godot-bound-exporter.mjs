@@ -32,7 +32,7 @@ const REVISION = '5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88';
 const SOURCE_TREE_SHA256 = 'b25d23ca60d7a9e99c2cccda9a5a1b2e736e6d0f79a8411d6647dafd4693cbec';
 const SOURCE_ARCHIVE_SHA256 = 'b3d705612228c09083d55a89ed3ea7381e6181387ecfdb74fd5cf9733b28eee6';
 const BUILD_OPTIONS =
-  'platform=macos target=template_debug arch=arm64 dev_build=yes debug_symbols=no lto=none vulkan=no opengl3=no metal=no angle=no accesskit=no sdl=no disable_path_overrides=no modules_enabled_by_default=no module_gdscript_enabled=yes module_gdscript_frontend_exporter_enabled=yes';
+  'platform=macos target=template_debug arch=arm64 dev_build=yes debug_symbols=no lto=none vulkan=no opengl3=no metal=no angle=no accesskit=no sdl=no disable_path_overrides=no modules_enabled_by_default=yes module_gdscript_enabled=yes module_gdscript_frontend_exporter_enabled=yes';
 const EXCLUDED_SOURCE_SEGMENTS = new Set(['.git', 'thirdparty', 'tests']);
 const EXCLUDED_EXPORTER_FILES = new Set(['build_identity.gen.h']);
 
@@ -177,7 +177,7 @@ try {
       'accesskit=no',
       'sdl=no',
       'disable_path_overrides=no',
-      'modules_enabled_by_default=no',
+      'modules_enabled_by_default=yes',
       'module_gdscript_enabled=yes',
       'module_gdscript_frontend_exporter_enabled=yes',
       `cache_path=${cacheDir}`,

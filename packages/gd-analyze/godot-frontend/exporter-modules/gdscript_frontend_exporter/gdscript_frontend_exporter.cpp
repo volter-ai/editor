@@ -101,6 +101,11 @@ const char *assignment_operation_name(GDScriptParser::AssignmentNode::Operation 
 	return "OP_NONE";
 }
 
+// A plain assignment carries Variant::OP_MAX ("no operator"), which has no name to ask for.
+String variant_operator_name(Variant::Operator p_operator) {
+	return p_operator == Variant::OP_MAX ? String() : Variant::get_operator_name(p_operator);
+}
+
 const char *binary_operation_name(GDScriptParser::BinaryOpNode::OpType p_operation) {
 	switch (p_operation) {
 		case GDScriptParser::BinaryOpNode::OP_ADDITION: return "OP_ADDITION";
@@ -397,7 +402,7 @@ public:
 			case Node::ASSIGNMENT: {
 				const auto *node = static_cast<const GDScriptParser::AssignmentNode *>(p_node);
 				row["operation"] = assignment_operation_name(node->operation);
-				row["variantOperator"] = Variant::get_operator_name(node->variant_op);
+				row["variantOperator"] = variant_operator_name(node->variant_op);
 				row["variantOperatorId"] = (int)node->variant_op;
 				row["assignee"] = encode_optional(node->assignee);
 				row["assignedValue"] = encode_optional(node->assigned_value);
@@ -410,7 +415,7 @@ public:
 			case Node::BINARY_OPERATOR: {
 				const auto *node = static_cast<const GDScriptParser::BinaryOpNode *>(p_node);
 				row["operation"] = binary_operation_name(node->operation);
-				row["variantOperator"] = Variant::get_operator_name(node->variant_op);
+				row["variantOperator"] = variant_operator_name(node->variant_op);
 				row["variantOperatorId"] = (int)node->variant_op;
 				row["leftOperand"] = encode_optional(node->left_operand);
 				row["rightOperand"] = encode_optional(node->right_operand);
@@ -673,7 +678,7 @@ public:
 			case Node::UNARY_OPERATOR: {
 				const auto *node = static_cast<const GDScriptParser::UnaryOpNode *>(p_node);
 				row["operation"] = unary_operation_name(node->operation);
-				row["variantOperator"] = Variant::get_operator_name(node->variant_op);
+				row["variantOperator"] = variant_operator_name(node->variant_op);
 				row["variantOperatorId"] = (int)node->variant_op;
 				row["operand"] = encode_optional(node->operand);
 			} break;
@@ -756,6 +761,21 @@ void GDScriptFrontendExporter::prepare_source(const String &p_script_path) {
 	ERR_FAIL_COND_MSG(!registered_sources.has(p_script_path), "GDScript source path was not registered: " + p_script_path);
 	ERR_FAIL_COND_MSG(prepared_scripts.has(p_script_path), "GDScript source path was prepared twice: " + p_script_path);
 	if (!project_globals_prepared) {
+		// The editor's filesystem scan registers every `class_name` before any script is analyzed
+		// (EditorFileSystem::_register_global_class_script). A headless capture has no scan and no
+		// `.godot` cache, so register each snapshot source through the same two official calls.
+		GDScriptLanguage *gdscript = GDScriptLanguage::get_singleton();
+		for (const KeyValue<String, String> &entry : registered_sources) {
+			String base_type;
+			bool is_abstract = false;
+			bool is_tool = false;
+			const String class_name = gdscript->get_global_class_name(entry.key, &base_type, nullptr, &is_abstract, &is_tool);
+			if (class_name.is_empty()) {
+				continue;
+			}
+			ScriptServer::remove_global_class_by_path(entry.key);
+			ScriptServer::add_global_class(class_name, base_type, gdscript->get_name(), entry.key, is_abstract, is_tool);
+		}
 		for (const KeyValue<StringName, ProjectSettings::AutoloadInfo> &entry : ProjectSettings::get_singleton()->get_autoload_list()) {
 			if (!entry.value.is_singleton) {
 				continue;
@@ -792,14 +812,23 @@ void GDScriptFrontendExporter::seal_sources_for_compilation() {
 	ERR_FAIL_COND_MSG(prepared_scripts.size() != registered_sources.size(), "Every registered GDScript source must be prepared before compilation.");
 	ERR_FAIL_NULL(GDScriptCache::singleton);
 	MutexLock lock(GDScriptCache::mutex);
+	// A prepared script is either still shallow, or Godot's own loader already finished it while
+	// analysis resolved a dependency (a `preload` of a scene loads that scene's scripts through
+	// ResourceLoader). Either way the cache must hold the prepared object itself.
 	for (const KeyValue<String, Ref<GDScript>> &entry : prepared_scripts) {
-		ERR_FAIL_COND_MSG(!GDScriptCache::singleton->shallow_gdscript_cache.has(entry.key), "Prepared GDScript source was not retained in the shallow cache: " + entry.key);
-		ERR_FAIL_COND_MSG(GDScriptCache::singleton->shallow_gdscript_cache[entry.key] != entry.value, "Prepared GDScript source cache identity changed: " + entry.key);
+		const bool shallow = GDScriptCache::singleton->shallow_gdscript_cache.has(entry.key);
+		const bool full = GDScriptCache::singleton->full_gdscript_cache.has(entry.key);
+		ERR_FAIL_COND_MSG(!shallow && !full, "Prepared GDScript source was not retained in the script cache: " + entry.key);
+		ERR_FAIL_COND_MSG(shallow && GDScriptCache::singleton->shallow_gdscript_cache[entry.key] != entry.value, "Prepared GDScript source cache identity changed: " + entry.key);
+		ERR_FAIL_COND_MSG(!shallow && GDScriptCache::singleton->full_gdscript_cache[entry.key] != entry.value, "Prepared GDScript source cache identity changed: " + entry.key);
 	}
 	// Batch the cache-promotion half of Godot's finish_compiling() before compilation. Every
 	// dependency then resolves to its retained official object instead of entering reload(), which
 	// would parse and analyze the same snapshot source a second time.
 	for (const KeyValue<String, Ref<GDScript>> &entry : prepared_scripts) {
+		if (!GDScriptCache::singleton->shallow_gdscript_cache.has(entry.key)) {
+			continue;
+		}
 		GDScriptCache::singleton->full_gdscript_cache[entry.key] = entry.value;
 		GDScriptCache::singleton->shallow_gdscript_cache.erase(entry.key);
 	}

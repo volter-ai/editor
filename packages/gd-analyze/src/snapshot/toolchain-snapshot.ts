@@ -28,7 +28,7 @@ import type { GodotSceneNodeAuthority } from '../translate/data/scene-node-autho
 import { godotSceneNodeAuthority } from '../translate/data/scene-node-authority-data';
 import type { GodotProjectSnapshot } from './project-snapshot';
 
-export const GODOT_TOOLCHAIN_SNAPSHOT_VERSION = 16 as const;
+export const GODOT_TOOLCHAIN_SNAPSHOT_VERSION = 17 as const;
 
 const PACKAGE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const MONO_ROOT = path.resolve(PACKAGE_DIR, '..', '..');
@@ -59,6 +59,18 @@ export interface GodotResolvedPackage {
   readonly version: string;
   readonly resolved: string;
   readonly integrity: string;
+}
+
+/**
+ * A dependency the workspace links rather than installs: one of this repository's own packages
+ * the engine is built from. It has no registry integrity; its identity is the checkout it is
+ * built from (HEAD plus its own directory's dirty state) and its manifest bytes.
+ */
+export interface GodotWorkspacePackage {
+  readonly name: string;
+  readonly workspacePath: string;
+  readonly packageJsonDigest: string;
+  readonly source?: EngineSourceState;
 }
 
 export interface GodotToolchainFileArtifact {
@@ -108,6 +120,7 @@ export interface GodotToolchainSnapshot {
   readonly catalogArtifacts: readonly GodotToolchainFileArtifact[];
   readonly scaffoldArtifacts: readonly GodotToolchainFileArtifact[];
   readonly packages: readonly GodotResolvedPackage[];
+  readonly workspacePackages: readonly GodotWorkspacePackage[];
 }
 
 export interface GodotImportToolchainSnapshot extends GodotToolchainSnapshot {
@@ -319,9 +332,9 @@ function scaffoldArtifacts(
     );
   }
   for (const artifact of frozenCatalog) {
-    add(path.posix.join('packages', 'editor', artifact.path), artifact.bytes);
+    add(path.posix.join('packages', 'gd-analyze', 'capabilities', artifact.path), artifact.bytes);
   }
-  add('packages/engine/package.json', enginePackageBytes);
+  add('packages/game-runtime/package.json', enginePackageBytes);
 
   const templatePackage = JSON.parse(
     readFileSync(path.join(templateDir, 'package.json'), 'utf8'),
@@ -360,17 +373,50 @@ function dependencyRanges(
   return ranges;
 }
 
+function lockRows(lock: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>> {
+  const packages = lock['packages'];
+  if (typeof packages !== 'object' || packages === null || Array.isArray(packages)) {
+    throw new Error('package-lock.json has no npm v3 packages table');
+  }
+  return packages as Readonly<Record<string, unknown>>;
+}
+
+function workspaceLink(rows: Readonly<Record<string, unknown>>, name: string): string | undefined {
+  const row = rows[`node_modules/${name}`] as Readonly<Record<string, unknown>> | undefined;
+  return row?.['link'] === true && typeof row['resolved'] === 'string' ? row['resolved'] : undefined;
+}
+
+function workspacePackages(
+  lock: Readonly<Record<string, unknown>>,
+  ranges: ReadonlyMap<string, ReadonlySet<string>>,
+): readonly GodotWorkspacePackage[] {
+  const rows = lockRows(lock);
+  return [...ranges.keys()]
+    .sort()
+    .flatMap((name) => {
+      const workspacePath = workspaceLink(rows, name);
+      if (workspacePath === undefined) return [];
+      const directory = path.join(MONO_ROOT, workspacePath);
+      const source = readEngineSourceState(directory);
+      return [
+        {
+          name,
+          workspacePath,
+          packageJsonDigest: sha256(readFileSync(path.join(directory, 'package.json'))),
+          ...(source === undefined ? {} : { source }),
+        },
+      ];
+    });
+}
+
 function resolvedPackages(
   lock: Readonly<Record<string, unknown>>,
   ranges: ReadonlyMap<string, ReadonlySet<string>>,
   engineDependencies: Readonly<Record<string, string>>,
 ): readonly GodotResolvedPackage[] {
-  const packages = lock['packages'];
-  if (typeof packages !== 'object' || packages === null || Array.isArray(packages)) {
-    throw new Error('package-lock.json has no npm v3 packages table');
-  }
-  const rows = packages as Readonly<Record<string, unknown>>;
+  const rows = lockRows(lock);
   return [...ranges.entries()]
+    .filter(([name]) => workspaceLink(rows, name) === undefined)
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([name, declaredRanges]) => {
       const value = rows[`node_modules/${name}`];
@@ -419,11 +465,11 @@ function captureToolchainSnapshot(
   };
   const engineDependencies = enginePackage.dependencies ?? {};
   const ranges = dependencyRanges(capabilities, engineDependencies);
-  const packages = resolvedPackages(
-    JSON.parse(workspacePackageLockBytes.toString('utf8')) as Readonly<Record<string, unknown>>,
-    ranges,
-    engineDependencies,
-  );
+  const workspaceLock = JSON.parse(workspacePackageLockBytes.toString('utf8')) as Readonly<
+    Record<string, unknown>
+  >;
+  const packages = resolvedPackages(workspaceLock, ranges, engineDependencies);
+  const linkedPackages = workspacePackages(workspaceLock, ranges);
   const copies = capabilityCopies(catalogDir, capabilities);
   const frozenCatalog = catalogArtifacts(catalogDir, capabilities, copies);
   const frozenScaffold = scaffoldArtifacts(
@@ -481,6 +527,7 @@ function captureToolchainSnapshot(
         digest: artifactDigest,
       })),
       packages,
+      workspacePackages: linkedPackages,
     }),
   );
   return {
@@ -498,6 +545,7 @@ function captureToolchainSnapshot(
     catalogArtifacts: frozenCatalog,
     scaffoldArtifacts: frozenScaffold,
     packages,
+    workspacePackages: linkedPackages,
   };
 }
 
@@ -518,13 +566,30 @@ export function captureGodotImportToolchainSnapshot(
   const fieldValueAuthority = godotFieldValueAuthority(authority);
   const sceneNodeAuthority = godotSceneNodeAuthority(authority);
   const lifecycleAuthority = godotLifecycleAuthority(authority);
+  const exporter = captureGodotBoundExporterSnapshot(options.boundExporterBinary);
+  const pinned = authority.boundExporter;
+  if (pinned === undefined) {
+    throw new Error(`Godot ${authority.version}: no bound exporter build is pinned`);
+  }
+  if (exporter.exporterSourceSha256 !== pinned.exporterSourceSha256) {
+    throw new Error(
+      `Godot ${authority.version}: this repository's exporter source is ${exporter.exporterSourceSha256}, ` +
+        `the pin names ${pinned.exporterSourceSha256}; build the exporter from it and pin that build`,
+    );
+  }
+  if (exporter.executableSha256 !== pinned.executableSha256) {
+    throw new Error(
+      `${options.boundExporterBinary}: executable ${exporter.executableSha256} is not the pinned ` +
+        `Godot ${authority.version} bound exporter ${pinned.executableSha256} (${pinned.buildOptions})`,
+    );
+  }
   const frontend: GodotToolchainFrontendSnapshot = {
     authority,
     analysisAuthority,
     analysisAuthorityDigest: sha256(JSON.stringify(analysisAuthority)),
     readAuthority,
     readAuthorityDigest: sha256(JSON.stringify(readAuthority)),
-    exporter: captureGodotBoundExporterSnapshot(options.boundExporterBinary),
+    exporter,
     apiDump: captureGodotApiDumpSnapshot(authority),
     codeAuthority,
     codeAuthorityDigest: sha256(JSON.stringify(codeAuthority)),

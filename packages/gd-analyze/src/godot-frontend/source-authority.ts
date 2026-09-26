@@ -18,6 +18,19 @@ export interface GodotSourceAuthority {
   readonly frontendFiles: readonly string[];
   /** Engine source estates consulted when implementing observable runtime protocol. */
   readonly runtimeRoots: readonly string[];
+  /**
+   * The one bound-program exporter build this pin accepts: the official source at `revision`
+   * with this repository's exporter module and patch compiled in, every engine module enabled
+   * (a game's scripts name module classes such as GridMap and CSG). Its build writes
+   * `identity.json` beside the executable; these are that file's digests. Absent means no
+   * exporter is pinned, and import refuses.
+   */
+  readonly boundExporter?: {
+    readonly executableSha256: string;
+    readonly exporterSourceSha256: string;
+    readonly sourceTreeSha256: string;
+    readonly buildOptions: string;
+  };
 }
 
 const REPOSITORY = 'https://github.com/godotengine/godot' as const;
@@ -60,6 +73,13 @@ export const GODOT_SOURCE_AUTHORITIES: Readonly<
       'modules/gdscript/gdscript_compiler.cpp',
     ],
     runtimeRoots: ['core/', 'scene/', 'servers/', 'modules/gdscript/'],
+    boundExporter: {
+      executableSha256: 'b73109b21332762219075f657bd457a57dbc9ea9068080ea77db66d3d6f56f83',
+      exporterSourceSha256: 'd8052e0e7efed6480f0da1941b4578ab1dd40dbf9d1b842fa3479b7bd56e888b',
+      sourceTreeSha256: 'b25d23ca60d7a9e99c2cccda9a5a1b2e736e6d0f79a8411d6647dafd4693cbec',
+      buildOptions:
+        'platform=macos target=template_debug arch=arm64 dev_build=yes debug_symbols=no lto=none vulkan=no opengl3=no metal=no angle=no accesskit=no sdl=no disable_path_overrides=no modules_enabled_by_default=yes module_gdscript_enabled=yes module_gdscript_frontend_exporter_enabled=yes',
+    },
   },
 };
 
