@@ -46,6 +46,8 @@ export interface PieceDocumentContext {
   readonly error: string | null;
   readonly engine: EngineState;
   readonly playhead: number | null;
+  /** Where Play starts, in beats: the ruler's last click. */
+  readonly start: number;
   play(fromBeat?: number): Promise<void>;
   stop(): void;
 }
@@ -83,6 +85,10 @@ export function PieceEditor({
   const [pxPerBeat, setPxPerBeat] = useState(28);
   const engine = useMemo(() => new PreviewEngine(), []);
   const liveRef = useRef({ live });
+  // Where Play starts (a click on the ruler sets it), as a DAW's play-start marker: view state.
+  const [start, setStart] = useState(0);
+  const startRef = useRef(start);
+  startRef.current = start;
 
   useEffect(() => {
     if (!publishContext) return;
@@ -100,7 +106,10 @@ export function PieceEditor({
       get playhead() {
         return engine.playhead();
       },
-      play: (fromBeat = 0) => engine.play(fromBeat),
+      get start() {
+        return startRef.current;
+      },
+      play: (fromBeat = startRef.current) => engine.play(fromBeat),
       stop: () => engine.stop(),
     };
     return publishContext(context);
@@ -144,8 +153,17 @@ export function PieceEditor({
 
   const togglePlay = useCallback(() => {
     if (engineState.kind === 'playing') engine.stop();
-    else void engine.play(0);
-  }, [engine, engineState.kind]);
+    else void engine.play(start);
+  }, [engine, engineState.kind, start]);
+
+  // A click on the ruler: Play starts there from now on, and a playing piece jumps there.
+  const seek = useCallback(
+    (beat: number) => {
+      setStart(beat);
+      if (engine.current.kind === 'playing') void engine.play(beat);
+    },
+    [engine],
+  );
 
   useEffect(() => {
     if (!active) return;
@@ -193,6 +211,7 @@ export function PieceEditor({
         playing={engineState.kind === 'playing'}
         engineState={engineState}
         playhead={playhead}
+        start={start}
         onToggle={togglePlay}
         pxPerBeat={pxPerBeat}
         onZoom={setPxPerBeat}
@@ -208,6 +227,8 @@ export function PieceEditor({
           totalBeats={totalBeats}
           pxPerBeat={pxPerBeat}
           playhead={playhead}
+          start={start}
+          onSeek={seek}
           selectedClip={clip?.clip.id ?? null}
           onSelectClip={(id) => {
             setSelectedClip(id);

@@ -55,6 +55,8 @@ export function TransportBar(props: {
   readonly playing: boolean;
   readonly engineState: EngineState;
   readonly playhead: number | null;
+  /** Where Play starts, shown while stopped. */
+  readonly start: number;
   readonly onToggle: () => void;
   readonly pxPerBeat: number;
   readonly onZoom: (value: number) => void;
@@ -65,7 +67,7 @@ export function TransportBar(props: {
       <button type="button" style={button} onClick={props.onToggle} title="Play / Stop (Space)">
         {playing ? '■ Stop' : '▶ Play'}
       </button>
-      <span style={{ ...mono, minWidth: 48 }}>{playhead === null ? '1.1' : barBeat(playhead, piece.transport.beatsPerBar)}</span>
+      <span style={{ ...mono, minWidth: 48 }}>{barBeat(playhead ?? props.start, piece.transport.beatsPerBar)}</span>
       <span style={small}>
         {piece.transport.tempo} BPM · {piece.transport.numerator}/{piece.transport.denominator}
       </span>
@@ -139,6 +141,9 @@ export function Arranger(props: {
   readonly totalBeats: number;
   readonly pxPerBeat: number;
   readonly playhead: number | null;
+  /** Where Play starts; a click on the ruler moves it (`onSeek`). */
+  readonly start: number;
+  readonly onSeek: (beat: number) => void;
   readonly selectedClip: string | null;
   readonly onSelectClip: (id: string) => void;
   readonly selectedTrack: string | null;
@@ -337,9 +342,17 @@ export function Arranger(props: {
         ))}
       </div>
       <div style={{ position: 'relative', width }} onPointerMove={moveClip} onPointerUp={endClip}>
-        <div style={{ height: RULER_H, position: 'relative', borderBottom: `1px solid ${themeVars.boundary.default}` }}>
+        <div
+          data-ruler=""
+          title="Click to set where Play starts"
+          onClick={(event) => {
+            const box = event.currentTarget.getBoundingClientRect();
+            props.onSeek(Math.max(0, Math.round((event.clientX - box.left) / pxPerBeat)));
+          }}
+          style={{ height: RULER_H, position: 'relative', cursor: 'text', borderBottom: `1px solid ${themeVars.boundary.default}` }}
+        >
           {Array.from({ length: bars }, (_, bar) => (
-            <span key={bar} style={{ position: 'absolute', left: bar * barPx + 3, top: 4, ...small, ...mono }}>
+            <span key={bar} style={{ position: 'absolute', left: bar * barPx + 3, top: 4, pointerEvents: 'none', ...small, ...mono }}>
               {bar + 1}
             </span>
           ))}
@@ -384,9 +397,19 @@ export function Arranger(props: {
             })}
           </div>
         ))}
-        {props.playhead !== null ? (
-          <span style={{ position: 'absolute', left: props.playhead * pxPerBeat, top: 0, bottom: 0, width: 1, background: themeVars.content.primary, pointerEvents: 'none' }} />
-        ) : null}
+        {/* The playhead while playing; while stopped, where Play will start. */}
+        <span
+          data-playhead={props.playhead ?? props.start}
+          style={{
+            position: 'absolute',
+            left: (props.playhead ?? props.start) * pxPerBeat,
+            top: 0,
+            bottom: 0,
+            width: 1,
+            background: props.playhead === null ? themeVars.semantic.warning : themeVars.content.primary,
+            pointerEvents: 'none',
+          }}
+        />
       </div>
     </div>
   );
