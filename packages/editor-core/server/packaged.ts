@@ -825,27 +825,17 @@ async function main(): Promise<void> {
         // SDK's other doors below for the same reason; the name is here
         // because the kit is the one a PROJECT's own contributions import.)
         '@volter/editor-sdk/widgets',
-        // The Blender engine spawns its worker as
-        // `new Worker(new URL('./worker.ts', import.meta.url))`. Prebundled,
-        // that URL is rewritten against a `.vite/deps` chunk that has no
-        // worker beside it, and the request 404s — measured 2026-09-20 from a
-        // REGISTRY install (invisible from a checkout, where the package is a
-        // symlink Vite serves as source): every Model document died with
-        // "Blender worker failed: the worker script did not load". Served as
-        // source, the URL resolves to the package's own file.
-        //
         // THIS LIST IS THE KIT'S, AND A PRODUCT ADDS NOTHING TO IT (measured
         // 2026-09-21, WORK.md step 3 P1). This instance is rooted at the
         // PROJECT and prebundles what the PROJECT's graph reaches: a package
         // the project DECLARES, whose contributions are served `/@fs/` from its
-        // own install — which is how `@volter/editor-blender` gets here, and why the
-        // name below is a fact about a project's dependency rather than about
-        // any composition. A package the PRODUCT composes is in the product's
+        // own install. A package the PRODUCT composes is in the product's
         // built bundle, which this instance never transforms, so no
         // product-declared dependency needs an exclusion and there is no
-        // `vgai.product.optimizeDepsExclude` to declare one with.
-        '@volter/blender-engine',
-        '@volter/blender-engine/browser',
+        // `vgai.product.optimizeDepsExclude` to declare one with. What a
+        // declared package's tree reaches that spawns a module-relative worker
+        // is found on disk, not named here (`packageContributionCrawl.sourceServed`).
+        ...packageContributionCrawl.sourceServed,
         '@volter/editor-sdk/layouts',
         '@volter/editor-sdk/layout-arrangements',
         // The SDK's OTHER doors, same rule: each holds module state or calls

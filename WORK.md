@@ -79,9 +79,11 @@ Remaining:
    that name (walked on `arena`: `workerCalls.Blender` reports 512 MB engine memory beside the
    page's `stalls`). The standing `blender:runtime` Model is listed by `modelsFromBlendFiles` when
    it finds no `.blend`, not injected by the kit (walked: a project with none opens it). The kit
-   server's one remaining Blender name is `packaged.ts`'s `@volter/blender-engine` prebundle
-   exclusion, whose regression shows only in a registry
-   install, so it moves with a packed-install walk. The Edit/Play tab is derived from workspace
+   server names no Blender package: a declared package's tree that reaches a package spawning a
+   module-relative worker has that package served as source, found on disk
+   (`PackageContributionCrawl.sourceServed`; on a model project it finds exactly
+   `@volter/blender-engine`, and Vite's exclusion covers its subpaths). Its regression shows only
+   in a registry install, so the next packed private release is its walk. The Edit/Play tab is derived from workspace
    focus, and the shell store is split: `ShellStore` is its neutral half, and Three code asks for
    its half through `threeStateOf`. Walked on `arena` on a product build: Play focuses Game and a
    key moves the player; another document turns the tab to Edit; Stop restores the pre-play
@@ -129,7 +131,7 @@ Remaining:
    opening direction, grid and axis colours become `@volter/editor-blender`'s specialization; the SDK's `surfaces.Object3D*` stay on the
    contribution contract, forwarding to what the Three integration registers, because project
    contributions mount them (the authored viewport's own door, `viewport-door`, is already
-   `@volter/editor-threejs`'s); `packaged.ts`'s Blender prebundle exclusion. A W held
+   `@volter/editor-threejs`'s). A W held
    during Play reports "keyboard action transform.translate did not run" from the workbench's own
    keybinding (`vgaiKeyboard.ts`).
 2. **Animation seen from outside.** The editor finds a game's mixers through a served stamp on

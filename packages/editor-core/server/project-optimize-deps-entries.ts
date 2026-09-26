@@ -739,10 +739,20 @@ export function computeUnresolvableRuntimeImports(
  * `unresolvable` is the same safety net as {@link computeUnresolvableRuntimeImports}
  * over the package's own tree: a peer the project does not have is excluded
  * by name rather than allowed to reject the boot-time optimizer.
+ *
+ * `sourceServed` names the packages those trees reach whose own source spawns
+ * a worker from a module-relative URL (`new Worker(new URL('./worker.ts',
+ * import.meta.url))`). Prebundled, that URL is rewritten against a
+ * `.vite/deps` chunk with no worker beside it and the request 404s — measured
+ * 2026-09-20 from a registry install of `@volter/editor-blender`, whose every
+ * Model document died with "Blender worker failed: the worker script did not
+ * load" — so they are served as source, where the URL resolves to the
+ * package's own file.
  */
 export interface PackageContributionCrawl {
   readonly entries: string[];
   readonly unresolvable: string[];
+  readonly sourceServed: string[];
 }
 
 export function computePackageContributionCrawlEntries(
@@ -758,7 +768,7 @@ export function computePackageContributionCrawlEntries(
     };
     declared = [...Object.keys(pkg.dependencies ?? {}), ...Object.keys(pkg.devDependencies ?? {})];
   } catch {
-    return { entries, unresolvable: [] };
+    return { entries, unresolvable: [], sourceServed: [] };
   }
   const req = createRequire(join(projectRoot, 'package.json'));
   for (const name of declared) {
@@ -804,7 +814,46 @@ export function computePackageContributionCrawlEntries(
   const unresolvable = [...specifiers]
     .filter((name) => !specifierResolvesFrom(projectRoot, name))
     .sort();
-  return { entries, unresolvable };
+  const sourceServed = [...specifiers]
+    .filter((name) => !unresolvable.includes(name) && spawnsModuleRelativeWorker(req, name))
+    .sort();
+  return { entries, unresolvable, sourceServed };
+}
+
+const MODULE_RELATIVE_WORKER = /new\s+(?:Shared)?Worker\(\s*new\s+URL\(/;
+
+/** Whether the installed package's own files (not its dependencies') spawn a
+ * worker from a module-relative URL — see {@link PackageContributionCrawl}. */
+function spawnsModuleRelativeWorker(req: NodeJS.Require, name: string): boolean {
+  let root: string;
+  try {
+    root = dirname(req.resolve(`${name}/package.json`));
+  } catch {
+    return false;
+  }
+  const search = (directory: string): boolean => {
+    let found: Dirent[];
+    try {
+      found = readdirSync(directory, { withFileTypes: true });
+    } catch {
+      return false;
+    }
+    for (const item of found) {
+      if (item.name.startsWith('.') || item.name === 'node_modules') continue;
+      const absolute = join(directory, item.name);
+      if (item.isDirectory()) {
+        if (search(absolute)) return true;
+      } else if (item.isFile() && SOURCE_FILE_PATTERN.test(item.name) && !item.name.endsWith('.d.ts')) {
+        try {
+          if (MODULE_RELATIVE_WORKER.test(readFileSync(absolute, 'utf-8'))) return true;
+        } catch {
+          // unreadable file: not evidence either way
+        }
+      }
+    }
+    return false;
+  };
+  return search(root);
 }
 
 const SOURCE_FILE_PATTERN = /\.(?:ts|tsx|mts|js|jsx|mjs)$/;
