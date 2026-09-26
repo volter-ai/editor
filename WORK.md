@@ -138,29 +138,28 @@ Remaining:
    set translate and rotate). The Game side is not walked:
    the door refuses synthetic keys on the Game document by ruling, and no other door delivers a
    keystroke to it.
-   Unit 5 has begun with the template's boot: `src/main.ts` mounts each declared root in its own
-   library (`<Canvas>` for `three`, react-dom for `dom`), the UI starter shows its debugger a
-   module-level `debug` export instead of `useDebugProvider`, and the project-owned React
-   adapter (`react-root`) is gone. Walked on fresh `full` and `website` projects: Play reads the
-   UI root's `debug.state` and follows an arrow key; `npm run build` builds both, and the built
-   `full` page draws the world under its UI with no console errors. Static batching reads
-   Vite's own dev flag, and a game's Web Audio is observed rather than declared, so the
-   template's game code imports nothing of the runtime framework. The editor finds a game's own
-   `<Physics>` world in the project Fiber's root registry (`services/game-physics.ts`, through
-   the R3F doorway) and answers ownership and freeze/commit from it for a `three` root that
-   declares no physics. `arena` runs with none of the framework in its source: the template's
-   boot, no `react-root`, no `<RapierPhysicsBridge>` or audio/physics declarations, and its own
-   input store in `src/lib/input` (the map's keys, mouse, gamepad and virtual actions, attached
-   by `<InputRig />`). Walked on the editor's local `@volter` copy of `arena`, which lives in no
-   repository (vgai-engine's `examples/arena` still imports `@vgai/game-runtime`, whose editor
-   has none of these observers): during Play, no console error; `move_forward` held for one sim
-   second moves the player from z 24.0 to 20.2, `fire` fires the pistol twice; EnemyBody's
-   transform reads "Moves the physics body that owns this node.". Not walked: the ported copy's
-   standalone build, a physical keystroke, and a drag visibly holding a body (its moving bodies
-   are kinematic and driven by its own code). Still on it: the editor's own mounting
-   (`mountManifestRoots` and the R3F root factory it mounts `three` entries with, the design
-   session's inert `Game`, 44 `@volter/editor-game` files), and the input-map schema that the
-   template's and `arena`'s `validate-asset-content.ts` import, plus their dev aliases.
+   Unit 5 retires the runtime framework a game was written against. A game's own code imports
+   none of it: the template's `src/main.ts` mounts each declared root in its own library
+   (`<Canvas>` for `three`, react-dom for `dom`), a root's debugger is a module-level `debug`
+   export, static batching reads Vite's own dev flag, and the editor observes a game's Web Audio
+   (`services/game-audio.ts`) and its `@react-three/rapier` world (`services/game-physics.ts`,
+   through the R3F doorway) instead of taking declarations. The editor mounts `three` and
+   `canvas` entries itself (`host/roots/r3f-root.tsx`, `host/roots/canvas-root.tsx`, React and
+   the renderer's reconciler taken from the project's graph through the doorways), renders `dom`
+   entries bare, and its game host (the `Game`, loop, debug registry, manifest mount, input seams,
+   render control, instruments) lives in `editor-game/src/runtime`; `game-runtime` keeps only
+   helpers a game may call, and imports nothing of the editor. Walked under the packaged server:
+   the template's `full` and `website` projects play and build; `arena`, on the editor's local
+   `@volter` copy with its own input store (it lives in no repository; vgai-engine's
+   `examples/arena` still imports `@vgai/game-runtime`), plays with no console error, moves
+   and fires through the input door, and reads "Moves the physics body that owns this node." on
+   EnemyBody; a scratch canvas project plays and animates. Not walked: a physical keystroke, a
+   drag visibly holding a body (arena's moving bodies are kinematic), and collider readouts,
+   which the Rapier observer does not answer. Open: the `.inputmap.json` format and its
+   `InputManager`, which only the editor's `Game`, the asset documents and the template's
+   `validate-asset-content.ts` still use; a canvas root has no design-time mount (Edit waits on
+   "Loading Scene root"), and a Play issued in the instant a canvas project's session opens
+   stays playing with nothing mounted.
 2. **Animation seen from outside.** The editor finds a game's mixers through a served stamp on
    the project's own `new AnimationMixer(...)` and `useAnimations(...)` call sites
    (`@volter/editor-threejs/serving`); `status` reports them as `liveMixers` (walked on `arena`:
