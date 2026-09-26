@@ -48,6 +48,8 @@ export const emptySchema = z.object({
       orthographic: z.boolean(),
       axis_aligned: z.boolean(),
       opacity: scalar.nullable(),
+      tint: z.tuple([scalar, scalar, scalar]).default([1, 1, 1]),
+      premultiplied: z.boolean().default(false),
     })
     .optional(),
 });
@@ -530,15 +532,41 @@ export class ExtrasOverlay {
     hideUnless(outline, false);
     this.empties.add(outline);
     if (!picture || (settings.opacity !== null && settings.opacity <= 0)) return;
+    // `overlay_image_frag.glsl`: the texel, un-premultiplied when the image stores it so, times the
+    // object's colour. Without Use Alpha, a texel under 5% alpha is cut out and the rest drawn
+    // opaque; with it, the picture blends by the texel's alpha times the object's. Behind the
+    // scene stays in the opaque list, drawn first (a transparent material would draw after every
+    // opaque mesh and, untested against depth, cover them), and blends there by its own function.
+    const blends = settings.opacity !== null;
+    const behind = settings.depth === 'BACK';
     const material = new THREE.MeshBasicMaterial({
       map: picture.texture,
       side: THREE.DoubleSide,
-      transparent: settings.opacity !== null && settings.opacity < 1,
+      transparent: blends && !behind,
       opacity: settings.opacity ?? 1,
+      alphaTest: blends ? 0 : 0.05,
       toneMapped: false,
       depthTest: settings.depth === 'DEFAULT',
       depthWrite: settings.depth === 'DEFAULT',
     });
+    material.color.setRGB(...settings.tint, THREE.LinearSRGBColorSpace);
+    if (blends && behind) {
+      material.blending = THREE.CustomBlending;
+      material.blendSrc = THREE.SrcAlphaFactor;
+      material.blendDst = THREE.OneMinusSrcAlphaFactor;
+    }
+    material.onBeforeCompile = (shader) => {
+      const unpremultiply = settings.premultiplied
+        ? 'if ( sampledDiffuseColor.a > 0.0 && sampledDiffuseColor.a < 1.0 ) sampledDiffuseColor.rgb /= sampledDiffuseColor.a;\n'
+        : '';
+      shader.fragmentShader = shader.fragmentShader
+        .replace(
+          '#include <map_fragment>',
+          `vec4 sampledDiffuseColor = texture2D( map, vMapUv );\n${unpremultiply}diffuseColor *= sampledDiffuseColor;`,
+        )
+        .replace('#include <alphatest_fragment>', blends ? '#include <alphatest_fragment>' : '#include <alphatest_fragment>\ndiffuseColor.a = 1.0;');
+    };
+    material.customProgramCacheKey = () => `vgai-blender-image:${settings.premultiplied}:${blends}`;
     const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
     quad.matrixAutoUpdate = false;
     quad.matrix.copy(pose);

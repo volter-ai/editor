@@ -740,7 +740,8 @@ def _refusal(node):
 def _empty_display(obj):
     """An empty's display (`overlay_empty.hh`): its type and size, and for an image empty the
     picture, where it sits on the object (`empty_image_offset`), how it meets depth, which side
-    shows, in which projections, and its opacity when it blends."""
+    shows, in which projections, its opacity when it blends, the object colour the picture is
+    multiplied by (`ucolor`) and whether the image stores premultiplied alpha."""
     display = {"display": obj.empty_display_type, "size": float(obj.empty_display_size)}
     if obj.empty_display_type == "IMAGE":
         display["image"] = {
@@ -752,6 +753,8 @@ def _empty_display(obj):
             "orthographic": bool(obj.show_empty_image_orthographic),
             "axis_aligned": bool(obj.show_empty_image_only_axis_aligned),
             "opacity": float(obj.color[3]) if obj.use_empty_image_alpha else None,
+            "tint": [float(v) for v in obj.color[:3]],
+            "premultiplied": obj.data is not None and obj.data.alpha_mode == "PREMUL",
         }
     return display
 

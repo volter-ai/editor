@@ -1333,11 +1333,15 @@ export class BlenderRuntimeView {
         // A picture still decoding is drawn again when it has decoded.
         if ((width === 0 || height === 0) && held.ready && !this.awaitedImages.has(name)) {
           this.awaitedImages.add(name);
-          void held.ready.then(() => {
-            this.awaitedImages.delete(name);
-            if (this.frame) this.applyExtras(this.frame);
-            presenterChanged();
-          });
+          // A failed decode leaves the frame alone; the next frame asks again.
+          held.ready.then(
+            () => {
+              this.awaitedImages.delete(name);
+              if (this.frame) this.applyExtras(this.frame);
+              presenterChanged();
+            },
+            () => this.awaitedImages.delete(name),
+          );
         }
         return { texture: held.texture, width, height };
       },
