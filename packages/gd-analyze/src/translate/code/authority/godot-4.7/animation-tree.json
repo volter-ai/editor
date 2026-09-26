@@ -112,7 +112,7 @@
         "observedOutputSha256": "7162560cfdeed6ce3523d460ce74e0a3c910cfc14af164243cd373e24cf305eb"
       },
       "target": {
-        "implementationSha256": "6db1feee7bef8706875a40b35ddc8218f1eb9e8b6bc8a2277e30a647f5551c1e",
+        "implementationSha256": "16eafd9ac937f1b89f1b4d44bc05f801ce9a6669f6be56d0bb9833994b258dcd",
         "callsite": "lib/godot-compat/animation-tree.ts set_tree_root",
         "observedOutputSha256": "7162560cfdeed6ce3523d460ce74e0a3c910cfc14af164243cd373e24cf305eb"
       },
@@ -151,7 +151,7 @@
         "observedOutputSha256": "a8671028e933af06ba12a0896ef85c71595c91c5bcbfa820ac3d1a26a3f6e710"
       },
       "target": {
-        "implementationSha256": "6db1feee7bef8706875a40b35ddc8218f1eb9e8b6bc8a2277e30a647f5551c1e",
+        "implementationSha256": "16eafd9ac937f1b89f1b4d44bc05f801ce9a6669f6be56d0bb9833994b258dcd",
         "callsite": "lib/godot-compat/animation-tree.ts get_tree_root",
         "observedOutputSha256": "a8671028e933af06ba12a0896ef85c71595c91c5bcbfa820ac3d1a26a3f6e710"
       },
@@ -190,7 +190,7 @@
         "observedOutputSha256": "bf836b20d02ed9e758bea0d4769ce8a793ba3e4727cc07f54c758a8527323d04"
       },
       "target": {
-        "implementationSha256": "6db1feee7bef8706875a40b35ddc8218f1eb9e8b6bc8a2277e30a647f5551c1e",
+        "implementationSha256": "16eafd9ac937f1b89f1b4d44bc05f801ce9a6669f6be56d0bb9833994b258dcd",
         "callsite": "lib/godot-compat/animation-tree.ts set_animation_player",
         "observedOutputSha256": "bf836b20d02ed9e758bea0d4769ce8a793ba3e4727cc07f54c758a8527323d04"
       },
@@ -229,7 +229,7 @@
         "observedOutputSha256": "d13cea589a38c978c6544cfa6a328130b65383d399221693b474caa8e07dbdb5"
       },
       "target": {
-        "implementationSha256": "6db1feee7bef8706875a40b35ddc8218f1eb9e8b6bc8a2277e30a647f5551c1e",
+        "implementationSha256": "16eafd9ac937f1b89f1b4d44bc05f801ce9a6669f6be56d0bb9833994b258dcd",
         "callsite": "lib/godot-compat/animation-tree.ts get_animation_player",
         "observedOutputSha256": "d13cea589a38c978c6544cfa6a328130b65383d399221693b474caa8e07dbdb5"
       },
@@ -256,7 +256,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "5391ca667096cf28c1747e6511237fd18b470579a00c3bea82159ffe7b137f89",
-      "implementationSha256": "6db1feee7bef8706875a40b35ddc8218f1eb9e8b6bc8a2277e30a647f5551c1e"
+      "implementationSha256": "16eafd9ac937f1b89f1b4d44bc05f801ce9a6669f6be56d0bb9833994b258dcd"
     },
     {
       "claimId": "godot-4.7-binding-AnimationTree.get_tree_root",
@@ -264,7 +264,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "0012469a322dbd9cf011b318ff484178ad583b72cfe7a1b815271135961ef842",
-      "implementationSha256": "6db1feee7bef8706875a40b35ddc8218f1eb9e8b6bc8a2277e30a647f5551c1e"
+      "implementationSha256": "16eafd9ac937f1b89f1b4d44bc05f801ce9a6669f6be56d0bb9833994b258dcd"
     },
     {
       "claimId": "godot-4.7-binding-AnimationTree.set_animation_player",
@@ -272,7 +272,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "b8d71a5e676c38ba385168cedc576113081cb9593139225985c0609280fc5733",
-      "implementationSha256": "6db1feee7bef8706875a40b35ddc8218f1eb9e8b6bc8a2277e30a647f5551c1e"
+      "implementationSha256": "16eafd9ac937f1b89f1b4d44bc05f801ce9a6669f6be56d0bb9833994b258dcd"
     },
     {
       "claimId": "godot-4.7-binding-AnimationTree.get_animation_player",
@@ -280,7 +280,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "7ec9be9c0abc5214e339a8a9d68012a2e1a391bad784a1a5241ea71ee253b53f",
-      "implementationSha256": "6db1feee7bef8706875a40b35ddc8218f1eb9e8b6bc8a2277e30a647f5551c1e"
+      "implementationSha256": "16eafd9ac937f1b89f1b4d44bc05f801ce9a6669f6be56d0bb9833994b258dcd"
     }
   ]
 }
