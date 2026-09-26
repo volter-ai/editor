@@ -953,7 +953,12 @@ export async function runDocumentProbe(step: DocumentProbeStep): Promise<Documen
       // chord means follows that focus (its `vgai.stage.focused` context), so the target takes
       // focus first unless focus is already inside it.
       if (!(document.activeElement instanceof Node && target.contains(document.activeElement))) {
-        target.focus({ preventScroll: true });
+        // As a click does: the nearest element that can hold focus, the target or an ancestor.
+        let focusable: HTMLElement | null = target;
+        while (focusable && !(focusable.hasAttribute('tabindex') || focusable.tabIndex >= 0 || focusable.isContentEditable)) {
+          focusable = focusable.parentElement;
+        }
+        focusable?.focus({ preventScroll: true });
       }
       target.dispatchEvent(keyEvent('keydown', step));
       if (step.holdMs) await new Promise((settle) => setTimeout(settle, step.holdMs));
