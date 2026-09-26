@@ -197,7 +197,7 @@ export function godot_area_3d_adopt(entity: object): void {
     bodyEntered: createSignal<[object]>(),
     bodyExited: createSignal<[object]>(),
   });
-  godot_world_3d_physics_callbacks(flushAreas, stepAreas);
+  godot_world_3d_physics_callbacks(flushAreas, stepAreas, undefined, 1);
 }
 
 /**

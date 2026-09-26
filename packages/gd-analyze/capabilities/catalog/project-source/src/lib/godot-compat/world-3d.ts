@@ -13,6 +13,8 @@
 
 import type { World } from '@dimforge/rapier3d-compat';
 import {
+  godot_collision_objects_integrate,
+  godot_collision_objects_read_rigid,
   godot_collision_objects_step,
   godot_collision_objects_reset,
   godot_collision_objects_settle,
@@ -34,13 +36,16 @@ export interface PhysicsDirectSpaceState3D {
 }
 
 let current: { readonly world3d: World3D; readonly state: PhysicsDirectSpaceState3D } | undefined;
-const flushHandlers: ((world: World) => void)[] = [];
+const flushHandlers: { readonly handler: (world: World) => void; readonly order: number }[] = [];
 const stepHandlers: ((world: World, delta: number) => void)[] = [];
+const steppedHandlers: ((world: World, delta: number) => void)[] = [];
 
 /**
- * Registers a physics module's callbacks: `flush` after bodies are synced in each step's
- * `flush_queries`, `step` after the shapes and kinematic bodies are updated and before Rapier
- * integrates (`main/main.cpp:4986`, `:5031`).
+ * Registers a physics module's callbacks: `flush` in each step's `flush_queries`, after bodies are
+ * synced, in `order` (`GodotSpace3D::call_queries` answers bodies, 0, before areas, 1,
+ * `modules/godot_physics_3d/godot_space_3d.cpp:1205`); `step` after the shapes and kinematic bodies
+ * are updated and before Rapier integrates; `stepped` once Rapier has (`main/main.cpp:4986`,
+ * `:5031`).
  *
  * @godot World3D (protocol)
  * @source main/main.cpp:4986
@@ -48,9 +53,15 @@ const stepHandlers: ((world: World, delta: number) => void)[] = [];
 export function godot_world_3d_physics_callbacks(
   flush: ((world: World) => void) | undefined,
   step: ((world: World, delta: number) => void) | undefined,
+  stepped?: (world: World, delta: number) => void,
+  order = 0,
 ): void {
-  if (flush !== undefined && !flushHandlers.includes(flush)) flushHandlers.push(flush);
+  if (flush !== undefined && !flushHandlers.some((entry) => entry.handler === flush)) {
+    flushHandlers.push({ handler: flush, order });
+    flushHandlers.sort((a, b) => a.order - b.order);
+  }
   if (step !== undefined && !stepHandlers.includes(step)) stepHandlers.push(step);
+  if (stepped !== undefined && !steppedHandlers.includes(stepped)) steppedHandlers.push(stepped);
 }
 
 /**
@@ -67,15 +78,18 @@ export function godot_world_3d_attach(world: World): World3D {
   godot_tree_physics_server({
     flush: () => {
       godot_collision_objects_sync(world);
-      for (const handler of flushHandlers) handler(world);
+      for (const entry of flushHandlers) entry.handler(world);
     },
     step: (delta: number) => {
       godot_collision_objects_sync(world);
       godot_collision_objects_step(world, delta);
       for (const handler of stepHandlers) handler(world, delta);
       godot_collision_objects_settle();
+      godot_collision_objects_integrate(world);
       world.timestep = delta;
       world.step();
+      godot_collision_objects_read_rigid();
+      for (const handler of steppedHandlers) handler(world, delta);
     },
     transforms: () => godot_collision_objects_transforms_changed(),
   });

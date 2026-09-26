@@ -40,6 +40,18 @@ add('area-moved-and-masked', 'has_overlapping_bodies', [
   phys({ mask: 'coin', value: 2 }, mark('masked')),
   ...frames(3, { read: ['overlapping', 'coin'] }),
 ]);
+// A platformer pickup: a character walks through a coin (a moving kinematic body is active).
+add('character-walks-through', 'get_overlapping_bodies', [
+  {
+    ops: [
+      { body: 'floor', kind: 'static', shapes: [{ shape: { box: [40, 1, 40] } }], at: [0, -0.5, 0] },
+      { body: 'coin', kind: 'area', shapes: [{ shape: { sphere: 0.4 } }], at: [2, 1, 0] },
+      { body: 'player', kind: 'character', shapes: [{ shape: { capsule: [0.4, 1.8] } }], at: [0, 0.9, 0] },
+      { watch: 'coin' },
+    ],
+  },
+  ...Array.from({ length: 40 }, (): Segment => ({ await: 'physics', ops: [{ slide: 'player', velocity: [6, -0.1, 0] }, { read: ['charPosition', 'player'] }, { read: ['overlapping', 'coin'] }] })),
+]);
 add('set_monitoring', 'set_monitoring', [
   { ops: [COIN, { body: 'box', kind: 'static', shapes: [{ shape: { sphere: 0.3 } }], at: [0, 1, 0] }, { watch: 'coin' }] },
   ...frames(3, { read: ['overlapping', 'coin'] }),

@@ -1,0 +1,558 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/physics-material"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsMaterial",
+        "member": "get_friction",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-material",
+        "exportName": "get_friction",
+        "localName": "PhysicsMaterial_get_friction",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsMaterial.get_friction"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsMaterial",
+        "member": "is_rough",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-material",
+        "exportName": "is_rough",
+        "localName": "PhysicsMaterial_is_rough",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsMaterial.is_rough"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsMaterial",
+        "member": "get_bounce",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-material",
+        "exportName": "get_bounce",
+        "localName": "PhysicsMaterial_get_bounce",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsMaterial.get_bounce"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsMaterial",
+        "member": "is_absorbent",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-material",
+        "exportName": "is_absorbent",
+        "localName": "PhysicsMaterial_is_absorbent",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsMaterial.is_absorbent"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsMaterial",
+        "member": "set_friction",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-material",
+        "exportName": "set_friction",
+        "localName": "PhysicsMaterial_set_friction",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsMaterial.set_friction"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsMaterial",
+        "member": "set_rough",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-material",
+        "exportName": "set_rough",
+        "localName": "PhysicsMaterial_set_rough",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsMaterial.set_rough"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsMaterial",
+        "member": "set_bounce",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-material",
+        "exportName": "set_bounce",
+        "localName": "PhysicsMaterial_set_bounce",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsMaterial.set_bounce"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsMaterial",
+        "member": "set_absorbent",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-material",
+        "exportName": "set_absorbent",
+        "localName": "PhysicsMaterial_set_absorbent",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsMaterial.set_absorbent"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsMaterial.get_friction",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsMaterial\u0000get_friction\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/physics_material.h",
+        "sourceSymbol": "PhysicsMaterial.get_friction",
+        "sourceLine": 50
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "66c39fc45abc76c2d460d52a426c2384caa8a1e1dc0513d99d1c91c8131a146c",
+        "callsite": "res://probe.gd _init() get_friction-default",
+        "observedOutputSha256": "78a317eab8abe070524d5adc62b3b176c632e326b975dd9ee95bcd2d10b394cb"
+      },
+      "target": {
+        "implementationSha256": "f76520ff42174549db1ffaa05fde93d03d38c37e0d6f4b193bbe8602fd4062a2",
+        "callsite": "lib/godot-compat/physics-material.ts get_friction",
+        "observedOutputSha256": "78a317eab8abe070524d5adc62b3b176c632e326b975dd9ee95bcd2d10b394cb"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3ce22ba53de770001807548f50c960a4069d17151cc0f9da83821ec20ff573dd"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsMaterial.is_rough",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsMaterial\u0000is_rough\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/physics_material.h",
+        "sourceSymbol": "PhysicsMaterial.is_rough",
+        "sourceLine": 53
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ad15062dcc2a62acfcb0d722585a6b2475ee35a48150efda4ce90d95d8d5cb13",
+        "callsite": "res://probe.gd _init() is_rough-default",
+        "observedOutputSha256": "ca2a6e0341d731db4ccb3b6f211213b69f6a21d73c991dbff97a3461cf37a412"
+      },
+      "target": {
+        "implementationSha256": "f76520ff42174549db1ffaa05fde93d03d38c37e0d6f4b193bbe8602fd4062a2",
+        "callsite": "lib/godot-compat/physics-material.ts is_rough",
+        "observedOutputSha256": "ca2a6e0341d731db4ccb3b6f211213b69f6a21d73c991dbff97a3461cf37a412"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "09d95001179f859ae40e40502952cbfd4a2cdf87fa954dcbd51dae0a0646df1a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsMaterial.get_bounce",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsMaterial\u0000get_bounce\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/physics_material.h",
+        "sourceSymbol": "PhysicsMaterial.get_bounce",
+        "sourceLine": 60
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "7bf9de040b57371504007ba0399017d92416a619d8bf57af3aa00a7edfc94012",
+        "callsite": "res://probe.gd _init() get_bounce-default",
+        "observedOutputSha256": "1a357f553cbc7815f3aa46c50c0f43027e236dbb95e3019e3b9de07284324a8c"
+      },
+      "target": {
+        "implementationSha256": "f76520ff42174549db1ffaa05fde93d03d38c37e0d6f4b193bbe8602fd4062a2",
+        "callsite": "lib/godot-compat/physics-material.ts get_bounce",
+        "observedOutputSha256": "1a357f553cbc7815f3aa46c50c0f43027e236dbb95e3019e3b9de07284324a8c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "71a7431da068a8d585dacb96a284f59e3d2b634563d17c618a04c280e222dab5"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsMaterial.is_absorbent",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsMaterial\u0000is_absorbent\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/physics_material.h",
+        "sourceSymbol": "PhysicsMaterial.is_absorbent",
+        "sourceLine": 63
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "392e59de82b222bf7c9413dced0b62df5d66aa88aca9e42acbb854721f57b868",
+        "callsite": "res://probe.gd _init() is_absorbent-default",
+        "observedOutputSha256": "007bcf9747aa13d2fc8f7ee7c08fe3c1222cf3952304da7aa48069f84e01922f"
+      },
+      "target": {
+        "implementationSha256": "f76520ff42174549db1ffaa05fde93d03d38c37e0d6f4b193bbe8602fd4062a2",
+        "callsite": "lib/godot-compat/physics-material.ts is_absorbent",
+        "observedOutputSha256": "007bcf9747aa13d2fc8f7ee7c08fe3c1222cf3952304da7aa48069f84e01922f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "bc0c39b9c860b66814a778d643f3c0672ad136c1d7e1dc152db45f79f67be985"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsMaterial.set_friction",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsMaterial\u0000set_friction\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/physics_material.cpp",
+        "sourceSymbol": "PhysicsMaterial.set_friction",
+        "sourceLine": 56
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "022cd90c7596b449bbf9bf80e33db345f57b6afb399b394327a75aaffb4cf4e0",
+        "callsite": "res://probe.gd _init() set_friction",
+        "observedOutputSha256": "8016067deb96a5ded42f95f2454c381295f021ad017b867de762ae4a9ee43f8c"
+      },
+      "target": {
+        "implementationSha256": "f76520ff42174549db1ffaa05fde93d03d38c37e0d6f4b193bbe8602fd4062a2",
+        "callsite": "lib/godot-compat/physics-material.ts set_friction",
+        "observedOutputSha256": "8016067deb96a5ded42f95f2454c381295f021ad017b867de762ae4a9ee43f8c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e98ee84f7f392ee3195d4892055b3ef929a4627e82a6daf89ac0168bff1481e2"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsMaterial.set_rough",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsMaterial\u0000set_rough\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/physics_material.cpp",
+        "sourceSymbol": "PhysicsMaterial.set_rough",
+        "sourceLine": 61
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "dd6e6c594f9e30433f00d864b4e4e23d2dea7cd0d3b044a63deb48af980cd9f6",
+        "callsite": "res://probe.gd _init() set_rough",
+        "observedOutputSha256": "35903cc47d1608561697daf19e744fecab47e63c9ee69ddf83ce9c64362ae877"
+      },
+      "target": {
+        "implementationSha256": "f76520ff42174549db1ffaa05fde93d03d38c37e0d6f4b193bbe8602fd4062a2",
+        "callsite": "lib/godot-compat/physics-material.ts set_rough",
+        "observedOutputSha256": "35903cc47d1608561697daf19e744fecab47e63c9ee69ddf83ce9c64362ae877"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "932ddc528cbe0c3eda52479088fe3b8457d2966d5af1b2fd027f2b867dc53816"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsMaterial.set_bounce",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsMaterial\u0000set_bounce\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/physics_material.cpp",
+        "sourceSymbol": "PhysicsMaterial.set_bounce",
+        "sourceLine": 66
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "662d91fc15a91a04b35da8277e2ffd9504222709813108312da77c7192f2b9b8",
+        "callsite": "res://probe.gd _init() set_bounce",
+        "observedOutputSha256": "c988272819feb9025937d1f95fd8872e5cc64f688d13c52891e02bc5f939ee55"
+      },
+      "target": {
+        "implementationSha256": "f76520ff42174549db1ffaa05fde93d03d38c37e0d6f4b193bbe8602fd4062a2",
+        "callsite": "lib/godot-compat/physics-material.ts set_bounce",
+        "observedOutputSha256": "c988272819feb9025937d1f95fd8872e5cc64f688d13c52891e02bc5f939ee55"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3d11cd561dda0c26ecd1f6df5eac71f0efdcb1d0714c543c18ac798d9d81d65f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsMaterial.set_absorbent",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsMaterial\u0000set_absorbent\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/physics_material.cpp",
+        "sourceSymbol": "PhysicsMaterial.set_absorbent",
+        "sourceLine": 71
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c05b165fe0528adbe034fb7f34aac1e5376c91b03fef84971f1c131f2a503665",
+        "callsite": "res://probe.gd _init() set_absorbent",
+        "observedOutputSha256": "41997d6c7943d624159e9c2d7af829b64497c97e1d5a88fb94594ce97c27087a"
+      },
+      "target": {
+        "implementationSha256": "f76520ff42174549db1ffaa05fde93d03d38c37e0d6f4b193bbe8602fd4062a2",
+        "callsite": "lib/godot-compat/physics-material.ts set_absorbent",
+        "observedOutputSha256": "41997d6c7943d624159e9c2d7af829b64497c97e1d5a88fb94594ce97c27087a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b9d398b3f73506eb020c06f7fa9afbf0077eb860a54e21d60e5d79872d4fb69a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-material",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-PhysicsMaterial.get_friction",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "66c39fc45abc76c2d460d52a426c2384caa8a1e1dc0513d99d1c91c8131a146c",
+      "implementationSha256": "f76520ff42174549db1ffaa05fde93d03d38c37e0d6f4b193bbe8602fd4062a2"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsMaterial.is_rough",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ad15062dcc2a62acfcb0d722585a6b2475ee35a48150efda4ce90d95d8d5cb13",
+      "implementationSha256": "f76520ff42174549db1ffaa05fde93d03d38c37e0d6f4b193bbe8602fd4062a2"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsMaterial.get_bounce",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "7bf9de040b57371504007ba0399017d92416a619d8bf57af3aa00a7edfc94012",
+      "implementationSha256": "f76520ff42174549db1ffaa05fde93d03d38c37e0d6f4b193bbe8602fd4062a2"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsMaterial.is_absorbent",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "392e59de82b222bf7c9413dced0b62df5d66aa88aca9e42acbb854721f57b868",
+      "implementationSha256": "f76520ff42174549db1ffaa05fde93d03d38c37e0d6f4b193bbe8602fd4062a2"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsMaterial.set_friction",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "022cd90c7596b449bbf9bf80e33db345f57b6afb399b394327a75aaffb4cf4e0",
+      "implementationSha256": "f76520ff42174549db1ffaa05fde93d03d38c37e0d6f4b193bbe8602fd4062a2"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsMaterial.set_rough",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "dd6e6c594f9e30433f00d864b4e4e23d2dea7cd0d3b044a63deb48af980cd9f6",
+      "implementationSha256": "f76520ff42174549db1ffaa05fde93d03d38c37e0d6f4b193bbe8602fd4062a2"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsMaterial.set_bounce",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "662d91fc15a91a04b35da8277e2ffd9504222709813108312da77c7192f2b9b8",
+      "implementationSha256": "f76520ff42174549db1ffaa05fde93d03d38c37e0d6f4b193bbe8602fd4062a2"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsMaterial.set_absorbent",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c05b165fe0528adbe034fb7f34aac1e5376c91b03fef84971f1c131f2a503665",
+      "implementationSha256": "f76520ff42174549db1ffaa05fde93d03d38c37e0d6f4b193bbe8602fd4062a2"
+    }
+  ]
+}

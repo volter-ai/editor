@@ -11,6 +11,9 @@ import * as AREA from '../../capabilities/catalog/project-source/src/lib/godot-c
 import * as BOX from '../../capabilities/catalog/project-source/src/lib/godot-compat/box-shape-3d';
 import * as CAP from '../../capabilities/catalog/project-source/src/lib/godot-compat/capsule-shape-3d';
 import * as CB from '../../capabilities/catalog/project-source/src/lib/godot-compat/character-body-3d';
+import * as RB from '../../capabilities/catalog/project-source/src/lib/godot-compat/rigid-body-3d';
+import * as DBS from '../../capabilities/catalog/project-source/src/lib/godot-compat/physics-direct-body-state-3d';
+import * as PM from '../../capabilities/catalog/project-source/src/lib/godot-compat/physics-material';
 import * as CO from '../../capabilities/catalog/project-source/src/lib/godot-compat/collision-object-3d';
 import * as CS from '../../capabilities/catalog/project-source/src/lib/godot-compat/collision-shape-3d';
 import * as CONCAVE from '../../capabilities/catalog/project-source/src/lib/godot-compat/concave-polygon-shape-3d';
@@ -80,6 +83,14 @@ export type Op =
   | { readonly testMotion: string; readonly from: Triple; readonly motion: Triple; readonly margin?: number; readonly max?: number; readonly recovery?: boolean }
   | { readonly except: string; readonly with: string }
   | { readonly unexcept: string; readonly with: string }
+  | { readonly rigid: string; readonly set: 'mass' | 'gravity_scale' | 'linear_velocity' | 'angular_velocity' | 'custom_integrator' | 'max_contacts_reported' | 'lock_rotation' | 'linear_damp' | 'contact_monitor'; readonly value: number | boolean | Triple }
+  | { readonly impulse: string; readonly value: Triple }
+  /** A PhysicsMaterial as the body's `physics_material_override` (a static or rigid body). */
+  | { readonly material: string; readonly friction: number; readonly bounce: number }
+  /** A script whose `_integrate_forces` drives the body at `speed` along x and logs its direct state. */
+  | { readonly patrol: string; readonly speed: number }
+  /** A script whose `_integrate_forces` spins the body about y and logs every direct-state reader. */
+  | { readonly probeState: string }
   | { readonly read: Read };
 
 export type Read =
@@ -98,6 +109,10 @@ export type Read =
   | readonly ['charPosition', string]
   /** A CharacterBody3D reader with no arguments. */
   | readonly ['charGet', string, string]
+  | readonly ['rigidState', string]
+  | readonly ['rigidGet', string, string]
+  /** The friction and bounce of the body's material override, or -1 without one. */
+  | readonly ['material', string]
   | readonly ['layer', string]
   | readonly ['mask', string]
   | readonly ['layerBit', string, number]
@@ -197,6 +212,12 @@ function gdRead(read: Read): string[] {
       return [`log.append(${v(read[1])}.position)`];
     case 'charGet':
       return [`log.append(${v(read[1])}.${read[2]}())`];
+    case 'rigidState':
+      return [`log.append([${v(read[1])}.position, ${v(read[1])}.linear_velocity, ${v(read[1])}.get_contact_count()])`];
+    case 'rigidGet':
+      return [`log.append(${v(read[1])}.${read[2]}())`];
+    case 'material':
+      return [`log.append([${v(read[1])}.get_physics_material_override().get_friction(), ${v(read[1])}.get_physics_material_override().get_bounce()] if ${v(read[1])}.get_physics_material_override() != null else -1)`];
     case 'layer':
       return [`log.append(${v(read[1])}.get_collision_layer())`];
     case 'mask':
@@ -288,6 +309,41 @@ function gdOp(op: Op): string[] {
       `var tm_r${k} := PhysicsTestMotionResult3D.new()`,
       `log.append(_motion(PhysicsServer3D.body_test_motion(${v(op.testMotion)}.get_rid(), tm_p${k}, tm_r${k}), tm_r${k}))`,
     ];
+  }
+  if ('rigid' in op) {
+    const value = Array.isArray(op.value) ? gv(op.value as Triple) : typeof op.value === 'number' ? (op.set === 'max_contacts_reported' ? String(op.value) : gd(op.value)) : String(op.value);
+    const property = { custom_integrator: 'custom_integrator', lock_rotation: 'lock_rotation', contact_monitor: 'contact_monitor' }[op.set as string] ?? op.set;
+    return [`${v(op.rigid)}.${property} = ${value}`];
+  }
+  if ('material' in op) {
+    const m = `${v(op.material)}_material`;
+    return [`var ${m} := PhysicsMaterial.new()`, `${m}.friction = ${gd(op.friction)}`, `${m}.bounce = ${gd(op.bounce)}`, `${v(op.material)}.physics_material_override = ${m}`];
+  }
+  if ('impulse' in op) return [`${v(op.impulse)}.apply_central_impulse(${gv(op.value)})`];
+  if ('patrol' in op) {
+    const source = [
+      'extends RigidBody3D',
+      'func _integrate_forces(s: PhysicsDirectBodyState3D) -> void:',
+      '\\tvar v := s.get_linear_velocity()',
+      `\\tv.x = ${gd(op.speed)}`,
+      '\\ts.set_linear_velocity(v)',
+      '\\tvar c := s.get_contact_count()',
+      '\\tget_parent().get_meta(\\"log\\").append([s.get_step(), s.get_total_gravity(), c, String(s.get_contact_collider_object(0).name) if c > 0 else \\"\\", s.get_contact_local_normal(0), s.get_transform().origin])',
+    ].join('\\n');
+    return [`holder.set_meta("log", log)`, `var ${v(op.patrol)}_script := GDScript.new()`, `${v(op.patrol)}_script.source_code = "${source}"`, `${v(op.patrol)}_script.reload()`, `${v(op.patrol)}.set_script(${v(op.patrol)}_script)`];
+  }
+  if ('probeState' in op) {
+    const source = [
+      'extends RigidBody3D',
+      'func _integrate_forces(s: PhysicsDirectBodyState3D) -> void:',
+      '\\ts.set_linear_velocity(s.get_linear_velocity())',
+      '\\ts.set_angular_velocity(Vector3(0, 2, 0))',
+      '\\tvar contacts := []',
+      '\\tfor i in s.get_contact_count():',
+      '\\t\\tcontacts.append([s.get_contact_local_position(i), s.get_contact_local_normal(i), String(s.get_contact_collider_object(i).name)])',
+      '\\tget_parent().get_meta(\\"log\\").append([s.get_step(), s.get_total_gravity(), s.get_linear_velocity(), s.get_angular_velocity(), s.get_transform().origin, s.get_contact_count(), contacts])',
+    ].join('\\n');
+    return [`holder.set_meta("log", log)`, `var ${v(op.probeState)}_script := GDScript.new()`, `${v(op.probeState)}_script.source_code = "${source}"`, `${v(op.probeState)}_script.reload()`, `${v(op.probeState)}.set_script(${v(op.probeState)}_script)`];
   }
   if ('except' in op) return [`${v(op.except)}.add_collision_exception_with(${v(op.with)})`];
   if ('unexcept' in op) return [`${v(op.unexcept)}.remove_collision_exception_with(${v(op.with)})`];
@@ -420,6 +476,18 @@ function target(segments: readonly Segment[]): () => unknown {
         case 'charGet':
           log.push((CB as unknown as Record<string, (c: object) => unknown>)[r[2]]?.(node(r[1])));
           return;
+        case 'rigidState':
+          log.push([N3.get_position(node(r[1])), RB.get_linear_velocity(node(r[1])), RB.get_contact_count(node(r[1]))]);
+          return;
+        case 'rigidGet':
+          log.push((RB as unknown as Record<string, (c: object) => unknown>)[r[2]]?.(node(r[1])));
+          return;
+        case 'material': {
+          const b = node(r[1]);
+          const m = CO.godot_collision_object_state(b)?.kind === 'rigid' ? RB.get_physics_material_override(b) : STATIC.get_physics_material_override(b);
+          log.push(m === null ? -1 : [PM.get_friction(m), PM.get_bounce(m)]);
+          return;
+        }
         case 'layer':
           log.push(CO.get_collision_layer(node(r[1])));
           return;
@@ -443,6 +511,7 @@ function target(segments: readonly Segment[]): () => unknown {
         if (op.kind === 'area') AREA.godot_area_3d_adopt(body);
         else if (op.kind === 'static') STATIC.godot_static_body_3d_adopt(body);
         else if (op.kind === 'character') CB.godot_character_body_3d_adopt(body);
+        else if (op.kind === 'rigid') RB.godot_rigid_body_3d_adopt(body);
         else CO.godot_collision_object_adopt(body, op.kind);
         for (const entry of op.shapes) {
           const cs = new Object3D();
@@ -531,6 +600,50 @@ function target(segments: readonly Segment[]): () => unknown {
         log.push([hit, TMR.get_travel(r), TMR.get_remainder(r), TMR.get_collision_safe_fraction(r), TMR.get_collision_unsafe_fraction(r), collisions]);
       }
       else if ('except' in op) PB.add_collision_exception_with(node(op.except), node(op.with));
+      else if ('rigid' in op) {
+        const b = node(op.rigid);
+        const value = op.value;
+        const setters: Record<string, (target: object, value: never) => void> = {
+          mass: RB.set_mass,
+          gravity_scale: RB.set_gravity_scale,
+          linear_velocity: RB.set_linear_velocity,
+          angular_velocity: RB.set_angular_velocity,
+          custom_integrator: RB.set_use_custom_integrator,
+          max_contacts_reported: RB.set_max_contacts_reported,
+          lock_rotation: RB.set_lock_rotation_enabled,
+          linear_damp: RB.set_linear_damp,
+          contact_monitor: RB.set_contact_monitor,
+        };
+        (setters[op.set] as (target: object, value: unknown) => void)(b, Array.isArray(value) ? V.construct(...(value as Triple)) : value);
+      } else if ('probeState' in op) {
+        RB.godot_rigid_body_3d_integrate_forces(node(op.probeState), (s) => {
+          DBS.set_linear_velocity(s, DBS.get_linear_velocity(s));
+          DBS.set_angular_velocity(s, V.construct(0, 2, 0));
+          const contacts = Array.from({ length: DBS.get_contact_count(s) }, (_, i) => [
+            DBS.get_contact_local_position(s, i),
+            DBS.get_contact_local_normal(s, i),
+            N.get_name(DBS.get_contact_collider_object(s, i) as object),
+          ]);
+          log.push([DBS.get_step(s), DBS.get_total_gravity(s), DBS.get_linear_velocity(s), DBS.get_angular_velocity(s), DBS.get_transform(s).origin, DBS.get_contact_count(s), contacts]);
+        });
+      } else if ('material' in op) {
+        const m = PM.construct();
+        PM.set_friction(m, op.friction);
+        PM.set_bounce(m, op.bounce);
+        const b = node(op.material);
+        if (CO.godot_collision_object_state(b)?.kind === 'rigid') RB.set_physics_material_override(b, m);
+        else STATIC.set_physics_material_override(b, m);
+      } else if ('impulse' in op) RB.apply_central_impulse(node(op.impulse), V.construct(...op.value));
+      else if ('patrol' in op) {
+        const speed = op.speed;
+        RB.godot_rigid_body_3d_integrate_forces(node(op.patrol), (s) => {
+          const v = DBS.get_linear_velocity(s);
+          DBS.set_linear_velocity(s, V.construct(speed, v.y, v.z));
+          const c = DBS.get_contact_count(s);
+          const other = DBS.get_contact_collider_object(s, 0);
+          log.push([DBS.get_step(s), DBS.get_total_gravity(s), c, c > 0 && other !== null ? N.get_name(other) : '', DBS.get_contact_local_normal(s, 0), DBS.get_transform(s).origin]);
+        });
+      }
       else if ('unexcept' in op) PB.remove_collision_exception_with(node(op.unexcept), node(op.with));
       else if ('remove' in op) N.remove_child(node(op.remove).parent as object, node(op.remove));
       else read(op.read);

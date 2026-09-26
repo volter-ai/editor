@@ -28,9 +28,13 @@ import type { Object3D } from 'three';
 import { godot_collision_shape_3d_of } from './collision-shape-3d';
 import { godot_node_entity, godot_node_is_freed, godot_node_object, is_inside_tree } from './node';
 import { get_global_transform, get_transform } from './node-3d';
+import { godot_physics_material_computed, type PhysicsMaterial } from './physics-material';
 import { godot_shape_3d_collider } from './shape-3d';
+import { construct as basis } from './basis';
 import { affine_inverse, construct as transform3d, type Transform3D } from './transform-3d';
 import { construct as vector3, op_divide, op_subtract, type Vector3 } from './vector3';
+
+const f32 = Math.fround;
 
 export type CollisionObjectKind = 'static' | 'character' | 'rigid' | 'area';
 
@@ -68,6 +72,10 @@ interface ObjectState {
   active: boolean;
   /** A kinematic body's velocity: its last step's motion over the step (`godot_body_3d.cpp:616`). */
   linearVelocity: Vector3;
+  /** A rigid body's node transform as its last sync left it: a different one is the node moved. */
+  nodeTransform: Transform3D | undefined;
+  /** The body's `physics_material_override`, or none (friction 1, bounce 0). */
+  material: PhysicsMaterial | null;
   readonly exceptions: Set<object>;
 }
 
@@ -101,6 +109,8 @@ export function godot_collision_object_adopt(entity: object, kind: CollisionObje
     moved: false,
     active: false,
     linearVelocity: vector3(),
+    nodeTransform: undefined,
+    material: null,
     exceptions: new Set(),
   });
 }
@@ -307,6 +317,35 @@ function syncShapes(world: World, entity: object, state: ObjectState): void {
     entry.key = key;
     ENTITY_OF_COLLIDER.set(entry.collider.handle, entity);
   }
+  applyMaterial(state);
+}
+
+/**
+ * The body's friction and bounce on its colliders (`_reload_physics_characteristics`,
+ * `scene/3d/physics/static_body_3d.cpp:93`), combined as GodotPhysics3D combines them: friction
+ * the smaller (`combine_friction`, `godot_body_pair_3d.cpp:259`), bounce the larger, which is the
+ * sum `combine_bounce` takes (`:255`) whenever one side has none. Rough and absorbent materials
+ * (negative values) are not transcribed.
+ */
+function applyMaterial(state: ObjectState): void {
+  const computed = state.material === null ? { friction: 1, bounce: 0 } : godot_physics_material_computed(state.material);
+  for (const entry of state.colliders) {
+    if (entry.collider === undefined) continue;
+    entry.collider.setFriction(Math.abs(computed.friction));
+    entry.collider.setFrictionCombineRule(RAPIER.CoefficientCombineRule.Min);
+    entry.collider.setRestitution(Math.max(0, Math.min(1, computed.bounce)));
+    entry.collider.setRestitutionCombineRule(RAPIER.CoefficientCombineRule.Max);
+  }
+}
+
+/**
+ * A body's `physics_material_override` (`StaticBody3D`, `RigidBody3D`), read at each sync.
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source scene/3d/physics/static_body_3d.cpp:56
+ */
+export function godot_collision_object_material(entity: object, material: PhysicsMaterial | null): void {
+  stateOf(entity, 'set_physics_material_override').material = material;
 }
 
 /**
@@ -352,36 +391,101 @@ export function godot_collision_objects_transforms_changed(): void {
   for (const [entity, state] of OBJECT) {
     if (state.body === undefined || godot_node_is_freed(entity) || !is_inside_tree(entity)) continue;
     const global = get_global_transform(entity as Object3D);
+    if (state.kind === 'rigid') {
+      if (state.nodeTransform !== undefined && sameTransform(global, state.nodeTransform)) continue;
+      state.nodeTransform = global;
+      godot_collision_object_place(entity, global);
+      continue;
+    }
     if (sameTransform(global, state.pending ?? state.transform)) continue;
     if (state.kind === 'static' || state.kind === 'area') godot_collision_object_place(entity, global);
     else if (state.kind === 'character') state.pending = global;
+
   }
 }
 
 /**
- * The space's step: pending shapes join the broad phase (`GodotPhysicsServer3D::step` runs
- * `_update_shapes`, `modules/godot_physics_3d/godot_physics_server_3d.cpp:1679`), then a kinematic
- * body's held transform becomes its transform (`GodotBody3D::integrate_forces`,
- * `godot_body_3d.cpp:701`).
+ * The space's step, first half: pending shapes join the broad phase (`GodotPhysicsServer3D::step`
+ * runs `_update_shapes`, `modules/godot_physics_3d/godot_physics_server_3d.cpp:1679`), and each
+ * kinematic body with a held transform is active, its velocity the motion over the step
+ * (`GodotBody3D::integrate_forces`, `godot_body_3d.cpp:616`). Its transform stays until
+ * `godot_collision_objects_integrate`: pairs are set up before it moves.
  *
  * @godot CollisionObject3D (protocol)
  * @source modules/godot_physics_3d/godot_physics_server_3d.cpp:1679
  */
 export function godot_collision_objects_step(world: World, delta: number): void {
+  void world;
   for (const state of OBJECT.values()) updateShapes(state);
   const step = Math.fround(delta);
-  for (const [entity, state] of OBJECT) {
+  for (const state of OBJECT.values()) {
     state.active = state.pending !== undefined;
     if (state.kind === 'character') {
-      // `linear_velocity = motion / p_step` from the held transform (`godot_body_3d.cpp:616`).
       const target = state.pending ?? state.transform;
       state.linearVelocity = op_divide(op_subtract(target.origin, state.transform.origin), step);
     }
+  }
+}
+
+/**
+ * The space's step, second half: a kinematic body's held transform becomes its transform
+ * (`GodotBody3D::integrate_velocities`, `godot_body_3d.cpp:701`), after the pairs were set up.
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source modules/godot_physics_3d/godot_body_3d.cpp:701
+ */
+export function godot_collision_objects_integrate(world: World): void {
+  for (const [entity, state] of OBJECT) {
     if (state.pending === undefined) continue;
     godot_collision_object_place(entity, state.pending);
     state.pending = undefined;
   }
   world.propagateModifiedBodyPositionsToColliders();
+}
+
+/** `Basis::set_quaternion` (`core/math/basis.cpp:829`): a Rapier rotation as Godot's basis. */
+function basisOf(q: { x: number; y: number; z: number; w: number }): Transform3D['basis'] {
+  const x = f32(q.x);
+  const y = f32(q.y);
+  const z = f32(q.z);
+  const w = f32(q.w);
+  const d = f32(f32(f32(f32(x * x) + f32(y * y)) + f32(z * z)) + f32(w * w));
+  const s = f32(2 / d);
+  const xs = f32(x * s);
+  const ys = f32(y * s);
+  const zs = f32(z * s);
+  const wx = f32(w * xs);
+  const wy = f32(w * ys);
+  const wz = f32(w * zs);
+  const xx = f32(x * xs);
+  const xy = f32(x * ys);
+  const xz = f32(x * zs);
+  const yy = f32(y * ys);
+  const yz = f32(y * zs);
+  const zz = f32(z * zs);
+  // Rows (1 - (yy + zz), xy - wz, xz + wy), ...; the record holds columns.
+  return basis(
+    vector3(f32(1 - f32(yy + zz)), f32(xy + wz), f32(xz - wy)),
+    vector3(f32(xy - wz), f32(1 - f32(xx + zz)), f32(yz + wx)),
+    vector3(f32(xz + wy), f32(yz - wx), f32(1 - f32(xx + yy))),
+  );
+}
+
+/**
+ * A rigid body's transform is Rapier's after the step (`GodotBody3D::integrate_velocities`,
+ * `godot_body_3d.cpp:708`), read back as Godot's transform.
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source modules/godot_physics_3d/godot_body_3d.cpp:708
+ */
+export function godot_collision_objects_read_rigid(): void {
+  for (const state of OBJECT.values()) {
+    if (state.kind !== 'rigid' || state.body === undefined) continue;
+    const t = state.body.translation();
+    const next = transform3d(basisOf(state.body.rotation()), vector3(t.x, t.y, t.z));
+    state.transform = next;
+    state.inverse = affine_inverse(next);
+  }
 }
 
 /**
@@ -427,6 +531,35 @@ export function godot_collision_object_pose(transform: Transform3D): {
  */
 export function godot_collision_object_exceptions(entity: object): Set<object> {
   return stateOf(entity, 'add_collision_exception_with').exceptions;
+}
+
+/**
+ * A rigid body's server transform set by the space's own integration (free flight,
+ * `GodotBody3D::integrate_velocities`, `godot_body_3d.cpp:708`), and its Rapier body placed there.
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source modules/godot_physics_3d/godot_body_3d.cpp:708
+ */
+export function godot_collision_object_moved(entity: object, transform: Transform3D): void {
+  const state = OBJECT.get(entity);
+  if (state?.body === undefined) return;
+  state.transform = transform;
+  state.inverse = affine_inverse(transform);
+  state.body.setTranslation({ x: transform.origin.x, y: transform.origin.y, z: transform.origin.z }, false);
+  state.body.setRotation(rotationOf(transform), false);
+}
+
+/**
+ * Records the node transform a rigid body's sync gave its node (`set_ignore_transform_notification`
+ * around it, `scene/3d/physics/rigid_body_3d.cpp:152`): not a move of the node. A node moved
+ * otherwise sets the body's transform (`BODY_STATE_TRANSFORM`, `godot_body_3d.cpp:370`).
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source scene/3d/physics/rigid_body_3d.cpp:152
+ */
+export function godot_collision_object_synced(entity: object, transform: Transform3D): void {
+  const state = OBJECT.get(entity);
+  if (state !== undefined) state.nodeTransform = transform;
 }
 
 /**

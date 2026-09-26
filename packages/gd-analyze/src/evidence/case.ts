@@ -61,6 +61,10 @@ export interface GodotEvidenceSymbol {
  * resolve differently natively after other cases ran): test_body_motion places a body only to
  * within its margin. Flags, normals and velocities in such a case still agree; never for anything
  * the scene alone decides. The claim records the measured maximum.
+ * `physics-trajectory`: every float within 0.1 of the native one. Only for a rigid body in contact,
+ * whose contact resolution is Rapier's solver rather than GodotPhysics3D's (the bounded deviation
+ * rigid-body-3d.ts names), over cases of at most two seconds; never for kinematic bodies, queries
+ * or a body in free flight. The claim records the measured maximum.
  * `web-platform-fact`: the value Godot's web export gives where it differs from the native binary's
  * platform (the rendering method): the case's `fact`, cited to the web platform's code path, stands
  * in for the native run, and the target must equal it exactly.
@@ -74,6 +78,7 @@ export type GodotEvidenceComparator =
   | 'platform-libm'
   | 'float32-geometry'
   | 'safe-margin'
+  | 'physics-trajectory'
   | 'web-platform-fact'
   | 'render-mapping';
 

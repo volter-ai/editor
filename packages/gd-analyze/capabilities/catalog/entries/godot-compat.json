@@ -36,7 +36,9 @@
     "src/lib/godot-compat/omni-light-3d.ts",
     "src/lib/godot-compat/packed-string-array.ts",
     "src/lib/godot-compat/physics-body-3d.ts",
+    "src/lib/godot-compat/physics-direct-body-state-3d.ts",
     "src/lib/godot-compat/physics-direct-space-state-3d.ts",
+    "src/lib/godot-compat/physics-material.ts",
     "src/lib/godot-compat/physics-ray-query-parameters-3d.ts",
     "src/lib/godot-compat/physics-server-3d.ts",
     "src/lib/godot-compat/physics-test-motion-parameters-3d.ts",
@@ -50,6 +52,7 @@
     "src/lib/godot-compat/react-lifecycle.tsx",
     "src/lib/godot-compat/rect2.ts",
     "src/lib/godot-compat/rendering-server.ts",
+    "src/lib/godot-compat/rigid-body-3d.ts",
     "src/lib/godot-compat/scene-tree-timer.ts",
     "src/lib/godot-compat/scene-tree.ts",
     "src/lib/godot-compat/shape-3d.ts",
@@ -86,5 +89,5 @@
   "requires": [],
   "skills": [],
   "title": "Godot compat (backends for a ported game)",
-  "version": "0.845.0"
+  "version": "0.846.0"
 }

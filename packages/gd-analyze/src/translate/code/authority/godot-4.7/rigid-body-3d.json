@@ -1,0 +1,1510 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/rigid-body-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "set_linear_velocity",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "set_linear_velocity",
+        "localName": "RigidBody3D_set_linear_velocity",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.set_linear_velocity"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "set_gravity_scale",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "set_gravity_scale",
+        "localName": "RigidBody3D_set_gravity_scale",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.set_gravity_scale"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "apply_central_impulse",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "apply_central_impulse",
+        "localName": "RigidBody3D_apply_central_impulse",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.apply_central_impulse"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "set_mass",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "set_mass",
+        "localName": "RigidBody3D_set_mass",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.set_mass"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "set_max_contacts_reported",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "set_max_contacts_reported",
+        "localName": "RigidBody3D_set_max_contacts_reported",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.set_max_contacts_reported"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "get_mass",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "get_mass",
+        "localName": "RigidBody3D_get_mass",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.get_mass"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "get_gravity_scale",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "get_gravity_scale",
+        "localName": "RigidBody3D_get_gravity_scale",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.get_gravity_scale"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "get_linear_damp",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "get_linear_damp",
+        "localName": "RigidBody3D_get_linear_damp",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.get_linear_damp"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "get_linear_velocity",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "get_linear_velocity",
+        "localName": "RigidBody3D_get_linear_velocity",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.get_linear_velocity"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "get_angular_velocity",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "get_angular_velocity",
+        "localName": "RigidBody3D_get_angular_velocity",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.get_angular_velocity"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "is_using_custom_integrator",
+        "kind": "native-member",
+        "signature": "hash:2240911060"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "is_using_custom_integrator",
+        "localName": "RigidBody3D_is_using_custom_integrator",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.is_using_custom_integrator"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "get_max_contacts_reported",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "get_max_contacts_reported",
+        "localName": "RigidBody3D_get_max_contacts_reported",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.get_max_contacts_reported"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "is_contact_monitor_enabled",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "is_contact_monitor_enabled",
+        "localName": "RigidBody3D_is_contact_monitor_enabled",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.is_contact_monitor_enabled"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "is_lock_rotation_enabled",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "is_lock_rotation_enabled",
+        "localName": "RigidBody3D_is_lock_rotation_enabled",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.is_lock_rotation_enabled"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "set_linear_damp",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "set_linear_damp",
+        "localName": "RigidBody3D_set_linear_damp",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.set_linear_damp"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "set_angular_velocity",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "set_angular_velocity",
+        "localName": "RigidBody3D_set_angular_velocity",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.set_angular_velocity"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "set_use_custom_integrator",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "set_use_custom_integrator",
+        "localName": "RigidBody3D_set_use_custom_integrator",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.set_use_custom_integrator"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "set_contact_monitor",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "set_contact_monitor",
+        "localName": "RigidBody3D_set_contact_monitor",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.set_contact_monitor"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "set_lock_rotation_enabled",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "set_lock_rotation_enabled",
+        "localName": "RigidBody3D_set_lock_rotation_enabled",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.set_lock_rotation_enabled"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "get_contact_count",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "get_contact_count",
+        "localName": "RigidBody3D_get_contact_count",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.get_contact_count"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "get_physics_material_override",
+        "kind": "native-member",
+        "signature": "hash:2521850424"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "get_physics_material_override",
+        "localName": "RigidBody3D_get_physics_material_override",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.get_physics_material_override"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "RigidBody3D",
+        "member": "set_physics_material_override",
+        "kind": "native-member",
+        "signature": "hash:1784508650"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/rigid-body-3d",
+        "exportName": "set_physics_material_override",
+        "localName": "RigidBody3D_set_physics_material_override",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-RigidBody3D.set_physics_material_override"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.set_linear_velocity",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000set_linear_velocity\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.set_linear_velocity",
+        "sourceLine": 478
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "7a2cd51cd216c57e8809fe8261b8d52ad00d6c9a51186aadb7ca3e5ea0b1f34d",
+        "callsite": "res://probe.gd _init() free-fall",
+        "observedOutputSha256": "9f379576f70966cfd10d8aa2fcbc39360544ee8c7ef54341177a00a713f05ca3"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts set_linear_velocity",
+        "observedOutputSha256": "9f379576f70966cfd10d8aa2fcbc39360544ee8c7ef54341177a00a713f05ca3"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "fb893454172905a9859b26671588a976fec2bedb21087dacdb40b0b5ca69e9ae"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.set_gravity_scale",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000set_gravity_scale\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.set_gravity_scale",
+        "sourceLine": 424
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3e58071b8104345323452edc31db2dabce540655274eebc1bfbb1f9ba361a795",
+        "callsite": "res://probe.gd _init() gravity-scale-and-mass",
+        "observedOutputSha256": "75e20a38a0cbe8c9e2ccf7ecb6349cf856947fcfca7221cf8094544b490f80ba"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts set_gravity_scale",
+        "observedOutputSha256": "75e20a38a0cbe8c9e2ccf7ecb6349cf856947fcfca7221cf8094544b490f80ba"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5cfcecf83f45306010ba0a382ab6203604a295aa0a1e6f51b5c25380b34294a8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.apply_central_impulse",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000apply_central_impulse\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.apply_central_impulse",
+        "sourceLine": 545
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "df2b7259c2828ffe98ceeab17e41594089edb0bb5bb553f350ea96c73b049544",
+        "callsite": "res://probe.gd _init() impulse",
+        "observedOutputSha256": "47c247410b2179d03d449f79d1bfb20a381526854bd27aa7b641c11e8fd9f092"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts apply_central_impulse",
+        "observedOutputSha256": "47c247410b2179d03d449f79d1bfb20a381526854bd27aa7b641c11e8fd9f092"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "d0e84c5abfd42721bf448f8e21b59993196a06cd404ebda3b6fe69a818f3036f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.set_mass",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000set_mass\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.set_mass",
+        "sourceLine": 341
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "873b9f4f97d2c5c0c9a33c2993140a777f925c1e279e1aeccd236f05e0b14c3f",
+        "callsite": "res://probe.gd _init() land-on-floor",
+        "observedOutputSha256": "24de32c62e6e450e5fdda0b381d03cd69ee4404997df6e62bd60086e3c4be1dc"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts set_mass",
+        "observedOutputSha256": "e3443cf3eff0d512475dc9e00051af2382738b0bbbd815b12f01c3c287c6049c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: physics-trajectory",
+        "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.00000908970832824707 over 1 cases",
+        "resultSha256": "74d47dfeae449ac7443036e4469018ec3c327218e6f578dc6fe0fe5705ed4000"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.set_max_contacts_reported",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000set_max_contacts_reported\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.set_max_contacts_reported",
+        "sourceLine": 531
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1ad6ba82a42a588cc7f2aefff94f2c870f4fe8837c73659337f6d957e5ce0dba",
+        "callsite": "res://probe.gd _init() integrate-forces-patrol",
+        "observedOutputSha256": "f8c41b5263ea4c1e36c127b587bcbf3203394ea5273454b99ca9e7eaca122e1f"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts set_max_contacts_reported",
+        "observedOutputSha256": "2716c773922751de3ecb7d5cf09c0d409c701fe3c53f504d766744a24a0559f8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: physics-trajectory",
+        "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.009000688791275024 over 1 cases",
+        "resultSha256": "0fcb29d00daf8d6930ca61da21e6e6c946aa7465560f32a1551df437719d8587"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.get_mass",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000get_mass\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.get_mass",
+        "sourceLine": 347
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "44aec189d3c4a8e955d4339064c0011558a1bc130ca0f29f227b48234846a91e",
+        "callsite": "res://probe.gd _init() get_mass",
+        "observedOutputSha256": "5514554a8cfd72d37979d5260537170e5eb3a478a70cd74951e1d48504e097ea"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts get_mass",
+        "observedOutputSha256": "5514554a8cfd72d37979d5260537170e5eb3a478a70cd74951e1d48504e097ea"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b47ef914a7d15307f0992c8cdbcfc3070ee39036a1708581ba70a29e4254bd27"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.get_gravity_scale",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000get_gravity_scale\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.get_gravity_scale",
+        "sourceLine": 429
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "47337abfaa600512b46ad66dcacbb28eb443faf968483a08033c80d7d2023849",
+        "callsite": "res://probe.gd _init() get_gravity_scale",
+        "observedOutputSha256": "feeff9bf47bac7f76b41dbc3c5714fb017d09037687265bc11ed470535a974da"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts get_gravity_scale",
+        "observedOutputSha256": "feeff9bf47bac7f76b41dbc3c5714fb017d09037687265bc11ed470535a974da"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "bc40b6daf58af4acfe8af5bf7df3b9b04f7eb62112b557042db77bacfd2e81ae"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.get_linear_damp",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000get_linear_damp\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.get_linear_damp",
+        "sourceLine": 457
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "93d5c35c303b1cad8bcdf359038665c9ef49d6aff3b0419a8be3c723cbe74880",
+        "callsite": "res://probe.gd _init() get_linear_damp",
+        "observedOutputSha256": "7dab912688b826e68437b624df5dd35498219b06f4453b59d99951b0047686e7"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts get_linear_damp",
+        "observedOutputSha256": "7dab912688b826e68437b624df5dd35498219b06f4453b59d99951b0047686e7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "36ebd0449b591958295519a14ea7b0363601acf27be996d5c21653cfacf66b54"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.get_linear_velocity",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000get_linear_velocity\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.get_linear_velocity",
+        "sourceLine": 483
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "90267fee7fad1f95e7bf4cd9a425b3e700767a39b8e397a13bb796d6dfd6b6df",
+        "callsite": "res://probe.gd _init() get_linear_velocity",
+        "observedOutputSha256": "c6b44c55808c74534a076c00436c386e93fb8717715331a08a0fd0773c0505a6"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts get_linear_velocity",
+        "observedOutputSha256": "c6b44c55808c74534a076c00436c386e93fb8717715331a08a0fd0773c0505a6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f18f128824e5d9a80790640766f5d149b665e93992623d501c888015b3d5145b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.get_angular_velocity",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000get_angular_velocity\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.get_angular_velocity",
+        "sourceLine": 492
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "044c01413be2027e3561b637365ceed4e1925009008daff70e93e72fdaef4bb4",
+        "callsite": "res://probe.gd _init() get_angular_velocity",
+        "observedOutputSha256": "baa67681e552975e3c9cf7ec228ecf925581084b764d8ba5511b4473b7bf9fd8"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts get_angular_velocity",
+        "observedOutputSha256": "baa67681e552975e3c9cf7ec228ecf925581084b764d8ba5511b4473b7bf9fd8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1a6921a55eb2f09ae1ecf89e133dc32e501b56e29e5475091bb49517f8e1a6d4"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.is_using_custom_integrator",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000is_using_custom_integrator\u0000hash:2240911060",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.is_using_custom_integrator",
+        "sourceLine": 508
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "208d6611b0c9cca462dc7959d6aa9a6eec216d7d8aa712eb13363e3daef68d45",
+        "callsite": "res://probe.gd _init() is_using_custom_integrator",
+        "observedOutputSha256": "5a5dc64d805455a5c35d857ad98c7dfaf8da3e842ff5cc721c6030e8c10f9495"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts is_using_custom_integrator",
+        "observedOutputSha256": "5a5dc64d805455a5c35d857ad98c7dfaf8da3e842ff5cc721c6030e8c10f9495"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5cd7dd9258e880e36bf39b4e1f5ca095b72c89dd8e15da7aed7f72a799ecb042"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.get_max_contacts_reported",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000get_max_contacts_reported\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.get_max_contacts_reported",
+        "sourceLine": 537
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "72ef0488d0ecae37e57889c082dbe192bd031779d46da43ea53df3a6f925bff8",
+        "callsite": "res://probe.gd _init() get_max_contacts_reported",
+        "observedOutputSha256": "c06bf84a69bf5fdca1c6587e4ce0c5b1bc9bc9cb4a4512a9d9e2b7524ca6b655"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts get_max_contacts_reported",
+        "observedOutputSha256": "c06bf84a69bf5fdca1c6587e4ce0c5b1bc9bc9cb4a4512a9d9e2b7524ca6b655"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b599468fd736a45309722d2ce182725a25010ad5ecc8349b220871d0b2cfaa65"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.is_contact_monitor_enabled",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000is_contact_monitor_enabled\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.is_contact_monitor_enabled",
+        "sourceLine": 638
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5f6d338c98762cccb9e41f48b9b19971760b53881e850964310f34bf8ac9f09f",
+        "callsite": "res://probe.gd _init() is_contact_monitor_enabled",
+        "observedOutputSha256": "4c19c863dc8bc60237557cb722a4dfa9e5ca4a04ccf762427a199c7515679db2"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts is_contact_monitor_enabled",
+        "observedOutputSha256": "4c19c863dc8bc60237557cb722a4dfa9e5ca4a04ccf762427a199c7515679db2"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "08d529d92cc01e0465e0f49ee702979a661be324a5c3c0ef196346f5af0e7eae"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.is_lock_rotation_enabled",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000is_lock_rotation_enabled\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.is_lock_rotation_enabled",
+        "sourceLine": 311
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9b7e8fe88d4c7b4c6b08239687cf06d8d0ed539a636dd0e53f9d70042bc82935",
+        "callsite": "res://probe.gd _init() is_lock_rotation_enabled",
+        "observedOutputSha256": "c4e40056390f9469ad75ea9033bd3721c97463967c7313a409c7f9dad1720445"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts is_lock_rotation_enabled",
+        "observedOutputSha256": "c4e40056390f9469ad75ea9033bd3721c97463967c7313a409c7f9dad1720445"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "939b6d34ee2b287042c669d6ad281d70c2165b089f67fa7a3c273033a558ccd3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.set_linear_damp",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000set_linear_damp\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.set_linear_damp",
+        "sourceLine": 451
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "18af6ab280e1ad044a694c2bec81780123256feaaa277cc58f3a2aedc3ba3402",
+        "callsite": "res://probe.gd _init() set_linear_damp-flight",
+        "observedOutputSha256": "ed210db517130c7f5fa97606d9c18cb737fb39fe4d194d5744b4e667dc7d5178"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts set_linear_damp",
+        "observedOutputSha256": "ed210db517130c7f5fa97606d9c18cb737fb39fe4d194d5744b4e667dc7d5178"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a23210bf6407cb651af2fa13c5d45f01b8f41bb3c38559a9831c874f0f1b0ca8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.set_angular_velocity",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000set_angular_velocity\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.set_angular_velocity",
+        "sourceLine": 487
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e9ee7be78dfc68630bf30341e542aa445e11f19aa523369a3079cac86ce1337c",
+        "callsite": "res://probe.gd _init() set_angular_velocity-flight",
+        "observedOutputSha256": "3b89088c4bd2e3580e746f8604661a85b309db39a1f882ae403e39fb5096a3a9"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts set_angular_velocity",
+        "observedOutputSha256": "3b89088c4bd2e3580e746f8604661a85b309db39a1f882ae403e39fb5096a3a9"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ba5f9a26c6fb35dcbef946f2bc23c833c3b05851afff6e9a418b04ee48f99ba6"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.set_use_custom_integrator",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000set_use_custom_integrator\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.set_use_custom_integrator",
+        "sourceLine": 500
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b4ef66bc5c38e23fa063e4215593ad2390f2610cebb461c496dd50fe56e0599b",
+        "callsite": "res://probe.gd _init() set_use_custom_integrator-flight",
+        "observedOutputSha256": "5d2f4844be52d81a75573c5b185b3bcaf0dd894099f7bde570b3433aa83a447e"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts set_use_custom_integrator",
+        "observedOutputSha256": "5d2f4844be52d81a75573c5b185b3bcaf0dd894099f7bde570b3433aa83a447e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "9b843ea45cf04c27282ace3ca57c42a3ca66cc943c6f4f226ded0d3841060501"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.set_contact_monitor",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000set_contact_monitor\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.set_contact_monitor",
+        "sourceLine": 609
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "27e2952e3ad5307d7b1ae9636dfa08bbfdf6f8317f76e36c9aa425f1a89d3e56",
+        "callsite": "res://probe.gd _init() set_contact_monitor-flight",
+        "observedOutputSha256": "0377404c6c14fee4680771baf86bafe0994ec794706dc466ac2415bf4263679d"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts set_contact_monitor",
+        "observedOutputSha256": "0377404c6c14fee4680771baf86bafe0994ec794706dc466ac2415bf4263679d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "edcf77597985ab1c6591832e55064f91796a188661bdc6fafcd69151494ba1f8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.set_lock_rotation_enabled",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000set_lock_rotation_enabled\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.set_lock_rotation_enabled",
+        "sourceLine": 302
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1356ffab5f9e3ab732595b759258771ad810182dbb4fce2a1b4c3f657dbe2b2c",
+        "callsite": "res://probe.gd _init() set_lock_rotation_enabled-flight",
+        "observedOutputSha256": "9c6bfe08e2d44758a374bfd791375c85053ffc42f24a2525257bdd0275496979"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts set_lock_rotation_enabled",
+        "observedOutputSha256": "9c6bfe08e2d44758a374bfd791375c85053ffc42f24a2525257bdd0275496979"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "701adf4e4c851078ea09343199c456a0b3399e18b3ed66a4d127c7f895bc0856"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.get_contact_count",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000get_contact_count\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.get_contact_count",
+        "sourceLine": 541
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "204a978c11287e4f94740dba99c68a341fbb0720eec9371df19db795b46c2d88",
+        "callsite": "res://probe.gd _init() get_contact_count",
+        "observedOutputSha256": "deaec33218f20734f9e5e1aca47d5660e0bab8a8eaa3ac33c99008f51290f381"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts get_contact_count",
+        "observedOutputSha256": "deaec33218f20734f9e5e1aca47d5660e0bab8a8eaa3ac33c99008f51290f381"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "90746865972ee00de483d5bf275aabd2a8a9b73c0359af773dbe0743c7202b2f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.get_physics_material_override",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000get_physics_material_override\u0000hash:2521850424",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.get_physics_material_override",
+        "sourceLine": 420
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a98a73fa3c3ee36e92ba6052acebca3eecf863573b0f563b050605c5acde3eee",
+        "callsite": "res://probe.gd _init() get_physics_material_override",
+        "observedOutputSha256": "79de6daf276a4e547885cc636fd5774a71ba4f278a3b66842b623a23a3f4be43"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts get_physics_material_override",
+        "observedOutputSha256": "79de6daf276a4e547885cc636fd5774a71ba4f278a3b66842b623a23a3f4be43"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "bbc4485212a5163c74ebb92767ab18ab16f6be14e6f9a5cc171e328d8aaa2662"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-RigidBody3D.set_physics_material_override",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000RigidBody3D\u0000set_physics_material_override\u0000hash:1784508650",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/rigid_body_3d.cpp",
+        "sourceSymbol": "RigidBody3D.set_physics_material_override",
+        "sourceLine": 407
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "aa1fc111beecc32b6bdc576368be8bc4af5b8ac4098a7e354032cf1b2912bb24",
+        "callsite": "res://probe.gd _init() set_physics_material_override",
+        "observedOutputSha256": "acfe38788250aa7c9cccb1bfe34e1b26a6a1b48eab58d07df835c1e3f2632b40"
+      },
+      "target": {
+        "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7",
+        "callsite": "lib/godot-compat/rigid-body-3d.ts set_physics_material_override",
+        "observedOutputSha256": "9af1a5fc4c086bfa31262eadf68915d3df2427abc6c6c763803c3711d47087f0"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: physics-trajectory",
+        "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.0932168960571289 over 1 cases",
+        "resultSha256": "26668f4c0ae30b00a39959c61b7c555caf84abf20f554805607ffca181fa2ef3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "rigid-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.set_linear_velocity",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "7a2cd51cd216c57e8809fe8261b8d52ad00d6c9a51186aadb7ca3e5ea0b1f34d",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.set_gravity_scale",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3e58071b8104345323452edc31db2dabce540655274eebc1bfbb1f9ba361a795",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.apply_central_impulse",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "df2b7259c2828ffe98ceeab17e41594089edb0bb5bb553f350ea96c73b049544",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.set_mass",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "873b9f4f97d2c5c0c9a33c2993140a777f925c1e279e1aeccd236f05e0b14c3f",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.set_max_contacts_reported",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1ad6ba82a42a588cc7f2aefff94f2c870f4fe8837c73659337f6d957e5ce0dba",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.get_mass",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "44aec189d3c4a8e955d4339064c0011558a1bc130ca0f29f227b48234846a91e",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.get_gravity_scale",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "47337abfaa600512b46ad66dcacbb28eb443faf968483a08033c80d7d2023849",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.get_linear_damp",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "93d5c35c303b1cad8bcdf359038665c9ef49d6aff3b0419a8be3c723cbe74880",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.get_linear_velocity",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "90267fee7fad1f95e7bf4cd9a425b3e700767a39b8e397a13bb796d6dfd6b6df",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.get_angular_velocity",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "044c01413be2027e3561b637365ceed4e1925009008daff70e93e72fdaef4bb4",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.is_using_custom_integrator",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "208d6611b0c9cca462dc7959d6aa9a6eec216d7d8aa712eb13363e3daef68d45",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.get_max_contacts_reported",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "72ef0488d0ecae37e57889c082dbe192bd031779d46da43ea53df3a6f925bff8",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.is_contact_monitor_enabled",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5f6d338c98762cccb9e41f48b9b19971760b53881e850964310f34bf8ac9f09f",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.is_lock_rotation_enabled",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9b7e8fe88d4c7b4c6b08239687cf06d8d0ed539a636dd0e53f9d70042bc82935",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.set_linear_damp",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "18af6ab280e1ad044a694c2bec81780123256feaaa277cc58f3a2aedc3ba3402",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.set_angular_velocity",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e9ee7be78dfc68630bf30341e542aa445e11f19aa523369a3079cac86ce1337c",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.set_use_custom_integrator",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b4ef66bc5c38e23fa063e4215593ad2390f2610cebb461c496dd50fe56e0599b",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.set_contact_monitor",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "27e2952e3ad5307d7b1ae9636dfa08bbfdf6f8317f76e36c9aa425f1a89d3e56",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.set_lock_rotation_enabled",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1356ffab5f9e3ab732595b759258771ad810182dbb4fce2a1b4c3f657dbe2b2c",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.get_contact_count",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "204a978c11287e4f94740dba99c68a341fbb0720eec9371df19db795b46c2d88",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.get_physics_material_override",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a98a73fa3c3ee36e92ba6052acebca3eecf863573b0f563b050605c5acde3eee",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    },
+    {
+      "claimId": "godot-4.7-binding-RigidBody3D.set_physics_material_override",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "aa1fc111beecc32b6bdc576368be8bc4af5b8ac4098a7e354032cf1b2912bb24",
+      "implementationSha256": "725f997314a65058ed4c226de9d2c56240a33a56fdf3fdfd6685bba52e635eb7"
+    }
+  ]
+}

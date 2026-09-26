@@ -1,0 +1,150 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/static-body-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "StaticBody3D",
+        "member": "get_physics_material_override",
+        "kind": "native-member",
+        "signature": "hash:2521850424"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/static-body-3d",
+        "exportName": "get_physics_material_override",
+        "localName": "StaticBody3D_get_physics_material_override",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-StaticBody3D.get_physics_material_override"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "StaticBody3D",
+        "member": "set_physics_material_override",
+        "kind": "native-member",
+        "signature": "hash:1784508650"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/static-body-3d",
+        "exportName": "set_physics_material_override",
+        "localName": "StaticBody3D_set_physics_material_override",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-StaticBody3D.set_physics_material_override"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-StaticBody3D.get_physics_material_override",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000StaticBody3D\u0000get_physics_material_override\u0000hash:2521850424",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/static_body_3d.cpp",
+        "sourceSymbol": "StaticBody3D.get_physics_material_override",
+        "sourceLine": 69
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "07a2cc61eaf938967a6045ef33414c28f477f5b62a4a3f82b839556556be421e",
+        "callsite": "res://probe.gd _init() get_physics_material_override",
+        "observedOutputSha256": "f76601ccc1216775e71ad5ee6d87f2092dd7a33b00e69f299b1639919577190b"
+      },
+      "target": {
+        "implementationSha256": "61ab2a8b78647bf15bc4a01180532223a2975577460d2eb78278203a9120fbfb",
+        "callsite": "lib/godot-compat/static-body-3d.ts get_physics_material_override",
+        "observedOutputSha256": "f76601ccc1216775e71ad5ee6d87f2092dd7a33b00e69f299b1639919577190b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "413a9c303ba3a8b24804e8ffca6ad8fb1bfc96c5069830c35ada21d84f4786a3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "static-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-StaticBody3D.set_physics_material_override",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000StaticBody3D\u0000set_physics_material_override\u0000hash:1784508650",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/physics/static_body_3d.cpp",
+        "sourceSymbol": "StaticBody3D.set_physics_material_override",
+        "sourceLine": 56
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6eaa44cd0eb6c0945fe6b6a819fe650824923c40cc90796c9141c99b939be74a",
+        "callsite": "res://probe.gd _init() set_physics_material_override",
+        "observedOutputSha256": "1dfb293864379c0393bb9b39c0869c49f3049c465baffcbd0b5b8c226cda61cf"
+      },
+      "target": {
+        "implementationSha256": "61ab2a8b78647bf15bc4a01180532223a2975577460d2eb78278203a9120fbfb",
+        "callsite": "lib/godot-compat/static-body-3d.ts set_physics_material_override",
+        "observedOutputSha256": "ed5392d657b865b3a231770b789e0764b865366574c9b19653c7d01c8635fe0e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: physics-trajectory",
+        "tolerance": "rigid body in contact, Rapier's solver: within 0.05; measured max 0.006176739931106567 over 1 cases",
+        "resultSha256": "b7c3cc420ccba3b4533491e9e97b785e87737a0a4d83a7dd36146705438ebc00"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "static-body-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-StaticBody3D.get_physics_material_override",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "07a2cc61eaf938967a6045ef33414c28f477f5b62a4a3f82b839556556be421e",
+      "implementationSha256": "61ab2a8b78647bf15bc4a01180532223a2975577460d2eb78278203a9120fbfb"
+    },
+    {
+      "claimId": "godot-4.7-binding-StaticBody3D.set_physics_material_override",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6eaa44cd0eb6c0945fe6b6a819fe650824923c40cc90796c9141c99b939be74a",
+      "implementationSha256": "61ab2a8b78647bf15bc4a01180532223a2975577460d2eb78278203a9120fbfb"
+    }
+  ]
+}

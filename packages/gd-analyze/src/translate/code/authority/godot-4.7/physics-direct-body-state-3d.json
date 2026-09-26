@@ -1,0 +1,762 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/physics-direct-body-state-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsDirectBodyState3D",
+        "member": "get_step",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-direct-body-state-3d",
+        "exportName": "get_step",
+        "localName": "PhysicsDirectBodyState3D_get_step",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_step"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsDirectBodyState3D",
+        "member": "get_total_gravity",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-direct-body-state-3d",
+        "exportName": "get_total_gravity",
+        "localName": "PhysicsDirectBodyState3D_get_total_gravity",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_total_gravity"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsDirectBodyState3D",
+        "member": "get_linear_velocity",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-direct-body-state-3d",
+        "exportName": "get_linear_velocity",
+        "localName": "PhysicsDirectBodyState3D_get_linear_velocity",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_linear_velocity"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsDirectBodyState3D",
+        "member": "set_linear_velocity",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-direct-body-state-3d",
+        "exportName": "set_linear_velocity",
+        "localName": "PhysicsDirectBodyState3D_set_linear_velocity",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsDirectBodyState3D.set_linear_velocity"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsDirectBodyState3D",
+        "member": "get_angular_velocity",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-direct-body-state-3d",
+        "exportName": "get_angular_velocity",
+        "localName": "PhysicsDirectBodyState3D_get_angular_velocity",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_angular_velocity"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsDirectBodyState3D",
+        "member": "set_angular_velocity",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-direct-body-state-3d",
+        "exportName": "set_angular_velocity",
+        "localName": "PhysicsDirectBodyState3D_set_angular_velocity",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsDirectBodyState3D.set_angular_velocity"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsDirectBodyState3D",
+        "member": "get_transform",
+        "kind": "native-member",
+        "signature": "hash:3229777777"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-direct-body-state-3d",
+        "exportName": "get_transform",
+        "localName": "PhysicsDirectBodyState3D_get_transform",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_transform"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsDirectBodyState3D",
+        "member": "get_contact_count",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-direct-body-state-3d",
+        "exportName": "get_contact_count",
+        "localName": "PhysicsDirectBodyState3D_get_contact_count",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_contact_count"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsDirectBodyState3D",
+        "member": "get_contact_local_position",
+        "kind": "native-member",
+        "signature": "hash:711720468"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-direct-body-state-3d",
+        "exportName": "get_contact_local_position",
+        "localName": "PhysicsDirectBodyState3D_get_contact_local_position",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_contact_local_position"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsDirectBodyState3D",
+        "member": "get_contact_local_normal",
+        "kind": "native-member",
+        "signature": "hash:711720468"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-direct-body-state-3d",
+        "exportName": "get_contact_local_normal",
+        "localName": "PhysicsDirectBodyState3D_get_contact_local_normal",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_contact_local_normal"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "PhysicsDirectBodyState3D",
+        "member": "get_contact_collider_object",
+        "kind": "native-member",
+        "signature": "hash:3332903315"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/physics-direct-body-state-3d",
+        "exportName": "get_contact_collider_object",
+        "localName": "PhysicsDirectBodyState3D_get_contact_collider_object",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_contact_collider_object"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_step",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsDirectBodyState3D\u0000get_step\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/godot_physics_3d/godot_body_direct_state_3d.cpp",
+        "sourceSymbol": "PhysicsDirectBodyState3D.get_step",
+        "sourceLine": 251
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "dc75907a676f7da2a1f025243f4835f1bc7c241c6594284e0dd5e6a19ee5a63d",
+        "callsite": "res://probe.gd _init() get_step",
+        "observedOutputSha256": "d40a80f6ab319de32e4b3bf09a2cde2042cc062c5fea38e02e225453a5dbf103"
+      },
+      "target": {
+        "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa",
+        "callsite": "lib/godot-compat/physics-direct-body-state-3d.ts get_step",
+        "observedOutputSha256": "3746c3f87962de017bcea1c2486673b727c57fb351a00f577a28ab0abbdff2cf"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: physics-trajectory",
+        "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.008695721626281738 over 1 cases",
+        "resultSha256": "66a680809dd4b2630fd13f29d46dea791cf77ce75c9d7830212890d1d81ac886"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-direct-body-state-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_total_gravity",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsDirectBodyState3D\u0000get_total_gravity\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/godot_physics_3d/godot_body_direct_state_3d.cpp",
+        "sourceSymbol": "PhysicsDirectBodyState3D.get_total_gravity",
+        "sourceLine": 36
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "79e005d7d5f5d3024e9e3d031c909a8e541713e5c66e512961305f2109fc389d",
+        "callsite": "res://probe.gd _init() get_total_gravity",
+        "observedOutputSha256": "1149bf36543ef9561983da3bf55d5771949f1caff8f0d6f52e7b8136a2d25eb9"
+      },
+      "target": {
+        "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa",
+        "callsite": "lib/godot-compat/physics-direct-body-state-3d.ts get_total_gravity",
+        "observedOutputSha256": "7995023d35908b96f3ed786600e8514b6861d5f9525ca759cc37f8a0bfd6a089"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: physics-trajectory",
+        "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.008695721626281738 over 1 cases",
+        "resultSha256": "e74aca298ffc52f74505c8cb2a895cbdb945904bce46360b80d3e00a25b558e5"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-direct-body-state-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_linear_velocity",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsDirectBodyState3D\u0000get_linear_velocity\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/godot_physics_3d/godot_body_direct_state_3d.cpp",
+        "sourceSymbol": "PhysicsDirectBodyState3D.get_linear_velocity",
+        "sourceLine": 77
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6c3ee5c7e87c2743b5b7cc13b1d866bd8b2f7118b26462154fde52e9516649f1",
+        "callsite": "res://probe.gd _init() get_linear_velocity",
+        "observedOutputSha256": "e83498fa914d8829d54fcadfc636f06887e2515271774724c1660daa619ac9f7"
+      },
+      "target": {
+        "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa",
+        "callsite": "lib/godot-compat/physics-direct-body-state-3d.ts get_linear_velocity",
+        "observedOutputSha256": "5ea9ac1e97b2aa8b11b3c184a6c4f55bd1bad7d96177193bbaffdf4fbae974af"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: physics-trajectory",
+        "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.008695721626281738 over 1 cases",
+        "resultSha256": "33bbe74abe77e35d4f0117fc52f2a18fe2952ff4084c0350fb2357d689ef2074"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-direct-body-state-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.set_linear_velocity",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsDirectBodyState3D\u0000set_linear_velocity\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/godot_physics_3d/godot_body_direct_state_3d.cpp",
+        "sourceSymbol": "PhysicsDirectBodyState3D.set_linear_velocity",
+        "sourceLine": 72
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "719eb44c7370060be76227c6f21872fbd066335b9d7dcad333c9377e358f6695",
+        "callsite": "res://probe.gd _init() set_linear_velocity",
+        "observedOutputSha256": "cbc0de5670a79ef50039f0030f7568d7d33c09889c62d73c89d1fed1407f8ae5"
+      },
+      "target": {
+        "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa",
+        "callsite": "lib/godot-compat/physics-direct-body-state-3d.ts set_linear_velocity",
+        "observedOutputSha256": "14871279b29ecf897782031486ecf38199372ea997a0eaacef8c375d37965e94"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: physics-trajectory",
+        "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.008695721626281738 over 1 cases",
+        "resultSha256": "6ae5e67a0fffceb2e523a790113fd3b6917545224421d1038c1805eed7fd6a23"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-direct-body-state-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_angular_velocity",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsDirectBodyState3D\u0000get_angular_velocity\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/godot_physics_3d/godot_body_direct_state_3d.cpp",
+        "sourceSymbol": "PhysicsDirectBodyState3D.get_angular_velocity",
+        "sourceLine": 86
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4141ace1a17979dc2401c5072bd56778b4c5c3b4688ace70daaadb61944ba02a",
+        "callsite": "res://probe.gd _init() get_angular_velocity",
+        "observedOutputSha256": "7fedf708511c9b328f49018452e8c52b0d5c9d8f7e38fb411fd7f674f81416cd"
+      },
+      "target": {
+        "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa",
+        "callsite": "lib/godot-compat/physics-direct-body-state-3d.ts get_angular_velocity",
+        "observedOutputSha256": "b024758b012b2ef0e136e7961d113ca3570bc469fee5753b0c12ad0e66130f43"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: physics-trajectory",
+        "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.008695721626281738 over 1 cases",
+        "resultSha256": "2e1034134bb3cdef6589d064d4464f796f409bd6567c3520c33d6daa70e11aa3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-direct-body-state-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.set_angular_velocity",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsDirectBodyState3D\u0000set_angular_velocity\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/godot_physics_3d/godot_body_direct_state_3d.cpp",
+        "sourceSymbol": "PhysicsDirectBodyState3D.set_angular_velocity",
+        "sourceLine": 81
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d0f70fa2b039f8122b231e61efe8c3e7a8e42ad8918b9aac7178aae8c8e59809",
+        "callsite": "res://probe.gd _init() set_angular_velocity",
+        "observedOutputSha256": "ac4abd3191d51813c12ee0b411b2cf3da1e62c16455b1a94b83958f1e4581d54"
+      },
+      "target": {
+        "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa",
+        "callsite": "lib/godot-compat/physics-direct-body-state-3d.ts set_angular_velocity",
+        "observedOutputSha256": "27fcc08477fcc46aff411f4df7a9cb6654914339a70ab5d832a369520759e1c0"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: physics-trajectory",
+        "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.008695721626281738 over 1 cases",
+        "resultSha256": "b11cb7dd95ec5d9b8d5978628d3a6a2e97f914d89b7e182a2f9ae837607ab076"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-direct-body-state-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_transform",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsDirectBodyState3D\u0000get_transform\u0000hash:3229777777",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/godot_physics_3d/godot_body_direct_state_3d.cpp",
+        "sourceSymbol": "PhysicsDirectBodyState3D.get_transform",
+        "sourceLine": 94
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "8d712f91902e53b8ea406d64e6748a95a5a8689fef78f422e41f48f668af6531",
+        "callsite": "res://probe.gd _init() get_transform",
+        "observedOutputSha256": "5b2954ae3e6c78feecfd254aa24ce91e67806278012a43036de95d72daf5a470"
+      },
+      "target": {
+        "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa",
+        "callsite": "lib/godot-compat/physics-direct-body-state-3d.ts get_transform",
+        "observedOutputSha256": "a4f54c493b2b1400afc2c172887ac681186576e94fbb4f4ebd36b0c76162b5a2"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: physics-trajectory",
+        "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.008695721626281738 over 1 cases",
+        "resultSha256": "4e26b0f6e2e9d2fde16d1a85424eac7c8a71749a5ab781cdd1baf7a110674201"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-direct-body-state-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_contact_count",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsDirectBodyState3D\u0000get_contact_count\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/godot_physics_3d/godot_body_direct_state_3d.cpp",
+        "sourceSymbol": "PhysicsDirectBodyState3D.get_contact_count",
+        "sourceLine": 193
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a153d2d315d0b26c80130e12bc1d820345c72d392139d09ea91a0eb63c5b9aa1",
+        "callsite": "res://probe.gd _init() get_contact_count",
+        "observedOutputSha256": "2b74e3d722c8409a5f6b380415fad388b03aff24f97d6a489001cf0bbc6cc906"
+      },
+      "target": {
+        "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa",
+        "callsite": "lib/godot-compat/physics-direct-body-state-3d.ts get_contact_count",
+        "observedOutputSha256": "1d20cc847d93e8aef09dfd933994df21d5601bb549c733589fe01bbe04f71de3"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: physics-trajectory",
+        "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.008695721626281738 over 1 cases",
+        "resultSha256": "05eb5acc3e26251c709a9f744d276d1fcbeb4c50c689d2b610d70bef88d92a83"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-direct-body-state-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_contact_local_position",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsDirectBodyState3D\u0000get_contact_local_position\u0000hash:711720468",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/godot_physics_3d/godot_body_direct_state_3d.cpp",
+        "sourceSymbol": "PhysicsDirectBodyState3D.get_contact_local_position",
+        "sourceLine": 197
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b53093da7d88fb0a552d97630f820ba69b0a71001483915963d18321d587df70",
+        "callsite": "res://probe.gd _init() get_contact_local_position",
+        "observedOutputSha256": "99415b885e67de508656e12fe0e89f092393ae9b38952c093d9a929bfdea7ae0"
+      },
+      "target": {
+        "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa",
+        "callsite": "lib/godot-compat/physics-direct-body-state-3d.ts get_contact_local_position",
+        "observedOutputSha256": "cea438d0c2f6c6bb4ea9fb6ab9bd7fb7c5a12ced4806e182a77c51b59c3f46a1"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: physics-trajectory",
+        "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.008695721626281738 over 1 cases",
+        "resultSha256": "24ffc9931d61d3b9eb53552405c44e92a266c676e3c432fc3b0876173353c505"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-direct-body-state-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_contact_local_normal",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsDirectBodyState3D\u0000get_contact_local_normal\u0000hash:711720468",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/godot_physics_3d/godot_body_direct_state_3d.cpp",
+        "sourceSymbol": "PhysicsDirectBodyState3D.get_contact_local_normal",
+        "sourceLine": 202
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "8216977b9fd88fdd07982754b7acd0b6c6e1a7bed3ed825196be8930abf23848",
+        "callsite": "res://probe.gd _init() get_contact_local_normal",
+        "observedOutputSha256": "3ae4bb46401837f40373a1c709c2f3b54827fe6e2997c1c3d7a8e25292c30cd0"
+      },
+      "target": {
+        "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa",
+        "callsite": "lib/godot-compat/physics-direct-body-state-3d.ts get_contact_local_normal",
+        "observedOutputSha256": "afbf8022db6238f0a1f221f2c55db671c0097ea0aad68fb74bc2d1a7a06d3fb6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: physics-trajectory",
+        "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.008695721626281738 over 1 cases",
+        "resultSha256": "9177111bf92037f6733b3c60a16e5f308dab9cc7891fceda86246116b358410e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-direct-body-state-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_contact_collider_object",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000PhysicsDirectBodyState3D\u0000get_contact_collider_object\u0000hash:3332903315",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "servers/physics_3d/physics_server_3d.cpp",
+        "sourceSymbol": "PhysicsDirectBodyState3D.get_contact_collider_object",
+        "sourceLine": 85
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6263995ea9168762276109df8c83eda82889982a1e1166ecaa5a7b5e3159d599",
+        "callsite": "res://probe.gd _init() get_contact_collider_object",
+        "observedOutputSha256": "392a8e07feabad2f64bf34ffe8709c456437af25b30714a80cbac3df6106d305"
+      },
+      "target": {
+        "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa",
+        "callsite": "lib/godot-compat/physics-direct-body-state-3d.ts get_contact_collider_object",
+        "observedOutputSha256": "f73bf3795b1ad9ad78e3e4ea58141e0c67a089c583ed90a7178d91260044da17"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: physics-trajectory",
+        "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.008695721626281738 over 1 cases",
+        "resultSha256": "b563c8d029bfec773858400621ec5916b3bcdaf990d24b60e460453feecb67ad"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "physics-direct-body-state-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_step",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "dc75907a676f7da2a1f025243f4835f1bc7c241c6594284e0dd5e6a19ee5a63d",
+      "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_total_gravity",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "79e005d7d5f5d3024e9e3d031c909a8e541713e5c66e512961305f2109fc389d",
+      "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_linear_velocity",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6c3ee5c7e87c2743b5b7cc13b1d866bd8b2f7118b26462154fde52e9516649f1",
+      "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.set_linear_velocity",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "719eb44c7370060be76227c6f21872fbd066335b9d7dcad333c9377e358f6695",
+      "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_angular_velocity",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4141ace1a17979dc2401c5072bd56778b4c5c3b4688ace70daaadb61944ba02a",
+      "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.set_angular_velocity",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d0f70fa2b039f8122b231e61efe8c3e7a8e42ad8918b9aac7178aae8c8e59809",
+      "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_transform",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "8d712f91902e53b8ea406d64e6748a95a5a8689fef78f422e41f48f668af6531",
+      "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_contact_count",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a153d2d315d0b26c80130e12bc1d820345c72d392139d09ea91a0eb63c5b9aa1",
+      "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_contact_local_position",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b53093da7d88fb0a552d97630f820ba69b0a71001483915963d18321d587df70",
+      "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_contact_local_normal",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "8216977b9fd88fdd07982754b7acd0b6c6e1a7bed3ed825196be8930abf23848",
+      "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa"
+    },
+    {
+      "claimId": "godot-4.7-binding-PhysicsDirectBodyState3D.get_contact_collider_object",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6263995ea9168762276109df8c83eda82889982a1e1166ecaa5a7b5e3159d599",
+      "implementationSha256": "83e5bbe6b54a29ba138a77c4b468e98b8640f0994b78c42e35d008dc801c12fa"
+    }
+  ]
+}
