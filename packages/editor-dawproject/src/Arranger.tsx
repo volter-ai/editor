@@ -18,7 +18,7 @@
  * rewrite is generated, the whole gesture refuses with the reason and nothing is written.
  */
 
-import { beatAt, formatAt } from '@volter/dawproject/notation';
+import { beatAt, beatsPerBarOf, formatAt } from '@volter/dawproject/notation';
 import type { Piece, PieceClip, PieceMarker, PieceTrack } from '@volter/dawproject/piece';
 import { themeVars } from '@volter/editor-sdk/widgets';
 import { type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react';
@@ -71,16 +71,56 @@ export function TransportBar(props: {
   /** Whether the preview clicks each beat while playing. */
   readonly metronome: boolean;
   readonly onMetronome: () => void;
+  readonly writes: ArrangerWrites;
 }) {
-  const { piece, playing, engineState, playhead } = props;
+  const { piece, playing, engineState, playhead, writes } = props;
+  const transport = piece.transport;
+  // Tempo and meter are the `<Transport>`'s own props, written as literals, one undoable edit each.
+  const writeTransport = (label: string, prop: 'tempo' | 'meter', value: number | string): void => {
+    const why = setRefusal(writes.index, transport.oid, prop, transport.oid ? (piece.oidCounts.get(transport.oid) ?? 0) : 0);
+    if (why || !transport.oid) {
+      writes.onMessage(why ?? 'This piece has no <Transport> to write.');
+      return;
+    }
+    writes.onMessage(null);
+    setProps(label, writes.index, transport.oid, { [prop]: value }, { file: writes.file, documentId: writes.documentId }).catch((error: unknown) => writes.onMessage(messageOf(error)));
+  };
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 10px', borderBottom: `1px solid ${themeVars.boundary.default}`, background: themeVars.surface.raised }}>
+    <div tabIndex={-1} data-transport="" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 10px', outline: 'none', borderBottom: `1px solid ${themeVars.boundary.default}`, background: themeVars.surface.raised }}>
       <button type="button" style={button} onClick={props.onToggle} title="Play / Stop (Space)">
         {playing ? '■ Stop' : '▶ Play'}
       </button>
       <span style={{ ...mono, minWidth: 48 }}>{barBeat(playhead ?? props.start, piece.transport.beatsPerBar)}</span>
-      <span style={small}>
-        {piece.transport.tempo} BPM · {piece.transport.numerator}/{piece.transport.denominator}
+      <span style={{ ...small, display: 'flex', alignItems: 'center', gap: 4 }}>
+        <InlineField
+          name="tempo"
+          value={String(transport.tempo)}
+          title="Tempo (click to edit)"
+          onCommit={(text) => {
+            const tempo = Number(text);
+            if (!Number.isFinite(tempo) || tempo < 20 || tempo > 400) {
+              writes.onMessage(`“${text}” is not a tempo: write beats per minute between 20 and 400.`);
+              return;
+            }
+            if (tempo !== transport.tempo) writeTransport('Set Tempo', 'tempo', Math.round(tempo * 1000) / 1000);
+          }}
+        />
+        BPM ·
+        <InlineField
+          name="meter"
+          value={`${transport.numerator}/${transport.denominator}`}
+          title="Meter (click to edit)"
+          onCommit={(text) => {
+            const meter = text.trim();
+            try {
+              beatsPerBarOf(meter);
+            } catch (error) {
+              writes.onMessage(messageOf(error));
+              return;
+            }
+            if (meter !== `${transport.numerator}/${transport.denominator}`) writeTransport('Set Meter', 'meter', meter);
+          }}
+        />
       </span>
       <button
         type="button"
@@ -115,6 +155,41 @@ export function TransportBar(props: {
         style={{ width: 90 }}
       />
     </div>
+  );
+}
+
+/**
+ * A value that is text until clicked, then an input: Enter hands the text to `onCommit`, Escape or
+ * leaving the field puts the text back.
+ */
+function InlineField(props: { readonly name: string; readonly value: string; readonly title: string; readonly onCommit: (text: string) => void }) {
+  const [editing, setEditing] = useState(false);
+  if (!editing) {
+    return (
+      <span data-field={props.name} title={props.title} onClick={() => setEditing(true)} style={{ ...mono, cursor: 'text', color: themeVars.content.primary, padding: '0 2px', borderBottom: `1px dotted ${themeVars.content.muted}` }}>
+        {props.value}
+      </span>
+    );
+  }
+  return (
+    <input
+      data-field-input={props.name}
+      defaultValue={props.value}
+      autoFocus
+      onFocus={(event) => event.currentTarget.select()}
+      onKeyDown={(event) => {
+        event.stopPropagation();
+        if (event.key !== 'Enter' && event.key !== 'Escape') return;
+        const text = event.currentTarget.value;
+        // Focus stays in this document as the field goes, or it falls to the page and the
+        // workbench's Undo no longer knows which document it is in.
+        (event.currentTarget.closest('[tabindex]') as HTMLElement | null)?.focus({ preventScroll: true });
+        setEditing(false);
+        if (event.key === 'Enter') props.onCommit(text);
+      }}
+      onBlur={() => setEditing(false)}
+      style={{ ...mono, width: 48, fontSize: 11, background: themeVars.surface.inset, color: themeVars.content.primary, border: `1px solid ${themeVars.boundary.default}`, borderRadius: 2 }}
+    />
   );
 }
 

@@ -240,6 +240,7 @@ export function PieceEditor({
         onLoop={() => setLooping((on) => !on)}
         metronome={metronome}
         onMetronome={() => setMetronome((on) => !on)}
+        writes={{ index, file, documentId, onMessage: setMessage }}
       />
       {live.error ? (
         <div style={{ padding: '4px 10px', color: themeVars.semantic.danger, borderBottom: `1px solid ${themeVars.boundary.default}` }}>
