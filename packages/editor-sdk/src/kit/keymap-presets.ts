@@ -189,6 +189,10 @@ const VGAI_KEYMAP: EditorKeymapTable = Object.freeze({
   'viewport.toggleSnap': [{ key: 's', shift: true }],
   'viewport.frameSelection': [{ key: 'f' }],
   'viewport.cyclePivot': [{ key: '.' }],
+  // A 2D view's Pan and Ruler modes, on Godot's own keys (its 4.7.1 shortcuts
+  // `canvas_item_editor/pan_mode` G and `ruler_mode` M).
+  'canvas.panMode': [{ key: 'g' }],
+  'canvas.rulerMode': [{ key: 'm' }],
   'viewport.vertexSnapHold': [{ key: 'v' }],
   'viewport.snapToFloor': [{ key: '', code: 'PageDown' }],
   'view.top': [{ key: '', code: 'Numpad7' }],

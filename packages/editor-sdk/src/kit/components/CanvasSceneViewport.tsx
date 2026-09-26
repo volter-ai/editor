@@ -525,8 +525,10 @@ export function CanvasSceneControls({
       { id: 'transform.translate', scope: 'stage', run: arm('translate') },
       { id: 'transform.rotate', scope: 'stage', run: arm('rotate') },
       { id: 'transform.scale', scope: 'stage', run: arm('scale') },
+      { id: 'canvas.panMode', scope: 'stage', run: () => setMode(sceneModes.get(view) === 'pan' ? null : 'pan') },
+      { id: 'canvas.rulerMode', scope: 'stage', run: () => setMode(sceneModes.get(view) === 'ruler' ? null : 'ruler') },
     ]);
-  }, [active, store, setMode]);
+  }, [active, store, setMode, view]);
   // One radio group however a tool is picked: a transform tool chosen by its key (W, E, R, T)
   // leaves List Select, Pivot, Pan and Ruler as its button does.
   const transformMode = store.transformMode;

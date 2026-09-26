@@ -35,6 +35,9 @@ export const keymap: KeymapContribution = {
     'edit.deselectAll': [{ key: 'a', alt: true }],
     'viewport.frameSelection': [{ key: '.' }, { key: '', code: 'NumpadDecimal' }],
     'viewport.cyclePivot': [{ key: ',' }],
+    // Blender's G is Grab (`transform.translate` above); a 2D view's modes keep their buttons.
+    'canvas.panMode': [],
+    'canvas.rulerMode': [],
     // `km_view3d` — `view3d.view_persportho` on NUMPAD_5; Blender has no isometric preset key.
     'view.perspective': [],
     'view.projection': [{ key: '', code: 'Numpad5' }],

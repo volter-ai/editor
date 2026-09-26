@@ -10,11 +10,12 @@
  *
  *  Regenerate:  node scripts/workbench/generate-keymaps.mjs --checkout <fork dir> --write
  *  Sources (sha256 at generation; the generator refuses when one has moved):
- *    8cbc6d45bc0fc2439089225ef6114243e35714d3470ed5ffb6810425325f39e8  packages/editor-sdk/src/kit/keymap-presets.ts
+ *    4b830825011517cf0b2e279c91b51a6099ccdce4d9cd4d1d8051fe7e26f5abdf  packages/editor-sdk/src/kit/keymap-presets.ts
  *    7e779dc4663c599c4901d3f16f707a2d042e120554b03df6789951a80e047f5f  packages/editor-sdk/src/kit/editor-hotkeys.ts
+ *    b36d89c11ed8321cf0e2a9b37931ff6a73edde278f8caa526760a4ed6367a8ed  packages/editor-sdk/src/kit/components/CanvasSceneViewport.tsx
  *    b7a7bea8f3419cfe3f999369a77042ee7009b731899f8a72ee9fd95e6f270d15  packages/editor-threejs/src/kit/viewport-hotkeys.ts
- *    2e0ec417ba7ae4fe6435c898071d06fc42eb5985fe6efa186e21741ec7cc24de  packages/editor-blender/contributions/blender.keymap.ts
- *  98 rules over 57 commands (vgai 40, blender 58).
+ *    8ea0d0eb8348a1aafa642404563313e5ea7135015a9d88386c6168cf7f4dbc1c  packages/editor-blender/contributions/blender.keymap.ts
+ *  100 rules over 59 commands (vgai 42, blender 58).
  *--------------------------------------------------------------------------------------------*/
 
 /** Every keymap the generated extension carries chords for. */
@@ -22,6 +23,8 @@ export const CARRIED_KEYMAP_IDS: readonly string[] = ['vgai', 'blender'];
 
 /** Every vgai editor action the generated extension binds, without the `vgai.` prefix. */
 export const CARRIED_ACTION_IDS: readonly string[] = [
+	'canvas.panMode',
+	'canvas.rulerMode',
 	'edit.copy',
 	'edit.cut',
 	'edit.delete',
