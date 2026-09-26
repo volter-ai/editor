@@ -15,7 +15,12 @@ export type GodotEvidenceSymbolKind =
   | 'builtin-member-set'
   | 'builtin-operator'
   /** A `@GlobalScope` utility function (`Variant::call_utility_function`); owner `@GlobalScope`. */
-  | 'utility-function';
+  | 'utility-function'
+  /**
+   * A native class's method (`Node3D.set_position`); owner is the class the API dump declares it
+   * on, and the receiver is the call's first argument.
+   */
+  | 'native-member';
 
 export interface GodotEvidenceSymbol {
   readonly kind: GodotEvidenceSymbolKind;
@@ -51,7 +56,14 @@ export interface GodotEvidenceCase {
 }
 
 export interface GodotEvidenceCaseFile {
-  readonly kind?: 'compat';
+  /**
+   * `compat` (the default): each case is an expression or function body over literal values.
+   * `node`: each case is a function body with `holder`, a plain `Node` inside the running
+   * SceneTree, under which it builds its node tree (so global transforms resolve); the probe runs
+   * on the first frame and frees `holder` after each case. Its target builds the same tree of
+   * native entities.
+   */
+  readonly kind?: 'compat' | 'node';
   /** The Godot class the compat module transcribes (`Vector3`). */
   readonly godotClass: string;
   /** The compat module, relative to the project-source catalog's `src/` (`lib/godot-compat/vector3`). */

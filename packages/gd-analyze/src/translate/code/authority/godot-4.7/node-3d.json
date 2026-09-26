@@ -1,0 +1,1510 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/node-3d"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "get_position",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "get_position",
+        "localName": "Node3D_get_position",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.get_position"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "get_rotation",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "get_rotation",
+        "localName": "Node3D_get_rotation",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.get_rotation"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "get_scale",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "get_scale",
+        "localName": "Node3D_get_scale",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.get_scale"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "get_basis",
+        "kind": "native-member",
+        "signature": "hash:2716978435"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "get_basis",
+        "localName": "Node3D_get_basis",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.get_basis"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "get_transform",
+        "kind": "native-member",
+        "signature": "hash:3229777777"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "get_transform",
+        "localName": "Node3D_get_transform",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.get_transform"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "get_global_transform",
+        "kind": "native-member",
+        "signature": "hash:3229777777"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "get_global_transform",
+        "localName": "Node3D_get_global_transform",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.get_global_transform"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "get_global_position",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "get_global_position",
+        "localName": "Node3D_get_global_position",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.get_global_position"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "get_global_basis",
+        "kind": "native-member",
+        "signature": "hash:2716978435"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "get_global_basis",
+        "localName": "Node3D_get_global_basis",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.get_global_basis"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "get_rotation_order",
+        "kind": "native-member",
+        "signature": "hash:916939469"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "get_rotation_order",
+        "localName": "Node3D_get_rotation_order",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.get_rotation_order"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "is_set_as_top_level",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "is_set_as_top_level",
+        "localName": "Node3D_is_set_as_top_level",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.is_set_as_top_level"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "set_rotation",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "set_rotation",
+        "localName": "Node3D_set_rotation",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.set_rotation"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "set_transform",
+        "kind": "native-member",
+        "signature": "hash:2952846383"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "set_transform",
+        "localName": "Node3D_set_transform",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.set_transform"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "set_rotation_order",
+        "kind": "native-member",
+        "signature": "hash:1820889989"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "set_rotation_order",
+        "localName": "Node3D_set_rotation_order",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.set_rotation_order"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "set_scale",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "set_scale",
+        "localName": "Node3D_set_scale",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.set_scale"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "set_basis",
+        "kind": "native-member",
+        "signature": "hash:1055510324"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "set_basis",
+        "localName": "Node3D_set_basis",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.set_basis"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "set_position",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "set_position",
+        "localName": "Node3D_set_position",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.set_position"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "set_global_transform",
+        "kind": "native-member",
+        "signature": "hash:2952846383"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "set_global_transform",
+        "localName": "Node3D_set_global_transform",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.set_global_transform"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "set_global_position",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "set_global_position",
+        "localName": "Node3D_set_global_position",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.set_global_position"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "set_global_basis",
+        "kind": "native-member",
+        "signature": "hash:1055510324"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "set_global_basis",
+        "localName": "Node3D_set_global_basis",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.set_global_basis"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "set_as_top_level",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "set_as_top_level",
+        "localName": "Node3D_set_as_top_level",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.set_as_top_level"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "rotate_y",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "rotate_y",
+        "localName": "Node3D_rotate_y",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.rotate_y"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Node3D",
+        "member": "look_at_from_position",
+        "kind": "native-member",
+        "signature": "hash:2086826090"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/node-3d",
+        "exportName": "look_at_from_position",
+        "localName": "Node3D_look_at_from_position",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Node3D.look_at_from_position"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.get_position",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000get_position\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.get_position",
+        "sourceLine": 836
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "380cbd212a0d500407e1236ab6860d8f421723c476f8f1baef213855895949e6",
+        "callsite": "res://probe.gd _init() fresh-get_position",
+        "observedOutputSha256": "e2cd2f2af51aed5ad1211eb0ad888cde16791fa935bc6be2ae73d926e11c9a57"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts get_position",
+        "observedOutputSha256": "e2cd2f2af51aed5ad1211eb0ad888cde16791fa935bc6be2ae73d926e11c9a57"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "655cb618a3381de5ebb4f1fac807ad3c2d0bf4c818b4d08f16dd4aa80bb3c620"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.get_rotation",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000get_rotation\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.get_rotation",
+        "sourceLine": 841
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2eac873f46d03c2f6f41c8ea68ffed25354bee46d4e8c23f3f839c009f3fa522",
+        "callsite": "res://probe.gd _init() fresh-get_rotation set_rotation-0-zero-rotation set_rotation-0-small-rotation set_rotation-0-mixed-rotation set_rotation-0-gimbal-x-rotation set_rotation-0-gimbal-y-rotation set_rotation-0-gimbal-neg-rotation set_rotation-0-large-rotation set_rotation-0-pure-y-rotation set_rotation-0-pure-x-rotation set_rotation-1-zero-rotation set_rotation-1-small-rotation set_rotation-1-mixed-rotation set_rotation-1-gimbal-x-rotation set_rotation-1-gimbal-y-rotation set_rotation-1-gimbal-neg-rotation set_rotation-1-large-rotation set_rotation-1-pure-y-rotation set_rotation-1-pure-x-rotation set_rotation-2-zero-rotation set_rotation-2-small-rotation set_rotation-2-mixed-rotation set_rotation-2-gimbal-x-rotation set_rotation-2-gimbal-y-rotation set_rotation-2-gimbal-neg-rotation set_rotation-2-large-rotation set_rotation-2-pure-y-rotation set_rotation-2-pure-x-rotation set_rotation-3-zero-rotation set_rotation-3-small-rotation set_rotation-3-mixed-rotation set_rotation-3-gimbal-x-rotation set_rotation-3-gimbal-y-rotation set_rotation-3-gimbal-neg-rotation set_rotation-3-large-rotation set_rotation-3-pure-y-rotation set_rotation-3-pure-x-rotation set_rotation-4-zero-rotation set_rotation-4-small-rotation set_rotation-4-mixed-rotation set_rotation-4-gimbal-x-rotation set_rotation-4-gimbal-y-rotation set_rotation-4-gimbal-neg-rotation set_rotation-4-large-rotation set_rotation-4-pure-y-rotation set_rotation-4-pure-x-rotation set_rotation-5-zero-rotation set_rotation-5-small-rotation set_rotation-5-mixed-rotation set_rotation-5-gimbal-x-rotation set_rotation-5-gimbal-y-rotation set_rotation-5-gimbal-neg-rotation set_rotation-5-large-rotation set_rotation-5-pure-y-rotation set_rotation-5-pure-x-rotation set_scale-uniform-zero-rotation set_scale-uniform-small-rotation set_scale-uniform-mixed-rotation set_scale-uniform-gimbal-x-rotation set_scale-non-uniform-zero-rotation set_scale-non-uniform-small-rotation set_scale-non-uniform-mixed-rotation set_scale-non-uniform-gimbal-x-rotation set_scale-negative-zero-rotation set_scale-negative-small-rotation set_scale-negative-mixed-rotation set_scale-negative-gimbal-x-rotation set_scale-all-negative-zero-rotation set_scale-all-negative-small-rotation set_scale-all-negative-mixed-rotation set_scale-all-negative-gimbal-x-rotation set_scale-tiny-zero-rotation set_scale-tiny-small-rotation set_scale-tiny-mixed-rotation set_scale-tiny-gimbal-x-rotation set_basis-rotation-rotation set_basis-sheared-rotation set_basis-mirrored-rotation set_basis-singular-rotation rotate_y-rotation-0 rotate_y-rotation-0.5 rotate_y-rotation--2 rotate_y-rotation-3.141592653589793 rotate_y-rotation-100",
+        "observedOutputSha256": "54c128ddd899eec5fd5512fa7205020df095adf308d621e7002629424dc19083"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts get_rotation",
+        "observedOutputSha256": "54c128ddd899eec5fd5512fa7205020df095adf308d621e7002629424dc19083"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "9ee37c4bb906ca70f64f48349ee2e9934909f713dc9a83e6c9fe2468d4ff9b25"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.get_scale",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000get_scale\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.get_scale",
+        "sourceLine": 856
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "790d04763fc18e526427cc56bba9497cebb395cfd5c6a9c6c2c36b6090cd4354",
+        "callsite": "res://probe.gd _init() fresh-get_scale set_rotation-0-zero-scale set_rotation-0-small-scale set_rotation-0-mixed-scale set_rotation-0-gimbal-x-scale set_rotation-0-gimbal-y-scale set_rotation-0-gimbal-neg-scale set_rotation-0-large-scale set_rotation-0-pure-y-scale set_rotation-0-pure-x-scale set_rotation-1-zero-scale set_rotation-1-small-scale set_rotation-1-mixed-scale set_rotation-1-gimbal-x-scale set_rotation-1-gimbal-y-scale set_rotation-1-gimbal-neg-scale set_rotation-1-large-scale set_rotation-1-pure-y-scale set_rotation-1-pure-x-scale set_rotation-2-zero-scale set_rotation-2-small-scale set_rotation-2-mixed-scale set_rotation-2-gimbal-x-scale set_rotation-2-gimbal-y-scale set_rotation-2-gimbal-neg-scale set_rotation-2-large-scale set_rotation-2-pure-y-scale set_rotation-2-pure-x-scale set_rotation-3-zero-scale set_rotation-3-small-scale set_rotation-3-mixed-scale set_rotation-3-gimbal-x-scale set_rotation-3-gimbal-y-scale set_rotation-3-gimbal-neg-scale set_rotation-3-large-scale set_rotation-3-pure-y-scale set_rotation-3-pure-x-scale set_rotation-4-zero-scale set_rotation-4-small-scale set_rotation-4-mixed-scale set_rotation-4-gimbal-x-scale set_rotation-4-gimbal-y-scale set_rotation-4-gimbal-neg-scale set_rotation-4-large-scale set_rotation-4-pure-y-scale set_rotation-4-pure-x-scale set_rotation-5-zero-scale set_rotation-5-small-scale set_rotation-5-mixed-scale set_rotation-5-gimbal-x-scale set_rotation-5-gimbal-y-scale set_rotation-5-gimbal-neg-scale set_rotation-5-large-scale set_rotation-5-pure-y-scale set_rotation-5-pure-x-scale set_scale-uniform-zero-scale set_scale-uniform-small-scale set_scale-uniform-mixed-scale set_scale-uniform-gimbal-x-scale set_scale-non-uniform-zero-scale set_scale-non-uniform-small-scale set_scale-non-uniform-mixed-scale set_scale-non-uniform-gimbal-x-scale set_scale-negative-zero-scale set_scale-negative-small-scale set_scale-negative-mixed-scale set_scale-negative-gimbal-x-scale set_scale-all-negative-zero-scale set_scale-all-negative-small-scale set_scale-all-negative-mixed-scale set_scale-all-negative-gimbal-x-scale set_scale-tiny-zero-scale set_scale-tiny-small-scale set_scale-tiny-mixed-scale set_scale-tiny-gimbal-x-scale set_basis-rotation-scale set_basis-sheared-scale set_basis-mirrored-scale set_basis-singular-scale",
+        "observedOutputSha256": "8e2f990e6c7796124a83be06d678349c0ec0e5a76383297329fd0ce019186cce"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts get_scale",
+        "observedOutputSha256": "8e2f990e6c7796124a83be06d678349c0ec0e5a76383297329fd0ce019186cce"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "be3e18c9aab871a29331478c42ef0a19d4856c291a5961d575dba443f9384fb4"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.get_basis",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000get_basis\u0000hash:2716978435",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.get_basis",
+        "sourceLine": 411
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "01e646b7d3d76dcd091ead7fc6ebab039916b1064a45602e7ba03a8d06177eb2",
+        "callsite": "res://probe.gd _init() fresh-get_basis",
+        "observedOutputSha256": "9dbef24224973bb57e93bb7503458e5163a88b6ea6a29e43b880d62a51d870f9"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts get_basis",
+        "observedOutputSha256": "9dbef24224973bb57e93bb7503458e5163a88b6ea6a29e43b880d62a51d870f9"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3dd614235146b7052f37240d674789fb5b0dbf493d4f41f74f950d1d4ce9f95f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.get_transform",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000get_transform\u0000hash:3229777777",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.get_transform",
+        "sourceLine": 429
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "de219c57e372a56880c7d2fd4d1f1359b8d922a37ebbf63bb992d89c2620d6cd",
+        "callsite": "res://probe.gd _init() fresh-get_transform set_position-after-rotation-plain set_position-after-rotation-decimals set_position-after-rotation-huge",
+        "observedOutputSha256": "d5e6a6f4eed2b592f34c3185b692addaeb4ba27de00040ff1e2770d89efc4527"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts get_transform",
+        "observedOutputSha256": "da7de680a396b7ef7ab67d8b0bfd77ecf2fe3a5f01212c1fd13aad10886eb536"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "96e3cdee2bf27fb6cc5b570d4057c65368955227d3645dc1936cd49a2eb385c0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.get_global_transform",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000get_global_transform\u0000hash:3229777777",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.get_global_transform",
+        "sourceLine": 648
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "fcb03fdaa9f3bebca96cbc27f7e810151dd0710fcd365f564922352bc42bab83",
+        "callsite": "res://probe.gd _init() fresh-get_global_transform parented-get_global_transform grandchild-get_global_transform parented-after-parent-moves set_global_transform-identity-global set_global_transform-general-global set_as_top_level-true-global set_as_top_level-true-grand set_as_top_level-false-global set_as_top_level-false-grand",
+        "observedOutputSha256": "079886ea114525d752501c4181430cbe0d45f13c7be0568fd22792facd9cdbdc"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts get_global_transform",
+        "observedOutputSha256": "4c111c36be0e689a3ff94cc7964722123a07aeaf4fea6440e44f98ff99e2af97"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "beef2f36cbd13e77b346bb8477a3437c05a0fbcadf7a84f57d55bddc8ea5ef84"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.get_global_position",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000get_global_position\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.get_global_position",
+        "sourceLine": 341
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d5f78c2256834406cf3ddfe5d00b679c8c5f09541b08e37409f61744da36ddde",
+        "callsite": "res://probe.gd _init() fresh-get_global_position parented-get_global_position grandchild-get_global_position",
+        "observedOutputSha256": "72c80939dbc5bbeb60f3bc956f4fdb702389be26ef6b210acd38eb3e2da51131"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts get_global_position",
+        "observedOutputSha256": "72c80939dbc5bbeb60f3bc956f4fdb702389be26ef6b210acd38eb3e2da51131"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f77d84a3566ddf79555c1381272f64f323f82c400f01fc700e871b5daf9695ea"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.get_global_basis",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000get_global_basis\u0000hash:2716978435",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.get_global_basis",
+        "sourceLine": 346
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "28ec2818141b690cddbdb086c9d3b96d775b8475a53ab81a6aefb4c16c00c989",
+        "callsite": "res://probe.gd _init() fresh-get_global_basis parented-get_global_basis grandchild-get_global_basis",
+        "observedOutputSha256": "42b8b01774de071b41f65a39f5594498aa89382a335ec97f5c8e16160c5d6840"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts get_global_basis",
+        "observedOutputSha256": "42b8b01774de071b41f65a39f5594498aa89382a335ec97f5c8e16160c5d6840"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ca2205be9434974f85d69de4faf75251a2cdeba60dd3adad5f822c967e316bef"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.get_rotation_order",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000get_rotation_order\u0000hash:916939469",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.get_rotation_order",
+        "sourceLine": 791
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a8b296b23fcbea1fb6ed161aeb901d9d327e500a905f84e06cef197434210832",
+        "callsite": "res://probe.gd _init() fresh-get_rotation_order set_rotation_order-fresh-0-basis set_rotation_order-after-rotation-0-basis set_rotation_order-after-transform-0-basis set_rotation_order-after-read-0-basis set_rotation_order-fresh-1-basis set_rotation_order-after-rotation-1-basis set_rotation_order-after-transform-1-basis set_rotation_order-after-read-1-basis set_rotation_order-fresh-2-basis set_rotation_order-after-rotation-2-basis set_rotation_order-after-transform-2-basis set_rotation_order-after-read-2-basis set_rotation_order-fresh-3-basis set_rotation_order-after-rotation-3-basis set_rotation_order-after-transform-3-basis set_rotation_order-after-read-3-basis set_rotation_order-fresh-4-basis set_rotation_order-after-rotation-4-basis set_rotation_order-after-transform-4-basis set_rotation_order-after-read-4-basis set_rotation_order-fresh-5-basis set_rotation_order-after-rotation-5-basis set_rotation_order-after-transform-5-basis set_rotation_order-after-read-5-basis",
+        "observedOutputSha256": "f7bdb8207f5f01514fe1fb13bbb8774e55a78237328c742f65b780b5f0eda90c"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts get_rotation_order",
+        "observedOutputSha256": "f7bdb8207f5f01514fe1fb13bbb8774e55a78237328c742f65b780b5f0eda90c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "79470610c6abcc4e330fad7aeee1bec8010f2d6cac00f0df702c155158e8a9c2"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.is_set_as_top_level",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000is_set_as_top_level\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.is_set_as_top_level",
+        "sourceLine": 1077
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4e3f280b819b61485e5ec3dc7d4b157aebd8c92a26d5181d42d08a007e8553d5",
+        "callsite": "res://probe.gd _init() fresh-is_set_as_top_level set_as_top_level-true-flag set_as_top_level-false-flag",
+        "observedOutputSha256": "f3d2764bcf61327e8078c0434534dd48b29f9856b84708cc2477a4a743a7e11d"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts is_set_as_top_level",
+        "observedOutputSha256": "f3d2764bcf61327e8078c0434534dd48b29f9856b84708cc2477a4a743a7e11d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "64d58153a51670e3dd4d7f074e848875b462c805494a16efa8fc83e9dafd2269"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.set_rotation",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000set_rotation\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.set_rotation",
+        "sourceLine": 796
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e4ced6894f52210090762dd9eeecc8c901a0b49c8f988e4d93c84805704df5ea",
+        "callsite": "res://probe.gd _init() set_rotation-0-zero-basis set_rotation-0-small-basis set_rotation-0-mixed-basis set_rotation-0-gimbal-x-basis set_rotation-0-gimbal-y-basis set_rotation-0-gimbal-neg-basis set_rotation-0-large-basis set_rotation-0-pure-y-basis set_rotation-0-pure-x-basis set_rotation-1-zero-basis set_rotation-1-small-basis set_rotation-1-mixed-basis set_rotation-1-gimbal-x-basis set_rotation-1-gimbal-y-basis set_rotation-1-gimbal-neg-basis set_rotation-1-large-basis set_rotation-1-pure-y-basis set_rotation-1-pure-x-basis set_rotation-2-zero-basis set_rotation-2-small-basis set_rotation-2-mixed-basis set_rotation-2-gimbal-x-basis set_rotation-2-gimbal-y-basis set_rotation-2-gimbal-neg-basis set_rotation-2-large-basis set_rotation-2-pure-y-basis set_rotation-2-pure-x-basis set_rotation-3-zero-basis set_rotation-3-small-basis set_rotation-3-mixed-basis set_rotation-3-gimbal-x-basis set_rotation-3-gimbal-y-basis set_rotation-3-gimbal-neg-basis set_rotation-3-large-basis set_rotation-3-pure-y-basis set_rotation-3-pure-x-basis set_rotation-4-zero-basis set_rotation-4-small-basis set_rotation-4-mixed-basis set_rotation-4-gimbal-x-basis set_rotation-4-gimbal-y-basis set_rotation-4-gimbal-neg-basis set_rotation-4-large-basis set_rotation-4-pure-y-basis set_rotation-4-pure-x-basis set_rotation-5-zero-basis set_rotation-5-small-basis set_rotation-5-mixed-basis set_rotation-5-gimbal-x-basis set_rotation-5-gimbal-y-basis set_rotation-5-gimbal-neg-basis set_rotation-5-large-basis set_rotation-5-pure-y-basis set_rotation-5-pure-x-basis",
+        "observedOutputSha256": "509f3036ccae06f3950091c3d415884174e743bc573ace5b17183d6b2d19518c"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts set_rotation",
+        "observedOutputSha256": "509f3036ccae06f3950091c3d415884174e743bc573ace5b17183d6b2d19518c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f12ab0466c8f020777fae9b148057dcba6edb8b2e6e9d782ab8893a13a16eb52"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.set_transform",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000set_transform\u0000hash:2952846383",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.set_transform",
+        "sourceLine": 399
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "497f7df9451e6d0aee215e526af09171d917af2877b59c52d3ba842c6605e8ea",
+        "callsite": "res://probe.gd _init() set_transform-0-zero-rotation set_transform-0-small-rotation set_transform-0-mixed-rotation set_transform-0-gimbal-x-rotation set_transform-0-gimbal-y-rotation set_transform-0-gimbal-neg-rotation set_transform-0-large-rotation set_transform-0-pure-y-rotation set_transform-0-pure-x-rotation set_transform-1-zero-rotation set_transform-1-small-rotation set_transform-1-mixed-rotation set_transform-1-gimbal-x-rotation set_transform-1-gimbal-y-rotation set_transform-1-gimbal-neg-rotation set_transform-1-large-rotation set_transform-1-pure-y-rotation set_transform-1-pure-x-rotation set_transform-2-zero-rotation set_transform-2-small-rotation set_transform-2-mixed-rotation set_transform-2-gimbal-x-rotation set_transform-2-gimbal-y-rotation set_transform-2-gimbal-neg-rotation set_transform-2-large-rotation set_transform-2-pure-y-rotation set_transform-2-pure-x-rotation set_transform-3-zero-rotation set_transform-3-small-rotation set_transform-3-mixed-rotation set_transform-3-gimbal-x-rotation set_transform-3-gimbal-y-rotation set_transform-3-gimbal-neg-rotation set_transform-3-large-rotation set_transform-3-pure-y-rotation set_transform-3-pure-x-rotation set_transform-4-zero-rotation set_transform-4-small-rotation set_transform-4-mixed-rotation set_transform-4-gimbal-x-rotation set_transform-4-gimbal-y-rotation set_transform-4-gimbal-neg-rotation set_transform-4-large-rotation set_transform-4-pure-y-rotation set_transform-4-pure-x-rotation set_transform-5-zero-rotation set_transform-5-small-rotation set_transform-5-mixed-rotation set_transform-5-gimbal-x-rotation set_transform-5-gimbal-y-rotation set_transform-5-gimbal-neg-rotation set_transform-5-large-rotation set_transform-5-pure-y-rotation set_transform-5-pure-x-rotation",
+        "observedOutputSha256": "c65d284011b93926395e7c716e78b4a521e4f2374d5cf53141d2d674a76979ed"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts set_transform",
+        "observedOutputSha256": "c65d284011b93926395e7c716e78b4a521e4f2374d5cf53141d2d674a76979ed"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a32c97f27bfdf63e48605c68adc7f67a38b09274d3b1e7f30f442d9c4c0409f6"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.set_rotation_order",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000set_rotation_order\u0000hash:1820889989",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.set_rotation_order",
+        "sourceLine": 760
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "edd4f0ffcc74597e9bb6d42323fab2ef99cd94d89e566b19e2ef00fcb289d438",
+        "callsite": "res://probe.gd _init() set_rotation_order-fresh-0-rotation set_rotation_order-after-rotation-0-rotation set_rotation_order-after-transform-0-rotation set_rotation_order-after-read-0-rotation set_rotation_order-fresh-1-rotation set_rotation_order-after-rotation-1-rotation set_rotation_order-after-transform-1-rotation set_rotation_order-after-read-1-rotation set_rotation_order-fresh-2-rotation set_rotation_order-after-rotation-2-rotation set_rotation_order-after-transform-2-rotation set_rotation_order-after-read-2-rotation set_rotation_order-fresh-3-rotation set_rotation_order-after-rotation-3-rotation set_rotation_order-after-transform-3-rotation set_rotation_order-after-read-3-rotation set_rotation_order-fresh-4-rotation set_rotation_order-after-rotation-4-rotation set_rotation_order-after-transform-4-rotation set_rotation_order-after-read-4-rotation set_rotation_order-fresh-5-rotation set_rotation_order-after-rotation-5-rotation set_rotation_order-after-transform-5-rotation set_rotation_order-after-read-5-rotation set_rotation_order-invalid",
+        "observedOutputSha256": "3c1e86dc0dbbf1b80aac60c3018ef21a512ead4b85b9a4ac2bc8f5032bdbaa5f"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts set_rotation_order",
+        "observedOutputSha256": "3c1e86dc0dbbf1b80aac60c3018ef21a512ead4b85b9a4ac2bc8f5032bdbaa5f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "83d303c65948d3ec0802227c979130339e99e7878aed84a953a10189c7149b95"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.set_scale",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000set_scale\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.set_scale",
+        "sourceLine": 819
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1f1452444513accbc1bf78ec4381caee2f502af34359330f8063aa3b2e549610",
+        "callsite": "res://probe.gd _init() set_scale-uniform-zero-basis set_scale-uniform-small-basis set_scale-uniform-mixed-basis set_scale-uniform-gimbal-x-basis set_scale-non-uniform-zero-basis set_scale-non-uniform-small-basis set_scale-non-uniform-mixed-basis set_scale-non-uniform-gimbal-x-basis set_scale-negative-zero-basis set_scale-negative-small-basis set_scale-negative-mixed-basis set_scale-negative-gimbal-x-basis set_scale-all-negative-zero-basis set_scale-all-negative-small-basis set_scale-all-negative-mixed-basis set_scale-all-negative-gimbal-x-basis set_scale-tiny-zero-basis set_scale-tiny-small-basis set_scale-tiny-mixed-basis set_scale-tiny-gimbal-x-basis",
+        "observedOutputSha256": "ca939e96fcd016dda2f1a25112cd96eef76331ae71155b05ace58827f38eee3b"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts set_scale",
+        "observedOutputSha256": "ca939e96fcd016dda2f1a25112cd96eef76331ae71155b05ace58827f38eee3b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "938bc481856fb325653c7db3bc68845db49fc4c18f4c0e088654ce1c73cd0509"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.set_basis",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000set_basis\u0000hash:1055510324",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.set_basis",
+        "sourceLine": 316
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a16bab34a77868488916f874296376d2cc9b98eed43c0524bfa13e94b0f3e497",
+        "callsite": "res://probe.gd _init() set_basis-rotation-transform set_basis-sheared-transform set_basis-mirrored-transform set_basis-singular-transform",
+        "observedOutputSha256": "d31b605f06e8930255ac72e05e00a51d73e3ba1f48b024a9afcabb5a00660f99"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts set_basis",
+        "observedOutputSha256": "331856da32e2dda4cf86fc14fbc281700da2b312476452240af25eca8de5a7b6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f7a9103aa5436c9ce1eafe22dffbeeb33212e84d75ad4f91e37086e9a7a99c1d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.set_position",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000set_position\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.set_position",
+        "sourceLine": 714
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "fb8e6eceb98b259d2053ca5d1d66d462b3bc44d835b272ae316e128eb4ebea27",
+        "callsite": "res://probe.gd _init() set_position-plain set_position-decimals set_position-huge",
+        "observedOutputSha256": "c012673ea1f44f7bbeacaf6f8bae00a8780bd673785c496f483d0f2b2ef18374"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts set_position",
+        "observedOutputSha256": "c012673ea1f44f7bbeacaf6f8bae00a8780bd673785c496f483d0f2b2ef18374"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "493ca6e448ac8d32a7ba06e86ecafa0feae556f36aaf9432fa36a0ffbce4e2b6"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.set_global_transform",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000set_global_transform\u0000hash:2952846383",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.set_global_transform",
+        "sourceLine": 420
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "54aa59aeb50eddbc88b12a7cf6f7319ea0f73c43c96d8e6ab28356f07e6ae4b9",
+        "callsite": "res://probe.gd _init() set_global_transform-identity-local set_global_transform-root-identity set_global_transform-general-local set_global_transform-root-general",
+        "observedOutputSha256": "b84e307f29ca7fa252f5fc2681e65958f48a56c254cba4c01d8ab6287c8a2804"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts set_global_transform",
+        "observedOutputSha256": "41001a4c4c082d3ae267b73988e7b39df636216218a5f561e7a56dd2fd647234"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "828a99e7c2eec7c0715dd6619fda99b6bdabe4515abe2516cf2b1645a900d3d6"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.set_global_position",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000set_global_position\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.set_global_position",
+        "sourceLine": 351
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a1de54a6d981133bb83cc4a07a7fdbf5c29dab9ed6ddc1e6a6dac60973ccc048",
+        "callsite": "res://probe.gd _init() set_global_position-local set_global_position-grand",
+        "observedOutputSha256": "4da4a65f33add706a99e689b5bb9ac729d16770846df5de90ff6e5fbd3b82a21"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts set_global_position",
+        "observedOutputSha256": "e84ac506ce1796811a32c8754d6aff68719d0f3587cd41548e40c45d0fade3f6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "01c8542b6a5f08be094247173cf119650d972edd99d2c25ad0e28a5400a84af5"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.set_global_basis",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000set_global_basis\u0000hash:1055510324",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.set_global_basis",
+        "sourceLine": 358
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "75487c92ab9b3f8da7e7f1af4d84b22661f91f7bda6b7f159687fc57e5df2bca",
+        "callsite": "res://probe.gd _init() set_global_basis-local",
+        "observedOutputSha256": "5f28331434140dd19d157bf14d153c0ce4923d7b2efe23b17a7fe89b1c4bd7fb"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts set_global_basis",
+        "observedOutputSha256": "9d8216155758d703c1c56e346205217f7e68a93d62e7522b3d1810fec70a219e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f0eb6f0fab854bd5a4f9894b85c470434861ee0dc10985593b9c0edc1c219605"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.set_as_top_level",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000set_as_top_level\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.set_as_top_level",
+        "sourceLine": 1051
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d22d4eccd0636a5aa0416a75ff9a8519ebaddcc5f6de203fad5df5e2c23e78e5",
+        "callsite": "res://probe.gd _init() set_as_top_level-true-local set_as_top_level-true-parent-moves set_as_top_level-false-local set_as_top_level-false-parent-moves set_as_top_level-root",
+        "observedOutputSha256": "b834c87dcda3487681a8da740e7b3eaf43ba138f62ff2ff86cd76cbcdcc5ce7e"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts set_as_top_level",
+        "observedOutputSha256": "3a46a0ae8c57d1ee68986605d72f65c55006f626e8b26c228afe5a0ce14a8ec9"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7f93f45c0ac81a7cbc9f5454529c6abade0860a2aae3b2c0f141b0d8612af7d3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.rotate_y",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000rotate_y\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.rotate_y",
+        "sourceLine": 1174
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "75d277b5c7148792b0308764e4942831d77fe36ee0e566f65649bcea30ab5382",
+        "callsite": "res://probe.gd _init() rotate_y-0 rotate_y-scaled-0 rotate_y-0.5 rotate_y-scaled-0.5 rotate_y--2 rotate_y-scaled--2 rotate_y-3.141592653589793 rotate_y-scaled-3.141592653589793 rotate_y-100 rotate_y-scaled-100",
+        "observedOutputSha256": "fa64b3b6254b4104f93a2277efee89baf799b07454dc60db8405165331f4db03"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts rotate_y",
+        "observedOutputSha256": "1e567d1754d993222a60c8a244e49a6ea4bbec9dba8ca928a5327d467711122e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f3d00c8968a88399d3eba9bf94cb910d63f636184dd32d70541bb3bd4a238cff"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Node3D.look_at_from_position",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Node3D\u0000look_at_from_position\u0000hash:2086826090",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/node_3d.cpp",
+        "sourceSymbol": "Node3D.look_at_from_position",
+        "sourceLine": 1258
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "303c2fdaf251958c886cc3d4711490a943a3dcc2d8c0098c05155dea3badea5c",
+        "callsite": "res://probe.gd _init() look_at_from_position-forward look_at_from_position-parented-forward look_at_from_position-diagonal look_at_from_position-parented-diagonal look_at_from_position-up-colinear look_at_from_position-parented-up-colinear look_at_from_position-same look_at_from_position-parented-same look_at_from_position-custom-up look_at_from_position-parented-custom-up look_at_from_position-zero-up look_at_from_position-parented-zero-up look_at_from_position-model-front look_at_from_position-parented-model-front",
+        "observedOutputSha256": "870b83471036858fbebd3bcfbd3734763c7828e83dc750bb257d947966a74ed2"
+      },
+      "target": {
+        "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a",
+        "callsite": "lib/godot-compat/node-3d.ts look_at_from_position",
+        "observedOutputSha256": "b2971dfa41a4679e4a7a885189d4a63708503af90df23ea5c8a44adea86d37ac"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0aff93082e71faa21a20195548f51333ed4770893639d85d8ec11076acbd5181"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "node-3d",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Node3D.get_position",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "380cbd212a0d500407e1236ab6860d8f421723c476f8f1baef213855895949e6",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.get_rotation",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2eac873f46d03c2f6f41c8ea68ffed25354bee46d4e8c23f3f839c009f3fa522",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.get_scale",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "790d04763fc18e526427cc56bba9497cebb395cfd5c6a9c6c2c36b6090cd4354",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.get_basis",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "01e646b7d3d76dcd091ead7fc6ebab039916b1064a45602e7ba03a8d06177eb2",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.get_transform",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "de219c57e372a56880c7d2fd4d1f1359b8d922a37ebbf63bb992d89c2620d6cd",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.get_global_transform",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "fcb03fdaa9f3bebca96cbc27f7e810151dd0710fcd365f564922352bc42bab83",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.get_global_position",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d5f78c2256834406cf3ddfe5d00b679c8c5f09541b08e37409f61744da36ddde",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.get_global_basis",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "28ec2818141b690cddbdb086c9d3b96d775b8475a53ab81a6aefb4c16c00c989",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.get_rotation_order",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a8b296b23fcbea1fb6ed161aeb901d9d327e500a905f84e06cef197434210832",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.is_set_as_top_level",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4e3f280b819b61485e5ec3dc7d4b157aebd8c92a26d5181d42d08a007e8553d5",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.set_rotation",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e4ced6894f52210090762dd9eeecc8c901a0b49c8f988e4d93c84805704df5ea",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.set_transform",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "497f7df9451e6d0aee215e526af09171d917af2877b59c52d3ba842c6605e8ea",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.set_rotation_order",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "edd4f0ffcc74597e9bb6d42323fab2ef99cd94d89e566b19e2ef00fcb289d438",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.set_scale",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1f1452444513accbc1bf78ec4381caee2f502af34359330f8063aa3b2e549610",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.set_basis",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a16bab34a77868488916f874296376d2cc9b98eed43c0524bfa13e94b0f3e497",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.set_position",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "fb8e6eceb98b259d2053ca5d1d66d462b3bc44d835b272ae316e128eb4ebea27",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.set_global_transform",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "54aa59aeb50eddbc88b12a7cf6f7319ea0f73c43c96d8e6ab28356f07e6ae4b9",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.set_global_position",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a1de54a6d981133bb83cc4a07a7fdbf5c29dab9ed6ddc1e6a6dac60973ccc048",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.set_global_basis",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "75487c92ab9b3f8da7e7f1af4d84b22661f91f7bda6b7f159687fc57e5df2bca",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.set_as_top_level",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d22d4eccd0636a5aa0416a75ff9a8519ebaddcc5f6de203fad5df5e2c23e78e5",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.rotate_y",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "75d277b5c7148792b0308764e4942831d77fe36ee0e566f65649bcea30ab5382",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    },
+    {
+      "claimId": "godot-4.7-binding-Node3D.look_at_from_position",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "303c2fdaf251958c886cc3d4711490a943a3dcc2d8c0098c05155dea3badea5c",
+      "implementationSha256": "de44a6554863dbfd119fa43be7e6d211450183e2d3c3288c03ff022bbf85375a"
+    }
+  ]
+}

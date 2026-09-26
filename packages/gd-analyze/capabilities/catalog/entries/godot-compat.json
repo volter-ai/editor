@@ -4,9 +4,11 @@
     "src/lib/godot-compat/array.ts",
     "src/lib/godot-compat/basis.ts",
     "src/lib/godot-compat/callable.ts",
+    "src/lib/godot-compat/camera-3d.ts",
     "src/lib/godot-compat/color.ts",
     "src/lib/godot-compat/dictionary.ts",
     "src/lib/godot-compat/global-scope.ts",
+    "src/lib/godot-compat/node-3d.ts",
     "src/lib/godot-compat/node-process.ts",
     "src/lib/godot-compat/packed-string-array.ts",
     "src/lib/godot-compat/plane.ts",
@@ -14,6 +16,7 @@
     "src/lib/godot-compat/rect2.ts",
     "src/lib/godot-compat/signal.ts",
     "src/lib/godot-compat/string.ts",
+    "src/lib/godot-compat/sub-viewport.ts",
     "src/lib/godot-compat/transform-2d.ts",
     "src/lib/godot-compat/transform-3d.ts",
     "src/lib/godot-compat/vector2.ts",
@@ -24,7 +27,8 @@
   "id": "godot-compat",
   "packageJson": {
     "dependencies": {
-      "react": "^19.2.4"
+      "react": "^19.2.4",
+      "three": "^0.180.0"
     }
   },
   "regions": {
@@ -35,5 +39,5 @@
   "requires": [],
   "skills": [],
   "title": "Godot compat (backends for a ported game)",
-  "version": "0.842.0"
+  "version": "0.843.0"
 }

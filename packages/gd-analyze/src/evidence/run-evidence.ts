@@ -294,6 +294,22 @@ func _enc(value: Variant) -> Dictionary:
  * merges `-0.0` into an earlier `0.0`; one folded constant per function keeps each value intact.
  * A one-line case is returned; a several-line case is a function body that returns.
  */
+/**
+ * Node cases run on the first frame, when the SceneTree root is inside the tree. Each case gets a
+ * fresh `holder` Node under the root and frees it once its result is encoded.
+ */
+function nodeProbeSource(cases: readonly GodotEvidenceCase[]): string {
+  const functions = cases.map((entry, index) => {
+    const body = entry.gdscript.split('\n');
+    return `\nfunc _case_${String(index)}(holder: Node) -> Variant:\n${body.map((line) => `\t${line}`).join('\n')}\n`;
+  });
+  const rows = cases.map(
+    (entry, index) =>
+      `\tholder = Node.new()\n\troot.add_child(holder)\n\trows.append([${JSON.stringify(entry.id)}, _enc(_case_${String(index)}(holder))])\n\tholder.free()\n`,
+  );
+  return `extends SceneTree\n\n${PROBE_ENCODER}${functions.join('')}\nfunc _init() -> void:\n\tprocess_frame.connect(_run, CONNECT_ONE_SHOT)\n\nfunc _run() -> void:\n\tvar rows: Array = []\n\tvar holder: Node\n${rows.join('')}\tprint(${JSON.stringify(OUTPUT_MARKER)} + JSON.stringify(rows))\n\tquit()\n`;
+}
+
 function compatProbeSource(cases: readonly GodotEvidenceCase[]): string {
   const functions = cases.map((entry, index) => {
     const lines = entry.gdscript.split('\n');
@@ -581,6 +597,17 @@ function apiUtilityHash(apiDumpFile: string, member: string): number {
   return hash;
 }
 
+function apiClassMethodHash(apiDumpFile: string, owner: string, member: string): number {
+  const api = JSON.parse(readFileSync(apiDumpFile, 'utf8')) as {
+    classes: { name: string; methods?: { name: string; hash: number }[] }[];
+  };
+  const hash = api.classes
+    .find((entry) => entry.name === owner)
+    ?.methods?.find((entry) => entry.name === member)?.hash;
+  if (hash === undefined) throw new Error(`API dump has no method ${owner}.${member} declared on ${owner}`);
+  return hash;
+}
+
 function apiMethodHash(apiDumpFile: string, owner: string, member: string): number {
   const api = JSON.parse(readFileSync(apiDumpFile, 'utf8')) as {
     builtin_classes: { name: string; methods?: { name: string; hash: number }[] }[];
@@ -728,6 +755,12 @@ function bindingSymbol(
       return { ...base, kind: 'builtin-constant', signature: 'constant' };
     case 'builtin-member-set':
       return { ...base, kind: 'builtin-member-set', signature: 'set' };
+    case 'native-member':
+      return {
+        ...base,
+        kind: 'native-member',
+        signature: `hash:${String(apiClassMethodHash(pins.apiDumpFile, symbol.owner, symbol.member))}`,
+      };
     case 'utility-function':
       return {
         ...base,
@@ -743,6 +776,7 @@ function bindingUse(kind: GodotEvidenceSymbol['kind']): GodotTargetBindingUse {
   switch (kind) {
     case 'builtin-member':
     case 'builtin-member-set':
+    case 'native-member':
       return { kind: 'call', sourceReceiver: 'first-argument' };
     case 'builtin-constructor':
     case 'builtin-operator':
@@ -798,7 +832,7 @@ async function runCompatEvidence(
     nativeRows = runNativeProbe(
       officialBinary,
       temp,
-      compatProbeSource(evidence.cases),
+      evidence.kind === 'node' ? nodeProbeSource(evidence.cases) : compatProbeSource(evidence.cases),
       evidence.cases.length,
     );
   } finally {
@@ -1167,7 +1201,7 @@ async function runLanguageEvidence(
 
 /** The case files `evidence --refresh` re-runs, in dependency order: compat modules first. */
 export function godotEvidenceCaseNames(): readonly string[] {
-  return ['vector3', 'vector2', 'vector2i', 'vector3i', 'basis', 'transform-3d', 'transform-2d', 'color', 'plane', 'rect2', 'string', 'array', 'dictionary', 'packed-string-array', 'callable', 'global-scope', 'language'];
+  return ['vector3', 'vector2', 'vector2i', 'vector3i', 'basis', 'transform-3d', 'transform-2d', 'color', 'plane', 'rect2', 'string', 'array', 'dictionary', 'packed-string-array', 'callable', 'global-scope', 'node-3d', 'sub-viewport', 'camera-3d', 'language'];
 }
 
 export async function runEvidence(
