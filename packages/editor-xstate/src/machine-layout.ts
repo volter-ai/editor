@@ -120,6 +120,7 @@ function buildNode(state: MachineState, rootTitle: string): ElkNode {
       'elk.padding': `[top=${top},left=18,bottom=18,right=18]`,
       'elk.nodeSize.constraints': 'MINIMUM_SIZE',
       'elk.nodeSize.minimum': `(${Math.min(minWidth, 320)},${top + 30})`,
+      'elk.layered.cycleBreaking.strategy': 'DEPTH_FIRST',
       ...(state.kind === 'parallel' ? { 'elk.direction': 'DOWN', 'elk.layered.spacing.nodeNodeBetweenLayers': '18' } : {}),
     },
   };
@@ -164,6 +165,7 @@ export async function layoutMachine(machine: MachineDefinition): Promise<Machine
       'elk.spacing.edgeLabel': '4',
       'elk.layered.edgeLabels.sideSelection': 'ALWAYS_UP',
       'elk.layered.nodePlacement.strategy': 'BRANDES_KOEPF',
+      'elk.layered.cycleBreaking.strategy': 'DEPTH_FIRST',
       'elk.padding': '[top=24,left=24,bottom=24,right=24]',
     },
     children: [buildNode(machine.root, machineTitle(machine))],

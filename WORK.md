@@ -178,15 +178,10 @@ Remaining:
    without their per-frame grip and IK pass (the player stands). Which pose Edit shows before
    the first scrub is undecided.
 3. **Machine documents.** Authored edits and the live overlay are walked on `arena`, and the
-   fit on first size too (the enemy machine opens whole). Initial arrows enter from below where
-   the initial state's region starts with a state in a cycle with it: ELK puts that state in the
-   first column at the initial state's height, so the dot lands below it and its arrow climbs
-   into the initial state's left side (measured: `arena`'s `movement`, `stance` and `gunplay`,
-   and one of three cyclic probes, bend; three probes and the rest of `arena` are level). ELK's
-   straightness priority, network-simplex placement, a separate first layer, a west port and
-   declaring the edge in its compound state do not change it, and the row left of the initial
-   state is taken by the cycle's labelled transitions, so moving the dot after layout has
-   nowhere clear to go. What fixes it is a layout that reserves that row.
+   fit on first size too (the enemy machine opens whole). ELK breaks each cycle depth-first from
+   the initial dot, so a state in a cycle with the initial state lands after it and the dot's row
+   stays free: measured on `arena`'s two machines, all six initial arrows run level for 20px into
+   their state's left side (four climbed into it from below before).
 4. **The design skew** (`website`): the DOM root is read-only, the Pages list is empty, and a
    `page` has no document editor.
 5. **Unwalked instruments:** Network needs a game that joins a room: the template ships the
