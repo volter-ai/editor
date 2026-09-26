@@ -7,3 +7,7 @@ fi
 if git diff --cached --name-only | grep -qE '^packages/[^/]+/.*\.(ts|tsx|mts|mjs)$'; then
   node scripts/check-boundaries.mjs || exit 1
 fi
+# The godot-compat contract (docs/GODOT.md §The compat contract).
+if git diff --cached --name-only | grep -qE '^packages/gd-analyze/capabilities/'; then
+  node scripts/check-godot-compat.mjs || exit 1
+fi
