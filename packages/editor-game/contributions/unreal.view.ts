@@ -15,6 +15,8 @@ export const view: ViewPreset = {
   id: 'unreal',
   title: 'Unreal',
   layer: {
+    // Unreal's level viewport: a 90° horizontal field of view, its viewport setting's default.
+    camera: { fov: { degrees: 90, axis: 'horizontal' } },
     all: {
       lighting: {
         source: 'preview',

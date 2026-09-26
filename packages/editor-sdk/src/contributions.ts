@@ -20,6 +20,7 @@ import type {
   WebGLRenderer,
 } from 'three';
 import type { EditorClient } from './client.js';
+import type { PresentationLayer } from './kit/viewport-presentation.js';
 import type { ProjectToolCatalogEntry } from './types.js';
 
 /** Stable, format-neutral selection data available to inspector contributions. */
@@ -220,8 +221,9 @@ export interface ToolObject3DAuthoringProps {
   /**
    * THE OPENING VIEW STATED OUTRIGHT, for a document whose file saved one (a .blend's 3D View,
    * where Blender opens it): the pivot, the direction from the pivot to the eye, the view's up,
-   * the distance, the projection and the lens, in the stage's frame. In place of
-   * `cameraDirection` and `openingFit` when given; Frame still fits.
+   * the distance and the projection, in the stage's frame. In place of `cameraDirection` and
+   * `openingFit` when given; Frame still fits. The saved field of view is the document's
+   * `presentation` (`camera.fov`).
    */
   readonly openingView?: {
     readonly target: readonly [number, number, number];
@@ -230,10 +232,13 @@ export interface ToolObject3DAuthoringProps {
     readonly up?: readonly [number, number, number];
     readonly distance: number;
     readonly projection?: 'perspective' | 'orthographic';
-    /** The view's lens in mm over a 36 mm sensor (Blender's `View3D.lens`); the stage's 50 when
-     *  omitted. */
-    readonly lens?: number;
   } | null;
+  /**
+   * THE DOCUMENT'S OWN PRESENTATION LAYER, over the stage's starting values and under a person's
+   * choices (`kit/viewport-presentation`): what the file itself says about how it is seen — a
+   * `.blend`'s saved lens as `camera.fov`. Read when the document binds.
+   */
+  readonly presentation?: PresentationLayer | null;
   /**
    * Optional binding from live native clips back to ordinary project source.
    * Project code only serializes its own TypeScript shape; the editor owns the

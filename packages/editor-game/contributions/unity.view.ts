@@ -12,6 +12,9 @@ export const view: ViewPreset = {
   id: 'unity',
   title: 'Unity',
   layer: {
+    // Unity's Scene camera: `kDefaultPerspectiveFov` 60, vertical when the view is wider than tall
+    // and horizontal otherwise (`SceneView.GetVerticalFOV`) — on its smaller side.
+    camera: { fov: { degrees: 60, axis: 'smaller' } },
     all: {
       lighting: {
         source: 'preview',

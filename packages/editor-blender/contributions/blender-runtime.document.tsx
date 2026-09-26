@@ -25,7 +25,7 @@
  */
 
 // How the `model` stage this document builds behaves (its starting presentation).
-import '../src/presentation';
+import { blenderViewFieldOfView } from '../src/presentation';
 import { blenderModelView } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import type { ToolContributionProps, ToolDocumentToolbar } from '@volter/editor-sdk/contributions';
 import { editorHost } from '@volter/editor-sdk/host';
@@ -431,6 +431,11 @@ function BlenderModelViewport({
       // WHERE BLENDER OPENS THE FILE: its own saved 3D View, when it holds one; the direction and
       // fit above are the fallback for a file that saved none.
       openingView={view.savedView()}
+      // The file's own lens, as the document's presentation (Blender's arithmetic in degrees).
+      presentation={(() => {
+        const saved = view.savedView();
+        return saved ? { camera: { fov: blenderViewFieldOfView(saved.lens) } } : null;
+      })()}
       // Every entry this document opens is a `model` stage, the standing `blender:runtime`
       // address included (its id carries no `model:` prefix).
       stageKind={documentKind}

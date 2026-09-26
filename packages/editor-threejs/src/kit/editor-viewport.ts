@@ -346,37 +346,29 @@ export interface EditorViewportOptions {
  * the floor occludes it, and it occludes nothing.
  */
 /**
- * THE STAGE'S LENS — Blender's, and the reason the viewport's field of view is derived rather
- * than stored.
- *
- * Blender holds an ANGLE on the larger of the region's two dimensions (sensor fit AUTO), so a
- * wider panel sees no more world sideways and a shorter one sees less vertically — which is why
- * three's vertical `fov` cannot be a constant here.
- *
- * The angle is the view's own arithmetic (`BKE_camera_params_from_view3d`,
- * `BKE_camera_params_compute_viewplane`): the 36 mm sensor over the View's lens
- * (`View3D.lens`, 50 at factory startup, read back from Blender 5.2; {@link EditorViewport.setLens}), times the viewport's
- * `CAMERA_PARAM_ZOOM_INIT_PERSP` of 2. The same zoom scales an orthographic view's
- * `dist * sensor / lens`, so the two projections agree at the pivot.
+ * THE STAGE'S FIELD OF VIEW, as the view states it (`ViewportCamera.fov`): an angle held on one
+ * side of the region — vertical, horizontal, the larger or the smaller — so a panel that widens
+ * sees more or less world sideways as its target's editor does. three's `fov` is always vertical,
+ * so it is derived from the region's shape rather than stored.
  */
-const STAGE_LENS_MM = 50;
-
-/** three's fov is VERTICAL; Blender's lens angle is on the larger dimension. `lens` is the view's
- *  focal length in mm over the 36 mm sensor. */
-export function stageVerticalFovDegrees(aspect: number, lens = STAGE_LENS_MM): number {
-  const safeAspect = Number.isFinite(aspect) && aspect > 0.01 ? aspect : 1;
-  const safeLens = Number.isFinite(lens) && lens > 0 ? lens : STAGE_LENS_MM;
-  const halfLensAngle = Math.atan((36 * 2) / (2 * safeLens));
-  // Sensor fit AUTO: the angle belongs to the longer side.
-  const halfVertical =
-    safeAspect >= 1 ? Math.atan(Math.tan(halfLensAngle) / safeAspect) : halfLensAngle;
-  return THREE.MathUtils.radToDeg(halfVertical * 2);
+export interface StageFieldOfView {
+  readonly degrees: number;
+  readonly axis: 'vertical' | 'horizontal' | 'larger' | 'smaller';
 }
 
-/** The direction the stage opens from, Blender's default user perspective:
- *  elevation 26.5°, azimuth −23.8° about the up axis — SOLVED from the
- *  reference's two floor axes, whose projected slopes there are +1.0093 (X)
- *  and −0.1969 (Y). In three's Y-up frame that is this unit vector. */
+/** The editor's own: three's 50° vertical (the kit's presentation says the same). */
+const KIT_FIELD_OF_VIEW: StageFieldOfView = { degrees: 50, axis: 'vertical' };
+
+/** three's vertical fov for a stated field of view on a region of this shape. */
+export function stageVerticalFovDegrees(aspect: number, fov: StageFieldOfView = KIT_FIELD_OF_VIEW): number {
+  const safeAspect = Number.isFinite(aspect) && aspect > 0.01 ? aspect : 1;
+  const degrees = Number.isFinite(fov.degrees) && fov.degrees > 0 && fov.degrees < 180 ? fov.degrees : KIT_FIELD_OF_VIEW.degrees;
+  const half = THREE.MathUtils.degToRad(degrees / 2);
+  const horizontal =
+    fov.axis === 'horizontal' || (fov.axis === 'larger' && safeAspect >= 1) || (fov.axis === 'smaller' && safeAspect < 1);
+  const halfVertical = horizontal ? Math.atan(Math.tan(half) / safeAspect) : half;
+  return THREE.MathUtils.radToDeg(halfVertical * 2);
+}
 
 /** A colour's hue, saturation and value (each 0..1), in whatever channels it carries. */
 function rgbToHsv(color: THREE.Color): { h: number; s: number; v: number } {
@@ -410,15 +402,6 @@ function hsvToColor(h: number, s: number, v: number, out: THREE.Color): THREE.Co
   return out.setRGB(r!, g!, b!);
 }
 
-/** The navigation gizmo's axis colours, read off Blender's own balls in
- *  `modeling-object-none.png`: X (245,54,81), Y (111,164,27), Z (46,131,227).
- *  They are NOT the floor axes' palette hexes — the gizmo is drawn straight,
- *  without the stage's view transform, so it is sampled where it lands. */
-const COMPASS_AXIS_COLOR: readonly THREE.Color[] = [
-  new THREE.Color(0xf53651),
-  new THREE.Color(0x6fa41b),
-  new THREE.Color(0x2e83e3),
-];
 
 /**
  * One ball of the navigation gizmo: filled with its letter (a positive axis),
@@ -514,7 +497,9 @@ function compassGlyphTexture(text: string): THREE.CanvasTexture {
   });
 }
 
-const STAGE_OPENING_DIRECTION = new THREE.Vector3(0.8187, 0.4458, 0.3617);
+/** The direction the stage opens from before a view or document states one: the kit's own
+ *  three-quarter view (`ViewportCamera.opening`). */
+const STAGE_OPENING_DIRECTION = new THREE.Vector3(1, 0.72, 1).normalize();
 
 /**
  * THE COMPASS'S BOX, AND THE GIZMO'S OWN SIZES — re-measured 2026-09-19 from
@@ -593,9 +578,9 @@ export const COMPASS_CLUSTER_TOP_PX =
  * principal point at the region centre. That gives f = 1976 device px
  * (Blender's viewport lens: 50 mm on its DEFAULT_SENSOR_WIDTH of 72 mm),
  * camera 17.96 m out at elevation 26.46°, azimuth −23.82° — which reproduces
- * the elevation and azimuth `STAGE_OPENING_DIRECTION` was independently
- * solved from, so the calibration is checked against something already in
- * this repo. Sampling the X axis at thirteen known floor points, its ink over
+ * the elevation and azimuth Blender's opening direction was independently
+ * solved from (`@volter/editor-blender`'s presentation), so the calibration is
+ * checked against something already in this repo. Sampling the X axis at thirteen known floor points, its ink over
  * the `#3f3f3f` floor, IN LINEAR LIGHT (the blend happens before the sRGB
  * encode — read as sRGB levels the profile fits nothing):
  *
@@ -1102,8 +1087,8 @@ export class EditorViewport {
   private _projection: ThreeViewportProjection = 'perspective';
   private _pendingProjection: ThreeViewportProjection | null = null;
   private _viewportAspect = 1;
-  /** The view's lens in mm (`View3D.lens`); a document's saved view may state its own. */
-  private _lens = STAGE_LENS_MM;
+  /** The view's field of view (`ViewportCamera.fov`), held on its side as the region reshapes. */
+  private _fieldOfView: StageFieldOfView = KIT_FIELD_OF_VIEW;
   private _orthographicHeight = 10;
   private _cameraViewMode: CameraViewMode | null = null;
   private _orbitEnabledBeforeCameraView = true;
@@ -3789,16 +3774,17 @@ export class EditorViewport {
     this.orbitControls.update();
   }
 
-  /** The view's lens in mm over the 36 mm sensor (`View3D.lens`): the perspective angle and, at
-   *  the same distance, the orthographic view's size. */
-  setLens(lens: number): void {
-    if (!Number.isFinite(lens) || lens <= 0 || lens === this._lens) return;
-    const halfAngle = (fov: number) => Math.tan(THREE.MathUtils.degToRad(fov * 0.5));
+  /** The view's field of view (`ViewportCamera.fov`): the perspective angle and, at the same
+   *  distance, the orthographic view's size. */
+  setFieldOfView(fov: StageFieldOfView): void {
+    if (!Number.isFinite(fov.degrees) || fov.degrees <= 0 || fov.degrees >= 180) return;
+    if (fov.degrees === this._fieldOfView.degrees && fov.axis === this._fieldOfView.axis) return;
+    const halfAngle = (degrees: number) => Math.tan(THREE.MathUtils.degToRad(degrees * 0.5));
     const before = halfAngle(this.camera.fov);
-    this._lens = lens;
-    this.camera.fov = stageVerticalFovDegrees(this._viewportAspect, lens);
+    this._fieldOfView = fov;
+    this.camera.fov = stageVerticalFovDegrees(this._viewportAspect, fov);
     this.camera.updateProjectionMatrix();
-    // An orthographic view at the same distance scales with the lens, as Blender's does.
+    // An orthographic view at the same distance scales with the angle, as Blender's does with its lens.
     if (this._projection === 'orthographic') this._orthographicHeight *= halfAngle(this.camera.fov) / before;
     this._applyOrthographicFrustum();
   }
@@ -3833,9 +3819,8 @@ export class EditorViewport {
   resize(width: number, height: number): void {
     this._viewportAspect = Math.max(1, width) / Math.max(1, height);
     this.camera.aspect = this._viewportAspect;
-    // Blender holds the LENS, not the vertical angle: a wider panel sees no
-    // more world sideways, a shorter one sees less vertically.
-    this.camera.fov = stageVerticalFovDegrees(this._viewportAspect, this._lens);
+    // The view's angle stays on its own side of the region as the region reshapes.
+    this.camera.fov = stageVerticalFovDegrees(this._viewportAspect, this._fieldOfView);
     this.camera.updateProjectionMatrix();
     this._applyOrthographicFrustum();
     // A look-stated gizmo size is in PIXELS, so the conversion to three's
@@ -4175,6 +4160,7 @@ export class EditorViewport {
       // and it has no content bounds to stand a floor under.
       if (this._renderer) rig.apply(presentation, this._renderer, undefined, { tone: false, sky: false, floor: false });
       this.setStageFunction(presentation.world, presentation.interaction);
+      this.setFieldOfView(presentation.camera.fov);
       this.setSelectionMarks(presentation.overlays.selection);
       this.setGridMajorEvery(presentation.overlays.grid.majorEvery);
       this.setAxisLines(presentation.overlays.axes);
@@ -4581,7 +4567,7 @@ export class EditorViewport {
       // The look's navigation colours, else its axis colours, else the editor's own.
       const lookAxes = this._gizmoLook.navigation ?? this._gizmoLook.axes;
       const color =
-        lookAxes === null ? COMPASS_AXIS_COLOR[sourceAxis]! : new THREE.Color(lookAxes[sourceAxis]!);
+        lookAxes === null ? new THREE.Color(...KIT_GIZMO_AXIS_RGB[sourceAxis]!) : new THREE.Color(lookAxes[sourceAxis]!);
       const letter = AXIS_LETTER[sourceAxis]!;
       const axis = axes[i]!.clone().multiplyScalar(positive);
 
@@ -4651,7 +4637,7 @@ export class EditorViewport {
     for (let i = 0; i < 3; i++) {
       const [sourceAxis, positive] = this._stageAxisFrame[i]!;
       const color =
-        lookAxes === null ? COMPASS_AXIS_COLOR[sourceAxis]! : new THREE.Color(lookAxes[sourceAxis]!);
+        lookAxes === null ? new THREE.Color(...KIT_GIZMO_AXIS_RGB[sourceAxis]!) : new THREE.Color(lookAxes[sourceAxis]!);
       const letter = AXIS_LETTER[sourceAxis]!;
       const axis = axes[i]!.clone().multiplyScalar(positive);
       if (form === 'triad') {

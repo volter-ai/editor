@@ -192,6 +192,22 @@ export interface ViewportWorld {
 }
 
 /**
+ * THE STAGE'S CAMERA: its field of view and the direction it opens from — the view's function,
+ * never the look's. Each target holds its angle on its own side:
+ *  - `vertical`: three's own and Godot's (`editors/3d/default_fov` 70, the camera keeping height);
+ *  - `horizontal`: Unreal's (90 in its viewport settings);
+ *  - `larger`: Blender's, whose lens angle is on the region's longer side (sensor fit AUTO);
+ *  - `smaller`: Unity's (`kDefaultPerspectiveFov` 60, vertical when the view is wider than tall,
+ *    `SceneView.GetVerticalFOV`).
+ * `opening` is the direction from the pivot to the eye when a document states none, in the
+ * stage's Y-up frame.
+ */
+export interface ViewportCamera {
+  readonly fov: { readonly degrees: number; readonly axis: 'vertical' | 'horizontal' | 'larger' | 'smaller' };
+  readonly opening: readonly [number, number, number];
+}
+
+/**
  * X-RAY: surfaces drawn see-through at `alpha`, the edges behind them showing (Blender's shading
  * X-Ray, kept per shading type: Solid off at 0.5, Wireframe on at 0 — no surface at all). The
  * stage draws an enabled X-ray at alpha 0 by leaving the surfaces out of the draw; a partial
@@ -215,6 +231,7 @@ export interface ViewportPresentation extends ViewportModePresentation {
   readonly overlays: ViewportOverlays;
   readonly interaction: ViewportInteraction;
   readonly world: ViewportWorld;
+  readonly camera: ViewportCamera;
 }
 
 type DeepPartial<T> = { readonly [K in keyof T]?: T[K] extends readonly unknown[] ? T[K] : T[K] extends object ? DeepPartial<T[K]> : T[K] };
@@ -226,6 +243,7 @@ export interface PresentationLayer {
   readonly overlays?: DeepPartial<ViewportOverlays>;
   readonly interaction?: DeepPartial<ViewportInteraction>;
   readonly world?: Partial<ViewportWorld>;
+  readonly camera?: DeepPartial<ViewportCamera>;
   readonly all?: DeepPartial<ViewportModePresentation>;
   readonly modes?: { readonly [M in ViewportDrawMode]?: DeepPartial<ViewportModePresentation> };
 }
@@ -286,6 +304,9 @@ export const KIT_PRESENTATION: ViewportPresentation = Object.freeze<ViewportPres
     transformHandles: { scale: true, viewRotate: true, freeMove: true },
   },
   world: { upAxis: 'y', handedness: 'right' },
+  // The editor's own camera: three's 50° vertical, opening from the editor's three-quarter view
+  // (the Isometric preset's direction, 1 : 0.72 : 1).
+  camera: { fov: { degrees: 50, axis: 'vertical' }, opening: [0.6301, 0.4537, 0.6301] },
 });
 
 // ---- Studio presets ----------------------------------------------------------------------------
@@ -547,6 +568,7 @@ export function resolvePresentation(layers: readonly PresentationLayer[]): Viewp
   let overlays: ViewportOverlays = KIT_PRESENTATION.overlays;
   let interaction: ViewportInteraction = KIT_PRESENTATION.interaction;
   let world: ViewportWorld = KIT_PRESENTATION.world;
+  let camera: ViewportCamera = KIT_PRESENTATION.camera;
   for (const layer of layers) {
     if (layer.all) mode = deepMerge(mode, layer.all);
     const forMode = layer.modes?.[drawMode];
@@ -554,8 +576,9 @@ export function resolvePresentation(layers: readonly PresentationLayer[]): Viewp
     if (layer.overlays) overlays = deepMerge(overlays, layer.overlays);
     if (layer.interaction) interaction = deepMerge(interaction, layer.interaction);
     if (layer.world) world = deepMerge(world, layer.world);
+    if (layer.camera) camera = deepMerge(camera, layer.camera);
   }
-  return { drawMode, lighting: mode.lighting, backdrop: mode.backdrop, xray: mode.xray, overlays, interaction, world };
+  return { drawMode, lighting: mode.lighting, backdrop: mode.backdrop, xray: mode.xray, overlays, interaction, world, camera };
 }
 
 // ---- Change notification ------------------------------------------------------------------------

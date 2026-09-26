@@ -13,6 +13,9 @@ export const view: ViewPreset = {
   id: 'godot',
   title: 'Godot',
   layer: {
+    // Godot's editor camera: `editors/3d/default_fov` 70 (`editor_settings.cpp`), vertical — the
+    // editor's Camera3D keeps its height.
+    camera: { fov: { degrees: 70, axis: 'vertical' } },
     all: {
       lighting: {
         source: 'preview',

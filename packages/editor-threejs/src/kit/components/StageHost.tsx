@@ -116,6 +116,8 @@ import { workspaceHistoryService } from '@volter/editor-sdk/kit/components/works
 import {
   bindViewPresentation,
   DOCUMENT_STUDIO_PRESET,
+  mergeLayers,
+  type PresentationLayer,
   reportViewDraw,
   setViewPresentation,
   stageLightsPerMode,
@@ -601,6 +603,7 @@ export function Object3DDocumentViewport({
   openingFrameBounds,
   openingFit,
   openingView,
+  presentation: documentPresentation,
   cameraView,
   stageKind,
   statistics,
@@ -780,6 +783,8 @@ export function Object3DDocumentViewport({
   openingFrameBoundsRef.current = openingFrameBounds;
   const openingViewRef = useRef(openingView);
   openingViewRef.current = openingView;
+  const documentPresentationRef = useRef(documentPresentation);
+  documentPresentationRef.current = documentPresentation;
   const cameraViewRef = useRef(cameraView);
   cameraViewRef.current = cameraView;
   // The current prop is still read by asynchronous installation. Attachment
@@ -1250,6 +1255,7 @@ export function Object3DDocumentViewport({
               // The view's overlays: its selection marks and its grid's major step. The native
               // outline is also the stage's own switch (a shared preview draws none).
               host.viewport?.setStageFunction(presentation.world, presentation.interaction);
+              host.viewport?.setFieldOfView(presentation.camera.fov);
               host.viewport?.setSelectionMarks(presentation.overlays.selection);
               host.viewport?.setGridMajorEvery(presentation.overlays.grid.majorEvery);
               host.viewport?.setAxisLines(presentation.overlays.axes);
@@ -1602,10 +1608,13 @@ export function Object3DDocumentViewport({
         if (!host.session) {
           const overviewFrame = boxFromFrameBounds(frameBoundsRef.current);
           const openingFrame = boxFromFrameBounds(openingFrameBoundsRef.current) ?? overviewFrame;
+          // The view's camera (`ViewportCamera`): its field of view, and the direction it opens
+          // from when the document states none.
+          const viewCamera = viewPresentation(documentId).camera;
+          viewport.setFieldOfView(viewCamera.fov);
           if (!openingFrame) viewport.focusOn(source.root);
           const stated = openingViewRef.current;
           if (stated) {
-            if (stated.lens !== undefined) viewport.setLens(stated.lens);
             const target = new THREE.Vector3(...stated.target);
             const direction = new THREE.Vector3(...stated.direction).normalize();
             viewport.camera.position.copy(target).addScaledVector(direction, stated.distance);
@@ -1614,10 +1623,15 @@ export function Object3DDocumentViewport({
             viewport.camera.up.set(0, 1, 0);
             if (stated.up) viewport.camera.up.set(...stated.up);
             viewport.orbitControls.target.copy(target);
-          } else if (cameraX !== undefined && cameraY !== undefined && cameraZ !== undefined) {
+          } else {
             const box = openingFrame ?? contentWorldBounds(source.root);
+            // Nothing to fit yet (content that arrives later): a metre cube at the origin stands in.
+            if (box.isEmpty()) box.set(new THREE.Vector3(-0.5, -0.5, -0.5), new THREE.Vector3(0.5, 0.5, 0.5));
             const center = box.getCenter(new THREE.Vector3());
-            const direction = new THREE.Vector3(cameraX, cameraY, cameraZ).normalize();
+            const direction =
+              cameraX !== undefined && cameraY !== undefined && cameraZ !== undefined
+                ? new THREE.Vector3(cameraX, cameraY, cameraZ).normalize()
+                : new THREE.Vector3(...viewCamera.opening).normalize();
             const distance =
               perspectiveDistanceToFitBox(box, viewport.camera, direction) *
               Math.min(10, Math.max(0.1, openingFit ?? 1));
@@ -1699,16 +1713,20 @@ export function Object3DDocumentViewport({
         // it; the document's layer would override every mode's with one.
         const startingLights =
           startingPresentation(viewStageKind)?.all?.lighting !== undefined || stageLightsPerMode(viewStageKind);
+        const dressingLayer: PresentationLayer | null = startingLights
+          ? null
+          : dressingViewLocked
+            ? { all: { lighting: { source: 'studio', studioPreset: DOCUMENT_STUDIO_PRESET.id, auto: null } } }
+            : dressingKeyLight === false
+              ? { all: { lighting: { source: 'scene' } } }
+              : null;
+        // What the document's file says about how it is seen (`ToolObject3DDocument.presentation`)
+        // over what its dressing implies.
+        const ownLayer = documentPresentationRef.current ?? null;
         bindViewPresentation(
           documentId,
           viewStageKind,
-          startingLights
-            ? null
-            : dressingViewLocked
-              ? { all: { lighting: { source: 'studio', studioPreset: DOCUMENT_STUDIO_PRESET.id, auto: null } } }
-              : dressingKeyLight === false
-                ? { all: { lighting: { source: 'scene' } } }
-                : null,
+          dressingLayer && ownLayer ? mergeLayers(dressingLayer, ownLayer) : (ownLayer ?? dressingLayer),
         );
         // THE DRAW MODE IS ONE FACT IN TWO PLACES, kept equal: the session draws it, and the view's
         // presentation resolves its per-mode lighting by it and persists it. A shading cell changes
