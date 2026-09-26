@@ -55,7 +55,7 @@ the handwritten translator (`lang36`/`lang40`, `translate.ts`, `surface.ts`). Pr
 now goes official bound nodes → `TargetTsSyntax` → TypeScript's printer, behind accepted/refused
 plans. No blind review has run on it.
 
-**The compiler binds no Godot API.** `godotCodeTranslationAuthority` returns a binding table with
+**The compiler bound no Godot API.** `godotCodeTranslationAuthority` returned a binding table with
 `entries: []`. About 44 evidenced rules exist in total (language constructs, 8 scene-node rules,
 read and field-value rules). Any script that calls a Godot API refuses. Before 09-03, the
 handwritten translator ported twelve games that booted. Since then, nothing real translates.
@@ -207,9 +207,28 @@ the same inputs run through the compat export in Node. The command writes the
 A node-level case builds its scene in both places and steps physics frames in both. The binding
 table loads those files; a row whose claim is not live refuses, as before.
 
-The compat that came back from the tag does not meet this contract. It is removed from the lane
-and rebuilt class by class from the closure. The Godot source is the authority, and the old module
-at the tag is a reference (vgai-engine `archive/godot-lane-2026-09-19:packages/editor/catalog/project-source/src/lib/godot-compat/`).
+**Allowed imports** are npm packages (three, Rapier, pixi.js…), `@volter/threejs-runtime` and
+`@volter/game-runtime`, and other `godot-compat` modules. The check refuses every other
+`@volter/*` package and any `../` outside `godot-compat/`. It also refuses a class-name `Map`,
+object literal or `switch`, and an entry whose `files` differ from the files on disk.
+
+A class's PROTOCOL may span modules when one would pass a readable size: the Node lifecycle is
+`node-process.ts` (ordering) and `react-lifecycle.tsx` (the generated composition's hooks), both
+`@godot-class Node`.
+
+**State (2026-09-25).** The compat that came back from the tag did not meet this contract and is
+removed (609 of 612 modules, with `godot-runtime`, `character`, `sprite` and the codec). Three
+modules remain: `node-process.ts`, `react-lifecycle.tsx` and `signal.ts`. `signal.ts` keys a
+connection by reference identity until a conformant `callable.ts` supplies Godot's Callable
+equality. Everything else is rebuilt class by class from the closure. The Godot source is the
+authority; the old module at the tag is a reference (vgai-engine
+`archive/godot-lane-2026-09-19:packages/editor/catalog/project-source/src/lib/godot-compat/`).
+
+**First class through the instrument: `Vector3`.** 413 cases agree bit-exactly with official Godot
+4.7, including `rotated` through `sinf`/`cosf`. Planted defects (a double-precision `dot`, an
+unrounded `cos`) produce 23 mismatches and write nothing. One finding: GDScript's bytecode
+generator merges `-0.0` into an earlier `0.0` constant in the same function
+(`gdscript_byte_codegen.h:107`), so each case runs in its own function.
 
 ## What comes next
 
