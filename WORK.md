@@ -560,6 +560,22 @@ proofs, not a reproduction or fix of the older intermittent hang.
 
 ### Unresolved observations and release limits
 
+- **A warm reopen of the Game Editor loses its Scene every other time.** Read
+  2026-09-25 in browser-substrate's `examples/volter-editor` (four reopens in
+  new tabs of one browser, the image unchanged): opens 2 and 4 logged
+  `[r3f-design] world "world" design session torn down` 11-13 s in and showed
+  the empty editor with no Scene document; opens 1 and 3 rendered MainScene.
+  The teardown is the design session's own dispose, so the Scene document was
+  mounted and then closed during startup; what closed it is not yet read.
+- **Blender starts only when the Model document mounts.** Read 2026-09-26 on a
+  warm open in the same page: to about 10 s the tab runs at 1-3 cores through
+  the session, the workbench and its extension host; Blender's worker starts
+  then and runs about 10 cores for 2 s, and the model is read at 11.4-12.7 s.
+  Starting Blender beside the workbench is what a 10 s read needs.
+- **The Chat's runtime starts at boot.** The session starts Supercode and Pi
+  as it comes up, so a cold open in a tab fetches their packs (25 MB and
+  109 MB) in the middle of the boot, before anyone opens the Chat.
+
 - **The intermittent unresponsive-renderer observation remains unresolved.**
   Packed and public 0.5.58 acceptance encountered a worker stop/restart timeout
   while the renderer stopped answering. Full editor reopen recovered saved
