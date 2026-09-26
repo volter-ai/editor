@@ -3,11 +3,9 @@
  * `ingest-react` (a vendored React game reached through a host shim).
  *
  * They mount through the SAME react host stack: the same realm entry load, the
- * same default-export-component validation, the same `<WorldProvider>` wrap,
- * the same `createRoot(...).render(...)` body. Only the identity label
- * differs, so a failure is attributed to the right one. "One stacking model,
- * no special case": the automatic `<WorldProvider>` wrap is context-only and
- * harmless to a foreign tree.
+ * same default-export-component validation, the same `createRoot(...).render(<Entry />)`
+ * the game's own boot performs. Entry validation names the identity, so a failure is
+ * attributed to the right one.
  *
  * An ingest-react world's `entry` is NOT a first-party component — it is a
  * HOST-SHIM module living beside the ingested game's manifest, importing the
@@ -18,11 +16,9 @@
  */
 
 import type { MountedReactGame, ReactRootAdapter } from '@volter/game-runtime/runtime/create-runtime';
-import type { Game } from '@volter/game-runtime/runtime/game';
 import type { GameDomHostContext } from '@volter/game-runtime/runtime/host-context';
 import type { ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';
 import type { ComponentType } from 'react';
-import { resolveWorldProviderForProject } from '../react-mount-runtime';
 import type { RealmServices } from '../realm-services';
 
 /**
@@ -48,32 +44,9 @@ function loadReactEntryComponent(
 }
 
 /**
- * `DomHostContext.game` is a typed, guaranteed field on the native multi-root
- * mount path. The loud check here stays for the one host that legitimately
- * carries none — a `dom` sibling mounted BESIDE an ingest root
- * (`ingest-siblings.ts`) has no native `Game`, and that host renders the entry
- * component BARE rather than fabricating an empty Game into `<WorldProvider>`.
- * A hand-rolled host that skipped the engine's mount path must fail loudly
- * here, never lie an `undefined` Game into the provider.
- */
-function requireHostGame(world: ResolvedAdapterRoot, host: GameDomHostContext, label: string): Game {
-  const game = host.game;
-  if (!game) {
-    throw new Error(
-      `resolveRootBinding: world "${world.id}" (${label}) mount() received a DomHostContext ` +
-        'with no `game` — WorldProvider needs a live Game at mount time and this host did not ' +
-        'carry one.',
-    );
-  }
-  return game;
-}
-
-/**
  * The shared entry-loading step, exported so a composite's `dom` SIBLING mount
  * (`ingest-siblings.ts`) reuses the EXACT SAME `entry`-required check and
- * component-shape validation without duplicating any of it. The sibling then
- * renders the returned component bare; {@link resolveDomAdapter} below wraps
- * it in `<WorldProvider>`.
+ * component-shape validation without duplicating any of it.
  */
 export async function resolveReactAdapterRootComponent(
   world: ResolvedAdapterRoot,
@@ -96,9 +69,7 @@ export async function resolveReactAdapterRootComponent(
 /** Build the `mount` half both identities share. */
 function reactMount(
   world: ResolvedAdapterRoot,
-  label: 'dom' | 'ingest-react',
   Entry: ComponentType,
-  WorldProvider: ComponentType<{ game: Game; children?: unknown }>,
   realm: RealmServices,
   /** Commit the initial DOM synchronously. The play authoring adapter is
    *  installed immediately after `mount()` resolves, so a first-party root
@@ -109,7 +80,6 @@ function reactMount(
   return {
     id: world.id,
     async mount(host: GameDomHostContext): Promise<MountedReactGame> {
-      const game = requireHostGame(world, host, label);
       // The runtime comes from the realm — the PROJECT's own react under the
       // packaged runtime, the editor's static imports otherwise — so this
       // mount always shares ONE react instance with the entry component's own
@@ -117,9 +87,7 @@ function reactMount(
       const runtime = await realm.reactDomRuntime();
       const root = runtime.createRoot(host.container);
       const render = () => {
-        root.render(
-          runtime.createElement(WorldProvider, { game, children: runtime.createElement(Entry) }),
-        );
+        root.render(runtime.createElement(Entry));
       };
       if (flushInitialRender) runtime.flushSync(render);
       else render();
@@ -142,8 +110,7 @@ export async function resolveDomAdapter(
   onEntryModule?: ((module: Record<string, unknown>) => void) | undefined,
 ): Promise<ReactRootAdapter> {
   const Entry = await resolveReactAdapterRootComponent(world, realm, onEntryModule);
-  const WorldProvider = await resolveWorldProviderForProject();
-  return reactMount(world, 'dom', Entry, WorldProvider, realm, true);
+  return reactMount(world, Entry, realm, true);
 }
 
 /**
@@ -173,9 +140,8 @@ export async function resolveIngestReactAdapter(
   }
   const mod = await realm.loadEntryModule(world.entry, world.id, 'dom');
   const Entry = loadReactEntryComponent(world, mod, 'ingest-react');
-  const WorldProvider = await resolveWorldProviderForProject();
   return {
-    adapter: reactMount(world, 'ingest-react', Entry, WorldProvider, realm, false),
+    adapter: reactMount(world, Entry, realm, false),
     module: mod,
   };
 }

@@ -128,7 +128,6 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   '@volter/game-runtime/data/data-asset': () => import('@volter/game-runtime/data/data-asset'),
   '@volter/game-runtime/dev/instruments': () => import('@volter/game-runtime/dev/instruments'),
   '@volter/threejs-runtime/loader': () => import('@volter/threejs-runtime/loader'),
-  '@volter/game-runtime/react/world-state': () => import('@volter/game-runtime/react/world-state'),
   '@volter/game-runtime/runtime/debug-registry': () =>
     import('@volter/game-runtime/runtime/debug-registry'),
   '@volter/game-runtime/runtime/game': () => import('@volter/game-runtime/runtime/game'),

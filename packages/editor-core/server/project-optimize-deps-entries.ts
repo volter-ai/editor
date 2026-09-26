@@ -533,7 +533,7 @@ export function specifierResolvesFrom(fromDir: string, specifier: string): boole
  *
  * Engine specifiers are excluded here on purpose: `packaged.ts` puts
  * every runtime package in `optimizeDeps.exclude` so every one of their subpaths stays
- * source-served (one WorldProvider identity), and an `include`
+ * source-served (one copy of each module-scoped registry), and an `include`
  * entry for an excluded package is a contradiction Vite warns about. They are
  * handled by `computeRuntimeSourceCrawlEntries` instead — as crawl ENTRIES,
  * which reach the engine's own source graph without prebundling it.
@@ -568,22 +568,21 @@ function packageSubpathFile(srcDir: string, subpath: string): string | null {
 
 /**
  * Engine subpaths the browser loads LAZILY — a scaffolded project's own client
- * modules (`@vgai/game-runtime/runtime/mount-game`, `react/use-data`, the loader,
+ * modules (`@vgai/game-runtime/runtime/mount-game`, the loader,
  * the input/scene/asset readers), reached only after the editor shell is up
  * and therefore outside the world-entry/tool/story crawl.
  *
  * They are crawl ENTRIES, never `optimizeDeps.include` entries, and the
  * difference is a correctness one, not a tuning one. `include` PREBUNDLES the
  * named module: esbuild bundles that engine file and everything it reaches by
- * relative import into one dep chunk, so the chunk carries its own copy of
- * `react/world-state`'s `GameContext` while the canonical
- * `@vgai/game-runtime/react/world-state` import is served as source — two providers,
- * one of which silently answers `null` to `useDebugProvider`/`useWorldState`.
+ * relative import into one dep chunk, so the chunk carries its own copy of every
+ * module-scoped registry it reaches (the debug registry's game-scoped slot among
+ * them) while the canonical import is served as source — two registries, one of
+ * which silently answers `null` for a game the other holds.
  * (`exclude: ['@vgai/game-runtime']` does not stop it: the scanner tests the
  * RAW specifier, and this list used to be written in an alias spelling that
  * check never sees. Measured on a live packaged session:
- * eight prebundled engine modules in `.vite/deps/_metadata.json`, none of them
- * `react/world-state`.)
+ * eight prebundled engine modules in `.vite/deps/_metadata.json`.)
  *
  * As entries they buy exactly what the include list was for — the third-party
  * packages these modules import (three, zod, `three/addons/*`, fiber) are
@@ -598,7 +597,6 @@ const LAZY_RUNTIME_CRAWL_SPECIFIERS: readonly string[] = [
   '@volter/game-runtime/data/data-asset',
   '@volter/game-runtime/input/input-manager',
   '@volter/game-runtime/input/rebind-controller',
-  '@volter/game-runtime/react/use-data',
   '@volter/game-runtime/runtime/mount-game',
   '@volter/game-runtime/world3d-react',
 ];
@@ -619,7 +617,7 @@ const LAZY_RUNTIME_CRAWL_SPECIFIERS: readonly string[] = [
  * are the very ones the browser will ask for.
  *
  * Measured on the same cold Pixi project as above, scoped to
- * `react/world-state` + `world3d-react`: four `three/addons/*` entry points
+ * `world3d-react`: four `three/addons/*` entry points
  * (`DRACOLoader`, `GLTFLoader`, `KTX2Loader`, `meshopt_decoder`) that the
  * include list alone never reaches are discovered at boot — four waves that
  * would otherwise fire the first time the asset lane loads a glTF.

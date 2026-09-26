@@ -23,7 +23,7 @@ below where they differ:
   `system-adapter`, `host-context`, `asset-cache`) moves to `@volter/editor-threejs`, not to a
   shipped runtime. The shipped runtimes keep helpers that return the library's own objects;
   their framework a game is written against (`mountGame`, `createRuntime`, `world3d-react`,
-  `rapier-physics-bridge`, `input-manager`, `react/world-state`, system adapters) retires in a
+  `rapier-physics-bridge`, `input-manager`, system adapters) retires in a
   later unit into the ingest-style adapter the editor already has. `game-runtime`'s imports of
   the contract are recorded debt until then.
 - **The model editor's closure.** `@volter/editor-threejs` ships in the model release; its

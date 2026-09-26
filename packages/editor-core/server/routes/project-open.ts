@@ -343,9 +343,9 @@ export function registerProjectOpenRoutes(router: EditorServerRouter, ctx: Route
     }
 
     // Canonicalized (symlink-resolved), not a plain `resolve` — see
-    // canonical-path.ts's doc comment (T6.2 slice 3 finding: a react world's
-    // `WorldProvider` colocation breaks if this path and Vite's own resolver
-    // disagree on a symlinked segment).
+    // canonical-path.ts's doc comment (T6.2 slice 3 finding: one project module
+    // loads twice if this path and Vite's own resolver disagree on a symlinked
+    // segment).
     const absPath = canonicalProjectRoot(newPath);
 
     // Read the v2 game manifest and derive the editor project view.

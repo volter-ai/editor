@@ -444,7 +444,7 @@ export function declaredShareCapability(
   if (TERMINAL_PATHS.has(path) || path.startsWith('/__editor/generations/')) return 'terminal';
   if (path.startsWith('/__vgai/state/')) return 'terminal';
   // Synthetic Vite module routes (`/__vgai-react-world-runtime`,
-  // `/__vgai-game-provider`, `/__vgai-story-runtime`, …). These are read-only
+  // `/__vgai-r3f-runtime`, `/__vgai-story-runtime`, …). These are read-only
   // JS the editor imports to MOUNT THE GAME WORLD — without them a remote
   // guest's viewport fails to mount ("world failed to mount") and they see the
   // presence overlay over a blank scene. Served like any other module a viewer

@@ -34,12 +34,9 @@ import type { Game } from './game';
  *     (`r3f-root-factory`, `pixi-react-root-factory`); the registry is keyed by
  *     Game IDENTITY, which is why this handle is the Game and not a projection
  *     of it.
- *  3. **The Game handed to `<WorldProvider>`** — the react world-state seam
- *     (`r3f-root-factory`, `pixi-react-root-factory`, and both react mounts in
- *     the editor's resolver). `WorldProvider`'s prop is `Game`.
- *  4. **The profiler toggle** — `host.game.profiler` (`r3f-root-factory`).
+ *  3. **The profiler toggle** — `host.game.profiler` (`r3f-root-factory`).
  *
- * Doors 2–4 are already on the PUBLIC {@link Game}. `loadInputMap` is the one
+ * Doors 2–3 are already on the PUBLIC {@link Game}. `loadInputMap` is the one
  * member that was only on `GameInternal`, and it is explicitly an adapter-mount
  * door (see its own doc comment in `runtime/game.ts`). So this handle is
  * `Game` plus that one method — and a `GameInternal` satisfies it, so every

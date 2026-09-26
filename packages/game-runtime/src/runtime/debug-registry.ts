@@ -4,9 +4,8 @@
  * SAME registry via {@link DebugRegistry.forRoot}, so a name a game registers is
  * visible (and name-collision-checked) across every world, not just the one that
  * registered it. `createGame` (`runtime/game.ts`) constructs the registry
- * alongside the state bridge and files it in a non-enumerable game-scoped slot;
- * later consumers (the react `useDebugProvider`/
- * `useDebugCommand` hooks, editor panels) reach it via {@link getDebugRegistry}
+ * and files it in a non-enumerable game-scoped slot;
+ * later consumers (editor panels, the session wire) reach it via {@link getDebugRegistry}
  * rather than threading it through every call site.
  *
  * Provenance note: a registration's "world" is the MOUNT's adapter id (the
@@ -47,7 +46,7 @@ export interface DebugRoomHandle {
 }
 
 /**
- * Infers a `registerCommand`/`registerReactCommand`/`useDebugCommand`
+ * Infers a `registerCommand`
  * handler's parameter tuple from its declared Zod `args` tuple (dry-run
  * finding, ledger — "`registerCommand` fn typing forces `unknown[]` casts"):
  * a real `z.ZodTuple` infers its element types (`z.tuple([z.number(),
@@ -67,8 +66,7 @@ export type DebugCommandArgs<T extends z.ZodTuple | undefined = undefined> = T e
 /**
  * The authoring half of the debug/synthetic-player seam — the read/actuate half is
  * `SystemAdapters.DebugAdapter` (`adapter/system-adapter.ts`). Callable from any
- * `init` (one file per new provider/command), or from a react world's
- * `useDebugProvider`/`useDebugCommand`/`useDebugEmit` hooks. Every registration feeds the ONE
+ * `init` (one file per new provider/command). Every registration feeds the ONE
  * game-scoped registry (`runtime/debug-registry.ts`) — never a per-world accumulator.
  */
 export interface DebugCtxSurface {
@@ -226,33 +224,11 @@ interface PendingServerCommand {
   timer: ReturnType<typeof setTimeout>;
 }
 
-/** Provenance `worldId` for every registration made through the react door
- *  (`useDebugProvider`/`useDebugCommand`, `packages/game-runtime/src/react/game-
- *  state.tsx`) — react roots have no `setup()`/`ctx.debug` of their own
- *  (spec §3.1's "react-world registration door" paragraph), so all of them
- *  share this one provenance string; a name collision between two DIFFERENT
- *  react components is therefore the same-world "replace + warn once" case,
- *  never the cross-world throw (which is reserved for a first-party world
- *  vs. the react door genuinely disagreeing about a name).
- *
- *  Defect 7 fix: this used to be the bare string `'react'`, which collided in
- *  provenance with a manifest world literally named `'react'` (e.g. a
- *  `kind: 'dom'` world whose `id` is `"react"`) — `forRoot('react')` and
- *  the react door would then be treated as the SAME world for collision
- *  purposes, which is wrong (they are genuinely different registrants that
- *  happen to share a display name). Namespaced like `'__engine__'` so no
- *  real project world id can ever collide with it. */
-const REACT_WORLD_ID = '__react__';
-
 interface ProviderEntry {
   fn: () => unknown;
   tier: 'observable' | 'assisted';
   worldId: string;
   builtin: boolean;
-  /** Set only by {@link DebugRegistry.registerReactProvider} — lets its
-   *  disposer remove ITS OWN registration and no one else's (a later mount
-   *  under the same react worldId may have legitimately replaced it). */
-  token?: symbol | undefined;
 }
 
 interface CommandEntry {
@@ -261,8 +237,6 @@ interface CommandEntry {
   locus?: 'client' | 'server' | undefined;
   fn: (...args: unknown[]) => unknown | Promise<unknown>;
   worldId: string;
-  /** See {@link ProviderEntry.token}. */
-  token?: symbol | undefined;
 }
 
 /** What {@link createDebugRegistry} returns — the adapter half (`DebugAdapter`,
@@ -275,24 +249,16 @@ export interface DebugRegistry {
   /** Build the `ctx.debug` surface for one world/mount — registrations made
    *  through it carry `worldId` as their provenance for collision messages. */
   forRoot(worldId: string): DebugCtxSurface;
-  /** Emit from a React root through the same tick-stamped event ring as
-   *  `ctx.debug.emit`. React roots have no setup context, so
-   *  `useDebugEmit()` calls this dedicated door instead of reaching through
-   *  the registry's internal synthetic world id. */
-  emitReact(event: string, detail?: unknown): void;
   /**
    * Remove non-built-in registrations (Defect 2 fix — this used to be
    * unconditionally global, which made a per-mount call like `hotReload`'s
-   * silently wipe every OTHER live world's registrations and every react-door
-   * registration, whose `useEffect` cleanup never re-fires to restore them).
+   * silently wipe every OTHER live world's registrations).
    *
    * - `strip(worldId)` — scoped: removes only providers/commands whose
    *   provenance is exactly `worldId` (and clears their warn-once state), so
    *   a hot-reloading world re-seeds itself without disturbing anyone else.
-   *   React-door registrations (provenance `'__react__'`) are never touched
-   *   by a world-scoped strip.
    * - `strip()` (no id) — the original global behavior: every non-built-in
-   *   registration is removed, including react-door ones. Intended for "the
+   *   registration is removed. Intended for "the
    *   whole game is going away" (`disposeGame`) or test teardown, not a
    *   single mount's warm restart.
    *
@@ -400,28 +366,6 @@ export interface DebugRegistry {
    *  no real `Game`/tick counter behind it (matching `getTick`'s own
    *  constructor-supplied default in that case). */
   getGameTick(): number;
-  /** React-door registration (Task 1.5, spec §3.1's "react-world
-   *  registration door") — same accumulator as `forRoot(...)
-   *  .registerStateProvider`, provenance `'__react__'` (see {@link REACT_WORLD_ID}),
-   *  but returns a disposer instead of requiring a separate unregister call.
-   *  Calling the disposer removes the registration ONLY if it is still the
-   *  live entry under `name` — unmount never clobbers a DIFFERENT mount's
-   *  later registration of the same name, and (matching `strip()`) removal
-   *  is silent: the very next registration of that name has nothing to warn
-   *  about. */
-  registerReactProvider(
-    name: string,
-    fn: () => unknown,
-    opts?: { tier?: 'observable' | 'assisted' | undefined },
-  ): () => void;
-  /** See {@link registerReactProvider} — the command-side counterpart. Same
-   *  args-tuple-infers-`fn`-params generic as `DebugCtxSurface.registerCommand`
-   *  ({@link DebugCommandArgs}). */
-  registerReactCommand<T extends z.ZodTuple | undefined = undefined>(
-    name: string,
-    spec: { description?: string; args?: T; locus?: 'client' | 'server' },
-    fn: (...args: DebugCommandArgs<T>) => unknown | Promise<unknown>,
-  ): () => void;
 }
 
 function warnOnce(
@@ -590,7 +534,6 @@ export function createDebugRegistry(opts: {
     name: string,
     fn: () => unknown,
     tier: 'observable' | 'assisted',
-    token?: symbol,
   ): void {
     const existing = providers.get(name);
     if (existing?.builtin) {
@@ -604,7 +547,7 @@ export function createDebugRegistry(opts: {
       throw new DebugError(
         'DEBUG_BUILTIN_RESERVED',
         `debug: "${name}" is a built-in state provider (registered by "${existing.worldId}") — ` +
-          'built-in names cannot be registered over, from a world or the react door',
+          'built-in names cannot be registered over from a world',
         { name, registered: existing.worldId },
       );
     }
@@ -619,7 +562,7 @@ export function createDebugRegistry(opts: {
       }
       warnOnce(warnedProviders, name, 'provider', worldId);
     }
-    providers.set(name, { fn, tier, worldId, builtin: false, token });
+    providers.set(name, { fn, tier, worldId, builtin: false });
   }
 
   function registerCommand(
@@ -627,7 +570,6 @@ export function createDebugRegistry(opts: {
     name: string,
     spec: { description?: string; args?: z.ZodTuple; locus?: 'client' | 'server' },
     fn: (...args: unknown[]) => unknown | Promise<unknown>,
-    token?: symbol,
   ): void {
     if (spec.locus === undefined && roomDeclared) {
       throw new DebugError(
@@ -655,7 +597,6 @@ export function createDebugRegistry(opts: {
       locus: spec.locus,
       fn,
       worldId,
-      token,
     });
   }
 
@@ -892,9 +833,6 @@ export function createDebugRegistry(opts: {
         },
       };
     },
-    emitReact(event, detail) {
-      emit(event, detail);
-    },
     strip(worldId?: string) {
       // Defect 2 fix — scoped when `worldId` is given (a single mount's
       // hot-reload re-seed), global otherwise (the whole game going away, or
@@ -953,35 +891,6 @@ export function createDebugRegistry(opts: {
     },
     getGameTick() {
       return opts.getTick();
-    },
-    registerReactProvider(name, fn, providerOpts) {
-      const token = Symbol(name);
-      registerStateProvider(REACT_WORLD_ID, name, fn, providerOpts?.tier ?? 'observable', token);
-      return () => {
-        const entry = providers.get(name);
-        if (entry?.token === token) {
-          providers.delete(name);
-          warnedProviders.delete(name);
-        }
-      };
-    },
-    registerReactCommand(name, spec, fn) {
-      const token = Symbol(name);
-      // See the `forRoot().registerCommand` cast above — same reason.
-      registerCommand(
-        REACT_WORLD_ID,
-        name,
-        spec as { description?: string; args?: z.ZodTuple; locus?: 'client' | 'server' },
-        fn as (...args: unknown[]) => unknown | Promise<unknown>,
-        token,
-      );
-      return () => {
-        const entry = commands.get(name);
-        if (entry?.token === token) {
-          commands.delete(name);
-          warnedCommands.delete(name);
-        }
-      };
     },
   };
 }

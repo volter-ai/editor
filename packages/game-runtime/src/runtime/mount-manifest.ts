@@ -90,13 +90,7 @@ export interface PixiMountEntry extends MountEntryDeclaration {
 /**
  * A caller-supplied entry for a `kind: 'dom'` world — ALWAYS a
  * fully-constructed `RootAdapter<'dom'>` (the caller's own module graph
- * calls `createRoot(host.container).render(<WorldProvider game={host.game}>
- * <Entry/></WorldProvider>)` itself, exactly like `tri-world`'s original
- * hand-mount did). A standalone build has ONE module graph, so there is no
- * context-identity hazard the editor's per-project `WorldProvider`
- * indirection exists to solve — the caller's own `<WorldProvider>` import
- * is already the single canonical instance its `Entry` component's own
- * hooks resolve against. This file never value-imports `react`/`react-dom`
+ * calls `createRoot(host.container).render(<Entry />)` itself). This file never value-imports `react`/`react-dom`
  * itself (see this file's header comment) — building the adapter is
  * entirely the caller's job.
  */
@@ -330,7 +324,7 @@ function resolveReactAdapter(
     `mountManifestRoots: world "${world.id}" (react) has no entries["${world.id}"] — a react ` +
       "world always needs a caller-supplied, already-constructed `RootAdapter<'dom'>` " +
       `(entries["${world.id}"] = { kind: 'dom', adapter }, mounting via your own already-imported ` +
-      'react-dom `createRoot` + your own `<WorldProvider>`) — mountManifestRoots never ' +
+      'react-dom `createRoot`) — mountManifestRoots never ' +
       "value-imports react/react-dom (mirrors create-runtime.ts's own react-free-core discipline).",
   );
 }

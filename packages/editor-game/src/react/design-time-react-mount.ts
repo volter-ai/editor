@@ -4,8 +4,7 @@
  * composed story of the project laid out as an isolated, labeled frame, with
  * the root entry's own story (derived, never labeled — the story whose CSF
  * `meta.component` is the entry's default export) as the frame it opens on.
- * A project with no stories falls back to mounting the entry once against an
- * inert Game.
+ * A project with no stories falls back to mounting the entry once, bare.
  *
  * ## Why this is a package and not the host's
  *
@@ -75,10 +74,7 @@ import { recordAuthoringConsumerUse } from '@volter/editor-sdk/kit/authoring-sea
 import { CrashNullBoundary } from '@volter/editor-sdk/kit/crash-null-boundary';
 import { readProjectTextFile } from '@volter/editor-sdk/kit/editor-api';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import {
-  resolveReactRootMountRuntime,
-  resolveWorldProviderForProject,
-} from '../host/react-mount-runtime';
+import { resolveReactRootMountRuntime } from '../host/react-mount-runtime';
 import { activeRealmServices } from '../host/realm-services';
 import { resolveReactAdapterRootComponent } from '../host/roots/react-root';
 import { scopedGameStylesState } from '@volter/editor-sdk/kit/scoped-game-css';
@@ -101,10 +97,7 @@ import { domStoryBoardMembers } from '@volter/editor-threejs/kit/stories/three-s
 import { getDesignTokens } from '@volter/editor-sdk/kit/ui-source/inspect';
 import { tierSourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
 import { recordViewportFirstFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
-import { createAssetCache } from '@volter/threejs-runtime/assets';
-import { createGameLoop } from '@volter/game-runtime/core/game-loop';
 import type { ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';
-import { createGame, type GameInternal } from '@volter/game-runtime/runtime/game';
 import { beginProjectMountEpoch } from '@volter/editor-sdk/session/project-module-url';
 import type { ComponentType } from 'react';
 import { type OidElementLike, ReactRootAuthoringAdapter } from './react-world-authoring-adapter';
@@ -168,35 +161,6 @@ async function seedRootViewportFromManifest(): Promise<void> {
   }
 }
 /**
- * The inert design-time Game stand-in (B1's one genuine design
- * decision). A REAL `Game` — never a hand-typed duck-typed literal, mirroring
- * this repo's own test convention (`packages/editor/test/adapter-conformance-kit.ts`'s
- * `headlessGame()`) — built with a loop that is constructed but NEVER
- * started/ticked, and with NO roots ever registered. This satisfies
- * `useGame`/`useWorldState` (`@volter/game-runtime/react/world-state`, and any project's own
- * re-export of it) without throwing, genuinely inertly:
- *  - `state.subscribe` never fires — nothing ever calls
- *    `GameStateBridgeInternal.bump()` (only `GameInternal.runFrame` does, and
- *    this Game's loop never runs a frame);
- *  - `state.frameVersion` stays `0` forever;
- *  - `queryByComponent`/`world()`/`roots` are empty/`null` because `roots`
- *    stays `[]` (nothing ever calls `registerRoot`).
- * `defaultRoot`/`components`/`input`/`audio` throw descriptively if touched
- * (same as any fresh `createGame()` before a world registers) — a HUD that
- * reaches for those is out of scope for a design-time stand-in and SHOULD
- * throw loudly, caught by the crash-null boundary below, degrading to the
- * #18 error node rather than silently faking a value.
- *
- * B2 swaps this stand-in's DATA for story-sourced data (a `data`/services
- * seam) — this function is the seam B2 replaces/extends, not a permanent
- * fixture; it never constructs a live Game/sockets.
- */
-function createDesignTimeGame(): GameInternal {
-  const loop = createGameLoop({ fixedTimestep: 1 / 60, maxSubSteps: 8, update: () => {} });
-  return createGame({ loop, assets: createAssetCache() });
-}
-
-/**
  * A minimal `ResolvedAdapterRoot` satisfying `resolveReactAdapterRootComponent`
  * (`../binding-resolver.ts`, which reads only `id`/`kind`/`entry` off
  * it) — the fields below it (`adapter`/`capabilities`/`loop`/`description`)
@@ -231,7 +195,7 @@ type EntryResolution = { ok: true; Entry: ComponentType } | { ok: false; error: 
 /**
  * Load a React root's entry component ONCE per layer mount, without throwing.
  * Both of this layer's paths need it: the derived default story is joined
- * against this component's identity, and the inert-Game fallback renders it.
+ * against this component's identity, and the no-story fallback renders it.
  * A failure is carried rather than thrown so the story board can still open
  * over a project whose entry is broken; only the fallback (which has nothing
  * else to render) rethrows it.
@@ -254,16 +218,14 @@ async function resolveEntryComponent(
 /**
  * React design-time mount — the entry
  * via the EXISTING #31 loader (`resolveReactAdapterRootComponent`, reused
- * verbatim), wrapped in the canonical engine `WorldProvider`
- * (`resolveWorldProviderForProject`) around the inert
- * `createDesignTimeGame()` stand-in and a React error boundary.
+ * verbatim), rendered inside a React error boundary.
  * `flushSync` forces the initial render/commit/error-boundary-recovery to
  * finish before this call returns (mirrors `ingest-siblings.ts`'s
  * `mountDefaultReactSibling`), so a throwing entry is caught HERE —
  * synchronously — rather than discovered later on react's own schedule.
  *
  * Portable CSF stories take the board path above. This branch is only the
- * explicit no-story fallback and mounts the entry once against the inert Game.
+ * explicit no-story fallback and mounts the entry once.
  * On success, it mints the world's live `ReactRootAuthoringAdapter` over this
  * layer's now-mounted DOM — the adapter reflects
  * an already-mounted root, it never mounts one itself; this function is the
@@ -297,8 +259,7 @@ export async function mountReactDesignLayer(
   // Edit mode lays EVERY composed story of the project out as an isolated,
   // labeled frame on one editor-only board — board membership is
   // project-global, the project's own component gallery. Play still tears
-  // this entire surface down and mounts only the manifest entry against the
-  // real Game.
+  // this entire surface down and mounts only the manifest entry.
   //
   // A remount that the registry's own publish requested already has fresh
   // stories: refreshing again would reload every story module in parallel —
@@ -315,7 +276,7 @@ export async function mountReactDesignLayer(
 
   // The root's composed default preview is DERIVED, never labeled: it is the
   // story whose CSF `meta.component` is this root entry's default-exported
-  // component. Resolve that component first (the same loader the inert-Game
+  // component. Resolve that component first (the same loader the no-story
   // fallback below reuses), then ask the registry for its story.
   //
   // The join is by component NAME, not function identity, and that is
@@ -615,12 +576,11 @@ export async function mountReactDesignLayer(
     `[design-time-layers] React root "${candidate.worldId}" has no portable CSF preview — the ` +
       'project declares no UI stories. Add a *.stories.tsx; give it a `meta.component` of ' +
       `this root's entry component${entryComponentName ? ` (${entryComponentName}, ${candidate.path})` : ''} ` +
-      'to make it this root’s default preview. Falling back to the inert-Game preview.',
+      'to make it this root’s default preview. Falling back to rendering the entry bare.',
     'authoring',
   );
 
   const Entry = entry.Entry;
-  const WorldProvider = await resolveWorldProviderForProject();
   // C1 (phase-b/c1-react-mount): this layer's own react-world mount is a
   // SECOND call site with the identical packaged-runtime dual-React-instance
   // exposure `binding-resolver.ts`'s `ReactRootAdapter.mount()` has — under
@@ -628,14 +588,13 @@ export async function mountReactDesignLayer(
   // from the PROJECT's own react, not this module's (removed) static
   // imports. See `resolveReactRootMountRuntime`'s doc comment.
   const { createElement, createRoot, flushSync } = await resolveReactRootMountRuntime();
-  const game = createDesignTimeGame();
   const root = createRoot(layer);
   const render = (onCaught: (error: unknown) => void): void => {
     root.render(
       createElement(CrashNullBoundary, {
         key: '__entry__',
         onCaught,
-        children: createElement(WorldProvider, { game }, createElement(Entry)),
+        children: createElement(Entry),
       }),
     );
   };
@@ -668,7 +627,6 @@ export async function mountReactDesignLayer(
       // but this keeps teardown clean).
       adapter.disposeReactRootAdapter();
       root.unmount();
-      game.dispose();
     },
   };
 }

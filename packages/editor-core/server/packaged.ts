@@ -48,14 +48,10 @@
  * `creationSiteWritePlugin()` (the `/__ingest-source/*` ownership +
  * read/plan/apply routes an INGEST root's edits are written through — absent
  * here until 2026-08-20, which made ingest-lane source writes unreachable
- * under a registry install no matter what the client asked) and
- * `reactRootProviderPlugin()` (resolves the synthetic
- * `/__vgai-game-provider` module `binding-resolver.ts`'s
- * `loadProjectWorldProvider` imports — WITHOUT it, every `kind: 'dom'`
- * world 404s on mount, not just "authors without OID"). All are carried
+ * under a registry install no matter what the client asked). Both are carried
  * over here — the source-authoring integration's serving plugin through the project-serving
- * door, and this package's own `vite-plugin-creation-site-write` / `vite-plugin-react-world-provider`
- * (same files, no copy) and registered
+ * door, and this package's own `vite-plugin-creation-site-write`
+ * (same file, no copy) — and registered
  * with NO extra scoping beyond their own built-in `defaultProjectScopeInclude`
  * (already project-scoped — see that file's doc comment: excludes
  * `node_modules`, vendored trees, and the vgai tooling/engine source, which
@@ -93,8 +89,8 @@
  *    default (threejs-only) template authoring fine today, and unaffected
  *    by this file's plugin list either way.
  *
- * So: OID stamping (source-write authoring) and the `WorldProvider` identity
- * fix are real, working parity gained by this change. React Fast Refresh
+ * So: OID stamping (source-write authoring) is real, working parity gained by
+ * this change. React Fast Refresh
  * for a project's own components remains NOT at `dev.ts` parity under the
  * packaged runtime — a documented, structural gap, not a hidden one.
  *
@@ -112,7 +108,7 @@
  * It surfaced twice, both confirmed live against a tarball-installed,
  * checkout-absent packaged editor:
  *
- *  1. a `dom` root's `useWorldState` threw `TypeError: Cannot read properties
+ *  1. a `dom` root's first hook threw `TypeError: Cannot read properties
  *     of null (reading 'useContext')` at mount, because the editor's bundled
  *     `createRoot` reconciled a component whose hooks came from the project's
  *     react; and
@@ -302,8 +298,8 @@ if (!process.env['VGAI_PROJECT']) {
   process.exit(1);
 }
 // Canonicalized (symlink-resolved) — see canonical-path.ts's doc comment
-// (dev.ts's identical fix: a react world's `WorldProvider` colocation breaks
-// if this path and Vite's own resolver disagree on a symlinked segment).
+// (dev.ts's identical fix: one project module loads twice if this path and
+// Vite's own resolver disagree on a symlinked segment).
 const projectPath = canonicalProjectRoot(process.env['VGAI_PROJECT']);
 
 // THE PRODUCT'S BUILD is what this host serves — `npm run build -w
@@ -725,7 +721,7 @@ async function main(): Promise<void> {
         // subpaths these modules import are handled a third way — as crawl
         // `entries` (see `LAZY_ENGINE_CRAWL_SUBPATHS`), because `include`-ing an
         // engine module prebundles a second copy of everything it reaches,
-        // which is exactly the split WorldProvider identity the `exclude`
+        // which is exactly the split registry identity the `exclude`
         // below exists to prevent.
         //
         // Project tool contributions load this after the shell is visible;
@@ -860,14 +856,15 @@ async function main(): Promise<void> {
         ...packageContributionCrawl.unresolvable,
         // The project's runtime-package source is the document-side module
         // graph. Keep every subpath source-served so an arbitrary project
-        // import cannot create a second prebundled WorldProvider identity.
+        // import cannot create a second prebundled copy of a module-scoped
+        // registry.
         // React/Fiber themselves remain prebundled and deduped above.
         //
         // The scanner matches the RAW specifier before any alias runs, so a
         // package left out here is prebundlable — which is how eight runtime
         // modules (`world3d-react`, `runtime/mount-game`, …) once sat in
         // `.vite/deps` beside their source-served twins, each chunk carrying
-        // its own bundled `react/world-state` `GameContext`.
+        // its own bundled registries.
         ...RUNTIME_PACKAGE_NAMES,
       ],
     },
@@ -875,8 +872,8 @@ async function main(): Promise<void> {
       // `configFile: false` deliberately ignores the project's Vite config,
       // so reconstruct the template's renderer identity contract here. Fiber,
       // Drei, the installed engine and the world must share these instances.
-      // The runtime packages are in the list for the same
-      // WorldProvider/`useGame` singleton the checkout-rooted `dev.ts` path
+      // The runtime packages are in the list for the same one-registry
+      // identity the checkout-rooted `dev.ts` path
       // gets from repo-root `vite.config.ts` (see that file's dedupe comment).
       // The alias below already points each specifier at the project's own
       // installed source when it resolves; dedupe is the remaining collapse

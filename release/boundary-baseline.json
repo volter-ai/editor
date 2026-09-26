@@ -35,8 +35,6 @@
  "runtime-editor  packages/game-runtime/src/dev/render-memory.ts -> @volter/editor-project/adapter/render-memory",
  "runtime-editor  packages/game-runtime/src/dev/webgl-frame-capture.ts -> @volter/editor-project/adapter/frame-capture",
  "runtime-editor  packages/game-runtime/src/pixi/system-adapters.ts -> @volter/editor-project/adapter/physics-adapter-2d",
- "runtime-editor  packages/game-runtime/src/react/use-selection.tsx -> @volter/editor-project/adapter",
- "runtime-editor  packages/game-runtime/src/react/world-state.tsx -> @volter/editor-project/adapter",
  "runtime-editor  packages/game-runtime/src/runtime/create-runtime.ts -> @volter/editor-project/adapter/adapter-surface",
  "runtime-editor  packages/game-runtime/src/runtime/create-runtime.ts -> @volter/editor-project/adapter/binding",
  "runtime-editor  packages/game-runtime/src/runtime/create-runtime.ts -> @volter/editor-project/adapter/host-context",

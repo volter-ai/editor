@@ -41,7 +41,6 @@ import {
 } from './debug-registry';
 import { createGameplayRngTrap, registerGameplayRngTrapControl } from './gameplay-rng-trap';
 import type { PlaytestContext } from './playtest';
-import { createStateBridge, type GameStateBridge } from './state-bridge';
 
 /** The one loop type — `createGameLoop`'s return shape (fixed-step sim,
  *  display-rate presentation). */
@@ -611,15 +610,6 @@ export interface Game {
   readonly declaredSystemAbsences?: readonly DeclaredSystemAbsence[];
   /** The one game-owned `InputManager`, shared by every first-party root. */
   readonly input: InputManager;
-  /**
-   * Frame-versioned state bridge (T7.4 slice 1). Bumped once per completed
-   * `runFrame`, after all phases of all roots and all `endFrame` hooks (see
-   * `runFrame`'s tail below). This is the ONE subscription surface
-   * `useWorldState` (`@volter/game-runtime/react/world-state`) — or any other
-   * frame-versioned consumer — subscribes to; `state-bridge.ts` itself has no
-   * react import, matching the rest of `runtime/`.
-   */
-  readonly state: GameStateBridge;
   /** Game-level play-state control surface (D10, T7.6) — see {@link PlayState}. */
   readonly play: PlayState;
   /**
@@ -742,8 +732,7 @@ export interface GameInternal extends Game {
    *   world.mounted.update?.(frozen ? 0 : displayDt)
    * ```
    *
-   * Advances NOTHING: no `tick`, no `simT`, no sim-clock flush, no state-bridge
-   * bump, no `endFrame`. It is presentation only, which is what makes calling
+   * Advances NOTHING: no `tick`, no `simT`, no sim-clock flush, no `endFrame`. It is presentation only, which is what makes calling
    * it at a rate the simulation does not share safe in the first place.
    *
    * D10's pause rule carries over unchanged in substance: a frozen world
@@ -795,11 +784,10 @@ export interface GameInternal extends Game {
    *   `render` phases for ticks `0..n-2` and runs the full phase list
    *   (including `preRender`/`render`) on the final tick only — the GGPO
    *   tick-without-render pattern. `'all'` renders every tick. `'none'`
-   *   never renders, not even the last tick. `tick`/`simT`/
-   *   `stateBridge.bump()`/the debug event ring advance identically on
-   *   EVERY tick regardless of `render` — only the paint-affecting phases
-   *   are skipped, so state watchers (`useWorldState`, debug state providers)
-   *   stay correct even when fast-forwarding with no visible output.
+   *   never renders, not even the last tick. `tick`/`simT`/the debug event
+   *   ring advance identically on EVERY tick regardless of `render` — only the
+   *   paint-affecting phases are skipped, so debug state providers stay correct
+   *   even when fast-forwarding with no visible output.
    * - **Refuses while paused.** Throws a structured `DebugError`
    *   (`code: 'RUN_TICKS_PAUSED'`) if `Game.play.paused` is true —
    *   `Game.play.step()` owns stepping the frozen set; `runTicks` is a
@@ -861,7 +849,6 @@ export function createGame(opts: {
   const profiler = createPerformanceProfiler();
   const systems = createSystemRunner(profiler.systemObserver, 'game');
   const input = new InputManager();
-  const stateBridge = createStateBridge();
   // D15 (T-D15.1) — the game-scoped seeded-random surface every world's
   // `ctx.random` aliases (see `world3d-react/r3f-root-factory.tsx`'s `ctx.random =
   // ...`, wired the same way `ctx.debug` is just below). Constructed
@@ -889,8 +876,7 @@ export function createGame(opts: {
     },
   };
   // `tick` counts completed fixed substeps, `simT` accumulates their `dt` —
-  // both game-scoped, bumped ONLY where `stateBridge.bump()` is (guarded by
-  // `advanced`, `runFrame`'s tail below), so a paused/frozen frame never
+  // both game-scoped, advanced ONLY under `advanced` (`runFrame`'s tail below), so a paused/frozen frame never
   // advances either. The debug registry reads them via suppliers (not by
   // capturing the numbers now) so its built-in `time` provider always sees
   // the CURRENT values.
@@ -1171,15 +1157,15 @@ export function createGame(opts: {
       }
     }
 
-    // §7.1-11 fix (probe5): `stateBridge.bump()` must fire iff at least one
-    // world actually advanced this call — not unconditionally. `advanced`
+    // §7.1-11 fix (probe5): the frame's tail (tick, sim time, timers) runs iff
+    // at least one world actually advanced this call — not unconditionally. `advanced`
     // covers rule (a) below (host-driven roots this call actually ticked);
     // rule (b): a self-driven world that is RUNNING — which is every
     // self-driven world while not paused, and, while paused, the ones the
     // gate can't reach (`pausable: false`, or no `setPaused` capability) —
     // checked once, up front, over the same `roots` array (no extra
     // allocation, matching every other loop here). Rule (b) is skipped in
-    // `onlyFrozen` mode: a `step()` call bumps iff it ticked a frozen world
+    // `onlyFrozen` mode: a `step()` call advances iff it ticked a frozen world
     // — self-driven notifications belong to the loop's own `runFrame`s.
     let advanced = false;
     if (!onlyFrozen) {
@@ -1332,15 +1318,12 @@ export function createGame(opts: {
       }
     }
 
-    // T7.4 slice 1: bump + notify LAST, after
-    // every phase of every world and every world's endFrame/update above —
-    // subscribers must only ever observe post-frame state. Bumped at most
-    // once per completed `runFrame`/`step()` call, never per phase/world —
-    // and, per §7.1-11's fix, only when `advanced` (see above) is true: a
-    // fully-gated paused game produces no notifications at all.
+    // The frame's tail runs LAST, after every phase of every world and every
+    // world's endFrame/update above, at most once per completed
+    // `runFrame`/`step()` call and, per §7.1-11's fix, only when `advanced`
+    // (see above) is true: a fully-gated paused game advances nothing.
     if (inputFrameActive) input.endFrame();
     if (advanced) {
-      stateBridge.bump();
       tick++;
       simT += dt;
       // P3 — sim timers fire IMMEDIATELY after the bump, inside this same
@@ -1512,7 +1495,6 @@ export function createGame(opts: {
       gameInternal.notifySystemAdaptersChanged();
     },
     input,
-    state: stateBridge,
     play: {
       get paused() {
         return paused;
@@ -1579,67 +1561,27 @@ export function createGame(opts: {
       }
       roots.push(world);
       gameInternal.notifySystemAdaptersChanged();
-      // Notify state-bridge subscribers THE INSTANT the world list changes —
-      // not just at the next completed `runFrame`. Otherwise a UI that lists
-      // worlds hangs on an empty list: `mountAllRootSpecs`
-      // (`create-runtime.ts`) mounts roots
-      // SEQUENTIALLY, and a react world's `adapter.mount()`
-      // (`resolveDefaultReactAdapter`/`mountOneReactRoot`) renders its tree —
-      // synchronously in some React builds, but React 19's concurrent
-      // renderer does NOT guarantee a synchronous first commit (see
-      // `r3f-root-factory.tsx`'s own doc comment on `onCreated`) — BEFORE the
-      // caller calls `registerRoot` for that very world. A `useWorldState`
-      // selector reading `g.roots` can therefore render for the first time
-      // while `roots` is still missing entries that register moments later.
-      // Previously the ONLY way such a subscriber ever saw the corrected
-      // value was the state bridge's next `bump()`, which fires exclusively
-      // from `GameInternal.runFrame`'s tail — i.e. only once the host's loop
-      // has actually ticked (`started = true; loop.start()` in
-      // `create-runtime.ts`, itself gated on EVERY world finishing its
-      // mount). On a slow/contended host (CI's 4-core SwiftShader runners)
-      // that first tick can be delayed well past a test's assertion window,
-      // or — if the tab is ever backgrounded — not fire at all for a long
-      // stretch; the subscriber's cached snapshot then sits on its stale
-      // (possibly fully empty) first render for that whole time, matching the
-      // observed CI symptom exactly ("the HUD element IS mounted; the roots
-      // list is EMPTY"). Proven red-then-green by
-      // `packages/engine/test/state-bridge.test.ts`'s "registerRoot notifies
-      // subscribers immediately" case: a subscriber registered before a
-      // world, with `runFrame` NEVER called, only saw the update after this
-      // fix. `bump()` also advances `frameVersion` (the only invalidation key
-      // `createFrameSelectorCache`/`useWorldState` understand — see
-      // `frame-selector-cache.ts`), so this doubles as "frameVersion is
-      // bumped once per completed runFrame OR once per world registered",
-      // documented on `GameStateBridge.frameVersion` below.
-      stateBridge.bump();
-      // T7.4 slice 2: a NON-first-party mount
-      // (an ingested/foreign world — first-party mounts are exempt, they're
-      // observed via `Game.state`/`useWorldState` instead) with no `observe`
-      // has no state bridge at all — react HUDs cannot subscribe to it, and
+      // T7.4 slice 2: a self-driven mount with no `observe` has no state
+      // bridge at all — the editor's observations cannot read it, and
       // silently returning `undefined` forever would hide that. Report ONCE
       // per mount, at registration time, matching this file's existing
       // `[game] world "<id>" (kind: <kind>) ...` console idiom (see
       // `runFrame` below).
       //
-      // §7.1-15: a `kind: 'dom'` world is ALSO exempt — it has no `observe`
-      // BY DESIGN (D8: a react world's own mounted tree
-      // reads state via `Game.state`/`useWorldState`, the SAME first-party
-      // bridge a three/canvas world's HUD uses, never `RootStateObserver`
-      // — that hook is scoped to the ingested/foreign-world case). Without
+      // §7.1-15: a `kind: 'dom'` world is exempt — it has no `observe`
+      // BY DESIGN (its state is its own React tree's). Without
       // this exemption every production react world logged a false-positive
       // "no state bridge" warning at registration (probe: every real react
       // world mount), eroding the signal for a genuinely un-observable
       // ingested world.
       // A HOST-DRIVEN mount (`drivesOwnLoop: false`, notably the R3F adapter)
-      // is observable through `Game.state` when it ticks inside
-      // `runFrame` — the frame-versioned bridge covers it. Requiring a
-      // foreign-world `observe` bridge there produces a false warning while
-      // the canonical bridge is already live.
+      // ticks inside `runFrame`, where the editor reads it directly; requiring
+      // an `observe` bridge there produces a false warning.
       if (world.mounted.drivesOwnLoop && world.kind !== 'dom' && !world.mounted.observe) {
         console.warn(
           `[game] world "${world.id}" (kind: ${world.kind}, adapter: "${world.adapter.id}"): ` +
             'no state bridge — this mounted game has no `observe` (RootStateObserver); ' +
-            'react HUDs/useRootObservation cannot subscribe to its state.',
+            "the editor's observations cannot subscribe to its state.",
         );
       }
     },

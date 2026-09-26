@@ -257,10 +257,6 @@ export const REACT_WORLD_DOORWAY: ModuleDoorway = {
     // (react-dom/client and react-dom are the same installed package's two
     // entry points).
     { from: 'react-dom', names: ['flushSync'] },
-    {
-      from: '@volter/game-runtime/react/world-state',
-      names: ['WorldProvider as EngineWorldProvider'],
-    },
   ],
 };
 

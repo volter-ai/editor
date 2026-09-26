@@ -13,8 +13,7 @@
  * './commands'`) and on the host's side of the seam; no vgai runtime context
  * ever enters the React tree. The host advances Pixi's real (never-started)
  * ticker on GAME time, wires the game-scoped input seams from outside
- * (`../runtime/game-input-seams.ts`), and installs `WorldProvider` off the
- * Game handle so the lib-legal react doors resolve.
+ * (`../runtime/game-input-seams.ts`), and renders the entry bare.
  *
  * ## Why this is NOT in `mount-game.ts`
  *
@@ -53,7 +52,6 @@ import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapt
 import type { Application, ApplicationOptions, Container } from 'pixi.js';
 import * as PIXI from 'pixi.js';
 import { type ComponentType, createElement, Fragment, useEffect, useLayoutEffect } from 'react';
-import { WorldProvider } from '../react/world-state';
 import { getDebugRegistry } from '../runtime/debug-registry';
 import { DEFAULT_INPUT_MAP_PATH, wireGameInputSeams } from '../runtime/game-input-seams';
 import type { AdapterSurfaceFactory } from '../runtime/mount-game';
@@ -186,15 +184,7 @@ function canvasWorldAdapter(id: string, component: ComponentType): RootAdapter<'
         return null;
       }
 
-      // `WorldProvider` rides `host.game` — the React seam every dom root
-      // already has, and the only way a capability hook can reach the ONE
-      // game-scoped registry the editor/`vgai eval` read. `host.game` is
-      // genuinely absent in bare/foreign hosts, so the provider is
-      // conditional and those hooks stay the inert no-ops they already
-      // document themselves to be.
-      const game = host.game;
-      const world = createElement(Fragment, null, content, createElement(Lifecycle));
-      const element = game ? createElement(WorldProvider, { game }, world) : world;
+      const element = createElement(Fragment, null, content, createElement(Lifecycle));
 
       const root: PixiReactRoot = createRoot(canvas);
 

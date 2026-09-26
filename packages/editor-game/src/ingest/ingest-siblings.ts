@@ -8,11 +8,8 @@
  * degrading loudly per world rather than silently ignoring them (the F24/F9
  * anti-pattern this closes):
  *
- *  - a builtin `dom` world — a bare (no `<WorldProvider>`) DOM layer, D-V3.
- *    There is no native `Game` beside an ingest world, so wrapping one would
- *    fabricate first-party data (anti-shim) — the sibling's own `useWorldState`/
- *    `useGame` calls are simply unavailable, and this says so once per world.
- *    Has no loop at all, so its `SiblingMount.setPaused` stays `undefined`
+ *  - a builtin `dom` world — a bare DOM layer, D-V3, rendered like every `dom`
+ *    root. Has no loop at all, so its `SiblingMount.setPaused` stays `undefined`
  *    (D-B1) — never a fabricated no-op.
  *  - `{ module }` (any kind) OR a builtin `three`/`canvas` world
  *  (D-B3 — the residual this closes: a second `{ ingest }` world is
@@ -136,15 +133,13 @@ function styleSiblingLayer(
 }
 
 /**
- * D-V3: mount a `default-react` sibling as a bare DOM layer — no
- * `<WorldProvider>` wrap (anti-shim: there is no native `Game` to hand it).
- * Reuses `binding-resolver.ts`'s exact entry-loading step
+ * D-V3: mount a `default-react` sibling as a bare DOM layer, the way every
+ * `dom` root renders. Reuses `binding-resolver.ts`'s exact entry-loading step
  * (`resolveReactAdapterRootComponent` — the same D4 `scene`-forbidden/
  * `entry`-required checks and default-export validation
  * `resolveDefaultReactAdapter` itself uses) rather than duplicating it.
  *
- * If the entry component throws at mount/first render (most commonly: it
- * calls `useGame`/`useWorldState` with no provider in the tree), the error
+ * If the entry component throws at mount/first render, the error
  * boundary above catches it, this function removes the layer it just
  * created, and RETHROWS so the caller's uniform per-sibling catch
  * (`mountOneIngestSibling`'s caller, {@link mountIngestSiblings}) can turn it
@@ -167,13 +162,6 @@ async function mountDefaultReactSibling(
   layer.dataset['vgaiRootSurface'] = 'true';
   styleSiblingLayer(layer, world, 'none');
   gameContainer.appendChild(layer);
-
-  // D-V3: one structured note per world naming the degrade — never silent
-  // about the missing bridge.
-  editorConsole.log(
-    `react sibling "${world.id}": no native Game beside an ingest world — useWorldState unavailable`,
-    'ingest',
-  );
 
   const root = createRoot(layer);
   let caught: unknown = null;

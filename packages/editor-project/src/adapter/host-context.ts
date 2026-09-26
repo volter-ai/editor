@@ -87,7 +87,7 @@ export interface CanvasHostContext extends HostContextBase {
  * first-party loop for the sibling to join, only the ingested
  * root's own foreign runtime — so its host carries no `game` at all rather than
  * fabricating an empty one (anti-shim rule); the sibling mounts its entry
- * component bare, with no `<WorldProvider>` wrap. `mountOneReactRoot`
+ * component bare, as every `dom` root renders. `mountOneReactRoot`
  * (`runtime/create-runtime.ts`, the NATIVE multi-root runtime path) still
  * ALWAYS supplies a real `game` — this optionality is reached only by the
  * composite sibling's own hand-built host, never by weakening the native path's

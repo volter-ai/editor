@@ -323,7 +323,7 @@ function now(): number {
 export const INSTRUMENTS_PROVIDER = 'instruments';
 
 /** The registry scope the host publishes under. Not a mounted world —
- *  instruments are game-scoped host furniture, like the hooks' `__react__`. */
+ *  instruments are game-scoped host furniture. */
 const INSTRUMENTS_WORLD_ID = '__instruments__';
 
 /** One instrument in the index: descriptor plus this instant's value. A

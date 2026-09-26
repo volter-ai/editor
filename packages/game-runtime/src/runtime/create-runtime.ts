@@ -236,11 +236,8 @@ export interface CanvasRootMountSpec extends RootMountSpecBase {
  * a react world has no physics or component runtime at all, so branding it
  * first-party would be a type lie.
  * `Game.registerRoot`'s "no state bridge" console warning explicitly exempts
- * `kind: 'dom'` (§7.1-15): a react world has no `observe` BY DESIGN — that
- * hook is scoped to `useRootObservation` (the ingested/foreign-world case),
- * not `useWorldState` (`ui/game-state.tsx`), which a react world's own
- * mounted tree uses instead — it reads `Game.state` directly, never a
- * per-world `observe`.
+ * `kind: 'dom'` (§7.1-15): a react world has no `observe` BY DESIGN — its
+ * state is its own React tree's.
  *
  * `kind`/`container` satisfy `MountedReactRoot` (`adapter/
  * root-adapter.ts`) — `container` is the SAME `DomHostContext.container` the

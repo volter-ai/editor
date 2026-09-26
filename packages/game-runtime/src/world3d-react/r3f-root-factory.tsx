@@ -13,8 +13,7 @@
  * on the host's side of the seam; no vgai runtime context ever enters the
  * React tree. The host controls Fiber's `frameloop: 'never'` scheduler, wires
  * the game-scoped input seams from outside (`../runtime/game-input-seams.ts`),
- * and installs `WorldProvider` off the Game handle so the lib-legal react
- * doors (`useWorldState`, `useOptionalGame`, `useDebugProvider`) resolve.
+ * and renders the entry bare, as the game's own `<Canvas>` does.
  *
  * ## Why this is NOT in `mount-game.ts`
  *
@@ -63,7 +62,6 @@ import {
 import { collectRenderMemory } from '../dev/render-memory';
 import { RENDER_SUBMIT_PHASE } from '../dev/render-vitals';
 import { createWebGLFrameCapture } from '../dev/webgl-frame-capture';
-import { WorldProvider } from '../react/world-state';
 import { getDebugRegistry } from '../runtime/debug-registry';
 import { devBuildEnabled } from '../runtime/dev-build';
 import { DEFAULT_INPUT_MAP_PATH, wireGameInputSeams } from '../runtime/game-input-seams';
@@ -221,22 +219,12 @@ function threeWorldAdapter(id: string, component: ComponentType): RootAdapter {
       // No `<StrictMode>` — the host mounts once; StrictMode's deliberate
       // double-invoke of effects would double-subscribe `useFrame` callbacks
       // against a host loop that only ticks once per frame.
-      //
-      // `WorldProvider` rides `host.game` — the React seam every dom root
-      // already has (`useWorldState`, `useOptionalGame`, `useDebugProvider` in
-      // lib code), and the only way a capability hook can reach the ONE
-      // game-scoped registry the editor/`vgai eval` read. `host.game` is
-      // genuinely absent in bare/headless hosts, so the provider is
-      // conditional and those hooks stay the inert no-ops they already
-      // document themselves to be.
-      const game = host.game;
       const world = createElement(
         Fragment,
         null,
         content,
         createElement(MountEffectsReady, { key: 'vgai-mount-effects-ready' }),
       );
-      const provided = game ? createElement(WorldProvider, { game }, world) : world;
       // A reconcile-time crash (e.g. a missing `extend` catalogue entry)
       // surfaces as an uncaught window error and `onCreated` never fires —
       // without this guard, `mount()` would await `statePromise` FOREVER and
@@ -271,7 +259,7 @@ function threeWorldAdapter(id: string, component: ComponentType): RootAdapter {
         };
         if (typeof window !== 'undefined') window.addEventListener('error', onError);
         root.render(
-          createElement(MountErrorBoundary, { onError: (error) => fail(error.message) }, provided),
+          createElement(MountErrorBoundary, { onError: (error) => fail(error.message) }, world),
         );
         void Promise.all([statePromise, effectsReady]).then(([s]) => {
           cleanup();

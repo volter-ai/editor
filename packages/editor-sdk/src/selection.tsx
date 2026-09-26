@@ -1,7 +1,6 @@
 /**
- * W3.1 — `useSelection()`, the third tool-hooks contract member (alongside
- * `useData`/`writeData` from `use-data.ts`). Where those two hooks are about
- * DATA ASSETS, this one is about the currently-selected ENTITY.
+ * W3.1 — `useSelection()`, the tool-hooks contract member about the
+ * currently-selected ENTITY.
  *
  * Scope, v1:
  *  - INSPECTOR-placement tools only (`placement: 'inspector'`,
@@ -10,8 +9,8 @@
  *    (`ToolHost`/`BottomPanel`) have no adapter/selection in scope and never
  *    get a provider. Calling `useSelection()` there throws a teaching error,
  *    contained by the tool's `ToolErrorBoundary` (the editor survives).
- *  - READ-only. Write through `InspectorProvider.set` / `writeData` (the
- *    existing paths), never by mutating what this hook returns. Per-entity
+ *  - READ-only. Write through `InspectorProvider.set` (the
+ *    existing path), never by mutating what this hook returns. Per-entity
  *    WRITE-from-tool is deferred with `useTunable` (§10).
  *
  * Liveness — two existing paths reused, no new mechanism (§4's "reuse that

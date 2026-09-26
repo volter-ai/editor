@@ -99,9 +99,8 @@ export interface MountedRootBase {
   readonly systemScope?: object;
   /** Optional state-observation capability (T7.4 slice 2, §4) — absent means
    *  "no state bridge"; `Game.registerRoot` reports this loudly, once, for
-   *  any non-first-party mount. First-party mounts are exempt — their state
-   *  is observed through `Game.state`/`useWorldState` instead (§3), not this
-   *  field. */
+   *  self-driven mount. A host-driven mount ticks inside the game's frame,
+   *  where the editor reads it directly, so it needs none. */
   readonly observe?: RootStateObserver;
 }
 
