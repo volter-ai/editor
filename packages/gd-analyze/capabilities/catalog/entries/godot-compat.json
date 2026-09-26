@@ -3,6 +3,7 @@
   "files": [
     "src/lib/godot-compat/LICENSE.OpenSans.txt",
     "src/lib/godot-compat/OpenSans_SemiBold.woff2",
+    "src/lib/godot-compat/animation.ts",
     "src/lib/godot-compat/area-3d.ts",
     "src/lib/godot-compat/array-mesh.ts",
     "src/lib/godot-compat/array.ts",

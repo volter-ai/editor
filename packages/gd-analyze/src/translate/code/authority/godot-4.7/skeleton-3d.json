@@ -238,7 +238,7 @@
         "observedOutputSha256": "0e47b54e2f3fc2005aafed12446608a109f60f87c47f72426a18305907a42988"
       },
       "target": {
-        "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319",
+        "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac",
         "callsite": "lib/godot-compat/skeleton-3d.ts add_bone",
         "observedOutputSha256": "0e47b54e2f3fc2005aafed12446608a109f60f87c47f72426a18305907a42988"
       },
@@ -277,7 +277,7 @@
         "observedOutputSha256": "23efd9a8c8f233b3bdea926c7c97e03aec488ecd3aacf81ac2c0c5711f4731fa"
       },
       "target": {
-        "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319",
+        "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac",
         "callsite": "lib/godot-compat/skeleton-3d.ts get_bone_count",
         "observedOutputSha256": "23efd9a8c8f233b3bdea926c7c97e03aec488ecd3aacf81ac2c0c5711f4731fa"
       },
@@ -316,7 +316,7 @@
         "observedOutputSha256": "49dc996ca97076f58c4d033939c73949c374ad58203bd71c3c7408360594d0a4"
       },
       "target": {
-        "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319",
+        "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac",
         "callsite": "lib/godot-compat/skeleton-3d.ts find_bone",
         "observedOutputSha256": "49dc996ca97076f58c4d033939c73949c374ad58203bd71c3c7408360594d0a4"
       },
@@ -355,7 +355,7 @@
         "observedOutputSha256": "ed535e0505cc4e9d40bcee06bb643a139eba14ffb4ad5f66f1b1fa943db3de52"
       },
       "target": {
-        "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319",
+        "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac",
         "callsite": "lib/godot-compat/skeleton-3d.ts get_bone_name",
         "observedOutputSha256": "ed535e0505cc4e9d40bcee06bb643a139eba14ffb4ad5f66f1b1fa943db3de52"
       },
@@ -394,7 +394,7 @@
         "observedOutputSha256": "e4fbf78bc4093ed69e8204ffeac6a2ee5c6df17c61d45c1169482d7e2919656e"
       },
       "target": {
-        "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319",
+        "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac",
         "callsite": "lib/godot-compat/skeleton-3d.ts get_bone_pose_position",
         "observedOutputSha256": "8a2129d8773f462fa46bd93f8445a61530a73bf0ad46eb16283ea3eff4263875"
       },
@@ -433,7 +433,7 @@
         "observedOutputSha256": "c81cf201cb743e060567ad12a7828041e05fad6e3421fab39955598be05a40be"
       },
       "target": {
-        "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319",
+        "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac",
         "callsite": "lib/godot-compat/skeleton-3d.ts set_bone_pose_position",
         "observedOutputSha256": "c81cf201cb743e060567ad12a7828041e05fad6e3421fab39955598be05a40be"
       },
@@ -472,7 +472,7 @@
         "observedOutputSha256": "ddeaa820b282b12a0aeb91b4fe5cbb78da3ad6117610013d2f88213e93a81d6b"
       },
       "target": {
-        "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319",
+        "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac",
         "callsite": "lib/godot-compat/skeleton-3d.ts set_bone_pose_scale",
         "observedOutputSha256": "ddeaa820b282b12a0aeb91b4fe5cbb78da3ad6117610013d2f88213e93a81d6b"
       },
@@ -511,7 +511,7 @@
         "observedOutputSha256": "81d19692e00aa8f81b676db0964fca941ad0ea2909616db7cc8a19ae9a562500"
       },
       "target": {
-        "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319",
+        "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac",
         "callsite": "lib/godot-compat/skeleton-3d.ts set_bone_pose_rotation",
         "observedOutputSha256": "485634e89a3e03b9b68a555aeec12702d9cba7e1b5d4e7b570e395baa185e031"
       },
@@ -550,7 +550,7 @@
         "observedOutputSha256": "98a4da4e0eeeb529ce7c3c605b5864d8aa6daa4d345db6ef9d4365fed2edacc5"
       },
       "target": {
-        "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319",
+        "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac",
         "callsite": "lib/godot-compat/skeleton-3d.ts get_bone_pose_rotation",
         "observedOutputSha256": "a0978f0aef3ee883ce4266bed3eb647e3f69a94fb929587fa04427220edfe38f"
       },
@@ -589,7 +589,7 @@
         "observedOutputSha256": "57379ab191c9d6848b53b8185c7a61767c4e80e152e2d1186113a32a71f3f457"
       },
       "target": {
-        "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319",
+        "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac",
         "callsite": "lib/godot-compat/skeleton-3d.ts get_bone_pose_scale",
         "observedOutputSha256": "57379ab191c9d6848b53b8185c7a61767c4e80e152e2d1186113a32a71f3f457"
       },
@@ -616,7 +616,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "401e1acf4291660e1f88bd97e39565997d74f01b801a830e214796e1c5a14628",
-      "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319"
+      "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac"
     },
     {
       "claimId": "godot-4.7-binding-Skeleton3D.get_bone_count",
@@ -624,7 +624,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "6d233a755e7ff5821974de6bcbd7960d50cacb81a71d2d37ca726aeff16707f2",
-      "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319"
+      "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac"
     },
     {
       "claimId": "godot-4.7-binding-Skeleton3D.find_bone",
@@ -632,7 +632,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "42d397dc7c2d7c85747229cbe1fd8f55c37321ff13a8120a1c3c0249d7ecedfa",
-      "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319"
+      "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac"
     },
     {
       "claimId": "godot-4.7-binding-Skeleton3D.get_bone_name",
@@ -640,7 +640,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "8773a1688e2a6378cf2e06a1ce52eed0436f71f3bd9f14f478ff1c2a5cf3a981",
-      "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319"
+      "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac"
     },
     {
       "claimId": "godot-4.7-binding-Skeleton3D.get_bone_pose_position",
@@ -648,7 +648,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "c2e2e791245ed2fc886902abd70b15c8e189f8869672bc089ff661077ca8815f",
-      "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319"
+      "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac"
     },
     {
       "claimId": "godot-4.7-binding-Skeleton3D.set_bone_pose_position",
@@ -656,7 +656,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "75442a71087ecdbeca7884aaaf14ad441dadf64b1602bd7dca27feca8eb19093",
-      "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319"
+      "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac"
     },
     {
       "claimId": "godot-4.7-binding-Skeleton3D.set_bone_pose_scale",
@@ -664,7 +664,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "71b36ce569a3aaa2d7d2234d1f70767e2cbe58ad2ed3b4491a459605f5005ae3",
-      "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319"
+      "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac"
     },
     {
       "claimId": "godot-4.7-binding-Skeleton3D.set_bone_pose_rotation",
@@ -672,7 +672,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "db66dc634ee6665d0a9c76ae575d5abab05ef7d140875c13fe13adfe1ffa744f",
-      "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319"
+      "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac"
     },
     {
       "claimId": "godot-4.7-binding-Skeleton3D.get_bone_pose_rotation",
@@ -680,7 +680,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "232e3f27305a4e51c892dc17620fdebc7d94bed10096d75249e88031bd2dbd5d",
-      "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319"
+      "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac"
     },
     {
       "claimId": "godot-4.7-binding-Skeleton3D.get_bone_pose_scale",
@@ -688,7 +688,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "c363a7bb857c2ef2d8b2b35ca3d15faa7259b6c055734084d71b3d2469cd6491",
-      "implementationSha256": "4519e9022a06dccd4088dc921aef623bb0ffdc712c4fb2da82c7dd8fd12cd319"
+      "implementationSha256": "34e1e070852bfc0569122000dd05680acea4ebbb4ed54c9054ab41b2447717ac"
     }
   ]
 }

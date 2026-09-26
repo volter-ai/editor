@@ -24,6 +24,174 @@
         },
         "evidenceClaimId": "godot-4.7-binding-Quaternion.Quaternion"
       }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Quaternion",
+        "member": "length",
+        "kind": "builtin-member",
+        "signature": "hash:466405837"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/quaternion",
+        "exportName": "length",
+        "localName": "Quaternion_length",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Quaternion.length"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Quaternion",
+        "member": "length_squared",
+        "kind": "builtin-member",
+        "signature": "hash:466405837"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/quaternion",
+        "exportName": "length_squared",
+        "localName": "Quaternion_length_squared",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Quaternion.length_squared"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Quaternion",
+        "member": "normalized",
+        "kind": "builtin-member",
+        "signature": "hash:4274879941"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/quaternion",
+        "exportName": "normalized",
+        "localName": "Quaternion_normalized",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Quaternion.normalized"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Quaternion",
+        "member": "is_normalized",
+        "kind": "builtin-member",
+        "signature": "hash:3918633141"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/quaternion",
+        "exportName": "is_normalized",
+        "localName": "Quaternion_is_normalized",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Quaternion.is_normalized"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Quaternion",
+        "member": "inverse",
+        "kind": "builtin-member",
+        "signature": "hash:4274879941"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/quaternion",
+        "exportName": "inverse",
+        "localName": "Quaternion_inverse",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Quaternion.inverse"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Quaternion",
+        "member": "dot",
+        "kind": "builtin-member",
+        "signature": "hash:3244682419"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/quaternion",
+        "exportName": "dot",
+        "localName": "Quaternion_dot",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Quaternion.dot"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Quaternion",
+        "member": "OP_MULTIPLY",
+        "kind": "builtin-operator",
+        "signature": "right:Quaternion"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/quaternion",
+        "exportName": "op_multiply",
+        "localName": "Quaternion_op_multiply",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Quaternion.OP_MULTIPLY.right:Quaternion"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Quaternion",
+        "member": "slerp",
+        "kind": "builtin-member",
+        "signature": "hash:1773590316"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/quaternion",
+        "exportName": "slerp",
+        "localName": "Quaternion_slerp",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Quaternion.slerp"
+      }
     }
   ],
   "rules": [],
@@ -64,7 +232,7 @@
         "observedOutputSha256": "162c611f9629f5828649bacc687630f2bbe6047752269e0025866a2875d614c6"
       },
       "target": {
-        "implementationSha256": "95a4009155480e623a3f2b139c398bda5ac88673a618eb10932410be83a7f6ad",
+        "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d",
         "callsite": "lib/godot-compat/quaternion.ts construct",
         "observedOutputSha256": "39d4ef2ef3f7ee285677a93d2b4bb9d6e77dca92d47180a7d6285d984e6876ee"
       },
@@ -72,6 +240,318 @@
         "comparator": "typed float64-bit JSON: exact",
         "tolerance": "exact",
         "resultSha256": "7353b1d5d546770cc75d471dffd8ef42c12eae02f9e01e9df6bf4a824be2aa8d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "quaternion",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Quaternion.length",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Quaternion\u0000length\u0000hash:466405837",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/quaternion.cpp",
+        "sourceSymbol": "Quaternion.length",
+        "sourceLine": 61
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2ab6edfee1da97f9a25c47c6d32ddd1162e51b7b513ba46d02b9995b6bd02f94",
+        "callsite": "res://probe.gd _init() length-identity length-bone length-half length-flip length-tilt length-unnormal",
+        "observedOutputSha256": "db65b0034780258e2b388d0a3b51bb0910035111a245d85f3d039f7e32f94396"
+      },
+      "target": {
+        "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d",
+        "callsite": "lib/godot-compat/quaternion.ts length",
+        "observedOutputSha256": "db65b0034780258e2b388d0a3b51bb0910035111a245d85f3d039f7e32f94396"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8946c4b0988326a93420e4302c9f4f03d895f4003ae37742ef85bde92b2fd01d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "quaternion",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Quaternion.length_squared",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Quaternion\u0000length_squared\u0000hash:466405837",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/quaternion.h",
+        "sourceSymbol": "Quaternion.length_squared",
+        "sourceLine": 177
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "65d6a0b005f80db444a4ed0e1ef4305b1f8cd9bebbf7e4b552d6c909caac2e02",
+        "callsite": "res://probe.gd _init() length_squared-identity length_squared-bone length_squared-half length_squared-flip length_squared-tilt length_squared-unnormal",
+        "observedOutputSha256": "abfc06e4a120bbf7f7a9e11ed283d141683b50ca4de6048958783c57a310e125"
+      },
+      "target": {
+        "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d",
+        "callsite": "lib/godot-compat/quaternion.ts length_squared",
+        "observedOutputSha256": "abfc06e4a120bbf7f7a9e11ed283d141683b50ca4de6048958783c57a310e125"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "25aeb56181b5997600c45111b84b6e1cf16144eb1079425aad00ae71211cd06b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "quaternion",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Quaternion.normalized",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Quaternion\u0000normalized\u0000hash:4274879941",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/quaternion.cpp",
+        "sourceSymbol": "Quaternion.normalized",
+        "sourceLine": 74
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0ced9b778c4f2d57104fa09cfc916807e551e226436d8471ff23b04073e56db4",
+        "callsite": "res://probe.gd _init() normalized-identity normalized-bone normalized-half normalized-flip normalized-tilt normalized-unnormal",
+        "observedOutputSha256": "99651a1864002c13fad42ab39ded68cd80984b5dc8356ac34509e43b12b80e6c"
+      },
+      "target": {
+        "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d",
+        "callsite": "lib/godot-compat/quaternion.ts normalized",
+        "observedOutputSha256": "c5a4d920ed3cce2a1a51ae48f528f1a56ecc194a9bc790072bfba6fe1a74f0af"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3af481916810408640cd23c1bf2a46494ab2c38e9845e17cbbd76fe825555967"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "quaternion",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Quaternion.is_normalized",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Quaternion\u0000is_normalized\u0000hash:3918633141",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/quaternion.cpp",
+        "sourceSymbol": "Quaternion.is_normalized",
+        "sourceLine": 78
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "fe104c24f2e193d31f9cbe9ce5db21414ab223405056284f17c5386134e259c6",
+        "callsite": "res://probe.gd _init() is_normalized-identity is_normalized-bone is_normalized-half is_normalized-flip is_normalized-tilt is_normalized-unnormal",
+        "observedOutputSha256": "115715fce345708652a802e0572c6de3e5a1a98cca78851b2e4a93a9737535bd"
+      },
+      "target": {
+        "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d",
+        "callsite": "lib/godot-compat/quaternion.ts is_normalized",
+        "observedOutputSha256": "115715fce345708652a802e0572c6de3e5a1a98cca78851b2e4a93a9737535bd"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5f4b232fd05ad3f04aa41266ec4f56edaa6d117723ac10684f9d47a2b5469f8f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "quaternion",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Quaternion.inverse",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Quaternion\u0000inverse\u0000hash:4274879941",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/quaternion.cpp",
+        "sourceSymbol": "Quaternion.inverse",
+        "sourceLine": 82
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a4087f4ec46b33cd168594dc304e714673af9eaea813104f2870130c544e564d",
+        "callsite": "res://probe.gd _init() inverse-identity inverse-bone inverse-half inverse-flip inverse-tilt inverse-unnormal",
+        "observedOutputSha256": "b6f963760e095b38b9dd9c38db0087c384a5a5ca58ced3eaa6d4e752356a575d"
+      },
+      "target": {
+        "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d",
+        "callsite": "lib/godot-compat/quaternion.ts inverse",
+        "observedOutputSha256": "be3d7ccba850a546d94f002aa2d76e70f36ae31ca0e85ed3eec67708676405f9"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e37f801523b185cb03f5349b28b089ed8a225ebaf0d8bcdaffdde504b1f28978"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "quaternion",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Quaternion.dot",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Quaternion\u0000dot\u0000hash:3244682419",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/quaternion.h",
+        "sourceSymbol": "Quaternion.dot",
+        "sourceLine": 173
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "84de6d57005f0dfa5766a2eaaa7277d462d7be574944d46442b9ae6c89802aee",
+        "callsite": "res://probe.gd _init() dot-identity-identity dot-identity-bone dot-identity-half dot-identity-flip dot-identity-tilt dot-bone-identity dot-bone-bone dot-bone-half dot-bone-flip dot-bone-tilt dot-half-identity dot-half-bone dot-half-half dot-half-flip dot-half-tilt dot-flip-identity dot-flip-bone dot-flip-half dot-flip-flip dot-flip-tilt dot-tilt-identity dot-tilt-bone dot-tilt-half dot-tilt-flip dot-tilt-tilt",
+        "observedOutputSha256": "8fc3bf1b8402a3dae81091f8fb255378afd1098d8c17412fcabf986c687ab7d3"
+      },
+      "target": {
+        "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d",
+        "callsite": "lib/godot-compat/quaternion.ts dot",
+        "observedOutputSha256": "8fc3bf1b8402a3dae81091f8fb255378afd1098d8c17412fcabf986c687ab7d3"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "abd4c3520a7d0006c9332c66728ea096bbd79f88bcec035d1de8ced6854e612f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "quaternion",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Quaternion.OP_MULTIPLY.right:Quaternion",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-operator\u0000Quaternion\u0000OP_MULTIPLY\u0000right:Quaternion",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/quaternion.h",
+        "sourceSymbol": "Quaternion.OP_MULTIPLY",
+        "sourceLine": 237
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9bc96e26a1af2bc3d62271546f00655424fff2b658a00d4370b87073e88e55bd",
+        "callsite": "res://probe.gd _init() multiply-identity-identity multiply-identity-bone multiply-identity-half multiply-identity-flip multiply-identity-tilt multiply-bone-identity multiply-bone-bone multiply-bone-half multiply-bone-flip multiply-bone-tilt multiply-half-identity multiply-half-bone multiply-half-half multiply-half-flip multiply-half-tilt multiply-flip-identity multiply-flip-bone multiply-flip-half multiply-flip-flip multiply-flip-tilt multiply-tilt-identity multiply-tilt-bone multiply-tilt-half multiply-tilt-flip multiply-tilt-tilt",
+        "observedOutputSha256": "7ee1516ea8ea3d78b1e6dcccdc37c02efc19d4b1e35483a6dbdc33d49cc02134"
+      },
+      "target": {
+        "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d",
+        "callsite": "lib/godot-compat/quaternion.ts op_multiply",
+        "observedOutputSha256": "53046d6095b234cfd478992d0362205bbb0c2e88af1a599268070a62dacaba02"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ef19edcbb021b8fd0e0fb214ce46fa3558ef09b0eaecfc52f5fb5652f06e6aff"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "quaternion",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Quaternion.slerp",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Quaternion\u0000slerp\u0000hash:1773590316",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/quaternion.cpp",
+        "sourceSymbol": "Quaternion.slerp",
+        "sourceLine": 106
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "887ee7eb861a0ef7f86fd80db3313be286b4be5fc806c89c1a808c2a1bd899b5",
+        "callsite": "res://probe.gd _init() slerp-identity-identity-0.0 slerp-identity-identity-0.25 slerp-identity-identity-0.5 slerp-identity-identity-0.9 slerp-identity-identity-1.0 slerp-identity-bone-0.0 slerp-identity-bone-0.25 slerp-identity-bone-0.5 slerp-identity-bone-0.9 slerp-identity-bone-1.0 slerp-identity-half-0.0 slerp-identity-half-0.25 slerp-identity-half-0.5 slerp-identity-half-0.9 slerp-identity-half-1.0 slerp-identity-flip-0.0 slerp-identity-flip-0.25 slerp-identity-flip-0.5 slerp-identity-flip-0.9 slerp-identity-flip-1.0 slerp-identity-tilt-0.0 slerp-identity-tilt-0.25 slerp-identity-tilt-0.5 slerp-identity-tilt-0.9 slerp-identity-tilt-1.0 slerp-bone-identity-0.0 slerp-bone-identity-0.25 slerp-bone-identity-0.5 slerp-bone-identity-0.9 slerp-bone-identity-1.0 slerp-bone-bone-0.0 slerp-bone-bone-0.25 slerp-bone-bone-0.5 slerp-bone-bone-0.9 slerp-bone-bone-1.0 slerp-bone-half-0.0 slerp-bone-half-0.25 slerp-bone-half-0.5 slerp-bone-half-0.9 slerp-bone-half-1.0 slerp-bone-flip-0.0 slerp-bone-flip-0.25 slerp-bone-flip-0.5 slerp-bone-flip-0.9 slerp-bone-flip-1.0 slerp-bone-tilt-0.0 slerp-bone-tilt-0.25 slerp-bone-tilt-0.5 slerp-bone-tilt-0.9 slerp-bone-tilt-1.0 slerp-half-identity-0.0 slerp-half-identity-0.25 slerp-half-identity-0.5 slerp-half-identity-0.9 slerp-half-identity-1.0 slerp-half-bone-0.0 slerp-half-bone-0.25 slerp-half-bone-0.5 slerp-half-bone-0.9 slerp-half-bone-1.0 slerp-half-half-0.0 slerp-half-half-0.25 slerp-half-half-0.5 slerp-half-half-0.9 slerp-half-half-1.0 slerp-half-flip-0.0 slerp-half-flip-0.25 slerp-half-flip-0.5 slerp-half-flip-0.9 slerp-half-flip-1.0 slerp-half-tilt-0.0 slerp-half-tilt-0.25 slerp-half-tilt-0.5 slerp-half-tilt-0.9 slerp-half-tilt-1.0 slerp-flip-identity-0.0 slerp-flip-identity-0.25 slerp-flip-identity-0.5 slerp-flip-identity-0.9 slerp-flip-identity-1.0 slerp-flip-bone-0.0 slerp-flip-bone-0.25 slerp-flip-bone-0.5 slerp-flip-bone-0.9 slerp-flip-bone-1.0 slerp-flip-half-0.0 slerp-flip-half-0.25 slerp-flip-half-0.5 slerp-flip-half-0.9 slerp-flip-half-1.0 slerp-flip-flip-0.0 slerp-flip-flip-0.25 slerp-flip-flip-0.5 slerp-flip-flip-0.9 slerp-flip-flip-1.0 slerp-flip-tilt-0.0 slerp-flip-tilt-0.25 slerp-flip-tilt-0.5 slerp-flip-tilt-0.9 slerp-flip-tilt-1.0 slerp-tilt-identity-0.0 slerp-tilt-identity-0.25 slerp-tilt-identity-0.5 slerp-tilt-identity-0.9 slerp-tilt-identity-1.0 slerp-tilt-bone-0.0 slerp-tilt-bone-0.25 slerp-tilt-bone-0.5 slerp-tilt-bone-0.9 slerp-tilt-bone-1.0 slerp-tilt-half-0.0 slerp-tilt-half-0.25 slerp-tilt-half-0.5 slerp-tilt-half-0.9 slerp-tilt-half-1.0 slerp-tilt-flip-0.0 slerp-tilt-flip-0.25 slerp-tilt-flip-0.5 slerp-tilt-flip-0.9 slerp-tilt-flip-1.0 slerp-tilt-tilt-0.0 slerp-tilt-tilt-0.25 slerp-tilt-tilt-0.5 slerp-tilt-tilt-0.9 slerp-tilt-tilt-1.0",
+        "observedOutputSha256": "7eec58ffeaca983fce94067de9252582006e1aab744e88b2b77ef1ff431e23a4"
+      },
+      "target": {
+        "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d",
+        "callsite": "lib/godot-compat/quaternion.ts slerp",
+        "observedOutputSha256": "dee7de0041cdcf30f8b60a91053765ca5c62de42e46d7eb20c06215efa665ea7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: float32-ulp",
+        "tolerance": "1 float32 ulp",
+        "resultSha256": "90c7446ea0c9df4ec0dd42086f592835ef4d282dc2a50d0b4d909490363ff3a1"
       },
       "reproductionCommand": [
         "npx",
@@ -98,19 +578,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "16c3e4174893457d9c2e6c660aaf19427c5dfe5d9446eeb0d491a398b0a6e9d3",
+        "inputSha256": "59ddf0565e04ade141a5f054bc974a338b614408d8e8492ccbd5250b9fbc6e26",
         "callsite": "res://probe.gd _init() every case",
-        "observedOutputSha256": "162c611f9629f5828649bacc687630f2bbe6047752269e0025866a2875d614c6"
+        "observedOutputSha256": "2dca4b93725268fd0dea14349f1fc66a30b0a22eb0964bf44cd72129888d2223"
       },
       "target": {
-        "implementationSha256": "95a4009155480e623a3f2b139c398bda5ac88673a618eb10932410be83a7f6ad",
+        "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d",
         "callsite": "lib/godot-compat/quaternion.ts Quaternion",
-        "observedOutputSha256": "39d4ef2ef3f7ee285677a93d2b4bb9d6e77dca92d47180a7d6285d984e6876ee"
+        "observedOutputSha256": "5a4c2b3d166d4dd59afdba7de9fa569faba8228e68ad6080513e743ddddbc89b"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "7353b1d5d546770cc75d471dffd8ef42c12eae02f9e01e9df6bf4a824be2aa8d"
+        "comparator": "typed float64-bit JSON: exact, float32-ulp",
+        "tolerance": "1 float32 ulp",
+        "resultSha256": "d014e412c8d1eece3e8053e17bee7e1644f2b1d1b0f324fac7906559d33ee08a"
       },
       "reproductionCommand": [
         "npx",
@@ -130,15 +610,79 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "16c3e4174893457d9c2e6c660aaf19427c5dfe5d9446eeb0d491a398b0a6e9d3",
-      "implementationSha256": "95a4009155480e623a3f2b139c398bda5ac88673a618eb10932410be83a7f6ad"
+      "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d"
+    },
+    {
+      "claimId": "godot-4.7-binding-Quaternion.length",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2ab6edfee1da97f9a25c47c6d32ddd1162e51b7b513ba46d02b9995b6bd02f94",
+      "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d"
+    },
+    {
+      "claimId": "godot-4.7-binding-Quaternion.length_squared",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "65d6a0b005f80db444a4ed0e1ef4305b1f8cd9bebbf7e4b552d6c909caac2e02",
+      "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d"
+    },
+    {
+      "claimId": "godot-4.7-binding-Quaternion.normalized",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0ced9b778c4f2d57104fa09cfc916807e551e226436d8471ff23b04073e56db4",
+      "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d"
+    },
+    {
+      "claimId": "godot-4.7-binding-Quaternion.is_normalized",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "fe104c24f2e193d31f9cbe9ce5db21414ab223405056284f17c5386134e259c6",
+      "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d"
+    },
+    {
+      "claimId": "godot-4.7-binding-Quaternion.inverse",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a4087f4ec46b33cd168594dc304e714673af9eaea813104f2870130c544e564d",
+      "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d"
+    },
+    {
+      "claimId": "godot-4.7-binding-Quaternion.dot",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "84de6d57005f0dfa5766a2eaaa7277d462d7be574944d46442b9ae6c89802aee",
+      "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d"
+    },
+    {
+      "claimId": "godot-4.7-binding-Quaternion.OP_MULTIPLY.right:Quaternion",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9bc96e26a1af2bc3d62271546f00655424fff2b658a00d4370b87073e88e55bd",
+      "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d"
+    },
+    {
+      "claimId": "godot-4.7-binding-Quaternion.slerp",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "887ee7eb861a0ef7f86fd80db3313be286b4be5fc806c89c1a808c2a1bd899b5",
+      "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d"
     },
     {
       "claimId": "godot-4.7-datatype-Quaternion",
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "16c3e4174893457d9c2e6c660aaf19427c5dfe5d9446eeb0d491a398b0a6e9d3",
-      "implementationSha256": "95a4009155480e623a3f2b139c398bda5ac88673a618eb10932410be83a7f6ad"
+      "inputSha256": "59ddf0565e04ade141a5f054bc974a338b614408d8e8492ccbd5250b9fbc6e26",
+      "implementationSha256": "50197e8e3cdc692ce0ac01386c0474d987ad6b34a91392792dc56d736a3e995d"
     }
   ]
 }

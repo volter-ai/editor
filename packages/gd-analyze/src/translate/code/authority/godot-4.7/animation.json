@@ -1,0 +1,2326 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/animation"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "value_track_interpolate",
+        "kind": "native-member",
+        "signature": "hash:747269075"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "value_track_interpolate",
+        "localName": "Animation_value_track_interpolate",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.value_track_interpolate"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "position_track_interpolate",
+        "kind": "native-member",
+        "signature": "hash:3530011197"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "position_track_interpolate",
+        "localName": "Animation_position_track_interpolate",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.position_track_interpolate"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "scale_track_interpolate",
+        "kind": "native-member",
+        "signature": "hash:3530011197"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "scale_track_interpolate",
+        "localName": "Animation_scale_track_interpolate",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.scale_track_interpolate"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "rotation_track_interpolate",
+        "kind": "native-member",
+        "signature": "hash:2915876792"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "rotation_track_interpolate",
+        "localName": "Animation_rotation_track_interpolate",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.rotation_track_interpolate"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "track_insert_key",
+        "kind": "native-member",
+        "signature": "hash:808952278"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "track_insert_key",
+        "localName": "Animation_track_insert_key",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.track_insert_key"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "track_find_key",
+        "kind": "native-member",
+        "signature": "hash:4230953007"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "track_find_key",
+        "localName": "Animation_track_find_key",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.track_find_key"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "method_track_get_name",
+        "kind": "native-member",
+        "signature": "hash:351665558"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "method_track_get_name",
+        "localName": "Animation_method_track_get_name",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.method_track_get_name"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "method_track_get_params",
+        "kind": "native-member",
+        "signature": "hash:2345056839"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "method_track_get_params",
+        "localName": "Animation_method_track_get_params",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.method_track_get_params"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "add_track",
+        "kind": "native-member",
+        "signature": "hash:3843682357"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "add_track",
+        "localName": "Animation_add_track",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.add_track"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "track_get_type",
+        "kind": "native-member",
+        "signature": "hash:3445944217"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "track_get_type",
+        "localName": "Animation_track_get_type",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.track_get_type"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "track_get_path",
+        "kind": "native-member",
+        "signature": "hash:408788394"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "track_get_path",
+        "localName": "Animation_track_get_path",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.track_get_path"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "find_track",
+        "kind": "native-member",
+        "signature": "hash:245376003"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "find_track",
+        "localName": "Animation_find_track",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.find_track"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "get_track_count",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "get_track_count",
+        "localName": "Animation_get_track_count",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.get_track_count"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "track_set_path",
+        "kind": "native-member",
+        "signature": "hash:2761262315"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "track_set_path",
+        "localName": "Animation_track_set_path",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.track_set_path"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "track_set_enabled",
+        "kind": "native-member",
+        "signature": "hash:300928843"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "track_set_enabled",
+        "localName": "Animation_track_set_enabled",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.track_set_enabled"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "track_is_enabled",
+        "kind": "native-member",
+        "signature": "hash:1116898809"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "track_is_enabled",
+        "localName": "Animation_track_is_enabled",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.track_is_enabled"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "track_set_imported",
+        "kind": "native-member",
+        "signature": "hash:300928843"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "track_set_imported",
+        "localName": "Animation_track_set_imported",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.track_set_imported"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "track_is_imported",
+        "kind": "native-member",
+        "signature": "hash:1116898809"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "track_is_imported",
+        "localName": "Animation_track_is_imported",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.track_is_imported"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "track_set_interpolation_type",
+        "kind": "native-member",
+        "signature": "hash:4112932513"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "track_set_interpolation_type",
+        "localName": "Animation_track_set_interpolation_type",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.track_set_interpolation_type"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "track_get_interpolation_type",
+        "kind": "native-member",
+        "signature": "hash:1530756894"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "track_get_interpolation_type",
+        "localName": "Animation_track_get_interpolation_type",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.track_get_interpolation_type"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "track_set_interpolation_loop_wrap",
+        "kind": "native-member",
+        "signature": "hash:300928843"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "track_set_interpolation_loop_wrap",
+        "localName": "Animation_track_set_interpolation_loop_wrap",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.track_set_interpolation_loop_wrap"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "track_get_interpolation_loop_wrap",
+        "kind": "native-member",
+        "signature": "hash:1116898809"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "track_get_interpolation_loop_wrap",
+        "localName": "Animation_track_get_interpolation_loop_wrap",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.track_get_interpolation_loop_wrap"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "value_track_set_update_mode",
+        "kind": "native-member",
+        "signature": "hash:2854058312"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "value_track_set_update_mode",
+        "localName": "Animation_value_track_set_update_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.value_track_set_update_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "value_track_get_update_mode",
+        "kind": "native-member",
+        "signature": "hash:1440326473"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "value_track_get_update_mode",
+        "localName": "Animation_value_track_get_update_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.value_track_get_update_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "set_length",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "set_length",
+        "localName": "Animation_set_length",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.set_length"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "get_length",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "get_length",
+        "localName": "Animation_get_length",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.get_length"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "set_loop_mode",
+        "kind": "native-member",
+        "signature": "hash:3155355575"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "set_loop_mode",
+        "localName": "Animation_set_loop_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.set_loop_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "get_loop_mode",
+        "kind": "native-member",
+        "signature": "hash:1988889481"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "get_loop_mode",
+        "localName": "Animation_get_loop_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.get_loop_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "set_step",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "set_step",
+        "localName": "Animation_set_step",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.set_step"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "get_step",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "get_step",
+        "localName": "Animation_get_step",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.get_step"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "track_get_key_count",
+        "kind": "native-member",
+        "signature": "hash:923996154"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "track_get_key_count",
+        "localName": "Animation_track_get_key_count",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.track_get_key_count"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "track_get_key_time",
+        "kind": "native-member",
+        "signature": "hash:3085491603"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "track_get_key_time",
+        "localName": "Animation_track_get_key_time",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.track_get_key_time"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "track_get_key_transition",
+        "kind": "native-member",
+        "signature": "hash:3085491603"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "track_get_key_transition",
+        "localName": "Animation_track_get_key_transition",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.track_get_key_transition"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Animation",
+        "member": "track_get_key_value",
+        "kind": "native-member",
+        "signature": "hash:678354945"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation",
+        "exportName": "track_get_key_value",
+        "localName": "Animation_track_get_key_value",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Animation.track_get_key_value"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.value_track_interpolate",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000value_track_interpolate\u0000hash:747269075",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.value_track_interpolate",
+        "sourceLine": 2723
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "75ec67b330f7bd6071adf66bf065b2a99d4201b4cf0ff973255807fa12db682d",
+        "callsite": "res://probe.gd _init() value_track_interpolate-floats-loop0 value_track_interpolate-floats-loop0-backward value_track_interpolate-floats-loop1 value_track_interpolate-floats-loop1-backward value_track_interpolate-floats-discrete value_track_interpolate-floats-nearest value_track_interpolate-floats-nowrap value_track_interpolate-eased-loop0 value_track_interpolate-eased-loop0-backward value_track_interpolate-eased-loop1 value_track_interpolate-eased-loop1-backward value_track_interpolate-eased-discrete value_track_interpolate-eased-nearest value_track_interpolate-eased-nowrap value_track_interpolate-vectors-loop0 value_track_interpolate-bools-loop0 value_track_interpolate-vectors-loop1 value_track_interpolate-bools-loop1 value_track_interpolate-one-key value_track_interpolate-past-end",
+        "observedOutputSha256": "d93d2c38c7e457c6bc415040053d6059fd3ccf6df058de039c74b0078d4b98ca"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts value_track_interpolate",
+        "observedOutputSha256": "d93d2c38c7e457c6bc415040053d6059fd3ccf6df058de039c74b0078d4b98ca"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "2199710c33a558cb87eebdefbfe1f32a572c046861c99e543c7dc8d0a5f655ec"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.position_track_interpolate",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000position_track_interpolate\u0000hash:3530011197",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.position_track_interpolate",
+        "sourceLine": 1209
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "25ec1cad52c2ff42fbaeaa366b861ff239c5499d6dace02fa7373090fb28c8e4",
+        "callsite": "res://probe.gd _init() position_track_interpolate-loop0 position_track_interpolate-loop1",
+        "observedOutputSha256": "717b1ba66af1e8bff580073fe35474cb9f1a2322f41e673b5d556f4f84ba6fce"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts position_track_interpolate",
+        "observedOutputSha256": "717b1ba66af1e8bff580073fe35474cb9f1a2322f41e673b5d556f4f84ba6fce"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "fe160020d004fd17f9dfac93f27b272f21580009480c1c70f0f7b41327597fc5"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.scale_track_interpolate",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000scale_track_interpolate\u0000hash:3530011197",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.scale_track_interpolate",
+        "sourceLine": 1369
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b34f17ca52178a1b1ac6f0e94a46eb9e84dff7aa59e0bb2df78d2694bc1d9d45",
+        "callsite": "res://probe.gd _init() scale_track_interpolate-loop0 scale_track_interpolate-loop1",
+        "observedOutputSha256": "45c2143c27494fdd8aa2d82b28cc19fca23d505c5a6499adce7155868ab58720"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts scale_track_interpolate",
+        "observedOutputSha256": "45c2143c27494fdd8aa2d82b28cc19fca23d505c5a6499adce7155868ab58720"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "16e19b1390bda40700d981c975ef2d619e1471b9b01c3472c8d01d6e3944ff83"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.rotation_track_interpolate",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000rotation_track_interpolate\u0000hash:2915876792",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.rotation_track_interpolate",
+        "sourceLine": 1289
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "93da83f232a902e9cd198ec03f67bbc1f9f4aab51d2a290908a512245ea0cca7",
+        "callsite": "res://probe.gd _init() rotation_track_interpolate-loop0 rotation_track_interpolate-loop1",
+        "observedOutputSha256": "7a4ec1ef119dc7341ab89c356a7681f83866c4ae23cbac7770833d6f3f57267d"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts rotation_track_interpolate",
+        "observedOutputSha256": "eb779d6367796218ea6f66ee0d83969cb5890c7a74df8d0c1526e862e75f8883"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: float32-ulp",
+        "tolerance": "1 float32 ulp",
+        "resultSha256": "407cc1313f8df69926e5e70283db967c6b9106daaa41eb8e096b958a42a9db94"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.track_insert_key",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000track_insert_key\u0000hash:808952278",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.track_insert_key",
+        "sourceLine": 1719
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "30ce12fbc6fe8b72d219098d43770a1c2d4761ce2f4639c75e2700d456f6bc35",
+        "callsite": "res://probe.gd _init() track_insert_key-value track_insert_key-position",
+        "observedOutputSha256": "258baebdb48895e302cad6236c11287a0768fdcb49169df40b5a567ada4ec703"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts track_insert_key",
+        "observedOutputSha256": "258baebdb48895e302cad6236c11287a0768fdcb49169df40b5a567ada4ec703"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0b59e99bd1f89f863478da2f3b74b258c91748d1b0dcb267be96d2bf13f547b1"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.track_find_key",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000track_find_key\u0000hash:4230953007",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.track_find_key",
+        "sourceLine": 1541
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c3993f1ac3c7e29a056959916398fd260a30d7ef51da84ec2af0d67738934203",
+        "callsite": "res://probe.gd _init() track_find_key-0-0.3-false-false track_find_key-0-0.3-false-true track_find_key-1-0.5000001-false-false track_find_key-2-0.5000001-false-false track_find_key-2-0.5-false-false track_find_key-0-2.5-true-false track_find_key-0--1.0-false-false track_find_key-0-9.0-false-true",
+        "observedOutputSha256": "e22cf36cbf61702477e2cd9931a9284149ea3915547b6ca637d76b8a97c6a142"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts track_find_key",
+        "observedOutputSha256": "e22cf36cbf61702477e2cd9931a9284149ea3915547b6ca637d76b8a97c6a142"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "fe6c99c6014316d9849040accadff2b57a2702eda747e486b598aed8deebd95a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.method_track_get_name",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000method_track_get_name\u0000hash:351665558",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.method_track_get_name",
+        "sourceLine": 3315
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "238224d1c792e5605c5eb161a6bb96f29f68f8640bd31de2d30e55879e02a1f1",
+        "callsite": "res://probe.gd _init() method-keys",
+        "observedOutputSha256": "6f42a3787287ac3376565e39f01088672cf7313f5ad2507a206c197f9c81c0e7"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts method_track_get_name",
+        "observedOutputSha256": "6f42a3787287ac3376565e39f01088672cf7313f5ad2507a206c197f9c81c0e7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "994993a601c5ee2e779fe925dc762abced6f5722ba4a2b691621063d163f122a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.method_track_get_params",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000method_track_get_params\u0000hash:2345056839",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.method_track_get_params",
+        "sourceLine": 3301
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "38d7c3d9a10831f6727dffd48217fe6e0f795149c68f2842ab0b1c79025b9fcc",
+        "callsite": "res://probe.gd _init() method_track_get_params",
+        "observedOutputSha256": "6673fdfaf537554c42bca1870e1c83927c6d362985e5b9731a6fe4528d94cafe"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts method_track_get_params",
+        "observedOutputSha256": "6673fdfaf537554c42bca1870e1c83927c6d362985e5b9731a6fe4528d94cafe"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0a2814fbb8a5e45f9be5873d8e34e0004966dd0189841e7c1fe4d0b0ed3eb896"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.add_track",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000add_track\u0000hash:3843682357",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.add_track",
+        "sourceLine": 896
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f349a2fb991f607196916f4d85c96ed89f8644adb588270606ab3fd09accc43b",
+        "callsite": "res://probe.gd _init() tracks",
+        "observedOutputSha256": "a0ce0627090cb13be7f7bcb32d5b52194c0d9f4349317094ac67b4d1bf953a10"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts add_track",
+        "observedOutputSha256": "a0ce0627090cb13be7f7bcb32d5b52194c0d9f4349317094ac67b4d1bf953a10"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7f962f0f6187769b226abb312658c49bb1981320dab1d5b5280ccf1515139463"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.track_get_type",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000track_get_type\u0000hash:3445944217",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.track_get_type",
+        "sourceLine": 1029
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a30fc670439d7f00e9987bde8fb4ea0cbed5812035224a68e7eced20d9ad00ac",
+        "callsite": "res://probe.gd _init() tracks-track_get_type",
+        "observedOutputSha256": "68ec39413d13fcbb3c8a4105573622313466b58887bbf6827236a7cfbe7d46d3"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts track_get_type",
+        "observedOutputSha256": "68ec39413d13fcbb3c8a4105573622313466b58887bbf6827236a7cfbe7d46d3"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7fd7bb487a65871be951d10f89f50076d42acac390066fadaa34858968f303f8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.track_get_path",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000track_get_path\u0000hash:408788394",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.track_get_path",
+        "sourceLine": 1041
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d5f4bbd0e925d3da2e8c26dac2d82cae59f0f0693f447db5ea9e96102e604a61",
+        "callsite": "res://probe.gd _init() tracks-track_get_path",
+        "observedOutputSha256": "8fb0ce62787f28bf7c5b684e787b99356ff07d4f1b0d28cac5cc06bd6755e14e"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts track_get_path",
+        "observedOutputSha256": "8fb0ce62787f28bf7c5b684e787b99356ff07d4f1b0d28cac5cc06bd6755e14e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e68eb5fbf4d966899df122ad44c080f71813e3a69b510a0f1563b3dfc8dcaa5c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.find_track",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000find_track\u0000hash:245376003",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.find_track",
+        "sourceLine": 1046
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3011ff88840fda8f7cb12e0a6fbea99f56732ecc9f27adac20169e6c2f5aaf64",
+        "callsite": "res://probe.gd _init() tracks-find_track",
+        "observedOutputSha256": "9d9c5746b8db44fd0b7ae9377d7da9da5ee0fe0d4801f930d3824f5ac7e560be"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts find_track",
+        "observedOutputSha256": "9d9c5746b8db44fd0b7ae9377d7da9da5ee0fe0d4801f930d3824f5ac7e560be"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5d6166eab07a41f09feebd48d891d13a36dee5c1c6e7df3aeee919e03fd434ab"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.get_track_count",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000get_track_count\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.get_track_count",
+        "sourceLine": 1025
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "bf86e22bd6d6143c67f4d4d687f514227aa189e837f61b1b0ff96074624c0482",
+        "callsite": "res://probe.gd _init() tracks-get_track_count",
+        "observedOutputSha256": "14bce0672cce63fb7d2ea0a4018cf9937c85112d16add2d9b5bf8a00a152ce63"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts get_track_count",
+        "observedOutputSha256": "14bce0672cce63fb7d2ea0a4018cf9937c85112d16add2d9b5bf8a00a152ce63"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b299d48a40f000529cfb444f7668e55c3a90e05ecd7a30488ff672c5e5d95b77"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.track_set_path",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000track_set_path\u0000hash:2761262315",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.track_set_path",
+        "sourceLine": 1034
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "22ef43ef90dc65b7cfe0e4fedd12cf4c75eabf6441417b1557ecffdc30df7229",
+        "callsite": "res://probe.gd _init() tracks-track_set_path",
+        "observedOutputSha256": "007e49b8e0ba7e6de2ae297d468a179207b1a28737880fb66aa811aed8640435"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts track_set_path",
+        "observedOutputSha256": "007e49b8e0ba7e6de2ae297d468a179207b1a28737880fb66aa811aed8640435"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1a0ad074dca7dc2fc413ee83099ef2b8b15955589effef7601c0113062177217"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.track_set_enabled",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000track_set_enabled\u0000hash:300928843",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.track_set_enabled",
+        "sourceLine": 3874
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "28e825981f50c41c95ed0ed9b638de22016e7df67e057af867168cbe89161b88",
+        "callsite": "res://probe.gd _init() track-flags",
+        "observedOutputSha256": "8474774af22be3a61e89ddaba30a693587eb8861f824e7230bc80534e24e82bc"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts track_set_enabled",
+        "observedOutputSha256": "8474774af22be3a61e89ddaba30a693587eb8861f824e7230bc80534e24e82bc"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1cdab7c096d63eab50b6f0fc26d8f6988f238cd7afcd6ce410b6200c1b65cb8e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.track_is_enabled",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000track_is_enabled\u0000hash:1116898809",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.track_is_enabled",
+        "sourceLine": 3880
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2ca3488c474d6900d81282efd77cd59d02b6049f3f8e40c1fb3c42e5e3fca5cd",
+        "callsite": "res://probe.gd _init() track-flags-track_is_enabled",
+        "observedOutputSha256": "994ab777a8865a81de6bf4ffff1c074250c3a85dedd04df40c80975cc6cc8c3e"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts track_is_enabled",
+        "observedOutputSha256": "994ab777a8865a81de6bf4ffff1c074250c3a85dedd04df40c80975cc6cc8c3e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a9c22516a4c5f3770f158d9b2c211daed5e3c356c641c592b1db22e365c022df"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.track_set_imported",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000track_set_imported\u0000hash:300928843",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.track_set_imported",
+        "sourceLine": 3864
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "629bcaf6d8e53150f7b2d874fb9c453d40125c9aa348011997a5645a38c0e453",
+        "callsite": "res://probe.gd _init() track-flags-track_set_imported",
+        "observedOutputSha256": "014bff9f43965ae8827b0606f8766e8abab752666a45dd73a02b6f0762ef3ef7"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts track_set_imported",
+        "observedOutputSha256": "014bff9f43965ae8827b0606f8766e8abab752666a45dd73a02b6f0762ef3ef7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "88bcebe0948d7a842eb2c650d3e86d9a9de50d77be7b272b45126da737bbc838"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.track_is_imported",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000track_is_imported\u0000hash:1116898809",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.track_is_imported",
+        "sourceLine": 3869
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e4d2e01dbfd3c773868d1922cf3843eaf384f2424e329de6b0aba94ba2cd21ea",
+        "callsite": "res://probe.gd _init() track-flags-track_is_imported",
+        "observedOutputSha256": "8c03a420bce00b2bbe610f27a04e6b034132e1777517832064b3a7ad2489577c"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts track_is_imported",
+        "observedOutputSha256": "8c03a420bce00b2bbe610f27a04e6b034132e1777517832064b3a7ad2489577c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "efda8d4cfc20fc564cc5d53f16a54fae564ffab96ee95f4bd2e66ad67248dbaf"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.track_set_interpolation_type",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000track_set_interpolation_type\u0000hash:4112932513",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.track_set_interpolation_type",
+        "sourceLine": 1070
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "59c2194bfd41dbeef86340fff73b962dda178129bc2bc063031de29f45bece67",
+        "callsite": "res://probe.gd _init() track-flags-track_set_interpolation_type",
+        "observedOutputSha256": "4f09e01790b8bd443a592488bc189fe7efed47710bd8a204e4479f5b510acd9b"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts track_set_interpolation_type",
+        "observedOutputSha256": "4f09e01790b8bd443a592488bc189fe7efed47710bd8a204e4479f5b510acd9b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e5745aa3f1a16b08895a97a502a6165b6f286e798e9e17de1107f9948baa74fa"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.track_get_interpolation_type",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000track_get_interpolation_type\u0000hash:1530756894",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.track_get_interpolation_type",
+        "sourceLine": 1076
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f56f50b19d44bbac9ed189a7658b65d4628f33e6772e73095f85b8af90303562",
+        "callsite": "res://probe.gd _init() track-flags-track_get_interpolation_type",
+        "observedOutputSha256": "d455beffc9419ec9bf78a1564e226eff28bd14f3cbd0e01371f30198a34cdfed"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts track_get_interpolation_type",
+        "observedOutputSha256": "d455beffc9419ec9bf78a1564e226eff28bd14f3cbd0e01371f30198a34cdfed"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "479f96c2b3fe7ea836892b352abad5fa9ba3dc81cba592e73df4d98f6fe4bbdd"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.track_set_interpolation_loop_wrap",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000track_set_interpolation_loop_wrap\u0000hash:300928843",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.track_set_interpolation_loop_wrap",
+        "sourceLine": 1081
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "443e5750f94e173986d8ac83e2b6ac31336e497cbfe833f6a2f53d931b6610e2",
+        "callsite": "res://probe.gd _init() track-flags-track_set_interpolation_loop_wrap",
+        "observedOutputSha256": "18d679198e40ae7539600dbadc0a0b1f47b7f06cc00d3b80c78cc4cef01288dc"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts track_set_interpolation_loop_wrap",
+        "observedOutputSha256": "18d679198e40ae7539600dbadc0a0b1f47b7f06cc00d3b80c78cc4cef01288dc"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "30904ed608398639fe16bf302d5c03cae07627b22c6c54527032f92470e16774"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.track_get_interpolation_loop_wrap",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000track_get_interpolation_loop_wrap\u0000hash:1116898809",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.track_get_interpolation_loop_wrap",
+        "sourceLine": 1087
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "39b20d8585c361192d36eb9e4efcf41710db1d0082f03dea028dd6bc09ba36a6",
+        "callsite": "res://probe.gd _init() track-flags-track_get_interpolation_loop_wrap",
+        "observedOutputSha256": "b10ba01f5ad2890715d2f8d3a7d5092998c876d93bc0e55ca8d0d1bdbfe54caa"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts track_get_interpolation_loop_wrap",
+        "observedOutputSha256": "b10ba01f5ad2890715d2f8d3a7d5092998c876d93bc0e55ca8d0d1bdbfe54caa"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "71318119e40e3f19839301d6937ef555a6e73960089a72706fa96b9cee41dd10"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.value_track_set_update_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000value_track_set_update_mode\u0000hash:2854058312",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.value_track_set_update_mode",
+        "sourceLine": 2740
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ee9eb24ebe9f78477efe0861347a18f138f75e72e772ba1804275bad1a362542",
+        "callsite": "res://probe.gd _init() track-flags-value_track_set_update_mode",
+        "observedOutputSha256": "3f70fa1f813d44fba1bc8b68228faa9786caa4c99680854e057d6ff0db057465"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts value_track_set_update_mode",
+        "observedOutputSha256": "3f70fa1f813d44fba1bc8b68228faa9786caa4c99680854e057d6ff0db057465"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e25a96347cb5d177f60b1f61f6b02600f3a71ccc7cf99777a3ba56d8228fc3d8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.value_track_get_update_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000value_track_get_update_mode\u0000hash:1440326473",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.value_track_get_update_mode",
+        "sourceLine": 2753
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a244714a87c0290c2fdccf75e1a14f867c845abc76448d217c910945ed7e3a45",
+        "callsite": "res://probe.gd _init() track-flags-value_track_get_update_mode",
+        "observedOutputSha256": "18034b9c0d3ec259c87764b2c766c16bf1a91f5d2d641eff5184da9fa7ee1424"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts value_track_get_update_mode",
+        "observedOutputSha256": "18034b9c0d3ec259c87764b2c766c16bf1a91f5d2d641eff5184da9fa7ee1424"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "49c3e23e19ed436e9fcaa4f42478d0dfb3ec2db7377ab443e33bf115b96006d2"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.set_length",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000set_length\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.set_length",
+        "sourceLine": 3851
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "dde84fcc1be96d7a7fefab8c7bd3db9d0ca54197ca7b32f4162608ee30446b4d",
+        "callsite": "res://probe.gd _init() length-loop-step",
+        "observedOutputSha256": "bc987164471fca9d6e9f7204dd8a9c062c5143ba47de2053438fbf74c2680f81"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts set_length",
+        "observedOutputSha256": "bc987164471fca9d6e9f7204dd8a9c062c5143ba47de2053438fbf74c2680f81"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "bcaaf7dec76c36d25666833b398389028e6b60f66f6db1e93eb2c94504b3984e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.get_length",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000get_length\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.h",
+        "sourceSymbol": "Animation.get_length",
+        "sourceLine": 291
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2b81efefbd9318ce7e761ad71ced2c9b417a9ea3233596abbc7f6c6c4d184cb9",
+        "callsite": "res://probe.gd _init() length-loop-step-get_length",
+        "observedOutputSha256": "699674ef9e913b95e6b53e153dff1ac27c234ef324b15af81071de95326d1a8f"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts get_length",
+        "observedOutputSha256": "699674ef9e913b95e6b53e153dff1ac27c234ef324b15af81071de95326d1a8f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7b67794590a8ddc643840958d4ab6e9d040d816caf5bddd66a75c90b4759581b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.set_loop_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000set_loop_mode\u0000hash:3155355575",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.set_loop_mode",
+        "sourceLine": 3859
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "203d3ac93e3f4be7580184a29f94ef11e07c2cf00cbbeb278d04d8ce3e5fe392",
+        "callsite": "res://probe.gd _init() length-loop-step-set_loop_mode",
+        "observedOutputSha256": "e3c2f5a98083119acac537c10f1c010248b5cf34c1d398ceb792b2b0ab26951a"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts set_loop_mode",
+        "observedOutputSha256": "e3c2f5a98083119acac537c10f1c010248b5cf34c1d398ceb792b2b0ab26951a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "79a6ce794dca5cbfa6718b8669a7e0a81c6667c5007248dad305eb3102ba076a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.get_loop_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000get_loop_mode\u0000hash:1988889481",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.h",
+        "sourceSymbol": "Animation.get_loop_mode",
+        "sourceLine": 293
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "10d7bcbb97ae850d667dc462a1287158ae425b4ab22617521f471d0b1661e560",
+        "callsite": "res://probe.gd _init() length-loop-step-get_loop_mode",
+        "observedOutputSha256": "e4f06a37e0e3553ba135b39841aee6b5234fd1f8c4169fec7e1715bc7646b502"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts get_loop_mode",
+        "observedOutputSha256": "e4f06a37e0e3553ba135b39841aee6b5234fd1f8c4169fec7e1715bc7646b502"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0afc686672b7ed50ef7e156b6193d88b6646129ffee7742cf89cf224a9ce8524"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.set_step",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000set_step\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.set_step",
+        "sourceLine": 3927
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9877ba6726a55a904d9b9cbd516f1f5ca7a03f979fc47d19ffedaf3ed080a7e7",
+        "callsite": "res://probe.gd _init() length-loop-step-set_step",
+        "observedOutputSha256": "d4dfad790e4344249b41cce7b9a15c24a6fd6f4ea637e2ec48f4b471f44b22ae"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts set_step",
+        "observedOutputSha256": "d4dfad790e4344249b41cce7b9a15c24a6fd6f4ea637e2ec48f4b471f44b22ae"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5ab53972459bde5e484689f929c8067f61370fe733cc5062ea1f5518c09fdb4a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.get_step",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000get_step\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.get_step",
+        "sourceLine": 3932
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "15fd350d1e73d9875e5743a7c801e65a584d27a9a899f2219aaf8fb693462405",
+        "callsite": "res://probe.gd _init() length-loop-step-get_step",
+        "observedOutputSha256": "9d162ff36da117e0529a843097d3f79cfd44d3c375b1f0b513bf935a7321277c"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts get_step",
+        "observedOutputSha256": "9d162ff36da117e0529a843097d3f79cfd44d3c375b1f0b513bf935a7321277c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "641e9185c6bf258de4e53b32da21303bf3758ad675c1262fe11524f2e3f05be6"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.track_get_key_count",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000track_get_key_count\u0000hash:923996154",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.track_get_key_count",
+        "sourceLine": 1836
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "8f56e0334cbf771e0bd7114829a6ff68ba71f59feb2cd7dd4af66f5fd9a81384",
+        "callsite": "res://probe.gd _init() track_insert_key-value-track_get_key_count",
+        "observedOutputSha256": "552a34fb163fd0c26ce142aab946392666462104c3c6d75248462bb8bb89325a"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts track_get_key_count",
+        "observedOutputSha256": "552a34fb163fd0c26ce142aab946392666462104c3c6d75248462bb8bb89325a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3759b3742095de2760800a44d0b87891565a81e7022740bfaf5a30b8ec3bdf17"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.track_get_key_time",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000track_get_key_time\u0000hash:3085491603",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.track_get_key_time",
+        "sourceLine": 1972
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c3cf409a6d23d18184ad2fb91865925ae372501f35622f65bbec503e87727888",
+        "callsite": "res://probe.gd _init() track_insert_key-value-track_get_key_time",
+        "observedOutputSha256": "ce5f0486a1596401af6c95c6fe4ea21f436d0535bf083923f3a99bc50dafb566"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts track_get_key_time",
+        "observedOutputSha256": "ce5f0486a1596401af6c95c6fe4ea21f436d0535bf083923f3a99bc50dafb566"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e8dfb8dff7cf9857a1e266dfe2e5a4201715daa993ce5dbb4b11127eee95c7dd"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.track_get_key_transition",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000track_get_key_transition\u0000hash:3085491603",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.track_get_key_transition",
+        "sourceLine": 2155
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b2192b56e982f25f063242f7854187e326645f41a372e3feb561e597b3377cc5",
+        "callsite": "res://probe.gd _init() track_insert_key-value-track_get_key_transition",
+        "observedOutputSha256": "7bb309349853ccdf683f2b89d7ecf74af6740f066f21567bf4d822fcd6f90c87"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts track_get_key_transition",
+        "observedOutputSha256": "7bb309349853ccdf683f2b89d7ecf74af6740f066f21567bf4d822fcd6f90c87"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "15b227b4c2f09c87c8287605f042302416e43024143146950272ee2066b70ae5"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Animation.track_get_key_value",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Animation\u0000track_get_key_value\u0000hash:678354945",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/animation.cpp",
+        "sourceSymbol": "Animation.track_get_key_value",
+        "sourceLine": 1895
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4afae83772a7e6f91427490e55dca31aa3fe8a594e637477ada9e204ae6865d1",
+        "callsite": "res://probe.gd _init() track_insert_key-value-track_get_key_value",
+        "observedOutputSha256": "e03366b0528e6e70a11f7d20dde0b1fb1877658cbcbfeb902572cc690cbefe5f"
+      },
+      "target": {
+        "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b",
+        "callsite": "lib/godot-compat/animation.ts track_get_key_value",
+        "observedOutputSha256": "e03366b0528e6e70a11f7d20dde0b1fb1877658cbcbfeb902572cc690cbefe5f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5dc2c3014ed03161507bb20f795c75854bc946d3065525fd4a8ba6bb2b6483f9"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Animation.value_track_interpolate",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "75ec67b330f7bd6071adf66bf065b2a99d4201b4cf0ff973255807fa12db682d",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.position_track_interpolate",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "25ec1cad52c2ff42fbaeaa366b861ff239c5499d6dace02fa7373090fb28c8e4",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.scale_track_interpolate",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b34f17ca52178a1b1ac6f0e94a46eb9e84dff7aa59e0bb2df78d2694bc1d9d45",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.rotation_track_interpolate",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "93da83f232a902e9cd198ec03f67bbc1f9f4aab51d2a290908a512245ea0cca7",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.track_insert_key",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "30ce12fbc6fe8b72d219098d43770a1c2d4761ce2f4639c75e2700d456f6bc35",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.track_find_key",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c3993f1ac3c7e29a056959916398fd260a30d7ef51da84ec2af0d67738934203",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.method_track_get_name",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "238224d1c792e5605c5eb161a6bb96f29f68f8640bd31de2d30e55879e02a1f1",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.method_track_get_params",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "38d7c3d9a10831f6727dffd48217fe6e0f795149c68f2842ab0b1c79025b9fcc",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.add_track",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f349a2fb991f607196916f4d85c96ed89f8644adb588270606ab3fd09accc43b",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.track_get_type",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a30fc670439d7f00e9987bde8fb4ea0cbed5812035224a68e7eced20d9ad00ac",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.track_get_path",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d5f4bbd0e925d3da2e8c26dac2d82cae59f0f0693f447db5ea9e96102e604a61",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.find_track",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3011ff88840fda8f7cb12e0a6fbea99f56732ecc9f27adac20169e6c2f5aaf64",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.get_track_count",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "bf86e22bd6d6143c67f4d4d687f514227aa189e837f61b1b0ff96074624c0482",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.track_set_path",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "22ef43ef90dc65b7cfe0e4fedd12cf4c75eabf6441417b1557ecffdc30df7229",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.track_set_enabled",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "28e825981f50c41c95ed0ed9b638de22016e7df67e057af867168cbe89161b88",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.track_is_enabled",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2ca3488c474d6900d81282efd77cd59d02b6049f3f8e40c1fb3c42e5e3fca5cd",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.track_set_imported",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "629bcaf6d8e53150f7b2d874fb9c453d40125c9aa348011997a5645a38c0e453",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.track_is_imported",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e4d2e01dbfd3c773868d1922cf3843eaf384f2424e329de6b0aba94ba2cd21ea",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.track_set_interpolation_type",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "59c2194bfd41dbeef86340fff73b962dda178129bc2bc063031de29f45bece67",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.track_get_interpolation_type",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f56f50b19d44bbac9ed189a7658b65d4628f33e6772e73095f85b8af90303562",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.track_set_interpolation_loop_wrap",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "443e5750f94e173986d8ac83e2b6ac31336e497cbfe833f6a2f53d931b6610e2",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.track_get_interpolation_loop_wrap",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "39b20d8585c361192d36eb9e4efcf41710db1d0082f03dea028dd6bc09ba36a6",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.value_track_set_update_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ee9eb24ebe9f78477efe0861347a18f138f75e72e772ba1804275bad1a362542",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.value_track_get_update_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a244714a87c0290c2fdccf75e1a14f867c845abc76448d217c910945ed7e3a45",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.set_length",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "dde84fcc1be96d7a7fefab8c7bd3db9d0ca54197ca7b32f4162608ee30446b4d",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.get_length",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2b81efefbd9318ce7e761ad71ced2c9b417a9ea3233596abbc7f6c6c4d184cb9",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.set_loop_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "203d3ac93e3f4be7580184a29f94ef11e07c2cf00cbbeb278d04d8ce3e5fe392",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.get_loop_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "10d7bcbb97ae850d667dc462a1287158ae425b4ab22617521f471d0b1661e560",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.set_step",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9877ba6726a55a904d9b9cbd516f1f5ca7a03f979fc47d19ffedaf3ed080a7e7",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.get_step",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "15fd350d1e73d9875e5743a7c801e65a584d27a9a899f2219aaf8fb693462405",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.track_get_key_count",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "8f56e0334cbf771e0bd7114829a6ff68ba71f59feb2cd7dd4af66f5fd9a81384",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.track_get_key_time",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c3cf409a6d23d18184ad2fb91865925ae372501f35622f65bbec503e87727888",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.track_get_key_transition",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b2192b56e982f25f063242f7854187e326645f41a372e3feb561e597b3377cc5",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    },
+    {
+      "claimId": "godot-4.7-binding-Animation.track_get_key_value",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4afae83772a7e6f91427490e55dca31aa3fe8a594e637477ada9e204ae6865d1",
+      "implementationSha256": "fd42d617f665ade1c66c3da78580bf4608d23e0fba489a5443e5c3c6afb2727b"
+    }
+  ]
+}
