@@ -1,5 +1,6 @@
 /** The single public Godot compiler CLI: one import pipeline plus its whole-project sweep. */
 import { importGodotProject } from './import-project';
+import { runClosure } from './report/closure';
 import { runSweep } from './sweep';
 
 const USAGE = `usage: gd-analyze <command> [options]
@@ -11,6 +12,10 @@ const USAGE = `usage: gd-analyze <command> [options]
   sweep [fixture ...] --bound-exporter-binary <path>
            Run that same import pipeline over every pinned source fixture, or only
            the named fixtures, and report the first failed product gate per game.
+
+  closure [fixture ...] --bound-exporter-binary <path> [--out <file.json>]
+           Report (read-only) the Godot capabilities the pinned fixtures use: call targets,
+           unresolved calls, attributes, operators, node classes, resources, signals, assets.
 `;
 
 function fail(message: string): never {
@@ -65,6 +70,13 @@ export function runCli(argv: readonly string[]): number {
   }
   if (command === 'sweep') {
     return runSweep(positionals(rest, ['--bound-exporter-binary']), requiredExporter(rest));
+  }
+  if (command === 'closure') {
+    return runClosure(
+      positionals(rest, ['--bound-exporter-binary', '--out']),
+      requiredExporter(rest),
+      optionValue(rest, '--out'),
+    );
   }
   fail(`unknown command "${command}"`);
 }

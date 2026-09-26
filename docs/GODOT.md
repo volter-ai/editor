@@ -131,6 +131,86 @@ predate the 09-03 refactor. The three largest (`velocity/godot-endless-ui-code30
 the refactor deleted, and the server modules above. They are source material for single
 protocols, never merges.
 
+## The capability closure
+
+`gd-analyze closure` reports what the pinned corpus uses: the official compiler's selected call
+targets, the calls it left unresolved, attributes on typed bases, operators, node classes,
+resource types, signals and asset formats. The report is read-only. It reads Godot 4.6 projects with the
+pinned 4.7 frontend as a measuring instrument, and lists Godot 3 projects as unread. It is the
+denominator for "capture all the capabilities": compat and translation are complete for the
+corpus when every row the report prints is bound or planned.
+
+Measured 2026-09-25 over the five readable Godot 4 games: 147 call targets on about 40 classes,
+207 attributes, 49 operator forms, 35 node classes, 38 resource types and 16 asset formats.
+`starter-kit-fps` does not read yet. Its `preload` of a scene holding imported assets needs
+Godot's import cache, which only an editor build produces.
+
+## The compat contract
+
+This contract says what `godot-compat` is, and a mechanical check enforces it (`scripts/check-godot-compat.mjs`,
+run by the pre-commit hook). It applies ARCHITECTURE-CORE §10 and ARCHITECTURE.md rule 4 to one
+package. The owner's direction (2026-09-25) is that Godot's own source is readable, so every
+member is a transcription of that source, not a reconstruction from behaviour.
+
+**One module per Godot class.** `godot-compat/<kebab-name>.ts` holds the members of exactly one
+Godot class, built-in type or singleton, named as Godot names it: `character-body-3d.ts`,
+`vector3.ts`, `input.ts`, `global-scope.ts`. A module's header names its class
+(`@godot-class CharacterBody3D`) and its role: `BINDING` (onto an existing native library) or
+`PROTOCOL` (Godot semantics that no library supplies).
+
+**Exports are Godot's members, by Godot's names.** Every bound member is an exported function
+named exactly as Godot's method (`move_and_slide`, `normalized`, `get_velocity`), and its first
+parameter is the receiver. A property binds through the getter and setter ClassDB declares for it
+(the API dump names them), so every binding is a method binding. Operators are
+`op_<variant-operator>` functions in the left operand's module, and constructors are
+`construct`. Each export's doc comment carries `@godot Class.member` and `@source <file>:<line>` at
+the pinned revision.
+
+**Receivers are native.** A node's receiver is its native entity: the `THREE.Object3D` the
+generated JSX mounted (`Mesh`, `PerspectiveCamera`, a light), with its Rapier body or collider
+reachable from it; a `Control`'s receiver is its DOM element, as the Unity lane's uGUI already
+does. Godot state that no native object holds (a body's `velocity`, a node's groups, process mode)
+lives in a module-level `WeakMap` keyed by the native entity, in the module of the class that
+declares it. Compat indexes native identity; it never owns a second tree.
+
+**Built-in types are values.** `Vector3`, `Basis`, `Transform3D`, `Color`, `Plane`, `Rect2` and
+the rest are immutable records created only by their module. Components are stored as Godot stores
+them (`real_t` is 32-bit in the pinned build, so `Math.fround`). Code lowering gives Godot's value
+semantics explicitly: `v.x = 1` becomes a new value assigned back.
+
+**Forbidden, and checked:** a table or switch that selects behaviour by Godot class name; any
+module for a Godot server, `RenderingDevice`, XR/OpenXR or an `*Extension` class; a frame loop,
+timer loop or scheduler of compat's own (`requestAnimationFrame`, `setInterval`, a queue drained
+outside a host event); imports of `@volter/editor-*` or of a sibling capability; an export without
+`@godot` and `@source`. `godot-runtime` is gone. The generated composition site hands compat's
+lifecycle protocol the host's own events (R3F's frame, the Rapier step), and no Godot runtime
+package sits in between.
+
+**Untyped code is typed by analysis, not dispatched at runtime.** `analyze` gives a receiver the
+type Godot itself guarantees there, and records the rule as evidence:
+
+- an engine virtual's parameters (`_integrate_forces(state)`) take the virtual's declared types
+  from the API dump;
+- `$Path` and `get_node("Path")` take the class of the node at that path in every scene the script
+  is attached to (they must agree);
+- an untyped local takes its initializer's type while no other assignment reaches it.
+
+A call whose receiver is still unknown lowers to a callsite-local switch over the finite set of
+classes that can reach it, the pattern ARCHITECTURE-CORE already rules for dynamic resource paths.
+A call whose set is unbounded refuses.
+
+**Evidence is produced by an instrument, not written by hand.** `gd-analyze evidence <class>`
+runs a module's cases in two places and compares them. Each case sits in
+`evidence/godot-4.7/<class>.cases.ts`: GDScript run by the official Godot 4.7 binary headless, and
+the same inputs run through the compat export in Node. The command writes the
+`SemanticClaimRecord`s and the binding rows to `src/translate/code/authority/godot-4.7/<class>.json`.
+A node-level case builds its scene in both places and steps physics frames in both. The binding
+table loads those files; a row whose claim is not live refuses, as before.
+
+The compat that came back from the tag does not meet this contract. It is removed from the lane
+and rebuilt class by class from the closure. The Godot source is the authority, and the old module
+at the tag is a reference (vgai-engine `archive/godot-lane-2026-09-19:packages/editor/catalog/project-source/src/lib/godot-compat/`).
+
 ## What comes next
 
 Measured facts end above. From here on, this is proposal: the order in which to close the gap.
