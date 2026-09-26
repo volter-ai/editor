@@ -31,16 +31,19 @@ export const style: StyleContribution = {
       large: '0 6px 18px rgba(0,0,0,0.55)',
     },
     stage: {
-      // `HandleUtility.GetHandleSize` keeps a handle a constant size on screen; the stage's
-      // px per gizmo unit is fitted, not transcribed: at 128 the move arrows reach ~95 px on
-      // a 1x capture, as in `engine-reference/unity/PrimitiveCube.png`.
-      gizmoSize: 128,
+      // A handle is 80 points on screen whatever the distance (`HandleUtility.GetHandleSize`,
+      // `k_KHandleSize`), the radius of the rotate disc; the stage's ring radius is this many
+      // CSS px. The documentation's frames are small Scene views at about half scale, so their
+      // arrows look long beside the object; on screen they are these points.
+      gizmoSize: 80,
       // Unity's scene gizmo: cones round a grey cube (`Editor-SceneGizmo.png`).
       navigationGizmo: 'cones',
-      // Unity's move arrow is a thin shaft ending at the rotate ring, with a long cone head
-      // (`TransformGizmo35.png`, `game-objects-transform-modes.png`).
+      // `Handles.ArrowHandleCap`: a shaft to 0.9 of the handle and a cone centred at 1.0, scaled
+      // 0.2 of it. The cone mesh's own proportions are the editor's resource, so they are read
+      // off `TransformGizmo35.png` at 1x: a tip at about 1.1 handles and a cone about 0.25 of
+      // the handle long, 1.25 of three's head.
       gizmoArrowLength: 1.1,
-      gizmoArrowHead: 1.2,
+      gizmoArrowHead: 1.25,
       // The axis colours' alpha (`Handles.cs`); hover and drag are fixed colours (the palette).
       gizmoOpacity: 0.93,
       // `SceneViewGrid`: one-pixel lines at both levels, the ten-cell level a little stronger.
