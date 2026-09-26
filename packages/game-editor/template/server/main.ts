@@ -2,29 +2,9 @@
  * `npm run server` entry point — boots the Colyseus multiplayer server
  * (rooms.ts's registry, on ws://localhost:2567).
  *
- * THIS IS DELIBERATELY NOT A `process` RUN CONFIGURATION, and `npm run server`
- * is the only door to it. Declaring it in `vgai.project.json.configurations`
- * is what a project does once it HAS multiplayer, and the template does not:
- * nothing under `src/` constructs a Colyseus client or joins a room, so there
- * is no connection for `SystemAdapters.NetworkingAdapter` to describe and the
- * editor's Network panel would be dark. Declaring the half we ship without the
- * half we do not made every fresh scaffold open on a standing
- * `system.networking` coverage warning it could not act on -- measured
- * 2026-09-20 on a `--template game` scaffold, in edit mode, before any play:
- * *"this project declares a `server` block, so the editor's Network panel is
- * dark for a game that IS networked"* -- which was simply not true of a
- * template that joins nothing. Without the declaration the same row reads
- * terminal off the project's own file, and the scaffold is quiet.
- *
- * So the rooms below stay (they are the bootstrap a multiplayer game starts
- * from, and the e2e/loopback harnesses import this registry), and the run
- * configuration arrives WITH the client half -- `vgai add colyseus` copies in
- * the connection and the adapter binding together. If you add that half, add
- * the configuration back in the same commit:
- *   { "id": "server", "kind": "process", "entry": "server/main.ts",
- *     "command": "npx tsx --tsconfig server/tsconfig.json server/main.ts",
- *     "port": 2567 }
- * Do not add it back on its own -- that is the warning, restored.
+ * The project runs it as its `server` configuration (`vgai.project.json`), and Play starts it
+ * through `play + server`, before the game's client half (`src/net/`) joins `game_room`. Both
+ * arrive with the `server` addition; a project without it keeps these rooms and has neither.
  *
  * This is the standalone counterpart to the two existing harnesses that already start
  * `startColyseus` (colyseus-setup.ts): the e2e showcase's

@@ -1,9 +1,12 @@
+import { type ConfigurationStatus, listConfigurations } from '../host/api/configurations';
 import {
-  type ConfigurationStatus,
-  listConfigurations,
-  startConfiguration,
-  stopConfiguration,
-} from '../host/api/configurations';
+  chooseRunConfiguration,
+  chosenRunConfiguration,
+  PLAY_CONFIGURATION,
+  selectedRunConfiguration,
+  startSelectedRunConfiguration,
+  stopStartedRunConfiguration,
+} from '../play/run-selection';
 import { isGameplayExportActive, subscribeGameplayExport } from '@volter/editor-sdk/kit/gameplay-export-state';
 import { PLAY_CONTROL_TEST_ID } from '../host/play-control-hook';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
@@ -31,7 +34,6 @@ import {
   getRestartRequiredReason,
   pausePlayMode,
   resumePlayMode,
-  setDesiredExtraInstances,
   stepPlayMode,
   subscribeRestartRequired,
 } from '../play/play-mode';
@@ -288,36 +290,17 @@ export function PlayBar({ placement = 'launcher' }: { placement?: 'launcher' | '
   const selected = run.configurations.find((c) => c.id === run.selectedId) ?? null;
   const instances = selected?.kind === 'compound' ? (selected.instances ?? null) : null;
   const play = async () => {
-    if (selected && selected.kind !== PLAY_ID) {
-      const outcome = await startConfiguration(selected.id).catch((error: unknown) => {
-        editorHost().notify({
-          tone: 'error',
-          title: `Run "${selected.id}"`,
-          detail: error instanceof Error ? error.message : String(error),
-        });
-        return null;
-      });
-      if (!outcome) return;
-      if (!outcome.ready) {
-        editorHost().notify({
-          tone: 'error',
-          title: `Run "${selected.id}" is not ready`,
-          detail: Object.entries(outcome.logs)
-            .map(([id, lines]) => `${id}: ${lines.slice(-3).join(' | ') || 'no output'}`)
-            .join('\n'),
-        });
-        return;
-      }
-      if (instances !== null) setDesiredExtraInstances(Math.max(0, instances - 1));
-      void run.refresh();
+    const start = await startSelectedRunConfiguration();
+    if (!start.ok) {
+      editorHost().notify({ tone: 'error', title: start.title, detail: start.detail });
+      return;
     }
+    if (start.started) void run.refresh();
     await enterPlayMode();
   };
   const stop = () => {
     exitPlayMode();
-    if (selected && selected.kind !== PLAY_ID) {
-      void stopConfiguration(selected.id).then(() => run.refresh());
-    }
+    void stopStartedRunConfiguration().then(() => run.refresh());
   };
   return (
     <PlayBarView
@@ -388,8 +371,7 @@ function PlayOptions() {
 }
 
 /** The implicit configuration: mount every root in the host. */
-const PLAY_ID = 'play';
-const RUN_SELECTION_SECTION = 'runSelection';
+const PLAY_ID = PLAY_CONFIGURATION;
 
 interface RunState {
   readonly configurations: readonly ConfigurationStatus[];
@@ -403,9 +385,7 @@ interface RunState {
  *  document, the way an IDE remembers the chosen launch configuration. */
 function useRunConfigurations(): RunState {
   const [declared, setDeclared] = useState<readonly ConfigurationStatus[]>([]);
-  const [selectedId, setSelectedId] = useState<string>(
-    () => editorHost().projectLocalState.read<string>(RUN_SELECTION_SECTION) ?? PLAY_ID,
-  );
+  const [chosenId, setChosenId] = useState<string | null>(chosenRunConfiguration);
   const refresh = useCallback(async () => {
     const list = await listConfigurations().catch(() => []);
     setDeclared(list);
@@ -426,9 +406,10 @@ function useRunConfigurations(): RunState {
     ],
     [declared],
   );
+  const selectedId = selectedRunConfiguration(declared, chosenId);
   const select = useCallback((id: string) => {
-    setSelectedId(id);
-    editorHost().projectLocalState.write(RUN_SELECTION_SECTION, id);
+    setChosenId(id);
+    chooseRunConfiguration(id);
   }, []);
   return { configurations, selectedId, select, refresh };
 }

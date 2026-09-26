@@ -14,8 +14,9 @@
  * Degradation ladder rendered honestly (W3a contract, first system-adapter
  * consumer): no adapter → the register-an-adapter notice; an adapter missing
  * an optional capability → that section says "not provided by this adapter";
- * nothing is ever fabricated. Editor code never imports Colyseus here — only
- * the `NetworkingAdapter` interface (net-import-ban).
+ * nothing is ever fabricated. The panel reads only the `NetworkingAdapter`
+ * interface: the game's own, or the editor's observer of its Colyseus rooms
+ * (`services/game-network.ts`).
  *
  * Mounted as the `network` workspace utility (drawer tab beside
  * Console/Profiler, `core-utilities.tsx`), available only while a

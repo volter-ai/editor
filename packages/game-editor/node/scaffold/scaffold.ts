@@ -47,6 +47,9 @@ import {
   type ScaffoldAddition,
   STUDIO_OWNED_PATHS,
   THREE_OWNED_PATHS,
+  NETWORKED_INPUT_LINES,
+  NETWORKED_WORLD_LINES,
+  SERVER_CLIENT_PATHS,
   withAgentsContract,
   withEditorDeclaration,
 } from './additions';
@@ -1398,6 +1401,32 @@ function rewriteTemplateVariantFiles(
   // (ARCHITECTURE-CORE §The target shape, rule 4), and the name came from the
   // product, never from this library.
   writeEditorPackages(targetDir, composition.editorPackages);
+  if (additions.has('server') && additions.has('three')) {
+    const inputPath = join(targetDir, 'src', 'input.ts');
+    let input = readFileSync(inputPath, 'utf-8');
+    for (const [line, replacement] of NETWORKED_INPUT_LINES) {
+      if (!input.includes(line)) {
+        throw new Error(`The template input store no longer declares its actions as expected: ${line}`);
+      }
+      input = input.replace(line, replacement);
+    }
+    writeFileSync(inputPath, input, 'utf-8');
+  } else {
+    for (const relative of SERVER_CLIENT_PATHS) {
+      rmSync(join(targetDir, relative), { recursive: true, force: true });
+    }
+    const worldPath = join(targetDir, 'src', 'world.tsx');
+    if (existsSync(worldPath)) {
+      let world = readFileSync(worldPath, 'utf-8');
+      for (const line of NETWORKED_WORLD_LINES) {
+        if (!world.includes(line)) {
+          throw new Error(`The template world no longer mounts the multiplayer client as expected: ${line.trim()}`);
+        }
+        world = world.replace(line, '');
+      }
+      writeFileSync(worldPath, world, 'utf-8');
+    }
+  }
   if (!additions.has('three')) {
     // No 3D world: the template's composition goes, and the adapter declares
     // no region of its own (the additions that stay declare theirs).

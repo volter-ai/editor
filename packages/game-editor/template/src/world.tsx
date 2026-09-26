@@ -14,6 +14,7 @@ import { useEffect } from 'react';
 import * as THREE from 'three';
 import { QaTester } from './bot/QaTester';
 import { attachKeyboard } from './input';
+import { NetworkedPlayers } from './net/NetworkedPlayers';
 import { MainScene } from './scenes/MainScene';
 
 /** Renderer finish is project-owned state, restored when this world unmounts. */
@@ -77,6 +78,7 @@ function World() {
           `game.run(({ modules }) => …)` like every other module. */}
       <QaTester />
       <Scene name="Main Scene" />
+      <NetworkedPlayers name="Networked Players" />
     </>
   );
 }

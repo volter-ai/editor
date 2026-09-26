@@ -9,8 +9,8 @@
  * pause/filter, the sparkline sample history, and the polyline geometry —
  * lives here.
  *
- * Editor code never imports Colyseus (net-import-ban) — only the
- * `NetworkingAdapter` interface.
+ * The inspector reads only the `NetworkingAdapter` interface; decoding a
+ * game's Colyseus rooms is the observer's (`services/game-network.ts`).
  */
 
 import type {

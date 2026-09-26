@@ -12,7 +12,15 @@
     "height": 720
   },
   "configurations": [
-    { "id": "web", "kind": "bundle", "script": "build", "args": ["--base", "./"] }
+    { "id": "web", "kind": "bundle", "script": "build", "args": ["--base", "./"] },
+    {
+      "id": "server",
+      "kind": "process",
+      "entry": "server/main.ts",
+      "command": "npx tsx --tsconfig server/tsconfig.json server/main.ts",
+      "port": 2567
+    },
+    { "id": "play + server", "kind": "compound", "run": ["server", "play"] }
   ],
   "roots": [
     {

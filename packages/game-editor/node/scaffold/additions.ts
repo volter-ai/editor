@@ -87,6 +87,37 @@ export const THREE_OWNED_PATHS = [
 ] as const;
 
 /**
+ * The multiplayer client half the `server` addition brings: joining the room and drawing its
+ * players in the 3D world. Without the server, or without a world to draw in, it goes, and the
+ * world stops mounting it ({@link NETWORKED_WORLD_LINES}).
+ */
+export const SERVER_CLIENT_PATHS = ['src/net'] as const;
+
+/** The template world's two lines that mount the client half. */
+export const NETWORKED_WORLD_LINES = [
+  "import { NetworkedPlayers } from './net/NetworkedPlayers';\n",
+  '      <NetworkedPlayers name="Networked Players" />\n',
+] as const;
+
+/**
+ * The control scheme the multiplayer client half moves by, written into the template's empty
+ * input store (`src/input.ts`) when the `server` addition brings that client: each pair is the
+ * template's line and the line that replaces it.
+ */
+export const NETWORKED_INPUT_LINES = [
+  [
+    'export const gameActions = [] as const satisfies readonly string[];',
+    "export const gameActions = ['forward', 'back', 'left', 'right'] as const satisfies readonly string[];",
+  ],
+  [
+    'const keyActions: Readonly<Record<string, GameAction>> = {};',
+    'const keyActions: Readonly<Record<string, GameAction>> = {\n' +
+      "  KeyW: 'forward',\n  ArrowUp: 'forward',\n  KeyS: 'back',\n  ArrowDown: 'back',\n" +
+      "  KeyA: 'left',\n  ArrowLeft: 'left',\n  KeyD: 'right',\n  ArrowRight: 'right',\n};",
+  ],
+] as const;
+
+/**
  * THE PACKAGES THIS KIT ITSELF PUTS IN EVERY PROJECT, and therefore the ones
  * the scaffolder must NOT mistake for a product's composition.
  *

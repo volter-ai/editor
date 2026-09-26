@@ -327,9 +327,13 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
         if (typeof csp === 'string' && csp.includes('frame-src')) {
           // GLTFLoader fetches local blob textures; img-src alone cannot
           // authorize that fetch. Media previews use local blobs as well.
+          // A game running in this page talks to the processes its project
+          // runs beside it on this machine (a Colyseus room server's
+          // matchmaking is plain http on its own port): loopback http, any
+          // port, and nothing beyond this machine.
           headers['content-security-policy'] = csp
             .replace(/frame-src([^;]*)/, `frame-src$1 ${webviewOriginPattern}`)
-            .replace(/connect-src([^;]*)/, 'connect-src$1 blob:')
+            .replace(/connect-src([^;]*)/, 'connect-src$1 blob: http://127.0.0.1:* http://localhost:*')
             .replace(/media-src([^;]*)/, 'media-src$1 blob:');
         }
         const type = String(headers['content-type'] ?? '');
