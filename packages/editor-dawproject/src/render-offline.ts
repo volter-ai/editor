@@ -160,7 +160,13 @@ export interface BeatWindow {
  * walk over the whole track, so a section performed on its own would drift differently), and each
  * controller's value at the window's start carried in.
  */
-function synthEvents(piece: Piece, passes: number, sampleRate: number, window?: BeatWindow): { events: SynthEvent[]; loopSeconds: number } {
+function synthEvents(
+  piece: Piece,
+  passes: number,
+  sampleRate: number,
+  window: BeatWindow | undefined,
+  bankOffset: ReadonlyMap<string, number>,
+): { events: SynthEvent[]; loopSeconds: number } {
   const performance = perform(piece);
   const assignments = assignChannels(piece);
   const channelOf = new Map([...assignments].map(([trackId, assignment]) => [trackId, assignment.channel]));
@@ -187,7 +193,7 @@ function synthEvents(piece: Piece, passes: number, sampleRate: number, window?: 
       rank: 0,
       apply: (synth) => {
         if (channel !== DRUM_CHANNEL) {
-          synth.controllerChange(channel, 0 as never, assignment.bankNumber);
+          synth.controllerChange(channel, 0 as never, (bankOffset.get(assignment.bank) ?? 0) + assignment.bankNumber);
           synth.programChange(channel, assignment.program);
         }
         synth.controllerChange(channel, 7 as never, 127);
@@ -235,7 +241,8 @@ function synthEvents(piece: Piece, passes: number, sampleRate: number, window?: 
  */
 export async function renderChannels(
   piece: Piece,
-  soundBank: ArrayBuffer,
+  /** Every sound bank the piece's soundfont devices name, by project path. */
+  soundBanks: ReadonlyMap<string, ArrayBuffer>,
   sampleRate = 48_000,
   tailSeconds = 4,
   irs: ReadonlyMap<string, ImpulseResponse> = new Map(),
@@ -243,12 +250,23 @@ export async function renderChannels(
   window?: BeatWindow,
 ): Promise<RenderedChannels> {
   const synth = new SpessaSynthProcessor(sampleRate, { eventsEnabled: false });
-  synth.soundBankManager.addSoundBank(SoundBankLoader.fromArrayBuffer(soundBank), 'main');
+  // Each bank at its own offset, one above the highest bank number already loaded, so a track's
+  // `params.bank` is the bank it plays: its channel selects `offset + bankNumber`.
+  const bankOffset = new Map<string, number>();
+  let next = 0;
+  for (const path of new Set([...assignChannels(piece).values()].map((assignment) => assignment.bank))) {
+    const bytes = soundBanks.get(path);
+    if (!bytes) throw new Error(`The sound bank ${path} was not loaded.`);
+    const bank = SoundBankLoader.fromArrayBuffer(bytes);
+    synth.soundBankManager.addSoundBank(bank, path, next);
+    bankOffset.set(path, next);
+    next += Math.max(0, ...bank.presets.map((preset) => preset.bankMSB).filter((msb) => msb < 128)) + 1;
+  }
   await synth.processorInitialized;
   synth.setSystemParameter('autoAllocateVoices', true);
   // The mix owns space and level (`mix/offline-mix.ts`): the synth's own reverb and chorus are off.
   synth.setSystemParameter('effectsEnabled', false);
-  const { events, loopSeconds } = synthEvents(piece, passes, sampleRate, window);
+  const { events, loopSeconds } = synthEvents(piece, passes, sampleRate, window, bankOffset);
   const total = Math.ceil(sampleRate * (passes * loopSeconds + tailSeconds));
   const channels = Array.from({ length: 16 }, () => [new Float32Array(total), new Float32Array(total)] as [Float32Array, Float32Array]);
   const effectsLeft = new Float32Array(total);
@@ -306,18 +324,6 @@ export function mixOneShot(rendered: RenderedChannels, only?: ReadonlySet<string
     for (let i = 0; i < fade; i++) channel[channel.length - fade + i]! *= (fade - 1 - i) / Math.max(1, fade - 1);
   }
   return { sampleRate, left, right, loopSeconds: left.length / sampleRate };
-}
-
-/** Render one seamless loop of the piece (its channels, then the mix). */
-export async function renderLoop(
-  piece: Piece,
-  soundBank: ArrayBuffer,
-  sampleRate = 48_000,
-  tailSeconds = 4,
-  only?: ReadonlySet<string>,
-  irs: ReadonlyMap<string, ImpulseResponse> = new Map(),
-): Promise<RenderedLoop> {
-  return mixLoop(await renderChannels(piece, soundBank, sampleRate, tailSeconds, irs), only);
 }
 
 /** The loop seam: the step across the wrap against the typical sample-to-sample step. Under 1 means no click. */

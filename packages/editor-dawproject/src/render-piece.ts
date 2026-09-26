@@ -54,10 +54,14 @@ export async function renderPiece({
     const problems: string[] = [...checkPiece(piece).problems];
 
     const assignments = assignChannels(piece);
-    const bankPath = [...assignments.values()][0]?.bank;
-    if (!bankPath) throw new Error('No track has a soundfont device; there is nothing to render.');
-    const bankBytes = readFileSync(resolve(project, bankPath));
-    const bank = bankBytes.buffer.slice(bankBytes.byteOffset, bankBytes.byteOffset + bankBytes.byteLength);
+    if (assignments.size === 0) throw new Error('No track has a soundfont device; there is nothing to render.');
+    // Every bank a soundfont device names, read from the project.
+    const bank = new Map<string, ArrayBuffer>();
+    for (const { bank: path } of assignments.values()) {
+      if (bank.has(path)) continue;
+      const bytes = readFileSync(resolve(project, path));
+      bank.set(path, bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+    }
     // Impulse responses the piece's convolution devices name, read from the project.
     const irs = new Map<string, ImpulseResponse>();
     for (const track of piece.tracks) {

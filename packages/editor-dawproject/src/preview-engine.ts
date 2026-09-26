@@ -23,14 +23,18 @@ import processorUrl from 'spessasynth_lib/dist/spessasynth_processor.min.js?url'
 
 const LOOKAHEAD_S = 0.2;
 
-/** Each track's channel set to its preset, at unity level and centre (the mix's strips apply the channel's own). */
-export function setUpVoices(synth: WorkletSynthesizer, piece: Piece): void {
+/**
+ * Each track's channel set to its preset, at unity level and centre (the mix's strips apply the
+ * channel's own). `bankOffset` is where each bank was loaded: the channel selects its offset plus
+ * the device's `bankNumber`, so a track plays the bank its device names.
+ */
+export function setUpVoices(synth: WorkletSynthesizer, piece: Piece, bankOffset: ReadonlyMap<string, number>): void {
   const voices = trackVoices(piece);
   for (const track of piece.tracks) {
     const voice = voices.get(track.id);
     if (!voice) continue;
     if (voice.channel !== DRUM_CHANNEL) {
-      synth.controllerChange(voice.channel, 0, voice.bankNumber);
+      synth.controllerChange(voice.channel, 0, (voice.bank ? (bankOffset.get(voice.bank) ?? 0) : 0) + voice.bankNumber);
       synth.programChange(voice.channel, voice.program);
     }
     // Level and pan are the mix's faders and panners (`mix/live-mix.ts`), not the synth's
@@ -140,7 +144,8 @@ export class PreviewEngine {
   /** The mix graph the synth's channel outputs feed (`mix/live-mix.ts`). */
   private mix: LiveMix | null = null;
   private mixBuiltFor = '';
-  private readonly loadedBanks = new Set<string>();
+  /** Each loaded bank's offset: one above the highest bank number loaded before it, kept for the engine's life. */
+  private readonly bankOffsets = new Map<string, number>();
   private timer: ReturnType<typeof setInterval> | null = null;
   private piece: Piece | null = null;
   /** The piece's performance (`perform`): what the export renders, scheduled here live. */
@@ -274,19 +279,20 @@ export class PreviewEngine {
     const synth = this.synth;
     if (!synth) return;
     for (const voice of trackVoices(piece).values()) {
-      if (!voice?.bank || this.loadedBanks.has(voice.bank)) continue;
+      if (!voice?.bank || this.bankOffsets.has(voice.bank)) continue;
       this.setState({ kind: 'loading', detail: `Loading ${voice.bank}` });
       const url = projectModuleUrl(voice.bank);
       if (!url) throw new Error(`No served address for ${voice.bank}.`);
       const response = await fetch(url);
       if (!response.ok) throw new Error(`${voice.bank}: ${response.status} ${response.statusText}`);
-      await synth.soundBankManager.addSoundBank(await response.arrayBuffer(), voice.bank);
-      this.loadedBanks.add(voice.bank);
+      const offset = Math.max(-1, ...synth.presetList.map((preset) => preset.bankMSB).filter((msb) => msb < 128)) + 1;
+      await synth.soundBankManager.addSoundBank(await response.arrayBuffer(), voice.bank, offset);
+      this.bankOffsets.set(voice.bank, offset);
     }
   }
 
   private applyMix(piece: Piece): void {
-    if (this.synth) setUpVoices(this.synth, piece);
+    if (this.synth) setUpVoices(this.synth, piece, this.bankOffsets);
   }
 
   private tick(): void {
