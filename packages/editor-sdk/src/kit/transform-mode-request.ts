@@ -27,7 +27,7 @@
  * invent a sentence to paraphrase it with.
  */
 
-import { getActiveAuthoring } from './authoring/active-adapter';
+import { getActiveAuthoring, storeAuthoring } from './authoring/active-adapter';
 import type { TransformMode } from '@volter/editor-sdk/kit/shell-store';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
 import { transformLockSummary } from '@volter/editor-sdk/kit/hierarchy-row-model';
@@ -44,7 +44,8 @@ export function requestTransformMode(store: ShellStore, mode: TransformMode): vo
   if (mode === 'select') return;
   const ids = [...store.selectedEntityIds];
   if (ids.length === 0) return;
-  const editability = getActiveAuthoring(store).transforms?.editability;
+  // The store's own adapter first: a document stage's selection is its document's.
+  const editability = (storeAuthoring(store) ?? getActiveAuthoring(store)).transforms?.editability;
   if (!editability) return;
   let reason: string | undefined;
   for (const id of ids) {
