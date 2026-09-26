@@ -4641,7 +4641,32 @@ def outliner_set(path, column, value):
         % (column, target.bl_rna.identifier, path))
 
 
+# REQUESTS THAT CAN REMOVE OBJECTS, watched: a removal is reported with its cause, because an
+# object that disappears without a named act is the loss this session must never hide. A scene
+# was once found emptied and saved over its file by a burst of three edits at boot, with nothing
+# recording which requests they were.
+_WATCHED_OPS = ("execute", "rna-set", "outliner-set", "history-step")
+
+
 def dispatch(request):
+    op = request.get("op")
+    if op not in _WATCHED_OPS:
+        return _dispatch_request(request)
+    before = {o.name for o in bpy.data.objects}
+    try:
+        return _dispatch_request(request)
+    finally:
+        removed = before - {o.name for o in bpy.data.objects}
+        if removed:
+            cause = {k: request[k] for k in ("label", "property", "column", "direction", "token", "path")
+                     if k in request}
+            if op == "execute":
+                cause["code"] = str(request.get("code", ""))[:160]
+            _say("@@VGAI-WARN %s removed objects %s (%s); %d remain" % (
+                op, sorted(removed), json.dumps(cause), len(bpy.data.objects)))
+
+
+def _dispatch_request(request):
     op = request.get("op")
     if op == "history-begin":
         HISTORY.begin()
