@@ -21,7 +21,7 @@
  * reads `initialAttenuation` at 0.4 of its value (the E-mu convention), so N dB is written as 25·N.
  */
 
-import { BasicInstrument, BasicPreset, BasicSoundBank, EmptySample, GeneratorTypes, SampleTypes } from 'spessasynth_core';
+import { BasicInstrument, BasicPreset, BasicSoundBank, EmptySample, GeneratorTypes, type SampleEncodingFunction, SampleTypes } from 'spessasynth_core';
 
 export interface SfzPatch {
   /** The preset's name in the bank. */
@@ -123,8 +123,14 @@ export function sfzHeadroom(patches: readonly SfzPatch[]): number {
   return headroom;
 }
 
-/** The bank's bytes: one preset per patch, `headroomDb` below the SFZ's own level (default: what these patches need). */
-export function sfzBank(patches: readonly SfzPatch[], headroomDb?: number): ArrayBuffer {
+/**
+ * The bank's bytes: one preset per patch, `headroomDb` below the SFZ's own level (default: what
+ * these patches need). With `compress`, an SF3: every sample Ogg Vorbis. The engine keeps an SF3's
+ * samples compressed and decodes one when a note first plays it, so a piece holds the samples it
+ * uses rather than the whole bank: nine uncompressed banks took an editor tab from 259 MB to
+ * 1,460 MB.
+ */
+export async function sfzBank(patches: readonly SfzPatch[], headroomDb?: number, compress?: SampleEncodingFunction): Promise<ArrayBuffer> {
   const converted = convertedRegions(patches);
   const audio = new Map<string, { readonly channels: readonly Float32Array[]; readonly sampleRate: number }>();
   const gainOf = new Map<string, number>();
@@ -187,5 +193,6 @@ export function sfzBank(patches: readonly SfzPatch[], headroomDb?: number): Arra
     preset.createZone(instrument);
     bank.addPresets(preset);
   }
+  if (compress) await bank.setSampleFormat({ format: 'compressed', compressionFunction: compress });
   return bank.writeSF2();
 }

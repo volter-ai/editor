@@ -16,6 +16,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { type SfzPatch, sfzBank, sfzHeadroom } from '../src/sfz-bank';
 import { readWav } from '../src/wav';
+import { oggenc } from './oggenc';
 
 interface TableBank {
   readonly bank: string;
@@ -32,8 +33,8 @@ function patchesIn(library: string, entries: TableBank['patches']): SfzPatch[] {
   }));
 }
 
-function write(out: string, patches: readonly SfzPatch[], headroomDb?: number): void {
-  const bytes = sfzBank(patches, headroomDb);
+async function write(out: string, patches: readonly SfzPatch[], headroomDb?: number): Promise<void> {
+  const bytes = await sfzBank(patches, headroomDb, out.endsWith('.sf3') ? oggenc : undefined);
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, new Uint8Array(bytes));
   console.log(`Wrote ${out}: ${patches.map((patch) => `${patch.name} (${patch.program})`).join(', ')}, ${(bytes.byteLength / 1e6).toFixed(1)} MB`);
@@ -51,7 +52,7 @@ if (args[0] === '--table') {
   // One headroom for the whole library, so instruments keep their balance across banks.
   const headroom = Math.max(...table.banks.map((bank) => sfzHeadroom(patchesIn(library, bank.patches))));
   console.log(`Library headroom: ${headroom.toFixed(1)} dB`);
-  for (const bank of table.banks) write(join(resolve(outArg), bank.bank), patchesIn(library, bank.patches), headroom);
+  for (const bank of table.banks) await write(join(resolve(outArg), bank.bank), patchesIn(library, bank.patches), headroom);
 } else {
   const [outArg, libraryArg, ...specs] = args;
   if (!outArg || !libraryArg || specs.length === 0) {
@@ -63,5 +64,5 @@ if (args[0] === '--table') {
     if (!name || !file || !Number.isInteger(Number(program))) throw new Error(`${spec}: expected name:program:file.sfz`);
     return { name, program: Number(program), sfz: file.replace(/^sfz\//, '') };
   });
-  write(resolve(outArg), patchesIn(resolve(libraryArg), entries));
+  await write(resolve(outArg), patchesIn(resolve(libraryArg), entries));
 }

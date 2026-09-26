@@ -3,7 +3,7 @@
   "source": "https://github.com/sgossner/VSCO-2-CE (samples: master; SFZ: branch SFZ)",
   "banks": [
     {
-      "bank": "vsco2/violins.sf2",
+      "bank": "vsco2/violins.sf3",
       "patches": [
         {
           "name": "Violins",
@@ -33,7 +33,7 @@
       ]
     },
     {
-      "bank": "vsco2/violas.sf2",
+      "bank": "vsco2/violas.sf3",
       "patches": [
         {
           "name": "Violas",
@@ -63,7 +63,7 @@
       ]
     },
     {
-      "bank": "vsco2/cellos.sf2",
+      "bank": "vsco2/cellos.sf3",
       "patches": [
         {
           "name": "Cellos",
@@ -93,7 +93,7 @@
       ]
     },
     {
-      "bank": "vsco2/contrabass.sf2",
+      "bank": "vsco2/contrabass.sf3",
       "patches": [
         {
           "name": "Contrabass",
@@ -128,7 +128,7 @@
       ]
     },
     {
-      "bank": "vsco2/solo-violin.sf2",
+      "bank": "vsco2/solo-violin.sf3",
       "patches": [
         {
           "name": "Solo Violin",
@@ -158,7 +158,7 @@
       ]
     },
     {
-      "bank": "vsco2/harp.sf2",
+      "bank": "vsco2/harp.sf3",
       "patches": [
         {
           "name": "Harp",
@@ -168,7 +168,7 @@
       ]
     },
     {
-      "bank": "vsco2/flute.sf2",
+      "bank": "vsco2/flute.sf3",
       "patches": [
         {
           "name": "Flute",
@@ -193,7 +193,7 @@
       ]
     },
     {
-      "bank": "vsco2/piccolo.sf2",
+      "bank": "vsco2/piccolo.sf3",
       "patches": [
         {
           "name": "Piccolo",
@@ -208,7 +208,7 @@
       ]
     },
     {
-      "bank": "vsco2/oboe.sf2",
+      "bank": "vsco2/oboe.sf3",
       "patches": [
         {
           "name": "Oboe",
@@ -228,7 +228,7 @@
       ]
     },
     {
-      "bank": "vsco2/clarinet.sf2",
+      "bank": "vsco2/clarinet.sf3",
       "patches": [
         {
           "name": "Clarinet",
@@ -243,7 +243,7 @@
       ]
     },
     {
-      "bank": "vsco2/bassoon.sf2",
+      "bank": "vsco2/bassoon.sf3",
       "patches": [
         {
           "name": "Bassoon",
@@ -263,7 +263,7 @@
       ]
     },
     {
-      "bank": "vsco2/horn.sf2",
+      "bank": "vsco2/horn.sf3",
       "patches": [
         {
           "name": "French Horn",
@@ -283,7 +283,7 @@
       ]
     },
     {
-      "bank": "vsco2/trumpet.sf2",
+      "bank": "vsco2/trumpet.sf3",
       "patches": [
         {
           "name": "Trumpet",
@@ -313,7 +313,7 @@
       ]
     },
     {
-      "bank": "vsco2/trombone.sf2",
+      "bank": "vsco2/trombone.sf3",
       "patches": [
         {
           "name": "Trombone",
@@ -333,7 +333,7 @@
       ]
     },
     {
-      "bank": "vsco2/tuba.sf2",
+      "bank": "vsco2/tuba.sf3",
       "patches": [
         {
           "name": "Tuba",
@@ -348,7 +348,7 @@
       ]
     },
     {
-      "bank": "vsco2/timpani.sf2",
+      "bank": "vsco2/timpani.sf3",
       "patches": [
         {
           "name": "Timpani",
@@ -363,7 +363,7 @@
       ]
     },
     {
-      "bank": "vsco2/mallets.sf2",
+      "bank": "vsco2/mallets.sf3",
       "patches": [
         {
           "name": "Glockenspiel",
@@ -388,7 +388,7 @@
       ]
     },
     {
-      "bank": "vsco2/organ.sf2",
+      "bank": "vsco2/organ.sf3",
       "patches": [
         {
           "name": "Organ Loud",
@@ -413,7 +413,7 @@
       ]
     },
     {
-      "bank": "vsco2/piano.sf2",
+      "bank": "vsco2/piano.sf3",
       "patches": [
         {
           "name": "Upright Piano",
@@ -428,7 +428,7 @@
       ]
     },
     {
-      "bank": "vsco2/percussion.sf2",
+      "bank": "vsco2/percussion.sf3",
       "patches": [
         {
           "name": "Percussion",

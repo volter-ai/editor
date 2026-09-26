@@ -1,11 +1,11 @@
 /**
  * `vsco2-ce [cache dir]` — VS Chamber Orchestra 2 Community Edition (CC0, Versilian Studios) as
- * SoundFont banks, one per instrument (`banks/vsco2-ce.json`), built into a machine-wide cache
+ * SF3 banks (Vorbis-compressed, 194 MB in all), one per instrument (`banks/vsco2-ce.json`), built into a machine-wide cache
  * (default `~/.volter/banks/vsco2-ce`): the SFZ files and just the samples the conversion reads
  * are fetched from the library's repository (skipping what is already there), then every bank is
  * built at one headroom. A project reaches them through a link:
  * `ln -sfn ~/.volter/banks/vsco2-ce/vsco2 sounds/vsco2`, and a track names
- * `params={{ bank: 'sounds/vsco2/violins.sf2', program: 48 }}`. Run under `tsx`.
+ * `params={{ bank: 'sounds/vsco2/violins.sf3', program: 48 }}`. Run under `tsx`.
  */
 
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
@@ -14,6 +14,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sfzBank, sfzHeadroom, sfzSamples } from '../src/sfz-bank';
 import { readWav } from '../src/wav';
+import { oggenc } from './oggenc';
 
 const REPOSITORY = 'https://raw.githubusercontent.com/sgossner/VSCO-2-CE';
 const cache = resolve(process.argv[2] ?? join(homedir(), '.volter', 'banks', 'vsco2-ce'));
@@ -54,7 +55,7 @@ const headroom = Math.max(...table.banks.map((bank) => sfzHeadroom(patchesOf(ban
 for (const bank of table.banks) {
   const out = join(cache, bank.bank);
   mkdirSync(dirname(out), { recursive: true });
-  writeFileSync(out, new Uint8Array(sfzBank(patchesOf(bank), headroom)));
+  writeFileSync(out, new Uint8Array(await sfzBank(patchesOf(bank), headroom, out.endsWith('.sf3') ? oggenc : undefined)));
   console.log(`${bank.bank}: ${bank.patches.map((patch) => `${patch.name} (${patch.program})`).join(', ')}`);
 }
 console.log(`Built ${table.banks.length} banks in ${cache} (headroom ${headroom.toFixed(1)} dB).`);

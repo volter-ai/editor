@@ -87,7 +87,7 @@ recorded it, and the rest of its notes to `program`:
 
 ```tsx
 <Device plugin="soundfont" name="Violins" params={{
-  bank: 'sounds/vsco2/violins.sf2', program: 48,
+  bank: 'sounds/vsco2/violins.sf3', program: 48,
   articulations: { staccato: 80, staccatissimo: 80, pizzicato: 45, tremolo: 44 },
 }} />
 ```
@@ -100,7 +100,7 @@ expressive 101); piccolo 72 (107); oboe 68 (102, non-vibrato 103); clarinet 71 (
 bassoon 70 (105, vibrato 106); horn 60 (staccato 108, muted 109); trumpet 56 (110, vibrato
 111, straight mute 59, harmon 112); trombone 57 (113, vibrato 114); tuba 58 (115); timpani 47
 (rolls 116); mallets: glockenspiel 9, marimba 12, xylophone 13, tubular bells 14; organ 19,
-quiet 20 (pedals 117, 118); upright piano 0 and 1; percussion: `percussion.sf2`, `program: 49,
+quiet 20 (pedals 117, 118); upright piano 0 and 1; percussion: `percussion.sf3`, `program: 49,
 drums: true` (on the drum channel the program chooses the kit). Mind each instrument's real range: the violin section starts at G3.
 `pizzicato` or `tremolo` on an instrument with no patch for it is a `check-piece` problem.
 
