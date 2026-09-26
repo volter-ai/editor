@@ -175,16 +175,15 @@ Remaining:
    render control, instruments) lives in `editor-game/src/runtime`; `game-runtime` keeps only
    helpers a game may call, and imports nothing of the editor. Walked under the packaged server:
    the template's `full` and `website` projects play and build; `arena`, on the editor's local
-   `@volter` copy with its own input store (it lives in no repository; vgai-engine's
-   `examples/arena` still imports `@vgai/game-runtime`), plays with no console error, moves
+   `@volter` copy with its own input store (now `examples/arena` in this repository), plays with
+   no console error, moves
    and fires through the input door, and reads "Moves the physics body that owns this node." on
    EnemyBody; a scratch canvas project plays and animates. The observer also answers a body's
    colliders and joints, and the design session gets it too. Not walked: a physical keystroke, a
-   drag visibly holding a body (arena's moving bodies are kinematic), and a collider row: its one
-   reader, the R3F source adapter, reads colliders only while its own store plays, and no
-   document reached in this build showed one (the Scene during Play answers from a stopped
-   design store). Open: a canvas root has no design-time mount (the canvas package
-   stayed at vgai-engine's launch-scope tag); its Scene says so ("No Scene editor for …").
+   drag visibly holding a body (arena's moving bodies are kinematic). A body's collider rows read
+   in Edit, from the design world's own `<Physics>`: EnemyBody shows its Capsule Collider (Half
+   height, Radius) and names why its size is read-only; the Inspector refreshing by itself once
+   Rapier loads is not walked. A canvas root mounts in Edit (see the canvas lane below).
 2. **Animation seen from outside.** The editor finds a game's mixers through a served stamp on
    the project's own `new AnimationMixer(...)` and `useAnimations(...)` call sites
    (`@volter/editor-threejs/serving`); `status` reports them as `liveMixers` (walked on `arena`:

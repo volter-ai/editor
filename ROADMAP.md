@@ -33,7 +33,6 @@ Status: active
 What `WORK.md` records as unwalked or ungated in the game editor.
 Completion:
 - A collider row is shown for a body in a running world, or the reason none can be is recorded.
-- `arena`'s port lives in a repository.
 
 ## canvas-editor: A canvas (Pixi) root authored in the editor, at parity with its nearest products
 
