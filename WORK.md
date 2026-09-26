@@ -208,7 +208,9 @@ project's 16-bar orchestral piece: moving, transposing, adding and deleting note
 automation points, faders, pan, mute, send levels and device parameters (a member of
 `params={{ … }}`, added when unwritten) each write the literal in the piece's source, and
 Freeze writes a generated clip out as literals; each undoes and redoes through the workbench's
-stack byte-identically, and generated notes refuse and name their line. Renders are
+stack byte-identically, and generated notes refuse and name their line; an undo whose element
+was changed since (a note transposed outside the editor after a drag) refuses and leaves the
+file as it is. Renders are
 byte-deterministic; stems null against the mix to −143.6 dB with the master's dynamics
 bypassed (−30.7 dB with them: nonlinear, as expected).
 A render of the probe piece takes 86 s. `freeze-clip` wrote the piece's three generated
@@ -221,14 +223,24 @@ export plays every note and controller on its exact sample (two passes of one sl
 For a game, `add music` brings the packages, the `vgai-music` skill and a player;
 the `project.music.render` tool (and the `render-piece` CLI it shares its code with) writes
 through the project-output door, so `.vgai/provenance.json` records every file a game ships,
-with renders byte-deterministic down to the OGG; `sections` writes each marker section as its
+with renders byte-deterministic down to the OGG and its AAC twin (`.m4a`, which the player
+loads when the browser cannot decode Vorbis); `sections` writes each marker section as its
 own seamless loop at the mix's level (lengths exact to the frame against the report's
 `barSeconds`) and `oneShot` a stinger. Driven in the editor page on an OfflineAudioContext,
 the player switched from one section loop to the next on the bar line it computed (6.05 s,
 the report's bar 3 plus the lead), with the output equal to each loop's own samples on either
-side of the fade.
+side of the fade; a second queue before the switch replaced the waiting loop at the same
+moment (it never sounded), and a section starting mid-bar switched on the piece's next bar
+line inside it. `check-piece` adds an analysis (keys, half-bar chords and degrees, cadences
+and loop seams, voicing, line statistics, figures shared with the folder's other pieces);
+on Harbor and Tidewatch its chords match the pieces' own chord tables in every bar.
 
 Open, with what closes each:
+- Bitwig's editing basics, in progress: in the piano roll, selection, group move, length, grid,
+  quantize, clipboard and articulation; in the arranger, clip move/resize/create/delete,
+  seek, loop region, metronome, markers, tempo and meter, the tempo lane, and adding tracks,
+  devices and sends. Each closes when its control, driven in the editor, writes what it means
+  and undoes byte-identically.
 - Live against export, synth half. Read from `spessasynth_lib`'s processor: at the start of
   each 128-sample render quantum it applies every queued event whose time has passed, then
   renders the quantum, so each note the preview schedules sounds up to 2.67 ms after its

@@ -78,7 +78,7 @@ The General MIDI SoundFont is a sketch palette. For the finished sound, VS Chamb
 Community Edition (CC0) builds into one bank per instrument, once per machine:
 
 ```bash
-npx tsx node_modules/@volter/editor-dawproject/scripts/vsco2-ce.ts   # fetches 1.8 GB of samples, builds 194 MB of banks
+npx tsx node_modules/@volter/editor-dawproject/scripts/vsco2-ce.ts   # fetches 1.8 GB of samples, builds 218 MB of banks
 ln -sfn ~/.volter/banks/vsco2-ce/vsco2 sounds/vsco2                   # never commit the banks
 ```
 
@@ -163,7 +163,19 @@ worth more than many that differ a little.
 After every stage, and fix what they report:
 
 - `npx tsx node_modules/@volter/editor-dawproject/scripts/check-piece.ts src/music/<piece>.tsx`:
-  clip bounds, whole bars, instrument ranges, parallel fifths and octaves, re-struck notes.
+  the problems first (clip bounds, whole bars, instrument ranges, a note no sample of its bank
+  plays, parallel fifths and octaves, re-struck notes, too many tracks for the channels, a send
+  to no bus, a marker that makes no section, an equalizer band the mix skips), then the analysis:
+  - each section's key and the chord each half bar implies with its degree (`Bm/F# vi`): read
+    it against the chord table you planned; a bar that reads differently is a bar whose notes
+    say something else;
+  - the cadence each section ends on and the one its loop returns through (`loops back A → D:
+    authentic`); a section a game switches away from and back to wants a seam that returns;
+  - close intervals below C3 (they muddy) and parts that rise above the part written over them;
+  - each melodic line: range, steps and leaps, the largest leap, the share of its bars that
+    repeat an earlier bar exactly or transposed, and the variety of its four-interval figures;
+  - the share of its melodic figures each other piece in `src/music/` already uses: a new piece
+    that shares much with another is saying the same thing again.
 - `npx tsx node_modules/@volter/editor-dawproject/scripts/view-piece.ts src/music/<piece>.tsx --bars 5-8`:
   every part beat by beat; read the voicing and the cadences you planned (`~` marks generated notes).
 
@@ -186,7 +198,10 @@ renders the same files outside `public/`, unrecorded.
 
 - The folder gets the whole piece as a seamless loop (`theme.ogg`; `theme.wav` carries a
   `smpl` loop), `sections/<marker>.ogg` with `--sections` (each section its own seamless loop,
-  at the whole mix's level), `stems/<track>.ogg`, and `report.json`.
+  at the whole mix's level), `stems/<track>.ogg`, and `report.json`. Every `.ogg` has an `.m4a`
+  (AAC) beside it for browsers that cannot decode Vorbis; `loadMusic` falls back to it.
+- The same piece renders to the same bytes every time, so an unchanged piece re-rendered leaves
+  `.vgai/provenance.json` unchanged.
 - `--one-shot` is a stinger: one pass and its reverb tail, no loop.
 - Loudness defaults to −18 LUFS integrated (`--target portable`); `--target console` is −24.
   The true peak stays under −1 dBTP.
@@ -208,4 +223,7 @@ music.stinger(victory, 'bar');    // a one-shot (rendered with --one-shot) on th
 ```
 
 `play(null, { stems: true })` plays the whole loop as its stems in sync, and
-`music.layer('Horn', -60)` brings a part in or out.
+`music.layer('Horn', -60)` brings a part in or out. A second `queue` before the first switch
+lands replaces it at the same moment, and `nextBar()` (and so a `'bar'` stinger) follows the
+loop still sounding until then. A section whose marker is off a downbeat keeps the piece's bar
+lines.
