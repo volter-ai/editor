@@ -49,7 +49,7 @@
         "observedOutputSha256": "c6847e97260a28ef1117bf34b0e6d2950b1f145bf81803c21df6652cbe7fa819"
       },
       "target": {
-        "implementationSha256": "78da81212c55b06a848ab2d84f0b9cb1804c30e55e71b26e9b6a3fd61251805a",
+        "implementationSha256": "6e929163bdca87b777eef01e17361c4335a5218b22c16ff9d0886f36c5414357",
         "callsite": "lib/godot-compat/physics-direct-space-state-3d.ts intersect_ray",
         "observedOutputSha256": "630325db4f126500f9c2fa3f6984cd8bcec73eedab1365948aeceb4794e8561d"
       },
@@ -76,7 +76,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "25c8d224353a34ba353e1ccdf15d31019035f262cd553c2d5f570eb59e3ef8e0",
-      "implementationSha256": "78da81212c55b06a848ab2d84f0b9cb1804c30e55e71b26e9b6a3fd61251805a"
+      "implementationSha256": "6e929163bdca87b777eef01e17361c4335a5218b22c16ff9d0886f36c5414357"
     }
   ]
 }
