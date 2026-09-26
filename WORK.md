@@ -195,7 +195,11 @@ Open, with what closes each:
   scheduler against the export's offline synthesizer, as one null number (the mix half is
   measured above).
 - Game delivery: stingers and adaptive segments or layers, exported with loop points.
-- Sampled instruments beyond the General MIDI SoundFont (sfizz), measured against native.
+- Sampled instruments beyond the General MIDI SoundFont. Found: sfizz's own WebAudio build
+  (`sfztools/sfizz-webaudio`, GitHub only, last pushed 2024-06); no SFZ engine on npm, no native
+  sfizz on the box. Proposed, not yet measured: sfizz's WASM in both the preview's worklet and the
+  export (one engine, as SpessaSynth is today), checked against a native sfizz render of the same
+  notes, with a CC0 library (VSCO 2 Community Edition) so a game can ship its renders freely.
 - Renders are written by the CLI, not through the project-output door, so
   `.vgai/provenance.json` does not record the OGGs a game ships; a render tool on the bake
   tools' precedent closes it.
