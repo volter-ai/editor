@@ -362,6 +362,10 @@ for (const [op, id, js] of [
 // identity on JS numbers. Float into int truncates and has no rule, so it refuses.
 const CONVERSION = { file: COMPILER, symbol: 'GDScriptCompiler write_assign_with_conversion', line: 1006 };
 rule('assign-convert-int-float', 'ASSIGNMENT', 'operator:OP_NONE:25:conversion', [FLOAT, INT], INT, { kind: 'assignment', operator: '=' }, CONVERSION);
+// A Variant into a float place converts at run time (`write_assign_with_conversion`); a Variant
+// holding a float or an int is that number in JS. (A Variant of another type is a Godot runtime
+// error the target does not raise.)
+rule('assign-convert-variant-float', 'ASSIGNMENT', 'operator:OP_NONE:25:conversion', [FLOAT, 'VARIANT:Variant'], 'VARIANT:Variant', { kind: 'assignment', operator: '=' }, CONVERSION);
 rule('variable-convert-int-float', 'VARIABLE', 'variable:declared:instance:conversion', [INT, FLOAT], '', structural('variable'), CONVERSION);
 rule('return-convert-int-float', 'RETURN', 'return:value:conversion', [INT, FLOAT], '', structural('return'), CONVERSION);
 
@@ -637,6 +641,13 @@ static func convert_int(a: int) -> float:
 \tvar f: float = 0.5
 \tf = a
 \treturn f
+
+static func variant_into_float(a: float, b: int) -> Vector3:
+\tvar v := Vector3(1.0, 2.0, 3.0)
+\tv.y = clamp(a, 0.0, 2.0)
+\tv.z = clamp(a * 2.0, 1.0, 3.0)
+\tv.x = b
+\treturn v
 
 static func declared_convert(a: int) -> float:
 \tvar f: float = a
@@ -1245,6 +1256,8 @@ add('compound', 'compound', '1.5, 3', () => [1.5, 3]);
 add('compound-int', 'compound_int', '4', () => [4]);
 add('convert-int', 'convert_int', '3', () => [3]);
 add('declared-convert', 'declared_convert', '-2', () => [-2]);
+add('variant-into-float', 'variant_into_float', '2.75, 7', () => [2.75, 7]);
+add('variant-into-float-clamped', 'variant_into_float', '-0.5, 12', () => [-0.5, 12]);
 add('return-convert', 'return_convert', '9', () => [9]);
 for (const a of [true, false]) {
   for (const b of [true, false]) {
@@ -1424,7 +1437,14 @@ const GDSCRIPT_EVIDENCE: GodotLanguageEvidenceFile = {
     { file: 'node_path_cases.tscn', source: NODE_PATH_SCENE },
     { file: 'type_cases.tscn', source: TYPE_SCENE },
   ],
-  compatModules: ['lib/godot-compat/vector3', 'lib/godot-compat/node-3d', 'lib/godot-compat/node', 'lib/godot-compat/engine'],
+  compatModules: [
+    'lib/godot-compat/engine',
+    'lib/godot-compat/float',
+    'lib/godot-compat/global-scope',
+    'lib/godot-compat/node',
+    'lib/godot-compat/node-3d',
+    'lib/godot-compat/vector3',
+  ],
   rules,
   datatypes,
   cases,

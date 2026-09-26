@@ -36,6 +36,19 @@ for (const scalar of SCALARS) {
   }
 }
 
+c.add('construct-empty', c.constructor, 'float()', () => F.construct());
+for (const value of [2.5, -0, 1e300, Number.NaN]) {
+  c.add(`construct-float-${gd(value)}`, c.constructor, `float(${gd(value)})`, () => F.construct(value));
+}
+for (const value of [7, -3, 9007199254740993]) {
+  c.add(`construct-int-${String(value)}`, c.constructor, `var i: int = ${String(value)}\nreturn float(i)`, () =>
+    F.construct(Number(BigInt(value))),
+  );
+}
+for (const value of [true, false]) {
+  c.add(`construct-bool-${String(value)}`, c.constructor, `float(${String(value)})`, () => F.construct(value));
+}
+
 const FLOAT_EVIDENCE: GodotEvidenceCaseFile = {
   godotClass: 'float',
   compatModule: 'lib/godot-compat/float',

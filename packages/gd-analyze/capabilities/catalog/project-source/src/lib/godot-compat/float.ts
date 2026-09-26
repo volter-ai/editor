@@ -23,3 +23,16 @@ import { op_multiply as vector3_multiply, type Vector3 } from './vector3';
 export function op_multiply(left: number, right: Vector3 | Vector2): Vector3 | Vector2 {
   return 'z' in right ? vector3_multiply(right, left) : vector2_multiply(right, left);
 }
+
+/**
+ * The Variant constructors (`core/variant/variant_construct.cpp:73-76`): no arguments (0.0), and
+ * `from` a float, an int (its exact value, a JS number already) or a bool (1.0 or 0.0).
+ *
+ * @godot float.float
+ * @source core/variant/variant_construct.cpp:73
+ */
+export function construct(...args: readonly [] | readonly [number] | readonly [boolean]): number {
+  if (args.length === 0) return 0;
+  const [from] = args;
+  return typeof from === 'boolean' ? (from ? 1 : 0) : from;
+}

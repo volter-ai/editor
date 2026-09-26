@@ -1231,6 +1231,14 @@ async function runLanguageEvidence(
       printed.push(`// ${sourceFile.sourcePath}\n${text}`);
       writeFileSync(path.join(emitted, 'src', 'scripts', sourceFile.sourcePath), text);
     }
+    // Every compat module the lowered cases run is part of what the claims measured.
+    const importedModules = [
+      ...new Set(printed.flatMap((text) => [...text.matchAll(/from "\.\.\/(lib\/godot-compat\/[a-z0-9-]+)"/g)].map((m) => m[1] as string))),
+    ];
+    const unlisted = importedModules.filter((module) => !evidence.compatModules.includes(module));
+    if (unlisted.length > 0) {
+      throw new Error(`the lowered cases import compat modules the file does not list: ${unlisted.join(', ')}`);
+    }
     for (const script of evidence.scripts) {
       const file = path.join(emitted, 'src', 'scripts', script.file.replace(/\.gd$/, '.ts'));
       const module = (await import(pathToFileURL(file).href)) as Record<string, unknown>;
