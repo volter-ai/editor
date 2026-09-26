@@ -139,6 +139,8 @@ export interface ImportSidecar {
   readonly textureFlags?: GodotTextureImportFlags;
   /** `cubemap_texture`'s `slices/arrangement` enum: 0=1x6, 1=2x3, 2=3x2, 3=6x1. */
   readonly cubemapArrangement?: number;
+  /** `cubemap_texture`'s options the cubemap binding applies or refuses (`resource_importer_layered_texture.cpp:143`, defaults lossy, mipmaps, 2x3). */
+  readonly cubemapImport?: { readonly compressMode: number; readonly mipmaps: boolean; readonly arrangement: number };
   /** Alpha cutoff used by Godot's `bitmap` importer when converting the source image. */
   readonly bitmapThreshold?: number;
   /** Godot bitmap importer source channel: 0 luminance, 1 alpha. */
@@ -449,6 +451,14 @@ export function readImportSidecar(file: GodotTextFile): ImportSidecar {
   const materialsStorage = asNumber(params?.properties['materials/storage']);
   const externalMaterials = readExternalMaterials(params?.properties['_subresources']);
   const cubemapArrangement = asNumber(params?.properties['slices/arrangement']);
+  const cubemapImport =
+    importer === 'cubemap_texture'
+      ? {
+          compressMode: asNumber(params?.properties['compress/mode']) ?? 1,
+          mipmaps: params?.properties['mipmaps/generate']?.kind === 'bool' ? (params.properties['mipmaps/generate'] as { value: boolean }).value : true,
+          arrangement: cubemapArrangement ?? 1,
+        }
+      : undefined;
   const bitmapThreshold = importer === 'bitmap' ? asNumber(params?.properties['threshold']) : undefined;
   const bitmapCreateFrom = importer === 'bitmap' ? asNumber(params?.properties['create_from']) : undefined;
   const audioLoopValue = importer === 'ogg_vorbis' || importer === 'mp3'
@@ -478,6 +488,7 @@ export function readImportSidecar(file: GodotTextFile): ImportSidecar {
     ...(textureImport === undefined ? {} : { textureImport }),
     ...(wavImport === undefined ? {} : { wavImport }),
     ...(cubemapArrangement === undefined ? {} : { cubemapArrangement }),
+    ...(cubemapImport === undefined ? {} : { cubemapImport }),
     ...(bitmapThreshold === undefined ? {} : { bitmapThreshold }),
     ...(bitmapCreateFrom === undefined ? {} : { bitmapCreateFrom }),
     ...(audioLoop === undefined ? {} : { audioLoop }),

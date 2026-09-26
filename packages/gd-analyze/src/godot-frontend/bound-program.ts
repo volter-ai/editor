@@ -1,7 +1,8 @@
+import { decodeGodotBoundShader, type GodotBoundShader } from './bound-shader';
 import { godotSourceAuthority } from './source-authority';
 
 export const GODOT_BOUND_PROGRAM_PROTOCOL = 'vgai.godot-bound-program' as const;
-export const GODOT_BOUND_PROGRAM_VERSION = 10 as const;
+export const GODOT_BOUND_PROGRAM_VERSION = 11 as const;
 export const GODOT_4_7_SOURCE_TREE_SHA256 =
   'b25d23ca60d7a9e99c2cccda9a5a1b2e736e6d0f79a8411d6647dafd4693cbec' as const;
 export const GODOT_4_7_SOURCE_ARCHIVE_SHA256 =
@@ -461,6 +462,8 @@ export interface GodotBoundProgram {
     readonly string: string;
   };
   readonly scripts: readonly GodotBoundScript[];
+  /** Each `.gdshader` as the official shader frontend read it (`bound-shader.ts`). */
+  readonly shaders: readonly GodotBoundShader[];
 }
 
 type ObjectValue = Record<string, unknown>;
@@ -1400,7 +1403,7 @@ export function decodeGodotBoundProgram(
   const root = object(value, 'Godot bound program');
   exactKeys(
     root,
-    ['protocol', 'protocolVersion', 'authority', 'engine', 'scripts'],
+    ['protocol', 'protocolVersion', 'authority', 'engine', 'scripts', 'shaders'],
     'Godot bound program',
   );
   if (root['protocol'] !== GODOT_BOUND_PROGRAM_PROTOCOL) {
@@ -1468,6 +1471,9 @@ export function decodeGodotBoundProgram(
     },
     scripts: array(root['scripts'], 'Godot bound program.scripts').map((entry, index) =>
       boundScript(entry, `Godot bound program.scripts[${index}]`),
+    ),
+    shaders: array(root['shaders'], 'Godot bound program.shaders').map((entry, index) =>
+      decodeGodotBoundShader(entry, `Godot bound program.shaders[${index}]`),
     ),
   };
 }

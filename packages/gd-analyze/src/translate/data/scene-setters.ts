@@ -65,6 +65,12 @@ const RANDOMIZER_ENTRY = /^stream_(\d+)\/(stream|weight)$/;
  */
 const METADATA = /^metadata\/(.+)$/;
 
+/**
+ * `ShaderMaterial::_set` (`scene/resources/material.cpp:197`): `shader_parameter/NAME` is
+ * `set_shader_parameter(NAME, value)`, a parameter of the material's shader.
+ */
+const SHADER_PARAMETER = /^shader_parameter\/(.+)$/;
+
 export function sceneSetterLookup(
   codeAuthority: GodotCodeTranslationAuthority,
   apiDump: GodotApiDump,
@@ -119,7 +125,12 @@ export function sceneSetterLookup(
     const surface = SURFACE_OVERRIDE.exec(property);
     const bone = BONE_POSE.exec(property);
     const metadata = METADATA.exec(property);
-    if (metadata !== null) {
+    const shaderParameter = SHADER_PARAMETER.exec(property);
+    if (shaderParameter !== null && ancestry.includes('ShaderMaterial')) {
+      owner = 'ShaderMaterial';
+      setter = 'set_shader_parameter';
+      index = shaderParameter[1] as string;
+    } else if (metadata !== null) {
       owner = 'Object';
       setter = 'set_meta';
       index = metadata[1] as string;

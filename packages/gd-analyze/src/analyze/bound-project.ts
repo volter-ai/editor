@@ -1,3 +1,4 @@
+import type { GodotBoundShader } from '../godot-frontend/bound-shader';
 import { type BoundGodotTypedValue, typeProjectSettingValues } from './project-setting-types';
 import type { ImportedClip } from '../read/gltf-animation-import';
 import { type BoundGodotRefinedType, type RefinedScriptInfo, refineDatatypes } from './refined-types';
@@ -285,6 +286,18 @@ export interface BoundGodotProjectDocuments {
   readonly textures: readonly BoundGodotTextureDocument[];
   /** Sounds Godot's `wav` importer imports: the source bytes and the importer's options. */
   readonly sounds: readonly BoundGodotSoundDocument[];
+  /** Each `.gdshader` as the pinned Godot's own shader frontend read it (`bound-shader.ts`). */
+  readonly shaders: readonly GodotBoundShader[];
+  /** Images Godot's `cubemap_texture` importer imports: the source bytes and the importer's options. */
+  readonly cubemaps: readonly BoundGodotCubemapDocument[];
+}
+
+/** An image the `cubemap_texture` importer slices into a cubemap's six faces. */
+export interface BoundGodotCubemapDocument {
+  readonly resPath: string;
+  readonly sourceDigest: string;
+  readonly bytes: Uint8Array;
+  readonly importParams: { readonly compressMode: number; readonly mipmaps: boolean; readonly arrangement: number };
 }
 
 /** A `.wav` imported as an `AudioStreamWAV` (`[remap] importer="wav"`). */
@@ -572,6 +585,7 @@ function boundDocuments(
   projectNodes: IndexedSceneNodeIndex,
   scriptFields: ReadonlyMap<string, ReadonlySet<string>>,
   evidence: AnalysisEvidence,
+  shaders: readonly GodotBoundShader[],
 ): BoundGodotProjectDocuments {
   const resolveSceneClass = sceneClassResolver(authority, apiDump, projectClasses, evidence);
   const provenance = (document: { readonly resPath: string }) => {
@@ -661,6 +675,17 @@ function boundDocuments(
             importParams: sidecar.textureImport,
           },
         ];
+      }),
+    ),
+    shaders,
+    cubemaps: unique(
+      'cubemap',
+      decoded.imports.flatMap((sidecar) => {
+        if (sidecar.importer !== 'cubemap_texture' || sidecar.resourceType !== 'CompressedCubemap') return [];
+        if (sidecar.sourceFile === undefined || sidecar.cubemapImport === undefined) return [];
+        const entry = snapshot.entryByResPath(sidecar.sourceFile);
+        if (entry?.entryType !== 'file' || entry.digest === undefined) return [];
+        return [{ resPath: sidecar.sourceFile, sourceDigest: entry.digest, bytes: snapshot.bytesByResPath(sidecar.sourceFile), importParams: sidecar.cubemapImport }];
       }),
     ),
     sounds: unique(
@@ -1345,6 +1370,7 @@ export function bindGodotProject(
     sceneNodes,
     indexedScriptFieldProperties(scripts),
     analysisEvidence,
+    code.shaders,
   );
 
   return {

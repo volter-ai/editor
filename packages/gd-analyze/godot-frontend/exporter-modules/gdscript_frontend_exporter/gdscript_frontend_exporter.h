@@ -27,4 +27,5 @@ public:
 	void prepare_source(const String &p_script_path);
 	void seal_sources_for_compilation();
 	Dictionary export_source(const String &p_source, const String &p_script_path);
+	Dictionary export_shader(const String &p_source, const String &p_shader_path);
 };

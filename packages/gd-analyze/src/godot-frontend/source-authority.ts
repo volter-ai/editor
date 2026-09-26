@@ -91,8 +91,8 @@ export const GODOT_SOURCE_AUTHORITIES: Readonly<
     },
     officialSourcePatch: '4.7-selected-call-targets.patch',
     boundExporter: {
-      executableSha256: '71fb20aa2bd34c17434f52a54ad85418265da376684bb36117658109794c6630',
-      exporterSourceSha256: 'ab1a674f1e7367e2e3274b50790d8e43c76c6a2258715c15425e543efcd97350',
+      executableSha256: '814bf8e8d50fce2ea30f26c01ef5a00fc21ba0f0b378695592ecbbbc134cd928',
+      exporterSourceSha256: '93cdaf5c41786b0a0c0bea17a6f7650ace1c624d5d613e78f86bb2fdb6e46694',
       sourceTreeSha256: 'b25d23ca60d7a9e99c2cccda9a5a1b2e736e6d0f79a8411d6647dafd4693cbec',
       buildOptions:
         'platform=macos target=editor arch=arm64 dev_build=yes debug_symbols=no lto=none vulkan=no opengl3=no metal=no angle=no accesskit=no sdl=no disable_path_overrides=no modules_enabled_by_default=yes module_gdscript_enabled=yes module_gdscript_frontend_exporter_enabled=yes',
@@ -119,8 +119,8 @@ export const GODOT_4_SOURCE_AUTHORITIES: Readonly<Record<'4.6' | '4.7', GodotSou
     },
     officialSourcePatch: '4.6-selected-call-targets.patch',
     boundExporter: {
-      executableSha256: '1a624b1d0338360de64959b2fac46c8564cb5c6fce979a072433dd61075a7aa2',
-      exporterSourceSha256: '821644842629847f116af2ccafbcad635c6be5f06d9dc7c70a249a7c989ea4fb',
+      executableSha256: '28e6c8de18fd232cd6993015ae3d1ee52d9f762399429a632d02e9f0bf077173',
+      exporterSourceSha256: '50b326ccadb7419df14075bb9d3e00e1213d4e4a06ba6a999cab71120e8597b0',
       sourceTreeSha256: '0bbc5b19dc29cfd69b020f58691dd710539c5e8717dc14082aa963a1be9f57f3',
       buildOptions:
         'platform=macos target=editor arch=arm64 dev_build=yes debug_symbols=no lto=none vulkan=no opengl3=no metal=no angle=no accesskit=no sdl=no disable_path_overrides=no modules_enabled_by_default=yes module_gdscript_enabled=yes module_gdscript_frontend_exporter_enabled=yes',

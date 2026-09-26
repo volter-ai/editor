@@ -176,6 +176,15 @@ export function camelName(name: string): string {
   return /^[A-Za-z_$]/u.test(joined) ? joined : `node${joined}`;
 }
 
+/** A JSON-like value as a literal expression. */
+function plainData(value: unknown): TargetTsExpression {
+  if (Array.isArray(value)) return { kind: 'array-expression', elements: value.map(plainData) };
+  if (value !== null && typeof value === 'object') {
+    return { kind: 'object-expression', properties: Object.entries(value as Record<string, unknown>).map(([key, entry]) => ({ key, value: plainData(entry) })) };
+  }
+  return literal(value as number | string | boolean | null);
+}
+
 /** A local name from `base`, unused in the scene's module. */
 export function freshLocal(emission: FamilyEmission, base: string): string {
   const stem = camelName(base);
@@ -457,6 +466,7 @@ const GODOT_ELEMENTS: Readonly<Record<string, readonly [module: string, three: s
   GridMap: ['grid-map', 'Group'],
   CPUParticles3D: ['cpu-particles-3d', 'Group'],
   Decal: ['decal', 'Group'],
+  WorldEnvironment: ['world-environment', 'Group'],
   AnimationPlayer: ['animation-player', 'Group'],
   AnimationTree: ['animation-tree', 'Group'],
 };
@@ -507,6 +517,68 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
   if (resource.className === 'AnimationNodeBlendTree') return animationTreeLocal(emission, resource);
   const existing = emission.hookLocals.get(key);
   if (existing !== undefined) return existing;
+  if (resource.className === 'CompressedCubemap') {
+    const load = resource.load;
+    if (load === undefined) throw new Error(`${key}: a cubemap that is not an imported file`);
+    const local = freshLocal(emission, path.posix.basename(load.sourceResPath).replace(/\.[^.]+$/u, ''));
+    emission.hookLocals.set(key, local);
+    emission.loaded.add(local);
+    emission.hooks.push({
+      kind: 'variable-statement',
+      declaration: 'const',
+      name: local,
+      initializer: {
+        kind: 'call-expression',
+        callee: identifier(useCompat(emission, 'compressed-cubemap', 'useGodotCubemap')),
+        arguments: [
+          literal(assetUrl(load.sourceResPath)),
+          { kind: 'object-expression', properties: Object.entries(load.options).map(([name, value]) => ({ key: name, value: literal(value) })) },
+        ],
+      },
+    });
+    return local;
+  }
+  if (resource.className === 'Shader') {
+    const lowered = resource.shader;
+    if (lowered === undefined) throw new Error(`${key}: a shader without its lowered code`);
+    const local = freshLocal(emission, `${stemOf(key)} shader`);
+    emission.hookLocals.set(key, local);
+    emission.statics.push({
+      kind: 'variable-statement',
+      declaration: 'const',
+      name: local,
+      initializer: { kind: 'call-expression', callee: identifier(useCompat(emission, 'shader', 'godot_shader_new')), arguments: [plainData(lowered)] },
+    });
+    return local;
+  }
+  if (resource.className === 'ShaderMaterial') {
+    const shaderValue = resource.setters.find((setter) => setter.setter.exportName === 'set_shader')?.value;
+    const shader: TargetTsExpression = shaderValue === undefined ? literal(null) : propValue(emission, shaderValue);
+    const parameters = resource.setters
+      .filter((setter) => setter.setter.exportName === 'set_shader_parameter')
+      .map((setter) => ({ key: String(setter.index), value: propValue(emission, setter.value) }));
+    const uses = [shader, ...parameters.map((parameter) => parameter.value)].flatMap((value) => (value.kind === 'identifier-expression' && emission.loaded.has(value.name) ? [value.name] : []));
+    const local = freshLocal(emission, stemOf(key));
+    emission.hookLocals.set(key, local);
+    const made: TargetTsExpression = {
+      kind: 'call-expression',
+      callee: identifier(useCompat(emission, 'shader-material', 'godot_shader_material_new')),
+      arguments: [shader, { kind: 'object-expression', properties: parameters }],
+    };
+    if (uses.length === 0) {
+      emission.statics.push({ kind: 'variable-statement', declaration: 'const', name: local, initializer: made });
+      return local;
+    }
+    emission.loaded.add(local);
+    emission.react.add('useMemo');
+    emission.hooks.push({
+      kind: 'variable-statement',
+      declaration: 'const',
+      name: local,
+      initializer: { kind: 'call-expression', callee: identifier('useMemo'), arguments: [{ kind: 'arrow-expression', parameters: [], body: made }, { kind: 'array-expression', elements: uses.map(identifier) }] },
+    });
+    return local;
+  }
   if (resource.className === 'AudioStreamWAV') {
     const load = resource.load;
     if (load === undefined) throw new Error(`${key}: a sound that is not an imported file`);

@@ -62,7 +62,7 @@ function importedTextures(project: BoundGodotProject, composition: DirectGodotPr
   const paths = new Set(
     composition.scenes.flatMap((scene) => scene.resources.flatMap((resource) => (resource.load === undefined ? [] : [resource.load.sourceResPath]))),
   );
-  return [...project.documents.textures, ...project.documents.sounds]
+  return [...project.documents.textures, ...project.documents.sounds, ...project.documents.cubemaps]
     .filter((file) => paths.has(file.resPath))
     .map((file) => ({ resPath: file.resPath, sourceDigest: file.sourceDigest, bytes: file.bytes }));
 }
@@ -81,6 +81,10 @@ function validateInputClosure(
       const relative = model.resPath.slice('res://'.length);
       return [relative, `${relative}.import`];
     }),
+    // A `.gdshader` is read by the shader frontend and lowered into the scene module that uses it.
+    ...composition.scenes.flatMap((scene) =>
+      scene.resources.flatMap((resource) => (resource.className === 'Shader' && resource.key.startsWith('ext:res://') ? [resource.key.slice('ext:res://'.length)] : [])),
+    ),
     // A MeshLibrary's item thumbnails are the editor's: its data file is what the scene loads.
     ...composition.scenes.flatMap((scene) =>
       scene.resources.flatMap((resource) =>

@@ -409,6 +409,15 @@ for (const [op, id, js] of [
   });
 }
 
+// A compound assignment to a member of a narrowed untyped receiver (`body.coins += 1` after
+// `body is Player`) is typed Variant by the analyzer; the operation is still int addition, and the
+// JS `+=` on the compat property is that addition.
+rule('assign-OP_ADDITION-ii-variant', 'ASSIGNMENT', 'operator:OP_ADDITION:6', [INT, INT], 'VARIANT:Variant', { kind: 'assignment', operator: '+=' }, {
+  file: COMPILER,
+  symbol: 'GDScriptCompiler::_parse_expression compound ASSIGNMENT OP_ADDITION',
+  line: 1033,
+});
+
 // Conversions a typed target applies (`write_assign_with_conversion`): int into float is the
 // identity on JS numbers. Float into int truncates and has no rule, so it refuses.
 const CONVERSION = { file: COMPILER, symbol: 'GDScriptCompiler write_assign_with_conversion', line: 1006 };
@@ -500,7 +509,7 @@ for (const id of ['member-constant-native', 'member-constant-class', 'member-var
 
 // An Array literal is a new JS array of its elements in source order, typed or not (a typed
 // array's element checks never fail on a well-typed program the analyzer accepted).
-for (const elements of [0, 1, 2, 3, 5, 6, 8]) {
+for (const elements of [0, 1, 2, 3, 4, 5, 6, 8]) {
   rule(
     `array-literal-${String(elements)}`,
     'ARRAY',
@@ -544,6 +553,13 @@ rule('native-property-builtin', 'IDENTIFIER', 'member-identifier:native-property
 });
 // A NodePath literal (`get_node("A/C")`'s argument, converted at compile time) is its path text,
 // which Node.get_node walks (godot-compat/node.ts).
+// An int literal in a float place (`rot_dir = 1`, `Vector3(x, 0, z)`) is reduced by the analyzer to
+// a float constant; JS numbers carry both, so the literal is its value.
+rule('literal-float', 'LITERAL', 'literal:float:reduced', [], FLOAT, structural('literal'), {
+  file: COMPILER,
+  symbol: 'GDScriptCompiler::_parse_expression LITERAL',
+  line: 229,
+});
 rule('literal-node-path', 'LITERAL', 'literal:opaque:reduced', [], 'BUILTIN:NodePath', structural('literal'), {
   file: COMPILER,
   symbol: 'GDScriptCompiler::_parse_expression LITERAL (NodePath constant)',
@@ -835,10 +851,17 @@ static func variant_flow(u):
 static func typed_for_over_literal():
 \tvar a = "left"
 \tvar b = &"right"
+\tvar c: String = "down"
+\tvar d := "up"
 \tvar out := ""
-\tfor action: String in [a, b]:
+\tfor action: String in [a, b, c, d]:
 \t\tout = out + action + ","
 \treturn out
+
+static func literal_in_float_place() -> Vector3:
+\tvar r: float = 0.5
+\tr = 1
+\treturn Vector3(r, 0, 2.5)
 
 static func variant_holds_builtin():
 \tvar v
@@ -1244,6 +1267,14 @@ func narrowed_members() -> Array:
 \t\tout.append(t.level + 1)
 \treturn out
 
+func narrowed_compound() -> Array:
+\tvar t: Node = $Tagged
+\tvar out := []
+\tif t is Tagged:
+\t\tt.level += 1
+\t\tout.append(t.level)
+\treturn out
+
 func scene_members() -> Array:
 \t$Tagged.position = Vector3(1.0, 2.0, 3.0)
 \t$Tagged.level = 7
@@ -1492,6 +1523,7 @@ for (const call of ['variant_flow', 'variant_to_vector', 'variant_return']) {
   }
 }
 cases.push({ id: 'variant-holds-builtin', call: 'variant_holds_builtin', comparator: 'exact' });
+cases.push({ id: 'literal-in-float-place', call: 'literal_in_float_place', comparator: 'exact' });
 cases.push({ id: 'typed-for-over-literal', call: 'typed_for_over_literal', comparator: 'exact' });
 cases.push({ id: 'inferred-constant-float', call: 'inferred_constant_float', comparator: 'exact' });
 cases.push({
@@ -1605,7 +1637,7 @@ cases.push({
   call: '',
   instance: {
     scene: 'type_cases.tscn',
-    steps: ['natives', 'scripts', 'nulls', 'casts', 'narrowed_members', 'scene_members'],
+    steps: ['natives', 'scripts', 'nulls', 'casts', 'narrowed_members', 'narrowed_compound', 'scene_members'],
     native: () => {
       const root = nativeNode('Root', NODE3D);
       nativeNode('Body', ['RigidBody3D', ...BODY3D], root);

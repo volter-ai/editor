@@ -6,8 +6,12 @@ import type {
   BoundGodotSceneNode,
   BoundGodotSoundDocument,
   BoundGodotTextureDocument,
+  BoundGodotCubemapDocument,
 } from '../../analyze/bound-project';
 import type { GodotValue } from '../../read/godot-value';
+import type { GodotBoundShader } from '../../godot-frontend/bound-shader';
+import { lowerGodotShader } from '../emit/shader-glsl';
+import { GODOT_SKY_SHADER_BUILTINS } from '../emit/sky-shader';
 import { ARRAY_MESH_PRIMITIVE } from '../../read/array-mesh';
 import { readGodot4Surfaces } from '../../read/godot4-surfaces';
 import { GridMapReadError, readGridMapCells } from '../../read/grid-map';
@@ -139,6 +143,8 @@ export interface TargetGodotSceneResourcePlan {
   readonly animations?: TargetGodotAnimationLibraryPlan;
   /** An `AnimationNodeBlendTree`'s graph (its nodes and connections) as data. */
   readonly animationTree?: GodotAnimationNodeData;
+  /** A `.gdshader` as the pinned Godot's shader frontend read it, lowered to GLSL (`shader-glsl.ts`). */
+  readonly shader?: TargetGodotLoweredShader;
   readonly setters: readonly TargetGodotSceneSetterPlan[];
   readonly evidenceClaimId: string;
 }
@@ -204,6 +210,45 @@ function soundLoad(sound: BoundGodotSoundDocument): TargetGodotImportedLoad | st
  * not: only lossless compression, the identity channel map, no normal-map, HDR or size processing.
  * An absent option is the importer's default (`resource_importer_texture.cpp:230`).
  */
+/** A shader's lowered code, as compat's `godot_shader_new` receives it. */
+export interface TargetGodotLoweredShader {
+  readonly mode: string;
+  readonly uniforms: readonly { readonly name: string; readonly glsl: string; readonly type: string; readonly default: readonly number[] | null }[];
+  readonly functions: string;
+  readonly entry: string;
+}
+
+/**
+ * A `.gdshader` the official shader frontend read, lowered for its mode (sky only: the corpus
+ * draws no other shader mode), or why it is not.
+ */
+function shaderPlan(shader: GodotBoundShader): TargetGodotLoweredShader | string {
+  if (!shader.ok) return `the official shader frontend refused it (${shader.stage}: ${shader.message})`;
+  if (shader.shaderType !== 'sky') return `shader_type ${shader.shaderType} is not lowered`;
+  const lowered = lowerGodotShader(shader, GODOT_SKY_SHADER_BUILTINS, 'sky');
+  if (typeof lowered === 'string') return lowered;
+  return {
+    mode: shader.shaderType,
+    uniforms: lowered.uniforms.map(({ name, glsl, uniform }) => {
+      if (uniform.hint !== 0 && !['source_color', 'filter_linear', 'hint_range', 'hint_default_black', 'hint_default_white'].some((hint) => uniform.hintName.includes(hint))) {
+        return { name, glsl, type: uniform.type.name, default: null };
+      }
+      const values = uniform.default.map((value) => ('float' in value ? value.float : 'int' in value ? value.int : 'uint' in value ? value.uint : value.bool ? 1 : 0));
+      return { name, glsl, type: uniform.type.name, default: values.length === 0 ? null : values };
+    }),
+    functions: lowered.functions,
+    entry: lowered.entry,
+  };
+}
+
+/** The `cubemap_texture` importer's options as `useGodotCubemap` applies them, or why they are not. */
+function cubemapLoad(cubemap: BoundGodotCubemapDocument): TargetGodotImportedLoad | string {
+  const params = cubemap.importParams;
+  if (params.compressMode !== 0) return `compress/mode=${String(params.compressMode)} is not lossless`;
+  if (params.mipmaps) return 'cubemap mipmaps are not generated';
+  return { sourceResPath: cubemap.resPath, options: { arrangement: params.arrangement } };
+}
+
 function textureLoad(texture: BoundGodotTextureDocument): TargetGodotImportedLoad | string {
   const params = texture.importParams;
   if ((params.compressMode ?? 0) !== 0) return `compress/mode=${String(params.compressMode)} is not lossless`;
@@ -502,7 +547,31 @@ function planResource(
   const texture = data === undefined ? context.project?.documents.textures.find((entry) => `ext:${entry.resPath}` === key) : undefined;
   // A sound the wav importer imports: an `AudioStreamWAV` loaded from its copied file.
   const sound = data === undefined && texture === undefined ? context.project?.documents.sounds.find((entry) => `ext:${entry.resPath}` === key) : undefined;
-  const imported = texture !== undefined ? { className: 'CompressedTexture2D', load: textureLoad(texture) } : sound !== undefined ? { className: 'AudioStreamWAV', load: soundLoad(sound) } : undefined;
+  // A cubemap the `cubemap_texture` importer imports: a `CompressedCubemap` sliced from its copy.
+  const cubemap = data === undefined && texture === undefined && sound === undefined ? context.project?.documents.cubemaps.find((entry) => `ext:${entry.resPath}` === key) : undefined;
+  const imported =
+    texture !== undefined
+      ? { className: 'CompressedTexture2D', load: textureLoad(texture) }
+      : sound !== undefined
+        ? { className: 'AudioStreamWAV', load: soundLoad(sound) }
+        : cubemap !== undefined
+          ? { className: 'CompressedCubemap', load: cubemapLoad(cubemap) }
+          : undefined;
+  // A `.gdshader`: the official shader frontend's tree, lowered.
+  const boundShader = data === undefined && imported === undefined ? context.project?.documents.shaders.find((entry) => `ext:${entry.path}` === key) : undefined;
+  if (boundShader !== undefined) {
+    const lowered = shaderPlan(boundShader);
+    const rule = context.authority.resourceRule('Shader');
+    if (typeof lowered === 'string' || rule === undefined) {
+      refuse(context, at, typeof lowered === 'string' ? `${key}: ${lowered}` : 'no live resource rule constructs Shader', 'resource', 'Shader');
+      return undefined;
+    }
+    context.evidence.add(rule.evidenceClaimId);
+    const planned = { key, className: 'Shader', construct: rule.construct, shader: lowered, setters: [], evidenceClaimId: rule.evidenceClaimId };
+    document.planned.set(key, planned);
+    document.order.push(planned);
+    return key;
+  }
   if (imported !== undefined) {
     const { className, load } = imported;
     const rule = context.authority.resourceRule(className);

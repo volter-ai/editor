@@ -130,6 +130,8 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_distance_fade_length',
     'set_cull_mask',
   ],
+  // `<GodotWorldEnvironment>` (`world-environment.ts`).
+  WorldEnvironment: ['set_environment'],
   // The reflections capability's `<ReflectionProbe>` (`reflection-probe.ts`).
   ReflectionProbe: [
     'set_update_mode',
@@ -255,6 +257,36 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   PlaceholderTexture2D: ['set_size'],
   CanvasTexture: ['set_diffuse_texture'],
   AudioStreamWAV: [],
+  // An environment's background, ambient light, tone mapping and fog (`environment.ts`, `world-environment.ts`).
+  Environment: [
+    'set_background',
+    'set_bg_color',
+    'set_bg_energy_multiplier',
+    'set_sky',
+    'set_ambient_source',
+    'set_ambient_light_color',
+    'set_ambient_light_sky_contribution',
+    'set_ambient_light_energy',
+    'set_reflection_source',
+    'set_tonemapper',
+    'set_tonemap_exposure',
+    'set_tonemap_white',
+    'set_tonemap_agx_white',
+    'set_tonemap_agx_contrast',
+    'set_fog_enabled',
+    'set_fog_mode',
+    'set_fog_light_color',
+    'set_fog_light_energy',
+    'set_fog_sun_scatter',
+    'set_fog_density',
+    'set_fog_sky_affect',
+    'set_fog_height',
+    'set_fog_height_density',
+  ],
+  Sky: ['set_material', 'set_radiance_size', 'set_process_mode'],
+  ShaderMaterial: ['set_shader', 'set_shader_parameter:*'],
+  Shader: [],
+  CompressedCubemap: [],
   Curve: ['_set_limits', 'set_bake_resolution', '_set_data', 'set_point_count'],
   Gradient: ['set_interpolation_mode', 'set_interpolation_color_space', 'set_offsets', 'set_colors'],
   GradientTexture2D: ['set_gradient', 'set_width', 'set_height', 'set_fill', 'set_fill_from', 'set_fill_to', 'set_repeat'],
@@ -320,6 +352,16 @@ export function godotFamilyRefusal(
       return boolOf(setters, 'set_cap_top', true) === boolOf(setters, 'set_cap_bottom', true)
         ? undefined
         : 'one cap without the other has no three cylinder';
+    case 'Environment': {
+      const background = numberOf(setters, 'set_background', 0);
+      if (background !== 1 && background !== 2) return `background_mode=${String(background)} is not drawn`;
+      const ambient = numberOf(setters, 'set_ambient_source', 0);
+      if (ambient === 3 || (ambient === 0 && background === 2)) return 'an ambient light from the sky is not drawn (sky-radiance)';
+      if (numberOf(setters, 'set_fog_height_density', 0) !== 0) return 'height fog is not drawn';
+      if (numberOf(setters, 'set_fog_sun_scatter', 0) !== 0) return 'fog sun scatter is not drawn';
+      if (numberOf(setters, 'set_fog_mode', 0) !== 0) return 'depth fog is not drawn';
+      return undefined;
+    }
     case 'StandardMaterial3D': {
       const transparency = numberOf(setters, 'set_transparency', 0);
       if (transparency > 2) return `transparency=${String(transparency)} has no three form`;

@@ -4,7 +4,7 @@ extends SceneTree
 # pinned Godot frontend and supplies every token, node, binding, type, and compiler outcome.
 
 const PROTOCOL := "vgai.godot-bound-program"
-const PROTOCOL_VERSION := 10
+const PROTOCOL_VERSION := 11
 
 var _out_path := ""
 var _binary_sha256 := ""
@@ -23,8 +23,10 @@ func _init() -> void:
 		return
 
 	var paths: Array[String] = []
-	_collect_scripts("res://", paths)
+	var shader_paths: Array[String] = []
+	_collect_scripts("res://", paths, shader_paths)
 	paths.sort()
+	shader_paths.sort()
 	if _failed:
 		quit(3)
 		return
@@ -45,6 +47,11 @@ func _init() -> void:
 		var row: Dictionary = exporter.export_source(source, path)
 		row["sourceSha256"] = FileAccess.get_sha256(path)
 		scripts.append(row)
+	var shaders: Array = []
+	for path in shader_paths:
+		var shader_row: Dictionary = exporter.export_shader(FileAccess.get_file_as_string(path), path)
+		shader_row["sourceSha256"] = FileAccess.get_sha256(path)
+		shaders.append(shader_row)
 
 	var version := Engine.get_version_info()
 	var output := {
@@ -68,6 +75,7 @@ func _init() -> void:
 			"string": version["string"],
 		},
 		"scripts": scripts,
+		"shaders": shaders,
 	}
 	var file := FileAccess.open(_out_path, FileAccess.WRITE)
 	if file == null:
@@ -78,7 +86,7 @@ func _init() -> void:
 	file.close()
 	quit(0)
 
-func _collect_scripts(root: String, paths: Array[String]) -> void:
+func _collect_scripts(root: String, paths: Array[String], shader_paths: Array[String]) -> void:
 	var directory := DirAccess.open(root)
 	if directory == null:
 		push_error("capture-bound-program-godot4.gd cannot open %s" % root)
@@ -93,7 +101,9 @@ func _collect_scripts(root: String, paths: Array[String]) -> void:
 			continue
 		var path := root.path_join(name)
 		if directory.current_is_dir():
-			_collect_scripts(path, paths)
+			_collect_scripts(path, paths, shader_paths)
 		elif name.ends_with(".gd"):
 			paths.append(path)
+		elif name.ends_with(".gdshader"):
+			shader_paths.append(path)
 	directory.list_dir_end()

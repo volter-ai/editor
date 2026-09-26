@@ -30,6 +30,7 @@
     "src/lib/godot-compat/collision-object-3d.ts",
     "src/lib/godot-compat/collision-shape-3d.ts",
     "src/lib/godot-compat/color.ts",
+    "src/lib/godot-compat/compressed-cubemap.ts",
     "src/lib/godot-compat/compressed-texture-2d.ts",
     "src/lib/godot-compat/concave-polygon-shape-3d.ts",
     "src/lib/godot-compat/container.ts",
@@ -43,6 +44,7 @@
     "src/lib/godot-compat/directional-light-3d.ts",
     "src/lib/godot-compat/display-server.ts",
     "src/lib/godot-compat/engine.ts",
+    "src/lib/godot-compat/environment.ts",
     "src/lib/godot-compat/float.ts",
     "src/lib/godot-compat/font.ts",
     "src/lib/godot-compat/geometry-3d.ts",
@@ -101,9 +103,12 @@
     "src/lib/godot-compat/rigid-body-3d.ts",
     "src/lib/godot-compat/scene-tree-timer.ts",
     "src/lib/godot-compat/scene-tree.ts",
+    "src/lib/godot-compat/shader-material.ts",
+    "src/lib/godot-compat/shader.ts",
     "src/lib/godot-compat/shape-3d.ts",
     "src/lib/godot-compat/signal.ts",
     "src/lib/godot-compat/skeleton-3d.ts",
+    "src/lib/godot-compat/sky.ts",
     "src/lib/godot-compat/sphere-mesh.ts",
     "src/lib/godot-compat/sphere-shape-3d.ts",
     "src/lib/godot-compat/sprite-2d.ts",
@@ -123,7 +128,8 @@
     "src/lib/godot-compat/viewport.ts",
     "src/lib/godot-compat/visual-instance-3d.ts",
     "src/lib/godot-compat/window.ts",
-    "src/lib/godot-compat/world-3d.ts"
+    "src/lib/godot-compat/world-3d.ts",
+    "src/lib/godot-compat/world-environment.ts"
   ],
   "id": "godot-compat",
   "packageJson": {

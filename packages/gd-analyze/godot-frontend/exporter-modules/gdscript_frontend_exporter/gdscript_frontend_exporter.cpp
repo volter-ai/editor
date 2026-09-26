@@ -755,6 +755,7 @@ void GDScriptFrontendExporter::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("prepare_source", "script_path"), &GDScriptFrontendExporter::prepare_source);
 	ClassDB::bind_method(D_METHOD("seal_sources_for_compilation"), &GDScriptFrontendExporter::seal_sources_for_compilation);
 	ClassDB::bind_method(D_METHOD("export_source", "source", "script_path"), &GDScriptFrontendExporter::export_source);
+	ClassDB::bind_method(D_METHOD("export_shader", "source", "shader_path"), &GDScriptFrontendExporter::export_shader);
 }
 
 Dictionary GDScriptFrontendExporter::get_build_identity() const {
