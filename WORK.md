@@ -198,6 +198,12 @@ Remaining:
    keeps a person's keystrokes aimed at another document out of a running game, and a call to the
    game's own `debug.input` is an agent's explicit act on that game, the same as `game.command`,
    which also runs whatever is focused.
+7. **A workbench warning in every session.** Every session's console holds
+   `[MainThreadChatSessions] Cannot notify option change for sessionType 'supercode': no provider
+   registered` from the pinned workbench (`game-editor-50214fb55829-…`, its bundled supercode
+   frontend), so every `vgai` command exits non-zero until it is acknowledged by hand. Closes with
+   a workbench release in which that session type has its provider (or is not declared), pinned
+   by the products.
 
 ## Music: pieces as DAWproject components
 
@@ -234,6 +240,13 @@ moment (it never sounded), and a section starting mid-bar switched on the piece'
 line inside it. `check-piece` adds an analysis (keys, half-bar chords and degrees, cadences
 and loop seams, voicing, line statistics, figures shared with the folder's other pieces);
 on Harbor and Tidewatch its chords match the pieces' own chord tables in every bar.
+Walked in a fresh game created from the checkout: `add music` copies the player and the render
+tool and selects the piece finder in `vgai.adapter.ts`; a worked piece from the package's
+`examples/` opens in the same running session; `project.music.render` with sections wrote 32
+files under `public/music/harbor` (no problems, −18 LUFS, seam 0.177) with each recorded in
+`.vgai/provenance.json`, rendering in its own process (the editor answered in about 270 ms
+throughout) and byte-identical to an in-process render; console silent but for the workbench
+warning below.
 
 Open, with what closes each:
 - Bitwig's editing basics, landed and each driven through its own control on Harbor (source
