@@ -268,6 +268,18 @@ export function godot_as_script(value: unknown, script: abstract new (...args: n
 }
 
 const CLASS_READERS: ((entity: object) => readonly string[] | undefined)[] = [];
+const CLASS_MOUNTS = new Map<string, (entity: object) => void>();
+
+/**
+ * Registers what makes a node its class when the scene's JSX declares it without recording one
+ * (a drei camera is a Camera3D): run once, as the node is first met entering the tree.
+ *
+ * @godot Node (protocol)
+ * @source scene/resources/packed_scene.cpp:400
+ */
+export function godot_node_class_mount(className: string, mount: (entity: object) => void): void {
+  CLASS_MOUNTS.set(className, mount);
+}
 
 /**
  * Registers a module's reading of the Godot class (with its ancestry) of a node the scene's JSX
@@ -1048,6 +1060,10 @@ export function mountGodotScriptForest(
   const collect = (node: object): void => {
     if (visited.has(node)) throw new Error('godot-compat: a native node appears beneath two mounted roots.');
     visited.add(node);
+    if (NODE.get(node)?.classes === undefined) {
+      const mount = CLASS_MOUNTS.get(nodeClasses(node)?.[0] ?? '');
+      if (mount !== undefined) mount(node);
+    }
     stateOf(node);
     for (const child of childEntities(node)) collect(child);
   };

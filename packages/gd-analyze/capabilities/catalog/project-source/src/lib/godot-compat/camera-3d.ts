@@ -26,7 +26,7 @@
  */
 
 import type { Object3D, PerspectiveCamera } from 'three';
-import { godot_node_adopt, godot_node_tree_signal, is_inside_tree } from './node';
+import { godot_node_adopt, godot_node_class_mount, godot_node_tree_signal, is_inside_tree } from './node';
 import { get_global_transform } from './node-3d';
 import { get_size } from './sub-viewport';
 import { get_size as windowSize, godot_window_has_size } from './window';
@@ -359,6 +359,9 @@ export function godot_camera_3d_mount(entity: PerspectiveCamera): void {
   godot_node_tree_signal(entity, 'tree_entered').connect(() => enterWorld(entity));
   godot_node_tree_signal(entity, 'tree_exiting').connect(() => exitWorld(entity));
 }
+
+// A camera the scene's JSX declares (drei's `<PerspectiveCamera>`) is a Camera3D of the tree.
+godot_node_class_mount('Camera3D', (entity) => godot_camera_3d_mount(entity as PerspectiveCamera));
 
 /**
  * @godot Camera3D.make_current
