@@ -194,6 +194,30 @@ delegates to the C library is the browser's (the `platform-libm` comparator). A 
 its public members: each is a `BINDING` onto three's renderer settings, Rapier or the browser,
 cited to the web platform's code path. It never reimplements the server.
 
+**Comparators.** A claim compares native and target with one named comparator, and a
+tolerance records the measured maximum:
+
+- `exact` compares bit for bit. It is the default and covers everything Godot computes itself.
+- `platform-libm` allows ≤1 ulp, for members Godot delegates to the C library.
+- `web-platform-fact` and `render-mapping` cover facts headless Godot cannot show (the web
+  renderer, parameter mappings onto three). A cited source line stands in for the native run.
+- `rapier-geometry` is a bounded deviation for anything derived from collision geometry: contact
+  points, depths and normals, contact and collision counts, and the motion that follows. Rapier
+  owns collision detection.
+- `physics-trajectory` is a bounded deviation for integrated rigid-body motion from another
+  solver.
+
+A derived quantity (velocity from position change) is compared through what it derives from.
+
+**Physics.** Rapier holds the world, bodies, broad phase, collision detection and rigid
+dynamics. Compat keeps Godot's protocol above it: `move_and_slide` and `move_and_collide`
+(recovery, bisection, rest contacts, floor/wall classification), Area3D membership and signal
+timing, 32-bit layers, masks and exceptions through Rapier's hooks, and shape resource data.
+A cast counts as a hit only where Rapier confirms the shapes touch; Rapier's casts report
+impacts early in proportion to the target's size. The check refuses a server-named module
+that binds no library, exceeds 320 code lines, or defines narrow-phase algorithms (GJK, EPA,
+SAT, support, Minkowski, simplex, closest points).
+
 **Untyped code is typed by analysis, not dispatched at runtime.** `analyze` gives a receiver the
 type Godot itself guarantees there, and records the rule as evidence:
 
