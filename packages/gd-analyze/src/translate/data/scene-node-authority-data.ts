@@ -49,6 +49,12 @@ import {
   GODOT_4_7_MESH_RESOURCE_RULES,
 } from './authority/godot-4.7-scene-meshes';
 import {
+  GODOT_4_7_GRIDMAP_CLAIMS,
+  GODOT_4_7_GRIDMAP_LIVENESS,
+  GODOT_4_7_GRIDMAP_NODE_RULES,
+  GODOT_4_7_GRIDMAP_RESOURCE_RULES,
+} from './authority/godot-4.7-scene-gridmap';
+import {
   GODOT_4_7_AUDIO_CLAIMS,
   GODOT_4_7_AUDIO_LIVENESS,
   GODOT_4_7_AUDIO_NODE_RULES,
@@ -222,6 +228,35 @@ export const GODOT_SCENE_AUDIO_IMPLEMENTATION_FILES = [
   ...['audio-stream.ts', 'audio-stream-wav.ts', 'audio-stream-randomizer.ts', 'audio-stream-player.ts', 'audio-stream-player-3d.ts', 'resource-loader.ts'].map((file) => `${COMPAT}/${file}`),
 ] as const;
 
+/** What the scene-gridmap proof runs: the readers, planning, emission, the world and the GridMap compat. */
+export const GODOT_SCENE_GRIDMAP_IMPLEMENTATION_FILES = [
+  'packages/gd-analyze/src/read/grid-map.ts',
+  'packages/gd-analyze/src/read/binary-format.ts',
+  'packages/gd-analyze/src/analyze/bound-project.ts',
+  'packages/gd-analyze/src/translate/data/scene-document-plan.ts',
+  'packages/gd-analyze/src/translate/data/scene-setters.ts',
+  'packages/gd-analyze/src/translate/data/direct-project-composition-plan.ts',
+  'packages/gd-analyze/src/translate/emit/direct-scene-syntax.ts',
+  'packages/gd-analyze/src/translate/data/scene-families.ts',
+  'packages/gd-analyze/src/translate/emit/scene-family-elements.ts',
+  'packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts',
+  'packages/gd-analyze/src/translate/emit/direct-project-world-syntax.ts',
+  'packages/gd-analyze/src/translate/artifacts/plan.ts',
+  ...[
+    'grid-map.ts',
+    'mesh-library.ts',
+    'collision-object-3d.ts',
+    'physics-direct-space-state-3d.ts',
+    'world-3d.ts',
+    'array-mesh.ts',
+    'base-material-3d.ts',
+    'react-lifecycle.tsx',
+    'object.ts',
+    'node.ts',
+    'main.tsx',
+  ].map((file) => `${COMPAT}/${file}`),
+] as const;
+
 /** What the scene-imported proof runs: the importer model, planning, emission, packed-scene. */
 export const GODOT_SCENE_IMPORTED_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/src/read/gltf-godot-scene.ts',
@@ -316,6 +351,7 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...GODOT_4_7_PHYSICS_NODE_RULES,
           ...GODOT_4_7_MESH_NODE_RULES,
           ...GODOT_4_7_AUDIO_NODE_RULES,
+          ...GODOT_4_7_GRIDMAP_NODE_RULES,
         ]
       : [],
     placementRules: supported ? GODOT_4_7_SCENE_PLACEMENT_RULES : [],
@@ -332,7 +368,7 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
       : [],
     signalRules: supported ? [...GODOT_4_7_SIGNAL_RULES, ...GODOT_4_7_PHYSICS_SIGNAL_RULES] : [],
     resourceRules: supported
-      ? [...GODOT_4_7_RENDER_RESOURCE_RULES, ...GODOT_4_7_UI_RESOURCE_RULES, ...GODOT_4_7_PHYSICS_RESOURCE_RULES, ...GODOT_4_7_TEXTURE_RESOURCE_RULES, ...GODOT_4_7_MESH_RESOURCE_RULES, ...GODOT_4_7_AUDIO_RESOURCE_RULES]
+      ? [...GODOT_4_7_RENDER_RESOURCE_RULES, ...GODOT_4_7_UI_RESOURCE_RULES, ...GODOT_4_7_PHYSICS_RESOURCE_RULES, ...GODOT_4_7_TEXTURE_RESOURCE_RULES, ...GODOT_4_7_MESH_RESOURCE_RULES, ...GODOT_4_7_AUDIO_RESOURCE_RULES, ...GODOT_4_7_GRIDMAP_RESOURCE_RULES]
       : [],
     claims: supported
       ? [
@@ -345,6 +381,7 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...GODOT_4_7_TEXTURE_CLAIMS,
           ...GODOT_4_7_MESH_CLAIMS,
           ...GODOT_4_7_AUDIO_CLAIMS,
+          ...GODOT_4_7_GRIDMAP_CLAIMS,
           ...GODOT_4_7_IDIOMATIC_CLAIMS,
         ]
       : [],
@@ -389,6 +426,10 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...withLiveImplementation(
             GODOT_4_7_AUDIO_LIVENESS,
             monorepoImplementationDigest(GODOT_SCENE_AUDIO_IMPLEMENTATION_FILES),
+          ),
+          ...withLiveImplementation(
+            GODOT_4_7_GRIDMAP_LIVENESS,
+            monorepoImplementationDigest(GODOT_SCENE_GRIDMAP_IMPLEMENTATION_FILES),
           ),
         ]
       : [],

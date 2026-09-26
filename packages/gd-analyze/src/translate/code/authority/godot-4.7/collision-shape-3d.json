@@ -112,7 +112,7 @@
         "observedOutputSha256": "77d7f23b89810762fb02b663bdc827a554f77e41ff44b1cb56e03037760459bc"
       },
       "target": {
-        "implementationSha256": "86e602ecd24877e748e4d1767b9a9bb82bae9a4333afd224c6d45b12ee07dfc6",
+        "implementationSha256": "7179b2930a6f7ed83314a912f6c3bfaf59aa1d9f6e2a698340f27c3c6b3228b7",
         "callsite": "lib/godot-compat/collision-shape-3d.ts set_shape",
         "observedOutputSha256": "12f469337229228ddb6850ad3101f75acb29232a241da8459346e5826754e7d2"
       },
@@ -151,7 +151,7 @@
         "observedOutputSha256": "cd7a2d700b907544aa92a635ef30ed6aa347d7d5495186b1e0200134ecb3b594"
       },
       "target": {
-        "implementationSha256": "86e602ecd24877e748e4d1767b9a9bb82bae9a4333afd224c6d45b12ee07dfc6",
+        "implementationSha256": "7179b2930a6f7ed83314a912f6c3bfaf59aa1d9f6e2a698340f27c3c6b3228b7",
         "callsite": "lib/godot-compat/collision-shape-3d.ts get_shape",
         "observedOutputSha256": "cd7a2d700b907544aa92a635ef30ed6aa347d7d5495186b1e0200134ecb3b594"
       },
@@ -190,7 +190,7 @@
         "observedOutputSha256": "dcb3933301dfe64a96aaac28ed8a25f67682388e3774f34a7692b41bbe8826fd"
       },
       "target": {
-        "implementationSha256": "86e602ecd24877e748e4d1767b9a9bb82bae9a4333afd224c6d45b12ee07dfc6",
+        "implementationSha256": "7179b2930a6f7ed83314a912f6c3bfaf59aa1d9f6e2a698340f27c3c6b3228b7",
         "callsite": "lib/godot-compat/collision-shape-3d.ts set_disabled",
         "observedOutputSha256": "7925cefca8475482aacf201c0eca0dcc304354d67e2aeaf9e219548859d45475"
       },
@@ -229,7 +229,7 @@
         "observedOutputSha256": "7c31ae1fbd90d9f7724ecd6cf42b02dc0f74ad099e028ff200ea8bac65d59a25"
       },
       "target": {
-        "implementationSha256": "86e602ecd24877e748e4d1767b9a9bb82bae9a4333afd224c6d45b12ee07dfc6",
+        "implementationSha256": "7179b2930a6f7ed83314a912f6c3bfaf59aa1d9f6e2a698340f27c3c6b3228b7",
         "callsite": "lib/godot-compat/collision-shape-3d.ts is_disabled",
         "observedOutputSha256": "7c31ae1fbd90d9f7724ecd6cf42b02dc0f74ad099e028ff200ea8bac65d59a25"
       },
@@ -256,7 +256,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "97e67170c75c522888624e159059afaa430887fcce8a520bf99b8980cfff2305",
-      "implementationSha256": "86e602ecd24877e748e4d1767b9a9bb82bae9a4333afd224c6d45b12ee07dfc6"
+      "implementationSha256": "7179b2930a6f7ed83314a912f6c3bfaf59aa1d9f6e2a698340f27c3c6b3228b7"
     },
     {
       "claimId": "godot-4.7-binding-CollisionShape3D.get_shape",
@@ -264,7 +264,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "619fb95d7aed9d2b693da715d535c665678325fd706f42f16a269f359e4b6cd8",
-      "implementationSha256": "86e602ecd24877e748e4d1767b9a9bb82bae9a4333afd224c6d45b12ee07dfc6"
+      "implementationSha256": "7179b2930a6f7ed83314a912f6c3bfaf59aa1d9f6e2a698340f27c3c6b3228b7"
     },
     {
       "claimId": "godot-4.7-binding-CollisionShape3D.set_disabled",
@@ -272,7 +272,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "bcb8bc3be55d109c7cf21c929f6fd5355ba386d9a9c305c273f4288b2b9bba03",
-      "implementationSha256": "86e602ecd24877e748e4d1767b9a9bb82bae9a4333afd224c6d45b12ee07dfc6"
+      "implementationSha256": "7179b2930a6f7ed83314a912f6c3bfaf59aa1d9f6e2a698340f27c3c6b3228b7"
     },
     {
       "claimId": "godot-4.7-binding-CollisionShape3D.is_disabled",
@@ -280,7 +280,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "8ec268df406b66ccb744d9e4ebcab7fcca5933c8993c569a11f9d3a94ccf22d7",
-      "implementationSha256": "86e602ecd24877e748e4d1767b9a9bb82bae9a4333afd224c6d45b12ee07dfc6"
+      "implementationSha256": "7179b2930a6f7ed83314a912f6c3bfaf59aa1d9f6e2a698340f27c3c6b3228b7"
     }
   ]
 }

@@ -23,6 +23,7 @@ export const GODOT_4_7_PROOF_NAMES = [
   'scene-textures',
   'scene-meshes',
   'scene-audio',
+  'scene-gridmap',
   'scene-imported',
   'scene-physics',
   'scene-idiomatic',

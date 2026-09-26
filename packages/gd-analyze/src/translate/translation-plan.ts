@@ -81,6 +81,15 @@ function validateInputClosure(
       const relative = model.resPath.slice('res://'.length);
       return [relative, `${relative}.import`];
     }),
+    // A MeshLibrary's item thumbnails are the editor's: its data file is what the scene loads.
+    ...composition.scenes.flatMap((scene) =>
+      scene.resources.flatMap((resource) =>
+        (resource.library?.previews ?? []).flatMap((preview) => {
+          const relative = preview.slice('res://'.length);
+          return [relative, `${relative}.import`];
+        }),
+      ),
+    ),
     // A `.tres` a scene's resources are constructed from is translated into that scene's module.
     ...composition.scenes.flatMap((scene) =>
       scene.resources.flatMap((resource) =>

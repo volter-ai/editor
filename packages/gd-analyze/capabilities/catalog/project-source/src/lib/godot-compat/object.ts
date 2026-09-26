@@ -2,7 +2,7 @@
  * @godot-class Object
  * @role PROTOCOL
  *
- * Godot 4.7's deferred calls: `Object.call_deferred`, `Object.set_deferred` and the main
+ * Godot 4.7's deferred calls and metadata: `Object.call_deferred`, `Object.set_deferred` and the main
  * `MessageQueue` they push to, transcribed from `core/object/object.cpp` and
  * `core/object/message_queue.cpp` at revision `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`. The queue
  * is module state; SceneTree flushes it where Godot does (`scene-tree.ts`).
@@ -13,7 +13,7 @@
  * setter or member as a callable, which lowering supplies; it is not dispatched here.
  */
 
-import { godot_node_is_freed, godot_node_is_queued } from './node';
+import { godot_node_entity, godot_node_is_freed, godot_node_is_queued } from './node';
 
 interface Message {
   readonly target: object;
@@ -93,4 +93,69 @@ export function godot_message_queue_flush(): void {
  */
 export function is_queued_for_deletion(self: object): boolean {
   return godot_node_is_queued(self);
+}
+
+/** Each object's metadata, in insertion order (`Object::metadata`, a `HashMap`). */
+const META = new WeakMap<object, Map<string, unknown>>();
+
+function metaOf(self: object): Map<string, unknown> {
+  const owner = godot_node_entity(self);
+  let meta = META.get(owner);
+  if (meta === undefined) {
+    meta = new Map();
+    META.set(owner, meta);
+  }
+  return meta;
+}
+
+/**
+ * A null value erases the entry; a new name must be an ASCII identifier.
+ *
+ * @godot Object.set_meta
+ * @source core/object/object.cpp:1017
+ */
+export function set_meta(self: object, name: string, value: unknown): void {
+  const meta = metaOf(self);
+  if (value === null || value === undefined) {
+    meta.delete(name);
+    return;
+  }
+  if (!meta.has(name) && !/^[A-Za-z_][A-Za-z0-9_]*$/u.test(name)) return;
+  meta.set(name, value);
+}
+
+/**
+ * A missing entry is `default`, or null (with Godot's error) when that is null.
+ *
+ * @godot Object.get_meta
+ * @source core/object/object.cpp:1047
+ */
+export function get_meta(self: object, name: string, p_default: unknown = null): unknown {
+  const meta = metaOf(self);
+  if (!meta.has(name)) return p_default ?? null;
+  return meta.get(name);
+}
+
+/**
+ * @godot Object.has_meta
+ * @source core/object/object.cpp:1013
+ */
+export function has_meta(self: object, name: string): boolean {
+  return metaOf(self).has(name);
+}
+
+/**
+ * @godot Object.remove_meta
+ * @source core/object/object.cpp:1058
+ */
+export function remove_meta(self: object, name: string): void {
+  set_meta(self, name, null);
+}
+
+/**
+ * @godot Object.get_meta_list
+ * @source core/object/object.cpp:1090
+ */
+export function get_meta_list(self: object): string[] {
+  return [...metaOf(self).keys()];
 }

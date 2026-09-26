@@ -30,10 +30,11 @@ import type {
   TargetTsExpression,
   TargetTsJsxAttribute,
   TargetTsJsxChild,
+  TargetTsObjectProperty,
   TargetTsStatement,
 } from '../code/target-ts-syntax';
 import type { DirectGodotSceneNodePlan } from '../data/direct-project-composition-plan';
-import { godotArrayMeshDataPath } from '../data/scene-families';
+import { godotArrayMeshDataPath, godotGridMapDataPath, godotMeshLibraryDataPath } from '../data/scene-families';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 
 const f32 = Math.fround;
@@ -161,11 +162,11 @@ export function familyEmission(
   };
 }
 
-export function useCompat(emission: FamilyEmission, module: string, name: string): string {
+export function useCompat(emission: FamilyEmission, module: string, name: string, local = name): string {
   const names = emission.compat.get(module) ?? new Set<string>();
-  names.add(name);
+  names.add(local === name ? name : `${name} as ${local}`);
   emission.compat.set(module, names);
-  return name;
+  return local;
 }
 
 export function camelName(name: string): string {
@@ -410,11 +411,22 @@ const GODOT_ELEMENTS: Readonly<Record<string, readonly [module: string, three: s
   Label3D: ['label-3d', 'Mesh'],
   AudioStreamPlayer: ['audio-stream-player', 'Group'],
   AudioStreamPlayer3D: ['audio-stream-player-3d', 'Group'],
+  GridMap: ['grid-map', 'Group'],
 };
 
 /** A Godot property's prop name: `anchor_left` is `anchorLeft`, `stream_0/stream` `stream0Stream`. */
 export function godotPropName(property: string): string {
   return camelName(property.replace(/\//gu, '_'));
+}
+
+/** A metadata value as the Variant it is: a built-in made by its compat constructor. */
+function metaValue(emission: FamilyEmission, value: TargetGodotSceneValue): TargetTsExpression {
+  if (value.kind === 'Vector2' || value.kind === 'Vector3' || value.kind === 'Color' || value.kind === 'Quaternion') {
+    const module = { Vector2: 'vector2', Vector3: 'vector3', Color: 'color', Quaternion: 'quaternion' }[value.kind];
+    return { kind: 'call-expression', callee: identifier(useCompat(emission, module, 'construct', `${value.kind}_construct`)), arguments: value.components.map((component) => literal(component)) };
+  }
+  if (value.kind === 'number' || value.kind === 'bool' || value.kind === 'string') return propValue(emission, value);
+  throw new Error(`a ${value.kind} metadata value has no element form`);
 }
 
 /** An authored value as a literal prop value: a built-in's components, a resource's local. */
@@ -443,6 +455,7 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
   const resource = emission.resources.get(key);
   if (resource === undefined) throw new Error(`${key}: a resource the scene does not plan`);
   if (resource.className === 'CompressedTexture2D') return textureHook(emission, resource);
+  if (resource.className === 'MeshLibrary') return libraryLocal(emission, resource);
   const existing = emission.hookLocals.get(key);
   if (existing !== undefined) return existing;
   if (resource.className === 'AudioStreamWAV') {
@@ -651,6 +664,94 @@ function sharedMaterial(emission: FamilyEmission, resource: TargetGodotSceneReso
   return declareShared(emission, resource.key, stemOf(resource.key), made, uses);
 }
 
+/** A data file the scene imports, once: its local. */
+function dataImport(emission: FamilyEmission, file: string, base: string): string {
+  const specifier = moduleSpecifier(emission.targetPath, file);
+  let local = emission.data.get(specifier);
+  if (local === undefined) {
+    local = freshLocal(emission, base);
+    emission.data.set(specifier, local);
+  }
+  return local;
+}
+
+/** Godot's Compatibility default material (`rasterizer_scene_gles3.cpp:4624`), declared once. */
+function defaultMaterialLocal(emission: FamilyEmission): string {
+  const made = material(emission, undefined, []) as TargetTsJsxChild & { readonly attributes: readonly TargetTsJsxAttribute[] };
+  emission.three.add('MeshStandardMaterial');
+  const properties = made.attributes.flatMap((entry) => (entry.kind === 'jsx-expression-attribute' ? [{ key: entry.name, value: entry.value }] : []));
+  return declareShared(emission, '\0default-material', 'default material', { kind: 'new-expression', callee: identifier('MeshStandardMaterial'), arguments: [{ kind: 'object-expression', properties }] }, []);
+}
+
+/**
+ * A MeshLibrary: its data file (items, placements, shapes) and, by item id, the three mesh the
+ * scene declares for the item (its geometry and its surfaces' materials, each declared once),
+ * made once: at module level, or in the component (`useMemo`) over the loaded textures it holds.
+ */
+function libraryLocal(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan): string {
+  const existing = emission.shared.get(resource.key);
+  if (existing !== undefined) return existing;
+  const library = resource.library;
+  if (library === undefined) throw new Error(`${resource.key}: a MeshLibrary without items`);
+  const data = dataImport(emission, godotMeshLibraryDataPath(emission.targetPath, resource.key), `${stemOf(resource.key)} library`);
+  const uses: string[] = [];
+  const meshes: TargetTsObjectProperty[] = [];
+  for (const item of library.items) {
+    const mesh = item.mesh === undefined ? undefined : emission.resources.get(item.mesh);
+    if (mesh === undefined) continue;
+    const surfaces = mesh.mesh?.surfaces.map((surface) => (surface.material === undefined ? undefined : emission.resources.get(surface.material))) ?? [resourceOf(emission, setterValue(mesh.setters, 'set_material'))];
+    const materials = surfaces.map((surface) => {
+      const local = surface === undefined ? defaultMaterialLocal(emission) : sharedMaterial(emission, surface);
+      if (emission.loaded.has(local)) uses.push(local);
+      return identifier(local);
+    });
+    meshes.push({
+      key: item.id,
+      value: { kind: 'object-expression', properties: [{ key: 'geometry', value: identifier(sharedGeometry(emission, mesh)) }, { key: 'materials', value: { kind: 'array-expression', elements: materials } }] },
+    });
+  }
+  const made: TargetTsExpression = {
+    kind: 'call-expression',
+    callee: identifier(useCompat(emission, 'mesh-library', 'godot_mesh_library_new')),
+    arguments: [identifier(data), { kind: 'object-expression', properties: meshes }],
+  };
+  return declareShared(emission, resource.key, stemOf(resource.key), made, [...new Set(uses)]);
+}
+
+/** A compat element's props for a node's authored properties (a GridMap's `data` its cells file). */
+function elementProps(emission: FamilyEmission, nodePath: string, setters: readonly TargetGodotSceneSetterPlan[]): TargetTsJsxAttribute[] {
+  const own = setters.filter((setter) => setter.setter.exportName !== 'set_meta');
+  // The node's metadata entries, one `meta` prop (`Object::_set`, `metadata/NAME`).
+  const meta = setters.filter((setter) => setter.setter.exportName === 'set_meta');
+  return [
+    ...own.map((setter) =>
+      setter.setter.exportName === 'godot_grid_map_set_data'
+        ? attribute('data', identifier(dataImport(emission, godotGridMapDataPath(emission.targetPath, nodePath), `${nodePath === '.' ? 'grid' : nodePath} cells`)))
+        : attribute(godotPropName(setter.propertyName), propValue(emission, setter.value)),
+    ),
+    ...(meta.length === 0
+      ? []
+      : [attribute('meta', { kind: 'object-expression', properties: meta.map((setter) => ({ key: String(setter.index), value: metaValue(emission, setter.value) })) })]),
+  ];
+}
+
+/**
+ * An instanced scene's overrides on its root, when the root is a compat element: the instance's
+ * authored properties as the element's props (they follow the prefab's own, and win).
+ */
+export function familyInstanceProps(
+  emission: FamilyEmission,
+  rootClass: string,
+  node: DirectGodotSceneNodePlan,
+  own: readonly TargetGodotSceneSetterPlan[],
+): TargetTsJsxAttribute[] | undefined {
+  if (GODOT_ELEMENTS[rootClass] === undefined) return undefined;
+  // A value the instanced scene's root already holds (the same resource file, the same literal) is its own.
+  const same = (entry: TargetGodotSceneSetterPlan) =>
+    own.some((mine) => mine.setter.exportName === entry.setter.exportName && mine.index === entry.index && JSON.stringify(mine.value) === JSON.stringify(entry.value) && (entry.value.kind !== 'resource' || entry.value.key.startsWith('ext:')));
+  return elementProps(emission, node.nodePath, node.setters.filter((entry) => !same(entry)));
+}
+
 /** A carried node's element (tag, family props and resource children), or undefined for another class. */
 export function familyElement(
   emission: FamilyEmission,
@@ -662,11 +763,7 @@ export function familyElement(
     // Godot's layout and drawing are compat's: the element states the node's properties as props, in
     // the scene's order.
     const tag = useCompat(emission, godot[0], `Godot${className}`);
-    return {
-      tag,
-      attributes: node.setters.map((setter) => attribute(godotPropName(setter.propertyName), propValue(emission, setter.value))),
-      children: [],
-    };
+    return { tag, attributes: elementProps(emission, node.nodePath, node.setters), children: [] };
   }
   switch (className) {
     case 'MeshInstance3D': {
@@ -766,7 +863,10 @@ export function familyImports(emission: FamilyEmission): TargetTsStatement[] {
     ...[...emission.compat].map(([module, names]) => ({
       kind: 'import-statement' as const,
       module: moduleSpecifier(emission.targetPath, `src/lib/godot-compat/${module}.ts`),
-      namedBindings: [...names].sort().map((name) => ({ imported: name, local: name })),
+      namedBindings: [...names].sort().map((name) => {
+        const [imported, local] = name.split(' as ') as [string, string | undefined];
+        return { imported, local: local ?? imported };
+      }),
     })),
     ...[...emission.data].map(([module, local]) => ({
       kind: 'import-statement' as const,

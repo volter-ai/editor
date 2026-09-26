@@ -4,9 +4,15 @@
  * an `ArrayMesh` becomes. A carried family has no other scene path: a property its element cannot
  * state refuses the scene, whatever shape the rest of the scene is written in.
  */
-import type { TargetGodotArrayMeshPlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from './scene-document-plan';
+import type {
+  TargetGodotArrayMeshPlan,
+  TargetGodotMeshLibraryPlan,
+  TargetGodotSceneResourcePlan,
+  TargetGodotSceneSetterPlan,
+  TargetGodotSceneValue,
+} from './scene-document-plan';
 
-const CANVAS_ITEM = ['set_visible', 'set_modulate', 'set_self_modulate', 'set_as_top_level', 'set_z_index', 'set_z_as_relative'];
+const CANVAS_ITEM = ['set_meta:*', 'set_visible', 'set_modulate', 'set_self_modulate', 'set_as_top_level', 'set_z_index', 'set_z_as_relative'];
 const NODE_2D = [...CANVAS_ITEM, 'set_position', 'set_rotation', 'set_scale', 'set_skew'];
 const CONTROL = [
   ...CANVAS_ITEM,
@@ -27,7 +33,7 @@ const CONTROL = [
   'set_mouse_filter',
   'set_force_pass_scroll_events',
 ];
-const AUDIO_PLAYER = ['set_stream', 'set_volume_db', 'set_pitch_scale', 'set_autoplay', 'set_max_polyphony', 'set_bus'];
+const AUDIO_PLAYER = ['set_meta:*', 'set_stream', 'set_volume_db', 'set_pitch_scale', 'set_autoplay', 'set_max_polyphony', 'set_bus'];
 
 /** The setters (`name`, or `name:index` for one index of an indexed property) each family states. */
 const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
@@ -38,7 +44,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   // The lens (`fov`, `near`, `far`) is the node's JSX property rules; `current` is the default camera.
   Camera3D: ['set_current'],
   // Compat elements (`useGodotElement`): the props their classes' tables declare.
-  CanvasLayer: ['set_layer', 'set_visible', 'set_offset', 'set_rotation', 'set_scale'],
+  CanvasLayer: ['set_meta:*', 'set_layer', 'set_visible', 'set_offset', 'set_rotation', 'set_scale'],
   Control: CONTROL,
   HBoxContainer: [...CONTROL, 'set_alignment'],
   Label: [...CONTROL, 'set_text', 'set_label_settings', 'set_horizontal_alignment', 'set_vertical_alignment', 'set_autowrap_mode'],
@@ -47,6 +53,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   Sprite2D: [...NODE_2D, 'set_texture', 'set_centered', 'set_offset', 'set_flip_h', 'set_flip_v', 'set_hframes', 'set_vframes', 'set_frame'],
   TouchScreenButton: [...NODE_2D, 'set_texture_normal', 'set_texture_pressed', 'set_passby_press', 'set_action', 'set_visibility_mode'],
   Label3D: [
+    'set_meta:*',
     'set_pixel_size',
     'set_offset',
     'set_billboard_mode',
@@ -66,6 +73,19 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_width',
   ],
   AudioStreamPlayer: AUDIO_PLAYER,
+  // The cells are `data`; `cell_scale` has no collider scale and refuses.
+  GridMap: [
+    'set_meta:*',
+    'set_mesh_library',
+    'set_cell_size',
+    'set_octant_size',
+    'set_center_x',
+    'set_center_y',
+    'set_center_z',
+    'set_collision_layer',
+    'set_collision_mask',
+    'godot_grid_map_set_data',
+  ],
   AudioStreamPlayer3D: [
     ...AUDIO_PLAYER,
     'set_attenuation_model',
@@ -101,6 +121,7 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   ],
   ArrayMesh: [],
   CompressedTexture2D: [],
+  MeshLibrary: [],
   LabelSettings: [
     'set_line_spacing',
     'set_paragraph_spacing',
@@ -269,4 +290,67 @@ export function godotArrayMeshDataPath(sceneTargetPath: string, key: string): st
   if (key.startsWith('sub:')) return `${sceneTargetPath.replace(/\.tsx$/u, '')}.${safe(key.slice('sub:'.length))}.mesh.json`;
   const [file, sub] = key.slice('ext:res://'.length).split('#sub:') as [string, string | undefined];
   return `src/meshes/${safe(file)}${sub === undefined ? '' : `.${safe(sub)}`}.json`;
+}
+
+/** The shape classes a MeshLibrary item's shapes may be, and the kind its data file names. */
+const SHAPE_KIND: Readonly<Record<string, 'box' | 'sphere' | 'capsule' | 'convex' | 'concave'>> = {
+  BoxShape3D: 'box',
+  SphereShape3D: 'sphere',
+  CapsuleShape3D: 'capsule',
+  ConvexPolygonShape3D: 'convex',
+  ConcavePolygonShape3D: 'concave',
+};
+
+/** Whether a MeshLibrary item's shape of this class has a collider. */
+export function godotMeshLibraryShapeClass(className: string): boolean {
+  return Object.hasOwn(SHAPE_KIND, className);
+}
+
+/** A MeshLibrary as its data file (`mesh-library.ts`'s `GodotMeshLibraryData`): items and their shapes' properties. */
+export function godotMeshLibraryData(
+  library: TargetGodotMeshLibraryPlan,
+  resources: ReadonlyMap<string, TargetGodotSceneResourcePlan>,
+): unknown {
+  const value = (setters: readonly TargetGodotSceneSetterPlan[], name: string) => setters.find((entry) => entry.setter.exportName === name)?.value;
+  const components = (setters: readonly TargetGodotSceneSetterPlan[], name: string) => {
+    const found = value(setters, name);
+    return found !== undefined && 'components' in found ? [...found.components] : undefined;
+  };
+  const number = (setters: readonly TargetGodotSceneSetterPlan[], name: string) => {
+    const found = value(setters, name);
+    return found?.kind === 'number' ? found.value : undefined;
+  };
+  return {
+    items: library.items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      meshTransform: item.meshTransform,
+      castShadow: item.castShadow,
+      shapes: item.shapes.map((entry) => {
+        const shape = resources.get(entry.shape) as TargetGodotSceneResourcePlan;
+        const set = shape.setters;
+        const backface = value(set, 'set_backface_collision_enabled');
+        return {
+          kind: SHAPE_KIND[shape.className],
+          ...(components(set, 'set_size') === undefined ? {} : { size: components(set, 'set_size') }),
+          ...(number(set, 'set_radius') === undefined ? {} : { radius: number(set, 'set_radius') }),
+          ...(number(set, 'set_height') === undefined ? {} : { height: number(set, 'set_height') }),
+          ...(components(set, 'set_points') === undefined ? {} : { points: components(set, 'set_points') }),
+          ...(components(set, 'set_faces') === undefined ? {} : { faces: components(set, 'set_faces') }),
+          ...(backface?.kind === 'bool' ? { backfaceCollision: backface.value } : {}),
+          transform: entry.transform,
+        };
+      }),
+    })),
+  };
+}
+
+/** Where a MeshLibrary's data file is written, beside its meshes' (`godotArrayMeshDataPath`). */
+export function godotMeshLibraryDataPath(sceneTargetPath: string, key: string): string {
+  return godotArrayMeshDataPath(sceneTargetPath, key).replace(/(\.mesh)?\.json$/u, '.library.json');
+}
+
+/** Where a GridMap's cells data file is written: beside its scene, by the node's path. */
+export function godotGridMapDataPath(sceneTargetPath: string, nodePath: string): string {
+  return `${sceneTargetPath.replace(/\.tsx$/u, '')}.${nodePath === '.' ? 'root' : nodePath.replace(/[^A-Za-z0-9_-]+/gu, '_')}.cells.json`;
 }

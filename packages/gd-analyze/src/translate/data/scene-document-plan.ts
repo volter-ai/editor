@@ -10,8 +10,10 @@ import type {
 import type { GodotValue } from '../../read/godot-value';
 import { ARRAY_MESH_PRIMITIVE } from '../../read/array-mesh';
 import { readGodot4Surfaces } from '../../read/godot4-surfaces';
+import { GridMapReadError, readGridMapCells } from '../../read/grid-map';
 import { isImportedResourceId } from '../../read/instance-expansion';
 import {
+  godotMeshLibraryShapeClass,
   godotArrayMeshRefusal,
   godotFamilyCarriesNode,
   godotFamilyCarriesResource,
@@ -99,7 +101,7 @@ export type TargetGodotSceneValue =
 export interface TargetGodotSceneSetterPlan {
   readonly propertyName: string;
   readonly setter: { readonly module: string; readonly exportName: string; readonly localName: string };
-  readonly index?: number;
+  readonly index?: number | string;
   readonly value: TargetGodotSceneValue;
   readonly evidenceClaimId: string;
 }
@@ -114,8 +116,25 @@ export interface TargetGodotSceneResourcePlan {
   readonly load?: TargetGodotImportedLoad;
   /** An `ArrayMesh`'s surfaces, decoded from its `_surfaces` (`read/godot4-surfaces.ts`). */
   readonly mesh?: TargetGodotArrayMeshPlan;
+  /** A `MeshLibrary`'s items (`item/N/…`, `MeshLibrary::_set`), their meshes and shapes planned. */
+  readonly library?: TargetGodotMeshLibraryPlan;
   readonly setters: readonly TargetGodotSceneSetterPlan[];
   readonly evidenceClaimId: string;
+}
+
+/** A MeshLibrary's items by id, each mesh and shape a planned resource's key. */
+export interface TargetGodotMeshLibraryPlan {
+  readonly items: readonly {
+    readonly id: number;
+    readonly name: string;
+    readonly mesh?: string;
+    /** `Transform3D(...)` arguments as written: the basis's rows, then the origin. */
+    readonly meshTransform: readonly number[];
+    readonly castShadow: number;
+    readonly shapes: readonly { readonly shape: string; readonly transform: readonly number[] }[];
+  }[];
+  /** The items' editor thumbnails (`preview`), files the library names and nothing draws. */
+  readonly previews: readonly string[];
 }
 
 /** An `ArrayMesh` as `godot_array_mesh_new` receives it: each surface's arrays and material. */
@@ -441,9 +460,9 @@ function planResource(
   if (scope === '') {
     if (reference === 'sub') {
       key = `sub:${id}`;
-      data = document.scene.subResources.find((entry) => entry.id === id);
+      data = document.scene.subResources.find((entry) => String(entry.id) === id);
     } else {
-      const ext = document.scene.extResources.find((entry) => entry.id === id);
+      const ext = document.scene.extResources.find((entry) => String(entry.id) === id);
       key = `ext:${ext?.resPath ?? id}`;
       const resource = context.project?.documents.resources.find((entry) => entry.resPath === ext?.resPath);
       data = resource?.resource;
@@ -453,9 +472,9 @@ function planResource(
     const resource = context.project?.documents.resources.find((entry) => entry.resPath === scope);
     if (reference === 'sub') {
       key = `ext:${scope}#sub:${id}`;
-      data = resource?.subResources.find((entry) => entry.id === id);
+      data = resource?.subResources.find((entry) => String(entry.id) === id);
     } else {
-      const ext = resource?.extResources.find((entry) => entry.id === id);
+      const ext = resource?.extResources.find((entry) => String(entry.id) === id);
       key = `ext:${ext?.resPath ?? id}`;
       data = context.project?.documents.resources.find((entry) => entry.resPath === ext?.resPath)?.resource;
       nestedScope = ext?.resPath ?? '';
@@ -504,9 +523,25 @@ function planResource(
     document.order.push(planned);
     return key;
   }
+  if (data.type === 'MeshLibrary') {
+    const library = meshLibraryPlan(context, `${at}(${key})`, data, nestedScope);
+    if (library === undefined) return undefined;
+    const unshaped = library.items.flatMap((item) => item.shapes).map((entry) => document.planned.get(entry.shape)?.className ?? '').find((className) => !godotMeshLibraryShapeClass(className));
+    if (unshaped !== undefined) {
+      refuse(context, `${at}(${key})`, `a ${unshaped} item shape has no collider`, 'resource', unshaped);
+      return undefined;
+    }
+    context.evidence.add(rule.evidenceClaimId);
+    const planned = { key, className: data.type, construct: rule.construct, library, setters: [], evidenceClaimId: rule.evidenceClaimId };
+    document.planned.set(key, planned);
+    document.order.push(planned);
+    return key;
+  }
   const setters: TargetGodotSceneSetterPlan[] = [];
   let ok = true;
   for (const [propertyName, value] of Object.entries(data.properties)) {
+    // A binary resource stores its null script (`resource_format_binary.cpp` writes every property).
+    if (propertyName === 'script' && value.kind === 'null') continue;
     const setter = setterPlan(context, `${at}(${key}).${propertyName}`, data.type, propertyName, value, nestedScope);
     if (setter === undefined) ok = false;
     else setters.push(setter);
@@ -522,6 +557,110 @@ function planResource(
   document.planned.set(key, planned);
   document.order.push(planned);
   return key;
+}
+
+/** A resource reference's `sub`/`ext` and id, as a text or binary document writes it. */
+function referenceOf(value: GodotValue | undefined): { readonly reference: 'sub' | 'ext'; readonly id: string } | undefined {
+  if (value?.kind !== 'ctor' || (value.name !== 'SubResource' && value.name !== 'ExtResource')) return undefined;
+  const [id] = value.args;
+  if (id === undefined || (id.kind !== 'string' && id.kind !== 'number')) return undefined;
+  return { reference: value.name === 'SubResource' ? 'sub' : 'ext', id: id.kind === 'string' ? id.value : String(id.value) };
+}
+
+function transformArgs(value: GodotValue | undefined): readonly number[] | undefined {
+  if (value?.kind !== 'ctor' || (value.name !== 'Transform3D' && value.name !== 'Transform') || value.args.length !== 12) return undefined;
+  const args = numbers(value.args);
+  return args?.map(f32);
+}
+
+/**
+ * A `MeshLibrary` as data (`MeshLibrary::_set`, `mesh_library.cpp:41`): `item/N/name`, `mesh` (a
+ * planned mesh resource), `mesh_transform`, `mesh_cast_shadow` and `shapes` (shape resources and
+ * their transforms, alternating). An item's editor `preview` has no runtime drawer and its
+ * `navigation_mesh_transform`/`navigation_layers` no navigation mesh to place; a navigation mesh
+ * refuses, as does any other key.
+ */
+function meshLibraryPlan(context: PlanContext, at: string, data: BoundGodotResourceData, scope: string): TargetGodotMeshLibraryPlan | undefined {
+  const items = new Map<number, { id: number; name: string; mesh?: string; meshTransform: readonly number[]; castShadow: number; shapes: { shape: string; transform: readonly number[] }[] }>();
+  const previews: string[] = [];
+  const identity = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
+  for (const [name, value] of Object.entries(data.properties)) {
+    if (name === 'resource_name' || (name === 'script' && value.kind === 'null')) continue;
+    const match = /^item\/(\d+)\/(.+)$/u.exec(name);
+    if (match === null) {
+      refuse(context, `${at}.${name}`, `MeshLibrary.${name} is not translated`, 'property', `MeshLibrary.${name}`);
+      return undefined;
+    }
+    const id = Number(match[1]);
+    const field = match[2] as string;
+    const item = items.get(id) ?? { id, name: '', meshTransform: identity, castShadow: 1, shapes: [] };
+    items.set(id, item);
+    const here = `${at}.${name}`;
+    switch (field) {
+      case 'name':
+        item.name = value.kind === 'string' ? value.value : '';
+        break;
+      case 'mesh': {
+        if (value.kind === 'null') break;
+        const reference = referenceOf(value);
+        const key = reference === undefined ? undefined : planResource(context, here, reference.reference, reference.id, scope);
+        if (key === undefined) {
+          if (reference === undefined) refuse(context, here, 'an item mesh that is not a resource', 'resource', 'MeshLibrary');
+          return undefined;
+        }
+        item.mesh = key;
+        break;
+      }
+      case 'mesh_transform': {
+        const transform = transformArgs(value);
+        if (transform === undefined) {
+          refuse(context, here, 'an item mesh transform that is not a Transform3D', 'property', 'MeshLibrary.mesh_transform');
+          return undefined;
+        }
+        item.meshTransform = transform;
+        break;
+      }
+      case 'mesh_cast_shadow':
+        item.castShadow = value.kind === 'number' ? value.value : 1;
+        break;
+      case 'shapes': {
+        const entries = value.kind === 'array' ? value.items : [];
+        if (value.kind !== 'array' || entries.length % 2 !== 0) {
+          refuse(context, here, 'item shapes that are not shape and transform pairs', 'property', 'MeshLibrary.shapes');
+          return undefined;
+        }
+        for (let index = 0; index < entries.length; index += 2) {
+          const reference = referenceOf(entries[index]);
+          const transform = transformArgs(entries[index + 1]);
+          const shape = reference === undefined ? undefined : planResource(context, here, reference.reference, reference.id, scope);
+          if (shape === undefined || transform === undefined) {
+            if (reference === undefined || transform === undefined) refuse(context, here, 'an item shape that is not a shape resource and a Transform3D', 'property', 'MeshLibrary.shapes');
+            return undefined;
+          }
+          item.shapes.push({ shape, transform });
+        }
+        break;
+      }
+      // The editor's thumbnail: the file it names is the library's, drawn by nothing.
+      case 'preview': {
+        const reference = referenceOf(value);
+        if (reference?.reference === 'ext') {
+          const owner = context.project?.documents.resources.find((entry) => entry.resPath === scope);
+          const path = owner?.extResources.find((entry) => String(entry.id) === reference.id)?.resPath;
+          if (path !== undefined) previews.push(path);
+        }
+        break;
+      }
+      // Navigation placement, with no navigation mesh to place.
+      case 'navigation_mesh_transform':
+      case 'navigation_layers':
+        break;
+      default:
+        refuse(context, here, `MeshLibrary item ${field} is not translated`, 'property', `MeshLibrary.${field}`);
+        return undefined;
+    }
+  }
+  return { items: [...items.values()].sort((left, right) => left.id - right.id), previews };
 }
 
 /** `ARRAY_MESH_PRIMITIVE` (Godot 3's numbering, `read/array-mesh.ts`) to Godot 4's `PrimitiveType`. */
@@ -637,6 +776,13 @@ function planProperties(
   let refused = false;
   for (const [propertyName, value] of Object.entries(properties)) {
     const at = `${node.documentPath}#${node.nodePath}.${propertyName}`;
+    // A GridMap's `data` (`GridMap::_set`, grid_map.cpp:64): its cells, no setter's.
+    if (propertyName === 'data' && node.class.nativeAncestry.includes('GridMap') && setters !== undefined) {
+      const cells = gridMapData(context, at, value);
+      if (cells === undefined) refused = true;
+      else setters.push(cells);
+      continue;
+    }
     if (isResourceValue(value) && setters === undefined) {
       refuse(context, at, `${propertyName} is a resource value`, 'resource', `${node.class.nativeName}.${propertyName}`);
       refused = true;
@@ -704,6 +850,32 @@ function placement(
 function groupsOf(context: PlanContext, node: BoundGodotSceneNode): readonly string[] | undefined {
   if (node.groups.length === 0) return [];
   return structure(context, `${node.documentPath}#${node.nodePath}`, 'node-groups') ? node.groups : undefined;
+}
+
+/**
+ * A GridMap's `data` as the cells compat reads (`godot_grid_map_set_data`): the packed ints as
+ * written, once the reader's transcription of `GridMap::_set` accepts them.
+ */
+function gridMapData(context: PlanContext, at: string, value: GodotValue): TargetGodotSceneSetterPlan | undefined {
+  const rule = context.authority.rule(`${context.authority.sourceRevision}\0ClassDB\0GridMap`);
+  if (rule === undefined) {
+    refuse(context, at, 'no live scene-node evidence for GridMap', 'node-family', 'GridMap');
+    return undefined;
+  }
+  try {
+    readGridMapCells(value, at);
+  } catch (error) {
+    refuse(context, at, error instanceof GridMapReadError ? error.message : String(error), 'property', 'GridMap.data');
+    return undefined;
+  }
+  const cells = value.kind === 'dict' ? value.entries.find((entry) => entry.key === 'cells')?.value : undefined;
+  const ints = cells?.kind === 'ctor' ? cells.args.map((arg) => (arg.kind === 'number' ? arg.value : 0)) : [];
+  return {
+    propertyName: 'data',
+    setter: { module: 'lib/godot-compat/grid-map', exportName: 'godot_grid_map_set_data', localName: 'godot_grid_map_set_data' },
+    value: { kind: 'PackedInt32Array', components: ints },
+    evidenceClaimId: rule.evidenceClaimId,
+  };
 }
 
 /** A node the document authors itself: a native entity of its class. */

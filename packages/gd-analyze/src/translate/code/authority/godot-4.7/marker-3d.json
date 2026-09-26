@@ -70,7 +70,7 @@
         "observedOutputSha256": "c90330b51a3358bc1e2290d28fb0725c4dc8f0550064e861b1047904400139a5"
       },
       "target": {
-        "implementationSha256": "371f335af380cb1110eff69ca63f101857a3d1b2cd9b75377655527b5d8de6cd",
+        "implementationSha256": "ff6f9fcce20b89a37c4f23bf7cc46ca170f66589b57c3f02ca5750a50d281b81",
         "callsite": "lib/godot-compat/marker-3d.ts get_gizmo_extents",
         "observedOutputSha256": "c90330b51a3358bc1e2290d28fb0725c4dc8f0550064e861b1047904400139a5"
       },
@@ -109,7 +109,7 @@
         "observedOutputSha256": "08d0af49118c77f800c8d3ee1cc86aa8f64b57d4ae6bb9983dd238ea911f7bd7"
       },
       "target": {
-        "implementationSha256": "371f335af380cb1110eff69ca63f101857a3d1b2cd9b75377655527b5d8de6cd",
+        "implementationSha256": "ff6f9fcce20b89a37c4f23bf7cc46ca170f66589b57c3f02ca5750a50d281b81",
         "callsite": "lib/godot-compat/marker-3d.ts set_gizmo_extents",
         "observedOutputSha256": "08d0af49118c77f800c8d3ee1cc86aa8f64b57d4ae6bb9983dd238ea911f7bd7"
       },
@@ -136,7 +136,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "f55d73a42c1c0893e84ef042fb86dcff266f3d16b0dcbe11b31614ddb42932d2",
-      "implementationSha256": "371f335af380cb1110eff69ca63f101857a3d1b2cd9b75377655527b5d8de6cd"
+      "implementationSha256": "ff6f9fcce20b89a37c4f23bf7cc46ca170f66589b57c3f02ca5750a50d281b81"
     },
     {
       "claimId": "godot-4.7-binding-Marker3D.set_gizmo_extents",
@@ -144,7 +144,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "6dc99a81fb0ecbeca9de5c60fdf4f26b9d566c6bb1051f2c962ace34e873f24b",
-      "implementationSha256": "371f335af380cb1110eff69ca63f101857a3d1b2cd9b75377655527b5d8de6cd"
+      "implementationSha256": "ff6f9fcce20b89a37c4f23bf7cc46ca170f66589b57c3f02ca5750a50d281b81"
     }
   ]
 }

@@ -10,7 +10,13 @@ import {
   directGodotSettingsJson,
 } from '../emit/direct-project-world-syntax';
 import type { DirectGodotSceneModulePlan } from '../data/direct-scene-module-plan';
-import { godotArrayMeshData, godotArrayMeshDataPath } from '../data/scene-families';
+import {
+  godotArrayMeshData,
+  godotArrayMeshDataPath,
+  godotGridMapDataPath,
+  godotMeshLibraryData,
+  godotMeshLibraryDataPath,
+} from '../data/scene-families';
 import { assetCopyArtifact } from './asset-copy';
 import { capabilityCopyArtifact } from './capability-copy';
 import { plannedArtifactIdentity, structuralDigest } from './identity';
@@ -92,16 +98,31 @@ function sourceArtifacts(
   return [...plannedCode, ...plannedScenes];
 }
 
-/** Each `ArrayMesh`'s data file, once however many scenes use it. */
+/** Each `ArrayMesh`'s and `MeshLibrary`'s data file, once however many scenes use it, and each GridMap's cells. */
 function meshDataArtifacts(composition: DirectGodotProjectCompositionPlan): readonly GodotPlannedArtifact[] {
   const written = new Map<string, GodotPlannedArtifact>();
   for (const scene of composition.scenes) {
+    const resources = new Map(scene.resources.map((resource) => [resource.key, resource] as const));
     for (const resource of scene.resources) {
-      if (resource.mesh === undefined) continue;
-      const file = godotArrayMeshDataPath(scene.targetPath, resource.key);
-      if (written.has(file)) continue;
-      written.set(file, projectDataJsonArtifact(file, godotArrayMeshData(resource.mesh) as unknown as DirectJsonValue, [scene.sourceResPath]));
+      if (resource.mesh !== undefined) {
+        const file = godotArrayMeshDataPath(scene.targetPath, resource.key);
+        if (!written.has(file)) written.set(file, projectDataJsonArtifact(file, godotArrayMeshData(resource.mesh) as unknown as DirectJsonValue, [scene.sourceResPath]));
+      }
+      if (resource.library !== undefined) {
+        const file = godotMeshLibraryDataPath(scene.targetPath, resource.key);
+        if (!written.has(file)) written.set(file, projectDataJsonArtifact(file, godotMeshLibraryData(resource.library, resources) as DirectJsonValue, [scene.sourceResPath]));
+      }
     }
+    // A GridMap's cells, as written (a node's own `data`, or an instance's override of it).
+    const walk = (node: DirectGodotProjectCompositionPlan['scenes'][number]['root']): void => {
+      for (const setter of node.setters) {
+        if (setter.setter.exportName !== 'godot_grid_map_set_data' || setter.value.kind !== 'PackedInt32Array') continue;
+        const file = godotGridMapDataPath(scene.targetPath, node.nodePath);
+        written.set(file, projectDataJsonArtifact(file, [...setter.value.components], [scene.sourceResPath]));
+      }
+      for (const child of [...node.children, ...(node.placements ?? []).map((placed) => placed.node)]) walk(child);
+    };
+    walk(scene.root);
   }
   return [...written.values()];
 }

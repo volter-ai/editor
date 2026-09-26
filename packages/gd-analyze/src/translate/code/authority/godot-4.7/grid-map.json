@@ -1,0 +1,1986 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/grid-map"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "get_cell_size",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "get_cell_size",
+        "localName": "GridMap_get_cell_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.get_cell_size"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "set_cell_size",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "set_cell_size",
+        "localName": "GridMap_set_cell_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.set_cell_size"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "set_octant_size",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "set_octant_size",
+        "localName": "GridMap_set_octant_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.set_octant_size"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "get_octant_size",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "get_octant_size",
+        "localName": "GridMap_get_octant_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.get_octant_size"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "set_center_x",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "set_center_x",
+        "localName": "GridMap_set_center_x",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.set_center_x"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "get_center_x",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "get_center_x",
+        "localName": "GridMap_get_center_x",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.get_center_x"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "set_center_y",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "set_center_y",
+        "localName": "GridMap_set_center_y",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.set_center_y"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "get_center_y",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "get_center_y",
+        "localName": "GridMap_get_center_y",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.get_center_y"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "set_center_z",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "set_center_z",
+        "localName": "GridMap_set_center_z",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.set_center_z"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "get_center_z",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "get_center_z",
+        "localName": "GridMap_get_center_z",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.get_center_z"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "set_cell_scale",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "set_cell_scale",
+        "localName": "GridMap_set_cell_scale",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.set_cell_scale"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "get_cell_scale",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "get_cell_scale",
+        "localName": "GridMap_get_cell_scale",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.get_cell_scale"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "set_collision_layer",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "set_collision_layer",
+        "localName": "GridMap_set_collision_layer",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.set_collision_layer"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "set_collision_mask",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "set_collision_mask",
+        "localName": "GridMap_set_collision_mask",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.set_collision_mask"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "get_collision_layer",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "get_collision_layer",
+        "localName": "GridMap_get_collision_layer",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.get_collision_layer"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "get_collision_mask",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "get_collision_mask",
+        "localName": "GridMap_get_collision_mask",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.get_collision_mask"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "set_mesh_library",
+        "kind": "native-member",
+        "signature": "hash:1488083439"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "set_mesh_library",
+        "localName": "GridMap_set_mesh_library",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.set_mesh_library"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "get_mesh_library",
+        "kind": "native-member",
+        "signature": "hash:3350993772"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "get_mesh_library",
+        "localName": "GridMap_get_mesh_library",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.get_mesh_library"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "set_cell_item",
+        "kind": "native-member",
+        "signature": "hash:3449088946"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "set_cell_item",
+        "localName": "GridMap_set_cell_item",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.set_cell_item"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "get_cell_item",
+        "kind": "native-member",
+        "signature": "hash:3724960147"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "get_cell_item",
+        "localName": "GridMap_get_cell_item",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.get_cell_item"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "get_cell_item_orientation",
+        "kind": "native-member",
+        "signature": "hash:3724960147"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "get_cell_item_orientation",
+        "localName": "GridMap_get_cell_item_orientation",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.get_cell_item_orientation"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "get_cell_item_basis",
+        "kind": "native-member",
+        "signature": "hash:3493604918"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "get_cell_item_basis",
+        "localName": "GridMap_get_cell_item_basis",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.get_cell_item_basis"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "get_used_cells",
+        "kind": "native-member",
+        "signature": "hash:3995934104"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "get_used_cells",
+        "localName": "GridMap_get_used_cells",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.get_used_cells"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "get_used_cells_by_item",
+        "kind": "native-member",
+        "signature": "hash:663333327"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "get_used_cells_by_item",
+        "localName": "GridMap_get_used_cells_by_item",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.get_used_cells_by_item"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "clear",
+        "kind": "native-member",
+        "signature": "hash:3218959716"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "clear",
+        "localName": "GridMap_clear",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.clear"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "get_basis_with_orthogonal_index",
+        "kind": "native-member",
+        "signature": "hash:2816196998"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "get_basis_with_orthogonal_index",
+        "localName": "GridMap_get_basis_with_orthogonal_index",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.get_basis_with_orthogonal_index"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "get_orthogonal_index_from_basis",
+        "kind": "native-member",
+        "signature": "hash:4210359952"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "get_orthogonal_index_from_basis",
+        "localName": "GridMap_get_orthogonal_index_from_basis",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.get_orthogonal_index_from_basis"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "local_to_map",
+        "kind": "native-member",
+        "signature": "hash:1257687843"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "local_to_map",
+        "localName": "GridMap_local_to_map",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.local_to_map"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "GridMap",
+        "member": "map_to_local",
+        "kind": "native-member",
+        "signature": "hash:1088329196"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/grid-map",
+        "exportName": "map_to_local",
+        "localName": "GridMap_map_to_local",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-GridMap.map_to_local"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.get_cell_size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000get_cell_size\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.get_cell_size",
+        "sourceLine": 342
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c19254fd9c1673b1146de8c87f961d8c52fcdd259a19690def873d8daa0f8828",
+        "callsite": "res://probe.gd _init() defaults",
+        "observedOutputSha256": "03e955662a1b84d349566b0622b4829b703dd7d580597c2edf8ba51cda7e8de9"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts get_cell_size",
+        "observedOutputSha256": "03e955662a1b84d349566b0622b4829b703dd7d580597c2edf8ba51cda7e8de9"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e97336b12970f66f72300c51176b843733cc52660c70b2ebdb611536d950f018"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.set_cell_size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000set_cell_size\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.set_cell_size",
+        "sourceLine": 335
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "96675b90415d5848ce00294fba3ea470dadcaef17a5a8be3eb46de8675544b50",
+        "callsite": "res://probe.gd _init() set_cell_size-1-1-1 set_cell_size-0.5-3-2.25 set_cell_size-0.0005-1-1",
+        "observedOutputSha256": "592f8019b8dca5bc918e2f0687e522dd36a410970eebb6c324f3d975f32ab96b"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts set_cell_size",
+        "observedOutputSha256": "592f8019b8dca5bc918e2f0687e522dd36a410970eebb6c324f3d975f32ab96b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7fb02e77ce7a307ef5a935385ea53104554797e05e349752df06101539728ddf"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.set_octant_size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000set_octant_size\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.set_octant_size",
+        "sourceLine": 346
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "38d81d65303a9d7de8eb580e032934c9c67887f3f46ae25b9c137b309ff4718b",
+        "callsite": "res://probe.gd _init() set_octant_size-16 set_octant_size-0 set_octant_size--3",
+        "observedOutputSha256": "fff8a7a1ea2e3ee9dfb5d7f55ed496983ea2e133ee96ba90cd5644b97421c485"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts set_octant_size",
+        "observedOutputSha256": "fff8a7a1ea2e3ee9dfb5d7f55ed496983ea2e133ee96ba90cd5644b97421c485"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a99fb98e6a712ff664b91d3cb2633e35c9d4ac19d967c04604f1e442e66d280e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.get_octant_size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000get_octant_size\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.get_octant_size",
+        "sourceLine": 352
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a4939c3f6cc6c0548623810b54db6a4329c1d0ee237a8f945e87f219eee6f6fe",
+        "callsite": "res://probe.gd _init() get_octant_size",
+        "observedOutputSha256": "44a51ce47103f78d9573a76621b8ecbd2c54ba136f6e53dd1b11f7b6a3a7b6ee"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts get_octant_size",
+        "observedOutputSha256": "44a51ce47103f78d9573a76621b8ecbd2c54ba136f6e53dd1b11f7b6a3a7b6ee"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a2b31331f35fce5d25b4b8bd6f83651a0c228750d5e3c73b6424c1db9b019ae5"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.set_center_x",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000set_center_x\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.set_center_x",
+        "sourceLine": 356
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "bd9a5cc29cd623cdaf6c45781140662713e5b87dcc3bde00761216d03a7bf852",
+        "callsite": "res://probe.gd _init() set_center_x",
+        "observedOutputSha256": "49aca82f7abf37445cbd774213836aee2654e4c38f581bf848906ffcaca83094"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts set_center_x",
+        "observedOutputSha256": "49aca82f7abf37445cbd774213836aee2654e4c38f581bf848906ffcaca83094"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e9bf668f8d5311ac5f1a4e24827af181bfbb8caeddda5850af438c773c443f18"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.get_center_x",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000get_center_x\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.get_center_x",
+        "sourceLine": 361
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b0347b0419d456f3f393048e988dd07a9e1c3635f8ada7fbc30a13a8c2a5b191",
+        "callsite": "res://probe.gd _init() get_center_x",
+        "observedOutputSha256": "88f075804e27ce9323978f544e7f71314c92c7616fedeb35b7bb1aa852904c5a"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts get_center_x",
+        "observedOutputSha256": "88f075804e27ce9323978f544e7f71314c92c7616fedeb35b7bb1aa852904c5a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f76c7588d76d9cf7bbe5321cd4dbdded03a417160b03c037b90b31b0eacb7668"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.set_center_y",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000set_center_y\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.set_center_y",
+        "sourceLine": 365
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "08d5b9eb5ff04de17a527638ff43ad1c3814a13e18c3c114e9f1e634a66227ce",
+        "callsite": "res://probe.gd _init() set_center_y",
+        "observedOutputSha256": "0edfb15f2595bc1869132604c72b82a1e8606843e4b3e5d03413df9603eb75e6"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts set_center_y",
+        "observedOutputSha256": "0edfb15f2595bc1869132604c72b82a1e8606843e4b3e5d03413df9603eb75e6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "73cd05bf70a6c1fdf435e03b3a1328bc50e5e606dacf9b5ad313bf9c739aa35c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.get_center_y",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000get_center_y\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.get_center_y",
+        "sourceLine": 370
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a405d7540166e2af2aa3bc893bd5dd962326596d99ec2ddc9ca06c558dfb7414",
+        "callsite": "res://probe.gd _init() get_center_y",
+        "observedOutputSha256": "a7f1cc1629aba382d8ee8aa4ba023acc8ba810e1be7fd92edd14d1819f150630"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts get_center_y",
+        "observedOutputSha256": "a7f1cc1629aba382d8ee8aa4ba023acc8ba810e1be7fd92edd14d1819f150630"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e2a7fb4903c7244e389bf79caac565fbb34ad644650ae81f6f9ae862dc1a71e4"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.set_center_z",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000set_center_z\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.set_center_z",
+        "sourceLine": 374
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "43801912dfb8892151aeba48722727ffb14c639222bf44c0c802bfee0d5fc258",
+        "callsite": "res://probe.gd _init() set_center_z",
+        "observedOutputSha256": "58093a50fd6dfec7c6b96ca7719e5b480f586aa3284f3fac6c0d1cdb8cb3f5b8"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts set_center_z",
+        "observedOutputSha256": "58093a50fd6dfec7c6b96ca7719e5b480f586aa3284f3fac6c0d1cdb8cb3f5b8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "4b7aaa0d925f98cc531a98c9d660179eae3e59fb5e035d39ec1f79e76fd67d6d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.get_center_z",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000get_center_z\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.get_center_z",
+        "sourceLine": 379
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2db3642a19bf0530e763e718624040c73190f121711dfd97a58e149b34d21f73",
+        "callsite": "res://probe.gd _init() get_center_z",
+        "observedOutputSha256": "e8c4c82b1502166c6559502c0ceec463cbb2b7f2f0450dc21718fccc6aa73a81"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts get_center_z",
+        "observedOutputSha256": "e8c4c82b1502166c6559502c0ceec463cbb2b7f2f0450dc21718fccc6aa73a81"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "d6b2a17310fb85290a0be468a9fa9c2bd61c785705c33885117d3c18e01befa5"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.set_cell_scale",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000set_cell_scale\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.set_cell_scale",
+        "sourceLine": 1336
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5974cb2115aba9e85b71a31694a7a3d63b063e2a5d71d77b84932e42d011c8d3",
+        "callsite": "res://probe.gd _init() set_cell_scale",
+        "observedOutputSha256": "0a6ee5adf2ecab2504b2a345e16c5f486d1457a3c50a14ce8f1fcdcdefb5ed9f"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts set_cell_scale",
+        "observedOutputSha256": "0a6ee5adf2ecab2504b2a345e16c5f486d1457a3c50a14ce8f1fcdcdefb5ed9f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "2b88d69e9716bb341a706e57cdf9f58265960ac5ad60230da86b7874c9d46f86"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.get_cell_scale",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000get_cell_scale\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.get_cell_scale",
+        "sourceLine": 1341
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ed643be8a7c31e6736c769d0e0777916cd3007f3cb906d29ee8e98ed13c94e73",
+        "callsite": "res://probe.gd _init() get_cell_scale",
+        "observedOutputSha256": "62dab0ec32d2544397b74025ab6dae0691851dab022a7b620da29949178a9b0c"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts get_cell_scale",
+        "observedOutputSha256": "62dab0ec32d2544397b74025ab6dae0691851dab022a7b620da29949178a9b0c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "17e35bae550d4d100d1886c74c5592506e53849da7bb142b2f7ada0b02e11f44"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.set_collision_layer",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000set_collision_layer\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.set_collision_layer",
+        "sourceLine": 165
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "fb3d66feefe530aab7409e9143591b1307463a90a6bb0fbfbd949782ff3363a9",
+        "callsite": "res://probe.gd _init() collision_layer_mask",
+        "observedOutputSha256": "fc976488a9b38f103443768e4254718c076347a18f5a766595aea82e12df5bc6"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts set_collision_layer",
+        "observedOutputSha256": "fc976488a9b38f103443768e4254718c076347a18f5a766595aea82e12df5bc6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b2215ab2f3eb1506c77ce92d824d0b9e0080ab795ef3fe404ced199b3f8d4436"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.set_collision_mask",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000set_collision_mask\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.set_collision_mask",
+        "sourceLine": 174
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "06a2d8acf09bcced940f7d5ff38401a24b82670c8b1cc6336eaea593a69e7fe4",
+        "callsite": "res://probe.gd _init() set_collision_mask",
+        "observedOutputSha256": "a9e8b1c7521f1bed0b295d608acbd35300be3ea35af2f2c0d16c84cb3927ed88"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts set_collision_mask",
+        "observedOutputSha256": "a9e8b1c7521f1bed0b295d608acbd35300be3ea35af2f2c0d16c84cb3927ed88"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "2d4baf2ebb8c7b1298b7359d0a918c3002b09f945143fd3e29a9700d318a739f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.get_collision_layer",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000get_collision_layer\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.get_collision_layer",
+        "sourceLine": 170
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b8fc18b9eea677ea334d7d995e0f6ad3380c721de772616ae3793406a9ca7895",
+        "callsite": "res://probe.gd _init() get_collision_layer",
+        "observedOutputSha256": "162f54d552a5aa08beabfd6f7f5dc0d1d6f970fdc14f94ed468f64a406c93569"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts get_collision_layer",
+        "observedOutputSha256": "162f54d552a5aa08beabfd6f7f5dc0d1d6f970fdc14f94ed468f64a406c93569"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "760e54ee2410a5544af57b7422878a6a6003c09f01901b56ad31e05431ead936"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.get_collision_mask",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000get_collision_mask\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.get_collision_mask",
+        "sourceLine": 179
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f6b18dfa6ae55bd8613fe2e2c1a934b180b7f60e4b627416b9a776548487c209",
+        "callsite": "res://probe.gd _init() get_collision_mask",
+        "observedOutputSha256": "0e313e3803e85f2f89a140f92ae8fa3610a07f0b28c94dae2981585ef626044f"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts get_collision_mask",
+        "observedOutputSha256": "0e313e3803e85f2f89a140f92ae8fa3610a07f0b28c94dae2981585ef626044f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "eaef9f74a47eb80605a7a441e43354b598b2f6727448c5af8756101c2f06be2f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.set_mesh_library",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000set_mesh_library\u0000hash:1488083439",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.set_mesh_library",
+        "sourceLine": 318
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4edc7e87266ca58b6dd495312b131c42becfb226a500994540c248ec0c8e572e",
+        "callsite": "res://probe.gd _init() mesh_library",
+        "observedOutputSha256": "91b9a4f9a6466c2ea53145be06343d591282b8812e4aee40a99c0a6d8b815897"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts set_mesh_library",
+        "observedOutputSha256": "91b9a4f9a6466c2ea53145be06343d591282b8812e4aee40a99c0a6d8b815897"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "827434d2c320a0881edf53621ffea4fcc6ba824f84a4363899de5f5a2e3e526b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.get_mesh_library",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000get_mesh_library\u0000hash:3350993772",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.get_mesh_library",
+        "sourceLine": 331
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b06d5eb9278cf920cbc3f1175de37c793d562839dad1545a4c942035e4b7e664",
+        "callsite": "res://probe.gd _init() get_mesh_library",
+        "observedOutputSha256": "5c45e1f119046e730a825906ba43e0d857dca17d3de7c073c2a6945d84bdf5de"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts get_mesh_library",
+        "observedOutputSha256": "5c45e1f119046e730a825906ba43e0d857dca17d3de7c073c2a6945d84bdf5de"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "81ae2a018e0f2a69c1b2a4b03bfcdb4e22a70611401bacd28e5394d26f4077ed"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.set_cell_item",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000set_cell_item\u0000hash:3449088946",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.set_cell_item",
+        "sourceLine": 383
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d4dacf869964a06dca0b73492a4ea7805097fe19f1d101055742367c75e723f8",
+        "callsite": "res://probe.gd _init() set_cell_item-get_cell_item",
+        "observedOutputSha256": "f2e69ba0463d9a2d9f7178340f1bcdab13d9be78686e2363e76084ba63280151"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts set_cell_item",
+        "observedOutputSha256": "f2e69ba0463d9a2d9f7178340f1bcdab13d9be78686e2363e76084ba63280151"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "309c6f1c7dfe0eb0421cfa4de2113e4127d5d35a608da7da8b884fcf302627f6"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.get_cell_item",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000get_cell_item\u0000hash:3724960147",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.get_cell_item",
+        "sourceLine": 473
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f6f5900e497d9e84f16557cbb7bc413ba9d9d4d7900b9c33334da6949cfbc9ba",
+        "callsite": "res://probe.gd _init() get_cell_item",
+        "observedOutputSha256": "4164ad9862575a021f99db632c1c095755b2325ee6915607e73c5f12e03b90b6"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts get_cell_item",
+        "observedOutputSha256": "4164ad9862575a021f99db632c1c095755b2325ee6915607e73c5f12e03b90b6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "99c65ba99524b33b660a4fb84d877f8663ac1459bc94b6a4e3774ed167a83952"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.get_cell_item_orientation",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000get_cell_item_orientation\u0000hash:3724960147",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.get_cell_item_orientation",
+        "sourceLine": 489
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9d6dc728916c6a9240f5c497c8d0c4c3366ae6f5c40e1dabc5640718da36d465",
+        "callsite": "res://probe.gd _init() get_cell_item_orientation",
+        "observedOutputSha256": "c9ffdbe41f6f06c72ff0dc483cc0154892cdc0df3c4277844245f0ee8fd406d3"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts get_cell_item_orientation",
+        "observedOutputSha256": "c9ffdbe41f6f06c72ff0dc483cc0154892cdc0df3c4277844245f0ee8fd406d3"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "176292cceaf20b3c682bd76ef0ba428586962ce073cac1403f5ec97d159f5770"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.get_cell_item_basis",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000get_cell_item_basis\u0000hash:3493604918",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.get_cell_item_basis",
+        "sourceLine": 532
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1d673400148adc07e2be2e336f7cf25f59167b6553ddea9e07266a21edbb51a0",
+        "callsite": "res://probe.gd _init() get_cell_item_basis",
+        "observedOutputSha256": "96617c775c8cd6233d9cb6d9c326a3ce734e7ae33278f96a288f4c5f06fe3879"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts get_cell_item_basis",
+        "observedOutputSha256": "96617c775c8cd6233d9cb6d9c326a3ce734e7ae33278f96a288f4c5f06fe3879"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "808252268dc222724269df1962945380c77ff1b40ba9cd6b4ff2ba84c954d42f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.get_used_cells",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000get_used_cells\u0000hash:3995934104",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.get_used_cells",
+        "sourceLine": 1345
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ba7e9d0a4a7e2c0daa0778151f3f012e1e65ded4573756fa017bda0f06519b35",
+        "callsite": "res://probe.gd _init() get_used_cells-order",
+        "observedOutputSha256": "1d907d87da073e735ad417b782c5d32808fccd2ccda87531c70e0571efc155f7"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts get_used_cells",
+        "observedOutputSha256": "1d907d87da073e735ad417b782c5d32808fccd2ccda87531c70e0571efc155f7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0ac6d0bb400c2b8936c1380026d6b05d9bdbceebd187b4515fc83d57b9e11ff4"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.get_used_cells_by_item",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000get_used_cells_by_item\u0000hash:663333327",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.get_used_cells_by_item",
+        "sourceLine": 1357
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "3ddd06e7dbce305cab75d5b53ddc717228473833981f3272571cab9a74342114",
+        "callsite": "res://probe.gd _init() get_used_cells_by_item",
+        "observedOutputSha256": "d0dc3d40a479e54f719fdce2305cb8d95e7a5dd4d3bd80e8e10fd670fe9f79e2"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts get_used_cells_by_item",
+        "observedOutputSha256": "d0dc3d40a479e54f719fdce2305cb8d95e7a5dd4d3bd80e8e10fd670fe9f79e2"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "be42c117f7601bf8f056b5979425be326560d8d03e1386dd12e6b028093018b6"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.clear",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000clear\u0000hash:3218959716",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.clear",
+        "sourceLine": 1183
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b5024ca151b15f98eb9d1e52caf60702d9217e4d08f8d5e5aa47c59c09f6caf2",
+        "callsite": "res://probe.gd _init() clear",
+        "observedOutputSha256": "b81ac7f2d891bcd787bb9f31e109488b42c07282079ce7ccda2eef8347be0c5f"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts clear",
+        "observedOutputSha256": "b81ac7f2d891bcd787bb9f31e109488b42c07282079ce7ccda2eef8347be0c5f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "fd037a19cf348c0776d69f515038c407e77389084e15a689bea267af24e55238"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.get_basis_with_orthogonal_index",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000get_basis_with_orthogonal_index\u0000hash:2816196998",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.get_basis_with_orthogonal_index",
+        "sourceLine": 542
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1a87371df19068893652a7eb27703b26414a1f691fbf6ed79796a2b34709ca00",
+        "callsite": "res://probe.gd _init() get_basis_with_orthogonal_index-0 get_basis_with_orthogonal_index-1 get_basis_with_orthogonal_index-2 get_basis_with_orthogonal_index-3 get_basis_with_orthogonal_index-4 get_basis_with_orthogonal_index-5 get_basis_with_orthogonal_index-6 get_basis_with_orthogonal_index-7 get_basis_with_orthogonal_index-8 get_basis_with_orthogonal_index-9 get_basis_with_orthogonal_index-10 get_basis_with_orthogonal_index-11 get_basis_with_orthogonal_index-12 get_basis_with_orthogonal_index-13 get_basis_with_orthogonal_index-14 get_basis_with_orthogonal_index-15 get_basis_with_orthogonal_index-16 get_basis_with_orthogonal_index-17 get_basis_with_orthogonal_index-18 get_basis_with_orthogonal_index-19 get_basis_with_orthogonal_index-20 get_basis_with_orthogonal_index-21 get_basis_with_orthogonal_index-22 get_basis_with_orthogonal_index-23 get_basis_with_orthogonal_index-24 get_basis_with_orthogonal_index--1",
+        "observedOutputSha256": "7e1689f0fcc9fd6256b4ab9af3e199ec52de99c6522cfc75bcc251094f859f96"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts get_basis_with_orthogonal_index",
+        "observedOutputSha256": "7e1689f0fcc9fd6256b4ab9af3e199ec52de99c6522cfc75bcc251094f859f96"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "4564cb1541daeaa9a0cb13765abd9dd8428c1f2f284ba0ccd9a96aed5bcd3d38"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.get_orthogonal_index_from_basis",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000get_orthogonal_index_from_basis\u0000hash:4210359952",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.get_orthogonal_index_from_basis",
+        "sourceLine": 548
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "141d2e57f24f3abb188e602229f777744e40f2d2cb0ca5d8e9425dde31b0db7a",
+        "callsite": "res://probe.gd _init() get_orthogonal_index_from_basis-identity get_orthogonal_index_from_basis-rot10 get_orthogonal_index_from_basis-near get_orthogonal_index_from_basis-none",
+        "observedOutputSha256": "6af8992527deb1d68f1bcaeb5e7843cc41863a9c1a16bde8702ee27e038a585f"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts get_orthogonal_index_from_basis",
+        "observedOutputSha256": "6af8992527deb1d68f1bcaeb5e7843cc41863a9c1a16bde8702ee27e038a585f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a7c0db38e5e6866d533a3a5cf90e8f689f074f1593068294c21ec2e89c862be3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.local_to_map",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000local_to_map\u0000hash:1257687843",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.local_to_map",
+        "sourceLine": 600
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0c5d8c9e318deb2ac94022e0535abad7d12793b06a047b6a32f3309a947e473a",
+        "callsite": "res://probe.gd _init() local_to_map-default local_to_map-uneven",
+        "observedOutputSha256": "c07fe5658872894100ba19b9b506513801722a1eb3befd400911b54d52cab7e2"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts local_to_map",
+        "observedOutputSha256": "c07fe5658872894100ba19b9b506513801722a1eb3befd400911b54d52cab7e2"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3dad89232a236c8767f808e15b4bbb2de8f9e133ddb17faf094bb2f073425298"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-GridMap.map_to_local",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000GridMap\u0000map_to_local\u0000hash:1088329196",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "modules/gridmap/grid_map.cpp",
+        "sourceSymbol": "GridMap.map_to_local",
+        "sourceLine": 605
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "fbdfc7c31e1610e1b5da92c2b6febfcd072e68de4c329c502442fcdfe6dc64db",
+        "callsite": "res://probe.gd _init() map_to_local-default map_to_local-uneven",
+        "observedOutputSha256": "e4647ca5593a1dfbaf2d6d4ddf74f26fce10a154c18deed537ad08d204ce951f"
+      },
+      "target": {
+        "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e",
+        "callsite": "lib/godot-compat/grid-map.ts map_to_local",
+        "observedOutputSha256": "e4647ca5593a1dfbaf2d6d4ddf74f26fce10a154c18deed537ad08d204ce951f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ed6fe755464cbf8b01c44df810a8cdf966cbc0f2c9f9318367e86057b0013f67"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "grid-map",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-GridMap.get_cell_size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c19254fd9c1673b1146de8c87f961d8c52fcdd259a19690def873d8daa0f8828",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.set_cell_size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "96675b90415d5848ce00294fba3ea470dadcaef17a5a8be3eb46de8675544b50",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.set_octant_size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "38d81d65303a9d7de8eb580e032934c9c67887f3f46ae25b9c137b309ff4718b",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.get_octant_size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a4939c3f6cc6c0548623810b54db6a4329c1d0ee237a8f945e87f219eee6f6fe",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.set_center_x",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "bd9a5cc29cd623cdaf6c45781140662713e5b87dcc3bde00761216d03a7bf852",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.get_center_x",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b0347b0419d456f3f393048e988dd07a9e1c3635f8ada7fbc30a13a8c2a5b191",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.set_center_y",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "08d5b9eb5ff04de17a527638ff43ad1c3814a13e18c3c114e9f1e634a66227ce",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.get_center_y",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a405d7540166e2af2aa3bc893bd5dd962326596d99ec2ddc9ca06c558dfb7414",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.set_center_z",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "43801912dfb8892151aeba48722727ffb14c639222bf44c0c802bfee0d5fc258",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.get_center_z",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2db3642a19bf0530e763e718624040c73190f121711dfd97a58e149b34d21f73",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.set_cell_scale",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5974cb2115aba9e85b71a31694a7a3d63b063e2a5d71d77b84932e42d011c8d3",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.get_cell_scale",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ed643be8a7c31e6736c769d0e0777916cd3007f3cb906d29ee8e98ed13c94e73",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.set_collision_layer",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "fb3d66feefe530aab7409e9143591b1307463a90a6bb0fbfbd949782ff3363a9",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.set_collision_mask",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "06a2d8acf09bcced940f7d5ff38401a24b82670c8b1cc6336eaea593a69e7fe4",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.get_collision_layer",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b8fc18b9eea677ea334d7d995e0f6ad3380c721de772616ae3793406a9ca7895",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.get_collision_mask",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f6b18dfa6ae55bd8613fe2e2c1a934b180b7f60e4b627416b9a776548487c209",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.set_mesh_library",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4edc7e87266ca58b6dd495312b131c42becfb226a500994540c248ec0c8e572e",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.get_mesh_library",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b06d5eb9278cf920cbc3f1175de37c793d562839dad1545a4c942035e4b7e664",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.set_cell_item",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d4dacf869964a06dca0b73492a4ea7805097fe19f1d101055742367c75e723f8",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.get_cell_item",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f6f5900e497d9e84f16557cbb7bc413ba9d9d4d7900b9c33334da6949cfbc9ba",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.get_cell_item_orientation",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9d6dc728916c6a9240f5c497c8d0c4c3366ae6f5c40e1dabc5640718da36d465",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.get_cell_item_basis",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1d673400148adc07e2be2e336f7cf25f59167b6553ddea9e07266a21edbb51a0",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.get_used_cells",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ba7e9d0a4a7e2c0daa0778151f3f012e1e65ded4573756fa017bda0f06519b35",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.get_used_cells_by_item",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "3ddd06e7dbce305cab75d5b53ddc717228473833981f3272571cab9a74342114",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.clear",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b5024ca151b15f98eb9d1e52caf60702d9217e4d08f8d5e5aa47c59c09f6caf2",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.get_basis_with_orthogonal_index",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1a87371df19068893652a7eb27703b26414a1f691fbf6ed79796a2b34709ca00",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.get_orthogonal_index_from_basis",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "141d2e57f24f3abb188e602229f777744e40f2d2cb0ca5d8e9425dde31b0db7a",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.local_to_map",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0c5d8c9e318deb2ac94022e0535abad7d12793b06a047b6a32f3309a947e473a",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    },
+    {
+      "claimId": "godot-4.7-binding-GridMap.map_to_local",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "fbdfc7c31e1610e1b5da92c2b6febfcd072e68de4c329c502442fcdfe6dc64db",
+      "implementationSha256": "7c81477667ad22c623c163355c2a9ebf0a8294d4630abef8d9bdce16d0e8eb8e"
+    }
+  ]
+}

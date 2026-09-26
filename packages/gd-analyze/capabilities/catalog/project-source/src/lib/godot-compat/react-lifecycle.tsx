@@ -32,6 +32,7 @@ import {
   mountGodotScriptForest,
   mountGodotScriptTree,
 } from './node';
+import { set_meta } from './object';
 import { godot_tree_root } from './scene-tree';
 import { godot_world_3d_declared_object } from './world-3d';
 
@@ -301,6 +302,11 @@ export function useGodotElement<Entity extends Object3D>(element: GodotElementCl
     element.mount(made);
     for (const [property, value] of Object.entries(properties)) {
       if (element.spatial && THREE_TRANSFORM.has(property)) continue;
+      // The node's metadata, by name (`Object::_set`, `metadata/NAME`, `object.cpp:279`).
+      if (property === 'meta') {
+        for (const [name, entry] of Object.entries(value as Readonly<Record<string, unknown>>)) set_meta(made, name, entry);
+        continue;
+      }
       const set = element.props.get(property);
       if (set === undefined) throw new Error(`godot-compat: ${element.classes[0] ?? 'a node'} has no ${property} prop`);
       (set as (entity: Entity, value: unknown) => void)(made, value);

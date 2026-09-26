@@ -223,6 +223,14 @@ export function godot_collision_objects_declare(
 ): void {
   const listed = new Set<object>();
   for (const { object, body, colliders } of bodies) {
+    // A body declared for a node that is not its object: the node is the collision object.
+    const standIn = STAND_IN.get(body);
+    if (standIn !== undefined) {
+      listed.add(standIn);
+      DECLARED.set(standIn, { body, colliders: new Map(colliders.map((entry) => [entry.object, entry.collider] as const)) });
+      STAND_IN_COLLIDERS.set(standIn, colliders);
+      continue;
+    }
     listed.add(object);
     const known = DECLARED.get(object);
     DECLARED.set(object, { body, colliders: new Map(colliders.map((entry) => [entry.object, entry.collider] as const)) });
@@ -252,6 +260,48 @@ export function godot_collision_objects_declare(
     OBJECT.delete(object);
     DECLARED.delete(object);
   }
+}
+
+const STAND_IN = new Map<RigidBody, object>();
+/** A stand-in's Godot shape of each of its colliders. */
+const STAND_IN_SHAPES = new Map<object, (collider: Collider) => object | undefined>();
+const STAND_IN_COLLIDERS = new Map<object, readonly { readonly object: object; readonly collider: Collider }[]>();
+
+/**
+ * Makes a node registered as a collision object (`godot_collision_object_adopt`) the one a body its
+ * JSX declares stands for, with every collider of that body a shape (`shapeOf` gives its Godot
+ * shape) at the collider's place in the body: a GridMap's cells, one fixed body whose collisions report the GridMap
+ * (`GridMap::set_cell_item`, `grid_map.cpp:420`, attaches the octant bodies to the GridMap's
+ * instance id). The returned call ends it, as the body unmounts.
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source modules/gridmap/grid_map.cpp:420
+ */
+export function godot_collision_object_stand_in(body: RigidBody, entity: object, shapeOf: (collider: Collider) => object | undefined): () => void {
+  STAND_IN.set(body, entity);
+  STAND_IN_SHAPES.set(entity, shapeOf);
+  return () => {
+    STAND_IN.delete(body);
+    STAND_IN_COLLIDERS.delete(entity);
+    STAND_IN_SHAPES.delete(entity);
+  };
+}
+
+/** A stand-in's shapes: its body's colliders, each where it sits in the body, in the body's order. */
+function syncStandIn(entity: object, state: ObjectState, colliders: readonly { readonly object: object; readonly collider: Collider }[]): void {
+  if (state.colliders.length === colliders.length && state.colliders.every((entry, index) => entry.collider === colliders[index]?.collider)) return;
+  for (const entry of state.colliders) if (entry.collider !== undefined) ENTITY_OF_COLLIDER.delete(entry.collider.handle);
+  const shapeOf = STAND_IN_SHAPES.get(entity);
+  state.colliders = colliders.map(({ object, collider }) => {
+    const local = get_transform(object as Object3D);
+    const shape = shapeOf?.(collider);
+    if (shape === undefined) throw new Error('godot-compat: a stand-in collider without its shape.');
+    collider.setActiveHooks(RAPIER.ActiveHooks.FILTER_CONTACT_PAIRS);
+    ENTITY_OF_COLLIDER.set(collider.handle, entity);
+    return { shapeNode: object, shape, local, localInverse: affine_inverse(local), disabled: false, inBroadphase: false, collider, key: '' };
+  });
+  state.moved = true;
+  updateShapes(state);
 }
 
 /**
@@ -396,6 +446,11 @@ export function godot_collision_object_place(entity: object, global: Transform3D
  * set in place (`set_shape_disabled`, `:72`; `set_shape_transform`, `:60`).
  */
 function syncShapes(world: World, entity: object, state: ObjectState): void {
+  const standIn = STAND_IN_COLLIDERS.get(entity);
+  if (standIn !== undefined) {
+    syncStandIn(entity, state, standIn);
+    return;
+  }
   const declared = DECLARED.get(entity);
   const children = (entity as Object3D).children;
   const current = (entry: CollisionShapeEntry): boolean =>

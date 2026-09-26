@@ -39,6 +39,7 @@ import {
   familyCountUses,
   familyEmission,
   familyImports,
+  familyInstanceProps,
   familyThreeType,
   flag,
   float32Literal,
@@ -396,7 +397,9 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
   emission.instances.set(local, moduleSpecifier(emission.scene.targetPath, instanced.targetPath));
   const rootClass = instanced.root.classes[0] as string;
   const overrides: TargetTsJsxAttribute[] = [];
-  if (node.setters.length > 0) {
+  const familyProps = node.setters.length > 0 ? familyInstanceProps(emission.family, rootClass, node, instanced.root.setters) : undefined;
+  if (familyProps !== undefined) overrides.push(...familyProps);
+  else if (node.setters.length > 0) {
     if (BODY_TYPES[rootClass] === undefined) throw new Error(`${at}: overrides on an instanced ${rootClass} have no idiomatic form`);
     // The overridden values merged over the prefab's own: the props that differ from its root's.
     const merged = [...instanced.root.setters.filter((own) => !node.setters.some((entry) => sameSetter(entry, own))), ...node.setters];

@@ -16,8 +16,8 @@ export interface SceneSetterBinding {
   readonly module: string;
   readonly exportName: string;
   readonly localName: string;
-  /** An indexed property's index, passed before the value (`ADD_PROPERTYI`). */
-  readonly index?: number;
+  /** An indexed property's index, passed before the value (`ADD_PROPERTYI`); a metadata entry's name. */
+  readonly index?: number | string;
   readonly evidenceClaimId: string;
 }
 
@@ -42,6 +42,12 @@ const BONE_POSE = /^bones\/(\d+)\/(position|rotation|scale)$/;
  * `stream_N/weight` is `set_stream_probability_weight(N, value)`.
  */
 const RANDOMIZER_ENTRY = /^stream_(\d+)\/(stream|weight)$/;
+
+/**
+ * `Object::_set` (`core/object/object.cpp:279`): `metadata/NAME` is `set_meta(NAME, value)`, the
+ * object's metadata entry of that name.
+ */
+const METADATA = /^metadata\/(.+)$/;
 
 export function sceneSetterLookup(
   codeAuthority: GodotCodeTranslationAuthority,
@@ -69,10 +75,15 @@ export function sceneSetterLookup(
     const ancestry = ancestryOf(className);
     let owner: string | undefined;
     let setter: string | undefined;
-    let index: number | undefined;
+    let index: number | string | undefined;
     const surface = SURFACE_OVERRIDE.exec(property);
     const bone = BONE_POSE.exec(property);
-    if (surface !== null && ancestry.includes('MeshInstance3D')) {
+    const metadata = METADATA.exec(property);
+    if (metadata !== null) {
+      owner = 'Object';
+      setter = 'set_meta';
+      index = metadata[1] as string;
+    } else if (surface !== null && ancestry.includes('MeshInstance3D')) {
       owner = 'MeshInstance3D';
       setter = 'set_surface_override_material';
       index = Number(surface[1]);
@@ -137,6 +148,8 @@ export type TargetSceneValue =
   | { readonly kind: 'Vector2' | 'Vector3' | 'Color' | 'Quaternion'; readonly components: readonly number[] }
   /** A `PackedVector3Array`, as the Vector3 array compat's setters take: x, y, z per element. */
   | { readonly kind: 'PackedVector3Array'; readonly components: readonly number[] }
+  /** A `PackedInt32Array` (a GridMap's `data.cells`), the ints as written. */
+  | { readonly kind: 'PackedInt32Array'; readonly components: readonly number[] }
   /** A resource this document declares or references: `SubResource`/`ExtResource` by id. */
   | { readonly kind: 'resource'; readonly reference: 'sub' | 'ext'; readonly id: string };
 
@@ -154,7 +167,10 @@ export function targetSceneValue(value: GodotValue): TargetSceneValue | undefine
     case 'ctor': {
       if (value.name === 'SubResource' || value.name === 'ExtResource') {
         const [id] = value.args;
-        return id?.kind === 'string' ? { kind: 'resource', reference: value.name === 'SubResource' ? 'sub' : 'ext', id: id.value } : undefined;
+        // A binary document names a resource by its index (`resource_format_binary.cpp:426`).
+        return id?.kind === 'string' || id?.kind === 'number'
+          ? { kind: 'resource', reference: value.name === 'SubResource' ? 'sub' : 'ext', id: String(id.value) }
+          : undefined;
       }
       if (value.name === 'PackedVector3Array') {
         const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
