@@ -106,6 +106,8 @@ bassoon 70 (105, vibrato 106); horn 60 (staccato 108, muted 109); trumpet 56 (11
 quiet 20 (pedals 117, 118); upright piano 0 and 1; percussion: `percussion.sf3`, `program: 49,
 drums: true` (on the drum channel the program chooses the kit). Mind each instrument's real range: the violin section starts at G3.
 `pizzicato` or `tremolo` on an instrument with no patch for it is a `check-piece` problem.
+Repeated notes take turns through a patch's alternate recordings (round robins) on their own:
+spiccato, pizzicato and staccato repeat without the machine-gun sound.
 
 ## Expression
 
