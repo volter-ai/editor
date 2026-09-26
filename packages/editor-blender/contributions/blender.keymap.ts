@@ -38,6 +38,20 @@ export const keymap: KeymapContribution = {
     // `km_view3d` — `view3d.view_persportho` on NUMPAD_5; Blender has no isometric preset key.
     'view.perspective': [],
     'view.projection': [{ key: '', code: 'Numpad5' }],
+    // `km_view3d` — `view3d.view_axis` with Ctrl for the opposite side, `view3d.view_orbit` on
+    // NUMPAD_2/4/6/8 (15°, `pad_rot_angle`) and NUMPAD_9 (π), `view3d.view_roll` on Shift+4/6.
+    // Blender's Ctrl is the Control key on every platform; a chord's `mod` is Control off macOS
+    // and ⌘ on it, which has no Control-key form here.
+    'view.back': [{ key: '', code: 'Numpad1', mod: true }],
+    'view.left': [{ key: '', code: 'Numpad3', mod: true }],
+    'view.bottom': [{ key: '', code: 'Numpad7', mod: true }],
+    'view.orbitLeft': [{ key: '', code: 'Numpad4' }],
+    'view.orbitRight': [{ key: '', code: 'Numpad6' }],
+    'view.orbitUp': [{ key: '', code: 'Numpad8' }],
+    'view.orbitDown': [{ key: '', code: 'Numpad2' }],
+    'view.opposite': [{ key: '', code: 'Numpad9' }],
+    'view.rollLeft': [{ key: '', code: 'Numpad4', shift: true }],
+    'view.rollRight': [{ key: '', code: 'Numpad6', shift: true }],
   },
   // `km_view3d` — `view3d.rotate` on MIDDLEMOUSE and `view3d.move` on Shift+MIDDLEMOUSE; the
   // right button is the context menu's, and Shift+Right places the 3D cursor. The factory

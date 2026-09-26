@@ -96,7 +96,8 @@ export type ViewportAction =
   | { type: 'focus-selection' }
   | { type: 'focus-scene' }
   | { type: 'snap-selection-to-floor' }
-  | { type: 'set-view-preset'; preset: 'top' | 'front' | 'right' | 'perspective' }
+  | { type: 'set-view-preset'; preset: ViewPreset }
+  | { type: 'step-view'; step: ViewStep }
   | { type: 'toggle-camera-view' }
   | { type: 'toggle-projection' }
   | {
@@ -105,6 +106,12 @@ export type ViewportAction =
       target: { x: number; y: number; z: number };
       fov?: number;
     };
+
+/** The preset views: the six axes and the editor's perspective three-quarter view. */
+export type ViewPreset = 'top' | 'front' | 'right' | 'bottom' | 'back' | 'left' | 'perspective';
+
+/** One step of the view (Blender's `view_orbit` and `view_roll`). */
+export type ViewStep = 'orbit-left' | 'orbit-right' | 'orbit-up' | 'orbit-down' | 'opposite' | 'roll-left' | 'roll-right';
 
 export class ShellStore implements ShellDocumentState {
   /** Selection is viewport-local. The public selection accessors always expose
@@ -376,9 +383,14 @@ export class ShellStore implements ShellDocumentState {
     this.requestViewportAction({ type: 'snap-selection-to-floor' });
   }
 
-  /** Switch the viewport camera to a preset view (top, front, right, perspective). */
-  setViewPreset(preset: 'top' | 'front' | 'right' | 'perspective'): void {
+  /** Switch the viewport camera to a preset view (an axis, or perspective). */
+  setViewPreset(preset: ViewPreset): void {
     this.requestViewportAction({ type: 'set-view-preset', preset });
+  }
+
+  /** Step the view: a 15° orbit or roll, or the opposite side. */
+  stepView(step: ViewStep): void {
+    this.requestViewportAction({ type: 'step-view', step });
   }
 
   /** Enter or leave the camera view, where the document has cameras to look through. */

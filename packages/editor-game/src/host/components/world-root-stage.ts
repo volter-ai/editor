@@ -816,6 +816,9 @@ export function installWorldRootStage(options: WorldRootStageOptions): WorldRoot
       case 'set-view-preset':
         viewport.setViewPreset(action.preset);
         break;
+      case 'step-view':
+        viewport.stepView(action.step);
+        break;
       case 'set-camera-pose':
         viewport.setPose(action.position, action.target, action.fov);
         break;

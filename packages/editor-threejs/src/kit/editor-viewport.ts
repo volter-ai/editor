@@ -1994,6 +1994,53 @@ export class EditorViewport {
     return () => this._rotateStartListeners.delete(listener);
   }
 
+  /**
+   * ONE STEP OF THE VIEW about the orbit's pivot, as Blender's numpad makes it
+   * (`view3d_navigate_view_orbit.cc`, `view3d_navigate_view_roll.cc`): an orbit of 15°
+   * (`pad_rot_angle`) about the world's up or the view's horizon, the opposite side (π about the
+   * up), or a roll of 15° about the view's axis. `viewquat · q` on Blender's world-to-view
+   * rotation is `q⁻¹` applied to the camera's. The projection stands: neither operator ensures
+   * perspective.
+   */
+  stepView(step: 'orbit-left' | 'orbit-right' | 'orbit-up' | 'orbit-down' | 'opposite' | 'roll-left' | 'roll-right'): void {
+    const camera = this.orbitControls.object;
+    const target = this.orbitControls.target;
+    const angle = THREE.MathUtils.degToRad(15);
+    const up = new THREE.Vector3(0, 1, 0);
+    const viewX = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+    const viewZ = new THREE.Vector3(0, 0, 1).applyQuaternion(camera.quaternion);
+    const turn = new THREE.Quaternion();
+    switch (step) {
+      case 'orbit-left':
+        turn.setFromAxisAngle(up, -angle);
+        break;
+      case 'orbit-right':
+        turn.setFromAxisAngle(up, angle);
+        break;
+      case 'orbit-up':
+        turn.setFromAxisAngle(viewX, -angle);
+        break;
+      case 'orbit-down':
+        turn.setFromAxisAngle(viewX, angle);
+        break;
+      case 'opposite':
+        turn.setFromAxisAngle(up, Math.PI);
+        break;
+      case 'roll-left':
+        turn.setFromAxisAngle(viewZ, -angle);
+        break;
+      case 'roll-right':
+        turn.setFromAxisAngle(viewZ, angle);
+        break;
+    }
+    const rotation = turn.multiply(camera.quaternion).normalize();
+    const distance = camera.position.distanceTo(target);
+    camera.quaternion.copy(rotation);
+    camera.position.copy(target).addScaledVector(new THREE.Vector3(0, 0, 1).applyQuaternion(rotation), distance);
+    camera.up.set(0, 1, 0).applyQuaternion(rotation);
+    this.orbitControls.update();
+  }
+
   /** One turntable step of `dx`, `dy` CSS pixels (right and down positive). */
   private _turntableStep(dx: number, dy: number, reverse: number, radiansPerPixel: number): void {
     const camera = this.orbitControls.object;
@@ -3601,7 +3648,7 @@ export class EditorViewport {
   }
 
   /** Snap camera to a preset view direction, preserving current zoom distance. */
-  setViewPreset(preset: 'top' | 'front' | 'right' | 'perspective'): void {
+  setViewPreset(preset: 'top' | 'front' | 'right' | 'bottom' | 'back' | 'left' | 'perspective'): void {
     if (this._projection === 'orthographic') this.setProjection('perspective');
     const target = this.orbitControls.target.clone();
     const distance = this.camera.position.distanceTo(target);
@@ -3617,14 +3664,24 @@ export class EditorViewport {
       case 'right':
         dir.set(1, 0, 0);
         break;
+      case 'bottom':
+        dir.set(0, -1, 0);
+        break;
+      case 'back':
+        dir.set(0, 0, -1);
+        break;
+      case 'left':
+        dir.set(-1, 0, 0);
+        break;
       case 'perspective':
         dir.set(1, 1, 1).normalize();
         break;
     }
 
     this.camera.position.copy(target).add(dir.multiplyScalar(distance));
-    // A preset has no roll; Top's screen up is the world's -Z, as the session's is.
+    // A preset has no roll; Top's screen up is the world's -Z and Bottom's +Z, as the session's.
     if (preset === 'top') this.camera.up.set(0, 0, -1);
+    else if (preset === 'bottom') this.camera.up.set(0, 0, 1);
     else this.camera.up.set(0, 1, 0);
     this.camera.lookAt(target);
     if (preset !== 'perspective') this.setProjection('orthographic');

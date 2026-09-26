@@ -2163,6 +2163,11 @@ export function Object3DDocumentViewport({
                 case 'toggle-camera-view':
                   host.session?.toggleCameraView();
                   break;
+                case 'step-view':
+                  // A camera view's orbit is the lock's to make (Blender cancels it otherwise).
+                  if (host.session?.cameraView()) break;
+                  viewport.stepView(action.step);
+                  break;
                 case 'toggle-projection': {
                   // A camera view has its camera's projection, as the cluster's toggle does.
                   const session = host.session;

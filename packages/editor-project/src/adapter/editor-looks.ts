@@ -69,6 +69,18 @@ export type EditorKeyActionId =
   | 'view.top'
   | 'view.front'
   | 'view.right'
+  | 'view.bottom'
+  | 'view.back'
+  | 'view.left'
+  /** Step the view: orbit 15° about the world's up or the view's horizon, turn to the opposite
+   *  side, or roll 15° (Blender's `view3d.view_orbit` and `view3d.view_roll` on the numpad). */
+  | 'view.orbitLeft'
+  | 'view.orbitRight'
+  | 'view.orbitUp'
+  | 'view.orbitDown'
+  | 'view.opposite'
+  | 'view.rollLeft'
+  | 'view.rollRight'
   | 'view.perspective'
   /** Switch the view between perspective and orthographic, keeping where it looks from
    *  (Blender's `view3d.view_persportho`, numpad 5). */

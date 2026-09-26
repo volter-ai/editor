@@ -10,11 +10,11 @@
  *
  *  Regenerate:  node scripts/workbench/generate-keymaps.mjs --checkout <fork dir> --write
  *  Sources (sha256 at generation; the generator refuses when one has moved):
- *    f645d988b2dffbfc3f16e3007a556539a83c9e2a65b02c9733ab6fdc2324408d  packages/editor-sdk/src/kit/keymap-presets.ts
+ *    52b02cab8a2d4ff652fca1dfe1f15783c6a07491f17a32a6bcbc33058f2ae2dc  packages/editor-sdk/src/kit/keymap-presets.ts
  *    2a05e31762620b0cf734310744c95db38a1912d4f084605296aca335f31c2d89  packages/editor-core/src/editor-hotkeys.ts
- *    bd8d53c34ca45eaaffccf6d93f462d7270d4937890ea5beb9f3adddfc32212b4  packages/editor-threejs/src/kit/viewport-hotkeys.ts
- *    36f4ef38d2dcaf6137240b3608521681088a02893cdcd567e00915b136a36686  packages/editor-blender/contributions/blender.keymap.ts
- *  83 rules over 44 commands (vgai 40, blender 43).
+ *    7841f00f64c7ce51126d0c6e7ebc96d81bf02d747e428aaa703e7d3fac8b1a2c  packages/editor-threejs/src/kit/viewport-hotkeys.ts
+ *    b90ec336d515b4d26ec2f919388a27b9b2a907e5b0f24249e8c2dda7fdcd49d8  packages/editor-blender/contributions/blender.keymap.ts
+ *  93 rules over 54 commands (vgai 40, blender 53).
  *--------------------------------------------------------------------------------------------*/
 
 /** Every keymap the generated extension carries chords for. */
@@ -50,14 +50,24 @@ export const CARRIED_ACTION_IDS: readonly string[] = [
 	'transform.scale',
 	'transform.select',
 	'transform.translate',
+	'view.back',
+	'view.bottom',
 	'view.camera',
 	'view.commandPalette',
 	'view.focusMode',
 	'view.front',
+	'view.left',
+	'view.opposite',
+	'view.orbitDown',
+	'view.orbitLeft',
+	'view.orbitRight',
+	'view.orbitUp',
 	'view.perspective',
 	'view.projection',
 	'view.resetPan',
 	'view.right',
+	'view.rollLeft',
+	'view.rollRight',
 	'view.toggleConsole',
 	'view.top',
 	'viewport.cyclePivot',
