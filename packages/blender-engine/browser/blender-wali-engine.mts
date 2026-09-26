@@ -214,7 +214,7 @@ export async function startWaliBlenderEngine(
     '/work',
     SESSION_ROOT,
     ...PAGE_OWNED_DIRECTORIES,
-    options.project,
+    ...(options.project ? [options.project] : []),
   ])
     filesystem.mkdirSync(directory, { recursive: true });
   await stageRuntime(filesystem, options.log);

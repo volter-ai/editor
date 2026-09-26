@@ -7,6 +7,7 @@ import type {
   CaptureRequest,
   FileEntry,
   RuntimeStart,
+  WorkerBoot,
   WorkerReply,
   WorkerRequest,
   NativeHistoryEntry,
@@ -133,6 +134,35 @@ export interface BlenderCallMetrics {
   readonly wasmMemoryMB: number | null;
 }
 
+/**
+ * A worker booting Blender before any session asked for one: a page that will
+ * open a model (the Model Editor) calls {@link prebootBlender} as it loads,
+ * and the first {@link BlenderRuntime} adopts the worker with whatever it said
+ * meanwhile, so its `start` finds the engine booting or booted rather than
+ * beginning it (2026-09-26: Blender's boot began when the Model document
+ * mounted, 2 s after the page, and was the last 2.2 s of a warm open).
+ */
+interface Preboot { worker: Worker; heard: Array<{ said: MessageEvent<WorkerReply> } | { failed: ErrorEvent }> }
+let preboot: Preboot | null = null;
+
+function blenderWorker(): Worker {
+  return new Worker(new URL('./worker.ts', import.meta.url), {
+    type: 'module',
+    name: 'blender',
+  });
+}
+
+/** Boot Blender's engine now, for the runtime this page will make. Idempotent; a page that never makes one keeps an idle engine until it closes. */
+export function prebootBlender(): void {
+  if (preboot) return;
+  const worker = blenderWorker();
+  const held: Preboot = { worker, heard: [] };
+  worker.onmessage = (event: MessageEvent<WorkerReply>) => void held.heard.push({ said: event });
+  worker.onerror = (event) => void held.heard.push({ failed: event });
+  worker.postMessage({ op: 'boot' } satisfies WorkerBoot);
+  preboot = held;
+}
+
 export class BlenderRuntime {
   readonly #worker: Worker;
   readonly #options: BlenderRuntimeOptions;
@@ -141,6 +171,8 @@ export class BlenderRuntime {
     { resolve: (value: unknown) => void; reject: (error: Error) => void }
   >();
   #nextId = 0;
+  #failed: Error | null = null;
+  #startedOk = false;
   #started: Promise<RuntimeStart> | null = null;
   #stopping: Promise<void> | null = null;
   #terminated = false;
@@ -165,10 +197,9 @@ export class BlenderRuntime {
 
   constructor(options: BlenderRuntimeOptions) {
     this.#options = options;
-    this.#worker = new Worker(new URL('./worker.ts', import.meta.url), {
-      type: 'module',
-      name: 'blender',
-    });
+    const adopted = preboot;
+    preboot = null;
+    this.#worker = adopted?.worker ?? blenderWorker();
     globalThis.addEventListener?.('beforeunload', this.#beforeUnload);
     this.#worker.onmessage = (event: MessageEvent<WorkerReply>) => void this.#receive(event.data);
     this.#worker.onerror = (event) => {
@@ -189,10 +220,21 @@ export class BlenderRuntime {
       // a toast and `vgai console` read 0/0 while no Model document could open
       // (measured 2026-09-20 from a registry install).
       console.error(error.message);
+      // A worker that failed to load, or failed before its session started,
+      // answers nothing again, so what is asked of it later is refused with
+      // the same error rather than left waiting: a booted-ahead worker can
+      // fail before anything was asked of it. An exception a started
+      // session's worker survives fails only the calls in flight.
+      if (!thrown || !this.#startedOk) this.#failed ??= error;
       for (const id of [...this.#pending.keys()]) this.#settled(id);
       for (const pending of this.#pending.values()) pending.reject(error);
       this.#pending.clear();
     };
+    // What a booted-ahead worker said before this handle existed, in order.
+    for (const heard of adopted?.heard ?? []) {
+      if ('said' in heard) void this.#receive(heard.said.data);
+      else this.#worker.onerror?.call(this.#worker, heard.failed);
+    }
   }
 
   #project: string | null = null;
@@ -226,11 +268,14 @@ export class BlenderRuntime {
       );
     this.#project = project;
     this.#document ??= document ?? 'models/model.blend';
-    this.#started ??= this.#request({
+    this.#started ??= (this.#request({
       op: 'start',
       project,
       ...(document === undefined ? {} : { document }),
-    }) as Promise<RuntimeStart>;
+    }) as Promise<RuntimeStart>).then((started) => {
+      this.#startedOk = true;
+      return started;
+    });
     return this.#started;
   }
 
@@ -516,6 +561,7 @@ export class BlenderRuntime {
   #request(request: Request, shutdown = false): Promise<unknown> {
     if (this.#terminated || (this.#stopping && !shutdown))
       return Promise.reject(new Error('The Blender session is stopping or terminated'));
+    if (this.#failed) return Promise.reject(this.#failed);
     const id = ++this.#nextId;
     return new Promise((resolve, reject) => {
       this.#pending.set(id, { resolve, reject });

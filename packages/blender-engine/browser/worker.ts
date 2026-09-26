@@ -37,7 +37,7 @@
 /// <reference types="vite/client" />
 
 import { type BlenderEngine, type BlenderFiles, startBlenderEngine } from './blender-engine.mts';
-import type { CaptureRequest, FileEntry, WorkerReply, WorkerRequest } from './protocol';
+import type { CaptureRequest, FileEntry, WorkerBoot, WorkerReply, WorkerRequest } from './protocol';
 import { columnsToTypedArrays, describeFrame } from './session-frame.mts';
 
 const post = (reply: WorkerReply) => (self as unknown as Worker).postMessage(reply);
@@ -175,41 +175,62 @@ async function saveDocument(): Promise<void> {
   log('log', `@@VGAI-DOCUMENT ${JSON.stringify({ path: relative, bytes: bytes.length })}`);
 }
 
-async function startBlender(project: string, document?: string): Promise<unknown> {
-  // The engine is named through a holder rather than the module-level
-  // `engine`, because `ask` is handed to the engine before the engine exists.
-  const holder: { engine: BlenderEngine | null } = { engine: null };
-  const started = await startBlenderEngine({
-    project,
-    log,
-    ask: async ({ frame, capture, saveDue }) => {
-      if (!holder.engine) throw new Error('The Blender session presented before it started');
-      // Save once after the whole command, never during a partial frame.
-      if (saveDue && documentPath !== null) setDocumentDirty(true);
-      // THE ARENA IS READ ONCE, HERE, and both readers share those bytes: the
-      // typed arrays the tab draws from, and the record of what was sent
-      // (`describeFrame`). After the post the buffers are detached and the
-      // next `export_frame` overwrites the arena -- on either skew -- so there
-      // is no later moment at which either could be taken.
-      const arena = await holder.engine.readArena();
-      const description = await describeFrame(arena, frame);
-      const answered = await presentToTab(
-        columnsToTypedArrays(arena, frame),
-        description,
-        capture as CaptureRequest | undefined,
+/** What the session asks the tab for mid-call: a frame, and sometimes a
+ *  photograph of it (`BlenderEngineOptions.ask`). */
+async function askTab({ frame, capture, saveDue }: { frame: unknown; capture?: unknown; saveDue?: boolean }): Promise<unknown> {
+  if (!engine) throw new Error('The Blender session presented before it started');
+  // Save once after the whole command, never during a partial frame.
+  if (saveDue && documentPath !== null) setDocumentDirty(true);
+  // THE ARENA IS READ ONCE, HERE, and both readers share those bytes: the
+  // typed arrays the tab draws from, and the record of what was sent
+  // (`describeFrame`). After the post the buffers are detached and the
+  // next `export_frame` overwrites the arena -- on either skew -- so there
+  // is no later moment at which either could be taken.
+  const arena = await engine.readArena();
+  const description = await describeFrame(arena, frame);
+  const answered = await presentToTab(
+    columnsToTypedArrays(arena, frame),
+    description,
+    capture as CaptureRequest | undefined,
+  );
+  // THE CAPTURE IS THE ANSWER'S BODY, and `held` rides beside it: the
+  // session reads a photograph's own fields off this object
+  // (`session.py::_photograph`), and reads `held` to judge whether its
+  // record of what the presenter holds is still that presenter's.
+  const body =
+    typeof answered.capture === 'object' && answered.capture !== null
+      ? (answered.capture as Record<string, unknown>)
+      : {};
+  return { ...body, ...('held' in answered ? { held: answered.held } : {}) };
+}
+
+/**
+ * THE ENGINE BOOTS BEFORE ITS SESSION when the page asks (`boot`): fetching,
+ * instantiating and starting Blender needs no project, and was most of the
+ * way from a Model Editor's first frame to its model (2.2 s of 2026-09-26's
+ * 8.4 s warm open began only when the Model document mounted). One boot per
+ * worker; `start` awaits it and binds the project.
+ */
+let booting: Promise<BlenderEngine> | null = null;
+function bootEngine(project?: string): Promise<BlenderEngine> {
+  booting ??= (async () => {
+    const served = await blenderIsServed();
+    if (!served.available)
+      throw new Error(
+        'Headless Blender is not served by this editor, so there is no modeling engine: ' +
+          `${served.missing.join('; ')}. The engine is Blender compiled to WebAssembly ` +
+          '(packages/blender-engine/wasm, or the directory VGAI_BLENDER_WASM_DIR names); nothing stands in for it.',
       );
-      // THE CAPTURE IS THE ANSWER'S BODY, and `held` rides beside it: the
-      // session reads a photograph's own fields off this object
-      // (`session.py::_photograph`), and reads `held` to judge whether its
-      // record of what the presenter holds is still that presenter's.
-      const body =
-        typeof answered.capture === 'object' && answered.capture !== null
-          ? (answered.capture as Record<string, unknown>)
-          : {};
-      return { ...body, ...('held' in answered ? { held: answered.held } : {}) };
-    },
-  });
-  holder.engine = started;
+    return startBlenderEngine({ ...(project ? { project } : {}), log, ask: askTab });
+  })();
+  return booting;
+}
+
+async function startBlender(project: string, document?: string): Promise<unknown> {
+  const started = await bootEngine(project);
+  // The project's directory is the session's: made at boot when the boot
+  // waited for it, and now when the engine booted ahead of it.
+  await started.files.mkdirTree(project);
   engine = started;
   // THE PROJECT'S FILES BEFORE THE SESSION'S FIRST ACT, because that act may
   // be `open_mainfile` on the document — which lives on the host's disk and is
@@ -259,11 +280,11 @@ async function startBlender(project: string, document?: string): Promise<unknown
   };
 }
 
-async function blenderIsServed(): Promise<{ available: boolean; missing: string[] }> {
+async function blenderIsServed(): Promise<{ available: boolean; missing: string[]; skew?: string | null }> {
   try {
     const answer = await fetch('/__editor/blender-wasm/status');
     if (!answer.ok) return { available: false, missing: [`status answered ${answer.status}`] };
-    return (await answer.json()) as { available: boolean; missing: string[] };
+    return (await answer.json()) as { available: boolean; missing: string[]; skew?: string | null };
   } catch (error) {
     return { available: false, missing: [String(error)] };
   }
@@ -280,13 +301,6 @@ async function start(project: string, document?: string): Promise<unknown> {
     throw new Error(
       `The Blender document must be a project-relative .blend path with no traversal ` +
         `(models/model.blend); got ${JSON.stringify(document)}`,
-    );
-  const served = await blenderIsServed();
-  if (!served.available)
-    throw new Error(
-      'Headless Blender is not served by this editor, so there is no modeling engine: ' +
-        `${served.missing.join('; ')}. The engine is Blender compiled to WebAssembly ` +
-        '(packages/blender-engine/wasm, or the directory VGAI_BLENDER_WASM_DIR names); nothing stands in for it.',
     );
   projectRoot = project;
   return startBlender(project, document);
@@ -621,8 +635,18 @@ function reportMemory(): void {
   if (bytes !== null) post({ op: 'memory', bytes });
 }
 
-self.onmessage = (event: MessageEvent<WorkerRequest>) => {
+self.onmessage = (event: MessageEvent<WorkerRequest | WorkerBoot>) => {
   const request = event.data;
+  if (request.op === 'boot') {
+    // Only the Emscripten skew boots ahead: a WALI program's patch base is
+    // the tree it started with, so its project's directory is made before it
+    // starts, and that waits for `start`. A boot's failure is the next
+    // `start`'s to report.
+    void blenderIsServed().then((served) => {
+      if (served.available && served.skew === 'emscripten') bootEngine().catch(() => undefined);
+    });
+    return;
+  }
   if (request.op === 'present-result') {
     void handle(request);
     return;

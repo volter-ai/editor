@@ -10,7 +10,7 @@ const bundle = await build({
 });
 // Preserve a valid base for the worker URL while loading the actual runtime.
 const source = bundle.outputFiles[0].text.replaceAll('import.meta.url', JSON.stringify(import.meta.url));
-const { BlenderRuntime } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+const { BlenderRuntime, prebootBlender } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 
 class FakeWorker {
   static latest;
@@ -167,7 +167,7 @@ test('worker edit acknowledgment waits for durable upload; failed saves stay dir
       options = value;
       return {
         readArena: async () => new ArrayBuffer(0), memoryBytes: () => null,
-        files: { readFile: async () => new Uint8Array([revision]) },
+        files: { readFile: async () => new Uint8Array([revision]), mkdirTree: async () => {} },
         request: async request => {
           events.push(request.op);
           if (request.op === 'execute') {
@@ -247,4 +247,57 @@ test('browser unload is guarded while calls or failed saves remain, not after pe
   assert.equal(guarded(), false);
   runtime.terminate();
   assert.equal(guarded(), false);
+});
+
+test('a booted-ahead worker is adopted with what it said, and its failure refuses the start', async t => {
+  fakeWorker(t);
+  prebootBlender();
+  const worker = FakeWorker.latest;
+  assert.deepEqual(worker.messages, [{ op: 'boot' }]);
+  prebootBlender();
+  assert.equal(FakeWorker.latest, worker, 'one boot per page');
+  worker.onmessage({ data: { op: 'log', level: 'log', text: 'Blender 5.2.0' } });
+  const said = [];
+  const runtime = new BlenderRuntime({ present: () => ({}), log: (_level, text) => said.push(text) });
+  assert.equal(FakeWorker.latest, worker, 'the runtime adopts the booted worker');
+  await tick();
+  assert.deepEqual(said, ['Blender 5.2.0'], 'what the worker said before the runtime reaches it');
+  const start = runtime.start('/project');
+  assert.deepEqual(worker.messages.at(-1), { op: 'start', project: '/project', id: 1 });
+  worker.reply(worker.messages.at(-1)); await start;
+  runtime.terminate();
+
+  prebootBlender();
+  const failing = FakeWorker.latest;
+  assert.notEqual(failing, worker, 'a later preboot is a new worker');
+  failing.onerror({ message: '', filename: 'worker.ts', lineno: 1, colno: 1 });
+  const errors = [];
+  const originalError = console.error;
+  console.error = (...args) => errors.push(args.join(' '));
+  t.after(() => { console.error = originalError; });
+  const second = new BlenderRuntime({ present: () => ({}) });
+  await assert.rejects(second.start('/project'), /Blender worker failed/);
+  assert.equal(errors.length, 1);
+  second.terminate();
+});
+
+test('an exception a started session survives fails only the calls in flight', async t => {
+  fakeWorker(t);
+  const originalError = console.error;
+  console.error = () => {};
+  t.after(() => { console.error = originalError; });
+  const runtime = new BlenderRuntime({ present: () => ({}) });
+  const worker = FakeWorker.latest;
+  const start = runtime.start('/project');
+  worker.reply(worker.messages.at(-1)); await start;
+  const inFlight = runtime.execute('a');
+  await tick();
+  worker.onerror({ error: new Error('a stray throw'), message: 'a stray throw' });
+  await assert.rejects(inFlight, /a stray throw/);
+  const later = runtime.execute('b');
+  await tick();
+  const posted = worker.messages.at(-1);
+  assert.equal(posted.op, 'execute');
+  worker.reply(posted, 'done'); assert.equal(await later, 'done');
+  runtime.terminate();
 });

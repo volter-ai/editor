@@ -1,6 +1,13 @@
 /** Messages between the editor tab and its Blender worker. One session per
  * worker; the model lives in the worker's Python and nowhere else. */
 
+/** Boots the engine before any session: the worker fetches, instantiates and
+ *  starts Blender with no project, and the `start` that follows binds one.
+ *  Answered by nothing; a boot that failed is what that `start` reports. */
+export interface WorkerBoot {
+  op: 'boot';
+}
+
 export type WorkerRequest =
   | { id: number; op: 'flush-document' }
   | { id: number; op: 'history-begin' | 'history-end' }

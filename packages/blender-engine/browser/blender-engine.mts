@@ -93,8 +93,10 @@ export interface BlenderFiles {
 }
 
 export interface BlenderEngineOptions {
-  /** The project's absolute path; the engine's filesystem mirrors it there. */
-  project: string;
+  /** The project's absolute path; the engine's filesystem mirrors it there.
+   *  Absent for an engine booted ahead of its session, which makes the
+   *  project's directory when the session starts. */
+  project?: string;
   log(level: 'log' | 'error', text: string): void;
   /** What the session asks the TAB for, mid-call: a frame, and sometimes a
    *  photograph of it. Whatever this resolves to is what Python receives.

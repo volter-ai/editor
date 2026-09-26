@@ -234,7 +234,7 @@ export async function startEmscriptenBlenderEngine(
           '/work',
           SESSION_ROOT,
           ...PAGE_OWNED_DIRECTORIES,
-          options.project,
+          ...(options.project ? [options.project] : []),
         ])
           mkdirp(mod, directory);
         mod.FS_createDataFile(
@@ -295,7 +295,7 @@ export async function startEmscriptenBlenderEngine(
   // staged). The session chmods its own root from Python for the same reason;
   // this is the other half, for the paths Python never touches.
   let climb = '';
-  for (const part of `${options.project}`.split('/').filter(Boolean)) {
+  for (const part of `${options.project ?? ''}`.split('/').filter(Boolean)) {
     climb += `/${part}`;
     try {
       FS.chmod(climb, 0o777);
