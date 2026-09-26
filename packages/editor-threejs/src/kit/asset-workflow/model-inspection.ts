@@ -711,8 +711,13 @@ export type ModelCameraPreset =
  *
  * `null` means no axis — the caller says "User". `isometric` is deliberately
  * absent: it is a 3/4 direction, which Blender calls User too.
+ *
+ * `up` is the view's own up (the camera's Y in the world). An axis view keeps its name at any
+ * quarter-turn of roll and loses it at any other, as Blender matches the view to an axis with
+ * one of four `view_axis_roll` steps (`ED_view3d_quat_to_axis_view`).
  */
-export function axisViewName(direction: THREE.Vector3): string | null {
+export function axisViewName(direction: THREE.Vector3, up?: THREE.Vector3): string | null {
+  if (up && !isQuarterTurnUp(up)) return null;
   const unit = direction.clone().normalize();
   for (const preset of ['front', 'back', 'left', 'right', 'top', 'bottom'] as const) {
     // Half a degree: enough that a settled preset reads as its axis and any
@@ -721,6 +726,13 @@ export function axisViewName(direction: THREE.Vector3): string | null {
       return `${preset[0]?.toUpperCase()}${preset.slice(1)}`;
   }
   return null;
+}
+
+/** Whether a view's up lies along a world axis, within the half degree the direction has: for
+ *  a view down an axis, a roll of a whole number of quarter turns. */
+export function isQuarterTurnUp(up: THREE.Vector3): boolean {
+  const unit = up.clone().normalize();
+  return Math.max(Math.abs(unit.x), Math.abs(unit.y), Math.abs(unit.z)) > Math.cos(0.0087);
 }
 
 export function cameraPresetDirection(preset: ModelCameraPreset): THREE.Vector3 {

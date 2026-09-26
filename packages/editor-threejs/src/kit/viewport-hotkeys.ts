@@ -60,6 +60,7 @@ export function registerViewportHotkeys(
     { id: 'view.front', scope: 'stage', run: () => store.shell.setViewPreset('front') },
     { id: 'view.right', scope: 'stage', run: () => store.shell.setViewPreset('right') },
     { id: 'view.perspective', scope: 'stage', run: () => store.shell.setViewPreset('perspective') },
+    { id: 'view.projection', scope: 'stage', run: () => store.shell.toggleProjection() },
     { id: 'view.camera', scope: 'stage', run: () => store.shell.toggleCameraView() },
     { id: 'viewport.snapToFloor', scope: 'stage', run: () => viewport.snapSelectionToFloor() },
   ]);

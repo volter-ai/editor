@@ -35,8 +35,14 @@ export const keymap: KeymapContribution = {
     'edit.deselectAll': [{ key: 'a', alt: true }],
     'viewport.frameSelection': [{ key: '.' }, { key: '', code: 'NumpadDecimal' }],
     'viewport.cyclePivot': [{ key: ',' }],
+    // `km_view3d` — `view3d.view_persportho` on NUMPAD_5; Blender has no isometric preset key.
+    'view.perspective': [],
+    'view.projection': [{ key: '', code: 'Numpad5' }],
   },
   // `km_view3d` — `view3d.rotate` on MIDDLEMOUSE and `view3d.move` on Shift+MIDDLEMOUSE; the
-  // right button is the context menu's, and Shift+Right places the 3D cursor.
-  navigation: { orbit: 'middle' },
+  // right button is the context menu's, and Shift+Right places the 3D cursor. The factory
+  // rotation is Turntable at 0.4° a pixel (`view_rotate_method`,
+  // `view_rotate_sensitivity_turntable`, read back from Blender 5.2; a pixel over `UI_SCALE_FAC`,
+  // so one CSS pixel on any display), with Auto Perspective on (`use_auto_perspective`).
+  navigation: { orbit: 'middle', turntable: { degreesPerPixel: 0.4 }, autoPerspective: true },
 };

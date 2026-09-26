@@ -196,7 +196,10 @@ export function ViewportFurniture({
   // Perspective" the moment the view is orbited off that axis. Derived from
   // the live camera, so it reverts on the first drag the way Blender's does.
   const axis =
-    axisViewName(viewport.camera.position.clone().sub(viewport.orbitControls.target)) ?? 'User';
+    axisViewName(
+      viewport.camera.position.clone().sub(viewport.orbitControls.target),
+      new THREE.Vector3(0, 1, 0).applyQuaternion(viewport.camera.quaternion),
+    ) ?? 'User';
   const drawn = session?.projection() ?? projection;
   // A CAMERA VIEW names itself as Blender's does: "Camera Perspective" / "Camera Orthographic",
   // after the camera's own projection.

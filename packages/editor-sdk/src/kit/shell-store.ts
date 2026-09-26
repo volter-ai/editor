@@ -98,6 +98,7 @@ export type ViewportAction =
   | { type: 'snap-selection-to-floor' }
   | { type: 'set-view-preset'; preset: 'top' | 'front' | 'right' | 'perspective' }
   | { type: 'toggle-camera-view' }
+  | { type: 'toggle-projection' }
   | {
       type: 'set-camera-pose';
       position: { x: number; y: number; z: number };
@@ -383,6 +384,11 @@ export class ShellStore implements ShellDocumentState {
   /** Enter or leave the camera view, where the document has cameras to look through. */
   toggleCameraView(): void {
     this.requestViewportAction({ type: 'toggle-camera-view' });
+  }
+
+  /** Switch the view between perspective and orthographic, from where it is. */
+  toggleProjection(): void {
+    this.requestViewportAction({ type: 'toggle-projection' });
   }
 
   /** Move the viewport camera to an arbitrary position/target/fov pose. */

@@ -31,6 +31,7 @@ import {
   shouldDiscoverGaussianSplat,
 } from '@volter/editor-threejs/render/spark-renderer-lifecycle';
 import * as THREE from 'three';
+import { isQuarterTurnUp } from './asset-workflow/model-inspection';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
@@ -702,6 +703,7 @@ function applyAxisGrazingFade(
 }
 
 const _gridView = new THREE.Vector3();
+const _gridQuat = new THREE.Quaternion();
 const _gridEye = new THREE.Vector3();
 const _gridUp = new THREE.Vector3(0, 1, 0);
 
@@ -1381,6 +1383,7 @@ export class EditorViewport {
     this.orbitControls.dampingFactor = 0.1;
     this.applyKeymapNavigation();
     this._unsubscribeKeymap = subscribeEditorKeymap(() => this.applyKeymapNavigation());
+    this._installTurntable();
 
     // TransformControls — one instance per mode; 'combined' shows all three.
     // Construction order IS pointer priority (each instance registers its own
@@ -1901,6 +1904,86 @@ export class EditorViewport {
     };
   }
   private _unsubscribeKeymap: () => void = () => {};
+
+  /**
+   * A KEYMAP'S TURNTABLE (`KeymapNavigation.turntable`) in place of three's spherical orbit, on
+   * OrbitControls' own rotate drag so its buttons, capture and modifiers stand. Blender's
+   * `viewrotate_apply` (`view3d_navigate_view_rotate.cc`), Turntable branch: the vertical drag
+   * pitches about the horizon, `up × view z`, blended toward the view's own X as the view nears
+   * straight up or down (`fac = (|angle(up, view z) / π − ½| · 2)²`), and the sideways drag spins
+   * about the world's up, turned the other way when the view started upside down (`reverse`);
+   * both about the orbit's pivot at its distance. The view keeps its roll and passes over the
+   * top: the roll rides on the camera's `up`, which the orbit's `lookAt` keeps.
+   */
+  private _installTurntable(): void {
+    const controls = this.orbitControls as unknown as {
+      _handleMouseDownRotate(event: PointerEvent): void;
+      _handleMouseMoveRotate(event: PointerEvent): void;
+    };
+    const down = controls._handleMouseDownRotate.bind(this.orbitControls);
+    const move = controls._handleMouseMoveRotate.bind(this.orbitControls);
+    let drag: { x: number; y: number; reverse: number } | null = null;
+    controls._handleMouseDownRotate = (event) => {
+      down(event);
+      drag = null;
+      for (const listener of [...this._rotateStartListeners]) listener();
+      if (!activeKeymapNavigation().turntable) return;
+      const camera = this.orbitControls.object;
+      const viewUp = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
+      drag = { x: event.clientX, y: event.clientY, reverse: viewUp.y < 0 ? -1 : 1 };
+    };
+    controls._handleMouseMoveRotate = (event) => {
+      const turntable = activeKeymapNavigation().turntable;
+      if (!turntable || !drag) {
+        move(event);
+        return;
+      }
+      const dx = event.clientX - drag.x;
+      const dy = event.clientY - drag.y;
+      drag.x = event.clientX;
+      drag.y = event.clientY;
+      this._turntableStep(dx, dy, drag.reverse, THREE.MathUtils.degToRad(turntable.degreesPerPixel));
+    };
+  }
+
+  private readonly _rotateStartListeners = new Set<() => void>();
+
+  /** Called as a person's rotate drag begins, before its first step (a pan or a zoom is not
+   *  one): where Blender's rotate operator ensures its projection. */
+  onRotateStart(listener: () => void): () => void {
+    this._rotateStartListeners.add(listener);
+    return () => this._rotateStartListeners.delete(listener);
+  }
+
+  /** One turntable step of `dx`, `dy` CSS pixels (right and down positive). */
+  private _turntableStep(dx: number, dy: number, reverse: number, radiansPerPixel: number): void {
+    const camera = this.orbitControls.object;
+    const target = this.orbitControls.target;
+    const up = new THREE.Vector3(0, 1, 0);
+    const viewX = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+    const viewZ = new THREE.Vector3(0, 0, 1).applyQuaternion(camera.quaternion);
+    const axis = new THREE.Vector3();
+    if (up.distanceToSquared(viewZ) > 0.001) {
+      axis.crossVectors(up, viewZ);
+      if (axis.dot(viewX) < 0) axis.negate();
+      const fac = ((Math.abs(up.angleTo(viewZ) / Math.PI - 0.5) * 2) ** 2);
+      axis.lerp(viewX, fac);
+    } else {
+      axis.copy(viewX);
+    }
+    if (axis.lengthSq() === 0) axis.copy(viewX);
+    axis.normalize();
+    // Blender's `viewquat · q_x · q_z` on the world-to-view rotation is, on the camera's own
+    // (view to world), the inverse pair applied the other side; its y runs up the screen.
+    const pitch = new THREE.Quaternion().setFromAxisAngle(axis, -radiansPerPixel * dy);
+    const spin = new THREE.Quaternion().setFromAxisAngle(up, -radiansPerPixel * reverse * dx);
+    const rotation = spin.multiply(pitch).multiply(camera.quaternion).normalize();
+    const distance = camera.position.distanceTo(target);
+    camera.quaternion.copy(rotation);
+    camera.position.copy(target).addScaledVector(new THREE.Vector3(0, 0, 1).applyQuaternion(rotation), distance);
+    camera.up.set(0, 1, 0).applyQuaternion(rotation);
+    this.orbitControls.update();
+  }
 
   get cameraViewMode(): CameraViewMode | null {
     return this._cameraViewMode;
@@ -3939,6 +4022,9 @@ export class EditorViewport {
       camera.getWorldDirection(_gridView);
       const components = [Math.abs(_gridView.x), Math.abs(_gridView.y), Math.abs(_gridView.z)];
       axis = components.findIndex((value) => value > 1 - 1e-4);
+      // An axis view is one at a quarter-turn of roll (`RV3D_VIEW_IS_AXIS`); any other roll is a
+      // User view, which draws the floor.
+      if (axis !== -1 && !isQuarterTurnUp(_gridEye.set(0, 1, 0).applyQuaternion(camera.getWorldQuaternion(_gridQuat)))) axis = -1;
     }
     normal.set(axis === 0 ? 1 : 0, axis === -1 || axis === 1 ? 1 : 0, axis === 2 ? 1 : 0);
     this.grid.quaternion.setFromUnitVectors(_gridUp, normal);

@@ -1585,11 +1585,10 @@ export function Object3DDocumentViewport({
             const target = new THREE.Vector3(...stated.target);
             const direction = new THREE.Vector3(...stated.direction).normalize();
             viewport.camera.position.copy(target).addScaledVector(direction, stated.distance);
-            // The screen's up is the world's, the turntable the orbit keeps, except looking
-            // straight down or up the world's axis, where that says nothing and the view's own
-            // up does (a saved Top view).
-            if (stated.up && Math.abs(direction.dot(viewport.camera.up.set(0, 1, 0))) > 0.9999)
-              viewport.camera.up.set(...stated.up);
+            // The screen's up is the view's own, so a rolled view opens rolled (a turntable
+            // orbit keeps it); without one, the world's.
+            viewport.camera.up.set(0, 1, 0);
+            if (stated.up) viewport.camera.up.set(...stated.up);
             viewport.orbitControls.target.copy(target);
           } else if (cameraX !== undefined && cameraY !== undefined && cameraZ !== undefined) {
             const box = openingFrame ?? contentWorldBounds(source.root);
@@ -2163,6 +2162,16 @@ export function Object3DDocumentViewport({
                 case 'toggle-camera-view':
                   host.session?.toggleCameraView();
                   break;
+                case 'toggle-projection': {
+                  // A camera view has its camera's projection, as the cluster's toggle does.
+                  const session = host.session;
+                  if (session?.cameraView()) break;
+                  const drawn = session ? session.projection() : viewport.projection;
+                  const next = drawn === 'perspective' ? 'orthographic' : 'perspective';
+                  if (session) session.setProjection(next);
+                  else viewport.setProjection(next);
+                  break;
+                }
                 case 'set-camera-pose':
                   viewport.setPose(action.position, action.target, action.fov);
                   break;

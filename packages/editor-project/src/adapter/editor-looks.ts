@@ -70,6 +70,9 @@ export type EditorKeyActionId =
   | 'view.front'
   | 'view.right'
   | 'view.perspective'
+  /** Switch the view between perspective and orthographic, keeping where it looks from
+   *  (Blender's `view3d.view_persportho`, numpad 5). */
+  | 'view.projection'
   | 'view.camera';
 
 /**
@@ -107,6 +110,18 @@ export interface KeymapContribution {
  */
 export interface KeymapNavigation {
   readonly orbit: 'middle' | 'right';
+  /**
+   * The orbit as a TURNTABLE that keeps the view's roll and may pass over the top (Blender's
+   * `view3d.rotate` in Turntable mode): a sideways drag spins the view about the world's up, a
+   * vertical one pitches it about the horizon, each at this angle per CSS pixel. Absent: the
+   * editor's own orbit, which holds the view level and stops at the poles.
+   */
+  readonly turntable?: { readonly degreesPerPixel: number };
+  /**
+   * An orthographic view still down an axis turns perspective when a rotate starts, as Blender's
+   * Auto Perspective does (`ED_view3d_persp_ensure`); the axis views themselves are orthographic.
+   */
+  readonly autoPerspective?: boolean;
 }
 
 export type WorkspaceLayoutRegions = NonNullable<WorkspaceArrangement['regions']>;

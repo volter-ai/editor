@@ -12,7 +12,8 @@ import {
 import type { EffectComposer, EffectPass, RenderPass } from 'postprocessing';
 import * as THREE from 'three';
 import { threeObject } from '../../adapter/three-contract';
-import { cameraPresetDirection, type ModelCameraPreset } from '../asset-workflow/model-inspection';
+import { axisViewName, cameraPresetDirection, type ModelCameraPreset } from '../asset-workflow/model-inspection';
+import { activeKeymapNavigation } from '@volter/editor-sdk/kit/keymap-presets';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import { type EditorViewport } from '../editor-viewport';
 import { nativeSelectionColors, subscribeNativeSelectionTheme } from '@volter/editor-sdk/kit/native-selection-style';
@@ -210,7 +211,21 @@ export class Object3DDocumentSession {
     // this view". An agent flight yields at that instant, leaving the camera
     // exactly where it is: no snap-back, no two writers fighting for the pose.
     viewport.orbitControls.addEventListener('start', this.cancelLookForHuman);
+    this.unsubscribeRotateStart = viewport.onRotateStart(this.autoPerspective);
   }
+
+  private readonly unsubscribeRotateStart: () => void;
+
+  /** Auto Perspective, where the keymap states it (`KeymapNavigation.autoPerspective`): a rotate
+   *  that starts from an orthographic view still down an axis draws in perspective. */
+  private readonly autoPerspective = (): void => {
+    if (!activeKeymapNavigation().autoPerspective || this.cameraView() !== null) return;
+    if (this.state.projection !== 'orthographic') return;
+    const camera = this.viewport.camera;
+    const offset = camera.position.clone().sub(this.viewport.orbitControls.target);
+    const up = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
+    if (axisViewName(offset, up) !== null) this.setProjection('perspective');
+  };
 
   /** Replace authored content without replacing the editor session or camera. */
   replaceContent(root: THREE.Object3D, authoring: AuthoringAdapter): void {
@@ -1455,6 +1470,7 @@ export class Object3DDocumentSession {
     this.selectionOrigins = null;
     this.settleFlight('closed');
     this.viewport.orbitControls.removeEventListener('start', this.cancelLookForHuman);
+    this.unsubscribeRotateStart();
     this.unsubscribeSelectionTheme();
     this.clearDiagnosticPresentation();
     this.clearBoneSelectionHighlight();
