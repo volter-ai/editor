@@ -100,6 +100,8 @@ export class ExtrasOverlay {
   readonly lights = new THREE.Group();
   readonly empties = new THREE.Group();
   private readonly lineMaterials = new Map<string, LineMaterial>();
+  /** Each object's drawing and what it was drawn from, so an unchanged object keeps its. */
+  private readonly drawn = new Map<string, { key: string; parts: THREE.Object3D[] }>();
   private readonly fillMaterials = new Map<number, THREE.MeshBasicMaterial>();
   private readonly scratch = new THREE.Vector3();
   private readonly size = new THREE.Vector2();
@@ -112,7 +114,7 @@ export class ExtrasOverlay {
   }
 
   apply(input: ExtrasInput): void {
-    for (const group of [this.cameras, this.lights, this.empties]) this.clear(group);
+    const seen = new Set<string>();
     for (const object of input.objects) {
       const color = object.selected
         ? object.name === input.active
@@ -123,17 +125,41 @@ export class ExtrasOverlay {
           : object.type === 'LIGHT'
             ? THEME.light
             : THEME.empty;
+      const camera = object.type === 'CAMERA' ? input.cameras[object.name] : undefined;
+      const light = object.type === 'LIGHT' && object.light ? input.lights[object.light] : undefined;
+      const empty = object.type === 'EMPTY' ? input.empties[object.name] : undefined;
+      if (!camera && !light && !empty) continue;
+      seen.add(object.name);
+      const key = JSON.stringify([
+        object.matrix,
+        color,
+        camera,
+        light,
+        empty,
+        camera ? [object.name === input.sceneCamera, input.renderAspect] : null,
+      ]);
+      const previous = this.drawn.get(object.name);
+      if (previous?.key === key) continue;
+      if (previous) this.remove(previous.parts);
       const matrix = new THREE.Matrix4().set(...(object.matrix.flat() as Parameters<THREE.Matrix4['set']>));
-      if (object.type === 'CAMERA') {
-        const camera = input.cameras[object.name];
-        if (camera) this.camera(camera, matrix, color, object.name === input.sceneCamera, input.renderAspect);
-      } else if (object.type === 'LIGHT') {
-        const light = object.light ? input.lights[object.light] : undefined;
-        if (light) this.light(light, matrix, color);
-      } else if (object.type === 'EMPTY') {
-        const empty = input.empties[object.name];
-        if (empty) this.empty(empty, matrix, color);
+      const group = camera ? this.cameras : light ? this.lights : this.empties;
+      const before = new Set(group.children);
+      if (camera) this.camera(camera, matrix, color, object.name === input.sceneCamera, input.renderAspect);
+      else if (light) this.light(light, matrix, color);
+      else if (empty) this.empty(empty, matrix, color);
+      this.drawn.set(object.name, { key, parts: group.children.filter((child) => !before.has(child)) });
+    }
+    for (const [name, entry] of this.drawn)
+      if (!seen.has(name)) {
+        this.remove(entry.parts);
+        this.drawn.delete(name);
       }
+  }
+
+  private remove(parts: readonly THREE.Object3D[]): void {
+    for (const part of parts) {
+      part.removeFromParent();
+      (part as THREE.Mesh).geometry?.dispose();
     }
   }
 
@@ -153,7 +179,11 @@ export class ExtrasOverlay {
       half = 0.5 * camera.ortho_scale;
     } else {
       const halfSensor = 0.5 * (camera.sensor_fit === 'VERTICAL' ? camera.sensor_height : camera.sensor_width);
-      half = drawsize / 2;
+      // A scaled camera draws larger: the overlay hands the frame function `1 / scale` and scales
+      // its corners back, which leaves the size divided by the mean of `1 / scale`.
+      const scale = new THREE.Vector3().setFromMatrixScale(matrix);
+      if (scale.x === 0 || scale.y === 0 || scale.z === 0) return;
+      half = drawsize / 2 / ((1 / scale.x + 1 / scale.y + 1 / scale.z) / 3);
       depth = (half * camera.lens) / -halfSensor;
       fac = [half * aspect[0]!, half * aspect[1]!];
       shift = [camera.shift_x * half * 2, camera.shift_y * half * 2];
@@ -420,15 +450,9 @@ export class ExtrasOverlay {
     lines.updateMatrixWorld(true);
   }
 
-  private clear(group: THREE.Group): void {
-    for (const child of group.children.splice(0)) {
-      child.removeFromParent();
-      (child as THREE.Mesh).geometry?.dispose();
-    }
-  }
-
   dispose(): void {
-    for (const group of [this.cameras, this.lights, this.empties]) this.clear(group);
+    for (const entry of this.drawn.values()) this.remove(entry.parts);
+    this.drawn.clear();
     for (const material of this.lineMaterials.values()) material.dispose();
     for (const material of this.fillMaterials.values()) material.dispose();
     this.lineMaterials.clear();

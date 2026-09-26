@@ -421,20 +421,17 @@ function BlenderModelViewport({
       // The BACKGROUND stays the dressing's, because the Blender palette
       // already paints the viewport its own flat grey.
       //
-      // AND THE VIEW TRANSFORM IS BLENDER'S. Blender's factory scene is AgX
-      // (`view_settings.view_transform`), and this document's own RENDER path
-      // already photographs through `THREE.AgXToneMapping` (`presenter.ts`),
-      // so the viewport was the one surface in the chain running a different
-      // curve from the thing it frames. MEASURED on the factory cube, our own
-      // radiance through each operator against Blender's (141,143,145)/
-      // (129,131,131)/(111,112,113): ACES lands the three faces within 6
-      // levels with a spread of 40 where Blender's is 30 — the curve, not the
-      // lights, is what was left of row 1's spread — and AgX within 3 at a
-      // spread of 26.
+      // AND THE VIEW TRANSFORM IS SOLID MODE'S OWN: Standard. Blender draws Solid with the
+      // display's default view and no scene settings (`draw_color_management.cc`,
+      // `eDRWColorManagementType::ViewTransform`), and the sRGB display's default is Standard
+      // (`config.ocio`, `default_view_transform`) — the scene's AgX is for Material Preview and
+      // Rendered, which state it themselves (`src/presentation.ts`). Blender 5.2's Workbench,
+      // rendered under Standard, gives the factory cube's default-view faces 142 / 131 / 112 and
+      // its front face 162, where the viewport's own frames read 141 / 129 / 111 and 161.
       dressing={{
         environment: false,
         keyLight: false,
-        toneMapping: THREE.AgXToneMapping,
+        toneMapping: THREE.NoToneMapping,
         viewLocked: view.studioLights(),
       }}
     />

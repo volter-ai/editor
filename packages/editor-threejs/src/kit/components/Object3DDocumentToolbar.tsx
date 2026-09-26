@@ -95,6 +95,10 @@ const DOCUMENT_HELPER_ROWS: readonly { key: keyof HelperVisibility; label: strin
   { key: 'skeletons', label: 'Bones' },
   { key: 'weights', label: 'Weights' },
   { key: 'cursor', label: '3D Cursor' },
+  // Blender's overlay extras: the objects that have no surface.
+  { key: 'cameras', label: 'Cameras' },
+  { key: 'lights', label: 'Lights' },
+  { key: 'empties', label: 'Empties' },
 ];
 export function Object3DDocumentToolbar({
   documentId,
