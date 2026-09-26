@@ -7,3 +7,9 @@ fi
 if git diff --cached --name-only | grep -qE '^packages/[^/]+/.*\.(ts|tsx|mts|mjs)$'; then
   node scripts/check-boundaries.mjs || exit 1
 fi
+# The release lists' manifest boundary: a published package may only reach packages its list
+# publishes, at their release versions (a dependency on an unlisted package breaks the install).
+if git diff --cached --name-only | grep -qE '^(release/[^/]+\.json|packages/[^/]+/package\.json)$'; then
+  node scripts/check-release.mjs release/modeling.json || exit 1
+  node scripts/check-release.mjs release/game.json || exit 1
+fi
