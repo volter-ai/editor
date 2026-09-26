@@ -144,7 +144,12 @@ Remaining:
    first size is unobserved, and an initial arrow can enter its state from below.
 4. **The design skew** (`website`): the DOM root is read-only, the Pages list is empty, and a
    `page` has no document editor.
-5. **Unwalked instruments:** navmesh on real content; Network needs a networking adapter.
+5. **Unwalked instruments:** Network needs a networking adapter. Navmesh is walked on `arena`
+   with its level tagged `userData.navRole = 'walkable'` and a first-party navigation adapter in
+   its `systems`: Debug > Bake NavMesh draws the walkable carpet over the floor, ramps and bridge,
+   and Clear NavMesh removes it. Contributed application-menu items (`workspace.menu`) are palette
+   entries too ("Debug: Bake NavMesh"), because under the Code-OSS frame the editor draws no
+   menubar of its own; the workbench's native menubar does not carry them yet.
 6. **Input gating.** A game's own `InputManager` takes the realm gate (measured on `arena`: during
    Play with a Model document active, a held W no longer reaches `gameInput`; with the Game tab
    focused it does), and the document door refuses synthetic key, type, paste and drag while the

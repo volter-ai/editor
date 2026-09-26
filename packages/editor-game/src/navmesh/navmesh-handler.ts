@@ -141,7 +141,9 @@ export function setupNavMeshHandlers(): () => void {
     const walkableIds = collectNavigationIds('walkable');
     if (walkableIds.size === 0) {
       editorHost().console.warn(
-        'No walkable entities found — tag meshes as "walkable" in the Navigation section',
+        // The role is the object's own `userData.navRole` (see `collectNavigationIds`); a source
+        // world tags it where the mesh is written.
+        'No walkable meshes found — give the floors `userData={{ navRole: \'walkable\' }}` (and blockers `\'obstacle\'`) where they are written',
         'navigation',
       );
       endNavBake('No walkable-tagged entities in the scene');

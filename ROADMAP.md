@@ -46,7 +46,7 @@ Status: planned
 What `WORK.md` records as unwalked or ungated in the game editor.
 Completion:
 - A machine document fits on its first size, and an initial arrow cannot enter its state from below.
-- Navmesh is walked on real content, and Network through a networking adapter.
+- Network is walked through a networking adapter.
 
 ## project-model-program: The project shape and settings layers on Code-OSS
 

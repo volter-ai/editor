@@ -21,8 +21,10 @@ import { buildBoardOpenActions } from '../board-open-actions';
 import {
   contributedActions,
   contributedChromeVersion,
+  contributedMenuItems,
   subscribeContributedChrome,
 } from '@volter/editor-sdk/kit/chrome-registry';
+import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
 import { publishPaletteActions } from '../editor-commands';
 import { useEditorStore, useHistoryCommandSnapshot, useHistoryCommands } from '@volter/editor-sdk/kit/editor-runtime';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
@@ -61,7 +63,42 @@ export function buildPaletteActions(
     shortcut: action.shortcut ? shortcutFor(action.shortcut) : undefined,
     execute: action.execute,
   }));
-  return [...statics, ...documents, ...contributed, ...entities];
+  return [...statics, ...documents, ...contributed, ...applicationMenuActions(), ...entities];
+}
+
+const APPLICATION_MENUS = ['view', 'window', 'debug', 'tools', 'help'] as const;
+const MENU_TITLES: Record<(typeof APPLICATION_MENUS)[number], string> = {
+  view: 'View',
+  window: 'Window',
+  debug: 'Debug',
+  tools: 'Tools',
+  help: 'Help',
+};
+
+/**
+ * A package's APPLICATION MENU items (`workspace.menu`), in the palette as "Debug: Bake NavMesh".
+ * Under the Code-OSS frame the editor draws no menubar of its own (a product with `nativeMenus`),
+ * so without this an item a package put on Debug or Tools had no door at all. An item its own
+ * `disabled` refuses right now says so rather than doing nothing.
+ */
+function applicationMenuActions(): EditorAction[] {
+  return APPLICATION_MENUS.flatMap((menu) =>
+    contributedMenuItems(menu).map((item) => {
+      const label = `${MENU_TITLES[menu]}: ${typeof item.label === 'function' ? item.label() : item.label}`;
+      return {
+        id: item.id,
+        label,
+        category: 'action' as const,
+        execute: () => {
+          if (item.disabled?.({})) {
+            showTransientHint(`${label} is not available right now.`);
+            return;
+          }
+          return item.execute({});
+        },
+      };
+    }),
+  );
 }
 
 function signatureOf(actions: readonly EditorAction[]): string {
