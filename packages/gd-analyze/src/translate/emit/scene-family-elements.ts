@@ -34,7 +34,7 @@ import type {
   TargetTsStatement,
 } from '../code/target-ts-syntax';
 import type { DirectGodotSceneNodePlan } from '../data/direct-project-composition-plan';
-import { godotAnimationLibraryDataPath } from '../data/scene-animation';
+import { godotAnimationLibraryDataPath, godotAnimationTreeDataPath } from '../data/scene-animation';
 import { godotArrayMeshDataPath, godotGridMapDataPath, godotMeshLibraryDataPath } from '../data/scene-families';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 
@@ -458,6 +458,7 @@ const GODOT_ELEMENTS: Readonly<Record<string, readonly [module: string, three: s
   CPUParticles3D: ['cpu-particles-3d', 'Group'],
   Decal: ['decal', 'Group'],
   AnimationPlayer: ['animation-player', 'Group'],
+  AnimationTree: ['animation-tree', 'Group'],
 };
 
 /** A Godot property's prop name: `anchor_left` is `anchorLeft`, `stream_0/stream` `stream0Stream`. */
@@ -503,6 +504,7 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
   if (resource.className === 'CompressedTexture2D') return textureHook(emission, resource);
   if (resource.className === 'MeshLibrary') return libraryLocal(emission, resource);
   if (resource.className === 'AnimationLibrary') return animationLibraryLocal(emission, resource);
+  if (resource.className === 'AnimationNodeBlendTree') return animationTreeLocal(emission, resource);
   const existing = emission.hookLocals.get(key);
   if (existing !== undefined) return existing;
   if (resource.className === 'AudioStreamWAV') {
@@ -783,6 +785,16 @@ function animationLibraryLocal(emission: FamilyEmission, resource: TargetGodotSc
   return declareShared(emission, resource.key, `${stemOf(resource.key)} library`, made, []);
 }
 
+/** An AnimationTree's blend tree: its data file loaded once, at module level (`godot_animation_node_load`). */
+function animationTreeLocal(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan): string {
+  const existing = emission.shared.get(resource.key);
+  if (existing !== undefined) return existing;
+  if (resource.animationTree === undefined) throw new Error(`${resource.key}: a blend tree without its graph`);
+  const data = dataImport(emission, godotAnimationTreeDataPath(emission.targetPath, resource.key), `${stemOf(resource.key)} graph`);
+  const made: TargetTsExpression = { kind: 'call-expression', callee: identifier(useCompat(emission, 'animation-tree', 'godot_animation_node_load')), arguments: [identifier(data)] };
+  return declareShared(emission, resource.key, `${stemOf(resource.key)} tree`, made, []);
+}
+
 /**
  * An AnimationPlayer's track bindings, declared once at module level: each value track's setter
  * (with its index) or script field and each method track's native methods, by track path.
@@ -847,7 +859,9 @@ export function familyAnimationOverride(
 function elementProps(emission: FamilyEmission, nodePath: string, setters: readonly TargetGodotSceneSetterPlan[]): TargetTsJsxAttribute[] {
   // A mixer's libraries, one `libraries` prop by name (`libraries/NAME`, `AnimationMixer::_set`).
   const libraries = setters.filter((setter) => setter.setter.exportName === 'godot_animation_mixer_set_library');
-  const own = setters.filter((setter) => setter.setter.exportName !== 'set_meta' && setter.setter.exportName !== 'godot_animation_mixer_set_library');
+  // An AnimationTree's parameters, one `parameters` prop by path (`parameters/<path>`).
+  const parameters = setters.filter((setter) => setter.setter.exportName === 'godot_animation_tree_set');
+  const own = setters.filter((setter) => !['set_meta', 'godot_animation_mixer_set_library', 'godot_animation_tree_set'].includes(setter.setter.exportName));
   // The node's metadata entries, one `meta` prop (`Object::_set`, `metadata/NAME`).
   const meta = setters.filter((setter) => setter.setter.exportName === 'set_meta');
   return [
@@ -865,6 +879,9 @@ function elementProps(emission: FamilyEmission, nodePath: string, setters: reado
     ...(meta.length === 0
       ? []
       : [attribute('meta', { kind: 'object-expression', properties: meta.map((setter) => ({ key: String(setter.index), value: metaValue(emission, setter.value) })) })]),
+    ...(parameters.length === 0
+      ? []
+      : [attribute('parameters', { kind: 'object-expression', properties: parameters.map((setter) => ({ key: String(setter.index), value: propValue(emission, setter.value) })) })]),
   ];
 }
 

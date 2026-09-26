@@ -177,6 +177,19 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_default_blend_time',
     'set_speed_scale',
   ],
+  // The parameters are `parameters/<path>`; the tracks bind as its AnimationPlayer's do.
+  AnimationTree: [
+    'set_meta:*',
+    'set_root_node',
+    'set_tree_root',
+    'set_animation_player',
+    'godot_animation_tree_set:*',
+    'set_active',
+    'set_deterministic',
+    'set_callback_mode_process',
+    'set_callback_mode_method',
+    'set_callback_mode_discrete',
+  ],
   AudioStreamPlayer3D: [
     ...AUDIO_PLAYER,
     'set_attenuation_model',
@@ -227,6 +240,7 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   CompressedTexture2D: [],
   MeshLibrary: [],
   AnimationLibrary: [],
+  AnimationNodeBlendTree: [],
   LabelSettings: [
     'set_line_spacing',
     'set_paragraph_spacing',

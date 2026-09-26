@@ -6,6 +6,7 @@
     "src/lib/godot-compat/animation-library.ts",
     "src/lib/godot-compat/animation-mixer.ts",
     "src/lib/godot-compat/animation-player.ts",
+    "src/lib/godot-compat/animation-tree.ts",
     "src/lib/godot-compat/animation.ts",
     "src/lib/godot-compat/area-3d.ts",
     "src/lib/godot-compat/array-mesh.ts",
@@ -147,5 +148,5 @@
   "requires": [],
   "skills": [],
   "title": "Godot compat (backends for a ported game)",
-  "version": "0.866.0"
+  "version": "0.867.0"
 }

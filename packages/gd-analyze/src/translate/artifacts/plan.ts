@@ -11,7 +11,7 @@ import {
   directGodotSettingsJson,
 } from '../emit/direct-project-world-syntax';
 import type { DirectGodotSceneModulePlan } from '../data/direct-scene-module-plan';
-import { godotAnimationLibraryDataPath } from '../data/scene-animation';
+import { godotAnimationLibraryDataPath, godotAnimationTreeDataPath } from '../data/scene-animation';
 import {
   godotArrayMeshData,
   godotArrayMeshDataPath,
@@ -129,6 +129,10 @@ function meshDataArtifacts(composition: DirectGodotProjectCompositionPlan): read
       if (resource.mesh !== undefined) {
         const file = godotArrayMeshDataPath(scene.targetPath, resource.key);
         if (!written.has(file)) written.set(file, projectDataJsonArtifact(file, godotArrayMeshData(resource.mesh) as unknown as DirectJsonValue, [scene.sourceResPath]));
+      }
+      if (resource.animationTree !== undefined) {
+        const file = godotAnimationTreeDataPath(scene.targetPath, resource.key);
+        if (!written.has(file)) written.set(file, projectDataJsonArtifact(file, resource.animationTree as unknown as DirectJsonValue, [scene.sourceResPath]));
       }
       if (resource.animations !== undefined) {
         const file = godotAnimationLibraryDataPath(scene.targetPath, resource.key);

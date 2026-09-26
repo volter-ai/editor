@@ -33,6 +33,12 @@ import { canonical, type GodotProofMeasurement, type GodotProofTools, sha256 } f
 
 /** The frames read, and the calls the probe makes before reading a frame. */
 const FRAMES = 96;
+/** The tree parameters the probe sets before reading a frame. */
+const TREE_ACTS: Readonly<Record<number, readonly (readonly [string, number])[]>> = {
+  24: [['parameters/blend/blend_amount', 0.8]],
+  40: [['parameters/scale/scale', 0.5]],
+  64: [['parameters/blend/blend_amount', 0], ['parameters/scale/scale', 2]],
+};
 const ACTS: Readonly<Record<number, readonly (readonly [string, ...(string | number | boolean)[]])[]>> = {
   20: [['play', 'take'], ['queue', 'extra/pop']],
   72: [['play', 'spin'], ['seek', 1.5, true]],
@@ -73,6 +79,45 @@ const MAIN = `[gd_scene load_steps=8 format=3]
 [ext_resource type="PackedScene" path="res://enemy/enemy.glb" id="2_enemy"]
 
 ${WALK}
+
+[sub_resource type="Animation" id="Animation_ta"]
+resource_name = "a"
+length = 1.0
+loop_mode = 1
+${track(0, 'position_3d', 'Mover2', value('PackedFloat32Array(0, 1, 0, 0, 0, 1, 1, 2, 0, 0)'))}
+${track(1, 'value', 'Circle2:rotation', keys('0, 1', '1, 1', 0, 'Vector3(0, 0, 0), Vector3(0, 3, 0)'))}
+
+[sub_resource type="Animation" id="Animation_tb"]
+resource_name = "b"
+length = 0.8
+${track(0, 'position_3d', 'Mover2', value('PackedFloat32Array(0, 1, 0, 0, 0, 0.8, 1, 0, 2, -1)'))}
+${track(1, 'value', 'Circle2:rotation', keys('0, 0.8', '1, 1', 0, 'Vector3(1, 0, 0), Vector3(0, 0, 1)'))}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_rig"]
+_data = {
+&"a": SubResource("Animation_ta"),
+&"b": SubResource("Animation_tb")
+}
+
+[sub_resource type="AnimationNodeAnimation" id="Node_a"]
+animation = &"a"
+
+[sub_resource type="AnimationNodeAnimation" id="Node_b"]
+animation = &"b"
+
+[sub_resource type="AnimationNodeTimeScale" id="Node_scale"]
+
+[sub_resource type="AnimationNodeBlend2" id="Node_blend"]
+filter_enabled = true
+filters = ["Mover2"]
+
+[sub_resource type="AnimationNodeBlendTree" id="Tree_root"]
+nodes/a/node = SubResource("Node_a")
+nodes/a/position = Vector2(-200, 0)
+nodes/b/node = SubResource("Node_b")
+nodes/scale/node = SubResource("Node_scale")
+nodes/blend/node = SubResource("Node_blend")
+node_connections = [&"output", 0, &"blend", &"blend", 0, &"a", &"blend", 1, &"scale", &"scale", 0, &"b"]
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_robot"]
 _data = {
@@ -140,6 +185,19 @@ autoplay = &"spin"
 libraries/ = SubResource("AnimationLibrary_robot")
 autoplay = &"walk"
 
+[node name="Mover2" type="Node3D" parent="."]
+
+[node name="Circle2" type="Node3D" parent="."]
+
+[node name="Rig" type="AnimationPlayer" parent="."]
+libraries/ = SubResource("AnimationLibrary_rig")
+
+[node name="Tree" type="AnimationTree" parent="."]
+tree_root = SubResource("Tree_root")
+anim_player = NodePath("../Rig")
+parameters/blend/blend_amount = 0.3
+parameters/scale/scale = 1.5
+
 [editable path="Robot"]
 `;
 
@@ -200,6 +258,12 @@ func _physics_process(_delta: float) -> bool:
 \t\tanim.animation_finished.connect(func(n): signals.append(["finished", String(n), frames]))
 \t\tanim.animation_changed.connect(func(o, n): signals.append(["changed", String(o), String(n), frames]))
 \t\tanim.current_animation_changed.connect(func(n): signals.append(["current", String(n), frames]))
+\t\tvar tree_node: AnimationTree = main.get_node("Tree")
+\t\ttree_node.animation_started.connect(func(n): signals.append(["tree-started", String(n), frames]))
+\t\ttree_node.animation_finished.connect(func(n): signals.append(["tree-finished", String(n), frames]))
+${Object.entries(TREE_ACTS)
+  .map(([frame, sets]) => `\tif frames == ${frame}:\n${sets.map(([name, set]) => `\t\tmain.get_node("Tree").set(${JSON.stringify(name)}, ${String(set)})`).join('\n')}`)
+  .join('\n')}
 ${Object.entries(ACTS)
   .map(([frame, calls]) => `\tif frames == ${frame}:\n${calls.map(([method, ...args]) => `\t\tanim.${method}(${args.map(gdLiteral).join(', ')})`).join('\n')}`)
   .join('\n')}
@@ -210,7 +274,7 @@ ${Object.entries(ACTS)
 \tvar bones := []
 \tfor bone in [${WALKED_BONES.join(', ')}]:
 \t\tbones.append([_v(skeleton.get_bone_pose_position(bone)), _q(skeleton.get_bone_pose_rotation(bone))])
-\trows.append([_v(circle.rotation), _v(circle.scale), _bits(glow.omni_range), _bits(glow.light_energy), glow.shadow_enabled, _v(mover.position), _v(mover.scale), String(anim.current_animation), _bits(anim.get_current_animation_position() if anim.is_animation_active() else -1.0), anim.is_playing(), main.notes.duplicate(), bones])
+\trows.append([_v(circle.rotation), _v(circle.scale), _bits(glow.omni_range), _bits(glow.light_energy), glow.shadow_enabled, _v(mover.position), _v(mover.scale), String(anim.current_animation), _bits(anim.get_current_animation_position() if anim.is_animation_active() else -1.0), anim.is_playing(), main.notes.duplicate(), bones, _v(main.get_node("Mover2").position), _v(main.get_node("Circle2").rotation), _bits(main.get_node("Tree").get("parameters/a/current_position")), _bits(main.get_node("Tree").get("parameters/b/current_position"))])
 \tif frames < ${String(FRAMES)}:
 \t\treturn false
 \tvar file := FileAccess.open("res://animation.json", FileAccess.WRITE)
@@ -240,6 +304,7 @@ import * as L3 from './src/lib/godot-compat/light-3d';
 import * as AM from './src/lib/godot-compat/animation-mixer';
 import * as AP from './src/lib/godot-compat/animation-player';
 import * as SK from './src/lib/godot-compat/skeleton-3d';
+import * as AT from './src/lib/godot-compat/animation-tree';
 import { godot_main_timer_sync_set_fixed_fps } from './src/lib/godot-compat/main-timer-sync';
 
 const bits = (value) => Buffer.from(new Float64Array([value]).buffer).toString('hex');
@@ -303,6 +368,10 @@ AM.godot_animation_mixer_signal(anim, 'animation_started').connect((n) => signal
 AM.godot_animation_mixer_signal(anim, 'animation_finished').connect((n) => signals.push(['finished', n, frames]));
 AP.godot_animation_player_signal(anim, 'animation_changed').connect((o, n) => signals.push(['changed', o, n, frames]));
 AP.godot_animation_player_signal(anim, 'current_animation_changed').connect((n) => signals.push(['current', n, frames]));
+const treeNode = find('Tree');
+AM.godot_animation_mixer_signal(treeNode, 'animation_started').connect((n) => signals.push(['tree-started', n, frames]));
+AM.godot_animation_mixer_signal(treeNode, 'animation_finished').connect((n) => signals.push(['tree-finished', n, frames]));
+const treeActs = ${JSON.stringify(TREE_ACTS)};
 const rows = [];
 let time = 0;
 for (frames = 1; frames <= ${String(FRAMES)}; frames += 1) {
@@ -312,7 +381,8 @@ for (frames = 1; frames <= ${String(FRAMES)}; frames += 1) {
     frames += 1;
   }
   for (const [method, ...args] of acts[frames] ?? []) calls[method](anim, ...args);
-  rows.push([v(N3.get_rotation(circle)), v(N3.get_scale(circle)), bits(L3.get_param(glow, 4)), bits(L3.get_param(glow, 0)), L3.has_shadow(glow), v(N3.get_position(mover)), v(N3.get_scale(mover)), AP.get_current_animation(anim), bits(AP.is_animation_active(anim) ? AP.get_current_animation_position(anim) : -1), AP.is_playing(anim), [...script.notes], ${JSON.stringify(WALKED_BONES)}.map((bone) => [v(SK.get_bone_pose_position(skeleton, bone)), q(SK.get_bone_pose_rotation(skeleton, bone))])]);
+  for (const [name, set] of treeActs[frames] ?? []) AT.godot_animation_tree_set(treeNode, name, set);
+  rows.push([v(N3.get_rotation(circle)), v(N3.get_scale(circle)), bits(L3.get_param(glow, 4)), bits(L3.get_param(glow, 0)), L3.has_shadow(glow), v(N3.get_position(mover)), v(N3.get_scale(mover)), AP.get_current_animation(anim), bits(AP.is_animation_active(anim) ? AP.get_current_animation_position(anim) : -1), AP.is_playing(anim), [...script.notes], ${JSON.stringify(WALKED_BONES)}.map((bone) => [v(SK.get_bone_pose_position(skeleton, bone)), q(SK.get_bone_pose_rotation(skeleton, bone))]), v(N3.get_position(find('Mover2'))), v(N3.get_rotation(find('Circle2'))), bits(AT.godot_animation_tree_get(treeNode, 'parameters/a/current_position')), bits(AT.godot_animation_tree_get(treeNode, 'parameters/b/current_position'))]);
 }
 await act(async () => { root.unmount(); });
 const { writeFileSync } = await import('node:fs');

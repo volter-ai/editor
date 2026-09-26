@@ -20,9 +20,11 @@ import {
   godotFamilyRefusal,
 } from './scene-families';
 import {
+  type GodotAnimationNodeData,
   type TargetGodotAnimationBindingsPlan,
   type TargetGodotAnimationLibraryPlan,
   godotAnimationData,
+  godotAnimationNodeData,
   godotResolveNodePath,
   godotTrackPath,
 } from './scene-animation';
@@ -132,6 +134,8 @@ export interface TargetGodotSceneResourcePlan {
   readonly library?: TargetGodotMeshLibraryPlan;
   /** An `AnimationLibrary`'s animations (`_data`, `AnimationLibrary::_set_data`) as data. */
   readonly animations?: TargetGodotAnimationLibraryPlan;
+  /** An `AnimationNodeBlendTree`'s graph (its nodes and connections) as data. */
+  readonly animationTree?: GodotAnimationNodeData;
   readonly setters: readonly TargetGodotSceneSetterPlan[];
   readonly evidenceClaimId: string;
 }
@@ -532,6 +536,22 @@ function planResource(
     document.order.push(planned);
     return key;
   }
+  if (data.type === 'AnimationNodeBlendTree') {
+    const resources = nestedScope === '' ? document.scene.subResources : context.project?.documents.resources.find((entry) => entry.resPath === nestedScope)?.subResources;
+    const graph = godotAnimationNodeData(data, (value) => {
+      const reference = referenceOf(value);
+      return reference?.reference === 'sub' ? resources?.find((entry) => String(entry.id) === reference.id) : undefined;
+    });
+    if (typeof graph === 'string') {
+      refuse(context, `${at}(${key})`, graph, 'resource', 'AnimationNodeBlendTree');
+      return undefined;
+    }
+    context.evidence.add(rule.evidenceClaimId);
+    const planned = { key, className: data.type, construct: rule.construct, animationTree: graph, setters: [], evidenceClaimId: rule.evidenceClaimId };
+    document.planned.set(key, planned);
+    document.order.push(planned);
+    return key;
+  }
   if (data.type === 'AnimationLibrary') {
     const animations = animationLibraryPlan(context, `${at}(${key})`, data, nestedScope);
     if (animations === undefined) return undefined;
@@ -736,6 +756,52 @@ function animationBindings(
   }
   if (!ok) return null;
   return { values: [...values].map(([path, binding]) => ({ path, binding })), methods: [...methods.values()] };
+}
+
+/** An AnimationTree's NodePath properties: the compat setter each is. */
+const TREE_NODE_PATHS: Readonly<Record<string, { readonly module: string; readonly exportName: string }>> = {
+  root_node: { module: 'lib/godot-compat/animation-mixer', exportName: 'set_root_node' },
+  anim_player: { module: 'lib/godot-compat/animation-tree', exportName: 'set_animation_player' },
+};
+
+/**
+ * An AnimationTree's own property: `parameters/<path>` (`AnimationTree::_set`, `:1057`, compat's
+ * `godot_animation_tree_set`) or a NodePath (`root_node`, `anim_player`) as its setter's text; null
+ * for another property.
+ */
+function treeProperty(context: PlanContext, at: string, propertyName: string, value: GodotValue): TargetGodotSceneSetterPlan | undefined | null {
+  const parameter = /^parameters\/(.+)$/u.exec(propertyName);
+  const path = TREE_NODE_PATHS[propertyName];
+  if (parameter === null && path === undefined) return null;
+  const rule = context.authority.rule(`${context.authority.sourceRevision}\0ClassDB\0AnimationTree`);
+  if (rule === undefined) {
+    refuse(context, at, 'no live scene-node evidence for AnimationTree', 'node-family', 'AnimationTree');
+    return undefined;
+  }
+  if (parameter !== null) {
+    if (value.kind !== 'number' && value.kind !== 'bool') {
+      refuse(context, at, `a ${value.kind} tree parameter is not translated`, 'property', 'AnimationTree.parameters');
+      return undefined;
+    }
+    return {
+      propertyName,
+      setter: { module: 'lib/godot-compat/animation-tree', exportName: 'godot_animation_tree_set', localName: 'godot_animation_tree_set' },
+      index: parameter[1] as string,
+      value: value.kind === 'number' ? { kind: 'number', value: value.value } : { kind: 'bool', value: value.value },
+      evidenceClaimId: rule.evidenceClaimId,
+    };
+  }
+  const text = value.kind === 'ctor' && value.name === 'NodePath' && value.args[0]?.kind === 'string' ? value.args[0].value : value.kind === 'string' ? value.value : undefined;
+  if (text === undefined || path === undefined) {
+    refuse(context, at, 'a NodePath that is not text', 'property', `AnimationTree.${propertyName}`);
+    return undefined;
+  }
+  return {
+    propertyName,
+    setter: { module: path.module, exportName: path.exportName, localName: path.exportName },
+    value: { kind: 'string', value: text },
+    evidenceClaimId: rule.evidenceClaimId,
+  };
 }
 
 /**
@@ -966,6 +1032,15 @@ function planProperties(
   let refused = false;
   for (const [propertyName, value] of Object.entries(properties)) {
     const at = `${node.documentPath}#${node.nodePath}.${propertyName}`;
+    // An AnimationTree's parameters (`AnimationTree::_set`, animation_tree.cpp:1057) and paths.
+    if (node.class.nativeAncestry.includes('AnimationTree') && setters !== undefined) {
+      const treeSetter = treeProperty(context, at, propertyName, value);
+      if (treeSetter !== null) {
+        if (treeSetter === undefined) refused = true;
+        else setters.push(treeSetter);
+        continue;
+      }
+    }
     // A mixer's `libraries/NAME` (`AnimationMixer::_set`, animation_mixer.cpp:84): a library, no setter's.
     const library = /^libraries\/(.*)$/u.exec(propertyName);
     if (library !== null && node.class.nativeAncestry.includes('AnimationMixer') && setters !== undefined) {
@@ -1080,7 +1155,9 @@ function gridMapData(context: PlanContext, at: string, value: GodotValue): Targe
 function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): TargetGodotSceneNodePlan | undefined {
   const at = `${node.documentPath}#${node.nodePath}`;
   let ok = true;
-  if (node.nodePathProperties.length > 0) {
+  // An AnimationTree's `root_node` and `anim_player` are its setters' paths (`treeNodePath`).
+  const tree = node.class.nativeAncestry.includes('AnimationTree');
+  if (node.nodePathProperties.some((name) => !(tree && TREE_NODE_PATHS[name] !== undefined))) {
     refuse(context, at, 'authored NodePath properties are not planned', 'structure');
     ok = false;
   }
@@ -1475,6 +1552,26 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
     const plannedNode = planNativeNode(context, node);
     if (plannedNode === undefined) refused = true;
     else planned.push(plannedNode);
+  }
+  // An AnimationTree blends its AnimationPlayer's libraries from the player's root node: its tracks
+  // bind as the player's do (`AnimationTree::_setup_animation_player`, animation_tree.cpp:996).
+  for (let index = 0; index < planned.length; index += 1) {
+    const node = planned[index] as TargetGodotSceneNodePlan;
+    if (!node.classes.includes('AnimationTree')) continue;
+    const player = node.setters.find((entry) => entry.setter.exportName === 'set_animation_player');
+    const playerPath = player?.value.kind === 'string' ? godotResolveNodePath(node.nodePath, player.value.value) : undefined;
+    if (playerPath === undefined) continue;
+    const own = planned.find((candidate) => candidate.nodePath === playerPath);
+    const enclosing = [...importedPlans.keys()].find((root) => isInside(playerPath, root));
+    const override = enclosing === undefined ? undefined : importedPlans.get(enclosing)?.overrides.find((entry) => entry.at === playerPath.slice(enclosing.length + 1));
+    if (enclosing !== undefined && override?.setters.some((entry) => entry.setter.exportName === 'godot_animation_mixer_set_library' && entry.index === '') !== true) {
+      // An imported model's own animations (the importer's resampled clips) are not translated.
+      refuse(context, `${scene.resPath}#${node.nodePath}`, `the animations of ${playerPath}, imported with its model, are not translated`, 'resource', 'imported animations');
+      refused = true;
+      continue;
+    }
+    const animation = own?.animation ?? override?.animation;
+    if (animation !== undefined) planned[index] = { ...node, animation };
   }
   const connections = planConnections(context, scene, planned, instanceRoots);
   if (refused || connections === undefined) return undefined;

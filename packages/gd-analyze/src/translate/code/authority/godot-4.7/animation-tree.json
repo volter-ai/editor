@@ -1,0 +1,286 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/animation-tree"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AnimationTree",
+        "member": "set_tree_root",
+        "kind": "native-member",
+        "signature": "hash:2581683800"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation-tree",
+        "exportName": "set_tree_root",
+        "localName": "AnimationTree_set_tree_root",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AnimationTree.set_tree_root"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AnimationTree",
+        "member": "get_tree_root",
+        "kind": "native-member",
+        "signature": "hash:4110384712"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation-tree",
+        "exportName": "get_tree_root",
+        "localName": "AnimationTree_get_tree_root",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AnimationTree.get_tree_root"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AnimationTree",
+        "member": "set_animation_player",
+        "kind": "native-member",
+        "signature": "hash:1348162250"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation-tree",
+        "exportName": "set_animation_player",
+        "localName": "AnimationTree_set_animation_player",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AnimationTree.set_animation_player"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "AnimationTree",
+        "member": "get_animation_player",
+        "kind": "native-member",
+        "signature": "hash:4075236667"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/animation-tree",
+        "exportName": "get_animation_player",
+        "localName": "AnimationTree_get_animation_player",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-AnimationTree.get_animation_player"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AnimationTree.set_tree_root",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AnimationTree\u0000set_tree_root\u0000hash:2581683800",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/animation_tree.cpp",
+        "sourceSymbol": "AnimationTree.set_tree_root",
+        "sourceLine": 634
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5391ca667096cf28c1747e6511237fd18b470579a00c3bea82159ffe7b137f89",
+        "callsite": "res://probe.gd _init() set_tree_root-blend",
+        "observedOutputSha256": "7162560cfdeed6ce3523d460ce74e0a3c910cfc14af164243cd373e24cf305eb"
+      },
+      "target": {
+        "implementationSha256": "6db1feee7bef8706875a40b35ddc8218f1eb9e8b6bc8a2277e30a647f5551c1e",
+        "callsite": "lib/godot-compat/animation-tree.ts set_tree_root",
+        "observedOutputSha256": "7162560cfdeed6ce3523d460ce74e0a3c910cfc14af164243cd373e24cf305eb"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5c74fb9c47f096ef3cec243fb4edeb93234f04ec856bfeac91914ccddef486bc"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation-tree",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AnimationTree.get_tree_root",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AnimationTree\u0000get_tree_root\u0000hash:4110384712",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/animation_tree.cpp",
+        "sourceSymbol": "AnimationTree.get_tree_root",
+        "sourceLine": 656
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0012469a322dbd9cf011b318ff484178ad583b72cfe7a1b815271135961ef842",
+        "callsite": "res://probe.gd _init() get_tree_root",
+        "observedOutputSha256": "a8671028e933af06ba12a0896ef85c71595c91c5bcbfa820ac3d1a26a3f6e710"
+      },
+      "target": {
+        "implementationSha256": "6db1feee7bef8706875a40b35ddc8218f1eb9e8b6bc8a2277e30a647f5551c1e",
+        "callsite": "lib/godot-compat/animation-tree.ts get_tree_root",
+        "observedOutputSha256": "a8671028e933af06ba12a0896ef85c71595c91c5bcbfa820ac3d1a26a3f6e710"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a309c15c3563601dedca01a5e9976d682b76502c4e5296886309c736964b27ba"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation-tree",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AnimationTree.set_animation_player",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AnimationTree\u0000set_animation_player\u0000hash:1348162250",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/animation_tree.cpp",
+        "sourceSymbol": "AnimationTree.set_animation_player",
+        "sourceLine": 979
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b8d71a5e676c38ba385168cedc576113081cb9593139225985c0609280fc5733",
+        "callsite": "res://probe.gd _init() set_animation_player",
+        "observedOutputSha256": "bf836b20d02ed9e758bea0d4769ce8a793ba3e4727cc07f54c758a8527323d04"
+      },
+      "target": {
+        "implementationSha256": "6db1feee7bef8706875a40b35ddc8218f1eb9e8b6bc8a2277e30a647f5551c1e",
+        "callsite": "lib/godot-compat/animation-tree.ts set_animation_player",
+        "observedOutputSha256": "bf836b20d02ed9e758bea0d4769ce8a793ba3e4727cc07f54c758a8527323d04"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "356ca1e9d542a411ad5551b626f5de456840032147ed140528785192f93adff4"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation-tree",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-AnimationTree.get_animation_player",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000AnimationTree\u0000get_animation_player\u0000hash:4075236667",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/animation/animation_tree.cpp",
+        "sourceSymbol": "AnimationTree.get_animation_player",
+        "sourceLine": 992
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "7ec9be9c0abc5214e339a8a9d68012a2e1a391bad784a1a5241ea71ee253b53f",
+        "callsite": "res://probe.gd _init() get_animation_player",
+        "observedOutputSha256": "d13cea589a38c978c6544cfa6a328130b65383d399221693b474caa8e07dbdb5"
+      },
+      "target": {
+        "implementationSha256": "6db1feee7bef8706875a40b35ddc8218f1eb9e8b6bc8a2277e30a647f5551c1e",
+        "callsite": "lib/godot-compat/animation-tree.ts get_animation_player",
+        "observedOutputSha256": "d13cea589a38c978c6544cfa6a328130b65383d399221693b474caa8e07dbdb5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "be74ad2142ede571d031c1d30c26facc9ce8a53b63b74045729ff2e58ed83cc4"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "animation-tree",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-AnimationTree.set_tree_root",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5391ca667096cf28c1747e6511237fd18b470579a00c3bea82159ffe7b137f89",
+      "implementationSha256": "6db1feee7bef8706875a40b35ddc8218f1eb9e8b6bc8a2277e30a647f5551c1e"
+    },
+    {
+      "claimId": "godot-4.7-binding-AnimationTree.get_tree_root",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0012469a322dbd9cf011b318ff484178ad583b72cfe7a1b815271135961ef842",
+      "implementationSha256": "6db1feee7bef8706875a40b35ddc8218f1eb9e8b6bc8a2277e30a647f5551c1e"
+    },
+    {
+      "claimId": "godot-4.7-binding-AnimationTree.set_animation_player",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b8d71a5e676c38ba385168cedc576113081cb9593139225985c0609280fc5733",
+      "implementationSha256": "6db1feee7bef8706875a40b35ddc8218f1eb9e8b6bc8a2277e30a647f5551c1e"
+    },
+    {
+      "claimId": "godot-4.7-binding-AnimationTree.get_animation_player",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "7ec9be9c0abc5214e339a8a9d68012a2e1a391bad784a1a5241ea71ee253b53f",
+      "implementationSha256": "6db1feee7bef8706875a40b35ddc8218f1eb9e8b6bc8a2277e30a647f5551c1e"
+    }
+  ]
+}

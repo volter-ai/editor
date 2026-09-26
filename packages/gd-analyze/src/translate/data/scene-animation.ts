@@ -222,3 +222,76 @@ export function godotAnimationLibraryDataPath(sceneTargetPath: string, key: stri
   const safe = (text: string) => text.replace(/[^A-Za-z0-9._-]+/gu, '_');
   return `${sceneTargetPath.replace(/\.tsx$/u, '')}.${safe(key.replace(/^(sub|ext):/u, ''))}.animations.json`;
 }
+
+/** A blend-tree node as the data file writes it (compat `animation-tree.ts`'s `GodotAnimationNodeData`). */
+export type GodotAnimationNodeData =
+  | { readonly type: 'animation'; readonly animation: string }
+  | { readonly type: 'blend2'; readonly sync?: boolean; readonly filterEnabled?: boolean; readonly filters?: readonly string[] }
+  | { readonly type: 'time-scale' }
+  | { readonly type: 'blend-tree'; readonly nodes: readonly { readonly name: string; readonly node: GodotAnimationNodeData }[]; readonly connections: readonly (readonly [string, number, string])[] };
+
+/**
+ * An `AnimationNode` graph as its data file, or why it has none: a blend tree
+ * (`AnimationNodeBlendTree::_set`, `animation_blend_tree.cpp:1740`: `nodes/NAME/node`,
+ * `node_connections`; positions and the graph offset are the editor's), its animation, Blend2 and
+ * TimeScale nodes, each a resource of the same document.
+ */
+export function godotAnimationNodeData(resource: BoundGodotResourceData, resolve: (value: GodotValue) => BoundGodotResourceData | undefined): GodotAnimationNodeData | string {
+  const props = resource.properties;
+  const own = Object.entries(props).filter(([name, value]) => name !== 'resource_name' && !(name === 'script' && value.kind === 'null'));
+  switch (resource.type) {
+    case 'AnimationNodeAnimation': {
+      let animation = '';
+      for (const [name, value] of own) {
+        if (name === 'animation' && value.kind === 'string') animation = value.value;
+        else return `AnimationNodeAnimation.${name} is not translated`;
+      }
+      return { type: 'animation', animation };
+    }
+    case 'AnimationNodeBlend2': {
+      let sync = false;
+      let filterEnabled = false;
+      const filters: string[] = [];
+      for (const [name, value] of own) {
+        if (name === 'sync' && value.kind === 'bool') sync = value.value;
+        else if (name === 'filter_enabled' && value.kind === 'bool') filterEnabled = value.value;
+        else if (name === 'filters' && value.kind === 'array' && value.items.every((item) => item.kind === 'string')) filters.push(...value.items.map((item) => (item as { readonly value: string }).value));
+        else return `AnimationNodeBlend2.${name} is not translated`;
+      }
+      return { type: 'blend2', ...(sync ? { sync } : {}), ...(filterEnabled ? { filterEnabled } : {}), ...(filters.length === 0 ? {} : { filters }) };
+    }
+    case 'AnimationNodeTimeScale':
+      return own.length === 0 ? { type: 'time-scale' } : `AnimationNodeTimeScale.${own[0]?.[0] ?? ''} is not translated`;
+    case 'AnimationNodeBlendTree': {
+      const nodes: { name: string; node: GodotAnimationNodeData }[] = [];
+      const connections: (readonly [string, number, string])[] = [];
+      for (const [name, value] of own) {
+        const node = /^nodes\/([^/]+)\/(node|position)$/u.exec(name);
+        if (node !== null) {
+          if (node[2] === 'position') continue;
+          const child = resolve(value);
+          if (child === undefined) return `the blend tree's ${node[1] as string} is not a resource of this document`;
+          const data = godotAnimationNodeData(child, resolve);
+          if (typeof data === 'string') return data;
+          nodes.push({ name: node[1] as string, node: data });
+        } else if (name === 'node_connections' && value.kind === 'array') {
+          for (let at = 0; at + 2 < value.items.length; at += 3) {
+            const [input, index, output] = value.items.slice(at, at + 3) as [GodotValue, GodotValue, GodotValue];
+            if (input.kind !== 'string' || index.kind !== 'number' || output.kind !== 'string') return 'a blend tree connection that is not a node, an input and a node';
+            connections.push([input.value, index.value, output.value]);
+          }
+        } else if (name !== 'graph_offset') {
+          return `AnimationNodeBlendTree.${name} is not translated`;
+        }
+      }
+      return { type: 'blend-tree', nodes, connections };
+    }
+    default:
+      return `a ${resource.type} is not translated`;
+  }
+}
+
+/** Where a blend tree's data file is written, beside its scene. */
+export function godotAnimationTreeDataPath(sceneTargetPath: string, key: string): string {
+  return godotAnimationLibraryDataPath(sceneTargetPath, key).replace(/\.animations\.json$/u, '.animation-tree.json');
+}

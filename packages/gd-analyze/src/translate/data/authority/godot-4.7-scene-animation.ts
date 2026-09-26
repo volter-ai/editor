@@ -1,10 +1,12 @@
 /**
  * Animation: an `AnimationPlayer` node (`<GodotAnimationPlayer>`, compat's AnimationMixer protocol
- * blending its libraries' tracks onto the scene's nodes through the bindings resolved at import) and
- * its `AnimationLibrary` (a data file of animations). Their own proof
+ * blending its libraries' tracks onto the scene's nodes through the bindings resolved at import),
+ * its `AnimationLibrary` (a data file of animations), and an `AnimationTree` over it
+ * (`<GodotAnimationTree>`, its `AnimationNodeBlendTree` a data file, its parameters a prop). Their own proof
  * (`src/evidence/proofs/scene-animation.ts`) runs a scene with value (continuous, eased, discrete),
  * method (a script's function and a native method) and 3D tracks, a RESET, two libraries, autoplay
- * and a queue, and an imported model's AnimationPlayer given a library of bone tracks, in official
+ * and a queue, an imported model's AnimationPlayer given a library of bone tracks, and an
+ * AnimationTree blending a player's animations through a filtered Blend2 and a TimeScale, in official
  * Godot, and compares every frame's sampled values, bone poses and signals against the emitted scene.
  */
 import {
@@ -40,6 +42,13 @@ export const GODOT_4_7_ANIMATION_NODE_RULES: readonly (GodotSceneNodeRule & { re
     evidenceClaimId: 'godot-4.7-scene-node-animation-player',
     source: { file: 'scene/animation/animation_mixer.cpp', symbol: 'AnimationMixer::_update_caches', line: 651 },
   },
+  {
+    sourceRevision: REVISION,
+    nativeCanonicalIdentity: identityOf('AnimationTree'),
+    targetKind: 'three-group',
+    evidenceClaimId: 'godot-4.7-scene-node-animation-tree',
+    source: { file: 'scene/animation/animation_tree.cpp', symbol: 'AnimationTree::_blend_pre_process', line: 660 },
+  },
 ];
 
 export const GODOT_4_7_ANIMATION_RESOURCE_RULES: readonly (GodotSceneResourceRule & { readonly source: Source })[] = [
@@ -49,6 +58,13 @@ export const GODOT_4_7_ANIMATION_RESOURCE_RULES: readonly (GodotSceneResourceRul
     construct: { module: 'lib/godot-compat/animation-library', exportName: 'godot_animation_library_load' },
     evidenceClaimId: 'godot-4.7-scene-resource-animation-library',
     source: { file: 'scene/resources/animation_library.cpp', symbol: 'AnimationLibrary::_set_data', line: 148 },
+  },
+  {
+    sourceRevision: REVISION,
+    className: 'AnimationNodeBlendTree',
+    construct: { module: 'lib/godot-compat/animation-tree', exportName: 'godot_animation_node_load' },
+    evidenceClaimId: 'godot-4.7-scene-resource-animation-node-blend-tree',
+    source: { file: 'scene/animation/animation_blend_tree.cpp', symbol: 'AnimationNodeBlendTree::_set', line: 1740 },
   },
 ];
 
