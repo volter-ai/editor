@@ -44,24 +44,28 @@ export type {
 } from './r3f-particle-binding';
 export type { PhysicsChannel, R3fPhysicsBinding } from './r3f-physics-binding';
 
+/** A number as the writer reads one: `3`, `-3`, `+0.5` (the writer's `NUMBER_LITERAL_SOURCE`). */
+function signedNumericLiteral(expression: ts.Expression): boolean {
+  return (
+    ts.isNumericLiteral(expression) ||
+    (ts.isPrefixUnaryExpression(expression) &&
+      (expression.operator === ts.SyntaxKind.MinusToken || expression.operator === ts.SyntaxKind.PlusToken) &&
+      ts.isNumericLiteral(expression.operand))
+  );
+}
+
 function literalJsxExpression(expression: ts.Expression | undefined): boolean {
   if (!expression) return false;
   if (
     ts.isStringLiteral(expression) ||
-    ts.isNumericLiteral(expression) ||
+    signedNumericLiteral(expression) ||
     expression.kind === ts.SyntaxKind.TrueKeyword ||
     expression.kind === ts.SyntaxKind.FalseKeyword
   ) {
     return true;
   }
   if (!ts.isArrayLiteralExpression(expression)) return false;
-  return expression.elements.every(
-    (element) =>
-      ts.isNumericLiteral(element) ||
-      (ts.isPrefixUnaryExpression(element) &&
-        element.operator === ts.SyntaxKind.MinusToken &&
-        ts.isNumericLiteral(element.operand)),
-  );
+  return expression.elements.every(signedNumericLiteral);
 }
 
 function authoredPropsOf(
