@@ -1,63 +1,62 @@
 /**
- * Standalone entry point.
+ * Standalone entry point: this game's own boot, in its own libraries.
  *
- * One `mountGameFromManifest` call mounts every explicit adapter root in the
- * v2 `vgai.project.json`. Roots are required; the default scaffold declares
- * one Three.js world, while composition templates may rewrite that list.
- * The selected built-in adapter owns each root's document and lifecycle.
+ * Every root `vgai.project.json` declares gets one layer in `#game-canvas`,
+ * stacked by `zOrder`. A `three` root's entry default-exports a React Three
+ * Fiber component and renders inside `<Canvas>`; a `dom` root's entry
+ * default-exports a React component and renders with react-dom, in a layer
+ * that lets pointer events fall through to the world except where its own
+ * elements claim them (`pointer-events: auto`). The editor mounts the same
+ * entries itself; nothing here runs inside it.
  *
- * `host.loadEntryModule` resolves an explicitly declared `entry` through a
- * Vite-generated virtual module containing exactly the manifest's entry
- * paths. The manifest remains the sole source of truth—filenames are
- * arbitrary, while the bundler still sees static imports.
- *
+ * `manifestEntryModules` is generated from the manifest's `entry` paths
+ * (`manifest-entry-modules-plugin.ts`), so the manifest stays the one list of
+ * roots while the bundler still sees static imports.
  */
 
+import { Canvas } from '@react-three/fiber';
+import { type ComponentType, createElement } from 'react';
+import { createRoot } from 'react-dom/client';
 import { manifestEntryModules } from 'virtual:vgai-manifest-entries';
-import type { ManifestHost } from '@volter/game-runtime/runtime/mount-game';
-import {
-  isAdapterRegistered,
-  mountGameFromManifest,
-  registerAdapter,
-} from '@volter/game-runtime/runtime/mount-game';
-import { r3fRootFactory } from '@volter/game-runtime/world3d-react';
 import manifest from '../vgai.project.json';
-import { registerReactAdapter } from './lib/react-root';
 
-// Three roots resolve through `r3fRootFactory`: the world entry module
-// DEFAULT-EXPORTS its React component (src/world.tsx), the same contract dom
-// roots already use. An `adapter` export still wins if a world needs full
-// control over its own RootAdapter.
-if (!isAdapterRegistered('three')) {
-  registerAdapter('three', r3fRootFactory);
+interface DeclaredRoot {
+  readonly id: string;
+  readonly adapter: unknown;
+  readonly entry?: string;
+  readonly zOrder?: number;
 }
 
-// Keep the optional DOM adapter available for a project that later adds a UI
-// root; the neutral scaffold itself declares only the Three world.
-registerReactAdapter();
-
-async function main() {
-  document.title = manifest.name;
-
-  const container = document.getElementById('game-canvas') as HTMLElement;
-  const host: ManifestHost = {
-    container,
-    async loadEntryModule(path) {
-      const entryModule = manifestEntryModules[path];
-      if (!entryModule) {
-        throw new Error(
-          `main.ts: entry module "${path}" was not generated from vgai.project.json.`,
-        );
-      }
-      return entryModule;
-    },
-  };
-  const session = await mountGameFromManifest(manifest, host);
-  session.resize(window.innerWidth, window.innerHeight);
-
-  window.addEventListener('resize', () => {
-    session.resize(window.innerWidth, window.innerHeight);
-  });
+function entryComponent(root: DeclaredRoot): ComponentType {
+  const entryModule = root.entry ? manifestEntryModules[root.entry] : undefined;
+  const Entry = (entryModule as { readonly default?: ComponentType } | undefined)?.default;
+  if (!Entry) {
+    throw new Error(
+      `main.ts: root "${root.id}" entry "${root.entry ?? '(missing)'}" must default-export a component.`,
+    );
+  }
+  return Entry;
 }
 
-main().catch(console.error);
+document.title = manifest.name;
+const container = document.getElementById('game-canvas') as HTMLElement;
+const roots = [...(manifest.roots as readonly DeclaredRoot[])].sort(
+  (a, b) => (a.zOrder ?? 0) - (b.zOrder ?? 0),
+);
+for (const root of roots) {
+  const layer = document.createElement('div');
+  layer.style.cssText = 'position:absolute;inset:0;width:100%;height:100%';
+  layer.style.zIndex = String(root.zOrder ?? 0);
+  container.appendChild(layer);
+  const Entry = entryComponent(root);
+  if (root.adapter === 'three') {
+    createRoot(layer).render(createElement(Canvas, null, createElement(Entry)));
+  } else if (root.adapter === 'dom') {
+    layer.style.pointerEvents = 'none';
+    createRoot(layer).render(createElement(Entry));
+  } else {
+    throw new Error(
+      `main.ts: root "${root.id}" declares adapter ${JSON.stringify(root.adapter)}, which this boot does not mount.`,
+    );
+  }
+}

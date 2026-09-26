@@ -134,6 +134,14 @@ Remaining:
    `@volter/editor-threejs`'s). A W held
    during Play reports "keyboard action transform.translate did not run" from the workbench's own
    keybinding (`vgaiKeyboard.ts`).
+   Unit 5 has begun with the template's boot: `src/main.ts` mounts each declared root in its own
+   library (`<Canvas>` for `three`, react-dom for `dom`), the UI starter shows its debugger a
+   module-level `debug` export instead of `useDebugProvider`, and the project-owned React
+   adapter (`react-root`) is gone. Walked on fresh `full` and `website` projects: Play reads the
+   UI root's `debug.state` and follows an arrow key; `npm run build` builds both, and the built
+   `full` page draws the world under its UI with no console errors. Still on the framework: the
+   editor's own mounting (`mountManifestRoots`, the design session's inert `Game`), the
+   template's `static-batch` and render helpers, and `arena`.
 2. **Animation seen from outside.** The editor finds a game's mixers through a served stamp on
    the project's own `new AnimationMixer(...)` and `useAnimations(...)` call sites
    (`@volter/editor-threejs/serving`); `status` reports them as `liveMixers` (walked on `arena`:

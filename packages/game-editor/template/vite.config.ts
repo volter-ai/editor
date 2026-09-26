@@ -70,8 +70,7 @@ export default defineConfig({
   // the JSX transform, and it picks the runtime from the tsconfig nearest the
   // FILE. That covers `src/**`, but the vgai runtime packages are served as
   // source out of their installed directories (see the aliases below), where
-  // the project's tsconfig does not reach — so their `.tsx` (e.g.
-  // `src/lib/react-root/react-root-adapter.tsx (formerly engine)`) compiled with the CLASSIC runtime, emitting
+  // the project's tsconfig does not reach — so their `.tsx` compiled with the CLASSIC runtime, emitting
   // bare `React.createElement` calls into a module that never imports React.
   // The scaffold's game page died on `ReferenceError: React is not defined`.
   esbuild: { jsx: 'automatic' },
@@ -82,35 +81,18 @@ export default defineConfig({
       '@volter/threejs-runtime': packageSource('@volter/threejs-runtime'),
       '@volter/game-runtime': packageSource('@volter/game-runtime'),
     },
-    // react/react-dom dedupe (GH #123): the aliases above resolve
-    // at the SOURCE-LINKED runtime checkout, so when Vite bundles the
-    // game runtime's react bridge module (`src/react/world-state.tsx` — the
-    // `<WorldProvider>` / `useWorldState` HUD bridge), module resolution walks
-    // up from THAT file and finds the CHECKOUT's `node_modules/react` — a
-    // different physical copy (often a different version) than this
-    // project's own. Two Reacts in one page means the Context object
-    // `WorldProvider` creates is not the one this project's tree looks up
-    // via `useContext`, so the documented HUD pattern crashes with "Invalid
-    // hook call" / "Cannot read properties of null (reading 'useContext')"
-    // on first render.
-    // `dedupe` forces Vite to collapse both import paths onto a single
-    // physical copy. Same fix, same reasoning, already applied for the
-    // identical dual-instance failure in this repo's own root
-    // `vite.config.ts` and in `examples/r3f-first-party/vite.config.ts`.
-    // '@react-three/fiber' joined the list with the D24 R3F default world:
-    // `src/world.tsx`'s drei imports and the source-served
-    // `@volter/game-runtime/world3d-react` adapter must agree on ONE fiber instance, or
-    // drei's hooks can't see the adapter's R3F root context and the fiber
-    // crashes pre-commit with "R3F: Hooks can only be used within the
-    // Canvas component!" (standalone-page-only — the editor's own server
-    // already optimizes fiber uniformly; browser-lane proof: 37-template-default-
-    // world's standalone test).
+    // The aliases above serve the runtime packages as SOURCE from their
+    // installed directories, where module resolution walks up to a physical
+    // react, three or fiber other than this project's own. Two copies in one
+    // page split React context ("Invalid hook call", drei's "Hooks can only be
+    // used within the Canvas component!") and three's class identity, so
+    // `dedupe` collapses every import onto this project's copy.
     dedupe: ['react', 'react-dom', 'three', '@react-three/fiber', 'pixi.js', '@pixi/react'],
   },
   optimizeDeps: {
     // Top-level `esbuild.jsx` does not govern dependency optimization. The
-    // installed `@volter/game-runtime/world3d-react` entry contains TSX, so its cold
-    // prebundle needs the automatic runtime too or it emits a bare `React`.
+    // source-served runtime packages carry TSX, so their cold prebundle needs
+    // the automatic runtime too or it emits a bare `React`.
     esbuildOptions: { jsx: 'automatic' },
     // Pre-bundle deps that are only reached through the dynamically imported
     // example modules (or injected by the JSX transform, like the React
@@ -145,37 +127,11 @@ export default defineConfig({
       'three',
       'zod',
       // The R3F default world: prebundle fiber and drei in the SAME
-      // optimizer pass so they share one fiber chunk — and so the
-      // source-served `@volter/game-runtime/world3d-react` adapter's bare fiber import
-      // rewrites to that same chunk. Split instances = drei hooks outside
-      // the adapter's root context (see the dedupe note above).
+      // optimizer pass so they share one fiber chunk. Split instances = drei
+      // hooks outside `<Canvas>`'s root context (see the dedupe note above).
       '@react-three/fiber',
       '@react-three/drei',
     ],
-    // `@volter/game-runtime/runtime/mount-game` must stay SOURCE, or the adapter registry
-    // splits into two instances and nothing mounts.
-    //
-    // The registry is module-level state shared by `mount-game` (which reads
-    // it) and whatever registers a factory into it — for `dom` roots that is
-    // now `src/lib/react-root` (the `react-root` capability), which used to be
-    // the engine package's own `react/root-adapter`.
-    //
-    // The original split: that engine file was a `.tsx` the optimizer REFUSES
-    // ("Cannot optimize dependency"), so it was always served as source, while
-    // `mount-game` is a `.ts` under `node_modules` the optimizer happily
-    // pre-bundled — giving the two halves separate copies of the registry.
-    // `main.ts` registered into one and `mountGameFromManifest` read the
-    // other, so a default scaffold died with `root "ui" has no registered
-    // adapter factory` and rendered an empty page.
-    //
-    // Now that the registering file is PROJECT source, both it and `main.ts`
-    // resolve `@volter/game-runtime/runtime/mount-game` the same way, so the specific split
-    // above can no longer form. The exclusion stays anyway: it is what pins
-    // this registry to ONE instance regardless of which capability registers
-    // into it, and a project that swaps React for Vue here must not have to
-    // rediscover this. Cheap insurance against a failure whose symptom is a
-    // blank page.
-    exclude: ['@volter/game-runtime/runtime/mount-game'],
   },
   server: {
     port: 5180,

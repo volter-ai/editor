@@ -31,7 +31,9 @@ the installed source is project-owned and editable. A doc naming
    the ROADMAP rule below).
 2. Read `vgai.project.json` — each root's `adapter` owns its document
    and lifecycle; read the root entry files and any data schema before
-   editing. `src/main.ts` registers each root's adapter (`three`, `dom`).
+   editing. `src/main.ts` is the game's own standalone boot: it mounts each
+   root with its own library (`<Canvas>` for `three`, react-dom for `dom`);
+   the editor mounts the same entries itself.
 3. Start the editor now (`npm run dev`); tell the user the URL in your
    FIRST visible message. Keep it running and narrate as you build. The
    editor IS the Code-OSS workbench this machine declares in

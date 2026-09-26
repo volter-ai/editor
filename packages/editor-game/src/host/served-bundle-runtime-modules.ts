@@ -189,7 +189,7 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   // capabilities. Each entry names its importer, so a removal is checked
   // against the same sweep.
   '@colyseus/sdk': () => import('@colyseus/sdk'), // template main.ts
-  'react-dom': () => import('react-dom'), // react-root capability's flushSync
+  'react-dom': () => import('react-dom'), // template main.ts
   // ---- Editor-citizen modules PROJECT TOOL CONTRIBUTIONS import. A
   // contribution is project source rendered inside the editor's own panels,
   // so these must resolve to the editor's LIVE modules — a second copy of the

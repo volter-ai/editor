@@ -25,9 +25,6 @@ export const PROJECT_CATALOG_DIR = join('.vgai', 'catalog');
 /** The neutral Three starter deliberately installs no game-specific capability. */
 export const DEFAULT_THREEJS_CAPABILITIES = [] as const;
 
-/** The React composition needs its project-owned DOM-root adapter implementation. */
-export const DEFAULT_REACT_CAPABILITIES = ['react-root'] as const;
-
 /**
  * One library binary a capability's SOURCE reads at runtime, in the exact shape
  * `asset-manifest.json` declares (`packages/editor/src/asset-workflow/asset-pack-manifest.ts`).

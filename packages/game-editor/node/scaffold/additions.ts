@@ -25,7 +25,7 @@ export const ADDITION_INFO: Readonly<
   },
   ui: {
     title: 'UI / website',
-    description: 'A React root (`src/ui/`) mounted as a DOM layer — the react-root capability.',
+    description: 'A React root (`src/ui/`) mounted as a DOM layer.',
   },
   server: {
     title: 'Multiplayer server',
@@ -242,24 +242,31 @@ export function ReactGamePage({ lastInput, title = 'My Game' }: ReactGamePagePro
 `;
 
 export const REACT_ONLY_GAME_SOURCE = `import { useEffect, useState } from 'react';
-import { useDebugProvider } from '@volter/game-runtime/react/world-state';
 import { ReactGamePage } from './game-page';
+
+/** The last arrow key, kept where this game's debugger can read it. */
+let lastInput = 'Ready';
+
+/** What this root shows its debugger: plain functions over its own state. */
+export const debug = {
+  state: { 'react-starter': () => ({ lastInput }) },
+};
 
 /** React-only live connector: DOM input is gameplay input; no canvas adapter is required. */
 export default function GameUI() {
-  const [lastInput, setLastInput] = useState('Ready');
+  const [shown, setShown] = useState(lastInput);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key.startsWith('Arrow')) setLastInput(event.key);
+      if (!event.key.startsWith('Arrow')) return;
+      lastInput = event.key;
+      setShown(event.key);
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  useDebugProvider('react-starter', () => ({ lastInput }));
-
-  return <ReactGamePage lastInput={lastInput} />;
+  return <ReactGamePage lastInput={shown} />;
 }
 `;
 
@@ -289,35 +296,45 @@ export const LongTitle: Story = {
 };
 `;
 
-export const REACT_ONLY_MAIN_SOURCE = `import { manifestEntryModules } from 'virtual:vgai-manifest-entries';
-import { registerReactAdapter } from './lib/react-root';
-import { mountGameFromManifest, type ManifestHost } from '@volter/game-runtime/runtime/mount-game';
+export const REACT_ONLY_MAIN_SOURCE = `/**
+ * Standalone entry point: this game's own boot, in its own libraries. Every
+ * \`dom\` root \`vgai.project.json\` declares renders its entry's default export
+ * with react-dom, in one layer of \`#game-canvas\` per root, stacked by
+ * \`zOrder\`. The editor mounts the same entries itself.
+ */
+
+import { type ComponentType, createElement } from 'react';
+import { createRoot } from 'react-dom/client';
+import { manifestEntryModules } from 'virtual:vgai-manifest-entries';
 import manifest from '../vgai.project.json';
 
-registerReactAdapter();
-
-async function main() {
-  document.title = manifest.name;
-  const container = document.getElementById('game-canvas') as HTMLElement;
-  const host: ManifestHost = {
-    container,
-    async loadEntryModule(path) {
-      const entryModule = manifestEntryModules[path];
-      if (!entryModule) {
-        throw new Error(
-          \`main.ts: entry module "\${path}" was not generated from vgai.project.json.\`,
-        );
-      }
-      return entryModule;
-    },
-  };
-  const session = await mountGameFromManifest(manifest, host);
-  const resize = () => session.resize(window.innerWidth, window.innerHeight);
-  resize();
-  window.addEventListener('resize', resize);
+interface DeclaredRoot {
+  readonly id: string;
+  readonly adapter: unknown;
+  readonly entry?: string;
+  readonly zOrder?: number;
 }
 
-main().catch(console.error);
+document.title = manifest.name;
+const container = document.getElementById('game-canvas') as HTMLElement;
+const roots = [...(manifest.roots as readonly DeclaredRoot[])].sort(
+  (a, b) => (a.zOrder ?? 0) - (b.zOrder ?? 0),
+);
+for (const root of roots) {
+  if (root.adapter !== 'dom') {
+    throw new Error(\`main.ts: root "\${root.id}" declares adapter \${JSON.stringify(root.adapter)}, which this boot does not mount.\`);
+  }
+  const entryModule = root.entry ? manifestEntryModules[root.entry] : undefined;
+  const Entry = (entryModule as { readonly default?: ComponentType } | undefined)?.default;
+  if (!Entry) {
+    throw new Error(\`main.ts: root "\${root.id}" entry "\${root.entry ?? '(missing)'}" must default-export a component.\`);
+  }
+  const layer = document.createElement('div');
+  layer.style.cssText = 'position:absolute;inset:0;width:100%;height:100%';
+  layer.style.zIndex = String(root.zOrder ?? 0);
+  container.appendChild(layer);
+  createRoot(layer).render(createElement(Entry));
+}
 `;
 
 /** The `ui` addition's own files (project-relative path → source). */

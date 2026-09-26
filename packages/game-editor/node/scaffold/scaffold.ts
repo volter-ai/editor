@@ -76,7 +76,6 @@ import {
 } from './baseline.js';
 import {
   addCapabilities,
-  DEFAULT_REACT_CAPABILITIES,
   initializeProjectCatalog,
 } from './catalog.js';
 import { satisfiesRange } from './engine-version.js';
@@ -1441,7 +1440,7 @@ function rewriteTemplateVariantFiles(
     // Composed with a 3D world the React root is an ADDITION: its own files
     // land beside the world and nothing of the world is removed
     // (`compositionKeepsPath` states the same rule for the browser seed).
-    // The template's `main.ts` already registers both adapters.
+    // The template's `main.ts` already mounts both kinds of root.
     // Over a world, the page is its HUD: the world stays visible and keeps its input.
     for (const [relative, source] of Object.entries(REACT_ONLY_FILES)) {
       if (relative === 'src/main.ts') continue;
@@ -1710,7 +1709,6 @@ export function scaffoldProject(opts: ScaffoldOptions): ScaffoldResult {
   if (hasCapabilityDistribution) initializeProjectCatalog(targetDir, catalogDir);
   if (hasCapabilityDistribution && additions) {
     const ids = [
-      ...(additions.has('ui') ? DEFAULT_REACT_CAPABILITIES : []),
       ...(additions.has('blender') ? (['blender'] as const) : []),
     ];
     if (ids.length > 0)
