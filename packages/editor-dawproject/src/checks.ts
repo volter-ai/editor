@@ -12,6 +12,12 @@
  *   - the same pitch struck again in a track while it is still sounding
  *   - a technique (`pizzicato`, `tremolo`) on a track whose instrument names no patch for it in
  *     `articulations`: nothing else can play it, so it would sound as a sustained note
+ *   - with the piece's banks: a note no sample of its patch plays, a program a bank lacks
+ *   - more melodic tracks than the synthesizer has channels (15, channel 10 being the drums'), or
+ *     two drum tracks: tracks past that share a channel, and each hears the other's program
+ *   - a send to anything but an effect bus (it is dropped), a solo on a bus or the master (only
+ *     a regular track's solo counts), a marker at or past the end or sharing another's beat (it
+ *     makes no section)
  *
  * It cannot tell whether the music is good; it tells where it is certainly careless.
  */
@@ -146,6 +152,42 @@ export function checkPiece(piece: Piece, banks?: ReadonlyMap<string, BasicSoundB
           `${track.name}: no sample plays ${[...pitches].sort((a, b) => a - b).map((pitch) => formatPitch(pitch)).join(', ')} on program ${program} of ${path} (it sounds ${formatPitch(keys[0]!)}–${formatPitch(keys[keys.length - 1]!)}${keys.length !== keys[keys.length - 1]! - keys[0]! + 1 ? ', with gaps' : ''}); those notes are silent, first at ${barBeat(first)}`,
         );
       }
+    }
+  }
+
+  // Channels: 15 melodic tracks and one drum track fit the synthesizer's 16 channels.
+  const instruments = piece.tracks.filter((track) => {
+    const device = track.channel?.devices.find((candidate) => candidate.plugin === 'soundfont');
+    return device && typeof device.params['bank'] === 'string';
+  });
+  const drumTracks = instruments.filter((track) => track.channel?.devices.find((device) => device.plugin === 'soundfont')?.params['drums'] === true);
+  const melodic = instruments.filter((track) => !drumTracks.includes(track));
+  if (melodic.length > 15) {
+    problems.push(`${melodic.length} melodic tracks, and the synthesizer has 15 channels for them: ${melodic.slice(15).map((track) => track.name).join(', ')} ${melodic.length === 16 ? 'shares' : 'share'} a channel with an earlier track and ${melodic.length === 16 ? 'hears' : 'hear'} its program. Combine parts onto fewer tracks.`);
+  }
+  if (drumTracks.length > 1) {
+    problems.push(`${drumTracks.length} drum tracks share the one drum channel (${drumTracks.map((track) => track.name).join(', ')}): the last kit selected plays for all. Put the kits' notes on one track.`);
+  }
+  // Sends, solos, markers.
+  const buses = new Set(piece.tracks.filter((track) => track.channel?.role === 'effect').map((track) => track.name));
+  for (const track of piece.tracks) {
+    for (const send of track.channel?.sends ?? []) {
+      if (!buses.has(send.to)) {
+        const target = piece.tracks.find((candidate) => candidate.name === send.to);
+        problems.push(`${track.name}: its send to "${send.to}" goes nowhere (${target ? `"${send.to}" is a ${target.channel?.role ?? 'regular'} channel, not an effect bus` : 'no track has that name'}), so nothing of it is heard`);
+      }
+    }
+    if (track.channel?.solo && track.channel.role !== 'regular') {
+      problems.push(`${track.name}: a solo on the ${track.channel.role === 'master' ? 'master' : 'effect bus'} channel does nothing; solo the regular tracks that feed it`);
+    }
+  }
+  const markers = [...piece.markers].sort((a, b) => a.time - b.time);
+  for (let i = 0; i < markers.length; i++) {
+    const marker = markers[i]!;
+    if (marker.time >= piece.length - EPSILON) {
+      problems.push(`The marker "${marker.name}" is at or past the piece's end (${barBeat(marker.time)}), so it makes no section`);
+    } else if (i + 1 < markers.length && Math.abs(markers[i + 1]!.time - marker.time) < EPSILON) {
+      problems.push(`The markers "${marker.name}" and "${markers[i + 1]!.name}" share ${barBeat(marker.time)}, so "${marker.name}" makes no section`);
     }
   }
 
