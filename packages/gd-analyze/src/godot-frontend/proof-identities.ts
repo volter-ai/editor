@@ -24,6 +24,7 @@ export const GODOT_4_7_PROOF_NAMES = [
   'scene-physics',
   'lifecycle',
   'project-startup',
+  'project-world',
   'code-seed',
   'language',
   'autoload-reference',

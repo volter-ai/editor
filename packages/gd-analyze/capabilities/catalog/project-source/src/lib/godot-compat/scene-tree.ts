@@ -16,7 +16,9 @@
 
 import { flush_buffered_events, godot_input_frame } from './input';
 import { godot_node_enter_root, godot_node_free, godot_node_is_freed, godot_node_processing, godot_node_set_queued } from './node';
+import { godot_main_timer_sync_advance, godot_main_timer_sync_fixed_fps } from './main-timer-sync';
 import { godot_message_queue_flush } from './object';
+import { get_setting } from './project-settings';
 import { godot_timer_advance, godot_timer_create, type SceneTreeTimer } from './scene-tree-timer';
 import { createSignal, type GodotSignal } from './signal';
 
@@ -79,6 +81,16 @@ export function godot_tree_set_root(root: object): void {
   clock.root = root;
   (root as { name: string }).name = 'root';
   godot_node_enter_root(root);
+}
+
+/**
+ * The registered root entity, or undefined before the host registers one.
+ *
+ * @godot SceneTree (protocol)
+ * @source scene/main/scene_tree.cpp:357
+ */
+export function godot_tree_root(): object | undefined {
+  return clock.root;
 }
 
 /**
@@ -235,7 +247,38 @@ export function godot_tree_frame(delta: number): void {
   flushDeleteQueue();
   godot_message_queue_flush();
   clock.processFrames += 1;
+  // Input reads the Engine counters between iterations too: events the page delivers before the
+  // next iteration stamp this frame's count (`Engine::_process_frames`, `main/main.cpp:5115`).
+  godot_input_frame(clock.physicsFrames, clock.processFrames, false);
   clock.iterationOpen = false;
+}
+
+/**
+ * One `Main::iteration` at the wall clock `p_ticks_usec` (`main/main.cpp:4917`): `MainTimerSync`
+ * turns the time since the last iteration into a process step and a count of physics steps at
+ * `physics/common/physics_ticks_per_second` (default 60), at most
+ * `physics/common/max_physics_steps_per_frame` (default 8) of them unless `--fixed-fps` is set,
+ * the process step shortened by the steps dropped; then each physics step, then the process
+ * frame. The host calls it once per rendered frame.
+ *
+ * @godot SceneTree (protocol)
+ * @source main/main.cpp:4917
+ */
+export function godot_main_iteration(p_ticks_usec: number): void {
+  // `Engine::set_physics_ticks_per_second` and friends at `Main::setup2` (`main/main.cpp:2247`).
+  const ticksPerSecond = Math.max(1, Math.trunc(Number(get_setting('physics/common/physics_ticks_per_second', 60))));
+  const maxSteps = Math.trunc(Number(get_setting('physics/common/max_physics_steps_per_frame', 8)));
+  const jitterFix = Math.max(0, Number(get_setting('physics/common/physics_jitter_fix', 0.5)));
+  const physicsStep = 1.0 / ticksPerSecond;
+  const advance = godot_main_timer_sync_advance(p_ticks_usec, physicsStep, ticksPerSecond, jitterFix);
+  let processStep = advance.process_step;
+  let steps = advance.physics_steps;
+  if (godot_main_timer_sync_fixed_fps() === -1 && steps > maxSteps) {
+    processStep -= (steps - maxSteps) * physicsStep;
+    steps = maxSteps;
+  }
+  for (let step = 0; step < steps; step += 1) godot_tree_physics_step(physicsStep);
+  godot_tree_frame(processStep);
 }
 
 /**

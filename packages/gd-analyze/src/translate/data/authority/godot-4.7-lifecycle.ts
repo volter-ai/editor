@@ -11,8 +11,10 @@ import {
 import {
   type GodotLifecycleClaimLiveness,
   type GodotLifecycleRule,
+  type GodotMainLoopRule,
   type GodotProjectStartupRule,
   godotLifecycleRuleKey,
+  godotMainLoopRuleKey,
   godotProjectStartupRuleKey,
 } from '../lifecycle-authority';
 
@@ -45,7 +47,49 @@ export const GODOT_4_7_PROJECT_STARTUP_RULES: readonly GodotProjectStartupRule[]
   },
 ];
 
+const PROJECT_WORLD_IDENTITIES = godotProofIdentities('project-world');
+
+export const GODOT_4_7_MAIN_LOOP_RULES: readonly GodotMainLoopRule[] = [
+  {
+    sourceRevision: GODOT_4_7_CODE_SEED_SOURCE_REVISION,
+    targetOperation: 'compat-godot-main',
+    evidenceClaimId: 'godot-4.7-project-main-loop',
+  },
+];
+
 const reproductionCommand = GODOT_4_7_PROOF_REPRODUCTION_COMMAND;
+
+const mainLoopClaims: readonly SemanticClaimRecord[] = GODOT_4_7_MAIN_LOOP_RULES.map((rule) => ({
+  registryVersion: 1,
+  claimId: rule.evidenceClaimId,
+  layer: 'compat',
+  canonicalIdentity: godotMainLoopRuleKey(rule.sourceRevision),
+  godot: {
+    sourceRevision: GODOT_4_7_CODE_SEED_SOURCE_REVISION,
+    apiDumpSha256: GODOT_4_7_CODE_SEED_API_DUMP_SHA256,
+    sourceFile: 'main/main.cpp',
+    sourceSymbol: 'Main::iteration (with Main::start and OS_Web::main_loop_iterate)',
+    sourceLine: 4917,
+  },
+  native: {
+    executableSha256: GODOT_4_7_CODE_SEED_NATIVE_EXECUTABLE_SHA256,
+    buildIdentity: 'Godot 4.7-stable official 5b4e0cb0f',
+    inputSha256: PROJECT_WORLD_IDENTITIES.input,
+    callsite: 'res://observe.gd _physics_process() (--fixed-fps 60)',
+    observedOutputSha256: PROJECT_WORLD_IDENTITIES.observed,
+  },
+  target: {
+    implementationSha256: PROJECT_WORLD_IDENTITIES.implementation,
+    callsite: 'emitted src/world.tsx <GodotMain> driven by @react-three/fiber advance()',
+    observedOutputSha256: PROJECT_WORLD_IDENTITIES.observed,
+  },
+  comparison: {
+    comparator: 'callback log, action state, Label rect and camera exact; body positions within Rapier geometry (0.05)',
+    tolerance: 'rapier-geometry 0.05 on body origins; exact elsewhere',
+    resultSha256: PROJECT_WORLD_IDENTITIES.comparison,
+  },
+  reproductionCommand,
+}));
 
 const hierarchyClaims: readonly SemanticClaimRecord[] = GODOT_4_7_LIFECYCLE_RULES.map((rule) => ({
   registryVersion: 1,
@@ -116,6 +160,7 @@ const startupClaims: readonly SemanticClaimRecord[] = GODOT_4_7_PROJECT_STARTUP_
 export const GODOT_4_7_LIFECYCLE_CLAIMS: readonly SemanticClaimRecord[] = [
   ...hierarchyClaims,
   ...startupClaims,
+  ...mainLoopClaims,
 ];
 
 export const GODOT_4_7_LIFECYCLE_LIVENESS: readonly GodotLifecycleClaimLiveness[] =
@@ -125,11 +170,15 @@ export const GODOT_4_7_LIFECYCLE_LIVENESS: readonly GodotLifecycleClaimLiveness[
     apiDumpSha256: GODOT_4_7_CODE_SEED_API_DUMP_SHA256,
     executableSha256: GODOT_4_7_CODE_SEED_NATIVE_EXECUTABLE_SHA256,
     inputSha256:
-      claim.claimId === 'godot-4.7-project-autoload-startup'
-        ? GODOT_4_7_PROJECT_STARTUP_INPUT_SHA256
-        : GODOT_4_7_LIFECYCLE_INPUT_SHA256,
+      claim.claimId === 'godot-4.7-project-main-loop'
+        ? PROJECT_WORLD_IDENTITIES.input
+        : claim.claimId === 'godot-4.7-project-autoload-startup'
+          ? GODOT_4_7_PROJECT_STARTUP_INPUT_SHA256
+          : GODOT_4_7_LIFECYCLE_INPUT_SHA256,
     implementationSha256:
-      claim.claimId === 'godot-4.7-project-autoload-startup'
-        ? GODOT_4_7_PROJECT_STARTUP_IMPLEMENTATION_SHA256
-        : GODOT_4_7_LIFECYCLE_IMPLEMENTATION_SHA256,
+      claim.claimId === 'godot-4.7-project-main-loop'
+        ? PROJECT_WORLD_IDENTITIES.implementation
+        : claim.claimId === 'godot-4.7-project-autoload-startup'
+          ? GODOT_4_7_PROJECT_STARTUP_IMPLEMENTATION_SHA256
+          : GODOT_4_7_LIFECYCLE_IMPLEMENTATION_SHA256,
   }));

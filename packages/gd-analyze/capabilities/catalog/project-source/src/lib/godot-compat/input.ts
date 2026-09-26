@@ -333,6 +333,24 @@ function parseActions(event: InputEventRecord): void {
   }
 }
 
+/**
+ * `OS::prefer_meta_over_ctrl` on the web (`core/os/os.cpp:59`): the `web_macos` or `web_ios`
+ * feature, read from the page's user agent (`library_godot_os.js:307`).
+ */
+function preferMetaOverCtrl(): boolean {
+  const agent = (globalThis as { readonly navigator?: { readonly userAgent?: string } }).navigator?.userAgent ?? '';
+  return ['Mac', 'iPhone', 'iPad', 'iPod'].some((name) => agent.includes(name));
+}
+
+/** The event as it was built: its Command-or-Control autoremap resolved (`input_event.cpp:160`). */
+function autoremapped(event: InputEventRecord): InputEventRecord {
+  if ((event.type === 'key' || event.type === 'mouse_button' || event.type === 'mouse_motion') && event.command_or_control_autoremap === true) {
+    const meta = preferMetaOverCtrl();
+    return { ...event, ctrl_pressed: !meta, meta_pressed: meta };
+  }
+  return event;
+}
+
 /** `InputMap::action_add_event`'s device normalization (`core/input/input_map.cpp:211`). */
 function normalizedDevice(event: InputEventRecord): InputEventRecord {
   if (deviceOf(event) !== 0) return event;
@@ -355,7 +373,8 @@ export function godot_input_map_load(actions: readonly GodotInputMapAction[]): v
   for (const entry of actions) {
     const action: Action = { deadzone: f32(entry.deadzone ?? DEFAULT_DEADZONE), inputs: [] };
     inputMap.set(entry.name, action);
-    for (const event of entry.events) {
+    for (const authored of entry.events) {
+      const event = autoremapped(authored);
       const present = action.inputs.some((mapped) => {
         const device = deviceOf(mapped);
         return (device === ALL_DEVICES || device === deviceOf(event)) && actionMatch(mapped, event, true, action.deadzone) !== undefined;

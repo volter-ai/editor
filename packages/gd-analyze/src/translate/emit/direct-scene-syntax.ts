@@ -428,6 +428,7 @@ const THREE_CLASS: Partial<Record<DirectGodotSceneNodePlan['targetKind'], string
   'three-mesh': 'Mesh',
   'three-directional-light': 'DirectionalLight',
   'three-point-light': 'PointLight',
+  'three-perspective-camera': 'PerspectiveCamera',
 };
 
 function nativeEntity(entity: TargetTsExpression, kind: DirectGodotSceneNodePlan['targetKind']): TargetTsExpression {

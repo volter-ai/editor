@@ -332,7 +332,7 @@ export function measureLifecycleProof(tools: GodotProofTools): readonly GodotPro
     }
     if (
       JSON.stringify(translation.plan.projectData.evidence.projectStartupClaimIds) !==
-      JSON.stringify(['godot-4.7-project-autoload-startup'])
+      JSON.stringify(['godot-4.7-project-autoload-startup', 'godot-4.7-project-main-loop'])
     ) {
       throw new Error('direct project startup did not retain its live autoload evidence');
     }

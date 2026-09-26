@@ -243,6 +243,7 @@ export const GODOT_4_7_STRUCTURE_NODE_RULES: readonly (GodotSceneNodeRule & { re
     sourceRevision: REVISION,
     nativeCanonicalIdentity: identityOf('Camera3D'),
     targetKind: 'three-perspective-camera',
+    mount: { module: 'lib/godot-compat/camera-3d', exportName: 'godot_camera_3d_mount' },
     evidenceClaimId: 'godot-4.7-scene-node-camera3d',
     source: { file: 'scene/3d/camera_3d.cpp', symbol: 'Camera3D::Camera3D', line: 871 },
   },

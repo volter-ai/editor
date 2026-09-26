@@ -22,6 +22,8 @@ interface Modifiers {
   readonly alt_pressed?: boolean;
   readonly ctrl_pressed?: boolean;
   readonly meta_pressed?: boolean;
+  /** Command on Apple platforms, Control elsewhere (`set_command_or_control_autoremap`). */
+  readonly command_or_control_autoremap?: boolean;
 }
 
 export type InputEventRecord =

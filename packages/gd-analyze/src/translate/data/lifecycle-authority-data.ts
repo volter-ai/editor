@@ -11,6 +11,7 @@ import {
   GODOT_4_7_LIFECYCLE_CLAIMS,
   GODOT_4_7_LIFECYCLE_LIVENESS,
   GODOT_4_7_LIFECYCLE_RULES,
+  GODOT_4_7_MAIN_LOOP_RULES,
   GODOT_4_7_PROJECT_STARTUP_RULES,
 } from './authority/godot-4.7-lifecycle';
 import {
@@ -39,6 +40,37 @@ export const GODOT_PROJECT_STARTUP_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/react-lifecycle.tsx',
 ] as const;
 
+const COMPAT = 'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat';
+
+/** What the project-world proof runs: the composition, its emitters and the compat `Main` drives. */
+export const GODOT_PROJECT_WORLD_IMPLEMENTATION_FILES = [
+  'packages/gd-analyze/src/translate/data/direct-project-composition-plan.ts',
+  'packages/gd-analyze/src/translate/data/input-map-plan.ts',
+  'packages/gd-analyze/src/translate/emit/direct-project-world-syntax.ts',
+  'packages/gd-analyze/src/translate/emit/direct-scene-syntax.ts',
+  ...[
+    'main.tsx',
+    'main-timer-sync.ts',
+    'scene-tree.ts',
+    'node.ts',
+    'react-lifecycle.tsx',
+    'window.ts',
+    'viewport.ts',
+    'input.ts',
+    'input-event.ts',
+    'camera-3d.ts',
+    'canvas-item.ts',
+    'control.ts',
+    'label.ts',
+    'font.ts',
+    'world-3d.ts',
+    'collision-object-3d.ts',
+    'rigid-body-3d.ts',
+    'static-body-3d.ts',
+    'project-settings.ts',
+  ].map((file) => `${COMPAT}/${file}`),
+] as const;
+
 /** Checked-in exact-pin lifecycle authority for generated native scene composition. */
 export function godotLifecycleAuthority(source: GodotSourceAuthority): GodotLifecycleAuthority {
   const supported =
@@ -50,14 +82,17 @@ export function godotLifecycleAuthority(source: GodotSourceAuthority): GodotLife
     apiDumpSha256: source.apiDumpSha256,
     rules: supported ? GODOT_4_7_LIFECYCLE_RULES : [],
     projectStartupRules: supported ? GODOT_4_7_PROJECT_STARTUP_RULES : [],
+    mainLoopRules: supported ? GODOT_4_7_MAIN_LOOP_RULES : [],
     claims: supported ? GODOT_4_7_LIFECYCLE_CLAIMS : [],
     liveness: supported
       ? GODOT_4_7_LIFECYCLE_LIVENESS.flatMap((entry) =>
           withLiveImplementation(
             [entry],
-            entry.claimId === 'godot-4.7-project-autoload-startup'
-              ? monorepoImplementationDigest(GODOT_PROJECT_STARTUP_IMPLEMENTATION_FILES)
-              : monorepoImplementationDigest(GODOT_LIFECYCLE_IMPLEMENTATION_FILES),
+            entry.claimId === 'godot-4.7-project-main-loop'
+              ? monorepoImplementationDigest(GODOT_PROJECT_WORLD_IMPLEMENTATION_FILES)
+              : entry.claimId === 'godot-4.7-project-autoload-startup'
+                ? monorepoImplementationDigest(GODOT_PROJECT_STARTUP_IMPLEMENTATION_FILES)
+                : monorepoImplementationDigest(GODOT_LIFECYCLE_IMPLEMENTATION_FILES),
           ),
         )
       : [],

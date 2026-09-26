@@ -21,9 +21,11 @@ import {
 } from 'react';
 import {
   type GodotScriptLifecycleBinding,
+  godot_node_pending_children,
   mountGodotScriptForest,
   mountGodotScriptTree,
 } from './node';
+import { godot_tree_root } from './scene-tree';
 
 export interface GodotScriptTreeAttachment {
   readonly root: object;
@@ -95,8 +97,16 @@ export function GodotProjectStartup({
       (left, right) => left.sequence - right.sequence,
     );
     prepareOnMount.current?.();
+    // Every scene mounted under the tree root enters, scripted or not (`Main::start` adds the
+    // autoloads, then the main scene, to the root); a registered root outside them enters too.
+    const treeRoot = godot_tree_root();
+    const pending = treeRoot === undefined ? [] : godot_node_pending_children(treeRoot);
+    const roots = [
+      ...pending,
+      ...outermostRoots(mounted).filter((root) => !pending.some((scene) => contains(scene, root))),
+    ];
     const releaseLifecycle = mountGodotScriptForest(
-      outermostRoots(mounted),
+      roots,
       mounted.flatMap((registration) => registration.bindings),
     );
     return () => {

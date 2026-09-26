@@ -1,3 +1,4 @@
+import type { BoundGodotLifecyclePhase } from '../../analyze/bound-project';
 import type { TargetTsExpression, TargetTsStatement, TargetTsType } from '../code/target-ts-syntax';
 import type { DirectGodotScriptInstancePlan } from '../data/direct-project-composition-plan';
 
@@ -148,14 +149,15 @@ function bindingInitialization(
   ];
 }
 
-function lifecycleCallback(instance: string, method: string): TargetTsExpression {
+/** `argument`: the callback's one parameter (a frame's delta, an input event), passed through. */
+function lifecycleCallback(instance: string, method: string, argument?: string): TargetTsExpression {
   return {
     kind: 'arrow-expression',
-    parameters: [],
+    parameters: argument === undefined ? [] : [{ name: argument }],
     body: {
       kind: 'call-expression',
       callee: property(instance, method),
-      arguments: [],
+      arguments: argument === undefined ? [] : [{ kind: 'identifier-expression', name: argument }],
     },
   };
 }
@@ -163,20 +165,27 @@ function lifecycleCallback(instance: string, method: string): TargetTsExpression
 function lifecycleBinding(binding: DirectGodotSceneScriptBinding): TargetTsExpression {
   const suffix = String(binding.index);
   const instance = `$instance_${suffix}`;
-  const method = (phase: 'enter-tree' | 'ready' | 'exit-tree'): string | undefined =>
+  const method = (phase: BoundGodotLifecyclePhase): string | undefined =>
     binding.instance.lifecycle.find((entry) => entry.phase === phase)?.methodName;
+  // Each phase's binding key and its callback's parameter (`node.ts` GodotScriptLifecycleBinding).
   const callbacks = [
-    ['enterTree', method('enter-tree')],
-    ['ready', method('ready')],
-    ['exitTree', method('exit-tree')],
+    ['enterTree', method('enter-tree'), undefined],
+    ['ready', method('ready'), undefined],
+    ['exitTree', method('exit-tree'), undefined],
+    ['process', method('process'), 'delta'],
+    ['physicsProcess', method('physics-process'), 'delta'],
+    ['input', method('input'), 'event'],
+    ['shortcutInput', method('shortcut-input'), 'event'],
+    ['unhandledInput', method('unhandled-input'), 'event'],
+    ['unhandledKeyInput', method('unhandled-key-input'), 'event'],
   ] as const;
   return {
     kind: 'object-expression',
     properties: [
       { key: 'native', value: { kind: 'identifier-expression', name: `$native_${suffix}` } },
       { key: 'owner', value: { kind: 'identifier-expression', name: instance } },
-      ...callbacks.flatMap(([key, methodName]) =>
-        methodName === undefined ? [] : [{ key, value: lifecycleCallback(instance, methodName) }],
+      ...callbacks.flatMap(([key, methodName, argument]) =>
+        methodName === undefined ? [] : [{ key, value: lifecycleCallback(instance, methodName, argument) }],
       ),
     ],
   };

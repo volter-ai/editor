@@ -342,8 +342,16 @@ const shape = (s) => {
 };
 extend(THREE);
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+// The world module's <GodotMain> loads the capability's font file (read here from the emitted
+// project) and listens to the canvas's page, which this stub stands in for.
+globalThis.fetch = async (url) => {
+  const bytes = (await import('node:fs')).readFileSync(new URL(String(url)));
+  return { arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) };
+};
+const page = { addEventListener() {}, removeEventListener() {} };
 const canvas = {
-  width: 640, height: 480, style: {}, clientWidth: 640, clientHeight: 480,
+  width: 640, height: 480, style: {}, clientWidth: 640, clientHeight: 480, tabIndex: 0,
+  ownerDocument: { defaultView: page }, focus() {},
   addEventListener() {}, removeEventListener() {}, getContext() { return null; },
   getBoundingClientRect() { return { width: 640, height: 480, top: 0, left: 0 }; },
 };
@@ -357,7 +365,10 @@ const root = createRoot(canvas);
 await root.configure({ gl, size: { width: 640, height: 480, top: 0, left: 0 }, frameloop: 'never' });
 const holder = { current: null };
 await act(async () => { root.render(createElement('group', { ref: holder }, createElement(World))); });
-ST.godot_tree_set_root(holder.current.parent);
+// <GodotMain> mounts the scene once Rapier and the font are loaded, and makes R3F's scene the root.
+for (let wait = 0; wait < 500 && holder.current.children.length === 0; wait += 1) {
+  await act(async () => { await new Promise((resolve) => setTimeout(resolve, 10)); });
+}
 ST.godot_tree_physics_step(1 / 60);
 ST.godot_tree_frame(1 / 60);
 ST.godot_tree_physics_step(1 / 60);

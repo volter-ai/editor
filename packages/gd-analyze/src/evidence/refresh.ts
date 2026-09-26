@@ -21,6 +21,7 @@ import { measureLanguageProof } from './proofs/language';
 import { measureLifecycleProof } from './proofs/lifecycle';
 import type { GodotProofMeasurement, GodotProofTools } from './proofs/proof';
 import { measureProjectSettingProof } from './proofs/project-settings';
+import { measureProjectWorldProof } from './proofs/project-world';
 import { measureReadProof } from './proofs/read';
 import { measureReceiverProof } from './proofs/receivers';
 import { measureSceneNodeProof } from './proofs/scene-nodes';
@@ -56,6 +57,7 @@ const PROOFS: readonly (readonly [
   ['code-seed', measureCodeSeedProof],
   ['language', measureLanguageProof],
   ['autoload-reference', measureAutoloadReferenceProof],
+  ['project-world', measureProjectWorldProof],
   ['lifecycle', measureLifecycleProof],
 ];
 

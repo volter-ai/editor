@@ -34,22 +34,15 @@ export type DirectGodotSceneModuleResult =
       readonly diagnostics: readonly DirectGodotSceneModuleDiagnostic[];
     };
 
+/** The lifecycle phases `node.ts`'s binding mounts at tree entry, readiness and exit. */
+const TREE_PHASES = new Set(['enter-tree', 'ready', 'exit-tree']);
+
 function nodeDiagnostics(
   project: DirectGodotProjectCompositionPlan,
   sourceResPath: string,
   node: DirectGodotSceneNodePlan,
 ): readonly DirectGodotSceneModuleDiagnostic[] {
   return [
-    ...(node.scriptInstance?.lifecycle.flatMap((entry) =>
-      entry.phase === 'enter-tree' || entry.phase === 'ready' || entry.phase === 'exit-tree'
-        ? []
-        : [
-            {
-              at: `${sourceResPath}#${node.nodePath}`,
-              message: `${node.scriptInstance!.scriptResPath} ${entry.phase} lifecycle mounting is not planned`,
-            },
-          ],
-    ) ?? []),
     ...(node.scriptInstance?.autoloadReferences.flatMap((reference) =>
       project.scriptAutoloads.some(
         (autoload) =>
@@ -71,12 +64,16 @@ function nodeDiagnostics(
 
 function hasMountedLifecycle(node: DirectGodotSceneNodePlan): boolean {
   return (
-    (node.scriptInstance?.lifecycle.some(
-      (entry) =>
-        entry.phase === 'enter-tree' || entry.phase === 'ready' || entry.phase === 'exit-tree',
-    ) ??
-      false) ||
+    (node.scriptInstance?.lifecycle.some((entry) => TREE_PHASES.has(entry.phase)) ?? false) ||
     node.children.some(hasMountedLifecycle)
+  );
+}
+
+/** Whether a script processes frames or input: callbacks `Main`'s loop drives (`compat/main.tsx`). */
+function hasLoopLifecycle(node: DirectGodotSceneNodePlan): boolean {
+  return (
+    (node.scriptInstance?.lifecycle.some((entry) => !TREE_PHASES.has(entry.phase)) ?? false) ||
+    node.children.some(hasLoopLifecycle)
   );
 }
 
@@ -105,6 +102,11 @@ export function planDirectGodotSceneModules(
       message: 'enter-tree/ready/exit-tree native hierarchy mounting has no live evidence rule',
     });
   }
+  const hasLoop = project.scenes.some((scene) => hasLoopLifecycle(scene.root));
+  const loopRule = hasLoop ? resolver.mainLoopRule() : undefined;
+  if (hasLoop && loopRule === undefined) {
+    diagnostics.push({ at: 'scene-lifecycle', message: "process and input callbacks have no live Main-loop evidence rule" });
+  }
   if (diagnostics.length > 0) return { kind: 'refused-scene-modules', diagnostics };
   return {
     kind: 'accepted-scene-modules',
@@ -115,7 +117,10 @@ export function planDirectGodotSceneModules(
         sourceDigest: scene.sourceDigest,
         targetPath: scene.targetPath,
       })),
-      evidenceClaimIds: lifecycleRule === undefined ? [] : [lifecycleRule.evidenceClaimId],
+      evidenceClaimIds: [
+        ...(lifecycleRule === undefined ? [] : [lifecycleRule.evidenceClaimId]),
+        ...(loopRule === undefined ? [] : [loopRule.evidenceClaimId]),
+      ],
       semanticClaimRegistryDigest: resolver.registryDigest,
     },
   };

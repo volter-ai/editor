@@ -14,13 +14,22 @@
  * starts from its native `fov` (as `KEEP_HEIGHT`), `near` and `far`; the scene mounts a Camera3D
  * with Godot's values (defaults 75, 0.05, 4000, `scene/3d/camera_3d.h:68`).
  *
- * The camera's viewport is its topmost three ancestor, whose size `sub-viewport.ts` holds.
- * Orthogonal and frustum projections are not transcribed.
+ * The camera's viewport is its topmost three ancestor: the root window (whose size `window.ts`
+ * holds) or a SubViewport (`sub-viewport.ts`). Orthogonal and frustum projections are not
+ * transcribed.
+ *
+ * Which camera a viewport draws with is Godot's: a mounted camera registers with its viewport (the
+ * nearest three `Scene` above it) when it enters the tree and becomes the viewport's camera when it
+ * is `current` or the viewport's first (`NOTIFICATION_ENTER_WORLD`, `camera_3d.cpp:195`), and hands
+ * over on leaving; the viewport's set of cameras keeps Godot's `HashSet` order, an erased camera's
+ * slot taken by the last one (`core/templates/hash_set.h:263`).
  */
 
 import type { Object3D, PerspectiveCamera } from 'three';
+import { godot_node_adopt, godot_node_tree_signal, is_inside_tree } from './node';
 import { get_global_transform } from './node-3d';
 import { get_size } from './sub-viewport';
+import { get_size as windowSize, godot_window_has_size } from './window';
 import {
   construct as vector3,
   dot,
@@ -41,6 +50,33 @@ const KEEP_HEIGHT = 1;
 interface CameraState {
   fov: number;
   keepAspect: number;
+  current: boolean;
+  /** The viewport the camera registered with on entering the tree. */
+  viewport: Object3D | null;
+}
+
+interface ViewportCameras {
+  readonly set: PerspectiveCamera[];
+  camera: PerspectiveCamera | null;
+}
+
+const VIEWPORTS = new WeakMap<Object3D, ViewportCameras>();
+
+function camerasOf(viewport: Object3D): ViewportCameras {
+  let cameras = VIEWPORTS.get(viewport);
+  if (cameras === undefined) {
+    cameras = { set: [], camera: null };
+    VIEWPORTS.set(viewport, cameras);
+  }
+  return cameras;
+}
+
+/** The nearest three `Scene` above the camera: its viewport (`Node::get_viewport`). */
+function nearestViewport(camera: Object3D): Object3D | null {
+  for (let node = camera.parent; node !== null; node = node.parent) {
+    if ((node as { readonly isScene?: boolean }).isScene === true) return node;
+  }
+  return null;
 }
 
 const CAMERA = new WeakMap<PerspectiveCamera, CameraState>();
@@ -48,7 +84,7 @@ const CAMERA = new WeakMap<PerspectiveCamera, CameraState>();
 function stateOf(camera: PerspectiveCamera): CameraState {
   let state = CAMERA.get(camera);
   if (state === undefined) {
-    state = { fov: f32(camera.fov), keepAspect: KEEP_HEIGHT };
+    state = { fov: f32(camera.fov), keepAspect: KEEP_HEIGHT, current: false, viewport: null };
     camera.near = f32(camera.near);
     camera.far = f32(camera.far);
     CAMERA.set(camera, state);
@@ -64,7 +100,8 @@ function viewportOf(camera: Object3D): Object3D {
 
 /** `get_camera_rect_size()`: the viewport's `Size2i` as a `Vector2` (`scene/main/viewport.cpp:3711`). */
 function viewportSize(camera: PerspectiveCamera): readonly [number, number] {
-  const size = get_size(viewportOf(camera));
+  const viewport = viewportOf(camera);
+  const size = godot_window_has_size(viewport) ? windowSize(viewport) : get_size(viewport);
   return [f32(size.x), f32(size.y)];
 }
 
@@ -260,4 +297,135 @@ export function project_ray_origin(self: PerspectiveCamera, p_pos: Vector2): Vec
   const [, height] = viewportSize(self);
   if (height === 0) return vector3();
   return cameraTransform(self).origin;
+}
+
+/** `Viewport::_camera_3d_set` (`scene/main/viewport.cpp:4750`). */
+function cameraSet(viewport: Object3D, camera: PerspectiveCamera | null): void {
+  camerasOf(viewport).camera = camera;
+}
+
+/** `Viewport::_camera_3d_make_next_current` (`scene/main/viewport.cpp:4794`). */
+function makeNextCurrent(viewport: Object3D, exclude: PerspectiveCamera): void {
+  const cameras = camerasOf(viewport);
+  for (const camera of [...cameras.set]) {
+    if (camera === exclude || !is_inside_tree(camera)) continue;
+    if (cameras.camera !== null) return;
+    make_current(camera);
+  }
+}
+
+/** `NOTIFICATION_ENTER_WORLD` (`scene/3d/camera_3d.cpp:195`) with `Viewport::_camera_3d_add` (`:4782`). */
+function enterWorld(camera: PerspectiveCamera): void {
+  const state = stateOf(camera);
+  const viewport = nearestViewport(camera);
+  state.viewport = viewport;
+  if (viewport === null) return;
+  const cameras = camerasOf(viewport);
+  if (!cameras.set.includes(camera)) cameras.set.push(camera);
+  if (state.current || cameras.set.length === 1) cameraSet(viewport, camera);
+}
+
+/** `NOTIFICATION_EXIT_WORLD` (`scene/3d/camera_3d.cpp:228`) with `Viewport::_camera_3d_remove` (`:4787`). */
+function exitWorld(camera: PerspectiveCamera): void {
+  const state = stateOf(camera);
+  if (is_current(camera)) {
+    clear_current(camera);
+    state.current = true;
+  } else {
+    state.current = false;
+  }
+  const viewport = state.viewport;
+  if (viewport === null) return;
+  const cameras = camerasOf(viewport);
+  const index = cameras.set.indexOf(camera);
+  if (index >= 0) {
+    const last = cameras.set.pop() as PerspectiveCamera;
+    if (index < cameras.set.length) cameras.set[index] = last;
+  }
+  if (cameras.camera === camera) cameraSet(viewport, null);
+  state.viewport = null;
+}
+
+/**
+ * Makes `entity` a Camera3D of the tree: its class recorded and its viewport registration run as
+ * it enters and leaves the tree.
+ *
+ * @godot Camera3D (protocol)
+ * @source scene/3d/camera_3d.cpp:195
+ */
+export function godot_camera_3d_mount(entity: PerspectiveCamera): void {
+  stateOf(entity);
+  godot_node_adopt(entity, { classes: ['Camera3D', 'Node3D', 'Node'] });
+  godot_node_tree_signal(entity, 'tree_entered').connect(() => enterWorld(entity));
+  godot_node_tree_signal(entity, 'tree_exiting').connect(() => exitWorld(entity));
+}
+
+/**
+ * @godot Camera3D.make_current
+ * @source scene/3d/camera_3d.cpp:365
+ */
+export function make_current(self: PerspectiveCamera): void {
+  const state = stateOf(self);
+  state.current = true;
+  if (!is_inside_tree(self) || state.viewport === null) return;
+  cameraSet(state.viewport, self);
+}
+
+/**
+ * @godot Camera3D.clear_current
+ * @source scene/3d/camera_3d.cpp:375
+ */
+export function clear_current(self: PerspectiveCamera, p_enable_next = true): void {
+  const state = stateOf(self);
+  state.current = false;
+  if (!is_inside_tree(self) || state.viewport === null) return;
+  if (camerasOf(state.viewport).camera === self) {
+    cameraSet(state.viewport, null);
+    if (p_enable_next) makeNextCurrent(state.viewport, self);
+  }
+}
+
+/**
+ * @godot Camera3D.set_current
+ * @source scene/3d/camera_3d.cpp:390
+ */
+export function set_current(self: PerspectiveCamera, p_enabled: boolean): void {
+  if (p_enabled) make_current(self);
+  else clear_current(self);
+}
+
+/**
+ * Inside the tree, whether the viewport draws with this camera; outside it, the stored flag.
+ *
+ * @godot Camera3D.is_current
+ * @source scene/3d/camera_3d.cpp:398
+ */
+export function is_current(self: PerspectiveCamera): boolean {
+  const state = stateOf(self);
+  if (is_inside_tree(self) && state.viewport !== null) return camerasOf(state.viewport).camera === self;
+  return state.current;
+}
+
+/**
+ * The camera `viewport` draws with, or null (`Viewport::get_camera_3d`, `viewport.cpp:4742`).
+ *
+ * @godot Camera3D (protocol)
+ * @source scene/main/viewport.cpp:4742
+ */
+export function godot_camera_3d_of_viewport(viewport: Object3D): PerspectiveCamera | null {
+  return VIEWPORTS.get(viewport)?.camera ?? null;
+}
+
+/**
+ * The camera `viewport` draws with this frame, its three projection written from its Godot lens
+ * and the viewport's size (the renderer computes the projection when it draws the viewport,
+ * `servers/rendering/renderer_viewport.cpp`); null when the viewport has none.
+ *
+ * @godot Camera3D (protocol)
+ * @source scene/3d/camera_3d.cpp:281
+ */
+export function godot_camera_3d_draw(viewport: Object3D): PerspectiveCamera | null {
+  const camera = godot_camera_3d_of_viewport(viewport);
+  if (camera !== null) writeProjection(camera, stateOf(camera));
+  return camera;
 }

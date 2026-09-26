@@ -318,6 +318,21 @@ export function godot_node_enter_root(root: object): void {
 }
 
 /**
+ * The nodes mounted under `parent` that have not entered the tree, in child order: the scenes
+ * `Main::start` adds to the root (autoloads, then the main scene, `main/main.cpp:4495`, `:4764`).
+ * A child counts once the Node protocol has recorded its class.
+ *
+ * @godot Node (protocol)
+ * @source main/main.cpp:4764
+ */
+export function godot_node_pending_children(parent: object): readonly object[] {
+  return childEntities(parent).filter((child) => {
+    const state = NODE.get(child);
+    return state !== undefined && state.classes !== undefined && !state.insideTree;
+  });
+}
+
+/**
  * The entity's script binding, and whether it is inside the tree: SceneTree's processing reads them.
  *
  * @godot Node (protocol)

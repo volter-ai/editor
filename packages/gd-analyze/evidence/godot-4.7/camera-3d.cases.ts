@@ -1,4 +1,7 @@
+import { Group, PerspectiveCamera, Scene } from 'three';
 import * as C from '../../capabilities/catalog/project-source/src/lib/godot-compat/camera-3d';
+import * as NODE from '../../capabilities/catalog/project-source/src/lib/godot-compat/node';
+import * as ST from '../../capabilities/catalog/project-source/src/lib/godot-compat/scene-tree';
 import * as N from '../../capabilities/catalog/project-source/src/lib/godot-compat/node-3d';
 import * as SV from '../../capabilities/catalog/project-source/src/lib/godot-compat/sub-viewport';
 import type { GodotEvidenceCase, GodotEvidenceCaseFile } from '../../src/evidence/case';
@@ -59,6 +62,76 @@ for (const [w, h] of SIZES) {
     }
   }
 }
+
+/**
+ * Which camera a viewport draws with: cameras `a`, `b`, `c` built outside the tree, then added to
+ * or removed from one SubViewport and made or cleared current; the case returns each camera's
+ * `is_current()`.
+ */
+type CurrentOp = readonly ['add' | 'remove' | 'make' | 'clear' | 'clear-only' | 'on' | 'off', 'a' | 'b' | 'c'];
+
+function currentCase(id: string, member: string, ops: readonly CurrentOp[]): void {
+  const lines = ['var vp := SubViewport.new()', 'holder.add_child(vp)', 'var a := Camera3D.new()', 'var b := Camera3D.new()', 'var c := Camera3D.new()'];
+  for (const [op, cam] of ops) {
+    lines.push(
+      {
+        add: `vp.add_child(${cam})`,
+        remove: `vp.remove_child(${cam})`,
+        make: `${cam}.make_current()`,
+        clear: `${cam}.clear_current()`,
+        'clear-only': `${cam}.clear_current(false)`,
+        on: `${cam}.current = true`,
+        off: `${cam}.current = false`,
+      }[op],
+    );
+  }
+  lines.push('var out := [a.is_current(), b.is_current(), c.is_current()]');
+  lines.push('for n in [a, b, c]:', '\tif not n.is_inside_tree():', '\t\tn.free()');
+  lines.push('return out');
+  const target = (): unknown => {
+    const root = new Scene();
+    ST.godot_tree_set_root(root);
+    const holder = new Group();
+    NODE.godot_node_adopt(holder, { kind: 'node' });
+    NODE.add_child(root, holder);
+    const vp = new Scene();
+    NODE.godot_node_adopt(vp, { kind: 'node', classes: ['SubViewport', 'Viewport', 'Node'] });
+    NODE.add_child(holder, vp);
+    const cams = { a: new PerspectiveCamera(75, 1, 0.05, 4000), b: new PerspectiveCamera(75, 1, 0.05, 4000), c: new PerspectiveCamera(75, 1, 0.05, 4000) };
+    for (const cam of Object.values(cams)) C.godot_camera_3d_mount(cam);
+    for (const [op, name] of ops) {
+      const cam = cams[name];
+      if (op === 'add') NODE.add_child(vp, cam);
+      else if (op === 'remove') NODE.remove_child(vp, cam);
+      else if (op === 'make') C.make_current(cam);
+      else if (op === 'clear') C.clear_current(cam);
+      else if (op === 'clear-only') C.clear_current(cam, false);
+      else C.set_current(cam, op === 'on');
+    }
+    return [C.is_current(cams.a), C.is_current(cams.b), C.is_current(cams.c)];
+  };
+  cases.push({ id, symbol: { kind: 'native-member', owner: 'Camera3D', member }, gdscript: lines.join('\n'), target, comparator: 'exact' });
+}
+
+const CURRENT: readonly (readonly [string, string, readonly CurrentOp[]])[] = [
+  ['outside', 'is_current', []],
+  ['first-added', 'is_current', [['add', 'a']]],
+  ['second-added', 'is_current', [['add', 'a'], ['add', 'b']]],
+  ['current-before-add', 'set_current', [['add', 'a'], ['on', 'b'], ['add', 'b']]],
+  ['made-inside', 'make_current', [['add', 'a'], ['add', 'b'], ['make', 'b']]],
+  ['made-outside', 'make_current', [['make', 'c']]],
+  ['cleared-next', 'clear_current', [['add', 'a'], ['add', 'b'], ['add', 'c'], ['clear', 'a']]],
+  ['cleared-no-next', 'clear_current', [['add', 'a'], ['add', 'b'], ['clear-only', 'a']]],
+  ['cleared-not-current', 'clear_current', [['add', 'a'], ['add', 'b'], ['clear', 'b']]],
+  ['off', 'set_current', [['add', 'a'], ['add', 'b'], ['off', 'a']]],
+  ['removed-current', 'is_current', [['add', 'a'], ['add', 'b'], ['remove', 'a']]],
+  ['removed-keeps-flag', 'is_current', [['add', 'a'], ['add', 'b'], ['remove', 'a'], ['add', 'a']]],
+  ['removed-other', 'is_current', [['add', 'a'], ['add', 'b'], ['add', 'c'], ['remove', 'b'], ['clear', 'a']]],
+  ['set-order', 'clear_current', [['add', 'a'], ['add', 'b'], ['add', 'c'], ['remove', 'a'], ['add', 'a'], ['clear', 'b']]],
+  ['swap-last', 'clear_current', [['add', 'a'], ['add', 'b'], ['add', 'c'], ['remove', 'a'], ['make', 'b'], ['add', 'a'], ['clear', 'b']]],
+  ['readd-outside-current', 'is_current', [['add', 'a'], ['make', 'b'], ['add', 'b'], ['remove', 'b'], ['add', 'c'], ['add', 'b']]],
+];
+for (const [name, member, ops] of CURRENT) currentCase(`current-${name}`, member, ops);
 
 const CAMERA3D_EVIDENCE: GodotEvidenceCaseFile = {
   kind: 'node',

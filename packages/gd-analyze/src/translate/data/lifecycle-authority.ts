@@ -4,7 +4,7 @@ import {
   SemanticClaimRegistry,
 } from '../../godot-frontend/semantic-claims';
 
-export const GODOT_LIFECYCLE_AUTHORITY_VERSION = 2 as const;
+export const GODOT_LIFECYCLE_AUTHORITY_VERSION = 3 as const;
 
 export type DirectGodotLifecyclePhase = 'enter-tree' | 'ready' | 'exit-tree';
 
@@ -22,6 +22,13 @@ export interface GodotProjectStartupRule {
   readonly evidenceClaimId: string;
 }
 
+/** `Main`'s loop around the project: the composition site's host duties (`compat/main.tsx`). */
+export interface GodotMainLoopRule {
+  readonly sourceRevision: string;
+  readonly targetOperation: 'compat-godot-main';
+  readonly evidenceClaimId: string;
+}
+
 export interface GodotLifecycleClaimLiveness extends SemanticClaimLiveness {
   readonly claimId: string;
 }
@@ -32,12 +39,17 @@ export interface GodotLifecycleAuthority {
   readonly apiDumpSha256: string;
   readonly rules: readonly GodotLifecycleRule[];
   readonly projectStartupRules: readonly GodotProjectStartupRule[];
+  readonly mainLoopRules: readonly GodotMainLoopRule[];
   readonly claims: readonly SemanticClaimRecord[];
   readonly liveness: readonly GodotLifecycleClaimLiveness[];
 }
 
 export function godotProjectStartupRuleKey(sourceRevision: string): string {
   return [sourceRevision, 'project-startup', 'autoloads-then-main'].join('\0');
+}
+
+export function godotMainLoopRuleKey(sourceRevision: string): string {
+  return [sourceRevision, 'main-loop'].join('\0');
 }
 
 export function godotLifecycleRuleKey(
@@ -53,6 +65,7 @@ export class GodotLifecycleAuthorityResolver {
   readonly sourceRevision: string;
   readonly #rules: ReadonlyMap<string, GodotLifecycleRule>;
   readonly #projectStartupRules: ReadonlyMap<string, GodotProjectStartupRule>;
+  readonly #mainLoopRules: ReadonlyMap<string, GodotMainLoopRule>;
   readonly #registry: SemanticClaimRegistry;
   readonly #liveness: ReadonlyMap<string, GodotLifecycleClaimLiveness>;
 
@@ -83,6 +96,12 @@ export class GodotLifecycleAuthorityResolver {
         );
       }
     }
+    for (const rule of authority.mainLoopRules) {
+      if (rule.sourceRevision !== authority.sourceRevision) {
+        throw new Error(`Godot main-loop rule has a different source: ${rule.evidenceClaimId}`);
+      }
+    }
+    this.#mainLoopRules = new Map(authority.mainLoopRules.map((rule) => [godotMainLoopRuleKey(rule.sourceRevision), rule]));
     this.#liveness = new Map(authority.liveness.map((entry) => [entry.claimId, entry]));
     this.#rules = new Map(
       authority.rules.map((rule) => [
@@ -99,7 +118,8 @@ export class GodotLifecycleAuthorityResolver {
     if (
       this.#liveness.size !== authority.liveness.length ||
       this.#rules.size !== authority.rules.length ||
-      this.#projectStartupRules.size !== authority.projectStartupRules.length
+      this.#projectStartupRules.size !== authority.projectStartupRules.length ||
+      this.#mainLoopRules.size !== authority.mainLoopRules.length
     ) {
       throw new Error('Godot lifecycle authority contains duplicate identities.');
     }
@@ -118,6 +138,22 @@ export class GodotLifecycleAuthorityResolver {
       throw new Error(
         `Godot project-startup claim does not prove its rule: ${rule.evidenceClaimId}`,
       );
+    }
+    return rule;
+  }
+
+  /** The live rule for `Main`'s loop around every translated project, or undefined. */
+  mainLoopRule(): GodotMainLoopRule | undefined {
+    const key = godotMainLoopRuleKey(this.sourceRevision);
+    const rule = this.#mainLoopRules.get(key);
+    if (rule === undefined) return undefined;
+    const liveness = this.#liveness.get(rule.evidenceClaimId);
+    if (liveness === undefined) {
+      throw new Error(`Godot main-loop claim has no liveness: ${rule.evidenceClaimId}`);
+    }
+    const claim = this.#registry.claim(rule.evidenceClaimId, liveness);
+    if (claim.layer !== 'compat' || claim.canonicalIdentity !== key) {
+      throw new Error(`Godot main-loop claim does not prove its rule: ${rule.evidenceClaimId}`);
     }
     return rule;
   }

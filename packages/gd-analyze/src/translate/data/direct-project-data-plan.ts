@@ -312,17 +312,6 @@ function projectDataDiagnostics(
       message: 'composition uses a different source snapshot',
     });
   }
-  for (const autoload of composition.scriptAutoloads) {
-    for (const entry of autoload.lifecycle) {
-      if (entry.phase === 'enter-tree' || entry.phase === 'ready' || entry.phase === 'exit-tree') {
-        continue;
-      }
-      diagnostics.push({
-        at: `project.godot#[autoload].${autoload.name}`,
-        message: `${autoload.scriptResPath} ${entry.phase} lifecycle mounting is not planned`,
-      });
-    }
-  }
   if (project.window === undefined) {
     diagnostics.push({
       at: 'project.godot#[display].window/size',
@@ -345,8 +334,11 @@ function projectStartupEvidence(
   if (composition.scriptAutoloads.length > 0 && startupRule === undefined) {
     throw new Error('autoload-before-main project startup has no live evidence rule');
   }
+  // Every project runs inside `Main`'s loop (`compat/main.tsx`).
+  const mainLoopRule = lifecycle.mainLoopRule();
+  if (mainLoopRule === undefined) throw new Error("Main's loop has no live evidence rule");
   return {
-    projectStartupClaimIds: startupRule === undefined ? [] : [startupRule.evidenceClaimId],
+    projectStartupClaimIds: [...(startupRule === undefined ? [] : [startupRule.evidenceClaimId]), mainLoopRule.evidenceClaimId],
     lifecycleRegistryDigest: lifecycle.registryDigest,
   };
 }

@@ -9,6 +9,7 @@ import type {
   OfficialBoundCodePlan,
   OfficialBoundScriptModulePlan,
 } from '../code/lower-official-bound';
+import { type DirectGodotInputActionPlan, planDirectGodotInputMap } from './input-map-plan';
 import type {
   GodotSceneDocumentPlan,
   TargetGodotSceneDocumentPlan,
@@ -20,7 +21,7 @@ import type {
   ScriptFieldValuePlan,
 } from './script-field-initialization-plan';
 
-export const DIRECT_GODOT_COMPOSITION_PLAN_VERSION = 3 as const;
+export const DIRECT_GODOT_COMPOSITION_PLAN_VERSION = 4 as const;
 
 export interface DirectGodotGeneratedClass {
   readonly modulePath: string;
@@ -95,6 +96,8 @@ export interface DirectGodotProjectCompositionPlan {
   readonly mainScene: string;
   /** The settings the world loads before any script runs. */
   readonly projectSettings: readonly DirectGodotProjectSettingPlan[];
+  /** The InputMap the world loads after the settings (`Main::setup`, `main/main.cpp:2102`). */
+  readonly inputMap: readonly DirectGodotInputActionPlan[];
   readonly sourceModules: readonly DirectGodotSourceModulePlan[];
   readonly scenes: readonly DirectGodotSceneDocumentPlan[];
   readonly scriptAutoloads: readonly DirectGodotScriptAutoloadPlan[];
@@ -473,7 +476,7 @@ function requiredCompatSymbols(
     ...new Set([
       ...code.requiredCompatSymbols,
       ...(instances.length > 0 || autoloads.length > 0 ? ['useGodotScriptTreeAttachment'] : []),
-      ...(autoloads.length > 0 ? ['GodotProjectStartup'] : []),
+      'GodotProjectStartup',
     ]),
   ].sort();
 }
@@ -528,7 +531,25 @@ export function directGodotSettingValue(value: GodotValue): DirectGodotSettingVa
   }
 }
 
-/** The settings scripts read by literal key (`project-setting-type`), each once. */
+/**
+ * Engine settings compat reads while the game runs, carried when `project.godot` authors them
+ * (compat holds each one's registered default): the main loop's clock (`main/main.cpp:2247`,
+ * `:2262`), the default space's gravity and damping (`servers/physics_server_3d.cpp`), and
+ * Input's touch/mouse emulation (`main/main.cpp`).
+ */
+const ENGINE_SETTINGS = [
+  'application/run/delta_smoothing',
+  'input_devices/pointing/emulate_mouse_from_touch',
+  'physics/3d/default_angular_damp',
+  'physics/3d/default_gravity',
+  'physics/3d/default_gravity_vector',
+  'physics/3d/default_linear_damp',
+  'physics/common/max_physics_steps_per_frame',
+  'physics/common/physics_jitter_fix',
+  'physics/common/physics_ticks_per_second',
+] as const;
+
+/** The settings scripts read by literal key (`project-setting-type`), each once, and the engine's. */
 function projectSettings(
   project: BoundGodotProject,
   diagnostics: DirectGodotCompositionDiagnostic[],
@@ -547,6 +568,16 @@ function projectSettings(
       }
       planned.set(entry.setting.key, { key: entry.setting.key, value });
     }
+  }
+  for (const key of ENGINE_SETTINGS) {
+    const authored = project.read.authoredSettings.get(key);
+    if (authored === undefined || planned.has(key)) continue;
+    const value = directGodotSettingValue(authored);
+    if (value === undefined) {
+      diagnostics.push({ at: `project.godot#${key}`, message: 'an engine setting value is not translated' });
+      continue;
+    }
+    planned.set(key, { key, value });
   }
   return [...planned.values()].sort((left, right) => left.key.localeCompare(right.key));
 }
@@ -608,6 +639,7 @@ export function planDirectGodotProjectComposition(
   const autoloads = scriptAutoloads(project, modules, diagnostics);
   validateAutoloadReferences(instances, autoloads, diagnostics);
   const settings = projectSettings(project, diagnostics);
+  const inputMap = planDirectGodotInputMap(project.read.inputActions, (at, message) => diagnostics.push({ at, message }));
   if (diagnostics.length > 0 || mainScene === undefined) {
     return { kind: 'refused-composition', diagnostics };
   }
@@ -619,6 +651,7 @@ export function planDirectGodotProjectComposition(
       sourceRevision: project.authority.revision,
       mainScene,
       projectSettings: settings,
+      inputMap,
       sourceModules: plannedSourceModules,
       scenes: composedScenes,
       scriptAutoloads: autoloads,

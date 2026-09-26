@@ -205,6 +205,8 @@ export function measureAutoloadReferenceProof(tools: GodotProofTools): readonly 
       if (specifier === './scenes/main') {
         return { MainScene: () => null, MainSceneAutoloads: () => null };
       }
+      if (specifier === './lib/godot-compat/main') return { GodotMain: () => null };
+      if (specifier === './lib/godot-compat/input') return { godot_input_map_load: () => undefined };
       if (specifier === './lib/godot-compat/react-lifecycle') {
         return { GodotProjectStartup: () => null, useGodotScriptTreeAttachment: () => undefined };
       }
@@ -212,8 +214,10 @@ export function measureAutoloadReferenceProof(tools: GodotProofTools): readonly 
     });
     const World = world['default'];
     if (typeof World !== 'function') throw new Error('generated World is absent');
-    const worldElement = World() as { readonly props?: { readonly prepare?: unknown } };
-    const prepare = worldElement.props?.prepare;
+    // `<GodotMain>` wraps the startup transaction, whose `prepare` wires the autoloads.
+    const mainElement = World() as { readonly props?: { readonly children?: unknown } };
+    const worldElement = mainElement.props?.children as { readonly props?: { readonly prepare?: unknown } } | undefined;
+    const prepare = worldElement?.props?.prepare;
     if (typeof prepare !== 'function') throw new Error('generated World prepare callback is absent');
     prepare();
     let attachedOwner: Record<string, unknown> | undefined;

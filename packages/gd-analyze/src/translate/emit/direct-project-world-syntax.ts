@@ -1,3 +1,4 @@
+import type { BoundGodotLifecyclePhase } from '../../analyze/bound-project';
 import * as path from 'node:path';
 import {
   TARGET_TS_SYNTAX_VERSION,
@@ -8,9 +9,9 @@ import {
   type TargetTsStatement,
   type TargetTsType,
 } from '../code/target-ts-syntax';
+import type { TargetInputEventRecord } from '../data/input-map-plan';
 import type {
   DirectGodotProjectCompositionPlan,
-  DirectGodotSceneNodePlan,
   DirectGodotScriptAutoloadPlan,
   DirectGodotSettingValue,
 } from '../data/direct-project-composition-plan';
@@ -84,6 +85,73 @@ function projectSettingsLoad(composition: DirectGodotProjectCompositionPlan): {
   };
 }
 
+/**
+ * The InputMap, loaded after the settings as `Main::setup` does (`main/main.cpp:2102`): each
+ * action's events as compat input-event records, a mouse position built as a `Vector2`.
+ */
+function inputMapLoad(composition: DirectGodotProjectCompositionPlan): {
+  readonly imports: readonly TargetTsStatement[];
+  readonly statements: readonly TargetTsStatement[];
+} {
+  let usesVector2 = false;
+  const record = (event: TargetInputEventRecord): TargetTsExpression => ({
+    kind: 'object-expression',
+    properties: Object.entries(event).map(([key, value]) => {
+      if (Array.isArray(value)) {
+        usesVector2 = true;
+        return {
+          key,
+          value: {
+            kind: 'call-expression' as const,
+            callee: { kind: 'identifier-expression' as const, name: 'Vector2_construct' },
+            arguments: value.map((component: number) => ({ kind: 'literal-expression' as const, value: component })),
+          },
+        };
+      }
+      return { key, value: { kind: 'literal-expression' as const, value: value as string | number | boolean } };
+    }),
+  });
+  const actions: TargetTsExpression = {
+    kind: 'array-expression',
+    elements: composition.inputMap.map((action) => ({
+      kind: 'object-expression',
+      properties: [
+        { key: 'name', value: { kind: 'literal-expression', value: action.name } },
+        { key: 'deadzone', value: { kind: 'literal-expression', value: action.deadzone } },
+        { key: 'events', value: { kind: 'array-expression', elements: action.events.map(record) } },
+      ],
+    })),
+  };
+  return {
+    imports: [
+      {
+        kind: 'import-statement',
+        module: './lib/godot-compat/input',
+        namedBindings: [{ imported: 'godot_input_map_load', local: 'godot_input_map_load' }],
+      },
+      ...(usesVector2 && !composition.projectSettings.some((setting) => setting.value.kind === 'Vector2')
+        ? [
+            {
+              kind: 'import-statement' as const,
+              module: './lib/godot-compat/vector2',
+              namedBindings: [{ imported: 'construct', local: 'Vector2_construct' }],
+            },
+          ]
+        : []),
+    ],
+    statements: [
+      {
+        kind: 'expression-statement',
+        expression: {
+          kind: 'call-expression',
+          callee: { kind: 'identifier-expression', name: 'godot_input_map_load' },
+          arguments: [actions],
+        },
+      },
+    ],
+  };
+}
+
 function referenceType(name: string): TargetTsType {
   return { kind: 'type-reference', name, arguments: [] };
 }
@@ -132,14 +200,15 @@ function assignment(target: TargetTsExpression, value: TargetTsExpression): Targ
   };
 }
 
-function lifecycleCallback(instance: string, method: string): TargetTsExpression {
+/** `argument`: the callback's one parameter (a frame's delta, an input event), passed through. */
+function lifecycleCallback(instance: string, method: string, argument?: string): TargetTsExpression {
   return {
     kind: 'arrow-expression',
-    parameters: [],
+    parameters: argument === undefined ? [] : [{ name: argument }],
     body: {
       kind: 'call-expression',
       callee: property(instance, method),
-      arguments: [],
+      arguments: argument === undefined ? [] : [{ kind: 'identifier-expression', name: argument }],
     },
   };
 }
@@ -148,22 +217,29 @@ function lifecycleBinding(
   autoload: DirectGodotScriptAutoloadPlan,
   suffix: string,
 ): TargetTsExpression {
-  const method = (phase: 'enter-tree' | 'ready' | 'exit-tree'): string | undefined =>
+  const method = (phase: BoundGodotLifecyclePhase): string | undefined =>
     autoload.lifecycle.find((entry) => entry.phase === phase)?.methodName;
+  // Each phase's binding key and its callback's parameter (`node.ts` GodotScriptLifecycleBinding).
   const callbacks = [
-    ['enterTree', method('enter-tree')],
-    ['ready', method('ready')],
-    ['exitTree', method('exit-tree')],
+    ['enterTree', method('enter-tree'), undefined],
+    ['ready', method('ready'), undefined],
+    ['exitTree', method('exit-tree'), undefined],
+    ['process', method('process'), 'delta'],
+    ['physicsProcess', method('physics-process'), 'delta'],
+    ['input', method('input'), 'event'],
+    ['shortcutInput', method('shortcut-input'), 'event'],
+    ['unhandledInput', method('unhandled-input'), 'event'],
+    ['unhandledKeyInput', method('unhandled-key-input'), 'event'],
   ] as const;
   return {
     kind: 'object-expression',
     properties: [
       { key: 'native', value: { kind: 'identifier-expression', name: `$native_${suffix}` } },
       { key: 'owner', value: { kind: 'identifier-expression', name: `$instance_${suffix}` } },
-      ...callbacks.flatMap(([key, methodName]) =>
+      ...callbacks.flatMap(([key, methodName, argument]) =>
         methodName === undefined
           ? []
-          : [{ key, value: lifecycleCallback(`$instance_${suffix}`, methodName) }],
+          : [{ key, value: lifecycleCallback(`$instance_${suffix}`, methodName, argument) }],
       ),
     ],
   };
@@ -299,68 +375,6 @@ function moduleSpecifier(target: string): string {
   return relative.startsWith('.') ? relative : `./${relative}`;
 }
 
-/** Whether any scene mounts a node of a class the physics server serves. */
-function usesPhysics(composition: DirectGodotProjectCompositionPlan): boolean {
-  const physical = (node: DirectGodotSceneNodePlan): boolean =>
-    node.classes.includes('CollisionObject3D') ||
-    node.classes.includes('RayCast3D') ||
-    node.children.some(physical) ||
-    (node.placements ?? []).some((placement) => physical(placement.node));
-  return composition.scenes.some((scene) => physical(scene.root));
-}
-
-/**
- * The composition site's physics world: a Rapier world, created once Rapier's module is ready
- * and handed to compat's World3D as the main viewport's world (`World3D::World3D`,
- * `world_3d.cpp:152`). Godot's gravity and damping are compat's; Rapier's world gravity is zero.
- */
-function physicsWorldAttach(composition: DirectGodotProjectCompositionPlan): {
-  readonly imports: readonly TargetTsStatement[];
-  readonly statements: readonly TargetTsStatement[];
-} {
-  if (!usesPhysics(composition)) return { imports: [], statements: [] };
-  const rapier = (property: string): TargetTsExpression => ({
-    kind: 'property-expression',
-    object: { kind: 'identifier-expression', name: 'RAPIER' },
-    property,
-  });
-  return {
-    imports: [
-      { kind: 'import-statement', module: '@dimforge/rapier3d-compat', defaultBinding: 'RAPIER', namedBindings: [] },
-      {
-        kind: 'import-statement',
-        module: './lib/godot-compat/world-3d',
-        namedBindings: [{ imported: 'godot_world_3d_attach', local: 'godot_world_3d_attach' }],
-      },
-    ],
-    statements: [
-      {
-        kind: 'expression-statement',
-        expression: { kind: 'await-expression', expression: { kind: 'call-expression', callee: rapier('init'), arguments: [] } },
-      },
-      {
-        kind: 'expression-statement',
-        expression: {
-          kind: 'call-expression',
-          callee: { kind: 'identifier-expression', name: 'godot_world_3d_attach' },
-          arguments: [
-            {
-              kind: 'new-expression',
-              callee: rapier('World'),
-              arguments: [
-                {
-                  kind: 'object-expression',
-                  properties: ['x', 'y', 'z'].map((key) => ({ key, value: { kind: 'literal-expression', value: 0 } })),
-                },
-              ],
-            },
-          ],
-        },
-      },
-    ],
-  };
-}
-
 /** Project-specific native startup composition; all reusable lifecycle policy stays in compat. */
 export function emitDirectGodotWorldSyntax(
   composition: DirectGodotProjectCompositionPlan,
@@ -388,20 +402,24 @@ export function emitDirectGodotWorldSyntax(
       module: moduleSpecifier(scene.targetPath),
       namedBindings: sceneBindings,
     },
+    {
+      kind: 'import-statement',
+      module: './lib/godot-compat/main',
+      namedBindings: [{ imported: 'GodotMain', local: 'GodotMain' }],
+    },
+    {
+      kind: 'import-statement',
+      module: './lib/godot-compat/react-lifecycle',
+      namedBindings: [
+        { imported: 'GodotProjectStartup', local: 'GodotProjectStartup' },
+        ...(composition.scriptAutoloads.length === 0
+          ? []
+          : [{ imported: 'useGodotScriptTreeAttachment', local: 'useGodotScriptTreeAttachment' }]),
+      ],
+    },
     ...(composition.scriptAutoloads.length === 0
       ? []
       : [
-          {
-            kind: 'import-statement' as const,
-            module: './lib/godot-compat/react-lifecycle',
-            namedBindings: [
-              { imported: 'GodotProjectStartup', local: 'GodotProjectStartup' },
-              {
-                imported: 'useGodotScriptTreeAttachment',
-                local: 'useGodotScriptTreeAttachment',
-              },
-            ],
-          },
           {
             kind: 'import-statement' as const,
             module: 'react',
@@ -464,11 +482,8 @@ export function emitDirectGodotWorldSyntax(
           ],
           children: [mainScene],
         };
-  const worldExpression: TargetTsExpression =
-    composition.scriptAutoloads.length === 0
-      ? { kind: 'jsx-element-expression', ...mainSceneShape }
-      : {
-          kind: 'jsx-element-expression',
+  const startup: TargetTsJsxChild = {
+          kind: 'jsx-element-child',
           tag: 'GodotProjectStartup',
           attributes:
             autoloadPrepare.length === 0
@@ -505,17 +520,25 @@ export function emitDirectGodotWorldSyntax(
             composedMainScene,
           ],
         };
+  // `Main`'s loop around the startup transaction: the autoloads and the main scene enter the tree
+  // once the loop has made the root window.
+  const worldExpression: TargetTsExpression = {
+    kind: 'jsx-element-expression',
+    tag: 'GodotMain',
+    attributes: [],
+    children: [startup],
+  };
   const settings = projectSettingsLoad(composition);
-  const physics = physicsWorldAttach(composition);
+  const inputMap = inputMapLoad(composition);
   return {
     syntaxVersion: TARGET_TS_SYNTAX_VERSION,
     sourcePath: 'project.godot',
     statements: [
       ...imports,
       ...settings.imports,
-      ...physics.imports,
+      ...inputMap.imports,
       ...settings.statements,
-      ...physics.statements,
+      ...inputMap.statements,
       ...composition.scriptAutoloads.map(autoloadComponent),
       {
         kind: 'function-statement',
