@@ -65,19 +65,19 @@
       "native": {
         "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
         "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
-        "inputSha256": "e22d744bc7265f312664c392e1add68c4b0040d937ca7d6a8c60bc0b07cb0297",
-        "callsite": "res://probe.gd _init() add_collision_exception_with",
-        "observedOutputSha256": "b2eac5c4db7352263ae4f600b9dc78c360875373b6f2c26c93626295350136c9"
+        "inputSha256": "e4a2bad2c26a2b3267382ecbee4362a39bd84b20d76cfd844c09ed86ce7d48fc",
+        "callsite": "res://probe.gd _init() add_collision_exception_with add_collision_exception_with-rigid",
+        "observedOutputSha256": "cc3914f9bcaee4d6ec17a517f1c70e7e9ef0e56146c7e94d238370a3e0063a2f"
       },
       "target": {
-        "implementationSha256": "042a8e238435ee7bd40f8a8e07e5e3d5ae1b4cfaf9496ac04dce15fb36ab66ef",
+        "implementationSha256": "ed258b8c5e950face1e8298ed70bc30aa81a1b8021522774e7c7e4cec37eaa6d",
         "callsite": "lib/godot-compat/physics-body-3d.ts add_collision_exception_with",
-        "observedOutputSha256": "b2eac5c4db7352263ae4f600b9dc78c360875373b6f2c26c93626295350136c9"
+        "observedOutputSha256": "d43d09e1a1731665ce776de6dd7de3ae4752e677f7873f19cf39ae0e8ee608be"
       },
       "comparison": {
-        "comparator": "typed float64-bit JSON: exact",
-        "tolerance": "exact",
-        "resultSha256": "e4adc6b2aed2c2f3fc6086dfa8ce2bfeffe81c4b7866d06d38fa1601c44d9b42"
+        "comparator": "typed float64-bit JSON: exact, physics-trajectory",
+        "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.04609572887420654 over 2 cases",
+        "resultSha256": "20ae9a4c19b1db7c77c779e8d8cd7fa7ec40cdb8867ff62ae6401ffee621ecff"
       },
       "reproductionCommand": [
         "npx",
@@ -109,7 +109,7 @@
         "observedOutputSha256": "e491cd7e85f5c6a73c2f82529827bbe0c649a72ccd8e4399083931af16c28d75"
       },
       "target": {
-        "implementationSha256": "042a8e238435ee7bd40f8a8e07e5e3d5ae1b4cfaf9496ac04dce15fb36ab66ef",
+        "implementationSha256": "ed258b8c5e950face1e8298ed70bc30aa81a1b8021522774e7c7e4cec37eaa6d",
         "callsite": "lib/godot-compat/physics-body-3d.ts remove_collision_exception_with",
         "observedOutputSha256": "e491cd7e85f5c6a73c2f82529827bbe0c649a72ccd8e4399083931af16c28d75"
       },
@@ -135,8 +135,8 @@
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
-      "inputSha256": "e22d744bc7265f312664c392e1add68c4b0040d937ca7d6a8c60bc0b07cb0297",
-      "implementationSha256": "042a8e238435ee7bd40f8a8e07e5e3d5ae1b4cfaf9496ac04dce15fb36ab66ef"
+      "inputSha256": "e4a2bad2c26a2b3267382ecbee4362a39bd84b20d76cfd844c09ed86ce7d48fc",
+      "implementationSha256": "ed258b8c5e950face1e8298ed70bc30aa81a1b8021522774e7c7e4cec37eaa6d"
     },
     {
       "claimId": "godot-4.7-binding-PhysicsBody3D.remove_collision_exception_with",
@@ -144,7 +144,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "7b2927a0cd951972e631c56b07ba5dc75bb7ab00affdc25b5b8dc25f17573d25",
-      "implementationSha256": "042a8e238435ee7bd40f8a8e07e5e3d5ae1b4cfaf9496ac04dce15fb36ab66ef"
+      "implementationSha256": "ed258b8c5e950face1e8298ed70bc30aa81a1b8021522774e7c7e4cec37eaa6d"
     }
   ]
 }

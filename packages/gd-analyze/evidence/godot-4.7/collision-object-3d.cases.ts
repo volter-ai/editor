@@ -1,10 +1,10 @@
-import type { GodotEvidenceCase, GodotEvidenceCaseFile } from '../../src/evidence/case';
+import type { GodotEvidenceCase, GodotEvidenceCaseFile, GodotEvidenceComparator } from '../../src/evidence/case';
 import { type Op, PHYSICS_PROBE_HELPERS, physicsCase, type Segment } from './physics-timeline';
 
 const cases: GodotEvidenceCase[] = [];
-function add(id: string, member: string, segments: readonly Segment[]): void {
+function add(id: string, member: string, segments: readonly Segment[], comparator: GodotEvidenceComparator = 'exact'): void {
   const built = physicsCase(segments);
-  cases.push({ id, symbol: { kind: 'native-member', owner: 'CollisionObject3D', member }, gdscript: built.gdscript, target: built.target, comparator: 'exact' });
+  cases.push({ id, symbol: { kind: 'native-member', owner: 'CollisionObject3D', member }, gdscript: built.gdscript, target: built.target, comparator });
 }
 const BOX: Op = { body: 'a', kind: 'static', shapes: [{ shape: { box: [1, 1, 1] } }] };
 const reads = (): Op[] => [
@@ -37,6 +37,19 @@ add('set_collision_layer-queried', 'set_collision_layer', [
   { await: 'physics', ops: [{ read: ['ray', [0, 10, 0], [0, -10, 0], { mask: 2 }] }, { layer: 'a', value: 2 }, { read: ['ray', [0, 10, 0], [0, -10, 0], { mask: 2 }] }] },
   { await: 'physics', ops: [{ read: ['ray', [0, 10, 0], [0, -10, 0], { mask: 2 }] }, { layerBit: 'a', bit: 2, on: false }, { read: ['ray', [0, 10, 0], [0, -10, 0], { mask: 2 }] }] },
 ]);
+
+// A crate whose mask misses the floor's layer falls through it onto the ground.
+add('set_collision_mask-rigid', 'set_collision_mask', [
+  {
+    ops: [
+      { body: 'floor', kind: 'static', shapes: [{ shape: { box: [10, 0.2, 10] } }], at: [0, 0, 0], layer: 2 },
+      { body: 'ground', kind: 'static', shapes: [{ shape: { box: [10, 0.2, 10] } }], at: [0, -2, 0] },
+      { body: 'crate', kind: 'rigid', shapes: [{ shape: { box: [0.5, 0.5, 0.5] } }], at: [0, 1, 0], layer: 4, mask: 1 },
+      { rigid: 'crate', set: 'lock_rotation', value: true },
+    ],
+  },
+  ...Array.from({ length: 60 }, (): Segment => ({ await: 'physics', ops: [{ read: ['rigidState', 'crate'] }] })),
+], 'physics-trajectory');
 
 const EVIDENCE: GodotEvidenceCaseFile = {
   kind: 'node',

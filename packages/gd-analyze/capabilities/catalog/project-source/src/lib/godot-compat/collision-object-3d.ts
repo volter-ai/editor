@@ -313,6 +313,7 @@ function syncShapes(world: World, entity: object, state: ObjectState): void {
       .setTranslation(entry.local.origin.x, entry.local.origin.y, entry.local.origin.z)
       .setRotation(rotationOf(entry.local))
       .setSensor(state.kind === 'area');
+    described.desc.setActiveHooks(RAPIER.ActiveHooks.FILTER_CONTACT_PAIRS);
     entry.collider = world.createCollider(described.desc, state.body);
     entry.key = key;
     ENTITY_OF_COLLIDER.set(entry.collider.handle, entity);
@@ -435,12 +436,37 @@ export function godot_collision_objects_step(world: World, delta: number): void 
  * @source modules/godot_physics_3d/godot_body_3d.cpp:701
  */
 export function godot_collision_objects_integrate(world: World): void {
-  for (const [entity, state] of OBJECT) {
-    if (state.pending === undefined) continue;
-    godot_collision_object_place(entity, state.pending);
+  void world;
+  for (const state of OBJECT.values()) {
+    if (state.pending === undefined || state.body === undefined) continue;
+    // The Rapier body moves to it during the step, so the bodies it meets feel its velocity.
+    const next = state.pending;
     state.pending = undefined;
+    state.transform = next;
+    state.inverse = affine_inverse(next);
+    state.body.setNextKinematicTranslation({ x: next.origin.x, y: next.origin.y, z: next.origin.z });
+    state.body.setNextKinematicRotation(rotationOf(next));
   }
-  world.propagateModifiedBodyPositionsToColliders();
+}
+
+/**
+ * Whether two colliders' objects collide in the step (`GodotBodyPair3D::setup`,
+ * `modules/godot_physics_3d/godot_body_pair_3d.cpp:263`): either one's layer in the other's mask,
+ * and no collision exception either way. Rapier asks it for every contact pair
+ * (`PhysicsHooks.filterContactPair`), since its 16-bit groups cannot hold Godot's 32-bit layers.
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source modules/godot_physics_3d/godot_body_pair_3d.cpp:263
+ */
+export function godot_collision_objects_collide(collider1: number, collider2: number): boolean {
+  const a = ENTITY_OF_COLLIDER.get(collider1);
+  const b = ENTITY_OF_COLLIDER.get(collider2);
+  if (a === undefined || b === undefined) return true;
+  const A = OBJECT.get(a);
+  const B = OBJECT.get(b);
+  if (A === undefined || B === undefined) return true;
+  if ((A.layer & B.mask) === 0 && (B.layer & A.mask) === 0) return false;
+  return !A.exceptions.has(b) && !B.exceptions.has(a);
 }
 
 /** `Basis::set_quaternion` (`core/math/basis.cpp:829`): a Rapier rotation as Godot's basis. */

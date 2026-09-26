@@ -70,7 +70,7 @@
         "observedOutputSha256": "f76601ccc1216775e71ad5ee6d87f2092dd7a33b00e69f299b1639919577190b"
       },
       "target": {
-        "implementationSha256": "61ab2a8b78647bf15bc4a01180532223a2975577460d2eb78278203a9120fbfb",
+        "implementationSha256": "c3cb8834c9f7fc8c3b5368ca4fdfd672c7fc161a7cd8db6729d11a9bd1ad01f6",
         "callsite": "lib/godot-compat/static-body-3d.ts get_physics_material_override",
         "observedOutputSha256": "f76601ccc1216775e71ad5ee6d87f2092dd7a33b00e69f299b1639919577190b"
       },
@@ -109,13 +109,13 @@
         "observedOutputSha256": "1dfb293864379c0393bb9b39c0869c49f3049c465baffcbd0b5b8c226cda61cf"
       },
       "target": {
-        "implementationSha256": "61ab2a8b78647bf15bc4a01180532223a2975577460d2eb78278203a9120fbfb",
+        "implementationSha256": "c3cb8834c9f7fc8c3b5368ca4fdfd672c7fc161a7cd8db6729d11a9bd1ad01f6",
         "callsite": "lib/godot-compat/static-body-3d.ts set_physics_material_override",
         "observedOutputSha256": "ed5392d657b865b3a231770b789e0764b865366574c9b19653c7d01c8635fe0e"
       },
       "comparison": {
         "comparator": "typed float64-bit JSON: physics-trajectory",
-        "tolerance": "rigid body in contact, Rapier's solver: within 0.05; measured max 0.006176739931106567 over 1 cases",
+        "tolerance": "rigid body in contact, Rapier's solver: within 0.1; measured max 0.006176739931106567 over 1 cases",
         "resultSha256": "b7c3cc420ccba3b4533491e9e97b785e87737a0a4d83a7dd36146705438ebc00"
       },
       "reproductionCommand": [
@@ -136,7 +136,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "07a2cc61eaf938967a6045ef33414c28f477f5b62a4a3f82b839556556be421e",
-      "implementationSha256": "61ab2a8b78647bf15bc4a01180532223a2975577460d2eb78278203a9120fbfb"
+      "implementationSha256": "c3cb8834c9f7fc8c3b5368ca4fdfd672c7fc161a7cd8db6729d11a9bd1ad01f6"
     },
     {
       "claimId": "godot-4.7-binding-StaticBody3D.set_physics_material_override",
@@ -144,7 +144,7 @@
       "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
       "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
       "inputSha256": "6eaa44cd0eb6c0945fe6b6a819fe650824923c40cc90796c9141c99b939be74a",
-      "implementationSha256": "61ab2a8b78647bf15bc4a01180532223a2975577460d2eb78278203a9120fbfb"
+      "implementationSha256": "c3cb8834c9f7fc8c3b5368ca4fdfd672c7fc161a7cd8db6729d11a9bd1ad01f6"
     }
   ]
 }

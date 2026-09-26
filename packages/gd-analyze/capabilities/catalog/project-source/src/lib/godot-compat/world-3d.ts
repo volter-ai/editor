@@ -11,8 +11,9 @@
  * fixed step), and the collision objects' deferred transform notifications.
  */
 
-import type { World } from '@dimforge/rapier3d-compat';
+import { EventQueue, SolverFlags, type World } from '@dimforge/rapier3d-compat';
 import {
+  godot_collision_objects_collide,
   godot_collision_objects_integrate,
   godot_collision_objects_read_rigid,
   godot_collision_objects_step,
@@ -34,6 +35,12 @@ export interface World3D {
 export interface PhysicsDirectSpaceState3D {
   readonly space: PhysicsSpace3D;
 }
+
+/** Godot's layers, masks and exceptions decide Rapier's contact pairs (Rapier runs hooks only for a step given an event queue). */
+const HOOKS = {
+  filterContactPair: (c1: number, c2: number): SolverFlags | null => (godot_collision_objects_collide(c1, c2) ? SolverFlags.COMPUTE_IMPULSE : null),
+  filterIntersectionPair: (): boolean => true,
+};
 
 let current: { readonly world3d: World3D; readonly state: PhysicsDirectSpaceState3D } | undefined;
 const flushHandlers: { readonly handler: (world: World) => void; readonly order: number }[] = [];
@@ -75,6 +82,7 @@ export function godot_world_3d_attach(world: World): World3D {
   const space: PhysicsSpace3D = Object.freeze({ world });
   const world3d: World3D = Object.freeze({ space });
   current = { world3d, state: Object.freeze({ space }) };
+  const events = new EventQueue(true);
   godot_tree_physics_server({
     flush: () => {
       godot_collision_objects_sync(world);
@@ -87,7 +95,7 @@ export function godot_world_3d_attach(world: World): World3D {
       godot_collision_objects_settle();
       godot_collision_objects_integrate(world);
       world.timestep = delta;
-      world.step();
+      world.step(events, HOOKS);
       godot_collision_objects_read_rigid();
       for (const handler of steppedHandlers) handler(world, delta);
     },
