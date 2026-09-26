@@ -421,17 +421,12 @@ function BlenderModelViewport({
       // The BACKGROUND stays the dressing's, because the Blender palette
       // already paints the viewport its own flat grey.
       //
-      // AND THE VIEW TRANSFORM IS SOLID MODE'S OWN: Standard. Blender draws Solid with the
-      // display's default view and no scene settings (`draw_color_management.cc`,
-      // `eDRWColorManagementType::ViewTransform`), and the sRGB display's default is Standard
-      // (`config.ocio`, `default_view_transform`) — the scene's AgX is for Material Preview and
-      // Rendered, which state it themselves (`src/presentation.ts`). Blender 5.2's Workbench,
-      // rendered under Standard, gives the factory cube's default-view faces 142 / 131 / 112 and
-      // its front face 162, where the viewport's own frames read 141 / 129 / 111 and 161.
+      // THE VIEW TRANSFORM IS EACH SHADING MODE'S OWN (`src/presentation.ts`: Standard for Solid,
+      // AgX for Material Preview and Rendered), so the dressing states none: a document mapper
+      // would outrank every mode's.
       dressing={{
         environment: false,
         keyLight: false,
-        toneMapping: THREE.NoToneMapping,
         viewLocked: view.studioLights(),
       }}
     />

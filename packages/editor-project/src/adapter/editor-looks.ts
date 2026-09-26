@@ -96,6 +96,17 @@ export interface KeymapContribution {
   readonly title: string;
   readonly description: string;
   readonly bindings: KeymapBindings;
+  /** Which mouse button orbits the viewport. Absent: the editor's own. */
+  readonly navigation?: KeymapNavigation;
+}
+
+/**
+ * THE VIEWPORT'S MOUSE, as a keymap states it: the button that orbits. The editor's own orbits
+ * with the right button and pans with the middle; a keymap that orbits with the middle (Blender's
+ * `view3d.rotate` on MIDDLEMOUSE) pans with Shift and the same button, as that keymap does.
+ */
+export interface KeymapNavigation {
+  readonly orbit: 'middle' | 'right';
 }
 
 export type WorkspaceLayoutRegions = NonNullable<WorkspaceArrangement['regions']>;

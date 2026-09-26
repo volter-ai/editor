@@ -23,8 +23,19 @@ const release = registerStartingPresentation('model', {
   // `studiolight_*` for Material Preview, and Rendered lights by the scene). So they are stated per
   // draw mode, and a person's Lighting choice is the current mode's (`stageLightsPerMode`).
   // SOLID (`clay`, and Wireframe with it) is lit by Blender's four studio lights, the document's
-  // view-locked studio.
-  all: { lighting: { source: 'studio', studioPreset: DOCUMENT_STUDIO_PRESET.id, auto: null } },
+  // view-locked studio, and drawn under STANDARD: Blender gives Solid the display's default view
+  // and none of the scene's settings (`draw_color_management.cc`, `ViewTransform`), and the sRGB
+  // display's default is Standard (`config.ocio`). Blender 5.2's Workbench under Standard gives
+  // the factory cube 142 / 131 / 112 in the default view and 162 on the front face, agreeing with
+  // the viewport's own frames (141 / 129 / 111, 161). The scene's AgX is the two modes' below.
+  all: {
+    lighting: {
+      source: 'studio',
+      studioPreset: DOCUMENT_STUDIO_PRESET.id,
+      auto: null,
+      tone: { mapper: 'none', exposure: 1 },
+    },
+  },
   modes: {
     // MATERIAL PREVIEW: the scene lit by a world studio light alone, Forest at strength 1 and
     // rotation 0, fixed in the world, drawn over the viewport's own colour, in AgX. Read from

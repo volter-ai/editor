@@ -36,4 +36,7 @@ export const keymap: KeymapContribution = {
     'viewport.frameSelection': [{ key: '.' }, { key: '', code: 'NumpadDecimal' }],
     'viewport.cyclePivot': [{ key: ',' }],
   },
+  // `km_view3d` — `view3d.rotate` on MIDDLEMOUSE and `view3d.move` on Shift+MIDDLEMOUSE; the
+  // right button is the context menu's, and Shift+Right places the 3D cursor.
+  navigation: { orbit: 'middle' },
 };

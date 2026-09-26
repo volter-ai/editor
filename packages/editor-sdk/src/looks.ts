@@ -4,6 +4,7 @@ export type {
   KeyChord,
   KeymapBindings,
   KeymapContribution,
+  KeymapNavigation,
   WorkspaceLayoutRegions,
   WorkspaceLayoutContribution,
   MaterialContribution,

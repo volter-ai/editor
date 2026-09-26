@@ -1,4 +1,4 @@
-import type { EditorKeyActionId, KeyChord, KeymapContribution } from '@volter/editor-sdk/looks';
+import type { EditorKeyActionId, KeyChord, KeymapContribution, KeymapNavigation } from '@volter/editor-sdk/looks';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import {
   adapterSettings,
@@ -68,6 +68,7 @@ const BUILT_IN_KEYMAPS: readonly EditorKeymapDescriptor[] = Object.freeze([
 interface ContributedKeymap {
   readonly descriptor: EditorKeymapDescriptor;
   readonly table: EditorKeymapTable;
+  readonly navigation: KeymapNavigation | null;
 }
 const contributedKeymaps = new Map<string, ContributedKeymap>();
 let registryVersion = 0;
@@ -106,6 +107,7 @@ export function registerContributedKeymap(contribution: KeymapContribution): () 
       description: contribution.description,
     },
     table: Object.freeze({ ...VGAI_KEYMAP, ...contribution.bindings }) as EditorKeymapTable,
+    navigation: contribution.navigation ?? null,
   };
   contributedKeymaps.set(contribution.id, entry);
   registryVersion++;
@@ -312,6 +314,12 @@ export function __resetEditorKeymapForTest(): void {
 /** The active table's chords for one action. Empty means deliberately unbound. */
 export function keyChordsFor(action: EditorKeyActionId): readonly KeyChord[] {
   return keymapTable(activeEditorKeymap())[action];
+}
+
+/** The active keymap's viewport mouse (`KeymapContribution.navigation`), the editor's own when
+ *  it states none: orbit on the right button. */
+export function activeKeymapNavigation(): KeymapNavigation {
+  return contributedKeymaps.get(activeEditorKeymap())?.navigation ?? { orbit: 'right' };
 }
 
 /** A named table, for a surface that must show a keymap it is not running.

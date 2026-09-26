@@ -86,6 +86,7 @@ import { collectThreeSelectionOutlineTargets } from './three-viewport/selection-
 import { toneMappedSourceColor } from './three-viewport/source-color';
 import type { ThreeViewportProjection } from '@volter/editor-sdk/kit/three-viewport-presentation';
 import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
+import { activeKeymapNavigation, subscribeEditorKeymap } from '@volter/editor-sdk/kit/keymap-presets';
 import { TriggerVolumeHelper } from './trigger-volume-helper';
 import { viewportAuthoringPolicy } from './viewport-authoring-policy';
 import { ensureThreeIntegration } from './three-integration';
@@ -1358,15 +1359,13 @@ export class EditorViewport {
     // held PANS in screen space, Figma-fashion.
     interactionElement.addEventListener('wheel', this._onTrackpadWheel, { passive: false });
 
-    // OrbitControls – Unity-style: right-drag = orbit, middle-drag = pan, scroll = zoom
+    // OrbitControls: the editor's own mouse is right-drag to orbit, middle-drag to pan and the
+    // wheel to zoom; a keymap may orbit on the middle button instead (`applyKeymapNavigation`).
     this.orbitControls = new OrbitControls(this.camera, interactionElement);
     this.orbitControls.enableDamping = true;
     this.orbitControls.dampingFactor = 0.1;
-    this.orbitControls.mouseButtons = {
-      LEFT: -1 as THREE.MOUSE,
-      MIDDLE: THREE.MOUSE.PAN,
-      RIGHT: THREE.MOUSE.ROTATE,
-    };
+    this.applyKeymapNavigation();
+    this._unsubscribeKeymap = subscribeEditorKeymap(() => this.applyKeymapNavigation());
 
     // TransformControls — one instance per mode; 'combined' shows all three.
     // Construction order IS pointer priority (each instance registers its own
@@ -1869,6 +1868,21 @@ export class EditorViewport {
     const target = camera ?? this.freeCamera;
     for (const controls of this._allGizmos()) if (controls.camera !== target) controls.camera = target;
   }
+
+  /**
+   * THE MOUSE THE ACTIVE KEYMAP STATES (`KeymapContribution.navigation`): the button that orbits.
+   * Orbiting on the middle button pans with Shift on it (OrbitControls' own modifier swap), and
+   * the right button then does nothing here, as in Blender, where it is the context menu's.
+   */
+  private applyKeymapNavigation(): void {
+    const { orbit } = activeKeymapNavigation();
+    this.orbitControls.mouseButtons = {
+      LEFT: this.orbitControls.mouseButtons.LEFT ?? (-1 as THREE.MOUSE),
+      MIDDLE: orbit === 'middle' ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN,
+      RIGHT: orbit === 'middle' ? (-1 as THREE.MOUSE) : THREE.MOUSE.ROTATE,
+    };
+  }
+  private _unsubscribeKeymap: () => void = () => {};
 
   get cameraViewMode(): CameraViewMode | null {
     return this._cameraViewMode;
@@ -4069,6 +4083,7 @@ export class EditorViewport {
   }
 
   dispose(): void {
+    this._unsubscribeKeymap();
     this._disposed = true;
     this._unsubscribeSelectionTheme();
     if (this._verticalAxisLine) {
