@@ -1,0 +1,422 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/string"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "String",
+        "member": "split",
+        "kind": "builtin-member",
+        "signature": "hash:1252735785"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/string",
+        "exportName": "split",
+        "localName": "String_split",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-String.split"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "String",
+        "member": "strip_edges",
+        "kind": "builtin-member",
+        "signature": "hash:907855311"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/string",
+        "exportName": "strip_edges",
+        "localName": "String_strip_edges",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-String.strip_edges"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "String",
+        "member": "OP_ADD",
+        "kind": "builtin-operator",
+        "signature": "right:String"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/string",
+        "exportName": "op_add",
+        "localName": "String_op_add",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-String.OP_ADD.right:String"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "String",
+        "member": "OP_ADD",
+        "kind": "builtin-operator",
+        "signature": "right:StringName"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/string",
+        "exportName": "op_add",
+        "localName": "String_op_add",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-String.OP_ADD.right:StringName"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "String",
+        "member": "OP_EQUAL",
+        "kind": "builtin-operator",
+        "signature": "right:String"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/string",
+        "exportName": "op_equal",
+        "localName": "String_op_equal",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-String.OP_EQUAL.right:String"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "String",
+        "member": "OP_EQUAL",
+        "kind": "builtin-operator",
+        "signature": "right:StringName"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/string",
+        "exportName": "op_equal",
+        "localName": "String_op_equal",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-String.OP_EQUAL.right:StringName"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-String.split",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000String\u0000split\u0000hash:1252735785",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/string/ustring.cpp",
+        "sourceSymbol": "String.split",
+        "sourceLine": 1013
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "beaed4158c57153d62dec8ef95140d96acd1bf92b8b7e02b0c5e218c83690d32",
+        "callsite": "res://probe.gd _init() split-default-\"\" split-\"\"-\"\"-true-0 split-\"\"-\"\"-true-1 split-\"\"-\"\"-true-2 split-\"\"-\"\"-true--1 split-\"\"-\"\"-false-0 split-\"\"-\"\"-false-1 split-\"\"-\"\"-false-2 split-\"\"-\"\"-false--1 split-\"\"-\",\"-true-0 split-\"\"-\",\"-true-1 split-\"\"-\",\"-true-2 split-\"\"-\",\"-true--1 split-\"\"-\",\"-false-0 split-\"\"-\",\"-false-1 split-\"\"-\",\"-false-2 split-\"\"-\",\"-false--1 split-\"\"-\"::\"-true-0 split-\"\"-\"::\"-true-1 split-\"\"-\"::\"-true-2 split-\"\"-\"::\"-true--1 split-\"\"-\"::\"-false-0 split-\"\"-\"::\"-false-1 split-\"\"-\"::\"-false-2 split-\"\"-\"::\"-false--1 split-\"\"-\"a\"-true-0 split-\"\"-\"a\"-true-1 split-\"\"-\"a\"-true-2 split-\"\"-\"a\"-true--1 split-\"\"-\"a\"-false-0 split-\"\"-\"a\"-false-1 split-\"\"-\"a\"-false-2 split-\"\"-\"a\"-false--1 split-\"\"-\"zz\"-true-0 split-\"\"-\"zz\"-true-1 split-\"\"-\"zz\"-true-2 split-\"\"-\"zz\"-true--1 split-\"\"-\"zz\"-false-0 split-\"\"-\"zz\"-false-1 split-\"\"-\"zz\"-false-2 split-\"\"-\"zz\"-false--1 split-\"\"-\"😀\"-true-0 split-\"\"-\"😀\"-true-1 split-\"\"-\"😀\"-true-2 split-\"\"-\"😀\"-true--1 split-\"\"-\"😀\"-false-0 split-\"\"-\"😀\"-false-1 split-\"\"-\"😀\"-false-2 split-\"\"-\"😀\"-false--1 split-default-\"a,b,c\" split-\"a,b,c\"-\"\"-true-0 split-\"a,b,c\"-\"\"-true-1 split-\"a,b,c\"-\"\"-true-2 split-\"a,b,c\"-\"\"-true--1 split-\"a,b,c\"-\"\"-false-0 split-\"a,b,c\"-\"\"-false-1 split-\"a,b,c\"-\"\"-false-2 split-\"a,b,c\"-\"\"-false--1 split-\"a,b,c\"-\",\"-true-0 split-\"a,b,c\"-\",\"-true-1 split-\"a,b,c\"-\",\"-true-2 split-\"a,b,c\"-\",\"-true--1 split-\"a,b,c\"-\",\"-false-0 split-\"a,b,c\"-\",\"-false-1 split-\"a,b,c\"-\",\"-false-2 split-\"a,b,c\"-\",\"-false--1 split-\"a,b,c\"-\"::\"-true-0 split-\"a,b,c\"-\"::\"-true-1 split-\"a,b,c\"-\"::\"-true-2 split-\"a,b,c\"-\"::\"-true--1 split-\"a,b,c\"-\"::\"-false-0 split-\"a,b,c\"-\"::\"-false-1 split-\"a,b,c\"-\"::\"-false-2 split-\"a,b,c\"-\"::\"-false--1 split-\"a,b,c\"-\"a\"-true-0 split-\"a,b,c\"-\"a\"-true-1 split-\"a,b,c\"-\"a\"-true-2 split-\"a,b,c\"-\"a\"-true--1 split-\"a,b,c\"-\"a\"-false-0 split-\"a,b,c\"-\"a\"-false-1 split-\"a,b,c\"-\"a\"-false-2 split-\"a,b,c\"-\"a\"-false--1 split-\"a,b,c\"-\"zz\"-true-0 split-\"a,b,c\"-\"zz\"-true-1 split-\"a,b,c\"-\"zz\"-true-2 split-\"a,b,c\"-\"zz\"-true--1 split-\"a,b,c\"-\"zz\"-false-0 split-\"a,b,c\"-\"zz\"-false-1 split-\"a,b,c\"-\"zz\"-false-2 split-\"a,b,c\"-\"zz\"-false--1 split-\"a,b,c\"-\"😀\"-true-0 split-\"a,b,c\"-\"😀\"-true-1 split-\"a,b,c\"-\"😀\"-true-2 split-\"a,b,c\"-\"😀\"-true--1 split-\"a,b,c\"-\"😀\"-false-0 split-\"a,b,c\"-\"😀\"-false-1 split-\"a,b,c\"-\"😀\"-false-2 split-\"a,b,c\"-\"😀\"-false--1 split-default-\",a,,b,\" split-\",a,,b,\"-\"\"-true-0 split-\",a,,b,\"-\"\"-true-1 split-\",a,,b,\"-\"\"-true-2 split-\",a,,b,\"-\"\"-true--1 split-\",a,,b,\"-\"\"-false-0 split-\",a,,b,\"-\"\"-false-1 split-\",a,,b,\"-\"\"-false-2 split-\",a,,b,\"-\"\"-false--1 split-\",a,,b,\"-\",\"-true-0 split-\",a,,b,\"-\",\"-true-1 split-\",a,,b,\"-\",\"-true-2 split-\",a,,b,\"-\",\"-true--1 split-\",a,,b,\"-\",\"-false-0 split-\",a,,b,\"-\",\"-false-1 split-\",a,,b,\"-\",\"-false-2 split-\",a,,b,\"-\",\"-false--1 split-\",a,,b,\"-\"::\"-true-0 split-\",a,,b,\"-\"::\"-true-1 split-\",a,,b,\"-\"::\"-true-2 split-\",a,,b,\"-\"::\"-true--1 split-\",a,,b,\"-\"::\"-false-0 split-\",a,,b,\"-\"::\"-false-1 split-\",a,,b,\"-\"::\"-false-2 split-\",a,,b,\"-\"::\"-false--1 split-\",a,,b,\"-\"a\"-true-0 split-\",a,,b,\"-\"a\"-true-1 split-\",a,,b,\"-\"a\"-true-2 split-\",a,,b,\"-\"a\"-true--1 split-\",a,,b,\"-\"a\"-false-0 split-\",a,,b,\"-\"a\"-false-1 split-\",a,,b,\"-\"a\"-false-2 split-\",a,,b,\"-\"a\"-false--1 split-\",a,,b,\"-\"zz\"-true-0 split-\",a,,b,\"-\"zz\"-true-1 split-\",a,,b,\"-\"zz\"-true-2 split-\",a,,b,\"-\"zz\"-true--1 split-\",a,,b,\"-\"zz\"-false-0 split-\",a,,b,\"-\"zz\"-false-1 split-\",a,,b,\"-\"zz\"-false-2 split-\",a,,b,\"-\"zz\"-false--1 split-\",a,,b,\"-\"😀\"-true-0 split-\",a,,b,\"-\"😀\"-true-1 split-\",a,,b,\"-\"😀\"-true-2 split-\",a,,b,\"-\"😀\"-true--1 split-\",a,,b,\"-\"😀\"-false-0 split-\",a,,b,\"-\"😀\"-false-1 split-\",a,,b,\"-\"😀\"-false-2 split-\",a,,b,\"-\"😀\"-false--1 split-default-\"no delimiter\" split-\"no delimiter\"-\"\"-true-0 split-\"no delimiter\"-\"\"-true-1 split-\"no delimiter\"-\"\"-true-2 split-\"no delimiter\"-\"\"-true--1 split-\"no delimiter\"-\"\"-false-0 split-\"no delimiter\"-\"\"-false-1 split-\"no delimiter\"-\"\"-false-2 split-\"no delimiter\"-\"\"-false--1 split-\"no delimiter\"-\",\"-true-0 split-\"no delimiter\"-\",\"-true-1 split-\"no delimiter\"-\",\"-true-2 split-\"no delimiter\"-\",\"-true--1 split-\"no delimiter\"-\",\"-false-0 split-\"no delimiter\"-\",\"-false-1 split-\"no delimiter\"-\",\"-false-2 split-\"no delimiter\"-\",\"-false--1 split-\"no delimiter\"-\"::\"-true-0 split-\"no delimiter\"-\"::\"-true-1 split-\"no delimiter\"-\"::\"-true-2 split-\"no delimiter\"-\"::\"-true--1 split-\"no delimiter\"-\"::\"-false-0 split-\"no delimiter\"-\"::\"-false-1 split-\"no delimiter\"-\"::\"-false-2 split-\"no delimiter\"-\"::\"-false--1 split-\"no delimiter\"-\"a\"-true-0 split-\"no delimiter\"-\"a\"-true-1 split-\"no delimiter\"-\"a\"-true-2 split-\"no delimiter\"-\"a\"-true--1 split-\"no delimiter\"-\"a\"-false-0 split-\"no delimiter\"-\"a\"-false-1 split-\"no delimiter\"-\"a\"-false-2 split-\"no delimiter\"-\"a\"-false--1 split-\"no delimiter\"-\"zz\"-true-0 split-\"no delimiter\"-\"zz\"-true-1 split-\"no delimiter\"-\"zz\"-true-2 split-\"no delimiter\"-\"zz\"-true--1 split-\"no delimiter\"-\"zz\"-false-0 split-\"no delimiter\"-\"zz\"-false-1 split-\"no delimiter\"-\"zz\"-false-2 split-\"no delimiter\"-\"zz\"-false--1 split-\"no delimiter\"-\"😀\"-true-0 split-\"no delimiter\"-\"😀\"-true-1 split-\"no delimiter\"-\"😀\"-true-2 split-\"no delimiter\"-\"😀\"-true--1 split-\"no delimiter\"-\"😀\"-false-0 split-\"no delimiter\"-\"😀\"-false-1 split-\"no delimiter\"-\"😀\"-false-2 split-\"no delimiter\"-\"😀\"-false--1 split-default-\"aaa\" split-\"aaa\"-\"\"-true-0 split-\"aaa\"-\"\"-true-1 split-\"aaa\"-\"\"-true-2 split-\"aaa\"-\"\"-true--1 split-\"aaa\"-\"\"-false-0 split-\"aaa\"-\"\"-false-1 split-\"aaa\"-\"\"-false-2 split-\"aaa\"-\"\"-false--1 split-\"aaa\"-\",\"-true-0 split-\"aaa\"-\",\"-true-1 split-\"aaa\"-\",\"-true-2 split-\"aaa\"-\",\"-true--1 split-\"aaa\"-\",\"-false-0 split-\"aaa\"-\",\"-false-1 split-\"aaa\"-\",\"-false-2 split-\"aaa\"-\",\"-false--1 split-\"aaa\"-\"::\"-true-0 split-\"aaa\"-\"::\"-true-1 split-\"aaa\"-\"::\"-true-2 split-\"aaa\"-\"::\"-true--1 split-\"aaa\"-\"::\"-false-0 split-\"aaa\"-\"::\"-false-1 split-\"aaa\"-\"::\"-false-2 split-\"aaa\"-\"::\"-false--1 split-\"aaa\"-\"a\"-true-0 split-\"aaa\"-\"a\"-true-1 split-\"aaa\"-\"a\"-true-2 split-\"aaa\"-\"a\"-true--1 split-\"aaa\"-\"a\"-false-0 split-\"aaa\"-\"a\"-false-1 split-\"aaa\"-\"a\"-false-2 split-\"aaa\"-\"a\"-false--1 split-\"aaa\"-\"zz\"-true-0 split-\"aaa\"-\"zz\"-true-1 split-\"aaa\"-\"zz\"-true-2 split-\"aaa\"-\"zz\"-true--1 split-\"aaa\"-\"zz\"-false-0 split-\"aaa\"-\"zz\"-false-1 split-\"aaa\"-\"zz\"-false-2 split-\"aaa\"-\"zz\"-false--1 split-\"aaa\"-\"😀\"-true-0 split-\"aaa\"-\"😀\"-true-1 split-\"aaa\"-\"😀\"-true-2 split-\"aaa\"-\"😀\"-true--1 split-\"aaa\"-\"😀\"-false-0 split-\"aaa\"-\"😀\"-false-1 split-\"aaa\"-\"😀\"-false-2 split-\"aaa\"-\"😀\"-false--1 split-default-\"  padded \\t\\n\" split-\"  padded \\t\\n\"-\"\"-true-0 split-\"  padded \\t\\n\"-\"\"-true-1 split-\"  padded \\t\\n\"-\"\"-true-2 split-\"  padded \\t\\n\"-\"\"-true--1 split-\"  padded \\t\\n\"-\"\"-false-0 split-\"  padded \\t\\n\"-\"\"-false-1 split-\"  padded \\t\\n\"-\"\"-false-2 split-\"  padded \\t\\n\"-\"\"-false--1 split-\"  padded \\t\\n\"-\",\"-true-0 split-\"  padded \\t\\n\"-\",\"-true-1 split-\"  padded \\t\\n\"-\",\"-true-2 split-\"  padded \\t\\n\"-\",\"-true--1 split-\"  padded \\t\\n\"-\",\"-false-0 split-\"  padded \\t\\n\"-\",\"-false-1 split-\"  padded \\t\\n\"-\",\"-false-2 split-\"  padded \\t\\n\"-\",\"-false--1 split-\"  padded \\t\\n\"-\"::\"-true-0 split-\"  padded \\t\\n\"-\"::\"-true-1 split-\"  padded \\t\\n\"-\"::\"-true-2 split-\"  padded \\t\\n\"-\"::\"-true--1 split-\"  padded \\t\\n\"-\"::\"-false-0 split-\"  padded \\t\\n\"-\"::\"-false-1 split-\"  padded \\t\\n\"-\"::\"-false-2 split-\"  padded \\t\\n\"-\"::\"-false--1 split-\"  padded \\t\\n\"-\"a\"-true-0 split-\"  padded \\t\\n\"-\"a\"-true-1 split-\"  padded \\t\\n\"-\"a\"-true-2 split-\"  padded \\t\\n\"-\"a\"-true--1 split-\"  padded \\t\\n\"-\"a\"-false-0 split-\"  padded \\t\\n\"-\"a\"-false-1 split-\"  padded \\t\\n\"-\"a\"-false-2 split-\"  padded \\t\\n\"-\"a\"-false--1 split-\"  padded \\t\\n\"-\"zz\"-true-0 split-\"  padded \\t\\n\"-\"zz\"-true-1 split-\"  padded \\t\\n\"-\"zz\"-true-2 split-\"  padded \\t\\n\"-\"zz\"-true--1 split-\"  padded \\t\\n\"-\"zz\"-false-0 split-\"  padded \\t\\n\"-\"zz\"-false-1 split-\"  padded \\t\\n\"-\"zz\"-false-2 split-\"  padded \\t\\n\"-\"zz\"-false--1 split-\"  padded \\t\\n\"-\"😀\"-true-0 split-\"  padded \\t\\n\"-\"😀\"-true-1 split-\"  padded \\t\\n\"-\"😀\"-true-2 split-\"  padded \\t\\n\"-\"😀\"-true--1 split-\"  padded \\t\\n\"-\"😀\"-false-0 split-\"  padded \\t\\n\"-\"😀\"-false-1 split-\"  padded \\t\\n\"-\"😀\"-false-2 split-\"  padded \\t\\n\"-\"😀\"-false--1 split-default-\"x::y::z\" split-\"x::y::z\"-\"\"-true-0 split-\"x::y::z\"-\"\"-true-1 split-\"x::y::z\"-\"\"-true-2 split-\"x::y::z\"-\"\"-true--1 split-\"x::y::z\"-\"\"-false-0 split-\"x::y::z\"-\"\"-false-1 split-\"x::y::z\"-\"\"-false-2 split-\"x::y::z\"-\"\"-false--1 split-\"x::y::z\"-\",\"-true-0 split-\"x::y::z\"-\",\"-true-1 split-\"x::y::z\"-\",\"-true-2 split-\"x::y::z\"-\",\"-true--1 split-\"x::y::z\"-\",\"-false-0 split-\"x::y::z\"-\",\"-false-1 split-\"x::y::z\"-\",\"-false-2 split-\"x::y::z\"-\",\"-false--1 split-\"x::y::z\"-\"::\"-true-0 split-\"x::y::z\"-\"::\"-true-1 split-\"x::y::z\"-\"::\"-true-2 split-\"x::y::z\"-\"::\"-true--1 split-\"x::y::z\"-\"::\"-false-0 split-\"x::y::z\"-\"::\"-false-1 split-\"x::y::z\"-\"::\"-false-2 split-\"x::y::z\"-\"::\"-false--1 split-\"x::y::z\"-\"a\"-true-0 split-\"x::y::z\"-\"a\"-true-1 split-\"x::y::z\"-\"a\"-true-2 split-\"x::y::z\"-\"a\"-true--1 split-\"x::y::z\"-\"a\"-false-0 split-\"x::y::z\"-\"a\"-false-1 split-\"x::y::z\"-\"a\"-false-2 split-\"x::y::z\"-\"a\"-false--1 split-\"x::y::z\"-\"zz\"-true-0 split-\"x::y::z\"-\"zz\"-true-1 split-\"x::y::z\"-\"zz\"-true-2 split-\"x::y::z\"-\"zz\"-true--1 split-\"x::y::z\"-\"zz\"-false-0 split-\"x::y::z\"-\"zz\"-false-1 split-\"x::y::z\"-\"zz\"-false-2 split-\"x::y::z\"-\"zz\"-false--1 split-\"x::y::z\"-\"😀\"-true-0 split-\"x::y::z\"-\"😀\"-true-1 split-\"x::y::z\"-\"😀\"-true-2 split-\"x::y::z\"-\"😀\"-true--1 split-\"x::y::z\"-\"😀\"-false-0 split-\"x::y::z\"-\"😀\"-false-1 split-\"x::y::z\"-\"😀\"-false-2 split-\"x::y::z\"-\"😀\"-false--1 split-default-\"é,ü,😀,ß\" split-\"é,ü,😀,ß\"-\"\"-true-0 split-\"é,ü,😀,ß\"-\"\"-true-1 split-\"é,ü,😀,ß\"-\"\"-true-2 split-\"é,ü,😀,ß\"-\"\"-true--1 split-\"é,ü,😀,ß\"-\"\"-false-0 split-\"é,ü,😀,ß\"-\"\"-false-1 split-\"é,ü,😀,ß\"-\"\"-false-2 split-\"é,ü,😀,ß\"-\"\"-false--1 split-\"é,ü,😀,ß\"-\",\"-true-0 split-\"é,ü,😀,ß\"-\",\"-true-1 split-\"é,ü,😀,ß\"-\",\"-true-2 split-\"é,ü,😀,ß\"-\",\"-true--1 split-\"é,ü,😀,ß\"-\",\"-false-0 split-\"é,ü,😀,ß\"-\",\"-false-1 split-\"é,ü,😀,ß\"-\",\"-false-2 split-\"é,ü,😀,ß\"-\",\"-false--1 split-\"é,ü,😀,ß\"-\"::\"-true-0 split-\"é,ü,😀,ß\"-\"::\"-true-1 split-\"é,ü,😀,ß\"-\"::\"-true-2 split-\"é,ü,😀,ß\"-\"::\"-true--1 split-\"é,ü,😀,ß\"-\"::\"-false-0 split-\"é,ü,😀,ß\"-\"::\"-false-1 split-\"é,ü,😀,ß\"-\"::\"-false-2 split-\"é,ü,😀,ß\"-\"::\"-false--1 split-\"é,ü,😀,ß\"-\"a\"-true-0 split-\"é,ü,😀,ß\"-\"a\"-true-1 split-\"é,ü,😀,ß\"-\"a\"-true-2 split-\"é,ü,😀,ß\"-\"a\"-true--1 split-\"é,ü,😀,ß\"-\"a\"-false-0 split-\"é,ü,😀,ß\"-\"a\"-false-1 split-\"é,ü,😀,ß\"-\"a\"-false-2 split-\"é,ü,😀,ß\"-\"a\"-false--1 split-\"é,ü,😀,ß\"-\"zz\"-true-0 split-\"é,ü,😀,ß\"-\"zz\"-true-1 split-\"é,ü,😀,ß\"-\"zz\"-true-2 split-\"é,ü,😀,ß\"-\"zz\"-true--1 split-\"é,ü,😀,ß\"-\"zz\"-false-0 split-\"é,ü,😀,ß\"-\"zz\"-false-1 split-\"é,ü,😀,ß\"-\"zz\"-false-2 split-\"é,ü,😀,ß\"-\"zz\"-false--1 split-\"é,ü,😀,ß\"-\"😀\"-true-0 split-\"é,ü,😀,ß\"-\"😀\"-true-1 split-\"é,ü,😀,ß\"-\"😀\"-true-2 split-\"é,ü,😀,ß\"-\"😀\"-true--1 split-\"é,ü,😀,ß\"-\"😀\"-false-0 split-\"é,ü,😀,ß\"-\"😀\"-false-1 split-\"é,ü,😀,ß\"-\"😀\"-false-2 split-\"é,ü,😀,ß\"-\"😀\"-false--1 split-default-\"😀😀\" split-\"😀😀\"-\"\"-true-0 split-\"😀😀\"-\"\"-true-1 split-\"😀😀\"-\"\"-true-2 split-\"😀😀\"-\"\"-true--1 split-\"😀😀\"-\"\"-false-0 split-\"😀😀\"-\"\"-false-1 split-\"😀😀\"-\"\"-false-2 split-\"😀😀\"-\"\"-false--1 split-\"😀😀\"-\",\"-true-0 split-\"😀😀\"-\",\"-true-1 split-\"😀😀\"-\",\"-true-2 split-\"😀😀\"-\",\"-true--1 split-\"😀😀\"-\",\"-false-0 split-\"😀😀\"-\",\"-false-1 split-\"😀😀\"-\",\"-false-2 split-\"😀😀\"-\",\"-false--1 split-\"😀😀\"-\"::\"-true-0 split-\"😀😀\"-\"::\"-true-1 split-\"😀😀\"-\"::\"-true-2 split-\"😀😀\"-\"::\"-true--1 split-\"😀😀\"-\"::\"-false-0 split-\"😀😀\"-\"::\"-false-1 split-\"😀😀\"-\"::\"-false-2 split-\"😀😀\"-\"::\"-false--1 split-\"😀😀\"-\"a\"-true-0 split-\"😀😀\"-\"a\"-true-1 split-\"😀😀\"-\"a\"-true-2 split-\"😀😀\"-\"a\"-true--1 split-\"😀😀\"-\"a\"-false-0 split-\"😀😀\"-\"a\"-false-1 split-\"😀😀\"-\"a\"-false-2 split-\"😀😀\"-\"a\"-false--1 split-\"😀😀\"-\"zz\"-true-0 split-\"😀😀\"-\"zz\"-true-1 split-\"😀😀\"-\"zz\"-true-2 split-\"😀😀\"-\"zz\"-true--1 split-\"😀😀\"-\"zz\"-false-0 split-\"😀😀\"-\"zz\"-false-1 split-\"😀😀\"-\"zz\"-false-2 split-\"😀😀\"-\"zz\"-false--1 split-\"😀😀\"-\"😀\"-true-0 split-\"😀😀\"-\"😀\"-true-1 split-\"😀😀\"-\"😀\"-true-2 split-\"😀😀\"-\"😀\"-true--1 split-\"😀😀\"-\"😀\"-false-0 split-\"😀😀\"-\"😀\"-false-1 split-\"😀😀\"-\"😀\"-false-2 split-\"😀😀\"-\"😀\"-false--1 split-default-\",,\" split-\",,\"-\"\"-true-0 split-\",,\"-\"\"-true-1 split-\",,\"-\"\"-true-2 split-\",,\"-\"\"-true--1 split-\",,\"-\"\"-false-0 split-\",,\"-\"\"-false-1 split-\",,\"-\"\"-false-2 split-\",,\"-\"\"-false--1 split-\",,\"-\",\"-true-0 split-\",,\"-\",\"-true-1 split-\",,\"-\",\"-true-2 split-\",,\"-\",\"-true--1 split-\",,\"-\",\"-false-0 split-\",,\"-\",\"-false-1 split-\",,\"-\",\"-false-2 split-\",,\"-\",\"-false--1 split-\",,\"-\"::\"-true-0 split-\",,\"-\"::\"-true-1 split-\",,\"-\"::\"-true-2 split-\",,\"-\"::\"-true--1 split-\",,\"-\"::\"-false-0 split-\",,\"-\"::\"-false-1 split-\",,\"-\"::\"-false-2 split-\",,\"-\"::\"-false--1 split-\",,\"-\"a\"-true-0 split-\",,\"-\"a\"-true-1 split-\",,\"-\"a\"-true-2 split-\",,\"-\"a\"-true--1 split-\",,\"-\"a\"-false-0 split-\",,\"-\"a\"-false-1 split-\",,\"-\"a\"-false-2 split-\",,\"-\"a\"-false--1 split-\",,\"-\"zz\"-true-0 split-\",,\"-\"zz\"-true-1 split-\",,\"-\"zz\"-true-2 split-\",,\"-\"zz\"-true--1 split-\",,\"-\"zz\"-false-0 split-\",,\"-\"zz\"-false-1 split-\",,\"-\"zz\"-false-2 split-\",,\"-\"zz\"-false--1 split-\",,\"-\"😀\"-true-0 split-\",,\"-\"😀\"-true-1 split-\",,\"-\"😀\"-true-2 split-\",,\"-\"😀\"-true--1 split-\",,\"-\"😀\"-false-0 split-\",,\"-\"😀\"-false-1 split-\",,\"-\"😀\"-false-2 split-\",,\"-\"😀\"-false--1",
+        "observedOutputSha256": "91733ed7633e1c1ba29cdf29bd676a9ca483d6337cec8897402f82607c007811"
+      },
+      "target": {
+        "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b",
+        "callsite": "lib/godot-compat/string.ts split",
+        "observedOutputSha256": "91733ed7633e1c1ba29cdf29bd676a9ca483d6337cec8897402f82607c007811"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3b9d5ad3ed337519cc7628e7efe49470fe6bae361da61a4afffc78f6c9fd42fa"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "string",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-String.strip_edges",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000String\u0000strip_edges\u0000hash:907855311",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/string/ustring.cpp",
+        "sourceSymbol": "String.strip_edges",
+        "sourceLine": 4067
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "7a73d1361404693ff688ab28e3c025fb853e9ae2f3ddff6dac3fed17fa430818",
+        "callsite": "res://probe.gd _init() strip_edges-\"\"-true-true strip_edges-\"\"-true-false strip_edges-\"\"-false-true strip_edges-\"\"-false-false strip_edges-default-\"\" strip_edges-\"a,b,c\"-true-true strip_edges-\"a,b,c\"-true-false strip_edges-\"a,b,c\"-false-true strip_edges-\"a,b,c\"-false-false strip_edges-default-\"a,b,c\" strip_edges-\",a,,b,\"-true-true strip_edges-\",a,,b,\"-true-false strip_edges-\",a,,b,\"-false-true strip_edges-\",a,,b,\"-false-false strip_edges-default-\",a,,b,\" strip_edges-\"no delimiter\"-true-true strip_edges-\"no delimiter\"-true-false strip_edges-\"no delimiter\"-false-true strip_edges-\"no delimiter\"-false-false strip_edges-default-\"no delimiter\" strip_edges-\"aaa\"-true-true strip_edges-\"aaa\"-true-false strip_edges-\"aaa\"-false-true strip_edges-\"aaa\"-false-false strip_edges-default-\"aaa\" strip_edges-\"  padded \\t\\n\"-true-true strip_edges-\"  padded \\t\\n\"-true-false strip_edges-\"  padded \\t\\n\"-false-true strip_edges-\"  padded \\t\\n\"-false-false strip_edges-default-\"  padded \\t\\n\" strip_edges-\"x::y::z\"-true-true strip_edges-\"x::y::z\"-true-false strip_edges-\"x::y::z\"-false-true strip_edges-\"x::y::z\"-false-false strip_edges-default-\"x::y::z\" strip_edges-\"é,ü,😀,ß\"-true-true strip_edges-\"é,ü,😀,ß\"-true-false strip_edges-\"é,ü,😀,ß\"-false-true strip_edges-\"é,ü,😀,ß\"-false-false strip_edges-default-\"é,ü,😀,ß\" strip_edges-\"😀😀\"-true-true strip_edges-\"😀😀\"-true-false strip_edges-\"😀😀\"-false-true strip_edges-\"😀😀\"-false-false strip_edges-default-\"😀😀\" strip_edges-\",,\"-true-true strip_edges-\",,\"-true-false strip_edges-\",,\"-false-true strip_edges-\",,\"-false-false strip_edges-default-\",,\" strip_edges-controls-\"\\u0001\\u0002 x \\u001f \" strip_edges-controls-\" x \" strip_edges-controls-\"　y\"",
+        "observedOutputSha256": "a21a56e0fd6f7287620e03c83eb14808000b0c96c8920c449fdb7d090b240d5f"
+      },
+      "target": {
+        "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b",
+        "callsite": "lib/godot-compat/string.ts strip_edges",
+        "observedOutputSha256": "a21a56e0fd6f7287620e03c83eb14808000b0c96c8920c449fdb7d090b240d5f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "040bae3ca852949c2d9557324accba1330b15b72a6f22aa26ee5df18338b281e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "string",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-String.OP_ADD.right:String",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-operator\u0000String\u0000OP_ADD\u0000right:String",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/variant_op.h",
+        "sourceSymbol": "String.OP_ADD",
+        "sourceLine": 705
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d498f6e7da134daea5beac4966b520cadd7612451297963592f821f8db9fd64c",
+        "callsite": "res://probe.gd _init() op_add-\"\"-\"\" op_add-\"a\"-\"b\" op_add-\"é\"-\"😀\" op_add-\"abc\"-\"abc\" op_add-\"abc\"-\"abd\" op_add-\"😀\"-\"😀\"",
+        "observedOutputSha256": "9a111a62c538d20bdba1fd482d99ca1033f5c9b1b050010b96a8494a148770f8"
+      },
+      "target": {
+        "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b",
+        "callsite": "lib/godot-compat/string.ts op_add",
+        "observedOutputSha256": "9a111a62c538d20bdba1fd482d99ca1033f5c9b1b050010b96a8494a148770f8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a4f931558815d6e1c43a6d3fb1959f99e69c6f8dbf02cd618ad54763bc57b117"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "string",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-String.OP_ADD.right:StringName",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-operator\u0000String\u0000OP_ADD\u0000right:StringName",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/variant_op.h",
+        "sourceSymbol": "String.OP_ADD",
+        "sourceLine": 705
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "68fedcf006269bd9d6f845c546c2b7118a4a182cb26df44d44f7941d1cf8ea68",
+        "callsite": "res://probe.gd _init() op_add-name-\"\"-\"\" op_add-name-\"a\"-\"b\" op_add-name-\"é\"-\"😀\" op_add-name-\"abc\"-\"abc\" op_add-name-\"abc\"-\"abd\" op_add-name-\"😀\"-\"😀\"",
+        "observedOutputSha256": "ca09f9c8c9582136b75d58a0fc99cfd1b61a81a2442911899bf175bea63af801"
+      },
+      "target": {
+        "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b",
+        "callsite": "lib/godot-compat/string.ts op_add",
+        "observedOutputSha256": "ca09f9c8c9582136b75d58a0fc99cfd1b61a81a2442911899bf175bea63af801"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "eaef1a34ee7434db53cb7817be667315ab1b6269bfbd12e0118bf1048af3ab1a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "string",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-String.OP_EQUAL.right:String",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-operator\u0000String\u0000OP_EQUAL\u0000right:String",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/variant_op.cpp",
+        "sourceSymbol": "String.OP_EQUAL",
+        "sourceLine": 493
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "8e95a59c7e94df58cd0df2ea595937c95d00cbe23ccde086f821b12d11e99a75",
+        "callsite": "res://probe.gd _init() op_equal-\"\"-\"\" op_equal-\"a\"-\"b\" op_equal-\"é\"-\"😀\" op_equal-\"abc\"-\"abc\" op_equal-\"abc\"-\"abd\" op_equal-\"😀\"-\"😀\"",
+        "observedOutputSha256": "c7155f72e5dc1e4c00d4cafad4bc6468e48bfe30885103a3da8fb29a6b1317b2"
+      },
+      "target": {
+        "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b",
+        "callsite": "lib/godot-compat/string.ts op_equal",
+        "observedOutputSha256": "c7155f72e5dc1e4c00d4cafad4bc6468e48bfe30885103a3da8fb29a6b1317b2"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3e525cc83e99ab916f1b146cfb6da682c9b6f86eea3cff447bfffc0d2edea554"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "string",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-String.OP_EQUAL.right:StringName",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-operator\u0000String\u0000OP_EQUAL\u0000right:StringName",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/variant_op.cpp",
+        "sourceSymbol": "String.OP_EQUAL",
+        "sourceLine": 493
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1a5bc01757ce9082b1afd4a4e385d9b39cdb47aa8ccfd36f3e9703d1ea5ee0c5",
+        "callsite": "res://probe.gd _init() op_equal-name-\"\"-\"\" op_equal-name-\"a\"-\"b\" op_equal-name-\"é\"-\"😀\" op_equal-name-\"abc\"-\"abc\" op_equal-name-\"abc\"-\"abd\" op_equal-name-\"😀\"-\"😀\"",
+        "observedOutputSha256": "3b1d19654c95677ecfa84de9fdf53e90f089ff29dd301b5f34cab785d23ae8b5"
+      },
+      "target": {
+        "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b",
+        "callsite": "lib/godot-compat/string.ts op_equal",
+        "observedOutputSha256": "3b1d19654c95677ecfa84de9fdf53e90f089ff29dd301b5f34cab785d23ae8b5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c7351685fa0043ed29ecba5e6fe1386a4e0c4800d92d5284cd744b7df49e488a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "string",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-String.split",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "beaed4158c57153d62dec8ef95140d96acd1bf92b8b7e02b0c5e218c83690d32",
+      "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b"
+    },
+    {
+      "claimId": "godot-4.7-binding-String.strip_edges",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "7a73d1361404693ff688ab28e3c025fb853e9ae2f3ddff6dac3fed17fa430818",
+      "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b"
+    },
+    {
+      "claimId": "godot-4.7-binding-String.OP_ADD.right:String",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d498f6e7da134daea5beac4966b520cadd7612451297963592f821f8db9fd64c",
+      "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b"
+    },
+    {
+      "claimId": "godot-4.7-binding-String.OP_ADD.right:StringName",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "68fedcf006269bd9d6f845c546c2b7118a4a182cb26df44d44f7941d1cf8ea68",
+      "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b"
+    },
+    {
+      "claimId": "godot-4.7-binding-String.OP_EQUAL.right:String",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "8e95a59c7e94df58cd0df2ea595937c95d00cbe23ccde086f821b12d11e99a75",
+      "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b"
+    },
+    {
+      "claimId": "godot-4.7-binding-String.OP_EQUAL.right:StringName",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1a5bc01757ce9082b1afd4a4e385d9b39cdb47aa8ccfd36f3e9703d1ea5ee0c5",
+      "implementationSha256": "afa41b99c71800afda6582c5c6eb58681473dd5141ba81d7f02a76b78289629b"
+    }
+  ]
+}

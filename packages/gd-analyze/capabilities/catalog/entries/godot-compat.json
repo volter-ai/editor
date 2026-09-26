@@ -8,6 +8,7 @@
     "src/lib/godot-compat/react-lifecycle.tsx",
     "src/lib/godot-compat/rect2.ts",
     "src/lib/godot-compat/signal.ts",
+    "src/lib/godot-compat/string.ts",
     "src/lib/godot-compat/transform-2d.ts",
     "src/lib/godot-compat/transform-3d.ts",
     "src/lib/godot-compat/vector2.ts",
