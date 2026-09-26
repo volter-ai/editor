@@ -245,8 +245,8 @@ tool and selects the piece finder in `vgai.adapter.ts`; a worked piece from the 
 `examples/` opens in the same running session; `project.music.render` with sections wrote 32
 files under `public/music/harbor` (no problems, −18 LUFS, seam 0.177) with each recorded in
 `.vgai/provenance.json`, rendering in its own process (the editor answered in about 270 ms
-throughout) and byte-identical to an in-process render; console silent but for the workbench
-warning below.
+throughout) and byte-identical to an in-process render; console silent but for the workbench's
+supercode warning (Remaining, item 7).
 
 Open, with what closes each:
 - Bitwig's editing basics, landed and each driven through its own control on Harbor (source
