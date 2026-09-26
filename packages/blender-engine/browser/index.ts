@@ -5,3 +5,4 @@ export {
   type PresentAnswer,
   type ScreenshotView,
 } from './runtime';
+export { prefetchBlenderArtifacts } from './artifact-cache.mts';

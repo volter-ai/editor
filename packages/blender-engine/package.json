@@ -44,5 +44,8 @@
   "scripts": {
     "build:blender-three": "vite build --config vite.release.config.ts",
     "typecheck": "tsc -p tsconfig.browser.json"
+  },
+  "dependencies": {
+    "brotli-wasm": "^3.0.1"
   }
 }

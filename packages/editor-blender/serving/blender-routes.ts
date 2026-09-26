@@ -181,6 +181,20 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
         // gets it inflated here.
         const accepted = String(req.headers['accept-encoding'] ?? '').toLowerCase();
         const sendEncoded = found.encoding !== null && accepted.includes(found.encoding);
+        // THE ENGINE'S OWN DECODER, ASKED FOR BY NAME. A tab's service worker
+        // asks with no Accept-Encoding, so a pre-compressed file was inflated
+        // here, in the tab's own JavaScript, and 139 MB crossed the tab's HTTP
+        // path where 27 MB would do (measured 2026-09-26: 4.5 s of a first
+        // open). The engine asks `?encoding=br` and inflates the stored bytes
+        // itself; they go out under a header no layer between acts on.
+        if (found.encoding === 'br' && url.searchParams.get('encoding') === 'br') {
+          res.setHeader('cache-control', 'no-cache');
+          res.setHeader('content-type', 'application/octet-stream');
+          res.setHeader('x-content-encoding', 'br');
+          res.setHeader('content-length', String(found.size));
+          blenderWasmReadStream(found).pipe(res);
+          return;
+        }
         const etag = `"${sendEncoded ? found.encoding : 'identity'}-${info.size}-${Math.floor(info.mtimeMs)}"`;
         res.setHeader('cache-control', 'no-cache');
         res.setHeader('etag', etag);

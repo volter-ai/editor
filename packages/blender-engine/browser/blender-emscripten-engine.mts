@@ -40,6 +40,7 @@ import {
   sleep,
 } from './blender-engine.mts';
 import sessionPython from './session.py?raw';
+import { cachedArtifact } from './artifact-cache.mts';
 
 /** Blender's task scheduler threads in the browser (`--threads`). */
 const BLENDER_TASK_THREADS = 1;
@@ -146,24 +147,6 @@ function moduleFiles(module: BlenderModule): BlenderFiles {
  * alone), about half of it decoding their brotli. A file the door gives no
  * digest for is fetched as it always was.
  */
-const ARTIFACT_CACHE = 'volter-blender-artifacts';
-
-async function cachedArtifact(file: string, digest: string | undefined): Promise<Response> {
-  const url = artifactUrl(file);
-  if (!digest || typeof caches === 'undefined') return fetch(url);
-  const key = `${url}?sha256=${digest}`;
-  const cache = await caches.open(ARTIFACT_CACHE);
-  const hit = await cache.match(key);
-  if (hit) return hit;
-  const response = await fetch(url);
-  if (!response.ok) return response;
-  // One build's bytes per file: an older build's are dropped as this one lands.
-  for (const old of await cache.keys()) if (old.url.startsWith(`${url}?sha256=`) && old.url !== key) await cache.delete(old);
-  const kept = new Response(await response.blob(), { headers: { 'content-type': response.headers.get('content-type') ?? 'application/octet-stream' } });
-  await cache.put(key, kept.clone());
-  return kept;
-}
-
 export async function startEmscriptenBlenderEngine(
   options: BlenderEngineOptions,
   status: BlenderArtifactStatus,
