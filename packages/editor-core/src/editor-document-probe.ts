@@ -778,10 +778,44 @@ function gestureTarget(scope: Scope, step: { selector?: string; index?: number }
   return keyTarget(scope, explicit);
 }
 
+/** The physical key a person presses for `key`, as `KeyboardEvent.code` names it on a US
+ *  layout: a keystroke that says `code: 'w'` is one no keybinding resolver or game input map
+ *  recognises. */
+const PUNCTUATION_CODES: Readonly<Record<string, string>> = {
+  ' ': 'Space', '`': 'Backquote', '-': 'Minus', '=': 'Equal', '[': 'BracketLeft', ']': 'BracketRight',
+  '\\': 'Backslash', ';': 'Semicolon', "'": 'Quote', ',': 'Comma', '.': 'Period', '/': 'Slash',
+};
+function codeOf(key: string): string {
+  if (/^[a-z]$/i.test(key)) return `Key${key.toUpperCase()}`;
+  if (/^[0-9]$/.test(key)) return `Digit${key}`;
+  return PUNCTUATION_CODES[key] ?? key;
+}
+
+/** The legacy `keyCode` browsers still give every keystroke and VS Code's keybinding
+ *  resolution reads; a synthesized event carries 0 unless it is set. */
+const NAMED_KEY_CODES: Readonly<Record<string, number>> = {
+  Backspace: 8, Tab: 9, Enter: 13, Escape: 27, ' ': 32, PageUp: 33, PageDown: 34, End: 35, Home: 36,
+  ArrowLeft: 37, ArrowUp: 38, ArrowRight: 39, ArrowDown: 40, Delete: 46,
+};
+function keyCodeOf(key: string): number {
+  if (/^[a-z0-9]$/i.test(key)) return key.toUpperCase().charCodeAt(0);
+  const fn = /^F([1-9]|1[0-2])$/.exec(key);
+  if (fn) return 111 + Number(fn[1]);
+  return NAMED_KEY_CODES[key] ?? 0;
+}
+
+function keyEvent(type: 'keydown' | 'keyup', step: DocumentKeyStep): KeyboardEvent {
+  const event = new KeyboardEvent(type, keyInit(step));
+  const keyCode = keyCodeOf(step.key);
+  Object.defineProperty(event, 'keyCode', { get: () => keyCode });
+  Object.defineProperty(event, 'which', { get: () => keyCode });
+  return event;
+}
+
 function keyInit(step: DocumentKeyStep): KeyboardEventInit {
   return {
     key: step.key,
-    code: step.code ?? step.key,
+    code: step.code ?? codeOf(step.key),
     bubbles: true,
     cancelable: true,
     composed: true,
@@ -915,10 +949,15 @@ export async function runDocumentProbe(step: DocumentProbeStep): Promise<Documen
     }
     case 'key': {
       const target = gestureTarget(scope, step);
-      const init = keyInit(step);
-      target.dispatchEvent(new KeyboardEvent('keydown', init));
+      // A person's keystroke lands where their click put focus; what the workbench decides a
+      // chord means follows that focus (its `vgai.stage.focused` context), so the target takes
+      // focus first unless focus is already inside it.
+      if (!(document.activeElement instanceof Node && target.contains(document.activeElement))) {
+        target.focus({ preventScroll: true });
+      }
+      target.dispatchEvent(keyEvent('keydown', step));
       if (step.holdMs) await new Promise((settle) => setTimeout(settle, step.holdMs));
-      target.dispatchEvent(new KeyboardEvent('keyup', init));
+      target.dispatchEvent(keyEvent('keyup', step));
       return drove(target);
     }
     case 'select': {
