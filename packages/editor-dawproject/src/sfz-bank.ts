@@ -6,8 +6,12 @@
  * Translated, from what the library at hand uses (VSCO 2 Community Edition counts every opcode
  * below): `sample`, `lokey`/`hikey`, `lovel`/`hivel`, `pitch_keycenter`, `tune`, `volume`,
  * `ampeg_attack`, `ampeg_release`, and `default_path` from `<control>`, with `<global>` and
- * `<group>` values inherited by their regions. A round-robin set (`seq_position`, `lorand`)
- * keeps its first region: a SoundFont has no round robin. A stereo sample becomes a linked
+ * `<group>` values inherited by their regions. A SoundFont has no round robin, so a patch with
+ * round-robin sets (`seq_position`, or `lorand` ranges) becomes one preset per member: the first
+ * at the patch's own bank and program, member n at bank + (n − 1) with the same program, named
+ * `<name> ~n` (`roundRobins` reads that back, and the players step through the members note by
+ * note). A drum kit keeps its first member: the drum channel does not select kits by bank. A
+ * stereo sample becomes a linked
  * left/right pair panned hard. Any other opcode on a region is refused by name, never dropped.
  *
  * LEVEL: SFZ `volume` is a gain in dB that may boost, and a SoundFont zone can only attenuate. So
@@ -96,11 +100,19 @@ function convertedRegions(patches: readonly SfzPatch[]) {
         if (TRANSLATED.has(opcode) || IGNORED.has(opcode) || /^(seq_position|lorand|sw_)/.test(opcode)) continue;
         throw new Error(`${patch.name}: the opcode ${opcode} has no translation to a SoundFont zone.`);
       }
-      // A round-robin set keeps its first member.
-      if (region['seq_position'] !== undefined && region['seq_position'] !== '1') return false;
-      return !(region['lorand'] !== undefined && Number(region['lorand']) > 0);
+      return true;
     });
-    return { patch, regions: kept.map((region) => ({ region, path: `${defaultPath}${region['sample']!.replace(/\\/g, '/')}`, gainDb: Number(region['volume'] ?? 0) })) };
+    // A region's round-robin member (from 0), or -1 when it sounds in every member.
+    const randomStarts = [...new Set(kept.filter((region) => region['lorand'] !== undefined).map((region) => Number(region['lorand'])))].sort((a, b) => a - b);
+    const memberOf = (region: Opcodes): number =>
+      region['seq_position'] !== undefined ? Number(region['seq_position']) - 1 : region['lorand'] !== undefined ? randomStarts.indexOf(Number(region['lorand'])) : -1;
+    const drums = (patch.bankNumber ?? 0) >= 128;
+    return {
+      patch,
+      regions: kept
+        .map((region) => ({ region, member: memberOf(region), path: `${defaultPath}${region['sample']!.replace(/\\/g, '/')}`, gainDb: Number(region['volume'] ?? 0) }))
+        .filter((region) => !drums || region.member <= 0),
+    };
   });
 }
 
@@ -167,32 +179,47 @@ export async function sfzBank(patches: readonly SfzPatch[], headroomDb?: number,
     return made;
   };
   for (const { patch, regions } of converted) {
-    const instrument = new BasicInstrument();
-    instrument.name = patch.name.slice(0, 20);
-    for (const { region, path, gainDb } of regions) {
-      const key = Number(region['pitch_keycenter'] ?? 60);
-      const parts = sampleFor(path, key);
-      parts.forEach((sample, index) => {
-        const zone = instrument.createZone(sample);
-        zone.keyRange = { min: Number(region['lokey'] ?? 0), max: Number(region['hikey'] ?? 127) };
-        zone.velRange = { min: Number(region['lovel'] ?? 0), max: Number(region['hivel'] ?? 127) };
-        zone.setGenerator(GeneratorTypes.overridingRootKey, key);
-        const below = gainOf.get(path)! - gainDb;
-        if (below > 0) zone.setGenerator(GeneratorTypes.initialAttenuation, Math.round(below * 25));
-        if (region['tune'] !== undefined) zone.setGenerator(GeneratorTypes.fineTune, Number(region['tune']));
-        if (region['ampeg_attack'] !== undefined) zone.setGenerator(GeneratorTypes.attackVolEnv, timecents(Number(region['ampeg_attack'])));
-        if (region['ampeg_release'] !== undefined) zone.setGenerator(GeneratorTypes.releaseVolEnv, timecents(Number(region['ampeg_release'])));
-        if (parts.length === 2) zone.setGenerator(GeneratorTypes.pan, index === 0 ? -500 : 500);
-      });
+    const members = Math.max(1, ...regions.map((region) => region.member + 1));
+    for (let member = 0; member < members; member++) {
+      const instrument = new BasicInstrument();
+      const name = members > 1 && member > 0 ? `${patch.name.slice(0, 16)} ~${member + 1}` : patch.name.slice(0, 20);
+      instrument.name = name;
+      for (const { region, path, gainDb } of regions.filter((candidate) => candidate.member === -1 || candidate.member === member)) {
+        const key = Number(region['pitch_keycenter'] ?? 60);
+        const parts = sampleFor(path, key);
+        parts.forEach((sample, index) => {
+          const zone = instrument.createZone(sample);
+          zone.keyRange = { min: Number(region['lokey'] ?? 0), max: Number(region['hikey'] ?? 127) };
+          zone.velRange = { min: Number(region['lovel'] ?? 0), max: Number(region['hivel'] ?? 127) };
+          zone.setGenerator(GeneratorTypes.overridingRootKey, key);
+          const below = gainOf.get(path)! - gainDb;
+          if (below > 0) zone.setGenerator(GeneratorTypes.initialAttenuation, Math.round(below * 25));
+          if (region['tune'] !== undefined) zone.setGenerator(GeneratorTypes.fineTune, Number(region['tune']));
+          if (region['ampeg_attack'] !== undefined) zone.setGenerator(GeneratorTypes.attackVolEnv, timecents(Number(region['ampeg_attack'])));
+          if (region['ampeg_release'] !== undefined) zone.setGenerator(GeneratorTypes.releaseVolEnv, timecents(Number(region['ampeg_release'])));
+          if (parts.length === 2) zone.setGenerator(GeneratorTypes.pan, index === 0 ? -500 : 500);
+        });
+      }
+      bank.addInstruments(instrument);
+      const preset = new BasicPreset(bank);
+      preset.name = name;
+      preset.program = patch.program;
+      preset.bankMSB = (patch.bankNumber ?? 0) + member;
+      preset.createZone(instrument);
+      bank.addPresets(preset);
     }
-    bank.addInstruments(instrument);
-    const preset = new BasicPreset(bank);
-    preset.name = patch.name.slice(0, 20);
-    preset.program = patch.program;
-    preset.bankMSB = patch.bankNumber ?? 0;
-    preset.createZone(instrument);
-    bank.addPresets(preset);
   }
   if (compress) await bank.setSampleFormat({ format: 'compressed', compressionFunction: compress });
   return bank.writeSF2();
+}
+
+/**
+ * How many round-robin members a patch has in a loaded bank: its preset at `bankMSB` and
+ * `program`, then one preset per further member at bankMSB + 1, + 2, … named `~2`, `~3`, …
+ * (as `sfzBank` writes them). 1 for any other preset.
+ */
+export function roundRobins(presets: readonly { readonly name: string; readonly bankMSB: number; readonly program: number }[], bankMSB: number, program: number): number {
+  let count = 1;
+  while (presets.some((preset) => preset.bankMSB === bankMSB + count && preset.program === program && preset.name.endsWith(` ~${count + 1}`))) count++;
+  return count;
 }

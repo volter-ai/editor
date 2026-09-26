@@ -18,7 +18,8 @@ import { type Performance, perform } from '@volter/dawproject/perform';
 import type { Piece, PieceTrack } from '@volter/dawproject/piece';
 import { projectModuleUrl } from '@volter/editor-sdk/contributions';
 import { WorkletSynthesizer } from 'spessasynth_lib';
-import { articulationPrograms } from './articulations';
+import { type NotePatch, notePatches } from './articulations';
+import { roundRobins } from './sfz-bank';
 import { LiveMix, mixSignature, servedIrLoader } from './mix/live-mix';
 import processorUrl from 'spessasynth_lib/dist/spessasynth_processor.min.js?url';
 
@@ -59,12 +60,13 @@ export function scheduleSpan(
   fromSecond: number,
   toSecond: number,
   at: (second: number) => number,
+  /** Each note's bank and program where they change note by note (`patchesFor`). */
+  patches: ReadonlyMap<object, NotePatch> = new Map(),
 ): void {
   const span = performance.seconds;
   if (span <= 0) return;
   const voices = trackVoices(piece);
   const audibleTracks = new Map(piece.tracks.map((track) => [track.id, audible(piece, track)]));
-  const patchOf = articulationPrograms(piece);
   let from = fromSecond;
   while (from < toSecond) {
     // Piece-seconds count up across passes; each pass is folded into the loop to find its events.
@@ -88,8 +90,11 @@ export function scheduleSpan(
       const voice = voices.get(note.track);
       if (!voice || !audibleTracks.get(note.track)) continue;
       const velocity = Math.max(1, Math.min(127, Math.round(note.velocity * 127)));
-      const patch = patchOf.get(note.track);
-      if (patch) synth.programChange(voice.channel, patch(note.artic), { time: at(passStart + note.start) });
+      const patch = patches.get(note);
+      if (patch) {
+        synth.controllerChange(voice.channel, 0, patch.bankSelect, { time: at(passStart + note.start) });
+        synth.programChange(voice.channel, patch.program, { time: at(passStart + note.start) });
+      }
       synth.noteOn(voice.channel, note.pitch, velocity, { time: at(passStart + note.start) });
       synth.noteOff(voice.channel, note.pitch, { time: at(passStart + note.end) });
     }
@@ -144,12 +149,37 @@ export type EngineState =
   | { readonly kind: 'playing' }
   | { readonly kind: 'error'; readonly message: string };
 
+/**
+ * Each performed note's bank and program where they change note by note (articulations, round
+ * robins), from the banks as loaded: `bankOffset` is where each sits and `presets` the synth's
+ * list, whose bank numbers already carry the offsets.
+ */
+export function patchesFor(
+  piece: Piece,
+  performance: Performance,
+  bankOffset: ReadonlyMap<string, number>,
+  presets: readonly { readonly name: string; readonly bankMSB: number; readonly program: number }[],
+): Map<object, NotePatch> {
+  const voices = trackVoices(piece);
+  return notePatches(
+    piece,
+    performance.notes,
+    (track) => {
+      const voice = voices.get(track);
+      return voice && voice.channel !== DRUM_CHANNEL ? (voice.bank ? (bankOffset.get(voice.bank) ?? 0) : 0) + voice.bankNumber : null;
+    },
+    (_track, bankSelect, program) => roundRobins(presets, bankSelect, program),
+  );
+}
+
 export class PreviewEngine {
   private context: AudioContext | null = null;
   private synth: WorkletSynthesizer | null = null;
   /** The mix graph the synth's channel outputs feed (`mix/live-mix.ts`). */
   private mix: LiveMix | null = null;
   private mixBuiltFor = '';
+  /** Each note's bank and program where they change note by note, for the current performance. */
+  private patches: ReadonlyMap<object, NotePatch> = new Map();
   /** Each loaded bank's offset: one above the highest bank number loaded before it, kept for the engine's life. */
   private readonly bankOffsets = new Map<string, number>();
   private timer: ReturnType<typeof setInterval> | null = null;
@@ -184,6 +214,7 @@ export class PreviewEngine {
   update(piece: Piece): void {
     this.piece = piece;
     this.performance = perform(piece);
+    this.patches = this.synth ? patchesFor(piece, this.performance, this.bankOffsets, this.synth.presetList) : new Map();
     if (this.synth && this.state.kind === 'playing') {
       this.applyMix(piece);
       void this.rebuildMix(piece).catch((error: unknown) =>
@@ -248,6 +279,7 @@ export class PreviewEngine {
       this.stopTimer();
       this.synth?.stopAll(true);
       this.performance = perform(piece);
+      this.patches = this.synth ? patchesFor(piece, this.performance, this.bankOffsets, this.synth.presetList) : new Map();
       this.originSecond = this.performance.secondsAt(fromBeat);
       this.originTime = this.context.currentTime + 0.05;
       this.scheduledTo = this.originSecond;
@@ -310,7 +342,7 @@ export class PreviewEngine {
     const horizon = this.originSecond + (context.currentTime + LOOKAHEAD_S - this.originTime);
     if (horizon <= this.scheduledTo) return;
     const at = (second: number): number => this.originTime + (second - this.originSecond);
-    scheduleSpan(synth, piece, performance, this.scheduledTo, horizon, at);
+    scheduleSpan(synth, piece, performance, this.scheduledTo, horizon, at, this.patches);
     this.scheduledTo = horizon;
   }
 }

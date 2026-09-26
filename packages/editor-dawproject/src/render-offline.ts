@@ -10,7 +10,8 @@
 
 import { perform } from '@volter/dawproject/perform';
 import type { Piece } from '@volter/dawproject/piece';
-import { articulationPrograms } from './articulations';
+import { notePatches } from './articulations';
+import { roundRobins } from './sfz-bank';
 import { type DynamicsReport, type ImpulseResponse, mix } from './mix/offline-mix';
 import { MIDIBuilder, SoundBankLoader, SpessaSynthProcessor } from 'spessasynth_core';
 
@@ -167,6 +168,7 @@ function synthEvents(
   sampleRate: number,
   window: BeatWindow | undefined,
   bankOffset: ReadonlyMap<string, number>,
+  bankPresets: ReadonlyMap<string, readonly { readonly name: string; readonly bankMSB: number; readonly program: number }[]> = new Map(),
 ): { events: SynthEvent[]; loopSeconds: number } {
   const performance = perform(piece);
   const assignments = assignChannels(piece);
@@ -186,7 +188,19 @@ function synthEvents(
   const controls = [...[...carried.values()].map((control) => ({ ...control, time: 0 })), ...performance.controls.filter((control) => inWindow(control.time)).map((control) => ({ ...control, time: control.time - from }))];
   const notes = performance.notes.filter((note) => inWindow(note.start)).map((note) => ({ ...note, start: note.start - from, end: note.end - from }));
   const events: SynthEvent[] = [];
-  const patchOf = articulationPrograms(piece);
+  // Each note's bank and program where they change note by note (articulations, round robins).
+  const patchOf = notePatches(
+    piece,
+    notes,
+    (track) => {
+      const assignment = assignments.get(track);
+      return assignment && assignment.channel !== DRUM_CHANNEL ? (bankOffset.get(assignment.bank) ?? 0) + assignment.bankNumber : null;
+    },
+    (track, bankSelect, program) => {
+      const assignment = assignments.get(track)!;
+      return roundRobins(bankPresets.get(assignment.bank) ?? [], bankSelect - (bankOffset.get(assignment.bank) ?? 0), program);
+    },
+  );
   for (const track of audibleTracks(piece)) {
     const assignment = assignments.get(track.id)!;
     const { channel } = assignment;
@@ -223,10 +237,16 @@ function synthEvents(
       if (channel === undefined || !audible.has(note.track)) continue;
       const velocity = Math.max(1, Math.min(127, Math.round(note.velocity * 127)));
       const on = at(note.start);
-      const patch = patchOf.get(note.track);
+      const patch = patchOf.get(note);
       if (patch) {
-        const program = patch(note.artic);
-        events.push({ sample: on, rank: 2.5, apply: (synth) => synth.programChange(channel, program) });
+        events.push({
+          sample: on,
+          rank: 2.5,
+          apply: (synth) => {
+            synth.controllerChange(channel, 0 as never, patch.bankSelect);
+            synth.programChange(channel, patch.program);
+          },
+        });
       }
       events.push({ sample: on, rank: 3, apply: (synth) => synth.noteOn(channel, note.pitch, velocity) });
       events.push({ sample: Math.max(on + 1, at(note.end)), rank: 2, apply: (synth) => synth.noteOff(channel, note.pitch) });
@@ -260,6 +280,7 @@ export async function renderChannels(
   // Each bank at its own offset, one above the highest bank number already loaded, so a track's
   // `params.bank` is the bank it plays: its channel selects `offset + bankNumber`.
   const bankOffset = new Map<string, number>();
+  const bankPresets = new Map<string, readonly { name: string; bankMSB: number; program: number }[]>();
   let next = 0;
   for (const path of new Set([...assignChannels(piece).values()].map((assignment) => assignment.bank))) {
     const bytes = soundBanks.get(path);
@@ -267,13 +288,14 @@ export async function renderChannels(
     const bank = SoundBankLoader.fromArrayBuffer(bytes);
     synth.soundBankManager.addSoundBank(bank, path, next);
     bankOffset.set(path, next);
+    bankPresets.set(path, bank.presets.map((preset) => ({ name: preset.name, bankMSB: preset.bankMSB, program: preset.program })));
     next += Math.max(0, ...bank.presets.map((preset) => preset.bankMSB).filter((msb) => msb < 128)) + 1;
   }
   await synth.processorInitialized;
   synth.setSystemParameter('autoAllocateVoices', true);
   // The mix owns space and level (`mix/offline-mix.ts`): the synth's own reverb and chorus are off.
   synth.setSystemParameter('effectsEnabled', false);
-  const { events, loopSeconds } = synthEvents(piece, passes, sampleRate, window, bankOffset);
+  const { events, loopSeconds } = synthEvents(piece, passes, sampleRate, window, bankOffset, bankPresets);
   const total = Math.ceil(sampleRate * (passes * loopSeconds + tailSeconds));
   const channels = Array.from({ length: 16 }, () => [new Float32Array(total), new Float32Array(total)] as [Float32Array, Float32Array]);
   const effectsLeft = new Float32Array(total);
