@@ -26,6 +26,7 @@ import type { Piece } from '@volter/dawproject/piece';
 import type { BasicSoundBank } from 'spessasynth_core';
 import { articulationPrograms } from './articulations';
 import { soundingKeys } from './bank-coverage';
+import { validBands } from './mix/dsp';
 import { formatPitch } from '@volter/dawproject/notation';
 
 /** Practical ranges (MIDI), by General MIDI program. Unlisted programs are not range-checked. */
@@ -175,6 +176,15 @@ export function checkPiece(piece: Piece, banks?: ReadonlyMap<string, BasicSoundB
       if (!buses.has(send.to)) {
         const target = piece.tracks.find((candidate) => candidate.name === send.to);
         problems.push(`${track.name}: its send to "${send.to}" goes nowhere (${target ? `"${send.to}" is a ${target.channel?.role ?? 'regular'} channel, not an effect bus` : 'no track has that name'}), so nothing of it is heard`);
+      }
+    }
+    for (const device of track.channel?.devices ?? []) {
+      if (device.plugin !== 'equalizer') continue;
+      const bands = device.params['bands'];
+      const count = Array.isArray(bands) ? bands.length : 0;
+      const skipped = count - validBands(bands).length;
+      if (skipped > 0) {
+        problems.push(`${track.name}: ${skipped} of the equalizer's ${count} bands ${skipped === 1 ? 'is' : 'are'} not played (each needs a type of highPass, lowPass, lowShelf, highShelf or bell, a freq above 0, and a q above 0 if it has one)`);
       }
     }
     if (track.channel?.solo && track.channel.role !== 'regular') {
