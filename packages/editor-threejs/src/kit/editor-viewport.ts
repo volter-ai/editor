@@ -466,61 +466,56 @@ function compassLetterTexture(color: THREE.Color, letter: string): THREE.CanvasT
   return texture;
 }
 
-function compassBallTexture(color: THREE.Color, letter: string | null): THREE.CanvasTexture {
-  // TWO TEXELS PER SCREEN PIXEL, no mipmaps. At 64 the ball was a 4x
-  // minification: three's default trilinear then samples between the 32 and
-  // 16 mips and the LETTER dissolves — measured on the live stage, the glyph
-  // came out at ink (132,48,59) where its own colour is (83,21,28), a blurred
-  // blob rather than an X. At twice the drawn size a plain bilinear sample is
-  // crisp at DPR 1 and exact at DPR 2.
+/** The ball's parts, WHITE, for the per-frame tint (`_syncOrientationGizmoDepth`): its disc, its
+ *  ring and its letter share one outer radius, the ring's stroke laid inside it. */
+function compassCanvas(paint: (ctx: CanvasRenderingContext2D, size: number, outer: number) => void): THREE.CanvasTexture {
   const size = 32;
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext('2d');
-  if (ctx) {
-    const hex = `#${color.getHexString()}`;
-    // One pixel of texture margin for the edge's own anti-aliasing; the
-    // caller's `ballUnits` is this outer diameter, so what is asked for is
-    // what lands.
-    const outer = size / 2 - 1;
-    if (letter === null) {
-      // The measured negative ball: a full-colour ring over a faint wash of
-      // the same colour, so the stage reads through it. The stroke lies
-      // INSIDE `outer`, so the ring's edge is the disc's edge.
-      const strokeWidth = (COMPASS_STALK_WIDTH_PX / COMPASS_BALL_BACK_PX) * size;
-      ctx.beginPath();
-      ctx.arc(size / 2, size / 2, outer, 0, Math.PI * 2);
-      ctx.fillStyle = hex;
-      ctx.globalAlpha = 0.35;
-      ctx.fill();
-      ctx.globalAlpha = 1;
-      ctx.beginPath();
-      ctx.arc(size / 2, size / 2, outer - strokeWidth / 2, 0, Math.PI * 2);
-      ctx.lineWidth = strokeWidth;
-      ctx.strokeStyle = hex;
-      ctx.stroke();
-    } else {
-      ctx.beginPath();
-      ctx.arc(size / 2, size / 2, outer, 0, Math.PI * 2);
-      ctx.fillStyle = hex;
-      ctx.fill();
-      const ink = color.clone().multiplyScalar(COMPASS_LETTER_INK);
-      ctx.fillStyle = `#${ink.getHexString()}`;
-      // A cap height is ~0.72 of a sans font's size, so the size that draws
-      // the measured cap is the cap over that.
-      const capPx = COMPASS_LETTER_CAP_FRACTION * (2 * outer);
-      ctx.font = `bold ${Math.round(capPx / 0.72)}px system-ui, -apple-system, sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(letter, size / 2, size / 2 + 2);
-    }
-  }
+  // One pixel of texture margin for the edge's own anti-aliasing; the caller's `ballUnits` is this
+  // outer diameter, so what is asked for is what lands.
+  if (ctx) paint(ctx, size, size / 2 - 1);
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.generateMipmaps = false;
   texture.minFilter = THREE.LinearFilter;
   return texture;
+}
+
+function compassDiscTexture(): THREE.CanvasTexture {
+  return compassCanvas((ctx, size, outer) => {
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, outer, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+  });
+}
+
+function compassRingTexture(): THREE.CanvasTexture {
+  return compassCanvas((ctx, size, outer) => {
+    const strokeWidth = (COMPASS_STALK_WIDTH_PX / COMPASS_BALL_BACK_PX) * size;
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, outer - strokeWidth / 2, 0, Math.PI * 2);
+    ctx.lineWidth = strokeWidth;
+    ctx.strokeStyle = '#ffffff';
+    ctx.stroke();
+  });
+}
+
+function compassGlyphTexture(text: string): THREE.CanvasTexture {
+  return compassCanvas((ctx, size, outer) => {
+    // A cap height is ~0.72 of a sans font's size, so the size that draws the measured cap is the
+    // cap over that; a negative's `-Y` is narrowed to stay inside its ball.
+    const capPx = COMPASS_LETTER_CAP_FRACTION * (2 * outer);
+    const fontPx = Math.round(capPx / 0.72);
+    ctx.font = `bold ${fontPx}px system-ui, -apple-system, sans-serif`;
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, size / 2, size / 2 + 2, 2 * outer * 0.86);
+  });
 }
 
 const STAGE_OPENING_DIRECTION = new THREE.Vector3(0.8187, 0.4458, 0.3617);
@@ -965,6 +960,7 @@ export class EditorViewport {
     ringWidth: null,
     navigationSize: null,
     navigationForm: 'balls',
+    background: null,
     navigationCorner: 'top-right',
     highlightSaturation: null,
     highlightValue: null,
@@ -1020,11 +1016,21 @@ export class EditorViewport {
   /** The gizmo's six balls and three stalks, kept for the per-frame depth
    *  cue (`_syncOrientationGizmoDepth`). */
   private _vcBalls: Array<{
-    readonly sprite: THREE.Sprite;
+    readonly fill: THREE.Sprite;
+    readonly ring: THREE.Sprite;
+    readonly letter: THREE.Sprite;
     readonly direction: THREE.Vector3;
     readonly positive: boolean;
+    /** Which THREE axis (0 x, 1 y, 2 z) the ball lies on. */
+    readonly axis: number;
+    readonly color: THREE.Color;
   }> = [];
-  private _vcStalks: Array<{ readonly mesh: THREE.Mesh; readonly direction: THREE.Vector3 }> = [];
+  private _vcStalks: Array<{
+    readonly mesh: THREE.Mesh;
+    readonly direction: THREE.Vector3;
+    readonly positive: boolean;
+    readonly color: THREE.Color;
+  }> = [];
   /** The cone form's cones: drawn front to back, never dimmed (Unity's are not). */
   private _vcSolids: Array<{ readonly mesh: THREE.Mesh; readonly direction: THREE.Vector3 }> = [];
   private _vcSize = COMPASS_BOX_PX;
@@ -4163,32 +4169,35 @@ export class EditorViewport {
       const letter = AXIS_LETTER[sourceAxis]!;
       const axis = axes[i]!.clone().multiplyScalar(positive);
 
-      // The stalk, positive side only — Blender draws no stalk behind.
-      const stalk = new THREE.Mesh(
-        new THREE.CylinderGeometry(stalkRadius, stalkRadius, stalkUnits, 8),
-        new THREE.MeshBasicMaterial({ color, transparent: true, depthTest: false }),
-      );
-      stalk.position.copy(axis).multiplyScalar(stalkUnits / 2);
-      stalk.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), axis);
-      this._vcScene.add(stalk);
-      this._vcStalks.push({ mesh: stalk, direction: axis.clone() });
-
       for (const sign of [1, -1] as const) {
         const direction = axis.clone().multiplyScalar(sign);
-        const ball = new THREE.Sprite(
-          new THREE.SpriteMaterial({
-            map: compassBallTexture(color, sign > 0 ? letter : null),
-            transparent: true,
-            depthTest: false,
-          }),
+        // The stalk to each ball: Blender draws the positive ones always and all six when the
+        // view looks straight down an axis (`_syncOrientationGizmoDepth`).
+        const stalk = new THREE.Mesh(
+          new THREE.CylinderGeometry(stalkRadius, stalkRadius, stalkUnits, 8),
+          new THREE.MeshBasicMaterial({ color, transparent: true, depthTest: false, toneMapped: false }),
         );
-        ball.position.copy(direction).multiplyScalar(stalkUnits);
-        ball.scale.setScalar(ballUnits);
-        this._vcScene.add(ball);
-        this._vcBalls.push({ sprite: ball, direction: direction.clone(), positive: sign > 0 });
+        stalk.position.copy(direction).multiplyScalar(stalkUnits / 2);
+        stalk.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+        this._vcScene.add(stalk);
+        this._vcStalks.push({ mesh: stalk, direction: direction.clone(), positive: sign > 0, color });
+
+        // Three sprites per ball — its fill, its ring, its letter — all white and tinted per frame,
+        // because Blender computes each colour from the ball's depth every draw.
+        const sprite = (map: THREE.Texture) => {
+          const made = new THREE.Sprite(new THREE.SpriteMaterial({ map, transparent: true, depthTest: false, toneMapped: false }));
+          made.position.copy(direction).multiplyScalar(stalkUnits);
+          made.scale.setScalar(ballUnits);
+          this._vcScene.add(made);
+          return made;
+        };
+        const fill = sprite(compassDiscTexture());
+        const ring = sprite(compassRingTexture());
+        const glyph = sprite(compassGlyphTexture(sign > 0 ? letter : `-${letter}`));
+        this._vcBalls.push({ fill, ring, letter: glyph, direction: direction.clone(), positive: sign > 0, axis: i, color });
 
         const target = new THREE.Mesh(targetGeo, targetMat);
-        target.position.copy(ball.position);
+        target.position.copy(fill.position);
         // 0=+X, 1=-X, 2=+Y, 3=-Y, 4=+Z, 5=-Z — THREE's directions, because
         // what this does is point the camera down a direction in the scene,
         // which is a fact about the stage and not about what the axis is
@@ -4216,7 +4225,7 @@ export class EditorViewport {
     const lookAxes = this._gizmoLook.navigation ?? this._gizmoLook.axes;
     const letterSprite = (color: THREE.Color, letter: string, at: THREE.Vector3, px: number) => {
       const sprite = new THREE.Sprite(
-        new THREE.SpriteMaterial({ map: compassLetterTexture(color, letter), transparent: true, depthTest: false }),
+        new THREE.SpriteMaterial({ map: compassLetterTexture(color, letter), transparent: true, depthTest: false, toneMapped: false }),
       );
       sprite.position.copy(at);
       sprite.scale.setScalar(px / perUnit);
@@ -4237,7 +4246,7 @@ export class EditorViewport {
         const radius = (COMPASS_STALK_WIDTH_PX * Math.sqrt(scale)) / perUnit / 2;
         const line = new THREE.Mesh(
           new THREE.CylinderGeometry(radius, radius, length, 6),
-          new THREE.MeshBasicMaterial({ color, transparent: true, depthTest: false }),
+          new THREE.MeshBasicMaterial({ color, transparent: true, depthTest: false, toneMapped: false }),
         );
         line.position.copy(axis).multiplyScalar(length / 2);
         line.quaternion.setFromUnitVectors(up, axis);
@@ -4254,6 +4263,7 @@ export class EditorViewport {
             color: sign > 0 ? color : new THREE.Color(0xd9d9d9),
             transparent: true,
             depthTest: false,
+            toneMapped: false,
           }),
         );
         cone.position.copy(direction).multiplyScalar(19 / perUnit);
@@ -4269,7 +4279,7 @@ export class EditorViewport {
     if (form === 'cones') {
       const cube = new THREE.Mesh(
         new THREE.BoxGeometry(11 / perUnit, 11 / perUnit, 11 / perUnit),
-        new THREE.MeshBasicMaterial({ color: 0xbdbdbd, transparent: true, depthTest: false }),
+        new THREE.MeshBasicMaterial({ color: 0xbdbdbd, transparent: true, depthTest: false, toneMapped: false }),
       );
       cube.renderOrder = 50;
       this._vcScene.add(cube);
@@ -4287,28 +4297,75 @@ export class EditorViewport {
   private _syncOrientationGizmoDepth(): void {
     const perUnit = COMPASS_BOX_PX / 3;
     const view = this._vcDir.copy(this._vcCamera.position).normalize();
-    for (const { sprite, direction, positive } of this._vcBalls) {
-      const facing = (direction.dot(view) + 1) / 2; // 0 away, 1 toward
-      const material = sprite.material as THREE.SpriteMaterial;
-      // The negative ring's strength, measured on the reference's three rings
-      // against the axis colour its positive ball is filled with: facing 0.09
-      // -> 0.56, 0.28 -> 0.72, 0.68 -> 1.29. The back ring is HALF-STRENGTH,
-      // not "barely tinted" (this line read 0.25 there). The front is 1.29,
-      // i.e. Blender's ring is drawn in a colour BRIGHTER than its ball's
-      // fill — that needs a second axis colour, so it is left at full and
-      // recorded rather than guessed.
-      material.opacity = positive ? 1 : 0.56 + facing * 0.44;
-      // And the ball's SIZE, on the same quantity: an orthographic gizmo
-      // camera gives no depth scale for free, and Blender's six balls measure
-      // a straight line in `facing` (the fit is in the box's docblock).
-      sprite.scale.setScalar(
-        (COMPASS_BALL_BACK_PX + COMPASS_BALL_DEPTH_GAIN_PX * facing) / perUnit,
-      );
-      sprite.renderOrder = 10 + Math.round(facing * 100);
+    // BLENDER'S COLOURS, computed as `view3d_gizmo_navigate_type.cc` computes them each draw:
+    // a ball's colour is its axis colour mixed with the viewport's background by its depth
+    // (`fading_color`: `(depth + 1) · 0.25 + 0.5`), a negative ball a 25% tint of it ringed in
+    // that colour, and a view looking straight down an axis (`axis_align`) hides that axis's far
+    // ball, fills its near negative one (ringed halfway to white) and letters it `-Y`. Checked
+    // against both reference frames: the default view's +X fill (245,54,81) is this mix at depth
+    // 0.82, the front view's (204,55,78) at depth 0.
+    const background = new THREE.Color(this._gizmoLook.background ?? 0x3d3d3d);
+    const white = new THREE.Color(1, 1, 1);
+    // Blender mixes its theme's display values, so the mix is done in sRGB, not three's linear.
+    const mix = (a: THREE.Color, b: THREE.Color, t: number, out: THREE.Color): THREE.Color => {
+      const x = a.getRGB({ r: 0, g: 0, b: 0 }, THREE.SRGBColorSpace);
+      const y = b.getRGB({ r: 0, g: 0, b: 0 }, THREE.SRGBColorSpace);
+      return out.setRGB(x.r + (y.r - x.r) * t, x.g + (y.g - x.g) * t, x.b + (y.b - x.b) * t, THREE.SRGBColorSpace);
+    };
+    let aligned = -1;
+    for (const { direction, axis } of this._vcBalls) if (Math.abs(direction.dot(view)) > 1 - 1e-4) aligned = axis;
+    const scratch = new THREE.Color();
+    const black = new THREE.Color(0, 0, 0);
+    for (const { fill, ring, letter, direction, positive, axis, color } of this._vcBalls) {
+      const depth = direction.dot(view);
+      const facing = (depth + 1) / 2; // 0 away, 1 toward
+      const behind = depth <= 0.01 * (positive ? -1 : 1);
+      const alignedFront = axis === aligned && !behind;
+      const alignedBack = axis === aligned && behind;
+      const fading = mix(background, color, (depth + 1) * 0.25 + 0.5, new THREE.Color());
+      const fillMaterial = fill.material as THREE.SpriteMaterial;
+      const ringMaterial = ring.material as THREE.SpriteMaterial;
+      const letterMaterial = letter.material as THREE.SpriteMaterial;
+      const fade = Math.min(depth + 1, 1);
+      if (positive || alignedFront) {
+        fillMaterial.color.copy(fading);
+        fillMaterial.opacity = 1;
+      } else {
+        fillMaterial.color.copy(mix(background, color, 0.25, scratch));
+        fillMaterial.opacity = fade;
+      }
+      if (!positive && alignedFront) {
+        ringMaterial.color.copy(mix(white, color, 0.5, scratch));
+        ringMaterial.opacity = fade;
+      } else {
+        ringMaterial.color.copy(fading);
+        ringMaterial.opacity = 1;
+      }
+      // The letter's ink is the fill darkened, as measured on Blender's frames (0.356; Blender
+      // draws it black at 0.9 over a small glyph, and this is what that reads as).
+      letterMaterial.color.copy(mix(black, fillMaterial.color, COMPASS_LETTER_INK, scratch));
+      fill.visible = !alignedBack;
+      ring.visible = !alignedBack;
+      letter.visible = (positive || axis === aligned) && !alignedBack;
+      // The ball's SIZE, on the same quantity: an orthographic gizmo camera gives no depth scale
+      // for free, and Blender's six balls measure a straight line in `facing` (the fit is in the
+      // box's docblock).
+      const scale = (COMPASS_BALL_BACK_PX + COMPASS_BALL_DEPTH_GAIN_PX * facing) / perUnit;
+      const order = 10 + Math.round(facing * 100) * 3;
+      for (const [part, rank] of [[fill, 0], [ring, 1], [letter, 2]] as const) {
+        part.scale.setScalar(scale);
+        part.renderOrder = order + rank;
+      }
     }
-    for (const { mesh, direction } of this._vcStalks) {
-      const facing = (direction.dot(view) + 1) / 2;
-      (mesh.material as THREE.MeshBasicMaterial).opacity = 0.35 + facing * 0.65;
+    for (const { mesh, direction, positive, color } of this._vcStalks) {
+      const depth = direction.dot(view);
+      const facing = (depth + 1) / 2;
+      // Blender's line runs from `middle_color` (0.75) at the centre to `fading_color` at the
+      // ball; one colour per stalk here, their mean.
+      const material = mesh.material as THREE.MeshBasicMaterial;
+      mix(background, color, (0.75 + (depth + 1) * 0.25 + 0.5) / 2, material.color);
+      material.opacity = 1;
+      mesh.visible = positive || aligned !== -1;
       mesh.renderOrder = Math.round(facing * 100);
     }
     for (const { mesh, direction } of this._vcSolids) {

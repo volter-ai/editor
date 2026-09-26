@@ -193,17 +193,13 @@ const MAPPING = {
   'viewport.active': rgb('space_view3d.active'),
 
   // The transform gizmo draws the theme's axis colours as they are
-  // (`transform_gizmo_3d.cc`, `gizmo_get_axis_color`).
+  // (`transform_gizmo_3d.cc`, `gizmo_get_axis_color`), and so does the navigation gizmo, mixed
+  // toward the viewport by each ball's depth as it draws (`view3d_gizmo_navigate_type.cc`; the
+  // stage computes the mix, so the measured (245,54,81) of `modeling-object-none.png` is `.tui.xaxis`
+  // at that ball's depth, not a colour of its own).
   'gizmo.x': rgb('tui.xaxis'),
   'gizmo.y': rgb('tui.yaxis'),
   'gizmo.z': rgb('tui.zaxis'),
-  'gizmo.navigationX': held(
-    '#f53651',
-    "the navigation gizmo's X ball as Blender draws it, read off `modeling-object-none.png` " +
-      '(245,54,81): drawn from `.tui.xaxis` but not equal to it — measured.',
-  ),
-  'gizmo.navigationY': held('#6fa41b', 'the same ball for Y (111,164,27) — measured, see navigationX.'),
-  'gizmo.navigationZ': held('#2e83e3', 'the same ball for Z (46,131,227) — measured, see navigationX.'),
 
   'region.outliner': rgb('space_outliner.back'),
   'region.properties': rgb('space_properties.back'),
