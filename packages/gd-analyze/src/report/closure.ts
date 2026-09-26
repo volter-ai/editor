@@ -193,7 +193,7 @@ function readGame(fixture: string, exporter: string): GameClosure {
       fixture,
       engine: engine.label,
       read: 'failed',
-      error: error instanceof Error ? error.message.split('\n', 1)[0] : String(error),
+      error: (error instanceof Error ? error.message.split('\n', 1)[0] : undefined) ?? String(error),
       ...empty,
     };
   } finally {

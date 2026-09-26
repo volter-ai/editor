@@ -19,15 +19,15 @@ export const GODOT_4_7_ANALYSIS_OBSERVED_OUTPUT_SHA256 =
 export const GODOT_4_7_ANALYSIS_COMPARISON_SHA256 =
   '43aef6142fd749e34e5f9a6aa2b1c78fbefdb3dadada3763f66a795bba58f626' as const;
 
-export const GODOT_4_7_ANALYSIS_RULES: readonly GodotAnalysisRule[] = (
-  [
-    'native-ancestry',
-    'script-inheritance',
-    'lifecycle-selection',
-    'scene-class-resolution',
-    'field-attachment-join',
-  ] as const
-).map((id) => ({
+const PROVEN_RULE_IDS = [
+  'native-ancestry',
+  'script-inheritance',
+  'lifecycle-selection',
+  'scene-class-resolution',
+  'field-attachment-join',
+] as const;
+
+export const GODOT_4_7_ANALYSIS_RULES: readonly GodotAnalysisRule[] = PROVEN_RULE_IDS.map((id) => ({
   id,
   sourceRevision: SOURCE_REVISION,
   evidenceClaimId: `godot-4.7-analysis-${id}`,
@@ -46,8 +46,12 @@ const reproductionCommand = [
   '.vgai/tmp/godot-4.7-stable/Godot.app/Contents/MacOS/Godot',
 ] as const;
 
+// Only the rules this proof measured. A rule added later carries its own evidence record; it is
+// never minted from this proof's digests.
+type ProvenRuleId = (typeof PROVEN_RULE_IDS)[number];
+
 const sources: Readonly<
-  Record<GodotAnalysisRule['id'], Readonly<{ file: string; symbol: string; line: number }>>
+  Record<ProvenRuleId, Readonly<{ file: string; symbol: string; line: number }>>
 > = {
   'native-ancestry': {
     file: 'core/object/class_db.cpp',
@@ -77,7 +81,7 @@ const sources: Readonly<
 };
 
 function claim(rule: GodotAnalysisRule): SemanticClaimRecord {
-  const source = sources[rule.id];
+  const source = sources[rule.id as ProvenRuleId];
   return {
     registryVersion: 1,
     claimId: rule.evidenceClaimId,
