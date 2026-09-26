@@ -1,0 +1,762 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/gradient"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Gradient",
+        "member": "sample",
+        "kind": "native-member",
+        "signature": "hash:1250405064"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gradient",
+        "exportName": "sample",
+        "localName": "Gradient_sample",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Gradient.sample"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Gradient",
+        "member": "set_offsets",
+        "kind": "native-member",
+        "signature": "hash:2899603908"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gradient",
+        "exportName": "set_offsets",
+        "localName": "Gradient_set_offsets",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Gradient.set_offsets"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Gradient",
+        "member": "add_point",
+        "kind": "native-member",
+        "signature": "hash:3629403827"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gradient",
+        "exportName": "add_point",
+        "localName": "Gradient_add_point",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Gradient.add_point"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Gradient",
+        "member": "get_offsets",
+        "kind": "native-member",
+        "signature": "hash:675695659"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gradient",
+        "exportName": "get_offsets",
+        "localName": "Gradient_get_offsets",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Gradient.get_offsets"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Gradient",
+        "member": "set_colors",
+        "kind": "native-member",
+        "signature": "hash:3546319833"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gradient",
+        "exportName": "set_colors",
+        "localName": "Gradient_set_colors",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Gradient.set_colors"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Gradient",
+        "member": "get_colors",
+        "kind": "native-member",
+        "signature": "hash:1392750486"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gradient",
+        "exportName": "get_colors",
+        "localName": "Gradient_get_colors",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Gradient.get_colors"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Gradient",
+        "member": "set_interpolation_mode",
+        "kind": "native-member",
+        "signature": "hash:1971444490"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gradient",
+        "exportName": "set_interpolation_mode",
+        "localName": "Gradient_set_interpolation_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Gradient.set_interpolation_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Gradient",
+        "member": "set_interpolation_color_space",
+        "kind": "native-member",
+        "signature": "hash:3685995981"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gradient",
+        "exportName": "set_interpolation_color_space",
+        "localName": "Gradient_set_interpolation_color_space",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Gradient.set_interpolation_color_space"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Gradient",
+        "member": "get_point_count",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gradient",
+        "exportName": "get_point_count",
+        "localName": "Gradient_get_point_count",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Gradient.get_point_count"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Gradient",
+        "member": "get_interpolation_mode",
+        "kind": "native-member",
+        "signature": "hash:3674172981"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gradient",
+        "exportName": "get_interpolation_mode",
+        "localName": "Gradient_get_interpolation_mode",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Gradient.get_interpolation_mode"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Gradient",
+        "member": "get_interpolation_color_space",
+        "kind": "native-member",
+        "signature": "hash:1538296000"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/gradient",
+        "exportName": "get_interpolation_color_space",
+        "localName": "Gradient_get_interpolation_color_space",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Gradient.get_interpolation_color_space"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Gradient.sample",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Gradient\u0000sample\u0000hash:1250405064",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/gradient.h",
+        "sourceSymbol": "Gradient.sample",
+        "sourceLine": 151
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c594804d0134b42da71e2f44386ad7f0949b310ee4fa6397f21242b006ce9f65",
+        "callsite": "res://probe.gd _init() sample-linear sample-constant sample-cubic sample-linear-linear-srgb sample-cubic-linear-srgb sample-default",
+        "observedOutputSha256": "ab7be4595774cd0cf73c8ff2af41a18c72287520548a3556c143d2c3b294ea2e"
+      },
+      "target": {
+        "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d",
+        "callsite": "lib/godot-compat/gradient.ts sample",
+        "observedOutputSha256": "09e63630193694b934130816f179e6cb0816545666abdcd4377495b646ade403"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a06a5cb1cb67d4c5f4703d446e7778986ae779309a8d02d91bcc5cf76deb2c6c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gradient",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Gradient.set_offsets",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Gradient\u0000set_offsets\u0000hash:2899603908",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/gradient.cpp",
+        "sourceSymbol": "Gradient.set_offsets",
+        "sourceLine": 147
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "fa4a22f63c5862f44304c4e417cb278302d579fc69e5bbd675e3f77c548b5358",
+        "callsite": "res://probe.gd _init() unsorted-offsets",
+        "observedOutputSha256": "9d45227af3d00000a101a983579896100f5ed0a6eda38ca470de318e5e664b12"
+      },
+      "target": {
+        "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d",
+        "callsite": "lib/godot-compat/gradient.ts set_offsets",
+        "observedOutputSha256": "00120536a0c445e86fe916d21fd1770efd689958f75a16b893be1f045d53a2d6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "4c2638671c1775e59cc25702dded2497e39b3e8a34fab7f67ce64179455961a9"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gradient",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Gradient.add_point",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Gradient\u0000add_point\u0000hash:3629403827",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/gradient.cpp",
+        "sourceSymbol": "Gradient.add_point",
+        "sourceLine": 167
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "7e20f0b5b52da81612cea3d712677e6fe9fd31014e8fbd218aa7337e7b6774a1",
+        "callsite": "res://probe.gd _init() add-point",
+        "observedOutputSha256": "1bdf05116ac5fa6037b2618a5ecadefe8e84ab80b90fc72c8099b5328f45aa42"
+      },
+      "target": {
+        "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d",
+        "callsite": "lib/godot-compat/gradient.ts add_point",
+        "observedOutputSha256": "1b93d5ba54a647d1e95fc363e2310dba2f756e256e7769ba8fd3ac33439f60d8"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "70561cbf2b3cecef4afae70c78f2e306909bdac9767704dd89d206f9876c8ab0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gradient",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Gradient.get_offsets",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Gradient\u0000get_offsets\u0000hash:675695659",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/gradient.cpp",
+        "sourceSymbol": "Gradient.get_offsets",
+        "sourceLine": 102
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "19ec1aaf520b9ce1e451a83949395810c733950bb1769468969ed8a5756df673",
+        "callsite": "res://probe.gd _init() get_offsets-coin",
+        "observedOutputSha256": "f4d2a5bb29764deee1e49432e8e2d0d7f97eaa254fe1cd94b19083cf890f0659"
+      },
+      "target": {
+        "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d",
+        "callsite": "lib/godot-compat/gradient.ts get_offsets",
+        "observedOutputSha256": "f4d2a5bb29764deee1e49432e8e2d0d7f97eaa254fe1cd94b19083cf890f0659"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b5feb580a27666a8d0475c0f1d754a406739809d66d983ad0b4e1751cd3108b4"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gradient",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Gradient.set_colors",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Gradient\u0000set_colors\u0000hash:3546319833",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/gradient.cpp",
+        "sourceSymbol": "Gradient.set_colors",
+        "sourceLine": 156
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2deffb9d7907d6735307ba25e36e4fd520aae5526acedf6a2a1c6f28cd560cc0",
+        "callsite": "res://probe.gd _init() set_colors-coin",
+        "observedOutputSha256": "c3962a1ed71ff5af1938efff2eb31aa0955e7c8fb35a2c7ac54bf121b8236c29"
+      },
+      "target": {
+        "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d",
+        "callsite": "lib/godot-compat/gradient.ts set_colors",
+        "observedOutputSha256": "81c9c53a23a097fcbfe3c10739c63eb429227e58ecdab24f9ff0d756b582ecb6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ec5c0fa1571e93d9eb6fbaa867343f3f71fe02637d780db25e67de58565caf7c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gradient",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Gradient.get_colors",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Gradient\u0000get_colors\u0000hash:1392750486",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/gradient.cpp",
+        "sourceSymbol": "Gradient.get_colors",
+        "sourceLine": 111
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2fadfc9354cbbdff32155b80d9330e16911b5e48562615fda0eb8e3f9c80aa03",
+        "callsite": "res://probe.gd _init() get_colors-coin",
+        "observedOutputSha256": "c9da7ef95408adb043bcad04e20f354d29ced765e06059dce0f29a07d105068e"
+      },
+      "target": {
+        "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d",
+        "callsite": "lib/godot-compat/gradient.ts get_colors",
+        "observedOutputSha256": "a9310c00388ac942c30a40900eefd8af22b58fe8f8be4b54b1238778f890ad41"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "152e799f888a41c30ba6eba19d779b57a4ffb1d80c163501a86a6468ce0bae10"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gradient",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Gradient.set_interpolation_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Gradient\u0000set_interpolation_mode\u0000hash:1971444490",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/gradient.cpp",
+        "sourceSymbol": "Gradient.set_interpolation_mode",
+        "sourceLine": 120
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c0ad45ec0b40405998639d1e73b1b067c9611967f7fae50e97336041d3d70a08",
+        "callsite": "res://probe.gd _init() set_interpolation_mode-coin",
+        "observedOutputSha256": "3366e1b22d4c7cbfe4d5758b9a90538d239546119cb81b3c8d948a9eddfa1e0c"
+      },
+      "target": {
+        "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d",
+        "callsite": "lib/godot-compat/gradient.ts set_interpolation_mode",
+        "observedOutputSha256": "3366e1b22d4c7cbfe4d5758b9a90538d239546119cb81b3c8d948a9eddfa1e0c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "af08e25dd934e5faac70f830a0a23c2bdc229c95eba98f1c8de0ad545ab71759"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gradient",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Gradient.set_interpolation_color_space",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Gradient\u0000set_interpolation_color_space\u0000hash:3685995981",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/gradient.cpp",
+        "sourceSymbol": "Gradient.set_interpolation_color_space",
+        "sourceLine": 134
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f357dd14cdf645f5a98ed87240646246678c0266254d4e4a8dde4a16157d9a69",
+        "callsite": "res://probe.gd _init() set_interpolation_color_space-coin",
+        "observedOutputSha256": "69d88a98d45e8e9c55685105d27cfa60b6bc52e20b710704a40f18dcc6e3fea0"
+      },
+      "target": {
+        "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d",
+        "callsite": "lib/godot-compat/gradient.ts set_interpolation_color_space",
+        "observedOutputSha256": "69d88a98d45e8e9c55685105d27cfa60b6bc52e20b710704a40f18dcc6e3fea0"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b6d26edb2d41da2c8114148c14fae5b2f018993d6a32b155f970830f60e4b482"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gradient",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Gradient.get_point_count",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Gradient\u0000get_point_count\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/gradient.cpp",
+        "sourceSymbol": "Gradient.get_point_count",
+        "sourceLine": 221
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "7cd95ebaf3b5abc7c76d73ee1239758c036998ed0bed651310fc7850e8c28e84",
+        "callsite": "res://probe.gd _init() get_point_count-coin",
+        "observedOutputSha256": "2123dabd3b66dddbea9b3c656604e5c40983b9a760eed6800335901dc46843d3"
+      },
+      "target": {
+        "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d",
+        "callsite": "lib/godot-compat/gradient.ts get_point_count",
+        "observedOutputSha256": "2123dabd3b66dddbea9b3c656604e5c40983b9a760eed6800335901dc46843d3"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "08dc8e1eaa6dc3e3ed199ec4b7242dcd8e7ad263904aa24b11fd3727ddbe76bf"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gradient",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Gradient.get_interpolation_mode",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Gradient\u0000get_interpolation_mode\u0000hash:3674172981",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/gradient.cpp",
+        "sourceSymbol": "Gradient.get_interpolation_mode",
+        "sourceLine": 130
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "cf3964df85c6696911108aed3bc5ed3e45bce6762da1dbf97e073b349501c607",
+        "callsite": "res://probe.gd _init() get_interpolation_mode-default",
+        "observedOutputSha256": "8d1ea2e223a03b430b538ec7129f8b9b192fc072d006b4c341aa9751ba61a21d"
+      },
+      "target": {
+        "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d",
+        "callsite": "lib/godot-compat/gradient.ts get_interpolation_mode",
+        "observedOutputSha256": "8d1ea2e223a03b430b538ec7129f8b9b192fc072d006b4c341aa9751ba61a21d"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "95f04212d4dad7cd6dd7c69418071a9174c253d8f185fa39dc4de9bdca279060"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gradient",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Gradient.get_interpolation_color_space",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Gradient\u0000get_interpolation_color_space\u0000hash:1538296000",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/gradient.cpp",
+        "sourceSymbol": "Gradient.get_interpolation_color_space",
+        "sourceLine": 143
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "695abbf7dcd4a92908a90579e1a2d59dea49cd9b37da49bf281544adacc4eaa0",
+        "callsite": "res://probe.gd _init() get_interpolation_color_space-default",
+        "observedOutputSha256": "f56e313a5b04db444f331d3016b1c13bba7e9eac8604ba7d95e3a00da11a76f3"
+      },
+      "target": {
+        "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d",
+        "callsite": "lib/godot-compat/gradient.ts get_interpolation_color_space",
+        "observedOutputSha256": "f56e313a5b04db444f331d3016b1c13bba7e9eac8604ba7d95e3a00da11a76f3"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e68bac20c38c97da877050bcde78632189fb7191b06b9c30f172381ea5436df9"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "gradient",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Gradient.sample",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c594804d0134b42da71e2f44386ad7f0949b310ee4fa6397f21242b006ce9f65",
+      "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d"
+    },
+    {
+      "claimId": "godot-4.7-binding-Gradient.set_offsets",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "fa4a22f63c5862f44304c4e417cb278302d579fc69e5bbd675e3f77c548b5358",
+      "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d"
+    },
+    {
+      "claimId": "godot-4.7-binding-Gradient.add_point",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "7e20f0b5b52da81612cea3d712677e6fe9fd31014e8fbd218aa7337e7b6774a1",
+      "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d"
+    },
+    {
+      "claimId": "godot-4.7-binding-Gradient.get_offsets",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "19ec1aaf520b9ce1e451a83949395810c733950bb1769468969ed8a5756df673",
+      "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d"
+    },
+    {
+      "claimId": "godot-4.7-binding-Gradient.set_colors",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2deffb9d7907d6735307ba25e36e4fd520aae5526acedf6a2a1c6f28cd560cc0",
+      "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d"
+    },
+    {
+      "claimId": "godot-4.7-binding-Gradient.get_colors",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2fadfc9354cbbdff32155b80d9330e16911b5e48562615fda0eb8e3f9c80aa03",
+      "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d"
+    },
+    {
+      "claimId": "godot-4.7-binding-Gradient.set_interpolation_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c0ad45ec0b40405998639d1e73b1b067c9611967f7fae50e97336041d3d70a08",
+      "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d"
+    },
+    {
+      "claimId": "godot-4.7-binding-Gradient.set_interpolation_color_space",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f357dd14cdf645f5a98ed87240646246678c0266254d4e4a8dde4a16157d9a69",
+      "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d"
+    },
+    {
+      "claimId": "godot-4.7-binding-Gradient.get_point_count",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "7cd95ebaf3b5abc7c76d73ee1239758c036998ed0bed651310fc7850e8c28e84",
+      "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d"
+    },
+    {
+      "claimId": "godot-4.7-binding-Gradient.get_interpolation_mode",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "cf3964df85c6696911108aed3bc5ed3e45bce6762da1dbf97e073b349501c607",
+      "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d"
+    },
+    {
+      "claimId": "godot-4.7-binding-Gradient.get_interpolation_color_space",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "695abbf7dcd4a92908a90579e1a2d59dea49cd9b37da49bf281544adacc4eaa0",
+      "implementationSha256": "988438d0715e62a4bf222b8d50ef599a1163d3df3cdc7a8cab01b199dd921a6d"
+    }
+  ]
+}

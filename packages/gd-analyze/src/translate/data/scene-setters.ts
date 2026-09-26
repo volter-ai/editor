@@ -28,6 +28,14 @@ export type SceneSetterLookup = (className: string, property: string) => SceneSe
  * `MeshInstance3D::_set` (`scene/3d/mesh_instance_3d.cpp:59`): `surface_material_override/N` is
  * `set_surface_override_material(N, value)`, a property the class declares per surface.
  */
+/**
+ * Internal properties the API dump leaves out (`PROPERTY_USAGE_INTERNAL`) that a scene stores, and
+ * their internal setters, bound in ClassDB: `Curve._data` (`scene/resources/curve.cpp:646`).
+ */
+export const INTERNAL_PROPERTY_SETTERS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
+  Curve: { _data: '_set_data' },
+};
+
 /** Properties whose internal setter forwards to a public method, which the write calls. */
 const FORWARDED_SETTERS: Readonly<Record<string, string>> = {
   'Control.global_position': 'set_global_position',
@@ -116,6 +124,13 @@ export function sceneSetterLookup(
     if (owner !== undefined && setter === undefined) {
       const forwarded = FORWARDED_SETTERS[`${owner}.${property}`];
       if (forwarded !== undefined) setter = forwarded;
+    }
+    if (owner === undefined) {
+      const internal = ancestry.find((name) => INTERNAL_PROPERTY_SETTERS[name]?.[property] !== undefined);
+      if (internal !== undefined) {
+        owner = internal;
+        setter = INTERNAL_PROPERTY_SETTERS[internal]?.[property];
+      }
     }
     if (owner === undefined) return `${className} declares no property ${property}`;
     if (setter === undefined) return `${owner}.${property} has no setter`;

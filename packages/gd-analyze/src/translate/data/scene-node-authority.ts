@@ -29,8 +29,6 @@ export interface GodotSceneNodeRule {
   readonly sourceRevision: string;
   readonly nativeCanonicalIdentity: string;
   readonly targetKind: TargetSceneNodeKind;
-  /** The protocol that makes the mounted entity the node its class creates, before properties. */
-  readonly mount?: GodotCompatExport;
   readonly evidenceClaimId: string;
 }
 

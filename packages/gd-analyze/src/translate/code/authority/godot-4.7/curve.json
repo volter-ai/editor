@@ -1,0 +1,966 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/curve"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Curve",
+        "member": "sample",
+        "kind": "native-member",
+        "signature": "hash:3919130443"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve",
+        "exportName": "sample",
+        "localName": "Curve_sample",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Curve.sample"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Curve",
+        "member": "sample_baked",
+        "kind": "native-member",
+        "signature": "hash:3919130443"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve",
+        "exportName": "sample_baked",
+        "localName": "Curve_sample_baked",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Curve.sample_baked"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Curve",
+        "member": "_set_data",
+        "kind": "native-member",
+        "signature": "unhashed"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve",
+        "exportName": "_set_data",
+        "localName": "Curve__set_data",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Curve._set_data"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Curve",
+        "member": "get_point_count",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve",
+        "exportName": "get_point_count",
+        "localName": "Curve_get_point_count",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Curve.get_point_count"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Curve",
+        "member": "get_point_position",
+        "kind": "native-member",
+        "signature": "hash:2299179447"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve",
+        "exportName": "get_point_position",
+        "localName": "Curve_get_point_position",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Curve.get_point_position"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Curve",
+        "member": "add_point",
+        "kind": "native-member",
+        "signature": "hash:434072736"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve",
+        "exportName": "add_point",
+        "localName": "Curve_add_point",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Curve.add_point"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Curve",
+        "member": "set_point_count",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve",
+        "exportName": "set_point_count",
+        "localName": "Curve_set_point_count",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Curve.set_point_count"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Curve",
+        "member": "bake",
+        "kind": "native-member",
+        "signature": "hash:3218959716"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve",
+        "exportName": "bake",
+        "localName": "Curve_bake",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Curve.bake"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Curve",
+        "member": "set_bake_resolution",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve",
+        "exportName": "set_bake_resolution",
+        "localName": "Curve_set_bake_resolution",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Curve.set_bake_resolution"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Curve",
+        "member": "get_bake_resolution",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve",
+        "exportName": "get_bake_resolution",
+        "localName": "Curve_get_bake_resolution",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Curve.get_bake_resolution"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Curve",
+        "member": "set_min_value",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve",
+        "exportName": "set_min_value",
+        "localName": "Curve_set_min_value",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Curve.set_min_value"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Curve",
+        "member": "set_max_value",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve",
+        "exportName": "set_max_value",
+        "localName": "Curve_set_max_value",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Curve.set_max_value"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Curve",
+        "member": "get_min_value",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve",
+        "exportName": "get_min_value",
+        "localName": "Curve_get_min_value",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Curve.get_min_value"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Curve",
+        "member": "get_max_value",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/curve",
+        "exportName": "get_max_value",
+        "localName": "Curve_get_max_value",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Curve.get_max_value"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Curve.sample",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Curve\u0000sample\u0000hash:3919130443",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve.cpp",
+        "sourceSymbol": "Curve.sample",
+        "sourceLine": 391
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c33363a4848aa21f7a906a0485377954e1a135f40c00692f02ae32e7cde70ab7",
+        "callsite": "res://probe.gd _init() sample-scale sample-shaped",
+        "observedOutputSha256": "cefcf09ca50c4fcfa88811d396650cf1bf23ca524f4cc9076ea32686c6461ff0"
+      },
+      "target": {
+        "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6",
+        "callsite": "lib/godot-compat/curve.ts sample",
+        "observedOutputSha256": "cefcf09ca50c4fcfa88811d396650cf1bf23ca524f4cc9076ea32686c6461ff0"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "dc97b8bba76178fa8db1f4dd16c91a99acb2c417a2bd3866990fdc23fa2ed8c8"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Curve.sample_baked",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Curve\u0000sample_baked\u0000hash:3919130443",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve.cpp",
+        "sourceSymbol": "Curve.sample_baked",
+        "sourceLine": 554
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0c42e0b43c51ca6013ae7116eab8097dbfff5e7fab92d7947c8ea6146d274195",
+        "callsite": "res://probe.gd _init() sample-baked-scale sample-baked-shaped",
+        "observedOutputSha256": "82a98beb956a3106efa7f87e682d786087791ec20358499c5e9897871910a6a7"
+      },
+      "target": {
+        "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6",
+        "callsite": "lib/godot-compat/curve.ts sample_baked",
+        "observedOutputSha256": "82a98beb956a3106efa7f87e682d786087791ec20358499c5e9897871910a6a7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5ffd1f0c72a22752280ed5b9a672f4b160369c8cae7f62868b2d90d49ead029e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Curve._set_data",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Curve\u0000_set_data\u0000unhashed",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve.cpp",
+        "sourceSymbol": "Curve._set_data",
+        "sourceLine": 481
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2d703aee922574be8c64f2c750dd6b8a8ad59a9f1bfbacaf5ac8415b2430e7a6",
+        "callsite": "res://probe.gd _init() set-data-scale set-data-shaped",
+        "observedOutputSha256": "4a88bb54602feb4be8eb7d8df7bf00732dc033849bda7d2b236a8323ce109e3e"
+      },
+      "target": {
+        "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6",
+        "callsite": "lib/godot-compat/curve.ts _set_data",
+        "observedOutputSha256": "4a88bb54602feb4be8eb7d8df7bf00732dc033849bda7d2b236a8323ce109e3e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "dd8a852829bdd66aa009f6ac76904529749fbc414ddd6e8c017c165d20d47ebf"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Curve.get_point_count",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Curve\u0000get_point_count\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve.h",
+        "sourceSymbol": "Curve.get_point_count",
+        "sourceLine": 78
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "90a7292300caadbf39bd2b34a5753c3ed987b7484b9d7fd993e070a0df5b2a95",
+        "callsite": "res://probe.gd _init() get_point_count",
+        "observedOutputSha256": "ec96d976083d36dfe6da0c5728fb91a33aab9e6b5d4d93c54130349ad083221f"
+      },
+      "target": {
+        "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6",
+        "callsite": "lib/godot-compat/curve.ts get_point_count",
+        "observedOutputSha256": "ec96d976083d36dfe6da0c5728fb91a33aab9e6b5d4d93c54130349ad083221f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8e310752bb884dab040e2ccd5d172f7db5a4db71d24292da2be43ead49ff5b95"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Curve.get_point_position",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Curve\u0000get_point_position\u0000hash:2299179447",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve.cpp",
+        "sourceSymbol": "Curve.get_point_position",
+        "sourceLine": 281
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d89f5c4195f45e97c4ddeffe24891cefd4230cf8a1276d430bd9c45913c4faa6",
+        "callsite": "res://probe.gd _init() get_point_position",
+        "observedOutputSha256": "a14472597bb2fc5dabb40570e328a62baf527721ad850223dec39b1333d5bdfc"
+      },
+      "target": {
+        "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6",
+        "callsite": "lib/godot-compat/curve.ts get_point_position",
+        "observedOutputSha256": "a14472597bb2fc5dabb40570e328a62baf527721ad850223dec39b1333d5bdfc"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "00e48e4d72d30e7b7ac7c9a5988ff65b614cb765e869f6675d86b5ef1062dea9"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Curve.add_point",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Curve\u0000add_point\u0000hash:434072736",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve.cpp",
+        "sourceSymbol": "Curve.add_point",
+        "sourceLine": 115
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "cb640b69c0e87e64f046393469205537a68a6724f077e45b96157e234f8d0818",
+        "callsite": "res://probe.gd _init() add-point-order",
+        "observedOutputSha256": "8a80123d780862816ad451cb6d182585c94fee3b12152c7763161ca90a3521f7"
+      },
+      "target": {
+        "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6",
+        "callsite": "lib/godot-compat/curve.ts add_point",
+        "observedOutputSha256": "8a80123d780862816ad451cb6d182585c94fee3b12152c7763161ca90a3521f7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0f08b09b2bf6267ce126e6c162b5341d15ec40a396438f1730144d80019dfa63"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Curve.set_point_count",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Curve\u0000set_point_count\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve.cpp",
+        "sourceSymbol": "Curve.set_point_count",
+        "sourceLine": 45
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6cde2d362712526e23c02c6f71eedcdeda8a1377d9b2452b1467270d2258eb0d",
+        "callsite": "res://probe.gd _init() set-point-count-grows",
+        "observedOutputSha256": "182fd307d63b53a79a40fe4a284f80305c55e408147b575075ed244b5eeab483"
+      },
+      "target": {
+        "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6",
+        "callsite": "lib/godot-compat/curve.ts set_point_count",
+        "observedOutputSha256": "182fd307d63b53a79a40fe4a284f80305c55e408147b575075ed244b5eeab483"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e77ea0aedaf58084e0690216fc2feb121108d20b99f0d648b19f07684ba849d7"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Curve.bake",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Curve\u0000bake\u0000hash:3218959716",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve.cpp",
+        "sourceSymbol": "Curve.bake",
+        "sourceLine": 524
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9802ede612dbec45fbce7ee61f0f8bdb28aa3cd4cd19a6b765e8bce7a8d6a48e",
+        "callsite": "res://probe.gd _init() bake",
+        "observedOutputSha256": "b2f91fbe6fe28d1dfd78415318fd2d1ebd5cee4522f4fee9ef67f93c86471c23"
+      },
+      "target": {
+        "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6",
+        "callsite": "lib/godot-compat/curve.ts bake",
+        "observedOutputSha256": "b2f91fbe6fe28d1dfd78415318fd2d1ebd5cee4522f4fee9ef67f93c86471c23"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "b39fae420ebff0e4cdc4383cdefd18384dcb5ae6dc198316c15039040ecf9d43"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Curve.set_bake_resolution",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Curve\u0000set_bake_resolution\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve.cpp",
+        "sourceSymbol": "Curve.set_bake_resolution",
+        "sourceLine": 547
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "beae48fe97d63a85e823a3e965d27fe9e37ed8a2bf07040d67ba2d575a970122",
+        "callsite": "res://probe.gd _init() set_bake_resolution",
+        "observedOutputSha256": "f8f922afa59c35be9d9836f4e5a38c812f1b3b81b2dcbfbbcef4060c3e810537"
+      },
+      "target": {
+        "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6",
+        "callsite": "lib/godot-compat/curve.ts set_bake_resolution",
+        "observedOutputSha256": "f8f922afa59c35be9d9836f4e5a38c812f1b3b81b2dcbfbbcef4060c3e810537"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5fa1e5e133fada44a445ece92324116b3fde277980f53e491f7c984c328e85fb"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Curve.get_bake_resolution",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Curve\u0000get_bake_resolution\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve.h",
+        "sourceSymbol": "Curve.get_bake_resolution",
+        "sourceLine": 140
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6e61144c14bea267de7261100b3257788009ca97a7e91864def07fc345151597",
+        "callsite": "res://probe.gd _init() get_bake_resolution",
+        "observedOutputSha256": "988889bd8d7ff12d2e1844fef21be6f18e155e8ea38064f554016e0a85618879"
+      },
+      "target": {
+        "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6",
+        "callsite": "lib/godot-compat/curve.ts get_bake_resolution",
+        "observedOutputSha256": "988889bd8d7ff12d2e1844fef21be6f18e155e8ea38064f554016e0a85618879"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "0fccf2a314dcf720f64d248323b6d748ccf4f97626780e919c6ef049c2979509"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Curve.set_min_value",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Curve\u0000set_min_value\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve.cpp",
+        "sourceSymbol": "Curve.set_min_value",
+        "sourceLine": 349
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9e58968a2c151a329b70e5133d6fbf851fc016d275582ac8dda873ab0dfd914f",
+        "callsite": "res://probe.gd _init() set_min_value",
+        "observedOutputSha256": "42bd21a5995453b67ea4f5ce323daa8e3aa51910957ceb3eeccd679a6f8725df"
+      },
+      "target": {
+        "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6",
+        "callsite": "lib/godot-compat/curve.ts set_min_value",
+        "observedOutputSha256": "42bd21a5995453b67ea4f5ce323daa8e3aa51910957ceb3eeccd679a6f8725df"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "36bfb13a7ee6ef2b253772d83f8f64e3abab36e4bb5561d260814e55aac6b4be"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Curve.set_max_value",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Curve\u0000set_max_value\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve.cpp",
+        "sourceSymbol": "Curve.set_max_value",
+        "sourceLine": 359
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9cf702f23f6c52fa946bcce3b56e2dc033b610e068bbb8155d73db98a4ec3935",
+        "callsite": "res://probe.gd _init() set_max_value",
+        "observedOutputSha256": "caa25fd4aac33629feb5f53914bb04522b10dff54f0a4fd7ee27b5aad07690f2"
+      },
+      "target": {
+        "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6",
+        "callsite": "lib/godot-compat/curve.ts set_max_value",
+        "observedOutputSha256": "caa25fd4aac33629feb5f53914bb04522b10dff54f0a4fd7ee27b5aad07690f2"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e84fdc9226d792b2e0c4f531a81ff415683bf370a4595ec8e917bfeb922a9450"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Curve.get_min_value",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Curve\u0000get_min_value\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve.h",
+        "sourceSymbol": "Curve.get_min_value",
+        "sourceLine": 103
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a1c9eca627819fe2ca65433d733e500cf4d0f0d902349e07e89f52573d27e033",
+        "callsite": "res://probe.gd _init() get_min_value",
+        "observedOutputSha256": "a15b6c67f79b5ee0cd77c38c2c697bcd4f26b1d6ca14e4197882aab9d33ee246"
+      },
+      "target": {
+        "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6",
+        "callsite": "lib/godot-compat/curve.ts get_min_value",
+        "observedOutputSha256": "a15b6c67f79b5ee0cd77c38c2c697bcd4f26b1d6ca14e4197882aab9d33ee246"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "5ee7177255f44534ce85f7d25b2aba76968d1c387f74bd28cde7bd629ff3c419"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Curve.get_max_value",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Curve\u0000get_max_value\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/resources/curve.h",
+        "sourceSymbol": "Curve.get_max_value",
+        "sourceLine": 105
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "30e8d7279a096a4c45b657a17934bc611d65ccea848e846a8044420126a1eb12",
+        "callsite": "res://probe.gd _init() get_max_value",
+        "observedOutputSha256": "467132e12d44a05417c8f2beeddc0ef03e2997459e636c4799f4e24be914c6d4"
+      },
+      "target": {
+        "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6",
+        "callsite": "lib/godot-compat/curve.ts get_max_value",
+        "observedOutputSha256": "467132e12d44a05417c8f2beeddc0ef03e2997459e636c4799f4e24be914c6d4"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "81cd2a4c36fe64c626d2bf1adca44e270bcb15e1d2e1a3dbec93f3c1a142c9f7"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "curve",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Curve.sample",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c33363a4848aa21f7a906a0485377954e1a135f40c00692f02ae32e7cde70ab7",
+      "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6"
+    },
+    {
+      "claimId": "godot-4.7-binding-Curve.sample_baked",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0c42e0b43c51ca6013ae7116eab8097dbfff5e7fab92d7947c8ea6146d274195",
+      "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6"
+    },
+    {
+      "claimId": "godot-4.7-binding-Curve._set_data",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2d703aee922574be8c64f2c750dd6b8a8ad59a9f1bfbacaf5ac8415b2430e7a6",
+      "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6"
+    },
+    {
+      "claimId": "godot-4.7-binding-Curve.get_point_count",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "90a7292300caadbf39bd2b34a5753c3ed987b7484b9d7fd993e070a0df5b2a95",
+      "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6"
+    },
+    {
+      "claimId": "godot-4.7-binding-Curve.get_point_position",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d89f5c4195f45e97c4ddeffe24891cefd4230cf8a1276d430bd9c45913c4faa6",
+      "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6"
+    },
+    {
+      "claimId": "godot-4.7-binding-Curve.add_point",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "cb640b69c0e87e64f046393469205537a68a6724f077e45b96157e234f8d0818",
+      "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6"
+    },
+    {
+      "claimId": "godot-4.7-binding-Curve.set_point_count",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6cde2d362712526e23c02c6f71eedcdeda8a1377d9b2452b1467270d2258eb0d",
+      "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6"
+    },
+    {
+      "claimId": "godot-4.7-binding-Curve.bake",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9802ede612dbec45fbce7ee61f0f8bdb28aa3cd4cd19a6b765e8bce7a8d6a48e",
+      "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6"
+    },
+    {
+      "claimId": "godot-4.7-binding-Curve.set_bake_resolution",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "beae48fe97d63a85e823a3e965d27fe9e37ed8a2bf07040d67ba2d575a970122",
+      "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6"
+    },
+    {
+      "claimId": "godot-4.7-binding-Curve.get_bake_resolution",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6e61144c14bea267de7261100b3257788009ca97a7e91864def07fc345151597",
+      "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6"
+    },
+    {
+      "claimId": "godot-4.7-binding-Curve.set_min_value",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9e58968a2c151a329b70e5133d6fbf851fc016d275582ac8dda873ab0dfd914f",
+      "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6"
+    },
+    {
+      "claimId": "godot-4.7-binding-Curve.set_max_value",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9cf702f23f6c52fa946bcce3b56e2dc033b610e068bbb8155d73db98a4ec3935",
+      "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6"
+    },
+    {
+      "claimId": "godot-4.7-binding-Curve.get_min_value",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a1c9eca627819fe2ca65433d733e500cf4d0f0d902349e07e89f52573d27e033",
+      "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6"
+    },
+    {
+      "claimId": "godot-4.7-binding-Curve.get_max_value",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "30e8d7279a096a4c45b657a17934bc611d65ccea848e846a8044420126a1eb12",
+      "implementationSha256": "50f4ca4472d3a6879215422837e52644ed5300783833adf1fae9628b614d71f6"
+    }
+  ]
+}

@@ -416,7 +416,7 @@ function componentProp(entry: TargetGodotSceneSetterPlan): TargetTsJsxAttribute 
 /** An instanced scene's root as its prefab element, with the instance's overrides as props. */
 function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, name: TargetTsJsxAttribute, transform: TargetTsJsxAttribute[], at: string): TargetTsJsxChild {
   const instanced = emission.scenes.get(node.instance?.sourceResPath ?? '');
-  if (instanced === undefined || instanced.idiomatic !== true) throw new Error(`${at}: the instanced scene is not idiomatic`);
+  if (instanced === undefined) throw new Error(`${at}: the instanced scene is absent from composition`);
   const local = instanced.exportName;
   emission.instances.set(local, moduleSpecifier(emission.scene.targetPath, instanced.targetPath));
   const rootClass = instanced.root.classes[0] as string;
@@ -519,7 +519,13 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
     (className === 'Camera3D' || className === 'DirectionalLight3D' || className === 'OmniLight3D') &&
     node.children.length === 0 &&
     node.scriptInstance === undefined;
-  const transform = transformAttributes(at, matrix).filter(
+  // A node authored with position, rotation and scale (Godot's YXZ Euler) states them as they are.
+  const components = node.properties.filter((entry) => entry.propertyName !== 'transform').flatMap((entry): TargetTsJsxAttribute[] => {
+    const value = entry.value as readonly number[];
+    if (entry.propertyName === 'rotation') return [attribute('rotation', { kind: 'array-expression', elements: [...value.map((component) => literal(component)), literal('YXZ')] })];
+    return [attribute(entry.propertyName, numbers(value))];
+  });
+  const transform = [...transformAttributes(at, matrix), ...components].filter(
     (entry) => !scaleless || entry.kind === 'jsx-spread-attribute' || entry.name !== 'scale',
   );
   const children = () => node.children.map((child) => nodeElement(emission, child));

@@ -56,7 +56,6 @@ export const GODOT_AUTOLOAD_REFERENCE_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/src/translate/data/direct-scene-module-plan.ts',
   'packages/gd-analyze/src/translate/emit/direct-project-world-syntax.ts',
   'packages/gd-analyze/src/translate/emit/direct-autoload-syntax.ts',
-  'packages/gd-analyze/src/translate/emit/direct-scene-lifecycle-syntax.ts',
   'packages/gd-analyze/src/translate/emit/direct-scene-syntax.ts',
   'packages/gd-analyze/src/translate/data/scene-families.ts',
   'packages/gd-analyze/src/translate/emit/scene-family-elements.ts',

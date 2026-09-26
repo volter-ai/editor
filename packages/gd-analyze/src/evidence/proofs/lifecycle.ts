@@ -408,13 +408,9 @@ export function measureLifecycleProof(tools: GodotProofTools): readonly GodotPro
     const sceneSource = Buffer.from(sceneArtifact?.bytes ?? []).toString('utf8');
     if (
       sceneArtifact?.path !== 'src/scenes/main.tsx' ||
-      sceneSource.includes('new $Script_0($native_0)') === false ||
-      sceneSource.includes('$instance_0.ratio = 2.5') === false ||
-      sceneSource.includes('useGodotScriptTreeAttachment($node_0') === false ||
-      sceneSource.includes('"enterTree": () => $instance_0._enter_tree()') === false ||
-      sceneSource.includes('"ready": () => $instance_0._ready()') === false ||
-      sceneSource.includes('"exitTree": () => $instance_0._exit_tree()') === false ||
-      sceneSource.includes('<group name="Main" ref={$node_0}') === false
+      sceneSource.includes('const main = useRef<Group>(null);') === false ||
+      sceneSource.includes('useGodotScript(main, Component, {\n        "ratio": 2.5\n    });') === false ||
+      sceneSource.includes('<group name="Main" ref={main} position={[1, 2, 3]} {...props}>') === false
     ) {
       throw new Error(`scripted scene artifact differs:\n${sceneSource}`);
     }
@@ -478,10 +474,9 @@ export function measureLifecycleProof(tools: GodotProofTools): readonly GodotPro
       worldSource.indexOf('<$Autoload_0 instanceRef={$autoloadInstance_0}/>') >
         worldSource.indexOf('<$Autoload_1 instanceRef={$autoloadInstance_1}/>') ||
       worldSource.indexOf('<$Autoload_1 instanceRef={$autoloadInstance_1}/>') >
-        worldSource.indexOf('<MainScene name="Main"') ||
+        worldSource.indexOf('<MainScene />') ||
       worldSource.includes('export default function World()') === false ||
-      worldSource.includes('<MainScene name="Main"') === false ||
-      worldSource.includes('position={[1, 2, 3]}') === false ||
+      worldSource.includes('<MainScene />') === false ||
       manifest.name !== 'Direct composition proof' ||
       JSON.stringify(manifest.resolution) !== JSON.stringify({ width: 960, height: 540 }) ||
       JSON.stringify(manifest.roots) !==

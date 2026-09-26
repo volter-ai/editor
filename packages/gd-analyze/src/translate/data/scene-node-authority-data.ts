@@ -99,7 +99,6 @@ export const GODOT_SCENE_STRUCTURE_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/camera-3d.ts',
   'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/signal.ts',
   'packages/gd-analyze/capabilities/catalog/project-source/src/lib/godot-compat/react-lifecycle.tsx',
-  'packages/gd-analyze/src/translate/emit/direct-scene-lifecycle-syntax.ts',
   'packages/gd-analyze/src/read/scene.ts',
 ] as const;
 

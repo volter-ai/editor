@@ -21,7 +21,6 @@ import {
   directGodotSceneAutoloadContextName,
   directGodotSceneAutoloadReferences,
 } from './direct-autoload-syntax';
-import { directGodotScenePropertyAttributes } from './direct-scene-syntax';
 
 /** The project's settings file: each setting its scripts read, a built-in value as `{ Vector3: [...] }`. */
 export const DIRECT_GODOT_SETTINGS_PATH = 'src/project/settings.json';
@@ -370,14 +369,8 @@ export function emitDirectGodotWorldSyntax(
   ];
   const mainSceneShape: TargetTsJsxElementShape = {
     tag: scene.exportName,
-    // An idiomatic scene names its own root; a scene in the earlier shape takes it from here.
-    attributes:
-      scene.idiomatic === true
-        ? []
-        : [
-            { kind: 'jsx-string-attribute', name: 'name', value: scene.root.name },
-            ...scene.root.properties.flatMap(directGodotScenePropertyAttributes),
-          ],
+    // The scene names its own root.
+    attributes: [],
     children: [],
   };
   const mainScene: TargetTsJsxChild = { kind: 'jsx-element-child', ...mainSceneShape };

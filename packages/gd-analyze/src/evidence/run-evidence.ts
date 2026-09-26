@@ -8,6 +8,7 @@
  * - a language case file (`gdscript.cases.ts`) proves the code rules it proposes, by running its
  *   GDScript natively and the same GDScript lowered by production code lowering in Node.
  */
+import { INTERNAL_PROPERTY_SETTERS } from '../translate/data/scene-setters';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
@@ -796,6 +797,7 @@ function apiClassMethodHash(apiDumpFile: string, owner: string, member: string):
   const hash = entry?.methods?.find((method) => method.name === member)?.hash;
   if (hash !== undefined) return hash;
   if (member.startsWith('_') && entry?.properties?.some((property) => property.setter === member || property.getter === member) === true) return 0;
+  if (Object.values(INTERNAL_PROPERTY_SETTERS[owner] ?? {}).includes(member)) return 0;
   throw new Error(`API dump has no method ${owner}.${member} declared on ${owner}`);
 }
 

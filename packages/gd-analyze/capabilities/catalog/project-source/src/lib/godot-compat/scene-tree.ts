@@ -152,7 +152,7 @@ function processNodes(physics: boolean): void {
       (entry) =>
         entry.info !== undefined &&
         entry.info.insideTree &&
-        (physics ? entry.info.physicsProcess || entry.info.internalPhysics !== undefined : entry.info.process),
+        (physics ? entry.info.physicsProcess || entry.info.internalPhysics !== undefined : entry.info.process || entry.info.internalProcess !== undefined),
     );
   listed.sort((a, b) => {
     const pa = physics ? (a.info?.physicsProcessPriority ?? 0) : (a.info?.processPriority ?? 0);
@@ -165,8 +165,9 @@ function processNodes(physics: boolean): void {
     if (physics) {
       info.internalPhysics?.(clock.physicsTime);
       if (info.physicsProcess) info.binding?.physicsProcess?.(clock.physicsTime);
-    } else if (info.process) {
-      info.binding?.process?.(clock.processTime);
+    } else {
+      info.internalProcess?.(clock.processTime);
+      if (info.process) info.binding?.process?.(clock.processTime);
     }
   }
 }

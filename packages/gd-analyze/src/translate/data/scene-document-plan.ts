@@ -60,8 +60,6 @@ export interface TargetGodotSceneNodePlan {
    * mount (type tests read it); empty for an instance, whose component records its own root.
    */
   readonly classes: readonly string[];
-  /** The protocol that makes the mounted entity the node its class creates. */
-  readonly mount?: GodotCompatExport;
   /** `unique_name_in_owner`: the scene root finds the node as `%Name`. */
   readonly unique?: true;
   /** Authored properties without a JSX rule: their setters' calls on the entity at mount, in order. */
@@ -228,11 +226,6 @@ export interface TargetGodotSceneDocumentPlan {
   readonly sourceDigest: string;
   readonly targetPath: string;
   readonly exportName: string;
-  /**
-   * The scene is written as idiomatic React Three Fiber (GODOT.md, "The output is idiomatic
-   * three.js"): every node, property and resource it holds has an idiomatic mapping.
-   */
-  readonly idiomatic?: true;
   readonly root: TargetGodotSceneNodePlan;
   /** Resources the scene's setters pass, dependencies before the resources that use them. */
   readonly resources: readonly TargetGodotSceneResourcePlan[];
@@ -930,7 +923,6 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
     properties,
     groups,
     classes: node.class.nativeAncestry,
-    ...(rule.mount === undefined ? {} : { mount: rule.mount }),
     ...(unique ? { unique: true as const } : {}),
     setters,
     children: [],
@@ -1283,9 +1275,15 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
     refuse(context, `${scene.resPath}#${laterCurrent.nodePath}.current`, 'a Camera3D current after the first in tree order', 'property', 'Camera3D.current');
     return undefined;
   }
-  // Whether its instanced scenes are idiomatic is decided once every scene has planned.
-  const idiomatic = idiomaticRefusal(document, () => PENDING_INSTANCE) === undefined && structure(context, scene.resPath, 'idiomatic-scene');
-  return idiomatic ? { ...document, idiomatic: true } : document;
+  // Every scene is written as idiomatic React Three Fiber (GODOT.md, "The output is idiomatic
+  // three.js"); an instance's overrides are checked once its scene's root class is known.
+  const refusal = idiomaticRefusal(document, () => PENDING_INSTANCE);
+  if (refusal !== undefined) {
+    refuse(context, scene.resPath, `the scene has no idiomatic form: ${refusal}`, 'node-family', refusal);
+    return undefined;
+  }
+  if (!structure(context, scene.resPath, 'idiomatic-scene')) return undefined;
+  return document;
 }
 
 const COLLISION_OBJECT_SETTERS = ['set_collision_layer', 'set_collision_mask', 'set_ray_pickable'];
@@ -1342,11 +1340,12 @@ const IDIOMATIC_RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = 
   PhysicsMaterial: ['set_friction', 'set_bounce', 'set_rough', 'set_absorbent'],
 };
 const BODY_CLASSES = new Set(['StaticBody3D', 'RigidBody3D', 'CharacterBody3D', 'Area3D']);
-/** The families only the idiomatic shape writes: a scene holding one is refused in any other. */
-const IDIOMATIC_ONLY_CLASSES = new Set([...BODY_CLASSES, 'CollisionShape3D', 'RayCast3D', 'Marker3D']);
 
 /** The properties an imported model's element sets on the model's own nodes (bone poses). */
 const MODEL_OVERRIDE_SETTERS = ['set_bone_pose_position', 'set_bone_pose_rotation', 'set_bone_pose_scale'];
+
+/** A spatial node's transform, as its matrix or as position, YXZ rotation and scale. */
+const TRANSFORM_PROPERTIES = new Set(['transform', 'position', 'rotation', 'scale']);
 
 /** An instance whose scene's root class is not known yet. */
 const PENDING_INSTANCE = '(instanced scene)';
@@ -1377,7 +1376,7 @@ export function idiomaticRefusal(
     if (node.model !== undefined) {
       // An imported model: its root takes the transform only; the model's own nodes take the bone
       // poses its element states; the nodes placed under them are written as the scene's own.
-      if (node.setters.length > 0 || node.properties.some((entry) => entry.propertyName !== 'transform')) return `overrides on the imported model ${node.nodePath}`;
+      if (node.setters.length > 0 || node.properties.some((entry) => !TRANSFORM_PROPERTIES.has(entry.propertyName))) return `overrides on the imported model ${node.nodePath}`;
       const override = node.model.overrides.flatMap((entry) => entry.setters).find((entry) => !MODEL_OVERRIDE_SETTERS.includes(entry.setter.exportName));
       if (override !== undefined) return `the imported model's ${override.propertyName}`;
       if (node.groups.length > 0 || node.unique === true) return `groups or a unique name on the imported model ${node.nodePath}`;
@@ -1406,7 +1405,7 @@ export function idiomaticRefusal(
     if (className === 'CollisionShape3D' && (parentClass === undefined || !(BODY_CLASSES.has(parentClass) || parentClass === PENDING_INSTANCE))) {
       return 'a collision shape outside a body';
     }
-    const property = carried ? undefined : node.properties.find((entry) => entry.propertyName !== 'transform');
+    const property = carried ? undefined : node.properties.find((entry) => !TRANSFORM_PROPERTIES.has(entry.propertyName));
     if (property !== undefined) return `${className}.${property.propertyName}`;
     const setter = node.setters.find((entry) => !setterName(entry).some((name) => allowed.includes(name)));
     if (setter !== undefined) return `${className}.${setter.propertyName}`;
@@ -1432,53 +1431,17 @@ export function idiomaticRefusal(
   return undefined;
 }
 
-/** Whether a scene holds a family only the idiomatic shape writes. */
-function holdsIdiomaticOnly(node: TargetGodotSceneNodePlan): boolean {
-  return IDIOMATIC_ONLY_CLASSES.has(node.classes[0] ?? '') || node.children.some(holdsIdiomaticOnly);
-}
-
 /**
- * Which scenes are written idiomatically: each whose own nodes and resources all have an idiomatic
- * form and whose instanced scenes are idiomatic, decided until no scene changes. A scene holding a
- * family only the idiomatic shape writes (physics) is refused in any other, by the reason.
+ * The instances' overrides, once every scene has planned: each is a prop of its scene's root,
+ * whose class the instanced scene states.
  */
-function decideIdiomatic(context: PlanContext, scenes: readonly TargetGodotSceneDocumentPlan[]): TargetGodotSceneDocumentPlan[] {
-  const idiomatic = new Set(scenes.filter((scene) => scene.idiomatic === true).map((scene) => scene.sourceResPath));
+function checkInstanceOverrides(context: PlanContext, scenes: readonly TargetGodotSceneDocumentPlan[]): void {
   const byPath = new Map(scenes.map((scene) => [scene.sourceResPath, scene] as const));
-  const rootClass = (resPath: string): string | undefined => (idiomatic.has(resPath) ? byPath.get(resPath)?.root.classes[0] : undefined);
-  const reasons = new Map<string, string>();
-  for (let changed = true; changed; ) {
-    changed = false;
-    for (const scene of scenes) {
-      if (!idiomatic.has(scene.sourceResPath)) continue;
-      const reason = idiomaticRefusal(scene, rootClass);
-      if (reason === undefined) continue;
-      idiomatic.delete(scene.sourceResPath);
-      reasons.set(scene.sourceResPath, reason);
-      changed = true;
-    }
-  }
-  // A scene in the earlier shape mounts an idiomatic prefab as its element, without overrides
-  // (the earlier shape sets them on the node at mount, before a declared body exists).
-  const overridden = (node: TargetGodotSceneNodePlan): string | undefined =>
-    node.instance !== undefined && idiomatic.has(node.instance.sourceResPath) && node.setters.length > 0
-      ? node.nodePath
-      : node.children.map(overridden).find((path) => path !== undefined);
+  const rootClass = (resPath: string): string | undefined => byPath.get(resPath)?.root.classes[0];
   for (const scene of scenes) {
-    if (idiomatic.has(scene.sourceResPath)) continue;
-    const at = overridden(scene.root);
-    if (at !== undefined) refuse(context, `${scene.sourceResPath}#${at}`, 'overrides on an idiomatic prefab in a scene of the earlier shape', 'structure', 'idiomatic prefab override');
+    const refusal = idiomaticRefusal(scene, rootClass);
+    if (refusal !== undefined) refuse(context, scene.sourceResPath, `the scene has no idiomatic form: ${refusal}`, 'node-family', refusal);
   }
-  for (const scene of scenes) {
-    if (idiomatic.has(scene.sourceResPath) || !holdsIdiomaticOnly(scene.root)) continue;
-    const reason = reasons.get(scene.sourceResPath) ?? idiomaticRefusal(scene, rootClass) ?? 'the idiomatic structure rule';
-    refuse(context, scene.sourceResPath, `physics families are written only as idiomatic scenes; this one is not: ${reason}`, 'node-family', reason);
-  }
-  return scenes.map((scene) => {
-    if (idiomatic.has(scene.sourceResPath)) return scene;
-    const { idiomatic: _idiomatic, ...earlier } = scene;
-    return earlier;
-  });
 }
 
 /**
@@ -1655,13 +1618,10 @@ export function planGodotSceneDocuments(
     diagnostics: [],
     evidence: new Set<string>(),
   };
-  const scenes = decideIdiomatic(
-    context,
-    project.documents.scenes.flatMap((scene) => {
-      const planned = planScene(context, scene);
-      return planned === undefined ? [] : [planned];
-    }),
-  );
+  const scenes = project.documents.scenes.flatMap((scene) => {
+    const planned = planScene(context, scene);
+    return planned === undefined ? [] : [planned];
+  });
   const plannedPaths = new Set(scenes.map((scene) => scene.sourceResPath));
   // An instance of a scene that did not plan cannot mount its component.
   const missing = (node: TargetGodotSceneNodePlan): string[] => [
@@ -1675,6 +1635,7 @@ export function planGodotSceneDocuments(
       refuse(context, scene.sourceResPath, `instanced ${resPath} did not plan`, 'structure', resPath);
     }
   }
+  checkInstanceOverrides(context, scenes.filter((scene) => missing(scene.root).length === 0));
   const targetPaths = new Set<string>();
   for (const scene of scenes) {
     if (targetPaths.has(scene.targetPath)) {

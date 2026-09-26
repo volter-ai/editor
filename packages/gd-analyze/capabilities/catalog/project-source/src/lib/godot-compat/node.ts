@@ -90,6 +90,7 @@ interface NodeState {
   treeEntered: SignalHandle<[]>;
   treeExiting: SignalHandle<[]>;
   internalPhysics: ((delta: number) => void) | undefined;
+  internalProcess: ((delta: number) => void) | undefined;
   /** The node's Godot class and its native ancestors, nearest first, as the scene records it. */
   classes: readonly string[] | undefined;
   /** The scene root that owns the node (`Node::data.owner`), when a scene placed it. */
@@ -145,6 +146,7 @@ function fresh(): NodeState {
     owner: undefined,
     uniqueNodes: new Map(),
     internalPhysics: undefined,
+    internalProcess: undefined,
   };
 }
 
@@ -455,6 +457,7 @@ export function godot_node_processing(entity: object): {
   readonly processPriority: number;
   readonly physicsProcessPriority: number;
   readonly internalPhysics: ((delta: number) => void) | undefined;
+  readonly internalProcess: ((delta: number) => void) | undefined;
 } | undefined {
   const state = NODE.get(entity);
   if (state === undefined) return undefined;
@@ -467,6 +470,7 @@ export function godot_node_processing(entity: object): {
     processPriority: state.processPriority,
     physicsProcessPriority: state.physicsProcessPriority,
     internalPhysics: state.internalPhysics,
+    internalProcess: state.internalProcess,
   };
 }
 
@@ -480,6 +484,17 @@ export function godot_node_processing(entity: object): {
  */
 export function godot_node_set_internal_physics(entity: object, process: ((delta: number) => void) | undefined): void {
   stateOf(entity).internalPhysics = process;
+}
+
+/**
+ * Sets (or clears) a node class's internal processing, which runs before the node's own `_process`
+ * in the same pass (`NOTIFICATION_INTERNAL_PROCESS`, `scene/main/scene_tree.cpp:1219`).
+ *
+ * @godot Node (protocol)
+ * @source scene/main/scene_tree.cpp:1219
+ */
+export function godot_node_set_internal_process(entity: object, process: ((delta: number) => void) | undefined): void {
+  stateOf(entity).internalProcess = process;
 }
 
 /**
