@@ -376,9 +376,21 @@ function attachScriptInstances(
     };
   };
   const result = scenes.map((scene) => ({ ...scene, root: attach(scene, scene.root) }));
+  // A script attached to a node this document copied from an instanced scene, the same script
+  // the instanced scene attaches there, is that scene's component's own attachment.
+  const byDocument = new Map(project.documents.scenes.map((scene) => [scene.resPath, scene] as const));
+  const representedByInstance = (instance: DirectGodotScriptInstancePlan): boolean => {
+    const node = boundNodes.get(nodeLocationKey(instance.documentPath, instance.nodePath));
+    const origin = node?.inheritedNode;
+    if (origin === undefined) return false;
+    const originNode = byDocument
+      .get(origin.documentPath)
+      ?.nodes.find((candidate) => candidate.nodePath === origin.nodePath);
+    return originNode?.scriptResPath === instance.scriptResPath;
+  };
   for (const instance of instances) {
     const key = nodeLocationKey(instance.documentPath, instance.nodePath);
-    if (consumed.has(key)) continue;
+    if (consumed.has(key) || representedByInstance(instance)) continue;
     diagnostics.push({
       at: `${instance.documentPath}#${instance.nodePath}`,
       message: `${instance.scriptResPath} code attachment is absent from accepted scene composition`,

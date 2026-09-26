@@ -6,7 +6,12 @@ import {
 
 export const GODOT_SCENE_NODE_AUTHORITY_VERSION = 1 as const;
 
-export type TargetSceneNodeKind = 'three-group';
+/**
+ * The native entity a Godot node class mounts as: a Node3D is a `<group>`; a plain Node a
+ * `<group>` compat marks non-spatial (identity matrix, skipped by Node3D's parent rule); a
+ * Camera3D a `<perspectiveCamera>` mounted with Godot's defaults.
+ */
+export type TargetSceneNodeKind = 'three-group' | 'three-node' | 'three-perspective-camera';
 
 export interface GodotSceneNodeRule {
   readonly sourceRevision: string;
@@ -24,8 +29,45 @@ export interface GodotScenePlacementRule {
   readonly evidenceClaimId: string;
 }
 
-export type SerializedScenePropertyIdentity = 'ctor:Vector3(number,number,number)';
-export type TargetScenePropertyKind = 'three-position' | 'three-rotation-yxz' | 'three-scale';
+export type SerializedScenePropertyIdentity =
+  | 'ctor:Vector3(number,number,number)'
+  | 'ctor:Transform3D(number*12)'
+  | 'number';
+export type TargetScenePropertyKind =
+  | 'three-position'
+  | 'three-rotation-yxz'
+  | 'three-scale'
+  /** The authored `Transform3D` as the Object3D's local matrix, exactly (`matrixAutoUpdate` off). */
+  | 'three-matrix'
+  | 'camera-fov'
+  | 'camera-near'
+  | 'camera-far';
+
+/**
+ * What a `.tscn` says about structure, independent of node class (GODOT.md §Scene structure):
+ * an instanced scene as its generated component, the instance root's authored overrides as its
+ * props, children authored under the instance root as its children, groups handed to the Node
+ * protocol at mount, and authored sibling order as JSX order.
+ */
+export type GodotSceneStructureRuleId =
+  | 'scene-instance'
+  | 'instance-root-override'
+  | 'instance-children'
+  | 'node-groups'
+  | 'authored-order';
+
+export interface GodotSceneStructureRule {
+  readonly sourceRevision: string;
+  readonly id: GodotSceneStructureRuleId;
+  readonly evidenceClaimId: string;
+}
+
+export function godotSceneStructureRuleKey(
+  sourceRevision: string,
+  id: GodotSceneStructureRuleId,
+): string {
+  return [sourceRevision, 'scene-structure', id].join('\0');
+}
 
 export interface GodotScenePropertyRule {
   readonly sourceRevision: string;
@@ -47,6 +89,7 @@ export interface GodotSceneNodeAuthority {
   readonly rules: readonly GodotSceneNodeRule[];
   readonly placementRules: readonly GodotScenePlacementRule[];
   readonly propertyRules: readonly GodotScenePropertyRule[];
+  readonly structureRules: readonly GodotSceneStructureRule[];
   readonly claims: readonly SemanticClaimRecord[];
   readonly liveness: readonly GodotSceneNodeClaimLiveness[];
 }
@@ -156,6 +199,7 @@ export class GodotSceneNodeAuthorityResolver {
   readonly #rules: ReadonlyMap<string, GodotSceneNodeRule>;
   readonly #placementRules: ReadonlyMap<string, GodotScenePlacementRule>;
   readonly #propertyRules: ReadonlyMap<string, GodotScenePropertyRule>;
+  readonly #structureRules: ReadonlyMap<string, GodotSceneStructureRule>;
   readonly #registry: SemanticClaimRegistry;
   readonly #liveness: ReadonlyMap<string, GodotSceneNodeClaimLiveness>;
 
@@ -170,6 +214,29 @@ export class GodotSceneNodeAuthorityResolver {
     this.#rules = indexNodeRules(authority);
     this.#placementRules = indexPlacementRules(authority);
     this.#propertyRules = indexPropertyRules(authority);
+    const structure = new Map<string, GodotSceneStructureRule>();
+    for (const rule of authority.structureRules) {
+      const key = godotSceneStructureRuleKey(rule.sourceRevision, rule.id);
+      if (structure.has(key)) throw new Error(`duplicate Godot scene structure rule: ${key}`);
+      structure.set(key, rule);
+    }
+    this.#structureRules = structure;
+  }
+
+  /** A live structure rule, or undefined when the rule has no live evidence. */
+  structureRule(id: GodotSceneStructureRuleId): GodotSceneStructureRule | undefined {
+    const key = godotSceneStructureRuleKey(this.sourceRevision, id);
+    const rule = this.#structureRules.get(key);
+    if (rule === undefined) return undefined;
+    const liveness = this.#liveness.get(rule.evidenceClaimId);
+    if (liveness === undefined) {
+      throw new Error(`Godot scene structure claim has no liveness: ${rule.evidenceClaimId}`);
+    }
+    const claim = this.#registry.claim(rule.evidenceClaimId, liveness);
+    if (claim.layer !== 'translate-data' || claim.canonicalIdentity !== key) {
+      throw new Error(`Godot scene structure claim does not prove its rule: ${rule.evidenceClaimId}`);
+    }
+    return rule;
   }
 
   rule(nativeCanonicalIdentity: string): GodotSceneNodeRule | undefined {

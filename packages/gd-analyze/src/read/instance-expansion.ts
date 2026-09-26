@@ -176,6 +176,17 @@ function retainPathAlias(node: ExpandedNode, path: string): void {
   node.authoredPathAliases = [...(node.authoredPathAliases ?? []), path];
 }
 
+const IMPORTED_RESOURCE_ID = /^__vgai_instance_\d+_(?:ext|sub)_/;
+
+/**
+ * Whether `copyId`, a resource id on a node copied into an instancing document, names the
+ * resource `originId` names in the instanced document: the copy carries the instanced document's
+ * resources under ids `remapForImport` prefixed with the import's serial.
+ */
+export function isImportedResourceId(copyId: string, originId: string): boolean {
+  return IMPORTED_RESOURCE_ID.test(copyId) && copyId.replace(IMPORTED_RESOURCE_ID, '') === originId;
+}
+
 function remapForImport(source: SceneDocument, parts: MutableDocumentParts): ResourceRemap {
   const serial = parts.importSerial++;
   const prefix = `__vgai_instance_${String(serial)}`;

@@ -90,7 +90,7 @@ function instantiate(node: TargetGodotSceneNodePlan): Group {
         target.position.fromArray(property.value);
         break;
       case 'three-rotation-yxz':
-        target.rotation.set(...property.value, 'YXZ');
+        target.rotation.set(property.value[0] as number, property.value[1] as number, property.value[2] as number, 'YXZ');
         break;
       case 'three-scale':
         target.scale.fromArray(property.value);

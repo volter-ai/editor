@@ -17,6 +17,7 @@ export const GODOT_4_7_PROOF_NAMES = [
   'project-settings',
   'field-values',
   'scene-nodes',
+  'scene-structure',
   'lifecycle',
   'project-startup',
   'code-seed',

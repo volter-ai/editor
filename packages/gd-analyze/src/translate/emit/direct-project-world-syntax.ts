@@ -3,6 +3,7 @@ import {
   TARGET_TS_SYNTAX_VERSION,
   type TargetTsExpression,
   type TargetTsJsxChild,
+  type TargetTsJsxElementShape,
   type TargetTsSourceFile,
   type TargetTsStatement,
   type TargetTsType,
@@ -17,7 +18,7 @@ import {
   directGodotSceneAutoloadContextName,
   directGodotSceneAutoloadReferences,
 } from './direct-autoload-syntax';
-import { directGodotScenePropertyAttribute } from './direct-scene-syntax';
+import { directGodotScenePropertyAttributes } from './direct-scene-syntax';
 
 function referenceType(name: string): TargetTsType {
   return { kind: 'type-reference', name, arguments: [] };
@@ -304,14 +305,14 @@ export function emitDirectGodotWorldSyntax(
           })),
         ]),
   ];
-  const mainSceneShape = {
+  const mainSceneShape: TargetTsJsxElementShape = {
     tag: scene.exportName,
     attributes: [
       { kind: 'jsx-string-attribute', name: 'name', value: scene.root.name },
-      ...scene.root.properties.map(directGodotScenePropertyAttribute),
+      ...scene.root.properties.flatMap(directGodotScenePropertyAttributes),
     ],
     children: [],
-  } as const;
+  };
   const mainScene: TargetTsJsxChild = { kind: 'jsx-element-child', ...mainSceneShape };
   const composedMainScene: TargetTsJsxChild =
     mainAutoloadReferences.length === 0

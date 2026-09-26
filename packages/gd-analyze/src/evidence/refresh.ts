@@ -22,6 +22,7 @@ import { measureProjectSettingProof } from './proofs/project-settings';
 import { measureReadProof } from './proofs/read';
 import { measureReceiverProof } from './proofs/receivers';
 import { measureSceneNodeProof } from './proofs/scene-nodes';
+import { measureSceneStructureProof } from './proofs/scene-structure';
 import {
   GODOT_4_7_OFFICIAL_EXECUTABLE_SHA256,
   godotEvidenceCaseNames,
@@ -29,13 +30,17 @@ import {
 } from './run-evidence';
 
 /** Upstream authorities first; the lifecycle proof mounts a DOM on the process, so it runs last. */
-const PROOFS: readonly (readonly [string, (tools: GodotProofTools) => readonly GodotProofMeasurement[]])[] = [
+const PROOFS: readonly (readonly [
+  string,
+  (tools: GodotProofTools) => readonly GodotProofMeasurement[] | Promise<readonly GodotProofMeasurement[]>,
+])[] = [
   ['read', measureReadProof],
   ['analysis', measureAnalysisProof],
   ['receivers', measureReceiverProof],
   ['project-settings', measureProjectSettingProof],
   ['field-values', measureFieldValueProof],
   ['scene-nodes', measureSceneNodeProof],
+  ['scene-structure', measureSceneStructureProof],
   ['code-seed', measureCodeSeedProof],
   ['language', measureLanguageProof],
   ['autoload-reference', measureAutoloadReferenceProof],
@@ -62,7 +67,7 @@ export async function refreshEvidence(tools: GodotProofTools): Promise<number> {
   for (const [proof, measure] of PROOFS) {
     let measurements: readonly GodotProofMeasurement[];
     try {
-      measurements = measure(tools);
+      measurements = await measure(tools);
     } catch (error) {
       failed.push(proof);
       process.stdout.write(
