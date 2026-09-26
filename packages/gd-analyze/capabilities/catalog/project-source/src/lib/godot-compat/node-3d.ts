@@ -10,19 +10,23 @@
  *
  * The receiver is the `THREE.Object3D` the generated scene mounted. Its parent Node3D is its three
  * parent (`Object3D.parent`), unless that is absent, a `THREE.Scene` (the viewport above the 3D
- * tree), or a plain `Node`'s group, which `node.ts` marks non-spatial. The native entity holds the LOCAL transform: `matrix`
- * holds `data.local_transform` exactly (every element a float32 value, `matrixAutoUpdate` off),
- * and `position`/`quaternion`/`scale` are decomposed from it for three's own readers. Godot state
- * no three object holds lives in `NODE3D`, keyed by the Object3D: the Euler rotation and scale
- * split, the dirty bits, `rotation_order` and `top_level`. The global transform is computed on
- * demand from the three parent chain exactly as `get_global_transform` computes it; three's
- * `matrixWorld` is only the renderer's copy (a top-level node writes its own).
+ * tree), or a plain `Node`'s group, which `node.ts` marks non-spatial. The LOCAL transform is the
+ * Object3D's own `position`, `quaternion` and `scale` (`matrixAutoUpdate` on): compat reads it from
+ * them in float32 (`Basis::set_quaternion_scale`), and writes Godot's result back into them.
+ * While three's values are the ones compat last read or wrote, compat keeps the exact
+ * `data.local_transform` that went with them, so a transform set through Node3D reads back
+ * exactly; a transform three's values carry in (JSX props, a physics body) is read from them.
+ * An Object3D met with `matrixAutoUpdate` off holds its transform in `matrix` instead (an imported
+ * model's nodes). Godot state no three object holds lives in `NODE3D`, keyed by the Object3D: the
+ * Euler rotation and scale split, the dirty bits, `rotation_order` and `top_level`. The global
+ * transform is computed on demand from the three parent chain exactly as `get_global_transform`
+ * computes it; three's `matrixWorld` is only the renderer's copy (a top-level node writes its own).
  *
- * An Object3D compat has not seen starts as Godot would have it: an identity matrix is a fresh
- * Node3D; any other local matrix is a Node3D whose `transform` was set (as a scene file sets it).
+ * An Object3D compat has not seen starts as Godot would have it: an identity transform is a fresh
+ * Node3D; any other is a Node3D whose `transform` was set (as a scene file sets it).
  */
 
-import type { Object3D } from 'three';
+import { Matrix4, type Object3D } from 'three';
 import { type Basis, construct as basis } from './basis';
 import { godot_node_duplicate_state, godot_node_is_spatial, is_inside_tree } from './node';
 import { type Transform3D, construct as transform3d } from './transform-3d';
@@ -61,9 +65,20 @@ interface Node3DState {
   order: number;
   dirty: number;
   topLevel: boolean;
+  /** An entity that holds its transform in `matrix` (`matrixAutoUpdate` off when compat met it). */
+  readonly fromMatrix: boolean;
+  /**
+   * `data.disable_scale`: the global transform's basis is orthonormalized. Godot's cameras,
+   * lights, reflection probes, VoxelGI and 3D audio players set it at construction
+   * (`camera_3d.cpp:878`, `light_3d.cpp:513`); compat reads it from three's `isCamera`/`isLight`.
+   */
+  disableScale: boolean;
+  /** The local transform compat last read or wrote, and the three values it corresponds to. */
+  snapshot: { readonly local: Local; readonly three: readonly number[] } | undefined;
 }
 
 const NODE3D = new WeakMap<Object3D, Node3DState>();
+const WRITE_MATRIX = new Matrix4();
 
 // `duplicate` copies the stored transform properties: the matrix comes with the entity's copy.
 godot_node_duplicate_state('Node3D', (from, to) => {
@@ -387,7 +402,7 @@ function lookingAt(target: V3, up: V3, useModelFront: boolean): Rows {
 // --- The native receiver.
 
 /** The local transform the Object3D's `matrix` holds (column-major, `matrix.elements`). */
-function readLocal(object: Object3D): Local {
+function readMatrix(object: Object3D): Local {
   const e = object.matrix.elements;
   return {
     basis: [e[0], e[4], e[8], e[1], e[5], e[9], e[2], e[6], e[10]].map((value) => f32(value as number)),
@@ -395,18 +410,85 @@ function readLocal(object: Object3D): Local {
   };
 }
 
-/** Write `data.local_transform` into the Object3D, and the renderer's copies derived from it. */
+/** The Object3D's own `position`, `quaternion` and `scale`, as three holds them. */
+function threeValues(object: Object3D): readonly number[] {
+  const { position: p, quaternion: q, scale: s } = object;
+  return [p.x, p.y, p.z, q.x, q.y, q.z, q.w, s.x, s.y, s.z];
+}
+
+/**
+ * The local transform three's `position`, `quaternion` and `scale` state, read in float32:
+ * `Basis::set_quaternion_scale` (`core/math/basis.cpp:881`, the rows of `set_quaternion` at
+ * `:829` scaled by column) and the origin.
+ */
+function fromThree(values: readonly number[]): Local {
+  const [px, py, pz, qx, qy, qz, qw, sx, sy, sz] = values.map((value) => f32(value));
+  const x = qx as number;
+  const y = qy as number;
+  const z = qz as number;
+  const w = qw as number;
+  const d = f32(f32(f32(f32(x * x) + f32(y * y)) + f32(z * z)) + f32(w * w));
+  const s = f32(2 / d);
+  const xs = f32(x * s);
+  const ys = f32(y * s);
+  const zs = f32(z * s);
+  const wx = f32(w * xs);
+  const wy = f32(w * ys);
+  const wz = f32(w * zs);
+  const xx = f32(x * xs);
+  const xy = f32(x * ys);
+  const xz = f32(x * zs);
+  const yy = f32(y * ys);
+  const yz = f32(y * zs);
+  const zz = f32(z * zs);
+  const rows = [
+    f32(1 - f32(yy + zz)), f32(xy - wz), f32(xz + wy),
+    f32(xy + wz), f32(1 - f32(xx + zz)), f32(yz - wx),
+    f32(xz - wy), f32(yz + wx), f32(1 - f32(xx + yy)),
+  ];
+  const scale = [sx as number, sy as number, sz as number];
+  return {
+    basis: rows.map((value, index) => f32(value * (scale[index % 3] as number))),
+    origin: [px as number, py as number, pz as number],
+  };
+}
+
+/**
+ * `data.local_transform`. An entity compat met holding its transform in `matrix` reads that;
+ * otherwise it is read from three's `position`/`quaternion`/`scale`: the exact transform compat
+ * last read or wrote while three's values are the ones that went with it, else the transform
+ * those values state (`fromThree`), which then becomes the snapshot.
+ */
+function readLocal(object: Object3D): Local {
+  const state = NODE3D.get(object);
+  if (state === undefined ? !object.matrixAutoUpdate : state.fromMatrix) return readMatrix(object);
+  const now = threeValues(object);
+  const snapshot = state?.snapshot;
+  if (snapshot !== undefined && snapshot.three.every((value, index) => value === now[index])) return snapshot.local;
+  const local = fromThree(now);
+  if (state !== undefined) state.snapshot = { local, three: now };
+  return local;
+}
+
+/**
+ * Write `data.local_transform` into the Object3D: three's `position`/`quaternion`/`scale` (its
+ * matrix recomposed from them each frame), or the matrix of an entity that holds it there.
+ */
 function writeLocal(object: Object3D, state: Node3DState, local: Local): void {
   const b = local.basis;
   const o = local.origin;
-  object.matrixAutoUpdate = false;
-  object.matrix.set(
+  const holder = state.fromMatrix ? object.matrix : WRITE_MATRIX;
+  holder.set(
     b[0] as number, b[1] as number, b[2] as number, o[0],
     b[3] as number, b[4] as number, b[5] as number, o[1],
     b[6] as number, b[7] as number, b[8] as number, o[2],
     0, 0, 0, 1,
   );
-  object.matrix.decompose(object.position, object.quaternion, object.scale);
+  holder.decompose(object.position, object.quaternion, object.scale);
+  if (!state.fromMatrix) {
+    object.updateMatrix();
+    state.snapshot = { local, three: threeValues(object) };
+  }
   if (state.topLevel) {
     object.matrixWorldAutoUpdate = false;
     object.matrixWorld.copy(object.matrix);
@@ -423,17 +505,21 @@ function isIdentity(local: Local): boolean {
 function stateOf(object: Object3D): Node3DState {
   let state = NODE3D.get(object);
   if (state !== undefined) return state;
-  if (object.matrixAutoUpdate) object.updateMatrix();
-  const local = readLocal(object);
+  const fromMatrix = !object.matrixAutoUpdate;
+  const now = threeValues(object);
+  const local = fromMatrix ? readMatrix(object) : fromThree(now);
   state = {
     euler: [0, 0, 0],
     scale: [1, 1, 1],
     order: EULER_YXZ,
     dirty: isIdentity(local) ? DIRTY_NONE : DIRTY_EULER_ROTATION_AND_SCALE,
     topLevel: false,
+    disableScale: (object as { readonly isCamera?: boolean }).isCamera === true || (object as { readonly isLight?: boolean }).isLight === true,
+    fromMatrix,
+    snapshot: fromMatrix ? undefined : { local, three: now },
   };
   NODE3D.set(object, state);
-  writeLocal(object, state, local);
+  if (fromMatrix) writeLocal(object, state, local);
   return state;
 }
 
@@ -479,12 +565,13 @@ function markLocalDirty(object: Object3D, state: Node3DState): void {
   writeLocal(object, state, { basis: eulerScale(state.euler, state.scale, state.order), origin });
 }
 
+/** `get_global_transform` (`scene/3d/node_3d.cpp:655`). */
 function globalOf(object: Object3D): Local {
   const state = stateOf(object);
   const local = localOf(object, state);
   const parent = parentNode3D(object);
-  if (parent !== null && !state.topLevel) return mulTransform(globalOf(parent), local);
-  return local;
+  const global = parent !== null && !state.topLevel ? mulTransform(globalOf(parent), local) : local;
+  return state.disableScale ? { basis: orthonormalized(global.basis), origin: global.origin } : global;
 }
 
 function setLocal(object: Object3D, local: Local): void {

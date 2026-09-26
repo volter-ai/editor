@@ -117,6 +117,8 @@
       "@dimforge/rapier3d-compat": "^0.14.0",
       "@jsquash/webp": "^1.5.0",
       "@react-three/fiber": "^9.6.1",
+      "@react-three/rapier": "^2.2.0",
+      "@types/fontkit": "^2.0.9",
       "fast-png": "^8.0.0",
       "fontkit": "^2.0.4",
       "linebreak": "^1.1.0",

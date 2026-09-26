@@ -144,3 +144,50 @@ export function useGodotScriptTreeAttachment<Native extends object>(
     };
   }, []);
 }
+
+/** The virtual methods Godot calls on a script, by the binding slot each fills. */
+const LIFECYCLE_METHODS = [
+  ['enterTree', '_enter_tree'],
+  ['ready', '_ready'],
+  ['exitTree', '_exit_tree'],
+  ['process', '_process'],
+  ['physicsProcess', '_physics_process'],
+  ['input', '_input'],
+  ['shortcutInput', '_shortcut_input'],
+  ['unhandledInput', '_unhandled_input'],
+  ['unhandledKeyInput', '_unhandled_key_input'],
+] as const;
+
+/**
+ * Attaches a script to the node its ref holds: the script instance over the mounted Object3D, its
+ * authored exported values (`SceneState::instantiate` sets them after the instance exists,
+ * packed_scene.cpp:494), and its virtual methods (the ones the script or its base scripts define)
+ * registered with the Node protocol, which calls them on the SceneTree's clock. At project startup
+ * the enclosing startup transaction enters the tree; a node mounted later enters at once.
+ *
+ * @godot Node (protocol)
+ * @source scene/resources/packed_scene.cpp:494
+ */
+export function useGodotScript<Instance extends object>(
+  ref: RefObject<object | null>,
+  Script: new (native: object) => Instance,
+  exported?: Partial<Instance>,
+): void {
+  const startup = useContext(GodotStartupContext);
+  useLayoutEffect(() => {
+    const native = ref.current;
+    if (native === null) throw new Error('godot-compat: the node a script attaches to was not mounted.');
+    const instance = new Script(native);
+    if (exported !== undefined) Object.assign(instance, exported);
+    const methods = instance as unknown as Readonly<Record<string, unknown>>;
+    const slots: Record<string, unknown> = {};
+    for (const [slot, name] of LIFECYCLE_METHODS) {
+      const method = methods[name];
+      if (typeof method === 'function') slots[slot] = (...args: unknown[]) => (method as (...values: unknown[]) => unknown).apply(instance, args);
+    }
+    const binding = { native, owner: instance, ...slots } as GodotScriptLifecycleBinding;
+    const attachment = { root: native, bindings: [binding], release: () => {} };
+    if (startup !== null) return startup.register(attachment);
+    return mountGodotScriptTree(native, [binding]);
+  }, []);
+}

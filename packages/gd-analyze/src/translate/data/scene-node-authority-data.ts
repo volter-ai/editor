@@ -62,6 +62,11 @@ import {
   GODOT_4_7_PHYSICS_SIGNAL_RULES,
 } from './authority/godot-4.7-scene-physics';
 import {
+  GODOT_4_7_IDIOMATIC_CLAIMS,
+  GODOT_4_7_IDIOMATIC_LIVENESS,
+  GODOT_4_7_IDIOMATIC_STRUCTURE_RULES,
+} from './authority/godot-4.7-scene-idiomatic';
+import {
   GODOT_SCENE_NODE_AUTHORITY_VERSION,
   type GodotSceneNodeAuthority,
 } from './scene-node-authority';
@@ -243,6 +248,21 @@ export const GODOT_SCENE_PHYSICS_IMPLEMENTATION_FILES = [
   ].map((file) => `${COMPAT}/${file}`),
 ] as const;
 
+/** What the scene-idiomatic proof runs: planning, the idiomatic emitter, the world and compat. */
+export const GODOT_SCENE_IDIOMATIC_IMPLEMENTATION_FILES = [
+  'packages/gd-analyze/src/analyze/bound-project.ts',
+  'packages/gd-analyze/src/translate/data/scene-node-authority.ts',
+  'packages/gd-analyze/src/translate/data/scene-document-plan.ts',
+  'packages/gd-analyze/src/translate/data/direct-project-composition-plan.ts',
+  'packages/gd-analyze/src/translate/data/input-map-plan.ts',
+  'packages/gd-analyze/src/translate/emit/idiomatic-scene-syntax.ts',
+  'packages/gd-analyze/src/translate/emit/direct-scene-syntax.ts',
+  'packages/gd-analyze/src/translate/emit/direct-project-world-syntax.ts',
+  ...['node.ts', 'node-3d.ts', 'scene-tree.ts', 'main.tsx', 'react-lifecycle.tsx', 'plane-mesh.ts', 'directional-light-3d.ts', 'input.ts', 'project-settings.ts'].map(
+    (file) => `${COMPAT}/${file}`,
+  ),
+] as const;
+
 /** Checked-in, exact-pin scene-node mapping authority for the selected official frontend. */
 export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotSceneNodeAuthority {
   const supported =
@@ -268,7 +288,12 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
       ? [...GODOT_4_7_SCENE_PROPERTY_RULES, ...GODOT_4_7_STRUCTURE_PROPERTY_RULES]
       : [],
     structureRules: supported
-      ? [...GODOT_4_7_STRUCTURE_RULES, ...GODOT_4_7_RENDER_STRUCTURE_RULES, ...GODOT_4_7_IMPORTED_STRUCTURE_RULES]
+      ? [
+          ...GODOT_4_7_STRUCTURE_RULES,
+          ...GODOT_4_7_RENDER_STRUCTURE_RULES,
+          ...GODOT_4_7_IMPORTED_STRUCTURE_RULES,
+          ...GODOT_4_7_IDIOMATIC_STRUCTURE_RULES,
+        ]
       : [],
     signalRules: supported ? [...GODOT_4_7_SIGNAL_RULES, ...GODOT_4_7_PHYSICS_SIGNAL_RULES] : [],
     resourceRules: supported
@@ -285,6 +310,7 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...GODOT_4_7_TEXTURE_CLAIMS,
           ...GODOT_4_7_MESH_CLAIMS,
           ...GODOT_4_7_AUDIO_CLAIMS,
+          ...GODOT_4_7_IDIOMATIC_CLAIMS,
         ]
       : [],
     liveness: supported
@@ -300,6 +326,10 @@ export function godotSceneNodeAuthority(source: GodotSourceAuthority): GodotScen
           ...withLiveImplementation(
             GODOT_4_7_RENDER_LIVENESS,
             monorepoImplementationDigest(GODOT_SCENE_RENDER_IMPLEMENTATION_FILES),
+          ),
+          ...withLiveImplementation(
+            GODOT_4_7_IDIOMATIC_LIVENESS,
+            monorepoImplementationDigest(GODOT_SCENE_IDIOMATIC_IMPLEMENTATION_FILES),
           ),
           ...withLiveImplementation(
             GODOT_4_7_UI_LIVENESS,

@@ -156,9 +156,14 @@ function projectEvent(eventClass: string, fields: Readonly<Record<string, number
 export function planDirectGodotInputMap(
   actions: readonly InputAction[],
   refuse: (at: string, message: string) => void,
+  used: ReadonlySet<string> | 'all' = 'all',
 ): readonly DirectGodotInputActionPlan[] {
   const planned = new Map<string, DirectGodotInputActionPlan>();
-  for (const [name, , events] of BUILTINS) planned.set(name, { name, deadzone: BUILTIN_DEADZONE, events });
+  // The built-ins the project uses (by name in its scripts, or all when it reads an action by a
+  // computed name or has GUI nodes that navigate with them), then the project's own over them.
+  for (const [name, , events] of BUILTINS) {
+    if (used === 'all' || used.has(name)) planned.set(name, { name, deadzone: BUILTIN_DEADZONE, events });
+  }
   for (const action of actions) {
     const at = `project.godot#[input].${action.name}`;
     if (action.events.length !== action.eventCount) {

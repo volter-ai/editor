@@ -1,4 +1,5 @@
 import * as path from 'node:path';
+import { idiomaticSceneSourceFile } from './idiomatic-scene-syntax';
 import type {
   TargetTsExpression,
   TargetTsJsxAttribute,
@@ -1083,7 +1084,7 @@ export function emitDirectGodotSceneSyntax(
       throw new Error(`${module.sourceResPath}: accepted scene-module plan is inconsistent`);
     }
     scenes.delete(module.sourceResPath);
-    return { ...module, syntax: sceneSourceFile(project, scene) };
+    return { ...module, syntax: scene.idiomatic === true ? idiomaticSceneSourceFile(project, scene) : sceneSourceFile(project, scene) };
   });
   if (scenes.size > 0) {
     throw new Error(`${[...scenes.keys()][0]}: accepted scene has no module plan`);

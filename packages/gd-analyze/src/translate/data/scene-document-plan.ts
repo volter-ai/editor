@@ -203,6 +203,11 @@ export interface TargetGodotSceneDocumentPlan {
   readonly sourceDigest: string;
   readonly targetPath: string;
   readonly exportName: string;
+  /**
+   * The scene is written as idiomatic React Three Fiber (GODOT.md, "The output is idiomatic
+   * three.js"): every node, property and resource it holds has an idiomatic mapping.
+   */
+  readonly idiomatic?: true;
   readonly root: TargetGodotSceneNodePlan;
   /** Resources the scene's setters pass, dependencies before the resources that use them. */
   readonly resources: readonly TargetGodotSceneResourcePlan[];
@@ -1060,7 +1065,7 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
   if (refused || connections === undefined) return undefined;
   const root = assembleSceneTree(context, scene, planned);
   if (root === undefined) return undefined;
-  return {
+  const document = {
     sourceResPath: scene.resPath,
     sourceDigest: scene.sourceDigest,
     targetPath: targetPath(scene.resPath),
@@ -1069,6 +1074,63 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
     resources: context.document.order,
     connections,
   };
+  // The reference unit writes the project's main scene only: an instanced or loaded scene still
+  // mounts under a scene that reads the Node protocol's recorded classes.
+  const idiomatic =
+    scene.resPath === context.project?.entrypoints.mainScene &&
+    idiomaticRefusal(document) === undefined &&
+    structure(context, scene.resPath, 'idiomatic-scene');
+  return idiomatic ? { ...document, idiomatic: true } : document;
+}
+
+/**
+ * The families the idiomatic scene writes (the reference unit, GODOT.md): each node class's setters
+ * with a three form, and each resource class's.
+ */
+const IDIOMATIC_NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
+  Node3D: [],
+  MeshInstance3D: ['set_mesh', 'set_surface_override_material'],
+  DirectionalLight3D: ['set_param:0', 'set_color'],
+  Camera3D: ['set_fov', 'set_near', 'set_far', 'set_current'],
+  StaticBody3D: [],
+  CollisionShape3D: ['set_shape'],
+};
+const IDIOMATIC_RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
+  PlaneMesh: ['set_size'],
+  SphereMesh: ['set_radius', 'set_height', 'set_radial_segments', 'set_rings'],
+  StandardMaterial3D: ['set_albedo', 'set_metallic', 'set_roughness'],
+  BoxShape3D: ['set_size'],
+};
+
+/** Why a scene is not (yet) written idiomatically, or undefined when it is. */
+export function idiomaticRefusal(plan: Omit<TargetGodotSceneDocumentPlan, 'idiomatic'>): string | undefined {
+  if (plan.connections.length > 0) return 'connections';
+  for (const resource of plan.resources) {
+    const allowed = IDIOMATIC_RESOURCE_SETTERS[resource.className];
+    if (allowed === undefined) return `resource ${resource.className}`;
+    const setter = resource.setters.find((entry) => !allowed.includes(entry.setter.exportName));
+    if (setter !== undefined) return `${resource.className}.${setter.propertyName}`;
+  }
+  const walk = (node: TargetGodotSceneNodePlan, parentClass: string | undefined): string | undefined => {
+    const className = node.classes[0];
+    if (className === undefined || node.instance !== undefined || node.model !== undefined) return `node ${node.nodePath}`;
+    const allowed = IDIOMATIC_NODE_SETTERS[className];
+    if (allowed === undefined) return `class ${className}`;
+    if (node.groups.length > 0 || node.unique === true || (node.placements ?? []).length > 0) return `node ${node.nodePath}`;
+    if (className === 'CollisionShape3D' && parentClass !== 'StaticBody3D') return 'a collision shape outside a static body';
+    const property = node.properties.find((entry) => entry.propertyName !== 'transform');
+    if (property !== undefined) return `${className}.${property.propertyName}`;
+    const setter = node.setters.find(
+      (entry) => !allowed.includes(entry.setter.exportName) && !allowed.includes(`${entry.setter.exportName}:${String(entry.index)}`),
+    );
+    if (setter !== undefined) return `${className}.${setter.propertyName}`;
+    for (const child of node.children) {
+      const refused = walk(child, className);
+      if (refused !== undefined) return refused;
+    }
+    return undefined;
+  };
+  return walk(plan.root, undefined);
 }
 
 /**

@@ -170,8 +170,16 @@ function parentEntity(entity: object): object | null {
   return (entity as Object3D).parent ?? null;
 }
 
+/**
+ * The native children that are Godot nodes. A Godot node always has a name, so a nameless object
+ * the Node protocol has not met is a container the JSX did not author as a node (drei's camera
+ * renders an empty one beside the camera; a holder group wraps a mounted scene): it is not a node,
+ * and its children stand in its place.
+ */
 function childEntities(entity: object): readonly object[] {
-  return (entity as Object3D).children ?? [];
+  return ((entity as Object3D).children ?? []).flatMap((child) =>
+    NODE.has(child) || nameOf(child) !== '' ? [child] : childEntities(child),
+  );
 }
 
 function nameOf(entity: object): string {
@@ -320,16 +328,12 @@ export function godot_node_enter_root(root: object): void {
 /**
  * The nodes mounted under `parent` that have not entered the tree, in child order: the scenes
  * `Main::start` adds to the root (autoloads, then the main scene, `main/main.cpp:4495`, `:4764`).
- * A child counts once the Node protocol has recorded its class.
  *
  * @godot Node (protocol)
  * @source main/main.cpp:4764
  */
 export function godot_node_pending_children(parent: object): readonly object[] {
-  return childEntities(parent).filter((child) => {
-    const state = NODE.get(child);
-    return state !== undefined && state.classes !== undefined && !state.insideTree;
-  });
+  return childEntities(parent).filter((child) => NODE.get(child)?.insideTree !== true);
 }
 
 /**

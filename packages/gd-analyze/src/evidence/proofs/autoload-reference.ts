@@ -206,7 +206,9 @@ export function measureAutoloadReferenceProof(tools: GodotProofTools): readonly 
         return { MainScene: () => null, MainSceneAutoloads: () => null };
       }
       if (specifier === './lib/godot-compat/main') return { GodotMain: () => null };
-      if (specifier === './lib/godot-compat/input') return { godot_input_map_load: () => undefined };
+      if (specifier === './lib/godot-compat/input') return { godot_input_map_load_json: () => undefined };
+      if (specifier === './lib/godot-compat/project-settings') return { godot_project_settings_load_json: () => undefined };
+      if (specifier === './project/input-map.json' || specifier === './project/settings.json') return { default: [] };
       if (specifier === './lib/godot-compat/react-lifecycle') {
         return { GodotProjectStartup: () => null, useGodotScriptTreeAttachment: () => undefined };
       }

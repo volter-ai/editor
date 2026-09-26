@@ -191,3 +191,19 @@ export function set_orientation(self: PlaneMesh, orientation: number): void {
 export function get_orientation(self: PlaneMesh): number {
   return self.orientation;
 }
+
+const FACING_Y = new WeakSet<object>();
+
+/**
+ * Turns three's plane (in XY, facing +Z) to face +Y as Godot's `PlaneMesh` does by default
+ * (`ORIENTATION_FACE_Y`, `primitive_meshes.cpp`): a rotation of -90 degrees about X, applied
+ * once to a geometry however often R3F reports its update.
+ *
+ * @godot PlaneMesh (protocol)
+ * @source scene/resources/3d/primitive_meshes.cpp:1467
+ */
+export function godot_plane_mesh_face_y(geometry: { rotateX(angle: number): unknown }): void {
+  if (FACING_Y.has(geometry)) return;
+  FACING_Y.add(geometry);
+  geometry.rotateX(-Math.PI / 2);
+}

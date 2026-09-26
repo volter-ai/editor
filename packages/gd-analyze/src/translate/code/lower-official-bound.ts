@@ -342,14 +342,29 @@ function nativeCarrierRoot(
   return used ? rootPath : undefined;
 }
 
+/**
+ * The native entity a script attaches to is a three.js object (every godot-compat node receiver is
+ * one: the JSX mounts it), typed as such so the compat bindings it is handed to typecheck.
+ */
+const NATIVE_CARRIER_TYPE_IMPORT: TargetTsStatement = {
+  kind: 'import-statement',
+  module: 'three',
+  namedBindings: [{ imported: 'Object3D', local: '$Object3D' }],
+  typeOnly: true,
+};
+
 function nativeCarrierMembers(): readonly TargetTsClassMember[] {
-  const native = { kind: 'identifier-expression', name: 'native' } as const;
+  const native = {
+    kind: 'as-expression',
+    expression: { kind: 'identifier-expression', name: 'native' },
+    type: { kind: 'type-reference', name: '$Object3D', arguments: [] },
+  } as const;
   return [
     {
       kind: 'field-member',
       name: '$native',
       modifiers: ['readonly'],
-      type: { kind: 'keyword-type', keyword: 'object' },
+      type: { kind: 'type-reference', name: '$Object3D', arguments: [] },
     },
     {
       kind: 'constructor-member',
@@ -621,7 +636,11 @@ function lowerScript(
     sourceFile: {
       syntaxVersion: TARGET_TS_SYNTAX_VERSION,
       sourcePath,
-      statements: [...imports(requirements.imports), statement],
+      statements: [
+        ...imports(requirements.imports),
+        ...(carrierRoot === source.resPath ? [NATIVE_CARRIER_TYPE_IMPORT] : []),
+        statement,
+      ],
     },
     module: {
       resPath: source.resPath,

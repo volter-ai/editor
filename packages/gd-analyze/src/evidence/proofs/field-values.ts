@@ -36,9 +36,13 @@ renderer/rendering_method="gl_compatibility"
 @export var ratio: float = 0.0
 @export var enabled: bool = false
 @export var title: String = ""
+@export var steps := 0
+@export var speed := 1.5
+@export var armed := false
+@export var label := ""
 
 func _ready() -> void:
-	print(JSON.stringify({"count": count, "ratio": ratio, "enabled": enabled, "title": title}))
+	print(JSON.stringify({"count": count, "ratio": ratio, "enabled": enabled, "title": title, "steps": steps, "speed": speed, "armed": armed, "label": label}))
 	get_tree().quit()
 `,
   'main.tscn': `[gd_scene load_steps=2 format=3]
@@ -51,6 +55,10 @@ count = 7
 ratio = 2.5
 enabled = true
 title = "hello"
+steps = 3
+speed = 2.0
+armed = true
+label = "hi"
 `,
 };
 

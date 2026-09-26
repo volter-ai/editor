@@ -384,6 +384,33 @@ export function godot_input_map_load(actions: readonly GodotInputMapAction[]): v
   }
 }
 
+/** An input map action as the project's input map file holds it: a position is `[x, y]`. */
+export interface GodotInputMapActionJson {
+  readonly name: string;
+  readonly deadzone?: number;
+  readonly events: readonly Readonly<Record<string, unknown>>[];
+}
+
+/**
+ * Loads the InputMap from the project's input map file (`src/project/input-map.json`), each event
+ * record's `[x, y]` position as a Vector2.
+ *
+ * @godot InputMap (protocol)
+ * @source core/input/input_map.cpp:325
+ */
+export function godot_input_map_load_json(actions: readonly GodotInputMapActionJson[]): void {
+  godot_input_map_load(
+    actions.map((action) => ({
+      name: action.name,
+      ...(action.deadzone === undefined ? {} : { deadzone: action.deadzone }),
+      events: action.events.map((event) => {
+        const position = event['position'];
+        return (Array.isArray(position) ? { ...event, position: vector2(position[0] as number, position[1] as number) } : event) as unknown as InputEventRecord;
+      }),
+    })),
+  );
+}
+
 /**
  * The Engine frame counters the just-pressed stamps compare against: `Main::iteration` increments
  * `physics_frames` and sets `in_physics` around each physics step (`main/main.cpp:4973`) and

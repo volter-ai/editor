@@ -21,11 +21,26 @@ import { godot_node_duplicate_state } from './node';
  * @source scene/3d/light_3d.cpp:612
  */
 export function godot_directional_light_3d_mount(self: DirectionalLight): void {
+  godot_directional_light_3d_aim(self);
+  godot_light_3d_mount(self, { 9: 100, 13: 0.8, 14: 2, 20: 100000, 3: 1 });
+}
+
+const AIMED = new WeakSet<DirectionalLight>();
+
+/**
+ * Aims three's light along the node's -Z, the direction Godot's shines in: its target is a
+ * nameless child (not a node) one unit down -Z, added once however often R3F reports an update.
+ *
+ * @godot DirectionalLight3D (protocol)
+ * @source drivers/gles3/rasterizer_scene_gles3.cpp:1741
+ */
+export function godot_directional_light_3d_aim(self: DirectionalLight): void {
+  if (AIMED.has(self)) return;
+  AIMED.add(self);
   const target = new Object3D();
   target.position.set(0, 0, -1);
   self.add(target);
   self.target = target;
-  godot_light_3d_mount(self, { 9: 100, 13: 0.8, 14: 2, 20: 100000, 3: 1 });
 }
 
 const SHADOW_MODE = new WeakMap<DirectionalLight, number>();

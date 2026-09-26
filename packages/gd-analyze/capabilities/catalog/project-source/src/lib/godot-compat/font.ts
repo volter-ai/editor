@@ -149,7 +149,8 @@ function metricsOf(font: GodotFont, size: number): SizeMetrics {
  * @source scene/resources/font.cpp:2115
  */
 export function godot_font_load(bytes: Uint8Array): GodotFont {
-  const face = create(bytes as unknown as Buffer) as Face;
+  // fontkit reads any byte array; its declarations name Node's `Buffer`.
+  const face = create(bytes as unknown as Parameters<typeof create>[0]) as Face;
   return { face, sizes: new Map() };
 }
 

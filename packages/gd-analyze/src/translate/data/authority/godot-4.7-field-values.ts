@@ -26,6 +26,9 @@ const MUTABLE_BOOL =
 const MUTABLE_STRING =
   'BUILTIN|ANNOTATED_EXPLICIT|String|String|||||mutable|writable|instance|concrete|sync|[]';
 
+/** The same fields declared by inference (`@export var speed := 1.5`): the value is set the same way. */
+const inferred = (explicit: string) => explicit.replace('ANNOTATED_EXPLICIT', 'ANNOTATED_INFERRED');
+
 export const GODOT_4_7_FIELD_VALUE_RULES: readonly GodotFieldValueRule[] = [
   {
     sourceRevision: GODOT_4_7_CODE_SEED_SOURCE_REVISION,
@@ -55,6 +58,20 @@ export const GODOT_4_7_FIELD_VALUE_RULES: readonly GodotFieldValueRule[] = [
     targetKind: 'string',
     evidenceClaimId: 'godot-4.7-field-value-string',
   },
+  ...(
+    [
+      [MUTABLE_INT, 'number:int', 'number', 'int'],
+      [MUTABLE_FLOAT, 'number:float', 'number', 'float'],
+      [MUTABLE_BOOL, 'bool', 'boolean', 'bool'],
+      [MUTABLE_STRING, 'string', 'string', 'string'],
+    ] as const
+  ).map(([datatype, serializedValue, targetKind, name]) => ({
+    sourceRevision: GODOT_4_7_CODE_SEED_SOURCE_REVISION,
+    fieldDatatype: inferred(datatype),
+    serializedValue,
+    targetKind,
+    evidenceClaimId: `godot-4.7-field-value-${name}-inferred`,
+  })),
 ];
 
 const reproductionCommand = GODOT_4_7_PROOF_REPRODUCTION_COMMAND;

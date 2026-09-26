@@ -453,6 +453,8 @@ export function measureLifecycleProof(tools: GodotProofTools): readonly GodotPro
             'public/.gitkeep',
             ...capabilityStampPlans.map((stamp) => stamp.targetPath),
             'src/main.ts',
+            'src/project/input-map.json',
+            'src/project/settings.json',
             'src/world.tsx',
             'tsconfig.json',
             'vgai.adapter.ts',
@@ -577,9 +579,10 @@ export function measureLifecycleProof(tools: GodotProofTools): readonly GodotPro
     }
     const nativeLifecycle = native.stdout.split('\n').filter((line) => line.startsWith('lifecycle:'));
     const targetLifecycle: string[] = [];
-    const first = { children: [] as object[] };
-    const second = { children: [] as object[] };
-    const lifecycleRoot = { children: [first, second] as object[] };
+    const first = { name: 'First', children: [] as object[] };
+    const second = { name: 'Second', children: [] as object[] };
+    // Every Godot node has a name; a nameless object is a container, not a node.
+    const lifecycleRoot = { name: 'Root', children: [first, second] as object[] };
     const lifecycleBinding = (nativeNode: object, label: string) => ({
       native: nativeNode,
       owner: {},
@@ -628,9 +631,9 @@ export function measureLifecycleProof(tools: GodotProofTools): readonly GodotPro
       .split('\n')
       .filter((line) => line.startsWith('startup:'));
     const targetStartup: string[] = [];
-    const firstRoot = { children: [] as object[] };
-    const secondRoot = { children: [] as object[] };
-    const mainRoot = { children: [] as object[] };
+    const firstRoot = { name: 'First', children: [] as object[] };
+    const secondRoot = { name: 'Second', children: [] as object[] };
+    const mainRoot = { name: 'Main', children: [] as object[] };
     const StartupAttachment = ({
       nativeNode,
       label,

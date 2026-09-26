@@ -9,9 +9,9 @@ import {
   type TargetTsStatement,
   type TargetTsType,
 } from '../code/target-ts-syntax';
-import type { TargetInputEventRecord } from '../data/input-map-plan';
 import type {
   DirectGodotProjectCompositionPlan,
+  DirectGodotSceneNodePlan,
   DirectGodotScriptAutoloadPlan,
   DirectGodotSettingValue,
 } from '../data/direct-project-composition-plan';
@@ -23,131 +23,50 @@ import {
 } from './direct-autoload-syntax';
 import { directGodotScenePropertyAttributes } from './direct-scene-syntax';
 
-/**
- * The project's settings, loaded when the world module is evaluated: before any script runs, as
- * Godot loads them in `Main::setup` (`main/main.cpp:2102`). Built-in values through their compat
- * constructors.
- */
-function projectSettingsLoad(composition: DirectGodotProjectCompositionPlan): {
-  readonly imports: readonly TargetTsStatement[];
-  readonly statements: readonly TargetTsStatement[];
-} {
-  if (composition.projectSettings.length === 0) return { imports: [], statements: [] };
-  const constructors = new Set<string>();
-  const valueExpression = (value: DirectGodotSettingValue): TargetTsExpression => {
-    switch (value.kind) {
-      case 'number':
-      case 'bool':
-      case 'string':
-        return { kind: 'literal-expression', value: value.value };
-      default:
-        constructors.add(value.kind);
-        return {
-          kind: 'call-expression',
-          callee: { kind: 'identifier-expression', name: `${value.kind}_construct` },
-          arguments: value.components.map((component) => ({ kind: 'literal-expression', value: component })),
-        };
-    }
-  };
-  const entries: TargetTsExpression = {
-    kind: 'array-expression',
-    elements: composition.projectSettings.map((setting) => ({
-      kind: 'array-expression',
-      elements: [{ kind: 'literal-expression', value: setting.key }, valueExpression(setting.value)],
-    })),
-  };
-  const modules: Readonly<Record<string, string>> = { Vector2: 'vector2', Vector3: 'vector3', Color: 'color' };
-  return {
-    imports: [
-      {
-        kind: 'import-statement',
-        module: './lib/godot-compat/project-settings',
-        namedBindings: [{ imported: 'godot_project_settings_load', local: 'godot_project_settings_load' }],
-      },
-      ...[...constructors].sort().map(
-        (name): TargetTsStatement => ({
-          kind: 'import-statement',
-          module: `./lib/godot-compat/${modules[name] as string}`,
-          namedBindings: [{ imported: 'construct', local: `${name}_construct` }],
-        }),
-      ),
-    ],
-    statements: [
-      {
-        kind: 'expression-statement',
-        expression: {
-          kind: 'call-expression',
-          callee: { kind: 'identifier-expression', name: 'godot_project_settings_load' },
-          arguments: [entries],
-        },
-      },
-    ],
-  };
+/** The project's settings file: each setting its scripts read, a built-in value as `{ Vector3: [...] }`. */
+export const DIRECT_GODOT_SETTINGS_PATH = 'src/project/settings.json';
+/** The project's input map file: the actions it defines and the built-ins it uses. */
+export const DIRECT_GODOT_INPUT_MAP_PATH = 'src/project/input-map.json';
+
+/** The settings file's content. */
+export function directGodotSettingsJson(composition: DirectGodotProjectCompositionPlan): unknown {
+  const value = (entry: DirectGodotSettingValue): unknown =>
+    entry.kind === 'number' || entry.kind === 'bool' || entry.kind === 'string' ? entry.value : { [entry.kind]: entry.components };
+  return composition.projectSettings.map((setting) => [setting.key, value(setting.value)]);
+}
+
+/** The input map file's content: each action's events as compat input-event records. */
+export function directGodotInputMapJson(composition: DirectGodotProjectCompositionPlan): unknown {
+  return composition.inputMap.map((action) => ({ name: action.name, deadzone: action.deadzone, events: action.events }));
 }
 
 /**
- * The InputMap, loaded after the settings as `Main::setup` does (`main/main.cpp:2102`): each
- * action's events as compat input-event records, a mouse position built as a `Vector2`.
+ * The project's settings and InputMap, loaded from its data files when the world module is
+ * evaluated: before any script runs, as Godot loads them in `Main::setup` (`main/main.cpp:2102`).
  */
-function inputMapLoad(composition: DirectGodotProjectCompositionPlan): {
+function projectDataLoad(composition: DirectGodotProjectCompositionPlan): {
   readonly imports: readonly TargetTsStatement[];
   readonly statements: readonly TargetTsStatement[];
 } {
-  let usesVector2 = false;
-  const record = (event: TargetInputEventRecord): TargetTsExpression => ({
-    kind: 'object-expression',
-    properties: Object.entries(event).map(([key, value]) => {
-      if (Array.isArray(value)) {
-        usesVector2 = true;
-        return {
-          key,
-          value: {
-            kind: 'call-expression' as const,
-            callee: { kind: 'identifier-expression' as const, name: 'Vector2_construct' },
-            arguments: value.map((component: number) => ({ kind: 'literal-expression' as const, value: component })),
-          },
-        };
-      }
-      return { key, value: { kind: 'literal-expression' as const, value: value as string | number | boolean } };
-    }),
+  const load = (loader: string, data: string): TargetTsStatement => ({
+    kind: 'expression-statement',
+    expression: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: loader }, arguments: [{ kind: 'identifier-expression', name: data }] },
   });
-  const actions: TargetTsExpression = {
-    kind: 'array-expression',
-    elements: composition.inputMap.map((action) => ({
-      kind: 'object-expression',
-      properties: [
-        { key: 'name', value: { kind: 'literal-expression', value: action.name } },
-        { key: 'deadzone', value: { kind: 'literal-expression', value: action.deadzone } },
-        { key: 'events', value: { kind: 'array-expression', elements: action.events.map(record) } },
-      ],
-    })),
-  };
+  const settings = composition.projectSettings.length > 0;
   return {
     imports: [
-      {
-        kind: 'import-statement',
-        module: './lib/godot-compat/input',
-        namedBindings: [{ imported: 'godot_input_map_load', local: 'godot_input_map_load' }],
-      },
-      ...(usesVector2 && !composition.projectSettings.some((setting) => setting.value.kind === 'Vector2')
+      ...(settings
         ? [
-            {
-              kind: 'import-statement' as const,
-              module: './lib/godot-compat/vector2',
-              namedBindings: [{ imported: 'construct', local: 'Vector2_construct' }],
-            },
+            { kind: 'import-statement' as const, module: './lib/godot-compat/project-settings', namedBindings: [{ imported: 'godot_project_settings_load_json', local: 'godot_project_settings_load_json' }] },
+            { kind: 'import-statement' as const, module: './project/settings.json', defaultBinding: 'settings', namedBindings: [] },
           ]
         : []),
+      { kind: 'import-statement' as const, module: './lib/godot-compat/input', namedBindings: [{ imported: 'godot_input_map_load_json', local: 'godot_input_map_load_json' }] },
+      { kind: 'import-statement' as const, module: './project/input-map.json', defaultBinding: 'inputMap', namedBindings: [] },
     ],
     statements: [
-      {
-        kind: 'expression-statement',
-        expression: {
-          kind: 'call-expression',
-          callee: { kind: 'identifier-expression', name: 'godot_input_map_load' },
-          arguments: [actions],
-        },
-      },
+      ...(settings ? [load('godot_project_settings_load_json', 'settings')] : []),
+      load('godot_input_map_load_json', 'inputMap'),
     ],
   };
 }
@@ -375,6 +294,11 @@ function moduleSpecifier(target: string): string {
   return relative.startsWith('.') ? relative : `./${relative}`;
 }
 
+/** Whether a scene holds a physics body, which `@react-three/rapier` writes. */
+function usesRapier(node: DirectGodotSceneNodePlan): boolean {
+  return node.classes.includes('CollisionObject3D') || node.children.some(usesRapier);
+}
+
 /** Project-specific native startup composition; all reusable lifecycle policy stays in compat. */
 export function emitDirectGodotWorldSyntax(
   composition: DirectGodotProjectCompositionPlan,
@@ -402,6 +326,9 @@ export function emitDirectGodotWorldSyntax(
       module: moduleSpecifier(scene.targetPath),
       namedBindings: sceneBindings,
     },
+    ...(composition.scenes.some((entry) => entry.idiomatic === true && usesRapier(entry.root))
+      ? [{ kind: 'import-statement' as const, module: '@react-three/rapier', namedBindings: [{ imported: 'Physics', local: 'Physics' }] }]
+      : []),
     {
       kind: 'import-statement',
       module: './lib/godot-compat/main',
@@ -451,10 +378,14 @@ export function emitDirectGodotWorldSyntax(
   ];
   const mainSceneShape: TargetTsJsxElementShape = {
     tag: scene.exportName,
-    attributes: [
-      { kind: 'jsx-string-attribute', name: 'name', value: scene.root.name },
-      ...scene.root.properties.flatMap(directGodotScenePropertyAttributes),
-    ],
+    // An idiomatic scene names its own root; a scene in the earlier shape takes it from here.
+    attributes:
+      scene.idiomatic === true
+        ? []
+        : [
+            { kind: 'jsx-string-attribute', name: 'name', value: scene.root.name },
+            ...scene.root.properties.flatMap(directGodotScenePropertyAttributes),
+          ],
     children: [],
   };
   const mainScene: TargetTsJsxChild = { kind: 'jsx-element-child', ...mainSceneShape };
@@ -522,23 +453,25 @@ export function emitDirectGodotWorldSyntax(
         };
   // `Main`'s loop around the startup transaction: the autoloads and the main scene enter the tree
   // once the loop has made the root window.
+  // Scenes with `@react-three/rapier` bodies mount inside its `<Physics>`, paused: the SceneTree's
+  // clock steps physics.
+  const rapier = composition.scenes.some((entry) => entry.idiomatic === true && usesRapier(entry.root));
   const worldExpression: TargetTsExpression = {
     kind: 'jsx-element-expression',
     tag: 'GodotMain',
     attributes: [],
-    children: [startup],
+    children: rapier
+      ? [{ kind: 'jsx-element-child', tag: 'Physics', attributes: [{ kind: 'jsx-expression-attribute', name: 'paused', value: { kind: 'literal-expression', value: true } }], children: [startup] }]
+      : [startup],
   };
-  const settings = projectSettingsLoad(composition);
-  const inputMap = inputMapLoad(composition);
+  const data = projectDataLoad(composition);
   return {
     syntaxVersion: TARGET_TS_SYNTAX_VERSION,
     sourcePath: 'project.godot',
     statements: [
       ...imports,
-      ...settings.imports,
-      ...inputMap.imports,
-      ...settings.statements,
-      ...inputMap.statements,
+      ...data.imports,
+      ...data.statements,
       ...composition.scriptAutoloads.map(autoloadComponent),
       {
         kind: 'function-statement',

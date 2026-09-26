@@ -14,7 +14,7 @@
 
 import RAPIER, { type World } from '@dimforge/rapier3d-compat';
 import { useFrame, useThree } from '@react-three/fiber';
-import { createElement, Fragment, type PropsWithChildren, useEffect, useLayoutEffect, useState } from 'react';
+import { createElement, Fragment, type PropsWithChildren, Suspense, useEffect, useLayoutEffect, useState } from 'react';
 import { godot_camera_3d_draw } from './camera-3d';
 import { godot_canvas_draw } from './canvas-item';
 import { godot_font_default, godot_font_default_url, godot_font_load } from './font';
@@ -104,5 +104,7 @@ export function GodotMain({ children }: PropsWithChildren) {
     };
   }, []);
   if (world === null) return null;
-  return createElement(Fragment, null, createElement(GodotMainLoop, { world }), children);
+  // The scenes may suspend while their own resources load (`@react-three/rapier`'s physics module):
+  // they mount, and enter the tree, together once they have.
+  return createElement(Fragment, null, createElement(GodotMainLoop, { world }), createElement(Suspense, { fallback: null }, children));
 }

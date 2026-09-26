@@ -88,7 +88,9 @@ export type GodotSceneStructureRuleId =
   /** An instanced imported model: Godot's importer tree over the loaded file. */
   | 'imported-scene'
   /** Overrides of an imported model's nodes, and nodes placed under them. */
-  | 'imported-scene-edits';
+  | 'imported-scene-edits'
+  /** A scene written as idiomatic React Three Fiber (the owner's ruling, GODOT.md). */
+  | 'idiomatic-scene';
 
 export interface GodotSceneStructureRule {
   readonly sourceRevision: string;

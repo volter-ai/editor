@@ -398,7 +398,15 @@ function attachScriptInstances(
         : { placements: placements.map((placed) => ({ at: placed.at, node: attach(scene, placed.node) })) }),
     };
   };
-  const result = scenes.map((scene) => ({ ...scene, root: attach(scene, scene.root) }));
+  const referencesAutoload = (node: DirectGodotSceneNodePlan): boolean =>
+    (node.scriptInstance?.autoloadReferences.length ?? 0) > 0 || node.children.some(referencesAutoload);
+  const result = scenes.map((scene) => {
+    const composed = { ...scene, root: attach(scene, scene.root) };
+    // The idiomatic reference unit does not yet write a scene whose scripts read an autoload.
+    if (composed.idiomatic !== true || !referencesAutoload(composed.root)) return composed;
+    const { idiomatic: _idiomatic, ...earlier } = composed;
+    return earlier;
+  });
   // A script attached to a node this document copied from an instanced scene, the same script
   // the instanced scene attaches there, is that scene's component's own attachment.
   const byDocument = new Map(project.documents.scenes.map((scene) => [scene.resPath, scene] as const));
@@ -583,6 +591,36 @@ function projectSettings(
 }
 
 /** Pure join of already-accepted code and data plans; it performs no source read or emission. */
+/** The classes whose methods take an action by name. */
+const ACTION_CLASSES = new Set(['Input', 'InputMap', 'InputEvent', 'InputEventAction', 'InputEventKey', 'InputEventMouseButton', 'InputEventJoypadButton', 'InputEventJoypadMotion', 'InputEventScreenTouch', 'InputEventMouseMotion', 'InputEventScreenDrag', 'InputEventWithModifiers', 'InputEventFromWindow', 'InputEventMouse']);
+
+/**
+ * The input actions the project's scripts name: each string argument of a call to a method of an
+ * input class. A call whose arguments include a computed value may name any action, and GUI nodes
+ * navigate with the built-in `ui_*` actions: either keeps every built-in.
+ */
+function usedInputActions(project: BoundGodotProject): ReadonlySet<string> | 'all' {
+  const used = new Set<string>();
+  for (const scene of project.documents.scenes) {
+    if (scene.nodes.some((node) => node.class.nativeAncestry.includes('Control'))) return 'all';
+  }
+  for (const script of project.scripts) {
+    const nodes = script.program.nodes;
+    for (const node of nodes) {
+      if (node.kind !== 'CALL' || !ACTION_CLASSES.has(node.compilerTarget.owner)) continue;
+      for (const id of node.arguments) {
+        const argument = nodes[id];
+        if (argument?.kind === 'LITERAL' && (argument.value.kind === 'string' || argument.value.kind === 'string-name')) {
+          used.add(argument.value.value);
+        } else if (argument?.datatype.kind !== 'BUILTIN' || (argument.datatype.builtinType !== 'bool' && argument.datatype.builtinType !== 'float' && argument.datatype.builtinType !== 'int')) {
+          return 'all';
+        }
+      }
+    }
+  }
+  return used;
+}
+
 export function planDirectGodotProjectComposition(
   project: BoundGodotProject,
   code: OfficialBoundCodePlan,
@@ -639,7 +677,7 @@ export function planDirectGodotProjectComposition(
   const autoloads = scriptAutoloads(project, modules, diagnostics);
   validateAutoloadReferences(instances, autoloads, diagnostics);
   const settings = projectSettings(project, diagnostics);
-  const inputMap = planDirectGodotInputMap(project.read.inputActions, (at, message) => diagnostics.push({ at, message }));
+  const inputMap = planDirectGodotInputMap(project.read.inputActions, (at, message) => diagnostics.push({ at, message }), usedInputActions(project));
   if (diagnostics.length > 0 || mainScene === undefined) {
     return { kind: 'refused-composition', diagnostics };
   }

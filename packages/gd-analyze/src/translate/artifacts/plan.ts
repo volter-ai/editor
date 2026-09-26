@@ -2,7 +2,13 @@ import { createHash } from 'node:crypto';
 import type { CapabilityCopyArtifact } from '../../snapshot/toolchain-snapshot';
 import type { OfficialBoundCodePlan } from '../code/lower-official-bound';
 import type { DirectGodotProjectCompositionPlan } from '../data/direct-project-composition-plan';
-import type { DirectGodotProjectDataPlan } from '../data/direct-project-data-plan';
+import type { DirectGodotProjectDataPlan, DirectJsonValue } from '../data/direct-project-data-plan';
+import {
+  DIRECT_GODOT_INPUT_MAP_PATH,
+  DIRECT_GODOT_SETTINGS_PATH,
+  directGodotInputMapJson,
+  directGodotSettingsJson,
+} from '../emit/direct-project-world-syntax';
 import type { DirectGodotSceneModulePlan } from '../data/direct-scene-module-plan';
 import { assetCopyArtifact } from './asset-copy';
 import { capabilityCopyArtifact } from './capability-copy';
@@ -97,6 +103,8 @@ function projectArtifacts(
       structuralDigest({ composition, module: plan.worldModule }),
       sourcePaths,
     ),
+    projectDataJsonArtifact(DIRECT_GODOT_SETTINGS_PATH, directGodotSettingsJson(composition) as DirectJsonValue, sourcePaths),
+    projectDataJsonArtifact(DIRECT_GODOT_INPUT_MAP_PATH, directGodotInputMapJson(composition) as DirectJsonValue, sourcePaths),
     projectDataJsonArtifact('vgai.project.json', plan.manifest, sourcePaths),
     projectDataJsonArtifact('package.json', plan.packageManifest, sourcePaths),
     projectDataJsonArtifact('package-lock.json', plan.packageLock, sourcePaths),
