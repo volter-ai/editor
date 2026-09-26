@@ -83,6 +83,25 @@ export const GODOT_SOURCE_AUTHORITIES: Readonly<
   },
 };
 
+/**
+ * Every pinned Godot 4 release, keyed by the source-version feature a project declares
+ * (`config/features`). `GODOT_SOURCE_AUTHORITIES[4]` is the 4.7 row of this table.
+ * 4.6 has no `boundExporter` pin until its exporter is built, so a 4.6 import refuses by name.
+ */
+export const GODOT_4_SOURCE_AUTHORITIES: Readonly<Record<'4.6' | '4.7', GodotSourceAuthority>> = {
+  '4.6': {
+    major: 4,
+    version: '4.6-stable',
+    repository: REPOSITORY,
+    revision: '89cea143987d564363e15d207438530651d943ac',
+    apiDumpFile: 'godot-4.6-extension_api.json',
+    apiDumpSha256: '7ec77145b30d238e7212e5e888d601b98a413377c156c19bd28e82fe452f8df2',
+    frontendFiles: GODOT_SOURCE_AUTHORITIES[4].frontendFiles,
+    runtimeRoots: GODOT_SOURCE_AUTHORITIES[4].runtimeRoots,
+  },
+  '4.7': GODOT_SOURCE_AUTHORITIES[4],
+};
+
 export function godotSourceAuthority(major: number): GodotSourceAuthority {
   if (major !== 3 && major !== 4) {
     throw new Error(
