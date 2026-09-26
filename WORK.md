@@ -168,19 +168,20 @@ A piece is a React component of `@volter/dawproject` elements, mounted by its ow
 reconciler; `@volter/editor-dawproject` is its document (a Bitwig-shaped arranger, clip
 editor and mixer) and its offline renderer. Measured in the game editor on the probe
 project's 16-bar orchestral piece: moving, transposing, adding and deleting notes, velocity,
-automation points, faders, pan, mute and send levels each write the literal in the piece's
-source and undo and redo through the workbench's stack byte-identically; generated notes
-refuse and name their line. Renders are byte-deterministic; stems null against the mix to
+automation points, faders, pan, mute, send levels and device parameters (a member of
+`params={{ … }}`, added when unwritten) each write the literal in the piece's source, and
+Freeze writes a generated clip out as literals; each undoes and redoes through the workbench's
+stack byte-identically, and generated notes refuse and name their line. Renders are byte-deterministic; stems null against the mix to
 −143.6 dB with the master's dynamics bypassed (−30.7 dB with them: nonlinear, as expected).
 A render of the probe piece takes 86 s. `freeze-clip` wrote the piece's three generated
-clips out as literals with the vertical view and `check-piece` unchanged.
+clips out as literals with the vertical view and `check-piece` unchanged. The editor's mix
+graph, rendered offline in the page on the export's own dry signals, nulls against the
+export's mix at −140.1 dB over the whole piece (strips, reverb bus, master dynamics).
 
 Open, with what closes each:
-- Live against export: the editor's Web Audio graph rendered offline against the export's
-  mix, as one null number. Measured on the parts separately, never as a whole.
-- A Freeze control in the clip editor (the CLI exists; the page's graph carries `data-oid`,
-  which the frozen elements must not).
-- The device chain: a panel per channel's devices, writing their `params`.
+- Live against export, synth half: the preview's worklet synthesizer and its real-time
+  scheduler against the export's offline synthesizer, as one null number (the mix half is
+  measured above).
 - Game delivery: stingers and adaptive segments or layers, exported with loop points.
 - Sampled instruments beyond the General MIDI SoundFont (sfizz), measured against native.
 - A music product (`create` with a starter piece and the composing guide), in place of
