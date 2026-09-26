@@ -126,9 +126,15 @@ Remaining:
    the editor, and each runtime names its own (the Pixi mounted root and 2D physics key are
    `@volter/game-runtime`'s, the asset cache `@volter/threejs-runtime`'s).
    `@volter/editor-game` imports nothing from `@volter/editor-core`; the kit it reaches is the
-   SDK's (ARCHITECTURE.md §Measured state). Remaining in
-   unit 3: Blender's lens,
-   opening direction, grid and axis colours become `@volter/editor-blender`'s specialization; the SDK's `surfaces.Object3D*` stay on the
+   SDK's (ARCHITECTURE.md §Measured state). Blender's lens and opening direction are
+   `@volter/editor-blender`'s specialization: the stage's field of view and opening are the view's
+   presentation (`ViewportCamera`), which each target states (Blender 71.5° on the larger side
+   and its solved direction, a `.blend`'s saved lens as its document's layer; Unity 60 on the
+   smaller side, Godot 70 vertical, Unreal 90 horizontal), and the kernel keeps the editor's own
+   (three's 50° vertical, the three-quarter view, its own axis colours for the compass); the grid's
+   and axes' colours were already the look's. Measured: the Blender stage opens unchanged, and
+   the game editor's Unity, Godot and Unreal views read 60, 70 and 72.3 (90 horizontal) degrees.
+   Remaining in unit 3: the SDK's `surfaces.Object3D*` stay on the
    contribution contract, forwarding to what the Three integration registers, because project
    contributions mount them (the authored viewport's own door, `viewport-door`, is already
    `@volter/editor-threejs`'s). The workbench's stage and panel chords stand down on the Game
