@@ -22,10 +22,10 @@
 export interface MusicRender {
   /** The looped mix, relative to the render folder. */
   readonly file: string;
-  readonly loopSeconds: number;
   /** The second of every bar line of the piece, 0 to its end inclusive. */
   readonly barSeconds: readonly number[];
-  readonly sections?: readonly { readonly name: string; readonly bar: number; readonly bars: number; readonly seconds: number; readonly file: string }[];
+  /** A section per marker: `start` is its second in the whole piece, where its loop begins. */
+  readonly sections?: readonly { readonly name: string; readonly start: number; readonly seconds: number; readonly file: string }[];
   readonly stems?: { readonly files?: readonly { readonly track: string; readonly file: string }[] };
 }
 
@@ -84,6 +84,8 @@ export function createMusicPlayer(options: {
   const output = context.createGain();
   output.connect(options.destination);
   let playing: Playing | null = null;
+  /** The loop still sounding while `playing` waits for its switch point (its `origin`). */
+  let leaving: Playing | null = null;
   const stingers = new Set<AudioBufferSourceNode>();
   const levels = new Map<string, number>();
 
@@ -97,13 +99,19 @@ export function createMusicPlayer(options: {
     const section = name === null ? null : render.sections?.find((candidate) => candidate.name === name);
     if (name !== null && !section) throw new Error(`No section "${name}" in this render (render it with --sections).`);
     if (stems && section) throw new Error('Stems are rendered for the whole piece, not per section.');
-    const first = section ? section.bar - 1 : 0;
-    const count = section ? section.bars : render.barSeconds.length - 1;
-    const bars = render.barSeconds.slice(first, first + count + 1).map((second) => second - (render.barSeconds[first] ?? 0));
-    const gain = context.createGain();
-    gain.connect(output);
     const files = stems ? (render.stems?.files ?? []).map((stem) => [stem.track, stem.file] as const) : [[name ?? 'mix', section?.file ?? render.file] as const];
     if (files.length === 0) throw new Error('This render has no stems.');
+    // The loop is the decoded buffer's own length (the context may resample the file); its bar
+    // lines are the piece's that fall inside it, from its start. A marker off a downbeat starts a
+    // loop mid-bar, and its bar lines are still the piece's.
+    const seconds = buffer(files[0]![1]).duration;
+    const from = section?.start ?? 0;
+    const bars = [
+      ...render.barSeconds.map((second) => second - from).filter((second) => second >= -1e-6 && second < seconds - 1e-3),
+      seconds,
+    ];
+    const gain = context.createGain();
+    gain.connect(output);
     const sources = new Map<string, { source: AudioBufferSourceNode; gain: GainNode }>();
     for (const [key, file] of files) {
       const source = context.createBufferSource();
@@ -115,7 +123,7 @@ export function createMusicPlayer(options: {
       source.start(when);
       sources.set(key, { source, gain: own });
     }
-    return { name, gain, sources, origin: when, seconds: section?.seconds ?? render.loopSeconds, bars };
+    return { name, gain, sources, origin: when, seconds, bars };
   };
 
   const fadeOut = (voice: Playing, at: number, fade: number): void => {
@@ -134,18 +142,23 @@ export function createMusicPlayer(options: {
     };
   };
 
+  const barOf = (voice: Playing, after: number): number => {
+    const position = (((after - voice.origin) % voice.seconds) + voice.seconds) % voice.seconds;
+    const line = voice.bars.find((bar) => bar >= position - 1e-6) ?? voice.seconds;
+    return after - position + line;
+  };
   const nextBar = (after = context.currentTime + LEAD): number => {
     if (!playing) return after;
-    const position = (((after - playing.origin) % playing.seconds) + playing.seconds) % playing.seconds;
-    const loopStart = after - position;
-    const line = playing.bars.find((bar) => bar >= position - 1e-6) ?? playing.seconds;
-    return loopStart + line;
+    // Before a queued switch lands, the bar lines are the sounding loop's, up to the switch.
+    if (after < playing.origin) return leaving ? Math.min(barOf(leaving, after), playing.origin) : playing.origin;
+    return barOf(playing, after);
   };
 
   return {
     output,
     play(section, opts = {}) {
-      if (playing) fadeOut(playing, context.currentTime, 0.02);
+      for (const voice of [playing, leaving]) if (voice) fadeOut(voice, context.currentTime, 0.02);
+      leaving = null;
       playing = start(section, opts.stems === true, opts.when ?? context.currentTime + LEAD);
     },
     queue(section, opts = {}) {
@@ -154,8 +167,22 @@ export function createMusicPlayer(options: {
         playing = start(section, opts.stems === true, now);
         return now;
       }
+      if (playing.origin > now) {
+        // A switch is already waiting (queued twice before the first one lands): the new loop
+        // takes the waiting one's place, at the same moment, and the waiting one never sounds.
+        const at = playing.origin;
+        for (const { source, gain } of playing.sources.values()) {
+          source.stop();
+          source.disconnect();
+          gain.disconnect();
+        }
+        playing.gain.disconnect();
+        playing = start(section, opts.stems === true, at);
+        return at;
+      }
       const at = opts.at === 'end' ? playing.origin + Math.ceil((now - playing.origin) / playing.seconds) * playing.seconds : nextBar(now);
       fadeOut(playing, at, opts.fade ?? 0.25);
+      leaving = playing;
       playing = start(section, opts.stems === true, at);
       return at;
     },
@@ -184,10 +211,12 @@ export function createMusicPlayer(options: {
     nextBar,
     stop(fade = 0.5) {
       if (playing) fadeOut(playing, context.currentTime, fade);
-      playing = null;
+      if (leaving) fadeOut(leaving, context.currentTime, fade);
+      playing = leaving = null;
     },
     dispose() {
-      if (playing) for (const { source } of playing.sources.values()) source.stop();
+      for (const voice of [playing, leaving]) if (voice) for (const { source } of voice.sources.values()) source.stop();
+      leaving = null;
       for (const source of stingers) source.stop();
       stingers.clear();
       playing = null;

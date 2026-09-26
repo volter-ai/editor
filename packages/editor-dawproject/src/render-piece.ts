@@ -164,7 +164,8 @@ export async function renderPiece({
     writeFileSync(join(out, `${name}.mid`), new Uint8Array(pieceToMidi(piece, 1).writeMIDI()));
     encode(wavPath, join(out, name));
 
-    const sectionReports: { name: string; bar: number; bars: number; seconds: number; file: string; fileM4a: string }[] = [];
+    const performance = perform(piece);
+    const sectionReports: { name: string; bar: number; bars: number; start: number; seconds: number; file: string; fileM4a: string }[] = [];
     if (sections) {
       const directory = join(out, 'sections');
       rmSync(directory, { recursive: true, force: true });
@@ -194,12 +195,12 @@ export async function renderPiece({
         writeFileSync(wav, loopWav24(audio.left, audio.right, audio.sampleRate));
         encode(wav, join(directory, file));
         sectionReports.push({
-          name: marker.name, bar: marker.time / beatsPerBar + 1, bars: (end - marker.time) / beatsPerBar, seconds: audio.loopSeconds,
+          name: marker.name, bar: marker.time / beatsPerBar + 1, bars: (end - marker.time) / beatsPerBar,
+          start: performance.secondsAt(marker.time), seconds: audio.loopSeconds,
           file: `sections/${file}.ogg`, fileM4a: `sections/${file}.m4a`,
         });
       }
     }
-    const performance = perform(piece);
     const barSeconds = Array.from({ length: Math.floor(piece.length / beatsPerBar) + 1 }, (_, bar) => performance.secondsAt(bar * beatsPerBar));
 
     const { integrated, range, truePeak } = measure(wavPath);
