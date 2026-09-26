@@ -187,6 +187,11 @@ export interface DocumentDragStep extends ScopedStep {
   /** The button held: 0 primary (default), 1 middle, 2 secondary. A right
    *  press is what orbits a viewport or, with Shift, places Blender's 3D cursor. */
   button?: 0 | 1 | 2;
+  /** The pointer may leave the element after the press: `via`/`to` may lie
+   *  outside 0..1 (still fractions of the element's box), the way a person
+   *  drags a 10 px resize handle outward. The press stays inside, and the
+   *  element keeps receiving the moves, as pointer capture delivers them. */
+  leave?: boolean;
 }
 
 /** A real key on the explicit target, else whatever inside the document has focus. */

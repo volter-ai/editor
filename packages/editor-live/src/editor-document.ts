@@ -167,6 +167,8 @@ export class LiveEditorDocument {
       shiftKey?: boolean;
       /** 0 primary (default), 1 middle, 2 secondary. */
       button?: 0 | 1 | 2;
+      /** `via`/`to` may leave the element's box after the press (a handle drag). */
+      leave?: boolean;
     },
   ): Promise<DocumentProbeResult> {
     return this.#probe({
@@ -183,6 +185,7 @@ export class LiveEditorDocument {
       ...(options.metaKey === undefined ? {} : { metaKey: options.metaKey }),
       ...(options.shiftKey === undefined ? {} : { shiftKey: options.shiftKey }),
       ...(options.button === undefined ? {} : { button: options.button }),
+      ...(options.leave === undefined ? {} : { leave: options.leave }),
     });
   }
 

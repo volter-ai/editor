@@ -948,7 +948,9 @@ export async function runDocumentProbe(step: DocumentProbeStep): Promise<Documen
         ['to', step.to],
       ];
       for (const [name, point] of points) {
-        if (point.every((value) => Number.isFinite(value) && value >= 0 && value <= 1)) continue;
+        const inside = point.every((value) => Number.isFinite(value) && value >= 0 && value <= 1);
+        if (inside) continue;
+        if (step.leave && name !== 'from' && point.every((value) => Number.isFinite(value))) continue;
         throw new Error(
           `drag ${name} ${JSON.stringify(point)} is not a fraction of the element's box: points are ` +
             `[x, y] from 0 to 1 from its top-left ([0.5, 0.5] is its centre). This element is ` +

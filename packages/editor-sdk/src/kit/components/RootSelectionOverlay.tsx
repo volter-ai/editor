@@ -362,6 +362,17 @@ function selectInactiveStoryFrame(
   return selectReactStoryFrameAtPoint(overlayContainer, e.clientX, e.clientY);
 }
 
+/** Whether the armed tool carries `part`'s handles. Without transform-mode
+ *  awareness every part is armed; `combined` (Transform, all handles) arms all
+ *  three, as it does on the 3D stage. */
+function transformArms(
+  aware: boolean,
+  mode: string,
+  part: 'translate' | 'rotate' | 'scale',
+): boolean {
+  return !aware || mode === part || mode === 'combined';
+}
+
 function boxStyle(r: DOMRectLike, solid: boolean): React.CSSProperties {
   return {
     position: 'absolute',
@@ -369,7 +380,13 @@ function boxStyle(r: DOMRectLike, solid: boolean): React.CSSProperties {
     top: r.y,
     width: r.width,
     height: r.height,
-    border: `${solid ? 2 : 1}px solid ${ACCENT}`,
+    // Longhands, never the `border` shorthand: callers override `borderWidth`
+    // per zoom, and React drops a shorthand's colour and style when a longhand
+    // beside it changes (measured on a canvas Scene: the selection box kept a
+    // 0.3 px width with an empty colour and style, so nothing was drawn).
+    borderStyle: 'solid',
+    borderColor: ACCENT,
+    borderWidth: solid ? 2 : 1,
     background: solid ? `color-mix(in srgb, ${ACCENT} 6%, transparent)` : 'transparent',
     boxSizing: 'border-box',
     pointerEvents: 'none',
@@ -1300,6 +1317,10 @@ export function RootSelectionOverlay({
   // live in world space: zooming should enlarge the subject, not its labels or
   // grab targets. DOM boards keep their historical canvas-scaled chrome.
   const chromeScale = transformModeAware ? 1 / pan.zoom : 1;
+  // A dedicated Move/Rotate/Scale tool draws its axis gizmo at the node's
+  // origin; the combined tool draws handles on the selection's bounds, the way
+  // Godot's Select tool and Figma's selection do.
+  const axisGizmos = transformModeAware && store.transformMode !== 'combined';
   // True while the Space key is physically held (and not typing — see the
   // keydown/keyup effect below), the hold-to-pan gesture's arm switch.
   // `spaceHeldRef` mirrors the state for a synchronous read in the pointer
@@ -2070,7 +2091,7 @@ export function RootSelectionOverlay({
           ? nearestSelectedAncestor(adapter, hitAtDown, store.selectedEntityIds)
           : null;
       const moveCandidate: DragState['moveCandidate'] =
-        (!transformModeAware || store.transformMode === 'translate') && moveSubject !== null
+        transformArms(transformModeAware, store.transformMode, 'translate') && moveSubject !== null
           ? resolveMoveCandidate(adapter, moveSubject, store.selectedEntityIds)
           : null;
 
@@ -2570,7 +2591,8 @@ export function RootSelectionOverlay({
                 width: hint.rect.width,
                 height: hint.rect.height,
                 // text-2 at 0.7 alpha — a quiet non-interactive hint outline.
-                border: '1px dashed rgba(154, 160, 166, 0.7)',
+                borderStyle: 'dashed',
+                borderColor: 'rgba(154, 160, 166, 0.7)',
                 borderWidth: transformModeAware ? 1 / pan.zoom : 1,
                 boxSizing: 'border-box',
                 pointerEvents: 'none',
@@ -2810,8 +2832,8 @@ export function RootSelectionOverlay({
                 />
               </>
             )}
-            {(!transformModeAware || store.transformMode === 'scale') &&
-              (transformModeAware ? (
+            {transformArms(transformModeAware, store.transformMode, 'scale') &&
+              (axisGizmos ? (
                 <>
                   <div
                     data-testid="world-2d-scale-axis-x"
@@ -2868,7 +2890,12 @@ export function RootSelectionOverlay({
                     <div
                       key={pos}
                       data-testid={`world-resize-handle-${pos}`}
-                      style={handleStyle(handlePosition(singleRect, pos), cursor)}
+                      style={{
+                        ...handleStyle(handlePosition(singleRect, pos), cursor),
+                        ...(transformModeAware
+                          ? { transform: `scale(${chromeScale})`, transformOrigin: 'center' }
+                          : {}),
+                      }}
                       onPointerDown={(event) => startResizeGesture(pos, event)}
                       onPointerMove={onPointerMove}
                       onPointerUp={onPointerUp}
@@ -2877,15 +2904,24 @@ export function RootSelectionOverlay({
                   ))}
                   <div
                     data-testid="world-resize-dimension-label"
-                    style={dimensionLabelStyle(singleRect)}
+                    style={{
+                      ...dimensionLabelStyle(singleRect),
+                      ...(transformModeAware
+                        ? {
+                            top: singleRect.y + singleRect.height + 4 * chromeScale,
+                            transform: `scale(${chromeScale})`,
+                            transformOrigin: 'top left',
+                          }
+                        : {}),
+                    }}
                   >
                     {`${Math.round(singleRect.width)}×${Math.round(singleRect.height)}`}
                   </div>
                 </>
               ))}
-            {(!transformModeAware || store.transformMode === 'rotate') && (
+            {transformArms(transformModeAware, store.transformMode, 'rotate') && (
               <>
-                {transformModeAware && (
+                {axisGizmos && (
                   <div
                     data-testid="world-2d-rotate-ring"
                     style={{
@@ -2907,7 +2943,14 @@ export function RootSelectionOverlay({
                   title="Rotate selection (15° snap, Alt for free rotation)"
                   style={{
                     ...rotateHandleStyle(singleRect),
-                    ...(transformModeAware
+                    ...(transformModeAware && !axisGizmos
+                      ? {
+                          top: singleRect.y - ROTATE_OFFSET * chromeScale - ROTATE_SIZE / 2,
+                          transform: `scale(${chromeScale})`,
+                          transformOrigin: 'center',
+                        }
+                      : {}),
+                    ...(axisGizmos
                       ? {
                           left: nativeGizmoOrigin!.x - ROTATE_SIZE / 2,
                           top: nativeGizmoOrigin!.y - 40 / pan.zoom - ROTATE_SIZE / 2,
