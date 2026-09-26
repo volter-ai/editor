@@ -1,4 +1,5 @@
 /** The single public Godot compiler CLI: one import pipeline plus its whole-project sweep. */
+import { runEvidence } from './evidence/run-evidence';
 import { importGodotProject } from './import-project';
 import { runClosure } from './report/closure';
 import { runSweep } from './sweep';
@@ -16,6 +17,11 @@ const USAGE = `usage: gd-analyze <command> [options]
   closure [fixture ...] --bound-exporter-binary <path> [--out <file.json>]
            Report (read-only) the Godot capabilities the pinned fixtures use: call targets,
            unresolved calls, attributes, operators, node classes, resources, signals, assets.
+
+  evidence <class> --official-binary <path>
+           Run evidence/godot-4.7/<class>.cases.ts in the official Godot 4.7 binary (headless)
+           and through its compat module in Node; on full agreement write the binding rows and
+           semantic claims to src/translate/code/authority/godot-4.7/<class>.json.
 `;
 
 function fail(message: string): never {
@@ -52,7 +58,7 @@ function requiredExporter(rest: readonly string[]): string {
   return binary;
 }
 
-export function runCli(argv: readonly string[]): number {
+export async function runCli(argv: readonly string[]): Promise<number> {
   const [command, ...rest] = argv;
   if (command === undefined || command === '--help' || command === '-h') {
     process.stdout.write(USAGE);
@@ -78,7 +84,14 @@ export function runCli(argv: readonly string[]): number {
       optionValue(rest, '--out'),
     );
   }
+  if (command === 'evidence') {
+    const positional = positionals(rest, ['--official-binary']);
+    const binary = optionValue(rest, '--official-binary');
+    if (positional.length !== 1) fail('evidence needs exactly one Godot class');
+    if (binary === undefined) fail('evidence needs --official-binary <path>');
+    return runEvidence(positional[0] as string, binary);
+  }
   fail(`unknown command "${command}"`);
 }
 
-process.exitCode = runCli(process.argv.slice(2));
+process.exitCode = await runCli(process.argv.slice(2));

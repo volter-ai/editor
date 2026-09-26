@@ -27,6 +27,7 @@ import {
   GODOT_4_7_CODE_SEED_RULES,
   GODOT_4_7_CODE_SEED_SOURCE_REVISION,
 } from './authority/godot-4.7-seed';
+import { godot47EvidenceFiles } from './authority/godot-4.7-evidence';
 import { GODOT_BINDING_TABLE_VERSION } from './bindings';
 import { GODOT_CODE_RULE_TABLE_VERSION } from './lowering-rules';
 
@@ -73,6 +74,7 @@ export function godotCodeTranslationAuthority(
   const seeded =
     source.revision === GODOT_4_7_CODE_SEED_SOURCE_REVISION &&
     source.apiDumpSha256 === GODOT_4_7_CODE_SEED_API_DUMP_SHA256;
+  const evidence = seeded ? godot47EvidenceFiles() : [];
   return {
     version: GODOT_CODE_TRANSLATION_AUTHORITY_VERSION,
     sourceRevision: source.revision,
@@ -80,7 +82,7 @@ export function godotCodeTranslationAuthority(
     bindings: {
       version: GODOT_BINDING_TABLE_VERSION,
       sourceRevision: source.revision,
-      entries: [],
+      entries: evidence.flatMap((file) => file.bindings),
     },
     rules: {
       version: GODOT_CODE_RULE_TABLE_VERSION,
@@ -99,6 +101,7 @@ export function godotCodeTranslationAuthority(
           ...GODOT_4_7_CODE_SEED_CLAIMS,
           ...GODOT_4_7_LANGUAGE_CLAIMS,
           ...GODOT_4_7_AUTOLOAD_REFERENCE_CLAIMS,
+          ...evidence.flatMap((file) => file.claims),
         ]
       : [],
     liveness: seeded
@@ -111,6 +114,7 @@ export function godotCodeTranslationAuthority(
             GODOT_4_7_AUTOLOAD_REFERENCE_LIVENESS,
             monorepoImplementationDigest(GODOT_AUTOLOAD_REFERENCE_IMPLEMENTATION_FILES),
           ),
+          ...evidence.flatMap((file) => file.liveness),
         ]
       : [],
   };

@@ -1,0 +1,756 @@
+{
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "kind": "builtin-constructor",
+        "owner": "Vector3",
+        "member": "Vector3",
+        "signature": "unhashed"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/vector3",
+        "exportName": "construct",
+        "localName": "Vector3_construct",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Vector3.Vector3"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "kind": "builtin-member",
+        "owner": "Vector3",
+        "member": "is_zero_approx",
+        "signature": "hash:3918633141"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/vector3",
+        "exportName": "is_zero_approx",
+        "localName": "Vector3_is_zero_approx",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Vector3.is_zero_approx"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "kind": "builtin-member",
+        "owner": "Vector3",
+        "member": "length",
+        "signature": "hash:466405837"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/vector3",
+        "exportName": "length",
+        "localName": "Vector3_length",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Vector3.length"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "kind": "builtin-member",
+        "owner": "Vector3",
+        "member": "length_squared",
+        "signature": "hash:466405837"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/vector3",
+        "exportName": "length_squared",
+        "localName": "Vector3_length_squared",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Vector3.length_squared"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "kind": "builtin-member",
+        "owner": "Vector3",
+        "member": "normalized",
+        "signature": "hash:1776574132"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/vector3",
+        "exportName": "normalized",
+        "localName": "Vector3_normalized",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Vector3.normalized"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "kind": "builtin-member",
+        "owner": "Vector3",
+        "member": "limit_length",
+        "signature": "hash:514930144"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/vector3",
+        "exportName": "limit_length",
+        "localName": "Vector3_limit_length",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Vector3.limit_length"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "kind": "builtin-member",
+        "owner": "Vector3",
+        "member": "cross",
+        "signature": "hash:2923479887"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/vector3",
+        "exportName": "cross",
+        "localName": "Vector3_cross",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Vector3.cross"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "kind": "builtin-member",
+        "owner": "Vector3",
+        "member": "dot",
+        "signature": "hash:1047977935"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/vector3",
+        "exportName": "dot",
+        "localName": "Vector3_dot",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Vector3.dot"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "kind": "builtin-member",
+        "owner": "Vector3",
+        "member": "distance_to",
+        "signature": "hash:1047977935"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/vector3",
+        "exportName": "distance_to",
+        "localName": "Vector3_distance_to",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Vector3.distance_to"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "kind": "builtin-member",
+        "owner": "Vector3",
+        "member": "lerp",
+        "signature": "hash:1682608829"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/vector3",
+        "exportName": "lerp",
+        "localName": "Vector3_lerp",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Vector3.lerp"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "kind": "builtin-member",
+        "owner": "Vector3",
+        "member": "rotated",
+        "signature": "hash:1682608829"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/vector3",
+        "exportName": "rotated",
+        "localName": "Vector3_rotated",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Vector3.rotated"
+      }
+    }
+  ],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Vector3.Vector3",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-constructor\u0000Vector3\u0000Vector3\u0000unhashed",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/vector3.h",
+        "sourceSymbol": "Vector3.Vector3",
+        "sourceLine": 224
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "30ff29a15acff278cd57e408d4851899dfbd5866cab3edee7f397c031025c857",
+        "callsite": "res://probe.gd _init() construct-empty construct-copy construct-vector3i construct-vector3i-rounds construct-floats-zero construct-floats-x construct-floats-a construct-floats-decimals construct-floats-negative construct-floats-near-zero construct-floats-epsilon-edge construct-floats-subnormal construct-floats-large construct-floats-overflow construct-floats-mixed construct-floats-negative-zero construct-floats-infinite construct-floats-double-overflow",
+        "observedOutputSha256": "4f51fcb550db2524f64d9672d5f4f402937abbf7a13336074bc0674da977b652"
+      },
+      "target": {
+        "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887",
+        "callsite": "lib/godot-compat/vector3.ts construct",
+        "observedOutputSha256": "4f51fcb550db2524f64d9672d5f4f402937abbf7a13336074bc0674da977b652"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "2a9bc07135deef0f1bd01123c4621800a314aed4f3b09d6eac70c8c7e4068d6c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "vector3",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Vector3.is_zero_approx",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Vector3\u0000is_zero_approx\u0000hash:3918633141",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/vector3.cpp",
+        "sourceSymbol": "Vector3.is_zero_approx",
+        "sourceLine": 149
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b74690bb37f9930730e876e2544e4cf52477ca1551f9206ba27c0b932a941f63",
+        "callsite": "res://probe.gd _init() is_zero_approx-zero is_zero_approx-x is_zero_approx-a is_zero_approx-decimals is_zero_approx-negative is_zero_approx-near-zero is_zero_approx-epsilon-edge is_zero_approx-subnormal is_zero_approx-large is_zero_approx-overflow is_zero_approx-mixed is_zero_approx-infinite is_zero_approx-nan is_zero_approx-negative-zero is_zero_approx-just-under",
+        "observedOutputSha256": "0fc2ea5a4048e95a9bda3ca52d90fb41a1a98dc66cbc9661fcfab6da2b4686ae"
+      },
+      "target": {
+        "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887",
+        "callsite": "lib/godot-compat/vector3.ts is_zero_approx",
+        "observedOutputSha256": "0fc2ea5a4048e95a9bda3ca52d90fb41a1a98dc66cbc9661fcfab6da2b4686ae"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "21773732f93354fb23c36e4a89de351c9d319ec5be33db97c15a04d131e2087a"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "vector3",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Vector3.length",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Vector3\u0000length\u0000hash:466405837",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/vector3.h",
+        "sourceSymbol": "Vector3.length",
+        "sourceLine": 532
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4faaf678e6f92608424bee75728bf2fb83de85555c1874fa8770c9834a1fefb0",
+        "callsite": "res://probe.gd _init() length-zero length-x length-a length-decimals length-negative length-near-zero length-epsilon-edge length-subnormal length-large length-overflow length-mixed",
+        "observedOutputSha256": "7f86a975c25cb8b5f722e70d588ab8f8f4e5240065262a6c8cdd15835f53dfe0"
+      },
+      "target": {
+        "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887",
+        "callsite": "lib/godot-compat/vector3.ts length",
+        "observedOutputSha256": "7f86a975c25cb8b5f722e70d588ab8f8f4e5240065262a6c8cdd15835f53dfe0"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "a96d5852b30ffc3e1e89efc96080f8d300ba4ddc6db0193219b69f5d278d90ac"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "vector3",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Vector3.length_squared",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Vector3\u0000length_squared\u0000hash:466405837",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/vector3.h",
+        "sourceSymbol": "Vector3.length_squared",
+        "sourceLine": 540
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "aabc12192ce29edada7f96db43e7fe853a4f6d6aa19999351268b8010ffd5fad",
+        "callsite": "res://probe.gd _init() length_squared-zero length_squared-x length_squared-a length_squared-decimals length_squared-negative length_squared-near-zero length_squared-epsilon-edge length_squared-subnormal length_squared-large length_squared-overflow length_squared-mixed",
+        "observedOutputSha256": "b2d60c63b32cac1ebfc0d476db4c2dcd5b0ab07b6318054c2a8a102714f92628"
+      },
+      "target": {
+        "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887",
+        "callsite": "lib/godot-compat/vector3.ts length_squared",
+        "observedOutputSha256": "b2d60c63b32cac1ebfc0d476db4c2dcd5b0ab07b6318054c2a8a102714f92628"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "79c99be54e8a8065950790e4e393265b7682d21e3505b064e0a722fed3abfd91"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "vector3",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Vector3.normalized",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Vector3\u0000normalized\u0000hash:1776574132",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/vector3.h",
+        "sourceSymbol": "Vector3.normalized",
+        "sourceLine": 568
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "06f48fc34259e1b7c2cb79a436d87f24755a80dde0022254c26e4477811e824f",
+        "callsite": "res://probe.gd _init() normalized-zero normalized-x normalized-a normalized-decimals normalized-negative normalized-near-zero normalized-epsilon-edge normalized-subnormal normalized-large normalized-overflow normalized-mixed normalized-infinite normalized-nan",
+        "observedOutputSha256": "ea154dcb1e9eccaaaf5bdf0f5e8289e76f2683377ec538e57fe20cf5381dddf0"
+      },
+      "target": {
+        "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887",
+        "callsite": "lib/godot-compat/vector3.ts normalized",
+        "observedOutputSha256": "ea154dcb1e9eccaaaf5bdf0f5e8289e76f2683377ec538e57fe20cf5381dddf0"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "dea1200ee091cdd20d5ea3c24cc8bd0b938b819be7ebe77f10f38eca1c88cf4f"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "vector3",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Vector3.limit_length",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Vector3\u0000limit_length\u0000hash:514930144",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/vector3.cpp",
+        "sourceSymbol": "Vector3.limit_length",
+        "sourceLine": 72
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "2593bd639eedb4a06d23300308e1769034796d6711a0252c0595cb08faebc14e",
+        "callsite": "res://probe.gd _init() limit_length-default-zero limit_length-default-x limit_length-default-a limit_length-default-decimals limit_length-default-negative limit_length-default-near-zero limit_length-default-epsilon-edge limit_length-default-subnormal limit_length-default-large limit_length-default-overflow limit_length-default-mixed limit_length-half-a limit_length-half-negative limit_length-half-zero limit_length-half-large limit_length-ten-a limit_length-ten-negative limit_length-ten-zero limit_length-ten-large limit_length-zero-a limit_length-zero-negative limit_length-zero-zero limit_length-zero-large limit_length-negative-a limit_length-negative-negative limit_length-negative-zero limit_length-negative-large limit_length-decimal-a limit_length-decimal-negative limit_length-decimal-zero limit_length-decimal-large",
+        "observedOutputSha256": "6ffd494c4cc59ec68db45c58e46f65a2c6b9051ebaa9a21296d0e243c0452021"
+      },
+      "target": {
+        "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887",
+        "callsite": "lib/godot-compat/vector3.ts limit_length",
+        "observedOutputSha256": "6ffd494c4cc59ec68db45c58e46f65a2c6b9051ebaa9a21296d0e243c0452021"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e03628332efe340f5c49bdd7604add790cc1d12b30b018e7c3c2cfb9fde64878"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "vector3",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Vector3.cross",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Vector3\u0000cross\u0000hash:2923479887",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/vector3.h",
+        "sourceSymbol": "Vector3.cross",
+        "sourceLine": 243
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c328bd8bd266d75aa07e11aaf7314d515b4823a94d23cf2d10d2e8c96e3ab1c3",
+        "callsite": "res://probe.gd _init() cross-a-b cross-x-y cross-y-x cross-zero-a cross-decimals-negative cross-near-zero-mixed cross-large-a cross-overflow-large cross-mixed-mixed",
+        "observedOutputSha256": "bd2155db13518b1cbb8ba7c45cf7f634fea4d00aa87c9e298d079271b7ad71b1"
+      },
+      "target": {
+        "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887",
+        "callsite": "lib/godot-compat/vector3.ts cross",
+        "observedOutputSha256": "bd2155db13518b1cbb8ba7c45cf7f634fea4d00aa87c9e298d079271b7ad71b1"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "d20b4d8cc8751e2c84f45ea9c1acc95cc9317869bfdf89a0637eb3394db98595"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "vector3",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Vector3.dot",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Vector3\u0000dot\u0000hash:1047977935",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/vector3.h",
+        "sourceSymbol": "Vector3.dot",
+        "sourceLine": 252
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "fd5056e70eb982ca7ee863b1d7478f739cb680fcc145e23f822ea6d0001ce4b8",
+        "callsite": "res://probe.gd _init() dot-a-b dot-x-y dot-y-x dot-zero-a dot-decimals-negative dot-near-zero-mixed dot-large-a dot-overflow-large dot-mixed-mixed",
+        "observedOutputSha256": "8195c1af03d484bd33c0c72642d2c10e7c48dc2acf00930516898268b4cc6c54"
+      },
+      "target": {
+        "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887",
+        "callsite": "lib/godot-compat/vector3.ts dot",
+        "observedOutputSha256": "8195c1af03d484bd33c0c72642d2c10e7c48dc2acf00930516898268b4cc6c54"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "1c11b81d2d82438dc1bf2b960680455adffec02c6108f06f8902465cf972991b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "vector3",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Vector3.distance_to",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Vector3\u0000distance_to\u0000hash:1047977935",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/vector3.h",
+        "sourceSymbol": "Vector3.distance_to",
+        "sourceLine": 338
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "7f56cce56270fe7ee2a4b7fa54efe4de596068cbbe4769f290f725ad92279876",
+        "callsite": "res://probe.gd _init() distance_to-a-b distance_to-x-y distance_to-y-x distance_to-zero-a distance_to-decimals-negative distance_to-near-zero-mixed distance_to-large-a distance_to-overflow-large distance_to-mixed-mixed",
+        "observedOutputSha256": "95ac3a375b4f408eb8df5426f5b26e70e5231aba0e9bb3b4314865ed691234a5"
+      },
+      "target": {
+        "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887",
+        "callsite": "lib/godot-compat/vector3.ts distance_to",
+        "observedOutputSha256": "95ac3a375b4f408eb8df5426f5b26e70e5231aba0e9bb3b4314865ed691234a5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "9e2d2a43a1cc9a472f413074e24c944fe31fb425d5ca646a06bdb21c063c20d0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "vector3",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Vector3.lerp",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Vector3\u0000lerp\u0000hash:1682608829",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/vector3.h",
+        "sourceSymbol": "Vector3.lerp",
+        "sourceLine": 276
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5a52d2235086d97b73d52acae22f8da65bfbb51d041cc419ec5f8a39a9909a52",
+        "callsite": "res://probe.gd _init() lerp-a-b-0 lerp-a-b-1 lerp-a-b-0.5 lerp-a-b-0.1 lerp-a-b--0.5 lerp-a-b-1.5 lerp-x-y-0 lerp-x-y-1 lerp-x-y-0.5 lerp-x-y-0.1 lerp-x-y--0.5 lerp-x-y-1.5 lerp-y-x-0 lerp-y-x-1 lerp-y-x-0.5 lerp-y-x-0.1 lerp-y-x--0.5 lerp-y-x-1.5 lerp-zero-a-0 lerp-zero-a-1 lerp-zero-a-0.5 lerp-zero-a-0.1 lerp-zero-a--0.5 lerp-zero-a-1.5 lerp-decimals-negative-0 lerp-decimals-negative-1 lerp-decimals-negative-0.5 lerp-decimals-negative-0.1 lerp-decimals-negative--0.5 lerp-decimals-negative-1.5 lerp-near-zero-mixed-0 lerp-near-zero-mixed-1 lerp-near-zero-mixed-0.5 lerp-near-zero-mixed-0.1 lerp-near-zero-mixed--0.5 lerp-near-zero-mixed-1.5 lerp-large-a-0 lerp-large-a-1 lerp-large-a-0.5 lerp-large-a-0.1 lerp-large-a--0.5 lerp-large-a-1.5 lerp-overflow-large-0 lerp-overflow-large-1 lerp-overflow-large-0.5 lerp-overflow-large-0.1 lerp-overflow-large--0.5 lerp-overflow-large-1.5 lerp-mixed-mixed-0 lerp-mixed-mixed-1 lerp-mixed-mixed-0.5 lerp-mixed-mixed-0.1 lerp-mixed-mixed--0.5 lerp-mixed-mixed-1.5",
+        "observedOutputSha256": "096679d6d63ae108f2a08c03d70d7b87bfb512eb1a55748a0ae93373b7ff4985"
+      },
+      "target": {
+        "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887",
+        "callsite": "lib/godot-compat/vector3.ts lerp",
+        "observedOutputSha256": "096679d6d63ae108f2a08c03d70d7b87bfb512eb1a55748a0ae93373b7ff4985"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "ca6587dedff4e8b2d6d45d73e59c5fccde57c641ff2398b875cdf23abddffa54"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "vector3",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Vector3.rotated",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member\u0000Vector3\u0000rotated\u0000hash:1682608829",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/vector3.cpp",
+        "sourceSymbol": "Vector3.rotated",
+        "sourceLine": 42
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "bea19c8296bec29a4034f3f86bd0dfd5f72c7fc6e1fc7ae89649a60c783e03bc",
+        "callsite": "res://probe.gd _init() rotated-a-x-zero rotated-mixed-x-zero rotated-a-x-half-pi rotated-mixed-x-half-pi rotated-a-x-pi rotated-mixed-x-pi rotated-a-x-small rotated-mixed-x-small rotated-a-x-negative rotated-mixed-x-negative rotated-a-x-large rotated-mixed-x-large rotated-a-y-zero rotated-mixed-y-zero rotated-a-y-half-pi rotated-mixed-y-half-pi rotated-a-y-pi rotated-mixed-y-pi rotated-a-y-small rotated-mixed-y-small rotated-a-y-negative rotated-mixed-y-negative rotated-a-y-large rotated-mixed-y-large rotated-a-z-zero rotated-mixed-z-zero rotated-a-z-half-pi rotated-mixed-z-half-pi rotated-a-z-pi rotated-mixed-z-pi rotated-a-z-small rotated-mixed-z-small rotated-a-z-negative rotated-mixed-z-negative rotated-a-z-large rotated-mixed-z-large rotated-a-diagonal-zero rotated-mixed-diagonal-zero rotated-a-diagonal-half-pi rotated-mixed-diagonal-half-pi rotated-a-diagonal-pi rotated-mixed-diagonal-pi rotated-a-diagonal-small rotated-mixed-diagonal-small rotated-a-diagonal-negative rotated-mixed-diagonal-negative rotated-a-diagonal-large rotated-mixed-diagonal-large rotated-a-not-normalized-zero rotated-mixed-not-normalized-zero rotated-a-not-normalized-half-pi rotated-mixed-not-normalized-half-pi rotated-a-not-normalized-pi rotated-mixed-not-normalized-pi rotated-a-not-normalized-small rotated-mixed-not-normalized-small rotated-a-not-normalized-negative rotated-mixed-not-normalized-negative rotated-a-not-normalized-large rotated-mixed-not-normalized-large rotated-a-zero-zero rotated-mixed-zero-zero rotated-a-zero-half-pi rotated-mixed-zero-half-pi rotated-a-zero-pi rotated-mixed-zero-pi rotated-a-zero-small rotated-mixed-zero-small rotated-a-zero-negative rotated-mixed-zero-negative rotated-a-zero-large rotated-mixed-zero-large rotated-a-nearly-normalized-zero rotated-mixed-nearly-normalized-zero rotated-a-nearly-normalized-half-pi rotated-mixed-nearly-normalized-half-pi rotated-a-nearly-normalized-pi rotated-mixed-nearly-normalized-pi rotated-a-nearly-normalized-small rotated-mixed-nearly-normalized-small rotated-a-nearly-normalized-negative rotated-mixed-nearly-normalized-negative rotated-a-nearly-normalized-large rotated-mixed-nearly-normalized-large",
+        "observedOutputSha256": "5a8af070b06e0986edd651ede03aa631378290f402ff913a4466f958fbf33335"
+      },
+      "target": {
+        "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887",
+        "callsite": "lib/godot-compat/vector3.ts rotated",
+        "observedOutputSha256": "5a8af070b06e0986edd651ede03aa631378290f402ff913a4466f958fbf33335"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c0bbf40746d1d5df58ac10b8851f41f9031931fe99e8500817d061df230be3b3"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "vector3",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Vector3.Vector3",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "30ff29a15acff278cd57e408d4851899dfbd5866cab3edee7f397c031025c857",
+      "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887"
+    },
+    {
+      "claimId": "godot-4.7-binding-Vector3.is_zero_approx",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b74690bb37f9930730e876e2544e4cf52477ca1551f9206ba27c0b932a941f63",
+      "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887"
+    },
+    {
+      "claimId": "godot-4.7-binding-Vector3.length",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4faaf678e6f92608424bee75728bf2fb83de85555c1874fa8770c9834a1fefb0",
+      "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887"
+    },
+    {
+      "claimId": "godot-4.7-binding-Vector3.length_squared",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "aabc12192ce29edada7f96db43e7fe853a4f6d6aa19999351268b8010ffd5fad",
+      "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887"
+    },
+    {
+      "claimId": "godot-4.7-binding-Vector3.normalized",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "06f48fc34259e1b7c2cb79a436d87f24755a80dde0022254c26e4477811e824f",
+      "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887"
+    },
+    {
+      "claimId": "godot-4.7-binding-Vector3.limit_length",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "2593bd639eedb4a06d23300308e1769034796d6711a0252c0595cb08faebc14e",
+      "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887"
+    },
+    {
+      "claimId": "godot-4.7-binding-Vector3.cross",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c328bd8bd266d75aa07e11aaf7314d515b4823a94d23cf2d10d2e8c96e3ab1c3",
+      "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887"
+    },
+    {
+      "claimId": "godot-4.7-binding-Vector3.dot",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "fd5056e70eb982ca7ee863b1d7478f739cb680fcc145e23f822ea6d0001ce4b8",
+      "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887"
+    },
+    {
+      "claimId": "godot-4.7-binding-Vector3.distance_to",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "7f56cce56270fe7ee2a4b7fa54efe4de596068cbbe4769f290f725ad92279876",
+      "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887"
+    },
+    {
+      "claimId": "godot-4.7-binding-Vector3.lerp",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5a52d2235086d97b73d52acae22f8da65bfbb51d041cc419ec5f8a39a9909a52",
+      "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887"
+    },
+    {
+      "claimId": "godot-4.7-binding-Vector3.rotated",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "bea19c8296bec29a4034f3f86bd0dfd5f72c7fc6e1fc7ae89649a60c783e03bc",
+      "implementationSha256": "da5ecbe8071e674ec7cbe78686b851616aa74a6462a419f4ab87f7405135a887"
+    }
+  ]
+}
