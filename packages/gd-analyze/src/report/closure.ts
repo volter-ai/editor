@@ -18,7 +18,16 @@
  * Godot 3 projects are listed as unread, since no Godot 3 frontend exists.
  */
 import { spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import {
+  chmodSync,
+  existsSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -113,7 +122,7 @@ function engineOf(fixtureDir: string): { major: number; label: string } {
   };
 }
 
-function readGame(fixture: string, exporter: string): GameClosure {
+function readGame(fixture: string, exporter: string, official: string): GameClosure {
   const fixtureDir = path.join(FIXTURES_DIR, fixture);
   const empty = {
     callTargets: {},
@@ -135,7 +144,13 @@ function readGame(fixture: string, exporter: string): GameClosure {
     const projectDir = path.join(temp, 'project');
     materializeGodotProjectSnapshot(snapshot, projectDir);
     chmodSync(projectDir, 0o755);
-    const program = captureGodotBoundProgram({ godotBinary: exporter, projectDir });
+    // Godot's own import first, by the official editor, so scene preloads of imported assets
+    // resolve. The report measures; it does not pin the editor's revision to the project's.
+    const program = captureGodotBoundProgram({
+      godotBinary: exporter,
+      projectDir,
+      importer: { binary: official, executableSha256: sha256File(official) },
+    });
     const result: GameClosure = { fixture, engine: engine.label, read: 'read', ...empty };
     const unresolved: string[] = [];
     const untyped: string[] = [];
@@ -213,7 +228,16 @@ function merge(games: readonly GameClosure[], field: keyof GameClosure): Record<
   return Object.fromEntries(Object.entries(total).sort(([a], [b]) => a.localeCompare(b)));
 }
 
-export function runClosure(requested: readonly string[], exporter: string, out?: string): number {
+function sha256File(file: string): string {
+  return createHash('sha256').update(readFileSync(file)).digest('hex');
+}
+
+export function runClosure(
+  requested: readonly string[],
+  exporter: string,
+  official: string,
+  out?: string,
+): number {
   const fixtures =
     requested.length > 0
       ? requested
@@ -222,7 +246,7 @@ export function runClosure(requested: readonly string[], exporter: string, out?:
           .map((name) => name.slice(0, -'.UPSTREAM.lock'.length))
           .filter((name) => existsSync(path.join(FIXTURES_DIR, name)))
           .sort();
-  const games = fixtures.map((fixture) => readGame(fixture, exporter));
+  const games = fixtures.map((fixture) => readGame(fixture, exporter, official));
   const report = {
     games,
     total: {

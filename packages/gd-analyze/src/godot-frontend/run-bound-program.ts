@@ -92,9 +92,39 @@ function assertExporterSnapshot(snapshot: GodotBoundExporterSnapshot): void {
 }
 
 /** Execute only the exact frontend bytes already owned by the immutable toolchain snapshot. */
+/** The official release editor that performs Godot's own import before the exporter runs. */
+export interface GodotOfficialImporter {
+  readonly binary: string;
+  readonly executableSha256: string;
+}
+
+/** Verify the importer's bytes, then run Godot's own `--headless --import` on the project copy. */
+function runOfficialImport(importer: GodotOfficialImporter, project: string): void {
+  const actual = sha256(readFileSync(importer.binary));
+  if (actual !== importer.executableSha256) {
+    throw new Error(
+      `${importer.binary}: executable ${actual} is not the pinned official editor ${importer.executableSha256}`,
+    );
+  }
+  const result = spawnSync(importer.binary, ['--headless', '--path', project, '--import'], {
+    encoding: 'utf8',
+    maxBuffer: 64 * 1024 * 1024,
+    timeout: 600_000,
+  });
+  if (result.error !== undefined) {
+    throw new Error(`Could not run the official Godot import: ${result.error.message}`);
+  }
+  if (result.status !== 0) {
+    throw new Error(
+      `Official Godot import exited ${String(result.status)}.\n${result.stdout}\n${result.stderr}`.trim(),
+    );
+  }
+}
+
 export function captureGodotBoundProgramFromSnapshot(options: {
   readonly exporter: GodotBoundExporterSnapshot;
   readonly projectDir: string;
+  readonly importer?: GodotOfficialImporter;
 }): GodotBoundProgram {
   assertExporterSnapshot(options.exporter);
   const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-bound-program-'));
@@ -112,6 +142,11 @@ export function captureGodotBoundProgramFromSnapshot(options: {
         return name !== '.git' && name !== '.godot' && name !== '.import';
       },
     });
+    if (options.importer !== undefined) {
+      // Only this disposable copy gains write access: the import writes `.godot` and sidecars.
+      spawnSync('chmod', ['-R', 'u+w', project]);
+      runOfficialImport(options.importer, project);
+    }
     const projectCaptureScript = path.join(project, '.vgai-bound-capture.gd');
     writeFileSync(projectCaptureScript, options.exporter.captureScriptBytes);
     const result = spawnSync(
@@ -156,9 +191,11 @@ export function captureGodotBoundProgramFromSnapshot(options: {
 export function captureGodotBoundProgram(options: {
   readonly godotBinary: string;
   readonly projectDir: string;
+  readonly importer?: GodotOfficialImporter;
 }): GodotBoundProgram {
   return captureGodotBoundProgramFromSnapshot({
     exporter: captureGodotBoundExporterSnapshot(options.godotBinary),
     projectDir: options.projectDir,
+    ...(options.importer === undefined ? {} : { importer: options.importer }),
   });
 }

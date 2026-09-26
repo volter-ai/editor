@@ -60,6 +60,7 @@ try {
   const toolchain = captureGodotImportToolchainSnapshot({
     projectEngine: snapshot.engine,
     boundExporterBinary: exporterBinary,
+    officialBinary: argument('--official-binary'),
   });
   const project = bindGodotProject(
     snapshot,

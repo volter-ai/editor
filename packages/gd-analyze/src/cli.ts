@@ -5,15 +5,15 @@ import { runSweep } from './sweep';
 
 const USAGE = `usage: gd-analyze <command> [options]
 
-  import <godot-project-dir> <target-dir> --bound-exporter-binary <path>
+  import <godot-project-dir> <target-dir> --bound-exporter-binary <path> --official-binary <path>
            Compile one immutable Godot project snapshot through the pinned official
            frontend into a complete standalone vgai project.
 
-  sweep [fixture ...] --bound-exporter-binary <path>
+  sweep [fixture ...] --bound-exporter-binary <path> --official-binary <path>
            Run that same import pipeline over every pinned source fixture, or only
            the named fixtures, and report the first failed product gate per game.
 
-  closure [fixture ...] --bound-exporter-binary <path> [--out <file.json>]
+  closure [fixture ...] --bound-exporter-binary <path> --official-binary <path> [--out <file.json>]
            Report (read-only) the Godot capabilities the pinned fixtures use: call targets,
            unresolved calls, attributes, operators, node classes, resources, signals, assets.
 
@@ -63,6 +63,14 @@ function requiredExporter(rest: readonly string[]): string {
   return binary;
 }
 
+function requiredOfficial(rest: readonly string[]): string {
+  const binary = optionValue(rest, '--official-binary');
+  if (binary === undefined) {
+    fail('the pinned official Godot editor performs the import: pass --official-binary <path>');
+  }
+  return binary;
+}
+
 export async function runCli(argv: readonly string[]): Promise<number> {
   const [command, ...rest] = argv;
   if (command === undefined || command === '--help' || command === '-h') {
@@ -70,22 +78,28 @@ export async function runCli(argv: readonly string[]): Promise<number> {
     return command === undefined ? 2 : 0;
   }
   if (command === 'import') {
-    const positional = positionals(rest, ['--bound-exporter-binary']);
+    const positional = positionals(rest, ['--bound-exporter-binary', '--official-binary']);
     if (positional.length !== 2) {
       fail('import needs exactly one Godot project directory and one new target directory');
     }
     importGodotProject(positional[0] as string, positional[1] as string, {
       boundExporterBinary: requiredExporter(rest),
+      officialBinary: requiredOfficial(rest),
     });
     return 0;
   }
   if (command === 'sweep') {
-    return runSweep(positionals(rest, ['--bound-exporter-binary']), requiredExporter(rest));
+    return runSweep(
+      positionals(rest, ['--bound-exporter-binary', '--official-binary']),
+      requiredExporter(rest),
+      requiredOfficial(rest),
+    );
   }
   if (command === 'closure') {
     return runClosure(
-      positionals(rest, ['--bound-exporter-binary', '--out']),
+      positionals(rest, ['--bound-exporter-binary', '--official-binary', '--out']),
       requiredExporter(rest),
+      requiredOfficial(rest),
       optionValue(rest, '--out'),
     );
   }

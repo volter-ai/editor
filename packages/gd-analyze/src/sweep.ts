@@ -55,7 +55,11 @@ function firstLine(error: unknown): string {
   return text.split('\n', 1)[0] ?? text;
 }
 
-export function runSweep(requested: readonly string[], boundExporterBinary: string): number {
+export function runSweep(
+  requested: readonly string[],
+  boundExporterBinary: string,
+  officialBinary: string,
+): number {
   const fixtures = requested.length > 0 ? requested : pinnedSourceFixtures();
   const rows: SweepRow[] = [];
   for (const fixture of fixtures) {
@@ -65,7 +69,7 @@ export function runSweep(requested: readonly string[], boundExporterBinary: stri
     const started = Date.now();
     process.stdout.write(`sweep: ${fixture} — importing into ${target}\n`);
     try {
-      importGodotProject(sourceDir, target, { boundExporterBinary });
+      importGodotProject(sourceDir, target, { boundExporterBinary, officialBinary });
       rows.push({
         fixture,
         verdict: 'PASS',

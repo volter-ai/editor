@@ -155,6 +155,7 @@ function reportKeptStaging(stagingDir: string, error: unknown): void {
 export interface ImportGodotProjectOptions {
   /** Pinned source-built Godot executable carrying the bound-program exporter module. */
   readonly boundExporterBinary: string;
+  readonly officialBinary: string;
 }
 
 function importCapturedGodotProject(
@@ -235,6 +236,7 @@ export function importGodotProject(
   const toolchain = captureGodotImportToolchainSnapshot({
     projectEngine: snapshot.engine,
     boundExporterBinary: options.boundExporterBinary,
+    officialBinary: options.officialBinary,
   });
   const snapshotTemp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-project-snapshot-'));
   const capturedProjectDir = path.join(snapshotTemp, 'project');
@@ -246,6 +248,7 @@ export function importGodotProject(
     chmodSync(capturedProjectDir, 0o755);
     const boundProgram = captureGodotBoundProgramFromSnapshot({
       exporter: toolchain.frontend.exporter,
+      importer: toolchain.frontend.importer,
       projectDir: capturedProjectDir,
     });
     const decodedProject = readGodotProjectSnapshot(snapshot, toolchain.frontend.readAuthority);

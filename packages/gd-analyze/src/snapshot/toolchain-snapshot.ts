@@ -13,6 +13,7 @@ import { godotAnalysisAuthority } from '../analyze/authority-data';
 import {
   captureGodotBoundExporterSnapshot,
   type GodotBoundExporterSnapshot,
+  type GodotOfficialImporter,
 } from '../godot-frontend/run-bound-program';
 import { selectGodotFrontendAuthority } from '../godot-frontend/select-frontend';
 import type { GodotSourceAuthority } from '../godot-frontend/source-authority';
@@ -87,6 +88,7 @@ export interface GodotToolchainFrontendSnapshot {
   readonly readAuthority: GodotReadAuthority;
   readonly readAuthorityDigest: string;
   readonly exporter: GodotBoundExporterSnapshot;
+  readonly importer: GodotOfficialImporter;
   readonly apiDump: GodotToolchainApiDumpSnapshot;
   readonly codeAuthority: GodotCodeTranslationAuthority;
   readonly codeAuthorityDigest: string;
@@ -139,6 +141,8 @@ export interface CaptureGodotToolchainOptions {
 export interface CaptureGodotImportToolchainOptions extends CaptureGodotToolchainOptions {
   readonly projectEngine: GodotProjectSnapshot['engine'];
   readonly boundExporterBinary: string;
+  /** The official release editor of the selected revision; it performs Godot's own import. */
+  readonly officialBinary: string;
 }
 
 function sha256(bytes: Uint8Array | string): string {
@@ -511,6 +515,7 @@ function captureToolchainSnapshot(
                 captureScriptSha256: frontend.exporter.captureScriptSha256,
                 exporterSourceSha256: frontend.exporter.exporterSourceSha256,
               },
+              importer: { executableSha256: frontend.importer.executableSha256 },
             },
           }),
       capabilities: copies.map((copy) => ({
@@ -583,6 +588,17 @@ export function captureGodotImportToolchainSnapshot(
         `Godot ${authority.version} bound exporter ${pinned.executableSha256} (${pinned.buildOptions})`,
     );
   }
+  const officialEditor = authority.officialEditor;
+  if (officialEditor === undefined) {
+    throw new Error(`Godot ${authority.version}: no official editor is pinned for its import`);
+  }
+  const officialSha256 = sha256(readFileSync(options.officialBinary));
+  if (officialSha256 !== officialEditor.executableSha256) {
+    throw new Error(
+      `${options.officialBinary}: executable ${officialSha256} is not the pinned official Godot ` +
+        `${officialEditor.reportedVersion} editor ${officialEditor.executableSha256}`,
+    );
+  }
   const frontend: GodotToolchainFrontendSnapshot = {
     authority,
     analysisAuthority,
@@ -590,6 +606,7 @@ export function captureGodotImportToolchainSnapshot(
     readAuthority,
     readAuthorityDigest: sha256(JSON.stringify(readAuthority)),
     exporter,
+    importer: { binary: options.officialBinary, executableSha256: officialSha256 },
     apiDump: captureGodotApiDumpSnapshot(authority),
     codeAuthority,
     codeAuthorityDigest: sha256(JSON.stringify(codeAuthority)),
