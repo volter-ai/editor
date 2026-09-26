@@ -43,6 +43,20 @@ In the viewport, a selected node is framed by a box turned with the node, with e
 pivot drawn at its origin. The game's viewport rectangle is the project's window size from the origin,
 drawn as a thin outline.
 
+## Figma, for the component board
+
+The `2D` board lays a project's Pixi stories out as frames on one canvas, the way a Figma page holds
+frames. Figma's structure, read from its own Help Center pages on 2026-09-26 (the app renders a web
+UI this box cannot capture, so the pages are the source, not a render):
+
+| Region | What it owns |
+|---|---|
+| Toolbar | Move, Hand (Space held), Scale, Frame, Section, Slice, shapes, Pen, Pencil, Text, Comment, Annotation, Measurement, the Actions menu, Dev Mode |
+| Left sidebar, File tab | pages, and the layers panel: nesting, collapse, lock, visibility, rename, find, layer order |
+| Left sidebar, Assets tab | the file's and libraries' components |
+| Right sidebar, Design tab | with nothing selected: the file's styles and variables, the canvas background, page export; with a layer: alignment, rotation and position, size, radius, constraints, layout guides, component properties, instance, auto layout, blend, text, fill, stroke, effects, export |
+| Zoom | the zoom percentage and its menu, at the top of the properties panel |
+
 ## Ours, mapped
 
 `CanvasSceneViewport.tsx` draws the canvas document; `RootSelectionOverlay.tsx` draws its selection;
@@ -63,20 +77,23 @@ the tool strip and snap control are the kit's `Toolbar.tsx`. Walked on a `canvas
 | Toggle 2D grid | View › Grid | a shortcut to the menu's switch |
 | Frame all, Frame selection | View › Frame Selection; Center View | present |
 | Zoom out, percentage (resets to 100%), zoom in | zoom widget | present |
-| Middle-drag, right-drag, Space-drag pan; wheel zooms at the cursor | Pan mode and Pan View | present, no Pan mode button |
-| Alt-hover measurement between the selection and another node | Ruler mode | a Figma-style distance, not a free measure |
+| Pan mode (hand), and middle-drag, right-drag, Space-drag in any mode; wheel zooms at the cursor | Pan mode and Pan View | present (walked: a drag in Pan mode moved the origin 80 px) |
+| Ruler mode: a drag reads its length in world units and its angle | Ruler mode | present (walked: 100 screen px at 153% read "65.5 px · 0.0°") |
+| Alt-hover measurement between the selection and another node | Figma's measurement | present |
 | Stationary right-click: the nodes under the pointer | Alt+RMB list; List Select mode | present on right-click, no mode button |
-| Hierarchy lock toggle | Lock | in the hierarchy only |
-| Reference point (the circle at the node's origin) | pivot | drawn; see gaps |
+| Lock / Unlock selected node (toolbar), a shortcut to the hierarchy's lock | Lock | present (walked: the button toggles the node's lock) |
+| The selection frame turned with a rotated node: its eight handles on the node's own box, the rotate handle above its own top edge, its own size in the label; a handle resizes along the node's axes with the opposite corner held | Select mode's frame on a rotated node | present (walked: a turned 120×120 square resized to 153×139, `scale={{ x: 1.2746, y: 1.161 }}`, its NW corner still at the same pixel after the write) |
+| The origin handle (the dot at a container's `pivot`, a sprite's `anchor`), dragged | Pivot mode ("Click to change object's pivot") | in the Pixi adapter's `spatialHandles`: the drag writes the origin and compensates `position` in one undo step; not walked here |
 
 ## Gaps, the work order
 
 Each is a control the reference has a home for and we lack, or have in a weaker form:
 
-1. List Select and Pan as modes in the toolbar (their gestures exist).
-2. Ruler mode: a drag that measures distance and angle between two points.
-3. A selection frame turned with a rotated node.
-4. Pivot mode, Lock and Group in the toolbar, where a `canvas` source can state them.
+1. List Select as a mode (the list exists on a stationary right-click).
+2. Group (a click on a child selects its grouped parent).
+3. The `2D` board against Figma: frames and zoom are present (walked: a Pixi prefab's story as a
+   labelled frame, Fit board, zoom out, the percentage, zoom in); the layers list for the board's
+   frames, and the zoom menu, are not.
 
-Below this line is planning, not measurement: whether a Pixi `pivot` write is the right answer to
-Godot's pivot mode, and what Group means for a JSX tree, are decided when those rows are built.
+Below this line is planning, not measurement: what Group means for a JSX tree is decided when that
+row is built.

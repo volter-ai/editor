@@ -23,12 +23,13 @@
  * `<pixiContainer scale={0.5}>` is the shipped idiom (see any prefab under an
  * example project's `prefabs/`), and Pixi's own setter takes a number or a
  * `PointData` — never an array. So a UNIFORM scale writes the scalar back, and
- * a NON-UNIFORM one is only expressible through `@pixi/react`'s dashed-prop
- * piercing (`scale-x`/`scale-y`, which land on `container.scale.x`/`.y`). This
- * module writes the dashed pair when the tag already authors it, and otherwise
- * REFUSES a non-uniform scale in a sentence naming the pair — never a silently
- * lossy uniform write, and never an array literal Pixi would reject at
- * runtime.
+ * a NON-UNIFORM one writes the `{ x, y }` point the same setter takes. Not the
+ * dashed pair (`scale-x`/`scale-y`) as a new write: `@pixi/react` 8.0.5 hands
+ * every prop to the Pixi constructor, which copies `scale-x` onto the object as
+ * a plain property, so the pierce never runs when the node mounts (measured: a
+ * source with `scale-x={1.29}` mounts at scale 1). A tag that already authors
+ * the pair keeps it. Never a silently lossy uniform write, and never an array
+ * literal Pixi would reject at runtime.
  */
 
 import type { Transform2DValue } from '../../runtime/pixi/authoring';
@@ -83,6 +84,8 @@ export type PixiChannelPlan =
   | { readonly writable: false; readonly reason: string };
 
 const NUMBER_RE = /^-?\d+(\.\d+)?$/;
+/** A number-point literal, `{ x: 1.2, y: 0.8 }` (the JSX expression's inside). */
+const POINT_RE = /^\{\s*x\s*:\s*-?\d*\.?\d+(e[+-]?\d+)?\s*,\s*y\s*:\s*-?\d*\.?\d+(e[+-]?\d+)?\s*,?\s*\}$/i;
 const EPS = 1e-6;
 
 /** ≤4 decimals, no trailing zeros, no negative zero — the same source-number
@@ -165,21 +168,20 @@ export function planChannelWrite(
   const refusal = propRefusal(attrs, 'scale');
   if (refusal) return { writable: false, reason: refusal };
   const authored = attr(attrs, 'scale');
-  if (authored && !NUMBER_RE.test(authored.rawValue.trim())) {
+  if (authored && !NUMBER_RE.test(authored.rawValue.trim()) && !POINT_RE.test(authored.rawValue.trim())) {
     return {
       writable: false,
       reason:
-        `scale is authored as {${authored.rawValue}} — this editor writes the scalar ` +
-        'shorthand or the `scale-x`/`scale-y` pair, not an object literal.',
+        `scale is authored as {${authored.rawValue}} — this editor writes a number or an ` +
+        '`{ x, y }` point, not an expression.',
     };
   }
   const [sx, sy] = next.scale;
   if (Math.abs(sx - sy) >= EPS) {
+    // Two values: the `PointData` Pixi's own setter takes, which applies when the node mounts.
     return {
-      writable: false,
-      reason:
-        'A non-uniform scale needs the `scale-x`/`scale-y` props — this tag authors the ' +
-        'uniform `scale` shorthand, which cannot hold two values.',
+      writable: true,
+      writes: [{ prop: 'scale', value: `{ x: ${formatSourceNumber(sx)}, y: ${formatSourceNumber(sy)} }` }],
     };
   }
   return { writable: true, writes: [{ prop: 'scale', value: formatSourceNumber(sx) }] };

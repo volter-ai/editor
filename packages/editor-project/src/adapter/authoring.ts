@@ -812,6 +812,21 @@ export interface RectProvider {
    * hints are drawn for it.
    */
   emptyContainers?(): { id: string; rect: DOMRectLike; displayName: string }[];
+  /**
+   * The node's own box as its transform carries it — the four corners of its local bounds, in the
+   * frame {@link rect} answers in. A turned or skewed node's corners are not an axis-aligned
+   * rectangle, and the overlay draws its selection frame on them, as Godot's 2D editor does.
+   * Absent ⇒ the overlay frames {@link rect}.
+   */
+  frame?(id: string): FrameCorners | null;
+}
+
+/** A node box's corners: top-left, top-right, bottom-right and bottom-left of its local bounds. */
+export interface FrameCorners {
+  readonly tl: { readonly x: number; readonly y: number };
+  readonly tr: { readonly x: number; readonly y: number };
+  readonly br: { readonly x: number; readonly y: number };
+  readonly bl: { readonly x: number; readonly y: number };
 }
 
 /** One adapter-owned reference point rendered by the shared world overlay.

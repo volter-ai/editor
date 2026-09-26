@@ -221,6 +221,9 @@ function mountBabylonDesignLayer(options: BabylonDesignMountOptions): MountedCan
  * converts that last one into a named error rather than a hang). The caller
  * degrades a throw to the world's `BoundaryAuthoringAdapter` disclosure node.
  */
+/** The views a canvas world has already opened in (see the opening framing below). */
+const openedViews = new WeakSet<RootViewController>();
+
 export async function mountCanvasDesignLayer(
   worldId: string,
   entry: string | undefined,
@@ -447,13 +450,19 @@ export async function mountCanvasDesignLayer(
   // Open on the authored WORLD, not on the declared output rectangle. Content
   // may arrive after an atlas resolves, so keep a short frame window open
   // until real bounds exist. Any user navigation cancels it immediately.
+  //
+  // ONCE PER VIEW. The world remounts whenever its source changes (every committed gesture writes
+  // source), and a view the person has already been looking at keeps its pose across that: a
+  // resize that re-framed the whole scene on commit moved everything under the pointer.
+  const reopening = openedViews.has(view);
+  openedViews.add(view);
   const initialRect = layer.getBoundingClientRect();
-  if (initialRect.width > 0 && initialRect.height > 0) {
+  if (!reopening && initialRect.width > 0 && initialRect.height > 0) {
     view.setView(initialRect.width / 2, initialRect.height / 2, 1);
   }
   let openingFit = 0;
   let openingAttempts = 0;
-  let openingCancelled = false;
+  let openingCancelled = reopening;
   const stopOpeningOnNavigation = view.subscribe(() => {
     openingCancelled = true;
   });

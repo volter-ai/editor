@@ -542,6 +542,8 @@ export function createSourceCanvasWriteTarget(
           // an object that has never been placed is ordinary authoring, and it
           // must not need a trip to the text editor.
           addIfMissing: true,
+          // `scale={1.5}` becomes `scale={{ x, y }}` when a gesture makes it non-uniform.
+          ...(write.prop === 'scale' ? { allowShapeUpgrade: true } : {}),
         });
         if (res.changed) {
           persisted = true;

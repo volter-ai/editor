@@ -27,6 +27,7 @@ import type {
   BoxEditProvider,
   ColorSampleProvider,
   DOMRectLike,
+  FrameCorners,
   SpatialHandlesProvider,
   StructureProvider,
   TextProvider,
@@ -1738,4 +1739,96 @@ export function computeArrowNudgePatch(
   if (dx !== 0) patch['marginLeft'] = margin.left + dx;
   if (dy !== 0) patch['marginTop'] = margin.top + dy;
   return patch;
+}
+
+// --- Turned frames (a rotated or skewed 2D node) --------------------------------------------
+//
+// Godot's 2D editor frames a turned node on its own box, with its eight handles on that box and a
+// resize that works along the node's own axes. `RectProvider.frame` gives the box's corners; the
+// helpers below place handles on them and turn a handle drag into the native patch.
+
+type Point = { readonly x: number; readonly y: number };
+
+/** `id`'s turned box, from its owning adapter; `null` when the owner offers none. */
+export function frameForId(adapter: AuthoringAdapter, id: string): FrameCorners | null {
+  return ownerAdapterFor(adapter, id)?.rects?.frame?.(id) ?? null;
+}
+
+/** True when the box is not axis-aligned, so its axis-aligned bounds would misframe it. */
+export function frameIsTurned(frame: FrameCorners): boolean {
+  const ux = frame.tr.x - frame.tl.x;
+  const uy = frame.tr.y - frame.tl.y;
+  const vx = frame.bl.x - frame.tl.x;
+  const vy = frame.bl.y - frame.tl.y;
+  const scale = Math.max(Math.hypot(ux, uy), Math.hypot(vx, vy), 1e-9);
+  return Math.abs(uy) / scale > 1e-3 || Math.abs(vx) / scale > 1e-3;
+}
+
+/** The frame's angle: its top edge's direction, in radians. */
+export function frameAngle(frame: FrameCorners): number {
+  return Math.atan2(frame.tr.y - frame.tl.y, frame.tr.x - frame.tl.x);
+}
+
+/** A point of the frame given as fractions along its top edge (`s`) and its left edge (`t`). */
+function framePoint(frame: FrameCorners, s: number, t: number): Point {
+  return {
+    x: frame.tl.x + s * (frame.tr.x - frame.tl.x) + t * (frame.bl.x - frame.tl.x),
+    y: frame.tl.y + s * (frame.tr.y - frame.tl.y) + t * (frame.bl.y - frame.tl.y),
+  };
+}
+
+function handleFractions(pos: HandlePos): { s: number; t: number } {
+  const s = pos.includes('w') ? 0 : pos.includes('e') ? 1 : 0.5;
+  const t = pos.includes('n') ? 0 : pos.includes('s') ? 1 : 0.5;
+  return { s, t };
+}
+
+/** Where handle `pos` sits on the frame: its corners and the middles of its edges. */
+export function frameHandlePosition(frame: FrameCorners, pos: HandlePos): Point {
+  const { s, t } = handleFractions(pos);
+  return framePoint(frame, s, t);
+}
+
+/** `point` in the frame's own axes: how far along the top edge and the left edge it lies. */
+function frameCoordinates(frame: FrameCorners, point: Point): { s: number; t: number } {
+  const ux = frame.tr.x - frame.tl.x;
+  const uy = frame.tr.y - frame.tl.y;
+  const vx = frame.bl.x - frame.tl.x;
+  const vy = frame.bl.y - frame.tl.y;
+  const det = ux * vy - uy * vx;
+  if (Math.abs(det) < 1e-12) return { s: 0, t: 0 };
+  return { s: (point.x * vy - point.y * vx) / det, t: (ux * point.y - uy * point.x) / det };
+}
+
+/**
+ * A handle drag on a turned frame as the native patch: the drag `(dx, dy)` projected onto the
+ * frame's axes scales the node along its own axes (`scaleXFactor`, `scaleYFactor`, relative to the
+ * gesture's start), and the node's `origin` moves so the handle's opposite point stays where it
+ * was — the corner a person is not holding does not move, on any axis the node is turned to.
+ */
+export function frameResizePatch(
+  frame: FrameCorners,
+  pos: HandlePos,
+  dx: number,
+  dy: number,
+  origin: Point,
+): { scaleXFactor: number; scaleYFactor: number; originX: number; originY: number } {
+  const along = frameCoordinates(frame, { x: dx, y: dy });
+  const fx = pos.includes('e') ? 1 + along.s : pos.includes('w') ? 1 - along.s : 1;
+  const fy = pos.includes('s') ? 1 + along.t : pos.includes('n') ? 1 - along.t : 1;
+  const scaleX = Math.max(0.01, fx);
+  const scaleY = Math.max(0.01, fy);
+  const held = handleFractions(pos);
+  const anchor = framePoint(frame, 1 - held.s, 1 - held.t);
+  const fromOrigin = frameCoordinates(frame, { x: anchor.x - origin.x, y: anchor.y - origin.y });
+  const moved = {
+    x: origin.x + scaleX * fromOrigin.s * (frame.tr.x - frame.tl.x) + scaleY * fromOrigin.t * (frame.bl.x - frame.tl.x),
+    y: origin.y + scaleX * fromOrigin.s * (frame.tr.y - frame.tl.y) + scaleY * fromOrigin.t * (frame.bl.y - frame.tl.y),
+  };
+  return {
+    scaleXFactor: scaleX,
+    scaleYFactor: scaleY,
+    originX: origin.x + anchor.x - moved.x,
+    originY: origin.y + anchor.y - moved.y,
+  };
 }

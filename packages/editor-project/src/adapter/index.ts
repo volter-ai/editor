@@ -47,6 +47,7 @@ export type {
   PersistenceProvider,
   PickProvider,
   PropertyDescriptor,
+  FrameCorners,
   RectProvider,
   RelatedSubjectLink,
   RelatedSubjectsProvider,

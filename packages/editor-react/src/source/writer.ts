@@ -1189,6 +1189,24 @@ const NUMBER_LITERAL_RE = new RegExp(`^${NUMBER_LITERAL_SOURCE}$`);
  * plain signed number literal (`[x, 1, 0]`, `[f(), 0]`) is DYNAMIC and stays
  * behind the literal-vs-dynamic guard.
  */
+/**
+ * A NUMBER-POINT literal (`{ x: 1.2, y: 0.8 }`): an object whose properties are all plain
+ * identifiers with number values — the `PointData` a 2D scene's `scale` or `pivot` takes, and the
+ * one object shape this writer treats as a literal (a Pixi tag's non-uniform `scale`).
+ */
+export function isNumberPointLiteral(raw: string): boolean {
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) return false;
+  const inner = trimmed.slice(1, -1).trim();
+  if (inner === '') return false;
+  const parts = inner.split(',').map((p) => p.trim());
+  if (parts.length > 1 && parts[parts.length - 1] === '') parts.pop();
+  return parts.every((part) => {
+    const match = /^([A-Za-z_$][\w$]*)\s*:\s*(.+)$/.exec(part);
+    return match !== null && NUMBER_LITERAL_RE.test(match[2]!.trim());
+  });
+}
+
 export function isNumberTupleLiteral(raw: string): boolean {
   const trimmed = raw.trim();
   if (!trimmed.startsWith('[') || !trimmed.endsWith(']')) return false;
@@ -1294,7 +1312,10 @@ function makeAttr(
 ): JsxAttrInfo {
   const rawValue = code.slice(parsed.valueStart, parsed.valueEnd).trim();
   const isLiteral =
-    !parsed.isExpression || LITERAL_EXPR_RE.test(rawValue) || isNumberTupleLiteral(rawValue);
+    !parsed.isExpression ||
+    LITERAL_EXPR_RE.test(rawValue) ||
+    isNumberTupleLiteral(rawValue) ||
+    isNumberPointLiteral(rawValue);
   return {
     name,
     valueStart: parsed.valueStart,
@@ -1351,7 +1372,7 @@ function formatPropReplacement(
   if (!attr.isExpression) return newValue; // string attribute — content between the quotes
   const raw = attr.rawValue;
   if (NUMBER_LITERAL_RE.test(raw)) {
-    if (isNumberTupleLiteral(newValue)) {
+    if (isNumberTupleLiteral(newValue) || isNumberPointLiteral(newValue)) {
       // R2: a tuple replacing a plain number is a SHAPE CHANGE — allowed only
       // under the explicit opt-in; otherwise refused outright (never the
       // quoted-string fallback below, which would clobber `scale={1.5}` with
@@ -1369,6 +1390,12 @@ function formatPropReplacement(
   if (isNumberTupleLiteral(raw)) {
     return isNumberTupleLiteral(newValue) ? newValue.trim() : null;
   }
+  // A number-point literal is replaced by another point, or by a plain number (a scale made
+  // uniform again); anything else is a shape it cannot take.
+  if (isNumberPointLiteral(raw)) {
+    if (isNumberPointLiteral(newValue)) return newValue.trim();
+    return NUMBER_LITERAL_RE.test(newValue.trim()) ? newValue.trim() : null;
+  }
   if (/^"[^"]*"$/.test(raw)) return `"${newValue.replace(/"/g, '\\"')}"`;
   return `'${newValue.replace(/'/g, "\\'")}'`;
 }
@@ -1381,6 +1408,7 @@ function formatPropReplacement(
 function formatNewAttr(propName: string, newValue: string): string {
   if (
     isNumberTupleLiteral(newValue) ||
+    isNumberPointLiteral(newValue) ||
     NUMBER_LITERAL_RE.test(newValue) ||
     newValue === 'true' ||
     newValue === 'false'

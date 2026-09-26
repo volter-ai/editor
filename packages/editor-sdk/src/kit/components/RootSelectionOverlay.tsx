@@ -63,6 +63,7 @@ import type {
   BoxEditProvider,
   BoxEditReferencePoint,
   DOMRectLike,
+  FrameCorners,
   SpatialDragHandle,
   SpatialHandlesProvider,
 } from '@volter/editor-project/adapter';
@@ -123,6 +124,11 @@ import {
   computePointSnap,
   computeReorderGap,
   computeResizePatch,
+  frameAngle,
+  frameForId,
+  frameHandlePosition,
+  frameIsTurned,
+  frameResizePatch,
   computeResizeSnapGuides,
   computeRotatePatch,
   computeSpacingBands,
@@ -388,6 +394,47 @@ function boxStyle(r: DOMRectLike, solid: boolean): React.CSSProperties {
     borderColor: ACCENT,
     borderWidth: solid ? 2 : 1,
     background: solid ? `color-mix(in srgb, ${ACCENT} 6%, transparent)` : 'transparent',
+    boxSizing: 'border-box',
+    pointerEvents: 'none',
+  };
+}
+
+/** The rotate handle above the box's top edge, along the box's own up when it is turned. */
+function turnedRotateHandlePosition(
+  frame: FrameCorners | null,
+  rect: DOMRectLike,
+  offset: number,
+): { left: number; top: number } {
+  if (!frame) return { left: rect.x + rect.width / 2 - ROTATE_SIZE / 2, top: rect.y - offset - ROTATE_SIZE / 2 };
+  const topX = (frame.tl.x + frame.tr.x) / 2;
+  const topY = (frame.tl.y + frame.tr.y) / 2;
+  const upX = frame.tl.x - frame.bl.x;
+  const upY = frame.tl.y - frame.bl.y;
+  const length = Math.hypot(upX, upY) || 1;
+  return {
+    left: topX + (upX / length) * offset - ROTATE_SIZE / 2,
+    top: topY + (upY / length) * offset - ROTATE_SIZE / 2,
+  };
+}
+
+/** A turned node's box: its own size, turned to its angle about its centre (Godot's 2D frame). */
+function turnedBoxStyle(frame: FrameCorners, borderWidth: number): React.CSSProperties {
+  const width = Math.hypot(frame.tr.x - frame.tl.x, frame.tr.y - frame.tl.y);
+  const height = Math.hypot(frame.bl.x - frame.tl.x, frame.bl.y - frame.tl.y);
+  const centerX = (frame.tl.x + frame.br.x) / 2;
+  const centerY = (frame.tl.y + frame.br.y) / 2;
+  return {
+    position: 'absolute',
+    left: centerX - width / 2,
+    top: centerY - height / 2,
+    width,
+    height,
+    transform: `rotate(${frameAngle(frame)}rad)`,
+    transformOrigin: 'center',
+    borderStyle: 'solid',
+    borderColor: ACCENT,
+    borderWidth,
+    background: 'transparent',
     boxSizing: 'border-box',
     pointerEvents: 'none',
   };
@@ -734,6 +781,10 @@ interface GestureState {
   startLocal: { x: number; y: number };
   origRect: DOMRectLike;
   pos?: HandlePos;
+  /** A turned node's box at the gesture's start, and its origin: a resize then works along the
+   *  node's own axes (`frameResizePatch`). */
+  frame?: FrameCorners;
+  frameOrigin?: { x: number; y: number };
   isPositioned?: boolean;
   center?: { x: number; y: number };
   context?: ReturnType<typeof contextRectsForId>;
@@ -1595,6 +1646,8 @@ export function RootSelectionOverlay({
       if (!owner || !rect) return;
       const posValue = adapter.inspector?.get(id, 'style.position');
       const native2D = transformDimensionsFor(adapter, id) === '2d';
+      const frame = native2D ? frameForId(adapter, id) : null;
+      const frameOrigin = frame && frameIsTurned(frame) ? (owner.gizmoOrigin?.(id) ?? null) : null;
       capturePointer(e);
       owner.begin(id);
       gestureRef.current = {
@@ -1604,6 +1657,7 @@ export function RootSelectionOverlay({
         startLocal: toHostLocal(e.clientX, e.clientY),
         origRect: rect,
         pos,
+        ...(frame && frameOrigin ? { frame, frameOrigin } : {}),
         isPositioned: posValue === 'absolute' || posValue === 'fixed' || native2D,
         // D1.b — same `contextRectsForId` call the move gesture already
         // seeds `context` from (`resolveMoveCandidate`), so a resize handle
@@ -1816,7 +1870,11 @@ export function RootSelectionOverlay({
       const dx = local.x - gesture.startLocal.x;
       const dy = local.y - gesture.startLocal.y;
       let patch: Record<string, number>;
-      if (gesture.kind === 'resize') {
+      if (gesture.kind === 'resize' && gesture.frame && gesture.frameOrigin) {
+        // A turned node resizes along its own axes, its opposite corner held.
+        patch = frameResizePatch(gesture.frame, gesture.pos!, dx, dy, gesture.frameOrigin);
+        setSnapGuides([]);
+      } else if (gesture.kind === 'resize') {
         patch = computeResizePatch(
           gesture.pos!,
           dx,
@@ -2464,6 +2522,9 @@ export function RootSelectionOverlay({
   const single = computeSingleSelectionBoxEdit(adapter, selectedIds);
   const singleRect = single?.rect ?? null;
   const singleOwnerBoxEdit = single?.ownerBoxEdit ?? null;
+  // A turned 2D node frames, handles and labels on its own box (Godot's 2D frame).
+  const singleFrame = transformModeAware && single ? frameForId(adapter, single.id) : null;
+  const singleTurned = singleFrame && frameIsTurned(singleFrame) ? singleFrame : null;
   const nativeGizmoOrigin =
     transformModeAware && single
       ? (single.ownerBoxEdit.gizmoOrigin?.(single.id) ?? {
@@ -2613,14 +2674,17 @@ export function RootSelectionOverlay({
         {[...selectedIds].map((id) => {
           const r = rectForId(adapter, id);
           if (!r) return null;
+          const frame = transformModeAware ? frameForId(adapter, id) : null;
+          const turned = frame && frameIsTurned(frame) ? frame : null;
           return (
             <div key={id}>
               <div
                 data-testid="world-selection-box"
                 data-entity-id={id}
+                data-turned={turned ? 'true' : undefined}
                 style={{
-                  ...boxStyle(r, true),
-                  ...(transformModeAware
+                  ...(turned ? turnedBoxStyle(turned, 1 / pan.zoom) : boxStyle(r, true)),
+                  ...(transformModeAware && !turned
                     ? {
                         // Pixi's alpha outline now owns selection emphasis.
                         // This remains the thin, distinct transform frame.
@@ -2893,9 +2957,17 @@ export function RootSelectionOverlay({
                       key={pos}
                       data-testid={`world-resize-handle-${pos}`}
                       style={{
-                        ...handleStyle(handlePosition(singleRect, pos), cursor),
+                        ...handleStyle(
+                          singleTurned ? frameHandlePosition(singleTurned, pos) : handlePosition(singleRect, pos),
+                          cursor,
+                        ),
                         ...(transformModeAware
-                          ? { transform: `scale(${chromeScale})`, transformOrigin: 'center' }
+                          ? {
+                              transform: singleTurned
+                                ? `rotate(${frameAngle(singleTurned)}rad) scale(${chromeScale})`
+                                : `scale(${chromeScale})`,
+                              transformOrigin: 'center',
+                            }
                           : {}),
                       }}
                       onPointerDown={(event) => startResizeGesture(pos, event)}
@@ -2917,7 +2989,11 @@ export function RootSelectionOverlay({
                         : {}),
                     }}
                   >
-                    {`${Math.round(singleRect.width)}×${Math.round(singleRect.height)}`}
+                    {singleTurned
+                      ? `${Math.round(Math.hypot(singleTurned.tr.x - singleTurned.tl.x, singleTurned.tr.y - singleTurned.tl.y))}×${Math.round(
+                          Math.hypot(singleTurned.bl.x - singleTurned.tl.x, singleTurned.bl.y - singleTurned.tl.y),
+                        )}`
+                      : `${Math.round(singleRect.width)}×${Math.round(singleRect.height)}`}
                   </div>
                 </>
               ))}
@@ -2947,7 +3023,7 @@ export function RootSelectionOverlay({
                     ...rotateHandleStyle(singleRect),
                     ...(transformModeAware && !axisGizmos
                       ? {
-                          top: singleRect.y - ROTATE_OFFSET * chromeScale - ROTATE_SIZE / 2,
+                          ...turnedRotateHandlePosition(singleTurned, singleRect, ROTATE_OFFSET * chromeScale),
                           transform: `scale(${chromeScale})`,
                           transformOrigin: 'center',
                         }

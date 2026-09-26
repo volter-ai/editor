@@ -728,6 +728,7 @@ export class PixiAuthoringAdapter implements AuthoringAdapter {
       };
       this.rects = {
         rect: (id) => this.projector.rect(id),
+        frame: (id) => this.projector.frame(id),
         contextRects: (id) => this.projector.contextRects(id),
       };
     }

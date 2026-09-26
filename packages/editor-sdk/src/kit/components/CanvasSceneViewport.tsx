@@ -2,6 +2,10 @@ import {
   faBorderAll,
   faCheck,
   faExpand,
+  faHand,
+  faLock,
+  faLockOpen,
+  faRulerCombined,
   faMagnifyingGlassMinus,
   faMagnifyingGlassPlus,
 } from '@fortawesome/free-solid-svg-icons';
@@ -479,6 +483,7 @@ export function CanvasSceneControls({
   useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
   const showGrid = viewGridVisible(documentId);
   const pose = useSyncExternalStore(view.subscribe, view.get, view.get);
+  const [mode, setMode] = useState<'pan' | 'ruler' | null>(null);
 
   const zoomAroundCenter = useCallback(
     (requestedZoom: number) => {
@@ -560,6 +565,7 @@ export function CanvasSceneControls({
        *  which a user watching the board does not read (pass 65). */}
       <TransientHintOverlay />
       <ToolStrip dimensions="2d" />
+      {mode ? <CanvasSceneModeLayer mode={mode} view={view} containerRef={containerRef} onExit={() => setMode(null)} /> : null}
       <FloatingToolbar
         label="2D scene display"
         className="vgai-viewport-toolbar vgai-viewport-toolbar-right"
@@ -578,6 +584,27 @@ export function CanvasSceneControls({
         <Button aria-label="Frame all" variant="ghost" size="comfortable" onClick={frameScene}>
           Frame all
         </Button>
+        <Tooltip text="Pan (Space-drag pans in any mode)">
+          <IconButton
+            aria-label="Pan mode"
+            aria-pressed={mode === 'pan'}
+            size="comfortable"
+            onClick={() => setMode(mode === 'pan' ? null : 'pan')}
+          >
+            <EditorIcon icon={faHand} size="md" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip text="Ruler: drag to measure distance and angle">
+          <IconButton
+            aria-label="Ruler mode"
+            aria-pressed={mode === 'ruler'}
+            size="comfortable"
+            onClick={() => setMode(mode === 'ruler' ? null : 'ruler')}
+          >
+            <EditorIcon icon={faRulerCombined} size="md" />
+          </IconButton>
+        </Tooltip>
+        <CanvasSceneLockButton adapter={adapter} selected={[...store.selectedEntityIds]} />
         <CanvasSceneViewMenu
           documentId={documentId}
           view={view}
@@ -710,5 +737,128 @@ function CanvasSceneViewMenu({
         </AnchoredMenu>
       )}
     </>
+  );
+}
+
+/**
+ * Lock the selected node against selection and movement — Godot's 2D toolbar Lock, a shortcut to
+ * the lock the hierarchy owns (`locked`, the same session-local flag its row toggles).
+ */
+function CanvasSceneLockButton({ adapter, selected }: { adapter: AuthoringAdapter | undefined; selected: readonly string[] }) {
+  const id = selected.length === 1 ? selected[0]! : null;
+  const locked = id !== null && adapter?.inspector?.get(id, 'locked') === true;
+  const label = locked ? 'Unlock selected node' : 'Lock selected node';
+  return (
+    <Tooltip text={id ? label : 'Select one node to lock it'}>
+      <IconButton
+        aria-label={label}
+        aria-pressed={locked}
+        size="comfortable"
+        disabled={id === null || !adapter?.inspector?.set}
+        onClick={() => {
+          if (id) adapter?.inspector?.set?.(id, 'locked', !locked);
+        }}
+      >
+        <EditorIcon icon={locked ? faLock : faLockOpen} size="md" />
+      </IconButton>
+    </Tooltip>
+  );
+}
+
+/**
+ * Godot's Pan and Ruler modes: while one is on, this layer over the scene takes the pointer. Pan
+ * drags the view with the primary button; Ruler draws the drag as a line and reads its length in
+ * world units and its angle. Escape leaves the mode.
+ */
+function CanvasSceneModeLayer({
+  mode,
+  view,
+  containerRef,
+  onExit,
+}: {
+  mode: 'pan' | 'ruler';
+  view: RootViewController;
+  containerRef: RefObject<HTMLDivElement | null>;
+  onExit: () => void;
+}) {
+  const pose = useSyncExternalStore(view.subscribe, view.get, view.get);
+  const [measure, setMeasure] = useState<{ from: { x: number; y: number }; to: { x: number; y: number } } | null>(null);
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onExit();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onExit]);
+  const worldAt = (clientX: number, clientY: number) => {
+    const box = containerRef.current?.getBoundingClientRect();
+    const now = view.get();
+    const x = clientX - (box?.left ?? 0);
+    const y = clientY - (box?.top ?? 0);
+    return { x: (x - now.x) / now.zoom, y: (y - now.y) / now.zoom };
+  };
+  const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    const start = { clientX: event.clientX, clientY: event.clientY, pose: view.get() };
+    const from = worldAt(event.clientX, event.clientY);
+    if (mode === 'ruler') setMeasure({ from, to: from });
+    const move = (next: PointerEvent) => {
+      if (mode === 'pan') {
+        view.setView(
+          start.pose.x + next.clientX - start.clientX,
+          start.pose.y + next.clientY - start.clientY,
+          start.pose.zoom,
+        );
+      } else {
+        setMeasure({ from, to: worldAt(next.clientX, next.clientY) });
+      }
+    };
+    const end = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', end);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', end, { once: true });
+  };
+  const screen = (point: { x: number; y: number }) => ({ x: pose.x + point.x * pose.zoom, y: pose.y + point.y * pose.zoom });
+  const length = measure ? Math.hypot(measure.to.x - measure.from.x, measure.to.y - measure.from.y) : 0;
+  const angle = measure ? (Math.atan2(measure.to.y - measure.from.y, measure.to.x - measure.from.x) * 180) / Math.PI : 0;
+  const a = measure ? screen(measure.from) : null;
+  const b = measure ? screen(measure.to) : null;
+  return (
+    <div
+      data-testid={`canvas-scene-${mode}-layer`}
+      data-vgai-canvas-navigation-ignore="true"
+      onPointerDown={onPointerDown}
+      // Above the selection hit layer (z50), below the viewport toolbars.
+      style={{ position: 'absolute', inset: 0, zIndex: 60, cursor: mode === 'pan' ? 'grab' : 'crosshair' }}
+    >
+      {a && b ? (
+        <>
+          <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+            <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="#ff5fa2" strokeWidth={1.5} />
+          </svg>
+          <div
+            data-testid="canvas-scene-ruler-reading"
+            style={{
+              position: 'absolute',
+              left: (a.x + b.x) / 2 + 8,
+              top: (a.y + b.y) / 2 + 8,
+              padding: '2px 6px',
+              borderRadius: 4,
+              background: 'rgba(24, 26, 30, .92)',
+              color: '#fff',
+              font: '11px ui-monospace, SFMono-Regular, Menlo, monospace',
+              pointerEvents: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {`${length.toFixed(1)} px · ${angle.toFixed(1)}°`}
+          </div>
+        </>
+      ) : null}
+    </div>
   );
 }

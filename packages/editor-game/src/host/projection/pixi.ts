@@ -10,7 +10,7 @@
  */
 
 import type { AuthoringAdapter2D, EditorNode2D } from '../../runtime/pixi/authoring';
-import type { DOMRectLike } from '@volter/editor-project/adapter';
+import type { DOMRectLike, FrameCorners } from '@volter/editor-project/adapter';
 import type { Container, PointData } from 'pixi.js';
 import type { ProjectedNode, Projection } from '@volter/editor-sdk/kit/projection-types';
 
@@ -212,6 +212,28 @@ export class PixiProjector {
     const bounds = object.getBounds();
     if (!(bounds.width > 0) || !(bounds.height > 0)) return null;
     return { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height };
+  }
+
+  /** The node's local bounds carried by its global transform — its turned box's corners. */
+  frame(id: string): FrameCorners | null {
+    const object = this.object(id) as
+      | (Container & { getLocalBounds?: () => { x: number; y: number; width: number; height: number } })
+      | null;
+    if (!object || typeof object.getLocalBounds !== 'function') return null;
+    const local = object.getLocalBounds();
+    if (!(local.width > 0) || !(local.height > 0)) return null;
+    // `toGlobal` brings the transform up to date itself, as `getBounds` does; the cached
+    // `worldTransform` is only as fresh as the last render, and an Edit surface renders on demand.
+    const at = (x: number, y: number) => {
+      const point = object.toGlobal({ x, y });
+      return { x: point.x, y: point.y };
+    };
+    return {
+      tl: at(local.x, local.y),
+      tr: at(local.x + local.width, local.y),
+      br: at(local.x + local.width, local.y + local.height),
+      bl: at(local.x, local.y + local.height),
+    };
   }
 
   contextRects(id: string): { parent?: DOMRectLike; siblings: DOMRectLike[] } {
