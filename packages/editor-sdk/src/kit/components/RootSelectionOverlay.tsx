@@ -2765,9 +2765,12 @@ export function RootSelectionOverlay({
   const spatialSelection = selectedIds.size === 1 ? [...selectedIds][0]! : null;
   const spatialHandles = spatialSelection ? spatialHandlesForId(adapter, spatialSelection) : null;
   const spatialLayers =
-    spatialSelection && spatialHandles && store.showHelpers
+    spatialSelection && spatialHandles
       ? spatialHandles.layers(spatialSelection).filter((layer) => {
-          if (layer.category === 'origin' && !showPositionGizmo) return false;
+          // A 2D view's pivot answers to its own Position gizmo (Godot's), never to the shell-wide
+          // Helpers switch a 3D view flips.
+          if (transformModeAware && layer.category === 'origin') return showPositionGizmo;
+          if (!store.showHelpers) return false;
           const visibility = store.helperVisibility as Record<string, boolean | undefined>;
           // A category the shell does not name obeys the master Helpers toggle,
           // per the `SpatialHandleLayer` contract — never rejected for being

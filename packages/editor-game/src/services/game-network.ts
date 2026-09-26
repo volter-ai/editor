@@ -21,6 +21,7 @@ import { pack, unpack } from '@colyseus/msgpackr';
 import { type DataChange, decode, encode, type Iterator } from '@colyseus/schema';
 import { SchemaSerializer } from '@colyseus/sdk';
 import { editorHost } from '@volter/editor-sdk/host';
+import { getPlayStartedAt } from '../play/play-mode';
 import type {
   ConnectionState,
   NetConditioning,
@@ -163,9 +164,11 @@ interface MutableEntity {
 /** Whether traffic and the log are tallied (Godot's profiler Start/Stop). */
 let recording = false;
 
-/** The project-local choice Godot calls Autostart: a run starts recording when its first room
- *  socket opens. Off unless chosen, as Godot's is. */
+/** The project-local choice Godot calls Autostart: a run starts recording at its first room
+ *  socket. Off unless chosen, as Godot's is. */
 export const NETWORK_AUTOSTART_SECTION = 'networkProfilerAutostart';
+/** The run (its Play start) Autostart last applied to. */
+let autostartedRun: number | null | undefined;
 
 /** Each object of a decoded state by its path from the root: schema fields and collection entries. */
 function statePaths(state: unknown): Map<object, readonly string[]> {
@@ -383,8 +386,11 @@ function attach(socket: WebSocket, url: string): void {
     dueOut: 0,
     receive: null,
   };
-  // A run begins when a room socket opens with none already live: Autostart decides its recording.
-  if (!mirrors.some((other) => other.state === 'connected' || other.state === 'connecting')) {
+  // Autostart decides a RUN's recording once, at its first room socket; a reconnect inside the
+  // same run keeps whatever Start or Stop the person chose.
+  const run = getPlayStartedAt();
+  if (run !== autostartedRun) {
+    autostartedRun = run;
     recording = editorHost().projectLocalState.read<boolean>(NETWORK_AUTOSTART_SECTION) ?? false;
   }
   mirrors.push(mirror);

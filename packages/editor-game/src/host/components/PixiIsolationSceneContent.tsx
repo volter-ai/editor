@@ -197,7 +197,7 @@ export function PixiIsolationSceneContent({
       }}
     >
       <CanvasSceneBackdrop view={view} documentId={documentId} />
-      {adapter ? <RootSelectionOverlay adapter={adapter} view={view} transformModeAware /> : null}
+      {adapter ? <RootSelectionOverlay adapter={adapter} view={view} transformModeAware presentationId={documentId} /> : null}
       <CanvasSceneControls
         active={active}
         {...(adapter ? { adapter } : {})}

@@ -148,7 +148,7 @@ export function IngestCanvasSceneContent({
       }}
     >
       <CanvasSceneBackdrop view={view} documentId={documentId} />
-      <RootSelectionOverlay adapter={adapter} view={view} transformModeAware />
+      <RootSelectionOverlay adapter={adapter} view={view} transformModeAware presentationId={documentId} />
       <SurfaceStateOverlay
         explanation={surfaceExplanation}
         testId="ingest-canvas-surface-status"

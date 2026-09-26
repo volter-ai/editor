@@ -1,4 +1,4 @@
-import { type HTMLAttributes, type LabelHTMLAttributes, type ReactNode, useState } from 'react';
+import { type HTMLAttributes, type LabelHTMLAttributes, type ReactNode, useId, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Actions, Inline, Stack } from '../primitives/Layout';
 import { Text } from '../primitives/Text';
@@ -50,8 +50,12 @@ export function Dialog({
     typeof document === 'undefined' ? null : document.querySelector('.vgai-editor-theme'),
   );
 
+  // The portal records where it came from, as `ThemeRootPortal`'s does: the anchor stays in the
+  // surface that opened the dialog, so the document door reaches it through that surface.
+  const portalId = useId();
   const scrim = (
     <div
+      data-vgai-portal-content={portalRoot ? portalId : undefined}
       className="vgai-dialog-scrim"
       data-variant={variant}
       onPointerDown={(event) => {
@@ -70,7 +74,14 @@ export function Dialog({
     </div>
   );
 
-  return portalRoot ? createPortal(scrim, portalRoot) : scrim;
+  return portalRoot ? (
+    <>
+      <span data-vgai-portal={portalId} style={{ display: 'none' }} />
+      {createPortal(scrim, portalRoot)}
+    </>
+  ) : (
+    scrim
+  );
 }
 
 export function DialogHeader({

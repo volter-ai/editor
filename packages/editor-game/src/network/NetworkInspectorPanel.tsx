@@ -29,6 +29,7 @@ import { NETWORK_AUTOSTART_SECTION } from '../services/game-network';
 import {
   Button,
   Checkbox,
+  TextArea,
   DisclosureIcon,
   fontSizeVar,
   NumberInput,
@@ -578,6 +579,7 @@ function NetworkHeader({
 }
 
 const AUTOSTART_SECTION = NETWORK_AUTOSTART_SECTION;
+const DRAFT_SECTION = 'networkMessageDraft';
 
 // --- The panel ------------------------------------------------------------
 
@@ -594,7 +596,14 @@ export function NetworkInspectorPanel() {
     () => editorHost().projectLocalState.read<boolean>(AUTOSTART_SECTION) ?? false,
   );
   // The one message draft: sent as this client, or from the server to one client or all.
-  const [draft, setDraft] = useState<MessageDraft>({ type: '', payload: '' });
+  // Kept per checkout, as Monitor keeps its Send draft in its browser storage.
+  const [draft, setDraftState] = useState<MessageDraft>(
+    () => editorHost().projectLocalState.read<MessageDraft>(DRAFT_SECTION) ?? { type: '', payload: '' },
+  );
+  const setDraft = (next: MessageDraft): void => {
+    editorHost().projectLocalState.write(DRAFT_SECTION, next);
+    setDraftState(next);
+  };
 
   useEffect(() => {
     const syncAdapter = () => {
@@ -706,6 +715,7 @@ export function NetworkInspectorPanel() {
           ownSession={view.roomInfo?.sessionId ?? null}
           ownRoom={view.roomInfo?.roomId ?? null}
           draft={draft}
+          setDraft={setDraft}
         />
       ) : null}
       {caps.recording || caps.traffic ? (
@@ -1070,12 +1080,18 @@ function ServerView({
   ownSession,
   ownRoom,
   draft,
+  setDraft,
 }: {
   adapter: NetworkingAdapter;
   ownSession: string | null;
   ownRoom: string | null;
   draft: MessageDraft;
+  setDraft: (draft: MessageDraft) => void;
 }) {
+  // Monitor's Send dialog: opened from a client's Send or from Broadcast, titled by its target,
+  // editing the one message draft (which Monitor keeps too, in its browser storage).
+  const [sendTarget, setSendTarget] = useState<{ sessionId: string | null } | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
   const [inspection, setInspection] = useState<NetServerInspection | null | undefined>(undefined);
   const [inspected, setInspected] = useState<string | undefined>(undefined);
   // Monitor's room grid sorts by any column.
@@ -1170,10 +1186,14 @@ function ServerView({
               <td style={cell}>{seconds(room.elapsedMs)}</td>
               <td style={cell}>
                 {room.roomId === roomId ? (
-                  actButton('net-server-broadcast', 'Broadcast', () => {
-                    const message = draftMessage(draft);
-                    return adapter.broadcast?.(message.type, message.payload, room.roomId);
-                  })
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    data-testid="net-server-broadcast"
+                    onClick={() => setSendTarget({ sessionId: null })}
+                  >
+                    Broadcast
+                  </Button>
                 ) : (
                   <Button type="button" variant="ghost" data-testid="net-server-inspect" onClick={() => setInspected(room.roomId)}>
                     Inspect
@@ -1193,16 +1213,83 @@ function ServerView({
               </td>
               <td style={cell}>{seconds(client.elapsedMs)}</td>
               <td style={cell} colSpan={3}>
-                {actButton('net-server-send', 'Send', () => {
-                  const message = draftMessage(draft);
-                  return adapter.sendToClient?.(client.sessionId, message.type, message.payload, roomId);
-                })}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  data-testid="net-server-send"
+                  onClick={() => setSendTarget({ sessionId: client.sessionId })}
+                >
+                  Send
+                </Button>
                 {actButton('net-server-disconnect', 'Disconnect', () => adapter.disconnectClient?.(client.sessionId, roomId))}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      {sendTarget ? (
+        // Monitor's dialog, drawn in the panel rather than over the editor: during Play a field
+        // over the editor would hand the game every key typed into it.
+        <div
+          data-testid="net-send-dialog"
+          role="group"
+          aria-labelledby="net-send-dialog-title"
+          style={{ margin: spaceVar[2], padding: spaceVar[3], border: `1px solid ${themeVars.boundary.default}`, borderRadius: 4 }}
+        >
+          <div id="net-send-dialog-title" style={{ color: themeVars.content.primary, marginBottom: spaceVar[2] }}>
+            {sendTarget.sessionId
+              ? `Send message to client (${sendTarget.sessionId})`
+              : 'Broadcast message to all clients'}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: spaceVar[2] }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: spaceVar[1] }}>
+              <span style={{ color: themeVars.content.muted }}>Message type</span>
+              <TextInput
+                data-testid="net-send-dialog-type"
+                value={draft.type}
+                onChange={(event) => setDraft({ ...draft, type: event.target.value })}
+              />
+            </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: spaceVar[1] }}>
+              <span style={{ color: themeVars.content.muted }}>Message payload (JSON)</span>
+              <TextArea
+                data-testid="net-send-dialog-payload"
+                rows={6}
+                value={draft.payload}
+                onChange={(event) => setDraft({ ...draft, payload: event.target.value })}
+                style={MONO}
+              />
+            </label>
+            {sendError ? <span data-testid="net-send-dialog-error">{sendError}</span> : null}
+          </div>
+          <div style={{ display: 'flex', gap: spaceVar[2], justifyContent: 'flex-end', marginTop: spaceVar[2] }}>
+            <Button type="button" variant="ghost" onClick={() => setSendTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              data-testid="net-send-dialog-send"
+              onClick={() => {
+                const target = sendTarget;
+                void (async () => {
+                  try {
+                    const message = draftMessage(draft);
+                    await (target.sessionId
+                      ? adapter.sendToClient?.(target.sessionId, message.type, message.payload, roomId)
+                      : adapter.broadcast?.(message.type, message.payload, roomId));
+                    setSendError(null);
+                    setSendTarget(null);
+                  } catch (caught) {
+                    setSendError(caught instanceof Error ? caught.message : String(caught));
+                  }
+                })();
+              }}
+            >
+              Send
+            </Button>
+          </div>
+        </div>
+      ) : null}
       {inspection.room && inspection.room.roomId !== ownRoom && inspection.room.state !== undefined ? (
         // ANOTHER room's state, as Monitor's Inspect opens it: read from the server, and edited
         // and deleted in THAT room. The tree below the section stays this client's own room.

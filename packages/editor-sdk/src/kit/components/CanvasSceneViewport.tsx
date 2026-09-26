@@ -56,6 +56,8 @@ import {
 } from '@volter/editor-sdk/kit/viewport-presentation';
 import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { ToolStrip } from '@volter/editor-sdk/kit/components/Toolbar';
+import { requestTransformMode } from '@volter/editor-sdk/kit/transform-mode-request';
+import { editorHost } from '@volter/editor-sdk/host';
 import { TransientHintOverlay } from '@volter/editor-sdk/kit/components/TransientHint';
 import { ViewportPickMenu } from '@volter/editor-sdk/kit/components/RootSelectionOverlay';
 import {
@@ -508,6 +510,27 @@ export function CanvasSceneControls({
     },
     [view],
   );
+  // The tools' keys, from the active keymap, on this 2D view while it is the active one — the
+  // three viewport binds the same actions for its own store (`viewport-hotkeys.ts`).
+  useEffect(() => {
+    if (!active) return;
+    const arm = (mode: 'select' | 'translate' | 'rotate' | 'scale') => () => requestTransformMode(store, mode);
+    return editorHost().keyboard.bindActions([
+      { id: 'transform.select', scope: 'stage', run: arm('select') },
+      { id: 'transform.translate', scope: 'stage', run: arm('translate') },
+      { id: 'transform.rotate', scope: 'stage', run: arm('rotate') },
+      { id: 'transform.scale', scope: 'stage', run: arm('scale') },
+    ]);
+  }, [active, store]);
+  // One radio group however a tool is picked: a transform tool chosen by its key (W, E, R, T)
+  // leaves List Select, Pivot, Pan and Ruler as its button does.
+  const transformMode = store.transformMode;
+  const lastTransformMode = useRef(transformMode);
+  useEffect(() => {
+    if (lastTransformMode.current === transformMode) return;
+    lastTransformMode.current = transformMode;
+    setMode(null);
+  }, [transformMode, setMode]);
 
   const zoomAroundCenter = useCallback(
     (requestedZoom: number) => {
