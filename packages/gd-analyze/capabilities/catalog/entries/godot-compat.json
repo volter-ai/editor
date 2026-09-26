@@ -622,7 +622,6 @@
       "@pixi/tilemap": "^5.0.0",
       "@recast-navigation/three": "^0.43.0",
       "@types/clipper-lib": "^6.4.0",
-      "@volter/game-runtime": "^0.5.66",
       "clipper-lib": "^6.4.2",
       "gsap": "^3.12.0",
       "idb": "^8.0.3",
