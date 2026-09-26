@@ -236,6 +236,22 @@ export interface GltfSceneOrigin {
   /** Importer-synthesized Skeleton3D path → ordered bone names. */
   readonly boneNamesByPath: ReadonlyMap<string, readonly string[]>;
   /**
+   * Each `Skeleton3D`'s bones in Godot's bone order: name, the glTF `nodes[]` joint it came from,
+   * and the pose the importer gives it.
+   */
+  readonly bonesByPath: ReadonlyMap<
+    string,
+    readonly {
+      readonly name: string;
+      readonly gltfNode: number;
+      readonly pose: {
+        readonly position: readonly [number, number, number];
+        readonly rotation: readonly [number, number, number, number];
+        readonly scale: readonly [number, number, number];
+      };
+    }[]
+  >;
+  /**
    * The `AnimationPlayer` Godot's importer SYNTHESIZES when the file carries animations — absent
    * for a `.glb` with none, which is 14 of `starter-kit-3d-platformer`'s 15 models.
    *

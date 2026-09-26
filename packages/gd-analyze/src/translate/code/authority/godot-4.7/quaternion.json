@@ -1,0 +1,144 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/quaternion"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Quaternion",
+        "member": "Quaternion",
+        "kind": "builtin-constructor",
+        "signature": "unhashed"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/quaternion",
+        "exportName": "construct",
+        "localName": "Quaternion_construct",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Quaternion.Quaternion"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [
+    {
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "sourceDatatype": "BUILTIN:Quaternion",
+      "targetType": {
+        "kind": "type-reference",
+        "name": "Quaternion",
+        "arguments": []
+      },
+      "typeImport": {
+        "module": "lib/godot-compat/quaternion",
+        "exportName": "Quaternion"
+      },
+      "evidenceClaimId": "godot-4.7-datatype-Quaternion"
+    }
+  ],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Quaternion.Quaternion",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-constructor\u0000Quaternion\u0000Quaternion\u0000unhashed",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/quaternion.h",
+        "sourceSymbol": "Quaternion.Quaternion",
+        "sourceLine": 123
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "16c3e4174893457d9c2e6c660aaf19427c5dfe5d9446eeb0d491a398b0a6e9d3",
+        "callsite": "res://probe.gd _init() construct-empty construct-xyzw-identity construct-copy-identity construct-xyzw-decimals construct-copy-decimals construct-xyzw-bone construct-copy-bone construct-xyzw-huge construct-copy-huge",
+        "observedOutputSha256": "162c611f9629f5828649bacc687630f2bbe6047752269e0025866a2875d614c6"
+      },
+      "target": {
+        "implementationSha256": "95a4009155480e623a3f2b139c398bda5ac88673a618eb10932410be83a7f6ad",
+        "callsite": "lib/godot-compat/quaternion.ts construct",
+        "observedOutputSha256": "39d4ef2ef3f7ee285677a93d2b4bb9d6e77dca92d47180a7d6285d984e6876ee"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7353b1d5d546770cc75d471dffd8ef42c12eae02f9e01e9df6bf4a824be2aa8d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "quaternion",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-datatype-Quaternion",
+      "layer": "translate-code",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000datatype\u0000BUILTIN:Quaternion",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/variant.h",
+        "sourceSymbol": "Variant::QUATERNION",
+        "sourceLine": 116
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "16c3e4174893457d9c2e6c660aaf19427c5dfe5d9446eeb0d491a398b0a6e9d3",
+        "callsite": "res://probe.gd _init() every case",
+        "observedOutputSha256": "162c611f9629f5828649bacc687630f2bbe6047752269e0025866a2875d614c6"
+      },
+      "target": {
+        "implementationSha256": "95a4009155480e623a3f2b139c398bda5ac88673a618eb10932410be83a7f6ad",
+        "callsite": "lib/godot-compat/quaternion.ts Quaternion",
+        "observedOutputSha256": "39d4ef2ef3f7ee285677a93d2b4bb9d6e77dca92d47180a7d6285d984e6876ee"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "7353b1d5d546770cc75d471dffd8ef42c12eae02f9e01e9df6bf4a824be2aa8d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "quaternion",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Quaternion.Quaternion",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "16c3e4174893457d9c2e6c660aaf19427c5dfe5d9446eeb0d491a398b0a6e9d3",
+      "implementationSha256": "95a4009155480e623a3f2b139c398bda5ac88673a618eb10932410be83a7f6ad"
+    },
+    {
+      "claimId": "godot-4.7-datatype-Quaternion",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "16c3e4174893457d9c2e6c660aaf19427c5dfe5d9446eeb0d491a398b0a6e9d3",
+      "implementationSha256": "95a4009155480e623a3f2b139c398bda5ac88673a618eb10932410be83a7f6ad"
+    }
+  ]
+}

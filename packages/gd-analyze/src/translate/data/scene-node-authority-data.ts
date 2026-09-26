@@ -144,6 +144,9 @@ export const GODOT_SCENE_IMPORTED_IMPLEMENTATION_FILES = [
   `${COMPAT}/packed-scene.tsx`,
   `${COMPAT}/node.ts`,
   `${COMPAT}/node-3d.ts`,
+  `${COMPAT}/skeleton-3d.ts`,
+  `${COMPAT}/quaternion.ts`,
+  'packages/gd-analyze/src/translate/data/scene-setters.ts',
 ] as const;
 
 /** What the scene-physics proof runs: planning, emission, the world hand-over and physics compat. */

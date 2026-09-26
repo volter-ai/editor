@@ -441,7 +441,7 @@ function compatLocal(entry: { readonly exportName: string }): string {
 }
 
 /** Compat modules of the built-in values a setter receives. */
-const VALUE_MODULES = { Vector2: 'vector2', Vector3: 'vector3', Color: 'color' } as const;
+const VALUE_MODULES = { Vector2: 'vector2', Vector3: 'vector3', Color: 'color', Quaternion: 'quaternion' } as const;
 
 function sceneValue(value: TargetGodotSceneValue, resources: ReadonlyMap<string, string>): TargetTsExpression {
   switch (value.kind) {
@@ -563,7 +563,7 @@ function sceneSourceFile(
   const setters = sceneSetters(scene);
   const valueKinds = new Set<keyof typeof VALUE_MODULES>();
   const collectValue = (value: TargetGodotSceneValue): void => {
-    if (value.kind === 'Vector2' || value.kind === 'Vector3' || value.kind === 'Color') valueKinds.add(value.kind);
+    if (value.kind === 'Vector2' || value.kind === 'Vector3' || value.kind === 'Color' || value.kind === 'Quaternion') valueKinds.add(value.kind);
     if (value.kind === 'PackedVector3Array') valueKinds.add('Vector3');
   };
   for (const setter of setters) collectValue(setter.value);

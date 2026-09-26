@@ -150,6 +150,17 @@ export interface BoundGodotProjectEntrypoints {
   }[];
 }
 
+/** A bone of an imported skeleton: its name, glTF joint node and the importer's pose. */
+export interface BoundGodotImportedBone {
+  readonly name: string;
+  readonly gltfNode: number;
+  readonly pose: {
+    readonly position: readonly [number, number, number];
+    readonly rotation: readonly [number, number, number, number];
+    readonly scale: readonly [number, number, number];
+  };
+}
+
 export interface BoundGodotSceneDocument {
   readonly resPath: string;
   readonly sourceDigest: string;
@@ -163,6 +174,8 @@ export interface BoundGodotSceneDocument {
   readonly model?: {
     readonly bytes: Uint8Array;
     readonly nodeIndexByPath: Readonly<Record<string, number>>;
+    /** Each Skeleton3D's bones in Godot's order: names, glTF joint nodes and imported poses. */
+    readonly bonesByPath: Readonly<Record<string, readonly BoundGodotImportedBone[]>>;
     readonly externalImageUris: readonly string[];
   };
   /** The document's `[sub_resource]`s and `[ext_resource]`s (an instance's copied under its ids). */
@@ -572,6 +585,7 @@ function boundDocuments(
                 model: {
                   bytes: snapshot.bytesByResPath(document.resPath),
                   nodeIndexByPath: Object.fromEntries(document.gltfOrigin.nodeIndexByPath),
+                  bonesByPath: Object.fromEntries(document.gltfOrigin.bonesByPath),
                   externalImageUris: document.gltfOrigin.externalImageUris,
                 },
               }),

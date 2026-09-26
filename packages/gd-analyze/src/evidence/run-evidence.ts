@@ -113,6 +113,7 @@ const STRUCTURED = {
   Basis: { x: 'Vector3', y: 'Vector3', z: 'Vector3' },
   Transform3D: { basis: 'Basis', origin: 'Vector3' },
   Color: { r: 'float', g: 'float', b: 'float', a: 'float' },
+  Quaternion: { x: 'float', y: 'float', z: 'float', w: 'float' },
 } as const;
 type StructuredType = keyof typeof STRUCTURED;
 interface StructuredEncoded {
@@ -344,6 +345,8 @@ func _enc(value: Variant) -> Dictionary:
 \t\t\treturn {"t": "Transform3D", "basis": _enc(value.basis), "origin": _enc(value.origin)}
 \t\tTYPE_COLOR:
 \t\t\treturn {"t": "Color", "r": _bits(value.r), "g": _bits(value.g), "b": _bits(value.b), "a": _bits(value.a)}
+\t\tTYPE_QUATERNION:
+\t\t\treturn {"t": "Quaternion", "x": _bits(value.x), "y": _bits(value.y), "z": _bits(value.z), "w": _bits(value.w)}
 \t\tTYPE_ARRAY:
 \t\t\tvar items: Array = []
 \t\t\tfor item in value:

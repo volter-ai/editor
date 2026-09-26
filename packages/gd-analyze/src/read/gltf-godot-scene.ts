@@ -101,6 +101,19 @@ export interface GlbBone {
   /** Bone index of the parent, or -1 for a skeleton root. */
   readonly parent: number;
   readonly rest: Transform3D;
+  /** The glTF `nodes[]` index (a skin joint) the bone came from. */
+  readonly gltfNodeIndex: number;
+  /**
+   * The pose the importer gives the bone (`SkinTool::_create_skeletons`, skin_tool.cpp:636): the
+   * joint transform's origin, `get_rotation_quaternion()` and `get_scale()`.
+   */
+  readonly pose: GlbBonePose;
+}
+
+export interface GlbBonePose {
+  readonly position: readonly [number, number, number];
+  readonly rotation: readonly [number, number, number, number];
+  readonly scale: readonly [number, number, number];
 }
 
 export interface GlbAnimationTrack {
@@ -217,18 +230,23 @@ function gltfOriginIndex(nodes: readonly GlbSceneNode[]): {
   nameByPath: Map<string, string>;
   surfaceCountByPath: Map<string, number>;
   boneNamesByPath: Map<string, readonly string[]>;
+  bonesByPath: Map<string, readonly { readonly name: string; readonly gltfNode: number; readonly pose: GlbBonePose }[]>;
 } {
   const nodeIndexByPath = new Map<string, number>();
   const nameByPath = new Map<string, string>();
   const surfaceCountByPath = new Map<string, number>();
   const boneNamesByPath = new Map<string, readonly string[]>();
+  const bonesByPath = new Map<string, readonly { readonly name: string; readonly gltfNode: number; readonly pose: GlbBonePose }[]>();
   for (const node of nodes) {
     if (node.gltfNodeIndex !== undefined) nodeIndexByPath.set(node.path, node.gltfNodeIndex);
     if (node.gltfName !== undefined) nameByPath.set(node.path, node.gltfName);
     if (node.mesh !== undefined) surfaceCountByPath.set(node.path, node.mesh.surfaces.length);
     if (node.bones !== undefined) boneNamesByPath.set(node.path, node.bones.map((bone) => bone.name));
+    if (node.bones !== undefined) {
+      bonesByPath.set(node.path, node.bones.map((bone) => ({ name: bone.name, gltfNode: bone.gltfNodeIndex, pose: bone.pose })));
+    }
   }
-  return { nodeIndexByPath, nameByPath, surfaceCountByPath, boneNamesByPath };
+  return { nodeIndexByPath, nameByPath, surfaceCountByPath, boneNamesByPath, bonesByPath };
 }
 
 export function glbSceneDocument(scene: GlbScene): SceneDocument {
@@ -241,7 +259,7 @@ export function glbSceneDocument(scene: GlbScene): SceneDocument {
     byPath.get(parentPath)?.children.push(asSceneNode(node, byPath));
   }
   const root = byPath.get('.');
-  const { nodeIndexByPath, nameByPath, surfaceCountByPath, boneNamesByPath } =
+  const { nodeIndexByPath, nameByPath, surfaceCountByPath, boneNamesByPath, bonesByPath } =
     gltfOriginIndex(scene.nodes);
   const player = scene.nodes.find((node) => node.animations !== undefined);
   const playerClips = player?.animations ?? [];
@@ -274,6 +292,7 @@ export function glbSceneDocument(scene: GlbScene): SceneDocument {
       nameByPath,
       surfaceCountByPath,
       boneNamesByPath,
+      bonesByPath,
       sceneRootPaths: scene.sceneRootPaths,
       externalImageUris: scene.externalImageUris,
       sourceMaterials: scene.sourceMaterials,
@@ -652,6 +671,8 @@ export function readGltfAsGodotScene(
         parent: skeleton.boneNodes.indexOf(parentNode),
         // `_parse_nodes`:595 stores `GODOT_rest_transform` as the node's own parsed transform.
         rest: node.transform,
+        gltfNodeIndex: nodeIndex,
+        pose: { position: node.transform.origin, rotation: basisRotationQuaternion(node.transform), scale: basisScale(node.transform) },
       });
       nodeNames.set(nodeIndex, boneName);
     });

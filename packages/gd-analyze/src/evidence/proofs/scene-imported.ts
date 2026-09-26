@@ -1,9 +1,12 @@
 /**
  * The scene-imported proof: a scene instancing the platformer's `enemy.glb` and `player.glb` (a
- * transform on an instance root, a node placed under a node of each model, a child of a placed node), imported and built by
- * official Godot and read back (every node's path, class and global transform bits), against the
- * emitted component mounted in Node by @react-three/fiber: three's glTF loader loads the copied
- * `.glb` and compat's packed scene makes Godot's importer tree of it, read through compat.
+ * transform on an instance root, a node placed under a node of each model, a child of a placed
+ * node, bone pose overrides on the enemy's skeleton), imported and built by official Godot and
+ * read back (every node's path, class and global transform bits; each skeleton's bone names and
+ * drawn bone transforms, to 1e-4; the overridden bones' poses exactly), against the emitted
+ * component mounted in Node by @react-three/fiber: three's glTF loader loads the copied `.glb` and
+ * compat's packed scene makes Godot's importer tree of it, its skeletons' bones the loader's joints,
+ * read through compat.
  */
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
@@ -52,6 +55,12 @@ renderer/rendering_method="gl_compatibility"
 [node name="Enemy" parent="." instance=ExtResource("1_enemy")]
 transform = Transform3D(0.8, 0, -0.6, 0, 1, 0, 0.6, 0, 0.8, 1.5, 0, -2)
 
+[node name="Skeleton3D" parent="Enemy/Skeleton" index="0"]
+bones/1/position = Vector3(-5.04871e-28, 0.661877, 0)
+bones/1/rotation = Quaternion(0.70710677, -2.4853694e-07, -1.9540794e-07, 0.70710677)
+bones/3/rotation = Quaternion(1, -2.4919705e-38, 7.54979e-08, -1.05879e-22)
+bones/5/scale = Vector3(1.5, 0.5, 1)
+
 [node name="Marker" type="Node3D" parent="Enemy/Skeleton" index="1"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0.25)
 
@@ -63,6 +72,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0.2, 1)
 
 [node name="Hand" type="Node3D" parent="Player/Skeleton" index="1"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 1.1, 0)
+
+[editable path="Enemy"]
 `,
 };
 
@@ -74,11 +85,34 @@ func _bits(value: float) -> String:
 func _v(value: Vector3) -> Array:
 \treturn [_bits(value.x), _bits(value.y), _bits(value.z)]
 
+# A bone's drawn transform is three's float64 composition of its pose: compared to 1e-4.
+func _n(value: float) -> String:
+\treturn "%.4f" % (0.0 if absf(value) < 0.00005 else value)
+
+func _r(value: Vector3) -> Array:
+\treturn [_n(value.x), _n(value.y), _n(value.z)]
+
 func _walk(main: Node, node: Node, rows: Array) -> void:
 \tvar row := {"path": str(main.get_path_to(node)), "class": node.get_class()}
 \tif node is Node3D:
 \t\tvar t: Transform3D = node.global_transform
 \t\trow["global"] = [_v(t.basis.x), _v(t.basis.y), _v(t.basis.z), _v(t.origin)]
+\tif node is Skeleton3D:
+\t\tvar bones := []
+\t\tfor i in node.get_bone_count():
+\t\t\tvar g: Transform3D = node.global_transform * node.get_bone_global_pose(i)
+\t\t\tvar bone := [node.get_bone_name(i), _r(g.basis.x) + _r(g.basis.y) + _r(g.basis.z) + _r(g.origin)]
+\t\t\t# The components main.tscn overrides.
+\t\t\tif str(main.get_path_to(node)).begins_with("Enemy"):
+\t\t\t\tvar q: Quaternion = node.get_bone_pose_rotation(i)
+\t\t\t\tif i == 1:
+\t\t\t\t\tbone.append(_v(node.get_bone_pose_position(i)))
+\t\t\t\tif i == 1 or i == 3:
+\t\t\t\t\tbone.append([_bits(q.x), _bits(q.y), _bits(q.z), _bits(q.w)])
+\t\t\t\tif i == 5:
+\t\t\t\t\tbone.append(_v(node.get_bone_pose_scale(i)))
+\t\t\tbones.append(bone)
+\t\trow["bones"] = bones
 \trows.append(row)
 \tfor child in node.get_children():
 \t\t_walk(main, child, rows)
@@ -120,6 +154,7 @@ import { createRoot, extend } from '@react-three/fiber';
 import { MainScene } from './src/scenes/main';
 import { get_children, get_name, godot_is_native, godot_node_is_spatial } from './src/lib/godot-compat/node';
 import { get_global_transform } from './src/lib/godot-compat/node-3d';
+import * as SK from './src/lib/godot-compat/skeleton-3d';
 
 // Embedded images decode through createImageBitmap, which Node lacks: the tree does not read pixels.
 globalThis.createImageBitmap = async () => ({ width: 1, height: 1, close() {} });
@@ -131,6 +166,7 @@ THREE.DefaultLoadingManager.setURLModifier((url) =>
   url.startsWith('/godot/') ? 'data:model/gltf-binary;base64,' + readFileSync('public' + url).toString('base64') : url);
 const bits = (value) => Buffer.from(new Float64Array([value]).buffer).toString('hex');
 const CLASSES = ['Skeleton3D', 'MeshInstance3D', 'AnimationPlayer', 'Node3D', 'Node'];
+const n = (value) => (Math.abs(value) < 0.00005 ? 0 : value).toFixed(4);
 const classOf = (object) => CLASSES.find((name) => godot_is_native(object, name));
 extend(THREE);
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -153,6 +189,8 @@ for (let tries = 0; tries < 200 && (holder.current?.children[0]?.children.length
   await act(async () => { await new Promise((resolve) => setTimeout(resolve, 25)); });
 }
 const rows = [];
+holder.current.updateMatrixWorld(true);
+const v3 = (value) => [bits(value.x), bits(value.y), bits(value.z)];
 const walk = (path, object) => {
   const className = classOf(object);
   const row = { path, class: className };
@@ -160,6 +198,23 @@ const walk = (path, object) => {
     const t = get_global_transform(object);
     const v = (value) => [bits(value.x), bits(value.y), bits(value.z)];
     row.global = [v(t.basis.x), v(t.basis.y), v(t.basis.z), v(t.origin)];
+  }
+  if (className === 'Skeleton3D') {
+    const bones = [];
+    for (let i = 0; i < SK.get_bone_count(object); i += 1) {
+      // The drawn bone: its three object's world matrix, the basis columns then the origin.
+      const e = SK.godot_skeleton_3d_bone_object(object, i).matrixWorld.elements;
+      const bone = [SK.get_bone_name(object, i), [e[0], e[1], e[2], e[4], e[5], e[6], e[8], e[9], e[10], e[12], e[13], e[14]].map(n)];
+      // The components main.tscn overrides.
+      if (path.startsWith('Enemy')) {
+        const q = SK.get_bone_pose_rotation(object, i);
+        if (i === 1) bone.push(v3(SK.get_bone_pose_position(object, i)));
+        if (i === 1 || i === 3) bone.push([bits(q.x), bits(q.y), bits(q.z), bits(q.w)]);
+        if (i === 5) bone.push(v3(SK.get_bone_pose_scale(object, i)));
+      }
+      bones.push(bone);
+    }
+    row.bones = bones;
   }
   rows.push(row);
   for (const child of get_children(object)) {

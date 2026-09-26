@@ -12,8 +12,13 @@
  * transform and, for a node the file backs, its glTF `nodes[]` index); the component loads the
  * file, and makes each Godot node the three object the loader made for that glTF node (a
  * synthesized node a new group), under Godot's parent, with Godot's name and transform, adopted
- * by the Node protocol. Objects Godot has no node for (a skeleton's bones, a multi-surface mesh's
+ * by the Node protocol; a Skeleton3D's bones are the loader's joint objects in Godot's bone order.
+ * Objects Godot has no node for (a skeleton's bones, a multi-surface mesh's
  * per-surface meshes) stay where the loader put them, unadopted, so `get_node` never sees them.
+ *
+ * Not yet transcribed: the importer applies a model's `RESET` animation before saving the scene
+ * (`resource_importer_scene.cpp:3400`), which re-poses its bones; here each bone keeps the pose the
+ * importer's skeleton gives it (`skin_tool.cpp:636`), which the RESET keys can differ from.
  */
 
 import { createPortal, type ThreeElements, useLoader } from '@react-three/fiber';
@@ -22,6 +27,7 @@ import { Group, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { godot_node_adopt } from './node';
+import { godot_skeleton_3d_bind } from './skeleton-3d';
 
 /** One node of the imported tree, below its root, in `Node::get_children` depth-first order. */
 export interface GodotImportedSceneNode {
@@ -36,6 +42,16 @@ export interface GodotImportedSceneNode {
   readonly gltfNode?: number;
   /** Godot's local transform, column-major (the Object3D matrix). */
   readonly matrix: readonly number[];
+  /** A Skeleton3D's bones in Godot's bone order: name, glTF joint node and the imported pose. */
+  readonly bones?: readonly {
+    readonly name: string;
+    readonly gltfNode: number;
+    readonly pose: {
+      readonly position: readonly [number, number, number];
+      readonly rotation: readonly [number, number, number, number];
+      readonly scale: readonly [number, number, number];
+    };
+  }[];
 }
 
 /** A node the instancing scene places under a node of the imported tree. */
@@ -48,6 +64,7 @@ type GroupProps = Omit<ThreeElements['group'], 'ref'>;
 
 interface BuiltTree {
   readonly byPath: ReadonlyMap<string, Object3D>;
+  readonly byIndex: ReadonlyMap<number, Object3D>;
   readonly depthOne: readonly Object3D[];
 }
 
@@ -82,7 +99,7 @@ function buildTree(scene: Object3D, associations: ReadonlyMap<Object3D, { readon
     }
     byPath.set(node.path, entity);
   }
-  return { byPath, depthOne };
+  return { byPath, byIndex, depthOne };
 }
 
 /**
@@ -133,6 +150,18 @@ export function GodotImportedScene({
         owner: entity,
         ...(node.nonSpatial === true ? { kind: 'node' as const } : {}),
       });
+    }
+    // A skeleton's bones are the loader's joint objects, in Godot's bone order.
+    for (const node of nodes) {
+      if (node.bones === undefined) continue;
+      godot_skeleton_3d_bind(
+        tree.byPath.get(node.path) as Object3D,
+        node.bones.map((bone) => {
+          const object = tree.byIndex.get(bone.gltfNode);
+          if (object === undefined) throw new Error(`godot-compat: the loaded model has no joint node ${bone.gltfNode}`);
+          return { object, name: bone.name, pose: bone.pose };
+        }),
+      );
     }
     // Godot sets the instancing scene's values on the instantiated nodes (`SceneState::instantiate`,
     // packed_scene.cpp:400).

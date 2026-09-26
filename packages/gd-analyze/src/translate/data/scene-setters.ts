@@ -30,6 +30,12 @@ export type SceneSetterLookup = (className: string, property: string) => SceneSe
  */
 const SURFACE_OVERRIDE = /^surface_material_override\/(\d+)$/;
 
+/**
+ * `Skeleton3D::_set` (`scene/3d/skeleton_3d.cpp:81`): `bones/N/position|rotation|scale` is
+ * `set_bone_pose_<what>(N, value)`, a property the skeleton declares per bone.
+ */
+const BONE_POSE = /^bones\/(\d+)\/(position|rotation|scale)$/;
+
 export function sceneSetterLookup(
   codeAuthority: GodotCodeTranslationAuthority,
   apiDump: GodotApiDump,
@@ -58,10 +64,15 @@ export function sceneSetterLookup(
     let setter: string | undefined;
     let index: number | undefined;
     const surface = SURFACE_OVERRIDE.exec(property);
+    const bone = BONE_POSE.exec(property);
     if (surface !== null && ancestry.includes('MeshInstance3D')) {
       owner = 'MeshInstance3D';
       setter = 'set_surface_override_material';
       index = Number(surface[1]);
+    } else if (bone !== null && ancestry.includes('Skeleton3D')) {
+      owner = 'Skeleton3D';
+      setter = `set_bone_pose_${bone[2] as string}`;
+      index = Number(bone[1]);
     } else {
       for (const className of ancestry) {
         const found = classes.get(className)?.properties.find((entry) => entry.name === property);
@@ -111,7 +122,7 @@ export type TargetSceneValue =
   | { readonly kind: 'bool'; readonly value: boolean }
   | { readonly kind: 'string'; readonly value: string }
   | { readonly kind: 'null' }
-  | { readonly kind: 'Vector2' | 'Vector3' | 'Color'; readonly components: readonly number[] }
+  | { readonly kind: 'Vector2' | 'Vector3' | 'Color' | 'Quaternion'; readonly components: readonly number[] }
   /** A `PackedVector3Array`, as the Vector3 array compat's setters take: x, y, z per element. */
   | { readonly kind: 'PackedVector3Array'; readonly components: readonly number[] }
   /** A resource this document declares or references: `SubResource`/`ExtResource` by id. */
@@ -138,11 +149,11 @@ export function targetSceneValue(value: GodotValue): TargetSceneValue | undefine
         if (components.length % 3 !== 0 || !components.every((entry): entry is number => entry !== undefined)) return undefined;
         return { kind: 'PackedVector3Array', components };
       }
-      const arity = { Vector2: [2], Vector3: [3], Color: [3, 4] }[value.name as 'Vector2' | 'Vector3' | 'Color'];
+      const arity = { Vector2: [2], Vector3: [3], Color: [3, 4], Quaternion: [4] }[value.name as 'Vector2' | 'Vector3' | 'Color' | 'Quaternion'];
       if (arity === undefined || !arity.includes(value.args.length)) return undefined;
       const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
       if (!components.every((entry): entry is number => entry !== undefined)) return undefined;
-      return { kind: value.name as 'Vector2' | 'Vector3' | 'Color', components };
+      return { kind: value.name as 'Vector2' | 'Vector3' | 'Color' | 'Quaternion', components };
     }
     default:
       return undefined;

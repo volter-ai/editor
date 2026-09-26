@@ -1,6 +1,7 @@
 import type {
   BoundGodotProject,
   BoundGodotResourceData,
+  BoundGodotImportedBone,
   BoundGodotSceneDocument,
   BoundGodotSceneNode,
 } from '../../analyze/bound-project';
@@ -66,6 +67,8 @@ export interface TargetGodotImportedModelNode {
   readonly nonSpatial?: true;
   readonly gltfNode?: number;
   readonly matrix: readonly number[];
+  /** A Skeleton3D's bones in Godot's order: names, the glTF joints they bind to, imported poses. */
+  readonly bones?: readonly BoundGodotImportedBone[];
 }
 
 /** An instanced imported model: the file, Godot's tree over it, and this scene's overrides in it. */
@@ -599,6 +602,7 @@ function planImportedInstance(
     const transform = member.authoredProperties['transform'];
     const matrix = transform === undefined ? undefined : serializedValue(transform)?.value;
     const gltfNode = model.nodeIndexByPath[member.nodePath];
+    const bones = model.bonesByPath[member.nodePath];
     nodes.push({
       path: member.nodePath,
       name: member.name,
@@ -606,6 +610,7 @@ function planImportedInstance(
       ...(member.class.nativeAncestry.includes('Node3D') ? {} : { nonSpatial: true as const }),
       ...(gltfNode === undefined ? {} : { gltfNode }),
       matrix: matrix ?? IDENTITY_MATRIX,
+      ...(bones === undefined ? {} : { bones }),
     });
   }
   const properties = planProperties(context, node, node.authoredProperties);
