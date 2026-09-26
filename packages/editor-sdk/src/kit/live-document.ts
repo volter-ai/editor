@@ -49,6 +49,7 @@ import {
   closeWorkspaceDocument,
   openWorkspaceDocument,
   openWorkspaceDocuments,
+  supersedeRestoredActivation,
   type WorkspaceDocumentDescriptor,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 
@@ -145,6 +146,7 @@ export function liveDocumentOpen(): boolean {
  */
 export function activateLiveDocument(): boolean {
   if (!liveDocumentOpen()) return false;
+  supersedeRestoredActivation();
   return activateWorkspaceDocument(GAME_DOCUMENT_ID);
 }
 
@@ -201,6 +203,7 @@ export async function acquireLiveDocument(
 ): Promise<boolean> {
   const next = descriptor();
   if (!next) return false;
+  supersedeRestoredActivation();
   if (!liveDocumentOpen()) {
     _restoreDocumentId = activeWorkspaceDocumentId();
     openWorkspaceDocument(next);
