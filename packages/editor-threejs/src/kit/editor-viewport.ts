@@ -1861,6 +1861,15 @@ export class EditorViewport {
     this.orthographicCamera.updateProjectionMatrix();
   }
 
+  /**
+   * THE GIZMOS' CAMERA while a stage draws through another one (a document's camera view): the
+   * handles size, face and pick against what is on screen. Null gives them back the free camera.
+   */
+  setGizmoCamera(camera: THREE.Camera | null): void {
+    const target = camera ?? this.freeCamera;
+    for (const controls of this._allGizmos()) if (controls.camera !== target) controls.camera = target;
+  }
+
   get cameraViewMode(): CameraViewMode | null {
     return this._cameraViewMode;
   }

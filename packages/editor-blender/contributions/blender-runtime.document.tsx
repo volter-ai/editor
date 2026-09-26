@@ -105,6 +105,7 @@ const gridScale = (worldPerDevicePixel: number) => view.gridUnitName(worldPerDev
 const cameraView = {
   camera: () => view.cameraViewCamera(),
   zoom: view.cameraViewZoom,
+  pan: view.cameraViewPan,
   view: (
     camera: string,
     region: { readonly width: number; readonly height: number },

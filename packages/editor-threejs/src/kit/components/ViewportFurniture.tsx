@@ -27,7 +27,7 @@ import {
   Tooltip,
   themeVars,
 } from '@volter/editor-sdk/widgets';
-import { Fragment, type PointerEvent as ReactPointerEvent, useCallback, useState, useSyncExternalStore } from 'react';
+import { Fragment, type PointerEvent as ReactPointerEvent, useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import * as THREE from 'three';
 import { axisViewName } from '../asset-workflow/model-inspection';
 import type { Object3DDocumentSession } from '../authoring/object3d-document-session';
@@ -267,13 +267,12 @@ export function ViewportFurniture({
     const ortho = !session && viewport.renderCamera instanceof THREE.OrthographicCamera ? viewport.renderCamera : null;
     const zoom0 = ortho?.zoom ?? 1;
     // In a camera view the same drag zooms the camera's frame (`view_zoom_to_window_xy_camera`).
-    let frameZoom = 1;
+    const frameZoom0 = session?.cameraViewZoom() ?? null;
     const move = (moveEvent: PointerEvent): void => {
       const lenNew = 5 + moveEvent.clientY - regionTop;
       const factor = Math.max(0.01, 2 * (lenNew / lenOld - 1) + 1);
-      if (session?.cameraView()) {
-        session.zoomCameraView(frameZoom / factor);
-        frameZoom = factor;
+      if (frameZoom0 !== null && session?.cameraView()) {
+        session.setCameraViewZoom(frameZoom0 / factor);
       } else if (ortho) {
         ortho.zoom = zoom0 / factor;
         ortho.updateProjectionMatrix();
@@ -489,6 +488,13 @@ export function ViewportFurniture({
  */
 function CameraFrame({ view, canvas }: { view: ToolCameraView; canvas: HTMLCanvasElement }) {
   const [host, setHost] = useState<HTMLDivElement | null>(null);
+  // Positions are read from the layout, so a panel resize has to draw the frame again.
+  const [, setLayout] = useState(0);
+  useEffect(() => {
+    const observer = new ResizeObserver(() => setLayout((tick) => tick + 1));
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, [canvas]);
   const width = canvas.clientWidth;
   const height = canvas.clientHeight;
   const ratio = canvas.ownerDocument.defaultView?.devicePixelRatio ?? 1;

@@ -305,9 +305,19 @@ export interface ToolCameraViewSource {
   /** The frame zoom a camera view opens at, and the range it keeps to. */
   readonly zoom: { readonly opening: number; readonly min: number; readonly max: number };
   /**
-   * `camera`'s view on a region `width` × `height` pixels, at frame zoom `zoom` and with the
-   * frame moved `offset` (fractions of the region's width and height, down and right
-   * positive); null when that camera is gone.
+   * The pan after the pointer moves `dx`, `dy` (fractions of the region's width and height,
+   * down and right positive) at zoom `zoom`, from `offset`: the source's own pan state, which a
+   * camera view opens at `[0, 0]` and hands back to `view` unread.
+   */
+  readonly pan: (
+    offset: readonly [number, number],
+    zoom: number,
+    dx: number,
+    dy: number,
+  ) => readonly [number, number];
+  /**
+   * `camera`'s view on a region `width` × `height` pixels, at frame zoom `zoom` and pan
+   * `offset`; null when that camera is gone.
    */
   readonly view: (
     camera: string,

@@ -8,9 +8,9 @@
  * camzoom)`: 0.5 at the factory `camzoom` of 0, so the region spans twice the sensor. THE
  * FRAME is the same camera fitted to the RENDER's shape at zoom 1, so at `fac` 0.5 it spans
  * half the region along the fitted side. The lens shift moves both alike (`shift × zoom` then
- * divided back out), so the frame stays where the offset puts it. The offset here is the
- * frame's own movement on the region (`camdx`/`camdy` scaled: a pan moves the frame with the
- * pointer, `view_move`'s `camdx += -dx / (winx * 2 * fac)`).
+ * divided back out). THE PAN is Blender's own `camdx`/`camdy` (`view_move`: `camdx += -dx /
+ * (winx * 2 * fac)`, held to ±1), which moves the region's window by `2 · camdx · fac` of its
+ * width — so a zoom scales a panned frame's distance from the centre, as Blender's does.
  *
  * A panoramic camera is drawn as a perspective one.
  */
@@ -44,6 +44,18 @@ export const CAMERA_ZOOM = { opening: 0.5, min: 0.1657359312880714853, max: 44.9
  *  (`view_overlay`). */
 const THEME = { passepartout: '#000000', back: '#3d3d3d', overlay: '#000000' } as const;
 
+/** `view_move` in a camera view: the pan after the pointer moves `dx`, `dy` (fractions of the
+ *  region, down and right positive) at zoom factor `zoom`. */
+export function panCameraView(
+  offset: readonly [number, number],
+  zoom: number,
+  dx: number,
+  dy: number,
+): readonly [number, number] {
+  const clamp = (value: number) => Math.min(1, Math.max(-1, value));
+  return [clamp(offset[0] - dx / (2 * zoom)), clamp(offset[1] + dy / (2 * zoom))];
+}
+
 /** Half the window along each side, for a camera fitted to a `width` × `height` shape. */
 function halfExtents(camera: CameraData, width: number, height: number, zoom: number): [number, number] {
   const orthographic = camera.type === 'ORTHO';
@@ -68,8 +80,8 @@ export interface BlenderCameraView {
 
 /**
  * `camera`'s view on a region, with `toStage` the Blender → stage matrix. `zoom` is the view's
- * `fac`; `offset` the frame's movement in fractions of the region (down and right positive);
- * `renderAspect` the render's width over its height, pixel aspect included.
+ * `fac`; `offset` its `[camdx, camdy]`; `renderAspect` the render's width over its height,
+ * pixel aspect included.
  */
 export function blenderCameraView(
   camera: CameraData,
@@ -86,10 +98,13 @@ export function blenderCameraView(
   // The shift is a share of the frame's fitted side, on both axes (`dx = shiftx * viewfac`).
   const fitted = camera.sensor_fit === 'AUTO' ? renderAspect >= 1 : camera.sensor_fit === 'HORIZONTAL';
   const fittedSide = 2 * (fitted ? frameHalfWidth : frameHalfHeight);
-  const centerX = camera.shift_x * fittedSide - offset[0] * 2 * regionHalfWidth;
-  const centerY = camera.shift_y * fittedSide + offset[1] * 2 * regionHalfHeight;
   const frameWidth = frameHalfWidth / regionHalfWidth;
   const frameHeight = frameHalfHeight / regionHalfHeight;
+  // The frame's movement on the region, in fractions of it (down and right positive).
+  const shiftRight = -2 * offset[0] * zoom;
+  const shiftDown = 2 * offset[1] * zoom;
+  const centerX = camera.shift_x * fittedSide - shiftRight * 2 * regionHalfWidth;
+  const centerY = camera.shift_y * fittedSide + shiftDown * 2 * regionHalfHeight;
   const matrix = new THREE.Matrix4()
     .set(...(camera.matrix.flat() as Parameters<THREE.Matrix4['set']>))
     .premultiply(toStage);
@@ -110,8 +125,8 @@ export function blenderCameraView(
     near: camera.clip_start,
     far: camera.clip_end,
     frame: {
-      left: 0.5 - frameWidth / 2 + offset[0],
-      top: 0.5 - frameHeight / 2 + offset[1],
+      left: 0.5 - frameWidth / 2 + shiftRight,
+      top: 0.5 - frameHeight / 2 + shiftDown,
       width: frameWidth,
       height: frameHeight,
     },

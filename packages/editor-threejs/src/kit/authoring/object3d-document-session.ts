@@ -161,6 +161,9 @@ export class Object3DDocumentSession {
     };
     readonly release: () => void;
   } | null = null;
+  private leaving = false;
+  /** The view computed for one synchronous burst of readers (a frame asks a dozen times). */
+  private viewMemo: { key: string; view: ToolCameraView | null } | null = null;
   private readonly throughPerspective = new THREE.PerspectiveCamera();
   private readonly throughOrthographic = new THREE.OrthographicCamera();
   /** The host's mirror of the document scene onto the rendered scene — see
@@ -605,6 +608,15 @@ export class Object3DDocumentSession {
     if (this.cameraOverride) return this.cameraOverride;
     const through = this.through ? this.cameraView() : null;
     if (through) return this.throughCamera(through);
+    // The camera went (deleted, renamed): the view leaves rather than hold the input on a frame
+    // no one can see. After this call, never inside it — a read must not notify.
+    if (this.through && !this.leaving) {
+      this.leaving = true;
+      queueMicrotask(() => {
+        this.leaving = false;
+        if (this.through && !this.cameraView()) this.leaveCameraView(false);
+      });
+    }
     if (this.state.projection === 'perspective') return this.viewport.camera;
     this.syncOrthographicCamera();
     return this.orthographicCamera;
@@ -637,13 +649,19 @@ export class Object3DDocumentSession {
     const through = this.through;
     const source = this.cameraViewSource;
     if (!through || !source) return null;
+    // A photograph renders into its own buffer shape (`captureImage`), as the other cameras do.
     const canvas = this.renderer.domElement;
-    return source.view(
-      through.camera,
-      { width: canvas.clientWidth, height: canvas.clientHeight },
-      through.zoom,
-      through.offset,
-    );
+    const region = this.captureAspect
+      ? { width: this.captureAspect, height: 1 }
+      : { width: canvas.clientWidth, height: canvas.clientHeight };
+    const key = `${through.camera}|${region.width}|${region.height}|${through.zoom}|${through.offset.join(',')}`;
+    if (this.viewMemo?.key === key) return this.viewMemo.view;
+    const view = source.view(through.camera, region, through.zoom, through.offset);
+    this.viewMemo = { key, view };
+    queueMicrotask(() => {
+      this.viewMemo = null;
+    });
+    return view;
   }
 
   /** Enter or leave the camera view; false when there is no camera to look through. */
@@ -658,6 +676,13 @@ export class Object3DDocumentSession {
     invalidateStages();
     this.settleFlight('superseded');
     const viewport = this.viewport;
+    // The orbit's damping would go on moving the free camera behind the view: spend it now, so
+    // the view it leaves is the one on screen.
+    const controls = viewport.orbitControls;
+    const damping = controls.enableDamping;
+    controls.enableDamping = false;
+    controls.update();
+    controls.enableDamping = damping;
     this.through = {
       camera,
       zoom: source.zoom.opening,
@@ -674,21 +699,33 @@ export class Object3DDocumentSession {
     return true;
   }
 
-  /** Zoom the camera view's frame by `factor`, within the source's range. */
-  zoomCameraView(factor: number): void {
+  /** The camera view's frame zoom, or null outside one. */
+  cameraViewZoom(): number | null {
+    return this.through?.zoom ?? null;
+  }
+
+  /** Set the camera view's frame zoom, within the source's range. */
+  setCameraViewZoom(zoom: number): void {
     const through = this.through;
     const source = this.cameraViewSource;
-    if (!through || !source || !Number.isFinite(factor) || factor <= 0) return;
-    through.zoom = Math.min(source.zoom.max, Math.max(source.zoom.min, through.zoom * factor));
+    if (!through || !source || !Number.isFinite(zoom) || zoom <= 0) return;
+    through.zoom = Math.min(source.zoom.max, Math.max(source.zoom.min, zoom));
     invalidateStages();
     this.notify();
   }
 
-  /** Move the camera view's frame by fractions of the region. */
+  /** Zoom the camera view's frame by `factor` (the wheel's step). */
+  zoomCameraView(factor: number): void {
+    if (this.through) this.setCameraViewZoom(this.through.zoom * factor);
+  }
+
+  /** Pan the camera view by a pointer move, in fractions of the region (the source's rule). */
   panCameraView(dx: number, dy: number): void {
     const through = this.through;
-    if (!through) return;
-    through.offset = [through.offset[0] + dx, through.offset[1] + dy];
+    const source = this.cameraViewSource;
+    if (!through || !source) return;
+    const [x, y] = source.pan(through.offset, through.zoom, dx, dy);
+    through.offset = [x, y];
     invalidateStages();
     this.notify();
   }
@@ -702,7 +739,9 @@ export class Object3DDocumentSession {
     if (!through) return;
     const view = this.cameraView();
     this.through = null;
+    this.viewMemo = null;
     through.release();
+    this.viewport.setGizmoCamera(null);
     const viewport = this.viewport;
     if (restore) {
       viewport.camera.position.copy(through.left.position);
@@ -736,6 +775,7 @@ export class Object3DDocumentSession {
       camera.layers.mask = layers;
       camera.updateProjectionMatrix();
       camera.updateMatrixWorld(true);
+      this.viewport.setGizmoCamera(camera);
       return camera;
     }
     const camera = this.throughPerspective;
@@ -758,6 +798,7 @@ export class Object3DDocumentSession {
     );
     camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
     camera.updateMatrixWorld(true);
+    this.viewport.setGizmoCamera(camera);
     return camera;
   }
 
@@ -806,10 +847,8 @@ export class Object3DDocumentSession {
           lastY = moveEvent.clientY;
           return;
         }
-        const through = this.through;
-        if (!through) return;
         const factor = Math.max(0.01, 2 * ((5 + moveEvent.clientY - rect.top) / lenOld - 1) + 1);
-        this.zoomCameraView(zoom0 / factor / through.zoom);
+        this.setCameraViewZoom(zoom0 / factor);
       };
       const end = (): void => {
         window.removeEventListener('pointermove', move);

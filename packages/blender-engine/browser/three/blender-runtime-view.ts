@@ -33,7 +33,13 @@ import {worldMedium, WorldVolumePass} from './blender-world-volume';
 import { BlenderTextureSamplers } from './blender-texture-samplers';
 import { WeightOverlay, weightsSchema } from './blender-runtime-weights';
 import { CursorOverlay, type CursorPlacement, cursorSchema } from './blender-runtime-cursor';
-import { type BlenderCameraView, blenderCameraView, CAMERA_ZOOM, cameraDataSchema } from './blender-runtime-camera-view';
+import {
+  type BlenderCameraView,
+  blenderCameraView,
+  CAMERA_ZOOM,
+  cameraDataSchema,
+  panCameraView,
+} from './blender-runtime-camera-view';
 import { DEFAULT_VIEWPORT_DISPLAY, workbenchMaterial } from './blender-workbench-material';
 
 const scalar = z.number().finite();
@@ -817,6 +823,8 @@ export class BlenderRuntimeView {
 
   /** The zoom a camera view opens at and keeps within (`blender-runtime-camera-view.ts`). */
   readonly cameraViewZoom = CAMERA_ZOOM;
+  /** `view_move` in a camera view (`panCameraView`). */
+  readonly cameraViewPan = panCameraView;
 
   /** `camera`'s view on a region (`blenderCameraView`), or null when it is not in the frame. */
   cameraView(
