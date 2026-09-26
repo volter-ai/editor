@@ -381,6 +381,11 @@ export interface NetworkingAdapter {
   broadcast?(type: string, payload: unknown, roomId?: string): Promise<void>;
   /** Dispose a room on the server (Monitor's Dispose); its clients are disconnected. */
   disposeRoom?(roomId?: string): Promise<void>;
+  /** The replicated type of the state field at `path` (`float32`, `map<schema>`), from the
+   *  schema the server declared — what Godot's Replication panel shows of a synchronizer. */
+  stateFieldType?(path: readonly (string | number)[]): string | null;
+  /** Start the traffic totals from zero (Godot's profiler Clear resets its tables). */
+  clearTraffic?(): void;
   /** Optional capability, PAIRED with {@link getPlayerIdentity}: set the local
    *  player's identity through the game's OWN multiplayer mechanism. The editor
    *  renders an editable name field ONLY when a real implementer provides this

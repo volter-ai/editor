@@ -409,6 +409,44 @@ export function observedRooms(): readonly ObservedRoom[] {
   }));
 }
 
+/** A schema type as a person reads it: `float32`, `map<schema>`. A nested schema reads `schema`:
+ *  the join handshake's reflection carries each type's fields, not the server's class name. */
+function describeType(type: unknown): string {
+  if (typeof type === 'string') return type;
+  if (typeof type === 'function') return 'schema';
+  if (type && typeof type === 'object') {
+    const [kind, inner] = Object.entries(type as Record<string, unknown>)[0] ?? [];
+    if (kind) return `${kind}<${describeType(inner)}>`;
+  }
+  return 'unknown';
+}
+
+/** The declared type of the field at `path` in a decoded state, walking its schema metadata. */
+function fieldType(state: unknown, path: readonly (string | number)[]): string | null {
+  let current: unknown = state;
+  let childType: unknown = null;
+  let type: unknown = null;
+  for (const segment of path) {
+    if (current === null || current === undefined) return null;
+    const metadata = (current as { constructor?: Record<symbol, unknown> }).constructor?.[Symbol.metadata] as
+      | Record<string | number, unknown>
+      | undefined;
+    if (metadata && typeof metadata[segment] === 'number') {
+      const field = metadata[metadata[segment] as number] as { type?: unknown } | undefined;
+      type = field?.type ?? null;
+      childType = type && typeof type === 'object' ? Object.values(type as Record<string, unknown>)[0] : null;
+      current = (current as Record<string | number, unknown>)[segment];
+    } else {
+      // A collection's entry takes the collection's declared child type.
+      type = childType;
+      childType = null;
+      const collection = current as { get?: (key: unknown) => unknown; at?: (index: number) => unknown };
+      current = collection.get ? collection.get(String(segment)) : collection.at ? collection.at(Number(segment)) : undefined;
+    }
+  }
+  return type === null ? null : describeType(type);
+}
+
 /** Colyseus Monitor's API on the room's own server, when the server mounts it (`/monitor`). */
 function monitorApi(mirror: Mirror): string {
   return `${mirror.endpoint.replace(/^ws/, 'http')}/monitor/api`;
@@ -593,6 +631,17 @@ export const observedGameNetwork: NetworkingAdapter = {
   broadcast: (type: string, payload: unknown, roomId?: string) =>
     roomCall('broadcast', [type, payload], 'the broadcast', roomId),
   disposeRoom: (roomId?: string) => roomCall('disconnect', [], 'the dispose', roomId),
+  clearTraffic(): void {
+    for (const mirror of mirrors) {
+      mirror.types.clear();
+      mirror.patches = 0;
+      mirror.patchBytes = 0;
+    }
+    notify();
+  },
+  stateFieldType(path: readonly (string | number)[]): string | null {
+    return fieldType(current()?.serializer?.getState(), path);
+  },
   getTrafficByType() {
     const mirror = current();
     return mirror ? [...mirror.types.values()].map(({ type, countIn, countOut, bytesIn, bytesOut }) => ({ type, countIn, countOut, bytesIn, bytesOut })) : [];

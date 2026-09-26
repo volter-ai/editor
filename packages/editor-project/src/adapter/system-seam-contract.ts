@@ -76,6 +76,8 @@ export const NETWORKING_ADAPTER_SHAPE = defineSeamShape<NetworkingAdapter>()({
   sendToClient: { optional: true, kind: 'function', required: 'effect' },
   broadcast: { optional: true, kind: 'function', required: 'effect' },
   disposeRoom: { optional: true, kind: 'function', required: 'effect' },
+  stateFieldType: { optional: true, kind: 'function', required: 'operation' },
+  clearTraffic: { optional: true, kind: 'function', required: 'effect' },
 });
 
 export const NAVIGATION_ADAPTER_SHAPE = defineSeamShape<NavigationAdapter>()({

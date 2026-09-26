@@ -105,6 +105,17 @@ function formatLeaf(value: unknown): string {
  */
 type StateEdit = (path: readonly (string | number)[], value: unknown) => Promise<void>;
 type StateDelete = (path: readonly (string | number)[]) => Promise<void>;
+type StateType = (path: readonly (string | number)[]) => string | null;
+
+/** A field's replicated type beside its name, dim (Godot's Replication panel's column). */
+function TypeTag({ type }: { type: string | null | undefined }) {
+  if (!type) return null;
+  return (
+    <span data-testid="net-tree-type" style={{ color: themeVars.content.dim, marginLeft: 6 }}>
+      {type}
+    </span>
+  );
+}
 
 function StateTreeNode({
   name,
@@ -113,6 +124,7 @@ function StateTreeNode({
   path = [],
   edit,
   remove,
+  typeOf,
 }: {
   name: string;
   value: unknown;
@@ -122,6 +134,8 @@ function StateTreeNode({
   edit?: StateEdit | undefined;
   /** The server's state delete (Monitor's), when offered: each key gets a remove control. */
   remove?: StateDelete | undefined;
+  /** The schema's declared type for a path, when the adapter reads one. */
+  typeOf?: StateType | undefined;
 }) {
   const [expanded, setExpanded] = useState(depth === 0);
   const [draft, setDraft] = useState<string | null>(null);
@@ -180,6 +194,7 @@ function StateTreeNode({
             {formatLeaf(value)}
           </span>
         )}
+        <TypeTag type={path.length > 0 ? typeOf?.(path) : null} />
         {remove && path.length > 0 ? (
           <button
             type="button"
@@ -219,6 +234,7 @@ function StateTreeNode({
           {' '}
           {Array.isArray(value) ? `[${entries.length}]` : `{${entries.length}}`}
         </span>
+        <TypeTag type={path.length > 0 ? typeOf?.(path) : null} />
         {remove && path.length > 0 ? (
           <button
             type="button"
@@ -245,6 +261,7 @@ function StateTreeNode({
             path={depth === 0 ? [key] : [...path, key]}
             edit={edit}
             remove={remove}
+            typeOf={typeOf}
           />
         ))}
     </div>
@@ -695,6 +712,7 @@ export function NetworkInspectorPanel() {
                 depth={0}
                 edit={adapter.editServerState ? (path, next) => adapter.editServerState!(path, next) : undefined}
                 remove={adapter.deleteServerState ? (path) => adapter.deleteServerState!(path) : undefined}
+                typeOf={adapter.stateFieldType ? (path) => adapter.stateFieldType!(path) : undefined}
               />
             ) : (
               <AbsentNote>Not connected — no replicated state to show.</AbsentNote>
@@ -737,7 +755,9 @@ export function NetworkInspectorPanel() {
                   variant="ghost"
                   data-testid="net-log-clear"
                   onClick={() => {
+                    // Godot's Clear resets its tables too: the log and the traffic totals.
                     logRef.current.clear();
+                    adapter.clearTraffic?.();
                     force();
                   }}
                 >
