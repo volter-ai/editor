@@ -49,14 +49,18 @@ export function propRefusal(
   return null;
 }
 
-/** Write each prop's new literal onto the element. Resolves `true` when the source changed. */
-export async function writeProps(oid: string, props: Readonly<Record<string, number | string>>): Promise<boolean> {
+/**
+ * Write each prop's new literal onto the element, adding the attribute when the element does not
+ * write it yet; `null` takes the attribute off (the element's default applies again). Resolves
+ * `true` when the source changed.
+ */
+export async function writeProps(oid: string, props: Readonly<Record<string, number | string | null>>): Promise<boolean> {
   let changed = false;
   for (const [prop, value] of Object.entries(props)) {
     // A number is written as a number; a string as the text between an attribute's quotes
     // (`at="9:2.5"`), which is what the JSX writer replaces for a string attribute.
     const text = typeof value === 'number' ? formatNumber(value) : value;
-    const body = { oid, prop, value: text, ...sourceMutationAttribution() };
+    const body = { oid, prop, value: text, addIfMissing: true, ...sourceMutationAttribution() };
     const response = await fetch('/__ui-source/prop', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

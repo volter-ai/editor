@@ -30,6 +30,7 @@ const MARKER_H = 18;
 const KEY_W = 44;
 const ROW_H = 12;
 const SNAP = 0.25;
+const VEL_H = 56;
 const TRACK_COLORS = ['#e8a33d', '#5aa9e6', '#8bc34a', '#e5637a', '#b388eb', '#4dd0c7', '#f2cc5c', '#9e9e9e'];
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
@@ -578,6 +579,71 @@ function PianoRoll(props: {
     );
   };
 
+  // THE VELOCITY LANE (Bitwig's, under the notes): one stem per note, dragged up or down. The
+  // write is `vel={…}` on the note's own element, added when the element does not write one;
+  // undo puts back what was written, or takes the attribute off again.
+  const velRef = useRef<{ note: PieceNote; startY: number; vel: number } | null>(null);
+  const [velDrag, setVelDragState] = useState<{ id: string; vel: number } | null>(null);
+  const [velPending, setVelPending] = useState<ReadonlyMap<string, number>>(new Map());
+  useEffect(() => setVelPending(new Map()), [clip]);
+  const velRefusal = (note: PieceNote): string | null => {
+    if (!note.oid) return 'This note has no source element.';
+    const count = piece.oidCounts.get(note.oid) ?? 0;
+    if (count !== 1) return propRefusal(index, note.oid, 'vel', count);
+    const authored = index.get(note.oid)?.authoredProps?.find((candidate) => candidate.name === 'vel');
+    return authored && !authored.literal ? propRefusal(index, note.oid, 'vel', count) : null;
+  };
+  const onVelDown = (note: PieceNote, event: ReactPointerEvent): void => {
+    const refusal = velRefusal(note);
+    if (refusal) {
+      props.onMessage(refusal);
+      return;
+    }
+    (event.target as Element).setPointerCapture(event.pointerId);
+    props.onMessage(null);
+    setSelected(note.id);
+    velRef.current = { note, startY: event.clientY, vel: note.vel };
+    setVelDragState({ id: note.id, vel: note.vel });
+  };
+  const onVelMove = (event: ReactPointerEvent): void => {
+    const drag = velRef.current;
+    if (!drag) return;
+    const vel = Math.max(0, Math.min(1, Math.round((drag.note.vel - (event.clientY - drag.startY) / VEL_H) * 100) / 100));
+    if (vel === drag.vel) return;
+    velRef.current = { ...drag, vel };
+    setVelDragState({ id: drag.note.id, vel });
+  };
+  const onVelUp = (): void => {
+    const drag = velRef.current;
+    velRef.current = null;
+    setVelDragState(null);
+    if (!drag || !drag.note.oid || drag.vel === drag.note.vel) return;
+    const { note, vel } = drag;
+    const oid = drag.note.oid;
+    const written = index.get(oid)?.authoredProps?.find((candidate) => candidate.name === 'vel')?.valueText ?? null;
+    const before = written === null ? null : Number(written);
+    setVelPending((prev) => new Map(prev).set(note.id, vel));
+    writeProps(oid, { vel }).then(
+      () =>
+        editorHost().history.record({
+          id: globalThis.crypto?.randomUUID?.() ?? `vel-${Date.now()}`,
+          label: 'Set Velocity',
+          resources: [props.file],
+          document: props.documentId,
+          undo: () => writeProps(oid, { vel: before }).then(() => true, () => false),
+          redo: () => writeProps(oid, { vel }).then(() => true, () => false),
+        }),
+      (error: unknown) => {
+        setVelPending((prev) => {
+          const next = new Map(prev);
+          next.delete(note.id);
+          return next;
+        });
+        props.onMessage(error instanceof Error ? error.message : String(error));
+      },
+    );
+  };
+
   // Adding and removing notes are structural writes: a new literal `<Note>` in the clip's
   // source, or the note's element taken out. A note's element must be its own (not one
   // `.map()` renders many times); a new note goes after the literal note that precedes it in
@@ -646,7 +712,8 @@ function PianoRoll(props: {
       <div style={{ padding: '3px 10px', ...small, borderBottom: `1px solid ${themeVars.boundary.default}` }}>
         <span style={{ color }}>{props.trackName}</span> · {clip.name ?? 'clip'} · bar {Math.floor(clip.time / beatsPerBar) + 1} · {clip.notes.length} notes
       </div>
-      <div ref={scroller} style={{ display: 'flex', flex: 1, overflow: 'auto' }}>
+      <div ref={scroller} style={{ flex: 1, overflow: 'auto' }}>
+        <div style={{ display: 'flex', width: KEY_W + width }}>
         <div style={{ width: KEY_W, flex: 'none', position: 'sticky', left: 0, zIndex: 1, background: themeVars.surface.panel }}>
           {Array.from({ length: rows }, (_, row) => {
             const pitch = high - row;
@@ -704,6 +771,43 @@ function PianoRoll(props: {
           {props.playhead !== null && props.playhead >= clip.time && props.playhead < clip.time + clip.duration ? (
             <span style={{ position: 'absolute', left: (props.playhead - clip.time) * pxPerBeat, top: 0, bottom: 0, width: 1, background: themeVars.content.primary, pointerEvents: 'none' }} />
           ) : null}
+        </div>
+        </div>
+        <div
+          style={{ display: 'flex', width: KEY_W + width, height: VEL_H, position: 'sticky', bottom: 0, zIndex: 2, background: themeVars.surface.panel, borderTop: `1px solid ${themeVars.boundary.default}` }}
+        >
+          <div style={{ width: KEY_W, flex: 'none', position: 'sticky', left: 0, zIndex: 1, background: themeVars.surface.panel, ...small, fontSize: 9, padding: 3 }}>vel</div>
+          <div style={{ position: 'relative', width, flex: 'none' }} onPointerMove={onVelMove} onPointerUp={onVelUp}>
+            {clip.notes.map((note) => {
+              const vel = velDrag?.id === note.id ? velDrag.vel : (velPending.get(note.id) ?? note.vel);
+              const refusal = velRefusal(note);
+              const shown = pending.get(note.id) ?? note;
+              return (
+                <div
+                  key={note.id}
+                  data-vel={note.id}
+                  onPointerDown={(event) => onVelDown(note, event)}
+                  title={refusal ?? `${note.written.pitch} · ${note.written.at} · vel ${vel}`}
+                  style={{ position: 'absolute', left: shown.time * pxPerBeat - 3, width: 7, top: 0, bottom: 0, cursor: refusal ? 'not-allowed' : 'ns-resize' }}
+                >
+                  <span style={{ position: 'absolute', left: 3, width: 1, bottom: 0, height: vel * (VEL_H - 6), background: color, opacity: refusal ? 0.4 : 1 }} />
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: 1,
+                      width: 5,
+                      height: 5,
+                      bottom: vel * (VEL_H - 6) - 2,
+                      borderRadius: 3,
+                      background: refusal ? 'transparent' : color,
+                      border: `1px ${refusal ? 'dashed' : 'solid'} ${note.id === selected ? themeVars.content.primary : color}`,
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
