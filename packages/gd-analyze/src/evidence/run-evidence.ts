@@ -72,12 +72,43 @@ const MONOREPO_ROOT = path.resolve(PACKAGE_ROOT, '..', '..');
 const CASES_DIR = path.join(PACKAGE_ROOT, 'evidence/godot-4.7');
 const OUTPUT_MARKER = 'GD_ANALYZE_EVIDENCE ';
 
+/**
+ * A typed value as JSON. Floats are their float64 bytes, ints their decimal text; a structured
+ * built-in names its fields as Godot names its properties, each field itself encoded (a float or
+ * int field as its bytes or text).
+ */
 type Encoded =
+  | { readonly t: 'Nil' }
   | { readonly t: 'bool'; readonly v: boolean }
   | { readonly t: 'int'; readonly v: string }
   | { readonly t: 'float'; readonly v: string }
+  | { readonly t: 'String' | 'StringName'; readonly v: string }
   | { readonly t: 'Vector3'; readonly x: string; readonly y: string; readonly z: string }
+  | { readonly t: 'Array' | 'PackedStringArray'; readonly v: readonly Encoded[] }
+  | { readonly t: 'Dictionary'; readonly v: readonly (readonly [Encoded, Encoded])[] }
+  | StructuredEncoded
   | { readonly t: 'unsupported'; readonly type: string };
+
+/**
+ * Structured built-ins other than Vector3 (kept in its original flat form), with each property's
+ * encoded type. Godot's property names are the compat record's field names.
+ */
+const STRUCTURED = {
+  Vector2: { x: 'float', y: 'float' },
+  Vector2i: { x: 'int', y: 'int' },
+  Vector3i: { x: 'int', y: 'int', z: 'int' },
+  Rect2: { position: 'Vector2', size: 'Vector2' },
+  Transform2D: { x: 'Vector2', y: 'Vector2', origin: 'Vector2' },
+  Plane: { normal: 'Vector3', d: 'float' },
+  Basis: { x: 'Vector3', y: 'Vector3', z: 'Vector3' },
+  Transform3D: { basis: 'Basis', origin: 'Vector3' },
+  Color: { r: 'float', g: 'float', b: 'float', a: 'float' },
+} as const;
+type StructuredType = keyof typeof STRUCTURED;
+interface StructuredEncoded {
+  readonly t: StructuredType;
+  readonly [field: string]: Encoded | string;
+}
 
 type Row = readonly [id: string, value: Encoded];
 
@@ -105,6 +136,78 @@ function floatBits(value: number): string {
 
 function bitsFloat(hex: string): number {
   return new Float64Array(new Uint8Array(Buffer.from(hex, 'hex')).buffer)[0] as number;
+}
+
+function isStructured(type: string): type is StructuredType {
+  return Object.hasOwn(STRUCTURED, type);
+}
+
+function unsupported(value: unknown): Encoded {
+  return { t: 'unsupported', type: value === null ? 'null' : Array.isArray(value) ? 'array' : typeof value };
+}
+
+/**
+ * Encode a target value as the Godot type the native side returned. The native row supplies only
+ * the type the value must have; the value must be exactly that type's compat representation (an
+ * int a safe integer, a record exactly its fields), or it encodes as unsupported and disagrees.
+ */
+function encodeAs(type: string, value: unknown): Encoded {
+  switch (type) {
+    case 'Nil':
+      return value === null ? { t: 'Nil' } : unsupported(value);
+    case 'bool':
+    case 'float':
+    case 'Vector3':
+      return encodeTarget(value);
+    case 'int':
+      return typeof value === 'number' && Number.isSafeInteger(value)
+        ? { t: 'int', v: String(value) }
+        : unsupported(value);
+    case 'String':
+    case 'StringName':
+      return typeof value === 'string' ? { t: type, v: value } : unsupported(value);
+    case 'PackedStringArray':
+      return Array.isArray(value) && value.every((entry) => typeof entry === 'string')
+        ? { t: type, v: value.map((entry: string): Encoded => ({ t: 'String', v: entry })) }
+        : unsupported(value);
+    default: {
+      if (!isStructured(type) || typeof value !== 'object' || value === null || Array.isArray(value)) {
+        return unsupported(value);
+      }
+      const fields: Readonly<Record<string, string>> = STRUCTURED[type];
+      const record = value as Readonly<Record<string, unknown>>;
+      if (Object.keys(record).sort().join(',') !== Object.keys(fields).sort().join(',')) {
+        return unsupported(value);
+      }
+      const encoded: Record<string, Encoded | string> = { t: type };
+      for (const [field, fieldType] of Object.entries(fields)) {
+        const inner = encodeAs(fieldType, record[field]);
+        if (inner.t === 'unsupported') return unsupported(value);
+        encoded[field] = inner.t === 'float' || inner.t === 'int' ? inner.v : inner;
+      }
+      return encoded as unknown as StructuredEncoded;
+    }
+  }
+}
+
+/** Encode a target value by the native value's type, recursively through Arrays and Dictionaries. */
+function encodeLike(native: Encoded, value: unknown): Encoded {
+  if (native.t === 'Array') {
+    if (!Array.isArray(value) || value.length !== native.v.length) return unsupported(value);
+    return { t: 'Array', v: native.v.map((entry, index) => encodeLike(entry, value[index])) };
+  }
+  if (native.t === 'Dictionary') {
+    if (!(value instanceof Map) || value.size !== native.v.length) return unsupported(value);
+    const entries = [...(value as Map<unknown, unknown>).entries()];
+    return {
+      t: 'Dictionary',
+      v: native.v.map(([key, item], index) => {
+        const entry = entries[index] as [unknown, unknown];
+        return [encodeLike(key, entry[0]), encodeLike(item, entry[1])] as const;
+      }),
+    };
+  }
+  return encodeAs(native.t, value);
 }
 
 function encodeTarget(value: unknown): Encoded {
@@ -141,8 +244,47 @@ func _enc(value: Variant) -> Dictionary:
 \t\t\treturn {"t": "int", "v": str(value)}
 \t\tTYPE_FLOAT:
 \t\t\treturn {"t": "float", "v": _bits(value)}
+\t\tTYPE_NIL:
+\t\t\treturn {"t": "Nil"}
+\t\tTYPE_STRING:
+\t\t\treturn {"t": "String", "v": value}
+\t\tTYPE_STRING_NAME:
+\t\t\treturn {"t": "StringName", "v": String(value)}
+\t\tTYPE_VECTOR2:
+\t\t\treturn {"t": "Vector2", "x": _bits(value.x), "y": _bits(value.y)}
+\t\tTYPE_VECTOR2I:
+\t\t\treturn {"t": "Vector2i", "x": str(value.x), "y": str(value.y)}
 \t\tTYPE_VECTOR3:
 \t\t\treturn {"t": "Vector3", "x": _bits(value.x), "y": _bits(value.y), "z": _bits(value.z)}
+\t\tTYPE_VECTOR3I:
+\t\t\treturn {"t": "Vector3i", "x": str(value.x), "y": str(value.y), "z": str(value.z)}
+\t\tTYPE_RECT2:
+\t\t\treturn {"t": "Rect2", "position": _enc(value.position), "size": _enc(value.size)}
+\t\tTYPE_TRANSFORM2D:
+\t\t\treturn {"t": "Transform2D", "x": _enc(value.x), "y": _enc(value.y), "origin": _enc(value.origin)}
+\t\tTYPE_PLANE:
+\t\t\treturn {"t": "Plane", "normal": _enc(value.normal), "d": _bits(value.d)}
+\t\tTYPE_BASIS:
+\t\t\treturn {"t": "Basis", "x": _enc(value.x), "y": _enc(value.y), "z": _enc(value.z)}
+\t\tTYPE_TRANSFORM3D:
+\t\t\treturn {"t": "Transform3D", "basis": _enc(value.basis), "origin": _enc(value.origin)}
+\t\tTYPE_COLOR:
+\t\t\treturn {"t": "Color", "r": _bits(value.r), "g": _bits(value.g), "b": _bits(value.b), "a": _bits(value.a)}
+\t\tTYPE_ARRAY:
+\t\t\tvar items: Array = []
+\t\t\tfor item in value:
+\t\t\t\titems.append(_enc(item))
+\t\t\treturn {"t": "Array", "v": items}
+\t\tTYPE_DICTIONARY:
+\t\t\tvar pairs: Array = []
+\t\t\tfor key in value:
+\t\t\t\tpairs.append([_enc(key), _enc(value[key])])
+\t\t\treturn {"t": "Dictionary", "v": pairs}
+\t\tTYPE_PACKED_STRING_ARRAY:
+\t\t\tvar strings: Array = []
+\t\t\tfor item in value:
+\t\t\t\tstrings.append({"t": "String", "v": item})
+\t\t\treturn {"t": "PackedStringArray", "v": strings}
 \treturn {"t": "unsupported", "type": type_string(typeof(value))}
 `;
 
@@ -238,8 +380,12 @@ function floatsAgree(nativeHex: string, targetHex: string, comparator: GodotEvid
 function valuesAgree(native: Encoded, target: Encoded, comparator: GodotEvidenceComparator): boolean {
   if (native.t === 'unsupported' || target.t === 'unsupported' || native.t !== target.t) return false;
   switch (native.t) {
+    case 'Nil':
+      return true;
     case 'bool':
     case 'int':
+    case 'String':
+    case 'StringName':
       return native.v === (target as typeof native).v;
     case 'float':
       return floatsAgree(native.v, (target as typeof native).v, comparator);
@@ -251,8 +397,36 @@ function valuesAgree(native: Encoded, target: Encoded, comparator: GodotEvidence
         floatsAgree(native.z, other.z, comparator)
       );
     }
-    default:
-      return native satisfies never;
+    case 'Array':
+    case 'PackedStringArray': {
+      const other = target as typeof native;
+      return (
+        native.v.length === other.v.length &&
+        native.v.every((entry, index) => valuesAgree(entry, other.v[index] as Encoded, comparator))
+      );
+    }
+    case 'Dictionary': {
+      const other = target as typeof native;
+      return (
+        native.v.length === other.v.length &&
+        native.v.every(([key, item], index) => {
+          const pair = other.v[index] as readonly [Encoded, Encoded];
+          return valuesAgree(key, pair[0], comparator) && valuesAgree(item, pair[1], comparator);
+        })
+      );
+    }
+    default: {
+      const fields: Readonly<Record<string, string>> = STRUCTURED[native.t];
+      const left = native as StructuredEncoded;
+      const right = target as StructuredEncoded;
+      return Object.entries(fields).every(([field, fieldType]) => {
+        const a = left[field];
+        const b = right[field];
+        if (fieldType === 'float') return floatsAgree(a as string, b as string, comparator);
+        if (fieldType === 'int') return a === b;
+        return valuesAgree(a as Encoded, b as Encoded, comparator);
+      });
+    }
   }
 }
 
@@ -262,8 +436,24 @@ function readable(value: Encoded): string {
       return `float ${String(bitsFloat(value.v))} [${value.v}]`;
     case 'Vector3':
       return `Vector3(${String(bitsFloat(value.x))}, ${String(bitsFloat(value.y))}, ${String(bitsFloat(value.z))}) [${value.x} ${value.y} ${value.z}]`;
-    default:
-      return JSON.stringify(value);
+    case 'Array':
+    case 'PackedStringArray':
+      return `${value.t}[${value.v.map(readable).join(', ')}]`;
+    case 'Dictionary':
+      return `{${value.v.map(([key, item]) => `${readable(key)}: ${readable(item)}`).join(', ')}}`;
+    default: {
+      if (!isStructured(value.t)) return JSON.stringify(value);
+      const record = value as StructuredEncoded;
+      const fields: Readonly<Record<string, string>> = STRUCTURED[value.t];
+      return `${value.t}(${Object.entries(fields)
+        .map(([field, fieldType]) => {
+          const inner = record[field];
+          if (fieldType === 'float') return `${field}=${String(bitsFloat(inner as string))}`;
+          if (fieldType === 'int') return `${field}=${String(inner)}`;
+          return `${field}=${readable(inner as Encoded)}`;
+        })
+        .join(', ')})`;
+    }
   }
 }
 
@@ -313,6 +503,15 @@ function compatExports(moduleSource: string): CompatExport[] {
     throw new Error('every compat export needs a doc comment carrying @godot and @source');
   }
   return found;
+}
+
+function apiUtilityHash(apiDumpFile: string, member: string): number {
+  const api = JSON.parse(readFileSync(apiDumpFile, 'utf8')) as {
+    utility_functions: { name: string; hash: number }[];
+  };
+  const hash = api.utility_functions.find((entry) => entry.name === member)?.hash;
+  if (hash === undefined) throw new Error(`API dump has no utility function ${member}`);
+  return hash;
 }
 
 function apiMethodHash(apiDumpFile: string, owner: string, member: string): number {
@@ -461,6 +660,12 @@ function bindingSymbol(
       return { ...base, kind: 'builtin-constant', signature: 'constant' };
     case 'builtin-member-set':
       return { ...base, kind: 'builtin-member-set', signature: 'set' };
+    case 'utility-function':
+      return {
+        ...base,
+        kind: 'global',
+        signature: `hash:${String(apiUtilityHash(pins.apiDumpFile, symbol.member))}`,
+      };
     default:
       return symbol.kind satisfies never;
   }
@@ -473,6 +678,7 @@ function bindingUse(kind: GodotEvidenceSymbol['kind']): GodotTargetBindingUse {
       return { kind: 'call', sourceReceiver: 'first-argument' };
     case 'builtin-constructor':
     case 'builtin-operator':
+    case 'utility-function':
       return { kind: 'call', sourceReceiver: 'absent' };
     case 'builtin-constant':
       return { kind: 'value' };
@@ -530,7 +736,11 @@ async function runCompatEvidence(
   } finally {
     rmSync(temp, { recursive: true, force: true });
   }
-  const targetRows: Row[] = evidence.cases.map((entry) => [entry.id, encodeTarget(entry.target())]);
+  const targetRows: Row[] = evidence.cases.map((entry, index) => {
+    const native = nativeRows[index];
+    const value = entry.target();
+    return [entry.id, native === undefined ? encodeTarget(value) : encodeLike(native[1], value)];
+  });
   const disagreements = mismatches(
     evidence.cases.map((entry) => ({
       id: entry.id,
@@ -787,11 +997,11 @@ async function runLanguageEvidence(
     const module = (await import(pathToFileURL(emittedFile).href)) as Record<string, unknown>;
     const cases = module[evidence.className] as Record<string, unknown> | undefined;
     if (cases === undefined) throw new Error(`lowered module exports no ${evidence.className}`);
-    const targetRows: Row[] = evidence.cases.map((entry) => {
+    const targetValues = evidence.cases.map((entry) => {
       const fn = cases[entry.call];
       if (typeof fn !== 'function') throw new Error(`lowered ${evidence.className} has no ${entry.call}`);
       const args = entry.arguments?.target() ?? [];
-      return [entry.id, encodeTarget((fn as (...values: unknown[]) => unknown).apply(cases, [...args]))];
+      return (fn as (...values: unknown[]) => unknown).apply(cases, [...args]);
     });
 
     // Native: the same GDScript in the official binary.
@@ -801,6 +1011,11 @@ async function runLanguageEvidence(
       languageProbeSource(evidence, resPath),
       evidence.cases.length,
     );
+    const targetRows: Row[] = evidence.cases.map((entry, index) => {
+      const native = nativeRows[index];
+      const value = targetValues[index];
+      return [entry.id, native === undefined ? encodeTarget(value) : encodeLike(native[1], value)];
+    });
     const disagreements = mismatches(
       evidence.cases.map((entry) => ({
         id: entry.id,
@@ -880,7 +1095,7 @@ async function runLanguageEvidence(
 
 /** The case files `evidence --refresh` re-runs, in dependency order: compat modules first. */
 export function godotEvidenceCaseNames(): readonly string[] {
-  return ['vector3', 'language'];
+  return ['vector3', 'vector2', 'language'];
 }
 
 export async function runEvidence(

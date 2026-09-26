@@ -13,7 +13,9 @@ export type GodotEvidenceSymbolKind =
   | 'builtin-constructor'
   | 'builtin-constant'
   | 'builtin-member-set'
-  | 'builtin-operator';
+  | 'builtin-operator'
+  /** A `@GlobalScope` utility function (`Variant::call_utility_function`); owner `@GlobalScope`. */
+  | 'utility-function';
 
 export interface GodotEvidenceSymbol {
   readonly kind: GodotEvidenceSymbolKind;
