@@ -310,7 +310,7 @@ export const GODOT_SCENE_PARTICLES_IMPLEMENTATION_FILES = [
   'packages/gd-analyze/src/translate/artifacts/plan.ts',
   'packages/gd-analyze/src/snapshot/toolchain-snapshot.ts',
   'packages/game-editor/catalog/project-source/src/lib/reflections/ReflectionProbe.tsx',
-  ...['cpu-particles-3d.ts', 'random-pcg.ts', 'curve.ts', 'gradient.ts', 'gradient-texture-2d.ts', 'geometry-instance-3d.ts', 'reflection-probe.ts', 'react-lifecycle.tsx', 'node.ts', 'node-3d.ts', 'scene-tree.ts', 'primitive-mesh.ts', 'base-material-3d.ts'].map(
+  ...['cpu-particles-3d.ts', 'random-pcg.ts', 'curve.ts', 'gradient.ts', 'gradient-texture-2d.ts', 'geometry-instance-3d.ts', 'reflection-probe.ts', 'decal.ts', 'react-lifecycle.tsx', 'node.ts', 'node-3d.ts', 'scene-tree.ts', 'primitive-mesh.ts', 'base-material-3d.ts'].map(
     (file) => `${COMPAT}/${file}`,
   ),
 ] as const;

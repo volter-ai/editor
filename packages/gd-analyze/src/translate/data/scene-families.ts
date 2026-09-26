@@ -115,6 +115,21 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_cast_shadows_setting',
     ...VISIBILITY_RANGE,
   ],
+  // `<GodotDecal>`, which draws nothing as the web export's Compatibility renderer (`decal.ts`).
+  Decal: [
+    'set_size',
+    'set_texture:*',
+    'set_emission_energy',
+    'set_modulate',
+    'set_albedo_mix',
+    'set_normal_fade',
+    'set_upper_fade',
+    'set_lower_fade',
+    'set_enable_distance_fade',
+    'set_distance_fade_begin',
+    'set_distance_fade_length',
+    'set_cull_mask',
+  ],
   // The reflections capability's `<ReflectionProbe>` (`reflection-probe.ts`).
   ReflectionProbe: [
     'set_update_mode',

@@ -37,6 +37,7 @@
     "src/lib/godot-compat/cpu-particles-3d.ts",
     "src/lib/godot-compat/curve.ts",
     "src/lib/godot-compat/cylinder-mesh.ts",
+    "src/lib/godot-compat/decal.ts",
     "src/lib/godot-compat/dictionary.ts",
     "src/lib/godot-compat/directional-light-3d.ts",
     "src/lib/godot-compat/display-server.ts",

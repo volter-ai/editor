@@ -5,7 +5,8 @@
  * plane mesh whose material billboards the particles, takes their colour, culls nothing and fades
  * by proximity, a scale curve with its own limits, a three-point ramp with constant interpolation),
  * each with a fixed seed; the coin's glow (a quad whose material samples a GradientTexture2D,
- * inside a visibility range) and a stage reflection probe — instantiated in official Godot and
+ * inside a visibility range), the player's blob shadow decal (sharing the glow's texture; it draws
+ * nothing, as in the web export) and a stage reflection probe — instantiated in official Godot and
  * stepped at a fixed 60 fps, each system's multimesh buffer read after every frame (the headless
  * renderer's `frame_pre_draw` emitted by hand, since it draws nothing), then each material, the
  * glow's texture and range and the probe read back through Godot's getters; against the components
@@ -125,6 +126,14 @@ proximity_fade_distance = 0.15
 
 [node name="Main" type="Node3D"]
 
+[node name="BlobShadow" type="Decal" parent="."]
+size = Vector3(1.6, 12, 1.6)
+texture_albedo = SubResource("Glow_texture")
+albedo_mix = 0.8
+upper_fade = 3.99999
+lower_fade = 1.0
+cull_mask = 1048573
+
 [node name="Probe" type="ReflectionProbe" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.28208, 1, -1)
 intensity = 0.5
@@ -216,6 +225,8 @@ func _run() -> void:
 \tvar t: GradientTexture2D = g.albedo_texture
 \tmaterials.append([t.get_width(), t.get_height(), t.fill, _bits(t.fill_from.x), _bits(t.fill_from.y), _bits(t.fill_to.x), _bits(t.fill_to.y), t.gradient.interpolation_mode, t.gradient.get_point_count()])
 \tmaterials.append([_bits(glow.visibility_range_begin), _bits(glow.visibility_range_begin_margin), glow.visibility_range_fade_mode])
+\tvar blob: Decal = main.get_node("BlobShadow")
+\tmaterials.append([_bits(blob.size.x), _bits(blob.size.y), _bits(blob.albedo_mix), _bits(blob.upper_fade), _bits(blob.lower_fade), blob.cull_mask, blob.texture_albedo == g.albedo_texture, blob.get_child_count()])
 \tvar probe: ReflectionProbe = main.get_node("Probe")
 \tmaterials.append([_bits(probe.intensity), _bits(probe.max_distance), _bits(probe.size.x), _bits(probe.size.z), _bits(probe.origin_offset.y), probe.box_projection, probe.update_mode, _bits(probe.position.x)])
 \trows.append(materials)
@@ -248,6 +259,7 @@ import * as T from './src/lib/godot-compat/texture-2d';
 import * as GT from './src/lib/godot-compat/gradient-texture-2d';
 import * as GR from './src/lib/godot-compat/gradient';
 import * as R from './src/lib/godot-compat/reflection-probe';
+import * as D from './src/lib/godot-compat/decal';
 import * as N3 from './src/lib/godot-compat/node-3d';
 import * as N from './src/lib/godot-compat/node';
 import * as ST from './src/lib/godot-compat/scene-tree';
@@ -313,6 +325,11 @@ rows.push([
     return [T.get_width(map), T.get_height(map), GT.get_fill(t), bits(from.x), bits(from.y), bits(to.x), bits(to.y), GR.get_interpolation_mode(gradient), GR.get_point_count(gradient)];
   })(),
   [bits(G.get_visibility_range_begin(glow)), bits(G.get_visibility_range_begin_margin(glow)), G.get_visibility_range_fade_mode(glow)],
+  (() => {
+    const blob = main.getObjectByName('BlobShadow');
+    const texture = D.get_texture(blob, 0);
+    return [bits(D.get_size(blob).x), bits(D.get_size(blob).y), bits(D.get_albedo_mix(blob)), bits(D.get_upper_fade(blob)), bits(D.get_lower_fade(blob)), D.get_cull_mask(blob), texture === GT.godot_gradient_texture_2d_of(B.godot_base_material_3d_of(glow.material).textures[0]), N.get_children(blob).length];
+  })(),
   (() => {
     const probe = main.getObjectByName('Probe');
     return [bits(R.get_intensity(probe)), bits(R.get_max_distance(probe)), bits(R.get_size(probe).x), bits(R.get_size(probe).z), bits(R.get_origin_offset(probe).y), R.is_box_projection_enabled(probe), R.get_update_mode(probe), bits(N3.get_position(probe).x)];

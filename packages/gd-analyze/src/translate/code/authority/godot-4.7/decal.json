@@ -1,0 +1,1646 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/decal"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "set_emission_energy",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "set_emission_energy",
+        "localName": "Decal_set_emission_energy",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.set_emission_energy"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "get_emission_energy",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "get_emission_energy",
+        "localName": "Decal_get_emission_energy",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.get_emission_energy"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "set_albedo_mix",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "set_albedo_mix",
+        "localName": "Decal_set_albedo_mix",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.set_albedo_mix"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "get_albedo_mix",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "get_albedo_mix",
+        "localName": "Decal_get_albedo_mix",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.get_albedo_mix"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "set_upper_fade",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "set_upper_fade",
+        "localName": "Decal_set_upper_fade",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.set_upper_fade"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "get_upper_fade",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "get_upper_fade",
+        "localName": "Decal_get_upper_fade",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.get_upper_fade"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "set_lower_fade",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "set_lower_fade",
+        "localName": "Decal_set_lower_fade",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.set_lower_fade"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "get_lower_fade",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "get_lower_fade",
+        "localName": "Decal_get_lower_fade",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.get_lower_fade"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "set_normal_fade",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "set_normal_fade",
+        "localName": "Decal_set_normal_fade",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.set_normal_fade"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "get_normal_fade",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "get_normal_fade",
+        "localName": "Decal_get_normal_fade",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.get_normal_fade"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "set_enable_distance_fade",
+        "kind": "native-member",
+        "signature": "hash:2586408642"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "set_enable_distance_fade",
+        "localName": "Decal_set_enable_distance_fade",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.set_enable_distance_fade"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "is_distance_fade_enabled",
+        "kind": "native-member",
+        "signature": "hash:36873697"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "is_distance_fade_enabled",
+        "localName": "Decal_is_distance_fade_enabled",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.is_distance_fade_enabled"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "set_distance_fade_begin",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "set_distance_fade_begin",
+        "localName": "Decal_set_distance_fade_begin",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.set_distance_fade_begin"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "get_distance_fade_begin",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "get_distance_fade_begin",
+        "localName": "Decal_get_distance_fade_begin",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.get_distance_fade_begin"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "set_distance_fade_length",
+        "kind": "native-member",
+        "signature": "hash:373806689"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "set_distance_fade_length",
+        "localName": "Decal_set_distance_fade_length",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.set_distance_fade_length"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "get_distance_fade_length",
+        "kind": "native-member",
+        "signature": "hash:1740695150"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "get_distance_fade_length",
+        "localName": "Decal_get_distance_fade_length",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.get_distance_fade_length"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "set_cull_mask",
+        "kind": "native-member",
+        "signature": "hash:1286410249"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "set_cull_mask",
+        "localName": "Decal_set_cull_mask",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.set_cull_mask"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "get_cull_mask",
+        "kind": "native-member",
+        "signature": "hash:3905245786"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "get_cull_mask",
+        "localName": "Decal_get_cull_mask",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.get_cull_mask"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "set_size",
+        "kind": "native-member",
+        "signature": "hash:3460891852"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "set_size",
+        "localName": "Decal_set_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.set_size"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "get_size",
+        "kind": "native-member",
+        "signature": "hash:3360562783"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "get_size",
+        "localName": "Decal_get_size",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.get_size"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "set_modulate",
+        "kind": "native-member",
+        "signature": "hash:2920490490"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "set_modulate",
+        "localName": "Decal_set_modulate",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.set_modulate"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "get_modulate",
+        "kind": "native-member",
+        "signature": "hash:3444240500"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "get_modulate",
+        "localName": "Decal_get_modulate",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.get_modulate"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "set_texture",
+        "kind": "native-member",
+        "signature": "hash:2086764391"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "set_texture",
+        "localName": "Decal_set_texture",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.set_texture"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Decal",
+        "member": "get_texture",
+        "kind": "native-member",
+        "signature": "hash:3244119503"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/decal",
+        "exportName": "get_texture",
+        "localName": "Decal_get_texture",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Decal.get_texture"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.set_emission_energy",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000set_emission_energy\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.set_emission_energy",
+        "sourceLine": 74
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "447865936e1ce45cf7f5fbeb8df23e2a7f1bc9bd26bd5592d2c3e6d3afd1f986",
+        "callsite": "res://probe.gd _init() set_emission_energy-2.5",
+        "observedOutputSha256": "ef468e6ed6c5c790e15ded57c97046f9d0bb410056b636ce8051ebb342968768"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts set_emission_energy",
+        "observedOutputSha256": "ef468e6ed6c5c790e15ded57c97046f9d0bb410056b636ce8051ebb342968768"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "890fe929bb3797aa566ed83fc753b46cffe07d0606ee4b39367748c3c1e7ec8e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.get_emission_energy",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000get_emission_energy\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.get_emission_energy",
+        "sourceLine": 79
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "cfd916356177fac16e7fd3bcf36e4c9658010f7fcb23117802a20bdee5467976",
+        "callsite": "res://probe.gd _init() get_emission_energy-default",
+        "observedOutputSha256": "3b0d5ec7112f5a611e770efec3c9315af3a0956fdb9ee48d28b6423ed320faf6"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts get_emission_energy",
+        "observedOutputSha256": "3b0d5ec7112f5a611e770efec3c9315af3a0956fdb9ee48d28b6423ed320faf6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "beda207cd7d400cb64336d83d2456b07825808ec70bd45a8e4e4427987e2cc22"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.set_albedo_mix",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000set_albedo_mix\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.set_albedo_mix",
+        "sourceLine": 83
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "797f84d4b0d39d9bbc8fd3fbac17e8fcac1b560e153881146a54a6938c21aa0d",
+        "callsite": "res://probe.gd _init() set_albedo_mix-0.8",
+        "observedOutputSha256": "05ae75b54b1238b2a418f332302341137d11fd50e52fd0a4c18cc0554e106849"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts set_albedo_mix",
+        "observedOutputSha256": "05ae75b54b1238b2a418f332302341137d11fd50e52fd0a4c18cc0554e106849"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "aaf72326ea3f2b3701771f6d91a1bd1019ef100562ae5faec9d4b673866aaaef"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.get_albedo_mix",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000get_albedo_mix\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.get_albedo_mix",
+        "sourceLine": 88
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f7603b0ee7cca6aadd9ece320ad40730102538ec0588c658ff6e16a370d53d50",
+        "callsite": "res://probe.gd _init() get_albedo_mix-default",
+        "observedOutputSha256": "46a179e87527d39d29a6d8feebf3c6d54b09b348609ad4d5953bdd9a1e53c383"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts get_albedo_mix",
+        "observedOutputSha256": "46a179e87527d39d29a6d8feebf3c6d54b09b348609ad4d5953bdd9a1e53c383"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f382759c411e6fc8de0e5d7c4c2e8f1c279f801ba43fba66caaa809185b7217d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.set_upper_fade",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000set_upper_fade\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.set_upper_fade",
+        "sourceLine": 92
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "0bf85f2fff9a323e50394ee89cd26082c9b45803d694b237268434157316a1d7",
+        "callsite": "res://probe.gd _init() set_upper_fade-3.99999 set_upper_fade--1",
+        "observedOutputSha256": "459d540edcb25bdf89aa2f9db988a51db2e307f44d7e93573b401ce688b25436"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts set_upper_fade",
+        "observedOutputSha256": "459d540edcb25bdf89aa2f9db988a51db2e307f44d7e93573b401ce688b25436"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "4c937ceb3065978e771cba7b26fb833c6473669468f6224ff8b2ce471e08fb5d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.get_upper_fade",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000get_upper_fade\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.get_upper_fade",
+        "sourceLine": 97
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "dbd7fcc411c260baebb5c71cc078823ff77de5e04bc8d18e12de1045a1eff467",
+        "callsite": "res://probe.gd _init() get_upper_fade-default",
+        "observedOutputSha256": "6ec208736491033c4eb6680e8b64eb5b92ff7d27cc70fc1c45fb01ffb000c3b5"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts get_upper_fade",
+        "observedOutputSha256": "6ec208736491033c4eb6680e8b64eb5b92ff7d27cc70fc1c45fb01ffb000c3b5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "38df47df180b90099bff665a9b37790b1583cd96882356b9b36940b6e2bdc189"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.set_lower_fade",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000set_lower_fade\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.set_lower_fade",
+        "sourceLine": 101
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b40c12345f692c8c27f8f66837d4f66eed8ff44d99edb8bad713d656ad0e5f93",
+        "callsite": "res://probe.gd _init() set_lower_fade-1 set_lower_fade--0.5",
+        "observedOutputSha256": "973c2a221c4d85609ae24c1b1986143ab0588c38d74c44a2d3dab8a0eb467b5c"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts set_lower_fade",
+        "observedOutputSha256": "973c2a221c4d85609ae24c1b1986143ab0588c38d74c44a2d3dab8a0eb467b5c"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "634165c9191d652448a6b7a52aed3553596683ac177d46e2d4ccddb6b3ae20ef"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.get_lower_fade",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000get_lower_fade\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.get_lower_fade",
+        "sourceLine": 106
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "195153837d92ab2a78411427161c63ec7682a23e78cae47a665ac66a425614dc",
+        "callsite": "res://probe.gd _init() get_lower_fade-default",
+        "observedOutputSha256": "99170c0be5c17a951e418ba905338188572591323912fb43008717ff8f75d7a9"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts get_lower_fade",
+        "observedOutputSha256": "99170c0be5c17a951e418ba905338188572591323912fb43008717ff8f75d7a9"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "99c7a92bb2a8868a4bd75b6afcade8c6bdac56f1296c3d4707ba02bba303cf93"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.set_normal_fade",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000set_normal_fade\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.set_normal_fade",
+        "sourceLine": 110
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b16a66dd15d1448d72a021e4e2578c70903321dd3f35385fea6bf732b3ee8576",
+        "callsite": "res://probe.gd _init() set_normal_fade-0.5",
+        "observedOutputSha256": "9b4cae016d988cbec7ee845404e31b1129cfde7be0da588ac5d7086ce702eba5"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts set_normal_fade",
+        "observedOutputSha256": "9b4cae016d988cbec7ee845404e31b1129cfde7be0da588ac5d7086ce702eba5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "96315c1c469464008d625ab40ed69cef875b3a4b9bf7a2167074b73e05228d5b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.get_normal_fade",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000get_normal_fade\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.get_normal_fade",
+        "sourceLine": 115
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "6ef7d4ae7719b6d2c80f5e1f16852a32decd7276c987fa7d4c0fdf9ef80868c6",
+        "callsite": "res://probe.gd _init() get_normal_fade-default",
+        "observedOutputSha256": "930a3d6d34b29c35d4c6a3f8ecfd5ff7153110f144f3c88bdc566103d596dd76"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts get_normal_fade",
+        "observedOutputSha256": "930a3d6d34b29c35d4c6a3f8ecfd5ff7153110f144f3c88bdc566103d596dd76"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "978d267bf98703644525baa6cdcd7484ae7214edd6827e0c61a15aa5903dd2b1"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.set_enable_distance_fade",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000set_enable_distance_fade\u0000hash:2586408642",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.set_enable_distance_fade",
+        "sourceLine": 128
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a96f820243cd2aaa96ffb9e3e95042c182dbd646646258ee06cc62847cca2503",
+        "callsite": "res://probe.gd _init() set_enable_distance_fade-true",
+        "observedOutputSha256": "ebf5807bba4cfc2e611573cd111567b69c490804d4f422703f737e71369aa201"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts set_enable_distance_fade",
+        "observedOutputSha256": "ebf5807bba4cfc2e611573cd111567b69c490804d4f422703f737e71369aa201"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3bf5548a1fe5be9f75c4bb850cb6bf6400a9e721fd84be7b3733a12e3f97fef0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.is_distance_fade_enabled",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000is_distance_fade_enabled\u0000hash:36873697",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.is_distance_fade_enabled",
+        "sourceLine": 134
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "476ad6104a5c4bc1aadc179e31a8acb220d585ab57b9eb4e64e8c487bd17439a",
+        "callsite": "res://probe.gd _init() is_distance_fade_enabled-default",
+        "observedOutputSha256": "b5bc2a1f1cb5d6446d0154aaceb4750bb498479f2d1cc26446471a48040c157b"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts is_distance_fade_enabled",
+        "observedOutputSha256": "b5bc2a1f1cb5d6446d0154aaceb4750bb498479f2d1cc26446471a48040c157b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "91e585d217558ea458daf1849bbb0de27e2d97a2d170520391e2b96171263fe0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.set_distance_fade_begin",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000set_distance_fade_begin\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.set_distance_fade_begin",
+        "sourceLine": 138
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9f773c30a2fb8f81752fb7c9db766862a4ed3db829646cd0bbb2bc3d3f00ff2b",
+        "callsite": "res://probe.gd _init() set_distance_fade_begin-12.5",
+        "observedOutputSha256": "af5ff27dab0628f19cffb29d6231fc3ea46bae4c975bed6f8e93df916d480350"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts set_distance_fade_begin",
+        "observedOutputSha256": "af5ff27dab0628f19cffb29d6231fc3ea46bae4c975bed6f8e93df916d480350"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "699720b771d201c1cadb4a3d914d2ab131e8f6b11652fa8b6f86d4da99b70494"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.get_distance_fade_begin",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000get_distance_fade_begin\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.get_distance_fade_begin",
+        "sourceLine": 143
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5ca84f4159cf9dec633656f43e280f32242c69da94fff366223873475ffd0522",
+        "callsite": "res://probe.gd _init() get_distance_fade_begin-default",
+        "observedOutputSha256": "bbbae130630c5219ad805d426ae7d4982d76d219f864a2f4b7c1572987e7911a"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts get_distance_fade_begin",
+        "observedOutputSha256": "bbbae130630c5219ad805d426ae7d4982d76d219f864a2f4b7c1572987e7911a"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "8899e1055dfcfeeaa2040bbbb72adf9c0b07374961b87f511eb416f63e888dc6"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.set_distance_fade_length",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000set_distance_fade_length\u0000hash:373806689",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.set_distance_fade_length",
+        "sourceLine": 147
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5d68543abbfcfac41fea1b797cb79fcad78e74906dfacac5b6ab5abdf106649e",
+        "callsite": "res://probe.gd _init() set_distance_fade_length-3",
+        "observedOutputSha256": "768d37a887da3961670f22f4893cf0b0f0c0b6ef79aab945335d4cceb590a9b2"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts set_distance_fade_length",
+        "observedOutputSha256": "768d37a887da3961670f22f4893cf0b0f0c0b6ef79aab945335d4cceb590a9b2"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3fce224eef36b30f95531d8c7c7571264eac44b835faedb6b448b80d2488685d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.get_distance_fade_length",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000get_distance_fade_length\u0000hash:1740695150",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.get_distance_fade_length",
+        "sourceLine": 152
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "69ea679d49f449f792dc8e299cb755c70b0bc1fa1b3106fe3c8cca7f5e7e9d8a",
+        "callsite": "res://probe.gd _init() get_distance_fade_length-default",
+        "observedOutputSha256": "2c73550f65f306739d1bd68a833a4d326bb4d29b98cde8c950a47e3911538c3f"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts get_distance_fade_length",
+        "observedOutputSha256": "2c73550f65f306739d1bd68a833a4d326bb4d29b98cde8c950a47e3911538c3f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "24d2c4e8e06a7bd280cfd2d9dec95bfa54017ad321feefb0ae2e9fc01a4ba9c6"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.set_cull_mask",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000set_cull_mask\u0000hash:1286410249",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.set_cull_mask",
+        "sourceLine": 156
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "640e4ebc3e3a9d1d5a07683d8c7b01c5e308df4d690a583e0e0f5243463e3a6d",
+        "callsite": "res://probe.gd _init() set_cull_mask-1048573",
+        "observedOutputSha256": "41794f43250575eebd777dd4a4c7d72629b22c6c2e8fe5344fddae8acdfb9533"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts set_cull_mask",
+        "observedOutputSha256": "41794f43250575eebd777dd4a4c7d72629b22c6c2e8fe5344fddae8acdfb9533"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "c0e3f9ed029be7a87a280a6cd99fdd34de2b4da298d534ffd73d29c17ef0629d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.get_cull_mask",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000get_cull_mask\u0000hash:3905245786",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.get_cull_mask",
+        "sourceLine": 162
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "ac891f633f7b8d1c87eea140033bc9641d912098a5255ce639dec43789022657",
+        "callsite": "res://probe.gd _init() get_cull_mask-default",
+        "observedOutputSha256": "d7d0ca0e2410f56a75db500586bbf93cb263b02ece3cf81b029f2a2d7894ebcd"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts get_cull_mask",
+        "observedOutputSha256": "d7d0ca0e2410f56a75db500586bbf93cb263b02ece3cf81b029f2a2d7894ebcd"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "4876c8b35ab6cf8b5d878356f2b9d01832b8e9efdf57c22568ada734ac47fd2b"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.set_size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000set_size\u0000hash:3460891852",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.set_size",
+        "sourceLine": 37
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "59fbf32bff28a2ee623f14f21746595900e79ed9574afc287da5bec17fc5b3a1",
+        "callsite": "res://probe.gd _init() set_size-blob set_size-flat web-draws-nothing",
+        "observedOutputSha256": "385ec0a3b693f0df691ba7b763ea9216cf55e65d2caac71524add00df371527e"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts set_size",
+        "observedOutputSha256": "385ec0a3b693f0df691ba7b763ea9216cf55e65d2caac71524add00df371527e"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact, web-platform-fact",
+        "tolerance": "exact",
+        "resultSha256": "367476252a11cc6ba638d070c771939050cebab55cd7acd21043652710b77bb9"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.get_size",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000get_size\u0000hash:3360562783",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.get_size",
+        "sourceLine": 43
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "5606712ce217c3110fe66b393d26013a15521940aa750f70717d0d98fb6be86d",
+        "callsite": "res://probe.gd _init() get_size-default",
+        "observedOutputSha256": "4a9af34154099232ec5c7d86d7788ed518034f22d4be96aa6b128aa3a78d8b3b"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts get_size",
+        "observedOutputSha256": "4a9af34154099232ec5c7d86d7788ed518034f22d4be96aa6b128aa3a78d8b3b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "69179f8a1cb50203f8ab1f6a809ca7ba4957aa77677a1d5664e7f68c13072bc0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.set_modulate",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000set_modulate\u0000hash:2920490490",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.set_modulate",
+        "sourceLine": 119
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "dbd4aafba7718984fd71792cad1b6ec2248522915dd2794f1243ae018b067c2f",
+        "callsite": "res://probe.gd _init() set_modulate",
+        "observedOutputSha256": "4ded50dd1f6cb2a06d1fbe3a30eb648b64f4824eed5fc9a73115a6d3ba06f14e"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts set_modulate",
+        "observedOutputSha256": "af15b529dc0b12a493144eb4a0306090b77de2af8525a22a65a5a285884672b5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "cfbaf54bef624f6276b0f21814ef7ec1795daba0f1f9483187c700beda69598c"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.get_modulate",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000get_modulate\u0000hash:3444240500",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.get_modulate",
+        "sourceLine": 124
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "c2d6368ac63d473c6512449a371a3a0b67081e9553b0dab3377a8b032a31615a",
+        "callsite": "res://probe.gd _init() get_modulate-default",
+        "observedOutputSha256": "95319815b0f20ffe6f44fcfba9ac355692ef5fba5edafef5e9d07c82aa23e2df"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts get_modulate",
+        "observedOutputSha256": "e57762afc4bac7e90a561d904ea5ce84d11a7aafbc983900c4fe37ee82b8ea5f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "e77e637846d608812bc2cb980d28ce31d71152cb6a13fff08442898fff180844"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.set_texture",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000set_texture\u0000hash:2086764391",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.set_texture",
+        "sourceLine": 47
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "1e692b0406a2ac1adafda38c5ed8a6d311991a624314ba68e19abb0b1ddd607d",
+        "callsite": "res://probe.gd _init() set_texture",
+        "observedOutputSha256": "d7f4b907edd4667151da9ab26fb3301c8b2ae1fd907f6ecacc86901a8703af0f"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts set_texture",
+        "observedOutputSha256": "d7f4b907edd4667151da9ab26fb3301c8b2ae1fd907f6ecacc86901a8703af0f"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "373e85efcad9d7f2b10ef6237f19530b6171eead571a731a4a7e28e7f0630c0d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Decal.get_texture",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000native-member\u0000Decal\u0000get_texture\u0000hash:3244119503",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "scene/3d/decal.cpp",
+        "sourceSymbol": "Decal.get_texture",
+        "sourceLine": 69
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "d150af46628b13040683bb2321e6b184b75491d1fb3a3c3d48d6f09e6816c575",
+        "callsite": "res://probe.gd _init() get_texture-default",
+        "observedOutputSha256": "dd86e6a775500235d2a689fc071dcd9d0622cbe71b442d64f957f94a47367ae6"
+      },
+      "target": {
+        "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca",
+        "callsite": "lib/godot-compat/decal.ts get_texture",
+        "observedOutputSha256": "dd86e6a775500235d2a689fc071dcd9d0622cbe71b442d64f957f94a47367ae6"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6316d336e65ac6e44b6a4cddb194617670620f5f260809701d2d913696701308"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "decal",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Decal.set_emission_energy",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "447865936e1ce45cf7f5fbeb8df23e2a7f1bc9bd26bd5592d2c3e6d3afd1f986",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.get_emission_energy",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "cfd916356177fac16e7fd3bcf36e4c9658010f7fcb23117802a20bdee5467976",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.set_albedo_mix",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "797f84d4b0d39d9bbc8fd3fbac17e8fcac1b560e153881146a54a6938c21aa0d",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.get_albedo_mix",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f7603b0ee7cca6aadd9ece320ad40730102538ec0588c658ff6e16a370d53d50",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.set_upper_fade",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "0bf85f2fff9a323e50394ee89cd26082c9b45803d694b237268434157316a1d7",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.get_upper_fade",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "dbd7fcc411c260baebb5c71cc078823ff77de5e04bc8d18e12de1045a1eff467",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.set_lower_fade",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b40c12345f692c8c27f8f66837d4f66eed8ff44d99edb8bad713d656ad0e5f93",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.get_lower_fade",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "195153837d92ab2a78411427161c63ec7682a23e78cae47a665ac66a425614dc",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.set_normal_fade",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b16a66dd15d1448d72a021e4e2578c70903321dd3f35385fea6bf732b3ee8576",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.get_normal_fade",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "6ef7d4ae7719b6d2c80f5e1f16852a32decd7276c987fa7d4c0fdf9ef80868c6",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.set_enable_distance_fade",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a96f820243cd2aaa96ffb9e3e95042c182dbd646646258ee06cc62847cca2503",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.is_distance_fade_enabled",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "476ad6104a5c4bc1aadc179e31a8acb220d585ab57b9eb4e64e8c487bd17439a",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.set_distance_fade_begin",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9f773c30a2fb8f81752fb7c9db766862a4ed3db829646cd0bbb2bc3d3f00ff2b",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.get_distance_fade_begin",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5ca84f4159cf9dec633656f43e280f32242c69da94fff366223873475ffd0522",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.set_distance_fade_length",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5d68543abbfcfac41fea1b797cb79fcad78e74906dfacac5b6ab5abdf106649e",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.get_distance_fade_length",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "69ea679d49f449f792dc8e299cb755c70b0bc1fa1b3106fe3c8cca7f5e7e9d8a",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.set_cull_mask",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "640e4ebc3e3a9d1d5a07683d8c7b01c5e308df4d690a583e0e0f5243463e3a6d",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.get_cull_mask",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "ac891f633f7b8d1c87eea140033bc9641d912098a5255ce639dec43789022657",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.set_size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "59fbf32bff28a2ee623f14f21746595900e79ed9574afc287da5bec17fc5b3a1",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.get_size",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "5606712ce217c3110fe66b393d26013a15521940aa750f70717d0d98fb6be86d",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.set_modulate",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "dbd4aafba7718984fd71792cad1b6ec2248522915dd2794f1243ae018b067c2f",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.get_modulate",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "c2d6368ac63d473c6512449a371a3a0b67081e9553b0dab3377a8b032a31615a",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.set_texture",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "1e692b0406a2ac1adafda38c5ed8a6d311991a624314ba68e19abb0b1ddd607d",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    },
+    {
+      "claimId": "godot-4.7-binding-Decal.get_texture",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "d150af46628b13040683bb2321e6b184b75491d1fb3a3c3d48d6f09e6816c575",
+      "implementationSha256": "d940f67d2bf6b041e0267fd5833295e00cf58d3a62919acb44e7c3ec65254cca"
+    }
+  ]
+}

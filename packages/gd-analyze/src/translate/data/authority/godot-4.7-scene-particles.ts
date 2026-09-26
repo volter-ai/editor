@@ -47,6 +47,13 @@ export const GODOT_4_7_PARTICLE_NODE_RULES: readonly (GodotSceneNodeRule & { rea
     evidenceClaimId: 'godot-4.7-scene-node-reflection-probe',
     source: { file: 'scene/3d/reflection_probe.cpp', symbol: 'ReflectionProbe::ReflectionProbe', line: 308 },
   },
+  {
+    sourceRevision: REVISION,
+    nativeCanonicalIdentity: identityOf('Decal'),
+    targetKind: 'three-group',
+    evidenceClaimId: 'godot-4.7-scene-node-decal',
+    source: { file: 'scene/3d/decal.cpp', symbol: 'Decal::Decal', line: 294 },
+  },
 ];
 
 export const GODOT_4_7_PARTICLE_RESOURCE_RULES: readonly (GodotSceneResourceRule & { readonly source: Source })[] = (
