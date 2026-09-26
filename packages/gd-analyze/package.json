@@ -10,7 +10,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "godot-evidence-refresh": "npx tsx src/cli.ts evidence --refresh --official-binary /Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot --bound-exporter-binary /Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-seal/godot-4.7-bound-exporter-arm64",
+    "godot-evidence-refresh": "npx tsx src/cli.ts evidence --refresh --official-binary /Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot --bound-exporter-binary /Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-editor/godot-4.7-bound-exporter-arm64",
     "godot-direct-scene-artifact-proof": "npx tsx scripts/prove-direct-scene-artifacts.ts",
     "verify-unaltered": "node verify-unaltered.mjs"
   },

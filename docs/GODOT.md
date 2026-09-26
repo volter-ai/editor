@@ -310,9 +310,19 @@ Node3D and Camera3D, 724 cases, exact.
   notifications, `_process`, `_physics_process`, deferred calls, timers (`create_timer`), tweens
   and signals. Compat implements the ordering (`scene/main/scene_tree.cpp`) over those two
   events and creates no loop of its own.
-- **Host duties the composition site performs:** feed input events and frame stamps to `input.ts`;
-  call `SubViewport.set_size` on the viewport's Scene when the canvas resizes; mount Camera3D with
-  Godot's defaults (fov 75, near 0.05, far 4000).
+- **Host duties the composition site performs** (the generated `world.tsx`, from plan data):
+  1. make R3F's scene the tree root and enter the main scene;
+  2. run the clock: fixed physics steps at the project's tick rate, then the frame, in
+     `Main::iteration` order (this also flushes Input);
+  3. create the Rapier world with the project's gravity and hand it to compat;
+  4. set the root window size from the canvas on every resize, and hand the renderer to compat;
+  5. layer a DOM root over the canvas, draw the canvas into it every frame, and load Godot's
+     default font from its copied bytes;
+  6. turn DOM keyboard, mouse and touch events into Godot's event records (keyboard device 16,
+     mouse device 32) and deliver them through the viewport; the InputMap includes Godot's
+     default `ui_*` actions;
+  7. let the scene's current Camera3D drive R3F's camera, with Godot's defaults (fov 75, near
+     0.05, far 4000).
 
 ## The canvas: Controls, Node2D and text
 
@@ -324,7 +334,9 @@ by `layer`, Control origins snapped to whole pixels as Godot does, `modulate` as
 filter. The DOM is only where the item is drawn; CSS never lays anything out.
 
 Text is measured as Godot's web export measures it, by its own text server. That is computed
-from the font file's own metrics and kerning. A shaping difference (ligatures, complex
+from the font file's own metrics and kerning. The default font is the Open Sans SemiBold the pinned
+revision embeds (sha256 `55809808…`), read with fontkit; no shaping difference was measured on
+the Latin samples. A shaping difference (ligatures, complex
 scripts) is a recorded `font-shaping` deviation. The browser draws the glyphs inside Godot's
 computed rectangle.
 
@@ -352,7 +364,7 @@ the output is plain library code (ARCHITECTURE.md rule 4):
 | `CharacterBody3D`, `RigidBody3D`, `StaticBody3D`, `Area3D`, `CollisionShape3D` + shapes, `RayCast3D` | `@react-three/rapier` bodies and colliders; `move_and_slide` and the contact state are compat PROTOCOL over Rapier's character controller and queries |
 | `AnimationPlayer`, `AnimationTree` | three's `AnimationMixer` over the imported clips; Godot's blend-tree semantics in compat |
 | `AudioStreamPlayer`, `AudioStreamPlayer3D` | Web Audio through three's `Audio`/`PositionalAudio` |
-| `CanvasLayer` with `Control`s (`Label`, `TextureRect`, `HBoxContainer`, `TouchScreenButton`) | a DOM root beside the world, each Control an absolutely placed element from its anchors and offsets, as the Unity lane's uGUI does |
+| `CanvasLayer`, `Control`, `Label`, `TextureRect`, `HBoxContainer`, `Node2D`, `Sprite2D`, `TouchScreenButton` | non-spatial Groups laid out by Godot's own layout code and drawn into a DOM root (§The canvas). Landed: exact against official Godot, proven from a scene file by the `scene-ui` proof. Layout-mode and anchor setters, which have no hash in the API dump, are resolved from the scene file by name. |
 | `GPUParticles3D`, `CPUParticles3D`, `GridMap`, `Decal`, `ReflectionProbe`, `CSGBox3D`, `Label3D`, `Sprite3D` | later units, in closure order |
 
 ## Where it stands (2026-09-26, 03:30)
