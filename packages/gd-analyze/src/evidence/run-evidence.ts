@@ -1060,7 +1060,7 @@ async function runCompatEvidence(
       id: entry.id,
       comparator: entry.comparator,
       shown: `gdscript: ${entry.gdscript.split('\n').join(' ; ')}`,
-      geometryFacts: entry.geometryFacts,
+      ...(entry.geometryFacts === undefined ? {} : { geometryFacts: entry.geometryFacts }),
     })),
     nativeRows,
     targetRows,
