@@ -10,6 +10,7 @@
 
 import { type DirectionalLight, Object3D } from 'three';
 import { godot_light_3d_mount, godot_light_3d_sky_mode } from './light-3d';
+import { godot_node_duplicate_state } from './node';
 
 /**
  * A directional light as `DirectionalLight3D()` creates it (`light_3d.cpp:612`): shadow max
@@ -28,6 +29,16 @@ export function godot_directional_light_3d_mount(self: DirectionalLight): void {
 }
 
 const SHADOW_MODE = new WeakMap<DirectionalLight, number>();
+
+// `duplicate` copies the shadow mode; the copy aims at its own copy of the target.
+godot_node_duplicate_state('DirectionalLight3D', (from, to) => {
+  const source = from as DirectionalLight;
+  const copy = to as DirectionalLight;
+  const mode = SHADOW_MODE.get(source);
+  if (mode !== undefined) SHADOW_MODE.set(copy, mode);
+  const index = source.children.indexOf(source.target);
+  if (index >= 0) copy.target = copy.children[index] as Object3D;
+});
 
 /**
  * Three draws a directional light's shadow into one orthographic map, Godot's

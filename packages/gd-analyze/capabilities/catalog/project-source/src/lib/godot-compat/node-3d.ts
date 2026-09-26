@@ -24,7 +24,7 @@
 
 import type { Object3D } from 'three';
 import { type Basis, construct as basis } from './basis';
-import { godot_node_is_spatial } from './node';
+import { godot_node_duplicate_state, godot_node_is_spatial, is_inside_tree } from './node';
 import { type Transform3D, construct as transform3d } from './transform-3d';
 import { construct as vector3, type Vector3 } from './vector3';
 
@@ -64,6 +64,12 @@ interface Node3DState {
 }
 
 const NODE3D = new WeakMap<Object3D, Node3DState>();
+
+// `duplicate` copies the stored transform properties: the matrix comes with the entity's copy.
+godot_node_duplicate_state('Node3D', (from, to) => {
+  const state = NODE3D.get(from as Object3D);
+  if (state !== undefined) NODE3D.set(to as Object3D, { ...state });
+});
 
 // --- Vector3 and Basis arithmetic, as `core/math/vector3.h` and `core/math/basis.{h,cpp}` round it.
 
@@ -770,4 +776,29 @@ export function set_rotation_order(self: Object3D, p_order: number): void {
  */
 export function get_rotation_order(self: Object3D): number {
   return stateOf(self).order;
+}
+
+/** The viewport's `find_world_3d()`, which `world-3d.ts` hands over when a world is attached. */
+let viewportWorld: (() => object) | undefined;
+
+/**
+ * Hands Node3D the viewport's World3D: `world-3d.ts` calls it as the composition site attaches
+ * the world (Node3D cannot import World3D, which reaches the physics modules built on Node3D).
+ *
+ * @godot Node3D (protocol)
+ * @source scene/main/viewport.cpp:4855
+ */
+export function godot_node_3d_world_source(world: () => object): void {
+  viewportWorld = world;
+}
+
+/**
+ * The viewport's World3D for a node inside the tree (inside the world), else null.
+ *
+ * @godot Node3D.get_world_3d
+ * @source scene/3d/node_3d.cpp:1082
+ */
+export function get_world_3d(self: Object3D): object | null {
+  if (!is_inside_tree(self) || viewportWorld === undefined) return null;
+  return viewportWorld();
 }

@@ -1,6 +1,7 @@
 import * as N from '../../capabilities/catalog/project-source/src/lib/godot-compat/node-3d';
 import * as SV from '../../capabilities/catalog/project-source/src/lib/godot-compat/sub-viewport';
 import type { GodotEvidenceCase, GodotEvidenceCaseFile, GodotEvidenceSymbol } from '../../src/evidence/case';
+import { PHYSICS_PROBE_HELPERS, physicsCase } from './physics-timeline';
 import { basis, int, scene, type Step, transform, v3, type Value } from './scene-tree';
 
 const cases: GodotEvidenceCase[] = [];
@@ -188,8 +189,28 @@ for (const [name, args] of [
   ], 'get_global_transform');
 }
 
+// The viewport's world: a node inside the tree has it, one outside has none; the corpus's
+// `PhysicsServer3D.space_get_direct_state(get_world_3d().get_space())` ray reaches its bodies.
+{
+  const built = physicsCase([
+    {
+      ops: [
+        { body: 'a', kind: 'static', shapes: [{ shape: { sphere: 1 } }], at: [0.5, 0, 0] },
+        { body: 'b', kind: 'static', shapes: [{ shape: { sphere: 1 } }], at: [5, 0, 0], detached: true },
+        { read: ['world', 'a'] },
+        { read: ['world', 'b'] },
+        { add: 'b' },
+        { read: ['world', 'b'] },
+      ],
+    },
+    { await: 'physics', ops: [{ read: ['ray', [0, 10, 0], [0, -10, 0], { viaNode: 'a' }] }, { read: ['ray', [5, 10, 0], [5, -10, 0], { viaNode: 'b' }] }] },
+  ]);
+  cases.push({ id: 'get_world_3d', symbol: member('get_world_3d'), gdscript: built.gdscript, target: built.target, comparator: 'rapier-geometry' });
+}
+
 const NODE3D_EVIDENCE: GodotEvidenceCaseFile = {
   kind: 'node',
+  probeHelpers: PHYSICS_PROBE_HELPERS,
   godotClass: 'Node3D',
   compatModule: 'lib/godot-compat/node-3d',
   cases,

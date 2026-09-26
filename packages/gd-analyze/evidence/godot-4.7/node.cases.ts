@@ -1,3 +1,13 @@
+import { DirectionalLight, Group } from 'three';
+import * as B3 from '../../capabilities/catalog/project-source/src/lib/godot-compat/basis';
+import * as C from '../../capabilities/catalog/project-source/src/lib/godot-compat/color';
+import * as DL from '../../capabilities/catalog/project-source/src/lib/godot-compat/directional-light-3d';
+import * as L from '../../capabilities/catalog/project-source/src/lib/godot-compat/light-3d';
+import * as N from '../../capabilities/catalog/project-source/src/lib/godot-compat/node';
+import * as N3 from '../../capabilities/catalog/project-source/src/lib/godot-compat/node-3d';
+import * as T3 from '../../capabilities/catalog/project-source/src/lib/godot-compat/transform-3d';
+import * as V from '../../capabilities/catalog/project-source/src/lib/godot-compat/vector3';
+import * as VI from '../../capabilities/catalog/project-source/src/lib/godot-compat/visual-instance-3d';
 import type { GodotEvidenceCase, GodotEvidenceCaseFile } from '../../src/evidence/case';
 import { type Op, type Segment, TREE_PROBE_HELPERS, treeCase } from './tree-timeline';
 import { inputCase, type Op as InputOp } from './input-tree';
@@ -85,6 +95,72 @@ for (const [setter, getter, callback] of [
     cases.push({ id: `${member}-input`, symbol: { kind: 'native-member', owner: 'Node', member }, gdscript: built.gdscript, target: built.target, comparator: 'exact' });
   }
 }
+
+// duplicate(): a configured directional light with a child (the corpus duplicates its sun to
+// add a second light). The copy keeps the name, transform, light and layer state, groups and the
+// child; changing the copy leaves the original alone.
+const LIGHT_CLASSES = ['DirectionalLight3D', 'Light3D', 'VisualInstance3D', 'Node3D', 'Node', 'Object'];
+cases.push({
+  id: 'duplicate-directional-light',
+  symbol: { kind: 'native-member', owner: 'Node', member: 'duplicate' },
+  comparator: 'exact',
+  gdscript: [
+    'var l := DirectionalLight3D.new()',
+    'l.name = "Sun"',
+    'l.transform = Transform3D(Basis(Vector3(0, 1, 0), 0.5), Vector3(1, 2, 3))',
+    'l.light_energy = 0.7',
+    'l.light_color = Color(1, 0.5, 0.25)',
+    'l.shadow_enabled = true',
+    'l.shadow_bias = 0.02',
+    'l.directional_shadow_mode = 0',
+    'l.sky_mode = 1',
+    'l.layers = 5',
+    'l.add_to_group("lights")',
+    'var c := Node3D.new()',
+    'c.name = "Child"',
+    'c.position = Vector3(1, 2, 3)',
+    'l.add_child(c)',
+    'var d: DirectionalLight3D = l.duplicate()',
+    'var out := [String(d.name), d.transform, d.light_energy, d.light_color, d.shadow_enabled, d.shadow_bias, d.directional_shadow_mode, d.sky_mode, d.layers, d.is_in_group("lights"), d.get_child_count(), String(d.get_child(0).name), d.get_child(0).position, d.get_child(0) == c]',
+    'd.light_energy = 0.25',
+    'd.sky_mode = 2',
+    'out.append_array([l.light_energy, l.sky_mode, d.light_energy, d.sky_mode])',
+    'd.free()',
+    'l.free()',
+    'return out',
+  ].join('\n'),
+  target: () => {
+    const l = new DirectionalLight();
+    N.godot_node_adopt(l, { classes: LIGHT_CLASSES });
+    DL.godot_directional_light_3d_mount(l);
+    N.set_name(l, 'Sun');
+    N3.set_transform(l, T3.construct(B3.construct(V.construct(0, 1, 0), 0.5), V.construct(1, 2, 3)));
+    L.set_param(l, 0, 0.7);
+    L.set_color(l, C.construct(1, 0.5, 0.25));
+    L.set_shadow(l, true);
+    L.set_param(l, 15, 0.02);
+    DL.set_shadow_mode(l, 0);
+    DL.set_sky_mode(l, 1);
+    VI.set_layer_mask(l, 5);
+    N.add_to_group(l, 'lights');
+    const c = new Group();
+    N.godot_node_adopt(c, { classes: ['Node3D', 'Node', 'Object'] });
+    N.set_name(c, 'Child');
+    N3.set_position(c, V.construct(1, 2, 3));
+    N.add_child(l, c);
+    const d = N.duplicate(l) as DirectionalLight;
+    const child = N.get_children(d)[0] as Group;
+    const out: unknown[] = [
+      N.get_name(d), N3.get_transform(d), L.get_param(d, 0), L.get_color(d), L.has_shadow(d), L.get_param(d, 15),
+      DL.get_shadow_mode(d), DL.get_sky_mode(d), VI.get_layer_mask(d), N.is_in_group(d, 'lights'), N.get_children(d).length,
+      N.get_name(child), N3.get_position(child), child === c,
+    ];
+    L.set_param(d, 0, 0.25);
+    DL.set_sky_mode(d, 2);
+    out.push(L.get_param(l, 0), DL.get_sky_mode(l), L.get_param(d, 0), DL.get_sky_mode(d));
+    return out;
+  },
+});
 
 const NODE_EVIDENCE: GodotEvidenceCaseFile = {
   kind: 'node',

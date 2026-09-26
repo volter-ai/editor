@@ -98,7 +98,7 @@ export type Op =
   | { readonly read: Read };
 
 export type Read =
-  | readonly ['ray', Triple, Triple, { readonly mask?: number; readonly exclude?: readonly string[]; readonly areas?: boolean; readonly bodies?: boolean; readonly inside?: boolean; readonly backFaces?: boolean; readonly via?: 'server' | 'world' }?]
+  | readonly ['ray', Triple, Triple, { readonly mask?: number; readonly exclude?: readonly string[]; readonly areas?: boolean; readonly bodies?: boolean; readonly inside?: boolean; readonly backFaces?: boolean; readonly via?: 'server' | 'world'; readonly viaNode?: string }?]
   | readonly ['raycast', string]
   | readonly ['rayMask', string]
   | readonly ['rayTarget', string]
@@ -117,6 +117,8 @@ export type Read =
   | readonly ['rigidGet', string, string]
   | readonly ['axisLock', string, number]
   | readonly ['pickable', string]
+  /** Whether the node's `get_world_3d()` is the viewport's world (false for null). */
+  | readonly ['world', string]
   /** The friction and bounce of the body's material override, or -1 without one. */
   | readonly ['material', string]
   | readonly ['layer', string]
@@ -189,9 +191,11 @@ function gdRead(read: Read): string[] {
         ...(options.bodies === undefined ? [] : [`q.collide_with_bodies = ${String(options.bodies)}`]),
         ...(options.inside === undefined ? [] : [`q.hit_from_inside = ${String(options.inside)}`]),
         ...(options.backFaces === undefined ? [] : [`q.hit_back_faces = ${String(options.backFaces)}`]),
-        options.via === 'world'
-          ? 'log.append(_hit(get_root().find_world_3d().direct_space_state.intersect_ray(q)))'
-          : 'log.append(_hit(PhysicsServer3D.space_get_direct_state(get_root().find_world_3d().space).intersect_ray(q)))',
+        options.viaNode !== undefined
+          ? `log.append(_hit(PhysicsServer3D.space_get_direct_state(${v(options.viaNode)}.get_world_3d().get_space()).intersect_ray(q)))`
+          : options.via === 'world'
+            ? 'log.append(_hit(get_root().find_world_3d().direct_space_state.intersect_ray(q)))'
+            : 'log.append(_hit(PhysicsServer3D.space_get_direct_state(get_root().find_world_3d().space).intersect_ray(q)))',
       ];
     }
     case 'raycast':
@@ -222,6 +226,8 @@ function gdRead(read: Read): string[] {
       return [`log.append([${v(read[1])}.position, ${v(read[1])}.linear_velocity, ${v(read[1])}.get_contact_count()])`];
     case 'rigidGet':
       return [`log.append(${v(read[1])}.${read[2]}())`];
+    case 'world':
+      return [`log.append(${v(read[1])}.get_world_3d() != null and ${v(read[1])}.get_world_3d() == get_root().find_world_3d())`];
     case 'pickable':
       return [`log.append(${v(read[1])}.is_ray_pickable())`];
     case 'axisLock':
@@ -418,7 +424,12 @@ function target(segments: readonly Segment[]): () => unknown {
           if (options.bodies !== undefined) RQ.set_collide_with_bodies(q, options.bodies);
           if (options.inside !== undefined) RQ.set_hit_from_inside(q, options.inside);
           if (options.backFaces !== undefined) RQ.set_hit_back_faces(q, options.backFaces);
-          const state = options.via === 'world' ? W.get_direct_space_state(W.godot_world_3d()) : PS.space_get_direct_state(W.get_space(W.godot_world_3d()));
+          const state =
+            options.viaNode !== undefined
+              ? PS.space_get_direct_state(W.get_space(N3.get_world_3d(node(options.viaNode)) as W.World3D))
+              : options.via === 'world'
+                ? W.get_direct_space_state(W.godot_world_3d())
+                : PS.space_get_direct_state(W.get_space(W.godot_world_3d()));
           log.push(hit(DSS.intersect_ray(state, q)));
           return;
         }
@@ -493,6 +504,9 @@ function target(segments: readonly Segment[]): () => unknown {
           return;
         case 'rigidGet':
           log.push((RB as unknown as Record<string, (c: object) => unknown>)[r[2]]?.(node(r[1])));
+          return;
+        case 'world':
+          log.push(N3.get_world_3d(node(r[1])) !== null && N3.get_world_3d(node(r[1])) === W.godot_world_3d());
           return;
         case 'pickable':
           log.push(CO.is_ray_pickable(node(r[1])));

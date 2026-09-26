@@ -502,6 +502,83 @@ function validateChildName(parent: object, child: object): void {
 
 // --- Node members.
 
+/** `Node::DuplicateFlags` (`scene/main/node.h`). */
+const DUPLICATE_GROUPS = 2;
+const DUPLICATE_SCRIPTS = 4;
+
+/**
+ * Each class's stored-property copy for `duplicate` (`Node::_duplicate_properties` walks the
+ * class's `PROPERTY_USAGE_STORAGE` properties): a module holding a class's per-node state registers
+ * how that state is copied. Object and Node keep theirs here.
+ */
+const DUPLICATE_STATE = new Map<string, (from: object, to: object) => void>([
+  ['Object', () => {}],
+  ['Node', () => {}],
+]);
+
+/**
+ * Registers how `duplicate` copies a class's per-node state from the original to the copy (the
+ * class's stored properties, `node.cpp:3071`).
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:3071
+ */
+export function godot_node_duplicate_state(className: string, copy: (from: object, to: object) => void): void {
+  DUPLICATE_STATE.set(className, copy);
+}
+
+/**
+ * `Node::_duplicate` then `_duplicate_properties` (`node.cpp:2777`, `:3071`): a node of the same
+ * class (the entity's three copy, which carries its three-side values), its name, its groups with
+ * `DUPLICATE_GROUPS`, each class's stored state, and its children duplicated in order. Three
+ * objects the node renders with that are not nodes come along as three copies.
+ */
+function duplicateEntity(source: object, flags: number): object {
+  const state = NODE.get(source);
+  const classes = state?.classes;
+  if (state === undefined || classes === undefined) {
+    throw new Error('godot-compat: Node.duplicate needs the Godot class of a node the scene did not record.');
+  }
+  if (state.binding !== undefined && (flags & DUPLICATE_SCRIPTS) !== 0) {
+    throw new Error('godot-compat: Node.duplicate of a node with a script is not transcribed.');
+  }
+  const untranscribed = classes.find((name) => !DUPLICATE_STATE.has(name));
+  if (untranscribed !== undefined) {
+    throw new Error(`godot-compat: Node.duplicate does not copy ${untranscribed}'s state.`);
+  }
+  // Some three classes' `copy` recurses whatever it is asked (a light's): the copy's children are
+  // rebuilt here.
+  const copy = (source as Object3D).clone(false).clear();
+  for (const child of childEntities(source)) {
+    if (!NODE.has(child)) copy.add((child as Object3D).clone(true));
+  }
+  const copied = stateOf(copy);
+  copied.kind = state.kind;
+  copied.classes = classes;
+  copied.processMode = state.processMode;
+  copied.processPriority = state.processPriority;
+  copied.physicsProcessPriority = state.physicsProcessPriority;
+  if ((flags & DUPLICATE_GROUPS) !== 0) copied.groups = [...state.groups];
+  for (const name of classes) (DUPLICATE_STATE.get(name) as (from: object, to: object) => void)(source, copy);
+  for (const child of childEntities(source)) {
+    if (NODE.has(child)) add_child(copy, duplicateEntity(child, flags));
+  }
+  return copy;
+}
+
+/**
+ * The default flags duplicate signals, groups and scripts and use instantiation
+ * (`DUPLICATE_SIGNALS | DUPLICATE_GROUPS | DUPLICATE_SCRIPTS | DUPLICATE_USE_INSTANTIATION`).
+ * Scripted nodes and signal connections are not transcribed: a scripted node throws, and the
+ * copy has no connections (`DUPLICATE_SIGNALS` copies only a scene's persistent ones).
+ *
+ * @godot Node.duplicate
+ * @source scene/main/node.cpp:2929
+ */
+export function duplicate(self: object, flags = 15): unknown {
+  return objectOf(duplicateEntity(native(self, 'duplicate'), flags));
+}
+
 /**
  * Fails when the child already has a parent or is the node itself; otherwise names it uniquely,
  * attaches it, and when the parent is inside the tree enters it (and readies it when the parent is

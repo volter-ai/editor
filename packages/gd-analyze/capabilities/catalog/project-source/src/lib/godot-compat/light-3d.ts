@@ -16,6 +16,8 @@
 
 import { LinearSRGBColorSpace, type Light, PointLight } from 'three';
 import { construct as color, type Color } from './color';
+import { godot_node_duplicate_state } from './node';
+import './visual-instance-3d';
 
 const f32 = Math.fround;
 
@@ -34,6 +36,12 @@ interface LightState {
 }
 
 const STATE = new WeakMap<Light, LightState>();
+
+// `duplicate` copies the stored light properties; the three copy carries their three-side values.
+godot_node_duplicate_state('Light3D', (from, to) => {
+  const state = STATE.get(from as Light);
+  if (state !== undefined) STATE.set(to as Light, { ...state, params: [...state.params] });
+});
 
 /** `Light3D::Light3D` (`light_3d.cpp:463`): the parameters every light starts with. */
 function initialParams(): number[] {

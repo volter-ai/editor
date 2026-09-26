@@ -22,6 +22,7 @@ import {
   godot_collision_objects_sync,
   godot_collision_objects_transforms_changed,
 } from './collision-object-3d';
+import { godot_node_3d_world_source } from './node-3d';
 import { godot_tree_physics_server } from './scene-tree';
 
 export interface PhysicsSpace3D {
@@ -82,6 +83,7 @@ export function godot_world_3d_attach(world: World): World3D {
   const space: PhysicsSpace3D = Object.freeze({ world });
   const world3d: World3D = Object.freeze({ space });
   current = { world3d, state: Object.freeze({ space }) };
+  godot_node_3d_world_source(godot_world_3d);
   const events = new EventQueue(true);
   godot_tree_physics_server({
     flush: () => {

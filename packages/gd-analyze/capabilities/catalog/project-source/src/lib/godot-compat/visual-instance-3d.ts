@@ -10,8 +10,16 @@
  */
 
 import type { Object3D } from 'three';
+import { godot_node_duplicate_state } from './node';
+import './node-3d';
 
 const LAYERS = new WeakMap<Object3D, number>();
+
+// `duplicate` copies `layers` (the three copy carries the mask).
+godot_node_duplicate_state('VisualInstance3D', (from, to) => {
+  const mask = LAYERS.get(from as Object3D);
+  if (mask !== undefined) LAYERS.set(to as Object3D, mask);
+});
 
 /**
  * @godot VisualInstance3D.set_layer_mask
