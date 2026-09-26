@@ -1045,6 +1045,7 @@ export function bindGodotProject(
       bound: GodotBoundScript,
       placed: readonly BoundGodotScriptAttachment[],
     ): Pick<BoundGodotSourceScript, 'callReceivers' | 'untypedCalls'> => {
+      const selfOf = selfReceiver(program.resPath);
       const typed = typeCallReceivers({
         program: bound,
         attachments: placed,
@@ -1052,7 +1053,7 @@ export function bindGodotProject(
         apiDump: apiDump.parsed,
         scriptMethodsAt: (documentPath, nodePath) =>
           scriptMethodsByNode.get(`${documentPath}\0${nodePath}`),
-        self: selfReceiver(program.resPath),
+        ...(selfOf === undefined ? {} : { self: selfOf }),
         claim: (rule) => analysisEvidence.liveClaim(rule),
       });
       return { callReceivers: typed.receivers, untypedCalls: typed.untyped };
