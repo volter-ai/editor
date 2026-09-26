@@ -81,7 +81,12 @@ export interface SendProps {
 }
 
 /** A device parameter: a number, a string, a switch, or a list of them (an equaliser's bands). */
-export type DeviceParam = number | string | boolean | readonly Readonly<Record<string, number | string | boolean>>[];
+export type DeviceParam =
+  | number
+  | string
+  | boolean
+  | readonly Readonly<Record<string, number | string | boolean>>[]
+  | Readonly<Record<string, number>>;
 
 /**
  * DAWproject `Device`: an instrument or effect on a channel, named by its plugin. The built-in
@@ -89,6 +94,11 @@ export type DeviceParam = number | string | boolean | readonly Readonly<Record<s
  * | 'lowShelf' | 'highShelf' | 'bell', freq, gain?, q? }`), `compressor` (`threshold`, `ratio`,
  * `attack`, `release`, `knee`, `makeup`), `limiter` (`ceiling`, `release`), and `convolution`
  * (`ir`: a project path to an impulse response WAV, `predelay` ms, `wet` 0–1).
+ *
+ * The instrument is `soundfont` (`bank`: a project path to an .sf2/.sf3, `program`, `bankNumber`,
+ * `drums`). Its `articulations` maps a note's `artic` to the program in the same bank that plays
+ * it, where the bank records that articulation apart (`{ staccato: 101, pizzicato: 102 }`): a
+ * note with a mapped `artic` sounds on that patch, every other note on `program`.
  */
 export interface DeviceProps {
   readonly plugin: string;
@@ -107,7 +117,9 @@ export interface ClipProps {
 
 /**
  * DAWproject `Note`: a note name at a position for a length. `vel` and `rel` are 0…1. `artic` is
- * how it is played: `staccato`, `staccatissimo`, `tenuto`, `accent`, `marcato` or `legato`.
+ * how it is played: `staccato`, `staccatissimo`, `tenuto`, `accent`, `marcato` or `legato`, or a
+ * technique a sampled instrument records apart, `pizzicato` or `tremolo`. A soundfont device's
+ * `articulations` names the patch that plays each (see `DeviceProps`).
  */
 export interface NoteProps {
   readonly at: Position;
@@ -115,7 +127,7 @@ export interface NoteProps {
   readonly dur: Length;
   readonly vel?: number;
   readonly rel?: number;
-  readonly artic?: 'staccato' | 'staccatissimo' | 'tenuto' | 'accent' | 'marcato' | 'legato';
+  readonly artic?: 'staccato' | 'staccatissimo' | 'tenuto' | 'accent' | 'marcato' | 'legato' | 'pizzicato' | 'tremolo';
 }
 
 /**

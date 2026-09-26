@@ -10,6 +10,8 @@
  *     half-beat; against a single-line bass track the pair is already the top-line pair, so it
  *     is not counted twice
  *   - the same pitch struck again in a track while it is still sounding
+ *   - a technique (`pizzicato`, `tremolo`) on a track whose instrument names no patch for it in
+ *     `articulations`: nothing else can play it, so it would sound as a sustained note
  *
  * It cannot tell whether the music is good; it tells where it is certainly careless.
  */
@@ -75,6 +77,22 @@ export function checkPiece(piece: Piece): PieceChecks {
         if (range && (note.pitch < range[0] || note.pitch > range[1])) {
           problems.push(`${track.name} (${range[2]}): pitch ${note.pitch} at ${barBeat(note.start)} is outside ${range[0]}–${range[1]}`);
         }
+      }
+    }
+  }
+
+  // A technique only a separate patch plays, on an instrument that names none.
+  const TECHNIQUES = new Set(['pizzicato', 'tremolo']);
+  for (const track of piece.tracks) {
+    const device = track.channel?.devices.find((candidate) => candidate.plugin === 'soundfont');
+    const map = device?.params['articulations'];
+    const mapped = map && typeof map === 'object' && !Array.isArray(map) ? (map as Readonly<Record<string, number>>) : {};
+    const reported = new Set<string>();
+    for (const clip of track.clips) {
+      for (const note of clip.notes) {
+        if (!note.artic || !TECHNIQUES.has(note.artic) || typeof mapped[note.artic] === 'number' || reported.has(note.artic)) continue;
+        reported.add(note.artic);
+        problems.push(`${track.name}: ${note.artic} at ${barBeat(note.start)} has no patch (its device's params.articulations names none), so it plays as a sustained note`);
       }
     }
   }

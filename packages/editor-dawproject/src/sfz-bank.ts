@@ -14,7 +14,8 @@
  * each region's gain is baked into its sample's data, less one headroom for the whole bank: the
  * highest sample peak plus gain among the regions converted, so no sample clips. Every preset
  * keeps its level relative to the others, and the bank as a whole sits that headroom below the
- * SFZ's own level (12 dB for VSCO 2 CE's violins and flute). Attenuating from the loudest
+ * SFZ's own level (12 dB for VSCO 2 CE's violins and flute; a table build takes the whole
+ * library's, `sfzHeadroom`, so instruments in separate banks keep their balance). Attenuating from the loudest
  * `volume` instead put the flute 34 dB below its SFZ level. A sample two regions share at
  * different gains keeps the higher gain in its data and attenuates the other zone; SpessaSynth
  * reads `initialAttenuation` at 0.4 of its value (the E-mu convention), so N dB is written as 25·N.
@@ -81,10 +82,9 @@ function timecents(seconds: number): number {
   return Math.round(1200 * Math.log2(Math.max(0.001, seconds)));
 }
 
-/** The bank's bytes: one preset per patch. */
-export function sfzBank(patches: readonly SfzPatch[]): ArrayBuffer {
-  // Every region to convert, with its sample's audio and its gain.
-  const converted = patches.map((patch) => {
+/** Every region to convert, with its sample path and its gain. */
+function convertedRegions(patches: readonly SfzPatch[]) {
+  return patches.map((patch) => {
     const { regions, defaultPath } = parseSfz(patch.sfz);
     const kept = regions.filter((region) => {
       for (const opcode of Object.keys(region)) {
@@ -97,6 +97,30 @@ export function sfzBank(patches: readonly SfzPatch[]): ArrayBuffer {
     });
     return { patch, regions: kept.map((region) => ({ region, path: `${defaultPath}${region['sample']!.replace(/\\/g, '/')}`, gainDb: Number(region['volume'] ?? 0) })) };
   });
+}
+
+function peakDbOf(audio: { readonly channels: readonly Float32Array[] }): number {
+  let peak = 0;
+  for (const channel of audio.channels) for (const value of channel) peak = Math.max(peak, Math.abs(value));
+  return 20 * Math.log10(Math.max(peak, 1e-9));
+}
+
+/**
+ * The headroom these patches need: their highest sample peak plus gain (0 when none boosts past
+ * full scale). Banks built separately from one library take the library's headroom, so their
+ * instruments keep their levels relative to one another across banks.
+ */
+export function sfzHeadroom(patches: readonly SfzPatch[]): number {
+  let headroom = 0;
+  for (const { patch, regions } of convertedRegions(patches)) {
+    for (const { path, gainDb } of regions) headroom = Math.max(headroom, peakDbOf(patch.sample(path)) + gainDb);
+  }
+  return headroom;
+}
+
+/** The bank's bytes: one preset per patch, `headroomDb` below the SFZ's own level (default: what these patches need). */
+export function sfzBank(patches: readonly SfzPatch[], headroomDb?: number): ArrayBuffer {
+  const converted = convertedRegions(patches);
   const audio = new Map<string, { readonly channels: readonly Float32Array[]; readonly sampleRate: number }>();
   const gainOf = new Map<string, number>();
   for (const { patch, regions } of converted) {
@@ -105,12 +129,9 @@ export function sfzBank(patches: readonly SfzPatch[]): ArrayBuffer {
       gainOf.set(path, Math.max(gainOf.get(path) ?? -Infinity, gainDb));
     }
   }
-  const peakDb = (path: string): number => {
-    let peak = 0;
-    for (const channel of audio.get(path)!.channels) for (const value of channel) peak = Math.max(peak, Math.abs(value));
-    return 20 * Math.log10(Math.max(peak, 1e-9));
-  };
-  const headroom = Math.max(0, ...[...gainOf].map(([path, gain]) => peakDb(path) + gain));
+  const needed = Math.max(0, ...[...gainOf].map(([path, gain]) => peakDbOf(audio.get(path)!) + gain));
+  if (headroomDb !== undefined && headroomDb < needed - 1e-9) throw new Error(`These patches need ${needed.toFixed(1)} dB of headroom; ${headroomDb} dB would clip.`);
+  const headroom = headroomDb ?? needed;
 
   const bank = new BasicSoundBank();
   bank.soundBankInfo.name = 'VSCO 2 CE';

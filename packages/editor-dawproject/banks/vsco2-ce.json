@@ -1,0 +1,442 @@
+{
+  "library": "VS Chamber Orchestra 2: Community Edition (CC0, Versilian Studios)",
+  "source": "https://github.com/sgossner/VSCO-2-CE (samples: master; SFZ: branch SFZ)",
+  "banks": [
+    {
+      "bank": "vsco2/violins.sf2",
+      "patches": [
+        {
+          "name": "Violins",
+          "program": 48,
+          "sfz": "ViolinEnsSusVib.sfz"
+        },
+        {
+          "name": "Violins Quiet",
+          "program": 81,
+          "sfz": "ViolinEnsSusVib-Quiet.sfz"
+        },
+        {
+          "name": "Violins Spic",
+          "program": 80,
+          "sfz": "ViolinEnsSpic.sfz"
+        },
+        {
+          "name": "Violins Pizz",
+          "program": 45,
+          "sfz": "ViolinEnsPizz.sfz"
+        },
+        {
+          "name": "Violins Trem",
+          "program": 44,
+          "sfz": "ViolinEnsTrem.sfz"
+        }
+      ]
+    },
+    {
+      "bank": "vsco2/violas.sf2",
+      "patches": [
+        {
+          "name": "Violas",
+          "program": 41,
+          "sfz": "ViolaEnsSusVib.sfz"
+        },
+        {
+          "name": "Violas Quiet",
+          "program": 85,
+          "sfz": "ViolaEnsSusVib-Quiet.sfz"
+        },
+        {
+          "name": "Violas Spic",
+          "program": 82,
+          "sfz": "ViolaEnsSpic.sfz"
+        },
+        {
+          "name": "Violas Pizz",
+          "program": 83,
+          "sfz": "ViolaEnsPizz.sfz"
+        },
+        {
+          "name": "Violas Trem",
+          "program": 84,
+          "sfz": "ViolaEnsTrem.sfz"
+        }
+      ]
+    },
+    {
+      "bank": "vsco2/cellos.sf2",
+      "patches": [
+        {
+          "name": "Cellos",
+          "program": 42,
+          "sfz": "CelloEnsSusVib.sfz"
+        },
+        {
+          "name": "Cellos Quiet",
+          "program": 89,
+          "sfz": "CelloEnsSusVib-Quiet.sfz"
+        },
+        {
+          "name": "Cellos Spic",
+          "program": 86,
+          "sfz": "CelloEnsSpic.sfz"
+        },
+        {
+          "name": "Cellos Pizz",
+          "program": 87,
+          "sfz": "CelloEnsPizz.sfz"
+        },
+        {
+          "name": "Cellos Trem",
+          "program": 88,
+          "sfz": "CelloEnsTrem.sfz"
+        }
+      ]
+    },
+    {
+      "bank": "vsco2/contrabass.sf2",
+      "patches": [
+        {
+          "name": "Contrabass",
+          "program": 43,
+          "sfz": "ContrabassSusVB.sfz"
+        },
+        {
+          "name": "Contrabass NV",
+          "program": 93,
+          "sfz": "ContrabassSusNV.sfz"
+        },
+        {
+          "name": "Contrabass Quiet",
+          "program": 94,
+          "sfz": "ContrabassSusVB-Quiet.sfz"
+        },
+        {
+          "name": "Contrabass Spic",
+          "program": 90,
+          "sfz": "ContrabassSpic.sfz"
+        },
+        {
+          "name": "Contrabass Pizz",
+          "program": 91,
+          "sfz": "ContrabassPizz.sfz"
+        },
+        {
+          "name": "Contrabass Trem",
+          "program": 92,
+          "sfz": "ContrabassTrem.sfz"
+        }
+      ]
+    },
+    {
+      "bank": "vsco2/solo-violin.sf2",
+      "patches": [
+        {
+          "name": "Solo Violin",
+          "program": 40,
+          "sfz": "SViolinVib.sfz"
+        },
+        {
+          "name": "Solo Violin Quiet",
+          "program": 98,
+          "sfz": "SViolinVib-Quiet.sfz"
+        },
+        {
+          "name": "Solo Violin Spic",
+          "program": 95,
+          "sfz": "SViolinSpic.sfz"
+        },
+        {
+          "name": "Solo Violin Pizz",
+          "program": 96,
+          "sfz": "SViolinPizz.sfz"
+        },
+        {
+          "name": "Solo Violin Trem",
+          "program": 97,
+          "sfz": "SViolinTrem.sfz"
+        }
+      ]
+    },
+    {
+      "bank": "vsco2/harp.sf2",
+      "patches": [
+        {
+          "name": "Harp",
+          "program": 46,
+          "sfz": "Harp.sfz"
+        }
+      ]
+    },
+    {
+      "bank": "vsco2/flute.sf2",
+      "patches": [
+        {
+          "name": "Flute",
+          "program": 73,
+          "sfz": "FluteSusVib.sfz"
+        },
+        {
+          "name": "Flute NV",
+          "program": 100,
+          "sfz": "FluteSusNV.sfz"
+        },
+        {
+          "name": "Flute Exp",
+          "program": 101,
+          "sfz": "FluteExpVib.sfz"
+        },
+        {
+          "name": "Flute Stac",
+          "program": 99,
+          "sfz": "FluteStac.sfz"
+        }
+      ]
+    },
+    {
+      "bank": "vsco2/piccolo.sf2",
+      "patches": [
+        {
+          "name": "Piccolo",
+          "program": 72,
+          "sfz": "PiccoloSus.sfz"
+        },
+        {
+          "name": "Piccolo Stac",
+          "program": 107,
+          "sfz": "PiccoloStac.sfz"
+        }
+      ]
+    },
+    {
+      "bank": "vsco2/oboe.sf2",
+      "patches": [
+        {
+          "name": "Oboe",
+          "program": 68,
+          "sfz": "OboeSusVib.sfz"
+        },
+        {
+          "name": "Oboe NV",
+          "program": 103,
+          "sfz": "OboeSusNV.sfz"
+        },
+        {
+          "name": "Oboe Stac",
+          "program": 102,
+          "sfz": "OboeStac.sfz"
+        }
+      ]
+    },
+    {
+      "bank": "vsco2/clarinet.sf2",
+      "patches": [
+        {
+          "name": "Clarinet",
+          "program": 71,
+          "sfz": "ClarinetSus.sfz"
+        },
+        {
+          "name": "Clarinet Stac",
+          "program": 104,
+          "sfz": "ClarinetStac.sfz"
+        }
+      ]
+    },
+    {
+      "bank": "vsco2/bassoon.sf2",
+      "patches": [
+        {
+          "name": "Bassoon",
+          "program": 70,
+          "sfz": "BassoonSus.sfz"
+        },
+        {
+          "name": "Bassoon Vib",
+          "program": 106,
+          "sfz": "BassoonVib.sfz"
+        },
+        {
+          "name": "Bassoon Stac",
+          "program": 105,
+          "sfz": "BassoonStac.sfz"
+        }
+      ]
+    },
+    {
+      "bank": "vsco2/horn.sf2",
+      "patches": [
+        {
+          "name": "French Horn",
+          "program": 60,
+          "sfz": "FHornSus.sfz"
+        },
+        {
+          "name": "Horn Mute",
+          "program": 109,
+          "sfz": "FHornMute.sfz"
+        },
+        {
+          "name": "Horn Stac",
+          "program": 108,
+          "sfz": "FHornStac.sfz"
+        }
+      ]
+    },
+    {
+      "bank": "vsco2/trumpet.sf2",
+      "patches": [
+        {
+          "name": "Trumpet",
+          "program": 56,
+          "sfz": "TrumpetSus.sfz"
+        },
+        {
+          "name": "Trumpet Vib",
+          "program": 111,
+          "sfz": "TrumpetSusVib.sfz"
+        },
+        {
+          "name": "Trumpet Mute",
+          "program": 59,
+          "sfz": "TrumpetStraightMuteSus.sfz"
+        },
+        {
+          "name": "Trumpet Harmon",
+          "program": 112,
+          "sfz": "TrumpetHarmonMuteSus.sfz"
+        },
+        {
+          "name": "Trumpet Stac",
+          "program": 110,
+          "sfz": "TrumpetStac.sfz"
+        }
+      ]
+    },
+    {
+      "bank": "vsco2/trombone.sf2",
+      "patches": [
+        {
+          "name": "Trombone",
+          "program": 57,
+          "sfz": "TromboneSus.sfz"
+        },
+        {
+          "name": "Trombone Vib",
+          "program": 114,
+          "sfz": "TromboneVib.sfz"
+        },
+        {
+          "name": "Trombone Stac",
+          "program": 113,
+          "sfz": "TromboneStac.sfz"
+        }
+      ]
+    },
+    {
+      "bank": "vsco2/tuba.sf2",
+      "patches": [
+        {
+          "name": "Tuba",
+          "program": 58,
+          "sfz": "TubaSus.sfz"
+        },
+        {
+          "name": "Tuba Stac",
+          "program": 115,
+          "sfz": "TubaStac.sfz"
+        }
+      ]
+    },
+    {
+      "bank": "vsco2/timpani.sf2",
+      "patches": [
+        {
+          "name": "Timpani",
+          "program": 47,
+          "sfz": "Timpani.sfz"
+        },
+        {
+          "name": "Timpani Rolls",
+          "program": 116,
+          "sfz": "TimpaniRolls.sfz"
+        }
+      ]
+    },
+    {
+      "bank": "vsco2/mallets.sf2",
+      "patches": [
+        {
+          "name": "Glockenspiel",
+          "program": 9,
+          "sfz": "Glockenspiel.sfz"
+        },
+        {
+          "name": "Marimba",
+          "program": 12,
+          "sfz": "Marimba.sfz"
+        },
+        {
+          "name": "Xylophone",
+          "program": 13,
+          "sfz": "Xylophone.sfz"
+        },
+        {
+          "name": "Tubular Bells",
+          "program": 14,
+          "sfz": "TubularBells.sfz"
+        }
+      ]
+    },
+    {
+      "bank": "vsco2/organ.sf2",
+      "patches": [
+        {
+          "name": "Organ Loud",
+          "program": 19,
+          "sfz": "OrganLoud.sfz"
+        },
+        {
+          "name": "Organ Quiet",
+          "program": 20,
+          "sfz": "OrganQuiet.sfz"
+        },
+        {
+          "name": "Organ Loud Pedal",
+          "program": 117,
+          "sfz": "OrganLoudPedal.sfz"
+        },
+        {
+          "name": "Organ Quiet Pedal",
+          "program": 118,
+          "sfz": "OrganQuietPedal.sfz"
+        }
+      ]
+    },
+    {
+      "bank": "vsco2/piano.sf2",
+      "patches": [
+        {
+          "name": "Upright Piano",
+          "program": 0,
+          "sfz": "UprightPiano.sfz"
+        },
+        {
+          "name": "VS Upright",
+          "program": 1,
+          "sfz": "VSUpright1.sfz"
+        }
+      ]
+    },
+    {
+      "bank": "vsco2/percussion.sf2",
+      "patches": [
+        {
+          "name": "Percussion",
+          "program": 0,
+          "sfz": "GM-StylePerc.sfz",
+          "bankNumber": 128
+        }
+      ]
+    }
+  ]
+}

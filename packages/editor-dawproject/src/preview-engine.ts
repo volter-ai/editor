@@ -18,6 +18,7 @@ import { type Performance, perform } from '@volter/dawproject/perform';
 import type { Piece, PieceTrack } from '@volter/dawproject/piece';
 import { projectModuleUrl } from '@volter/editor-sdk/contributions';
 import { WorkletSynthesizer } from 'spessasynth_lib';
+import { articulationPrograms } from './articulations';
 import { LiveMix, mixSignature, servedIrLoader } from './mix/live-mix';
 import processorUrl from 'spessasynth_lib/dist/spessasynth_processor.min.js?url';
 
@@ -61,6 +62,7 @@ export function scheduleSpan(
   if (span <= 0) return;
   const voices = trackVoices(piece);
   const audibleTracks = new Map(piece.tracks.map((track) => [track.id, audible(piece, track)]));
+  const patchOf = articulationPrograms(piece);
   let from = fromSecond;
   while (from < toSecond) {
     // Piece-seconds count up across passes; each pass is folded into the loop to find its events.
@@ -84,6 +86,8 @@ export function scheduleSpan(
       const voice = voices.get(note.track);
       if (!voice || !audibleTracks.get(note.track)) continue;
       const velocity = Math.max(1, Math.min(127, Math.round(note.velocity * 127)));
+      const patch = patchOf.get(note.track);
+      if (patch) synth.programChange(voice.channel, patch(note.artic), { time: at(passStart + note.start) });
       synth.noteOn(voice.channel, note.pitch, velocity, { time: at(passStart + note.start) });
       synth.noteOff(voice.channel, note.pitch, { time: at(passStart + note.end) });
     }

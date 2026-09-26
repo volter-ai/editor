@@ -10,6 +10,7 @@
 
 import { perform } from '@volter/dawproject/perform';
 import type { Piece } from '@volter/dawproject/piece';
+import { articulationPrograms } from './articulations';
 import { type ImpulseResponse, mix } from './mix/offline-mix';
 import { MIDIBuilder, SoundBankLoader, SpessaSynthProcessor } from 'spessasynth_core';
 
@@ -138,7 +139,7 @@ export interface RenderedChannels {
 /** One thing the synth does, at one sample: a note, a controller, a channel's setup. */
 interface SynthEvent {
   readonly sample: number;
-  /** Among events on one sample: setup first, then controllers, note-offs, note-ons. */
+  /** Among events on one sample: setup first, then controllers, note-offs, a note's patch, note-ons. */
   readonly rank: number;
   readonly apply: (synth: SpessaSynthProcessor) => void;
 }
@@ -185,6 +186,7 @@ function synthEvents(
   const controls = [...[...carried.values()].map((control) => ({ ...control, time: 0 })), ...performance.controls.filter((control) => inWindow(control.time)).map((control) => ({ ...control, time: control.time - from }))];
   const notes = performance.notes.filter((note) => inWindow(note.start)).map((note) => ({ ...note, start: note.start - from, end: note.end - from }));
   const events: SynthEvent[] = [];
+  const patchOf = articulationPrograms(piece);
   for (const track of audibleTracks(piece)) {
     const assignment = assignments.get(track.id)!;
     const { channel } = assignment;
@@ -221,6 +223,11 @@ function synthEvents(
       if (channel === undefined || !audible.has(note.track)) continue;
       const velocity = Math.max(1, Math.min(127, Math.round(note.velocity * 127)));
       const on = at(note.start);
+      const patch = patchOf.get(note.track);
+      if (patch) {
+        const program = patch(note.artic);
+        events.push({ sample: on, rank: 2.5, apply: (synth) => synth.programChange(channel, program) });
+      }
       events.push({ sample: on, rank: 3, apply: (synth) => synth.noteOn(channel, note.pitch, velocity) });
       events.push({ sample: Math.max(on + 1, at(note.end)), rank: 2, apply: (synth) => synth.noteOff(channel, note.pitch) });
     }
