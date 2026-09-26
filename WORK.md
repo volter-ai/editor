@@ -174,8 +174,9 @@ project's 16-bar orchestral piece: moving, transposing, adding and deleting note
 automation points, faders, pan, mute, send levels and device parameters (a member of
 `params={{ … }}`, added when unwritten) each write the literal in the piece's source, and
 Freeze writes a generated clip out as literals; each undoes and redoes through the workbench's
-stack byte-identically, and generated notes refuse and name their line. Renders are byte-deterministic; stems null against the mix to
-−143.6 dB with the master's dynamics bypassed (−30.7 dB with them: nonlinear, as expected).
+stack byte-identically, and generated notes refuse and name their line. Renders are
+byte-deterministic; stems null against the mix to −143.6 dB with the master's dynamics
+bypassed (−30.7 dB with them: nonlinear, as expected).
 A render of the probe piece takes 86 s. `freeze-clip` wrote the piece's three generated
 clips out as literals with the vertical view and `check-piece` unchanged. The editor's mix
 graph, rendered offline in the page on the export's own dry signals, nulls against the
@@ -187,15 +188,16 @@ For a game, `add music` brings the packages, the `vgai-music` skill and a player
 the `project.music.render` tool (and the `render-piece` CLI it shares its code with) writes
 through the project-output door, so `.vgai/provenance.json` records every file a game ships,
 with renders byte-deterministic down to the OGG; `sections` writes each marker section as its
-own seamless loop at the mix's level (lengths exact to the frame against the report's `barSeconds`) and `oneShot` a stinger. Driven in the editor page on an OfflineAudioContext, the player switched from one
-section loop to the next on the bar line it computed (6.05 s, the report's bar 3 plus the
-lead), with the output equal to each loop's own samples on either side of the fade.
+own seamless loop at the mix's level (lengths exact to the frame against the report's
+`barSeconds`) and `oneShot` a stinger. Driven in the editor page on an OfflineAudioContext,
+the player switched from one section loop to the next on the bar line it computed (6.05 s,
+the report's bar 3 plus the lead), with the output equal to each loop's own samples on either
+side of the fade.
 
 Open, with what closes each:
 - Live against export, synth half: the preview's worklet synthesizer and its real-time
   scheduler against the export's offline synthesizer, as one null number (the mix half is
   measured above).
-- Game delivery: stingers and adaptive segments or layers, exported with loop points.
 - Sampled instruments beyond the General MIDI SoundFont. Found: sfizz's own WebAudio build
   (`sfztools/sfizz-webaudio`, GitHub only, last pushed 2024-06); no SFZ engine on npm, no native
   sfizz on the box. Proposed, not yet measured: sfizz's WASM in both the preview's worklet and the
@@ -206,8 +208,6 @@ Open, with what closes each:
   preceded by the same music is bit-identical. In the probe piece, section A′ nulls against
   its bars in the whole loop at −92 dB past its first 3 s (the wrapped tail), but section A at
   −23 dB (flute and cello most). The state that carries is not identified.
-- A zero-root project graded a phantom root in the session coverage; fixed in
-  `editor-core`, live once the product is rebuilt.
 
 ## Both products in the browser substrate
 
