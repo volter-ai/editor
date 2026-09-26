@@ -216,6 +216,8 @@ export function PieceEditor({
           selectedTrack={selectedTrack ?? clip?.track.id ?? null}
           onSelectTrack={setSelectedTrack}
           voiceless={new Set([...voices].filter(([, voice]) => voice === null).map(([id]) => id))}
+          active={active}
+          writes={{ index, file, documentId, onMessage: setMessage }}
         />
       </div>
       <div style={{ display: 'flex', gap: 2, padding: '2px 6px', borderBottom: `1px solid ${themeVars.boundary.default}` }}>
