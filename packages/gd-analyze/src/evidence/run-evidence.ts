@@ -777,15 +777,20 @@ function apiUtilityHash(apiDumpFile: string, member: string): number {
   return hash;
 }
 
+/**
+ * A class method's hash in the API dump. A property's internal accessor (`_set_anchor`,
+ * `_set_layout_mode`) is bound in ClassDB but left out of the dump's methods; it has no hash (0,
+ * `unhashed`), as a scene's property setter resolves it.
+ */
 function apiClassMethodHash(apiDumpFile: string, owner: string, member: string): number {
   const api = JSON.parse(readFileSync(apiDumpFile, 'utf8')) as {
-    classes: { name: string; methods?: { name: string; hash: number }[] }[];
+    classes: { name: string; methods?: { name: string; hash: number }[]; properties?: { setter?: string; getter?: string }[] }[];
   };
-  const hash = api.classes
-    .find((entry) => entry.name === owner)
-    ?.methods?.find((entry) => entry.name === member)?.hash;
-  if (hash === undefined) throw new Error(`API dump has no method ${owner}.${member} declared on ${owner}`);
-  return hash;
+  const entry = api.classes.find((candidate) => candidate.name === owner);
+  const hash = entry?.methods?.find((method) => method.name === member)?.hash;
+  if (hash !== undefined) return hash;
+  if (member.startsWith('_') && entry?.properties?.some((property) => property.setter === member || property.getter === member) === true) return 0;
+  throw new Error(`API dump has no method ${owner}.${member} declared on ${owner}`);
 }
 
 function apiMethodHash(apiDumpFile: string, owner: string, member: string): number {
@@ -947,7 +952,7 @@ function bindingSymbol(
       return {
         ...base,
         kind: 'native-member',
-        signature: `hash:${String(apiClassMethodHash(pins.apiDumpFile, symbol.owner, symbol.member))}`,
+        signature: ((hash) => (hash === 0 ? 'unhashed' : `hash:${String(hash)}`))(apiClassMethodHash(pins.apiDumpFile, symbol.owner, symbol.member)),
       };
     case 'utility-function':
       return {

@@ -301,5 +301,43 @@ for (const member of ['set_mouse_filter', 'get_mouse_filter']) {
   ]);
 }
 
+// The scene's layout properties: `layout_mode`, `anchors_preset` and `anchor_*` set before the node
+// is parented (as a scene sets them), then read once it is in a plain parent or a container.
+const LAYOUT: Segment[] = [
+  {
+    ops: [
+      { node: 'box', kind: 'HBoxContainer' },
+      ...[
+        ['a', 1, 15],
+        ['b', 1, 8],
+        ['c', 0, 6],
+        ['d', 1, -1],
+        ['e', 3, 3],
+      ].flatMap(([tag, mode, preset]): Op[] => [
+        { node: tag as string, kind: 'Control', detached: true },
+        { call: 'set_custom_minimum_size', on: tag as string, args: [v2(20, 10)] },
+        { call: '_set_layout_mode', on: tag as string, args: [int(mode as number)] },
+        { call: '_set_anchors_layout_preset', on: tag as string, args: [int(preset as number)] },
+        { call: '_set_anchor', on: tag as string, args: [int(2), 0.75] },
+        { call: 'set_force_pass_scroll_events', on: tag as string, args: [false] },
+        { read: '_get_layout_mode', on: tag as string },
+        { read: '_get_anchors_layout_preset', on: tag as string },
+        { read: 'is_force_pass_scroll_events', on: tag as string },
+        ...EDGES(tag as string),
+      ]),
+      { add: 'a' },
+      { add: 'b' },
+      { add: 'c' },
+      { add: 'd', to: 'box' },
+      { add: 'e', to: 'a' },
+      ...['a', 'b', 'c', 'd', 'e'].flatMap((tag): Op[] => [{ read: '_get_layout_mode', on: tag }, { read: '_get_anchors_layout_preset', on: tag }]),
+    ],
+  },
+  { await: 1, ops: ['a', 'b', 'c', 'd', 'e'].flatMap((tag): Op[] => [...EDGES(tag), ...RECTS(tag)]) },
+];
+for (const member of ['_set_layout_mode', '_get_layout_mode', '_set_anchors_layout_preset', '_get_anchors_layout_preset', '_set_anchor', 'set_force_pass_scroll_events', 'is_force_pass_scroll_events']) {
+  add(`${member}-layout`, member, LAYOUT);
+}
+
 const EVIDENCE: GodotEvidenceCaseFile = { kind: 'node', godotClass: 'Control', compatModule: 'lib/godot-compat/control', cases };
 export default EVIDENCE;

@@ -80,10 +80,17 @@ const PRESET_FULL_RECT = 15;
 const PRESET_MODE_MINSIZE = 0;
 const PRESET_MODE_KEEP_WIDTH = 1;
 const PRESET_MODE_KEEP_HEIGHT = 2;
+const PRESET_MODE_KEEP_SIZE = 3;
 
 /** `Control::MouseFilter` (`scene/gui/control.h:89`). */
 const MOUSE_FILTER_STOP = 0;
 const MOUSE_FILTER_IGNORE = 2;
+
+/** `Control::LayoutMode` (`scene/gui/control.h:149`). */
+const LAYOUT_MODE_POSITION = 0;
+const LAYOUT_MODE_ANCHORS = 1;
+const LAYOUT_MODE_CONTAINER = 2;
+const LAYOUT_MODE_UNCONTROLLED = 3;
 
 /** `CMP_EPSILON` (`core/math/math_defs.h:50`), as `real_t`. */
 const CMP_EPSILON = f32(0.00001);
@@ -130,6 +137,10 @@ interface ControlState {
   maximumSizeValid: boolean;
   pendingSort: boolean;
   mouseFilter: number;
+  forcePassScrollEvents: boolean;
+  /** `data.stored_layout_mode`, `data.stored_use_custom_anchors` (`control.h:222`). */
+  storedLayoutMode: number;
+  storedUseCustomAnchors: boolean;
   /** The script's `_gui_input` and the class's own `gui_input`. */
   guiInput: ((event: unknown) => void) | undefined;
   nativeGuiInput: ((event: unknown) => void) | undefined;
@@ -188,6 +199,9 @@ export function godot_control_mount(entity: Object3D, classes: readonly string[]
     maximumSizeValid: false,
     pendingSort: false,
     mouseFilter: MOUSE_FILTER_STOP,
+    forcePassScrollEvents: true,
+    storedLayoutMode: LAYOUT_MODE_POSITION,
+    storedUseCustomAnchors: false,
     guiInput: undefined,
     nativeGuiInput: undefined,
   });
@@ -207,6 +221,10 @@ function parentContainer(entity: Object3D): Object3D | null {
  * `add_child_notify` (`container.cpp:46`: `update_minimum_size()`, `queue_sort()`).
  */
 function enteredTree(entity: Object3D): void {
+  // `NOTIFICATION_PARENTED`'s `_update_layout_mode` (`control.cpp:4493`), which the scene's parenting
+  // precedes its entering the tree.
+  const state = CONTROLS.get(entity) as ControlState;
+  state.storedLayoutMode = computedLayoutMode(entity, state);
   themeChanged(entity);
   updateMaximumSize(entity);
   sizeChanged(entity);
@@ -1336,4 +1354,135 @@ export function godot_control_call_gui_input(
     ev = move(ev, get_transform(item));
     item = godot_canvas_item_parent(item);
   }
+}
+
+// --- Layout modes and presets, as the scene's properties set them.
+
+/** `_get_layout_mode` (`control.cpp:978`). */
+function computedLayoutMode(entity: Object3D, state: ControlState): number {
+  const parent = entity.parent;
+  const parentState = parent === null ? undefined : CONTROLS.get(parent);
+  if (parentState === undefined) return LAYOUT_MODE_UNCONTROLLED;
+  if (parentState.virtuals.sort !== undefined) return LAYOUT_MODE_CONTAINER;
+  if (anchorsLayoutPreset(state) !== PRESET_TOP_LEFT) return LAYOUT_MODE_ANCHORS;
+  if (state.storedLayoutMode === LAYOUT_MODE_POSITION || state.storedLayoutMode === LAYOUT_MODE_ANCHORS) return state.storedLayoutMode;
+  return LAYOUT_MODE_POSITION;
+}
+
+/** `_get_anchors_layout_preset` (`control.cpp:1071`). */
+function anchorsLayoutPreset(state: ControlState): number {
+  if (state.storedLayoutMode !== LAYOUT_MODE_UNCONTROLLED && state.storedLayoutMode !== LAYOUT_MODE_ANCHORS) return PRESET_TOP_LEFT;
+  if (state.storedUseCustomAnchors) return -1;
+  const [left, top, right, bottom] = state.anchor as [number, number, number, number];
+  const is = (l: number, t: number, r: number, b: number): boolean => left === l && top === t && right === r && bottom === b;
+  if (is(0, 0, 0, 0)) return PRESET_TOP_LEFT;
+  if (is(1, 0, 1, 0)) return PRESET_TOP_RIGHT;
+  if (is(0, 1, 0, 1)) return PRESET_BOTTOM_LEFT;
+  if (is(1, 1, 1, 1)) return PRESET_BOTTOM_RIGHT;
+  if (is(0, 0.5, 0, 0.5)) return PRESET_CENTER_LEFT;
+  if (is(1, 0.5, 1, 0.5)) return PRESET_CENTER_RIGHT;
+  if (is(0.5, 0, 0.5, 0)) return PRESET_CENTER_TOP;
+  if (is(0.5, 1, 0.5, 1)) return PRESET_CENTER_BOTTOM;
+  if (is(0.5, 0.5, 0.5, 0.5)) return PRESET_CENTER;
+  if (is(0, 0, 0, 1)) return PRESET_LEFT_WIDE;
+  if (is(1, 0, 1, 1)) return PRESET_RIGHT_WIDE;
+  if (is(0, 0, 1, 0)) return PRESET_TOP_WIDE;
+  if (is(0, 1, 1, 1)) return PRESET_BOTTOM_WIDE;
+  if (is(0.5, 0, 0.5, 1)) return PRESET_VCENTER_WIDE;
+  if (is(0, 0.5, 1, 0.5)) return PRESET_HCENTER_WIDE;
+  if (is(0, 0, 1, 1)) return PRESET_FULL_RECT;
+  return -1;
+}
+
+/**
+ * The layout mode the node is in: uncontrolled without a parent Control, in a container under
+ * one, anchored when its anchors are not a top-left preset, else the stored mode.
+ *
+ * @godot Control._get_layout_mode
+ * @source scene/gui/control.cpp:978
+ */
+export function _get_layout_mode(self: object): number {
+  return computedLayoutMode(entityOf(self), stateOf(self, '_get_layout_mode'));
+}
+
+/**
+ * Stores the mode; `LAYOUT_MODE_POSITION` puts the node at the top-left preset keeping its size.
+ *
+ * @godot Control._set_layout_mode
+ * @source scene/gui/control.cpp:951
+ */
+export function _set_layout_mode(self: object, p_mode: number): void {
+  const state = stateOf(self, '_set_layout_mode');
+  state.storedLayoutMode = p_mode;
+  if (p_mode === LAYOUT_MODE_POSITION) {
+    state.storedUseCustomAnchors = false;
+    set_anchors_and_offsets_preset(self, PRESET_TOP_LEFT, PRESET_MODE_KEEP_SIZE);
+    godot_control_grow_direction_preset(self, PRESET_TOP_LEFT);
+  }
+}
+
+/**
+ * @godot Control._get_anchors_layout_preset
+ * @source scene/gui/control.cpp:1071
+ */
+export function _get_anchors_layout_preset(self: object): number {
+  return anchorsLayoutPreset(stateOf(self, '_get_anchors_layout_preset'));
+}
+
+/**
+ * `-1` (custom) keeps the anchors; otherwise, anchored or uncontrolled, the preset's anchors, its
+ * offsets (keeping the size for a corner or center, the minimum size for a wide preset) and grow
+ * directions.
+ *
+ * @godot Control._set_anchors_layout_preset
+ * @source scene/gui/control.cpp:1014
+ */
+export function _set_anchors_layout_preset(self: object, p_preset: number): void {
+  const state = stateOf(self, '_set_anchors_layout_preset');
+  if (p_preset === -1) {
+    state.storedUseCustomAnchors = true;
+    return;
+  }
+  if (state.storedLayoutMode !== LAYOUT_MODE_UNCONTROLLED && state.storedLayoutMode !== LAYOUT_MODE_ANCHORS) return;
+  state.storedUseCustomAnchors = false;
+  set_anchors_preset(self, p_preset);
+  const wide = p_preset >= PRESET_LEFT_WIDE;
+  set_offsets_preset(self, p_preset, wide ? PRESET_MODE_MINSIZE : PRESET_MODE_KEEP_SIZE);
+  godot_control_grow_direction_preset(self, p_preset);
+}
+
+/**
+ * `set_anchor(side, anchor)` with its defaults, the `anchor_*` properties' setter.
+ *
+ * @godot Control._set_anchor
+ * @source scene/gui/control.cpp:786
+ */
+export function _set_anchor(self: object, p_side: number, p_anchor: number): void {
+  set_anchor(self, p_side, p_anchor);
+}
+
+/**
+ * @godot Control.set_force_pass_scroll_events
+ * @source scene/gui/control.cpp:2639
+ */
+export function set_force_pass_scroll_events(self: object, p_force_pass_scroll_events: boolean): void {
+  stateOf(self, 'set_force_pass_scroll_events').forcePassScrollEvents = p_force_pass_scroll_events;
+}
+
+/**
+ * @godot Control.is_force_pass_scroll_events
+ * @source scene/gui/control.cpp:2644
+ */
+export function is_force_pass_scroll_events(self: object): boolean {
+  return stateOf(self, 'is_force_pass_scroll_events').forcePassScrollEvents;
+}
+
+/**
+ * A plain Control as its class creates it (`Control::Control`), for the scene's mount.
+ *
+ * @godot Control (protocol)
+ * @source scene/gui/control.cpp:5161
+ */
+export function godot_control_node_mount(entity: Object3D): void {
+  godot_control_mount(entity, ['Control', 'CanvasItem', 'Node']);
 }

@@ -74,7 +74,9 @@ export function sceneSetterLookup(
     }
     if (owner === undefined) return `${className} declares no property ${property}`;
     if (setter === undefined) return `${owner}.${property} has no setter`;
-    const selected = method(owner, setter);
+    // A property's internal setter (`_set_layout_mode`) is bound in ClassDB but not in the dump's
+    // methods: it has no hash.
+    const selected = method(owner, setter) ?? (setter.startsWith('_') ? { owner, hash: 0 } : undefined);
     if (selected === undefined) return `${owner} has no method ${setter}`;
     const symbol = {
       sourceRevision: resolver.sourceRevision,
