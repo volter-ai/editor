@@ -13,3 +13,10 @@ if git diff --cached --name-only | grep -qE '^(release/[^/]+\.json|packages/[^/]
   node scripts/check-release.mjs release/modeling.json || exit 1
   node scripts/check-release.mjs release/game.json || exit 1
 fi
+
+# A game's .gitignore has two copies: template/.gitignore (scaffolded from a checkout) and
+# template-dotfiles/gitignore (npm drops .gitignore from tarballs). The first is the source.
+if git diff --cached --name-only | grep -qE '^packages/game-editor/(template/\.gitignore|template-dotfiles/gitignore)$'; then
+  cp packages/game-editor/template/.gitignore packages/game-editor/template-dotfiles/gitignore
+  git add packages/game-editor/template-dotfiles/gitignore
+fi
