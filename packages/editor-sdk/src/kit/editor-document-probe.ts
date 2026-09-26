@@ -498,15 +498,15 @@ function resolveTarget(scope: Scope, selector: string, index: number): HTMLEleme
   return element;
 }
 
-function pointerInit(element: HTMLElement): MouseEventInit {
+function pointerInit(element: HTMLElement, at: readonly [number, number] = [0.5, 0.5]): MouseEventInit {
   const rect = element.getBoundingClientRect();
   return {
     bubbles: true,
     cancelable: true,
     composed: true,
     view: window,
-    clientX: rect.x + rect.width / 2,
-    clientY: rect.y + rect.height / 2,
+    clientX: rect.x + rect.width * at[0],
+    clientY: rect.y + rect.height * at[1],
     button: 0,
     buttons: 1,
   };
@@ -523,8 +523,8 @@ function pointerInit(element: HTMLElement): MouseEventInit {
  * nothing else, so a rename driven by two separate single clicks never starts
  * (measured against the Outliner's own `onDoubleClick` → `onStartEditing`).
  */
-function dispatchClick(element: HTMLElement, clicks = 1): void {
-  const init = pointerInit(element);
+function dispatchClick(element: HTMLElement, clicks = 1, at?: readonly [number, number]): void {
+  const init = pointerInit(element, at);
   const total = Math.max(1, Math.round(clicks));
   withoutPointerCapture(element, () => {
     for (let n = 1; n <= total; n++) {
@@ -927,7 +927,11 @@ export async function runDocumentProbe(step: DocumentProbeStep): Promise<Documen
     }
     case 'click': {
       const element = resolveTarget(scope, step.selector, step.index ?? 0);
-      dispatchClick(element, step.clicks ?? 1);
+      const at = step.at;
+      if (at !== undefined && !(Array.isArray(at) && at.length === 2 && at.every((v) => typeof v === 'number' && Number.isFinite(v)))) {
+        throw new Error(`click's \`at\` is [x, y], fractions of the element's box; got ${JSON.stringify(at)}.`);
+      }
+      dispatchClick(element, step.clicks ?? 1, at);
       return drove(element);
     }
     case 'type': {

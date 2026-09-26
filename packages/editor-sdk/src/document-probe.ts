@@ -128,6 +128,13 @@ export interface DocumentClickStep extends ScopedStep {
    * driven through `editor.setField`, which is not the control.
    */
   clicks?: number;
+  /**
+   * Where in the element the press lands, `[x, y]` as FRACTIONS of its box from its top-left
+   * (the same convention as `drag`'s `from`/`to`); default its centre. A control whose meaning
+   * is its position — a ruler that seeks to the beat under the pointer, a lane whose
+   * double-click adds a point there — can only be driven at a chosen point with it.
+   */
+  at?: [number, number];
 }
 
 /**

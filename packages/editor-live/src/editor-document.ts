@@ -116,14 +116,19 @@ export class LiveEditorDocument {
    *  — not `element.click()`, which a `pointerdown` listener never sees. */
   async click(
     selector: string,
-    options?: DocumentGestureOptions & { clicks?: number },
+    options?: DocumentGestureOptions & { clicks?: number; at?: [number, number] },
   ): Promise<DocumentProbeResult> {
+    // An option this door does not know is refused, never dropped: a dropped `position` clicked
+    // the element's centre and answered as if it had clicked where it was asked.
+    const unknown = Object.keys(options ?? {}).filter((key) => !['scope', 'index', 'clicks', 'at'].includes(key));
+    if (unknown.length > 0) throw new Error(`click has no option ${unknown.map((key) => `\`${key}\``).join(', ')}; its options are scope, index, clicks and at ([x, y] fractions of the element's box).`);
     return this.#probe({
       action: 'click',
       selector,
       ...(options?.scope === undefined ? {} : { scope: options.scope }),
       ...(options?.index === undefined ? {} : { index: options.index }),
       ...(options?.clicks === undefined ? {} : { clicks: options.clicks }),
+      ...(options?.at === undefined ? {} : { at: options.at }),
     });
   }
 
