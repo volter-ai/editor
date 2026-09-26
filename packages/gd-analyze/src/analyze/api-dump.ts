@@ -138,6 +138,8 @@ export interface GodotApiBuiltinClass {
   }[];
   /** Operator spellings; overload signatures remain in the pinned dump and are not normalized. */
   readonly operators: readonly string[];
+  /** What `value[index]` yields (`Basis` → `Vector3`), where the type is indexable. */
+  readonly indexingReturnType?: string;
 }
 
 /**
@@ -726,6 +728,9 @@ function parseGodot4ApiDump(raw: unknown): GodotApiDump {
       enums,
       hasConstructor: constructors.length > 0,
       constructors,
+      ...(typeof entry['indexing_return_type'] === 'string'
+        ? { indexingReturnType: entry['indexing_return_type'] }
+        : {}),
       operators: [
         ...new Set(
           optionalList(entry, 'operators', at).map((operator, index) => {

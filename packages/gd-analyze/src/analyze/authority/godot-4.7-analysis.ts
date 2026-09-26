@@ -109,6 +109,79 @@ function claim(rule: GodotAnalysisRule): SemanticClaimRecord {
 export const GODOT_4_7_ANALYSIS_CLAIMS: readonly SemanticClaimRecord[] =
   GODOT_4_7_ANALYSIS_RULES.map(claim);
 
+// Receiver typing (`src/analyze/call-receivers.ts`) has its own proof: official Godot's
+// `get_node(path).get_class()` and ClassDB's declaring class for every call the analysis typed.
+const RECEIVER_IDENTITIES = godotProofIdentities('receivers');
+const RECEIVER_RULE_IDS = ['scene-node-receiver', 'classdb-method-selection'] as const;
+
+export const GODOT_4_7_RECEIVER_RULES: readonly GodotAnalysisRule[] = RECEIVER_RULE_IDS.map((id) => ({
+  id,
+  sourceRevision: SOURCE_REVISION,
+  evidenceClaimId: `godot-4.7-analysis-${id}`,
+}));
+
+const receiverSources: Readonly<
+  Record<(typeof RECEIVER_RULE_IDS)[number], Readonly<{ file: string; symbol: string; line: number }>>
+> = {
+  'scene-node-receiver': {
+    file: 'scene/main/node.cpp',
+    symbol: 'Node::get_node_or_null',
+    line: 1904,
+  },
+  'classdb-method-selection': {
+    file: 'core/object/class_db.cpp',
+    symbol: 'ClassDB::get_method',
+    line: 1132,
+  },
+};
+
+export const GODOT_4_7_RECEIVER_CLAIMS: readonly SemanticClaimRecord[] = GODOT_4_7_RECEIVER_RULES.map(
+  (rule) => {
+    const source = receiverSources[rule.id as (typeof RECEIVER_RULE_IDS)[number]];
+    return {
+      registryVersion: 1,
+      claimId: rule.evidenceClaimId,
+      layer: 'analyze',
+      canonicalIdentity: godotAnalysisRuleKey(SOURCE_REVISION, rule.id),
+      godot: {
+        sourceRevision: SOURCE_REVISION,
+        apiDumpSha256: API_DUMP_SHA256,
+        sourceFile: source.file,
+        sourceSymbol: source.symbol,
+        sourceLine: source.line,
+      },
+      native: {
+        executableSha256: NATIVE_EXECUTABLE_SHA256,
+        buildIdentity: 'Godot 4.7-stable official 5b4e0cb0f',
+        inputSha256: RECEIVER_IDENTITIES.input,
+        callsite: 'res://main.gd _ready()',
+        observedOutputSha256: RECEIVER_IDENTITIES.observed,
+      },
+      target: {
+        implementationSha256: RECEIVER_IDENTITIES.implementation,
+        callsite: 'typeCallReceivers(inputs) through bindGodotProject',
+        observedOutputSha256: RECEIVER_IDENTITIES.observed,
+      },
+      comparison: {
+        comparator: 'canonical receiver typing exact equality',
+        tolerance: 'exact',
+        resultSha256: RECEIVER_IDENTITIES.comparison,
+      },
+      reproductionCommand,
+    };
+  },
+);
+
+export const GODOT_4_7_RECEIVER_LIVENESS: readonly GodotAnalysisClaimLiveness[] =
+  GODOT_4_7_RECEIVER_CLAIMS.map((entry) => ({
+    claimId: entry.claimId,
+    sourceRevision: SOURCE_REVISION,
+    apiDumpSha256: API_DUMP_SHA256,
+    executableSha256: NATIVE_EXECUTABLE_SHA256,
+    inputSha256: RECEIVER_IDENTITIES.input,
+    implementationSha256: RECEIVER_IDENTITIES.implementation,
+  }));
+
 export const GODOT_4_7_ANALYSIS_LIVENESS: readonly GodotAnalysisClaimLiveness[] =
   GODOT_4_7_ANALYSIS_CLAIMS.map((entry) => ({
     claimId: entry.claimId,

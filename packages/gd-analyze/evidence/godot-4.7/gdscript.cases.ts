@@ -382,6 +382,30 @@ for (const id of ['member-constant-native', 'member-constant-class', 'member-var
   );
 }
 
+// A Dictionary literal is an insertion-ordered JS Map (godot-compat/dictionary.ts); its keys and
+// values evaluate in source order.
+for (let entries = 0; entries <= 3; entries += 1) {
+  rule(
+    `dictionary-literal-${String(entries)}`,
+    'DICTIONARY',
+    'dictionary-object-literal:PYTHON_DICT',
+    Array.from({ length: entries * 2 }, () => '*'),
+    '*',
+    structural('dictionary-object-literal'),
+    { file: COMPILER, symbol: 'GDScriptCompiler::_parse_expression DICTIONARY', line: 547 },
+  );
+}
+for (const [kind, type] of [
+  ['string', 'BUILTIN:String'],
+  ['string-name', 'BUILTIN:StringName'],
+] as const) {
+  // String and StringName are JS strings (godot-compat/string.ts, dictionary.ts key equality).
+  rule(`literal-${kind}`, 'LITERAL', `literal:${kind}:reduced`, [], type, structural('literal'), {
+    file: COMPILER,
+    symbol: 'GDScriptCompiler::_parse_expression LITERAL',
+    line: 229,
+  });
+}
 // ClassDB integer constants and enum values are their values (the API dump states them).
 for (const [name, result] of [
   ['enum', ENUM],
@@ -444,6 +468,9 @@ const datatypes: GodotLanguageDatatypeDefinition[] = [
   { id: 'datatype-script-class', sourceDatatype: CLASS, targetType: { kind: 'type-reference', name: '$ScriptClass', arguments: [] }, source: { file: 'modules/gdscript/gdscript.h', symbol: 'GDScript (script class instance)', line: 60 } },
   { id: 'datatype-script-class-type', sourceDatatype: 'CLASS:meta:*', targetType: { kind: 'type-reference', name: '$ScriptClass', arguments: [] }, source: { file: 'modules/gdscript/gdscript.h', symbol: 'GDScript (script class as a declared type)', line: 60 } },
   { id: 'datatype-variant', sourceDatatype: 'VARIANT:*', targetType: { kind: 'keyword-type', keyword: 'any' }, source: { file: 'core/variant/variant.h', symbol: 'Variant', line: 91 } },
+  { id: 'datatype-dictionary', sourceDatatype: 'BUILTIN:Dictionary', targetType: { kind: 'type-reference', name: 'Map', arguments: [{ kind: 'keyword-type', keyword: 'unknown' }, { kind: 'keyword-type', keyword: 'unknown' }] }, source: { file: 'core/variant/dictionary.h', symbol: 'Dictionary', line: 45 } },
+  { id: 'datatype-string', sourceDatatype: 'BUILTIN:String', targetType: { kind: 'keyword-type', keyword: 'string' }, source: { file: 'core/string/ustring.h', symbol: 'String', line: 247 } },
+  { id: 'datatype-string-name', sourceDatatype: 'BUILTIN:StringName', targetType: { kind: 'keyword-type', keyword: 'string' }, source: { file: 'core/string/string_name.h', symbol: 'StringName', line: 42 } },
   { id: 'datatype-native', sourceDatatype: NATIVE, targetType: { kind: 'keyword-type', keyword: 'object' }, source: { file: 'core/object/object.h', symbol: 'Object', line: 590 } },
 ];
 
@@ -628,6 +655,29 @@ static func variant_to_vector(u) -> Vector3:
 
 static func variant_return(u) -> Vector3:
 \treturn u
+
+const TABLE := {"x": 1.5, 3: "three"}
+
+static func dictionary_literal(n: int) -> Dictionary:
+\thits = 0
+\tvar d := {"a": n, touch(true): "b", n + 1: touch(false)}
+\treturn d
+
+static func strings() -> String:
+\tvar s := "take"
+\treturn s
+
+static func string_name() -> StringName:
+\treturn &"take"
+
+static func dictionary_empty() -> Dictionary:
+\treturn {}
+
+static func dictionary_one(n: int) -> Dictionary:
+\treturn {"k": n}
+
+static func dictionary_constant() -> Dictionary:
+\treturn TABLE
 
 static func zero() -> float:
 \treturn 0.5
@@ -990,6 +1040,12 @@ add('objects', 'objects', 'Node.new()', () => [{}]);
 add('objects-returned', 'objects_returned', 'Node.new()', () => [{}]);
 add('enum-param', 'enum_param', '4', () => [4]);
 cases.push({ id: 'static-calls', call: 'static_calls', comparator: 'exact' });
+add('dictionary-literal', 'dictionary_literal', '5', () => [5]);
+cases.push({ id: 'dictionary-constant', call: 'dictionary_constant', comparator: 'exact' });
+cases.push({ id: 'strings', call: 'strings', comparator: 'exact' });
+cases.push({ id: 'dictionary-empty', call: 'dictionary_empty', comparator: 'exact' });
+add('dictionary-one', 'dictionary_one', '7', () => [7]);
+cases.push({ id: 'string-name', call: 'string_name', comparator: 'exact' });
 for (const call of ['native_constants', 'while_call']) {
   cases.push({ id: call.replaceAll('_', '-'), call, comparator: 'exact' });
 }

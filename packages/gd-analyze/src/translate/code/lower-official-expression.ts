@@ -49,6 +49,28 @@ export type LowerOfficialParameters = (
 
 const span = officialBoundSpan;
 
+/**
+ * A Dictionary literal: Godot's Dictionary is represented by an insertion-ordered JS `Map`
+ * (`lib/godot-compat/dictionary.ts`), built here from its entries in source order.
+ */
+function dictionaryMap(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  entries: readonly (readonly [TargetTsExpression, TargetTsExpression])[],
+): TargetTsExpression {
+  return {
+    kind: 'new-expression',
+    callee: { kind: 'identifier-expression', name: 'Map' },
+    arguments: [
+      {
+        kind: 'array-expression',
+        elements: entries.map(([key, value]) => ({ kind: 'array-expression', elements: [key, value] })),
+      },
+    ],
+    span: span(context.script, node),
+  };
+}
+
 function literal(
   context: LoweringContext,
   node: GodotBoundNode,
@@ -81,19 +103,12 @@ function literal(
         span: span(context.script, node),
       };
     case 'dictionary':
-      return {
-        kind: 'object-expression',
-        properties: value.value.map((entry) => {
-          if (entry.key.kind !== 'string' && entry.key.kind !== 'string-name') {
-            context.refuse(
-              node,
-              'constant dictionary with non-string keys needs the Dictionary protocol',
-            );
-          }
-          return { key: entry.key.value, value: literal(context, node, entry.value) };
-        }),
-        span: span(context.script, node),
-      };
+      // A Dictionary is an insertion-ordered JS Map (godot-compat/dictionary.ts).
+      return dictionaryMap(
+        context,
+        node,
+        value.value.map((entry) => [literal(context, node, entry.key), literal(context, node, entry.value)] as const),
+      );
     case 'opaque':
       return context.refuse(node, `opaque bound literal ${value.type} has no target binding`);
     default:
@@ -768,30 +783,6 @@ function boundTargetExpression(
   return { kind: 'identifier-expression', name: target.localName };
 }
 
-function dictionaryLiteralKey(
-  context: LoweringContext,
-  keyNode: GodotBoundNode,
-  lowered: LoweredExpression,
-): {
-  readonly key: string | number;
-  readonly requirements: readonly OfficialBoundLoweringRequirement[];
-} {
-  if (keyNode.kind !== 'LITERAL') {
-    context.refuse(keyNode, 'dynamic dictionary keys need the Dictionary protocol');
-  }
-  if (lowered.before.length > 0 || lowered.after.length > 0) {
-    context.refuse(keyNode, 'literal dictionary key unexpectedly requires sequencing');
-  }
-  const key = keyNode.reduced ? keyNode.reducedValue : keyNode.value;
-  if (key.kind !== 'string' && key.kind !== 'string-name' && key.kind !== 'int') {
-    context.refuse(keyNode, 'dictionary key is not a direct object-literal key');
-  }
-  return {
-    key: key.kind === 'int' ? Number(key.value) : key.value,
-    requirements: lowered.requirements,
-  };
-}
-
 function nativeClassBinding(
   context: LoweringContext,
   node: Extract<GodotBoundNode, { kind: 'IDENTIFIER' }>,
@@ -835,8 +826,11 @@ function callSymbol(
     case 'native-static':
       return { ...base, kind: 'native-member' };
     case 'builtin-member':
-    case 'builtin-static':
       return { ...base, kind: 'builtin-member' };
+    case 'builtin-static':
+      // A static built-in method (`Basis.looking_at`) has no receiver: its own symbol kind, and
+      // its binding takes the arguments alone.
+      return { ...base, kind: 'builtin-static' };
     case 'script-self':
     case 'script-class':
       return undefined;
@@ -1086,21 +1080,23 @@ export function lowerOfficialExpression(
           ]),
           `dictionary-object-literal:${node.style}`,
         );
-        const keys = keyNodes.map((keyNode) =>
-          dictionaryLiteralKey(context, keyNode, lowerExpression(context, keyNode)),
-        );
+        // Keys and values evaluate in source order: key, value, key, value.
         return compose(
           context,
-          valueNodes.map((valueNode) => lowerExpression(context, valueNode)),
-          (values) => ({
-            kind: 'object-expression',
-            properties: values.map((value, index) => ({
-              key: (keys[index] as (typeof keys)[number]).key,
-              value,
-            })),
-            span: span(context.script, node),
-          }),
-          [...requirements, ...keys.flatMap((key) => key.requirements)],
+          node.elements.flatMap((_, index) => [
+            lowerExpression(context, keyNodes[index] as GodotBoundNode),
+            lowerExpression(context, valueNodes[index] as GodotBoundNode),
+          ]),
+          (values) =>
+            dictionaryMap(
+              context,
+              node,
+              node.elements.map(
+                (_, index) =>
+                  [values[index * 2] as TargetTsExpression, values[index * 2 + 1] as TargetTsExpression] as const,
+              ),
+            ),
+          requirements,
         );
       }
       case 'UNARY_OPERATOR': {

@@ -17,7 +17,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "abs",
-        "localName": "@GlobalScope_abs",
+        "localName": "GlobalScope_abs",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -38,7 +38,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "absf",
-        "localName": "@GlobalScope_absf",
+        "localName": "GlobalScope_absf",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -59,7 +59,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "sign",
-        "localName": "@GlobalScope_sign",
+        "localName": "GlobalScope_sign",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -80,7 +80,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "signf",
-        "localName": "@GlobalScope_signf",
+        "localName": "GlobalScope_signf",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -101,7 +101,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "round",
-        "localName": "@GlobalScope_round",
+        "localName": "GlobalScope_round",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -122,7 +122,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "deg_to_rad",
-        "localName": "@GlobalScope_deg_to_rad",
+        "localName": "GlobalScope_deg_to_rad",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -143,7 +143,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "log",
-        "localName": "@GlobalScope_log",
+        "localName": "GlobalScope_log",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -164,7 +164,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "linear_to_db",
-        "localName": "@GlobalScope_linear_to_db",
+        "localName": "GlobalScope_linear_to_db",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -248,7 +248,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "atan2",
-        "localName": "@GlobalScope_atan2",
+        "localName": "GlobalScope_atan2",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -269,7 +269,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "clampf",
-        "localName": "@GlobalScope_clampf",
+        "localName": "GlobalScope_clampf",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -290,7 +290,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "clamp",
-        "localName": "@GlobalScope_clamp",
+        "localName": "GlobalScope_clamp",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -311,7 +311,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "lerpf",
-        "localName": "@GlobalScope_lerpf",
+        "localName": "GlobalScope_lerpf",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -332,7 +332,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "lerp",
-        "localName": "@GlobalScope_lerp",
+        "localName": "GlobalScope_lerp",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -353,7 +353,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "lerp_angle",
-        "localName": "@GlobalScope_lerp_angle",
+        "localName": "GlobalScope_lerp_angle",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -374,7 +374,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "remap",
-        "localName": "@GlobalScope_remap",
+        "localName": "GlobalScope_remap",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -395,7 +395,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "max",
-        "localName": "@GlobalScope_max",
+        "localName": "GlobalScope_max",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -416,7 +416,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "min",
-        "localName": "@GlobalScope_min",
+        "localName": "GlobalScope_min",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -437,7 +437,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "minf",
-        "localName": "@GlobalScope_minf",
+        "localName": "GlobalScope_minf",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -458,7 +458,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "wrap",
-        "localName": "@GlobalScope_wrap",
+        "localName": "GlobalScope_wrap",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -479,7 +479,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "randi",
-        "localName": "@GlobalScope_randi",
+        "localName": "GlobalScope_randi",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -500,7 +500,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "seed",
-        "localName": "@GlobalScope_seed",
+        "localName": "GlobalScope_seed",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -521,7 +521,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "randf_range",
-        "localName": "@GlobalScope_randf_range",
+        "localName": "GlobalScope_randf_range",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -542,7 +542,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "randi_range",
-        "localName": "@GlobalScope_randi_range",
+        "localName": "GlobalScope_randi_range",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -563,7 +563,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "randomize",
-        "localName": "@GlobalScope_randomize",
+        "localName": "GlobalScope_randomize",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -584,7 +584,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "is_instance_valid",
-        "localName": "@GlobalScope_is_instance_valid",
+        "localName": "GlobalScope_is_instance_valid",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"
@@ -605,7 +605,7 @@
         "capabilityId": "godot-compat",
         "module": "lib/godot-compat/global-scope",
         "exportName": "str",
-        "localName": "@GlobalScope_str",
+        "localName": "GlobalScope_str",
         "use": {
           "kind": "call",
           "sourceReceiver": "absent"

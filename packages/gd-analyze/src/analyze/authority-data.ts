@@ -8,7 +8,18 @@ import {
   GODOT_4_7_ANALYSIS_CLAIMS,
   GODOT_4_7_ANALYSIS_LIVENESS,
   GODOT_4_7_ANALYSIS_RULES,
+  GODOT_4_7_RECEIVER_CLAIMS,
+  GODOT_4_7_RECEIVER_LIVENESS,
+  GODOT_4_7_RECEIVER_RULES,
 } from './authority/godot-4.7-analysis';
+
+/** What receiver typing runs: the relationship analysis plus `call-receivers.ts`. */
+export const GODOT_RECEIVER_IMPLEMENTATION_FILES = [
+  'src/analyze/api-dump.ts',
+  'src/analyze/bound-project.ts',
+  'src/analyze/call-receivers.ts',
+  'src/read/scene-attachment-index.ts',
+] as const;
 
 export const GODOT_ANALYSIS_IMPLEMENTATION_FILES = [
   'src/analyze/api-dump.ts',
@@ -25,13 +36,19 @@ export function godotAnalysisAuthority(source: GodotSourceAuthority): GodotAnaly
     version: GODOT_ANALYSIS_AUTHORITY_VERSION,
     sourceRevision: source.revision,
     apiDumpSha256: source.apiDumpSha256,
-    rules: supported ? GODOT_4_7_ANALYSIS_RULES : [],
-    claims: supported ? GODOT_4_7_ANALYSIS_CLAIMS : [],
+    rules: supported ? [...GODOT_4_7_ANALYSIS_RULES, ...GODOT_4_7_RECEIVER_RULES] : [],
+    claims: supported ? [...GODOT_4_7_ANALYSIS_CLAIMS, ...GODOT_4_7_RECEIVER_CLAIMS] : [],
     liveness: supported
-      ? withLiveImplementation(
-          GODOT_4_7_ANALYSIS_LIVENESS,
-          packageImplementationDigest(GODOT_ANALYSIS_IMPLEMENTATION_FILES),
-        )
+      ? [
+          ...withLiveImplementation(
+            GODOT_4_7_ANALYSIS_LIVENESS,
+            packageImplementationDigest(GODOT_ANALYSIS_IMPLEMENTATION_FILES),
+          ),
+          ...withLiveImplementation(
+            GODOT_4_7_RECEIVER_LIVENESS,
+            packageImplementationDigest(GODOT_RECEIVER_IMPLEMENTATION_FILES),
+          ),
+        ]
       : [],
   };
 }

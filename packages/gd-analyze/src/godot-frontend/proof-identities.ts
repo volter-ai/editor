@@ -13,6 +13,7 @@ export const GODOT_4_7_PROOF_IDENTITY_DIR = path.join(
 export const GODOT_4_7_PROOF_NAMES = [
   'read',
   'analysis',
+  'receivers',
   'field-values',
   'scene-nodes',
   'lifecycle',

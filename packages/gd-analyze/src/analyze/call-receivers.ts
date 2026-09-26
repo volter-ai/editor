@@ -69,7 +69,7 @@ type ReceiverType =
   | { readonly kind: 'native'; readonly name: string; readonly claims: readonly string[] }
   | { readonly kind: 'unknown'; readonly reason: string };
 
-interface ResolvedSceneNode {
+export interface ResolvedSceneNode {
   readonly className: string;
   readonly documentPath: string;
   readonly pathInDocument: string;
@@ -80,17 +80,22 @@ function childPath(parent: string, name: string): string {
 }
 
 /** Follow one relative node path from an attachment point, as SceneTree lookups do. */
-function resolveScenePath(
+export function resolveScenePath(
   scenes: ReadonlyMap<string, SceneDocument>,
   attachment: CallReceiverAttachment,
   path: string,
 ): ResolvedSceneNode | string {
   const document = scenes.get(attachment.documentPath);
   if (document?.root === undefined) return `scene ${attachment.documentPath} has no readable tree`;
+  /** A node reached on the path; `node` is a tree node, or a line placed into an instance. */
   interface Frame {
-    readonly node: SceneNode;
+    readonly node: Pick<SceneNode, 'name' | 'type' | 'instanceOf' | 'inheritedNode'> & {
+      readonly children: readonly SceneNode[];
+    };
     readonly documentPath: string;
     readonly pathInDocument: string;
+    /** This node's path in every document that encloses it, the attachment's first. */
+    readonly enclosing: readonly { readonly documentPath: string; readonly path: string }[];
   }
   const locate = (root: SceneNode, nodePath: string): SceneNode | undefined => {
     if (nodePath === '.' || nodePath === '') return root;
@@ -102,8 +107,32 @@ function resolveScenePath(
   };
   const start = locate(document.root, attachment.nodePath);
   if (start === undefined) return `attachment ${attachment.nodePath} is not in ${attachment.documentPath}`;
+  // A node a scene copied from the scene it instanced keeps its path there
+  // (`inheritedNode`); nodes that scene places under it are addressed through that path.
+  const withOrigin = (
+    entries: readonly { readonly documentPath: string; readonly path: string }[],
+    node: Pick<SceneNode, 'inheritedNode'>,
+  ) =>
+    node.inheritedNode === undefined ||
+    entries.some((entry) => entry.documentPath === node.inheritedNode?.documentPath)
+      ? entries
+      : [...entries, { documentPath: node.inheritedNode.documentPath, path: node.inheritedNode.nodePath }];
+  // An attachment on an instancing node is also the root of every scene that node instances.
+  const startEnclosing = [...withOrigin([{ documentPath: attachment.documentPath, path: attachment.nodePath }], start)];
+  for (
+    let instanced = start.instanceOf;
+    instanced !== undefined && !startEnclosing.some((entry) => entry.documentPath === instanced);
+    instanced = scenes.get(instanced)?.root?.instanceOf
+  ) {
+    startEnclosing.push({ documentPath: instanced, path: '.' });
+  }
   const stack: Frame[] = [
-    { node: start, documentPath: attachment.documentPath, pathInDocument: attachment.nodePath },
+    {
+      node: start,
+      documentPath: attachment.documentPath,
+      pathInDocument: attachment.nodePath,
+      enclosing: startEnclosing,
+    },
   ];
   if (path.startsWith('/')) return `absolute node path ${path} depends on the running tree`;
   for (const segment of path.split('/')) {
@@ -114,18 +143,61 @@ function resolveScenePath(
       continue;
     }
     const top = stack[stack.length - 1] as Frame;
-    let next = top.node.children.find((child) => child.name === segment);
-    let documentPath = top.documentPath;
-    let pathInDocument = childPath(top.pathInDocument, segment);
-    if (next === undefined && top.node.instanceOf !== undefined) {
-      // An instanced scene or imported model: its root IS this node, its children are this node's.
-      const instanced = scenes.get(top.node.instanceOf);
-      next = instanced?.root?.children.find((child) => child.name === segment);
-      documentPath = top.node.instanceOf;
-      pathInDocument = segment;
+    const deeper = top.enclosing.map((entry) => ({
+      documentPath: entry.documentPath,
+      path: childPath(entry.path, segment),
+    }));
+    const child = top.node.children.find((candidate) => candidate.name === segment);
+    if (child !== undefined) {
+      stack.push({
+        node: child,
+        documentPath: top.documentPath,
+        pathInDocument: childPath(top.pathInDocument, segment),
+        enclosing: withOrigin(deeper, child),
+      });
+      continue;
     }
-    if (next === undefined) return `node path ${path} has no node ${segment}`;
-    stack.push({ node: next, documentPath, pathInDocument });
+    if (top.node.instanceOf !== undefined) {
+      // An instanced scene or imported model: its root IS this node, its children are this node's.
+      const instanced = scenes.get(top.node.instanceOf)?.root?.children.find(
+        (candidate) => candidate.name === segment,
+      );
+      if (instanced !== undefined) {
+        stack.push({
+          node: instanced,
+          documentPath: top.node.instanceOf,
+          pathInDocument: segment,
+          enclosing: [...deeper, { documentPath: top.node.instanceOf, path: segment }],
+        });
+        continue;
+      }
+    }
+    // A node an enclosing scene places under a node of the scene it instanced
+    // (`[node name="RayFloor" parent="Model/Skeleton"]`): Godot adds it as that node's child.
+    let placed: Frame | undefined;
+    for (const entry of top.enclosing) {
+      const line = scenes
+        .get(entry.documentPath)
+        ?.unplacedNodes.find(
+          (candidate) => candidate.parentPath === entry.path && candidate.name === segment,
+        );
+      if (line !== undefined) {
+        placed = {
+          node: {
+            name: line.name,
+            ...(line.type === undefined ? {} : { type: line.type }),
+            ...(line.instanceOf === undefined ? {} : { instanceOf: line.instanceOf }),
+            children: [],
+          },
+          documentPath: entry.documentPath,
+          pathInDocument: childPath(entry.path, segment),
+          enclosing: deeper,
+        };
+        break;
+      }
+    }
+    if (placed === undefined) return `node path ${path} has no node ${segment}`;
+    stack.push(placed);
   }
   const leaf = stack[stack.length - 1] as Frame;
   let className = leaf.node.type;
@@ -225,8 +297,24 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
       }
       return typeOfName((agreed as ResolvedSceneNode).className, [rule]);
     }
+    if (node.kind === 'SUBSCRIPT') {
+      // A built-in's member (`transform.basis`) or index (`basis[2]`) has the type the API dump
+      // states for it (`builtin_classes[].members`, `indexing_return_type`).
+      const base = typeOf(node.base);
+      if (base.kind === 'builtin') {
+        const builtin = builtins.get(base.name);
+        if (node.isAttribute) {
+          const attribute = nodes.get(node.attribute);
+          const name = attribute?.kind === 'IDENTIFIER' ? attribute.name : undefined;
+          const member = builtin?.members.find((entry) => entry.name === name);
+          if (member !== undefined) return typeOfName(member.type, []);
+        } else if (builtin?.indexingReturnType !== undefined) {
+          return typeOfName(builtin.indexingReturnType, []);
+        }
+      }
+    }
     if (node.kind === 'CALL') {
-      const typed = receivers.get(id);
+      const typed = receivers.get(id) ?? typeCall(node);
       if (typed !== undefined) return typeOfName(typed.returnType, typed.evidenceClaimIds);
       const target = node.compilerTarget;
       if (target.kind === 'native-method' || target.kind === 'native-static') {
@@ -248,29 +336,44 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
     };
   };
 
-  // Calls are visited in node-id order; a chained call's inner call has the smaller id, so it is
-  // typed before the call that uses its result.
-  const calls = inputs.program.nodes
-    .filter((node): node is GodotBoundCallNode => node.kind === 'CALL')
-    .filter((node) => node.compilerTarget.kind === 'dynamic' || node.compilerTarget.kind === 'unresolved')
-    .sort((left, right) => left.id - right.id);
-  for (const call of calls) {
+  const untypedReasons = new Map<number, string>();
+  // A dynamic call is typed on demand, so a call whose receiver is another dynamic call's result
+  // types that call first, whatever their node ids.
+  function typeCall(call: GodotBoundCallNode): BoundGodotCallReceiver | undefined {
+    const known = receivers.get(call.id);
+    if (known !== undefined || untypedReasons.has(call.id)) return known;
+    if (call.compilerTarget.kind !== 'dynamic' && call.compilerTarget.kind !== 'unresolved') {
+      return undefined;
+    }
+    untypedReasons.set(call.id, 'a call whose receiver depends on itself');
     const callee = nodes.get(call.callee);
     if (callee?.kind !== 'SUBSCRIPT' || !callee.isAttribute) {
-      untyped.push({ nodeId: call.id, reason: 'a dynamic call without an attribute receiver' });
-      continue;
+      untypedReasons.set(call.id, 'a dynamic call without an attribute receiver');
+      return undefined;
     }
     const selected = select(typeOf(callee.base), call.functionName);
     if (typeof selected === 'string') {
-      untyped.push({ nodeId: call.id, reason: selected });
-      continue;
+      untypedReasons.set(call.id, selected);
+      return undefined;
     }
-    receivers.set(call.id, {
+    untypedReasons.delete(call.id);
+    const typed: BoundGodotCallReceiver = {
       nodeId: call.id,
       target: selected.target,
       returnType: selected.returnType,
       evidenceClaimIds: [...new Set(selected.claims)].sort(),
-    });
+    };
+    receivers.set(call.id, typed);
+    return typed;
+  }
+  const calls = inputs.program.nodes
+    .filter((node): node is GodotBoundCallNode => node.kind === 'CALL')
+    .filter((node) => node.compilerTarget.kind === 'dynamic' || node.compilerTarget.kind === 'unresolved')
+    .sort((left, right) => left.id - right.id);
+  for (const call of calls) typeCall(call);
+  for (const call of calls) {
+    const reason = untypedReasons.get(call.id);
+    if (reason !== undefined) untyped.push({ nodeId: call.id, reason });
   }
   return {
     receivers: [...receivers.values()].sort((left, right) => left.nodeId - right.nodeId),

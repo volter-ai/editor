@@ -10,6 +10,7 @@ import type { GodotCodeRuleRecipe } from '../translate/code/lowering-rules';
 
 export type GodotEvidenceSymbolKind =
   | 'builtin-member'
+  | 'builtin-static'
   | 'builtin-constructor'
   | 'builtin-constant'
   | 'builtin-member-set'

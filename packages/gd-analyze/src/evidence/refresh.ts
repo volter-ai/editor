@@ -19,6 +19,7 @@ import { measureLanguageProof } from './proofs/language';
 import { measureLifecycleProof } from './proofs/lifecycle';
 import type { GodotProofMeasurement, GodotProofTools } from './proofs/proof';
 import { measureReadProof } from './proofs/read';
+import { measureReceiverProof } from './proofs/receivers';
 import { measureSceneNodeProof } from './proofs/scene-nodes';
 import {
   GODOT_4_7_OFFICIAL_EXECUTABLE_SHA256,
@@ -30,6 +31,7 @@ import {
 const PROOFS: readonly (readonly [string, (tools: GodotProofTools) => readonly GodotProofMeasurement[]])[] = [
   ['read', measureReadProof],
   ['analysis', measureAnalysisProof],
+  ['receivers', measureReceiverProof],
   ['field-values', measureFieldValueProof],
   ['scene-nodes', measureSceneNodeProof],
   ['code-seed', measureCodeSeedProof],

@@ -9,6 +9,8 @@ export interface GodotOfficialSymbolIdentity {
     | 'native-member'
     | 'builtin-constructor'
     | 'builtin-member'
+    /** A static method of a built-in type (`Basis.looking_at`), called without a receiver. */
+    | 'builtin-static'
     /** `left <op> right` on a built-in left operand: owner is the left type, member the
      *  `Variant::Operator` name, signature `right:<type>` or `unary`. */
     | 'builtin-operator'

@@ -773,6 +773,12 @@ function bindingSymbol(
 ): GodotOfficialSymbolIdentity {
   const base = { sourceRevision: pins.source.revision, owner: symbol.owner, member: symbol.member };
   switch (symbol.kind) {
+    case 'builtin-static':
+      return {
+        ...base,
+        kind: 'builtin-static',
+        signature: `hash:${String(apiMethodHash(pins.apiDumpFile, symbol.owner, symbol.member))}`,
+      };
     case 'builtin-member':
       return {
         ...base,
@@ -816,6 +822,7 @@ function bindingUse(kind: GodotEvidenceSymbol['kind']): GodotTargetBindingUse {
     case 'native-member':
       return { kind: 'call', sourceReceiver: 'first-argument' };
     case 'builtin-constructor':
+    case 'builtin-static':
     case 'builtin-operator':
     case 'utility-function':
     case 'singleton-member':
@@ -935,7 +942,8 @@ async function runCompatEvidence(
         capabilityId: 'godot-compat',
         module: evidence.compatModule,
         exportName: compat.exportName,
-        localName: `${symbol.owner}_${compat.exportName}`,
+        // A lexical name: `@GlobalScope` contributes `GlobalScope`.
+        localName: `${symbol.owner.replace(/[^$\w]/g, '')}_${compat.exportName}`,
         use: bindingUse(first.symbol.kind),
         evidenceClaimId: claimId,
       },
