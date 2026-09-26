@@ -10,10 +10,8 @@
  * Ownership, stated in one place (the build rule):
  *  - OWNER: this function. It resolves the answer; nothing else derives it.
  *  - SHARERS: the three-root adapter (`world3d-react/r3f-root-factory.tsx`),
- *    which seeds live render vitals only
- *    under it, and the `static-batch` capability's mutation watch and `Frozen`
- *    warning. Any future dev-only instrument calls this too, with its own
- *    `override`.
+ *    which seeds live render vitals only under it. Any future dev-only
+ *    instrument calls this too, with its own `override`.
  *  - TEARDOWN: none. This is a pure predicate over build config and one
  *    caller-supplied argument — it owns no resource, allocates nothing, and
  *    has no lifecycle to end.

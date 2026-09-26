@@ -18,7 +18,7 @@
  *   - `visible`, restored to `true` by the game: it thinks it is showing.
  *
  * ── COST, AND WHY IT IS A TIMER ─────────────────────────────────────────────
- * ~1 Hz, and only under {@link devBuildEnabled}. A per-frame check would be a
+ * ~1 Hz, and only in a dev build (`import.meta.env.DEV`). A per-frame check would be a
  * real cost added by a feature whose entire job is removing cost; a `Proxy` or
  * accessor trap over every node would change the objects the game is holding.
  * A second of latency on a diagnostic nobody is waiting for is free, and 4,000
@@ -37,7 +37,6 @@
  * it warns. Idempotent.
  */
 
-import { devBuildEnabled } from '@volter/game-runtime/runtime/dev-build';
 import type * as THREE from 'three';
 import type { FrozenBatch } from './freeze';
 
@@ -104,7 +103,7 @@ export function watchFrozenMutations(
   } = {},
 ): FrozenMutationWatch {
   const warn = options.warn ?? warnOnConsole;
-  if (!devBuildEnabled(options.dev) || batch.sources.length === 0) {
+  if (!(options.dev ?? import.meta.env.DEV) || batch.sources.length === 0) {
     return { stop: () => {} };
   }
 

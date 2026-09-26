@@ -94,10 +94,10 @@ Rules:
   compile against them). The TypeScript compiler still runs over project source in 6 kit modules,
   and the Play purpose lives here too (`gameplay-*`, `play-boot-phase`, `reported-play-state`,
   `scoped-game-css`, the game globals shadow, `play-stall`).
-- On the code side, gameplay modules import nothing of the editor. Three places do:
-  `src/main.ts` mounts the standalone game through `@volter/game-runtime`'s manifest
-  runtime; `src/lib/audio/sfx.ts` types its mute hook against `@volter/editor-project`;
-  game entry modules export `systems` and `debug` for the editor host.
+- On the code side, gameplay modules import nothing of the editor, and the standalone boot
+  (`src/main.ts`) mounts each root in its own library. Two places still face the editor:
+  `src/lib/audio/sfx.ts` implements `@volter/editor-project`'s `AudioAdapter` for the entry's
+  `systems.audio`, and game entry modules export `systems` and `debug` for the editor host.
 - `@volter/editor-threejs` shares 17 files with `@volter/threejs-runtime`: 15 byte for byte, and
   `ecs/user-data.ts` and `adapter/ingest/scene-capture.ts` each naming their own package's types.
   That is the modeling release boundary's cost (modeling depends on no game-runtime package);
