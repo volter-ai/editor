@@ -76,6 +76,8 @@ interface NodeState {
   processPriority: number;
   physicsProcessPriority: number;
   ready: SignalHandle<[]>;
+  treeEntered: SignalHandle<[]>;
+  treeExiting: SignalHandle<[]>;
   internalPhysics: ((delta: number) => void) | undefined;
 }
 
@@ -118,6 +120,8 @@ function fresh(): NodeState {
     processPriority: 0,
     physicsProcessPriority: 0,
     ready: createSignal<[]>(),
+    treeEntered: createSignal<[]>(),
+    treeExiting: createSignal<[]>(),
     internalPhysics: undefined,
   };
 }
@@ -324,6 +328,7 @@ function propagateEnterTree(entity: object): void {
   const state = stateOf(entity);
   state.insideTree = true;
   state.binding?.enterTree?.();
+  state.treeEntered.emit();
   for (const child of [...childEntities(entity)]) {
     if (!(NODE.get(child)?.insideTree ?? false)) propagateEnterTree(child);
   }
@@ -355,6 +360,7 @@ function propagateExitTree(entity: object): void {
   }
   const state = stateOf(entity);
   state.binding?.exitTree?.();
+  state.treeExiting.emit();
   state.readyNotified = false;
   state.insideTree = false;
 }
@@ -756,6 +762,18 @@ export function request_ready(self: object): void {
  */
 export function godot_node_ready_signal(self: object): GodotSignal<[]> {
   return nodeState(self, 'ready').ready.signal;
+}
+
+/**
+ * The built-in `tree_entered` (after `_enter_tree`, before the children enter) and `tree_exiting`
+ * (after the children and `_exit_tree`, before the node leaves) signals of the node.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:364
+ */
+export function godot_node_tree_signal(self: object, name: 'tree_entered' | 'tree_exiting'): GodotSignal<[]> {
+  const state = nodeState(self, name);
+  return (name === 'tree_entered' ? state.treeEntered : state.treeExiting).signal;
 }
 
 // --- The mounted scene forest.

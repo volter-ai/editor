@@ -15,6 +15,7 @@ import type { World } from '@dimforge/rapier3d-compat';
 import {
   godot_collision_objects_step,
   godot_collision_objects_reset,
+  godot_collision_objects_settle,
   godot_collision_objects_sync,
   godot_collision_objects_transforms_changed,
 } from './collision-object-3d';
@@ -38,7 +39,8 @@ const stepHandlers: ((world: World, delta: number) => void)[] = [];
 
 /**
  * Registers a physics module's callbacks: `flush` after bodies are synced in each step's
- * `flush_queries`, `step` before Rapier's step (`main/main.cpp:4986`, `:5031`).
+ * `flush_queries`, `step` after the shapes and kinematic bodies are updated and before Rapier
+ * integrates (`main/main.cpp:4986`, `:5031`).
  *
  * @godot World3D (protocol)
  * @source main/main.cpp:4986
@@ -69,8 +71,9 @@ export function godot_world_3d_attach(world: World): World3D {
     },
     step: (delta: number) => {
       godot_collision_objects_sync(world);
+      godot_collision_objects_step(world);
       for (const handler of stepHandlers) handler(world, delta);
-      godot_collision_objects_step();
+      godot_collision_objects_settle();
       world.timestep = delta;
       world.step();
     },

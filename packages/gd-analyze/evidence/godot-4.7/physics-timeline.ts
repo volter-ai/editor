@@ -7,6 +7,7 @@
  */
 import RAPIER from '@dimforge/rapier3d-compat';
 import { Group, Object3D, Scene } from 'three';
+import * as AREA from '../../capabilities/catalog/project-source/src/lib/godot-compat/area-3d';
 import * as BOX from '../../capabilities/catalog/project-source/src/lib/godot-compat/box-shape-3d';
 import * as CAP from '../../capabilities/catalog/project-source/src/lib/godot-compat/capsule-shape-3d';
 import * as CO from '../../capabilities/catalog/project-source/src/lib/godot-compat/collision-object-3d';
@@ -19,6 +20,7 @@ import * as DSS from '../../capabilities/catalog/project-source/src/lib/godot-co
 import * as RQ from '../../capabilities/catalog/project-source/src/lib/godot-compat/physics-ray-query-parameters-3d';
 import * as PS from '../../capabilities/catalog/project-source/src/lib/godot-compat/physics-server-3d';
 import * as RC from '../../capabilities/catalog/project-source/src/lib/godot-compat/ray-cast-3d';
+import * as STATIC from '../../capabilities/catalog/project-source/src/lib/godot-compat/static-body-3d';
 import * as SPHERE from '../../capabilities/catalog/project-source/src/lib/godot-compat/sphere-shape-3d';
 import * as ST from '../../capabilities/catalog/project-source/src/lib/godot-compat/scene-tree';
 import * as V from '../../capabilities/catalog/project-source/src/lib/godot-compat/vector3';
@@ -46,6 +48,8 @@ export type Op =
       readonly rotation?: Triple;
       readonly layer?: number;
       readonly mask?: number;
+      /** Built but not added to the tree (an `add` op adds it later). */
+      readonly detached?: boolean;
     }
   | { readonly raycast: string; readonly parent?: string; readonly at?: Triple; readonly target?: Triple; readonly mask?: number; readonly areas?: boolean; readonly excludeParent?: boolean }
   | { readonly move: string; readonly at: Triple }
@@ -60,6 +64,10 @@ export type Op =
   | { readonly disable: string; readonly index: number; readonly on: boolean }
   | { readonly reshape: string; readonly index: number; readonly shape: Shape | null }
   | { readonly remove: string }
+  | { readonly add: string; readonly to?: string }
+  | { readonly watch: string }
+  | { readonly monitoring: string; readonly on: boolean }
+  | { readonly mark: string }
   | { readonly read: Read };
 
 export type Read =
@@ -69,6 +77,9 @@ export type Read =
   | readonly ['rayTarget', string]
   | readonly ['shapeDisabled', string, number]
   | readonly ['shapeNull', string, number]
+  | readonly ['overlapping', string]
+  | readonly ['overlaps', string, string]
+  | readonly ['monitoring', string]
   | readonly ['layer', string]
   | readonly ['mask', string]
   | readonly ['layerBit', string, number]
@@ -154,6 +165,12 @@ function gdRead(read: Read): string[] {
       return [`log.append(${v(read[1])}.get_child(${String(read[2])}).is_disabled())`];
     case 'shapeNull':
       return [`log.append(${v(read[1])}.get_child(${String(read[2])}).get_shape() == null)`];
+    case 'overlapping':
+      return [`log.append(${v(read[1])}.get_overlapping_bodies().map(func(b): return String(b.name)))`, `log.append(${v(read[1])}.has_overlapping_bodies())`];
+    case 'overlaps':
+      return [`log.append(${v(read[1])}.overlaps_body(${v(read[2])}))`];
+    case 'monitoring':
+      return [`log.append(${v(read[1])}.is_monitoring())`];
     case 'layer':
       return [`log.append(${v(read[1])}.get_collision_layer())`];
     case 'mask':
@@ -184,7 +201,7 @@ function gdOp(op: Op): string[] {
     if (op.rotation !== undefined) lines.push(`${v(op.body)}.rotation = ${gv(op.rotation)}`);
     if (op.layer !== undefined) lines.push(`${v(op.body)}.collision_layer = ${String(op.layer)}`);
     if (op.mask !== undefined) lines.push(`${v(op.body)}.collision_mask = ${String(op.mask)}`);
-    lines.push(`${op.parent === undefined ? 'holder' : v(op.parent)}.add_child(${v(op.body)})`);
+    if (op.detached !== true) lines.push(`${op.parent === undefined ? 'holder' : v(op.parent)}.add_child(${v(op.body)})`);
     return lines;
   }
   if ('raycast' in op) {
@@ -212,6 +229,15 @@ function gdOp(op: Op): string[] {
     return [...gdShape(name, op.shape), `${v(op.reshape)}.get_child(${String(op.index)}).set_shape(${name})`];
   }
   if ('disable' in op) return [`${v(op.disable)}.get_child(${String(op.index)}).set_disabled(${String(op.on)})`];
+  if ('add' in op) return [`${op.to === undefined ? 'holder' : v(op.to)}.add_child(${v(op.add)})`];
+  if ('watch' in op) {
+    return [
+      `${v(op.watch)}.body_entered.connect(func(b): log.append(["in", ${gs(op.watch)}, String(b.name)]))`,
+      `${v(op.watch)}.body_exited.connect(func(b): log.append(["out", ${gs(op.watch)}, String(b.name)]))`,
+    ];
+  }
+  if ('monitoring' in op) return [`${v(op.monitoring)}.monitoring = ${String(op.on)}`];
+  if ('mark' in op) return [`log.append(${gs(op.mark)})`];
   if ('remove' in op) return [`${v(op.remove)}.get_parent().remove_child(${v(op.remove)})`];
   return gdRead(op.read);
 }
@@ -287,6 +313,15 @@ function target(segments: readonly Segment[]): () => unknown {
         case 'shapeNull':
           log.push(CS.get_shape(node(r[1]).children[r[2]] as object) === null);
           return;
+        case 'overlapping':
+          log.push(AREA.get_overlapping_bodies(node(r[1])).map((b) => N.get_name(b)), AREA.has_overlapping_bodies(node(r[1])));
+          return;
+        case 'overlaps':
+          log.push(AREA.overlaps_body(node(r[1]), node(r[2])));
+          return;
+        case 'monitoring':
+          log.push(AREA.is_monitoring(node(r[1])));
+          return;
         case 'layer':
           log.push(CO.get_collision_layer(node(r[1])));
           return;
@@ -307,7 +342,9 @@ function target(segments: readonly Segment[]): () => unknown {
       if ('body' in op) {
         const body = new Object3D();
         body.name = op.body;
-        CO.godot_collision_object_adopt(body, op.kind);
+        if (op.kind === 'area') AREA.godot_area_3d_adopt(body);
+        else if (op.kind === 'static') STATIC.godot_static_body_3d_adopt(body);
+        else CO.godot_collision_object_adopt(body, op.kind);
         for (const entry of op.shapes) {
           const cs = new Object3D();
           CS.godot_collision_shape_3d_adopt(cs);
@@ -321,7 +358,7 @@ function target(segments: readonly Segment[]): () => unknown {
         if (op.rotation !== undefined) N3.set_rotation(body, V.construct(...op.rotation));
         if (op.layer !== undefined) CO.set_collision_layer(body, op.layer);
         if (op.mask !== undefined) CO.set_collision_mask(body, op.mask);
-        N.add_child(op.parent === undefined ? holder : node(op.parent), body);
+        if (op.detached !== true) N.add_child(op.parent === undefined ? holder : node(op.parent), body);
         nodes.set(op.body, body);
       } else if ('raycast' in op) {
         const ray = new Object3D();
@@ -344,6 +381,13 @@ function target(segments: readonly Segment[]): () => unknown {
       else if ('maskBit' in op) CO.set_collision_mask_value(node(op.maskBit), op.bit, op.on);
       else if ('reshape' in op) CS.set_shape(node(op.reshape).children[op.index] as object, op.shape === null ? null : jsShape(op.shape));
       else if ('disable' in op) CS.set_disabled(node(op.disable).children[op.index] as object, op.on);
+      else if ('add' in op) N.add_child(op.to === undefined ? holder : node(op.to), node(op.add));
+      else if ('watch' in op) {
+        const area = node(op.watch);
+        AREA.godot_area_3d_signal(area, 'body_entered').connect((b) => log.push(['in', op.watch, N.get_name(b)]));
+        AREA.godot_area_3d_signal(area, 'body_exited').connect((b) => log.push(['out', op.watch, N.get_name(b)]));
+      } else if ('monitoring' in op) AREA.set_monitoring(node(op.monitoring), op.on);
+      else if ('mark' in op) log.push(op.mark);
       else if ('remove' in op) N.remove_child(node(op.remove).parent as object, node(op.remove));
       else read(op.read);
     };

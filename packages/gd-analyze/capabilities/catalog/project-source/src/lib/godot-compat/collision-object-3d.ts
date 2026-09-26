@@ -58,6 +58,13 @@ interface ObjectState {
   inverse: Transform3D;
   /** A kinematic body's transform set since the last step, applied when the space steps. */
   pending: Transform3D | undefined;
+  /**
+   * Its transform, shapes, layer or mask changed since the last step (an area in the space's
+   * moved list, `GodotArea3D::_shapes_changed`, `godot_area_3d.cpp:58`).
+   */
+  moved: boolean;
+  /** A kinematic body that moved in this step (in the space's active list, `godot_body_3d.cpp:705`). */
+  active: boolean;
   readonly exceptions: Set<object>;
 }
 
@@ -88,6 +95,8 @@ export function godot_collision_object_adopt(entity: object, kind: CollisionObje
     transform: transform3d(),
     inverse: transform3d(),
     pending: undefined,
+    moved: false,
+    active: false,
     exceptions: new Set(),
   });
 }
@@ -119,6 +128,8 @@ export function godot_collision_object_state(entity: object):
       readonly colliders: readonly CollisionShapeEntry[];
       readonly transform: Transform3D;
       readonly inverse: Transform3D;
+      readonly moved: boolean;
+      readonly active: boolean;
     }
   | undefined {
   return OBJECT.get(godot_node_entity(entity));
@@ -194,6 +205,16 @@ function updateShapes(state: ObjectState): void {
   for (const entry of state.colliders) if (!entry.disabled) entry.inBroadphase = true;
 }
 
+/**
+ * A new layer or mask reaches the server as `_shape_changed` (`godot_collision_object_3d.h:155`):
+ * shapes updated at once, and an area put in the moved list.
+ */
+function shapeChanged(state: ObjectState): void {
+  if (state.body === undefined) return;
+  updateShapes(state);
+  state.moved = true;
+}
+
 function removeBody(world: World, state: ObjectState): void {
   for (const entry of state.colliders) {
     if (entry.collider !== undefined) ENTITY_OF_COLLIDER.delete(entry.collider.handle);
@@ -215,6 +236,7 @@ export function godot_collision_object_place(entity: object, global: Transform3D
   if (state?.body === undefined) return;
   state.transform = global;
   state.inverse = affine_inverse(global);
+  state.moved = true;
   // A static body's or area's new transform updates its shapes at once (`_set_transform`,
   // `godot_collision_object_3d.h:86`).
   if (state.kind === 'static' || state.kind === 'area') updateShapes(state);
@@ -237,6 +259,7 @@ function syncShapes(world: World, entity: object, state: ObjectState): void {
     const entry = state.colliders[index] as CollisionShapeEntry;
     if (current(entry)) continue;
     for (const later of state.colliders.slice(index)) later.inBroadphase = false;
+    state.moved = true;
     dropCollider(world, entry);
     state.colliders.splice(index, 1);
     index -= 1;
@@ -249,15 +272,18 @@ function syncShapes(world: World, entity: object, state: ObjectState): void {
       const local = get_transform(child);
       entry = { shapeNode: child, shape: shapeState.shape, local, localInverse: affine_inverse(local), disabled: shapeState.disabled, inBroadphase: false, collider: undefined, key: '' };
       state.colliders.push(entry);
+      state.moved = true;
     }
     if (entry.disabled !== shapeState.disabled) {
       entry.disabled = shapeState.disabled;
+      state.moved = true;
       if (entry.disabled) entry.inBroadphase = false;
     }
     const local = get_transform(child);
     if (JSON.stringify(local) !== JSON.stringify(entry.local)) {
       entry.local = local;
       entry.localInverse = affine_inverse(local);
+      state.moved = true;
     }
     const described = godot_shape_3d_collider(entry.shape);
     const key = `${described.key}|${JSON.stringify(entry.local)}|${state.kind}`;
@@ -266,6 +292,7 @@ function syncShapes(world: World, entity: object, state: ObjectState): void {
       continue;
     }
     if (entry.collider !== undefined && entry.key === key) continue;
+    if (entry.collider !== undefined) state.moved = true;
     dropCollider(world, entry);
     described.desc
       .setTranslation(entry.local.origin.x, entry.local.origin.y, entry.local.origin.z)
@@ -298,6 +325,7 @@ export function godot_collision_objects_sync(world: World): void {
       // space registers every shape (`GodotCollisionObject3D::_set_space`).
       state.body = world.createRigidBody(bodyDesc(state.kind));
       godot_collision_object_place(entity);
+      state.moved = true;
     }
     syncShapes(world, entity, state);
     if (entering) updateShapes(state);
@@ -334,13 +362,36 @@ export function godot_collision_objects_transforms_changed(): void {
  * @godot CollisionObject3D (protocol)
  * @source modules/godot_physics_3d/godot_physics_server_3d.cpp:1679
  */
-export function godot_collision_objects_step(): void {
+export function godot_collision_objects_step(world: World): void {
   for (const state of OBJECT.values()) updateShapes(state);
   for (const [entity, state] of OBJECT) {
+    state.active = state.pending !== undefined;
     if (state.pending === undefined) continue;
     godot_collision_object_place(entity, state.pending);
     state.pending = undefined;
   }
+  world.propagateModifiedBodyPositionsToColliders();
+}
+
+/**
+ * The space's moved list is emptied once its areas' pairs are set up (`godot_step_3d.cpp:258`).
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source modules/godot_physics_3d/godot_step_3d.cpp:258
+ */
+export function godot_collision_objects_settle(): void {
+  for (const state of OBJECT.values()) state.moved = false;
+}
+
+/**
+ * Puts an area in the space's moved list (`set_monitor_callback`, `godot_area_3d.cpp:103`).
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source modules/godot_physics_3d/godot_area_3d.cpp:103
+ */
+export function godot_collision_object_touch(entity: object): void {
+  const state = OBJECT.get(godot_node_entity(entity));
+  if (state !== undefined) state.moved = true;
 }
 
 /**
@@ -350,7 +401,9 @@ export function godot_collision_objects_step(): void {
  * @source scene/3d/physics/collision_object_3d.cpp:145
  */
 export function set_collision_layer(self: object, layer: number): void {
-  stateOf(self, 'set_collision_layer').layer = layer >>> 0;
+  const state = stateOf(self, 'set_collision_layer');
+  state.layer = layer >>> 0;
+  shapeChanged(state);
 }
 
 /**
@@ -366,7 +419,9 @@ export function get_collision_layer(self: object): number {
  * @source scene/3d/physics/collision_object_3d.cpp:158
  */
 export function set_collision_mask(self: object, mask: number): void {
-  stateOf(self, 'set_collision_mask').mask = mask >>> 0;
+  const state = stateOf(self, 'set_collision_mask');
+  state.mask = mask >>> 0;
+  shapeChanged(state);
 }
 
 /**
@@ -388,6 +443,7 @@ export function set_collision_layer_value(self: object, layer_number: number, va
   const state = stateOf(self, 'set_collision_layer_value');
   const bit = (1 << (layer_number - 1)) >>> 0;
   state.layer = (value ? state.layer | bit : state.layer & ~bit) >>> 0;
+  shapeChanged(state);
 }
 
 /**
@@ -410,6 +466,7 @@ export function set_collision_mask_value(self: object, layer_number: number, val
   const state = stateOf(self, 'set_collision_mask_value');
   const bit = (1 << (layer_number - 1)) >>> 0;
   state.mask = (value ? state.mask | bit : state.mask & ~bit) >>> 0;
+  shapeChanged(state);
 }
 
 /**
