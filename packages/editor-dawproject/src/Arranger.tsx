@@ -449,6 +449,12 @@ export function Arranger(props: {
 
   // THE TEMPO LANE: a `<Points target="tempo">` in the `<Transport>`, one point at bar 1 holding
   // the transport's tempo, drawn and edited in the Tempo row from then on.
+  /** How many group tracks a track sits in. */
+  const depthOf = (track: PieceTrack): number => {
+    let depth = 0;
+    for (let parent = track.parent; parent !== null; depth++) parent = piece.tracks.find((candidate) => candidate.id === parent)?.parent ?? null;
+    return depth;
+  };
   /** The mixer parameters a track can automate and has no lane for yet, with the level each starts at. */
   const missingLanes = (track: PieceTrack): { target: string; value: number }[] => {
     const channel = track.channel;
@@ -604,7 +610,8 @@ export function Arranger(props: {
               display: 'flex',
               alignItems: 'center',
               gap: 6,
-              padding: '0 8px',
+              // A track inside a group stands indented under it, as Bitwig draws a group's contents.
+              padding: `0 8px 0 ${8 + 12 * depthOf(track)}px`,
               cursor: 'pointer',
               borderBottom: `1px solid ${themeVars.boundary.default}`,
               background: track.id === props.selectedTrack ? themeVars.surface.raised : 'transparent',
@@ -614,7 +621,9 @@ export function Arranger(props: {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.name}</div>
               <div style={small}>
-                {props.voiceless.has(track.id)
+                {track.channel?.role === 'submix'
+                  ? `group · ${track.channel.volume} dB`
+                  : props.voiceless.has(track.id)
                   ? 'no instrument'
                   : `${track.channel?.volume ?? 0} dB · ${track.channel?.devices.map((device) => device.name ?? device.plugin).join(', ') ?? ''}`}
               </div>

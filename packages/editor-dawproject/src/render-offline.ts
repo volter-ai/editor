@@ -12,7 +12,7 @@ import { perform } from '@volter/dawproject/perform';
 import type { Piece } from '@volter/dawproject/piece';
 import { notePatches } from './articulations';
 import { roundRobins } from './sfz-bank';
-import { type DynamicsReport, type ImpulseResponse, mix, soloActive } from './mix/offline-mix';
+import { type DynamicsReport, type ImpulseResponse, mix, soloActive, stripLevels } from './mix/offline-mix';
 import { MIDIBuilder, SoundBankLoader, SpessaSynthProcessor } from 'spessasynth_core';
 
 const PPQ = 480;
@@ -57,7 +57,8 @@ export function assignChannels(piece: Piece): Map<string, TrackAssignment> {
 export function audibleTracks(piece: Piece): Piece['tracks'] {
   const assignments = assignChannels(piece);
   const soloed = soloActive(piece);
-  return piece.tracks.filter((track) => assignments.has(track.id) && !track.channel?.mute && (!soloed || track.channel?.solo));
+  // The mixes' own rule (`stripLevels`): a solo on a group solos what it contains.
+  return piece.tracks.filter((track) => assignments.has(track.id) && stripLevels(piece, track, soloed).sounding);
 }
 
 /**

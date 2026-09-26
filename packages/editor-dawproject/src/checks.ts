@@ -188,6 +188,13 @@ export function checkPiece(piece: Piece, banks?: ReadonlyMap<string, BasicSoundB
         problems.push(`${track.name}: ${skipped} of the equalizer's ${count} bands ${skipped === 1 ? 'is' : 'are'} not played (each needs a type of highPass, lowPass, lowShelf, highShelf or bell, a freq above 0, and a q above 0 if it has one)`);
       }
     }
+    const children = piece.tracks.filter((other) => other.parent === track.id);
+    if (track.channel?.role === 'submix' && children.length === 0) {
+      problems.push(`${track.name}: a group channel (role="submix") with no tracks inside its <Track>, so nothing sums into it`);
+    }
+    if (children.length > 0 && track.channel?.role !== 'submix') {
+      problems.push(`${track.name}: holds ${children.map((child) => child.name).join(', ')}, but its channel is not role="submix", so they play straight to the master and its strip passes nothing`);
+    }
     for (const lane of track.lanes) {
       const target = mixTarget(lane.target);
       if (!target) {

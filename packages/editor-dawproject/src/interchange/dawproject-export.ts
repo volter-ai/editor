@@ -21,7 +21,8 @@
 import { strToU8, zipSync } from 'fflate';
 import packageJson from '../../package.json';
 import { assignChannels } from '../render-offline';
-import type { Piece, PiecePoints } from '@volter/dawproject/piece';
+import type { Piece, PiecePoints, PieceTrack } from '@volter/dawproject/piece';
+import { destinationOf } from '../mix/offline-mix';
 
 export interface DawprojectOptions {
   readonly title: string;
@@ -77,12 +78,16 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
   const pieceMaster = piece.tracks.find((track) => track.channel?.role === 'master');
   const masterId = pieceMaster ? channelIds.get(pieceMaster.id)! : 'master';
   const busIds = new Map(piece.tracks.filter((track) => track.channel?.role === 'effect').map((track) => [track.name, channelIds.get(track.id)!]));
-  for (const track of piece.tracks) {
+  // A group track (`submix`) holds the tracks it sums, as DAWproject nests them; each of those
+  // routes to the group's channel.
+  const emitTrack = (track: PieceTrack): void => {
     const trackId = trackIds.get(track.id)!;
     const channel = track.channel;
     const role = channel?.role ?? 'regular';
-    out(2, `<Track${attrs({ id: trackId, name: track.name, color: track.color, contentType: role === 'regular' ? 'notes' : 'audio', loaded: true })}>`);
-    out(3, `<Channel${attrs({ id: channelIds.get(track.id), role, audioChannels: 2, destination: role === 'master' ? null : masterId, solo: channel?.solo ?? false })}>`);
+    const group = destinationOf(piece, track);
+    const contentType = role === 'regular' ? 'notes' : role === 'submix' ? 'tracks' : 'audio';
+    out(2, `<Track${attrs({ id: trackId, name: track.name, color: track.color, contentType, loaded: true })}>`);
+    out(3, `<Channel${attrs({ id: channelIds.get(track.id), role, audioChannels: 2, destination: role === 'master' ? null : group ? channelIds.get(group.id) : masterId, solo: channel?.solo ?? false })}>`);
     if (channel && channel.devices.length > 0) {
       out(4, '<Devices>');
       for (const device of channel.devices) {
@@ -130,8 +135,10 @@ export function pieceToProjectXml(piece: Piece, options: DawprojectOptions): str
     params.set('volume', volumeId);
     out(4, `<Volume${attrs({ id: volumeId, name: 'Volume', unit: 'linear', value: beats(10 ** ((channel?.volume ?? 0) / 20)), min: 0, max: 2 })}/>`);
     out(3, '</Channel>');
+    for (const child of piece.tracks.filter((candidate) => candidate.parent === track.id)) emitTrack(child);
     out(2, '</Track>');
-  }
+  };
+  for (const track of piece.tracks.filter((candidate) => candidate.parent === null)) emitTrack(track);
   if (!pieceMaster) {
     out(2, `<Track${attrs({ id: id(), name: 'Master', contentType: 'audio notes', loaded: true })}>`);
     out(3, `<Channel${attrs({ id: masterId, role: 'master', audioChannels: 2 })}>`);

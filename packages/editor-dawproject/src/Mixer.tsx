@@ -105,7 +105,8 @@ export function Mixer(props: {
   readonly onMessage: (message: string | null) => void;
 }) {
   const { piece } = props;
-  const order = (track: PieceTrack): number => ({ regular: 0, effect: 1, master: 2 })[track.channel?.role ?? 'regular'];
+  // A group's strip stands after the tracks it sums, as a console's group faders do.
+  const order = (track: PieceTrack): number => ({ regular: 0, submix: 1, effect: 2, master: 3 })[track.channel?.role ?? 'regular'];
   const strips = piece.tracks.filter((track) => track.channel).sort((a, b) => order(a) - order(b));
   return (
     <div tabIndex={-1} style={{ outline: 'none', display: 'flex', height: '100%', overflowX: 'auto', background: themeVars.surface.panel }}>

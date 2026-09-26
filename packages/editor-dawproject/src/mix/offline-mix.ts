@@ -97,7 +97,28 @@ function runDevices(track: PieceTrack, signal: Stereo, inputs: MixInputs): Stere
  * master has nothing to be soloed against, so a `solo` written there is ignored by both mixes.
  */
 export function soloActive(piece: Piece): boolean {
-  return piece.tracks.some((track) => (track.channel?.role ?? 'regular') === 'regular' && track.channel?.solo === true);
+  return piece.tracks.some((track) => {
+    const role = track.channel?.role ?? 'regular';
+    return (role === 'regular' || role === 'submix') && track.channel?.solo === true;
+  });
+}
+
+/** The group tracks a track sits in, innermost first. */
+export function ancestors(piece: Piece, track: PieceTrack): PieceTrack[] {
+  const out: PieceTrack[] = [];
+  for (let parent = track.parent; parent !== null; ) {
+    const group = piece.tracks.find((candidate) => candidate.id === parent);
+    if (!group) break;
+    out.push(group);
+    parent = group.parent;
+  }
+  return out;
+}
+
+/** Where a strip's output goes: its group's input when it sits in a `submix` track, else the master sum. */
+export function destinationOf(piece: Piece, track: PieceTrack): PieceTrack | null {
+  const group = ancestors(piece, track)[0];
+  return group?.channel?.role === 'submix' ? group : null;
 }
 
 /**
@@ -110,7 +131,12 @@ export function soloActive(piece: Piece): boolean {
 export function stripLevels(piece: Piece, track: PieceTrack, soloed = soloActive(piece)): { sounding: boolean; fader: number; pan: number; sends: number[] } {
   const channel = track.channel;
   if (!channel) return { sounding: false, fader: 0, pan: 0, sends: [] };
-  const sounding = channel.role === 'regular' ? !channel.mute && (!soloed || channel.solo) : !channel.mute;
+  // A solo on a group solos everything in it; a group sounds while anything inside it is soloed.
+  const soloedHere = (): boolean =>
+    channel.solo ||
+    ancestors(piece, track).some((group) => group.channel?.solo === true) ||
+    (channel.role === 'submix' && piece.tracks.some((other) => other.channel?.solo === true && ancestors(piece, other).includes(track)));
+  const sounding = channel.role === 'regular' || channel.role === 'submix' ? !channel.mute && (!soloed || soloedHere()) : !channel.mute;
   return {
     sounding,
     fader: sounding ? dbToGain(channel.volume) : 0,
@@ -149,6 +175,15 @@ export function mix(piece: Piece, inputs: MixInputs): Stereo {
   const master = silence();
   const busInput = new Map<string, Stereo>();
   const soloed = soloActive(piece);
+  // Each group track's input: the strips it contains sum here instead of into the master.
+  const groupInput = new Map<string, Stereo>();
+  const destination = (track: PieceTrack): Stereo => {
+    const group = destinationOf(piece, track);
+    if (!group) return master;
+    const input = groupInput.get(group.id) ?? silence();
+    groupInput.set(group.id, input);
+    return input;
+  };
   const sendTo = (track: PieceTrack, levels: readonly number[], signal: Stereo, pre: boolean): void => {
     (track.channel?.sends ?? []).forEach((send, index) => {
       if (send.pre !== pre) return;
@@ -178,7 +213,23 @@ export function mix(piece: Piece, inputs: MixInputs): Stereo {
     fader(track, signal, levels.fader);
     panStage(track, signal, levels.pan);
     sendTo(track, levels.sends, signal, false);
-    addInto(master, signal);
+    addInto(destination(track), signal);
+  }
+  // Group tracks, innermost first: the sum of what they contain, through their own strips, into
+  // their own group or the master.
+  const groups = piece.tracks
+    .filter((track) => track.channel?.role === 'submix')
+    .sort((a, b) => ancestors(piece, b).length - ancestors(piece, a).length);
+  for (const track of groups) {
+    const levels = stripLevels(piece, track, soloed);
+    const input = groupInput.get(track.id);
+    if (!levels.sounding || !input) continue;
+    const signal = runDevices(track, input, inputs);
+    sendTo(track, levels.sends, signal, true);
+    fader(track, signal, levels.fader);
+    panStage(track, signal, levels.pan);
+    sendTo(track, levels.sends, signal, false);
+    addInto(destination(track), signal);
   }
   // Effect buses: what was sent to them, through their own strips.
   for (const track of piece.tracks) {

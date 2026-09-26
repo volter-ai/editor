@@ -68,7 +68,8 @@ export default function Theme() {
 - `vel` 0–1; `volume` and send `level` in dB; `pan` −1…1.
 - Instruments: `params.program` 0–127 (General MIDI), `params.drums: true` for percussion.
 - Channels: `role="effect"` is a bus that `<Send to="…">` feeds; `role="master"` is the last
-  stage. Devices on any channel, in order: `equalizer` (`bands: [{ type, freq, gain, q }]`,
+  stage; `role="submix"` makes a GROUP: the `<Track>`s written inside that `<Track>` sum into its
+  strip (its devices, sends, fader, pan) instead of the master, and a solo on it solos them all. Devices on any channel, in order: `equalizer` (`bands: [{ type, freq, gain, q }]`,
   types `highPass lowPass lowShelf highShelf bell`), `compressor` (`threshold ratio attack
   release knee makeup`), `limiter` (`ceiling release`), `convolution` (`ir predelay wet`).
 - Code that generates notes spells them with `formatAt(beats, beatsPerBar)` and

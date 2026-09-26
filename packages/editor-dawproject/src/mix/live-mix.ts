@@ -22,7 +22,7 @@ import type { Piece, PieceTrack } from '@volter/dawproject/piece';
 import { prepareIr } from './convolve';
 import { AUTOMATION_GRID, automationCurve, laneFor, mixTarget } from './automation';
 import { biquadNode, validBands } from './dsp';
-import { soloActive, stripLevels } from './offline-mix';
+import { destinationOf, soloActive, stripLevels } from './offline-mix';
 import workletUrl from './dynamics.worklet.ts?worker&url';
 
 export type IrLoader = (path: string) => Promise<AudioBuffer>;
@@ -251,15 +251,9 @@ export class LiveMix {
         this.strip(graph, piece, track, soloed, output).connect(masterSum);
         busHeads.set(track.name, input);
       }
-      for (const track of piece.tracks) {
-        const channel = channelOf.get(track.id);
-        if (channel === undefined || (track.channel?.role ?? 'regular') !== 'regular') continue;
+      // A strip's sends, pre-fader from its chain's output, post-fader from its panner.
+      const wireSends = (track: PieceTrack, output: AudioNode, panner: AudioNode, sends: (GainNode | null)[]): void => {
         const levels = stripLevels(piece, track, soloed);
-        const [input, output] = await this.chain(track, graph.nodes);
-        graph.heads[channel]?.connect(input);
-        const sends: (GainNode | null)[] = [];
-        const panner = this.strip(graph, piece, track, soloed, output, sends);
-        panner.connect(masterSum);
         (track.channel?.sends ?? []).forEach((send, index) => {
           const bus = busHeads.get(send.to);
           if (!bus) {
@@ -272,6 +266,33 @@ export class LiveMix {
           (send.pre ? output : panner).connect(level).connect(bus);
           sends.push(level);
         });
+      };
+      // Group tracks' chains first, so the strips they contain have their inputs to go to.
+      const groupChains = new Map<string, [AudioNode, AudioNode]>();
+      for (const track of piece.tracks) {
+        if (track.channel?.role === 'submix') groupChains.set(track.id, await this.chain(track, graph.nodes));
+      }
+      const destination = (track: PieceTrack): AudioNode => {
+        const group = destinationOf(piece, track);
+        return (group && groupChains.get(group.id)?.[0]) ?? masterSum;
+      };
+      for (const track of piece.tracks) {
+        const chain = groupChains.get(track.id);
+        if (!chain) continue;
+        const sends: (GainNode | null)[] = [];
+        const panner = this.strip(graph, piece, track, soloed, chain[1], sends);
+        panner.connect(destination(track));
+        wireSends(track, chain[1], panner, sends);
+      }
+      for (const track of piece.tracks) {
+        const channel = channelOf.get(track.id);
+        if (channel === undefined || (track.channel?.role ?? 'regular') !== 'regular') continue;
+        const [input, output] = await this.chain(track, graph.nodes);
+        graph.heads[channel]?.connect(input);
+        const sends: (GainNode | null)[] = [];
+        const panner = this.strip(graph, piece, track, soloed, output, sends);
+        panner.connect(destination(track));
+        wireSends(track, output, panner, sends);
       }
       const masterTrack = piece.tracks.find((track) => track.channel?.role === 'master');
       if (masterTrack) {

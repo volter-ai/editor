@@ -61,10 +61,11 @@ export interface TrackProps {
 /**
  * DAWproject `Channel`: the mixer strip. `volume` is in decibels, `pan` in −1…1. `role` is the
  * schema's: `regular` (a track's own strip, the default), `effect` (a bus other channels send to,
- * such as a reverb), or `master` (the one strip everything ends in).
+ * such as a reverb), `submix` (a group track's strip: the tracks inside that `<Track>` sum into
+ * it), or `master` (the one strip everything ends in).
  */
 export interface ChannelProps {
-  readonly role?: 'regular' | 'effect' | 'master';
+  readonly role?: 'regular' | 'effect' | 'master' | 'submix';
   readonly volume?: number;
   readonly pan?: number;
   readonly mute?: boolean;

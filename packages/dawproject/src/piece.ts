@@ -90,7 +90,8 @@ export interface PieceSend {
 
 export interface PieceChannel {
   readonly oid: string | null;
-  readonly role: 'regular' | 'effect' | 'master';
+  /** `submix`: a group track's channel, summing the tracks it contains (DAWproject's role). */
+  readonly role: 'regular' | 'effect' | 'master' | 'submix';
   readonly volume: number;
   readonly pan: number;
   readonly mute: boolean;
@@ -111,6 +112,8 @@ export interface PieceTrack {
    * any clip): `volume` and `send:<bus>` in dB, `pan` −1…1. Points in piece time.
    */
   readonly lanes: readonly PiecePoints[];
+  /** The group track this one sits in (its `submix` channel sums this track), or `null`. */
+  readonly parent: string | null;
 }
 
 export interface PieceMarker {
@@ -188,72 +191,81 @@ export function readPiece(root: DawNode): Piece {
   const tracks: PieceTrack[] = [];
   const markers: PieceMarker[] = [];
   let length = 0;
+  /**
+   * A track, and (after it) every track it contains: a group's children sum into its strip, the
+   * group's channel `role="submix"`. `parent` is the group track's id.
+   */
+  const readTrack = (node: DawNode, trackId: string, parent: string | null): void => {
+    const trackName = str(node.props['name']) ?? `Track ${tracks.length + 1}`;
+    let channel: PieceChannel | null = null;
+    const clips: PieceClip[] = [];
+    const trackLanes: PiecePoints[] = [];
+    node.children.forEach((child, childIndex) => {
+      if (child.type === 'Channel') {
+        const role = str(child.props['role']);
+        channel = {
+          oid: child.oid,
+          role: role === 'effect' || role === 'master' || role === 'submix' ? role : 'regular',
+          sends: child.children
+            .filter((send) => send.type === 'Send')
+            .map((send) => ({ oid: send.oid, to: str(send.props['to']) ?? '', level: num(send.props['level'], 0), pre: bool(send.props['pre']) })),
+          volume: num(child.props['volume'], 0),
+          pan: num(child.props['pan'], 0),
+          mute: bool(child.props['mute']),
+          solo: bool(child.props['solo']),
+          devices: child.children
+            .filter((device) => device.type === 'Device')
+            .map((device, deviceIndex) => ({
+              id: `${trackId}:device:${deviceIndex}`,
+              oid: device.oid,
+              plugin: str(device.props['plugin']) ?? '',
+              name: str(device.props['name']),
+              params: (device.props['params'] ?? {}) as Record<string, DeviceParam>,
+            })),
+        };
+      } else if (child.type === 'Clip') {
+        const clipId = `${trackId}:clip:${childIndex}`;
+        const clipName = str(child.props['name']);
+        const where = `<Clip${clipName ? ` "${clipName}"` : ''}> on ${trackName}`;
+        const time = position(child.props['at'], where);
+        const duration = num(child.props['bars'], 0) * beatsPerBar;
+        const notes: PieceNote[] = child.children
+          .filter((note) => note.type === 'Note')
+          .map((note, noteIndex) => {
+            const writtenPitch = String(note.props['pitch'] ?? '');
+            const writtenDur = note.props['dur'];
+            const start = position(note.props['at'], `A <Note> in ${where}`);
+            return {
+              id: `${clipId}:note:${noteIndex}`,
+              oid: note.oid,
+              start,
+              time: start - time,
+              duration: beatsOf(typeof writtenDur === 'number' ? writtenDur : String(writtenDur ?? '')),
+              pitch: midiOf(writtenPitch),
+              vel: num(note.props['vel'], 0.7),
+              artic: str(note.props['artic']),
+              written: { at: String(note.props['at'] ?? ''), pitch: writtenPitch, dur: String(writtenDur ?? '') },
+            };
+          });
+        const lanes = child.children
+          .filter((lane) => lane.type === 'Points')
+          .map((lane, laneIndex) => readLane(lane, `${clipId}:lane:${laneIndex}`, where));
+        length = Math.max(length, time + duration);
+        clips.push({ id: clipId, oid: child.oid, name: clipName, time, duration, notes, lanes });
+      } else if (child.type === 'Points') {
+        trackLanes.push(readLane(child, `${trackId}:lane:${childIndex}`, `<Track "${trackName}">`));
+      }
+    });
+    tracks.push({ id: trackId, oid: node.oid, name: trackName, color: str(node.props['color']), channel, clips, lanes: trackLanes, parent });
+    for (const [childIndex, child] of node.children.entries()) {
+      if (child.type === 'Track') readTrack(child, `${trackId}/track:${childIndex}`, trackId);
+    }
+  };
   root.children.forEach((node, index) => {
     if (node.type === 'Marker') {
       markers.push({ id: `marker:${index}`, oid: node.oid, time: position(node.props['at'], 'A <Marker>'), name: str(node.props['name']) ?? '' });
     } else if (node.type === 'Track') {
-      const trackId = `track:${index}`;
-      const trackName = str(node.props['name']) ?? `Track ${tracks.length + 1}`;
-      let channel: PieceChannel | null = null;
-      const clips: PieceClip[] = [];
-      const trackLanes: PiecePoints[] = [];
-      node.children.forEach((child, childIndex) => {
-        if (child.type === 'Channel') {
-          const role = str(child.props['role']);
-          channel = {
-            oid: child.oid,
-            role: role === 'effect' || role === 'master' ? role : 'regular',
-            sends: child.children
-              .filter((send) => send.type === 'Send')
-              .map((send) => ({ oid: send.oid, to: str(send.props['to']) ?? '', level: num(send.props['level'], 0), pre: bool(send.props['pre']) })),
-            volume: num(child.props['volume'], 0),
-            pan: num(child.props['pan'], 0),
-            mute: bool(child.props['mute']),
-            solo: bool(child.props['solo']),
-            devices: child.children
-              .filter((device) => device.type === 'Device')
-              .map((device, deviceIndex) => ({
-                id: `${trackId}:device:${deviceIndex}`,
-                oid: device.oid,
-                plugin: str(device.props['plugin']) ?? '',
-                name: str(device.props['name']),
-                params: (device.props['params'] ?? {}) as Record<string, DeviceParam>,
-              })),
-          };
-        } else if (child.type === 'Clip') {
-          const clipId = `${trackId}:clip:${childIndex}`;
-          const clipName = str(child.props['name']);
-          const where = `<Clip${clipName ? ` "${clipName}"` : ''}> on ${trackName}`;
-          const time = position(child.props['at'], where);
-          const duration = num(child.props['bars'], 0) * beatsPerBar;
-          const notes: PieceNote[] = child.children
-            .filter((note) => note.type === 'Note')
-            .map((note, noteIndex) => {
-              const writtenPitch = String(note.props['pitch'] ?? '');
-              const writtenDur = note.props['dur'];
-              const start = position(note.props['at'], `A <Note> in ${where}`);
-              return {
-                id: `${clipId}:note:${noteIndex}`,
-                oid: note.oid,
-                start,
-                time: start - time,
-                duration: beatsOf(typeof writtenDur === 'number' ? writtenDur : String(writtenDur ?? '')),
-                pitch: midiOf(writtenPitch),
-                vel: num(note.props['vel'], 0.7),
-                artic: str(note.props['artic']),
-                written: { at: String(note.props['at'] ?? ''), pitch: writtenPitch, dur: String(writtenDur ?? '') },
-              };
-            });
-          const lanes = child.children
-            .filter((lane) => lane.type === 'Points')
-            .map((lane, laneIndex) => readLane(lane, `${clipId}:lane:${laneIndex}`, where));
-          length = Math.max(length, time + duration);
-          clips.push({ id: clipId, oid: child.oid, name: clipName, time, duration, notes, lanes });
-        } else if (child.type === 'Points') {
-          trackLanes.push(readLane(child, `${trackId}:lane:${childIndex}`, `<Track "${trackName}">`));
-        }
-      });
-      tracks.push({ id: trackId, oid: node.oid, name: trackName, color: str(node.props['color']), channel, clips, lanes: trackLanes });
+      readTrack(node, `track:${index}`, null);
     }
   });
   return { transport: withTempo, tracks, markers, length, oidCounts };
