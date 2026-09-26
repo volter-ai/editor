@@ -54,6 +54,8 @@ const RUNTIME_PACKAGES = new Set(['@volter/editor-project', '@volter/threejs-run
 const NOT_SERVED = new Set([
   'vite', 'colyseus', '@colyseus/ws-transport', '@pm2/io', 'ztrack',
   '@volter/game-live', '@volter/editor-blender', '@volter/blender-engine',
+  // A piece is authored in the editor and ships as its render (OGG), never as code.
+  '@volter/dawproject', '@volter/editor-dawproject',
 ]);
 
 const missing = [...imported].filter((name) => !loaded.has(name) && !RUNTIME_PACKAGES.has(name) && !NOT_SERVED.has(name));

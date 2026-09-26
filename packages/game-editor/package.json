@@ -55,6 +55,8 @@
     "@volter/editor-threejs": "0.5.66",
     "@volter/editor-xstate": "0.5.66",
     "@volter/editor-blender": "0.1.9",
+    "@volter/dawproject": "0.5.66",
+    "@volter/editor-dawproject": "0.5.66",
     "@volter/blender-engine": "0.1.8",
     "@volter/editor-project": "0.5.66",
     "@volter/editor-sdk": "0.5.66",
