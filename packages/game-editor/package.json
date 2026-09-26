@@ -43,8 +43,8 @@
       "displayName": "Volter Game Editor",
       "colorTheme": "dark",
       "workbench": {
-        "release": "game-editor-50214fb55829-d6291378dcab-darwin-arm64",
-        "tarballSha256": "2611a6171fa8177a8a29d2e9c6bb459511fcc2b0b115100ab072413ed1ec28c8"
+        "release": "game-editor-50214fb55829-360d88f4efa6-darwin-arm64",
+        "tarballSha256": "0672af59a4d014b362e45592e54d25a58ab74a8cda39a1e83db11bd73efb3f2b"
       }
     }
   },
