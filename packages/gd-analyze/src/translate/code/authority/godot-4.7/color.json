@@ -1,0 +1,483 @@
+{
+  "implementation": {
+    "kind": "compat-module",
+    "module": "lib/godot-compat/color"
+  },
+  "bindings": [
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Color",
+        "member": "Color",
+        "kind": "builtin-constructor",
+        "signature": "unhashed"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/color",
+        "exportName": "construct",
+        "localName": "Color_construct",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "absent"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Color.Color"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Color",
+        "member": "GRAY",
+        "kind": "builtin-constant",
+        "signature": "constant"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/color",
+        "exportName": "GRAY",
+        "localName": "Color_GRAY",
+        "use": {
+          "kind": "value"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Color.GRAY"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Color",
+        "member": "r",
+        "kind": "builtin-member-set",
+        "signature": "set"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/color",
+        "exportName": "with_r",
+        "localName": "Color_with_r",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Color.r.set"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Color",
+        "member": "g",
+        "kind": "builtin-member-set",
+        "signature": "set"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/color",
+        "exportName": "with_g",
+        "localName": "Color_with_g",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Color.g.set"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Color",
+        "member": "b",
+        "kind": "builtin-member-set",
+        "signature": "set"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/color",
+        "exportName": "with_b",
+        "localName": "Color_with_b",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Color.b.set"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "owner": "Color",
+        "member": "a",
+        "kind": "builtin-member-set",
+        "signature": "set"
+      },
+      "target": {
+        "kind": "compat-binding",
+        "capabilityId": "godot-compat",
+        "module": "lib/godot-compat/color",
+        "exportName": "with_a",
+        "localName": "Color_with_a",
+        "use": {
+          "kind": "call",
+          "sourceReceiver": "first-argument"
+        },
+        "evidenceClaimId": "godot-4.7-binding-Color.a.set"
+      }
+    }
+  ],
+  "rules": [],
+  "datatypes": [
+    {
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "sourceDatatype": "BUILTIN:Color",
+      "targetType": {
+        "kind": "type-reference",
+        "name": "Color",
+        "arguments": []
+      },
+      "typeImport": {
+        "module": "lib/godot-compat/color",
+        "exportName": "Color"
+      },
+      "evidenceClaimId": "godot-4.7-datatype-Color"
+    }
+  ],
+  "claims": [
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Color.Color",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-constructor\u0000Color\u0000Color\u0000unhashed",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/color.h",
+        "sourceSymbol": "Color.Color",
+        "sourceLine": 258
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "a56f3dc62ae95220a2ef8e97a9d42e96ed0587a120dd4959cee0c0e23ffec741",
+        "callsite": "res://probe.gd _init() construct-empty construct-rgba-black construct-rgb-black construct-copy-black construct-alpha-black construct-rgba-decimals construct-rgb-decimals construct-copy-decimals construct-alpha-decimals construct-rgba-over-range construct-rgb-over-range construct-copy-over-range construct-alpha-over-range construct-rgba-tiny construct-rgb-tiny construct-copy-tiny construct-alpha-tiny construct-rgba-huge construct-rgb-huge construct-copy-huge construct-alpha-huge construct-rgba-nan construct-rgb-nan construct-copy-nan construct-alpha-nan",
+        "observedOutputSha256": "f9bbd5501ac4568b3b849ec9eebf4c998fe7054e3fee29174eaf29b7874048f2"
+      },
+      "target": {
+        "implementationSha256": "c1815fd8d8e7b36a3f4cfc880a17c772c993d1fc9623603a8bb0540b23b8cae7",
+        "callsite": "lib/godot-compat/color.ts construct",
+        "observedOutputSha256": "66f6aabc8d4ae509bc9f7f56fc77aa9cc055904f3f0538db36d9b599e1c81a91"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3ea9e3726c556be8ff1001be89d9069bf9002764ba5ec0b462f286d954b054da"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "color",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Color.GRAY",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-constant\u0000Color\u0000GRAY\u0000constant",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/color_names.inc",
+        "sourceSymbol": "Color.GRAY",
+        "sourceLine": 100
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "4828bc6e07862b793fc5f04d8016bf72db6674ce1ccf515075face21ace22422",
+        "callsite": "res://probe.gd _init() constant-gray",
+        "observedOutputSha256": "89d517302a197433a50c36bb7645edb366e835e239ce938168fe494ec3f348fa"
+      },
+      "target": {
+        "implementationSha256": "c1815fd8d8e7b36a3f4cfc880a17c772c993d1fc9623603a8bb0540b23b8cae7",
+        "callsite": "lib/godot-compat/color.ts GRAY",
+        "observedOutputSha256": "dc4710cea6e42edcf1d6b6e9853e75a93f1906733eef2dcd8bf0707347f596cd"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "09469629324d0c5024b2767942ddbe39b87d9fe99e27344eba3c84ee104af0ad"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "color",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Color.r.set",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member-set\u0000Color\u0000r\u0000set",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/color.h",
+        "sourceSymbol": "Color.r",
+        "sourceLine": 42
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "b6f2143524807d0cab5902edace7a768561fa9c33554f62e03d9f02cbc70a359",
+        "callsite": "res://probe.gd _init() with_r-black-0.1 with_r-black--2.5 with_r-black-1e+39 with_r-decimals-0.1 with_r-decimals--2.5 with_r-decimals-1e+39 with_r-over-range-0.1 with_r-over-range--2.5 with_r-over-range-1e+39 with_r-tiny-0.1 with_r-tiny--2.5 with_r-tiny-1e+39 with_r-huge-0.1 with_r-huge--2.5 with_r-huge-1e+39 with_r-nan-0.1 with_r-nan--2.5 with_r-nan-1e+39",
+        "observedOutputSha256": "88f082ed7929215aa14cc0916bd5089792f0dfac1ed52c638531801dc10b1ee2"
+      },
+      "target": {
+        "implementationSha256": "c1815fd8d8e7b36a3f4cfc880a17c772c993d1fc9623603a8bb0540b23b8cae7",
+        "callsite": "lib/godot-compat/color.ts with_r",
+        "observedOutputSha256": "e7c562673948a4fc5159a09fc6ec14d74f26d70d176aed877a9e4e1a06e824d7"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "d6af66f45256e299427dcdea737ecc25ceb7580a146f495bc828077b9da82db7"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "color",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Color.g.set",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member-set\u0000Color\u0000g\u0000set",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/color.h",
+        "sourceSymbol": "Color.g",
+        "sourceLine": 43
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "9d35879648dab84949f293b4bb6206247ddf3de343e6d8e1915fe726ab09a725",
+        "callsite": "res://probe.gd _init() with_g-black-0.1 with_g-black--2.5 with_g-black-1e+39 with_g-decimals-0.1 with_g-decimals--2.5 with_g-decimals-1e+39 with_g-over-range-0.1 with_g-over-range--2.5 with_g-over-range-1e+39 with_g-tiny-0.1 with_g-tiny--2.5 with_g-tiny-1e+39 with_g-huge-0.1 with_g-huge--2.5 with_g-huge-1e+39 with_g-nan-0.1 with_g-nan--2.5 with_g-nan-1e+39",
+        "observedOutputSha256": "5d6a8ecc2cc3e6651937f4719adbe230b5e8af4a1d8c1546cd44179eb0dfbb82"
+      },
+      "target": {
+        "implementationSha256": "c1815fd8d8e7b36a3f4cfc880a17c772c993d1fc9623603a8bb0540b23b8cae7",
+        "callsite": "lib/godot-compat/color.ts with_g",
+        "observedOutputSha256": "7ae22c94c2564af18ec7867bdb2848c12b8279ea8333e2b7eb120d741d9546c5"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "3b5264dec2cf9a2822e0b657b7c8e7e03cdf74e30ea9eecfeb94c654cd83dd1e"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "color",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Color.b.set",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member-set\u0000Color\u0000b\u0000set",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/color.h",
+        "sourceSymbol": "Color.b",
+        "sourceLine": 44
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "e15dfea5e3c9e4fd4abbc3c24a0bb472ac479de87298b076f03d5983043b395a",
+        "callsite": "res://probe.gd _init() with_b-black-0.1 with_b-black--2.5 with_b-black-1e+39 with_b-decimals-0.1 with_b-decimals--2.5 with_b-decimals-1e+39 with_b-over-range-0.1 with_b-over-range--2.5 with_b-over-range-1e+39 with_b-tiny-0.1 with_b-tiny--2.5 with_b-tiny-1e+39 with_b-huge-0.1 with_b-huge--2.5 with_b-huge-1e+39 with_b-nan-0.1 with_b-nan--2.5 with_b-nan-1e+39",
+        "observedOutputSha256": "6ad15fff38cb8d4fb2c00eefca1aac9962af2a0ccddee8cd24c7c93df1c72305"
+      },
+      "target": {
+        "implementationSha256": "c1815fd8d8e7b36a3f4cfc880a17c772c993d1fc9623603a8bb0540b23b8cae7",
+        "callsite": "lib/godot-compat/color.ts with_b",
+        "observedOutputSha256": "f288533e18c6dffe586c7f854bbcd706448b299804fd79923f97039f1c95dd26"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "6f9844e6bfd37c57007c2b4c43ce0f216f002d9403665c30a1198f9b8dced11d"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "color",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-binding-Color.a.set",
+      "layer": "binding",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000builtin-member-set\u0000Color\u0000a\u0000set",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/math/color.h",
+        "sourceSymbol": "Color.a",
+        "sourceLine": 45
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "731375dc67ca2a3bbe91f7eb48e2dd4d32e9b64ff51acbd37cd06c6e6d47952f",
+        "callsite": "res://probe.gd _init() with_a-black-0.1 with_a-black--2.5 with_a-black-1e+39 with_a-decimals-0.1 with_a-decimals--2.5 with_a-decimals-1e+39 with_a-over-range-0.1 with_a-over-range--2.5 with_a-over-range-1e+39 with_a-tiny-0.1 with_a-tiny--2.5 with_a-tiny-1e+39 with_a-huge-0.1 with_a-huge--2.5 with_a-huge-1e+39 with_a-nan-0.1 with_a-nan--2.5 with_a-nan-1e+39",
+        "observedOutputSha256": "3148e70bf97079b1c69d3b14f9879e7bc1983a285c189567ebba76a112944792"
+      },
+      "target": {
+        "implementationSha256": "c1815fd8d8e7b36a3f4cfc880a17c772c993d1fc9623603a8bb0540b23b8cae7",
+        "callsite": "lib/godot-compat/color.ts with_a",
+        "observedOutputSha256": "2d799519e628fb191ce6240481f3fb29547571aaebe140772db0617dab149293"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "203548f065e29cc4fa703877f3b3e8d8501c152e647f7ddfd92e709cfab69be1"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "color",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    },
+    {
+      "registryVersion": 1,
+      "claimId": "godot-4.7-datatype-Color",
+      "layer": "translate-code",
+      "canonicalIdentity": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88\u0000datatype\u0000BUILTIN:Color",
+      "godot": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+        "sourceFile": "core/variant/variant.h",
+        "sourceSymbol": "Variant::COLOR",
+        "sourceLine": 123
+      },
+      "native": {
+        "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+        "buildIdentity": "Godot 4.7.stable.official.5b4e0cb0f",
+        "inputSha256": "f2eecff08daf0d83c40dec0356c4060c69a19f13bfdcb8805a1a98966f578b65",
+        "callsite": "res://probe.gd _init() every case",
+        "observedOutputSha256": "25ce991670f7df273de8c567fbaf1fd1fd20b77d0313bdf33e763a81ac0cabcf"
+      },
+      "target": {
+        "implementationSha256": "c1815fd8d8e7b36a3f4cfc880a17c772c993d1fc9623603a8bb0540b23b8cae7",
+        "callsite": "lib/godot-compat/color.ts Color",
+        "observedOutputSha256": "c554aaff5bc0133fb306dc76c058fca3ae627ea0187aab0b38cac9db30a8738b"
+      },
+      "comparison": {
+        "comparator": "typed float64-bit JSON: exact",
+        "tolerance": "exact",
+        "resultSha256": "f642aace9b37c685582594e1d754bd6d1c0b94cd65aea75d78bb916d2b5d2ae0"
+      },
+      "reproductionCommand": [
+        "npx",
+        "tsx",
+        "packages/gd-analyze/src/cli.ts",
+        "evidence",
+        "color",
+        "--official-binary",
+        "/Volumes/PeakSSD/volter-work/tools/godot-4.7-stable-official/Godot.app/Contents/MacOS/Godot"
+      ]
+    }
+  ],
+  "liveness": [
+    {
+      "claimId": "godot-4.7-binding-Color.Color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "a56f3dc62ae95220a2ef8e97a9d42e96ed0587a120dd4959cee0c0e23ffec741",
+      "implementationSha256": "c1815fd8d8e7b36a3f4cfc880a17c772c993d1fc9623603a8bb0540b23b8cae7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Color.GRAY",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "4828bc6e07862b793fc5f04d8016bf72db6674ce1ccf515075face21ace22422",
+      "implementationSha256": "c1815fd8d8e7b36a3f4cfc880a17c772c993d1fc9623603a8bb0540b23b8cae7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Color.r.set",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "b6f2143524807d0cab5902edace7a768561fa9c33554f62e03d9f02cbc70a359",
+      "implementationSha256": "c1815fd8d8e7b36a3f4cfc880a17c772c993d1fc9623603a8bb0540b23b8cae7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Color.g.set",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "9d35879648dab84949f293b4bb6206247ddf3de343e6d8e1915fe726ab09a725",
+      "implementationSha256": "c1815fd8d8e7b36a3f4cfc880a17c772c993d1fc9623603a8bb0540b23b8cae7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Color.b.set",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "e15dfea5e3c9e4fd4abbc3c24a0bb472ac479de87298b076f03d5983043b395a",
+      "implementationSha256": "c1815fd8d8e7b36a3f4cfc880a17c772c993d1fc9623603a8bb0540b23b8cae7"
+    },
+    {
+      "claimId": "godot-4.7-binding-Color.a.set",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "731375dc67ca2a3bbe91f7eb48e2dd4d32e9b64ff51acbd37cd06c6e6d47952f",
+      "implementationSha256": "c1815fd8d8e7b36a3f4cfc880a17c772c993d1fc9623603a8bb0540b23b8cae7"
+    },
+    {
+      "claimId": "godot-4.7-datatype-Color",
+      "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+      "apiDumpSha256": "53d37f85be32b6d10fb2266ca51f6ef0c3a55728acdb7c8301b1458a93c00943",
+      "executableSha256": "445c6f95030e2ca767dd921be1e91bd99e50c3703f91d22a22cd31216c93a80f",
+      "inputSha256": "f2eecff08daf0d83c40dec0356c4060c69a19f13bfdcb8805a1a98966f578b65",
+      "implementationSha256": "c1815fd8d8e7b36a3f4cfc880a17c772c993d1fc9623603a8bb0540b23b8cae7"
+    }
+  ]
+}
