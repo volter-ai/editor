@@ -21,6 +21,7 @@
   ],
   "exports": {
     "./contributions/*": "./contributions/*",
+    "./render-piece": "./src/render-piece.ts",
     "./package.json": "./package.json"
   },
   "scripts": {
